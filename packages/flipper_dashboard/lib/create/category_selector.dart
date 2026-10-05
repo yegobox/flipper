@@ -1,4 +1,5 @@
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
@@ -22,14 +23,11 @@ class CategorySelector extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     ref.listen<AsyncValue<List<Category>>>(categoryProvider, (previous, next) {
       next.whenData((list) {
-        final optimistic =
-            ref.read(optimisticFocusedCategoryProvider);
+        final optimistic = ref.read(optimisticFocusedCategoryProvider);
         if (optimistic == null) return;
         Category? focusedDb;
         try {
-          focusedDb = list.firstWhere(
-            (c) => c.focused && (c.active ?? false),
-          );
+          focusedDb = list.firstWhere((c) => c.focused && (c.active ?? false));
         } catch (_) {
           focusedDb = null;
         }
@@ -73,7 +71,10 @@ class CategorySelector extends HookConsumerWidget {
       padding: const EdgeInsets.symmetric(horizontal: 18),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 0.3),
-        leading: Text('Category', style: _getDefaultTextStyle()),
+        leading: Text(
+          context.flipperL10n.category,
+          style: _getDefaultTextStyle(),
+        ),
         trailing: _buildTrailing(categories, context, ref),
       ),
     );
@@ -111,10 +112,10 @@ class CategorySelector extends HookConsumerWidget {
     WidgetRef ref,
   ) {
     return categories.when(
-      data: (categoryList) =>
-          _buildCategoryName(context, ref, categoryList),
-      loading: () => const Text('Loading...'),
-      error: (error, _) => Text('Error: $error'),
+      data: (categoryList) => _buildCategoryName(context, ref, categoryList),
+      loading: () => Text(context.flipperL10n.createLoadingEllipsis),
+      error: (error, _) =>
+          Text(context.flipperL10n.errorWithValue(error.toString())),
     );
   }
 
@@ -126,14 +127,17 @@ class CategorySelector extends HookConsumerWidget {
     final optimistic = ref.watch(optimisticFocusedCategoryProvider);
     if (optimistic != null && optimistic.id.isNotEmpty) {
       return Text(
-        optimistic.name ?? 'Select Category',
-        style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Colors.black),
+        optimistic.name ?? context.flipperL10n.createSelectCategory,
+        style: Theme.of(
+          context,
+        ).textTheme.bodyLarge?.copyWith(color: Colors.black),
       );
     }
 
     final focusedCategory = categories.firstWhere(
       (category) => category.focused && (category.active ?? false),
-      orElse: () => Category(id: '', name: 'Select Category'),
+      orElse: () =>
+          Category(id: '', name: context.flipperL10n.createSelectCategory),
     );
 
     return Text(

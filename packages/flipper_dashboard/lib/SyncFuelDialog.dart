@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'dart:async';
 
 import 'package:flipper_models/SyncStrategy.dart';
@@ -88,26 +89,23 @@ class _SyncFuelDialogState extends ConsumerState<SyncFuelDialog> {
     final branchId = ProxyService.box.getBranchId();
     final businessId = ProxyService.box.getBusinessId();
     if (branchId == null || branchId.isEmpty) {
-      showErrorNotification(context, 'Select a branch before syncing fuel.');
+      showErrorNotification(context, context.flipperL10n.fuelSelectBranchFirst);
       return;
     }
     if (businessId == null || businessId.isEmpty) {
-      showErrorNotification(context, 'Business context is missing.');
+      showErrorNotification(context, context.flipperL10n.fuelBusinessMissing);
       return;
     }
 
     final vatEnabled = await ref.read(ebmVatEnabledProvider.future);
     if (!vatEnabled) {
-      showErrorNotification(
-        context,
-        'VAT / EBM must be enabled to sync regulated fuel products.',
-      );
+      showErrorNotification(context, context.flipperL10n.fuelVatRequired);
       return;
     }
 
     setState(() {
       _syncing = true;
-      _statusMessage = 'Contacting data-connector…';
+      _statusMessage = context.flipperL10n.fuelContactingConnector;
     });
 
     try {
@@ -119,7 +117,7 @@ class _SyncFuelDialogState extends ConsumerState<SyncFuelDialog> {
         dataConnectorUrl: ebm?.dataConnectorUrl,
       );
 
-      setState(() => _statusMessage = 'Fetching fuel catalog from RRA…');
+      setState(() => _statusMessage = context.flipperL10n.fuelFetchingCatalog);
 
       final result = await client.syncFuelReference(
         productName: _productNameController.text.trim(),
@@ -128,7 +126,7 @@ class _SyncFuelDialogState extends ConsumerState<SyncFuelDialog> {
         branchId: branchId,
       );
 
-      setState(() => _statusMessage = 'Waiting for Ditto sync…');
+      setState(() => _statusMessage = context.flipperL10n.fuelWaitingForSync);
 
       final ditto = DittoService.instance.dittoInstance;
       if (ditto != null) {
@@ -161,7 +159,7 @@ class _SyncFuelDialogState extends ConsumerState<SyncFuelDialog> {
       if (!mounted) return;
       final message = result.variantIds.isEmpty
           ? result.message
-          : '${result.message} (${result.variantIds.length} variants)';
+          : '${result.message} (${context.flipperL10n.fuelVariantsCount(result.variantIds.length)})';
       Navigator.of(context).pop();
       if (widget.hostContext.mounted) {
         showSuccessNotification(
@@ -241,7 +239,7 @@ class _SyncFuelDialogState extends ConsumerState<SyncFuelDialog> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Sync Fuel',
+                              context.flipperL10n.addProductFuelTitle,
                               style: Theme.of(context).textTheme.titleLarge
                                   ?.copyWith(
                                     fontWeight: FontWeight.bold,
@@ -250,7 +248,7 @@ class _SyncFuelDialogState extends ConsumerState<SyncFuelDialog> {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              'Diesel & gasoline from RRA',
+                              context.flipperL10n.addProductFuelSubtitle,
                               style: Theme.of(context).textTheme.bodyMedium
                                   ?.copyWith(color: _FuelModalPalette.muted),
                             ),
@@ -261,8 +259,7 @@ class _SyncFuelDialogState extends ConsumerState<SyncFuelDialog> {
                   ),
                   const SizedBox(height: 18),
                   Text(
-                    'Imports regulated fuel products from RRA. '
-                    'Manual fuel registration is not allowed — use this sync instead.',
+                    context.flipperL10n.fuelSyncExplanation,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: _FuelModalPalette.muted,
                       height: 1.45,
@@ -273,12 +270,12 @@ class _SyncFuelDialogState extends ConsumerState<SyncFuelDialog> {
                     controller: _productNameController,
                     enabled: !_syncing,
                     decoration: _fieldDecoration(
-                      label: 'Product name',
+                      label: context.flipperL10n.fuelProductName,
                       hint: 'Fuel',
                     ),
                     validator: (v) {
                       if (v == null || v.trim().isEmpty) {
-                        return 'Product name is required';
+                        return context.flipperL10n.fuelProductNameRequired;
                       }
                       return null;
                     },
@@ -286,7 +283,7 @@ class _SyncFuelDialogState extends ConsumerState<SyncFuelDialog> {
                   if (vatAsync case AsyncData(value: false)) ...[
                     const SizedBox(height: 12),
                     Text(
-                      'Enable VAT on this branch before syncing fuel.',
+                      context.flipperL10n.fuelEnableVat,
                       style: TextStyle(
                         color: Colors.red.shade700,
                         fontSize: 13,
@@ -320,7 +317,11 @@ class _SyncFuelDialogState extends ConsumerState<SyncFuelDialog> {
                   FilledButton.icon(
                     onPressed: _syncing ? null : () => unawaited(_syncFuel()),
                     icon: const Icon(Icons.cloud_download_rounded),
-                    label: Text(_syncing ? 'Syncing…' : 'Sync from RRA'),
+                    label: Text(
+                      _syncing
+                          ? context.flipperL10n.fuelSyncing
+                          : context.flipperL10n.fuelSyncFromRra,
+                    ),
                     style: FilledButton.styleFrom(
                       backgroundColor: _FuelModalPalette.amber,
                       foregroundColor: Colors.white,
@@ -335,7 +336,7 @@ class _SyncFuelDialogState extends ConsumerState<SyncFuelDialog> {
                     onPressed: _syncing
                         ? null
                         : () => Navigator.of(context).pop(),
-                    child: const Text('Cancel'),
+                    child: Text(context.flipperL10n.cancel),
                   ),
                 ],
               ),

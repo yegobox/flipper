@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_dashboard/maestro_semantics.dart';
 import 'package:flipper_dashboard/theme/mpos_tokens.dart';
@@ -48,7 +49,7 @@ class MposCheckoutFooter extends StatelessWidget {
           if (onSaveTicket != null)
             MaestroSemantics(
               id: MaestroIds.mposSaveTicket,
-              label: 'Save ticket',
+              label: context.flipperL10n.saveTicketAction,
               button: true,
               enabled: true,
               child: TextButton(
@@ -66,9 +67,12 @@ class MposCheckoutFooter extends StatelessWidget {
                     side: const BorderSide(color: PosTokens.line, width: 1.5),
                   ),
                 ),
-                child: const Text(
-                  'Save ticket',
-                  style: TextStyle(fontSize: 14.5, fontWeight: FontWeight.w700),
+                child: Text(
+                  context.flipperL10n.saveTicketAction,
+                  style: const TextStyle(
+                    fontSize: 14.5,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ),
             ),

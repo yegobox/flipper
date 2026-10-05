@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
@@ -57,8 +58,10 @@ class ReportTheme {
   /// Currency formatter shared by all reports. [trimZeros] drops a trailing
   /// `.00` for the compact KPI cards.
   static String formatRwf(num value, {bool trimZeros = false}) {
-    final formatted =
-        NumberFormat.currency(symbol: 'RWF ', decimalDigits: 2).format(value);
+    final formatted = NumberFormat.currency(
+      symbol: 'RWF ',
+      decimalDigits: 2,
+    ).format(value);
     return trimZeros ? formatted.replaceAll('.00', '') : formatted;
   }
 
@@ -78,7 +81,8 @@ class ReportTheme {
     double y = 30;
 
     final PdfFont tFont = titleFont();
-    final String businessName = business?.name ?? 'Business';
+    final String businessName =
+        business?.name ?? FlipperL10n.current.reportBusinessFallback;
     final String shownName = businessName.length > 24
         ? businessName.substring(0, 24)
         : businessName;
@@ -94,8 +98,12 @@ class ReportTheme {
       reportTitle,
       tFont,
       brush: PdfSolidBrush(primaryBlue),
-      bounds:
-          Rect.fromLTWH(margin + contentWidth * 0.4, y, contentWidth * 0.6, 30),
+      bounds: Rect.fromLTWH(
+        margin + contentWidth * 0.4,
+        y,
+        contentWidth * 0.6,
+        30,
+      ),
       format: PdfStringFormat(
         alignment: PdfTextAlignment.right,
         lineAlignment: PdfVerticalAlignment.middle,
@@ -113,7 +121,9 @@ class ReportTheme {
 
     final PdfFont mFont = metaFont();
     g.drawString(
-      'TIN: ${business?.tinNumber ?? 'N/A'}   |   MRC: ${ebm?.mrc ?? 'N/A'}   |   CIS: Flipper',
+      'TIN: ${business?.tinNumber ?? FlipperL10n.current.dashboardNotApplicable}'
+      '   |   MRC: ${ebm?.mrc ?? FlipperL10n.current.dashboardNotApplicable}'
+      '   |   CIS: Flipper',
       mFont,
       brush: PdfSolidBrush(darkGray),
       bounds: Rect.fromLTWH(margin, y, contentWidth, 14),
@@ -165,34 +175,41 @@ class ReportTheme {
     PdfFont labelFont,
   ) {
     // Flat card: fill only, no border.
-    g.drawRectangle(
-      brush: PdfSolidBrush(card.color),
-      bounds: bounds,
-    );
+    g.drawRectangle(brush: PdfSolidBrush(card.color), bounds: bounds);
     // Auto-contrast text for light vs dark card colors (perceived luminance).
     final double luminance =
         (0.299 * card.color.r + 0.587 * card.color.g + 0.114 * card.color.b) /
-            255;
+        255;
     final PdfColor textColor = luminance > 0.6 ? PdfColor(0, 0, 0) : white;
 
     // Auto-fit the value to one line so long currency strings aren't clipped.
     final double maxValueWidth = bounds.width - 12;
     double valueSize = 17;
-    PdfFont valueFont = PdfStandardFont(PdfFontFamily.helvetica, valueSize,
-        style: PdfFontStyle.bold);
+    PdfFont valueFont = PdfStandardFont(
+      PdfFontFamily.helvetica,
+      valueSize,
+      style: PdfFontStyle.bold,
+    );
     while (valueSize > 9 &&
         valueFont.measureString(card.value).width > maxValueWidth) {
       valueSize -= 1;
-      valueFont = PdfStandardFont(PdfFontFamily.helvetica, valueSize,
-          style: PdfFontStyle.bold);
+      valueFont = PdfStandardFont(
+        PdfFontFamily.helvetica,
+        valueSize,
+        style: PdfFontStyle.bold,
+      );
     }
 
     g.drawString(
       card.value,
       valueFont,
       brush: PdfSolidBrush(textColor),
-      bounds: Rect.fromLTWH(bounds.left + 6, bounds.top + 14, bounds.width - 12,
-          bounds.height * 0.45),
+      bounds: Rect.fromLTWH(
+        bounds.left + 6,
+        bounds.top + 14,
+        bounds.width - 12,
+        bounds.height * 0.45,
+      ),
       format: PdfStringFormat(
         alignment: PdfTextAlignment.center,
         lineAlignment: PdfVerticalAlignment.middle,
@@ -203,8 +220,12 @@ class ReportTheme {
       card.label,
       labelFont,
       brush: PdfSolidBrush(textColor),
-      bounds: Rect.fromLTWH(bounds.left + 4, bounds.top + bounds.height * 0.58,
-          bounds.width - 8, bounds.height * 0.36),
+      bounds: Rect.fromLTWH(
+        bounds.left + 4,
+        bounds.top + bounds.height * 0.58,
+        bounds.width - 8,
+        bounds.height * 0.36,
+      ),
       format: PdfStringFormat(
         alignment: PdfTextAlignment.center,
         lineAlignment: PdfVerticalAlignment.middle,
@@ -216,12 +237,19 @@ class ReportTheme {
   static void styleTableHeader(PdfGridRow header) {
     header.style.backgroundBrush = PdfSolidBrush(primaryBlue);
     header.style.textBrush = PdfBrushes.white;
-    header.style.font =
-        PdfStandardFont(PdfFontFamily.helvetica, 10, style: PdfFontStyle.bold);
+    header.style.font = PdfStandardFont(
+      PdfFontFamily.helvetica,
+      10,
+      style: PdfFontStyle.bold,
+    );
     final PdfPen pen = PdfPen(white, width: 1);
     for (int i = 0; i < header.cells.count; i++) {
-      header.cells[i].style.borders =
-          PdfBorders(left: pen, right: pen, top: pen, bottom: pen);
+      header.cells[i].style.borders = PdfBorders(
+        left: pen,
+        right: pen,
+        top: pen,
+        bottom: pen,
+      );
       header.cells[i].style.stringFormat = PdfStringFormat(
         alignment: PdfTextAlignment.center,
         lineAlignment: PdfVerticalAlignment.middle,
@@ -244,8 +272,12 @@ class ReportTheme {
     for (int i = 0; i < grid.rows.count; i++) {
       final row = grid.rows[i];
       for (int j = 0; j < row.cells.count; j++) {
-        row.cells[j].style.borders =
-            PdfBorders(left: pen, right: pen, top: pen, bottom: pen);
+        row.cells[j].style.borders = PdfBorders(
+          left: pen,
+          right: pen,
+          top: pen,
+          bottom: pen,
+        );
       }
     }
   }
@@ -254,8 +286,9 @@ class ReportTheme {
   /// generated timestamp, page number) to assign to `document.template.bottom`.
   /// The page number resolves per page because it is a [PdfPageTemplateElement].
   static Future<PdfPageTemplateElement> buildFooter(Size pageSize) async {
-    final PdfPageTemplateElement footer =
-        PdfPageTemplateElement(Rect.fromLTWH(0, 0, pageSize.width, 50));
+    final PdfPageTemplateElement footer = PdfPageTemplateElement(
+      Rect.fromLTWH(0, 0, pageSize.width, 50),
+    );
     final PdfGraphics g = footer.graphics;
 
     g.drawLine(
@@ -272,18 +305,23 @@ class ReportTheme {
       // Logo is optional; skip on failure.
     }
 
-    final PdfFont brandFont =
-        PdfStandardFont(PdfFontFamily.helvetica, 10, style: PdfFontStyle.bold);
+    final PdfFont brandFont = PdfStandardFont(
+      PdfFontFamily.helvetica,
+      10,
+      style: PdfFontStyle.bold,
+    );
     final PdfFont smallFont = PdfStandardFont(PdfFontFamily.helvetica, 8);
 
     g.drawString(
-      'Powered by Flipper',
+      FlipperL10n.current.reportPoweredByFlipper,
       brandFont,
       brush: PdfSolidBrush(darkGray),
       bounds: Rect.fromLTWH(margin + 34, 16, 220, 14),
     );
     g.drawString(
-      'Generated: ${DateFormat('MMM dd, yyyy HH:mm').format(DateTime.now())}',
+      FlipperL10n.current.reportGeneratedAt(
+        DateFormat('MMM dd, yyyy HH:mm').format(DateTime.now()),
+      ),
       smallFont,
       brush: PdfSolidBrush(midGray),
       bounds: Rect.fromLTWH(margin + 34, 31, 280, 12),
@@ -292,11 +330,9 @@ class ReportTheme {
     final PdfCompositeField pageNumber = PdfCompositeField(
       font: smallFont,
       brush: PdfSolidBrush(midGray),
-      text: 'Page {0} of {1}',
-      fields: <PdfAutomaticField>[
-        PdfPageNumberField(),
-        PdfPageCountField(),
-      ],
+      // pageOfPages leaves the {0}/{1} slots for the PDF page fields.
+      text: FlipperL10n.current.pageOfPages('{0}', '{1}'),
+      fields: <PdfAutomaticField>[PdfPageNumberField(), PdfPageCountField()],
     );
     pageNumber.draw(g, Offset(pageSize.width - margin - 90, 31));
 

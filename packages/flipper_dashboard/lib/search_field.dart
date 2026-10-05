@@ -1,6 +1,7 @@
 // ignore_for_file: unused_result
 
 import 'dart:async';
+import 'package:flipper_localize/flipper_localize.dart';
 
 import 'package:flipper_dashboard/AddProductDialog.dart';
 import 'package:flipper_dashboard/AddRoomDialog.dart';
@@ -80,8 +81,9 @@ class SearchFieldState extends ConsumerState<SearchField>
   @override
   void initState() {
     super.initState();
-    _saleSessionSnapshotAtLastTextChange =
-        ref.read(pendingCartSaleSessionProvider);
+    _saleSessionSnapshotAtLastTextChange = ref.read(
+      pendingCartSaleSessionProvider,
+    );
     focusNode = FocusNode();
     widget.controller.addListener(_handleTextChange);
     _debounceSub = _textSubject
@@ -109,8 +111,9 @@ class SearchFieldState extends ConsumerState<SearchField>
 
   void _handleTextChange() {
     final text = widget.controller.text;
-    _saleSessionSnapshotAtLastTextChange =
-        ref.read(pendingCartSaleSessionProvider);
+    _saleSessionSnapshotAtLastTextChange = ref.read(
+      pendingCartSaleSessionProvider,
+    );
     _textSubject.add(text);
     if (mounted) {
       setState(() {
@@ -191,7 +194,7 @@ class SearchFieldState extends ConsumerState<SearchField>
                                     : FluentIcons.barcode_scanner_24_regular,
                                 color: isAutoAdd ? Colors.blue : Colors.grey,
                               ),
-                              tooltip: 'Toggle Scan Mode',
+                              tooltip: context.flipperL10n.searchToggleScanMode,
                             );
                           },
                         ),
@@ -225,7 +228,9 @@ class SearchFieldState extends ConsumerState<SearchField>
                                       featureName: AppFeature.Orders,
                                     )
                                   : const SizedBox.shrink(),
-                              error: (err, stack) => Text('Error: $err'),
+                              error: (err, stack) => Text(
+                                context.flipperL10n.errorMessage('$err'),
+                              ),
                             );
                           },
                         ),
@@ -259,7 +264,7 @@ class SearchFieldState extends ConsumerState<SearchField>
                               FluentIcons.dismiss_24_regular,
                               color: Colors.grey,
                             ),
-                            tooltip: 'Clear',
+                            tooltip: context.flipperL10n.clear,
                           )
                         : null),
             ),

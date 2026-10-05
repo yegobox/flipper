@@ -1,3 +1,5 @@
+import 'package:flipper_dashboard/features/services_gigs/models/service_gig_request.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_design_system/flipper_design_system.dart';
 import 'package:flipper_dashboard/features/services_gigs/services/service_gig_request_repository.dart';
 import 'package:flutter/material.dart';
@@ -42,7 +44,7 @@ class _AdminMetricsScreenState extends State<AdminMetricsScreen> {
       backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
         title: Text(
-          'Services hub metrics',
+          context.flipperL10n.gigsAdminMetricsTitle,
           style: GoogleFonts.outfit(fontWeight: FontWeight.w600),
         ),
         elevation: 0,
@@ -65,25 +67,25 @@ class _AdminMetricsScreenState extends State<AdminMetricsScreen> {
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
                 children: [
                   _MetricCard(
-                    title: 'Payouts',
+                    title: context.flipperL10n.gigsPayouts,
                     rows: [
                       _MetricRow(
-                        label: 'Pending dispatch',
+                        label: context.flipperL10n.gigsPendingDispatch,
                         value: '${_metrics.payoutPending}',
                       ),
                       _MetricRow(
-                        label: 'Dispatched',
+                        label: context.flipperL10n.gigsDispatched,
                         value: '${_metrics.payoutDispatched}',
                       ),
                       _MetricRow(
-                        label: 'Pending total (RWF)',
+                        label: context.flipperL10n.gigsPendingTotalRwf,
                         value: '${_metrics.payoutPendingTotalRwf}',
                       ),
                     ],
                   ),
                   const SizedBox(height: 12),
                   _MetricCard(
-                    title: 'Requests by status',
+                    title: context.flipperL10n.gigsRequestsByStatus,
                     rows: [
                       for (final k in const [
                         'requested',
@@ -96,7 +98,7 @@ class _AdminMetricsScreenState extends State<AdminMetricsScreen> {
                         'cancelled',
                       ])
                         _MetricRow(
-                          label: k.replaceAll('_', ' '),
+                          label: gigStatusShortLabel(context.flipperL10n, k),
                           value: '${_metrics.countsByStatus[k] ?? 0}',
                         ),
                     ],
@@ -137,10 +139,7 @@ class _MetricCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 10),
-            ...rows.expand((r) => [
-                  r,
-                  const SizedBox(height: 8),
-                ]),
+            ...rows.expand((r) => [r, const SizedBox(height: 8)]),
           ],
         ),
       ),
@@ -180,4 +179,3 @@ class _MetricRow extends StatelessWidget {
     );
   }
 }
-

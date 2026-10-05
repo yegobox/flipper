@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/features/transaction_reports/transaction_report_density.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/providers/transaction_report_business_cashiers_provider.dart';
 import 'package:flipper_dashboard/providers/transaction_report_chart_provider.dart';
 import 'package:flipper_dashboard/transactionList.dart';
@@ -136,7 +137,11 @@ void main() {
               (ref) async => const [],
             ),
           ],
-          child: MaterialApp(home: Scaffold(body: TransactionList())),
+          child: MaterialApp(
+            localizationsDelegates: FlipperLocalizationDelegates.delegates,
+            supportedLocales: FlipperLocalizationDelegates.supportedLocales,
+            home: Scaffold(body: TransactionList()),
+          ),
         ),
       );
       await tester.pump(const Duration(milliseconds: 200));

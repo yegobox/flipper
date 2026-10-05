@@ -327,7 +327,7 @@ class _MposPaymentSectionState extends ConsumerState<MposPaymentSection>
                         Expanded(
                           child: MaestroSemantics(
                             id: MaestroIds.mposPaymentMomoPhone,
-                            label: 'MoMo phone number',
+                            label: context.flipperL10n.mposMomoPhoneNumber,
                             textField: true,
                             enabled: true,
                             child: TextField(
@@ -397,7 +397,7 @@ class _MposPaymentSectionState extends ConsumerState<MposPaymentSection>
                         Expanded(
                           child: MaestroSemantics(
                             id: MaestroIds.mposPaymentCashAmount,
-                            label: 'Cash received amount',
+                            label: context.flipperL10n.mposCashReceivedAmount,
                             textField: true,
                             enabled: true,
                             child: TextField(
@@ -470,7 +470,9 @@ class _MposPaymentSectionState extends ConsumerState<MposPaymentSection>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Credit amount · ${mposMoneyLabel(widget.totalPayable)}',
+                    context.flipperL10n.mposCreditAmount(
+                      mposMoneyLabel(widget.totalPayable),
+                    ),
                     style: mposMonoStyle(
                       Theme.of(context).textTheme,
                       fontSize: 16,
@@ -478,10 +480,9 @@ class _MposPaymentSectionState extends ConsumerState<MposPaymentSection>
                     ),
                   ),
                   const SizedBox(height: 8),
-                  const Text(
-                    'This sale is recorded on the customer\'s credit balance. '
-                    'Attach a customer before completing.',
-                    style: TextStyle(fontSize: 12, color: PosTokens.ink3),
+                  Text(
+                    context.flipperL10n.mposCreditExplanation,
+                    style: const TextStyle(fontSize: 12, color: PosTokens.ink3),
                   ),
                 ],
               ),
@@ -492,7 +493,7 @@ class _MposPaymentSectionState extends ConsumerState<MposPaymentSection>
             Padding(
               padding: const EdgeInsets.fromLTRB(14, 0, 14, 12),
               child: Text(
-                '${payments.length} payment lines · use split in desktop mode',
+                context.flipperL10n.mposPaymentLinesSplitHint(payments.length),
                 style: const TextStyle(fontSize: 12, color: PosTokens.ink3),
               ),
             ),

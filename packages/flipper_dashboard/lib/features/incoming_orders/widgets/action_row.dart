@@ -1,5 +1,6 @@
 // ignore_for_file: unused_result
 
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/SnackBarMixin.dart';
 import 'package:flipper_dashboard/features/incoming_orders/om_tokens.dart';
 import 'package:flipper_dashboard/features/incoming_orders/providers/incoming_orders_provider.dart';
@@ -40,8 +41,9 @@ class ActionRow extends ConsumerWidget
 
     final itemsAsync =
         request.transactionItems != null && request.transactionItems!.isNotEmpty
-            ? AsyncValue.data(request.transactionItems!)
-            : ref.watch(transactionItemsProvider(request.id));
+        ? AsyncValue.data(request.transactionItems!)
+        : ref.watch(transactionItemsProvider(request.id));
+    final l10n = context.flipperL10n;
 
     return itemsAsync.when(
       loading: () => _ActionsBar(
@@ -49,19 +51,19 @@ class ActionRow extends ConsumerWidget
           _OmBtn(
             onPressed: null,
             icon: Icons.factory_outlined,
-            label: 'Produce',
+            label: l10n.incomingOrdersProduce,
             variant: _OmBtnVariant.ghost,
           ),
           _OmBtn(
             onPressed: null,
             icon: Icons.check_circle_outline,
-            label: 'Approve',
+            label: l10n.incomingOrdersApprove,
             variant: _OmBtnVariant.greenSoft,
           ),
           _OmBtn(
             onPressed: null,
             icon: Icons.cancel_outlined,
-            label: 'Void',
+            label: l10n.incomingOrdersVoid,
             variant: _OmBtnVariant.voidDisabled,
           ),
         ],
@@ -87,7 +89,9 @@ class ActionRow extends ConsumerWidget
                   ? () => _handleFinishProduction(context, ref)
                   : () => _handleProduce(context, ref, items),
               icon: isProcessing ? Icons.check : Icons.factory_outlined,
-              label: isProcessing ? 'Finish Production' : 'Produce',
+              label: isProcessing
+                  ? l10n.incomingOrdersFinishProduction
+                  : l10n.incomingOrdersProduce,
               variant: _OmBtnVariant.ghost,
               isDisabled: produceDisabled,
             ),
@@ -96,14 +100,16 @@ class ActionRow extends ConsumerWidget
                   ? null
                   : () => _handleApproveRequest(context, ref, request),
               icon: Icons.check_circle_outline,
-              label: isProcessing ? 'In Production' : 'Approve',
+              label: isProcessing
+                  ? l10n.incomingOrdersInProduction
+                  : l10n.incomingOrdersApprove,
               variant: _OmBtnVariant.greenSoft,
               isDisabled: approveDisabled,
             ),
             _OmBtn(
               onPressed: voidDisabled ? null : () => _voidRequest(context, ref),
               icon: Icons.cancel_outlined,
-              label: 'Void',
+              label: l10n.incomingOrdersVoid,
               variant: voidDisabled
                   ? _OmBtnVariant.voidDisabled
                   : _OmBtnVariant.ghost,
@@ -123,7 +129,7 @@ class ActionRow extends ConsumerWidget
     if (!ref.read(sideMenuShowIncomingOrdersProvider)) {
       showCustomSnackBarUtil(
         context,
-        'You do not have permission to approve orders',
+        context.flipperL10n.incomingOrdersNoApprovePermission,
         backgroundColor: Colors.red,
       );
       return;
@@ -140,23 +146,20 @@ class ActionRow extends ConsumerWidget
             ),
             const SizedBox(width: 12),
             Text(
-              'Approve Request',
-              style: OmTokens.text(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-              ),
+              context.flipperL10n.incomingOrdersApproveRequest,
+              style: OmTokens.text(fontSize: 18, fontWeight: FontWeight.w600),
             ),
           ],
         ),
         content: Text(
-          'Are you sure you want to approve all items in this request?',
+          context.flipperL10n.incomingOrdersApproveAllConfirm,
           style: OmTokens.text(fontSize: 16, color: OmTokens.ink2),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
             child: Text(
-              'Cancel',
+              context.flipperL10n.cancel,
               style: OmTokens.text(
                 color: OmTokens.muted,
                 fontWeight: FontWeight.w500,
@@ -172,7 +175,7 @@ class ActionRow extends ConsumerWidget
               ),
             ),
             child: Text(
-              'Approve All',
+              context.flipperL10n.incomingOrdersApproveAll,
               style: OmTokens.text(
                 color: Colors.white,
                 fontWeight: FontWeight.w600,
@@ -207,18 +210,11 @@ class ActionRow extends ConsumerWidget
           ),
           title: Row(
             children: [
-              Icon(
-                Icons.warning_amber_rounded,
-                color: OmTokens.red,
-                size: 24,
-              ),
+              Icon(Icons.warning_amber_rounded, color: OmTokens.red, size: 24),
               const SizedBox(width: 12),
               Text(
-                'Void Request',
-                style: OmTokens.text(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                ),
+                context.flipperL10n.incomingOrdersVoidRequest,
+                style: OmTokens.text(fontSize: 18, fontWeight: FontWeight.w600),
               ),
             ],
           ),
@@ -227,16 +223,13 @@ class ActionRow extends ConsumerWidget
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Are you sure you want to void this request?',
+                context.flipperL10n.incomingOrdersVoidConfirm,
                 style: OmTokens.text(fontSize: 16, color: OmTokens.ink2),
               ),
               const SizedBox(height: 8),
               Text(
-                'This action cannot be undone.',
-                style: OmTokens.text(
-                  fontSize: 14,
-                  color: OmTokens.muted,
-                ),
+                context.flipperL10n.actionCannotBeUndone,
+                style: OmTokens.text(fontSize: 14, color: OmTokens.muted),
               ),
             ],
           ),
@@ -244,7 +237,7 @@ class ActionRow extends ConsumerWidget
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
               child: Text(
-                'Cancel',
+                context.flipperL10n.cancel,
                 style: OmTokens.text(
                   color: OmTokens.muted,
                   fontWeight: FontWeight.w500,
@@ -253,6 +246,7 @@ class ActionRow extends ConsumerWidget
             ),
             ElevatedButton(
               onPressed: () async {
+                final l10n = context.flipperL10n;
                 try {
                   await ProxyService.strategy.updateStockRequest(
                     stockRequestId: request.id,
@@ -264,13 +258,14 @@ class ActionRow extends ConsumerWidget
                   try {
                     final requesterConfig =
                         await SmsNotificationService.getBranchSmsConfig(
-                      request.branch!.id,
-                    );
+                          request.branch!.id,
+                        );
                     if (requesterConfig?.smsPhoneNumber != null) {
                       await SmsNotificationService.sendOrderRequestNotification(
                         receiverBranchId: request.branch!.id,
-                        orderDetails:
-                            'Your stock request #${request.id.substring(0, 5)} has been declined.',
+                        orderDetails: l10n.incomingOrdersDeclinedSms(
+                          request.id.substring(0, 5),
+                        ),
                         requesterPhone: requesterConfig!.smsPhoneNumber!,
                       );
                     }
@@ -290,14 +285,14 @@ class ActionRow extends ConsumerWidget
                   Navigator.of(context).pop();
                   showCustomSnackBar(
                     context,
-                    'Request voided successfully',
+                    l10n.incomingOrdersVoidSuccess,
                     type: NotificationType.warning,
                   );
                 } catch (e, s) {
                   talker.error(s);
                   showCustomSnackBar(
                     context,
-                    'Failed to void request: ${e.toString()}',
+                    l10n.incomingOrdersVoidFailed(e.toString()),
                     type: NotificationType.error,
                   );
                 }
@@ -309,7 +304,7 @@ class ActionRow extends ConsumerWidget
                 ),
               ),
               child: Text(
-                'Void Request',
+                context.flipperL10n.incomingOrdersVoidRequest,
                 style: OmTokens.text(
                   color: Colors.white,
                   fontWeight: FontWeight.w600,
@@ -326,6 +321,7 @@ class ActionRow extends ConsumerWidget
     BuildContext context,
     WidgetRef ref,
   ) async {
+    final l10n = context.flipperL10n;
     try {
       await ProxyService.strategy.updateStockRequest(
         stockRequestId: request.id,
@@ -335,10 +331,7 @@ class ActionRow extends ConsumerWidget
       final stringValue = ref.read(stringProvider);
       final search = stringValue?.isNotEmpty == true ? stringValue : null;
       ref.refresh(
-        stockRequestsProvider(
-          status: RequestStatus.processing,
-          search: search,
-        ),
+        stockRequestsProvider(status: RequestStatus.processing, search: search),
       );
       ref.refresh(
         stockRequestsProvider(status: RequestStatus.pending, search: search),
@@ -346,14 +339,14 @@ class ActionRow extends ConsumerWidget
 
       showCustomSnackBar(
         context,
-        'Production marked as finished. Ready for approval.',
+        l10n.incomingOrdersProductionFinished,
         type: NotificationType.success,
       );
     } catch (e) {
       talker.error('Error finishing production: $e');
       showCustomSnackBar(
         context,
-        'Failed to finish production',
+        l10n.incomingOrdersFinishProductionFailed,
         type: NotificationType.error,
       );
     }
@@ -427,21 +420,22 @@ class ActionRow extends ConsumerWidget
           isFirstSubmission = false;
         }
       },
-      formBuilder: ({
-        String? initialVariantId,
-        String? initialVariantName,
-        double? initialPlannedQuantity,
-        Future<void> Function(Map<String, dynamic>)? onSubmit,
-        VoidCallback? onCancel,
-      }) {
-        return WorkOrderForm(
-          initialVariantId: initialVariantId,
-          initialVariantName: initialVariantName,
-          initialPlannedQuantity: initialPlannedQuantity,
-          onSubmit: onSubmit,
-          onCancel: onCancel,
-        );
-      },
+      formBuilder:
+          ({
+            String? initialVariantId,
+            String? initialVariantName,
+            double? initialPlannedQuantity,
+            Future<void> Function(Map<String, dynamic>)? onSubmit,
+            VoidCallback? onCancel,
+          }) {
+            return WorkOrderForm(
+              initialVariantId: initialVariantId,
+              initialVariantName: initialVariantName,
+              initialPlannedQuantity: initialPlannedQuantity,
+              onSubmit: onSubmit,
+              onCancel: onCancel,
+            );
+          },
     );
 
     final stringValue = ref.read(stringProvider);
@@ -472,10 +466,7 @@ class _ActionsBar extends StatelessWidget {
           decoration: const BoxDecoration(
             border: Border(top: BorderSide(color: OmTokens.line)),
           ),
-          child: wrapActions(
-            stretch: stretch,
-            children: children,
-          ),
+          child: wrapActions(stretch: stretch, children: children),
         );
       },
     );

@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import '../models/production_output_models.dart';
 
@@ -19,6 +20,7 @@ class ObjectPageHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
     return Container(
       padding: EdgeInsets.all(isMobile ? 12 : 16),
       decoration: BoxDecoration(
@@ -46,7 +48,7 @@ class ObjectPageHeader extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'Production Overview',
+                  l10n.productionOutputOverview,
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.w600,
                     color: Colors.grey[800],
@@ -63,19 +65,19 @@ class ObjectPageHeader extends StatelessWidget {
           isLoading
               ? _buildLoadingKpis()
               : isMobile
-              ? _buildMobileKpis()
-              : _buildDesktopKpis(),
+              ? _buildMobileKpis(l10n)
+              : _buildDesktopKpis(l10n),
         ],
       ),
     );
   }
 
-  Widget _buildDesktopKpis() {
+  Widget _buildDesktopKpis(FlipperAppLocalizations l10n) {
     return Row(
       children: [
         Expanded(
           child: _KpiTile(
-            label: 'Planned',
+            label: l10n.productionOutputPlanned,
             value: summary.totalPlanned.toStringAsFixed(0),
             icon: Icons.schedule,
             color: Color(VarianceColors.neutral),
@@ -84,7 +86,7 @@ class ObjectPageHeader extends StatelessWidget {
         const SizedBox(width: 12),
         Expanded(
           child: _KpiTile(
-            label: 'Actual',
+            label: l10n.productionOutputActual,
             value: summary.totalActual.toStringAsFixed(0),
             icon: Icons.check_circle_outline,
             color: summary.isPositiveVariance
@@ -95,7 +97,7 @@ class ObjectPageHeader extends StatelessWidget {
         const SizedBox(width: 12),
         Expanded(
           child: _KpiTile(
-            label: 'Variance',
+            label: l10n.productionOutputVariance,
             value: '${summary.variancePercentage.toStringAsFixed(1)}%',
             icon: Icons.trending_up,
             color: summary.isPositiveVariance
@@ -108,25 +110,25 @@ class ObjectPageHeader extends StatelessWidget {
         const SizedBox(width: 12),
         Expanded(
           child: _KpiTile(
-            label: 'Work Orders',
+            label: l10n.productionOutputWorkOrders,
             value: '${summary.completedOrders}/${summary.totalOrders}',
             icon: Icons.assignment,
             color: Color(VarianceColors.neutral),
-            subtitle: 'Completed',
+            subtitle: l10n.productionOutputStatusCompleted,
           ),
         ),
       ],
     );
   }
 
-  Widget _buildMobileKpis() {
+  Widget _buildMobileKpis(FlipperAppLocalizations l10n) {
     return Column(
       children: [
         Row(
           children: [
             Expanded(
               child: _KpiTile(
-                label: 'Planned',
+                label: l10n.productionOutputPlanned,
                 value: summary.totalPlanned.toStringAsFixed(0),
                 icon: Icons.schedule,
                 color: Color(VarianceColors.neutral),
@@ -136,7 +138,7 @@ class ObjectPageHeader extends StatelessWidget {
             const SizedBox(width: 8),
             Expanded(
               child: _KpiTile(
-                label: 'Actual',
+                label: l10n.productionOutputActual,
                 value: summary.totalActual.toStringAsFixed(0),
                 icon: Icons.check_circle_outline,
                 color: summary.isPositiveVariance
@@ -152,7 +154,7 @@ class ObjectPageHeader extends StatelessWidget {
           children: [
             Expanded(
               child: _KpiTile(
-                label: 'Variance',
+                label: l10n.productionOutputVariance,
                 value: '${summary.variancePercentage.toStringAsFixed(1)}%',
                 icon: Icons.trending_up,
                 color: summary.isPositiveVariance
@@ -166,7 +168,7 @@ class ObjectPageHeader extends StatelessWidget {
             const SizedBox(width: 8),
             Expanded(
               child: _KpiTile(
-                label: 'Orders',
+                label: l10n.productionOutputOrders,
                 value: '${summary.completedOrders}/${summary.totalOrders}',
                 icon: Icons.assignment,
                 color: Color(VarianceColors.neutral),

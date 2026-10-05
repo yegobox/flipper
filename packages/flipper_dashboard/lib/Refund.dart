@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'dart:async';
 
 import 'package:flipper_dashboard/RefundReasonForm.dart';
@@ -86,13 +87,14 @@ class _RefundState extends ConsumerState<Refund> {
 
   String get _refundUnavailableLabel {
     final tx = _transaction;
-    if (tx == null) return 'Refund unavailable';
-    if (isTransactionRefunded(tx) || _refundBlocked) return 'Refunded';
-    return refundBlockReason(tx) ?? 'Refund unavailable';
+    if (tx == null) return context.flipperL10n.refundUnavailable;
+    if (isTransactionRefunded(tx) || _refundBlocked) {
+      return context.flipperL10n.refunded;
+    }
+    return refundBlockReason(tx) ?? context.flipperL10n.refundUnavailable;
   }
 
-  String get _currency =>
-      widget.currency ?? ProxyService.box.defaultCurrency();
+  String get _currency => widget.currency ?? ProxyService.box.defaultCurrency();
 
   @override
   Widget build(BuildContext context) {
@@ -100,8 +102,9 @@ class _RefundState extends ConsumerState<Refund> {
     final amountText = NumberFormat('#,##0.00').format(widget.refundAmount);
     final taxAmount = tx != null ? TransactionSummaryTax.taxColumn(tx) : 0.0;
     final taxText = NumberFormat('#,##0.00').format(taxAmount);
-    final status = _statusFor(tx);
-    final subtitle = _subtitleFor(tx);
+    final l10n = context.flipperL10n;
+    final status = _statusFor(l10n, tx);
+    final subtitle = _subtitleFor(l10n, tx);
     final shortId = _shortTransactionId(widget.transactionId);
 
     return SingleChildScrollView(
@@ -128,10 +131,7 @@ class _RefundState extends ConsumerState<Refund> {
                 ),
               ),
               const SizedBox(height: 16),
-              _AmountHero(
-                currency: _currency,
-                amount: amountText,
-              ),
+              _AmountHero(currency: _currency, amount: amountText),
               const SizedBox(height: 16),
               _TransactionIdPill(
                 shortId: shortId,
@@ -159,7 +159,7 @@ class _RefundState extends ConsumerState<Refund> {
               _RefundActionButton(
                 label: _refundUnavailable
                     ? _refundUnavailableLabel
-                    : 'Refund $_currency $amountText',
+                    : l10n.refundWithAmount('$_currency $amountText'),
                 busy: isRefundProcessing,
                 enabled: !_refundUnavailable,
                 onTap: () => _onRefundTap(context),
@@ -200,7 +200,7 @@ class _RefundState extends ConsumerState<Refund> {
           receiptType: 'TR',
         );
       } else if (tx.receiptType == 'PS') {
-        toast('Can not refund a proforma');
+        toast(FlipperL10n.current.refundProformaNotRefundable);
         return;
       } else if (tx.receiptType == 'NS') {
         await _refundService.executeLegacyFullRefund(
@@ -215,7 +215,7 @@ class _RefundState extends ConsumerState<Refund> {
           receiptType: 'CR',
         );
       } else {
-        toast('This receipt cannot be refunded');
+        toast(FlipperL10n.current.refundReceiptCannotBeRefunded);
         return;
       }
 
@@ -231,7 +231,7 @@ class _RefundState extends ConsumerState<Refund> {
   Future<void> _onPrintCopyTap(BuildContext context) async {
     final tx = _transaction!;
     if (tx.receiptType == 'TS') {
-      toast('This receipt does not have a copy to print');
+      toast(context.flipperL10n.refundNoCopyToPrint);
       return;
     }
 
@@ -247,16 +247,12 @@ class _RefundState extends ConsumerState<Refund> {
       if (tx.receiptType == 'PS') {
         await _refundService.handleReceiptCopy(
           transaction: tx,
-          filterType: isTransactionRefunded(tx)
-              ? FilterType.PR
-              : FilterType.CP,
+          filterType: isTransactionRefunded(tx) ? FilterType.PR : FilterType.CP,
         );
       } else {
         await _refundService.handleReceiptCopy(
           transaction: tx,
-          filterType: isTransactionRefunded(tx)
-              ? FilterType.CR
-              : FilterType.CS,
+          filterType: isTransactionRefunded(tx) ? FilterType.CR : FilterType.CS,
         );
       }
     } catch (e, s) {
@@ -269,10 +265,7 @@ class _RefundState extends ConsumerState<Refund> {
 }
 
 class _PreviewHeader extends StatelessWidget {
-  const _PreviewHeader({
-    required this.status,
-    required this.onClose,
-  });
+  const _PreviewHeader({required this.status, required this.onClose});
 
   final _PreviewStatus status;
   final VoidCallback onClose;
@@ -282,7 +275,7 @@ class _PreviewHeader extends StatelessWidget {
     return Row(
       children: [
         Text(
-          'Transaction',
+          context.flipperL10n.refundTransactionTitle,
           style: GoogleFonts.outfit(
             fontSize: 20,
             fontWeight: FontWeight.w800,
@@ -355,10 +348,7 @@ class _StatusBadge extends StatelessWidget {
 }
 
 class _IconCircleButton extends StatelessWidget {
-  const _IconCircleButton({
-    required this.onPressed,
-    required this.child,
-  });
+  const _IconCircleButton({required this.onPressed, required this.child});
 
   final VoidCallback onPressed;
   final Widget child;
@@ -378,10 +368,7 @@ class _IconCircleButton extends StatelessWidget {
 }
 
 class _AmountHero extends StatelessWidget {
-  const _AmountHero({
-    required this.currency,
-    required this.amount,
-  });
+  const _AmountHero({required this.currency, required this.amount});
 
   final String currency;
   final String amount;
@@ -461,14 +448,14 @@ class _TransactionIdPillState extends State<_TransactionIdPill> {
         color: _copied ? _PreviewColors.gainTint : _PreviewColors.surface2,
         borderRadius: BorderRadius.circular(999),
         border: Border.all(
-          color: _copied ? _PreviewColors.gain.withValues(alpha: 0.45) : _PreviewColors.line,
+          color: _copied
+              ? _PreviewColors.gain.withValues(alpha: 0.45)
+              : _PreviewColors.line,
         ),
       ),
       child: Material(
         color: Colors.transparent,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(999),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
         child: InkWell(
           borderRadius: BorderRadius.circular(999),
           onTap: _copy,
@@ -479,12 +466,16 @@ class _TransactionIdPillState extends State<_TransactionIdPill> {
                 AnimatedSwitcher(
                   duration: const Duration(milliseconds: 160),
                   child: Text(
-                    _copied ? 'Copied' : 'Transaction ID',
+                    _copied
+                        ? context.flipperL10n.refundCopied
+                        : context.flipperL10n.transactionId,
                     key: ValueKey(_copied),
                     style: GoogleFonts.outfit(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
-                      color: _copied ? _PreviewColors.gainInk : _PreviewColors.ink3,
+                      color: _copied
+                          ? _PreviewColors.gainInk
+                          : _PreviewColors.ink3,
                     ),
                   ),
                 ),
@@ -497,7 +488,9 @@ class _TransactionIdPillState extends State<_TransactionIdPill> {
                     style: FlipperFonts.mono(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
-                      color: _copied ? _PreviewColors.gainInk : _PreviewColors.ink2,
+                      color: _copied
+                          ? _PreviewColors.gainInk
+                          : _PreviewColors.ink2,
                     ),
                   ),
                 ),
@@ -599,17 +592,24 @@ class _PaymentBreakdownState extends State<_PaymentBreakdown> {
         final lines = <Widget>[];
         if (widget.customerLabel != null) {
           lines.add(
-            _BreakdownRow(label: 'Customer', value: widget.customerLabel!),
+            _BreakdownRow(
+              label: context.flipperL10n.customer,
+              value: widget.customerLabel!,
+            ),
           );
         }
 
         if (loading) {
-          lines.add(const _BreakdownRow(label: 'Payments', value: '…'));
+          lines.add(
+            _BreakdownRow(label: context.flipperL10n.payments, value: '…'),
+          );
         } else if (records.isEmpty) {
           final method = (widget.fallbackMethod ?? '').trim();
           lines.add(
             _BreakdownRow(
-              label: method.isEmpty ? 'Payment' : method.toUpperCase(),
+              label: method.isEmpty
+                  ? context.flipperL10n.payment
+                  : method.toUpperCase(),
               value:
                   '${widget.currency} '
                   '${NumberFormat('#,##0.00').format(widget.fallbackAmount ?? 0)}',
@@ -617,7 +617,9 @@ class _PaymentBreakdownState extends State<_PaymentBreakdown> {
           );
         } else {
           for (final record in records) {
-            final method = (record.paymentMethod ?? 'Unknown').toUpperCase();
+            final method =
+                (record.paymentMethod ?? context.flipperL10n.dashUnknown)
+                    .toUpperCase();
             lines.add(
               _BreakdownRow(
                 label: method,
@@ -691,7 +693,7 @@ class _PayerLine extends StatelessWidget {
               TextSpan(
                 children: [
                   TextSpan(
-                    text: 'Paid by ',
+                    text: '${context.flipperL10n.paidBy} ',
                     style: GoogleFonts.outfit(
                       fontSize: 12.5,
                       fontWeight: FontWeight.w500,
@@ -708,7 +710,7 @@ class _PayerLine extends StatelessWidget {
                   ),
                   if (differsFromCustomer)
                     TextSpan(
-                      text: '  · differs from customer',
+                      text: '  · ${context.flipperL10n.refundPayerDiffers}',
                       style: GoogleFonts.outfit(
                         fontSize: 11.5,
                         fontWeight: FontWeight.w600,
@@ -748,7 +750,7 @@ class _FinancialBreakdown extends StatelessWidget {
       child: Column(
         children: [
           _BreakdownRow(
-            label: 'Tax included',
+            label: context.flipperL10n.refundTaxIncluded,
             value: '$currency $taxAmount',
           ),
           const Padding(
@@ -756,7 +758,7 @@ class _FinancialBreakdown extends StatelessWidget {
             child: _DashedDivider(),
           ),
           _BreakdownRow(
-            label: 'Refund amount',
+            label: context.flipperL10n.refundAmountLabel,
             value: '$currency $refundAmount',
             emphasize: true,
           ),
@@ -812,8 +814,8 @@ class _DashedDivider extends StatelessWidget {
       builder: (context, constraints) {
         const dashWidth = 5.0;
         const dashSpace = 4.0;
-        final dashCount =
-            (constraints.maxWidth / (dashWidth + dashSpace)).floor();
+        final dashCount = (constraints.maxWidth / (dashWidth + dashSpace))
+            .floor();
         return Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: List.generate(dashCount, (_) {
@@ -914,10 +916,7 @@ class _RefundActionButton extends StatelessWidget {
 }
 
 class _PrintCopyButton extends StatelessWidget {
-  const _PrintCopyButton({
-    required this.busy,
-    required this.onTap,
-  });
+  const _PrintCopyButton({required this.busy, required this.onTap});
 
   final bool busy;
   final VoidCallback onTap;
@@ -952,7 +951,7 @@ class _PrintCopyButton extends StatelessWidget {
                       ),
                       const SizedBox(width: 9),
                       Text(
-                        'Print copy receipt',
+                        context.flipperL10n.refundPrintCopy,
                         style: GoogleFonts.outfit(
                           fontSize: 15,
                           fontWeight: FontWeight.w600,
@@ -968,10 +967,10 @@ class _PrintCopyButton extends StatelessWidget {
   }
 }
 
-_PreviewStatus _statusFor(ITransaction? tx) {
+_PreviewStatus _statusFor(FlipperAppLocalizations l10n, ITransaction? tx) {
   if (tx == null) {
-    return const _PreviewStatus(
-      label: 'COMPLETED',
+    return _PreviewStatus(
+      label: l10n.checkoutStatusCompleted.toUpperCase(),
       background: _PreviewColors.gainTint,
       foreground: _PreviewColors.gainInk,
       dot: _PreviewColors.gain,
@@ -981,15 +980,15 @@ _PreviewStatus _statusFor(ITransaction? tx) {
   if (isTransactionRefunded(tx)) {
     final normalized = (tx.status ?? '').toLowerCase();
     if (normalized == 'partially_refunded') {
-      return const _PreviewStatus(
-        label: 'PARTIALLY REFUNDED',
+      return _PreviewStatus(
+        label: l10n.refundStatusPartiallyRefunded.toUpperCase(),
         background: _PreviewColors.pendingTint,
         foreground: _PreviewColors.pendingInk,
         dot: _PreviewColors.pendingDot,
       );
     }
-    return const _PreviewStatus(
-      label: 'REFUNDED',
+    return _PreviewStatus(
+      label: l10n.refunded.toUpperCase(),
       background: _PreviewColors.lossTint,
       foreground: _PreviewColors.lossInk,
       dot: _PreviewColors.loss,
@@ -1001,30 +1000,30 @@ _PreviewStatus _statusFor(ITransaction? tx) {
     case 'pending':
     case 'waiting':
     case 'waitingmomocomplete':
-      return const _PreviewStatus(
-        label: 'PENDING',
+      return _PreviewStatus(
+        label: l10n.orderStatusPending.toUpperCase(),
         background: _PreviewColors.pendingTint,
         foreground: _PreviewColors.pendingInk,
         dot: _PreviewColors.pendingDot,
       );
     case 'completed':
     case 'complete':
-      return const _PreviewStatus(
-        label: 'COMPLETED',
+      return _PreviewStatus(
+        label: l10n.checkoutStatusCompleted.toUpperCase(),
         background: _PreviewColors.gainTint,
         foreground: _PreviewColors.gainInk,
         dot: _PreviewColors.gain,
       );
     case 'parked':
-      return const _PreviewStatus(
-        label: 'PARKED',
+      return _PreviewStatus(
+        label: l10n.refundStatusParked.toUpperCase(),
         background: _PreviewColors.blueTint,
         foreground: _PreviewColors.blue,
         dot: _PreviewColors.blue,
       );
     default:
       return _PreviewStatus(
-        label: (tx.status ?? 'UNKNOWN').toUpperCase(),
+        label: (tx.status ?? l10n.dashUnknown).toUpperCase(),
         background: _PreviewColors.surface2,
         foreground: _PreviewColors.ink2,
         dot: _PreviewColors.ink3,
@@ -1032,21 +1031,21 @@ _PreviewStatus _statusFor(ITransaction? tx) {
   }
 }
 
-String _subtitleFor(ITransaction? tx) {
-  final payment = _paymentLabel(tx?.paymentType).toUpperCase();
+String _subtitleFor(FlipperAppLocalizations l10n, ITransaction? tx) {
+  final payment = _paymentLabel(l10n, tx?.paymentType).toUpperCase();
   final instant = tx?.lastTouched ?? tx?.updatedAt ?? tx?.createdAt;
   final datePart = instant != null
       ? DateFormat('MMM dd, yyyy').format(instant).toUpperCase()
       : '—';
-  return '$payment SALE · $datePart';
+  return '${l10n.refundSaleSubtitle(payment).toUpperCase()} · $datePart';
 }
 
-String _paymentLabel(String? paymentType) {
-  if (paymentType == null || paymentType.trim().isEmpty) return 'Cash';
+String _paymentLabel(FlipperAppLocalizations l10n, String? paymentType) {
+  if (paymentType == null || paymentType.trim().isEmpty) return l10n.cash;
   final upper = paymentType.toUpperCase();
   if (upper.contains('MOMO') || upper.contains('MOBILE')) return 'MoMo';
-  if (upper.contains('CARD')) return 'Card';
-  if (upper.contains('CASH')) return 'Cash';
+  if (upper.contains('CARD')) return l10n.refundPaymentCard;
+  if (upper.contains('CASH')) return l10n.cash;
   return paymentType;
 }
 

@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flipper_dashboard/features/personal_goals/personal_goal_contribution_banner.dart';
 import 'package:flipper_dashboard/features/personal_goals/personal_goals_providers.dart';
 import 'package:flipper_dashboard/features/personal_goals/personal_goals_screen.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/helperModels/extensions.dart';
 import 'package:flipper_models/helpers/personal_goal_contribution_device_key.dart';
 import 'package:flipper_models/models/personal_goal.dart';
@@ -160,8 +161,11 @@ class _PersonalGoalRemoteContributionListenerState
 
     final symbol = ProxyService.box.defaultCurrency();
     final formatted = amount.toCurrencyFormatted(symbol: symbol);
-    final body =
-        '${goal.name}: +$formatted saved (auto or synced from another device)';
+    // Above MaterialApp: no Localizations ancestor, so no context lookup.
+    final body = FlipperL10n.current.personalGoalRemoteCreditNotification(
+      goal.name,
+      formatted,
+    );
 
     unawaited(ProxyService.notification.sendLocalNotification(body: body));
 

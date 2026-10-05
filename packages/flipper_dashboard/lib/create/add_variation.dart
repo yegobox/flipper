@@ -2,6 +2,7 @@ import 'package:flipper_dashboard/create/section_select_unit.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:flipper_services/constants.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -39,129 +40,129 @@ class _AddVariationState extends State<AddVariation> with TransactionMixinOld {
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<ScannViewModel>.reactive(
-        onViewModelReady: (model) async {
-          await model.getProduct(productId: widget.productId);
-        },
-        builder: (context, model, child) {
-          return Scaffold(
-            appBar: AppBar(
-              title: Text('Add Variation'),
-              actions: [
-                ElevatedButton(
-                  onPressed: () async {
-                    if (AddVariation._formKey.currentState!.validate()) {
-                      /// TODO: change this hard coded on mobile later.
-                      await _saveVariation(model,
-                          selectedProductType: "1", productName: "");
-                      _routerService.pop();
-                    }
-                  },
-                  child: Text(
-                    'Save',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).primaryColor,
-                  ),
+      onViewModelReady: (model) async {
+        await model.getProduct(productId: widget.productId);
+      },
+      builder: (context, model, child) {
+        return Scaffold(
+          appBar: AppBar(
+            title: Text(context.flipperL10n.createAddVariation),
+            actions: [
+              ElevatedButton(
+                onPressed: () async {
+                  if (AddVariation._formKey.currentState!.validate()) {
+                    /// TODO: change this hard coded on mobile later.
+                    await _saveVariation(
+                      model,
+                      selectedProductType: "1",
+                      productName: "",
+                    );
+                    _routerService.pop();
+                  }
+                },
+                child: Text(
+                  context.flipperL10n.save,
+                  style: TextStyle(color: Colors.white),
                 ),
-              ],
-              bottom: PreferredSize(
-                preferredSize: Size.fromHeight(70),
-                child: SizedBox.shrink(), // Spacer for bottom padding
-              ),
-            ),
-            body: Container(
-              padding: const EdgeInsets.all(16.0),
-              color: Theme.of(context).scaffoldBackgroundColor,
-              child: Form(
-                key: AddVariation._formKey,
-                child: ListView(
-                  children: <Widget>[
-                    SectionSelectUnit(
-                      product: model.product!,
-                      type: 'variation',
-                    ),
-                    _buildTextFormField(
-                      controller: nameController,
-                      labelText: 'Name',
-                      hintText: 'Enter product name',
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Name required';
-                        }
-                        return null;
-                      },
-                    ),
-                    _buildPriceFormField(
-                      controller: retailController,
-                      labelText: 'Retail Price',
-                      hintText: 'Enter retail price',
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Retail price required';
-                        }
-                        if (!isNumeric(value)) {
-                          return 'Should be a number';
-                        }
-                        return null;
-                      },
-                    ),
-                    _buildPriceFormField(
-                      controller: costController,
-                      labelText: 'Cost Price',
-                      hintText: 'Enter cost price',
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Cost price required';
-                        }
-                        if (!isNumeric(value)) {
-                          return 'Should be a number';
-                        }
-                        return null;
-                      },
-                    ),
-                    _buildTextFormField(
-                      controller: skuController,
-                      onChanged: (value) {
-                        sku = DateTime.now().year.toString() +
-                            (value.isEmpty ? '' : value);
-                      },
-                      labelText: 'SKU',
-                      hintText: 'Enter SKU',
-                      suffixIcon: Icon(Icons.book),
-                    ),
-                    SwitchListTile(
-                      title: Text(
-                        'Tax Exempted',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      value: isTaxExempted,
-                      onChanged: (value) {
-                        setState(() {
-                          isTaxExempted = value;
-                        });
-                      },
-                    ),
-                    const Divider(
-                      color: Colors.grey,
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8.0),
-                      child: Text(
-                        'Fill all required fields',
-                        style: Theme.of(context).textTheme.bodyLarge,
-                      ),
-                    ),
-                  ],
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Theme.of(context).primaryColor,
                 ),
               ),
+            ],
+            bottom: PreferredSize(
+              preferredSize: Size.fromHeight(70),
+              child: SizedBox.shrink(), // Spacer for bottom padding
             ),
-          );
-        },
-        viewModelBuilder: () => ScannViewModel());
+          ),
+          body: Container(
+            padding: const EdgeInsets.all(16.0),
+            color: Theme.of(context).scaffoldBackgroundColor,
+            child: Form(
+              key: AddVariation._formKey,
+              child: ListView(
+                children: <Widget>[
+                  SectionSelectUnit(product: model.product!, type: 'variation'),
+                  _buildTextFormField(
+                    controller: nameController,
+                    labelText: context.flipperL10n.name,
+                    hintText: context.flipperL10n.createEnterProductName,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return context.flipperL10n.createNameRequired;
+                      }
+                      return null;
+                    },
+                  ),
+                  _buildPriceFormField(
+                    controller: retailController,
+                    labelText: context.flipperL10n.createRetailPrice,
+                    hintText: context.flipperL10n.createEnterRetailPrice,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return context.flipperL10n.createRetailPriceRequired;
+                      }
+                      if (!isNumeric(value)) {
+                        return context.flipperL10n.createShouldBeNumber;
+                      }
+                      return null;
+                    },
+                  ),
+                  _buildPriceFormField(
+                    controller: costController,
+                    labelText: context.flipperL10n.createCostPrice,
+                    hintText: context.flipperL10n.createEnterCostPrice,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return context.flipperL10n.createCostPriceRequired;
+                      }
+                      if (!isNumeric(value)) {
+                        return context.flipperL10n.createShouldBeNumber;
+                      }
+                      return null;
+                    },
+                  ),
+                  _buildTextFormField(
+                    controller: skuController,
+                    onChanged: (value) {
+                      sku =
+                          DateTime.now().year.toString() +
+                          (value.isEmpty ? '' : value);
+                    },
+                    labelText: 'SKU',
+                    hintText: context.flipperL10n.createEnterSku,
+                    suffixIcon: Icon(Icons.book),
+                  ),
+                  SwitchListTile(
+                    title: Text(
+                      context.flipperL10n.createTaxExempted,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    value: isTaxExempted,
+                    onChanged: (value) {
+                      setState(() {
+                        isTaxExempted = value;
+                      });
+                    },
+                  ),
+                  const Divider(color: Colors.grey),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: Text(
+                      context.flipperL10n.createFillRequiredFields,
+                      style: Theme.of(context).textTheme.bodyLarge,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+      viewModelBuilder: () => ScannViewModel(),
+    );
   }
 
   Future<void> _saveVariation(
@@ -171,48 +172,51 @@ class _AddVariationState extends State<AddVariation> with TransactionMixinOld {
     Map<String, String>? dates,
     required String productName,
   }) async {
-    Business? business = await ProxyService.strategy
-        .getBusiness(businessId: ProxyService.box.getBusinessId()!);
+    Business? business = await ProxyService.strategy.getBusiness(
+      businessId: ProxyService.box.getBusinessId()!,
+    );
     String itemPrefix = "flip-";
-    String clip = itemPrefix +
+    String clip =
+        itemPrefix +
         DateTime.now().microsecondsSinceEpoch.toString().substring(0, 5);
 
     // 321981891968185
     // 321981891968185
     List<Variant> variations = [];
-    Variant data = Variant(
-      color: model.product!.color,
-      name: nameController.text,
-      sku: sku,
-      lastTouched: DateTime.now().toUtc(),
-      itemCd: clip,
-      productId: model.product!.id,
-      unit: model.productService.currentUnit!,
-      productName: nameController.text,
-      branchId: ProxyService.box.getBranchId()!,
-      supplyPrice: double.parse(costController.text),
-      retailPrice: double.parse(retailController.text),
-    )
-      ..sku = sku
-      ..retailPrice = double.parse(retailController.text)
-      ..supplyPrice = double.parse(costController.text)
-      ..productId = model.product!.id
-      ..unit = model.productService.currentUnit!
-      ..productName = model.product!.name
-      ..branchId = model.productService.branchId!
-      ..branchId = ProxyService.box.getBranchId()!
-      ..taxPercentage = 0.0
-      // RRA fields
-      ..bhfId = await ProxyService.box.bhfId() ?? "00"
-      ..tin = business!.tinNumber
-      ..itemStdNm = "Regular"
-      ..prc = 0
-      ..addInfo = "A"
-      ..modrId = clip
-      ..pkg = 1
-      ..itemSeq = 1
-      ..splyAmt = 0.0
-      ..taxName = 'N/A';
+    Variant data =
+        Variant(
+            color: model.product!.color,
+            name: nameController.text,
+            sku: sku,
+            lastTouched: DateTime.now().toUtc(),
+            itemCd: clip,
+            productId: model.product!.id,
+            unit: model.productService.currentUnit!,
+            productName: nameController.text,
+            branchId: ProxyService.box.getBranchId()!,
+            supplyPrice: double.parse(costController.text),
+            retailPrice: double.parse(retailController.text),
+          )
+          ..sku = sku
+          ..retailPrice = double.parse(retailController.text)
+          ..supplyPrice = double.parse(costController.text)
+          ..productId = model.product!.id
+          ..unit = model.productService.currentUnit!
+          ..productName = model.product!.name
+          ..branchId = model.productService.branchId!
+          ..branchId = ProxyService.box.getBranchId()!
+          ..taxPercentage = 0.0
+          // RRA fields
+          ..bhfId = await ProxyService.box.bhfId() ?? "00"
+          ..tin = business!.tinNumber
+          ..itemStdNm = "Regular"
+          ..prc = 0
+          ..addInfo = "A"
+          ..modrId = clip
+          ..pkg = 1
+          ..itemSeq = 1
+          ..splyAmt = 0.0
+          ..taxName = 'N/A';
 
     variations.add(data);
 
@@ -226,14 +230,15 @@ class _AddVariationState extends State<AddVariation> with TransactionMixinOld {
       dates: dates,
       variations: variations,
       onCompleteCallback: (List<Variant> variants) async {
-        final pendingTransaction =
-            await ProxyService.strategy.manageTransaction(
-          transactionType: TransactionType.adjustment,
-          isExpense: true,
-          branchId: ProxyService.box.getBranchId()!,
+        final pendingTransaction = await ProxyService.strategy
+            .manageTransaction(
+              transactionType: TransactionType.adjustment,
+              isExpense: true,
+              branchId: ProxyService.box.getBranchId()!,
+            );
+        Business? business = await ProxyService.strategy.getBusiness(
+          businessId: ProxyService.box.getBusinessId()!,
         );
-        Business? business = await ProxyService.strategy
-            .getBusiness(businessId: ProxyService.box.getBusinessId()!);
         for (Variant variant in variants) {
           await ProxyService.strategy.assignTransaction(
             variant: variant,

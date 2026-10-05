@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 
 class ProductEditorHue {
@@ -25,18 +26,34 @@ const List<ProductEditorHue> productEditorHues = [
   ProductEditorHue(name: 'Slate', h: 214, s: 18),
 ];
 
-const List<double> _shadeLightness = [
-  95,
-  88,
-  79,
-  69,
-  60,
-  52,
-  45,
-  38,
-  31,
-  24,
-];
+/// Display label for a hue. [name] stays the stable English identifier used
+/// for selection state; only the rendered text is localized.
+String productEditorHueLabel(FlipperAppLocalizations l10n, String name) {
+  switch (name) {
+    case 'Red':
+      return l10n.productEditorHueRed;
+    case 'Orange':
+      return l10n.productEditorHueOrange;
+    case 'Amber':
+      return l10n.productEditorHueAmber;
+    case 'Green':
+      return l10n.productEditorHueGreen;
+    case 'Teal':
+      return l10n.productEditorHueTeal;
+    case 'Blue':
+      return l10n.productEditorHueBlue;
+    case 'Indigo':
+      return l10n.productEditorHueIndigo;
+    case 'Violet':
+      return l10n.productEditorHueViolet;
+    case 'Slate':
+      return l10n.productEditorHueSlate;
+    default:
+      return name;
+  }
+}
+
+const List<double> _shadeLightness = [95, 88, 79, 69, 60, 52, 45, 38, 31, 24];
 
 List<Color> makeProductEditorShades(ProductEditorHue hue) {
   return List<Color>.generate(_shadeLightness.length, (i) {

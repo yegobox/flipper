@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'dart:async';
 import 'dart:ui';
 
@@ -112,58 +113,61 @@ class _AppChoiceDialogState extends ConsumerState<AppChoiceDialog>
         : const AppChoiceDialogRequest();
   }
 
+  // Labels come from [FlipperL10n.current]: this list is first read in
+  // initState, where an inherited lookup is not allowed. The dialog is rebuilt
+  // each time it opens, so it always uses the active language.
   late final List<_AppChoice> _apps = [
     _AppChoice(
       id: 'POS',
       title: 'POS',
-      subtitle: 'Sell and take payments',
+      subtitle: FlipperL10n.current.appChoicePosSubtitle,
       iconSvg: DashboardQuickAccessSvgs.appSwitcherPosIcon(),
       accent: const Color(0xFF185FA5),
       page: DashboardPage.inventory,
     ),
     _AppChoice(
       id: 'Books',
-      title: 'Books',
-      subtitle: 'Accounting and ledgers',
+      title: FlipperL10n.current.appChoiceBooks,
+      subtitle: FlipperL10n.current.appChoiceBooksSubtitle,
       iconSvg: DashboardQuickAccessSvgs.appSwitcherBooksIcon(),
       accent: const Color(0xFF2563EB),
     ),
     _AppChoice(
       id: 'Inventory',
-      title: 'Inventory',
-      subtitle: 'Stock and products',
+      title: FlipperL10n.current.inventory,
+      subtitle: FlipperL10n.current.appChoiceInventorySubtitle,
       iconSvg: DashboardQuickAccessSvgs.appSwitcherInventoryIcon(),
       accent: const Color(0xFF3B6D11),
       page: DashboardPage.inventory,
     ),
     _AppChoice(
       id: 'Reports',
-      title: 'Reports',
-      subtitle: 'Sales and tax analytics',
+      title: FlipperL10n.current.reports,
+      subtitle: FlipperL10n.current.appChoiceReportsSubtitle,
       iconSvg: DashboardQuickAccessSvgs.appSwitcherReportsIcon(),
       accent: const Color(0xFF534AB7),
       page: DashboardPage.reports,
     ),
     _AppChoice(
       id: 'Orders',
-      title: 'Orders',
-      subtitle: 'Purchases and transfers',
+      title: FlipperL10n.current.appChoiceOrders,
+      subtitle: FlipperL10n.current.appChoiceOrdersSubtitle,
       iconSvg: DashboardQuickAccessSvgs.appSwitcherOrdersIcon(),
       accent: const Color(0xFF854F0B),
       page: DashboardPage.orders,
     ),
     _AppChoice(
       id: 'Customers',
-      title: 'Customers',
-      subtitle: 'Contacts and credit',
+      title: FlipperL10n.current.customers,
+      subtitle: FlipperL10n.current.appChoiceCustomersSubtitle,
       iconSvg: DashboardQuickAccessSvgs.appSwitcherCustomersIcon(),
       accent: const Color(0xFF993556),
       navPage: 'Contacts',
     ),
     _AppChoice(
       id: 'Settings',
-      title: 'Settings',
-      subtitle: 'Devices, tax and staff',
+      title: FlipperL10n.current.settings,
+      subtitle: FlipperL10n.current.appChoiceSettingsSubtitle,
       iconSvg: DashboardQuickAccessSvgs.appSwitcherSettingsIcon(),
       accent: const Color(0xFF5F5E5A),
       navPage: 'Settings',
@@ -458,9 +462,9 @@ class _AppChoiceDialogState extends ConsumerState<AppChoiceDialog>
               children: [
                 _header(),
                 const SizedBox(height: 22),
-                const Text(
-                  'Choose your app',
-                  style: TextStyle(
+                Text(
+                  context.flipperL10n.appChoiceTitle,
+                  style: const TextStyle(
                     color: AppChoiceTokens.ink1,
                     fontSize: 27,
                     fontWeight: FontWeight.w700,
@@ -469,9 +473,9 @@ class _AppChoiceDialogState extends ConsumerState<AppChoiceDialog>
                   ),
                 ),
                 const SizedBox(height: 5),
-                const Text(
-                  'Pick where you want to start. You can switch apps any time.',
-                  style: TextStyle(
+                Text(
+                  context.flipperL10n.appChoiceSubtitle,
+                  style: const TextStyle(
                     color: AppChoiceTokens.ink2,
                     fontSize: 15,
                     height: 1.35,
@@ -622,10 +626,10 @@ class _AppChoiceDialogState extends ConsumerState<AppChoiceDialog>
           color: AppChoiceTokens.ink4,
         ),
         const SizedBox(width: 8),
-        const Expanded(
+        Expanded(
           child: Text(
-            'Press 1–7 to open, arrows to move, Esc to close',
-            style: TextStyle(
+            context.flipperL10n.appChoiceKeyboardHint,
+            style: const TextStyle(
               color: AppChoiceTokens.ink3,
               fontSize: 12.5,
               fontWeight: FontWeight.w500,
@@ -640,7 +644,7 @@ class _AppChoiceDialogState extends ConsumerState<AppChoiceDialog>
               borderRadius: BorderRadius.circular(999),
             ),
             child: Text(
-              'Default · $current',
+              '${context.flipperL10n.branchesDefaultBadge} · $current',
               style: const TextStyle(
                 color: AppChoiceTokens.blue,
                 fontSize: 12,
@@ -858,9 +862,9 @@ class _DefaultPill extends StatelessWidget {
         color: AppChoiceTokens.blueTint,
         borderRadius: BorderRadius.circular(999),
       ),
-      child: const Text(
-        'DEFAULT',
-        style: TextStyle(
+      child: Text(
+        context.flipperL10n.branchesDefaultBadge.toUpperCase(),
+        style: const TextStyle(
           color: AppChoiceTokens.blue,
           fontSize: 10,
           fontWeight: FontWeight.w900,

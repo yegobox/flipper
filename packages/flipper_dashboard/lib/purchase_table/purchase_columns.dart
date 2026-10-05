@@ -1,12 +1,11 @@
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:flutter/material.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 
 List<GridColumn> buildPurchaseColumns() {
-  const headerStyle = TextStyle(
-    fontWeight: FontWeight.bold,
-    fontSize: 14,
-  );
+  const headerStyle = TextStyle(fontWeight: FontWeight.bold, fontSize: 14);
 
+  final l10n = FlipperL10n.current;
   return [
     GridColumn(
       columnName: 'rowNumber',
@@ -14,8 +13,8 @@ List<GridColumn> buildPurchaseColumns() {
       label: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16.0),
         alignment: Alignment.centerLeft,
-        child: const Text(
-          'No.',
+        child: Text(
+          l10n.purchaseColumnNo,
           style: headerStyle,
           overflow: TextOverflow.ellipsis,
         ),
@@ -27,8 +26,8 @@ List<GridColumn> buildPurchaseColumns() {
       label: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16.0),
         alignment: Alignment.centerLeft,
-        child: const Text(
-          'Name',
+        child: Text(
+          l10n.name,
           style: headerStyle,
           overflow: TextOverflow.ellipsis,
         ),
@@ -40,8 +39,8 @@ List<GridColumn> buildPurchaseColumns() {
       label: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16.0),
         alignment: Alignment.centerRight,
-        child: const Text(
-          'Qty',
+        child: Text(
+          l10n.manualPurchaseQty,
           style: headerStyle,
           overflow: TextOverflow.ellipsis,
         ),
@@ -53,8 +52,8 @@ List<GridColumn> buildPurchaseColumns() {
       label: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16.0),
         alignment: Alignment.centerRight,
-        child: const Text(
-          'Supply Price',
+        child: Text(
+          l10n.purchaseSupplyPrice,
           style: headerStyle,
           overflow: TextOverflow.ellipsis,
         ),
@@ -66,22 +65,22 @@ List<GridColumn> buildPurchaseColumns() {
       label: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16.0),
         alignment: Alignment.centerRight,
-        child: const Text(
-          'Retail Price',
+        child: Text(
+          l10n.createRetailPrice,
           style: headerStyle,
           overflow: TextOverflow.ellipsis,
         ),
       ),
     ),
-    
+
     GridColumn(
       columnName: 'Status',
       width: 120,
       label: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16.0),
         alignment: Alignment.centerLeft,
-        child: const Text(
-          'Status',
+        child: Text(
+          l10n.reportStatus,
           style: headerStyle,
           overflow: TextOverflow.ellipsis,
         ),

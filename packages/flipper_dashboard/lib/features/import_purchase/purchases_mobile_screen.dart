@@ -8,6 +8,7 @@ import 'package:flipper_dashboard/features/import_purchase/purchase_approval_mix
 import 'package:flipper_dashboard/features/import_purchase/record_purchase_modal.dart';
 import 'package:flipper_dashboard/import_purchase_viewmodel.dart';
 import 'package:flipper_dashboard/manual_purchase/manual_purchase_notifier.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -33,18 +34,19 @@ _PurchaseStatus _statusOf(model.Purchase p) {
   return _PurchaseStatus.approved;
 }
 
-String _lineStatusLabel(String? code) => switch (code) {
-  '02' || '03' => 'Approved',
-  '04' => 'Declined',
-  _ => 'Waiting',
-};
+String _lineStatusLabel(FlipperAppLocalizations l10n, String? code) =>
+    switch (code) {
+      '02' || '03' => l10n.approved,
+      '04' => l10n.importPurchaseStatusDeclined,
+      _ => l10n.importPurchaseStatusWaiting,
+    };
 
 /// Status filters, in the order an owner works through them.
-const _filters = [
-  (key: 'pending', label: 'Waiting'),
-  (key: 'approved', label: 'Approved'),
-  (key: 'rejected', label: 'Declined'),
-  (key: 'all', label: 'All'),
+List<({String key, String label})> _filters(FlipperAppLocalizations l10n) => [
+  (key: 'pending', label: l10n.importPurchaseStatusWaiting),
+  (key: 'approved', label: l10n.approved),
+  (key: 'rejected', label: l10n.importPurchaseStatusDeclined),
+  (key: 'all', label: l10n.importPurchaseFilterAll),
 ];
 
 /// Phone layout for supplier purchases: status chips, a pull-to-refresh list
@@ -68,6 +70,7 @@ class _PurchasesMobileScreenState extends ConsumerState<PurchasesMobileScreen> {
   }
 
   Future<void> _sync() async {
+    final l10n = context.flipperL10n;
     try {
       final message = await ref
           .read(importPurchaseViewModelProvider.notifier)
@@ -75,7 +78,11 @@ class _PurchasesMobileScreenState extends ConsumerState<PurchasesMobileScreen> {
       if (message != null && mounted) showImportPurchaseToast(context, message);
     } catch (e) {
       if (mounted) {
-        showImportPurchaseToast(context, 'Sync failed: $e', isError: true);
+        showImportPurchaseToast(
+          context,
+          l10n.importPurchaseSyncFailed('$e'),
+          isError: true,
+        );
       }
     }
   }
@@ -92,11 +99,12 @@ class _PurchasesMobileScreenState extends ConsumerState<PurchasesMobileScreen> {
   Widget build(BuildContext context) {
     final state = ref.watch(importPurchaseViewModelProvider);
     final notifier = ref.read(importPurchaseViewModelProvider.notifier);
+    final l10n = context.flipperL10n;
 
     return Scaffold(
       backgroundColor: _T.canvas,
       appBar: CustomAppBar(
-        title: state.isImport ? 'Imports' : 'Purchases',
+        title: state.isImport ? l10n.importPurchaseImports : l10n.purchases,
         icon: Icons.arrow_back,
         onPop: () => Navigator.of(context).maybePop(),
         customTrailingWidget: _SyncButton(
@@ -111,7 +119,7 @@ class _PurchasesMobileScreenState extends ConsumerState<PurchasesMobileScreen> {
               backgroundColor: _T.accent,
               foregroundColor: Colors.white,
               icon: const Icon(Icons.add),
-              label: const Text('Record purchase'),
+              label: Text(l10n.importPurchaseRecordPurchase),
             ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -123,16 +131,16 @@ class _PurchasesMobileScreenState extends ConsumerState<PurchasesMobileScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 SegmentedButton<bool>(
-                  segments: const [
+                  segments: [
                     ButtonSegment(
                       value: false,
-                      label: Text('Purchases'),
-                      icon: Icon(Icons.shopping_cart_outlined),
+                      label: Text(l10n.purchases),
+                      icon: const Icon(Icons.shopping_cart_outlined),
                     ),
                     ButtonSegment(
                       value: true,
-                      label: Text('Imports'),
-                      icon: Icon(Icons.download_outlined),
+                      label: Text(l10n.importPurchaseImports),
+                      icon: const Icon(Icons.download_outlined),
                     ),
                   ],
                   selected: {state.isImport},
@@ -143,10 +151,12 @@ class _PurchasesMobileScreenState extends ConsumerState<PurchasesMobileScreen> {
                 const SizedBox(height: 10),
                 Text(
                   state.syncing
-                      ? 'Fetching invoices from RRA…'
+                      ? l10n.importPurchaseFetchingInvoices
                       : state.lastSyncAt != null
-                      ? 'Synced with RRA ${timeago.format(state.lastSyncAt!)}'
-                      : 'Pull down to refresh · tap ⟳ to fetch from RRA',
+                      ? l10n.importPurchaseSyncedWithRra(
+                          timeago.format(state.lastSyncAt!),
+                        )
+                      : l10n.importPurchasePullToRefreshHint,
                   style: ImportPurchaseHelpers.text(
                     size: 12.5,
                     weight: FontWeight.w500,
@@ -189,7 +199,7 @@ class _SyncButton extends StatelessWidget {
             )
           : AppBarRoundIconButton(
               icon: Icons.sync,
-              tooltip: 'Fetch from RRA',
+              tooltip: context.flipperL10n.importPurchaseFetchFromRra,
               onPressed: onPressed,
             ),
     );
@@ -205,6 +215,7 @@ class _PurchaseList extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final notifier = ref.read(importPurchaseViewModelProvider.notifier);
+    final l10n = context.flipperL10n;
     final filter = state.purchaseStatusFilter;
     final purchases = state.purchases.where((p) {
       final lines = p.variants ?? const <model.Variant>[];
@@ -219,7 +230,7 @@ class _PurchaseList extends ConsumerWidget {
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.fromLTRB(16, 10, 16, 6),
         children: [
-          for (final f in _filters)
+          for (final f in _filters(l10n))
             Padding(
               padding: const EdgeInsets.only(right: 8),
               child: ChoiceChip(
@@ -246,18 +257,16 @@ class _PurchaseList extends ConsumerWidget {
     } else if (state.error != null && purchases.isEmpty) {
       body = _Message(
         icon: Icons.cloud_off_outlined,
-        title: 'Could not load purchases',
+        title: l10n.importPurchaseCouldNotLoadPurchases,
         subtitle: state.error!,
       );
     } else if (purchases.isEmpty) {
       body = _Message(
         icon: Icons.receipt_long_outlined,
         title: filter == 'pending'
-            ? 'Nothing waiting for approval'
-            : 'No purchases here',
-        subtitle:
-            'Record a purchase, or fetch your supplier invoices '
-            'from RRA.',
+            ? l10n.importPurchaseNothingWaiting
+            : l10n.importPurchaseNoPurchasesHere,
+        subtitle: l10n.importPurchaseNoPurchasesHint,
       );
     } else {
       body = ListView.separated(
@@ -370,23 +379,24 @@ class _Pill extends StatelessWidget {
   }
 }
 
-_Pill _statusPill(_PurchaseStatus status) => switch (status) {
-  _PurchaseStatus.waiting => const _Pill(
-    'Waiting',
-    fg: _T.amber,
-    bg: _T.amberWash,
-  ),
-  _PurchaseStatus.approved => const _Pill(
-    'Approved',
-    fg: _T.greenStrong,
-    bg: _T.greenWash,
-  ),
-  _PurchaseStatus.declined => const _Pill(
-    'Declined',
-    fg: _T.redStrong,
-    bg: _T.redWash,
-  ),
-};
+_Pill _statusPill(FlipperAppLocalizations l10n, _PurchaseStatus status) =>
+    switch (status) {
+      _PurchaseStatus.waiting => _Pill(
+        l10n.importPurchaseStatusWaiting,
+        fg: _T.amber,
+        bg: _T.amberWash,
+      ),
+      _PurchaseStatus.approved => _Pill(
+        l10n.approved,
+        fg: _T.greenStrong,
+        bg: _T.greenWash,
+      ),
+      _PurchaseStatus.declined => _Pill(
+        l10n.importPurchaseStatusDeclined,
+        fg: _T.redStrong,
+        bg: _T.redWash,
+      ),
+    };
 
 bool _isOnCredit(model.Purchase p) => p.pmtTyCd == '02' || p.pmtTyCd == '03';
 
@@ -403,10 +413,11 @@ class _PurchaseCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
     final currency = ProxyService.box.defaultCurrency();
     final lines = purchase.variants?.length ?? 0;
     final supplier = purchase.spplrNm.trim().isEmpty
-        ? 'Supplier'
+        ? l10n.importPurchaseSupplier
         : purchase.spplrNm;
 
     return Material(
@@ -447,9 +458,11 @@ class _PurchaseCard extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                'Invoice ${purchase.spplrInvcNo} · '
-                '${timeago.format(purchase.createdAt)} · '
-                '$lines item${lines == 1 ? '' : 's'}',
+                l10n.importPurchaseCardMeta(
+                  '${purchase.spplrInvcNo}',
+                  timeago.format(purchase.createdAt),
+                  l10n.importPurchaseItemCount(lines),
+                ),
                 style: ImportPurchaseHelpers.text(
                   size: 13,
                   weight: FontWeight.w500,
@@ -463,17 +476,23 @@ class _PurchaseCard extends StatelessWidget {
                 crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
                   if (busy)
-                    const _Pill('Working…', fg: _T.ink2, bg: _T.surface3)
+                    _Pill(
+                      l10n.importPurchaseWorking,
+                      fg: _T.ink2,
+                      bg: _T.surface3,
+                    )
                   else
-                    _statusPill(_statusOf(purchase)),
+                    _statusPill(l10n, _statusOf(purchase)),
                   _Pill(
-                    purchase.regTyCd == 'M' ? 'Recorded' : 'From RRA',
+                    purchase.regTyCd == 'M'
+                        ? l10n.importPurchaseRecorded
+                        : l10n.importPurchaseFromRra,
                     fg: _T.ink2,
                     bg: _T.surface3,
                   ),
                   if (_isOnCredit(purchase))
-                    const _Pill(
-                      'On credit',
+                    _Pill(
+                      l10n.importPurchaseOnCredit,
                       fg: _T.accentStrong,
                       bg: _T.accentWash,
                     ),
@@ -512,23 +531,26 @@ class _PurchaseDetailScreenState extends ConsumerState<_PurchaseDetailScreen>
 
   Future<void> _decide(model.Purchase purchase, {required bool accept}) async {
     if (!accept) {
+      final l10n = context.flipperL10n;
       final sure = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('Decline this purchase?'),
+          title: Text(l10n.importPurchaseDeclineTitle),
           content: Text(
-            'Invoice ${purchase.spplrInvcNo} from ${purchase.spplrNm} will '
-            'not be added to your stock.',
+            l10n.importPurchaseDeclineBody(
+              '${purchase.spplrInvcNo}',
+              purchase.spplrNm,
+            ),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Cancel'),
+              child: Text(l10n.cancel),
             ),
             TextButton(
               onPressed: () => Navigator.of(context).pop(true),
               style: TextButton.styleFrom(foregroundColor: _T.redStrong),
-              child: const Text('Decline'),
+              child: Text(l10n.importPurchaseDecline),
             ),
           ],
         ),
@@ -558,18 +580,19 @@ class _PurchaseDetailScreenState extends ConsumerState<_PurchaseDetailScreen>
         state.purchases.where((p) => p.id == widget.purchaseId).firstOrNull ??
         _last;
     _last = purchase;
+    final l10n = context.flipperL10n;
 
     if (purchase == null) {
       return Scaffold(
         appBar: CustomAppBar(
-          title: 'Purchase',
+          title: l10n.importPurchasePurchase,
           icon: Icons.arrow_back,
           onPop: () => Navigator.of(context).maybePop(),
         ),
-        body: const _Message(
+        body: _Message(
           icon: Icons.search_off,
-          title: 'Purchase not found',
-          subtitle: 'It may have moved to another status.',
+          title: l10n.importPurchaseNotFound,
+          subtitle: l10n.importPurchaseNotFoundHint,
         ),
       );
     }
@@ -586,7 +609,9 @@ class _PurchaseDetailScreenState extends ConsumerState<_PurchaseDetailScreen>
     return Scaffold(
       backgroundColor: _T.canvas,
       appBar: CustomAppBar(
-        title: purchase.spplrNm.trim().isEmpty ? 'Purchase' : purchase.spplrNm,
+        title: purchase.spplrNm.trim().isEmpty
+            ? l10n.importPurchasePurchase
+            : purchase.spplrNm,
         icon: Icons.arrow_back,
         onPop: () => Navigator.of(context).maybePop(),
       ),
@@ -605,10 +630,12 @@ class _PurchaseDetailScreenState extends ConsumerState<_PurchaseDetailScreen>
               children: [
                 Row(
                   children: [
-                    _statusPill(status),
+                    _statusPill(l10n, status),
                     const SizedBox(width: 6),
                     _Pill(
-                      isRra ? 'From RRA' : 'Recorded',
+                      isRra
+                          ? l10n.importPurchaseFromRra
+                          : l10n.importPurchaseRecorded,
                       fg: _T.ink2,
                       bg: _T.surface3,
                     ),
@@ -625,7 +652,9 @@ class _PurchaseDetailScreenState extends ConsumerState<_PurchaseDetailScreen>
                 ),
                 if (purchase.totTaxAmt > 0)
                   Text(
-                    'incl. VAT ${_money.format(purchase.totTaxAmt)}',
+                    l10n.importPurchaseInclVat(
+                      _money.format(purchase.totTaxAmt),
+                    ),
                     style: ImportPurchaseHelpers.text(
                       size: 13,
                       weight: FontWeight.w500,
@@ -633,17 +662,17 @@ class _PurchaseDetailScreenState extends ConsumerState<_PurchaseDetailScreen>
                     ),
                   ),
                 const SizedBox(height: 14),
-                _InfoRow('Invoice', '${purchase.spplrInvcNo}'),
+                _InfoRow(l10n.invoice, '${purchase.spplrInvcNo}'),
                 _InfoRow(
-                  'Date',
+                  l10n.importPurchaseDate,
                   DateFormat('d MMM yyyy').format(purchase.createdAt.toLocal()),
                 ),
                 _InfoRow(
-                  'Paid with',
+                  l10n.importPurchasePaidWith,
                   purchasePaymentTypes[purchase.pmtTyCd] ?? purchase.pmtTyCd,
                 ),
                 if (purchase.spplrTin.trim().isNotEmpty)
-                  _InfoRow('Supplier TIN', purchase.spplrTin),
+                  _InfoRow(l10n.importPurchaseSupplierTin, purchase.spplrTin),
               ],
             ),
           ),
@@ -651,7 +680,7 @@ class _PurchaseDetailScreenState extends ConsumerState<_PurchaseDetailScreen>
           Padding(
             padding: const EdgeInsets.fromLTRB(4, 0, 4, 8),
             child: Text(
-              'ITEMS · ${lines.length}',
+              l10n.importPurchaseItemsHeader('${lines.length}').toUpperCase(),
               style: ImportPurchaseHelpers.text(
                 size: 12,
                 weight: FontWeight.w700,
@@ -669,8 +698,7 @@ class _PurchaseDetailScreenState extends ConsumerState<_PurchaseDetailScreen>
                 borderRadius: BorderRadius.circular(_T.radiusSm),
               ),
               child: Text(
-                'Match each supplier item to one of yours before accepting, '
-                'so stock lands on the right product.',
+                l10n.importPurchaseMatchItemsHint,
                 style: ImportPurchaseHelpers.text(
                   size: 13,
                   weight: FontWeight.w500,
@@ -729,7 +757,7 @@ class _PurchaseDetailScreenState extends ConsumerState<_PurchaseDetailScreen>
                               borderRadius: BorderRadius.circular(_T.radiusSm),
                             ),
                           ),
-                          child: const Text('Decline'),
+                          child: Text(l10n.importPurchaseDecline),
                         ),
                       ),
                       const SizedBox(width: 10),
@@ -756,8 +784,10 @@ class _PurchaseDetailScreenState extends ConsumerState<_PurchaseDetailScreen>
                                 )
                               : Text(
                                   needsMatching > 0
-                                      ? 'Accept ($needsMatching to match)'
-                                      : 'Accept',
+                                      ? l10n.importPurchaseAcceptWithMatch(
+                                          needsMatching,
+                                        )
+                                      : l10n.importPurchaseAccept,
                                 ),
                         ),
                       ),
@@ -825,6 +855,7 @@ class _LineRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
     final qty = line.qty ?? 0;
     final price = line.prc ?? line.supplyPrice ?? 0;
     final total = line.totAmt ?? qty * price;
@@ -860,7 +891,7 @@ class _LineRow extends StatelessWidget {
           const SizedBox(height: 3),
           Text(
             '${_money.format(qty)} × ${_money.format(price)} · '
-            '${_lineStatusLabel(line.pchsSttsCd)}',
+            '${_lineStatusLabel(l10n, line.pchsSttsCd)}',
             style: ImportPurchaseHelpers.text(
               size: 13,
               weight: FontWeight.w500,
@@ -872,7 +903,11 @@ class _LineRow extends StatelessWidget {
             OutlinedButton.icon(
               onPressed: onMatch,
               icon: Icon(matched ? Icons.link : Icons.link_off, size: 18),
-              label: Text(matched ? 'Matched · change' : 'Match to my item'),
+              label: Text(
+                matched
+                    ? l10n.importPurchaseMatchedChange
+                    : l10n.importPurchaseMatchToMyItem,
+              ),
               style: OutlinedButton.styleFrom(
                 foregroundColor: matched ? _T.greenStrong : _T.accentStrong,
                 side: BorderSide(color: matched ? _T.greenWash : _T.line2),

@@ -25,6 +25,7 @@ import 'package:flipper_dashboard/features/kitchen_display/kitchen_stage.dart';
 import 'package:flipper_models/helpers/ticket_review_actions.dart';
 import 'package:flipper_models/helpers/pending_sale_cart_cleanup.dart';
 import 'package:flipper_models/order_form_whatsapp_client.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.dialogs.dart';
 import 'package:flipper_services/constants.dart';
@@ -295,8 +296,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       if (skippedTickets.isNotEmpty && mounted) {
         showCustomSnackBarUtil(
           context,
-          'Skipped ${skippedTickets.length} ticket(s) that cannot be deleted '
-          '(partial payments or reviewed)',
+          context.flipperL10n.ticketsSkippedCannotDelete(skippedTickets.length),
           backgroundColor: Colors.orange,
         );
       }
@@ -359,7 +359,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
                 vertical: 8.0,
               ),
               child: TicketSearchBar(
-                hintText: 'Search by customer, phone, ticket ID...',
+                hintText: context.flipperL10n.ticketSearchHint,
                 onChanged: (value) => setState(() => _searchQuery = value),
               ),
             ),
@@ -514,7 +514,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           ),
           const SizedBox(height: 16),
           Text(
-            'Loading tickets...',
+            context.flipperL10n.ticketsLoading,
             style: GoogleFonts.outfit(
               fontSize: 16,
               fontWeight: FontWeight.w500,
@@ -534,7 +534,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           Icon(Icons.filter_alt_off, size: 56, color: Colors.grey[400]),
           const SizedBox(height: 12),
           Text(
-            'No tickets in this category',
+            context.flipperL10n.ticketsNoneInCategory,
             style: GoogleFonts.outfit(
               fontSize: 16,
               fontWeight: FontWeight.w500,
@@ -542,7 +542,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
             ),
           ),
           Text(
-            'Try another filter',
+            context.flipperL10n.ticketsTryAnotherFilter,
             style: GoogleFonts.outfit(fontSize: 14, color: Colors.grey[600]),
           ),
         ],
@@ -611,9 +611,15 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
                   fontWeight: FontWeight.w500,
                   color: Colors.black87,
                 ),
-                items: const [
-                  DropdownMenuItem(value: true, child: Text('Newest first')),
-                  DropdownMenuItem(value: false, child: Text('Oldest first')),
+                items: [
+                  DropdownMenuItem(
+                    value: true,
+                    child: Text(context.flipperL10n.ticketSortNewest),
+                  ),
+                  DropdownMenuItem(
+                    value: false,
+                    child: Text(context.flipperL10n.ticketSortOldest),
+                  ),
                 ],
                 onChanged: (v) {
                   if (v == null) return;
@@ -632,15 +638,19 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   ) {
     final loanTickets = typeFiltered.where((t) => t.isLoan == true).toList();
     final nonLoanTickets = typeFiltered.where((t) => t.isLoan != true).toList();
+    final l10n = context.flipperL10n;
+    final loanTitle = l10n.ticketsLoanSection.toUpperCase();
+    final layawayTitle = l10n.ticketsLayawaySection.toUpperCase();
+    final regularTitle = l10n.ticketsRegularSection.toUpperCase();
 
     String loanSectionTitle() {
       switch (_ticketKindFilter) {
         case 'layaway':
-          return 'LAYAWAY TICKETS';
+          return layawayTitle;
         case 'loan':
-          return 'LOAN TICKETS';
+          return loanTitle;
         default:
-          return 'LOAN TICKETS';
+          return loanTitle;
       }
     }
 
@@ -671,13 +681,13 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     final entries = <_TicketListEntry>[];
     switch (_ticketKindFilter) {
       case 'loan':
-        addSection(entries, 'LOAN TICKETS', _kLoanPurple, typeFiltered);
+        addSection(entries, loanTitle, _kLoanPurple, typeFiltered);
         break;
       case 'layaway':
-        addSection(entries, 'LAYAWAY TICKETS', _kLayawayTeal, typeFiltered);
+        addSection(entries, layawayTitle, _kLayawayTeal, typeFiltered);
         break;
       case 'regular':
-        addSection(entries, 'REGULAR TICKETS', _kRegularGreen, typeFiltered);
+        addSection(entries, regularTitle, _kRegularGreen, typeFiltered);
         break;
       default:
         addSection(
@@ -686,7 +696,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           loanSectionAccent(),
           loanTickets,
         );
-        addSection(entries, 'REGULAR TICKETS', _kRegularGreen, nonLoanTickets);
+        addSection(entries, regularTitle, _kRegularGreen, nonLoanTickets);
     }
     return entries;
   }
@@ -917,7 +927,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     if (!resumeSucceeded || !mounted) return;
     showCustomSnackBarUtil(
       context,
-      'Order resumed successfully',
+      context.flipperL10n.ticketOrderResumed,
       backgroundColor: Colors.green,
     );
   }
@@ -1010,7 +1020,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     }
 
     final originalAgentId = ticket.agentId;
-    var creatorName = 'Staff';
+    var creatorName = context.flipperL10n.ticketStaffFallback;
     if (originalAgentId != null && originalAgentId.isNotEmpty) {
       try {
         final tenant = await ProxyService.strategy.tenant(
@@ -1105,7 +1115,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         if (mounted) {
           showCustomSnackBarUtil(
             context,
-            'Could not return the current ticket to the till. Try again.',
+            context.flipperL10n.ticketReturnToTillFailed,
             backgroundColor: Colors.red,
           );
         }
@@ -1140,7 +1150,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       if (mounted) {
         showCustomSnackBarUtil(
           context,
-          'Could not return the current ticket to the till. Try again.',
+          context.flipperL10n.ticketReturnToTillFailed,
           backgroundColor: Colors.red,
         );
       }
@@ -1214,12 +1224,12 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         showDialog(
           context: context,
           builder: (ctx) => AlertDialog(
-            title: const Text('Action Failed'),
+            title: Text(ctx.flipperL10n.ticketActionFailed),
             content: Text(e.toString(), style: const TextStyle(fontSize: 14)),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(ctx).pop(),
-                child: const Text('OK'),
+                child: Text(ctx.flipperL10n.ok),
               ),
             ],
           ),
@@ -1250,14 +1260,17 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
             sentBy: ProxyService.box.getUserId(),
           );
       if (mounted) {
-        showCustomSnackBarUtil(context, 'Sent to kitchen');
+        showCustomSnackBarUtil(
+          context,
+          context.flipperL10n.ticketSentToKitchen,
+        );
       }
     } catch (e, st) {
       talker.error('Send ticket ${ticket.id} to kitchen failed: $e', st);
       if (mounted) {
         showCustomSnackBarUtil(
           context,
-          'Could not send to kitchen. Try again.',
+          context.flipperL10n.ticketSendToKitchenFailed,
           backgroundColor: Colors.red,
         );
       }
@@ -1286,6 +1299,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   Future<void> _printReviewedTicketOrderForm(ITransaction ticket) async {
     if (_printingOrderFormTicketIds.contains(ticket.id)) return;
     setState(() => _printingOrderFormTicketIds.add(ticket.id));
+    final l10n = context.flipperL10n;
     try {
       final branchId = ticket.branchId ?? ProxyService.box.getBranchId() ?? '';
       final items = await ProxyService.getStrategy(Strategy.capella)
@@ -1294,7 +1308,11 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
             branchId: branchId,
             active: true,
           );
-      final bytes = await buildOrderFormPdfBytes(ticket: ticket, items: items);
+      final bytes = await buildOrderFormPdfBytes(
+        ticket: ticket,
+        items: items,
+        l10n: l10n,
+      );
       if (!mounted) return;
       if (UniversalPlatform.isDesktopOrWeb && !kIsWeb) {
         // Desktop: branded printer picker (always show — do not auto-skip to
@@ -1318,7 +1336,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       if (mounted) {
         showCustomSnackBarUtil(
           context,
-          'Failed to print order form',
+          context.flipperL10n.ticketPrintOrderFormFailed,
           backgroundColor: Colors.red,
         );
       }
@@ -1337,6 +1355,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     if (_sendingOrderFormWhatsAppTicketIds.contains(ticket.id)) return;
 
     setState(() => _sendingOrderFormWhatsAppTicketIds.add(ticket.id));
+    final l10n = context.flipperL10n;
     try {
       final branchId = ticket.branchId ?? ProxyService.box.getBranchId() ?? '';
       final items = await ProxyService.getStrategy(Strategy.capella)
@@ -1345,17 +1364,24 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
             branchId: branchId,
             active: true,
           );
-      final bytes = await buildOrderFormPdfBytes(ticket: ticket, items: items);
+      final bytes = await buildOrderFormPdfBytes(
+        ticket: ticket,
+        items: items,
+        l10n: l10n,
+      );
       final refLabel = _ticketDisplayRef(ticket);
-      final customer = (ticket.customerName ?? ticket.ticketName ?? 'Walk-in')
-          .trim();
-      final caption =
-          'Order form · Ticket #$refLabel · ${customer.isEmpty ? 'Walk-in' : customer}';
+      final customer =
+          (ticket.customerName ?? ticket.ticketName ?? l10n.ticketWalkIn)
+              .trim();
+      final caption = l10n.ticketOrderFormCaption(
+        refLabel,
+        customer.isEmpty ? l10n.ticketWalkIn : customer,
+      );
 
       final dataConnectorUrl = await resolveOrderFormDataConnectorUrl();
       if (dataConnectorUrl == null || dataConnectorUrl.trim().isEmpty) {
         throw OrderFormWhatsAppException(
-          'Ebm.dataConnectorUrl is not configured (taxServerUrl is not used for WhatsApp)',
+          FlipperL10n.current.ticketWhatsAppNotConfigured,
         );
       }
       final client = await createOrderFormWhatsAppClient(
@@ -1375,7 +1401,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       });
       showCustomSnackBarUtil(
         context,
-        'Order form sent to ${recipient.displayName} on WhatsApp',
+        context.flipperL10n.ticketOrderFormSentWhatsApp(recipient.displayName),
         backgroundColor: const Color(0xFF16A34A),
       );
     } on OrderFormWhatsAppException catch (e) {
@@ -1388,7 +1414,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       if (mounted) {
         showCustomSnackBarUtil(
           context,
-          'Failed to send order form on WhatsApp',
+          context.flipperL10n.ticketOrderFormWhatsAppFailed,
           backgroundColor: Colors.red,
         );
       }
@@ -1432,8 +1458,8 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         showCustomSnackBarUtil(
           context,
           reviewWorkflowOn
-              ? 'Handover recorded — receipt issued'
-              : 'Handover recorded',
+              ? context.flipperL10n.ticketHandoverRecordedReceipt
+              : context.flipperL10n.ticketHandoverRecorded,
           backgroundColor: Colors.green,
         );
       }
@@ -1442,8 +1468,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       if (mounted) {
         showCustomSnackBarUtil(
           context,
-          'Failed to finalize handover — the receipt was not issued. '
-          'Please try again.',
+          context.flipperL10n.ticketHandoverFinalizeFailed,
           backgroundColor: Colors.red,
         );
       }
@@ -1458,10 +1483,10 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       );
       await _dialogService.showCustomDialog(
         variant: DialogType.info,
-        title: 'Error',
+        title: context.flipperL10n.error,
         description: reviewBlocked
             ? ticketDeleteBlockedByReviewMessage(ticket.status)
-            : 'This ticket has partial payments and cannot be deleted.',
+            : context.flipperL10n.ticketHasPartialPayments,
         data: {'status': InfoDialogStatus.error},
       );
       return;
@@ -1487,13 +1512,13 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       if (success) {
         showCustomSnackBarUtil(
           context,
-          'Ticket deleted',
+          context.flipperL10n.ticketDeleted,
           backgroundColor: Colors.red,
         );
       } else {
         showCustomSnackBarUtil(
           context,
-          'Failed to delete ticket',
+          context.flipperL10n.ticketDeleteFailed,
           backgroundColor: Colors.red,
         );
       }
@@ -1501,7 +1526,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       talker.error('Delete failed: $e', st);
       showCustomSnackBarUtil(
         context,
-        'Delete failed',
+        context.flipperL10n.ticketDeleteFailedShort,
         backgroundColor: Colors.red,
       );
     } finally {
@@ -1518,7 +1543,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           Icon(Icons.receipt_long_outlined, size: 60, color: Colors.grey[400]),
           const SizedBox(height: 12),
           Text(
-            'No open tickets',
+            context.flipperL10n.ticketsNoOpen,
             style: GoogleFonts.outfit(
               fontSize: 16,
               fontWeight: FontWeight.w500,
@@ -1526,7 +1551,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
             ),
           ),
           Text(
-            'Create a new ticket to get started',
+            context.flipperL10n.ticketsCreateToStart,
             style: GoogleFonts.outfit(fontSize: 14, color: Colors.grey[600]),
           ),
         ],
@@ -1546,7 +1571,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           Icon(Icons.search_off, size: 60, color: Colors.grey[400]),
           const SizedBox(height: 12),
           Text(
-            'No tickets match your search',
+            context.flipperL10n.ticketsNoSearchMatch,
             style: GoogleFonts.outfit(
               fontSize: 16,
               fontWeight: FontWeight.w500,
@@ -1554,7 +1579,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
             ),
           ),
           Text(
-            'Try a different search term',
+            context.flipperL10n.ticketsTryDifferentSearch,
             style: GoogleFonts.outfit(fontSize: 14, color: Colors.grey[600]),
           ),
         ],
@@ -1571,7 +1596,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           Icon(Icons.error_outline, size: 40, color: Colors.red[400]),
           const SizedBox(height: 8),
           Text(
-            'Something went wrong',
+            context.flipperL10n.ticketSomethingWentWrong,
             style: GoogleFonts.outfit(
               fontSize: 16,
               fontWeight: FontWeight.w500,
@@ -1587,7 +1612,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           ),
           ElevatedButton(
             onPressed: () => setState(() {}),
-            child: const Text('Try Again'),
+            child: Text(context.flipperL10n.ticketTryAgain),
           ),
         ],
       ),
@@ -1606,9 +1631,10 @@ class _RecordHandoverDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
     final displayRef = _ticketDisplayRef(ticket);
-    final customer = (ticket.customerName ?? ticket.ticketName ?? 'Walk-in')
-        .trim();
+    final customer =
+        (ticket.customerName ?? ticket.ticketName ?? l10n.ticketWalkIn).trim();
     final total = (ticket.subTotal ?? 0).toCurrencyFormatted();
     final media = MediaQuery.sizeOf(context);
     final maxWidth = media.width < 460 ? media.width - 48 : 420.0;
@@ -1668,7 +1694,7 @@ class _RecordHandoverDialog extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Complete handover?',
+                            l10n.ticketCompleteHandoverTitle,
                             style: GoogleFonts.outfit(
                               fontSize: 26,
                               fontWeight: FontWeight.w700,
@@ -1679,8 +1705,8 @@ class _RecordHandoverDialog extends StatelessWidget {
                           const SizedBox(height: 6),
                           Text(
                             reviewWorkflowOn
-                                ? 'Issue the receipt and mark this ticket as completed.'
-                                : 'Confirm the item has physically left stock.',
+                                ? l10n.ticketHandoverIssueReceiptBody
+                                : l10n.ticketHandoverConfirmLeftStock,
                             style: GoogleFonts.outfit(
                               fontSize: 14,
                               height: 1.35,
@@ -1704,16 +1730,21 @@ class _RecordHandoverDialog extends StatelessWidget {
                   child: Column(
                     children: [
                       _DeleteTicketDetailRow(
-                        label: 'Ticket',
+                        label: context.flipperL10n.ticketGeneric,
                         value: '#$displayRef',
                       ),
                       const SizedBox(height: 10),
                       _DeleteTicketDetailRow(
-                        label: 'Customer',
-                        value: customer.isEmpty ? 'Walk-in' : customer,
+                        label: context.flipperL10n.customer,
+                        value: customer.isEmpty
+                            ? context.flipperL10n.ticketWalkIn
+                            : customer,
                       ),
                       const SizedBox(height: 10),
-                      _DeleteTicketDetailRow(label: 'Total', value: total),
+                      _DeleteTicketDetailRow(
+                        label: context.flipperL10n.ticketTotal,
+                        value: total,
+                      ),
                     ],
                   ),
                 ),
@@ -1741,8 +1772,8 @@ class _RecordHandoverDialog extends StatelessWidget {
                       Expanded(
                         child: Text(
                           reviewWorkflowOn
-                              ? 'Stock will be deducted and the fiscal receipt will be issued now.'
-                              : 'This records that the goods were handed to the customer.',
+                              ? l10n.ticketHandoverStockDeductedInfo
+                              : l10n.ticketHandoverRecordsInfo,
                           style: GoogleFonts.outfit(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
@@ -1769,7 +1800,7 @@ class _RecordHandoverDialog extends StatelessWidget {
                           minimumSize: const Size.fromHeight(50),
                         ),
                         child: Text(
-                          'Cancel',
+                          context.flipperL10n.cancel,
                           style: GoogleFonts.outfit(
                             fontSize: 15,
                             fontWeight: FontWeight.w700,
@@ -1783,7 +1814,7 @@ class _RecordHandoverDialog extends StatelessWidget {
                         onPressed: () => Navigator.of(context).pop(true),
                         icon: const Icon(Icons.check_rounded, size: 19),
                         label: Text(
-                          'Confirm',
+                          context.flipperL10n.confirm,
                           style: GoogleFonts.outfit(
                             fontSize: 15,
                             fontWeight: FontWeight.w700,
@@ -1819,8 +1850,11 @@ class _DeleteTicketDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final displayRef = _ticketDisplayRef(ticket);
-    final customer = (ticket.customerName ?? ticket.ticketName ?? 'Walk-in')
-        .trim();
+    final customer =
+        (ticket.customerName ??
+                ticket.ticketName ??
+                context.flipperL10n.ticketWalkIn)
+            .trim();
     final total = (ticket.subTotal ?? 0).toCurrencyFormatted();
     final media = MediaQuery.sizeOf(context);
     final maxWidth = media.width < 460 ? media.width - 48 : 420.0;
@@ -1879,7 +1913,7 @@ class _DeleteTicketDialog extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Delete ticket?',
+                            context.flipperL10n.ticketDeleteQuestion,
                             style: GoogleFonts.outfit(
                               fontSize: 26,
                               fontWeight: FontWeight.w700,
@@ -1889,7 +1923,7 @@ class _DeleteTicketDialog extends StatelessWidget {
                           ),
                           const SizedBox(height: 6),
                           Text(
-                            'This removes the parked sale and its local ticket history.',
+                            context.flipperL10n.ticketDeleteRemovesHistory,
                             style: GoogleFonts.outfit(
                               fontSize: 14,
                               height: 1.35,
@@ -1913,16 +1947,21 @@ class _DeleteTicketDialog extends StatelessWidget {
                   child: Column(
                     children: [
                       _DeleteTicketDetailRow(
-                        label: 'Ticket',
+                        label: context.flipperL10n.ticketGeneric,
                         value: '#$displayRef',
                       ),
                       const SizedBox(height: 10),
                       _DeleteTicketDetailRow(
-                        label: 'Customer',
-                        value: customer.isEmpty ? 'Walk-in' : customer,
+                        label: context.flipperL10n.customer,
+                        value: customer.isEmpty
+                            ? context.flipperL10n.ticketWalkIn
+                            : customer,
                       ),
                       const SizedBox(height: 10),
-                      _DeleteTicketDetailRow(label: 'Total', value: total),
+                      _DeleteTicketDetailRow(
+                        label: context.flipperL10n.ticketTotal,
+                        value: total,
+                      ),
                     ],
                   ),
                 ),
@@ -1948,7 +1987,7 @@ class _DeleteTicketDialog extends StatelessWidget {
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(
-                          'This action cannot be undone.',
+                          context.flipperL10n.ticketActionCannotBeUndone,
                           style: GoogleFonts.outfit(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
@@ -1974,7 +2013,7 @@ class _DeleteTicketDialog extends StatelessWidget {
                           minimumSize: const Size.fromHeight(50),
                         ),
                         child: Text(
-                          'Cancel',
+                          context.flipperL10n.cancel,
                           style: GoogleFonts.outfit(
                             fontSize: 15,
                             fontWeight: FontWeight.w700,
@@ -1988,7 +2027,7 @@ class _DeleteTicketDialog extends StatelessWidget {
                         onPressed: () => Navigator.of(context).pop(true),
                         icon: const Icon(Icons.delete_outline, size: 19),
                         label: Text(
-                          'Delete',
+                          context.flipperL10n.delete,
                           style: GoogleFonts.outfit(
                             fontSize: 15,
                             fontWeight: FontWeight.w700,
@@ -2119,7 +2158,8 @@ class TicketCard extends StatelessWidget {
 
   /// Label for [showMarkReviewed] (default "Mark as reviewed"). Review Queue
   /// uses "Review details" because approve is confirmed inside the sheet.
-  final String markReviewedLabel;
+  /// Defaults to the localized "Mark as reviewed".
+  final String? markReviewedLabel;
 
   /// Ticket Review + Handover workflow: tapping the "Print Order Form" step
   /// of the Reviewed stepper prints an Order Form (item names + quantities,
@@ -2177,7 +2217,7 @@ class TicketCard extends StatelessWidget {
     this.onRecordHandover,
     this.showMarkReviewed = false,
     this.onMarkReviewed,
-    this.markReviewedLabel = 'Mark as reviewed',
+    this.markReviewedLabel,
     this.onPrintOrderForm,
     this.isPrintingOrderForm = false,
     this.onSendOrderFormWhatsApp,
@@ -2189,7 +2229,8 @@ class TicketCard extends StatelessWidget {
     this.isSendingToKitchen = false,
   });
 
-  Widget _kitchenRow() {
+  Widget _kitchenRow(BuildContext context) {
+    final l10n = context.flipperL10n;
     final stage = kitchenStage;
     if (stage == KitchenStage.served) {
       // Food is out: this ticket is now the cashier's to collect.
@@ -2215,7 +2256,7 @@ class TicketCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 6),
                 Text(
-                  'Served · ready for payment',
+                  l10n.ticketServedReadyForPayment,
                   style: GoogleFonts.outfit(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
@@ -2225,7 +2266,8 @@ class TicketCard extends StatelessWidget {
               ],
             ),
           ),
-          if (onSendToKitchen != null) _sendToKitchenButton('Send again'),
+          if (onSendToKitchen != null)
+            _sendToKitchenButton(l10n.ticketSendAgain),
         ],
       );
     }
@@ -2242,7 +2284,7 @@ class TicketCard extends StatelessWidget {
             Icon(Icons.restaurant_rounded, size: 13, color: stage.color),
             const SizedBox(width: 6),
             Text(
-              'In kitchen · ${stage.label}',
+              l10n.ticketInKitchenStage(stage.labelOf(l10n)),
               style: GoogleFonts.outfit(
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
@@ -2253,7 +2295,7 @@ class TicketCard extends StatelessWidget {
         ),
       );
     }
-    return _sendToKitchenButton('Send to kitchen');
+    return _sendToKitchenButton(l10n.ticketSendToKitchen);
   }
 
   Widget _sendToKitchenButton(String label) {
@@ -2286,7 +2328,7 @@ class TicketCard extends StatelessWidget {
     return _isLayawayTicket(ticket) ? _kLayawayTeal : _kLoanPurple;
   }
 
-  Widget _typePill() {
+  Widget _typePill(BuildContext context) {
     if (ticket.isLoan != true) return const SizedBox.shrink();
     final layaway = _isLayawayTicket(ticket);
     final fg = layaway ? _kLayawayTeal : _kLoanPurple;
@@ -2298,7 +2340,9 @@ class TicketCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
-        layaway ? 'Layaway' : 'Loan',
+        layaway
+            ? context.flipperL10n.ticketLayaway
+            : context.flipperL10n.ticketLoan,
         style: GoogleFonts.outfit(
           fontSize: 11,
           fontWeight: FontWeight.w600,
@@ -2314,8 +2358,11 @@ class TicketCard extends StatelessWidget {
     final phone =
         (ticket.customerPhone ?? ticket.currentSaleCustomerPhoneNumber ?? '')
             .trim();
-    final displayName = (ticket.customerName ?? ticket.ticketName ?? 'Walk-in')
-        .trim();
+    final displayName =
+        (ticket.customerName ??
+                ticket.ticketName ??
+                context.flipperL10n.ticketWalkIn)
+            .trim();
 
     final total = ticket.subTotal ?? 0.0;
     final paid = paidAmount;
@@ -2327,11 +2374,11 @@ class TicketCard extends StatelessWidget {
     final Color statusFg;
     final Color statusBg;
     if (partial) {
-      statusLabel = 'Partial';
+      statusLabel = context.flipperL10n.ticketStatusPartial;
       statusFg = const Color(0xFFC62828);
       statusBg = const Color(0xFFFFEBEE);
     } else if ((ticket.status ?? '').toLowerCase() == PARKED) {
-      statusLabel = 'Awaiting payment';
+      statusLabel = context.flipperL10n.ticketStatusAwaitingPayment;
       statusFg = _kAwaitingFg;
       statusBg = _kAwaitingBg;
     } else {
@@ -2400,7 +2447,9 @@ class TicketCard extends StatelessWidget {
                               Expanded(
                                 flex: 2,
                                 child: Text(
-                                  'Ticket #${_ticketDisplayRef(ticket)}',
+                                  context.flipperL10n.ticketNumberRef(
+                                    _ticketDisplayRef(ticket),
+                                  ),
                                   style: GoogleFonts.outfit(
                                     fontWeight: FontWeight.w700,
                                     fontSize: 14,
@@ -2411,7 +2460,7 @@ class TicketCard extends StatelessWidget {
                               ),
                               if (ticket.isLoan == true) ...[
                                 const SizedBox(width: 4),
-                                _typePill(),
+                                _typePill(context),
                               ],
                               const SizedBox(width: 6),
                               Flexible(
@@ -2496,7 +2545,7 @@ class TicketCard extends StatelessWidget {
                           if (kitchenStage != null ||
                               onSendToKitchen != null) ...[
                             const SizedBox(height: 8),
-                            _kitchenRow(),
+                            _kitchenRow(context),
                           ],
                           const SizedBox(height: 10),
                           Row(
@@ -2553,7 +2602,7 @@ class TicketCard extends StatelessWidget {
                             children: [
                               Expanded(
                                 child: _moneyCol(
-                                  'TOTAL',
+                                  context.flipperL10n.ticketTotal.toUpperCase(),
                                   (ticket.subTotal ?? 0).toCurrencyFormatted(),
                                   valueColor: Colors.black87,
                                   emphasize: true,
@@ -2561,7 +2610,8 @@ class TicketCard extends StatelessWidget {
                               ),
                               Expanded(
                                 child: _moneyCol(
-                                  'PAID',
+                                  context.flipperL10n.ticketStatusPaid
+                                      .toUpperCase(),
                                   paid.toCurrencyFormatted(),
                                   valueColor: paid > 0
                                       ? const Color(0xFF2E7D32)
@@ -2571,7 +2621,8 @@ class TicketCard extends StatelessWidget {
                               ),
                               Expanded(
                                 child: _moneyCol(
-                                  'REMAINING',
+                                  context.flipperL10n.ticketRemaining
+                                      .toUpperCase(),
                                   remClamped.toCurrencyFormatted(),
                                   valueColor: remClamped > 0
                                       ? const Color(0xFFC62828)
@@ -2598,7 +2649,9 @@ class TicketCard extends StatelessWidget {
                             children: [
                               Expanded(
                                 child: Text(
-                                  'Created ${_formatDate(ticket.createdAt)}',
+                                  context.flipperL10n.ticketCreatedOn(
+                                    _formatDate(ticket.createdAt),
+                                  ),
                                   style: GoogleFonts.outfit(
                                     fontSize: 11,
                                     color: Colors.grey[600],
@@ -2625,7 +2678,10 @@ class TicketCard extends StatelessWidget {
                                     ),
                                   ),
                                   child: Text(
-                                    markReviewedLabel,
+                                    markReviewedLabel ??
+                                        context
+                                            .flipperL10n
+                                            .ticketMarkAsReviewed,
                                     style: GoogleFonts.outfit(
                                       fontSize: 12,
                                       fontWeight: FontWeight.w700,
@@ -2654,7 +2710,7 @@ class TicketCard extends StatelessWidget {
                                     ),
                                   ),
                                   child: Text(
-                                    'Record handover',
+                                    context.flipperL10n.ticketRecordHandover,
                                     style: GoogleFonts.outfit(
                                       fontSize: 12,
                                       fontWeight: FontWeight.w700,
@@ -2700,7 +2756,9 @@ class TicketCard extends StatelessWidget {
                                             ),
                                             const SizedBox(width: 8),
                                             Text(
-                                              'Collecting…',
+                                              context
+                                                  .flipperL10n
+                                                  .ticketCollecting,
                                               style: GoogleFonts.outfit(
                                                 fontSize: 12,
                                                 fontWeight: FontWeight.w700,
@@ -2710,7 +2768,7 @@ class TicketCard extends StatelessWidget {
                                           ],
                                         )
                                       : Text(
-                                          'Collect →',
+                                          context.flipperL10n.ticketCollect,
                                           style: GoogleFonts.outfit(
                                             fontSize: 12,
                                             fontWeight: FontWeight.w700,
@@ -2757,7 +2815,9 @@ class TicketCard extends StatelessWidget {
                                             ),
                                             const SizedBox(width: 8),
                                             Text(
-                                              'Completing…',
+                                              context
+                                                  .flipperL10n
+                                                  .ticketCompleting,
                                               style: GoogleFonts.outfit(
                                                 fontSize: 12,
                                                 fontWeight: FontWeight.w700,
@@ -2767,7 +2827,7 @@ class TicketCard extends StatelessWidget {
                                           ],
                                         )
                                       : Text(
-                                          'Complete →',
+                                          context.flipperL10n.ticketComplete,
                                           style: GoogleFonts.outfit(
                                             fontSize: 12,
                                             fontWeight: FontWeight.w700,
@@ -2781,7 +2841,8 @@ class TicketCard extends StatelessWidget {
                                   icon: Icons.play_arrow,
                                   color: _kAccentBlue,
                                   onPressed: onTap,
-                                  tooltip: 'Resume Order',
+                                  tooltip:
+                                      context.flipperL10n.ticketResumeOrder,
                                 ),
                                 const SizedBox(width: 8),
                               ],
@@ -2790,7 +2851,8 @@ class TicketCard extends StatelessWidget {
                                   icon: Icons.delete_outline,
                                   color: Colors.red[700]!,
                                   onPressed: onDelete,
-                                  tooltip: 'Delete Ticket',
+                                  tooltip:
+                                      context.flipperL10n.ticketDeleteTitle,
                                 ),
                             ],
                           ),
@@ -2904,17 +2966,21 @@ class _ReviewToOrderFormStepper extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        _node(label: 'Reviewed', icon: Icons.check, done: true),
+        _node(
+          label: context.flipperL10n.ticketStatusReviewed,
+          icon: Icons.check,
+          done: true,
+        ),
         _connector(),
         _actionNode(
-          label: 'Print',
+          label: context.flipperL10n.ticketPrint,
           icon: Icons.print_outlined,
           onTap: isPrinting ? null : onPrintOrderForm,
           busy: isPrinting,
         ),
         _connector(),
         _actionNode(
-          label: whatsAppSent ? 'Sent' : 'WhatsApp',
+          label: whatsAppSent ? context.flipperL10n.ticketSent : 'WhatsApp',
           icon: whatsAppSent ? Icons.check : Icons.chat_outlined,
           onTap: isSendingWhatsApp ? null : onSendWhatsApp,
           busy: isSendingWhatsApp,

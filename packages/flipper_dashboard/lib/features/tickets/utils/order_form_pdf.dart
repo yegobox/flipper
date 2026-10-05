@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/proxy.dart';
@@ -8,10 +9,15 @@ import 'package:pdf/widgets.dart';
 
 /// Builds an Order Receipt PDF for a reviewed ticket — receipt-style layout
 /// on A4 with ticket, payment, and review summary. Item lines follow for stock pick.
+///
+/// A human-readable stock-pick document, not an RRA fiscal receipt, so its
+/// labels follow [l10n] (the app's current language when omitted).
 Future<Uint8List> buildOrderFormPdfBytes({
   required ITransaction ticket,
   required List<TransactionItem> items,
+  FlipperAppLocalizations? l10n,
 }) async {
+  final strings = l10n ?? FlipperL10n.current;
   final businessId = ProxyService.box.getBusinessId();
   final business = businessId == null
       ? null
@@ -22,11 +28,12 @@ Future<Uint8List> buildOrderFormPdfBytes({
   final branchId = ticket.branchId ?? ProxyService.box.getBranchId() ?? '';
   final paid = branchId.isEmpty
       ? (ticket.cashReceived ?? 0.0)
-      : (await ProxyService.getStrategy(Strategy.capella)
-                .getTotalPaidForTransaction(
-                  transactionId: ticket.id,
-                  branchId: branchId,
-                ) ??
+      : (await ProxyService.getStrategy(
+              Strategy.capella,
+            ).getTotalPaidForTransaction(
+              transactionId: ticket.id,
+              branchId: branchId,
+            ) ??
             ticket.cashReceived ??
             0.0);
 
@@ -38,14 +45,16 @@ Future<Uint8List> buildOrderFormPdfBytes({
   final reference = (refSource != null && refSource.isNotEmpty)
       ? refSource.toUpperCase()
       : ticket.id
-          .substring(0, ticket.id.length >= 6 ? 6 : ticket.id.length)
-          .toUpperCase();
+            .substring(0, ticket.id.length >= 6 ? 6 : ticket.id.length)
+            .toUpperCase();
 
   final total = ticket.subTotal ?? 0.0;
   final balance = total - paid;
   final balanceClamped = balance < 0 ? 0.0 : balance;
 
-  final businessName = (business?.name ?? 'Shop').trim().toUpperCase();
+  final businessName = (business?.name ?? strings.ticketOrderFormShop)
+      .trim()
+      .toUpperCase();
   final mono = TextStyle(font: Font.courier(), fontSize: 10);
   final monoBold = TextStyle(
     font: Font.courierBold(),
@@ -79,28 +88,28 @@ Future<Uint8List> buildOrderFormPdfBytes({
             ),
             SizedBox(height: 6),
             Center(
-              child: Text('Order receipt', style: monoSubtitle),
+              child: Text(strings.ticketOrderReceipt, style: monoSubtitle),
             ),
             SizedBox(height: 16),
             _rule(),
             SizedBox(height: 12),
-            _receiptRow('Ticket', '#$reference', mono, monoBold),
+            _receiptRow(strings.ticketGeneric, '#$reference', mono, monoBold),
             _receiptRow(
-              'Customer',
-              customer.isEmpty ? 'Walk-in' : customer,
+              strings.customer,
+              customer.isEmpty ? strings.ticketWalkIn : customer,
               mono,
               monoBold,
             ),
             if (ticket.createdAt != null)
               _receiptRow(
-                'Created',
+                strings.ticketCreated,
                 _formatShortDateTime(ticket.createdAt!.toLocal()),
                 mono,
                 monoBold,
               ),
             if (ticket.dueDate != null)
               _receiptRow(
-                'Delivery time',
+                strings.ticketDeliveryTime,
                 _formatDeliveryTime(ticket.dueDate!.toLocal()),
                 mono,
                 monoBold,
@@ -109,19 +118,19 @@ Future<Uint8List> buildOrderFormPdfBytes({
             _rule(),
             SizedBox(height: 12),
             _receiptRow(
-              'Total',
+              strings.ticketTotal,
               total.toCurrencyFormatted(symbol: currency),
               mono,
               monoBold,
             ),
             _receiptRow(
-              'Paid',
+              strings.ticketStatusPaid,
               paid.toCurrencyFormatted(symbol: currency),
               mono,
               monoBold,
             ),
             _receiptRow(
-              'Balance',
+              strings.ticketBalance,
               balanceClamped.toCurrencyFormatted(symbol: currency),
               mono,
               monoBold,
@@ -130,10 +139,15 @@ Future<Uint8List> buildOrderFormPdfBytes({
               SizedBox(height: 12),
               _rule(),
               SizedBox(height: 12),
-              _receiptRow('Reviewed by', reviewerName, mono, monoBold),
+              _receiptRow(
+                strings.ticketReviewedBy,
+                reviewerName,
+                mono,
+                monoBold,
+              ),
               if (ticket.reviewedAt != null)
                 _receiptRow(
-                  'Reviewed at',
+                  strings.ticketReviewedAt,
                   _formatShortDateTime(ticket.reviewedAt!.toLocal()),
                   mono,
                   monoBold,
@@ -150,7 +164,7 @@ Future<Uint8List> buildOrderFormPdfBytes({
             SizedBox(height: 16),
             Center(
               child: Text(
-                'Thank you for your order',
+                strings.ticketThankYouForOrder,
                 style: monoFooter,
                 textAlign: TextAlign.center,
               ),
@@ -168,9 +182,7 @@ Widget _rule() {
   return Container(
     height: 0.5,
     decoration: const BoxDecoration(
-      border: Border(
-        bottom: BorderSide(color: PdfColors.grey400, width: 0.5),
-      ),
+      border: Border(bottom: BorderSide(color: PdfColors.grey400, width: 0.5)),
     ),
   );
 }
@@ -188,11 +200,7 @@ Widget _receiptRow(
       children: [
         Expanded(child: Text(label, style: labelStyle)),
         Expanded(
-          child: Text(
-            value,
-            style: valueStyle,
-            textAlign: TextAlign.right,
-          ),
+          child: Text(value, style: valueStyle, textAlign: TextAlign.right),
         ),
       ],
     ),
@@ -201,17 +209,15 @@ Widget _receiptRow(
 
 Widget _itemRow(TransactionItem item, TextStyle mono, TextStyle monoBold) {
   final qty = item.qty;
-  final qtyLabel =
-      qty % 1 == 0 ? qty.toStringAsFixed(0) : qty.toStringAsFixed(2);
+  final qtyLabel = qty % 1 == 0
+      ? qty.toStringAsFixed(0)
+      : qty.toStringAsFixed(2);
   return Padding(
     padding: const EdgeInsets.only(bottom: 6),
     child: Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          flex: 3,
-          child: Text(item.name, style: mono),
-        ),
+        Expanded(flex: 3, child: Text(item.name, style: mono)),
         Text('x$qtyLabel', style: monoBold),
       ],
     ),

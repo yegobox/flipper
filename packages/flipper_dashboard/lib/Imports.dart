@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/helperModels/talker.dart';
@@ -63,16 +64,16 @@ class ImportsState extends ConsumerState<Imports> {
           color: Colors.orange.shade100,
           borderRadius: BorderRadius.circular(4),
         ),
-        child: const Text(
-          'Wait',
-          style: TextStyle(
+        child: Text(
+          context.flipperL10n.importsWait,
+          style: const TextStyle(
             color: Colors.orange,
             fontWeight: FontWeight.w500,
           ),
         ),
       );
     }
-    return const Text('Done');
+    return Text(context.flipperL10n.done);
   }
 
   Widget _buildActionsWidget(Variant variant) {
@@ -100,7 +101,9 @@ class ImportsState extends ConsumerState<Imports> {
             ),
             const SizedBox(width: 8),
             Text(
-              isApproved ? 'Approved' : 'Rejected',
+              isApproved
+                  ? context.flipperL10n.approved
+                  : context.flipperL10n.importsRejected,
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
@@ -112,8 +115,9 @@ class ImportsState extends ConsumerState<Imports> {
       );
     }
 
-    final bool approveIsLoading =
-        _variantDataSource.isApproveLoading(variant.id);
+    final bool approveIsLoading = _variantDataSource.isApproveLoading(
+      variant.id,
+    );
     final bool rejectIsLoading = _variantDataSource.isRejectLoading(variant.id);
     final bool isProcessing = approveIsLoading || rejectIsLoading;
 
@@ -128,7 +132,7 @@ class ImportsState extends ConsumerState<Imports> {
               isLoading: approveIsLoading,
               icon: Icons.check_circle_outline,
               color: Colors.green,
-              tooltip: 'Approve',
+              tooltip: context.flipperL10n.importsApprove,
               onPressed: isProcessing ? null : () => _handleApproval(variant),
             ),
           ),
@@ -139,7 +143,7 @@ class ImportsState extends ConsumerState<Imports> {
               isLoading: rejectIsLoading,
               icon: Icons.cancel_outlined,
               color: Colors.red,
-              tooltip: 'Reject',
+              tooltip: context.flipperL10n.importsReject,
               onPressed: isProcessing ? null : () => _handleRejection(variant),
             ),
           ),
@@ -169,8 +173,9 @@ class ImportsState extends ConsumerState<Imports> {
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-            content: Text('Error approving item: $e'),
-            backgroundColor: Colors.red),
+          content: Text(context.flipperL10n.importsApproveError('$e')),
+          backgroundColor: Colors.red,
+        ),
       );
     } finally {
       // Important: Always update the state when the operation completes
@@ -188,7 +193,7 @@ class ImportsState extends ConsumerState<Imports> {
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error rejecting item: $e'),
+          content: Text(context.flipperL10n.importsRejectError('$e')),
           backgroundColor: Colors.red,
         ),
       );
@@ -208,8 +213,9 @@ class ImportsState extends ConsumerState<Imports> {
     final newStockIds = stockIds.difference(_fetchedStockIds);
     if (newStockIds.isEmpty) return;
 
-    final futures = newStockIds.map((id) =>
-        ProxyService.getStrategy(Strategy.capella).getStockById(id: id));
+    final futures = newStockIds.map(
+      (id) => ProxyService.getStrategy(Strategy.capella).getStockById(id: id),
+    );
     final stocks = await Future.wait(futures);
     final newStockMap = <String, Stock>{};
     final ids = newStockIds.toList();
@@ -234,15 +240,15 @@ class ImportsState extends ConsumerState<Imports> {
             !snapshot.hasData ||
             snapshot.data == null ||
             snapshot.data!.isEmpty) {
-          return const Center(
+          return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.hourglass_empty, size: 48, color: Colors.grey),
-                SizedBox(height: 16),
+                const Icon(Icons.hourglass_empty, size: 48, color: Colors.grey),
+                const SizedBox(height: 16),
                 Text(
-                  'No Data Found or Network error please try again.',
-                  style: TextStyle(color: Colors.grey, fontSize: 18),
+                  context.flipperL10n.importsNoData,
+                  style: const TextStyle(color: Colors.grey, fontSize: 18),
                 ),
               ],
             ),
@@ -287,8 +293,9 @@ class ImportsState extends ConsumerState<Imports> {
                 saveChangeMadeOnItemCallback: widget.saveChangeMadeOnItem,
                 acceptAllImportCallback: (List<Variant> variants) {
                   final allItems = snapshot.data ?? [];
-                  final waitingItems =
-                      allItems.where((v) => v.imptItemSttsCd == "2").toList();
+                  final waitingItems = allItems
+                      .where((v) => v.imptItemSttsCd == "2")
+                      .toList();
                   widget.acceptAllImport(waitingItems);
                 },
                 anyLoading: _variantDataSource.anyLoading,
@@ -301,25 +308,30 @@ class ImportsState extends ConsumerState<Imports> {
               ),
               const SizedBox(height: 16),
               if (filteredItemList.isEmpty && _selectedFilterStatus != null)
-                const Expanded(
+                Expanded(
                   child: Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.search_off, size: 48, color: Colors.grey),
-                        SizedBox(height: 16),
+                        const Icon(
+                          Icons.search_off,
+                          size: 48,
+                          color: Colors.grey,
+                        ),
+                        const SizedBox(height: 16),
                         Text(
-                          'No matches found for the selected filter.',
-                          style: TextStyle(color: Colors.grey, fontSize: 18),
+                          context.flipperL10n.importsNoMatches,
+                          style: const TextStyle(
+                            color: Colors.grey,
+                            fontSize: 18,
+                          ),
                         ),
                       ],
                     ),
                   ),
                 )
               else
-                Expanded(
-                  child: _buildDataGrid(),
-                ),
+                Expanded(child: _buildDataGrid()),
             ],
           ),
         );
@@ -345,7 +357,8 @@ class ImportsState extends ConsumerState<Imports> {
               onSelectionChanged: (addedRows, removedRows) {
                 if (addedRows.isNotEmpty) {
                   final selectedVariant = _variantDataSource.getVariantAt(
-                      _variantDataSource.rows.indexOf(addedRows.first));
+                    _variantDataSource.rows.indexOf(addedRows.first),
+                  );
                   widget.selectItem(selectedVariant);
                   setState(() {
                     variantSelectedWhenClickingOnRow = selectedVariant;
@@ -364,9 +377,9 @@ class ImportsState extends ConsumerState<Imports> {
                   label: Container(
                     padding: const EdgeInsets.all(8),
                     alignment: Alignment.centerLeft,
-                    child: const Text(
-                      'No.',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                    child: Text(
+                      context.flipperL10n.importsColNo,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),
                 ),
@@ -375,9 +388,9 @@ class ImportsState extends ConsumerState<Imports> {
                   label: Container(
                     padding: const EdgeInsets.all(8),
                     alignment: Alignment.centerLeft,
-                    child: const Text(
-                      'Item Name',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                    child: Text(
+                      context.flipperL10n.importsColItemName,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),
                 ),
@@ -386,9 +399,9 @@ class ImportsState extends ConsumerState<Imports> {
                   label: Container(
                     padding: const EdgeInsets.all(8),
                     alignment: Alignment.centerLeft,
-                    child: const Text(
-                      'HS Code',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                    child: Text(
+                      context.flipperL10n.importsColHsCode,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),
                 ),
@@ -397,9 +410,9 @@ class ImportsState extends ConsumerState<Imports> {
                   label: Container(
                     padding: const EdgeInsets.all(8),
                     alignment: Alignment.centerLeft,
-                    child: const Text(
-                      'Quantity',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                    child: Text(
+                      context.flipperL10n.quantity,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),
                 ),
@@ -408,9 +421,9 @@ class ImportsState extends ConsumerState<Imports> {
                   label: Container(
                     padding: const EdgeInsets.all(8),
                     alignment: Alignment.centerLeft,
-                    child: const Text(
-                      'Retail Price',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                    child: Text(
+                      context.flipperL10n.importsColRetailPrice,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),
                 ),
@@ -419,9 +432,9 @@ class ImportsState extends ConsumerState<Imports> {
                   label: Container(
                     padding: const EdgeInsets.all(8),
                     alignment: Alignment.centerLeft,
-                    child: const Text(
-                      'Supply Price',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                    child: Text(
+                      context.flipperL10n.importsColSupplyPrice,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),
                 ),
@@ -430,9 +443,9 @@ class ImportsState extends ConsumerState<Imports> {
                   label: Container(
                     padding: const EdgeInsets.all(8),
                     alignment: Alignment.centerLeft,
-                    child: const Text(
-                      'Status',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                    child: Text(
+                      context.flipperL10n.importsColStatus,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),
                 ),
@@ -441,9 +454,9 @@ class ImportsState extends ConsumerState<Imports> {
                   label: Container(
                     padding: const EdgeInsets.all(8),
                     alignment: Alignment.centerLeft,
-                    child: const Text(
-                      'Supplier',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                    child: Text(
+                      context.flipperL10n.importsColSupplier,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),
                 ),
@@ -452,9 +465,9 @@ class ImportsState extends ConsumerState<Imports> {
                   label: Container(
                     padding: const EdgeInsets.all(8),
                     alignment: Alignment.centerLeft,
-                    child: const Text(
-                      'Date',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                    child: Text(
+                      context.flipperL10n.importsColDate,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),
                 ),
@@ -463,9 +476,9 @@ class ImportsState extends ConsumerState<Imports> {
                   label: Container(
                     padding: const EdgeInsets.all(8),
                     alignment: Alignment.centerLeft,
-                    child: const Text(
-                      'Actions',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                    child: Text(
+                      context.flipperL10n.actions,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),
                 ),
@@ -485,7 +498,7 @@ class ImportsState extends ConsumerState<Imports> {
                 // Handle page navigation end if needed
               },
             ),
-          )
+          ),
       ],
     );
   }
@@ -514,8 +527,8 @@ class VariantDataSource extends DataGridSource {
     required this.buildStatusWidget,
     required this.buildActionsWidget,
     required this.stockMap,
-  })  : _variants = variants,
-        _state = state {
+  }) : _variants = variants,
+       _state = state {
     for (final variant in _variants) {
       _approveLoadingState[variant.id] = false;
       _rejectLoadingState[variant.id] = false;
@@ -593,56 +606,53 @@ class VariantDataSource extends DataGridSource {
       _rejectLoadingState.values.any((isLoading) => isLoading);
 
   void updateDataSource() {
-    _dataGridRows =
-        _paginatedVariants.asMap().entries.map<DataGridRow>((entry) {
+    _dataGridRows = _paginatedVariants.asMap().entries.map<DataGridRow>((
+      entry,
+    ) {
       final index = entry.key;
       final variant = entry.value;
-      return DataGridRow(cells: [
-        DataGridCell<int>(
-          columnName: 'rowNumber',
-          value: index + 1,
-        ),
-        DataGridCell<String>(
-          columnName: 'itemName',
-          value: variant.itemNm ?? variant.name,
-        ),
-        DataGridCell<String>(
-          columnName: 'hsCode',
-          value: variant.hsCd?.toString() ?? '',
-        ),
-        DataGridCell<String>(
-          columnName: 'quantity',
-          value:
-              '${stockMap[variant.stock?.id]?.currentStock ?? variant.stock?.currentStock} ${variant.qtyUnitCd}',
-        ),
-        DataGridCell<double>(
-          columnName: 'retailPrice',
-          value: variant.retailPrice ?? 0.0,
-        ),
-        DataGridCell<double>(
-          columnName: 'supplyPrice',
-          value: variant.supplyPrice ?? 0.0,
-        ),
-        DataGridCell<Widget>(
-          columnName: 'status',
-          value: buildStatusWidget(variant),
-        ),
-        DataGridCell<Widget>(
-          columnName: 'Supplier',
-          value: Text(variant.spplrNm ?? ""),
-        ),
-        DataGridCell<String>(
-          columnName: 'date',
-          value: timeago.format(
-            variant.lastTouched!,
-            clock: DateTime.now(),
+      return DataGridRow(
+        cells: [
+          DataGridCell<int>(columnName: 'rowNumber', value: index + 1),
+          DataGridCell<String>(
+            columnName: 'itemName',
+            value: variant.itemNm ?? variant.name,
           ),
-        ),
-        DataGridCell<Widget>(
-          columnName: 'actions',
-          value: buildActionsWidget(variant),
-        ),
-      ]);
+          DataGridCell<String>(
+            columnName: 'hsCode',
+            value: variant.hsCd?.toString() ?? '',
+          ),
+          DataGridCell<String>(
+            columnName: 'quantity',
+            value:
+                '${stockMap[variant.stock?.id]?.currentStock ?? variant.stock?.currentStock} ${variant.qtyUnitCd}',
+          ),
+          DataGridCell<double>(
+            columnName: 'retailPrice',
+            value: variant.retailPrice ?? 0.0,
+          ),
+          DataGridCell<double>(
+            columnName: 'supplyPrice',
+            value: variant.supplyPrice ?? 0.0,
+          ),
+          DataGridCell<Widget>(
+            columnName: 'status',
+            value: buildStatusWidget(variant),
+          ),
+          DataGridCell<Widget>(
+            columnName: 'Supplier',
+            value: Text(variant.spplrNm ?? ""),
+          ),
+          DataGridCell<String>(
+            columnName: 'date',
+            value: timeago.format(variant.lastTouched!, clock: DateTime.now()),
+          ),
+          DataGridCell<Widget>(
+            columnName: 'actions',
+            value: buildActionsWidget(variant),
+          ),
+        ],
+      );
     }).toList();
     notifyListeners();
   }

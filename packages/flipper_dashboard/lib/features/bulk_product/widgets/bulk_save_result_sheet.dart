@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/bulk_rra_client.dart';
 
 /// Result dialog after bulk save.
@@ -21,6 +22,7 @@ class _BulkSaveResultDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = context.flipperL10n;
     final isSuccess = result.success;
     final accent = isSuccess ? Colors.green.shade600 : theme.colorScheme.error;
 
@@ -63,7 +65,9 @@ class _BulkSaveResultDialog extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  isSuccess ? 'Bulk save complete' : 'Bulk save failed',
+                  isSuccess
+                      ? l10n.bulkProductSaveComplete
+                      : l10n.bulkProductSaveFailed,
                   textAlign: TextAlign.center,
                   style: theme.textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
@@ -75,7 +79,7 @@ class _BulkSaveResultDialog extends StatelessWidget {
                     children: [
                       Expanded(
                         child: _StatChip(
-                          label: 'Total',
+                          label: l10n.bulkProductStatTotal,
                           value: '${result.total}',
                           color: theme.colorScheme.onSurface,
                         ),
@@ -83,7 +87,7 @@ class _BulkSaveResultDialog extends StatelessWidget {
                       const SizedBox(width: 8),
                       Expanded(
                         child: _StatChip(
-                          label: 'Succeeded',
+                          label: l10n.bulkProductStatSucceeded,
                           value: '${result.succeeded}',
                           color: Colors.green.shade700,
                         ),
@@ -91,7 +95,7 @@ class _BulkSaveResultDialog extends StatelessWidget {
                       const SizedBox(width: 8),
                       Expanded(
                         child: _StatChip(
-                          label: 'Failed',
+                          label: l10n.bulkProductStatFailed,
                           value: '${result.failed}',
                           color: result.failed > 0
                               ? theme.colorScheme.error
@@ -109,7 +113,9 @@ class _BulkSaveResultDialog extends StatelessWidget {
                   child: Text(
                     result.message,
                     style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.onSurface.withValues(alpha: 0.75),
+                      color: theme.colorScheme.onSurface.withValues(
+                        alpha: 0.75,
+                      ),
                       height: 1.5,
                     ),
                   ),
@@ -128,7 +134,7 @@ class _BulkSaveResultDialog extends StatelessWidget {
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Text(
-                      'Tax registration was skipped for this branch.',
+                      l10n.bulkProductTaxRegistrationSkipped,
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.colorScheme.onSurface.withValues(
                           alpha: 0.7,
@@ -142,7 +148,7 @@ class _BulkSaveResultDialog extends StatelessWidget {
                   Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
-                      'Job ${result.jobId}',
+                      l10n.bulkProductJobId('${result.jobId}'),
                       style: theme.textTheme.labelSmall?.copyWith(
                         color: theme.colorScheme.onSurface.withValues(
                           alpha: 0.45,
@@ -164,7 +170,7 @@ class _BulkSaveResultDialog extends StatelessWidget {
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
-                          child: const Text('Stay'),
+                          child: Text(l10n.bulkProductStay),
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -183,7 +189,7 @@ class _BulkSaveResultDialog extends StatelessWidget {
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        child: Text(isSuccess ? 'Done' : 'Close'),
+                        child: Text(isSuccess ? l10n.done : l10n.close),
                       ),
                     ),
                   ],

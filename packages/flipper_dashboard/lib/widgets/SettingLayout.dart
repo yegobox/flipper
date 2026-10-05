@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'dart:async';
 
 import 'package:flipper_dashboard/profile.dart';
@@ -25,12 +26,13 @@ Widget SettingLayout({
   final textColor = isDarkMode ? Colors.white : Colors.black87;
   final dividerColor = isDarkMode ? Colors.grey.shade800 : Colors.grey.shade200;
 
+  final l10n = context.flipperL10n;
   final settingsItems = <_SettingsItem>[
     _SettingsItem(
       icon: FluentIcons.people_add_24_regular,
       iconColor: Colors.white,
       iconBgColor: const Color(0xFF007AFF),
-      title: 'User Management',
+      title: l10n.userManagement,
       onTap: () {
         _routerService.navigateTo(TenantManagementRoute());
       },
@@ -40,8 +42,8 @@ Widget SettingLayout({
         icon: FluentIcons.payment_24_regular,
         iconColor: Colors.white,
         iconBgColor: const Color(0xFF34C759),
-        title: 'Check subscription',
-        onTap: () {},
+        title: l10n.checkSubscription,
+        onTap: () => _onCheckSubscriptionTap(context),
       ),
   ];
 
@@ -74,7 +76,7 @@ Widget SettingLayout({
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  model.branch!.name ?? "Business",
+                  model.branch!.name ?? l10n.business,
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w600,
@@ -84,7 +86,7 @@ Widget SettingLayout({
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  "Manage your business settings",
+                  l10n.settingsManageBusiness,
                   style: TextStyle(
                     fontSize: 14,
                     color: isDarkMode
@@ -161,9 +163,7 @@ Widget _buildSettingsGroup({
             Material(
               color: Colors.transparent,
               child: InkWell(
-                onTap: item.title == 'Check subscription'
-                    ? () => _onCheckSubscriptionTap(context)
-                    : item.onTap,
+                onTap: item.onTap,
                 borderRadius: BorderRadius.vertical(
                   top: index == 0 ? const Radius.circular(16) : Radius.zero,
                   bottom: index == items.length - 1
@@ -234,7 +234,11 @@ void _onCheckSubscriptionTap(BuildContext context) {
     } catch (e) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Could not check subscription: $e')),
+        SnackBar(
+          content: Text(
+            context.flipperL10n.couldNotCheckSubscription(e.toString()),
+          ),
+        ),
       );
     }
   }());

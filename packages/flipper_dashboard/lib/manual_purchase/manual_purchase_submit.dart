@@ -2,6 +2,7 @@ import 'package:flipper_dashboard/manual_purchase/manual_purchase_notifier.dart'
 import 'package:flipper_dashboard/manual_purchase/manual_purchase_stock_in.dart';
 import 'package:flipper_models/services/purchase_expense_recorder.dart';
 import 'package:flipper_models/services/pos_purchase_journal_poster.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:overlay_support/overlay_support.dart';
@@ -25,19 +26,16 @@ Future<bool> submitManualPurchase({
     final proceed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Duplicate invoice'),
-        content: const Text(
-          'A purchase with this invoice number already exists for this '
-          'branch. Save anyway?',
-        ),
+        title: Text(context.flipperL10n.manualPurchaseDuplicateInvoice),
+        content: Text(context.flipperL10n.manualPurchaseDuplicateInvoiceBody),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            child: Text(context.flipperL10n.cancel),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Save anyway'),
+            child: Text(context.flipperL10n.manualPurchaseSaveAnyway),
           ),
         ],
       ),
@@ -66,10 +64,12 @@ Future<bool> submitManualPurchase({
         purchase: saved,
         paidUpfront: paidUpfront ?? 0,
       );
-      toast(stock.rraMessage ?? 'Purchase recorded and approved');
+      toast(
+        stock.rraMessage ?? FlipperL10n.current.manualPurchaseRecordedApproved,
+      );
     } catch (e) {
       // The purchase stays in Waiting; nothing is lost.
-      toast('Purchase saved as waiting. Approval failed: $e');
+      toast(FlipperL10n.current.manualPurchaseApprovalFailed(e.toString()));
     }
   } else {
     // The draft bill carries the credit terms until the purchase is approved.
@@ -80,7 +80,7 @@ Future<bool> submitManualPurchase({
       paidUpfront: paidUpfront,
       dueDate: terms.isOnCredit ? terms.effectiveDueDate : null,
     );
-    toast('Purchase saved as waiting');
+    toast(FlipperL10n.current.manualPurchaseSavedAsWaiting);
   }
   return true;
 }

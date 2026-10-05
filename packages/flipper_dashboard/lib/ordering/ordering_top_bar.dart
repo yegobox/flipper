@@ -1,5 +1,6 @@
 import 'package:flipper_dashboard/ordering/ordering_tokens.dart';
 import 'package:flipper_dashboard/ordering/ordering_widgets.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/active_branch_provider.dart';
 import 'package:flutter/material.dart';
@@ -25,7 +26,7 @@ class OrderingTopBar extends ConsumerWidget {
     final branch = ref.watch(activeBranchProvider).value;
     final branchLabel = branch?.name?.trim().isNotEmpty == true
         ? branch!.name!
-        : 'This branch';
+        : context.flipperL10n.orderingThisBranch;
 
     return Container(
       decoration: const BoxDecoration(
@@ -40,7 +41,7 @@ class OrderingTopBar extends ConsumerWidget {
         children: [
           OrderingIconButton(
             icon: Icons.chevron_left,
-            tooltip: 'Back',
+            tooltip: context.flipperL10n.back,
             onPressed: onBack,
           ),
           const SizedBox(width: 18),
@@ -52,8 +53,8 @@ class OrderingTopBar extends ConsumerWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'New purchase order',
+                      Text(
+                        context.flipperL10n.orderingNewPurchaseOrder,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         softWrap: false,
@@ -86,9 +87,15 @@ class OrderingTopBar extends ConsumerWidget {
           // and only shown where there is room for them.
           if (MediaQuery.sizeOf(context).width >= 1180) ...[
             const SizedBox(width: 18),
-            const _ShortcutHint(key_: '/', label: 'search'),
+            _ShortcutHint(
+              key_: '/',
+              label: context.flipperL10n.orderingShortcutSearch,
+            ),
             const SizedBox(width: 8),
-            const _ShortcutHint(key_: '↵', label: 'add top match'),
+            _ShortcutHint(
+              key_: '↵',
+              label: context.flipperL10n.orderingShortcutAddTopMatch,
+            ),
           ],
         ],
       ),
@@ -120,12 +127,7 @@ class _SupplierChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final meta = _supplierMeta(supplier);
     return Container(
-      padding: const EdgeInsets.only(
-        left: 12,
-        right: 8,
-        top: 7,
-        bottom: 7,
-      ),
+      padding: const EdgeInsets.only(left: 12, right: 8, top: 7, bottom: 7),
       decoration: BoxDecoration(
         color: OrderingTokens.supplierBg,
         border: Border.all(color: OrderingTokens.supplierBorder),
@@ -142,7 +144,7 @@ class _SupplierChip extends StatelessWidget {
           const SizedBox(width: 10),
           Flexible(
             child: Text(
-              supplier.name ?? 'Supplier',
+              supplier.name ?? context.flipperL10n.manualPurchaseSupplier,
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(
                 fontFamily: OrderingTokens.sans,
@@ -178,7 +180,7 @@ class _SupplierChip extends StatelessWidget {
             hoverBackground: const Color(0x380E7490),
             foreground: OrderingTokens.supplierIcon,
             hoverForeground: OrderingTokens.supplierIcon,
-            tooltip: 'Change supplier',
+            tooltip: context.flipperL10n.orderingChangeSupplier,
             onPressed: onClear,
           ),
         ],

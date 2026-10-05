@@ -1,6 +1,7 @@
 import 'package:flipper_dashboard/features/product_editor/widgets/product_editor_category_picker.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/all_providers.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -29,6 +30,8 @@ void main() {
           categoryProvider.overrideWith((ref) => Stream.value(testCategories)),
         ],
         child: MaterialApp(
+          localizationsDelegates: FlipperLocalizationDelegates.delegates,
+          supportedLocales: FlipperLocalizationDelegates.supportedLocales,
           home: Scaffold(
             body: SingleChildScrollView(
               child: ProductEditorCategoryPicker(
@@ -87,8 +90,9 @@ void main() {
       expect(changed, isNull);
     });
 
-    testWidgets('tapping a quick-pick chip selects that category',
-        (tester) async {
+    testWidgets('tapping a quick-pick chip selects that category', (
+      tester,
+    ) async {
       String? changed;
 
       await pumpPicker(tester, onCategoryChanged: (value) => changed = value);
@@ -118,8 +122,9 @@ void main() {
       expect(requestedName, isNull);
     });
 
-    testWidgets('falls back to onAddCategory when no create handler is given',
-        (tester) async {
+    testWidgets('falls back to onAddCategory when no create handler is given', (
+      tester,
+    ) async {
       var addCalled = false;
 
       await pumpPicker(tester, onAddCategory: () => addCalled = true);
@@ -130,8 +135,9 @@ void main() {
       expect(addCalled, isTrue);
     });
 
-    testWidgets('offers to create the typed name when nothing matches',
-        (tester) async {
+    testWidgets('offers to create the typed name when nothing matches', (
+      tester,
+    ) async {
       String? requestedName;
 
       await pumpPicker(

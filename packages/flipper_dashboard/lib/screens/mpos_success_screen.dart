@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'dart:math' as math;
 
 import 'package:flipper_dashboard/theme/mpos_motion.dart';
@@ -110,9 +111,11 @@ class _MposSuccessScreenState extends State<MposSuccessScreen>
   @override
   Widget build(BuildContext context) {
     final d = widget.data;
-    final subline = '${d.methodLabel.toUpperCase()} · ${d.itemCount} '
-        '${d.itemCount == 1 ? 'item' : 'items'}'
-        '${d.customerName != null ? ' · ${d.customerName}' : ' · Walk-in'}';
+    final l10n = context.flipperL10n;
+    final subline =
+        '${d.methodLabel.toUpperCase()} · '
+        '${l10n.cartItemCount(d.itemCount)} · '
+        '${d.customerName ?? l10n.mposWalkIn}';
 
     return Scaffold(
       body: Stack(
@@ -123,7 +126,11 @@ class _MposSuccessScreenState extends State<MposSuccessScreen>
               gradient: RadialGradient(
                 center: Alignment(0, -0.9),
                 radius: 1.3,
-                colors: [Color(0xFF1FB36B), Color(0xFF16A34A), Color(0xFF0F7A38)],
+                colors: [
+                  Color(0xFF1FB36B),
+                  Color(0xFF16A34A),
+                  Color(0xFF0F7A38),
+                ],
                 stops: [0, 0.44, 1],
               ),
             ),
@@ -165,9 +172,9 @@ class _MposSuccessScreenState extends State<MposSuccessScreen>
                           ),
                         ),
                         const SizedBox(height: 24),
-                        const Text(
-                          'Sale complete',
-                          style: TextStyle(
+                        Text(
+                          l10n.mposSaleComplete,
+                          style: const TextStyle(
                             fontSize: 28,
                             fontWeight: FontWeight.w800,
                             color: Colors.white,
@@ -206,14 +213,14 @@ class _MposSuccessScreenState extends State<MposSuccessScreen>
                     children: [
                       _DoneButton(
                         solid: true,
-                        label: 'New sale',
+                        label: l10n.mposNewSale,
                         icon: Icons.add_rounded,
                         onTap: widget.onNewSale,
                       ),
                       const SizedBox(height: 10),
                       _DoneButton(
                         solid: false,
-                        label: 'Print receipt',
+                        label: l10n.mposPrintReceipt,
                         icon: Icons.receipt_long_outlined,
                         onTap: widget.onPrintReceipt ?? widget.onNewSale,
                       ),
@@ -236,6 +243,7 @@ class _ReceiptCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(18),
@@ -246,14 +254,14 @@ class _ReceiptCard extends StatelessWidget {
       ),
       child: Column(
         children: [
-          _row('Total paid', data.total, big: true),
+          _row(l10n.mposTotalPaid, data.total, big: true),
           Container(
             height: 1,
             margin: const EdgeInsets.symmetric(vertical: 10),
             color: Colors.white.withValues(alpha: 0.18),
           ),
-          _row('Tendered', data.tendered),
-          _row('Change', data.change),
+          _row(l10n.mposTendered, data.tendered),
+          _row(l10n.mposChange, data.change),
         ],
       ),
     );
@@ -375,7 +383,11 @@ class _ConfettiPainter extends CustomPainter {
         canvas.translate(x, y);
         canvas.rotate(t * math.pi * 4);
         canvas.drawRect(
-          Rect.fromCenter(center: Offset.zero, width: p.size, height: p.size * 0.6),
+          Rect.fromCenter(
+            center: Offset.zero,
+            width: p.size,
+            height: p.size * 0.6,
+          ),
           paint,
         );
         canvas.restore();

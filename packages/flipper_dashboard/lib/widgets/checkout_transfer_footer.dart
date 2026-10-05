@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/providers/checkout_cart_mode_provider.dart';
 import 'package:flipper_dashboard/theme/pos_tokens.dart';
 import 'package:flutter/material.dart';
@@ -24,11 +25,9 @@ class CheckoutTransferFooter extends ConsumerWidget {
     final destName = dest?.name;
     final canTransfer =
         !busy && itemCount > 0 && dest != null && dest.id.isNotEmpty;
-    final label = canTransfer &&
-            destName != null &&
-            destName.isNotEmpty
-        ? 'Transfer to $destName'
-        : 'Transfer';
+    final label = canTransfer && destName != null && destName.isNotEmpty
+        ? context.flipperL10n.checkoutTransferToBranch(destName)
+        : context.flipperL10n.transfer;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(8, 8, 8, 4),
@@ -38,8 +37,8 @@ class CheckoutTransferFooter extends ConsumerWidget {
         children: [
           Text(
             itemCount == 0
-                ? 'No items selected'
-                : '$itemCount item${itemCount == 1 ? '' : 's'} selected',
+                ? context.flipperL10n.checkoutTransferNoItemsSelected
+                : context.flipperL10n.itemsSelected(itemCount),
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: PosTokens.ink2,
               fontWeight: FontWeight.w600,
@@ -65,10 +64,10 @@ class CheckoutTransferFooter extends ConsumerWidget {
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
-                  child: const Text(
-                    'Clear',
+                  child: Text(
+                    context.flipperL10n.clear,
                     softWrap: false,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontWeight: FontWeight.w700,
                       fontSize: 13,
                     ),

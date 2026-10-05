@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 
@@ -30,6 +31,7 @@ class _CreditPurchaseWidgetState extends State<CreditPurchaseWidget> {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final isLightMode = Theme.of(context).brightness == Brightness.light;
+    final l10n = context.flipperL10n;
 
     return Container(
       padding: const EdgeInsets.all(24),
@@ -53,7 +55,7 @@ class _CreditPurchaseWidgetState extends State<CreditPurchaseWidget> {
             keyboardType: TextInputType.number,
             style: textTheme.bodyLarge,
             decoration: InputDecoration(
-              labelText: 'Enter amount',
+              labelText: l10n.creditsEnterAmount,
               labelStyle: TextStyle(
                 color: colorScheme.onSurface.withValues(alpha: 0.6),
               ),
@@ -80,7 +82,7 @@ class _CreditPurchaseWidgetState extends State<CreditPurchaseWidget> {
             keyboardType: TextInputType.phone,
             style: textTheme.bodyLarge,
             decoration: InputDecoration(
-              labelText: 'Phone Number',
+              labelText: l10n.phoneNumber,
               hintText: '07xxxxxxxx',
               labelStyle: TextStyle(
                 color: colorScheme.onSurface.withValues(alpha: 0.6),
@@ -127,9 +129,9 @@ class _CreditPurchaseWidgetState extends State<CreditPurchaseWidget> {
                         color: Colors.white,
                       ),
                     )
-                  : const Text(
-                      'Pay Now',
-                      style: TextStyle(
+                  : Text(
+                      l10n.creditsPayNow,
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                       ),
@@ -144,15 +146,16 @@ class _CreditPurchaseWidgetState extends State<CreditPurchaseWidget> {
   Future<void> _processPayment(BuildContext context) async {
     final amount = int.tryParse(_buyCreditController.text);
     final phoneNumber = _phoneNumberController.text.trim();
+    final l10n = context.flipperL10n;
 
     // Validate input
     if (amount == null || amount <= 0) {
-      _showErrorSnackBar(context, 'Please enter a valid amount');
+      _showErrorSnackBar(context, l10n.creditsEnterValidAmount);
       return;
     }
 
     if (phoneNumber.isEmpty || !_isValidPhoneNumber(phoneNumber)) {
-      _showErrorSnackBar(context, 'Please enter a valid phone number');
+      _showErrorSnackBar(context, l10n.creditsEnterValidPhone);
       return;
     }
 
@@ -194,16 +197,13 @@ class _CreditPurchaseWidgetState extends State<CreditPurchaseWidget> {
         _phoneNumberController.clear();
       } else {
         if (mounted) {
-          _showErrorSnackBar(
-            context,
-            'Payment request failed. Please try again.',
-          );
+          _showErrorSnackBar(context, l10n.creditsPaymentRequestFailed);
         }
       }
     } catch (e, stackTrace) {
       talker.error('Payment error', e, stackTrace);
       if (mounted) {
-        _showErrorSnackBar(context, 'An error occurred: ${e.toString()}');
+        _showErrorSnackBar(context, l10n.creditsErrorOccurred(e.toString()));
       }
     } finally {
       if (mounted) {
@@ -214,10 +214,7 @@ class _CreditPurchaseWidgetState extends State<CreditPurchaseWidget> {
     }
   }
 
-  void _showErrorSnackBar(
-    BuildContext context, [
-    String message = 'Please enter a valid amount',
-  ]) {
+  void _showErrorSnackBar(BuildContext context, String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
@@ -357,7 +354,7 @@ class _PaymentStatusDialogState extends State<_PaymentStatusDialog> {
             isCheckingPayment = false;
             paymentFailureReason = settlement.reason?.trim().isNotEmpty == true
                 ? settlement.reason
-                : 'The payment was declined on your phone.';
+                : context.flipperL10n.creditsPaymentDeclined;
             statusCheckTimer?.cancel();
           } else {
             // Payment not yet successful, increment check count
@@ -398,6 +395,7 @@ class _PaymentStatusDialogState extends State<_PaymentStatusDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
     return AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       title: Row(
@@ -413,7 +411,9 @@ class _PaymentStatusDialogState extends State<_PaymentStatusDialog> {
           const SizedBox(width: 10),
           Flexible(
             child: Text(
-              paymentSuccessful ? 'Payment Successful' : 'Payment Initiated',
+              paymentSuccessful
+                  ? l10n.creditsPaymentSuccessful
+                  : l10n.creditsPaymentInitiated,
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(fontSize: 18),
             ),
@@ -426,13 +426,13 @@ class _PaymentStatusDialogState extends State<_PaymentStatusDialog> {
         children: [
           if (!paymentSuccessful) ...[
             Text(
-              'A payment request has been sent to ${widget.phoneNumber}.',
+              l10n.creditsPaymentRequestSent(widget.phoneNumber),
               style: const TextStyle(fontSize: 16),
             ),
             const SizedBox(height: 16),
-            const Text(
-              'Please check your phone and approve the payment.',
-              style: TextStyle(fontSize: 14, color: Colors.grey),
+            Text(
+              l10n.creditsApprovePayment,
+              style: const TextStyle(fontSize: 14, color: Colors.grey),
             ),
             const SizedBox(height: 20),
             Center(
@@ -446,7 +446,7 @@ class _PaymentStatusDialogState extends State<_PaymentStatusDialog> {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Checking payment status...',
+                          l10n.checkingPaymentStatus,
                           style: TextStyle(
                             color: Colors.grey[600],
                             fontSize: 14,
@@ -456,27 +456,27 @@ class _PaymentStatusDialogState extends State<_PaymentStatusDialog> {
                     )
                   : paymentFailureReason != null
                   ? Text(
-                      '$paymentFailureReason Nothing was charged — you can try again.',
+                      l10n.creditsNothingCharged(paymentFailureReason!),
                       textAlign: TextAlign.center,
                       style: const TextStyle(color: Colors.red),
                     )
                   : checkCount >= maxChecks
-                  ? const Text(
-                      'Payment verification timed out. Please check your credits later.',
+                  ? Text(
+                      l10n.creditsVerificationTimedOut,
                       textAlign: TextAlign.center,
-                      style: TextStyle(color: Colors.orange),
+                      style: const TextStyle(color: Colors.orange),
                     )
                   : const SizedBox(),
             ),
           ] else ...[
-            const Text(
-              'Your payment has been successfully processed!',
-              style: TextStyle(fontSize: 16),
+            Text(
+              l10n.creditsPaymentProcessed,
+              style: const TextStyle(fontSize: 16),
             ),
             const SizedBox(height: 16),
-            const Text(
-              'Your credits have been added to your account.',
-              style: TextStyle(fontSize: 14, color: Colors.grey),
+            Text(
+              l10n.creditsAdded,
+              style: const TextStyle(fontSize: 14, color: Colors.grey),
             ),
           ],
         ],
@@ -490,7 +490,7 @@ class _PaymentStatusDialogState extends State<_PaymentStatusDialog> {
             statusCheckTimer?.cancel();
             Navigator.of(context).pop(); // Close dialog
           },
-          child: Text(paymentSuccessful ? 'Done' : 'Close'),
+          child: Text(paymentSuccessful ? l10n.done : l10n.close),
         ),
       ],
     );

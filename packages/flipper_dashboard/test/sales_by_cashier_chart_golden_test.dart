@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'dart:io' show Platform;
 import 'package:flipper_dashboard/widgets/sales_by_cashier_chart.dart';
 import 'package:flipper_models/helperModels/transaction_payment_sums.dart';
@@ -73,6 +74,8 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        localizationsDelegates: FlipperLocalizationDelegates.delegates,
+        supportedLocales: FlipperLocalizationDelegates.supportedLocales,
         home: Scaffold(
           body: SizedBox(
             width: 1200,

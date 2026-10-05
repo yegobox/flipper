@@ -2,6 +2,7 @@ import 'package:flipper_design_system/flipper_design_system.dart';
 import 'package:flipper_dashboard/features/leads/widgets/add_lead_sheet.dart';
 import 'package:flipper_dashboard/features/leads/widgets/lead_detail_dialog.dart';
 import 'package:flipper_dashboard/widgets/admin_dashboard_svgs.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/models/lead.dart';
 import 'package:flipper_models/providers/leads_provider.dart';
 import 'package:flipper_services/utils.dart';
@@ -47,6 +48,7 @@ class _LeadsDesktopScreenState extends ConsumerState<LeadsDesktopScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
     final statsAsync = ref.watch(leadsStatsProvider);
     final leadsAsync = ref.watch(leadsStreamProvider);
 
@@ -82,18 +84,14 @@ class _LeadsDesktopScreenState extends ConsumerState<LeadsDesktopScreen> {
         toolbarHeight: 64,
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
-          child: Divider(
-            height: 1,
-            thickness: 1,
-            color: Colors.grey.shade200,
-          ),
+          child: Divider(height: 1, thickness: 1, color: Colors.grey.shade200),
         ),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              'Leads',
+              l10n.leads,
               style: GoogleFonts.outfit(
                 fontWeight: FontWeight.w700,
                 fontSize: 20,
@@ -101,7 +99,7 @@ class _LeadsDesktopScreenState extends ConsumerState<LeadsDesktopScreen> {
               ),
             ),
             Text(
-              'Track customers, enquiries and pipeline value',
+              l10n.leadsSubtitle,
               style: GoogleFonts.outfit(fontSize: 13, color: _ink3),
             ),
           ],
@@ -109,7 +107,7 @@ class _LeadsDesktopScreenState extends ConsumerState<LeadsDesktopScreen> {
         actions: [
           _pill(
             icon: AdminDashboardSvgs.leadsEmailEnvelope,
-            text: '0 emails need review',
+            text: l10n.leadsEmailsNeedReview('0'),
             bg: const Color(0xFFFFEEF1),
             fg: const Color(0xFFB42318),
             border: const Color(0xFFF3D2D7),
@@ -119,7 +117,7 @@ class _LeadsDesktopScreenState extends ConsumerState<LeadsDesktopScreen> {
           Builder(
             builder: (buttonContext) => _ghostButton(
               icon: AdminDashboardSvgs.leadsFilter,
-              label: 'Filter',
+              label: l10n.leadsFilter,
               onPressed: () => _showFilterMenu(buttonContext),
             ),
           ),
@@ -137,10 +135,13 @@ class _LeadsDesktopScreenState extends ConsumerState<LeadsDesktopScreen> {
               AdminDashboardSvgs.leadsPlusAdd,
               width: 18,
               height: 18,
-              colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+              colorFilter: const ColorFilter.mode(
+                Colors.white,
+                BlendMode.srcIn,
+              ),
             ),
             label: Text(
-              'Add lead',
+              l10n.leadsAddLead,
               style: GoogleFonts.outfit(fontWeight: FontWeight.w800),
             ),
           ),
@@ -160,7 +161,10 @@ class _LeadsDesktopScreenState extends ConsumerState<LeadsDesktopScreen> {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Expanded(flex: 7, child: _leadsTableCard(leadsAsync, leads)),
+                    Expanded(
+                      flex: 7,
+                      child: _leadsTableCard(leadsAsync, leads),
+                    ),
                     const SizedBox(width: 14),
                     Expanded(
                       flex: 3,
@@ -184,49 +188,50 @@ class _LeadsDesktopScreenState extends ConsumerState<LeadsDesktopScreen> {
 
   Widget _statsRow(AsyncValue<LeadsStats> statsAsync) {
     final s = statsAsync.asData?.value;
+    final l10n = context.flipperL10n;
     return Row(
       children: [
         Expanded(
           child: _statCard(
-            title: 'TOTAL LEADS',
+            title: l10n.leadsStatTotalLeads.toUpperCase(),
             value: '${s?.totalLeads ?? 0}',
-            subtitle: 'All sources',
+            subtitle: l10n.leadsStatAllSources,
             accent: const Color(0xFF2563EB),
           ),
         ),
         const SizedBox(width: 12),
         Expanded(
           child: _statCard(
-            title: 'PIPELINE VALUE',
+            title: l10n.leadsStatPipelineValue.toUpperCase(),
             value: 'RWF ${formatNumber(s?.pipelineValue ?? 0.0)}',
-            subtitle: 'Active leads',
+            subtitle: l10n.leadsStatActiveLeads,
             accent: const Color(0xFF7C3AED),
           ),
         ),
         const SizedBox(width: 12),
         Expanded(
           child: _statCard(
-            title: 'CONVERTED',
+            title: l10n.leadsStatusConverted.toUpperCase(),
             value: '${s?.converted ?? 0}',
-            subtitle: 'Completed sales',
+            subtitle: l10n.leadsStatCompletedSales,
             accent: const Color(0xFF16A34A),
           ),
         ),
         const SizedBox(width: 12),
         Expanded(
           child: _statCard(
-            title: 'FROM GMAIL',
+            title: l10n.leadsStatFromGmail.toUpperCase(),
             value: '${s?.fromGmail ?? 0}',
-            subtitle: 'Email enquiries',
+            subtitle: l10n.leadsStatEmailEnquiries,
             accent: const Color(0xFFDC2626),
           ),
         ),
         const SizedBox(width: 12),
         Expanded(
           child: _statCard(
-            title: 'CONVERSION RATE',
+            title: l10n.leadsStatConversionRate.toUpperCase(),
             value: '${((s?.conversionRate ?? 0) * 100).toStringAsFixed(0)}%',
-            subtitle: 'This month',
+            subtitle: l10n.leadsStatThisMonth,
             accent: const Color(0xFFD97706),
           ),
         ),
@@ -302,7 +307,7 @@ class _LeadsDesktopScreenState extends ConsumerState<LeadsDesktopScreen> {
                     ),
                     const SizedBox(width: 10),
                     Text(
-                      'All Leads',
+                      context.flipperL10n.leadsAllLeads,
                       style: GoogleFonts.outfit(
                         fontSize: 16,
                         fontWeight: FontWeight.w800,
@@ -327,7 +332,7 @@ class _LeadsDesktopScreenState extends ConsumerState<LeadsDesktopScreen> {
               ),
               error: (_, __) => Center(
                 child: Text(
-                  'Unable to load leads.',
+                  context.flipperL10n.leadsUnableToLoad,
                   style: GoogleFonts.outfit(color: _ink3),
                 ),
               ),
@@ -350,7 +355,7 @@ class _LeadsDesktopScreenState extends ConsumerState<LeadsDesktopScreen> {
         controller: _searchCtrl,
         onChanged: (_) => setState(() {}),
         decoration: InputDecoration(
-          hintText: 'Search name, email, product…',
+          hintText: context.flipperL10n.leadsSearchHint,
           hintStyle: GoogleFonts.outfit(color: _ink3),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(vertical: 12),
@@ -375,7 +380,7 @@ class _LeadsDesktopScreenState extends ConsumerState<LeadsDesktopScreen> {
         return Padding(
           padding: const EdgeInsets.only(left: 8),
           child: ChoiceChip(
-            label: Text(c),
+            label: Text(leadFilterLabel(context.flipperL10n, c)),
             selected: selected,
             onSelected: (_) => setState(() => _filter = c),
             selectedColor: const Color(0xFFEEF2FF),
@@ -396,7 +401,10 @@ class _LeadsDesktopScreenState extends ConsumerState<LeadsDesktopScreen> {
   Widget _leadsTable(List<Lead> leads) {
     if (leads.isEmpty) {
       return Center(
-        child: Text('No leads yet.', style: GoogleFonts.outfit(color: _ink3)),
+        child: Text(
+          context.flipperL10n.leadsNoLeadsYet,
+          style: GoogleFonts.outfit(color: _ink3),
+        ),
       );
     }
 
@@ -436,18 +444,19 @@ class _LeadsDesktopScreenState extends ConsumerState<LeadsDesktopScreen> {
       );
     }
 
+    final l10n = context.flipperL10n;
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
       color: const Color(0xFFFBFBFD),
       child: Row(
         children: [
-          header('CUSTOMER', flex: 4),
-          header('SOURCE', flex: 2),
-          header('INTERESTED IN', flex: 3),
-          header('VALUE', flex: 2),
-          header('STAGE', flex: 2),
-          header('HEAT', flex: 2),
-          header('DATE', flex: 1, right: true),
+          header(l10n.customer.toUpperCase(), flex: 4),
+          header(l10n.leadsColSource.toUpperCase(), flex: 2),
+          header(l10n.leadsColInterestedIn.toUpperCase(), flex: 3),
+          header(l10n.leadsColValue.toUpperCase(), flex: 2),
+          header(l10n.leadsColStage.toUpperCase(), flex: 2),
+          header(l10n.leadsColHeat.toUpperCase(), flex: 2),
+          header(l10n.leadsColDate.toUpperCase(), flex: 1, right: true),
         ],
       ),
     );
@@ -532,27 +541,27 @@ class _LeadsDesktopScreenState extends ConsumerState<LeadsDesktopScreen> {
       LeadStatus.newLead => (
         const Color(0xFFEFF6FF),
         const Color(0xFF1D4ED8),
-        'New',
+        leadStatusLabel(context.flipperL10n, normalized),
       ),
       LeadStatus.contacted => (
         const Color(0xFFF5F3FF),
         const Color(0xFF6D28D9),
-        'Contacted',
+        leadStatusLabel(context.flipperL10n, normalized),
       ),
       LeadStatus.quoted => (
         const Color(0xFFFFFBEB),
         const Color(0xFFB45309),
-        'Quoted',
+        leadStatusLabel(context.flipperL10n, normalized),
       ),
       LeadStatus.converted => (
         const Color(0xFFECFDF3),
         const Color(0xFF047857),
-        'Converted',
+        leadStatusLabel(context.flipperL10n, normalized),
       ),
       LeadStatus.lost => (
         const Color(0xFFFFF1F2),
         const Color(0xFFBE123C),
-        'Lost',
+        leadStatusLabel(context.flipperL10n, normalized),
       ),
       _ => (const Color(0xFFF3F4F6), const Color(0xFF374151), normalized),
     };
@@ -576,11 +585,12 @@ class _LeadsDesktopScreenState extends ConsumerState<LeadsDesktopScreen> {
   }
 
   Widget _heatCell(String heat) {
+    final l10n = context.flipperL10n;
     final normalized = heat.toLowerCase();
     final (dot, label) = switch (normalized) {
-      LeadHeat.hot => (const Color(0xFFDC2626), 'Hot'),
-      LeadHeat.warm => (const Color(0xFFD97706), 'Warm'),
-      _ => (const Color(0xFF9CA3AF), 'Cold'),
+      LeadHeat.hot => (const Color(0xFFDC2626), leadHeatLabel(l10n, heat)),
+      LeadHeat.warm => (const Color(0xFFD97706), leadHeatLabel(l10n, heat)),
+      _ => (const Color(0xFF9CA3AF), leadHeatLabel(l10n, heat)),
     };
 
     return Row(
@@ -655,7 +665,7 @@ class _LeadsDesktopScreenState extends ConsumerState<LeadsDesktopScreen> {
     final icon = isGmail
         ? AdminDashboardSvgs.leadsEmailEnvelope
         : AdminDashboardSvgs.leadsUserSingle;
-    final text = isGmail ? 'Gmail' : 'Walk-in';
+    final text = isGmail ? 'Gmail' : context.flipperL10n.leadsSourceWalkIn;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -694,6 +704,7 @@ class _LeadsDesktopScreenState extends ConsumerState<LeadsDesktopScreen> {
       LeadStatus.converted: 0,
       LeadStatus.lost: 0,
     };
+    final l10n = context.flipperL10n;
     var pipelineValue = 0.0;
     for (final l in leads) {
       counts[l.status] = (counts[l.status] ?? 0) + 1;
@@ -727,10 +738,7 @@ class _LeadsDesktopScreenState extends ConsumerState<LeadsDesktopScreen> {
                 ),
               ),
             ),
-            Text(
-              '$v',
-              style: FlipperFonts.mono(fontWeight: FontWeight.w800),
-            ),
+            Text('$v', style: FlipperFonts.mono(fontWeight: FontWeight.w800)),
             const SizedBox(width: 10),
             Expanded(
               flex: 2,
@@ -761,23 +769,39 @@ class _LeadsDesktopScreenState extends ConsumerState<LeadsDesktopScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'Pipeline',
+              l10n.leadsPipeline,
               style: GoogleFonts.outfit(
                 fontWeight: FontWeight.w800,
                 color: _ink,
               ),
             ),
             const SizedBox(height: 10),
-            row('New', LeadStatus.newLead, const Color(0xFF2563EB)),
-            row('Contacted', LeadStatus.contacted, const Color(0xFF7C3AED)),
-            row('Quoted', LeadStatus.quoted, const Color(0xFFD97706)),
-            row('Converted', LeadStatus.converted, const Color(0xFF16A34A)),
-            row('Lost', LeadStatus.lost, const Color(0xFFDC2626)),
+            row(
+              l10n.leadsStatusNew,
+              LeadStatus.newLead,
+              const Color(0xFF2563EB),
+            ),
+            row(
+              l10n.leadsStatusContacted,
+              LeadStatus.contacted,
+              const Color(0xFF7C3AED),
+            ),
+            row(
+              l10n.leadsStatusQuoted,
+              LeadStatus.quoted,
+              const Color(0xFFD97706),
+            ),
+            row(
+              l10n.leadsStatusConverted,
+              LeadStatus.converted,
+              const Color(0xFF16A34A),
+            ),
+            row(l10n.leadsStatusLost, LeadStatus.lost, const Color(0xFFDC2626)),
             const Spacer(),
             Divider(height: 1, color: Colors.black.withValues(alpha: 0.06)),
             const SizedBox(height: 10),
             Text(
-              'Pipeline value',
+              l10n.leadsStatPipelineValue,
               style: GoogleFonts.outfit(color: _ink3, fontSize: 12),
             ),
             const SizedBox(height: 4),
@@ -796,6 +820,7 @@ class _LeadsDesktopScreenState extends ConsumerState<LeadsDesktopScreen> {
 
   Widget _performanceCard(AsyncValue<LeadsStats> statsAsync) {
     final s = statsAsync.asData?.value;
+    final l10n = context.flipperL10n;
     return Expanded(
       child: Container(
         padding: const EdgeInsets.all(14),
@@ -808,7 +833,7 @@ class _LeadsDesktopScreenState extends ConsumerState<LeadsDesktopScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'Performance',
+              l10n.leadsPerformance,
               style: GoogleFonts.outfit(
                 fontWeight: FontWeight.w800,
                 color: _ink,
@@ -826,17 +851,17 @@ class _LeadsDesktopScreenState extends ConsumerState<LeadsDesktopScreen> {
               textAlign: TextAlign.center,
             ),
             Text(
-              'Conversion rate this month',
+              l10n.leadsConversionRateThisMonth,
               style: GoogleFonts.outfit(color: _ink3),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 18),
             Divider(height: 1, color: Colors.black.withValues(alpha: 0.06)),
             const SizedBox(height: 14),
-            _kv('Avg. time to convert', '4.2 days'),
+            _kv(l10n.leadsAvgTimeToConvert, l10n.leadsDaysCount('4.2')),
             const SizedBox(height: 10),
             _kv(
-              'Pipeline value',
+              l10n.leadsStatPipelineValue,
               'RWF ${formatNumber(s?.pipelineValue ?? 0.0)}',
             ),
           ],
@@ -985,7 +1010,7 @@ class _LeadsDesktopScreenState extends ConsumerState<LeadsDesktopScreen> {
               ),
               const SizedBox(width: 10),
               Text(
-                filter,
+                leadFilterLabel(context.flipperL10n, filter),
                 style: GoogleFonts.outfit(
                   fontWeight: FontWeight.w700,
                   color: _ink2,
@@ -1002,6 +1027,9 @@ class _LeadsDesktopScreenState extends ConsumerState<LeadsDesktopScreen> {
   }
 
   void _showEmailLeadsComingSoon(BuildContext context) {
-    showInfoNotification(context, 'Email lead review is coming soon.');
+    showInfoNotification(
+      context,
+      context.flipperL10n.leadsEmailReviewComingSoon,
+    );
   }
 }

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flipper_localize/flipper_localize.dart';
 
 import 'package:flipper_dashboard/ImportPurchasePage.dart';
 import 'package:flipper_dashboard/features/import_purchase/import_purchase_helpers.dart';
@@ -52,7 +53,11 @@ class _ImportPurchasePageViewState
       }
     } catch (e) {
       if (mounted) {
-        showImportPurchaseToast(context, 'Sync failed: $e', isError: true);
+        showImportPurchaseToast(
+          context,
+          context.flipperL10n.importPurchasePageSyncFailed(e.toString()),
+          isError: true,
+        );
       }
     }
   }
@@ -72,13 +77,17 @@ class _ImportPurchasePageViewState
             padding: EdgeInsets.symmetric(horizontal: gutter),
             decoration: const BoxDecoration(
               color: ImportPurchaseTokens.surface,
-              border: Border(bottom: BorderSide(color: ImportPurchaseTokens.line)),
+              border: Border(
+                bottom: BorderSide(color: ImportPurchaseTokens.line),
+              ),
             ),
             alignment: Alignment.centerLeft,
             child: Text(
-              'Import & Purchase Management',
+              context.flipperL10n.importPurchasePageManagement,
               style: ImportPurchaseHelpers.text(
-                size: width <= ImportPurchaseTokens.mobileBreakpoint ? 16.5 : 19,
+                size: width <= ImportPurchaseTokens.mobileBreakpoint
+                    ? 16.5
+                    : 19,
                 weight: FontWeight.w800,
                 letterSpacing: -0.2,
               ),
@@ -117,26 +126,29 @@ class _ImportPurchasePageViewState
             date: DateTime.now(),
             loading: true,
           ),
-          error: (_, __) => _dateField(
-            isImport: state.isImport,
-            date: DateTime.now(),
-          ),
+          error: (_, __) =>
+              _dateField(isImport: state.isImport, date: DateTime.now()),
         );
       },
       loading: () => _dateField(isImport: state.isImport, date: DateTime.now()),
-      error: (_, __) => _dateField(isImport: state.isImport, date: DateTime.now()),
+      error: (_, __) =>
+          _dateField(isImport: state.isImport, date: DateTime.now()),
     );
 
     final syncedLabel = state.syncing
-        ? 'Syncing…'
+        ? context.flipperL10n.importPurchasePageSyncing
         : state.lastSyncAt != null
-        ? 'Synced ${timeago.format(state.lastSyncAt!, locale: 'en_short')}'
-        : 'Not synced yet';
+        ? context.flipperL10n.importPurchasePageSyncedAgo(
+            timeago.format(state.lastSyncAt!, locale: 'en_short'),
+          )
+        : context.flipperL10n.importPurchasePageNotSynced;
 
     final modeControl = IpmSegmentedControl(
       isImport: state.isImport,
       onChanged: (value) {
-        ref.read(importPurchaseViewModelProvider.notifier).toggleImportPurchase(value);
+        ref
+            .read(importPurchaseViewModelProvider.notifier)
+            .toggleImportPurchase(value);
       },
     );
 
@@ -153,19 +165,17 @@ class _ImportPurchasePageViewState
 
           final exportButton = _SubbarIconButton(
             icon: Icons.file_download_outlined,
-            label: 'Export',
+            label: context.flipperL10n.importPurchasePageExport,
             variant: _SubbarButtonVariant.ghost,
             showLabel: !isMobile,
             loading: state.isExporting,
-            onPressed: state.isExporting
-                ? null
-                : () => _export(state.isImport),
+            onPressed: state.isExporting ? null : () => _export(state.isImport),
           );
 
           final recordPurchaseButton = !state.isImport
               ? _SubbarIconButton(
                   icon: Icons.post_add_outlined,
-                  label: 'Record Purchase',
+                  label: context.flipperL10n.importPurchasePageRecordPurchase,
                   variant: _SubbarButtonVariant.primary,
                   showLabel: !isMobile,
                   onPressed: () => showRecordPurchaseModal(context, ref),
@@ -174,7 +184,7 @@ class _ImportPurchasePageViewState
 
           final syncButton = _SubbarIconButton(
             icon: Icons.sync,
-            label: 'Sync from RRA',
+            label: context.flipperL10n.importPurchasePageSyncFromRra,
             variant: recordPurchaseButton == null
                 ? _SubbarButtonVariant.primary
                 : _SubbarButtonVariant.ghost,
@@ -183,7 +193,10 @@ class _ImportPurchasePageViewState
             onPressed: state.syncing ? null : _syncFromRra,
           );
 
-          final syncedPill = _SyncedPill(syncing: state.syncing, label: syncedLabel);
+          final syncedPill = _SyncedPill(
+            syncing: state.syncing,
+            label: syncedLabel,
+          );
 
           if (isMobile) {
             return Column(
@@ -246,7 +259,9 @@ class _ImportPurchasePageViewState
     required DateTime date,
     bool loading = false,
   }) {
-    final label = isImport ? 'Import from' : 'Purchase from';
+    final label = isImport
+        ? context.flipperL10n.importPurchasePageImportFrom
+        : context.flipperL10n.importPurchasePagePurchaseFrom;
     final formatted = DateFormat('yyyy-MM-dd').format(date);
 
     return Row(
@@ -370,9 +385,13 @@ class _SubbarIconButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final enabled = onPressed != null && !loading;
     final isPrimary = variant == _SubbarButtonVariant.primary;
-    final bg = isPrimary ? ImportPurchaseTokens.accent : ImportPurchaseTokens.surface;
+    final bg = isPrimary
+        ? ImportPurchaseTokens.accent
+        : ImportPurchaseTokens.surface;
     final fg = isPrimary ? Colors.white : ImportPurchaseTokens.ink2;
-    final border = isPrimary ? ImportPurchaseTokens.accent : ImportPurchaseTokens.line2;
+    final border = isPrimary
+        ? ImportPurchaseTokens.accent
+        : ImportPurchaseTokens.line2;
 
     return Material(
       color: enabled ? bg : bg.withValues(alpha: 0.6),

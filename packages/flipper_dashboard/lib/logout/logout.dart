@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/logout/shift_before_logout.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/ui/common/ui_helpers.dart';
@@ -14,18 +15,11 @@ const double _graphicSize = 60;
 class LogOut extends StackedView<LogoutModel> with CoreMiscellaneous {
   final DialogRequest request;
   final Function(DialogResponse) completer;
-  const LogOut({
-    Key? key,
-    required this.request,
-    required this.completer,
-  }) : super(key: key);
+  const LogOut({Key? key, required this.request, required this.completer})
+    : super(key: key);
 
   @override
-  Widget builder(
-    BuildContext context,
-    LogoutModel viewModel,
-    Widget? child,
-  ) {
+  Widget builder(BuildContext context, LogoutModel viewModel, Widget? child) {
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       backgroundColor: Colors.white,
@@ -50,21 +44,15 @@ class LogOut extends StackedView<LogoutModel> with CoreMiscellaneous {
                   horizontalSpaceSmall,
                   const Text(
                     'Flipper',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                 ],
               ),
             ),
             verticalSpaceMedium,
-            const Text(
-              'Are you sure you want to logout?',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-              ),
+            Text(
+              context.flipperL10n.confirmLogoutMessage,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
             ),
             verticalSpaceMedium,
             // Show loading indicator when logout is in progress
@@ -82,9 +70,9 @@ class LogOut extends StackedView<LogoutModel> with CoreMiscellaneous {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    const Text(
-                      'Logging out...',
-                      style: TextStyle(
+                    Text(
+                      context.flipperL10n.logoutLoggingOut,
+                      style: const TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w500,
                         color: Colors.black87,
@@ -101,9 +89,9 @@ class LogOut extends StackedView<LogoutModel> with CoreMiscellaneous {
                       onPressed: () {
                         completer(DialogResponse(confirmed: false));
                       },
-                      child: const Text(
-                        'Cancel',
-                        style: TextStyle(
+                      child: Text(
+                        context.flipperL10n.cancel,
+                        style: const TextStyle(
                           color: Colors.black,
                           fontWeight: FontWeight.w500,
                         ),
@@ -120,18 +108,22 @@ class LogOut extends StackedView<LogoutModel> with CoreMiscellaneous {
                             final device = request.data! as Device;
                             if (ProxyService.box.getUserId() != null &&
                                 ProxyService.box.getBusinessId() != null) {
-                              ProxyService.event.publish(loginDetails: {
-                                'channel':
-                                    "${ProxyService.box.getUserId()!}-logout",
-                                'userId': ProxyService.box.getUserId()!,
-                                'businessId': ProxyService.box.getBusinessId()!,
-                                'branchId': ProxyService.box.getBranchId()!,
-                                'phone': ProxyService.box.getUserPhone(),
-                                'defaultApp': ProxyService.box.getDefaultApp(),
-                                'deviceName': device.deviceName,
-                                'deviceVersion': device.deviceVersion,
-                                'linkingCode': device.linkingCode,
-                              });
+                              ProxyService.event.publish(
+                                loginDetails: {
+                                  'channel':
+                                      "${ProxyService.box.getUserId()!}-logout",
+                                  'userId': ProxyService.box.getUserId()!,
+                                  'businessId': ProxyService.box
+                                      .getBusinessId()!,
+                                  'branchId': ProxyService.box.getBranchId()!,
+                                  'phone': ProxyService.box.getUserPhone(),
+                                  'defaultApp': ProxyService.box
+                                      .getDefaultApp(),
+                                  'deviceName': device.deviceName,
+                                  'deviceVersion': device.deviceVersion,
+                                  'linkingCode': device.linkingCode,
+                                },
+                              );
 
                               try {
                                 // await ProxyService.remote.hardDelete(
@@ -151,11 +143,11 @@ class LogOut extends StackedView<LogoutModel> with CoreMiscellaneous {
 
                         final proceed =
                             await prepareSessionExitAfterShiftHandling(
-                          context: context,
-                          dialogService: dialogService,
-                          confirmWhenNoOpenShift: true,
-                          loaderUseRootNavigator: false,
-                        );
+                              context: context,
+                              dialogService: dialogService,
+                              confirmWhenNoOpenShift: true,
+                              loaderUseRootNavigator: false,
+                            );
                         if (!proceed) {
                           completer(DialogResponse(confirmed: false));
                           return;
@@ -170,9 +162,9 @@ class LogOut extends StackedView<LogoutModel> with CoreMiscellaneous {
                         }
                         completer(DialogResponse(confirmed: true));
                       },
-                      child: const Text(
-                        'Logout',
-                        style: TextStyle(
+                      child: Text(
+                        context.flipperL10n.logOut,
+                        style: const TextStyle(
                           color: Colors.red,
                           fontWeight: FontWeight.w500,
                         ),

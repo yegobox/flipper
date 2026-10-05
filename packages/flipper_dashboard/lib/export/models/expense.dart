@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/talker.dart';
@@ -17,7 +18,9 @@ class Expense {
   /// Creates an Expense from an ITransaction
   factory Expense.fromTransaction(ITransaction transaction) {
     return Expense(
-      name: transaction.transactionType ?? 'Unknown Expense',
+      name:
+          transaction.transactionType ??
+          FlipperL10n.current.reportUnknownExpense,
       amount: transaction.subTotal ?? 0.0,
     );
   }
@@ -30,21 +33,25 @@ class Expense {
     double taxSum = 0;
     // if we have sales, then get related transaction item to get tax expenses
     if (sales != null && sales.isNotEmpty) {
-      print('EXPENSE TAX CALCULATION - Processing ${sales.length} sales in ONE bulk query');
+      print(
+        'EXPENSE TAX CALCULATION - Processing ${sales.length} sales in ONE bulk query',
+      );
 
       // Fetch ALL transaction items for all sales in a single bulk query
       // This avoids N individual DB calls which was causing the UI hang
       final saleIds = sales.map((s) => s.id!).toList();
-      
+
       // `transactionItemsForIds` is declared on TransactionItemInterface,
       // which DatabaseSyncInterface implements — no cast needed.
       final strategy = ProxyService.getStrategy(Strategy.capella);
       Map<String, List<TransactionItem>> groupedItems = {};
-      
+
       try {
         groupedItems = await strategy.transactionItemsForIds(saleIds);
       } catch (e) {
-        print('EXPENSE TAX CALCULATION - Bulk fetch failed, skipping tax calc: $e');
+        print(
+          'EXPENSE TAX CALCULATION - Bulk fetch failed, skipping tax calc: $e',
+        );
       }
 
       // Process the grouped items in memory (no more DB calls)
@@ -65,7 +72,9 @@ class Expense {
     talker.info('Tax sum: $taxSum');
     // Only add tax expense if there are any tax type B items
     if (taxSum > 0) {
-      expenses.add(Expense(name: 'Tax', amount: taxSum));
+      expenses.add(
+        Expense(name: FlipperL10n.current.manualPurchaseTax, amount: taxSum),
+      );
     }
     talker.info('Expenses: ${expenses.length}');
     return expenses;

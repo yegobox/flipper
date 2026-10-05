@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'credit_icon_widget.dart';
 
@@ -50,9 +51,9 @@ class CreditDisplay extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'Available Credits',
-                style: TextStyle(
+              Text(
+                context.flipperL10n.creditsAvailable,
+                style: const TextStyle(
                   color: Colors.white70,
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
@@ -83,9 +84,9 @@ class CreditDisplay extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 12),
-              const Text(
-                'Credits',
-                style: TextStyle(
+              Text(
+                context.flipperL10n.creditsLabel,
+                style: const TextStyle(
                   color: Colors.white,
                   fontSize: 20,
                   fontWeight: FontWeight.w400,
@@ -103,15 +104,15 @@ class CreditDisplay extends StatelessWidget {
                 credits / maxCredits > 0.5
                     ? Colors.greenAccent
                     : credits / maxCredits > 0.2
-                        ? Colors.amberAccent
-                        : Colors.redAccent,
+                    ? Colors.amberAccent
+                    : Colors.redAccent,
               ),
               minHeight: 8,
             ),
           ),
           const SizedBox(height: 8),
           Text(
-            'Maximum: $maxCredits',
+            context.flipperL10n.creditsMaximum(maxCredits.toString()),
             style: TextStyle(
               color: Colors.white.withValues(alpha: 0.7),
               fontSize: 14,

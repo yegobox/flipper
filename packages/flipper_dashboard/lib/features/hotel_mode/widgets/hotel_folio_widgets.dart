@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flipper_dashboard/features/hotel_mode/theme/hotel_tokens.dart';
+import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_shared_widgets.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/models/hotel_stay.dart';
 import 'package:flipper_models/sync/utils/hotel_mode_utils.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -24,6 +26,7 @@ class HotelFolioHeaderCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
     final due = hotelStayIsDue(stay);
     return Container(
       padding: EdgeInsets.all(compact ? 14 : 18),
@@ -62,7 +65,7 @@ class HotelFolioHeaderCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(999),
                   ),
                   child: Text(
-                    'Due out',
+                    l10n.hotelDueOut,
                     style: GoogleFonts.outfit(
                       fontSize: 11.5,
                       fontWeight: FontWeight.w700,
@@ -74,7 +77,7 @@ class HotelFolioHeaderCard extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            hotelStaySummary(stay),
+            hotelStaySummaryText(l10n, stay),
             style: GoogleFonts.outfit(
               fontSize: 12.5,
               fontWeight: FontWeight.w500,
@@ -86,19 +89,21 @@ class HotelFolioHeaderCard extends StatelessWidget {
             children: [
               Expanded(
                 child: _stat(
-                  'Arrival',
+                  l10n.hotelArrival,
                   DateFormat('d MMM, HH:mm').format(stay.checkInAt.toLocal()),
                 ),
               ),
               Expanded(
                 child: _stat(
-                  'Departure',
+                  l10n.hotelDeparture,
                   DateFormat(
                     'd MMM, HH:mm',
                   ).format(stay.expectedCheckOutAt.toLocal()),
                 ),
               ),
-              Expanded(child: _stat('Rate', hotelMoney(stay.nightlyRate))),
+              Expanded(
+                child: _stat(l10n.hotelRate, hotelMoney(stay.nightlyRate)),
+              ),
             ],
           ),
         ],
@@ -178,7 +183,7 @@ class HotelFolioLineTile extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  '${hotelMoney(line.price)} each'
+                  '${context.flipperL10n.hotelPriceEach(hotelMoney(line.price))}'
                   '${line.loggedByName == null ? '' : ' · ${line.loggedByName}'}',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -269,6 +274,7 @@ class HotelFolioTotals extends StatelessWidget {
     // 18% VAT on whatever the bar charged to the room, so one inclusive rate
     // would be wrong for both.
     final breakdown = hotelFolioTaxBreakdown(lines);
+    final l10n = context.flipperL10n;
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -279,14 +285,14 @@ class HotelFolioTotals extends StatelessWidget {
       ),
       child: Column(
         children: [
-          _row('Subtotal', breakdown.subtotal),
+          _row(l10n.subtotal, breakdown.subtotal),
           const SizedBox(height: 6),
-          _row('Tax (incl.)', breakdown.tax),
+          _row(l10n.hotelTaxIncl, breakdown.tax),
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 10),
             child: Divider(height: 1, color: HotelTokens.line),
           ),
-          _row('Folio total', breakdown.total, emphasis: true),
+          _row(l10n.hotelFolioTotal, breakdown.total, emphasis: true),
         ],
       ),
     );
@@ -358,7 +364,20 @@ class HotelCheckOutDialog extends StatefulWidget {
 }
 
 class _HotelCheckOutDialogState extends State<HotelCheckOutDialog> {
+  /// Wire values: [_paymentType] is handed to the checkout as-is, so only the
+  /// label in [_paymentLabel] is localized.
   static const _paymentTypes = ['Cash', 'Momo', 'Card'];
+
+  String _paymentLabel(FlipperAppLocalizations l10n, String type) {
+    switch (type) {
+      case 'Cash':
+        return l10n.cash;
+      case 'Card':
+        return l10n.hotelPaymentCard;
+      default:
+        return type;
+    }
+  }
 
   late final TextEditingController _tenderController;
   String _paymentType = 'Cash';
@@ -377,8 +396,7 @@ class _HotelCheckOutDialogState extends State<HotelCheckOutDialog> {
     super.dispose();
   }
 
-  double get _tender =>
-      _paymentType == 'Cash'
+  double get _tender => _paymentType == 'Cash'
       ? (double.tryParse(_tenderController.text.replaceAll(',', '')) ?? 0)
       : widget.total;
 
@@ -391,6 +409,7 @@ class _HotelCheckOutDialogState extends State<HotelCheckOutDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
     return Container(
       padding: const EdgeInsets.fromLTRB(22, 20, 22, 22),
       decoration: const BoxDecoration(
@@ -404,7 +423,7 @@ class _HotelCheckOutDialogState extends State<HotelCheckOutDialog> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Check out',
+            l10n.hotelCheckOut,
             style: GoogleFonts.outfit(
               fontSize: 19,
               fontWeight: FontWeight.w800,
@@ -413,7 +432,7 @@ class _HotelCheckOutDialogState extends State<HotelCheckOutDialog> {
           ),
           const SizedBox(height: 3),
           Text(
-            'Folio total ${hotelMoney(widget.total.round())}',
+            l10n.hotelFolioTotalAmount(hotelMoney(widget.total.round())),
             style: GoogleFonts.outfit(
               fontSize: 12.5,
               fontWeight: FontWeight.w500,
@@ -444,7 +463,7 @@ class _HotelCheckOutDialogState extends State<HotelCheckOutDialog> {
                         ),
                       ),
                       child: Text(
-                        type,
+                        _paymentLabel(l10n, type),
                         style: GoogleFonts.outfit(
                           fontSize: 14,
                           fontWeight: FontWeight.w700,
@@ -473,7 +492,7 @@ class _HotelCheckOutDialogState extends State<HotelCheckOutDialog> {
                 color: HotelTokens.ink1,
               ),
               decoration: InputDecoration(
-                labelText: 'Cash received',
+                labelText: l10n.cashReceived,
                 isDense: true,
                 contentPadding: const EdgeInsets.symmetric(
                   horizontal: 14,
@@ -491,7 +510,7 @@ class _HotelCheckOutDialogState extends State<HotelCheckOutDialog> {
             Row(
               children: [
                 Text(
-                  'Change due',
+                  l10n.hotelChangeDue,
                   style: GoogleFonts.outfit(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
@@ -529,7 +548,7 @@ class _HotelCheckOutDialogState extends State<HotelCheckOutDialog> {
                     ),
                   ),
                   child: Text(
-                    'Cancel',
+                    l10n.cancel,
                     style: GoogleFonts.outfit(
                       fontSize: 15,
                       fontWeight: FontWeight.w700,
@@ -546,9 +565,7 @@ class _HotelCheckOutDialogState extends State<HotelCheckOutDialog> {
                   child: DecoratedBox(
                     decoration: BoxDecoration(
                       gradient: HotelTokens.gradBtn,
-                      borderRadius: BorderRadius.circular(
-                        HotelTokens.radiusMd,
-                      ),
+                      borderRadius: BorderRadius.circular(HotelTokens.radiusMd),
                     ),
                     child: TextButton(
                       onPressed: _canSettle
@@ -566,7 +583,7 @@ class _HotelCheckOutDialogState extends State<HotelCheckOutDialog> {
                         ),
                       ),
                       child: Text(
-                        'Settle & release room',
+                        l10n.hotelSettleAndRelease,
                         style: GoogleFonts.outfit(
                           fontSize: 15.5,
                           fontWeight: FontWeight.w800,

@@ -276,6 +276,7 @@ class _TopPriorityCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final autoPct = goal.autoAllocationPercent;
     final ds = ref.watch(personalGoalsDataSourceProvider);
+    final l10n = context.flipperL10n;
 
     return Material(
       color: const Color(0xFF111827),
@@ -286,7 +287,7 @@ class _TopPriorityCard extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'TOP PRIORITY',
+              l10n.personalGoalTopPriorityEyebrow,
               style: GoogleFonts.outfit(
                 fontSize: 11,
                 fontWeight: FontWeight.w700,
@@ -341,13 +342,13 @@ class _TopPriorityCard extends ConsumerWidget {
               children: [
                 Expanded(
                   child: _darkRowItem(
-                    'Saved',
+                    l10n.personalGoalSaved,
                     formatRwfCompact(goal.savedAmount),
                   ),
                 ),
                 Expanded(
                   child: _darkRowItem(
-                    'Target',
+                    l10n.personalGoalTarget,
                     formatRwfCompact(goal.targetAmount),
                   ),
                 ),
@@ -365,7 +366,7 @@ class _TopPriorityCard extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Auto allocation',
+                        l10n.personalGoalAutoAllocation,
                         style: GoogleFonts.outfit(
                           color: Colors.white,
                           fontWeight: FontWeight.w600,
@@ -373,8 +374,8 @@ class _TopPriorityCard extends ConsumerWidget {
                       ),
                       Text(
                         autoPct != null
-                            ? '$autoPct% of profit reserved'
-                            : 'Optional — set in edit',
+                            ? l10n.personalGoalProfitReserved('$autoPct')
+                            : l10n.personalGoalAutoAllocationOptional,
                         style: GoogleFonts.outfit(
                           fontSize: 12,
                           color: Colors.grey.shade400,
@@ -533,7 +534,10 @@ class _GoalListCard extends StatelessWidget {
               ),
               const SizedBox(height: 6),
               Text(
-                '${formatRwfCompact(goal.savedAmount)} of ${formatRwfCompact(goal.targetAmount).replaceFirst('RWF ', '')}',
+                context.flipperL10n.personalGoalSavedOfTarget(
+                  formatRwfCompact(goal.savedAmount),
+                  formatRwfCompact(goal.targetAmount).replaceFirst('RWF ', ''),
+                ),
                 style: GoogleFonts.outfit(
                   fontSize: 13,
                   color: Colors.grey.shade600,
@@ -563,7 +567,7 @@ class _GoalListCard extends StatelessWidget {
                     const SizedBox(width: 6),
                     Expanded(
                       child: Text(
-                        'Updated from profits',
+                        context.flipperL10n.personalGoalUpdatedFromProfits,
                         style: GoogleFonts.outfit(
                           fontSize: 12,
                           color: Colors.grey.shade600,
@@ -597,7 +601,7 @@ class _GoalListCard extends StatelessWidget {
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            'Add money',
+                            context.flipperL10n.personalGoalAddMoney,
                             style: GoogleFonts.outfit(
                               fontSize: 15,
                               fontWeight: FontWeight.w700,
@@ -607,7 +611,7 @@ class _GoalListCard extends StatelessWidget {
                           ),
                           const SizedBox(width: 6),
                           Text(
-                            '· Cash in',
+                            context.flipperL10n.personalGoalAddMoneyCashIn,
                             style: GoogleFonts.outfit(
                               fontSize: 13,
                               fontWeight: FontWeight.w500,
@@ -647,10 +651,13 @@ class _RecurrenceStatus extends StatelessWidget {
     final muted = onDark ? Colors.grey.shade400 : Colors.grey.shade600;
     final green = onDark ? const Color(0xFF34D399) : const Color(0xFF16A34A);
     final period = goal.periodKey;
+    final l10n = context.flipperL10n;
 
     final status = reached && period != null
-        ? 'Reached for ${goalPeriodName(period)} · '
-              '${recurrence.restartDateLabel(now)}'
+        ? l10n.personalGoalReachedForPeriod(
+            goalPeriodName(period),
+            recurrence.restartDateLabel(now),
+          )
         : '${recurrence.shortLabel} · ${recurrence.restartLabel(now)}';
 
     final last = goal.cycleHistory.isEmpty ? null : goal.cycleHistory.first;
@@ -658,9 +665,17 @@ class _RecurrenceStatus extends StatelessWidget {
     if (last != null) {
       final name = _capitalize(goalPeriodName(last.periodKey));
       lastLine = last.reached
-          ? '$name: ${formatRwfCompact(last.savedAmount)} · reached'
-          : '$name: ${formatRwfCompact(last.savedAmount)} of '
-                '${formatRwfCompact(last.targetAmount).replaceFirst('RWF ', '')}';
+          ? l10n.personalGoalLastPeriodReached(
+              name,
+              formatRwfCompact(last.savedAmount),
+            )
+          : l10n.personalGoalLastPeriodProgress(
+              name,
+              l10n.personalGoalSavedOfTarget(
+                formatRwfCompact(last.savedAmount),
+                formatRwfCompact(last.targetAmount).replaceFirst('RWF ', ''),
+              ),
+            );
     }
 
     return Column(
@@ -752,14 +767,14 @@ class _DashedNewGoalCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'New goal',
+                        context.flipperL10n.personalGoalNewGoal,
                         style: GoogleFonts.outfit(
                           fontWeight: FontWeight.w700,
                           fontSize: 16,
                         ),
                       ),
                       Text(
-                        'Equipment, rent, training…',
+                        context.flipperL10n.personalGoalNewGoalExamples,
                         style: GoogleFonts.outfit(
                           fontSize: 13,
                           color: Colors.grey.shade600,
@@ -938,6 +953,7 @@ class _PersonalGoalEditorDialogState extends State<_PersonalGoalEditorDialog> {
   Widget build(BuildContext context) {
     final bottomInset = MediaQuery.paddingOf(context).bottom;
     final maxH = MediaQuery.sizeOf(context).height * 0.88;
+    final l10n = context.flipperL10n;
 
     return Dialog(
       backgroundColor: Colors.transparent,
@@ -978,7 +994,9 @@ class _PersonalGoalEditorDialogState extends State<_PersonalGoalEditorDialog> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            _isEditing ? 'Edit goal' : 'New goal',
+                            _isEditing
+                                ? l10n.personalGoalEditGoal
+                                : l10n.personalGoalNewGoal,
                             style: GoogleFonts.outfit(
                               fontSize: 22,
                               fontWeight: FontWeight.w800,
@@ -989,8 +1007,8 @@ class _PersonalGoalEditorDialogState extends State<_PersonalGoalEditorDialog> {
                           const SizedBox(height: 4),
                           Text(
                             _isEditing
-                                ? 'Update amounts and settings for this goal.'
-                                : 'Set a name and target. You can add money anytime from cash in.',
+                                ? l10n.personalGoalEditSubtitle
+                                : l10n.personalGoalNewSubtitle,
                             style: GoogleFonts.outfit(
                               fontSize: 13,
                               height: 1.35,
@@ -1023,7 +1041,7 @@ class _PersonalGoalEditorDialogState extends State<_PersonalGoalEditorDialog> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        _sectionLabel('GOAL NAME'),
+                        _sectionLabel(l10n.personalGoalNameSection),
                         TextFormField(
                           controller: _nameCtrl,
                           textCapitalization: TextCapitalization.sentences,
@@ -1032,18 +1050,18 @@ class _PersonalGoalEditorDialogState extends State<_PersonalGoalEditorDialog> {
                             fontWeight: FontWeight.w500,
                           ),
                           decoration: _fieldDecoration(
-                            'What are you saving for?',
-                            hint: 'e.g. Emergency fund, equipment',
+                            l10n.personalGoalNameLabel,
+                            hint: l10n.personalGoalNameHint,
                           ),
                           validator: (v) {
                             if (v == null || v.trim().isEmpty) {
-                              return 'Enter a goal name';
+                              return l10n.personalGoalNameRequired;
                             }
                             return null;
                           },
                         ),
                         const SizedBox(height: 18),
-                        _sectionLabel('AMOUNTS (RWF)'),
+                        _sectionLabel(l10n.personalGoalAmountsSection),
                         TextFormField(
                           controller: _targetCtrl,
                           keyboardType: const TextInputType.numberWithOptions(
@@ -1059,7 +1077,7 @@ class _PersonalGoalEditorDialogState extends State<_PersonalGoalEditorDialog> {
                             fontWeight: FontWeight.w600,
                           ),
                           decoration: _fieldDecoration(
-                            'Target amount',
+                            l10n.personalGoalTargetAmount,
                             hint: '0',
                           ),
                           validator: (v) {
@@ -1068,7 +1086,9 @@ class _PersonalGoalEditorDialogState extends State<_PersonalGoalEditorDialog> {
                                   (v ?? '').replaceAll(',', ''),
                                 ) ??
                                 0;
-                            if (t <= 0) return 'Enter a target greater than 0';
+                            if (t <= 0) {
+                              return l10n.personalGoalTargetRequired;
+                            }
                             return null;
                           },
                         ),
@@ -1088,19 +1108,19 @@ class _PersonalGoalEditorDialogState extends State<_PersonalGoalEditorDialog> {
                             fontWeight: FontWeight.w500,
                           ),
                           decoration: _fieldDecoration(
-                            'Already saved',
-                            hint: '0 — optional',
+                            l10n.personalGoalAlreadySaved,
+                            hint: l10n.personalGoalAlreadySavedHint,
                           ),
                           validator: (v) {
                             if (v == null || v.trim().isEmpty) return null;
                             final s =
                                 double.tryParse(v.replaceAll(',', '')) ?? 0;
-                            if (s < 0) return 'Cannot be negative';
+                            if (s < 0) return l10n.personalGoalCannotBeNegative;
                             return null;
                           },
                         ),
                         const SizedBox(height: 18),
-                        _sectionLabel('REPEATS'),
+                        _sectionLabel(l10n.personalGoalRepeatsSection),
                         DropdownButtonFormField<GoalRecurrence>(
                           key: const Key('personal_goal_recurrence'),
                           initialValue: _recurrence,
@@ -1115,7 +1135,9 @@ class _PersonalGoalEditorDialogState extends State<_PersonalGoalEditorDialog> {
                             fontWeight: FontWeight.w500,
                             color: const Color(0xFF111827),
                           ),
-                          decoration: _fieldDecoration('Repeats'),
+                          decoration: _fieldDecoration(
+                            l10n.personalGoalRepeats,
+                          ),
                           items: [
                             for (final r in GoalRecurrence.values)
                               DropdownMenuItem(
@@ -1158,7 +1180,7 @@ class _PersonalGoalEditorDialogState extends State<_PersonalGoalEditorDialog> {
                           ),
                         ],
                         const SizedBox(height: 18),
-                        _sectionLabel('OPTIONAL'),
+                        _sectionLabel(l10n.personalGoalOptionalSection),
                         TextFormField(
                           controller: _pctCtrl,
                           keyboardType: TextInputType.number,
@@ -1170,14 +1192,14 @@ class _PersonalGoalEditorDialogState extends State<_PersonalGoalEditorDialog> {
                             fontWeight: FontWeight.w500,
                           ),
                           decoration: _fieldDecoration(
-                            'Auto allocation %',
-                            hint: 'Leave empty if not used',
+                            l10n.personalGoalAutoAllocationPercent,
+                            hint: l10n.personalGoalAutoAllocationHint,
                           ).copyWith(suffixText: '%'),
                           validator: (v) {
                             if (v == null || v.trim().isEmpty) return null;
                             final p = int.tryParse(v.trim());
                             if (p == null || p < 0 || p > 100) {
-                              return 'Use 0–100';
+                              return l10n.personalGoalPercentRange;
                             }
                             return null;
                           },
@@ -1191,14 +1213,14 @@ class _PersonalGoalEditorDialogState extends State<_PersonalGoalEditorDialog> {
                             onChanged: (v) => setState(() => _topPriority = v),
                             activeThumbColor: _accent,
                             title: Text(
-                              'Top priority',
+                              l10n.personalGoalTopPriority,
                               style: GoogleFonts.outfit(
                                 fontWeight: FontWeight.w600,
                                 fontSize: 15,
                               ),
                             ),
                             subtitle: Text(
-                              'Shown first on your dashboard',
+                              l10n.personalGoalTopPriorityHint,
                               style: GoogleFonts.outfit(
                                 fontSize: 12,
                                 color: Colors.grey.shade600,
@@ -1231,7 +1253,7 @@ class _PersonalGoalEditorDialogState extends State<_PersonalGoalEditorDialog> {
                           ),
                         ),
                         child: Text(
-                          'Cancel',
+                          l10n.cancel,
                           style: GoogleFonts.outfit(
                             fontWeight: FontWeight.w600,
                             fontSize: 15,
@@ -1254,7 +1276,9 @@ class _PersonalGoalEditorDialogState extends State<_PersonalGoalEditorDialog> {
                           elevation: 0,
                         ),
                         child: Text(
-                          _isEditing ? 'Save changes' : 'Create goal',
+                          _isEditing
+                              ? l10n.personalGoalSaveChanges
+                              : l10n.personalGoalCreateGoal,
                           style: GoogleFonts.outfit(
                             fontWeight: FontWeight.w700,
                             fontSize: 15,

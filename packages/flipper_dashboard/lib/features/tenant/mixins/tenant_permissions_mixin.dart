@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flutter/material.dart';
@@ -30,6 +31,61 @@ class TenantPermissionsMixin {
       if (level.toLowerCase() == lower) return level;
     }
     return 'No Access';
+  }
+
+  /// Display label for an [AppFeature] value; the raw value stays the key
+  /// stored in `accesses.feature_name`.
+  static String featureLabel(FlipperAppLocalizations l10n, String feature) {
+    switch (feature) {
+      case AppFeature.Inventory:
+        return l10n.tenantMgmtFeatureInventory;
+      case AppFeature.Settings:
+        return l10n.tenantMgmtFeatureSettings;
+      case AppFeature.Reports:
+        return l10n.tenantMgmtFeatureReports;
+      case AppFeature.Transactions:
+        return l10n.tenantMgmtFeatureTransactions;
+      case AppFeature.Tickets:
+        return l10n.tenantMgmtFeatureTickets;
+      case AppFeature.Orders:
+        return l10n.tenantMgmtFeatureOrders;
+      case AppFeature.Leads:
+        return l10n.tenantMgmtFeatureLeads;
+      case AppFeature.AddProduct:
+        return l10n.tenantMgmtFeatureAddProduct;
+      case AppFeature.Sales:
+        return l10n.tenantMgmtFeatureSales;
+      case AppFeature.Driver:
+        return l10n.tenantMgmtFeatureDriver;
+      case AppFeature.Stock:
+        return l10n.tenantMgmtFeatureStock;
+      case AppFeature.ShiftHistory:
+        return l10n.tenantMgmtFeatureShiftHistory;
+      case AppFeature.TicketReview:
+        return l10n.tenantMgmtFeatureTicketReview;
+      case AppFeature.StockHandover:
+        return l10n.tenantMgmtFeatureStockHandover;
+      case AppFeature.HideStockQuantity:
+        return l10n.tenantMgmtFeatureHideStockQuantity;
+      default:
+        return feature;
+    }
+  }
+
+  /// Display label for an [accessLevels] value (the raw value is persisted).
+  static String accessLevelLabel(FlipperAppLocalizations l10n, String level) {
+    switch (level) {
+      case 'No Access':
+        return l10n.tenantMgmtAccessNone;
+      case 'read':
+        return l10n.tenantMgmtAccessRead;
+      case 'write':
+        return l10n.tenantMgmtAccessWrite;
+      case 'admin':
+        return l10n.tenantMgmtAccessAdmin;
+      default:
+        return level;
+    }
   }
 
   static Color featureModuleDotColor(int index) {
@@ -118,11 +174,12 @@ class TenantPermissionsMixin {
     Map<String, bool> activeFeatures,
     void Function(void Function()) setState,
   ) {
+    final l10n = context.flipperL10n;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
-          'MODULE PERMISSIONS',
+          l10n.tenantMgmtModulePermissions,
           style: GoogleFonts.outfit(
             fontSize: 11,
             fontWeight: FontWeight.w700,
@@ -148,7 +205,7 @@ class TenantPermissionsMixin {
                     Expanded(
                       flex: 5,
                       child: Text(
-                        'MODULE',
+                        l10n.tenantMgmtColModule,
                         style: GoogleFonts.outfit(
                           fontSize: 10,
                           fontWeight: FontWeight.w700,
@@ -160,7 +217,7 @@ class TenantPermissionsMixin {
                     Expanded(
                       flex: 4,
                       child: Text(
-                        'ACCESS LEVEL',
+                        l10n.tenantMgmtColAccessLevel,
                         textAlign: TextAlign.center,
                         style: GoogleFonts.outfit(
                           fontSize: 10,
@@ -173,7 +230,7 @@ class TenantPermissionsMixin {
                     SizedBox(
                       width: 56,
                       child: Text(
-                        'ACTIVE',
+                        l10n.tenantMgmtColActive,
                         textAlign: TextAlign.center,
                         style: GoogleFonts.outfit(
                           fontSize: 10,
@@ -191,8 +248,7 @@ class TenantPermissionsMixin {
                 final feature = entry.value;
                 return Column(
                   children: [
-                    if (idx > 0)
-                      Divider(color: Colors.grey[200], height: 1),
+                    if (idx > 0) Divider(color: Colors.grey[200], height: 1),
                     buildPermissionRowStatic(
                       context,
                       idx,
@@ -244,7 +300,7 @@ class TenantPermissionsMixin {
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    feature,
+                    featureLabel(context.flipperL10n, feature),
                     style: GoogleFonts.outfit(
                       fontWeight: FontWeight.w600,
                       fontSize: 14,
@@ -269,7 +325,11 @@ class TenantPermissionsMixin {
                 child: DropdownButton<String>(
                   isExpanded: true,
                   value: dropdownValue,
-                  icon: Icon(Icons.keyboard_arrow_down, size: 20, color: Colors.grey[600]),
+                  icon: Icon(
+                    Icons.keyboard_arrow_down,
+                    size: 20,
+                    color: Colors.grey[600],
+                  ),
                   style: GoogleFonts.outfit(
                     color: Colors.black87,
                     fontSize: 13,
@@ -286,10 +346,15 @@ class TenantPermissionsMixin {
                       );
                     });
                   },
-                  items: accessLevels.map<DropdownMenuItem<String>>((String value) {
+                  items: accessLevels.map<DropdownMenuItem<String>>((
+                    String value,
+                  ) {
                     return DropdownMenuItem<String>(
                       value: value,
-                      child: Text(value, style: GoogleFonts.outfit(fontSize: 13)),
+                      child: Text(
+                        accessLevelLabel(context.flipperL10n, value),
+                        style: GoogleFonts.outfit(fontSize: 13),
+                      ),
                     );
                   }).toList(),
                 ),

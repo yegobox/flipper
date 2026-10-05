@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/theme/pos_tokens.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
@@ -142,14 +143,14 @@ class PosCartExpandedLine extends StatelessWidget {
                         children: [
                           if (expandedQuantityStepper != null)
                             _FieldBlock(
-                              label: 'Quantity',
+                              label: context.flipperL10n.quantity,
                               hint: stockHint,
                               child: expandedQuantityStepper!,
                             ),
                           if (expandedPriceField != null) ...[
                             const SizedBox(height: 14),
                             _FieldBlock(
-                              label: 'Unit price',
+                              label: context.flipperL10n.mposUnitPrice,
                               hint: priceHint,
                               child: expandedPriceField!,
                             ),
@@ -163,7 +164,7 @@ class PosCartExpandedLine extends StatelessWidget {
                         if (expandedQuantityStepper != null)
                           Expanded(
                             child: _FieldBlock(
-                              label: 'Quantity',
+                              label: context.flipperL10n.quantity,
                               hint: stockHint,
                               child: expandedQuantityStepper!,
                             ),
@@ -174,7 +175,7 @@ class PosCartExpandedLine extends StatelessWidget {
                         if (expandedPriceField != null)
                           Expanded(
                             child: _FieldBlock(
-                              label: 'Unit price',
+                              label: context.flipperL10n.mposUnitPrice,
                               hint: priceHint,
                               child: expandedPriceField!,
                             ),
@@ -194,8 +195,8 @@ class PosCartExpandedLine extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'Line subtotal',
+                        Text(
+                          context.flipperL10n.posCartLineSubtotal,
                           style: PosTokens.bodyStrong,
                         ),
                         if (subtotalDetailText != null) ...[
@@ -337,9 +338,12 @@ class _CollapsedHeader extends StatelessWidget {
                 minimumSize: Size.zero,
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
-              child: const Text(
-                'Edit qty/price',
-                style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600),
+              child: Text(
+                context.flipperL10n.posCartEditQtyPrice,
+                style: const TextStyle(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
           ),
@@ -363,9 +367,9 @@ class _HideDetailsButton extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text(
-              'Hide details',
-              style: TextStyle(
+            Text(
+              context.flipperL10n.posCartHideDetails,
+              style: const TextStyle(
                 fontSize: 12.5,
                 fontWeight: FontWeight.w600,
                 color: PosTokens.blue,
@@ -769,7 +773,7 @@ class _TrashButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return IconButton(
-      tooltip: 'Remove line',
+      tooltip: context.flipperL10n.posCartRemoveLine,
       onPressed: onPressed,
       padding: EdgeInsets.zero,
       constraints: const BoxConstraints(minWidth: 32, minHeight: 32),

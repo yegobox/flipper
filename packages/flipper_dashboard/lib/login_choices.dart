@@ -61,7 +61,7 @@ enum _ChoiceIconTone { blue, violet }
 
 String _titleCaseRole(String role) {
   final trimmed = role.trim();
-  if (trimmed.isEmpty) return 'Member';
+  if (trimmed.isEmpty) return FlipperL10n.current.loginChoicesMember;
   if (trimmed.length <= 3) return trimmed.toUpperCase();
   return '${trimmed[0].toUpperCase()}${trimmed.substring(1).toLowerCase()}';
 }
@@ -70,14 +70,18 @@ String _businessRoleLabel(Business business) {
   final role = business.role?.trim();
   if (role != null && role.isNotEmpty) return _titleCaseRole(role);
   final userId = ProxyService.box.getUserId();
-  if (userId != null && business.userId == userId) return 'Owner';
-  return 'Member';
+  if (userId != null && business.userId == userId) {
+    return FlipperL10n.current.loginChoicesOwner;
+  }
+  return FlipperL10n.current.loginChoicesMember;
 }
 
 String _businessChoiceSubtitle(Business business) {
   final count = business.branches?.length ?? 0;
-  final branchWord = count == 1 ? 'branch' : 'branches';
-  return '${_businessRoleLabel(business)} · $count $branchWord';
+  return FlipperL10n.current.loginChoicesBusinessSubtitle(
+    _businessRoleLabel(business),
+    count,
+  );
 }
 
 _ChoiceIconTone _iconToneForIndex(int index) {
@@ -111,7 +115,7 @@ String _displayUserName(List<Business>? businesses) {
   }
   final phone = ProxyService.box.getUserPhone()?.trim();
   if (phone != null && phone.isNotEmpty) return phone;
-  return 'User';
+  return FlipperL10n.current.dashUserFallback;
 }
 
 String _formatContactForChip(String? value) {
@@ -290,7 +294,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
               const CircularProgressIndicator(),
               const SizedBox(height: 16),
               Text(
-                'Validating session...',
+                context.flipperL10n.loginChoicesValidatingSession,
                 style: TextStyle(color: Colors.grey[600]),
               ),
             ],
@@ -333,7 +337,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
                   const CircularProgressIndicator(),
                   const SizedBox(height: 16),
                   Text(
-                    'Loading your businesses...',
+                    context.flipperL10n.loginChoicesLoadingBusinesses,
                     style: TextStyle(color: Colors.grey[600]),
                   ),
                 ],
@@ -358,7 +362,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
                     const CircularProgressIndicator(),
                     const SizedBox(height: 16),
                     Text(
-                      'No businesses found. Signing out...',
+                      context.flipperL10n.loginChoicesNoBusinessesSigningOut,
                       style: TextStyle(color: Colors.grey[600]),
                     ),
                   ],
@@ -395,7 +399,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
                     const CircularProgressIndicator(),
                     const SizedBox(height: 16),
                     Text(
-                      'Loading your businesses...',
+                      context.flipperL10n.loginChoicesLoadingBusinesses,
                       style: TextStyle(color: Colors.grey[600]),
                     ),
                   ],
@@ -424,7 +428,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
                   const CircularProgressIndicator(),
                   const SizedBox(height: 16),
                   Text(
-                    'No businesses found. Signing out...',
+                    context.flipperL10n.loginChoicesNoBusinessesSigningOut,
                     style: TextStyle(color: Colors.grey[600]),
                   ),
                 ],
@@ -533,7 +537,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
           SizedBox(height: layout.titleGap),
         ],
         Text(
-          'Choose a business',
+          context.flipperL10n.loginChoicesChooseBusiness,
           style: TextStyle(
             color: _SelTokens.ink1,
             fontWeight: FontWeight.w700,
@@ -545,8 +549,8 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
         const SizedBox(height: 5),
         Text(
           layout.isDesktop
-              ? 'Select the business you want to manage.'
-              : 'Select the business you want to manage',
+              ? context.flipperL10n.loginChoicesSelectBusinessHint
+              : context.flipperL10n.loginChoicesSelectBusinessHint,
           style: const TextStyle(
             color: _SelTokens.ink2,
             height: 1.35,
@@ -562,7 +566,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
               if (businesses != null)
                 for (var i = 0; i < businesses.length; i++) ...[
                   _BusinessChoiceTile(
-                    name: businesses[i].name ?? 'Business',
+                    name: businesses[i].name ?? context.flipperL10n.business,
                     subtitle: _businessChoiceSubtitle(businesses[i]),
                     iconTone: _iconToneForIndex(i),
                     isLoading: _loadingItemId == businesses[i].id.toString(),
@@ -624,7 +628,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _BranchSelectionTopRow(
-          businessName: selectedBusiness?.name ?? 'Business',
+          businessName: selectedBusiness?.name ?? context.flipperL10n.business,
           onBack: () {
             setState(() {
               _isSelectingBranch = false;
@@ -635,7 +639,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
         ),
         SizedBox(height: layout.titleGap),
         Text(
-          'Choose a branch',
+          context.flipperL10n.loginChoicesChooseBranch,
           style: TextStyle(
             color: _SelTokens.ink1,
             fontWeight: FontWeight.w700,
@@ -646,7 +650,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
         ),
         const SizedBox(height: 5),
         Text(
-          'Select the branch you want to access',
+          context.flipperL10n.loginChoicesSelectBranchHint,
           style: const TextStyle(
             color: _SelTokens.ink2,
             height: 1.35,
@@ -670,7 +674,9 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
                         selectedBranchId == branch.id ||
                         (selectedBranchId == null && index == 0);
                     return _BranchChoiceTile(
-                      name: branch.name ?? 'Branch',
+                      name:
+                          branch.name ??
+                          context.flipperL10n.loginChoicesBranchFallback,
                       subtitle: branch.location ?? '',
                       isDefault: branch.isDefault == true,
                       isSelected: isSelected,
@@ -1101,10 +1107,10 @@ class _SigningOutOverlay extends StatelessWidget {
                 ),
               ],
             ),
-            child: const Column(
+            child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                SizedBox(
+                const SizedBox(
                   width: 28,
                   height: 28,
                   child: CircularProgressIndicator(
@@ -1112,19 +1118,19 @@ class _SigningOutOverlay extends StatelessWidget {
                     color: _SelTokens.blue,
                   ),
                 ),
-                SizedBox(height: 18),
+                const SizedBox(height: 18),
                 Text(
-                  'Signing out…',
-                  style: TextStyle(
+                  context.flipperL10n.loginChoicesSigningOut,
+                  style: const TextStyle(
                     color: _SelTokens.ink1,
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
-                SizedBox(height: 6),
+                const SizedBox(height: 6),
                 Text(
-                  'Please wait a moment',
-                  style: TextStyle(
+                  context.flipperL10n.loginChoicesPleaseWait,
+                  style: const TextStyle(
                     color: _SelTokens.ink3,
                     fontSize: 13,
                     fontWeight: FontWeight.w500,
@@ -1488,7 +1494,9 @@ class _DesktopAccountMenu extends StatelessWidget {
           const Divider(height: 1, color: _SelTokens.line),
           _DesktopAccountMenuRow(
             icon: Icons.logout_rounded,
-            label: isSigningOut ? 'Signing out…' : 'Sign out',
+            label: isSigningOut
+                ? context.flipperL10n.loginChoicesSigningOut
+                : context.flipperL10n.loginChoicesSignOut,
             color: _SelTokens.signOut,
             isLoading: isSigningOut,
             onTap: isSigningOut ? null : _signOut,
@@ -1759,7 +1767,7 @@ class _AddBusinessTileState extends State<_AddBusinessTile> {
                       Icon(Icons.add_rounded, size: 18, color: foreground),
                       const SizedBox(width: 8),
                       Text(
-                        'Add a business',
+                        context.flipperL10n.loginChoicesAddBusiness,
                         style: TextStyle(
                           color: foreground,
                           fontSize: 14.5,
@@ -1833,18 +1841,15 @@ class _DesktopBusinessHelpText extends StatelessWidget {
             height: 1.4,
           ),
           children: [
-            const TextSpan(
-              text:
-                  'Not seeing your business? Ask the owner to invite you, or ',
-            ),
+            TextSpan(text: context.flipperL10n.loginChoicesNotSeeingBusiness),
             WidgetSpan(
               alignment: PlaceholderAlignment.baseline,
               baseline: TextBaseline.alphabetic,
               child: GestureDetector(
                 onTap: onAddBusiness,
-                child: const Text(
-                  'add a business.',
-                  style: TextStyle(
+                child: Text(
+                  context.flipperL10n.loginChoicesAddBusinessLink,
+                  style: const TextStyle(
                     color: _SelTokens.blue,
                     fontWeight: FontWeight.w600,
                     decoration: TextDecoration.underline,
@@ -1981,17 +1986,17 @@ class _BranchListPlaceholder extends StatelessWidget {
             size: 40,
           ),
           const SizedBox(height: 14),
-          const Text(
-            'No branches loaded yet',
-            style: TextStyle(
+          Text(
+            context.flipperL10n.loginChoicesNoBranches,
+            style: const TextStyle(
               color: _SelTokens.ink1,
               fontSize: 16,
               fontWeight: FontWeight.w700,
             ),
           ),
           const SizedBox(height: 6),
-          const Text(
-            'This can happen if sync is still catching up.\nTry again in a moment.',
+          Text(
+            context.flipperL10n.loginChoicesNoBranchesHint,
             textAlign: TextAlign.center,
             style: TextStyle(
               color: _SelTokens.ink3,
@@ -2004,7 +2009,7 @@ class _BranchListPlaceholder extends StatelessWidget {
           OutlinedButton.icon(
             onPressed: onRetry,
             icon: const Icon(Icons.refresh_rounded, size: 18),
-            label: const Text('Retry'),
+            label: Text(context.flipperL10n.retry),
             style: OutlinedButton.styleFrom(
               foregroundColor: _SelTokens.blue,
               side: const BorderSide(color: _SelTokens.lineStrong),
@@ -2072,9 +2077,9 @@ class _BranchChoiceTile extends StatelessWidget {
                           color: const Color(0xFFE7E5FF),
                           borderRadius: BorderRadius.circular(999),
                         ),
-                        child: const Text(
-                          'DEFAULT',
-                          style: TextStyle(
+                        child: Text(
+                          context.flipperL10n.loginChoicesDefaultBadge,
+                          style: const TextStyle(
                             color: Color(0xFF4F46E5),
                             fontSize: 12,
                             fontWeight: FontWeight.w900,

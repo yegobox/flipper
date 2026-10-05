@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/features/services_gigs/models/service_gig_provider.dart';
 import 'package:flipper_dashboard/features/services_gigs/services/service_gig_request_repository.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
@@ -9,7 +10,8 @@ import 'package:google_fonts/google_fonts.dart';
 class RequestServiceSheet extends StatefulWidget {
   final ServiceGigProvider provider;
 
-  const RequestServiceSheet({Key? key, required this.provider}) : super(key: key);
+  const RequestServiceSheet({Key? key, required this.provider})
+    : super(key: key);
 
   @override
   State<RequestServiceSheet> createState() => _RequestServiceSheetState();
@@ -29,7 +31,10 @@ class _RequestServiceSheetState extends State<RequestServiceSheet> {
   @override
   void initState() {
     super.initState();
-    final services = _p.services.map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
+    final services = _p.services
+        .map((s) => s.trim())
+        .where((s) => s.isNotEmpty)
+        .toList();
     if (services.length == 1) {
       _selectedService = services.first;
     }
@@ -45,17 +50,20 @@ class _RequestServiceSheetState extends State<RequestServiceSheet> {
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
-    final services = _p.services.map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
-    if (services.isNotEmpty && (_selectedService == null || _selectedService!.isEmpty)) {
-      showWarningNotification(context, 'Choose which service you need.');
+    final services = _p.services
+        .map((s) => s.trim())
+        .where((s) => s.isNotEmpty)
+        .toList();
+    if (services.isNotEmpty &&
+        (_selectedService == null || _selectedService!.isEmpty)) {
+      showWarningNotification(context, context.flipperL10n.gigsChooseService);
       return;
     }
 
-    final rawAmount =
-        _amountController.text.replaceAll(RegExp(r'[\s,]'), '');
+    final rawAmount = _amountController.text.replaceAll(RegExp(r'[\s,]'), '');
     final amount = int.tryParse(rawAmount);
     if (amount == null || amount < 100) {
-      showWarningNotification(context, 'Enter an amount of at least 100 RWF.');
+      showWarningNotification(context, context.flipperL10n.gigsErrMinAmount);
       return;
     }
 
@@ -76,7 +84,7 @@ class _RequestServiceSheetState extends State<RequestServiceSheet> {
       if (!mounted) return;
       showErrorNotification(
         context,
-        'Something went wrong. Please try again.',
+        context.flipperL10n.gigsSomethingWentWrong,
       );
     } finally {
       if (mounted) setState(() => _submitting = false);
@@ -87,7 +95,10 @@ class _RequestServiceSheetState extends State<RequestServiceSheet> {
   Widget build(BuildContext context) {
     final bottomInset = MediaQuery.paddingOf(context).bottom;
     final keyboard = MediaQuery.viewInsetsOf(context).bottom;
-    final services = _p.services.map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
+    final services = _p.services
+        .map((s) => s.trim())
+        .where((s) => s.isNotEmpty)
+        .toList();
 
     return Padding(
       padding: EdgeInsets.only(
@@ -146,7 +157,7 @@ class _RequestServiceSheetState extends State<RequestServiceSheet> {
               if (services.isNotEmpty) ...[
                 const SizedBox(height: 18),
                 Text(
-                  'Which service do you need?',
+                  context.flipperL10n.gigsWhichService,
                   style: GoogleFonts.outfit(
                     fontWeight: FontWeight.w600,
                     fontSize: 14,
@@ -166,8 +177,9 @@ class _RequestServiceSheetState extends State<RequestServiceSheet> {
                           _selectedService = selected ? null : s;
                         });
                       },
-                      selectedColor:
-                          const Color(0xFF0D9488).withValues(alpha: 0.25),
+                      selectedColor: const Color(
+                        0xFF0D9488,
+                      ).withValues(alpha: 0.25),
                       checkmarkColor: const Color(0xFF0D9488),
                     );
                   }).toList(),
@@ -175,7 +187,7 @@ class _RequestServiceSheetState extends State<RequestServiceSheet> {
               ],
               const SizedBox(height: 18),
               Text(
-                'Amount you will pay (RWF)',
+                context.flipperL10n.gigsAmountYouWillPay,
                 style: GoogleFonts.outfit(
                   fontWeight: FontWeight.w600,
                   fontSize: 14,
@@ -215,14 +227,14 @@ class _RequestServiceSheetState extends State<RequestServiceSheet> {
                   final t = v?.replaceAll(RegExp(r'[\s,]'), '') ?? '';
                   final n = int.tryParse(t);
                   if (n == null || n < 100) {
-                    return 'Minimum 100 RWF';
+                    return context.flipperL10n.gigsMinimum100Rwf;
                   }
                   return null;
                 },
               ),
               const SizedBox(height: 18),
               Text(
-                'Describe what you need',
+                context.flipperL10n.gigsDescribeNeed,
                 style: GoogleFonts.outfit(
                   fontWeight: FontWeight.w600,
                   fontSize: 14,
@@ -235,8 +247,7 @@ class _RequestServiceSheetState extends State<RequestServiceSheet> {
                 minLines: 3,
                 style: GoogleFonts.outfit(fontSize: 15),
                 decoration: InputDecoration(
-                  hintText:
-                      'Example: Fix a leaking kitchen tap this weekend. I am available Saturday morning.',
+                  hintText: context.flipperL10n.gigsDescribeNeedExample,
                   hintStyle: GoogleFonts.outfit(
                     fontSize: 13,
                     color: Colors.grey.shade500,
@@ -261,14 +272,14 @@ class _RequestServiceSheetState extends State<RequestServiceSheet> {
                 validator: (v) {
                   final t = v?.trim() ?? '';
                   if (t.length < 20) {
-                    return 'Please add a bit more detail (at least 20 characters).';
+                    return context.flipperL10n.gigsErrMoreDetail;
                   }
                   return null;
                 },
               ),
               const SizedBox(height: 8),
               Text(
-                'The provider has 30 minutes to accept. After that, you can send a new request.',
+                context.flipperL10n.gigsProviderHas30Min,
                 style: GoogleFonts.outfit(
                   fontSize: 12,
                   height: 1.35,
@@ -292,13 +303,18 @@ class _RequestServiceSheetState extends State<RequestServiceSheet> {
                         ),
                       )
                     : Text(
-                        'Send request',
+                        context.flipperL10n.gigsSendRequest,
                         style: GoogleFonts.outfit(fontWeight: FontWeight.w600),
                       ),
               ),
               TextButton(
-                onPressed: _submitting ? null : () => Navigator.of(context).pop(false),
-                child: Text('Cancel', style: GoogleFonts.outfit()),
+                onPressed: _submitting
+                    ? null
+                    : () => Navigator.of(context).pop(false),
+                child: Text(
+                  context.flipperL10n.cancel,
+                  style: GoogleFonts.outfit(),
+                ),
               ),
             ],
           ),

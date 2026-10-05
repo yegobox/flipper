@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'dart:math' as math;
 
 import 'package:flipper_design_system/flipper_design_system.dart'
@@ -85,7 +86,7 @@ class StartupProgressScreen extends StatelessWidget {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'A revolutionary business software...',
+                            context.flipperL10n.startupTagline,
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 13.5,
@@ -95,7 +96,7 @@ class StartupProgressScreen extends StatelessWidget {
                           ),
                           const SizedBox(height: 34),
                           Semantics(
-                            label: 'Startup progress',
+                            label: context.flipperL10n.startupProgressLabel,
                             value: '$percent%',
                             child: _ProgressBar(value: value, isLight: isLight),
                           ),
@@ -104,8 +105,11 @@ class StartupProgressScreen extends StatelessWidget {
                             // "Ready" only once the counter has caught up —
                             // startup finishing does not make 48% ready.
                             label: percent >= 100
-                                ? 'Ready'
-                                : startupStageLabel(progress),
+                                ? context.flipperL10n.startupReady
+                                : startupStageLabel(
+                                    progress,
+                                    context.flipperL10n,
+                                  ),
                             percent: percent,
                             ink: ink,
                             muted: muted,
@@ -127,13 +131,14 @@ class StartupProgressScreen extends StatelessWidget {
 /// Names the step the startup logic is actually running — not the step the
 /// counter has crept into. Mirrors the milestones in
 /// `StartupViewModel.runStartupLogic`.
-String startupStageLabel(double target) {
-  if (target >= 1.0) return 'Finishing up';
-  if (target >= 0.8) return 'Confirming your plan';
-  if (target >= 0.6) return 'Syncing your data';
-  if (target >= 0.4) return 'Starting services';
-  if (target >= 0.2) return 'Checking your workspace';
-  return 'Connecting';
+String startupStageLabel(double target, [FlipperAppLocalizations? l10n]) {
+  final s = l10n ?? FlipperL10n.current;
+  if (target >= 1.0) return s.startupFinishingUp;
+  if (target >= 0.8) return s.startupConfirmingPlan;
+  if (target >= 0.6) return s.startupSyncingData;
+  if (target >= 0.4) return s.startupStartingServices;
+  if (target >= 0.2) return s.startupCheckingWorkspace;
+  return s.startupConnecting;
 }
 
 /// Turns stepped progress into a value that moves one percent at a time, and

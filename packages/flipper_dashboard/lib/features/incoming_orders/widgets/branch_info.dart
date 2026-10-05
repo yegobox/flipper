@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/features/incoming_orders/om_tokens.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/branch_by_id_provider.dart';
@@ -20,22 +21,24 @@ class BranchInfo extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final unknown = context.flipperL10n.incomingOrdersUnknown;
     if (isIncoming) {
       final fromAsync = request.subBranchId != null
           ? ref.watch(branchByIdProvider(branchId: request.subBranchId))
           : null;
 
-      final fromName = fromAsync?.when(
-            data: (b) => b?.name ?? request.branch?.name ?? 'Unknown',
+      final fromName =
+          fromAsync?.when(
+            data: (b) => b?.name ?? request.branch?.name ?? unknown,
             loading: () => request.branch?.name ?? '…',
-            error: (_, __) => request.branch?.name ?? 'Unknown',
+            error: (_, __) => request.branch?.name ?? unknown,
           ) ??
           request.branch?.name ??
-          'Unknown';
+          unknown;
 
       return _FlowStrip(
         fromName: fromName,
-        toName: activeBranch.name ?? 'Unknown',
+        toName: activeBranch.name ?? unknown,
       );
     }
 
@@ -43,15 +46,16 @@ class BranchInfo extends ConsumerWidget {
     final toAsync = request.mainBranchId != null
         ? ref.watch(branchByIdProvider(branchId: request.mainBranchId))
         : null;
-    final toName = toAsync?.when(
-          data: (b) => b?.name ?? 'Unknown',
+    final toName =
+        toAsync?.when(
+          data: (b) => b?.name ?? unknown,
           loading: () => '…',
-          error: (_, __) => 'Unknown',
+          error: (_, __) => unknown,
         ) ??
-        'Unknown';
+        unknown;
 
     return _FlowStrip(
-      fromName: activeBranch.name ?? request.branch?.name ?? 'Unknown',
+      fromName: activeBranch.name ?? request.branch?.name ?? unknown,
       toName: toName,
     );
   }
@@ -94,13 +98,13 @@ class _FlowStrip extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _FlowLine(
-                  label: 'From: ',
+                  label: '${context.flipperL10n.incomingOrdersFromLabel} ',
                   value: fromName,
                   valueColor: OmTokens.greenStrong,
                 ),
                 const SizedBox(height: 4),
                 _FlowLine(
-                  label: 'To: ',
+                  label: '${context.flipperL10n.incomingOrdersToLabel} ',
                   value: toName,
                   valueColor: OmTokens.accentStrong,
                 ),

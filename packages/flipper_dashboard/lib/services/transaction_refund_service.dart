@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/services/transaction_refund_helpers.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/sync/shift_sync.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -47,7 +48,7 @@ class TransactionRefundException implements Exception {
 /// Shared refund execution for income detail and legacy [Refund] dialog.
 class TransactionRefundService {
   TransactionRefundService({Talker? talker})
-      : _talker = talker ?? TalkerFlutter.init();
+    : _talker = talker ?? TalkerFlutter.init();
 
   final Talker _talker;
 
@@ -58,11 +59,11 @@ class TransactionRefundService {
       builder: (dialogContext) {
         var purchaseCode = '';
         return AlertDialog(
-          title: const Text('Enter Purchase Code'),
+          title: Text(dialogContext.flipperL10n.refundEnterPurchaseCodeTitle),
           content: TextField(
             onChanged: (value) => purchaseCode = value,
             decoration: InputDecoration(
-              hintText: 'Enter purchase code',
+              hintText: dialogContext.flipperL10n.refundEnterPurchaseCodeHint,
               hintStyle: TextStyle(color: Colors.grey[400], fontSize: 16),
               contentPadding: const EdgeInsets.symmetric(
                 vertical: 12,
@@ -84,7 +85,7 @@ class TransactionRefundService {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text('Cancel'),
+              child: Text(dialogContext.flipperL10n.cancel),
             ),
             TextButton(
               onPressed: () {
@@ -95,7 +96,7 @@ class TransactionRefundService {
                 purchaseCodeReceived = true;
                 Navigator.of(dialogContext).pop();
               },
-              child: const Text('Submit'),
+              child: Text(dialogContext.flipperL10n.submit),
             ),
           ],
         );
@@ -119,9 +120,7 @@ class TransactionRefundService {
     final capella = ProxyService.getStrategy(Strategy.capella);
     final items = await capella.transactionItems(transactionId: transactionId);
     if (items.isEmpty) {
-      throw TransactionRefundException(
-        'No line items to refund for this transaction',
-      );
+      throw TransactionRefundException(FlipperL10n.current.refundNoLineItems);
     }
 
     // Resolve stock-tracked lines first, then allocate restore qtys as a set so
@@ -203,18 +202,20 @@ class TransactionRefundService {
 
     final originalTotal = transaction.subTotal ?? 0;
     if (request.refundAmount <= 0) {
-      throw TransactionRefundException('Refund amount must be greater than zero');
+      throw TransactionRefundException(
+        FlipperL10n.current.refundAmountMustBePositive,
+      );
     }
     if (request.refundAmount > originalTotal + 0.001) {
       throw TransactionRefundException(
-        'Refund amount cannot exceed the original payment',
+        FlipperL10n.current.refundAmountExceedsOriginal,
       );
     }
 
     if (vatEnabled) {
       if (isPartialRefund(request.refundAmount, originalTotal)) {
         throw TransactionRefundException(
-          'Partial refunds with EBM/VAT are not supported yet. Use a full refund.',
+          FlipperL10n.current.refundPartialVatUnsupported,
         );
       }
       return _executeVatRefund(
@@ -250,23 +251,25 @@ class TransactionRefundService {
     BuildContext? context,
   }) async {
     final transaction = request.transaction;
-    final needsPurchaseCode = transaction.customerTin != null &&
-        transaction.customerTin!.isNotEmpty;
+    final needsPurchaseCode =
+        transaction.customerTin != null && transaction.customerTin!.isNotEmpty;
 
     if (needsPurchaseCode) {
       final gotCode = requestPurchaseCode != null
           ? await requestPurchaseCode()
-          : (context != null
-              ? await showPurchaseCodeDialog(context)
-              : false);
+          : (context != null ? await showPurchaseCodeDialog(context) : false);
       if (!gotCode) {
-        throw TransactionRefundException('Purchase code is required');
+        throw TransactionRefundException(
+          FlipperL10n.current.refundPurchaseCodeRequired,
+        );
       }
     }
 
     final receiptType = resolveVatRefundReceiptType(transaction);
     if (receiptType == null) {
-      throw TransactionRefundException('Cannot refund this receipt type');
+      throw TransactionRefundException(
+        FlipperL10n.current.refundCannotRefundReceiptType,
+      );
     }
 
     final originalTotal = transaction.subTotal ?? 0;
@@ -281,7 +284,9 @@ class TransactionRefundService {
     }
 
     final filterType = _filterTypeFromReceiptType(receiptType);
-    await TaxController(object: transaction).handleReceipt(filterType: filterType);
+    await TaxController(
+      object: transaction,
+    ).handleReceipt(filterType: filterType);
 
     final updated = await persistRefundMetadata(
       transaction: transaction,
@@ -333,7 +338,9 @@ class TransactionRefundService {
     if (filterType == FilterType.CR ||
         filterType == FilterType.NR ||
         filterType == FilterType.TR) {
-      await TaxController(object: transaction).handleReceipt(filterType: filterType);
+      await TaxController(
+        object: transaction,
+      ).handleReceipt(filterType: filterType);
       await persistRefundMetadata(
         transaction: transaction,
         refundAmount: refundAmount,
@@ -341,7 +348,9 @@ class TransactionRefundService {
         method: transaction.paymentType ?? 'cash',
       );
     } else {
-      await TaxController(object: transaction).handleReceipt(filterType: filterType);
+      await TaxController(
+        object: transaction,
+      ).handleReceipt(filterType: filterType);
     }
   }
 
@@ -349,6 +358,8 @@ class TransactionRefundService {
     required ITransaction transaction,
     required FilterType filterType,
   }) async {
-    await TaxController(object: transaction).handleReceipt(filterType: filterType);
+    await TaxController(
+      object: transaction,
+    ).handleReceipt(filterType: filterType);
   }
 }

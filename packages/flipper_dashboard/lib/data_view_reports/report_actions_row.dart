@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
@@ -36,7 +37,7 @@ class ReportActionsRow extends ConsumerWidget {
   final Future<void> Function() onSaleReportPressed;
   final Future<void> Function() onPluReportPressed;
 
-  Widget _buildReportTypeSwitch(WidgetRef ref) {
+  Widget _buildReportTypeSwitch(BuildContext context, WidgetRef ref) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
       decoration: BoxDecoration(
@@ -59,7 +60,7 @@ class ReportActionsRow extends ConsumerWidget {
                 borderRadius: BorderRadius.circular(6),
               ),
             ),
-            child: const Text('Summarized'),
+            child: Text(context.flipperL10n.reportSummarized),
           ),
           TextButton(
             onPressed: !showDetailed
@@ -74,7 +75,7 @@ class ReportActionsRow extends ConsumerWidget {
                 borderRadius: BorderRadius.circular(6),
               ),
             ),
-            child: const Text('Detailed'),
+            child: Text(context.flipperL10n.reportDetailed),
           ),
         ],
       ),
@@ -85,7 +86,7 @@ class ReportActionsRow extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Row(
       children: [
-        _buildReportTypeSwitch(ref),
+        _buildReportTypeSwitch(context, ref),
         const Spacer(),
         // Tooltip(
         //   message: 'Export as CSV',
@@ -104,7 +105,7 @@ class ReportActionsRow extends ConsumerWidget {
         //   ),
         // ),
         Tooltip(
-          message: 'Z Report',
+          message: context.flipperL10n.reportZReport,
           child: SizedBox(
             width: 40,
             height: 40,
@@ -120,7 +121,7 @@ class ReportActionsRow extends ConsumerWidget {
           ),
         ),
         Tooltip(
-          message: 'X Report',
+          message: context.flipperL10n.reportXReport,
           child: SizedBox(
             width: 40,
             height: 40,
@@ -136,7 +137,7 @@ class ReportActionsRow extends ConsumerWidget {
           ),
         ),
         Tooltip(
-          message: 'Sale Report',
+          message: context.flipperL10n.reportSaleReport,
           child: SizedBox(
             width: 40,
             height: 40,
@@ -152,7 +153,7 @@ class ReportActionsRow extends ConsumerWidget {
           ),
         ),
         Tooltip(
-          message: 'PLU Report',
+          message: context.flipperL10n.reportPluReport,
           child: SizedBox(
             width: 40,
             height: 40,

@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
@@ -50,7 +51,7 @@ class _TaxSettingsModalState extends State<TaxSettingsModal> {
       if (mounted) {
         setState(() {
           _editingStates[configId] = false;
-          _statusMessage = 'Tax settings updated successfully';
+          _statusMessage = context.flipperL10n.taxSettingsUpdated;
           _isError = false;
           _loadTaxConfigurations();
         });
@@ -67,7 +68,7 @@ class _TaxSettingsModalState extends State<TaxSettingsModal> {
     } catch (e) {
       if (mounted) {
         setState(() {
-          _statusMessage = 'Error updating tax settings:}';
+          _statusMessage = context.flipperL10n.taxSettingsUpdateError;
           _isError = true;
         });
       }
@@ -96,7 +97,9 @@ class _TaxSettingsModalState extends State<TaxSettingsModal> {
 
     return Card(
       child: ListTile(
-        title: Text('${config.taxType} Tax'),
+        title: Text(
+          context.flipperL10n.taxSettingsTaxType(config.taxType ?? ''),
+        ),
         subtitle: isEditing
             ? Form(
                 key: _formKeys[config.id],
@@ -116,14 +119,14 @@ class _TaxSettingsModalState extends State<TaxSettingsModal> {
                   ],
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Required';
+                      return context.flipperL10n.taxSettingsRequired;
                     }
                     final tax = double.tryParse(value);
                     if (tax == null) {
-                      return 'Invalid number';
+                      return context.flipperL10n.invalidNumber;
                     }
                     if (tax < 0 || tax > 100) {
-                      return 'Must be 0-100';
+                      return context.flipperL10n.taxSettingsRange;
                     }
                     return null;
                   },
@@ -169,9 +172,12 @@ class _TaxSettingsModalState extends State<TaxSettingsModal> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Tax Settings',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              Text(
+                context.flipperL10n.taxSettings,
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 16),
               if (_statusMessage != null)
@@ -235,11 +241,13 @@ class _TaxSettingsModalState extends State<TaxSettingsModal> {
                   }
 
                   if (snapshot.hasError) {
-                    return Text('Error: ${snapshot.error}');
+                    return Text(
+                      context.flipperL10n.errorMessage('${snapshot.error}'),
+                    );
                   }
 
                   if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return const Text('No tax configurations found');
+                    return Text(context.flipperL10n.taxSettingsNoneFound);
                   }
 
                   return Column(
@@ -254,7 +262,7 @@ class _TaxSettingsModalState extends State<TaxSettingsModal> {
                 children: [
                   TextButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    child: const Text('Close'),
+                    child: Text(context.flipperL10n.close),
                   ),
                 ],
               ),

@@ -3,6 +3,7 @@ import 'package:flipper_dashboard/features/bar_mode/widgets/bar_keypad.dart';
 import 'package:flipper_dashboard/features/hotel_mode/providers/hotel_mode_providers.dart';
 import 'package:flipper_dashboard/features/hotel_mode/theme/hotel_layout_breakpoints.dart';
 import 'package:flipper_dashboard/features/hotel_mode/theme/hotel_tokens.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/sync/utils/bar_mode_utils.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -28,11 +29,12 @@ class HotelManagerPinModal extends ConsumerWidget {
       return null;
     }
 
+    final l10n = context.flipperL10n;
     final keypad = BarKeypad(
       tight: true,
-      title: 'Manager',
-      hint: 'Enter manager 6-digit PIN',
-      errorText: 'Not a manager PIN',
+      title: l10n.hotelManager,
+      hint: l10n.hotelEnterManagerPin,
+      errorText: l10n.hotelNotManagerPin,
       verifyPin: (pin) async => await findManager(pin) != null,
       onSubmit: (pin) async {
         final manager = await findManager(pin);
@@ -44,7 +46,7 @@ class HotelManagerPinModal extends ConsumerWidget {
 
     final cancel = TextButton(
       onPressed: () => ref.read(hotelModeProvider.notifier).hideManagerPin(),
-      child: const Text('Cancel'),
+      child: Text(l10n.cancel),
     );
 
     final heading = Column(
@@ -64,11 +66,11 @@ class HotelManagerPinModal extends ConsumerWidget {
         ),
         const SizedBox(height: 12),
         Text(
-          'Manager approval',
+          l10n.hotelManagerApproval,
           style: GoogleFonts.outfit(fontSize: 19, fontWeight: FontWeight.w800),
         ),
         Text(
-          'Settling a folio needs a manager PIN.',
+          l10n.hotelSettleNeedsManagerPin,
           style: GoogleFonts.outfit(color: HotelTokens.ink3, fontSize: 13),
         ),
       ],

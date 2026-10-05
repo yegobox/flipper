@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_design_system/flipper_design_system.dart';
 import 'dart:async';
 
@@ -86,10 +87,7 @@ class _CheckoutErrorRecoveryScreenState
         }
         return Align(
           alignment: Alignment.topCenter,
-          child: SizedBox(
-            width: maxW,
-            child: child,
-          ),
+          child: SizedBox(width: maxW, child: child),
         );
       },
     );
@@ -264,7 +262,7 @@ class _CheckoutErrorRecoveryScreenState
     onWillPop(
       context: context,
       navigationPurpose: NavigationPurpose.home,
-      message: 'Leave checkout?',
+      message: context.flipperL10n.checkoutRecoveryLeaveQuestion,
     );
   }
 
@@ -290,17 +288,17 @@ class _CheckoutErrorRecoveryScreenState
               ),
               child: switch (_stage) {
                 _RecoveryStage.ready => _constrainForViewport(
-                    _buildReadyState(bottomInset),
-                  ),
+                  _buildReadyState(bottomInset),
+                ),
                 _ => _constrainForViewport(
-                    Column(
-                      children: [
-                        _buildTopBar(),
-                        Expanded(child: _buildErrorBody()),
-                        _buildFooter(bottomInset),
-                      ],
-                    ),
+                  Column(
+                    children: [
+                      _buildTopBar(),
+                      Expanded(child: _buildErrorBody()),
+                      _buildFooter(bottomInset),
+                    ],
                   ),
+                ),
               },
             ),
             if (_stage == _RecoveryStage.loading) _buildLoadingOverlay(),
@@ -325,7 +323,7 @@ class _CheckoutErrorRecoveryScreenState
                   Icon(FluentIcons.cart_24_regular, size: 16, color: _ink3),
                   const SizedBox(width: 8),
                   Text(
-                    'Checkout',
+                    context.flipperL10n.checkoutRecoveryCheckout,
                     style: GoogleFonts.outfit(
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
@@ -333,7 +331,7 @@ class _CheckoutErrorRecoveryScreenState
                     ),
                   ),
                   Text(
-                    ' · Sale',
+                    ' · ${context.flipperL10n.checkoutRecoverySale}',
                     style: GoogleFonts.outfit(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
@@ -366,13 +364,16 @@ class _CheckoutErrorRecoveryScreenState
     final isNoBranch = _kind == CheckoutErrorKind.noBranch;
     final tint = isNoBranch ? MposTokens.warnTint : MposTokens.lossTint;
     final ink = isNoBranch ? MposTokens.warnAmber : MposTokens.lossInk;
-    final eyebrow = isNoBranch ? 'ACTION NEEDED' : 'CHECKOUT UNAVAILABLE';
+    final l10n = context.flipperL10n;
+    final eyebrow = isNoBranch
+        ? l10n.checkoutRecoveryActionNeeded
+        : l10n.checkoutRecoveryUnavailable;
     final headline = isNoBranch
-        ? 'No branch selected yet'
-        : 'Couldn\'t load checkout';
+        ? l10n.checkoutRecoveryNoBranchHeadline
+        : l10n.checkoutRecoveryLoadFailedHeadline;
     final body = isNoBranch
-        ? 'Checkout needs a branch to load products and record the sale. Pick a branch to continue.'
-        : 'Something went wrong while opening checkout. Try again or contact support if this keeps happening.';
+        ? l10n.checkoutRecoveryNoBranchBody
+        : l10n.checkoutRecoveryLoadFailedBody;
     final diagnostic = checkoutErrorDiagnosticCode(widget.error);
 
     return SingleChildScrollView(
@@ -381,11 +382,7 @@ class _CheckoutErrorRecoveryScreenState
         children: [
           AnimatedContainer(
             duration: const Duration(milliseconds: 100),
-            transform: Matrix4.translationValues(
-              _shakeBadge ? 6 : 0,
-              0,
-              0,
-            ),
+            transform: Matrix4.translationValues(_shakeBadge ? 6 : 0, 0, 0),
             child: Container(
               width: 96,
               height: 96,
@@ -427,11 +424,7 @@ class _CheckoutErrorRecoveryScreenState
           Text(
             body,
             textAlign: TextAlign.center,
-            style: GoogleFonts.outfit(
-              fontSize: 15,
-              height: 1.5,
-              color: _ink2,
-            ),
+            style: GoogleFonts.outfit(fontSize: 15, height: 1.5, color: _ink2),
           ),
           const SizedBox(height: 20),
           Container(
@@ -472,7 +465,7 @@ class _CheckoutErrorRecoveryScreenState
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'What happened',
+                        l10n.checkoutRecoveryWhatHappened,
                         style: GoogleFonts.outfit(
                           fontSize: 12.5,
                           fontWeight: FontWeight.w700,
@@ -481,7 +474,7 @@ class _CheckoutErrorRecoveryScreenState
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        '$diagnostic — ${isNoBranch ? "checkout couldn't resolve a location for this device." : widget.error.toString()}',
+                        '$diagnostic — ${isNoBranch ? l10n.checkoutRecoveryNoLocationDiagnostic : widget.error.toString()}',
                         style: FlipperFonts.mono(
                           fontSize: 11.5,
                           color: _ink3,
@@ -509,22 +502,19 @@ class _CheckoutErrorRecoveryScreenState
           if (isNoBranch) ...[
             _PrimaryRecoveryButton(
               icon: FluentIcons.building_shop_24_regular,
-              title: 'Select a branch',
-              subtitle: 'Choose where this sale happens',
+              title: context.flipperL10n.checkoutRecoverySelectBranch,
+              subtitle: context.flipperL10n.checkoutRecoveryChooseWhere,
               onTap: _openBranchSheet,
             ),
             const SizedBox(height: 11),
           ],
-          _SecondaryRetryButton(
-            retrying: _retrying,
-            onTap: _tryAgain,
-          ),
+          _SecondaryRetryButton(retrying: _retrying, onTap: _tryAgain),
           const SizedBox(height: 11),
           GestureDetector(
             onTap: _openSupport,
             child: Text.rich(
               TextSpan(
-                text: 'Still stuck? ',
+                text: '${context.flipperL10n.checkoutRecoveryStillStuck} ',
                 style: GoogleFonts.outfit(
                   fontSize: 12.5,
                   fontWeight: FontWeight.w500,
@@ -532,7 +522,7 @@ class _CheckoutErrorRecoveryScreenState
                 ),
                 children: [
                   TextSpan(
-                    text: 'Get help',
+                    text: context.flipperL10n.checkoutRecoveryGetHelp,
                     style: GoogleFonts.outfit(
                       fontWeight: FontWeight.w700,
                       color: _blue,
@@ -558,14 +548,11 @@ class _CheckoutErrorRecoveryScreenState
             const SizedBox(
               width: 46,
               height: 46,
-              child: CircularProgressIndicator(
-                strokeWidth: 4,
-                color: _blue,
-              ),
+              child: CircularProgressIndicator(strokeWidth: 4, color: _blue),
             ),
             const SizedBox(height: 18),
             Text(
-              'Loading checkout…',
+              context.flipperL10n.checkoutRecoveryLoading,
               style: GoogleFonts.outfit(
                 fontSize: 14.5,
                 fontWeight: FontWeight.w700,
@@ -586,7 +573,8 @@ class _CheckoutErrorRecoveryScreenState
   }
 
   Widget _buildReadyState(double bottomInset) {
-    final name = _confirmedBranch?.name ?? 'Branch';
+    final name =
+        _confirmedBranch?.name ?? context.flipperL10n.checkoutRecoveryBranch;
     return Column(
       children: [
         Expanded(
@@ -612,7 +600,7 @@ class _CheckoutErrorRecoveryScreenState
                   ),
                   const SizedBox(height: 20),
                   Text(
-                    'Checkout ready',
+                    context.flipperL10n.checkoutRecoveryReady,
                     style: GoogleFonts.outfit(
                       fontSize: 24,
                       fontWeight: FontWeight.w700,
@@ -622,7 +610,7 @@ class _CheckoutErrorRecoveryScreenState
                   ),
                   const SizedBox(height: 9),
                   Text(
-                    'You\'re all set to take payments. Items and totals will sync to this branch.',
+                    context.flipperL10n.checkoutRecoveryReadyBody,
                     textAlign: TextAlign.center,
                     style: GoogleFonts.outfit(
                       fontSize: 14.5,
@@ -668,7 +656,7 @@ class _CheckoutErrorRecoveryScreenState
           padding: EdgeInsets.fromLTRB(22, 0, 22, 16 + bottomInset),
           child: _PrimaryRecoveryButton(
             icon: FluentIcons.cart_24_regular,
-            title: 'Open checkout',
+            title: context.flipperL10n.checkoutRecoveryOpenCheckout,
             subtitle: null,
             onTap: _openCheckout,
           ),
@@ -711,7 +699,7 @@ class _CheckoutErrorRecoveryScreenState
                   const SizedBox(width: 11),
                   Expanded(
                     child: Text(
-                      'Still no branch selected — pick one to continue.',
+                      context.flipperL10n.checkoutRecoveryStillNoBranch,
                       style: GoogleFonts.outfit(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
@@ -770,7 +758,7 @@ class _CheckoutErrorRecoveryScreenState
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Select a branch',
+                            context.flipperL10n.checkoutRecoverySelectBranch,
                             style: GoogleFonts.outfit(
                               fontSize: 20,
                               fontWeight: FontWeight.w700,
@@ -780,7 +768,7 @@ class _CheckoutErrorRecoveryScreenState
                           ),
                           const SizedBox(height: 3),
                           Text(
-                            'Where is this sale taking place?',
+                            context.flipperL10n.checkoutRecoveryWhereQuestion,
                             style: GoogleFonts.outfit(
                               fontSize: 13,
                               color: _ink3,
@@ -808,8 +796,9 @@ class _CheckoutErrorRecoveryScreenState
                                       setState(() => _pickedBranch = b),
                                 ),
                               InkWell(
-                                onTap: () =>
-                                    setState(() => _makeDefault = !_makeDefault),
+                                onTap: () => setState(
+                                  () => _makeDefault = !_makeDefault,
+                                ),
                                 child: Padding(
                                   padding: const EdgeInsets.fromLTRB(
                                     4,
@@ -823,7 +812,9 @@ class _CheckoutErrorRecoveryScreenState
                                       const SizedBox(width: 10),
                                       Expanded(
                                         child: Text(
-                                          'Set as default branch for this device',
+                                          context
+                                              .flipperL10n
+                                              .checkoutRecoverySetDefaultBranch,
                                           style: GoogleFonts.outfit(
                                             fontSize: 13,
                                             fontWeight: FontWeight.w600,
@@ -839,17 +830,14 @@ class _CheckoutErrorRecoveryScreenState
                           ),
                   ),
                   Padding(
-                    padding: EdgeInsets.fromLTRB(
-                      18,
-                      8,
-                      18,
-                      16 + bottomInset,
-                    ),
+                    padding: EdgeInsets.fromLTRB(18, 8, 18, 16 + bottomInset),
                     child: SizedBox(
                       width: double.infinity,
                       height: 52,
                       child: FilledButton(
-                        onPressed: _pickedBranch == null ? null : _confirmBranch,
+                        onPressed: _pickedBranch == null
+                            ? null
+                            : _confirmBranch,
                         style: FilledButton.styleFrom(
                           backgroundColor: _blue,
                           disabledBackgroundColor: _line,
@@ -859,8 +847,8 @@ class _CheckoutErrorRecoveryScreenState
                         ),
                         child: Text(
                           _pickedBranch == null
-                              ? 'Choose a branch'
-                              : 'Continue to checkout',
+                              ? context.flipperL10n.checkoutRecoveryChooseBranch
+                              : context.flipperL10n.checkoutRecoveryContinue,
                           style: GoogleFonts.outfit(
                             fontSize: 15,
                             fontWeight: FontWeight.w700,
@@ -959,10 +947,7 @@ class _PrimaryRecoveryButton extends StatelessWidget {
 }
 
 class _SecondaryRetryButton extends StatelessWidget {
-  const _SecondaryRetryButton({
-    required this.retrying,
-    required this.onTap,
-  });
+  const _SecondaryRetryButton({required this.retrying, required this.onTap});
 
   final bool retrying;
   final VoidCallback onTap;
@@ -994,7 +979,9 @@ class _SecondaryRetryButton extends StatelessWidget {
               const Icon(FluentIcons.arrow_sync_24_regular, size: 18),
             const SizedBox(width: 9),
             Text(
-              retrying ? 'Checking…' : 'Try again',
+              retrying
+                  ? context.flipperL10n.checkoutRecoveryChecking
+                  : context.flipperL10n.checkoutRecoveryTryAgain,
               style: GoogleFonts.outfit(
                 fontSize: 15,
                 fontWeight: FontWeight.w700,
@@ -1024,7 +1011,9 @@ class _BranchRow extends StatelessWidget {
     const blue = Color(0xFF2563EB);
     const blueTint = Color(0xFFEAF1FE);
     final loc = branch.location?.trim();
-    final subtitle = loc != null && loc.isNotEmpty ? loc : 'Branch location';
+    final subtitle = loc != null && loc.isNotEmpty
+        ? loc
+        : context.flipperL10n.checkoutRecoveryBranchLocation;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
@@ -1066,7 +1055,8 @@ class _BranchRow extends StatelessWidget {
                         children: [
                           Flexible(
                             child: Text(
-                              branch.name ?? 'Branch',
+                              branch.name ??
+                                  context.flipperL10n.checkoutRecoveryBranch,
                               style: GoogleFonts.outfit(
                                 fontSize: 15.5,
                                 fontWeight: FontWeight.w700,
@@ -1086,7 +1076,7 @@ class _BranchRow extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(999),
                               ),
                               child: Text(
-                                'HQ',
+                                context.flipperL10n.checkoutRecoveryHqBadge,
                                 style: GoogleFonts.outfit(
                                   fontSize: 9.5,
                                   fontWeight: FontWeight.w800,

@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/features/daily_report_recipients/business_report_recipient_repository.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -110,14 +111,16 @@ class _DailyReportRecipientsSettingsState
     } catch (e) {
       if (!mounted) return;
       setState(() => _loading = false);
-      _notifyError('Could not load daily report recipients: $e');
+      _notifyError(
+        context.flipperL10n.dailyReportRecipientsLoadFailed(e.toString()),
+      );
     }
   }
 
   Future<void> _addRecipient() async {
     final email = _emailController.text.trim();
     if (email.isEmpty) {
-      _notifyWarning('Enter an email address.');
+      _notifyWarning(context.flipperL10n.dailyReportRecipientsEnterEmail);
       return;
     }
 
@@ -135,7 +138,7 @@ class _DailyReportRecipientsSettingsState
         _showAddForm = false;
         _saving = false;
       });
-      _notifySuccess('Recipient added.');
+      _notifySuccess(context.flipperL10n.dailyReportRecipientsAdded);
     } on BusinessReportRecipientException catch (e) {
       if (!mounted) return;
       setState(() => _saving = false);
@@ -143,7 +146,9 @@ class _DailyReportRecipientsSettingsState
     } catch (e) {
       if (!mounted) return;
       setState(() => _saving = false);
-      _notifyError('Could not add recipient: $e');
+      _notifyError(
+        context.flipperL10n.dailyReportRecipientsAddFailed(e.toString()),
+      );
     }
   }
 
@@ -156,7 +161,7 @@ class _DailyReportRecipientsSettingsState
         _recipients = _recipients.where((r) => r.id != row.id).toList();
         _saving = false;
       });
-      _notifySuccess('Recipient removed.');
+      _notifySuccess(context.flipperL10n.dailyReportRecipientsRemoved);
     } on BusinessReportRecipientException catch (e) {
       if (!mounted) return;
       setState(() => _saving = false);
@@ -164,7 +169,9 @@ class _DailyReportRecipientsSettingsState
     } catch (e) {
       if (!mounted) return;
       setState(() => _saving = false);
-      _notifyError('Could not remove recipient: $e');
+      _notifyError(
+        context.flipperL10n.dailyReportRecipientsRemoveFailed(e.toString()),
+      );
     }
   }
 
@@ -216,7 +223,7 @@ class _DailyReportRecipientsSettingsState
             ),
           ),
           IconButton(
-            tooltip: 'Remove',
+            tooltip: context.flipperL10n.remove,
             onPressed: _saving ? null : () => _removeRecipient(r),
             visualDensity: VisualDensity.compact,
             icon: Icon(Icons.close, size: 18, color: Colors.grey.shade600),
@@ -234,7 +241,7 @@ class _DailyReportRecipientsSettingsState
       autofocus: true,
       keyboardType: TextInputType.emailAddress,
       decoration: _fieldDecoration(
-        hintText: 'e.g. accountant@example.com',
+        hintText: context.flipperL10n.dailyReportRecipientsEmailHint,
         prefixIcon: Icons.alternate_email_rounded,
       ),
       style: GoogleFonts.outfit(fontSize: 14, color: _kTitleText),
@@ -243,7 +250,7 @@ class _DailyReportRecipientsSettingsState
       controller: _labelController,
       enabled: !_saving,
       decoration: _fieldDecoration(
-        hintText: 'Label (optional)',
+        hintText: context.flipperL10n.dailyReportRecipientsLabelHint,
         prefixIcon: Icons.label_outline_rounded,
       ),
       style: GoogleFonts.outfit(fontSize: 14, color: _kTitleText),
@@ -267,7 +274,7 @@ class _DailyReportRecipientsSettingsState
               ),
             )
           : Text(
-              'Save recipient',
+              context.flipperL10n.dailyReportRecipientsSave,
               style: GoogleFonts.outfit(
                 fontWeight: FontWeight.w600,
                 fontSize: 14,
@@ -284,7 +291,7 @@ class _DailyReportRecipientsSettingsState
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
       child: Text(
-        'Cancel',
+        context.flipperL10n.cancel,
         style: GoogleFonts.outfit(fontWeight: FontWeight.w500, fontSize: 14),
       ),
     );
@@ -305,7 +312,7 @@ class _DailyReportRecipientsSettingsState
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'Add recipient',
+              context.flipperL10n.dailyReportRecipientsAddTitle,
               style: GoogleFonts.outfit(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
@@ -330,20 +337,10 @@ class _DailyReportRecipientsSettingsState
             if (narrow)
               Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  saveBtn,
-                  const SizedBox(height: 8),
-                  cancelBtn,
-                ],
+                children: [saveBtn, const SizedBox(height: 8), cancelBtn],
               )
             else
-              Row(
-                children: [
-                  saveBtn,
-                  const SizedBox(width: 8),
-                  cancelBtn,
-                ],
-              ),
+              Row(children: [saveBtn, const SizedBox(width: 8), cancelBtn]),
           ],
         ),
       ),
@@ -365,7 +362,7 @@ class _DailyReportRecipientsSettingsState
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Daily report recipients',
+                    context.flipperL10n.dailyReportRecipientsTitle,
                     style: GoogleFonts.outfit(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
@@ -374,8 +371,7 @@ class _DailyReportRecipientsSettingsState
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'The owner email above receives the daily detailed transactions report. '
-                    'Add more addresses to receive the same report.',
+                    context.flipperL10n.dailyReportRecipientsSubtitle,
                     style: GoogleFonts.outfit(
                       fontSize: 12,
                       color: _kSubtitleText,
@@ -390,7 +386,7 @@ class _DailyReportRecipientsSettingsState
                 onPressed: _saving ? null : _openAddForm,
                 icon: const Icon(Icons.add, size: 18, color: _kBarBlue),
                 label: Text(
-                  'Add',
+                  context.flipperL10n.add,
                   style: GoogleFonts.outfit(
                     fontWeight: FontWeight.w600,
                     fontSize: 13,
@@ -412,7 +408,7 @@ class _DailyReportRecipientsSettingsState
           )
         else if (_recipients.isEmpty && !_showAddForm)
           Text(
-            'No additional recipients yet.',
+            context.flipperL10n.dailyReportRecipientsEmpty,
             style: GoogleFonts.outfit(fontSize: 12, color: _kMutedText),
           )
         else if (_recipients.isNotEmpty)

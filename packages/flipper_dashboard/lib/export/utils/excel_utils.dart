@@ -2,6 +2,7 @@ import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/ebm_helper.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/helperModels/talker.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:syncfusion_flutter_xlsio/xlsio.dart' as excel;
 import '../models/export_config.dart';
@@ -56,15 +57,17 @@ class ExcelUtils {
     final tinString =
         (await effectiveTin(business: business))?.toString() ?? '';
 
+    final l10n = FlipperL10n.current;
+    final grossProfitLabel = l10n.reportGrossProfit;
     final infoData = [
-      ['TIN Number', tinString],
+      [l10n.tinNumber, tinString],
       ['BHF ID', await ProxyService.box.bhfId() ?? '00'],
-      ['Start Date', config.startDate?.toIso8601String() ?? '-'],
-      ['End Date', config.endDate?.toIso8601String() ?? '-'],
-      ['Gross Profit', null], // We'll set this with a formula
+      [l10n.reportStartDate, config.startDate?.toIso8601String() ?? '-'],
+      [l10n.reportEndDate, config.endDate?.toIso8601String() ?? '-'],
+      [grossProfitLabel, null], // We'll set this with a formula
       // Net Profit row will be added below, after Gross Profit
-      ['Tax Rate', taxRate],
-      ['Tax Amount', taxAmount],
+      [l10n.reportTaxRate, taxRate],
+      [l10n.reportTaxAmount, taxAmount],
     ];
 
     Map<String, excel.Range> namedRanges = {};
@@ -75,7 +78,7 @@ class ExcelUtils {
       i++, infoRow++
     ) {
       // Insert Net Profit row just after Gross Profit
-      if (infoData[i][0] == 'Gross Profit') {
+      if (infoData[i][0] == grossProfitLabel) {
         // Write Gross Profit row
         reportSheet.insertRow(infoRow);
         reportSheet
@@ -102,7 +105,9 @@ class ExcelUtils {
         int lastDataRow = reportSheet.getLastRow();
         for (int i = firstDataRow; i <= reportSheet.getLastRow(); i++) {
           final cellValue = reportSheet.getRangeByName('A$i').getText();
-          if (cellValue == 'Total Gross Profit') {
+          // The footer title is localized; match it in either language.
+          if (cellValue == 'Total Gross Profit' ||
+              cellValue == l10n.reportTotalGrossProfit) {
             lastDataRow = i - 1;
             break;
           }
@@ -121,7 +126,9 @@ class ExcelUtils {
         // Insert Net Profit row
         final netProfitRow = infoRow + 1;
         reportSheet.insertRow(netProfitRow);
-        reportSheet.getRangeByName('A$netProfitRow').setText('Net Profit');
+        reportSheet
+            .getRangeByName('A$netProfitRow')
+            .setText(l10n.reportNetProfit);
         final netProfitCell = reportSheet.getRangeByName('B$netProfitRow');
         // Set the formula: =GrossProfit - TotalExpenses (named range)
         netProfitCell.setFormula('=GrossProfit - TotalExpenses');
@@ -209,7 +216,9 @@ class ExcelUtils {
     // --- ADD Net Profit row below Total Gross Profit ---
     final netProfitRow = closingBalanceRow + 1;
     sheet.insertRow(netProfitRow);
-    sheet.getRangeByName('A$netProfitRow').setText('Net Profit');
+    sheet
+        .getRangeByName('A$netProfitRow')
+        .setText(FlipperL10n.current.reportNetProfit);
     sheet.getRangeByName('A$netProfitRow').cellStyle = balanceStyle;
 
     final netProfitCell = sheet.getRangeByName('$amountColLetter$netProfitRow');
@@ -294,10 +303,19 @@ class ExcelUtils {
     );
 
     // Set headers
-    sheet.getRangeByIndex(_headerRow, _colPaymentType).setText('Payment Type');
-    sheet.getRangeByIndex(_headerRow, _colAmount).setText('Sale amount');
-    sheet.getRangeByIndex(_headerRow, _colCount).setText('Transaction Count');
-    sheet.getRangeByIndex(_headerRow, _colPercentage).setText('% of Total');
+    final l10n = FlipperL10n.current;
+    sheet
+        .getRangeByIndex(_headerRow, _colPaymentType)
+        .setText(l10n.reportPaymentType);
+    sheet
+        .getRangeByIndex(_headerRow, _colAmount)
+        .setText(l10n.reportSaleAmount);
+    sheet
+        .getRangeByIndex(_headerRow, _colCount)
+        .setText(l10n.reportTransactionCount);
+    sheet
+        .getRangeByIndex(_headerRow, _colPercentage)
+        .setText(l10n.reportPercentOfTotal);
 
     // Apply header style
     final headerRange = sheet.getRangeByIndex(
@@ -461,7 +479,9 @@ class ExcelUtils {
     ExportConfig config,
   ) {
     // Total label
-    sheet.getRangeByIndex(lastDataRow, _colPaymentType).setText('Total');
+    sheet
+        .getRangeByIndex(lastDataRow, _colPaymentType)
+        .setText(FlipperL10n.current.failedPaymentTotal);
 
     // Sum amounts
     final totalCell = sheet.getRangeByIndex(lastDataRow, _colAmount);
@@ -498,8 +518,10 @@ class ExcelUtils {
       fontSize: 12,
     );
 
-    expenseSheet.getRangeByIndex(1, 1).setText('Expense');
-    expenseSheet.getRangeByIndex(1, 2).setText('Amount');
+    expenseSheet
+        .getRangeByIndex(1, 1)
+        .setText(FlipperL10n.current.reportExpense);
+    expenseSheet.getRangeByIndex(1, 2).setText(FlipperL10n.current.amount);
     expenseSheet.getRangeByIndex(1, 1, 1, 2).cellStyle = expenseHeaderStyle;
 
     for (int i = 0; i < expenses.length; i++) {
@@ -514,7 +536,9 @@ class ExcelUtils {
       expenseSheet.autoFitColumn(i);
     }
 
-    expenseSheet.getRangeByIndex(lastDataRow + 1, 1).setText('Total Expenses');
+    expenseSheet
+        .getRangeByIndex(lastDataRow + 1, 1)
+        .setText(FlipperL10n.current.reportTotalExpenses);
 
     final totalExpensesCell = expenseSheet.getRangeByIndex(lastDataRow + 1, 2);
     totalExpensesCell.setFormula('=SUM(B2:B$lastDataRow)');

@@ -1,5 +1,6 @@
 import 'package:flipper_dashboard/features/agent_commission/agent_commission_provider.dart';
 import 'package:flipper_dashboard/features/agent_commission/models/agent_commission_payout.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/helpers/agent_session_helper.dart';
 import 'package:flipper_models/view_models/flipperBaseModel.dart';
@@ -19,7 +20,7 @@ class AgentCommissionPayoutException implements Exception {
 
 class AgentCommissionPayoutRepository {
   AgentCommissionPayoutRepository({SupabaseClient? client})
-      : _client = client ?? Supabase.instance.client;
+    : _client = client ?? Supabase.instance.client;
 
   final SupabaseClient _client;
 
@@ -64,9 +65,11 @@ class AgentCommissionPayoutRepository {
 
       final rows = await query.order('paid_at', ascending: false).limit(limit);
       return rows
-          .map((r) => AgentCommissionPayout.fromSupabaseRow(
-                Map<String, dynamic>.from(r as Map),
-              ))
+          .map(
+            (r) => AgentCommissionPayout.fromSupabaseRow(
+              Map<String, dynamic>.from(r as Map),
+            ),
+          )
           .toList();
     } on PostgrestException catch (e, st) {
       if (_isMissingTableError(e)) {
@@ -102,17 +105,23 @@ class AgentCommissionPayoutRepository {
     AgentCommissionPeriod? period,
   }) async {
     if (amount <= 0) {
-      throw AgentCommissionPayoutException('Payout amount must be greater than zero.');
+      throw AgentCommissionPayoutException(
+        FlipperL10n.current.agentCommissionAmountMustBePositive,
+      );
     }
 
     final businessUuid = await _resolveBusinessUuid();
     if (businessUuid == null || businessUuid.isEmpty) {
-      throw AgentCommissionPayoutException('No business selected.');
+      throw AgentCommissionPayoutException(
+        FlipperL10n.current.agentCommissionNoBusinessSelected,
+      );
     }
 
     final paidBy = await resolveSessionUserId();
     if (paidBy == null || paidBy.isEmpty) {
-      throw AgentCommissionPayoutException('Sign in to record a payout.');
+      throw AgentCommissionPayoutException(
+        FlipperL10n.current.agentCommissionSignInToRecord,
+      );
     }
 
     final periodStart = period != null ? periodStartFor(period) : null;
@@ -142,12 +151,13 @@ class AgentCommissionPayoutRepository {
     } on PostgrestException catch (e) {
       if (_isMissingTableError(e)) {
         throw AgentCommissionPayoutException(
-          'Payout storage is not set up yet. Ask your admin to run the latest '
-          'Supabase migration (agent_commission_payouts).',
+          FlipperL10n.current.agentCommissionStorageNotSetUp,
         );
       }
       throw AgentCommissionPayoutException(
-        e.message.isNotEmpty ? e.message : 'Could not record payout.',
+        e.message.isNotEmpty
+            ? e.message
+            : FlipperL10n.current.agentCommissionCouldNotRecord,
       );
     }
   }
@@ -155,5 +165,5 @@ class AgentCommissionPayoutRepository {
 
 final agentCommissionPayoutRepositoryProvider =
     Provider<AgentCommissionPayoutRepository>(
-  (ref) => AgentCommissionPayoutRepository(),
-);
+      (ref) => AgentCommissionPayoutRepository(),
+    );

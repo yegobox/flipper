@@ -199,7 +199,7 @@ class _NewSaleFab extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              'New sale',
+              context.flipperL10n.mposNewSale,
               style: GoogleFonts.outfit(
                 fontSize: 10,
                 fontWeight: FontWeight.w600,

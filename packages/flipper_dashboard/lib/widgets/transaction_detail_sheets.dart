@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_design_system/flipper_design_system.dart';
 import 'package:flipper_dashboard/services/transaction_refund_helpers.dart';
 import 'package:flipper_dashboard/services/transaction_receipt_actions_service.dart';
@@ -36,6 +37,24 @@ const _refundReasons = [
   'Duplicate charge',
   'Other',
 ];
+
+/// [_refundReasons] are stored on the transaction; only the label is localized.
+String _refundReasonLabel(FlipperAppLocalizations l10n, String reason) {
+  switch (reason) {
+    case 'Customer request':
+      return l10n.refundReasonCustomerRequest;
+    case 'Wrong item':
+      return l10n.refundReasonWrongItem;
+    case 'Damaged / faulty':
+      return l10n.refundReasonDamaged;
+    case 'Duplicate charge':
+      return l10n.refundReasonDuplicate;
+    case 'Other':
+      return l10n.refundReasonOther;
+    default:
+      return reason;
+  }
+}
 
 /// Opens the More Actions bottom sheet.
 Future<void> showTransactionActionsSheet({
@@ -110,7 +129,8 @@ class _TransactionActionsSheet extends StatelessWidget {
       BuildContext host,
       ITransaction tx, {
       List<TransactionItem>? items,
-    }) action,
+    })
+    action,
   ) async {
     Navigator.of(sheetContext).pop();
     await action(hostContext, transaction, items: items);
@@ -120,17 +140,19 @@ class _TransactionActionsSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     // No EBM PDF stored for this sale — the actions still work, they just
     // produce a locally built customer copy instead of the fiscal receipt.
-    final hasFiscalPdf =
-        (transaction.receiptFileName ?? '').trim().isNotEmpty;
+    final hasFiscalPdf = (transaction.receiptFileName ?? '').trim().isNotEmpty;
     final refunded = isTransactionRefunded(transaction);
     final blockReason = refundBlockReason(transaction);
     final refundAllowed = blockReason == null;
+    final l10n = context.flipperL10n;
     final refundTitle = refunded
-        ? 'Already refunded'
-        : (!refundAllowed ? 'Refund unavailable' : 'Refund payment');
+        ? l10n.refundAlreadyRefunded
+        : (!refundAllowed
+              ? l10n.refundSheetUnavailable
+              : l10n.refundPaymentTitle);
     final refundSubtitle = refunded
-        ? 'This income has been refunded'
-        : (blockReason ?? 'Return money to the customer');
+        ? l10n.refundIncomeRefunded
+        : (blockReason ?? l10n.refundReturnMoney);
     return _SheetScaffold(
       fillHeight: false,
       child: Column(
@@ -138,8 +160,8 @@ class _TransactionActionsSheet extends StatelessWidget {
         children: [
           const Center(child: _SheetHandle()),
           _SheetHeader(
-            title: 'More actions',
-            subtitle: 'Income · $referenceLabel',
+            title: l10n.refundMoreActions,
+            subtitle: l10n.refundIncomeReference(referenceLabel),
             onClose: () => Navigator.of(context).pop(),
           ),
           Padding(
@@ -148,21 +170,19 @@ class _TransactionActionsSheet extends StatelessWidget {
               children: [
                 _ActionRow(
                   iconSvg: TransactionDetailSvgs.share(),
-                  title: 'Share receipt',
+                  title: l10n.refundShareReceipt,
                   subtitle: hasFiscalPdf
-                      ? 'Send via WhatsApp, SMS or email'
-                      : 'Send a sale copy via WhatsApp, SMS or email',
-                  onTap: () => _runReceiptAction(
-                    context,
-                    _receiptActions.shareReceipt,
-                  ),
+                      ? l10n.refundShareReceiptSubtitle
+                      : l10n.refundShareCopySubtitle,
+                  onTap: () =>
+                      _runReceiptAction(context, _receiptActions.shareReceipt),
                 ),
                 _ActionRow(
                   iconSvg: TransactionDetailSvgs.download(),
-                  title: 'Download PDF',
+                  title: l10n.refundDownloadPdf,
                   subtitle: hasFiscalPdf
-                      ? 'Save a copy of this receipt'
-                      : 'Save this sale as a PDF copy',
+                      ? l10n.refundDownloadReceiptSubtitle
+                      : l10n.refundDownloadCopySubtitle,
                   onTap: () => _runReceiptAction(
                     context,
                     _receiptActions.downloadReceipt,
@@ -170,12 +190,10 @@ class _TransactionActionsSheet extends StatelessWidget {
                 ),
                 _ActionRow(
                   iconSvg: TransactionDetailSvgs.print(),
-                  title: 'Print receipt',
-                  subtitle: 'Send to a connected printer',
-                  onTap: () => _runReceiptAction(
-                    context,
-                    _receiptActions.printReceipt,
-                  ),
+                  title: l10n.mposPrintReceipt,
+                  subtitle: l10n.refundPrintSubtitle,
+                  onTap: () =>
+                      _runReceiptAction(context, _receiptActions.printReceipt),
                 ),
                 if (onRefund != null)
                   _ActionRow(
@@ -241,8 +259,7 @@ class _TransactionRefundSheetState
 
   bool get _amountOver => !_fullRefund && _refundAmount > _total + 0.001;
 
-  bool get _canSubmit =>
-      _refundAmount > 0 && !_amountOver && _total > 0;
+  bool get _canSubmit => _refundAmount > 0 && !_amountOver && _total > 0;
 
   @override
   void initState() {
@@ -296,6 +313,7 @@ class _TransactionRefundSheetState
   Widget build(BuildContext context) {
     final currency = ProxyService.box.defaultCurrency();
     final money = NumberFormat('#,###');
+    final l10n = context.flipperL10n;
 
     if (_step == _RefundStep.processing) {
       return _SheetScaffold(
@@ -303,7 +321,7 @@ class _TransactionRefundSheetState
         child: _RefundProcessingOverlay(
           currency: currency,
           refundAmount: _refundAmount,
-          reason: _reason,
+          reason: _refundReasonLabel(l10n, _reason),
           referenceLabel: widget.referenceLabel,
           reduceMotion: MediaQuery.disableAnimationsOf(context),
         ),
@@ -325,8 +343,7 @@ class _TransactionRefundSheetState
                   refundedAmount: _completedAmount ?? _refundAmount,
                   refundReason: _reason,
                   refundMethod: _method,
-                  status:
-                      _completedPartial ? 'partially_refunded' : 'refunded',
+                  status: _completedPartial ? 'partially_refunded' : 'refunded',
                 ),
           ),
         ),
@@ -334,9 +351,7 @@ class _TransactionRefundSheetState
     }
 
     return Padding(
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.viewInsetsOf(context).bottom,
-      ),
+      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
       child: _SheetScaffold(
         fillHeight: true,
         child: Column(
@@ -344,8 +359,8 @@ class _TransactionRefundSheetState
           children: [
             const Center(child: _SheetHandle()),
             _SheetHeader(
-              title: 'Refund payment',
-              subtitle: 'Return money for ${widget.referenceLabel}',
+              title: l10n.refundPaymentTitle,
+              subtitle: l10n.refundReturnMoneyFor(widget.referenceLabel),
               onClose: () => Navigator.of(context).pop(),
               showBack: true,
               onBack: () => Navigator.of(context).pop(),
@@ -353,109 +368,122 @@ class _TransactionRefundSheetState
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.fromLTRB(18, 0, 18, 18),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _sectionLabel('1 · How much?'),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _RefundSegment(
-                          selected: _fullRefund,
-                          title: 'Full refund',
-                          detail: '$currency ${money.format(_total.round())}',
-                          onTap: () => setState(() {
-                            _fullRefund = true;
-                            _amountText = _total.round().toString();
-                            _partialAmountController.text = _amountText;
-                          }),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _sectionLabel('1 · ${l10n.refundHowMuch}'),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _RefundSegment(
+                            selected: _fullRefund,
+                            title: l10n.refundFull,
+                            detail: '$currency ${money.format(_total.round())}',
+                            onTap: () => setState(() {
+                              _fullRefund = true;
+                              _amountText = _total.round().toString();
+                              _partialAmountController.text = _amountText;
+                            }),
+                          ),
                         ),
+                        const SizedBox(width: 9),
+                        Expanded(
+                          child: _RefundSegment(
+                            selected: !_fullRefund,
+                            title: l10n.refundPartial,
+                            detail: l10n.refundChooseAmount,
+                            onTap: () => setState(() => _fullRefund = false),
+                          ),
+                        ),
+                      ],
+                    ),
+                    if (!_fullRefund) ...[
+                      const SizedBox(height: 10),
+                      _PartialAmountField(
+                        currency: currency,
+                        controller: _partialAmountController,
+                        onChanged: (v) => setState(() => _amountText = v),
                       ),
-                      const SizedBox(width: 9),
-                      Expanded(
-                        child: _RefundSegment(
-                          selected: !_fullRefund,
-                          title: 'Partial',
-                          detail: 'Choose amount',
-                          onTap: () => setState(() => _fullRefund = false),
+                      Padding(
+                        padding: const EdgeInsets.only(
+                          top: 7,
+                          left: 2,
+                          right: 2,
+                        ),
+                        child: Text(
+                          _amountOver
+                              ? l10n.refundCannotExceed(
+                                  '$currency ${money.format(_total.round())}',
+                                )
+                              : l10n.refundUpToAvailable(
+                                  '$currency ${money.format(_total.round())}',
+                                ),
+                          style: GoogleFonts.outfit(
+                            fontSize: 12,
+                            fontWeight: _amountOver
+                                ? FontWeight.w600
+                                : FontWeight.w500,
+                            color: _amountOver
+                                ? _SheetColors.loss
+                                : _SheetColors.ink3,
+                          ),
                         ),
                       ),
                     ],
-                  ),
-                  if (!_fullRefund) ...[
-                    const SizedBox(height: 10),
-                    _PartialAmountField(
-                      currency: currency,
-                      controller: _partialAmountController,
-                      onChanged: (v) => setState(() => _amountText = v),
+                    _sectionLabel('2 · ${l10n.refundReasonLabel}'),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: _refundReasons.map((r) {
+                        return _ReasonChip(
+                          label: _refundReasonLabel(l10n, r),
+                          selected: _reason == r,
+                          onTap: () => setState(() => _reason = r),
+                        );
+                      }).toList(),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.only(top: 7, left: 2, right: 2),
-                      child: Text(
-                        _amountOver
-                            ? "Can't exceed the original $currency ${money.format(_total.round())}"
-                            : 'Up to $currency ${money.format(_total.round())} available to refund',
-                        style: GoogleFonts.outfit(
-                          fontSize: 12,
-                          fontWeight: _amountOver ? FontWeight.w600 : FontWeight.w500,
-                          color: _amountOver ? _SheetColors.loss : _SheetColors.ink3,
+                    _sectionLabel('3 · ${l10n.refundTo}'),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _RefundSegment(
+                            selected: _method == 'cash',
+                            title: l10n.cash,
+                            detail: l10n.refundHandBackNow,
+                            onTap: () => setState(() => _method = 'cash'),
+                          ),
                         ),
+                        const SizedBox(width: 9),
+                        Expanded(
+                          child: _RefundSegment(
+                            selected: _method == 'momo',
+                            title: 'MoMo',
+                            detail: l10n.refundSendToPhone,
+                            onTap: () => setState(() => _method = 'momo'),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 18),
+                    _RefundSummary(
+                      currency: currency,
+                      original: _total,
+                      reason: _refundReasonLabel(l10n, _reason),
+                      refundAmount: _refundAmount,
+                    ),
+                    const SizedBox(height: 18),
+                    _RefundConfirmButton(
+                      enabled: _canSubmit,
+                      label: l10n.refundAmountButton(
+                        '$currency ${money.format(_refundAmount.round())}',
                       ),
+                      onPressed: _submit,
                     ),
                   ],
-                  _sectionLabel('2 · Reason'),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: _refundReasons.map((r) {
-                      return _ReasonChip(
-                        label: r,
-                        selected: _reason == r,
-                        onTap: () => setState(() => _reason = r),
-                      );
-                    }).toList(),
-                  ),
-                  _sectionLabel('3 · Refund to'),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _RefundSegment(
-                          selected: _method == 'cash',
-                          title: 'Cash',
-                          detail: 'Hand back now',
-                          onTap: () => setState(() => _method = 'cash'),
-                        ),
-                      ),
-                      const SizedBox(width: 9),
-                      Expanded(
-                        child: _RefundSegment(
-                          selected: _method == 'momo',
-                          title: 'MoMo',
-                          detail: 'Send to phone',
-                          onTap: () => setState(() => _method = 'momo'),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 18),
-                  _RefundSummary(
-                    currency: currency,
-                    original: _total,
-                    reason: _reason,
-                    refundAmount: _refundAmount,
-                  ),
-                  const SizedBox(height: 18),
-                  _RefundConfirmButton(
-                    enabled: _canSubmit,
-                    label:
-                        'Refund $currency ${money.format(_refundAmount.round())}',
-                    onPressed: _submit,
-                  ),
-                ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
         ),
       ),
     );
@@ -463,10 +491,7 @@ class _TransactionRefundSheetState
 }
 
 class _SheetScaffold extends StatelessWidget {
-  const _SheetScaffold({
-    required this.child,
-    this.fillHeight = false,
-  });
+  const _SheetScaffold({required this.child, this.fillHeight = false});
 
   final Widget child;
   final bool fillHeight;
@@ -486,10 +511,7 @@ class _SheetScaffold extends StatelessWidget {
         color: _SheetColors.surface,
         borderRadius: BorderRadius.vertical(top: Radius.circular(26)),
       ),
-      child: SafeArea(
-        top: false,
-        child: body,
-      ),
+      child: SafeArea(top: false, child: body),
     );
   }
 }
@@ -661,7 +683,9 @@ class _ActionRow extends StatelessWidget {
                         style: GoogleFonts.outfit(
                           fontSize: 15,
                           fontWeight: FontWeight.w700,
-                          color: danger ? _SheetColors.lossInk : _SheetColors.ink1,
+                          color: danger
+                              ? _SheetColors.lossInk
+                              : _SheetColors.ink1,
                         ),
                       ),
                       Text(
@@ -886,6 +910,7 @@ class _RefundSummary extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final money = NumberFormat('#,###');
+    final l10n = context.flipperL10n;
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -895,11 +920,14 @@ class _RefundSummary extends StatelessWidget {
       ),
       child: Column(
         children: [
-          _summaryRow('Original payment', '$currency ${money.format(original.round())}'),
-          _summaryRow('Reason', reason, mono: false),
+          _summaryRow(
+            l10n.refundOriginalPayment,
+            '$currency ${money.format(original.round())}',
+          ),
+          _summaryRow(l10n.refundReasonLabel, reason, mono: false),
           const Divider(height: 16),
           _summaryRow(
-            'Refund amount',
+            l10n.refundAmountLabel,
             '$currency ${money.format(refundAmount.round())}',
             big: true,
           ),
@@ -1128,7 +1156,7 @@ class _RefundProcessingOverlayState extends State<_RefundProcessingOverlay>
                 ),
                 const SizedBox(height: 22),
                 Text(
-                  'Processing refund…',
+                  context.flipperL10n.refundProcessing,
                   textAlign: TextAlign.center,
                   style: GoogleFonts.outfit(
                     fontSize: 18,
@@ -1188,10 +1216,12 @@ class _RefundProgressSteps extends StatefulWidget {
 class _RefundProgressStepsState extends State<_RefundProgressSteps> {
   int _activeStep = 0;
 
-  static const _steps = [
-    'Validating refund',
-    'Restoring stock',
-    'Saving records',
+  static const _stepCount = 3;
+
+  List<String> _stepLabels(FlipperAppLocalizations l10n) => [
+    l10n.refundStepValidating,
+    l10n.refundStepRestoringStock,
+    l10n.refundStepSavingRecords,
   ];
 
   @override
@@ -1202,7 +1232,7 @@ class _RefundProgressStepsState extends State<_RefundProgressSteps> {
   }
 
   Future<void> _advance() async {
-    for (var i = 1; i < _steps.length; i++) {
+    for (var i = 1; i < _stepCount; i++) {
       await Future<void>.delayed(const Duration(milliseconds: 450));
       if (!mounted) return;
       setState(() => _activeStep = i);
@@ -1221,15 +1251,15 @@ class _RefundProgressStepsState extends State<_RefundProgressSteps> {
       ),
       child: Column(
         children: [
-          for (var i = 0; i < _steps.length; i++) ...[
+          for (var i = 0; i < _stepCount; i++) ...[
             if (i > 0) const SizedBox(height: 10),
             _RefundProgressStepRow(
-              label: _steps[i],
+              label: _stepLabels(context.flipperL10n)[i],
               state: i < _activeStep
                   ? _RefundStepState.done
                   : i == _activeStep
-                      ? _RefundStepState.active
-                      : _RefundStepState.pending,
+                  ? _RefundStepState.active
+                  : _RefundStepState.pending,
             ),
           ],
         ],
@@ -1241,10 +1271,7 @@ class _RefundProgressStepsState extends State<_RefundProgressSteps> {
 enum _RefundStepState { pending, active, done }
 
 class _RefundProgressStepRow extends StatelessWidget {
-  const _RefundProgressStepRow({
-    required this.label,
-    required this.state,
-  });
+  const _RefundProgressStepRow({required this.label, required this.state});
 
   final String label;
   final _RefundStepState state;
@@ -1272,28 +1299,25 @@ class _RefundProgressStepRow extends StatelessWidget {
                   ),
                 )
               : isActive
-                  ? Padding(
-                      padding: const EdgeInsets.all(2),
-                      child: SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2.5,
-                          backgroundColor: _SheetColors.line,
-                          color: _SheetColors.loss,
-                          strokeCap: StrokeCap.round,
-                        ),
-                      ),
-                    )
-                  : Container(
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: _SheetColors.line,
-                          width: 1.5,
-                        ),
-                      ),
+              ? Padding(
+                  padding: const EdgeInsets.all(2),
+                  child: SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.5,
+                      backgroundColor: _SheetColors.line,
+                      color: _SheetColors.loss,
+                      strokeCap: StrokeCap.round,
                     ),
+                  ),
+                )
+              : Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: _SheetColors.line, width: 1.5),
+                  ),
+                ),
         ),
         const SizedBox(width: 12),
         Expanded(
@@ -1301,12 +1325,14 @@ class _RefundProgressStepRow extends StatelessWidget {
             label,
             style: GoogleFonts.outfit(
               fontSize: 13.5,
-              fontWeight: isActive || isDone ? FontWeight.w600 : FontWeight.w500,
+              fontWeight: isActive || isDone
+                  ? FontWeight.w600
+                  : FontWeight.w500,
               color: isActive
                   ? _SheetColors.ink1
                   : isDone
-                      ? _SheetColors.ink2
-                      : _SheetColors.ink4,
+                  ? _SheetColors.ink2
+                  : _SheetColors.ink4,
             ),
           ),
         ),
@@ -1347,9 +1373,7 @@ class _RefundDoneOverlayState extends State<_RefundDoneOverlay>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: Duration(
-        milliseconds: widget.reduceMotion ? 220 : 520,
-      ),
+      duration: Duration(milliseconds: widget.reduceMotion ? 220 : 520),
     );
     _fade = CurvedAnimation(
       parent: _controller,
@@ -1375,7 +1399,10 @@ class _RefundDoneOverlayState extends State<_RefundDoneOverlay>
   @override
   Widget build(BuildContext context) {
     final money = NumberFormat('#,###');
-    final methodLabel = widget.method == 'momo' ? 'MoMo' : 'cash';
+    final l10n = context.flipperL10n;
+    final methodLabel = widget.method == 'momo'
+        ? 'MoMo'
+        : l10n.refundMethodCashLower;
     final amountLabel =
         '${widget.currency} ${money.format(widget.amount.round())}';
 
@@ -1409,7 +1436,7 @@ class _RefundDoneOverlayState extends State<_RefundDoneOverlay>
                 ),
                 const SizedBox(height: 22),
                 Text(
-                  'Refund completed',
+                  l10n.refundCompleted,
                   textAlign: TextAlign.center,
                   style: GoogleFonts.outfit(
                     fontSize: 24,
@@ -1434,10 +1461,7 @@ class _RefundDoneOverlayState extends State<_RefundDoneOverlay>
                           color: _SheetColors.loss,
                         ),
                       ),
-                      TextSpan(
-                        text:
-                            ' was refunded to the customer via $methodLabel.',
-                      ),
+                      TextSpan(text: ' ${l10n.refundDoneSuffix(methodLabel)}'),
                     ],
                   ),
                   textAlign: TextAlign.center,
@@ -1468,7 +1492,7 @@ class _RefundDoneOverlayState extends State<_RefundDoneOverlay>
                         ),
                         child: Center(
                           child: Text(
-                            'Done',
+                            l10n.done,
                             style: GoogleFonts.outfit(
                               fontSize: 15.5,
                               fontWeight: FontWeight.w700,
@@ -1491,10 +1515,7 @@ class _RefundDoneOverlayState extends State<_RefundDoneOverlay>
 
 /// Minimal press-scale for Done button (matches transaction detail).
 class _PressScaleButton extends StatefulWidget {
-  const _PressScaleButton({
-    required this.onPressed,
-    required this.child,
-  });
+  const _PressScaleButton({required this.onPressed, required this.child});
 
   final VoidCallback onPressed;
   final Widget child;

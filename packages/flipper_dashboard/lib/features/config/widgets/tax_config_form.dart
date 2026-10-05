@@ -1,5 +1,6 @@
 // ignore_for_file: unused_result
 
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_dashboard/features/config/tax_config_logic.dart';
 import 'package:flipper_models/providers/ebm_provider.dart';
@@ -111,7 +112,7 @@ class _TaxConfigFormState extends ConsumerState<TaxConfigForm> {
 
   void _feedbackSuccess() {
     if (!mounted) return;
-    showSuccessNotification(context, 'Tax configuration saved');
+    showSuccessNotification(context, context.flipperL10n.configTaxConfigSaved);
   }
 
   void _feedbackError(String message) {
@@ -124,7 +125,7 @@ class _TaxConfigFormState extends ConsumerState<TaxConfigForm> {
 
   void _feedbackNoChanges() {
     if (!mounted) return;
-    showWarningNotification(context, 'No changes to save');
+    showWarningNotification(context, context.flipperL10n.configNoChangesToSave);
   }
 
   Future<void> _scrollToFirstError() async {
@@ -159,6 +160,7 @@ class _TaxConfigFormState extends ConsumerState<TaxConfigForm> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
@@ -174,14 +176,14 @@ class _TaxConfigFormState extends ConsumerState<TaxConfigForm> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Tax Configuration',
+                      l10n.configTaxConfiguration,
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Save applies to EBM / tax URL, data connector URL, branch code, and MRC.',
+                      l10n.configSaveAppliesTo,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Colors.grey.shade700,
                       ),
@@ -204,9 +206,9 @@ class _TaxConfigFormState extends ConsumerState<TaxConfigForm> {
                               });
                             }
                             return SwitchListTile(
-                              title: const Text('VAT Enabled'),
-                              subtitle: const Text(
-                                'VAT status is controlled by EBM configuration',
+                              title: Text(l10n.configVatEnabled),
+                              subtitle: Text(
+                                l10n.configVatStatusControlledByEbm,
                               ),
                               value: vatEnabled,
                               activeThumbColor: Colors.blue,
@@ -217,8 +219,8 @@ class _TaxConfigFormState extends ConsumerState<TaxConfigForm> {
                             );
                           },
                           loading: () => SwitchListTile(
-                            title: const Text('VAT Enabled'),
-                            subtitle: const Text('Loading...'),
+                            title: Text(l10n.configVatEnabled),
+                            subtitle: Text(l10n.configLoading),
                             value: _vatEnabled,
                             activeThumbColor: Colors.blue,
                             contentPadding: const EdgeInsets.symmetric(
@@ -227,8 +229,8 @@ class _TaxConfigFormState extends ConsumerState<TaxConfigForm> {
                             onChanged: null,
                           ),
                           error: (error, stack) => SwitchListTile(
-                            title: const Text('VAT Enabled'),
-                            subtitle: const Text('Error loading VAT status'),
+                            title: Text(l10n.configVatEnabled),
+                            subtitle: Text(l10n.configErrorLoadingVat),
                             value: _vatEnabled,
                             activeThumbColor: Colors.blue,
                             contentPadding: const EdgeInsets.symmetric(
@@ -244,8 +246,8 @@ class _TaxConfigFormState extends ConsumerState<TaxConfigForm> {
                       key: _serverFieldKey,
                       controller: _serverUrlController,
                       decoration: InputDecoration(
-                        labelText: 'EBM / Tax server URL',
-                        hintText: 'Enter EBM URL',
+                        labelText: l10n.configTaxServerUrl,
+                        hintText: l10n.configEnterEbmUrl,
                         filled: true,
                         fillColor: Colors.grey[200],
                         border: OutlineInputBorder(
@@ -268,10 +270,9 @@ class _TaxConfigFormState extends ConsumerState<TaxConfigForm> {
                       key: _dataConnectorFieldKey,
                       controller: _dataConnectorUrlController,
                       decoration: InputDecoration(
-                        labelText: 'Data connector URL',
+                        labelText: l10n.configDataConnectorUrl,
                         hintText: 'http://127.0.0.1:8084',
-                        helperText:
-                            'Bulk product RRA uses this service; RRA tax URL is configured on data-connector.',
+                        helperText: l10n.configDataConnectorHelper,
                         filled: true,
                         fillColor: Colors.grey[200],
                         border: OutlineInputBorder(
@@ -294,8 +295,8 @@ class _TaxConfigFormState extends ConsumerState<TaxConfigForm> {
                       key: _branchFieldKey,
                       controller: _branchController,
                       decoration: InputDecoration(
-                        labelText: 'Branch code (bhfId)',
-                        hintText: 'Branch Code',
+                        labelText: l10n.configBranchCodeBhfId,
+                        hintText: l10n.configBranchCode,
                         filled: true,
                         fillColor: Colors.grey[200],
                         border: OutlineInputBorder(
@@ -344,7 +345,7 @@ class _TaxConfigFormState extends ConsumerState<TaxConfigForm> {
                       textColor: Colors.white,
                       isLoading: _isSaving,
                       onPressed: _dataLoaded && !_isSaving ? _saveForm : null,
-                      text: 'Save',
+                      text: l10n.save,
                     ),
                   ],
                 ),
@@ -358,17 +359,19 @@ class _TaxConfigFormState extends ConsumerState<TaxConfigForm> {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const CircularProgressIndicator();
                   } else if (snapshot.hasError) {
-                    return Text('Error: ${snapshot.error}');
+                    return Text(
+                      l10n.configErrorWithDetails('${snapshot.error}'),
+                    );
                   } else if (snapshot.hasData) {
                     return Text(
-                      'Version: ${snapshot.data}',
+                      l10n.configVersion(snapshot.data!),
                       style: const TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.normal,
                       ),
                     );
                   } else {
-                    return const Text('Version not available');
+                    return Text(l10n.configVersionNotAvailable);
                   }
                 },
               ),
@@ -381,11 +384,11 @@ class _TaxConfigFormState extends ConsumerState<TaxConfigForm> {
 
   String? _validateUrl(String? value) {
     if (value == null || value.isEmpty) {
-      return 'Please enter a valid URL';
+      return context.flipperL10n.configEnterValidUrl;
     }
     final uri = Uri.tryParse(value.trim());
     if (uri == null || !uri.hasScheme) {
-      return 'Please enter a valid URL with a scheme (e.g., http:// or https://)';
+      return context.flipperL10n.configEnterUrlWithScheme;
     }
     return null;
   }
@@ -396,24 +399,24 @@ class _TaxConfigFormState extends ConsumerState<TaxConfigForm> {
     }
     final uri = Uri.tryParse(value.trim());
     if (uri == null || !uri.hasScheme) {
-      return 'Please enter a valid URL with a scheme (e.g., http:// or https://)';
+      return context.flipperL10n.configEnterUrlWithScheme;
     }
     return null;
   }
 
   String? _validateBhfid(String? value) {
     if (value == null || value.isEmpty) {
-      return 'Branch ID is required';
+      return context.flipperL10n.configBranchIdRequired;
     }
     return null;
   }
 
   String? _validateMrc(String? value) {
     if (value == null || value.isEmpty) {
-      return 'MRC is required';
+      return context.flipperL10n.configMrcRequired;
     }
     if (value.length != 11) {
-      return 'MRC must be exactly 11 characters';
+      return context.flipperL10n.configMrcLength;
     }
     return null;
   }
@@ -456,9 +459,7 @@ class _TaxConfigFormState extends ConsumerState<TaxConfigForm> {
       if (!mounted) return;
 
       if (!ok) {
-        _feedbackError(
-          'Could not save tax configuration. Check your connection and try again.',
-        );
+        _feedbackError(context.flipperL10n.configSaveFailed);
         return;
       }
 

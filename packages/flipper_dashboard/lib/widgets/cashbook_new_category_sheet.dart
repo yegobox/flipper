@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/cashbook_form_rules.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -105,8 +106,7 @@ class _CashbookNewCategorySheetState extends State<CashbookNewCategorySheet> {
       if (!mounted) return;
       setState(() {
         _saving = false;
-        _error =
-            'Couldn\'t save this category. Check your connection and try again.';
+        _error = context.flipperL10n.cashbookCategorySheetSaveFailed;
       });
     }
   }
@@ -165,7 +165,7 @@ class _CashbookNewCategorySheetState extends State<CashbookNewCategorySheet> {
                     if (suggestions.isNotEmpty) ...[
                       const SizedBox(height: 20),
                       Text(
-                        'QUICK PICKS',
+                        context.flipperL10n.cashbookCategorySheetQuickPicks,
                         style: theme.textTheme.labelSmall?.copyWith(
                           letterSpacing: 1.1,
                           fontWeight: FontWeight.w600,
@@ -212,7 +212,7 @@ class _CashbookNewCategorySheetState extends State<CashbookNewCategorySheet> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'New category',
+                context.flipperL10n.cashbookCategorySheetTitle,
                 style: theme.textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.w700,
                   color: _ink,
@@ -222,8 +222,8 @@ class _CashbookNewCategorySheetState extends State<CashbookNewCategorySheet> {
               const SizedBox(height: 2),
               Text(
                 widget.isIncome
-                    ? 'Group money coming in'
-                    : 'Group money going out',
+                    ? context.flipperL10n.cashbookCategorySheetIncomeSubtitle
+                    : context.flipperL10n.cashbookCategorySheetExpenseSubtitle,
                 style: theme.textTheme.bodyMedium?.copyWith(color: _muted),
               ),
             ],
@@ -231,7 +231,7 @@ class _CashbookNewCategorySheetState extends State<CashbookNewCategorySheet> {
         ),
         IconButton(
           onPressed: _saving ? null : () => Navigator.of(context).pop(),
-          tooltip: 'Close',
+          tooltip: context.flipperL10n.close,
           style: IconButton.styleFrom(
             backgroundColor: const Color(0xFFF3F4F6),
             foregroundColor: _ink,
@@ -264,10 +264,12 @@ class _CashbookNewCategorySheetState extends State<CashbookNewCategorySheet> {
         color: _ink,
       ),
       decoration: InputDecoration(
-        labelText: 'Category name',
+        labelText: context.flipperL10n.cashbookCategorySheetNameLabel,
         hintText: suggestions.isNotEmpty
-            ? 'e.g. ${suggestions.first}'
-            : 'Type a name',
+            ? context.flipperL10n.cashbookCategorySheetExampleHint(
+                suggestions.first,
+              )
+            : context.flipperL10n.cashbookCategorySheetTypeName,
         hintStyle: theme.textTheme.titleMedium?.copyWith(
           fontWeight: FontWeight.w400,
           color: const Color(0xFF9CA3AF),
@@ -289,7 +291,7 @@ class _CashbookNewCategorySheetState extends State<CashbookNewCategorySheet> {
         suffixIcon: _controller.text.isEmpty || _saving
             ? null
             : IconButton(
-                tooltip: 'Clear',
+                tooltip: context.flipperL10n.clear,
                 icon: const Icon(Icons.cancel_rounded, size: 20),
                 color: const Color(0xFF9CA3AF),
                 onPressed: _controller.clear,
@@ -318,7 +320,9 @@ class _CashbookNewCategorySheetState extends State<CashbookNewCategorySheet> {
         key: const ValueKey('match'),
         icon: Icons.check_circle_outline_rounded,
         color: const Color(0xFF2563EB),
-        text: '"${match.name}" already exists. We\'ll use it.',
+        text: context.flipperL10n.cashbookCategorySheetAlreadyExists(
+          match.name,
+        ),
       );
     } else {
       child = Align(
@@ -386,7 +390,9 @@ class _CashbookNewCategorySheetState extends State<CashbookNewCategorySheet> {
 
   Widget _buildPrimaryButton() {
     final enabled = _typed.isNotEmpty && !_saving;
-    final label = _match != null ? 'Use existing category' : 'Create category';
+    final label = _match != null
+        ? context.flipperL10n.cashbookCategorySheetUseExisting
+        : context.flipperL10n.cashbookCategorySheetCreate;
     return SizedBox(
       height: 54,
       child: FilledButton(

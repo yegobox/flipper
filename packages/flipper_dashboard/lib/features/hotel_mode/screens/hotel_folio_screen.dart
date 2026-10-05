@@ -5,6 +5,7 @@ import 'package:flipper_dashboard/features/hotel_mode/providers/hotel_mode_provi
 import 'package:flipper_dashboard/features/hotel_mode/theme/hotel_layout_breakpoints.dart';
 import 'package:flipper_dashboard/features/hotel_mode/theme/hotel_tokens.dart';
 import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_folio_widgets.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/models/hotel_stay.dart';
 import 'package:flipper_models/sync/utils/hotel_mode_utils.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -52,6 +53,7 @@ class _HotelFolioBody extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final linesAsync = ref.watch(hotelFolioLinesProvider(stay.transactionId));
     final pad = compact ? 16.0 : 30.0;
+    final l10n = context.flipperL10n;
 
     return Container(
       color: HotelTokens.posBg,
@@ -70,7 +72,7 @@ class _HotelFolioBody extends ConsumerWidget {
                   Row(
                     children: [
                       Text(
-                        'Charges',
+                        l10n.hotelCharges,
                         style: GoogleFonts.outfit(
                           fontSize: 15,
                           fontWeight: FontWeight.w800,
@@ -79,8 +81,7 @@ class _HotelFolioBody extends ConsumerWidget {
                       ),
                       const SizedBox(width: 10),
                       Text(
-                        '${hotelFolioItemCount(lines)} item'
-                        '${hotelFolioItemCount(lines) == 1 ? '' : 's'}',
+                        l10n.hotelItemsCount(hotelFolioItemCount(lines)),
                         style: GoogleFonts.jetBrainsMono(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
@@ -93,7 +94,7 @@ class _HotelFolioBody extends ConsumerWidget {
                   ),
                   const SizedBox(height: 10),
                   if (lines.isEmpty)
-                    _emptyCharges()
+                    _emptyCharges(l10n)
                   else
                     for (final line in lines) ...[
                       HotelFolioLineTile(
@@ -133,6 +134,7 @@ class _HotelFolioBody extends ConsumerWidget {
   }
 
   Widget _bar(BuildContext context, WidgetRef ref) {
+    final l10n = context.flipperL10n;
     return Container(
       height: compact ? 62 : 76,
       padding: EdgeInsets.symmetric(horizontal: compact ? 12 : 24),
@@ -145,7 +147,7 @@ class _HotelFolioBody extends ConsumerWidget {
           IconButton(
             onPressed: () => ref.read(hotelModeProvider.notifier).backToRooms(),
             icon: const Icon(Icons.arrow_back, color: HotelTokens.ink2),
-            tooltip: 'Back to rooms',
+            tooltip: l10n.hotelBackToRooms,
           ),
           const SizedBox(width: 4),
           Column(
@@ -153,7 +155,7 @@ class _HotelFolioBody extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Room ${stay.roomName}',
+                l10n.hotelRoomNamed(stay.roomName),
                 style: GoogleFonts.outfit(
                   fontSize: compact ? 17 : 20,
                   fontWeight: FontWeight.w800,
@@ -162,7 +164,9 @@ class _HotelFolioBody extends ConsumerWidget {
                 ),
               ),
               Text(
-                'Folio · opened by ${stay.openedByName ?? 'front desk'}',
+                l10n.hotelFolioOpenedBy(
+                  stay.openedByName ?? l10n.hotelFrontDesk,
+                ),
                 style: GoogleFonts.outfit(
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
@@ -176,7 +180,7 @@ class _HotelFolioBody extends ConsumerWidget {
     );
   }
 
-  Widget _emptyCharges() {
+  Widget _emptyCharges(FlipperAppLocalizations l10n) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 26, horizontal: 16),
       alignment: Alignment.center,
@@ -189,10 +193,8 @@ class _HotelFolioBody extends ConsumerWidget {
         // The reason belongs on screen, not only in a toast that has already
         // gone by the time anyone wonders why the folio is empty.
         HotelModeSettings.autoPostRoomCharge
-            ? 'No charges yet. Post the room charge to start this folio.'
-            : 'Automatic room charge is off for this branch.\n'
-                  'Use + Room charge above, or turn it back on in '
-                  'Settings → Hotel Mode.',
+            ? l10n.hotelNoChargesYet
+            : l10n.hotelAutoRoomChargeOffHelp,
         textAlign: TextAlign.center,
         style: GoogleFonts.outfit(
           fontSize: 13,
@@ -212,6 +214,7 @@ class _HotelFolioBody extends ConsumerWidget {
     final settling = ref.watch(
       hotelModeProvider.select((state) => state.checkOutInFlight),
     );
+    final l10n = context.flipperL10n;
     return Row(
       children: [
         Expanded(
@@ -230,7 +233,7 @@ class _HotelFolioBody extends ConsumerWidget {
               ),
             ),
             child: Text(
-              'Cancel stay',
+              l10n.hotelCancelStay,
               style: GoogleFonts.outfit(
                 fontSize: 15,
                 fontWeight: FontWeight.w700,
@@ -260,8 +263,8 @@ class _HotelFolioBody extends ConsumerWidget {
                 ),
                 child: Text(
                   settling
-                      ? 'Settling…'
-                      : 'Check out · ${hotelMoney(total.round())}',
+                      ? l10n.hotelSettling
+                      : l10n.hotelCheckOutAmount(hotelMoney(total.round())),
                   style: GoogleFonts.outfit(
                     fontSize: 15.5,
                     fontWeight: FontWeight.w800,
@@ -296,11 +299,10 @@ class _HotelFolioBody extends ConsumerWidget {
             )
           : const Icon(Icons.add, size: 17),
       label: Text(
-        inFlight ? 'Posting…' : 'Room charge',
-        style: GoogleFonts.outfit(
-          fontSize: 13.5,
-          fontWeight: FontWeight.w700,
-        ),
+        inFlight
+            ? context.flipperL10n.hotelPosting
+            : context.flipperL10n.hotelRoomCharge,
+        style: GoogleFonts.outfit(fontSize: 13.5, fontWeight: FontWeight.w700),
       ),
     );
   }
@@ -338,7 +340,7 @@ class _HotelFolioBody extends ConsumerWidget {
         ref.read(hotelModeProvider).activeFolio ??
         await ref.read(hotelFolioForStayProvider(stay.transactionId).future);
     if (folio == null) {
-      notifier.showToast('Folio not found — reopen the room and retry');
+      notifier.showToast(FlipperL10n.current.hotelFolioNotFound);
       return;
     }
 
@@ -361,7 +363,7 @@ class _HotelFolioBody extends ConsumerWidget {
       );
     } catch (e) {
       notifier.endCheckOut();
-      notifier.showToast('Checkout failed: $e');
+      notifier.showToast(FlipperL10n.current.hotelCheckoutFailed('$e'));
     }
   }
 }

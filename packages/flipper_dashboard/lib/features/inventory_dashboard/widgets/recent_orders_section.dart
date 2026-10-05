@@ -1,12 +1,11 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/inventory_models.dart';
 
 class RecentOrdersSection extends StatelessWidget {
-  const RecentOrdersSection({
-    Key? key,
-    required this.reorderHistory,
-  }) : super(key: key);
+  const RecentOrdersSection({Key? key, required this.reorderHistory})
+    : super(key: key);
 
   final List<ReorderHistory> reorderHistory;
 
@@ -19,12 +18,9 @@ class RecentOrdersSection extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Recent Orders',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
+            Text(
+              context.flipperL10n.inventoryDashboardRecentOrders,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
             ListView.separated(
@@ -36,8 +32,9 @@ class RecentOrdersSection extends StatelessWidget {
                 final order = reorderHistory[index];
                 return ListTile(
                   leading: CircleAvatar(
-                    backgroundColor:
-                        _getStatusColor(order.status).withValues(alpha: 0.2),
+                    backgroundColor: _getStatusColor(
+                      order.status,
+                    ).withValues(alpha: 0.2),
                     child: Icon(
                       _getStatusIcon(order.status),
                       color: _getStatusColor(order.status),
@@ -45,7 +42,10 @@ class RecentOrdersSection extends StatelessWidget {
                   ),
                   title: Text(order.itemName),
                   subtitle: Text(
-                    'Order #${order.id} - ${DateFormat('MMM dd, yyyy').format(order.date)}',
+                    context.flipperL10n.inventoryDashboardOrderLine(
+                      order.id,
+                      DateFormat('MMM dd, yyyy').format(order.date),
+                    ),
                   ),
                   trailing: Container(
                     padding: const EdgeInsets.symmetric(
@@ -53,12 +53,13 @@ class RecentOrdersSection extends StatelessWidget {
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color:
-                          _getStatusColor(order.status).withValues(alpha: 0.1),
+                      color: _getStatusColor(
+                        order.status,
+                      ).withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(
-                      _getStatusText(order.status),
+                      _getStatusText(context.flipperL10n, order.status),
                       style: TextStyle(
                         color: _getStatusColor(order.status),
                         fontSize: 12,
@@ -100,16 +101,16 @@ class RecentOrdersSection extends StatelessWidget {
     }
   }
 
-  String _getStatusText(OrderStatus status) {
+  String _getStatusText(FlipperAppLocalizations l10n, OrderStatus status) {
     switch (status) {
       case OrderStatus.delivered:
-        return 'Delivered';
+        return l10n.inventoryDashboardStatusDelivered;
       case OrderStatus.inTransit:
-        return 'In Transit';
+        return l10n.inventoryDashboardStatusInTransit;
       case OrderStatus.processing:
-        return 'Processing';
+        return l10n.inventoryDashboardStatusProcessing;
       case OrderStatus.cancelled:
-        return 'Cancelled';
+        return l10n.inventoryDashboardStatusCancelled;
     }
   }
 }

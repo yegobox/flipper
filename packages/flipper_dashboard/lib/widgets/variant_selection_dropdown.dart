@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/providers/outer_variant_provider.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
@@ -30,9 +31,12 @@ class VariantSelectionDropdown extends HookConsumerWidget {
     final branchId = ProxyService.box.getBranchId();
 
     if (branchId == null) {
-      return const Tooltip(
-        message: "Branch not selected. Please select a branch.",
-        child: Text('No Branch Selected', style: TextStyle(color: Colors.red)),
+      return Tooltip(
+        message: context.flipperL10n.variantDropdownBranchNotSelected,
+        child: Text(
+          context.flipperL10n.noBranchSelected,
+          style: const TextStyle(color: Colors.red),
+        ),
       );
     }
 
@@ -41,13 +45,13 @@ class VariantSelectionDropdown extends HookConsumerWidget {
     return variantAsyncValue.when(
       data: (variants) {
         // Exclude variants where itemTyCd == 3 i.e service, as service can't be assigned to have Qty.
-        final filteredVariants =
-            variants.where((v) => v.itemTyCd != '3').toList();
+        final filteredVariants = variants
+            .where((v) => v.itemTyCd != '3')
+            .toList();
         if (filteredVariants.isEmpty) {
-          return const Tooltip(
-            message:
-                "No variants available to select. Please create variants first.",
-            child: Text("No variants"),
+          return Tooltip(
+            message: context.flipperL10n.variantDropdownNoVariantsHint,
+            child: Text(context.flipperL10n.variantDropdownNoVariants),
           );
         }
 
@@ -55,8 +59,9 @@ class VariantSelectionDropdown extends HookConsumerWidget {
         Variant? currentlySelectedVariant;
         if (initialSelectedVariantId != null &&
             filteredVariants.any((v) => v.id == initialSelectedVariantId)) {
-          currentlySelectedVariant = filteredVariants
-              .firstWhere((v) => v.id == initialSelectedVariantId);
+          currentlySelectedVariant = filteredVariants.firstWhere(
+            (v) => v.id == initialSelectedVariantId,
+          );
         }
 
         return DropdownSearch<Variant>(
@@ -66,7 +71,7 @@ class VariantSelectionDropdown extends HookConsumerWidget {
           compareFn: (Variant a, Variant b) => a.id == b.id,
           decoratorProps: DropDownDecoratorProps(
             decoration: InputDecoration(
-              hintText: 'Select Variant',
+              hintText: context.flipperL10n.variantDropdownSelect,
               hintStyle: TextStyle(color: Colors.grey[400]),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
@@ -85,15 +90,17 @@ class VariantSelectionDropdown extends HookConsumerWidget {
               ),
               filled: true,
               fillColor: Colors.grey[50],
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 12,
+              ),
             ),
           ),
           popupProps: PopupProps.menu(
             showSearchBox: true,
             searchFieldProps: TextFieldProps(
               decoration: InputDecoration(
-                hintText: 'Search variants...',
+                hintText: context.flipperL10n.variantDropdownSearch,
                 hintStyle: TextStyle(color: Colors.grey[400]),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
@@ -112,8 +119,10 @@ class VariantSelectionDropdown extends HookConsumerWidget {
                 ),
                 filled: true,
                 fillColor: Colors.white,
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
               ),
             ),
           ),
@@ -126,8 +135,10 @@ class VariantSelectionDropdown extends HookConsumerWidget {
           const Center(child: CircularProgressIndicator(strokeWidth: 2.0)),
       error: (error, stack) => Tooltip(
         message: error.toString(),
-        child: const Text('Error loading variants',
-            style: TextStyle(color: Colors.red)),
+        child: Text(
+          context.flipperL10n.variantDropdownLoadError,
+          style: const TextStyle(color: Colors.red),
+        ),
       ),
     );
   }

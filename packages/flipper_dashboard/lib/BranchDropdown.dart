@@ -1,5 +1,6 @@
 // ignore_for_file: unused_result
 
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/theme/pos_tokens.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/branch_business_provider.dart';
@@ -42,16 +43,16 @@ class BranchDropdown extends ConsumerWidget {
         if (current == null && branches.isNotEmpty) {
           final activeId = ProxyService.box.getBranchId();
           current = branches.cast<Branch?>().firstWhere(
-                (b) => b?.id == activeId,
-                orElse: () => branches.first,
-              );
+            (b) => b?.id == activeId,
+            orElse: () => branches.first,
+          );
         }
         final label = (current?.name?.trim().isNotEmpty ?? false)
             ? current!.name!.trim()
-            : 'Select branch';
+            : context.flipperL10n.branchSelectBranch;
 
         return PopupMenuButton<Branch>(
-          tooltip: 'Switch branch',
+          tooltip: context.flipperL10n.branchSwitchBranch,
           offset: const Offset(0, 44),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(PosTokens.radiusMd),
@@ -85,7 +86,7 @@ class BranchDropdown extends ConsumerWidget {
                       child: Text(
                         (branch.name?.trim().isNotEmpty ?? false)
                             ? branch.name!.trim()
-                            : 'Unnamed branch',
+                            : context.flipperL10n.branchUnnamed,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.outfit(

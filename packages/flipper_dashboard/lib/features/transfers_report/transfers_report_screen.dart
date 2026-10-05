@@ -2,6 +2,7 @@ import 'package:flipper_dashboard/features/incoming_orders/om_tokens.dart';
 import 'package:flipper_dashboard/features/incoming_orders/widgets/om_segmented.dart';
 import 'package:flipper_dashboard/features/transfers_report/transfers_report_pdf.dart';
 import 'package:flipper_dashboard/features/transfers_report/transfers_report_provider.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/branch_business_provider.dart';
 import 'package:flipper_services/constants.dart';
@@ -71,7 +72,11 @@ class _TransfersReportScreenState extends ConsumerState<TransfersReportScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('PDF export failed: $e')),
+          SnackBar(
+            content: Text(
+              context.flipperL10n.transfersReportPdfExportFailed(e.toString()),
+            ),
+          ),
         );
       }
     } finally {
@@ -95,7 +100,11 @@ class _TransfersReportScreenState extends ConsumerState<TransfersReportScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('PDF export failed: $e')),
+          SnackBar(
+            content: Text(
+              context.flipperL10n.transfersReportPdfExportFailed(e.toString()),
+            ),
+          ),
         );
       }
     } finally {
@@ -144,8 +153,7 @@ class _TransfersReportScreenState extends ConsumerState<TransfersReportScreen> {
                             final list = asyncTransfers.asData?.value;
                             if (list == null || list.isEmpty) return;
                             final destName = _destName(branchesAsync, filters);
-                            final fromNames =
-                                _fromNameMap(list, branchesAsync);
+                            final fromNames = _fromNameMap(list, branchesAsync);
                             _exportSummary(list, destName, fromNames);
                           },
                           canExport: asyncTransfers.maybeWhen(
@@ -158,9 +166,10 @@ class _TransfersReportScreenState extends ConsumerState<TransfersReportScreen> {
                           compact: compact,
                           filters: filters,
                           branchesAsync: branchesAsync,
-                          dateLabel: filters.start != null && filters.end != null
+                          dateLabel:
+                              filters.start != null && filters.end != null
                               ? '${dateFmt.format(filters.start!)} – ${dateFmt.format(filters.end!)}'
-                              : 'All dates',
+                              : context.flipperL10n.transfersReportAllDates,
                           onPickDates: _pickDateRange,
                           onDestinationChanged: (id) {
                             ref
@@ -172,7 +181,9 @@ class _TransfersReportScreenState extends ConsumerState<TransfersReportScreen> {
                           onStatusChanged: (status) {
                             ref
                                 .read(transfersReportFiltersProvider.notifier)
-                                .state = filters.copyWith(status: status);
+                                .state = filters.copyWith(
+                              status: status,
+                            );
                           },
                         ),
                       ],
@@ -184,7 +195,9 @@ class _TransfersReportScreenState extends ConsumerState<TransfersReportScreen> {
                           const Center(child: CircularProgressIndicator()),
                       error: (e, _) => Center(
                         child: Text(
-                          'Failed to load transfers: $e',
+                          context.flipperL10n.transfersReportLoadFailed(
+                            e.toString(),
+                          ),
                           style: OmTokens.text(color: OmTokens.red),
                         ),
                       ),
@@ -200,9 +213,12 @@ class _TransfersReportScreenState extends ConsumerState<TransfersReportScreen> {
                           children: [
                             if (filters.destinationBranchId == null)
                               _EmptyState(
-                                title: 'Select a destination',
-                                body:
-                                    'Choose a To branch to load transfers for that location.',
+                                title: context
+                                    .flipperL10n
+                                    .transfersReportSelectDestination,
+                                body: context
+                                    .flipperL10n
+                                    .transfersReportSelectDestinationBody,
                               )
                             else ...[
                               Text.rich(
@@ -212,34 +228,26 @@ class _TransfersReportScreenState extends ConsumerState<TransfersReportScreen> {
                                     fontWeight: FontWeight.w600,
                                     color: OmTokens.muted,
                                   ),
-                                  children: [
-                                    TextSpan(
-                                      text: '${list.length}',
-                                      style: OmTokens.text(
-                                        fontSize: 13.5,
-                                        fontWeight: FontWeight.w800,
-                                      ),
+                                  children: _countToSpans(
+                                    context.flipperL10n,
+                                    list.length,
+                                    destName,
+                                    OmTokens.text(
+                                      fontSize: 13.5,
+                                      fontWeight: FontWeight.w800,
                                     ),
-                                    TextSpan(
-                                      text:
-                                          ' transfer${list.length == 1 ? '' : 's'} to ',
-                                    ),
-                                    TextSpan(
-                                      text: destName,
-                                      style: OmTokens.text(
-                                        fontSize: 13.5,
-                                        fontWeight: FontWeight.w800,
-                                      ),
-                                    ),
-                                  ],
+                                  ),
                                 ),
                               ),
                               const SizedBox(height: 12),
                               if (list.isEmpty)
-                                const _EmptyState(
-                                  title: 'No transfers',
-                                  body:
-                                      'No transfers match this filter for the selected date range.',
+                                _EmptyState(
+                                  title: context
+                                      .flipperL10n
+                                      .transfersReportNoTransfers,
+                                  body: context
+                                      .flipperL10n
+                                      .transfersReportNoTransfersBody,
                                 )
                               else ...[
                                 for (var i = 0; i < list.length; i++) ...[
@@ -247,13 +255,9 @@ class _TransfersReportScreenState extends ConsumerState<TransfersReportScreen> {
                                   _TransferCard(
                                     transfer: list[i],
                                     destName: destName,
-                                    fromName: _fromName(
-                                      list[i],
-                                      branchesAsync,
-                                    ),
+                                    fromName: _fromName(list[i], branchesAsync),
                                     dateTimeFmt: dateTimeFmt,
-                                    expanded:
-                                        _expandedIds.contains(list[i].id),
+                                    expanded: _expandedIds.contains(list[i].id),
                                     exporting: _exportingId == list[i].id,
                                     onToggle: () {
                                       setState(() {
@@ -287,12 +291,42 @@ class _TransfersReportScreenState extends ConsumerState<TransfersReportScreen> {
     );
   }
 
+  /// "N transfers to Branch" with the count and branch name in [bold],
+  /// whatever word order the active locale uses.
+  List<InlineSpan> _countToSpans(
+    FlipperAppLocalizations l10n,
+    int count,
+    String destName,
+    TextStyle bold,
+  ) {
+    const marker = '\u0000';
+    final countText = '$count';
+    final spans = <InlineSpan>[];
+    final parts = l10n.transfersReportCountTo(count, marker).split(marker);
+    for (var i = 0; i < parts.length; i++) {
+      final part = parts[i];
+      final at = part.indexOf(countText);
+      if (at >= 0) {
+        if (at > 0) spans.add(TextSpan(text: part.substring(0, at)));
+        spans.add(TextSpan(text: countText, style: bold));
+        final rest = part.substring(at + countText.length);
+        if (rest.isNotEmpty) spans.add(TextSpan(text: rest));
+      } else if (part.isNotEmpty) {
+        spans.add(TextSpan(text: part));
+      }
+      if (i < parts.length - 1) {
+        spans.add(TextSpan(text: destName, style: bold));
+      }
+    }
+    return spans;
+  }
+
   String _destName(
     AsyncValue<List<Branch>> branchesAsync,
     TransfersReportFilters filters,
   ) {
     final id = filters.destinationBranchId;
-    if (id == null) return 'branch';
+    if (id == null) return context.flipperL10n.branch;
     final branches = branchesAsync.asData?.value ?? const <Branch>[];
     for (final b in branches) {
       if (b.id == id) return b.name ?? id;
@@ -300,10 +334,7 @@ class _TransfersReportScreenState extends ConsumerState<TransfersReportScreen> {
     return id;
   }
 
-  String _fromName(
-    InventoryRequest t,
-    AsyncValue<List<Branch>> branchesAsync,
-  ) {
+  String _fromName(InventoryRequest t, AsyncValue<List<Branch>> branchesAsync) {
     final fromId = t.mainBranchId ?? '';
     final map = _fromNameMap([t], branchesAsync);
     return map[fromId] ?? t.branch?.name ?? fromId;
@@ -341,7 +372,7 @@ class _Header extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final title = Text(
-      'Transfers report',
+      context.flipperL10n.transfersReportTitle,
       style: OmTokens.text(
         fontSize: compact ? 22 : 28,
         fontWeight: FontWeight.w800,
@@ -349,11 +380,8 @@ class _Header extends StatelessWidget {
       ),
     );
     final subtitle = Text(
-      'Stock transfers received by a destination branch',
-      style: OmTokens.text(
-        fontSize: 14.5,
-        color: OmTokens.muted,
-      ),
+      context.flipperL10n.transfersReportSubtitle,
+      style: OmTokens.text(fontSize: 14.5, color: OmTokens.muted),
     );
     final exportBtn = _PrimaryBtn(
       onPressed: canExport && !exporting ? onExport : null,
@@ -367,7 +395,7 @@ class _Header extends StatelessWidget {
               ),
             )
           : const Icon(Icons.picture_as_pdf_outlined, size: 18),
-      label: 'Export PDF',
+      label: context.flipperL10n.transfersReportExportPdf,
     );
 
     if (compact) {
@@ -389,11 +417,7 @@ class _Header extends StatelessWidget {
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              title,
-              const SizedBox(height: 6),
-              subtitle,
-            ],
+            children: [title, const SizedBox(height: 6), subtitle],
           ),
         ),
         const SizedBox(width: 24),
@@ -430,7 +454,7 @@ class _Toolbar extends StatelessWidget {
         child: Center(child: LinearProgressIndicator()),
       ),
       error: (_, __) => Text(
-        'Failed to load branches',
+        context.flipperL10n.transfersReportBranchesLoadFailed,
         style: OmTokens.text(color: OmTokens.red),
       ),
       data: (branches) {
@@ -441,7 +465,7 @@ class _Toolbar extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'To branch',
+              context.flipperL10n.transfersReportToBranch,
               style: OmTokens.text(
                 fontSize: 12,
                 fontWeight: FontWeight.w700,
@@ -469,10 +493,7 @@ class _Toolbar extends StatelessWidget {
                   borderSide: const BorderSide(color: OmTokens.line2),
                 ),
               ),
-              style: OmTokens.text(
-                fontSize: 14.5,
-                fontWeight: FontWeight.w600,
-              ),
+              style: OmTokens.text(fontSize: 14.5, fontWeight: FontWeight.w600),
               items: branches
                   .map(
                     (b) => DropdownMenuItem(
@@ -530,20 +551,20 @@ class _Toolbar extends StatelessWidget {
     final statusSeg = OmSegmented<String>(
       value: filters.status,
       onChanged: onStatusChanged,
-      options: const [
+      options: [
         OmSegOption(
           value: 'all',
-          label: 'All',
+          label: context.flipperL10n.transfersReportFilterAll,
           icon: Icons.list_alt,
         ),
         OmSegOption(
           value: RequestStatus.approved,
-          label: 'Approved',
+          label: context.flipperL10n.approved,
           icon: Icons.check_circle_outline,
         ),
         OmSegOption(
           value: RequestStatus.pending,
-          label: 'Pending',
+          label: context.flipperL10n.transfersReportStatusPending,
           icon: Icons.schedule,
         ),
       ],
@@ -616,7 +637,8 @@ class _TransferCard extends StatelessWidget {
     final totalQty = items.isEmpty
         ? (transfer.itemCounts?.toInt() ?? 0)
         : items.fold<int>(0, (sum, line) {
-            final q = line.quantityApproved ??
+            final q =
+                line.quantityApproved ??
                 line.quantityRequested ??
                 line.qty.round();
             return sum + q;
@@ -664,15 +686,16 @@ class _TransferCard extends StatelessWidget {
                         children: [
                           Text(
                             short,
-                            style: OmTokens.text(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: 0.01 * 15,
-                            ).copyWith(
-                              fontFeatures: const [
-                                FontFeature.tabularFigures(),
-                              ],
-                            ),
+                            style:
+                                OmTokens.text(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 0.01 * 15,
+                                ).copyWith(
+                                  fontFeatures: const [
+                                    FontFeature.tabularFigures(),
+                                  ],
+                                ),
                           ),
                           const SizedBox(height: 3),
                           Row(
@@ -710,14 +733,15 @@ class _TransferCard extends StatelessWidget {
                           const SizedBox(height: 3),
                           Text(
                             when,
-                            style: OmTokens.text(
-                              fontSize: 12.5,
-                              color: OmTokens.muted,
-                            ).copyWith(
-                              fontFeatures: const [
-                                FontFeature.tabularFigures(),
-                              ],
-                            ),
+                            style:
+                                OmTokens.text(
+                                  fontSize: 12.5,
+                                  color: OmTokens.muted,
+                                ).copyWith(
+                                  fontFeatures: const [
+                                    FontFeature.tabularFigures(),
+                                  ],
+                                ),
                           ),
                         ],
                       ),
@@ -730,8 +754,9 @@ class _TransferCard extends StatelessWidget {
                       children: [
                         _StatusBadge(status: status),
                         _QtyPill(
-                          label:
-                              '$totalQty item${totalQty == 1 ? '' : 's'}',
+                          label: context.flipperL10n.transfersReportItemCount(
+                            totalQty,
+                          ),
                         ),
                         _IconSquareBtn(
                           icon: Icons.picture_as_pdf_outlined,
@@ -759,7 +784,7 @@ class _TransferCard extends StatelessWidget {
                   _FlowStrip(fromName: fromName, toName: destName),
                   const SizedBox(height: 18),
                   Text(
-                    'ITEMS',
+                    context.flipperL10n.items.toUpperCase(),
                     style: OmTokens.text(
                       fontSize: 12,
                       fontWeight: FontWeight.w800,
@@ -770,7 +795,7 @@ class _TransferCard extends StatelessWidget {
                   const SizedBox(height: 10),
                   if (items.isEmpty)
                     Text(
-                      'No line items embedded',
+                      context.flipperL10n.transfersReportNoLineItems,
                       style: OmTokens.text(color: OmTokens.muted),
                     )
                   else
@@ -784,7 +809,8 @@ class _TransferCard extends StatelessWidget {
                     ),
                   const SizedBox(height: 18),
                   Text(
-                    'STATUS & DELIVERY',
+                    context.flipperL10n.transfersReportStatusAndDelivery
+                        .toUpperCase(),
                     style: OmTokens.text(
                       fontSize: 12,
                       fontWeight: FontWeight.w800,
@@ -804,8 +830,11 @@ class _TransferCard extends StatelessWidget {
                           iconColor: approved
                               ? OmTokens.greenStrong
                               : OmTokens.amber,
-                          label: 'Status',
-                          value: status.toUpperCase(),
+                          label: context.flipperL10n.transfersReportStatus,
+                          value: transfersReportStatusLabel(
+                            context.flipperL10n,
+                            status,
+                          ).toUpperCase(),
                           valueColor: approved
                               ? OmTokens.greenStrong
                               : OmTokens.amber,
@@ -814,7 +843,7 @@ class _TransferCard extends StatelessWidget {
                           icon: Icons.calendar_today_outlined,
                           iconBg: OmTokens.dateWash,
                           iconColor: OmTokens.dateIcon,
-                          label: 'Received on',
+                          label: context.flipperL10n.transfersReportReceivedOn,
                           value: when,
                           valueColor: OmTokens.ink,
                         ),
@@ -842,17 +871,16 @@ class _TransferCard extends StatelessWidget {
                   const SizedBox(height: 16),
                   LayoutBuilder(
                     builder: (context, c) {
-                      final stretch =
-                          c.maxWidth < OmTokens.compactBreakpoint;
+                      final stretch = c.maxWidth < OmTokens.compactBreakpoint;
                       final buttons = [
                         _GhostBtn(
                           icon: Icons.picture_as_pdf_outlined,
-                          label: 'View PDF',
+                          label: context.flipperL10n.transfersReportViewPdf,
                           onPressed: exporting ? null : onExport,
                         ),
                         _GhostBtn(
                           icon: Icons.download_outlined,
-                          label: 'Download',
+                          label: context.flipperL10n.transfersReportDownload,
                           onPressed: exporting ? null : onExport,
                         ),
                       ];
@@ -924,7 +952,10 @@ class _FlowStrip extends StatelessWidget {
                   TextSpan(
                     style: OmTokens.text(fontSize: 14, color: OmTokens.ink2),
                     children: [
-                      const TextSpan(text: 'From: '),
+                      TextSpan(
+                        text:
+                            '${context.flipperL10n.transfersReportFromLabel} ',
+                      ),
                       TextSpan(
                         text: fromName,
                         style: OmTokens.text(
@@ -941,7 +972,9 @@ class _FlowStrip extends StatelessWidget {
                   TextSpan(
                     style: OmTokens.text(fontSize: 14, color: OmTokens.ink2),
                     children: [
-                      const TextSpan(text: 'To: '),
+                      TextSpan(
+                        text: '${context.flipperL10n.transfersReportToLabel} ',
+                      ),
                       TextSpan(
                         text: toName,
                         style: OmTokens.text(
@@ -983,14 +1016,11 @@ class _ItemRow extends StatelessWidget {
           Expanded(
             child: Text(
               item.name,
-              style: OmTokens.text(
-                fontSize: 14.5,
-                fontWeight: FontWeight.w700,
-              ),
+              style: OmTokens.text(fontSize: 14.5, fontWeight: FontWeight.w700),
             ),
           ),
           Text(
-            'Qty: $qty',
+            context.flipperL10n.transfersReportQty('$qty'),
             style: OmTokens.text(
               fontSize: 13.5,
               fontWeight: FontWeight.w800,
@@ -1056,13 +1086,14 @@ class _MetaTile extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   value,
-                  style: OmTokens.text(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w800,
-                    color: valueColor,
-                  ).copyWith(
-                    fontFeatures: const [FontFeature.tabularFigures()],
-                  ),
+                  style:
+                      OmTokens.text(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w800,
+                        color: valueColor,
+                      ).copyWith(
+                        fontFeatures: const [FontFeature.tabularFigures()],
+                      ),
                 ),
               ],
             ),
@@ -1101,7 +1132,9 @@ class _StatusBadge extends StatelessWidget {
           ),
           const SizedBox(width: 6),
           Text(
-            status.isEmpty ? '—' : status,
+            status.isEmpty
+                ? '—'
+                : transfersReportStatusLabel(context.flipperL10n, status),
             style: OmTokens.text(
               fontSize: 12,
               fontWeight: FontWeight.w700,

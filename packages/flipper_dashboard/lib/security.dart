@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/customappbar.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/profile.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/proxy.dart';
@@ -32,78 +33,87 @@ class SecurityState extends ConsumerState<Security> {
               onPop: () async {
                 _routerService.pop();
               },
-              title: 'Settings',
+              title: context.flipperL10n.settings,
               disableButton: false,
               showActionButton: false,
             ),
             backgroundColor: Theme.of(context).canvasColor,
             body: ViewModelBuilder<CoreViewModel>.reactive(
-                viewModelBuilder: () => CoreViewModel(),
-                builder: (a, model, c) {
-                  return SafeArea(
-                    child: Column(
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.only(top: 8.0),
-                          child: ProfileWidget(
-                              branch: model.branch!, sessionActive: true),
+              viewModelBuilder: () => CoreViewModel(),
+              builder: (a, model, c) {
+                return SafeArea(
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8.0),
+                        child: ProfileWidget(
+                          branch: model.branch!,
+                          sessionActive: true,
                         ),
-                        SizedBox(height: 10),
-                        Flexible(
-                          child: StreamBuilder<Tenant?>(
-                              stream: ProxyService.strategy.getDefaultTenant(
-                                  businessId:
-                                      ProxyService.box.getBusinessId()!),
-                              builder: (context, snapshot) {
-                                return SettingsList(
-                                  sections: [
-                                    SettingsSection(
-                                      tiles: [
-                                        SettingsTile.switchTile(
-                                          enabled: (snapshot.data != null &&
-                                              snapshot.data!.pin != null &&
-                                              snapshot.data!.pin != 0),
-                                          title: Text('Enable Passcode'),
-                                          leading: Icon(Icons.pin),
-                                          initialValue:
-                                              (snapshot.data != null &&
-                                                  snapshot.data!.pin != null &&
-                                                  snapshot.data!.pin != 0),
-                                          onToggle: (bool value) {
-                                            ///check to see if on the existing
-                                            if (value) {
-                                              /// show the passcord to set it for the first time.!
-                                              // screenLockCreate(
-                                              //   context: context,
-                                              //   onValidate: (value) async {
-                                              //     if (value.length != 4) {
-                                              //       return false;
-                                              //     }
-                                              //     return true;
-                                              //   },
-                                              //   onConfirmed: (value) async {
-                                              //     final response = await model
-                                              //         .updateUserWithPinCode(
-                                              //             pin: value);
-                                              //     if (response == 200) {
-                                              //       Navigator.of(context)
-                                              //           .maybePop();
-                                              //     }
-                                              //   },
-                                              // );
-                                            }
-                                          },
-                                        ),
-                                      ],
+                      ),
+                      SizedBox(height: 10),
+                      Flexible(
+                        child: StreamBuilder<Tenant?>(
+                          stream: ProxyService.strategy.getDefaultTenant(
+                            businessId: ProxyService.box.getBusinessId()!,
+                          ),
+                          builder: (context, snapshot) {
+                            return SettingsList(
+                              sections: [
+                                SettingsSection(
+                                  tiles: [
+                                    SettingsTile.switchTile(
+                                      enabled:
+                                          (snapshot.data != null &&
+                                          snapshot.data!.pin != null &&
+                                          snapshot.data!.pin != 0),
+                                      title: Text(
+                                        context
+                                            .flipperL10n
+                                            .securityEnablePasscode,
+                                      ),
+                                      leading: Icon(Icons.pin),
+                                      initialValue:
+                                          (snapshot.data != null &&
+                                          snapshot.data!.pin != null &&
+                                          snapshot.data!.pin != 0),
+                                      onToggle: (bool value) {
+                                        ///check to see if on the existing
+                                        if (value) {
+                                          /// show the passcord to set it for the first time.!
+                                          // screenLockCreate(
+                                          //   context: context,
+                                          //   onValidate: (value) async {
+                                          //     if (value.length != 4) {
+                                          //       return false;
+                                          //     }
+                                          //     return true;
+                                          //   },
+                                          //   onConfirmed: (value) async {
+                                          //     final response = await model
+                                          //         .updateUserWithPinCode(
+                                          //             pin: value);
+                                          //     if (response == 200) {
+                                          //       Navigator.of(context)
+                                          //           .maybePop();
+                                          //     }
+                                          //   },
+                                          // );
+                                        }
+                                      },
                                     ),
                                   ],
-                                );
-                              }),
+                                ),
+                              ],
+                            );
+                          },
                         ),
-                      ],
-                    ),
-                  );
-                }),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
           ),
         );
       },

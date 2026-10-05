@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flipper_dashboard/features/bar_mode/bar_mode_settings.dart';
 import 'package:flipper_dashboard/features/hotel_mode/hotel_mode_settings.dart';
 import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/services/bar_mode_branch_settings_service.dart';
@@ -33,17 +34,18 @@ enum ServiceMode {
   bar,
   hotel;
 
+  /// Display name, in the app's current language. Never use it as a value.
   String get label => switch (this) {
     ServiceMode.pos => 'POS',
-    ServiceMode.bar => 'Bar Mode',
-    ServiceMode.hotel => 'Hotel Mode',
+    ServiceMode.bar => FlipperL10n.current.serviceModeBarMode,
+    ServiceMode.hotel => FlipperL10n.current.serviceModeHotelMode,
   };
 
   /// What the device picker calls this surface.
   String get deviceLabel => switch (this) {
     ServiceMode.pos => 'POS',
-    ServiceMode.bar => 'Bar counter',
-    ServiceMode.hotel => 'Front desk',
+    ServiceMode.bar => FlipperL10n.current.serviceModeBarCounter,
+    ServiceMode.hotel => FlipperL10n.current.serviceModeFrontDesk,
   };
 
   static ServiceMode? fromName(String? raw) => switch (raw?.trim()) {

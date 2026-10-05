@@ -181,7 +181,7 @@ class PreviewSaleButton extends ConsumerWidget {
                       disabledColor: PosTokens.ink4,
                       radius: PosTokens.radiusMd,
                       textStyle: _payLabelStyle,
-                      text: 'Complete Now',
+                      text: context.flipperL10n.posCompleteNow,
                       onPressed: !enabled
                           ? null
                           : () => _handleButtonPress(
@@ -198,7 +198,7 @@ class PreviewSaleButton extends ConsumerWidget {
                           payButtonLoading[ButtonType.completeNow] ?? false,
                       height: PosTokens.payButtonHeight,
                       key: const Key("ImmediateCompletionButton"),
-                      text: 'Complete Now',
+                      text: context.flipperL10n.posCompleteNow,
                       onPressed: !enabled
                           ? null
                           : () => _handleButtonPress(

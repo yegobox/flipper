@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_admin_widgets.dart';
 import 'package:flipper_dashboard/features/hotel_mode/providers/hotel_mode_providers.dart';
 import 'package:flipper_dashboard/features/hotel_mode/theme/hotel_tokens.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/DatabaseSyncInterface.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/models/hotel_room.dart';
@@ -48,8 +49,7 @@ class _HotelRoomPlanEditorState extends ConsumerState<HotelRoomPlanEditor> {
   ///
   /// Two accessors because `ref.watch` is only legal during `build`; the
   /// action paths run from a callback and must read.
-  bool get _rraSupported =>
-      ref.watch(hotelRraSupportedProvider).value ?? false;
+  bool get _rraSupported => ref.watch(hotelRraSupportedProvider).value ?? false;
 
   bool get _rraSupportedNow =>
       ref.read(hotelRraSupportedProvider).value ?? false;
@@ -128,7 +128,7 @@ class _HotelRoomPlanEditorState extends ConsumerState<HotelRoomPlanEditor> {
         if (mounted) {
           showCustomSnackBarUtil(
             context,
-            'Room ${room.name} saved, but not registered with RRA: $e',
+            context.flipperL10n.hotelRoomSavedNotRegistered(room.name, '$e'),
             backgroundColor: Colors.orange.shade800,
           );
         }
@@ -201,7 +201,10 @@ class _HotelRoomPlanEditorState extends ConsumerState<HotelRoomPlanEditor> {
   }
 
   Future<void> _addFloor() async {
-    final name = await _promptName(context, title: 'New floor or wing');
+    final name = await _promptName(
+      context,
+      title: context.flipperL10n.hotelNewFloorOrWing,
+    );
     if (name == null || name.trim().isEmpty) return;
 
     // Same reason as _addRoom: number against the roster inside the queue.
@@ -242,7 +245,7 @@ class _HotelRoomPlanEditorState extends ConsumerState<HotelRoomPlanEditor> {
     if (!hotelRoomCanBeDeleted(room: room, stays: stays)) {
       showCustomSnackBarUtil(
         context,
-        'Room ${room.name} has a guest or a booking. Check them out first.',
+        context.flipperL10n.hotelRoomHasGuest(room.name),
         backgroundColor: Colors.red.shade600,
       );
       return;
@@ -252,23 +255,22 @@ class _HotelRoomPlanEditorState extends ConsumerState<HotelRoomPlanEditor> {
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: Text(
-          'Delete room ${room.name}?',
+          dialogContext.flipperL10n.hotelDeleteRoomQuestion(room.name),
           style: GoogleFonts.outfit(fontWeight: FontWeight.w700),
         ),
         content: Text(
-          'It disappears from the board, the calendar and availability. '
-          'Past stays and their invoices are untouched.',
+          dialogContext.flipperL10n.hotelDeleteRoomBody,
           style: GoogleFonts.outfit(),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Cancel'),
+            child: Text(dialogContext.flipperL10n.cancel),
           ),
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Delete'),
+            child: Text(dialogContext.flipperL10n.delete),
           ),
         ],
       ),
@@ -287,7 +289,7 @@ class _HotelRoomPlanEditorState extends ConsumerState<HotelRoomPlanEditor> {
     if (blocked.isNotEmpty) {
       showCustomSnackBarUtil(
         context,
-        'Room ${blocked.first.name} still has a guest or a booking.',
+        context.flipperL10n.hotelRoomStillHasGuest(blocked.first.name),
         backgroundColor: Colors.red.shade600,
       );
       return;
@@ -297,23 +299,22 @@ class _HotelRoomPlanEditorState extends ConsumerState<HotelRoomPlanEditor> {
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: Text(
-          'Delete ${floor.name}?',
+          dialogContext.flipperL10n.hotelDeleteFloorQuestion(floor.name),
           style: GoogleFonts.outfit(fontWeight: FontWeight.w700),
         ),
         content: Text(
-          'Removes ${floor.rooms.length} room'
-          '${floor.rooms.length == 1 ? '' : 's'} on this floor.',
+          dialogContext.flipperL10n.hotelDeleteFloorBody(floor.rooms.length),
           style: GoogleFonts.outfit(),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Cancel'),
+            child: Text(dialogContext.flipperL10n.cancel),
           ),
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Delete'),
+            child: Text(dialogContext.flipperL10n.delete),
           ),
         ],
       ),
@@ -372,7 +373,7 @@ class _HotelRoomPlanEditorState extends ConsumerState<HotelRoomPlanEditor> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'No rooms on this branch yet.',
+            context.flipperL10n.hotelNoRoomsYet,
             style: GoogleFonts.outfit(
               fontSize: 14.5,
               fontWeight: FontWeight.w700,
@@ -381,8 +382,7 @@ class _HotelRoomPlanEditorState extends ConsumerState<HotelRoomPlanEditor> {
           ),
           const SizedBox(height: 4),
           Text(
-            'Start from a sample plan of 15 rooms across three floors, then '
-            'edit the numbers, types and rates to match the property.',
+            context.flipperL10n.hotelStarterPlanBody,
             style: GoogleFonts.outfit(
               fontSize: 12.5,
               height: 1.4,
@@ -393,7 +393,7 @@ class _HotelRoomPlanEditorState extends ConsumerState<HotelRoomPlanEditor> {
           Align(
             alignment: Alignment.centerLeft,
             child: BarPrimaryButton(
-              label: 'Create a starter plan',
+              label: context.flipperL10n.hotelCreateStarterPlan,
               onPressed: _busy ? null : _seedDefaults,
             ),
           ),
@@ -422,8 +422,7 @@ class _HotelRoomPlanEditorState extends ConsumerState<HotelRoomPlanEditor> {
               ),
               const SizedBox(width: 10),
               Text(
-                '${floor.rooms.length} room'
-                '${floor.rooms.length == 1 ? '' : 's'}',
+                context.flipperL10n.hotelRoomsCount(floor.rooms.length),
                 style: GoogleFonts.jetBrainsMono(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
@@ -431,7 +430,7 @@ class _HotelRoomPlanEditorState extends ConsumerState<HotelRoomPlanEditor> {
                 ),
               ),
               IconButton(
-                tooltip: 'Delete floor',
+                tooltip: context.flipperL10n.hotelDeleteFloor,
                 onPressed: _busy ? null : () => _deleteFloor(floor, stays),
                 icon: const Icon(
                   Icons.delete_outline,
@@ -461,7 +460,7 @@ class _HotelRoomPlanEditorState extends ConsumerState<HotelRoomPlanEditor> {
               onPressed: _busy ? null : () => _addRoom(floor),
               icon: const Icon(Icons.add, size: 17),
               label: Text(
-                'Add room',
+                context.flipperL10n.hotelAddRoom,
                 style: GoogleFonts.outfit(
                   fontSize: 13.5,
                   fontWeight: FontWeight.w700,
@@ -481,7 +480,7 @@ class _HotelRoomPlanEditorState extends ConsumerState<HotelRoomPlanEditor> {
         onPressed: _busy ? null : () => _addFloor(),
         icon: const Icon(Icons.add_circle_outline, size: 18),
         label: Text(
-          'Add a floor or wing',
+          context.flipperL10n.hotelAddFloorOrWing,
           style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.w700),
         ),
       ),
@@ -501,17 +500,19 @@ Future<String?> _promptName(BuildContext context, {required String title}) {
       content: TextField(
         controller: controller,
         autofocus: true,
-        decoration: const InputDecoration(hintText: 'e.g. Second Floor'),
+        decoration: InputDecoration(
+          hintText: dialogContext.flipperL10n.hotelFloorNameHint,
+        ),
         onSubmitted: (v) => Navigator.of(dialogContext).pop(v),
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(dialogContext).pop(),
-          child: const Text('Cancel'),
+          child: Text(dialogContext.flipperL10n.cancel),
         ),
         TextButton(
           onPressed: () => Navigator.of(dialogContext).pop(controller.text),
-          child: const Text('Add'),
+          child: Text(dialogContext.flipperL10n.add),
         ),
       ],
     ),
@@ -656,7 +657,7 @@ class _RoomRowState extends State<_RoomRow> {
   void _commitName() {
     final name = _nameController.text.trim();
     if (name.isEmpty) {
-      setState(() => _nameError = 'Required');
+      setState(() => _nameError = context.flipperL10n.hotelRequired);
       _nameController.text = widget.room.name;
       return;
     }
@@ -665,7 +666,7 @@ class _RoomRowState extends State<_RoomRow> {
       name: name,
       excludeRoomId: widget.room.id,
     )) {
-      setState(() => _nameError = 'In use');
+      setState(() => _nameError = context.flipperL10n.hotelInUse);
       _nameController.text = widget.room.name;
       return;
     }
@@ -713,7 +714,7 @@ class _RoomRowState extends State<_RoomRow> {
             child: _field(
               controller: _nameController,
               focusNode: _nameFocus,
-              hint: 'No.',
+              hint: context.flipperL10n.hotelRoomNoHint,
               errorText: _nameError,
               onCommit: _commitName,
               bold: true,
@@ -722,7 +723,7 @@ class _RoomRowState extends State<_RoomRow> {
           final type = _field(
             controller: _typeController,
             focusNode: _typeFocus,
-            hint: 'Type',
+            hint: context.flipperL10n.hotelRoomTypeHint,
             onCommit: _commitType,
           );
           final rate = SizedBox(
@@ -730,7 +731,7 @@ class _RoomRowState extends State<_RoomRow> {
             child: _field(
               controller: _rateController,
               focusNode: _rateFocus,
-              hint: 'Rate',
+              hint: context.flipperL10n.hotelRate,
               keyboardType: TextInputType.number,
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               onCommit: _commitRate,
@@ -748,16 +749,16 @@ class _RoomRowState extends State<_RoomRow> {
           final Widget rraBadge = !widget.rraSupported
               ? const SizedBox.shrink()
               : widget.room.isRegisteredWithRra
-              ? const Tooltip(
-                  message: 'Registered with RRA as a tourism-tax service',
-                  child: Icon(
+              ? Tooltip(
+                  message: context.flipperL10n.hotelRegisteredWithRra,
+                  child: const Icon(
                     Icons.verified_outlined,
                     size: 17,
                     color: HotelTokens.vacantInk,
                   ),
                 )
               : IconButton(
-                  tooltip: 'Not registered with RRA — tap to register',
+                  tooltip: context.flipperL10n.hotelNotRegisteredTapToRegister,
                   onPressed: widget.busy ? null : widget.onRegister,
                   icon: const Icon(
                     Icons.gpp_maybe_outlined,
@@ -768,8 +769,8 @@ class _RoomRowState extends State<_RoomRow> {
 
           final delete = IconButton(
             tooltip: widget.locked
-                ? 'Occupied or booked — cannot delete'
-                : 'Delete room',
+                ? context.flipperL10n.hotelCannotDeleteOccupied
+                : context.flipperL10n.hotelDeleteRoom,
             onPressed: (widget.busy || widget.locked) ? null : widget.onDelete,
             icon: Icon(
               widget.locked ? Icons.lock_outline : Icons.delete_outline,

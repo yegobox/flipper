@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flipper_dashboard/features/hotel_mode/theme/hotel_tokens.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/models/hotel_room.dart';
 import 'package:flipper_models/models/hotel_stay.dart';
 import 'package:flipper_models/sync/utils/hotel_mode_utils.dart';
@@ -154,26 +155,29 @@ class _HotelReservationSheetState extends State<HotelReservationSheet> {
   }
 
   void _submit() {
+    final l10n = context.flipperL10n;
     final name = _nameController.text.trim();
     if (name.isEmpty) {
-      setState(() => _error = 'Guest name is required');
+      setState(() => _error = l10n.hotelGuestNameRequired);
       return;
     }
     if (_adults + _children > widget.room.capacity) {
       setState(
-        () =>
-            _error = 'Room ${widget.room.name} sleeps ${widget.room.capacity}',
+        () => _error = l10n.hotelRoomMaxCapacity(
+          widget.room.name,
+          '${widget.room.capacity}',
+        ),
       );
       return;
     }
     if (_clashes) {
-      setState(() => _error = 'Those dates are already taken for this room');
+      setState(() => _error = l10n.hotelDatesTaken);
       return;
     }
 
     final email = hotelNormalizeEmail(_emailController.text);
     if (email != null && !hotelIsPlausibleEmail(email)) {
-      setState(() => _emailError = 'That email does not look right');
+      setState(() => _emailError = l10n.hotelEmailInvalid);
       return;
     }
 
@@ -195,6 +199,7 @@ class _HotelReservationSheetState extends State<HotelReservationSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
     return Container(
       padding: const EdgeInsets.fromLTRB(22, 20, 22, 22),
       decoration: const BoxDecoration(
@@ -209,7 +214,7 @@ class _HotelReservationSheetState extends State<HotelReservationSheet> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Reserve · Room ${widget.room.name}',
+              l10n.hotelReserveTitle(widget.room.name),
               style: GoogleFonts.outfit(
                 fontSize: 19,
                 fontWeight: FontWeight.w800,
@@ -219,7 +224,10 @@ class _HotelReservationSheetState extends State<HotelReservationSheet> {
             ),
             const SizedBox(height: 3),
             Text(
-              '${widget.room.roomType} · sleeps ${widget.room.capacity}',
+              l10n.hotelRoomTypeSleeps(
+                widget.room.roomType,
+                '${widget.room.capacity}',
+              ),
               style: GoogleFonts.outfit(
                 fontSize: 12.5,
                 fontWeight: FontWeight.w500,
@@ -228,9 +236,9 @@ class _HotelReservationSheetState extends State<HotelReservationSheet> {
             ),
             const SizedBox(height: 18),
             HotelSheetField(
-              label: 'Guest name',
+              label: l10n.hotelGuestName,
               controller: _nameController,
-              hint: 'e.g. Aline Uwase',
+              hint: l10n.hotelGuestNameHint,
               errorText: _error,
               onChanged: (_) {
                 if (_error != null) setState(() => _error = null);
@@ -238,16 +246,16 @@ class _HotelReservationSheetState extends State<HotelReservationSheet> {
             ),
             const SizedBox(height: 12),
             HotelSheetField(
-              label: 'Phone (optional)',
+              label: l10n.hotelPhoneOptional,
               controller: _phoneController,
               hint: '07…',
               keyboardType: TextInputType.phone,
             ),
             const SizedBox(height: 12),
             HotelSheetField(
-              label: 'Email (optional)',
+              label: l10n.hotelEmailOptional,
               controller: _emailController,
-              hint: 'Sends the confirmation',
+              hint: l10n.hotelSendsConfirmationHint,
               keyboardType: TextInputType.emailAddress,
               errorText: _emailError,
               onChanged: (_) {
@@ -261,7 +269,7 @@ class _HotelReservationSheetState extends State<HotelReservationSheet> {
               children: [
                 Expanded(
                   child: HotelSheetStepper(
-                    label: 'Nights',
+                    label: l10n.hotelNights,
                     value: _nights,
                     min: 1,
                     max: 60,
@@ -271,7 +279,7 @@ class _HotelReservationSheetState extends State<HotelReservationSheet> {
                 const SizedBox(width: 10),
                 Expanded(
                   child: HotelSheetStepper(
-                    label: 'Adults',
+                    label: l10n.hotelAdults,
                     value: _adults,
                     min: 1,
                     max: 10,
@@ -281,7 +289,7 @@ class _HotelReservationSheetState extends State<HotelReservationSheet> {
                 const SizedBox(width: 10),
                 Expanded(
                   child: HotelSheetStepper(
-                    label: 'Children',
+                    label: l10n.hotelChildren,
                     value: _children,
                     min: 0,
                     max: 10,
@@ -292,7 +300,7 @@ class _HotelReservationSheetState extends State<HotelReservationSheet> {
             ),
             const SizedBox(height: 12),
             HotelSheetField(
-              label: 'Rate per night (RWF)',
+              label: l10n.hotelRatePerNightRwf,
               controller: _rateController,
               hint: '0',
               keyboardType: TextInputType.number,
@@ -322,7 +330,7 @@ class _HotelReservationSheetState extends State<HotelReservationSheet> {
                       ),
                     ),
                     child: Text(
-                      'Cancel',
+                      l10n.cancel,
                       style: GoogleFonts.outfit(
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
@@ -351,7 +359,7 @@ class _HotelReservationSheetState extends State<HotelReservationSheet> {
                           ),
                         ),
                         child: Text(
-                          'Hold the room',
+                          l10n.hotelHoldRoom,
                           style: GoogleFonts.outfit(
                             fontSize: 15.5,
                             fontWeight: FontWeight.w800,
@@ -375,7 +383,7 @@ class _HotelReservationSheetState extends State<HotelReservationSheet> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Arrival',
+          context.flipperL10n.hotelArrival,
           style: GoogleFonts.outfit(
             fontSize: 12,
             fontWeight: FontWeight.w700,
@@ -425,6 +433,7 @@ class _HotelReservationSheetState extends State<HotelReservationSheet> {
   }
 
   Widget _summary() {
+    final l10n = context.flipperL10n;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
@@ -439,7 +448,7 @@ class _HotelReservationSheetState extends State<HotelReservationSheet> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Departure',
+                  l10n.hotelDeparture,
                   style: GoogleFonts.outfit(
                     fontSize: 11.5,
                     fontWeight: FontWeight.w600,
@@ -461,7 +470,7 @@ class _HotelReservationSheetState extends State<HotelReservationSheet> {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                '$_nights night${_nights == 1 ? '' : 's'}',
+                l10n.hotelNightsCount(_nights),
                 style: GoogleFonts.outfit(
                   fontSize: 11.5,
                   fontWeight: FontWeight.w600,
@@ -500,9 +509,11 @@ class _HotelReservationSheetState extends State<HotelReservationSheet> {
           const SizedBox(width: 10),
           Expanded(
             child: Text(
-              'Room ${widget.room.name} is already taken between '
-              '${DateFormat('d MMM').format(_checkIn)} and '
-              '${DateFormat('d MMM').format(_checkOut)}.',
+              context.flipperL10n.hotelRoomTakenBetween(
+                widget.room.name,
+                DateFormat('d MMM').format(_checkIn),
+                DateFormat('d MMM').format(_checkOut),
+              ),
               style: GoogleFonts.outfit(
                 fontSize: 12,
                 height: 1.35,

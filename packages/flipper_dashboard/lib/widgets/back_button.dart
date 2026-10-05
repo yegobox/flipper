@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_routing/app.locator.dart';
@@ -15,7 +16,7 @@ class CustomBackButton extends StatelessWidget {
     this.height = 48.0,
     this.width = 100.0,
     this.showText = true,
-    this.text = 'Back',
+    this.text,
     this.borderRadius = const BorderRadius.all(Radius.circular(0.0)),
   }) : super(key: key);
 
@@ -28,7 +29,7 @@ class CustomBackButton extends StatelessWidget {
   final double height;
   final double width;
   final bool showText;
-  final String text;
+  final String? text;
   final BorderRadius borderRadius;
 
   @override
@@ -43,9 +44,9 @@ class CustomBackButton extends StatelessWidget {
           backgroundColor: backgroundColor != null
               ? WidgetStateProperty.all(backgroundColor)
               : null,
-          shape: WidgetStateProperty.all(RoundedRectangleBorder(
-            borderRadius: borderRadius,
-          )),
+          shape: WidgetStateProperty.all(
+            RoundedRectangleBorder(borderRadius: borderRadius),
+          ),
           padding: WidgetStateProperty.all(
             const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
           ),
@@ -54,15 +55,11 @@ class CustomBackButton extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.arrow_back,
-              color: iconColor,
-              size: iconSize,
-            ),
+            Icon(Icons.arrow_back, color: iconColor, size: iconSize),
             if (showText) const SizedBox(width: 8.0),
             if (showText)
               Text(
-                text,
+                text ?? context.flipperL10n.back,
                 style: primaryTextStyle.copyWith(
                   color: textColor,
                   fontWeight: FontWeight.w500,

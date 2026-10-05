@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_services/constants.dart';
 
 /// Enum representing the possible statuses of a ticket
@@ -17,18 +18,22 @@ enum TicketStatus {
 }
 
 extension TicketStatusExtension on TicketStatus {
-  String get displayName {
+  /// Display label in the app's current language. Widgets should prefer
+  /// [displayLabel] with `context.flipperL10n` so a language switch rebuilds.
+  String get displayName => displayLabel(FlipperL10n.current);
+
+  String displayLabel(FlipperAppLocalizations l10n) {
     switch (this) {
       case TicketStatus.waiting:
-        return 'Waiting';
+        return l10n.ticketStatusWaiting;
       case TicketStatus.inProgress:
-        return 'In Progress';
+        return l10n.ticketStatusInProgress;
       case TicketStatus.completed:
-        return 'Paid';
+        return l10n.ticketStatusPaid;
       case TicketStatus.pendingReview:
-        return 'Pending Review';
+        return l10n.ticketStatusPendingReview;
       case TicketStatus.awaitingHandover:
-        return 'Reviewed';
+        return l10n.ticketStatusReviewed;
     }
   }
 

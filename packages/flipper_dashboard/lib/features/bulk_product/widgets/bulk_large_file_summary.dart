@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flipper_models/bulk_add_constants.dart';
 import 'package:flipper_models/view_models/BulkAddProductViewModel.dart';
@@ -16,6 +17,7 @@ class BulkLargeFileSummary extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
     final data = model.excelData!;
     final previewCount = data.length.clamp(0, kBulkLargeFilePreviewLimit);
     final validation = model.importValidation;
@@ -34,9 +36,8 @@ class BulkLargeFileSummary extends StatelessWidget {
               children: [
                 Text(
                   partial
-                      ? 'Large import (~$estimate products, loading full file…) '
-                          '— Save stays disabled until loading finishes.'
-                      : 'Large import ($titleCount products)',
+                      ? l10n.bulkProductLargeImportLoading('$estimate')
+                      : l10n.bulkProductLargeImportTitle(titleCount),
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -45,11 +46,8 @@ class BulkLargeFileSummary extends StatelessWidget {
                 const SizedBox(height: 8),
                 Text(
                   partial
-                      ? 'Showing a quick preview while all rows load. Row '
-                          'removal is disabled until the full file is ready.'
-                      : 'You can remove rows from the preview below. When the full '
-                          'file is ready, you will get the same editable grid as '
-                          'small imports, 20 products per page.',
+                      ? l10n.bulkProductPreviewLoadingHint
+                      : l10n.bulkProductPreviewReadyHint,
                   style: const TextStyle(fontSize: 13, color: Colors.black87),
                 ),
                 if (validation != null && validation.hasIssues) ...[
@@ -75,12 +73,13 @@ class BulkLargeFileSummary extends StatelessWidget {
                     horizontal: 12,
                     vertical: 10,
                   ),
-                      child: Row(
+                  child: Row(
                     children: [
                       Text(
-                        partial
-                            ? 'Preview (first $previewCount of ~$estimate)'
-                            : 'Preview (first $previewCount of ${data.length})',
+                        l10n.bulkProductPreviewFirstOf(
+                          '$previewCount',
+                          partial ? '~$estimate' : '${data.length}',
+                        ),
                         style: const TextStyle(fontWeight: FontWeight.w600),
                       ),
                     ],
@@ -99,20 +98,22 @@ class BulkLargeFileSummary extends StatelessWidget {
                       return ListTile(
                         dense: true,
                         title: Text(
-                          name.isEmpty ? '(no name)' : name,
+                          name.isEmpty ? l10n.bulkProductNoName : name,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                         subtitle: Text(
-                          'Barcode: ${barCode.isEmpty ? '—' : barCode} · '
-                          'Price: $price',
+                          l10n.bulkProductBarcodePrice(
+                            barCode.isEmpty ? '—' : barCode,
+                            price,
+                          ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                         trailing: IconButton(
                           tooltip: partial
-                              ? 'Available after the full file loads'
-                              : 'Remove row',
+                              ? l10n.bulkProductAvailableAfterLoad
+                              : l10n.bulkProductRemoveRow,
                           icon: const Icon(
                             FluentIcons.delete_24_regular,
                             size: 20,
@@ -141,14 +142,19 @@ class _ValidationBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
     final parts = <String>[];
     if (validation.missingNameCount > 0) {
-      parts.add('${validation.missingNameCount} row(s) missing a name');
+      parts.add(l10n.bulkProductRowsMissingName(validation.missingNameCount));
     }
     if (validation.duplicateBarCodeCount > 0) {
+      final label = l10n.bulkProductDuplicateBarcodes(
+        validation.duplicateBarCodeCount,
+      );
       parts.add(
-        '${validation.duplicateBarCodeCount} duplicate barcode(s)'
-        '${validation.duplicateBarCodes.isNotEmpty ? ': ${validation.duplicateBarCodes.join(', ')}' : ''}',
+        validation.duplicateBarCodes.isNotEmpty
+            ? '$label: ${validation.duplicateBarCodes.join(', ')}'
+            : label,
       );
     }
     return Container(

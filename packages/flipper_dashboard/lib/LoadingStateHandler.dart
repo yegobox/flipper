@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 
 class LoadingStateHandler extends StatelessWidget {
@@ -14,7 +15,9 @@ class LoadingStateHandler extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (error != null) {
-      return Center(child: Text('Error: $error'));
+      return Center(
+        child: Text(context.flipperL10n.errorMessage(error.toString())),
+      );
     }
     return isLoading ? const Center(child: CircularProgressIndicator()) : child;
   }

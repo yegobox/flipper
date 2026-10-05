@@ -1,4 +1,5 @@
 import 'package:flipper_design_system/flipper_design_system.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/DateCoreWidget.dart';
 import 'package:flipper_dashboard/export/headless_detailed_transaction_export_host.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -32,7 +33,11 @@ class TransactionsState extends ConsumerState<Transactions>
   String lastSeen = "";
   bool defaultTransactions = true;
   int displayedTransactionType = 0;
-  List<String> transactionTypeOptions = ["All", "Sales", "Purchases"];
+  List<String> get transactionTypeOptions => [
+    context.flipperL10n.txListAll,
+    context.flipperL10n.sales,
+    context.flipperL10n.purchases,
+  ];
 
   final GlobalKey<DetailedTransactionReportExportHostState> _exportHostKey =
       GlobalKey<DetailedTransactionReportExportHostState>();
@@ -49,7 +54,7 @@ class TransactionsState extends ConsumerState<Transactions>
       if (mounted) {
         showWarningNotification(
           context,
-          'Export is not ready yet. Try again in a moment.',
+          context.flipperL10n.transactionsExportNotReady,
         );
       }
       return;
@@ -58,14 +63,19 @@ class TransactionsState extends ConsumerState<Transactions>
     final range = ref.read(dateRangeProvider);
     if (range.startDate == null || range.endDate == null) {
       if (mounted) {
-        showWarningNotification(context, 'Please select a date range first');
+        showWarningNotification(
+          context,
+          context.flipperL10n.txListSelectDateRangeFirst,
+        );
       }
       return;
     }
 
     setState(() => _isExportingReport = true);
     try {
-      await host.exportDetailedReport(headerTitle: 'Report');
+      await host.exportDetailedReport(
+        headerTitle: context.flipperL10n.exportDataSheetReport,
+      );
     } on UnsupportedError catch (e) {
       if (mounted) {
         showWarningNotification(context, e.message ?? e.toString());
@@ -73,16 +83,19 @@ class TransactionsState extends ConsumerState<Transactions>
     } on StateError catch (e) {
       if (!mounted) return;
       if (e.message == 'missing_date_range') {
-        showWarningNotification(context, 'Please select a date range first');
+        showWarningNotification(
+          context,
+          context.flipperL10n.txListSelectDateRangeFirst,
+        );
       } else if (e.message == 'no_line_items') {
         showWarningNotification(
           context,
-          'No line items to export for this period.',
+          context.flipperL10n.transactionsNoLineItemsToExport,
         );
       } else {
         showErrorNotification(
           context,
-          'Export failed: ${e.message}',
+          context.flipperL10n.txListExportFailed('${e.message}'),
           duration: const Duration(seconds: 5),
         );
       }
@@ -90,7 +103,7 @@ class TransactionsState extends ConsumerState<Transactions>
       if (mounted) {
         showErrorNotification(
           context,
-          'Export failed: $e',
+          context.flipperL10n.txListExportFailed('$e'),
           duration: const Duration(seconds: 5),
         );
       }
@@ -127,7 +140,7 @@ class TransactionsState extends ConsumerState<Transactions>
               ),
               const SizedBox(width: 8),
               Text(
-                'Filter Transactions',
+                context.flipperL10n.transactionsFilter,
                 style: GoogleFonts.outfit(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
@@ -159,7 +172,7 @@ class TransactionsState extends ConsumerState<Transactions>
           appBar: AppBar(
             actions: [
               IconButton(
-                tooltip: 'Export detailed report (Excel)',
+                tooltip: context.flipperL10n.transactionsExportDetailed,
                 onPressed: _isExportingReport
                     ? null
                     : _onDownloadDetailedReport,
@@ -173,7 +186,7 @@ class TransactionsState extends ConsumerState<Transactions>
               ),
               datePicker(),
             ],
-            title: const Text('Transactions'),
+            title: Text(context.flipperL10n.transactionsTitle),
           ),
           body: Stack(
             fit: StackFit.expand,
@@ -496,7 +509,7 @@ Widget _buildEmptyStateWithPeriod(BuildContext context, String period) {
         ),
         const SizedBox(height: 20),
         Text(
-          'No records for ${period.toLowerCase()}',
+          context.flipperL10n.transactionsNoRecordsFor(period.toLowerCase()),
           style: GoogleFonts.outfit(
             fontSize: 20,
             fontWeight: FontWeight.w600,
@@ -505,7 +518,7 @@ Widget _buildEmptyStateWithPeriod(BuildContext context, String period) {
         ),
         const SizedBox(height: 8),
         Text(
-          'Try selecting a different time period or add some transactions.',
+          context.flipperL10n.transactionsTryDifferentPeriod,
           textAlign: TextAlign.center,
           style: GoogleFonts.outfit(
             fontSize: 14,
@@ -541,7 +554,7 @@ Widget _buildLoadingState(BuildContext context) {
         ),
         const SizedBox(height: 24),
         Text(
-          'Loading transactions...',
+          context.flipperL10n.transactionsLoading,
           style: GoogleFonts.outfit(
             fontSize: 16,
             fontWeight: FontWeight.w500,
@@ -575,7 +588,7 @@ Widget _buildErrorState(BuildContext context, String error) {
         ),
         const SizedBox(height: 20),
         Text(
-          'Something went wrong',
+          context.flipperL10n.transactionsSomethingWentWrong,
           style: GoogleFonts.outfit(
             fontSize: 18,
             fontWeight: FontWeight.w600,

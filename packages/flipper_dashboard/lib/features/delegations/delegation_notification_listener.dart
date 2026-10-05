@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/event_bus.dart';
 import 'package:flipper_services/proxy.dart';
@@ -37,17 +38,17 @@ class _DelegationNotificationListenerState
   Timer? _dismissTimer;
 
   bool get _isDesktop =>
-      !kIsWeb &&
-      (Platform.isMacOS || Platform.isWindows || Platform.isLinux);
+      !kIsWeb && (Platform.isMacOS || Platform.isWindows || Platform.isLinux);
 
   @override
   void initState() {
     super.initState();
-    _delegationSub =
-        EventBus().on<DelegationReceivedEvent>().listen(_onDelegationReceived);
-    _transferSub = EventBus()
-        .on<StockTransferNotificationEvent>()
-        .listen(_onStockTransferReceived);
+    _delegationSub = EventBus().on<DelegationReceivedEvent>().listen(
+      _onDelegationReceived,
+    );
+    _transferSub = EventBus().on<StockTransferNotificationEvent>().listen(
+      _onStockTransferReceived,
+    );
   }
 
   @override
@@ -91,7 +92,8 @@ class _DelegationNotificationListenerState
         title: event.title,
         body: event.body,
         icon: Icons.print_outlined,
-        hint: 'Tap to open Delegations',
+        // This listener sits above MaterialApp (no Localizations ancestor).
+        hint: FlipperL10n.current.delegationBannerTapToOpen,
         onTap: () {
           _dismissBanner();
           unawaited(_openDelegations());
@@ -136,12 +138,7 @@ class _DelegationNotificationListenerState
         onTap: onTap,
       );
     } else {
-      _showMobileBanner(
-        title: title,
-        body: body,
-        icon: icon,
-        onTap: onTap,
-      );
+      _showMobileBanner(title: title, body: body, icon: icon, onTap: onTap);
     }
   }
 
@@ -158,12 +155,7 @@ class _DelegationNotificationListenerState
         '[delegation-banner] navigator overlay unavailable, '
         'falling back to overlay_support',
       );
-      _showMobileBanner(
-        title: title,
-        body: body,
-        icon: icon,
-        onTap: onTap,
-      );
+      _showMobileBanner(title: title, body: body, icon: icon, onTap: onTap);
       return;
     }
 
@@ -327,8 +319,7 @@ class _DelegationBanner extends StatelessWidget {
                                 Text(
                                   hint!,
                                   style: TextStyle(
-                                    color:
-                                        Colors.white.withValues(alpha: 0.8),
+                                    color: Colors.white.withValues(alpha: 0.8),
                                     fontSize: 11,
                                     fontWeight: FontWeight.w500,
                                   ),

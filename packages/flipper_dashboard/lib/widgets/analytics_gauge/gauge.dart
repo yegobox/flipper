@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_design_system/flipper_design_system.dart';
 import 'dart:math' as math;
 
@@ -7,10 +8,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 /// [standard] preserves layout and strings relied on by cashbook and tests.
 /// [dashboardHome] applies the mobile dashboard home visual treatment only.
-enum GaugePresentation {
-  standard,
-  dashboardHome,
-}
+enum GaugePresentation { standard, dashboardHome }
 
 class SemiCircleGauge extends StatefulWidget {
   final double dataOnGreenSide;
@@ -64,7 +62,21 @@ class _SemiCircleGaugeState extends State<SemiCircleGauge>
     super.dispose();
   }
 
-  bool get _isDashboard => widget.presentation == GaugePresentation.dashboardHome;
+  bool get _isDashboard =>
+      widget.presentation == GaugePresentation.dashboardHome;
+
+  /// [SemiCircleGauge.profitType] is a value ('Gross Profit' / 'Net Profit');
+  /// only the rendered label is localized.
+  String _profitTypeLabel(FlipperAppLocalizations l10n) {
+    switch (widget.profitType) {
+      case 'Gross Profit':
+        return l10n.gaugeGrossProfit;
+      case 'Net Profit':
+        return l10n.gaugeNetProfit;
+      default:
+        return widget.profitType;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -149,50 +161,51 @@ class _SemiCircleGaugeState extends State<SemiCircleGauge>
       ),
     );
 
-    final bottomSection =
-        widget.areValueColumnsVisible
-            ? Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Divider(color: Colors.grey.withValues(alpha: 0.2)),
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 16),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      _isDashboard
-                          ? _buildDashboardValueColumn(
+    final bottomSection = widget.areValueColumnsVisible
+        ? Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Divider(color: Colors.grey.withValues(alpha: 0.2)),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _isDashboard
+                        ? _buildDashboardValueColumn(
                             amount: widget.dataOnGreenSide,
-                            label: 'GROSS PROFIT',
+                            label: context.flipperL10n.gaugeGrossProfit
+                                .toUpperCase(),
                             valueColor: _dashboardGreen,
                           )
-                          : _buildValueColumn(
+                        : _buildValueColumn(
                             amount: widget.dataOnGreenSide,
-                            label: 'Gross Profit',
+                            label: context.flipperL10n.gaugeGrossProfit,
                             color: Colors.green,
                           ),
-                      Container(
-                        height: 50,
-                        width: 1,
-                        color: Colors.grey.withValues(alpha: 0.2),
-                      ),
-                      _isDashboard
-                          ? _buildDashboardValueColumn(
+                    Container(
+                      height: 50,
+                      width: 1,
+                      color: Colors.grey.withValues(alpha: 0.2),
+                    ),
+                    _isDashboard
+                        ? _buildDashboardValueColumn(
                             amount: widget.dataOnRedSide,
-                            label: 'TAX & EXPENSES',
+                            label: context.flipperL10n.gaugeTaxAndExpenses
+                                .toUpperCase(),
                             valueColor: _dashboardRed,
                           )
-                          : _buildValueColumn(
+                        : _buildValueColumn(
                             amount: widget.dataOnRedSide,
-                            label: 'Tax & Expenses',
+                            label: context.flipperL10n.gaugeTaxAndExpenses,
                             color: Colors.red,
                           ),
-                    ],
-                  ),
+                  ],
                 ),
-              ],
-            )
-            : const SizedBox.shrink();
+              ),
+            ],
+          )
+        : const SizedBox.shrink();
 
     if (_isDashboard) {
       return Container(
@@ -247,16 +260,17 @@ class _SemiCircleGaugeState extends State<SemiCircleGauge>
       numberColor = Colors.black;
     }
 
+    final l10n = context.flipperL10n;
     String upperLabel;
     if (widget.dataOnGreenSide > widget.dataOnRedSide) {
-      upperLabel = widget.profitType.toUpperCase();
+      upperLabel = _profitTypeLabel(l10n).toUpperCase();
     } else if (widget.dataOnRedSide > widget.dataOnGreenSide) {
-      upperLabel = 'LOSS';
+      upperLabel = l10n.gaugeLoss.toUpperCase();
     } else if (widget.dataOnRedSide == widget.dataOnGreenSide &&
         widget.dataOnRedSide > 0) {
-      upperLabel = 'BALANCED';
+      upperLabel = l10n.gaugeBalanced.toUpperCase();
     } else {
-      upperLabel = 'NO TRANSACTIONS';
+      upperLabel = l10n.gaugeNoTransactions.toUpperCase();
     }
 
     return Column(
@@ -358,13 +372,14 @@ class _SemiCircleGaugeState extends State<SemiCircleGauge>
   }
 
   (Widget, double, Color) _calculateResults() {
+    final l10n = context.flipperL10n;
     Widget resultText;
     double profitOrLoss;
     Color valueColor;
 
     if (widget.dataOnGreenSide > widget.dataOnRedSide) {
       resultText = Text(
-        widget.profitType,
+        _profitTypeLabel(l10n),
         style: GoogleFonts.outfit(
           fontSize: widget.areValueColumnsVisible ? 16 : 14,
           color: Colors.green.withValues(alpha: 0.7),
@@ -377,7 +392,7 @@ class _SemiCircleGaugeState extends State<SemiCircleGauge>
       valueColor = Colors.green;
     } else if (widget.dataOnRedSide > widget.dataOnGreenSide) {
       resultText = Text(
-        'Loss',
+        l10n.gaugeLoss,
         style: GoogleFonts.outfit(
           fontSize: widget.areValueColumnsVisible ? 16 : 14,
           color: Colors.red.withValues(alpha: 0.7),
@@ -389,7 +404,7 @@ class _SemiCircleGaugeState extends State<SemiCircleGauge>
     } else if (widget.dataOnRedSide == widget.dataOnGreenSide &&
         widget.dataOnRedSide > 0) {
       resultText = Text(
-        'Balanced',
+        l10n.gaugeBalanced,
         style: GoogleFonts.outfit(
           fontSize: 14,
           color: Colors.grey,
@@ -400,7 +415,7 @@ class _SemiCircleGaugeState extends State<SemiCircleGauge>
       valueColor = Colors.grey;
     } else {
       resultText = Text(
-        'No transactions',
+        l10n.gaugeNoTransactions,
         style: GoogleFonts.outfit(
           fontSize: 14,
           color: Colors.grey,
@@ -488,11 +503,7 @@ class _GaugePainter extends CustomPainter {
       final thumbX = center.dx + radius * math.cos(thumbTheta);
       final thumbY = center.dy + radius * math.sin(thumbTheta);
       final thumbCenter = Offset(thumbX, thumbY);
-      canvas.drawCircle(
-        thumbCenter,
-        7,
-        Paint()..color = Colors.white,
-      );
+      canvas.drawCircle(thumbCenter, 7, Paint()..color = Colors.white);
       canvas.drawCircle(
         thumbCenter,
         7,

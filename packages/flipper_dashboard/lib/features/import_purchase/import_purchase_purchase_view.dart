@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
@@ -59,12 +60,13 @@ class _ImportPurchasePurchaseViewState
   final Map<String, Stock> _stockMap = {};
   final Set<String> _fetchedStockIds = {};
 
-  static const _filterOptions = [
-    MapEntry('all', 'All'),
-    MapEntry('pending', 'Pending'),
-    MapEntry('approved', 'Approved'),
-    MapEntry('rejected', 'Rejected'),
-  ];
+  List<MapEntry<String, String>> _filterOptions(FlipperAppLocalizations l10n) =>
+      [
+        MapEntry('all', l10n.importPurchaseFilterAll),
+        MapEntry('pending', l10n.importPurchaseStatusPending),
+        MapEntry('approved', l10n.approved),
+        MapEntry('rejected', l10n.importPurchaseStatusRejected),
+      ];
 
   List<Variant> _filterVariants(List<Variant> variants) {
     return variants
@@ -202,7 +204,7 @@ class _ImportPurchasePurchaseViewState
                   constraints: const BoxConstraints(maxWidth: 380),
                   child: IpmStatusFilter(
                     value: widget.statusFilter,
-                    options: _filterOptions,
+                    options: _filterOptions(context.flipperL10n),
                     onChanged: (v) {
                       widget.onStatusFilterChanged(v);
                       setState(() => _page = 0);
@@ -217,11 +219,12 @@ class _ImportPurchasePurchaseViewState
           const SizedBox(height: 18),
           Expanded(
             child: visible.isEmpty
-                ? const IpmEmptyState(
+                ? IpmEmptyState(
                     icon: Icons.shopping_cart_outlined,
-                    title: 'No purchase invoices',
-                    subtitle:
-                        'Nothing matches this status filter. Record a purchase or change the filter.',
+                    title: context.flipperL10n.importPurchaseNoPurchaseInvoices,
+                    subtitle: context
+                        .flipperL10n
+                        .importPurchaseNoPurchaseInvoicesHint,
                   )
                 : ListView.separated(
                     itemCount: visible.length,
@@ -239,7 +242,10 @@ class _ImportPurchasePurchaseViewState
     return Row(
       children: [
         Text(
-          total == 0 ? '0 of 0' : '${start + 1}–$end of $total',
+          context.flipperL10n.importPurchasePagerRange(
+            total == 0 ? '0' : '${start + 1}–$end',
+            '$total',
+          ),
           style: ImportPurchaseHelpers.text(
             size: 14,
             weight: FontWeight.w600,
@@ -342,7 +348,10 @@ class _ImportPurchasePurchaseViewState
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Supplier: ${purchase.spplrNm} (${items.length})',
+                context.flipperL10n.importPurchaseSupplierHeader(
+                  purchase.spplrNm,
+                  '${items.length}',
+                ),
                 style: ImportPurchaseHelpers.text(
                   size: 16,
                   weight: FontWeight.w800,
@@ -351,7 +360,9 @@ class _ImportPurchasePurchaseViewState
               ),
               const SizedBox(height: 3),
               Text(
-                'Invoice: ${purchase.spplrInvcNo}',
+                context.flipperL10n.importPurchaseInvoiceHeader(
+                  '${purchase.spplrInvcNo}',
+                ),
                 style: ImportPurchaseHelpers.text(
                   size: 13,
                   weight: FontWeight.w600,
@@ -388,14 +399,19 @@ class _ImportPurchasePurchaseViewState
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Supplier: ${purchase.spplrNm} (${items.length})',
+                    context.flipperL10n.importPurchaseSupplierHeader(
+                      purchase.spplrNm,
+                      '${items.length}',
+                    ),
                     style: ImportPurchaseHelpers.text(
                       size: 16,
                       weight: FontWeight.w800,
                     ),
                   ),
                   Text(
-                    'Invoice: ${purchase.spplrInvcNo}',
+                    context.flipperL10n.importPurchaseInvoiceHeader(
+                      '${purchase.spplrInvcNo}',
+                    ),
                     style: ImportPurchaseHelpers.text(
                       size: 13,
                       weight: FontWeight.w600,
@@ -482,7 +498,7 @@ class _ImportPurchasePurchaseViewState
     final loading = widget.isProcessing(purchase.id);
     if (loading) {
       return IpmButton(
-        label: 'Processing…',
+        label: context.flipperL10n.importPurchaseProcessing,
         icon: Icons.hourglass_top,
         variant: IpmButtonVariant.ghost,
         compact: true,
@@ -494,7 +510,7 @@ class _ImportPurchasePurchaseViewState
       children: [
         if (widget.canRetry(purchase.id)) ...[
           IpmButton(
-            label: 'Retry',
+            label: context.flipperL10n.retry,
             icon: Icons.refresh,
             variant: IpmButtonVariant.amberSoft,
             compact: true,
@@ -512,7 +528,9 @@ class _ImportPurchasePurchaseViewState
   Widget _acceptAllButton(Purchase purchase) {
     final loading = widget.isProcessing(purchase.id);
     return IpmButton(
-      label: loading ? 'Processing…' : 'Accept All',
+      label: loading
+          ? context.flipperL10n.importPurchaseProcessing
+          : context.flipperL10n.importPurchaseAcceptAll,
       icon: Icons.check_circle_outline,
       variant: IpmButtonVariant.greenSoft,
       compact: true,
@@ -531,7 +549,9 @@ class _ImportPurchasePurchaseViewState
   Widget _declineAllButton(Purchase purchase) {
     final loading = widget.isProcessing(purchase.id);
     return IpmButton(
-      label: loading ? 'Processing…' : 'Decline All',
+      label: loading
+          ? context.flipperL10n.importPurchaseProcessing
+          : context.flipperL10n.importPurchaseDeclineAll,
       icon: Icons.cancel_outlined,
       variant: IpmButtonVariant.dangerSoft,
       compact: true,
@@ -591,6 +611,7 @@ class _ImportPurchasePurchaseViewState
     Purchase purchase,
     List<Variant> items,
   ) {
+    final l10n = context.flipperL10n;
     return Container(
       decoration: BoxDecoration(
         color: ImportPurchaseTokens.surface,
@@ -611,23 +632,38 @@ class _ImportPurchasePurchaseViewState
                 top: Radius.circular(ImportPurchaseTokens.radius),
               ),
             ),
-            child: const Row(
+            child: Row(
               children: [
-                SizedBox(width: 50, child: IpmColumnHeader('No.')),
-                Expanded(child: IpmColumnHeader('Name')),
+                SizedBox(
+                  width: 50,
+                  child: IpmColumnHeader(l10n.importPurchaseColNo),
+                ),
+                Expanded(child: IpmColumnHeader(l10n.name)),
                 SizedBox(
                   width: 90,
-                  child: IpmColumnHeader('Qty', align: TextAlign.end),
+                  child: IpmColumnHeader(
+                    l10n.importPurchaseColQty,
+                    align: TextAlign.end,
+                  ),
                 ),
                 SizedBox(
                   width: 130,
-                  child: IpmColumnHeader('Supply', align: TextAlign.end),
+                  child: IpmColumnHeader(
+                    l10n.importPurchaseColSupply,
+                    align: TextAlign.end,
+                  ),
                 ),
                 SizedBox(
                   width: 130,
-                  child: IpmColumnHeader('Retail', align: TextAlign.end),
+                  child: IpmColumnHeader(
+                    l10n.importPurchaseColRetail,
+                    align: TextAlign.end,
+                  ),
                 ),
-                SizedBox(width: 118, child: IpmColumnHeader('Mapping')),
+                SizedBox(
+                  width: 118,
+                  child: IpmColumnHeader(l10n.importPurchaseColMapping),
+                ),
               ],
             ),
           ),
@@ -741,6 +777,7 @@ class _ImportPurchasePurchaseViewState
     Purchase purchase,
     List<Variant> items,
   ) {
+    final l10n = context.flipperL10n;
     return Column(
       children: items.asMap().entries.map((entry) {
         final i = entry.key;
@@ -786,7 +823,7 @@ class _ImportPurchasePurchaseViewState
                       children: [
                         Expanded(
                           child: _miniCell(
-                            'Qty',
+                            l10n.importPurchaseColQty,
                             ImportPurchaseHelpers.formatMoney(
                               _stockMap[item.stock?.id]?.currentStock ??
                                   item.stock?.currentStock,
@@ -795,13 +832,13 @@ class _ImportPurchasePurchaseViewState
                         ),
                         Expanded(
                           child: _miniCell(
-                            'Supply',
+                            l10n.importPurchaseColSupply,
                             ImportPurchaseHelpers.formatMoney(item.supplyPrice),
                           ),
                         ),
                         Expanded(
                           child: _miniCell(
-                            'Retail',
+                            l10n.importPurchaseColRetail,
                             ImportPurchaseHelpers.formatMoney(item.retailPrice),
                           ),
                         ),
@@ -821,11 +858,12 @@ class _ImportPurchasePurchaseViewState
 
   Widget _mappingHint(Variant item, String? catalogName) {
     final itemCd = _assignedCatalogItemCd(item);
+    final l10n = context.flipperL10n;
     final text = catalogName != null
-        ? (itemCd != null && itemCd.isNotEmpty
-              ? 'Mapped · $itemCd — tap to change'
-              : 'Mapped · $catalogName — tap to change')
-        : 'Tap to map this line';
+        ? l10n.importPurchaseMappedTapToChange(
+            itemCd != null && itemCd.isNotEmpty ? itemCd : catalogName,
+          )
+        : l10n.importPurchaseTapToMapLine;
     return Row(
       children: [
         const Icon(

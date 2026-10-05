@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 
 class MemberField extends StatelessWidget {
-  MemberField(
-      {Key? key,
-      required this.trailingTapped,
-      required this.inputChange,
-      required this.controller})
-      : super(key: key);
+  MemberField({
+    Key? key,
+    required this.trailingTapped,
+    required this.inputChange,
+    required this.controller,
+  }) : super(key: key);
   final Function trailingTapped;
   final Function inputChange;
   final TextEditingController controller;
@@ -32,7 +33,7 @@ class MemberField extends StatelessWidget {
         onChanged: (v) {
           inputChange(v);
         },
-        placeholder: 'Add member',
+        placeholder: context.flipperL10n.memberFieldAddMember,
       ),
     );
   }

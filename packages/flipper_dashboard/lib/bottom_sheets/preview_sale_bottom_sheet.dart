@@ -1,5 +1,6 @@
 // ignore_for_file: unused_result
 
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.router.dart';
@@ -48,9 +49,7 @@ class PreviewSaleBottomSheetState
   }) {
     return Card(
       elevation: 0.0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(2.0),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(2.0)),
       child: Slidable(
         key: ValueKey(items.id),
         endActionPane: ActionPane(
@@ -61,7 +60,7 @@ class PreviewSaleBottomSheetState
               backgroundColor: const Color(0xFFFE4A49),
               foregroundColor: Colors.white,
               icon: Icons.delete,
-              label: 'Delete',
+              label: context.flipperL10n.delete,
             ),
           ],
         ),
@@ -73,7 +72,7 @@ class PreviewSaleBottomSheetState
               backgroundColor: const Color(0xFFFE4A49),
               foregroundColor: Colors.white,
               icon: Icons.delete,
-              label: 'Delete',
+              label: context.flipperL10n.delete,
             ),
           ],
         ),
@@ -103,15 +102,9 @@ class PreviewSaleBottomSheetState
             width: 100,
             child: Row(
               children: [
-                const Icon(
-                  Icons.close,
-                  color: Colors.black,
-                  size: 16.0,
-                ),
+                const Icon(Icons.close, color: Colors.black, size: 16.0),
                 const Text(' '),
-                Text(
-                  items.qty.toInt().toString(),
-                ),
+                Text(items.qty.toInt().toString()),
               ],
             ),
           ),
@@ -123,13 +116,17 @@ class PreviewSaleBottomSheetState
 
   @override
   Widget build(BuildContext context) {
-    final transaction =
-        ref.watch(pendingTransactionStreamProvider(isExpense: false));
-    final transactionItemsNotifier = ref
-        .watch(transactionItemsProvider(transactionId: transaction.value?.id));
+    final transaction = ref.watch(
+      pendingTransactionStreamProvider(isExpense: false),
+    );
+    final transactionItemsNotifier = ref.watch(
+      transactionItemsProvider(transactionId: transaction.value?.id),
+    );
 
-    final totalPayable = transactionItemsNotifier.value
-        ?.fold<double>(0.0, (a, b) => a + (b.price * b.qty));
+    final totalPayable = transactionItemsNotifier.value?.fold<double>(
+      0.0,
+      (a, b) => a + (b.price * b.qty),
+    );
 
     return ViewModelBuilder<CoreViewModel>.nonReactive(
       viewModelBuilder: () => CoreViewModel(),
@@ -139,8 +136,12 @@ class PreviewSaleBottomSheetState
     );
   }
 
-  Column transactionListView(AsyncValue<ITransaction> transaction,
-      BuildContext context, CoreViewModel model, double totalPayable) {
+  Column transactionListView(
+    AsyncValue<ITransaction> transaction,
+    BuildContext context,
+    CoreViewModel model,
+    double totalPayable,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -151,21 +152,25 @@ class PreviewSaleBottomSheetState
           child: ListView.builder(
             reverse: widget.reverse,
             shrinkWrap: true,
-            itemCount: (ref
-                        .watch(
-                          transactionItemsProvider(
-                              transactionId: transaction.value?.id),
-                        )
-                        .value ??
-                    [])
-                .length,
+            itemCount:
+                (ref
+                            .watch(
+                              transactionItemsProvider(
+                                transactionId: transaction.value?.id,
+                              ),
+                            )
+                            .value ??
+                        [])
+                    .length,
             controller: ModalScrollController.of(context),
             physics: const ClampingScrollPhysics(),
             itemBuilder: (context, index) {
-              final items = (ref
+              final items =
+                  (ref
                       .watch(
                         transactionItemsProvider(
-                            transactionId: transaction.value?.id),
+                          transactionId: transaction.value?.id,
+                        ),
                       )
                       .value ??
                   [])[index];
@@ -173,13 +178,11 @@ class PreviewSaleBottomSheetState
               return buildItem(
                 context: context,
                 delete: (item) async {
-                  model.deleteTransactionItem(
-                    id: item.id,
-                    context: context,
-                  );
+                  model.deleteTransactionItem(id: item.id, context: context);
                   ref.refresh(
                     transactionItemsProvider(
-                        transactionId: transaction.value?.id),
+                      transactionId: transaction.value?.id,
+                    ),
                   );
                 },
                 items: items,
@@ -193,21 +196,30 @@ class PreviewSaleBottomSheetState
   }
 
   Padding buildPayable(double totalPayable, {required WidgetRef ref}) {
-    final transactionAsyncValue =
-        ref.watch(pendingTransactionStreamProvider(isExpense: false));
+    final transactionAsyncValue = ref.watch(
+      pendingTransactionStreamProvider(isExpense: false),
+    );
 
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 8, vertical: 16),
       child: BoxButton(
         title: widget.mode == SellingMode.forSelling
-            ? "Collect ${_numberFormat.format(totalPayable)} "
-            : "Order ${_numberFormat.format(totalPayable)} ",
+            ? context.flipperL10n.previewSaleCollectAmount(
+                _numberFormat.format(totalPayable),
+              )
+            : context.flipperL10n.previewSaleOrderAmount(
+                _numberFormat.format(totalPayable),
+              ),
         onTap: () {
           transactionAsyncValue.when(
             data: (transaction) {
               if (totalPayable.round() == 0) {
-                showSnackBar(context, "Your cart is empty",
-                    textColor: Colors.white, backgroundColor: Colors.green);
+                showSnackBar(
+                  context,
+                  context.flipperL10n.previewSaleCartEmpty,
+                  textColor: Colors.white,
+                  backgroundColor: Colors.green,
+                );
                 return;
               }
 
@@ -227,8 +239,12 @@ class PreviewSaleBottomSheetState
               // Optional: Handle loading state if needed
             },
             error: (error, stackTrace) {
-              showSnackBar(context, "Error: $error",
-                  textColor: Colors.white, backgroundColor: Colors.red);
+              showSnackBar(
+                context,
+                context.flipperL10n.errorMessage(error.toString()),
+                textColor: Colors.white,
+                backgroundColor: Colors.red,
+              );
             },
           );
         },
@@ -238,12 +254,9 @@ class PreviewSaleBottomSheetState
 
   ListTile buildDiscounts(CoreViewModel model) {
     return ListTile(
-      contentPadding: const EdgeInsets.only(
-        left: 40.0,
-        right: 40.0,
-      ),
+      contentPadding: const EdgeInsets.only(left: 40.0, right: 40.0),
       title: Text(
-        'Discounts',
+        context.flipperL10n.previewSaleDiscounts,
         style: GoogleFonts.outfit(
           fontWeight: FontWeight.w600,
           fontSize: 15,

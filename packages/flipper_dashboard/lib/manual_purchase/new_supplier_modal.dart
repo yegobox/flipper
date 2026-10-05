@@ -1,6 +1,7 @@
 import 'package:flipper_models/domain/party/party_validation.dart';
 import 'package:flipper_dashboard/features/import_purchase/import_purchase_tokens.dart';
 import 'package:flipper_dashboard/manual_purchase/manual_purchase_notifier.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:supabase_models/brick/models/supplier.model.dart';
@@ -76,33 +77,34 @@ class _NewSupplierDialogState extends ConsumerState<_NewSupplierDialog> {
   bool get _canSubmit => _nameController.text.trim().isNotEmpty && !_saving;
 
   InputDecoration _decoration({String? hint}) => InputDecoration(
-        hintText: hint,
-        hintStyle: TextStyle(color: _hintColor, fontSize: 15),
-        isDense: true,
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 14,
-          vertical: 14,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: _borderColor),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: _accent, width: 1.5),
-        ),
-      );
+    hintText: hint,
+    hintStyle: TextStyle(color: _hintColor, fontSize: 15),
+    isDense: true,
+    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+    enabledBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(10),
+      borderSide: BorderSide(color: _borderColor),
+    ),
+    focusedBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(10),
+      borderSide: BorderSide(color: _accent, width: 1.5),
+    ),
+  );
 
   Future<void> _submit() async {
     if (!_canSubmit) return;
     final tinError = validatePartyTin(_tinController.text);
     if (tinError != null) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(tinError)));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(tinError)));
       return;
     }
 
     setState(() => _saving = true);
-    final supplier = await ref.read(manualPurchaseProvider.notifier).createSupplier(
+    final supplier = await ref
+        .read(manualPurchaseProvider.notifier)
+        .createSupplier(
           name: _nameController.text.trim(),
           tin: _tinController.text.trim(),
           phone: _phoneController.text.trim(),
@@ -116,6 +118,7 @@ class _NewSupplierDialogState extends ConsumerState<_NewSupplierDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
     return Dialog(
       backgroundColor: ImportPurchaseTokens.surface,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -151,7 +154,7 @@ class _NewSupplierDialogState extends ConsumerState<_NewSupplierDialog> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'New supplier',
+                            l10n.manualPurchaseNewSupplier,
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w800,
@@ -159,11 +162,8 @@ class _NewSupplierDialogState extends ConsumerState<_NewSupplierDialog> {
                             ),
                           ),
                           Text(
-                            'Created without leaving this purchase',
-                            style: TextStyle(
-                              fontSize: 12.5,
-                              color: _hintColor,
-                            ),
+                            l10n.manualPurchaseNewSupplierSubtitle,
+                            style: TextStyle(fontSize: 12.5, color: _hintColor),
                           ),
                         ],
                       ),
@@ -179,7 +179,7 @@ class _NewSupplierDialogState extends ConsumerState<_NewSupplierDialog> {
                 ),
                 const SizedBox(height: 20),
                 Text(
-                  'Supplier name',
+                  l10n.manualPurchaseSupplierName,
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
@@ -190,7 +190,11 @@ class _NewSupplierDialogState extends ConsumerState<_NewSupplierDialog> {
                 TextFormField(
                   controller: _nameController,
                   autofocus: true,
-                  decoration: _decoration(hint: 'e.g. Acme Distributors Ltd'),
+                  decoration: _decoration(
+                    hint: l10n.manualPurchaseExampleValue(
+                      'Acme Distributors Ltd',
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 14),
                 Row(
@@ -200,7 +204,7 @@ class _NewSupplierDialogState extends ConsumerState<_NewSupplierDialog> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'TIN (optional)',
+                            l10n.manualPurchaseTinOptional,
                             style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w600,
@@ -222,7 +226,7 @@ class _NewSupplierDialogState extends ConsumerState<_NewSupplierDialog> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Phone (optional)',
+                            l10n.manualPurchasePhoneOptional,
                             style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w600,
@@ -245,8 +249,10 @@ class _NewSupplierDialogState extends ConsumerState<_NewSupplierDialog> {
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     TextButton(
-                      onPressed: _saving ? null : () => Navigator.of(context).pop(),
-                      child: const Text('Cancel'),
+                      onPressed: _saving
+                          ? null
+                          : () => Navigator.of(context).pop(),
+                      child: Text(l10n.cancel),
                     ),
                     const SizedBox(width: 8),
                     FilledButton.icon(
@@ -265,7 +271,7 @@ class _NewSupplierDialogState extends ConsumerState<_NewSupplierDialog> {
                               ),
                             )
                           : const Icon(Icons.check, size: 18),
-                      label: const Text('Create & select'),
+                      label: Text(l10n.manualPurchaseCreateAndSelect),
                     ),
                   ],
                 ),

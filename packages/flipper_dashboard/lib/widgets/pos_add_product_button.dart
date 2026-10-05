@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'dart:async';
 
 import 'package:flipper_dashboard/AddProductDialog.dart';
@@ -71,7 +72,7 @@ class PosAddProductButton extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Tooltip(
-      message: 'Add product',
+      message: context.flipperL10n.addProductAction,
       child: Material(
         color: PosTokens.surface,
         borderRadius: BorderRadius.circular(PosTokens.radiusMd),

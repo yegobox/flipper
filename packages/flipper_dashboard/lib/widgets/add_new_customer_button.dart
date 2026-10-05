@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/theme/pos_tokens.dart';
 import 'package:flipper_ui/style_widget/button.dart';
 import 'package:flutter/material.dart';
@@ -21,7 +22,7 @@ class AddNewCustomerButton extends StatelessWidget {
       width: double.infinity,
       height: PosTokens.payButtonHeight,
       color: PosTokens.blue,
-      text: isLoading ? 'Opening…' : label,
+      text: isLoading ? context.flipperL10n.addCustomerOpening : label,
       isLoading: isLoading,
       onPressed: onPressed,
     );

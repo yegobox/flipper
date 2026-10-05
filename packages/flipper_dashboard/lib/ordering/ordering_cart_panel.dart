@@ -3,6 +3,7 @@ import 'package:flipper_dashboard/ordering/ordering_catalog.dart';
 import 'package:flipper_dashboard/ordering/ordering_state.dart';
 import 'package:flipper_dashboard/ordering/ordering_tokens.dart';
 import 'package:flipper_dashboard/ordering/ordering_widgets.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/pos_cart_display_provider.dart';
 import 'package:flipper_models/states/productListProvider.dart';
@@ -74,8 +75,7 @@ class _OrderBuilder extends ConsumerWidget {
     // them a line still renders, just without those two comparisons.
     final catalogue = ref.watch(productFromSupplierWrapper).value;
     final byVariantId = {
-      for (final variant in catalogue ?? const <Variant>[])
-        variant.id: variant,
+      for (final variant in catalogue ?? const <Variant>[]) variant.id: variant,
     };
 
     return Column(
@@ -128,10 +128,11 @@ class _PanelHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
     final countLabel = lineCount == 0
-        ? 'empty'
-        : '$lineCount ${lineCount == 1 ? 'line' : 'lines'} · '
-              '$unitCount ${unitCount == 1 ? 'unit' : 'units'}';
+        ? l10n.orderingEmpty
+        : '${l10n.orderingLineCount(lineCount)} · '
+              '${l10n.orderingUnitCount(unitCount)}';
 
     return Container(
       decoration: const BoxDecoration(
@@ -140,9 +141,9 @@ class _PanelHeader extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       child: Row(
         children: [
-          const Flexible(
+          Flexible(
             child: Text(
-              'This order',
+              l10n.orderingThisOrder,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               softWrap: false,
@@ -169,7 +170,7 @@ class _PanelHeader extends StatelessWidget {
               builder: (context, hovered) => GestureDetector(
                 onTap: onClear,
                 child: Text(
-                  'Clear all',
+                  l10n.orderingClearAll,
                   style: TextStyle(
                     fontFamily: OrderingTokens.sans,
                     fontSize: 12.5,
@@ -197,7 +198,7 @@ class _EmptyOrder extends StatelessWidget {
     return OrderingEmptyState(
       icon: Icons.shopping_cart_outlined,
       iconSize: 30,
-      title: 'No lines yet',
+      title: context.flipperL10n.orderingNoLinesYet,
       padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 56),
       hintWidget: DefaultTextStyle(
         style: OrderingTokens.body.copyWith(
@@ -206,15 +207,15 @@ class _EmptyOrder extends StatelessWidget {
           height: 1.55,
         ),
         textAlign: TextAlign.center,
-        child: const Wrap(
+        child: Wrap(
           alignment: WrapAlignment.center,
           crossAxisAlignment: WrapCrossAlignment.center,
           spacing: 5,
           runSpacing: 4,
           children: [
-            Text('Search a product and press'),
-            OrderingKbd('↵'),
-            Text('— the top match lands here.'),
+            Text(context.flipperL10n.orderingEmptyHintBefore),
+            const OrderingKbd('↵'),
+            Text(context.flipperL10n.orderingEmptyHintAfter),
           ],
         ),
       ),
@@ -295,7 +296,7 @@ class _OrderLine extends ConsumerWidget {
                 hoverBackground: OrderingTokens.dangerBg,
                 foreground: OrderingTokens.ink6,
                 hoverForeground: OrderingTokens.danger,
-                tooltip: 'Remove line',
+                tooltip: context.flipperL10n.orderingRemoveLine,
                 onPressed: () => actions.removeLine(line),
               ),
             ],
@@ -313,10 +314,7 @@ class _OrderLine extends ConsumerWidget {
                     : () => actions.decrementOne(variant: variant!),
                 onIncrement: variant == null
                     ? null
-                    : () => actions.addOne(
-                        context: context,
-                        variant: variant!,
-                      ),
+                    : () => actions.addOne(context: context, variant: variant!),
                 onSet: variant == null
                     ? null
                     : (value) => actions.setQty(
@@ -339,14 +337,17 @@ class _OrderLine extends ConsumerWidget {
               ),
               if (costDelta != null && costDelta != 0)
                 OrderingBadge(
-                  label:
-                      '${costDelta > 0 ? '+' : ''}$costDelta% vs last',
+                  label: context.flipperL10n.orderingCostDeltaVsLast(
+                    '${costDelta > 0 ? '+' : ''}$costDelta',
+                  ),
                   foreground: OrderingTokens.warn,
                   background: OrderingTokens.warnBg,
                 ),
               if (overStock)
                 OrderingBadge(
-                  label: 'only ${orderingCount(stock)} available',
+                  label: context.flipperL10n.orderingOnlyAvailable(
+                    orderingCount(stock),
+                  ),
                   foreground: OrderingTokens.danger,
                   background: OrderingTokens.dangerBg,
                 ),
@@ -436,7 +437,7 @@ class _LineQtyStepperState extends State<_LineQtyStepper> {
             radius: OrderingTokens.rSm,
             bordered: false,
             hoverBackground: OrderingTokens.lineSoft,
-            tooltip: 'Order one less',
+            tooltip: context.flipperL10n.orderingOneLess,
             onPressed: widget.onDecrement,
           ),
           SizedBox(
@@ -470,7 +471,7 @@ class _LineQtyStepperState extends State<_LineQtyStepper> {
             radius: OrderingTokens.rSm,
             bordered: false,
             hoverBackground: OrderingTokens.lineSoft,
-            tooltip: 'Order one more',
+            tooltip: context.flipperL10n.orderingOneMore,
             onPressed: widget.onIncrement,
           ),
         ],
@@ -614,6 +615,7 @@ class _OrderFooter extends ConsumerWidget {
     // missing answer, and treating it as one made the order unplaceable.
     final financePending = ref.watch(orderingFinanceChoicePendingProvider);
     final canPlace = hasLines && !financePending && !isPlacing;
+    final l10n = context.flipperL10n;
 
     return Container(
       decoration: const BoxDecoration(
@@ -624,10 +626,10 @@ class _OrderFooter extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _TotalRow(label: 'Subtotal', value: subtotal),
+          _TotalRow(label: l10n.subtotal, value: subtotal),
           const SizedBox(height: 7),
           _TotalRow(
-            label: rate == null ? 'VAT' : 'VAT $rate%',
+            label: rate == null ? 'VAT' : l10n.orderingVatRate('$rate'),
             value: tax,
           ),
           const SizedBox(height: 7),
@@ -638,13 +640,13 @@ class _OrderFooter extends ConsumerWidget {
             textBaseline: TextBaseline.alphabetic,
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Flexible(
+              Flexible(
                 child: Text(
-                  'Total',
+                  l10n.failedPaymentTotal,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   softWrap: false,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontFamily: OrderingTokens.sans,
                     fontSize: 14.5,
                     fontWeight: FontWeight.w800,
@@ -665,7 +667,7 @@ class _OrderFooter extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: 14),
-          const OrderingEyebrow('Pay with'),
+          OrderingEyebrow(l10n.orderingPayWith),
           const SizedBox(height: 7),
           const _FinanceChips(),
           const SizedBox(height: 14),
@@ -675,12 +677,12 @@ class _OrderFooter extends ConsumerWidget {
           // the operator guessing what it wants.
           OrderingPrimaryButton(
             label: isPlacing
-                ? 'Sending order…'
+                ? l10n.orderingSendingOrder
                 : !hasLines
-                ? 'Add a product to continue'
+                ? l10n.orderingAddProductToContinue
                 : financePending
-                ? 'Choose how you are paying'
-                : 'Place order · ${orderingMoney(total)}',
+                ? l10n.orderingChoosePayment
+                : l10n.orderingPlaceOrderTotal(orderingMoney(total)),
             icon: isPlacing ? null : Icons.send_outlined,
             expand: true,
             height: 52,
@@ -766,11 +768,11 @@ class _FinanceChips extends ConsumerWidget {
 
     return options.when(
       loading: () => Text(
-        'Loading payment options…',
+        context.flipperL10n.orderingLoadingPaymentOptions,
         style: OrderingTokens.body.copyWith(fontSize: 12.5),
       ),
       error: (error, _) => Text(
-        'Payment options unavailable — the order will be sent without one.',
+        context.flipperL10n.orderingPaymentOptionsUnavailable,
         style: OrderingTokens.body.copyWith(fontSize: 12.5),
       ),
       data: (providers) {
@@ -778,12 +780,8 @@ class _FinanceChips extends ConsumerWidget {
           // Reassurance, not a blocker: financing is optional on a purchase
           // order, and this business has none set up.
           return Text(
-            'No payment option set up for this business — the order will be '
-            'sent without one.',
-            style: OrderingTokens.body.copyWith(
-              fontSize: 12.5,
-              height: 1.45,
-            ),
+            context.flipperL10n.orderingNoPaymentOption,
+            style: OrderingTokens.body.copyWith(fontSize: 12.5, height: 1.45),
           );
         }
         return Wrap(
@@ -794,9 +792,8 @@ class _FinanceChips extends ConsumerWidget {
               _FinanceChip(
                 label: provider.name,
                 selected: selected?.id == provider.id,
-                onTap: () => ref
-                    .read(orderingFinanceProvider.notifier)
-                    .state = provider,
+                onTap: () =>
+                    ref.read(orderingFinanceProvider.notifier).state = provider,
               ),
           ],
         );
@@ -825,9 +822,7 @@ class _FinanceChip extends StatelessWidget {
           duration: OrderingTokens.hover,
           padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 9),
           decoration: BoxDecoration(
-            color: selected
-                ? OrderingTokens.blueTint
-                : OrderingTokens.surface,
+            color: selected ? OrderingTokens.blueTint : OrderingTokens.surface,
             borderRadius: const BorderRadius.all(
               Radius.circular(OrderingTokens.rStepper),
             ),
@@ -844,9 +839,7 @@ class _FinanceChip extends StatelessWidget {
               fontFamily: OrderingTokens.sans,
               fontSize: 13,
               fontWeight: FontWeight.w700,
-              color: selected
-                  ? OrderingTokens.blueHover
-                  : OrderingTokens.ink2,
+              color: selected ? OrderingTokens.blueHover : OrderingTokens.ink2,
               height: 1.2,
             ),
           ),
@@ -879,14 +872,14 @@ class _NoteField extends StatelessWidget {
           fontWeight: FontWeight.w500,
           color: OrderingTokens.ink1,
         ),
-        decoration: const InputDecoration(
+        decoration: InputDecoration(
           isDense: true,
           border: InputBorder.none,
           enabledBorder: InputBorder.none,
           focusedBorder: InputBorder.none,
-          contentPadding: EdgeInsets.symmetric(vertical: 11),
-          hintText: 'Delivery note (optional)',
-          hintStyle: TextStyle(
+          contentPadding: const EdgeInsets.symmetric(vertical: 11),
+          hintText: context.flipperL10n.orderingDeliveryNoteOptional,
+          hintStyle: const TextStyle(
             fontFamily: OrderingTokens.sans,
             fontSize: 13.5,
             fontWeight: FontWeight.w500,
@@ -906,9 +899,10 @@ class _PlacedPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
     final summary =
-        '${placed.lineCount} ${placed.lineCount == 1 ? 'line' : 'lines'} · '
-        '${placed.unitCount} ${placed.unitCount == 1 ? 'unit' : 'units'} · '
+        '${l10n.orderingLineCount(placed.lineCount)} · '
+        '${l10n.orderingUnitCount(placed.unitCount)} · '
         '${orderingMoney(placed.total)}';
 
     return SingleChildScrollView(
@@ -931,14 +925,13 @@ class _PlacedPanel extends StatelessWidget {
           ),
           const SizedBox(height: 14),
           Text(
-            'Order sent to ${placed.supplierName}',
+            l10n.orderingOrderSentTo(placed.supplierName),
             textAlign: TextAlign.center,
             style: OrderingTokens.placedTitle,
           ),
           const SizedBox(height: 14),
           Text(
-            '$summary\nThey get an SMS now; you will see it under '
-            'Incoming orders once accepted.',
+            '$summary\n${l10n.orderingPlacedHint}',
             textAlign: TextAlign.center,
             style: OrderingTokens.body.copyWith(fontSize: 14, height: 1.6),
           ),
@@ -948,7 +941,7 @@ class _PlacedPanel extends StatelessWidget {
           // dashboard page, which this route cannot select — so the copy above
           // points there instead of a button that would land somewhere else.
           OrderingPrimaryButton(
-            label: 'Start another order',
+            label: l10n.orderingStartAnotherOrder,
             onPressed: onStartAnother,
           ),
         ],

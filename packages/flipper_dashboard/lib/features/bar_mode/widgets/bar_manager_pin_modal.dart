@@ -3,6 +3,7 @@ import 'package:flipper_dashboard/features/bar_mode/providers/bar_mode_providers
 import 'package:flipper_dashboard/features/bar_mode/theme/bar_layout_breakpoints.dart';
 import 'package:flipper_dashboard/features/bar_mode/theme/bar_tokens.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_keypad.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/sync/utils/bar_mode_utils.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -15,6 +16,7 @@ class BarManagerPinModal extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final staff = ref.watch(barStaffProvider).value ?? [];
     final managers = staff.where(barTenantIsManager).toList();
+    final l10n = context.flipperL10n;
     final isMobile = BarLayoutBreakpoints.isBarMobileLayout(
       MediaQuery.sizeOf(context).width,
     );
@@ -59,28 +61,31 @@ class BarManagerPinModal extends ConsumerWidget {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'Manager approval',
+                  l10n.hotelManagerApproval,
                   style: GoogleFonts.outfit(
                     fontSize: 19,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
                 Text(
-                  'Settling a bill needs a manager PIN.',
-                  style: GoogleFonts.outfit(color: BarTokens.ink3, fontSize: 13),
+                  l10n.barSettleNeedsManagerPin,
+                  style: GoogleFonts.outfit(
+                    color: BarTokens.ink3,
+                    fontSize: 13,
+                  ),
                 ),
                 const SizedBox(height: 18),
                 BarKeypad(
                   tight: true,
-                  title: 'Manager',
-                  hint: 'Enter manager 6-digit PIN',
+                  title: l10n.hotelManager,
+                  hint: l10n.hotelEnterManagerPin,
                   verifyPin: (pin) async {
                     for (final m in managers) {
                       if (await barVerifyStaffPin(m, pin)) return true;
                     }
                     return false;
                   },
-                  errorText: 'Not a manager PIN',
+                  errorText: l10n.hotelNotManagerPin,
                   onSubmit: (pin) async {
                     Tenant? manager;
                     for (final m in managers) {
@@ -90,7 +95,9 @@ class BarManagerPinModal extends ConsumerWidget {
                       }
                     }
                     if (manager != null) {
-                      ref.read(barModeProvider.notifier).elevateManager(manager);
+                      ref
+                          .read(barModeProvider.notifier)
+                          .elevateManager(manager);
                     }
                   },
                 ),
@@ -98,7 +105,7 @@ class BarManagerPinModal extends ConsumerWidget {
                 TextButton(
                   onPressed: () =>
                       ref.read(barModeProvider.notifier).hideManagerPin(),
-                  child: const Text('Cancel'),
+                  child: Text(l10n.cancel),
                 ),
               ],
             ),
@@ -128,32 +135,35 @@ class BarManagerPinModal extends ConsumerWidget {
                   color: BarTokens.violetTint,
                   borderRadius: BorderRadius.circular(14),
                 ),
-                child: const Icon(Icons.shield_outlined, color: BarTokens.violet),
+                child: const Icon(
+                  Icons.shield_outlined,
+                  color: BarTokens.violet,
+                ),
               ),
               const SizedBox(height: 12),
               Text(
-                'Manager approval',
+                l10n.hotelManagerApproval,
                 style: GoogleFonts.outfit(
                   fontSize: 20,
                   fontWeight: FontWeight.w800,
                 ),
               ),
               Text(
-                'Settling a bill needs a manager PIN.',
+                l10n.barSettleNeedsManagerPin,
                 style: GoogleFonts.outfit(color: BarTokens.ink3),
               ),
               const SizedBox(height: 20),
               BarKeypad(
                 tight: true,
-                title: 'Manager',
-                hint: 'Enter manager 6-digit PIN',
+                title: l10n.hotelManager,
+                hint: l10n.hotelEnterManagerPin,
                 verifyPin: (pin) async {
                   for (final m in managers) {
                     if (await barVerifyStaffPin(m, pin)) return true;
                   }
                   return false;
                 },
-                errorText: 'Not a manager PIN',
+                errorText: l10n.hotelNotManagerPin,
                 onSubmit: (pin) async {
                   Tenant? manager;
                   for (final m in managers) {
@@ -171,7 +181,7 @@ class BarManagerPinModal extends ConsumerWidget {
               TextButton(
                 onPressed: () =>
                     ref.read(barModeProvider.notifier).hideManagerPin(),
-                child: const Text('Cancel'),
+                child: Text(l10n.cancel),
               ),
             ],
           ),

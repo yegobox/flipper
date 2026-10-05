@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 
 /// Create a error message,
 /// usually displayed on the page when an error occurs
@@ -91,20 +92,19 @@ class GErrorMessage extends StatelessWidget {
                             height: 20,
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
-                              valueColor:
-                                  AlwaysStoppedAnimation<Color>(Colors.white),
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Colors.white,
+                              ),
                             ),
                           )
-                        : Text(
-                            buttonText ?? "Try again",
-                          ),
+                        : Text(buttonText ?? context.flipperL10n.dashTryAgain),
                     onPressed: isLoading ? null : onPressed,
                   ),
                 if (onSecondaryPressed != null) const SizedBox(height: 16),
                 if (onSecondaryPressed != null)
                   TextButton(
                     child: Text(
-                      secondaryButtonText ?? "Cancel",
+                      secondaryButtonText ?? context.flipperL10n.cancel,
                     ),
                     onPressed: isLoading ? null : onSecondaryPressed,
                   ),

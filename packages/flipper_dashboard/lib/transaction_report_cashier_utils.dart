@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 
 /// True for RFC-style UUIDs or long opaque hex/hyphen ids (not a human-readable id).
 bool agentIdLooksLikeOpaqueTechnicalId(String agentId) {
@@ -20,15 +21,13 @@ bool agentIdLooksLikeOpaqueTechnicalId(String agentId) {
 /// Pretty label from agent id (email local-part → title case words).
 String cashierLabelFromAgentId(String agentId) {
   final id = agentId.trim();
-  if (id.isEmpty) return 'User';
+  if (id.isEmpty) return FlipperL10n.current.dashUserFallback;
   if (id.contains('@')) {
     final namePart = id.split('@').first;
     final parts = namePart.replaceAll('_', '.').split('.');
     return parts
         .where((p) => p.isNotEmpty)
-        .map(
-          (p) => '${p[0].toUpperCase()}${p.substring(1).toLowerCase()}',
-        )
+        .map((p) => '${p[0].toUpperCase()}${p.substring(1).toLowerCase()}')
         .join(' ');
   }
   return id;

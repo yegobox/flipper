@@ -1,5 +1,6 @@
 // ignore_for_file: unused_result
 
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/providers/date_range_provider.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/proxy.dart';
@@ -46,9 +47,9 @@ class ReportsDashboard extends HookConsumerWidget {
           elevation: 0,
           backgroundColor: Colors.white,
           foregroundColor: Colors.black87,
-          title: const Text(
-            'Business Analytics',
-            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 20),
+          title: Text(
+            context.flipperL10n.reportsBusinessAnalytics,
+            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 20),
           ),
           actions: [
             IconButton(
@@ -101,11 +102,16 @@ class ReportsDashboard extends HookConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildMetricsCards(totalSales, stockValue, profitVsCost),
+            _buildMetricsCards(
+              context.flipperL10n,
+              totalSales,
+              stockValue,
+              profitVsCost,
+            ),
             const SizedBox(height: 20),
-            _buildStockPerformanceChart(stockPerformance),
+            _buildStockPerformanceChart(context.flipperL10n, stockPerformance),
             const SizedBox(height: 20),
-            _buildDetailedMetrics(ref),
+            _buildDetailedMetrics(context.flipperL10n, ref),
           ],
         ),
       ),
@@ -129,6 +135,7 @@ class ReportsDashboard extends HookConsumerWidget {
   }
 
   Widget _buildMetricsCards(
+    FlipperAppLocalizations l10n,
     AsyncValue<double> totalSales,
     AsyncValue<double> stockValue,
     AsyncValue<double> profitVsCost,
@@ -137,9 +144,11 @@ class ReportsDashboard extends HookConsumerWidget {
       children: [
         Expanded(
           child: _buildMetricCard(
-            title: 'Stock Value!',
+            l10n: l10n,
+            title: l10n.reportsStockValue,
             value:
-                stockValue.asData?.value.toCurrencyFormatted() ?? 'Loading...',
+                stockValue.asData?.value.toCurrencyFormatted() ??
+                l10n.reportsLoading,
             icon: Icons.inventory_2_rounded,
             color: const Color(0xFF0078D4),
             isLoading: stockValue.isLoading,
@@ -148,9 +157,11 @@ class ReportsDashboard extends HookConsumerWidget {
         const SizedBox(width: 12),
         Expanded(
           child: _buildMetricCard(
-            title: 'Total Sales',
+            l10n: l10n,
+            title: l10n.reportsTotalSales,
             value:
-                totalSales.asData?.value.toCurrencyFormatted() ?? 'Loading...',
+                totalSales.asData?.value.toCurrencyFormatted() ??
+                l10n.reportsLoading,
             icon: Icons.trending_up_rounded,
             color: const Color(0xFF10B981),
             isLoading: totalSales.isLoading,
@@ -159,10 +170,11 @@ class ReportsDashboard extends HookConsumerWidget {
         const SizedBox(width: 12),
         Expanded(
           child: _buildMetricCard(
-            title: 'Profit',
+            l10n: l10n,
+            title: l10n.reportsProfit,
             value:
                 profitVsCost.asData?.value.toCurrencyFormatted() ??
-                'Loading...',
+                l10n.reportsLoading,
             icon: Icons.account_balance_wallet_rounded,
             color: const Color(0xFF8B5CF6),
             isLoading: profitVsCost.isLoading,
@@ -173,6 +185,7 @@ class ReportsDashboard extends HookConsumerWidget {
   }
 
   Widget _buildMetricCard({
+    required FlipperAppLocalizations l10n,
     required String title,
     required String value,
     required IconData icon,
@@ -228,7 +241,7 @@ class ReportsDashboard extends HookConsumerWidget {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        'Loading...',
+                        l10n.reportsLoading,
                         style: TextStyle(fontSize: 14, color: Colors.grey[500]),
                       ),
                     ],
@@ -248,6 +261,7 @@ class ReportsDashboard extends HookConsumerWidget {
   }
 
   Widget _buildStockPerformanceChart(
+    FlipperAppLocalizations l10n,
     AsyncValue<List<BusinessAnalytic>> stockPerformance,
   ) {
     return Container(
@@ -281,9 +295,9 @@ class ReportsDashboard extends HookConsumerWidget {
                 ),
               ),
               const SizedBox(width: 12),
-              const Text(
-                'Stock Performance',
-                style: TextStyle(
+              Text(
+                l10n.reportsStockPerformance,
+                style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                   color: Colors.black87,
@@ -301,7 +315,7 @@ class ReportsDashboard extends HookConsumerWidget {
               height: 200,
               child: Center(
                 child: Text(
-                  'Error loading chart data',
+                  l10n.reportsErrorLoadingChart,
                   style: TextStyle(color: Colors.grey[600]),
                 ),
               ),
@@ -312,7 +326,7 @@ class ReportsDashboard extends HookConsumerWidget {
                   height: 200,
                   child: Center(
                     child: Text(
-                      'Insufficient data for chart',
+                      l10n.reportsInsufficientData,
                       style: TextStyle(color: Colors.grey[600]),
                     ),
                   ),
@@ -354,7 +368,7 @@ class ReportsDashboard extends HookConsumerWidget {
     );
   }
 
-  Widget _buildDetailedMetrics(WidgetRef ref) {
+  Widget _buildDetailedMetrics(FlipperAppLocalizations l10n, WidgetRef ref) {
     final branchId = ProxyService.box.getBranchId()!;
     final metricsAsync = ref.watch(fetchMetricsProvider(branchId));
 
@@ -389,9 +403,9 @@ class ReportsDashboard extends HookConsumerWidget {
                 ),
               ),
               const SizedBox(width: 12),
-              const Text(
-                'Detailed Metrics',
-                style: TextStyle(
+              Text(
+                l10n.reportsDetailedMetrics,
+                style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                   color: Colors.black87,
@@ -411,7 +425,7 @@ class ReportsDashboard extends HookConsumerWidget {
               child: Padding(
                 padding: const EdgeInsets.all(20),
                 child: Text(
-                  'Error loading metrics',
+                  l10n.reportsErrorLoadingMetrics,
                   style: TextStyle(color: Colors.grey[600]),
                 ),
               ),

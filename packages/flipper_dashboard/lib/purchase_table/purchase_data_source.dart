@@ -1,12 +1,14 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_models/brick/models/all_models.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 
-const Map<String, String> _statusDisplayMap = {
-  '01': 'Waiting',
-  '02': 'Approved',
-  '04': 'Declined',
+/// Purchase status codes → labels in the current app language.
+Map<String, String> get _statusDisplayMap => {
+  '01': FlipperL10n.current.purchaseStatusWaiting,
+  '02': FlipperL10n.current.approved,
+  '04': FlipperL10n.current.purchaseStatusDeclined,
 };
 
 class PurchaseDataSource extends DataGridSource {
@@ -41,7 +43,8 @@ class PurchaseDataSource extends DataGridSource {
           DataGridCell<String>(columnName: 'Name', value: variant.name),
           DataGridCell<String>(
             columnName: 'Qty',
-            value: (stockMap[variant.stock?.id]?.currentStock ??
+            value:
+                (stockMap[variant.stock?.id]?.currentStock ??
                         variant.stock?.currentStock)
                     ?.toString() ??
                 '0',
@@ -58,9 +61,10 @@ class PurchaseDataSource extends DataGridSource {
           ),
           DataGridCell<String>(
             columnName: 'Status',
-            value: _statusDisplayMap[variant.pchsSttsCd] ??
+            value:
+                _statusDisplayMap[variant.pchsSttsCd] ??
                 variant.pchsSttsCd ??
-                'Unknown',
+                FlipperL10n.current.reportStatusUnknown,
           ),
         ],
       );

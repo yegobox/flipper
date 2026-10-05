@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 
 // Models
@@ -23,7 +24,9 @@ class DeliveryDriverApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Delivery Driver App',
+      onGenerateTitle: (context) => context.flipperL10n.deliveryDriverAppTitle,
+      localizationsDelegates: FlipperLocalizationDelegates.delegates,
+      supportedLocales: FlipperLocalizationDelegates.supportedLocales,
       theme: ThemeData(
         primaryColor: Colors.black,
         scaffoldBackgroundColor: Colors.white,
@@ -115,7 +118,9 @@ class _DriverHomeState extends State<DriverHome> {
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
                 Text(
-                  isOnline ? 'Online' : 'Offline',
+                  isOnline
+                      ? context.flipperL10n.deliveryOnline
+                      : context.flipperL10n.deliveryOffline,
                   style: TextStyle(
                     color: isOnline ? Colors.green : Colors.grey,
                     fontSize: 12,
@@ -165,15 +170,16 @@ class _DriverHomeState extends State<DriverHome> {
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: Colors.blue[50],
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(12)),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(12),
+              ),
             ),
             child: Row(
               children: [
                 const Icon(Icons.access_time, color: Colors.blue),
                 const SizedBox(width: 8),
                 Text(
-                  'Current Pickup',
+                  context.flipperL10n.deliveryCurrentPickup,
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     color: Colors.blue[900],
@@ -212,7 +218,7 @@ class _DriverHomeState extends State<DriverHome> {
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
-                        child: const Text('Confirm Pickup'),
+                        child: Text(context.flipperL10n.deliveryConfirmPickup),
                       ),
                     ),
                   ],
@@ -239,20 +245,14 @@ class _DriverHomeState extends State<DriverHome> {
             color: isPickup ? Colors.blue[50] : Colors.green[50],
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Icon(
-            icon,
-            color: isPickup ? Colors.blue : Colors.green,
-          ),
+          child: Icon(icon, color: isPickup ? Colors.blue : Colors.green),
         ),
         const SizedBox(width: 12),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                title,
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
+              Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
               Text(
                 subtitle,
                 style: TextStyle(color: Colors.grey[600], fontSize: 12),
@@ -270,12 +270,9 @@ class _DriverHomeState extends State<DriverHome> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Upcoming Deliveries',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
+          Text(
+            context.flipperL10n.deliveryUpcoming,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
           Expanded(
@@ -292,15 +289,23 @@ class _DriverHomeState extends State<DriverHome> {
                   child: ListTile(
                     contentPadding: const EdgeInsets.all(16),
                     title: Text(
-                      'Order #${delivery.id}',
+                      context.flipperL10n.deliveryOrderNumber(delivery.id),
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                     subtitle: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const SizedBox(height: 8),
-                        Text('Pickup: ${delivery.pickupName}'),
-                        Text('Deliver to: ${delivery.customerName}'),
+                        Text(
+                          context.flipperL10n.deliveryPickupLine(
+                            delivery.pickupName,
+                          ),
+                        ),
+                        Text(
+                          context.flipperL10n.deliveryDeliverTo(
+                            delivery.customerName,
+                          ),
+                        ),
                       ],
                     ),
                     trailing: const Icon(Icons.chevron_right),
@@ -324,22 +329,15 @@ class OfflineScreen extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.delivery_dining,
-            size: 80,
-            color: Colors.grey[400],
-          ),
+          Icon(Icons.delivery_dining, size: 80, color: Colors.grey[400]),
           const SizedBox(height: 16),
-          const Text(
-            'You are offline',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-            ),
+          Text(
+            context.flipperL10n.deliveryYouAreOffline,
+            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
           Text(
-            'Go online to start receiving deliveries',
+            context.flipperL10n.deliveryGoOnline,
             style: TextStyle(color: Colors.grey[600]),
           ),
         ],

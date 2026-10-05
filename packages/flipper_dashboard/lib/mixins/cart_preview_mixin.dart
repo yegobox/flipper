@@ -3,6 +3,7 @@
 import 'dart:async';
 
 import 'package:flipper_dashboard/mixins/base_cart_mixin.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/providers/selected_provider.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
@@ -48,8 +49,8 @@ mixin CartPreviewMixin<T extends ConsumerStatefulWidget>
       final dialogService = locator<DialogService>();
       dialogService.showCustomDialog(
         variant: DialogType.info,
-        title: 'Error',
-        description: 'Please select a supplier first.',
+        title: FlipperL10n.current.error,
+        description: FlipperL10n.current.orderingSelectSupplierFirst,
         data: {'status': InfoDialogStatus.error},
       );
       return; // Return void to match the expected return type
@@ -59,8 +60,8 @@ mixin CartPreviewMixin<T extends ConsumerStatefulWidget>
       final dialogService = locator<DialogService>();
       dialogService.showCustomDialog(
         variant: DialogType.info,
-        title: 'Error',
-        description: 'You can not order from yourself.',
+        title: FlipperL10n.current.error,
+        description: FlipperL10n.current.orderingCannotOrderFromYourself,
         data: {'status': InfoDialogStatus.error},
       );
       return; // Return void to match the expected return type
@@ -89,9 +90,9 @@ mixin CartPreviewMixin<T extends ConsumerStatefulWidget>
     ITransaction transaction,
   ) async {
     return await ProxyService.getStrategy(Strategy.capella).transactionItems(
-      branchId: (await ProxyService.getStrategy(Strategy.capella).activeBranch(
-        branchId: ProxyService.box.getBranchId()!,
-      )).id,
+      branchId: (await ProxyService.getStrategy(
+        Strategy.capella,
+      ).activeBranch(branchId: ProxyService.box.getBranchId()!)).id,
       transactionId: transaction.id,
       doneWithTransaction: false,
       active: true,
@@ -102,7 +103,9 @@ mixin CartPreviewMixin<T extends ConsumerStatefulWidget>
     List<TransactionItem> items,
     dynamic pendingTransaction,
   ) async {
-    await ProxyService.getStrategy(Strategy.capella).markItemAsDoneWithTransaction(
+    await ProxyService.getStrategy(
+      Strategy.capella,
+    ).markItemAsDoneWithTransaction(
       isDoneWithTransaction: true,
       inactiveItems: items,
       ignoreForReport: false,
@@ -113,9 +116,8 @@ mixin CartPreviewMixin<T extends ConsumerStatefulWidget>
   Future<void> _changeTransactionStatus({
     required ITransaction transaction,
   }) async {
-    await ProxyService.getStrategy(Strategy.capella).updateTransaction(
-      transaction: transaction,
-      status: ORDERING,
-    );
+    await ProxyService.getStrategy(
+      Strategy.capella,
+    ).updateTransaction(transaction: transaction, status: ORDERING);
   }
 }

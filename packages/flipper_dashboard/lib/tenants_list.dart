@@ -1,12 +1,16 @@
 import 'dart:developer';
+import 'package:flipper_localize/flipper_localize.dart';
 
 import 'package:flipper_ui/toast.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/db_model_export.dart';
 
 class ListTenants extends StatelessWidget {
-  ListTenants(
-      {required this.tenants, required this.product, required this.model});
+  ListTenants({
+    required this.tenants,
+    required this.product,
+    required this.model,
+  });
   final List<Tenant> tenants;
   final Product product;
   final ProductViewModel model;
@@ -19,7 +23,7 @@ class ListTenants extends StatelessWidget {
             children: [
               Padding(
                 padding: EdgeInsets.all(16.0),
-                child: Text("Bind the product to bellow tenant for easy sell"),
+                child: Text(context.flipperL10n.tenantsBindProductHint),
               ),
               Expanded(
                 child: ListView.builder(
@@ -28,33 +32,37 @@ class ListTenants extends StatelessWidget {
                     return Row(
                       children: [
                         Expanded(
-                          child: ListTile(
-                            title: Text(tenants[index].name!),
-                          ),
+                          child: ListTile(title: Text(tenants[index].name!)),
                         ),
                         TextButton(
                           style: ButtonStyle(
                             overlayColor:
-                                WidgetStateProperty.resolveWith<Color?>(
-                                    (Set<WidgetState> states) {
-                              if (states.contains(WidgetState.focused))
-                                return Colors.red;
-                              if (states.contains(WidgetState.hovered))
-                                return Colors.green;
-                              if (states.contains(WidgetState.pressed))
-                                return Colors.blue;
-                              return null; // Defer to the widget's default.
-                            }),
+                                WidgetStateProperty.resolveWith<Color?>((
+                                  Set<WidgetState> states,
+                                ) {
+                                  if (states.contains(WidgetState.focused))
+                                    return Colors.red;
+                                  if (states.contains(WidgetState.hovered))
+                                    return Colors.green;
+                                  if (states.contains(WidgetState.pressed))
+                                    return Colors.blue;
+                                  return null; // Defer to the widget's default.
+                                }),
                           ),
                           onPressed: () async {
                             log(tenants[index].id.toString());
                             await model.bindTenant(
-                                tenantId: tenants[index].id,
-                                productId: product.id);
+                              tenantId: tenants[index].id,
+                              productId: product.id,
+                            );
                             showToast(
-                                context, 'Binded to ${tenants[index].name}');
+                              context,
+                              context.flipperL10n.tenantsBoundTo(
+                                tenants[index].name ?? '',
+                              ),
+                            );
                           },
-                          child: Text('Bind'),
+                          child: Text(context.flipperL10n.tenantsBind),
                         ),
                       ],
                     );

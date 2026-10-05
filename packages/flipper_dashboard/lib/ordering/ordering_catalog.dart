@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/ordering/ordering_state.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/states/productListProvider.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -35,8 +36,16 @@ class OrderingCategory {
   final int count;
 
   bool get isAll => name == kOrderingAllCategories;
-  String get label => isAll ? 'All products' : name;
+  String get label => isAll
+      ? FlipperL10n.current.orderingAllProducts
+      : orderingCategoryLabel(name);
 }
+
+/// Display text for a category name; [kOrderingUncategorised] is a key, so
+/// only its label is translated.
+String orderingCategoryLabel(String name) => name == kOrderingUncategorised
+    ? FlipperL10n.current.orderingUncategorised
+    : name;
 
 /// A category section in the catalogue.
 class OrderingGroup {
@@ -74,7 +83,8 @@ class OrderingCatalog {
   /// The row Enter adds.
   Variant? get topMatch => visible.isEmpty ? null : visible.first;
 
-  String get resultLabel => '${visible.length} of $totalCount products';
+  String get resultLabel =>
+      FlipperL10n.current.loadedOfProducts('${visible.length}', '$totalCount');
 }
 
 OrderingCatalog buildOrderingCatalog({
@@ -126,10 +136,7 @@ OrderingCatalog buildOrderingCatalog({
 
   return OrderingCatalog(
     categories: [
-      OrderingCategory(
-        name: kOrderingAllCategories,
-        count: products.length,
-      ),
+      OrderingCategory(name: kOrderingAllCategories, count: products.length),
       for (final name in categoryNames)
         OrderingCategory(name: name, count: counts[name] ?? 0),
     ],

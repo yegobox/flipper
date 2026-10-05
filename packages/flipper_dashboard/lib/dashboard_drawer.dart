@@ -70,7 +70,7 @@ class _DashboardDrawerState extends ConsumerState<DashboardDrawer>
 
     final phone = ProxyService.box.getUserPhone()?.trim();
     if (phone != null && phone.isNotEmpty) return phone;
-    return 'User';
+    return FlipperL10n.current.dashUserFallback;
   }
 
   String _profileSubtitleFromRow(Map<String, dynamic>? row) {
@@ -83,7 +83,7 @@ class _DashboardDrawerState extends ConsumerState<DashboardDrawer>
     final localPhone = ProxyService.box.getUserPhone()?.trim();
     if (localPhone != null && localPhone.isNotEmpty) return localPhone;
 
-    return 'Admin';
+    return FlipperL10n.current.drawerMenuAdminFallback;
   }
 
   Future<({Tenant? tenant, Map<String, dynamic>? profileRow})>
@@ -226,7 +226,8 @@ class _DashboardDrawerState extends ConsumerState<DashboardDrawer>
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            tenant?.name ?? "My Business",
+                            tenant?.name ??
+                                context.flipperL10n.drawerMenuMyBusiness,
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 18,
@@ -301,7 +302,7 @@ class _DashboardDrawerState extends ConsumerState<DashboardDrawer>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'QUICK ACTIONS',
+            context.flipperL10n.drawerMenuQuickActions,
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w700,
@@ -372,9 +373,7 @@ class _DashboardDrawerState extends ConsumerState<DashboardDrawer>
       }(),
       builder: (context, businessSnapshot) {
         if (businessSnapshot.connectionState == ConnectionState.waiting) {
-          return _buildLoadingState(
-            context.flipperL10n.loadingBusinesses,
-          );
+          return _buildLoadingState(context.flipperL10n.loadingBusinesses);
         }
 
         if (businessSnapshot.hasError) {
@@ -406,7 +405,7 @@ class _DashboardDrawerState extends ConsumerState<DashboardDrawer>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'YOUR BUSINESSES',
+            context.flipperL10n.drawerMenuYourBusinesses,
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w700,
@@ -436,7 +435,7 @@ class _DashboardDrawerState extends ConsumerState<DashboardDrawer>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'MANAGEMENT',
+            context.flipperL10n.drawerMenuManagement,
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w700,
@@ -517,10 +516,10 @@ class _DashboardDrawerState extends ConsumerState<DashboardDrawer>
                                 ),
                               ),
                               const SizedBox(width: 12),
-                              const Expanded(
+                              Expanded(
                                 child: Text(
-                                  'Print Delegation',
-                                  style: TextStyle(
+                                  context.flipperL10n.drawerMenuPrintDelegation,
+                                  style: const TextStyle(
                                     fontSize: 20,
                                     fontWeight: FontWeight.w800,
                                   ),
@@ -574,7 +573,7 @@ class _DashboardDrawerState extends ConsumerState<DashboardDrawer>
           // Config; mobile had no way to reach them at all.
           _ModernMenuRow(
             iconSvg: DashboardQuickAccessSvgs.drawerReceiptModeIcon(),
-            title: 'Sale mode',
+            title: context.flipperL10n.drawerMenuSaleMode,
             subtitle: saleModeLabel(saleMode),
             onTap: () async {
               final selected = await showMobileSaleModeSheet(context);
@@ -631,8 +630,7 @@ class _DashboardDrawerState extends ConsumerState<DashboardDrawer>
                     await prefsBox.attachDittoPersistence();
                   }
                   await ProxyService.notification.sendLocalNotification(
-                    body:
-                        "Background Sync Enabled, to disable it, go to settings and disable it",
+                    body: FlipperL10n.current.drawerMenuBackgroundSyncEnabled,
                   );
                 }
               } else {
@@ -640,7 +638,7 @@ class _DashboardDrawerState extends ConsumerState<DashboardDrawer>
                 await DittoSyncCoordinator.instance.setDitto(null);
                 await DittoSingleton.instance.dispose();
                 await ProxyService.notification.sendLocalNotification(
-                  body: "Background Sync Disabled",
+                  body: FlipperL10n.current.drawerMenuBackgroundSyncDisabled,
                 );
               }
             },
@@ -680,7 +678,9 @@ class _DashboardDrawerState extends ConsumerState<DashboardDrawer>
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          isVatEnabled ? 'EBM On' : 'EBM Off',
+                          isVatEnabled
+                              ? context.flipperL10n.drawerMenuEbmOn
+                              : context.flipperL10n.drawerMenuEbmOff,
                           style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w500,
@@ -712,7 +712,7 @@ class _DashboardDrawerState extends ConsumerState<DashboardDrawer>
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        'Checking EBM status...',
+                        context.flipperL10n.drawerMenuCheckingEbm,
                         style: TextStyle(
                           fontSize: 13,
                           color: Colors.grey.shade600,
@@ -736,7 +736,7 @@ class _DashboardDrawerState extends ConsumerState<DashboardDrawer>
                       const Icon(Icons.error, color: Colors.red, size: 20),
                       const SizedBox(width: 8),
                       Text(
-                        'EBM Status Error',
+                        context.flipperL10n.drawerMenuEbmStatusError,
                         style: TextStyle(
                           fontSize: 13,
                           color: Colors.red.shade700,
@@ -853,7 +853,10 @@ class _DashboardDrawerState extends ConsumerState<DashboardDrawer>
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 12),
-          TextButton(onPressed: onRetry, child: const Text('Retry')),
+          TextButton(
+            onPressed: onRetry,
+            child: Text(context.flipperL10n.retry),
+          ),
         ],
       ),
     );
@@ -958,7 +961,7 @@ class _ModernShiftTileState extends State<ModernShiftTile> {
                 ),
                 const SizedBox(width: 12),
                 Text(
-                  'Checking shift status...',
+                  context.flipperL10n.drawerMenuCheckingShift,
                   style: TextStyle(color: Colors.grey[600]),
                 ),
               ],
@@ -1023,7 +1026,9 @@ class _ModernShiftTileState extends State<ModernShiftTile> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            isShiftOpen ? context.flipperL10n.closeShift : context.flipperL10n.openShift,
+                            isShiftOpen
+                                ? context.flipperL10n.closeShift
+                                : context.flipperL10n.openShift,
                             style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
@@ -1032,8 +1037,8 @@ class _ModernShiftTileState extends State<ModernShiftTile> {
                           const SizedBox(height: 2),
                           Text(
                             isShiftOpen
-                                ? 'End current shift'
-                                : 'Start new shift',
+                                ? context.flipperL10n.drawerMenuEndShift
+                                : context.flipperL10n.drawerMenuStartShift,
                             style: TextStyle(
                               fontSize: 13,
                               color: Colors.grey[600],
@@ -1118,8 +1123,10 @@ class _ModernShiftTileState extends State<ModernShiftTile> {
         // StartShiftDialog already persisted the shift in Ditto.
         _loadShiftStatus();
         try {
-          ProviderScope.containerOf(context, listen: false)
-              .invalidate(currentOpenShiftProvider);
+          ProviderScope.containerOf(
+            context,
+            listen: false,
+          ).invalidate(currentOpenShiftProvider);
         } catch (_) {}
       }
     }
@@ -1149,16 +1156,18 @@ class _CheckSubscriptionDrawerRow extends ConsumerWidget {
                 if (!context.mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text(
-                      paymentVerificationResultMessage(response),
-                    ),
+                    content: Text(paymentVerificationResultMessage(response)),
                   ),
                 );
               } catch (e) {
                 if (!context.mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text(context.flipperL10n.couldNotCheckSubscription(e.toString())),
+                    content: Text(
+                      context.flipperL10n.couldNotCheckSubscription(
+                        e.toString(),
+                      ),
+                    ),
                   ),
                 );
               }
@@ -1303,7 +1312,7 @@ class _ModernBusinessCardState extends State<_ModernBusinessCard> {
           ),
         ),
         title: Text(
-          widget.business.name ?? 'Unnamed Business',
+          widget.business.name ?? context.flipperL10n.drawerMenuUnnamedBusiness,
           style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
         ),
         subtitle: Align(
@@ -1315,7 +1324,7 @@ class _ModernBusinessCardState extends State<_ModernBusinessCard> {
               borderRadius: BorderRadius.circular(999),
             ),
             child: Text(
-              '${branches.length} ${branches.length == 1 ? 'branch' : 'branches'}',
+              context.flipperL10n.drawerMenuBranchCount(branches.length),
               style: const TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
@@ -1399,7 +1408,7 @@ class _BranchItem extends StatelessWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  branch.name ?? 'Unnamed Branch',
+                  branch.name ?? context.flipperL10n.drawerMenuUnnamedBranch,
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
@@ -1634,8 +1643,8 @@ class _MobileTransactionDelegationSettingsState
         showCustomSnackBarUtil(
           context,
           value
-              ? 'Print Delegation enabled'
-              : 'Print Delegation disabled',
+              ? context.flipperL10n.drawerMenuDelegationEnabled
+              : context.flipperL10n.drawerMenuDelegationDisabled,
           type: value ? NotificationType.success : NotificationType.info,
           duration: const Duration(seconds: 2),
         );
@@ -1648,7 +1657,7 @@ class _MobileTransactionDelegationSettingsState
       if (mounted) {
         showCustomSnackBarUtil(
           context,
-          'Error: ${e.toString()}',
+          context.flipperL10n.errorMessage(e.toString()),
           type: NotificationType.error,
         );
       }
@@ -1669,7 +1678,7 @@ class _MobileTransactionDelegationSettingsState
       if (mounted) {
         showCustomSnackBarUtil(
           context,
-          'Delegation device selected',
+          context.flipperL10n.drawerMenuDelegationDeviceSelected,
           type: NotificationType.success,
           duration: const Duration(seconds: 2),
         );
@@ -1678,7 +1687,7 @@ class _MobileTransactionDelegationSettingsState
       if (mounted) {
         showCustomSnackBarUtil(
           context,
-          'Error selecting device: ${e.toString()}',
+          context.flipperL10n.drawerMenuErrorSelectingDevice(e.toString()),
           type: NotificationType.error,
         );
       }
@@ -1720,9 +1729,12 @@ class _MobileTransactionDelegationSettingsState
                   ),
                 ),
                 const SizedBox(width: 12),
-                const Text(
-                  'Select Device',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                Text(
+                  context.flipperL10n.drawerMenuSelectDevice,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ],
             ),
@@ -1733,7 +1745,7 @@ class _MobileTransactionDelegationSettingsState
                   return Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: Text(
-                      'No devices available in this branch',
+                      context.flipperL10n.drawerMenuNoDevices,
                       style: TextStyle(
                         color: Colors.grey[600],
                         fontStyle: FontStyle.italic,
@@ -1763,9 +1775,17 @@ class _MobileTransactionDelegationSettingsState
                           children: [
                             if (device.friendlyName != null &&
                                 device.friendlyName!.trim().isNotEmpty)
-                              Text('Platform: ${device.deviceName ?? '—'}'),
+                              Text(
+                                context.flipperL10n.drawerMenuPlatform(
+                                  device.deviceName ?? '—',
+                                ),
+                              ),
                             if (device.phone != null)
-                              Text('Phone: ${device.phone}'),
+                              Text(
+                                context.flipperL10n.drawerMenuPhone(
+                                  '${device.phone}',
+                                ),
+                              ),
                             SelectableText(
                               device.id,
                               style: const TextStyle(
@@ -1791,7 +1811,9 @@ class _MobileTransactionDelegationSettingsState
               error: (error, stack) => Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Text(
-                  'Error loading devices: ${error.toString()}',
+                  context.flipperL10n.drawerMenuErrorLoadingDevices(
+                    error.toString(),
+                  ),
                   style: const TextStyle(color: Colors.red),
                 ),
               ),
@@ -1846,18 +1868,18 @@ class _MobileTransactionDelegationSettingsState
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Delegate',
-                      style: TextStyle(
+                    Text(
+                      context.flipperL10n.drawerMenuDelegate,
+                      style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w800,
                         height: 1.05,
                       ),
                     ),
                     const SizedBox(height: 3),
-                    const Text(
-                      'Receipt printing to desktop when EBM server is unavailable',
-                      style: TextStyle(
+                    Text(
+                      context.flipperL10n.drawerMenuDelegateHint,
+                      style: const TextStyle(
                         fontSize: 13.5,
                         color: Color(0xFF9CA3AF),
                         height: 1.25,
@@ -1879,7 +1901,9 @@ class _MobileTransactionDelegationSettingsState
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          _isEnabled ? 'Enabled' : 'Disabled',
+                          _isEnabled
+                              ? context.flipperL10n.drawerMenuEnabled
+                              : context.flipperL10n.drawerMenuDisabled,
                           style: const TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
@@ -1928,9 +1952,9 @@ class _MobileTransactionDelegationSettingsState
                     size: 18,
                   ),
                   const SizedBox(width: 8),
-                  const Text(
-                    'How it works',
-                    style: TextStyle(
+                  Text(
+                    context.flipperL10n.umusadaHowItWorks,
+                    style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w800,
                       color: Color(0xFF2563EB),
@@ -1942,27 +1966,25 @@ class _MobileTransactionDelegationSettingsState
               _HowItWorksStep(
                 number: 1,
                 icon: Icons.phone_android_rounded,
-                text:
-                    'Mobile completes the transaction but\ndelegates receipt generation',
+                text: context.flipperL10n.drawerMenuDelegationStep1,
               ),
               const SizedBox(height: 10),
               _HowItWorksStep(
                 number: 2,
                 icon: Icons.desktop_windows_rounded,
-                text: 'Desktop picks up the transaction via sync',
+                text: context.flipperL10n.drawerMenuDelegationStep2,
               ),
               const SizedBox(height: 10),
               _HowItWorksStep(
                 number: 3,
                 icon: Icons.description_outlined,
-                text:
-                    'Desktop generates the receipt and\ncommunicates with EBM server',
+                text: context.flipperL10n.drawerMenuDelegationStep3,
               ),
               const SizedBox(height: 10),
               _HowItWorksStep(
                 number: 4,
                 icon: Icons.notifications_none_rounded,
-                text: 'Mobile is notified when processing is\ncomplete',
+                text: context.flipperL10n.drawerMenuDelegationStep4,
                 showConnector: false,
               ),
             ],
@@ -1992,7 +2014,7 @@ class _MobileTransactionDelegationSettingsState
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      'Requirements',
+                      context.flipperL10n.drawerMenuRequirements,
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
@@ -2003,15 +2025,15 @@ class _MobileTransactionDelegationSettingsState
                 ),
                 const SizedBox(height: 12),
                 _buildRequirement(
-                  '• Desktop app must be running with delegation enabled',
+                  '• ${context.flipperL10n.drawerMenuRequirement1}',
                 ),
                 const SizedBox(height: 6),
                 _buildRequirement(
-                  '• Both devices must be syncing via flipper sync',
+                  '• ${context.flipperL10n.drawerMenuRequirement2}',
                 ),
                 const SizedBox(height: 6),
                 _buildRequirement(
-                  '• Desktop processes delegated transactions every 10 seconds',
+                  '• ${context.flipperL10n.drawerMenuRequirement3}',
                 ),
               ],
             ),

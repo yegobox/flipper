@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/features/services_gigs/models/service_gig_chat_message.dart';
 import 'package:flipper_dashboard/features/services_gigs/models/service_gig_request.dart';
 import 'package:flipper_dashboard/features/services_gigs/services/service_gig_request_repository.dart';
@@ -12,8 +13,10 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 /// Full request view: timeline, chat, pay / job actions, review.
 class GigRequestDetailScreen extends StatefulWidget {
   final String requestId;
+
   /// Top title (e.g. provider name or "Request from …").
   final String headline;
+
   /// Shown on MTN sheet; only used when the viewer is the customer.
   final String? paymentRecipientLabel;
 
@@ -152,7 +155,7 @@ class _GigRequestDetailScreenState extends State<GigRequestDetailScreen> {
       if (mounted) showErrorNotification(context, e.message);
     } catch (_) {
       if (mounted) {
-        showErrorNotification(context, 'Could not send message.');
+        showErrorNotification(context, context.flipperL10n.gigsErrSendMessage);
       }
     } finally {
       if (mounted) setState(() => _sending = false);
@@ -170,11 +173,12 @@ class _GigRequestDetailScreenState extends State<GigRequestDetailScreen> {
       ),
       builder: (ctx) => GigPaymentSheet(
         request: r,
-        providerLabel: widget.paymentRecipientLabel ?? 'Provider',
+        providerLabel:
+            widget.paymentRecipientLabel ?? context.flipperL10n.gigsProvider,
       ),
     );
     if (done == true && mounted) {
-      showSuccessNotification(context, 'Payment recorded.');
+      showSuccessNotification(context, context.flipperL10n.gigsPaymentRecorded);
       await _syncFromServer(showFullScreenLoader: false);
       if (mounted) Navigator.of(context).pop(true);
     }
@@ -184,7 +188,11 @@ class _GigRequestDetailScreenState extends State<GigRequestDetailScreen> {
     setState(() => _acting = true);
     try {
       await _repo.providerStartJob(widget.requestId);
-      if (mounted) showSuccessNotification(context, 'Marked as in progress.');
+      if (mounted)
+        showSuccessNotification(
+          context,
+          context.flipperL10n.gigsMarkedInProgress,
+        );
       await _syncFromServer(showFullScreenLoader: false);
     } on ServiceGigRequestException catch (e) {
       if (mounted) showErrorNotification(context, e.message);
@@ -198,7 +206,10 @@ class _GigRequestDetailScreenState extends State<GigRequestDetailScreen> {
     try {
       await _repo.providerCompleteJob(widget.requestId);
       if (mounted) {
-        showSuccessNotification(context, 'Job marked complete. Customer can review.');
+        showSuccessNotification(
+          context,
+          context.flipperL10n.gigsJobMarkedComplete,
+        );
       }
       await _syncFromServer(showFullScreenLoader: false);
     } on ServiceGigRequestException catch (e) {
@@ -218,7 +229,7 @@ class _GigRequestDetailScreenState extends State<GigRequestDetailScreen> {
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setSt) => AlertDialog(
           title: Text(
-            'Rate your experience',
+            context.flipperL10n.gigsRateYourExperience,
             style: GoogleFonts.outfit(fontWeight: FontWeight.w600),
           ),
           content: SingleChildScrollView(
@@ -244,7 +255,7 @@ class _GigRequestDetailScreenState extends State<GigRequestDetailScreen> {
                   controller: reviewCtrl,
                   maxLines: 4,
                   decoration: InputDecoration(
-                    labelText: 'Comment',
+                    labelText: context.flipperL10n.gigsComment,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -256,14 +267,20 @@ class _GigRequestDetailScreenState extends State<GigRequestDetailScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx, false),
-              child: Text('Cancel', style: GoogleFonts.outfit()),
+              child: Text(
+                context.flipperL10n.cancel,
+                style: GoogleFonts.outfit(),
+              ),
             ),
             FilledButton(
               onPressed: () => Navigator.pop(ctx, true),
               style: FilledButton.styleFrom(
                 backgroundColor: const Color(0xFF0D9488),
               ),
-              child: Text('Submit', style: GoogleFonts.outfit()),
+              child: Text(
+                context.flipperL10n.submit,
+                style: GoogleFonts.outfit(),
+              ),
             ),
           ],
         ),
@@ -279,7 +296,11 @@ class _GigRequestDetailScreenState extends State<GigRequestDetailScreen> {
         rating: stars,
         comment: comment,
       );
-      if (mounted) showSuccessNotification(context, 'Thanks for your review.');
+      if (mounted)
+        showSuccessNotification(
+          context,
+          context.flipperL10n.gigsThanksForReview,
+        );
       await _syncFromServer(showFullScreenLoader: false);
     } on ServiceGigRequestException catch (e) {
       if (mounted) showErrorNotification(context, e.message);
@@ -295,7 +316,7 @@ class _GigRequestDetailScreenState extends State<GigRequestDetailScreen> {
       backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
         title: Text(
-          'Request details',
+          context.flipperL10n.gigsRequestDetails,
           style: GoogleFonts.outfit(fontWeight: FontWeight.w600),
         ),
         elevation: 0,
@@ -305,151 +326,153 @@ class _GigRequestDetailScreenState extends State<GigRequestDetailScreen> {
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : r == null
-              ? Center(
-                  child: Text(
-                    'Request not found.',
-                    style: GoogleFonts.outfit(),
+          ? Center(
+              child: Text(
+                context.flipperL10n.gigsErrRequestNotFound,
+                style: GoogleFonts.outfit(),
+              ),
+            )
+          : RefreshIndicator(
+              onRefresh: () => _syncFromServer(showFullScreenLoader: false),
+              color: const Color(0xFF0D9488),
+              child: ListView(
+                controller: _scrollController,
+                padding: const EdgeInsets.all(16),
+                children: [
+                  Text(
+                    widget.headline,
+                    style: GoogleFonts.outfit(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 17,
+                    ),
                   ),
-                )
-              : RefreshIndicator(
-                  onRefresh: () =>
-                      _syncFromServer(showFullScreenLoader: false),
-                  color: const Color(0xFF0D9488),
-                  child: ListView(
-                    controller: _scrollController,
-                    padding: const EdgeInsets.all(16),
+                  const SizedBox(height: 8),
+                  Text(
+                    r.statusLabel,
+                    style: GoogleFonts.outfit(
+                      fontWeight: FontWeight.w600,
+                      color: Color(r.statusColor),
+                    ),
+                  ),
+                  if (r.requestedService != null &&
+                      r.requestedService!.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      r.requestedService!,
+                      style: GoogleFonts.outfit(
+                        fontWeight: FontWeight.w500,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 8),
+                  Text(
+                    r.customerMessage,
+                    style: GoogleFonts.outfit(fontSize: 14, height: 1.4),
+                  ),
+                  const SizedBox(height: 20),
+                  RequestStatusTimeline(request: r),
+                  const SizedBox(height: 24),
+                  Text(
+                    context.flipperL10n.gigsMessages,
+                    style: GoogleFonts.outfit(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 15,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  if (_messages.isEmpty)
+                    Text(
+                      context.flipperL10n.gigsNoMessagesYet,
+                      style: GoogleFonts.outfit(
+                        fontSize: 13,
+                        color: Colors.grey.shade600,
+                      ),
+                    )
+                  else
+                    ..._messages.map((m) {
+                      final mine = m.senderUserId == _myId;
+                      return Align(
+                        alignment: mine
+                            ? Alignment.centerRight
+                            : Alignment.centerLeft,
+                        child: Container(
+                          margin: const EdgeInsets.only(bottom: 8),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                          constraints: BoxConstraints(
+                            maxWidth: MediaQuery.sizeOf(context).width * 0.78,
+                          ),
+                          decoration: BoxDecoration(
+                            color: mine
+                                ? const Color(
+                                    0xFF0D9488,
+                                  ).withValues(alpha: 0.15)
+                                : Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.grey.shade200),
+                          ),
+                          child: Text(
+                            m.body,
+                            style: GoogleFonts.outfit(fontSize: 14),
+                          ),
+                        ),
+                      );
+                    }),
+                  const SizedBox(height: 12),
+                  Row(
                     children: [
-                      Text(
-                        widget.headline,
-                        style: GoogleFonts.outfit(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 17,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        r.statusLabel,
-                        style: GoogleFonts.outfit(
-                          fontWeight: FontWeight.w600,
-                          color: Color(r.statusColor),
-                        ),
-                      ),
-                      if (r.requestedService != null &&
-                          r.requestedService!.isNotEmpty) ...[
-                        const SizedBox(height: 8),
-                        Text(
-                          r.requestedService!,
-                          style: GoogleFonts.outfit(
-                            fontWeight: FontWeight.w500,
-                            fontSize: 14,
-                          ),
-                        ),
-                      ],
-                      const SizedBox(height: 8),
-                      Text(
-                        r.customerMessage,
-                        style: GoogleFonts.outfit(
-                          fontSize: 14,
-                          height: 1.4,
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      RequestStatusTimeline(request: r),
-                      const SizedBox(height: 24),
-                      Text(
-                        'Messages',
-                        style: GoogleFonts.outfit(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 15,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      if (_messages.isEmpty)
-                        Text(
-                          'No messages yet. Coordinate time and location here.',
-                          style: GoogleFonts.outfit(
-                            fontSize: 13,
-                            color: Colors.grey.shade600,
-                          ),
-                        )
-                      else
-                        ..._messages.map((m) {
-                          final mine = m.senderUserId == _myId;
-                          return Align(
-                            alignment:
-                                mine ? Alignment.centerRight : Alignment.centerLeft,
-                            child: Container(
-                              margin: const EdgeInsets.only(bottom: 8),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 8,
-                              ),
-                              constraints: BoxConstraints(
-                                maxWidth: MediaQuery.sizeOf(context).width * 0.78,
-                              ),
-                              decoration: BoxDecoration(
-                                color: mine
-                                    ? const Color(0xFF0D9488).withValues(alpha: 0.15)
-                                    : Colors.white,
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: Colors.grey.shade200),
-                              ),
-                              child: Text(
-                                m.body,
-                                style: GoogleFonts.outfit(fontSize: 14),
-                              ),
+                      Expanded(
+                        child: TextField(
+                          controller: _messageController,
+                          minLines: 1,
+                          maxLines: 4,
+                          decoration: InputDecoration(
+                            hintText: context.flipperL10n.gigsTypeMessageHint,
+                            filled: true,
+                            fillColor: Colors.white,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
                             ),
-                          );
-                        }),
-                      const SizedBox(height: 12),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: TextField(
-                              controller: _messageController,
-                              minLines: 1,
-                              maxLines: 4,
-                              decoration: InputDecoration(
-                                hintText: 'Type a message…',
-                                filled: true,
-                                fillColor: Colors.white,
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      FilledButton(
+                        onPressed: _sending ? null : _sendMessage,
+                        style: FilledButton.styleFrom(
+                          backgroundColor: const Color(0xFF0D9488),
+                          padding: const EdgeInsets.all(14),
+                          shape: const CircleBorder(),
+                        ),
+                        child: _sending
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
                                 ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          FilledButton(
-                            onPressed: _sending ? null : _sendMessage,
-                            style: FilledButton.styleFrom(
-                              backgroundColor: const Color(0xFF0D9488),
-                              padding: const EdgeInsets.all(14),
-                              shape: const CircleBorder(),
-                            ),
-                            child: _sending
-                                ? const SizedBox(
-                                    width: 20,
-                                    height: 20,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      color: Colors.white,
-                                    ),
-                                  )
-                                : const Icon(Icons.send, color: Colors.white),
-                          ),
-                        ],
+                              )
+                            : const Icon(Icons.send, color: Colors.white),
                       ),
-                      const SizedBox(height: 24),
-                      if (_acting)
-                        const Center(child: Padding(
-                          padding: EdgeInsets.all(16),
-                          child: CircularProgressIndicator(),
-                        ))
-                      else ..._actionButtons(r),
                     ],
                   ),
-                ),
+                  const SizedBox(height: 24),
+                  if (_acting)
+                    const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(16),
+                        child: CircularProgressIndicator(),
+                      ),
+                    )
+                  else
+                    ..._actionButtons(r),
+                ],
+              ),
+            ),
     );
   }
 
@@ -464,7 +487,7 @@ class _GigRequestDetailScreenState extends State<GigRequestDetailScreen> {
         FilledButton.icon(
           onPressed: _openPay,
           icon: const Icon(Icons.phone_android),
-          label: const Text('Pay with MTN'),
+          label: Text(context.flipperL10n.gigsPayWithMtn),
           style: FilledButton.styleFrom(
             backgroundColor: const Color(0xFF0D9488),
             padding: const EdgeInsets.symmetric(vertical: 14),
@@ -478,7 +501,7 @@ class _GigRequestDetailScreenState extends State<GigRequestDetailScreen> {
         FilledButton.icon(
           onPressed: _startJob,
           icon: const Icon(Icons.play_circle_outline),
-          label: const Text('Start job'),
+          label: Text(context.flipperL10n.gigsStartJob),
           style: FilledButton.styleFrom(
             backgroundColor: const Color(0xFF0F766E),
             padding: const EdgeInsets.symmetric(vertical: 14),
@@ -494,7 +517,7 @@ class _GigRequestDetailScreenState extends State<GigRequestDetailScreen> {
           child: OutlinedButton.icon(
             onPressed: _completeJob,
             icon: const Icon(Icons.task_alt),
-            label: const Text('Mark job complete'),
+            label: Text(context.flipperL10n.gigsMarkJobComplete),
             style: OutlinedButton.styleFrom(
               foregroundColor: const Color(0xFF0D9488),
               padding: const EdgeInsets.symmetric(vertical: 14),
@@ -511,7 +534,7 @@ class _GigRequestDetailScreenState extends State<GigRequestDetailScreen> {
           child: FilledButton.icon(
             onPressed: _openReview,
             icon: const Icon(Icons.star_outline),
-            label: const Text('Leave a review'),
+            label: Text(context.flipperL10n.gigsLeaveReview),
             style: FilledButton.styleFrom(
               backgroundColor: Colors.amber.shade800,
               padding: const EdgeInsets.symmetric(vertical: 14),
@@ -532,7 +555,7 @@ class _GigRequestDetailScreenState extends State<GigRequestDetailScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Your review',
+                    context.flipperL10n.gigsYourReview,
                     style: GoogleFonts.outfit(fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 4),

@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:supabase_models/brick/models/tenant.model.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 
 /// A non-admin clerk: the admin branch of the header reaches the router
 /// locator, which is not wired up in a widget test.
@@ -50,6 +51,9 @@ Widget _app({
       hotelModeProvider.overrideWith(() => _FixedHotelNotifier(state)),
     ],
     child: MaterialApp(
+      localizationsDelegates: FlipperLocalizationDelegates.delegates,
+      supportedLocales: FlipperLocalizationDelegates.supportedLocales,
+
       home: Scaffold(
         body: MediaQuery(
           data: MediaQueryData(size: size),
@@ -70,7 +74,19 @@ void main() {
   // is pinned across the range of real desktop widths.
   group('room board header fits', () {
     const widths = <double>[
-      1920, 1600, 1500, 1497, 1440, 1320, 1280, 1180, 1150, 1100, 1000, 950, 820,
+      1920,
+      1600,
+      1500,
+      1497,
+      1440,
+      1320,
+      1280,
+      1180,
+      1150,
+      1100,
+      1000,
+      950,
+      820,
     ];
 
     for (final width in widths) {
@@ -132,6 +148,9 @@ void main() {
     ) async {
       await tester.pumpWidget(
         const MaterialApp(
+          localizationsDelegates: FlipperLocalizationDelegates.delegates,
+          supportedLocales: FlipperLocalizationDelegates.supportedLocales,
+
           home: Scaffold(
             body: Center(
               child: HotelClerkChip(

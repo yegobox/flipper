@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:ui' as ui;
 
 import 'package:file_picker/file_picker.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/foundation.dart';
 
 /// An image the user chose, already sized up and encoded.
@@ -64,9 +65,9 @@ Future<PickImageResult> pickImageAsBase64({required int maxSizeBytes}) async {
   );
 
   if (result == null || result.files.isEmpty) {
-    return const PickImageResult.failed(
+    return PickImageResult.failed(
       PickImageFailure.cancelled,
-      'No file selected.',
+      FlipperL10n.current.pickImageNoFileSelected,
     );
   }
 
@@ -78,17 +79,17 @@ Future<PickImageResult> pickImageAsBase64({required int maxSizeBytes}) async {
     try {
       bytes = await File(platformFile.path!).readAsBytes();
     } catch (_) {
-      return const PickImageResult.failed(
+      return PickImageResult.failed(
         PickImageFailure.unreadable,
-        'Failed to read the selected file. Please try again.',
+        FlipperL10n.current.pickImageReadFailed,
       );
     }
   }
 
   if (bytes == null || bytes.isEmpty) {
-    return const PickImageResult.failed(
+    return PickImageResult.failed(
       PickImageFailure.empty,
-      'That file has no data. Please pick another.',
+      FlipperL10n.current.pickImageNoData,
     );
   }
 
@@ -96,7 +97,7 @@ Future<PickImageResult> pickImageAsBase64({required int maxSizeBytes}) async {
     final kb = (maxSizeBytes / 1024).round();
     return PickImageResult.failed(
       PickImageFailure.tooLarge,
-      'Please choose an image under ${kb}KB.',
+      FlipperL10n.current.pickImageTooLarge('$kb'),
     );
   }
 
@@ -106,9 +107,9 @@ Future<PickImageResult> pickImageAsBase64({required int maxSizeBytes}) async {
   // then silently fail to draw on every document.
   final aspectRatio = await _aspectRatio(bytes);
   if (aspectRatio == null) {
-    return const PickImageResult.failed(
+    return PickImageResult.failed(
       PickImageFailure.unreadable,
-      'That file is not a readable PNG or JPEG. Please pick another.',
+      FlipperL10n.current.pickImageNotReadable,
     );
   }
 

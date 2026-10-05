@@ -2,6 +2,7 @@ import 'package:flipper_dashboard/ordering/ordering_catalog.dart';
 import 'package:flipper_dashboard/ordering/ordering_state.dart';
 import 'package:flipper_dashboard/ordering/ordering_tokens.dart';
 import 'package:flipper_dashboard/ordering/ordering_widgets.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -43,15 +44,19 @@ class OrderingCatalogRail extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const OrderingEyebrow(
-                    'Categories',
-                    padding: EdgeInsets.only(left: 8, right: 8, bottom: 6),
+                  OrderingEyebrow(
+                    context.flipperL10n.orderingCategories,
+                    padding: const EdgeInsets.only(
+                      left: 8,
+                      right: 8,
+                      bottom: 6,
+                    ),
                   ),
                   if (categories.isEmpty)
-                    const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 8),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
                       child: Text(
-                        'Loading…',
+                        context.flipperL10n.orderingLoading,
                         style: OrderingTokens.body,
                       ),
                     )
@@ -60,14 +65,14 @@ class OrderingCatalogRail extends ConsumerWidget {
                       _CategoryRow(
                         category: category,
                         selected: category.name == selected,
-                        onTap: () => ref
-                            .read(orderingCategoryProvider.notifier)
-                            .state = category.name,
+                        onTap: () =>
+                            ref.read(orderingCategoryProvider.notifier).state =
+                                category.name,
                       ),
                   const SizedBox(height: 22),
-                  const OrderingEyebrow(
-                    'Filter',
-                    padding: EdgeInsets.symmetric(horizontal: 8),
+                  OrderingEyebrow(
+                    context.flipperL10n.orderingFilter,
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
                   ),
                   const SizedBox(height: 10),
                   Padding(
@@ -77,10 +82,12 @@ class OrderingCatalogRail extends ConsumerWidget {
                       children: [
                         OrderingCheckbox(
                           value: stockOnly,
-                          label: 'In stock only',
-                          onChanged: () => ref
-                              .read(orderingStockOnlyProvider.notifier)
-                              .state = !stockOnly,
+                          label: context.flipperL10n.orderingInStockOnly,
+                          onChanged: () =>
+                              ref
+                                      .read(orderingStockOnlyProvider.notifier)
+                                      .state =
+                                  !stockOnly,
                         ),
                         // The handoff makes the margin column a build-time
                         // prop. On a real buying desk it is the one column
@@ -90,17 +97,21 @@ class OrderingCatalogRail extends ConsumerWidget {
                           const SizedBox(height: 10),
                           OrderingCheckbox(
                             value: showMargin,
-                            label: 'Show retail margin',
-                            onChanged: () => ref
-                                .read(orderingShowMarginProvider.notifier)
-                                .state = !showMargin,
+                            label: context.flipperL10n.orderingShowRetailMargin,
+                            onChanged: () =>
+                                ref
+                                        .read(
+                                          orderingShowMarginProvider.notifier,
+                                        )
+                                        .state =
+                                    !showMargin,
                           ),
                         ],
                         const SizedBox(height: 10),
                         Text(
                           stockOnly
-                              ? 'Hiding items the supplier has none of.'
-                              : 'Out-of-stock items still show, marked red.',
+                              ? context.flipperL10n.orderingHidingOutOfStock
+                              : context.flipperL10n.orderingOutOfStockShown,
                           style: OrderingTokens.body.copyWith(
                             fontSize: 12.5,
                             color: OrderingTokens.ink4,
@@ -206,15 +217,12 @@ class _LastOrderCard extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const OrderingEyebrow('Last order'),
+          OrderingEyebrow(context.flipperL10n.orderingLastOrder),
           const SizedBox(height: 7),
           if (last == null)
             Text(
-              'No previous order with this supplier.',
-              style: OrderingTokens.body.copyWith(
-                fontSize: 12.5,
-                height: 1.45,
-              ),
+              context.flipperL10n.orderingNoPreviousOrder,
+              style: OrderingTokens.body.copyWith(fontSize: 12.5, height: 1.45),
             )
           else ...[
             Text(
@@ -237,7 +245,7 @@ class _LastOrderCard extends ConsumerWidget {
 
   static String _meta(LastOrder last) {
     final parts = <String>[
-      '${last.lineCount} ${last.lineCount == 1 ? 'line' : 'lines'}',
+      FlipperL10n.current.orderingLineCount(last.lineCount),
       if (last.placedAt != null)
         DateFormat('d MMM y').format(last.placedAt!.toLocal()),
       _statusLabel(last.status),
@@ -247,9 +255,10 @@ class _LastOrderCard extends ConsumerWidget {
 
   static String _statusLabel(String status) {
     return switch (status) {
-      RequestStatus.pending => 'awaiting approval',
-      RequestStatus.approved => 'approved',
-      RequestStatus.partiallyApproved => 'partly approved',
+      RequestStatus.pending => FlipperL10n.current.orderingAwaitingApproval,
+      RequestStatus.approved => FlipperL10n.current.orderingApprovedLower,
+      RequestStatus.partiallyApproved =>
+        FlipperL10n.current.orderingPartlyApproved,
       _ => status,
     };
   }

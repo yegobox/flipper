@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/features/bar_mode/providers/bar_mode_providers.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/models/bar_table.dart';
 import 'package:flipper_dashboard/features/bar_mode/screens/bar_floor_desktop.dart';
 import 'package:flipper_dashboard/features/bar_mode/screens/bar_floor_mobile.dart';
@@ -27,6 +28,8 @@ Widget _barTestApp({
         barModeProvider.overrideWith(() => _FixedBarModeNotifier(barState)),
     ],
     child: MaterialApp(
+      localizationsDelegates: FlipperLocalizationDelegates.delegates,
+      supportedLocales: FlipperLocalizationDelegates.supportedLocales,
       home: Scaffold(
         body: MediaQuery(
           data: MediaQueryData(size: size),
@@ -170,7 +173,8 @@ void main() {
 
       expect(find.text('Free'), findsNothing);
       final grid = tester.widget<GridView>(find.byType(GridView));
-      final delegate = grid.gridDelegate as SliverGridDelegateWithFixedCrossAxisCount;
+      final delegate =
+          grid.gridDelegate as SliverGridDelegateWithFixedCrossAxisCount;
       expect(delegate.crossAxisCount, 2);
     });
   });
@@ -178,6 +182,8 @@ void main() {
   testWidgets('BarKeypad mobile uses 62px key height', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
+        localizationsDelegates: FlipperLocalizationDelegates.delegates,
+        supportedLocales: FlipperLocalizationDelegates.supportedLocales,
         home: Scaffold(
           body: BarKeypad(
             mobile: true,
@@ -202,7 +208,8 @@ void main() {
       orElse: () => containers.first,
     );
     expect(
-      keyContainer.constraints?.maxHeight ?? keyContainer.constraints?.minHeight,
+      keyContainer.constraints?.maxHeight ??
+          keyContainer.constraints?.minHeight,
       62,
     );
   });

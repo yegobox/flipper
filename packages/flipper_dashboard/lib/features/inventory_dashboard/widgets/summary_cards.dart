@@ -1,17 +1,17 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flipper_models/providers/inventory_provider.dart';
 
 class SummaryCards extends ConsumerWidget {
-  const SummaryCards({
-    Key? key,
-    required this.expiredItemsCount,
-  }) : super(key: key);
+  const SummaryCards({Key? key, required this.expiredItemsCount})
+    : super(key: key);
 
   final int expiredItemsCount;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.flipperL10n;
     return GridView.count(
       crossAxisCount: MediaQuery.of(context).size.width > 1100 ? 4 : 2,
       shrinkWrap: true,
@@ -21,11 +21,13 @@ class SummaryCards extends ConsumerWidget {
       childAspectRatio: 1.5,
       children: [
         // Total Items card with real data
-        ref.watch(totalItemsProvider).when(
+        ref
+            .watch(totalItemsProvider)
+            .when(
               data: (totalItemsData) {
                 return _buildSummaryCard(
                   context: context,
-                  title: 'Total Items',
+                  title: l10n.inventoryDashboardTotalItems,
                   value: totalItemsData.formattedCount,
                   icon: Icons.inventory,
                   color: Colors.blue,
@@ -37,7 +39,7 @@ class SummaryCards extends ConsumerWidget {
               },
               loading: () => _buildSummaryCard(
                 context: context,
-                title: 'Total Items',
+                title: l10n.inventoryDashboardTotalItems,
                 value: '...',
                 icon: Icons.inventory,
                 color: Colors.blue,
@@ -47,7 +49,7 @@ class SummaryCards extends ConsumerWidget {
               ),
               error: (_, __) => _buildSummaryCard(
                 context: context,
-                title: 'Total Items',
+                title: l10n.inventoryDashboardTotalItems,
                 value: '0',
                 icon: Icons.inventory,
                 color: Colors.blue,
@@ -57,7 +59,9 @@ class SummaryCards extends ConsumerWidget {
               ),
             ),
         // Expired Items card with real data
-        ref.watch(expiredItemsProvider(const ExpiredItemsParams())).when(
+        ref
+            .watch(expiredItemsProvider(const ExpiredItemsParams()))
+            .when(
               data: (expiredItems) {
                 // Calculate trend - in a real implementation, you would track this over time
                 final currentCount = expiredItems.length;
@@ -74,7 +78,8 @@ class SummaryCards extends ConsumerWidget {
 
                 return _buildSummaryCard(
                   context: context,
-                  title: 'Expired Items',
+                  title: l10n.inventoryDashboardExpiredItems,
+                  invertTrend: true,
                   value: '$currentCount',
                   icon: Icons.warning_amber,
                   color: Colors.red,
@@ -87,7 +92,8 @@ class SummaryCards extends ConsumerWidget {
               },
               loading: () => _buildSummaryCard(
                 context: context,
-                title: 'Expired Items',
+                title: l10n.inventoryDashboardExpiredItems,
+                invertTrend: true,
                 value: '...',
                 icon: Icons.warning_amber,
                 color: Colors.red,
@@ -97,7 +103,8 @@ class SummaryCards extends ConsumerWidget {
               ),
               error: (_, __) => _buildSummaryCard(
                 context: context,
-                title: 'Expired Items',
+                title: l10n.inventoryDashboardExpiredItems,
+                invertTrend: true,
                 value: '$expiredItemsCount',
                 icon: Icons.warning_amber,
                 color: Colors.red,
@@ -107,11 +114,13 @@ class SummaryCards extends ConsumerWidget {
               ),
             ),
         // Low Stock Items card with real data
-        ref.watch(lowStockItemsProvider).when(
+        ref
+            .watch(lowStockItemsProvider)
+            .when(
               data: (lowStockData) {
                 return _buildSummaryCard(
                   context: context,
-                  title: 'Low Stock Items',
+                  title: l10n.inventoryDashboardLowStockItems,
                   value: lowStockData.formattedCount,
                   icon: Icons.trending_down,
                   color: Colors.orange,
@@ -123,7 +132,7 @@ class SummaryCards extends ConsumerWidget {
               },
               loading: () => _buildSummaryCard(
                 context: context,
-                title: 'Low Stock Items',
+                title: l10n.inventoryDashboardLowStockItems,
                 value: '...',
                 icon: Icons.trending_down,
                 color: Colors.orange,
@@ -133,7 +142,7 @@ class SummaryCards extends ConsumerWidget {
               ),
               error: (_, __) => _buildSummaryCard(
                 context: context,
-                title: 'Low Stock Items',
+                title: l10n.inventoryDashboardLowStockItems,
                 value: '0',
                 icon: Icons.trending_down,
                 color: Colors.orange,
@@ -143,11 +152,13 @@ class SummaryCards extends ConsumerWidget {
               ),
             ),
         // Pending Orders card with real data
-        ref.watch(pendingOrdersProvider).when(
+        ref
+            .watch(pendingOrdersProvider)
+            .when(
               data: (pendingOrdersData) {
                 return _buildSummaryCard(
                   context: context,
-                  title: 'Pending Orders',
+                  title: l10n.inventoryDashboardPendingOrders,
                   value: pendingOrdersData.formattedCount,
                   icon: Icons.shopping_cart,
                   color: Colors.green,
@@ -159,7 +170,7 @@ class SummaryCards extends ConsumerWidget {
               },
               loading: () => _buildSummaryCard(
                 context: context,
-                title: 'Pending Orders',
+                title: l10n.inventoryDashboardPendingOrders,
                 value: '...',
                 icon: Icons.shopping_cart,
                 color: Colors.green,
@@ -169,7 +180,7 @@ class SummaryCards extends ConsumerWidget {
               ),
               error: (_, __) => _buildSummaryCard(
                 context: context,
-                title: 'Pending Orders',
+                title: l10n.inventoryDashboardPendingOrders,
                 value: '0',
                 icon: Icons.shopping_cart,
                 color: Colors.green,
@@ -191,6 +202,8 @@ class SummaryCards extends ConsumerWidget {
     required String trend,
     required bool isPositive,
     bool isEstimate = false,
+    // Fewer is better (e.g. expired items): flips the trend colours.
+    bool invertTrend = false,
   }) {
     return Card(
       elevation: 2,
@@ -209,20 +222,13 @@ class SummaryCards extends ConsumerWidget {
                     color: Theme.of(context).textTheme.bodySmall?.color,
                   ),
                 ),
-                Icon(
-                  icon,
-                  color: color,
-                  size: 24,
-                ),
+                Icon(icon, color: color, size: 24),
               ],
             ),
             const SizedBox(height: 12),
             Text(
               value,
-              style: const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Row(
@@ -231,12 +237,12 @@ class SummaryCards extends ConsumerWidget {
                   isPositive ? Icons.arrow_upward : Icons.arrow_downward,
                   size: 14,
                   color: isPositive
-                      ? title == 'Expired Items'
-                          ? Colors.red
-                          : Colors.green
-                      : title == 'Expired Items'
-                          ? Colors.green
-                          : Colors.red,
+                      ? invertTrend
+                            ? Colors.red
+                            : Colors.green
+                      : invertTrend
+                      ? Colors.green
+                      : Colors.red,
                 ),
                 const SizedBox(width: 4),
                 Text(
@@ -244,17 +250,17 @@ class SummaryCards extends ConsumerWidget {
                   style: TextStyle(
                     fontSize: 12,
                     color: isPositive
-                        ? title == 'Expired Items'
-                            ? Colors.red
-                            : Colors.green
-                        : title == 'Expired Items'
-                            ? Colors.green
-                            : Colors.red,
+                        ? invertTrend
+                              ? Colors.red
+                              : Colors.green
+                        : invertTrend
+                        ? Colors.green
+                        : Colors.red,
                   ),
                 ),
                 const SizedBox(width: 4),
                 Text(
-                  'from last week',
+                  context.flipperL10n.inventoryDashboardFromLastWeek,
                   style: TextStyle(
                     fontSize: 12,
                     color: Theme.of(context).textTheme.bodySmall?.color,
@@ -263,7 +269,8 @@ class SummaryCards extends ConsumerWidget {
                 if (isEstimate) ...[
                   const SizedBox(width: 4),
                   Tooltip(
-                    message: 'This trend is based on an estimate',
+                    message:
+                        context.flipperL10n.inventoryDashboardTrendEstimate,
                     child: Icon(
                       Icons.info_outline,
                       size: 14,

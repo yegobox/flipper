@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/features/product_editor/product_editor_tokens.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/all_providers.dart';
 import 'package:flutter/material.dart';
@@ -72,7 +73,7 @@ class _AddCategoryFormState extends ConsumerState<_AddCategoryForm> {
   Future<void> _create() async {
     final name = _nameController.text.trim();
     if (name.length < 2) {
-      setState(() => _error = 'Type at least 2 characters.');
+      setState(() => _error = context.flipperL10n.productCategoryNameTooShort);
       return;
     }
     setState(() {
@@ -86,7 +87,7 @@ class _AddCategoryFormState extends ConsumerState<_AddCategoryForm> {
       if (created == null) {
         setState(() {
           _saving = false;
-          _error = 'Could not create the category. Please try again.';
+          _error = context.flipperL10n.productCategoryCreateFailed;
         });
         return;
       }
@@ -95,18 +96,18 @@ class _AddCategoryFormState extends ConsumerState<_AddCategoryForm> {
       if (!mounted) return;
       setState(() {
         _saving = false;
-        _error = 'Could not create the category. Please try again.';
+        _error = context.flipperL10n.productCategoryCreateFailed;
       });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final categories =
-        ref.watch(categoryProvider).value ?? const <Category>[];
+    final categories = ref.watch(categoryProvider).value ?? const <Category>[];
     final typedName = _nameController.text.trim();
     final duplicate = _duplicateOf(categories, typedName);
     final canCreate = typedName.length >= 2 && duplicate == null && !_saving;
+    final l10n = context.flipperL10n;
 
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -138,7 +139,7 @@ class _AddCategoryFormState extends ConsumerState<_AddCategoryForm> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'New category',
+                        l10n.productNewCategory,
                         style: GoogleFonts.outfit(
                           fontSize: 18,
                           fontWeight: FontWeight.w700,
@@ -147,7 +148,7 @@ class _AddCategoryFormState extends ConsumerState<_AddCategoryForm> {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        'A category groups similar products together.',
+                        l10n.productCategoryDescription,
                         style: GoogleFonts.outfit(
                           fontSize: 12.5,
                           color: ProductEditorTokens.ink3,
@@ -160,7 +161,7 @@ class _AddCategoryFormState extends ConsumerState<_AddCategoryForm> {
             ),
             const SizedBox(height: 22),
             Text(
-              'Category name',
+              l10n.productCategoryName,
               style: GoogleFonts.outfit(
                 fontSize: 12.5,
                 fontWeight: FontWeight.w700,
@@ -183,7 +184,7 @@ class _AddCategoryFormState extends ConsumerState<_AddCategoryForm> {
                 color: ProductEditorTokens.ink1,
               ),
               decoration: InputDecoration(
-                hintText: 'e.g. Drinks, Bread, Airtime',
+                hintText: l10n.productCategoryNameHint,
                 hintStyle: GoogleFonts.outfit(
                   fontSize: 15,
                   fontWeight: FontWeight.w500,
@@ -221,7 +222,9 @@ class _AddCategoryFormState extends ConsumerState<_AddCategoryForm> {
               _NoticeRow(
                 icon: Icons.info_outline,
                 color: ProductEditorTokens.blue,
-                message: '"${duplicate.name}" already exists.',
+                message: l10n.productCategoryAlreadyExists(
+                  duplicate.name ?? '',
+                ),
               ),
               const SizedBox(height: 12),
               SizedBox(
@@ -232,7 +235,7 @@ class _AddCategoryFormState extends ConsumerState<_AddCategoryForm> {
                       : () => Navigator.of(context).pop(duplicate),
                   icon: const Icon(Icons.check, size: 18),
                   label: Text(
-                    'Use "${duplicate.name}"',
+                    l10n.productCategoryUseExisting(duplicate.name ?? ''),
                     overflow: TextOverflow.ellipsis,
                   ),
                   style: FilledButton.styleFrom(
@@ -262,7 +265,7 @@ class _AddCategoryFormState extends ConsumerState<_AddCategoryForm> {
                     foregroundColor: ProductEditorTokens.ink2,
                   ),
                   child: Text(
-                    'Cancel',
+                    l10n.cancel,
                     style: GoogleFonts.outfit(fontWeight: FontWeight.w600),
                   ),
                 ),
@@ -288,7 +291,7 @@ class _AddCategoryFormState extends ConsumerState<_AddCategoryForm> {
                             ),
                           )
                         : Text(
-                            'Create category',
+                            l10n.productCreateCategory,
                             style: GoogleFonts.outfit(
                               fontSize: 14.5,
                               fontWeight: FontWeight.w700,

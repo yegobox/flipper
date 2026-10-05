@@ -1,5 +1,6 @@
 import 'package:flipper_dashboard/features/tickets/providers/handover_staff_provider.dart';
 import 'package:flipper_dashboard/theme/pos_tokens.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -26,10 +27,11 @@ class HandoverStaffPickerPanel extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.flipperL10n;
     final staffAsync = ref.watch(handoverStaffProvider);
     final displayRef = _ticketDisplayRef(ticket);
     final customer =
-        (ticket.customerName ?? ticket.ticketName ?? 'Walk-in').trim();
+        (ticket.customerName ?? ticket.ticketName ?? l10n.ticketWalkIn).trim();
 
     return Material(
       color: Colors.white,
@@ -63,7 +65,7 @@ class HandoverStaffPickerPanel extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Send via WhatsApp',
+                        l10n.ticketSendViaWhatsApp,
                         style: GoogleFonts.outfit(
                           fontSize: 17,
                           fontWeight: FontWeight.w800,
@@ -72,7 +74,10 @@ class HandoverStaffPickerPanel extends ConsumerWidget {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        'Ticket #$displayRef · ${customer.isEmpty ? 'Walk-in' : customer}',
+                        l10n.ticketRefWithCustomer(
+                          displayRef,
+                          customer.isEmpty ? l10n.ticketWalkIn : customer,
+                        ),
                         style: GoogleFonts.outfit(
                           fontSize: 12,
                           color: PosTokens.ink3,
@@ -87,7 +92,7 @@ class HandoverStaffPickerPanel extends ConsumerWidget {
                 IconButton(
                   onPressed: isSending ? null : onClose,
                   icon: const Icon(Icons.close_rounded, size: 22),
-                  tooltip: 'Close',
+                  tooltip: l10n.close,
                 ),
               ],
             ),
@@ -95,7 +100,7 @@ class HandoverStaffPickerPanel extends ConsumerWidget {
           Padding(
             padding: const EdgeInsets.fromLTRB(18, 14, 18, 8),
             child: Text(
-              'STOCK HANDOVER STAFF',
+              l10n.ticketHandoverStaffHeader.toUpperCase(),
               style: GoogleFonts.outfit(
                 fontSize: 11,
                 fontWeight: FontWeight.w800,
@@ -116,7 +121,7 @@ class HandoverStaffPickerPanel extends ConsumerWidget {
               error: (_, __) => Padding(
                 padding: const EdgeInsets.all(20),
                 child: Text(
-                  'Could not load handover staff.',
+                  l10n.ticketHandoverStaffLoadFailed,
                   style: GoogleFonts.outfit(color: PosTokens.ink2),
                   textAlign: TextAlign.center,
                 ),
@@ -126,9 +131,7 @@ class HandoverStaffPickerPanel extends ConsumerWidget {
                   return Padding(
                     padding: const EdgeInsets.all(20),
                     child: Text(
-                      'No staff with Stock Handover access and a phone number '
-                      'on file. Add a phone on their tenant profile and grant '
-                      'StockHandover access.',
+                      l10n.ticketHandoverStaffEmpty,
                       style: GoogleFonts.outfit(
                         fontSize: 13,
                         color: PosTokens.ink2,
@@ -221,7 +224,9 @@ class _StaffMemberTile extends StatelessWidget {
               Icon(
                 Icons.send_rounded,
                 size: 18,
-                color: enabled ? HandoverStaffPickerPanel._whatsapp : PosTokens.ink3,
+                color: enabled
+                    ? HandoverStaffPickerPanel._whatsapp
+                    : PosTokens.ink3,
               ),
             ],
           ),

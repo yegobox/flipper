@@ -1,4 +1,5 @@
 import 'package:flipper_services/Miscellaneous.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
@@ -92,7 +93,9 @@ class _DrawerScreenState extends ConsumerState<DrawerScreen>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          widget.open == "close" ? "Close a Business" : "Open Business",
+          widget.open == "close"
+              ? context.flipperL10n.drawerCloseBusiness
+              : context.flipperL10n.drawerOpenBusiness,
           style: GoogleFonts.outfit(
             fontSize: 36.0,
             fontWeight: FontWeight.w500,
@@ -111,7 +114,7 @@ class _DrawerScreenState extends ConsumerState<DrawerScreen>
               ),
             ),
           ),
-          SizedBox(height: 10)
+          SizedBox(height: 10),
         ],
         if (widget.open != "close") ...[
           Padding(
@@ -141,11 +144,11 @@ class _DrawerScreenState extends ConsumerState<DrawerScreen>
       },
       validator: (value) {
         if (value == null || value.isEmpty) {
-          return "You need to enter the amount";
+          return context.flipperL10n.drawerEnterAmount;
         }
         final numericValue = num.tryParse(value);
         if (numericValue == null) {
-          return "Only numeric values are allowed";
+          return context.flipperL10n.drawerNumericOnly;
         }
         return null;
       },
@@ -153,7 +156,9 @@ class _DrawerScreenState extends ConsumerState<DrawerScreen>
         enabled: true,
         border: const OutlineInputBorder(),
         suffixIcon: const Icon(Icons.money),
-        hintText: widget.open == "open" ? "Opening balance" : "Closing balance",
+        hintText: widget.open == "open"
+            ? context.flipperL10n.shiftOpeningBalance
+            : context.flipperL10n.drawerClosingBalance,
       ),
     );
   }
@@ -167,7 +172,9 @@ class _DrawerScreenState extends ConsumerState<DrawerScreen>
         height: 60,
         child: BoxButton(
           key: const Key('closeDrawerButton'),
-          title: widget.open == "open" ? "Open Drawer" : "Close Drawer",
+          title: widget.open == "open"
+              ? context.flipperL10n.drawerOpenDrawer
+              : context.flipperL10n.drawerCloseDrawer,
           onTap: () async {
             if (_sub.currentState!.validate()) {
               setState(() {
@@ -191,7 +198,7 @@ class _DrawerScreenState extends ConsumerState<DrawerScreen>
           _routerService.navigateTo(LoginRoute());
         },
         child: Text(
-          "Logout without closing drawer ",
+          context.flipperL10n.drawerLogoutWithoutClosing,
           style: TextStyle(fontSize: 18, color: Colors.grey),
         ),
       ),

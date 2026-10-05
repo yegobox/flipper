@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/transaction_report_cashier_profile.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/transaction_report_cashier_utils.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flutter/material.dart';
@@ -22,35 +23,35 @@ class TransactionReportMockCashier {
 
 const List<TransactionReportMockCashier> kTransactionReportMockCashiers =
     <TransactionReportMockCashier>[
-  TransactionReportMockCashier(
-    filterId: '__mock_cashier_alice__',
-    displayName: 'Alice K.',
-    initials: 'AK',
-    avatarColor: Color(0xFF2563EB),
-    matchSubstrings: <String>['alice'],
-  ),
-  TransactionReportMockCashier(
-    filterId: '__mock_cashier_bob__',
-    displayName: 'Bob M.',
-    initials: 'BM',
-    avatarColor: Color(0xFF7C3AED),
-    matchSubstrings: <String>['bob'],
-  ),
-  TransactionReportMockCashier(
-    filterId: '__mock_cashier_chloe__',
-    displayName: 'Chloe R.',
-    initials: 'CR',
-    avatarColor: Color(0xFF0D9488),
-    matchSubstrings: <String>['chloe'],
-  ),
-  TransactionReportMockCashier(
-    filterId: '__mock_cashier_david__',
-    displayName: 'David N.',
-    initials: 'DN',
-    avatarColor: Color(0xFFEA580C),
-    matchSubstrings: <String>['david'],
-  ),
-];
+      TransactionReportMockCashier(
+        filterId: '__mock_cashier_alice__',
+        displayName: 'Alice K.',
+        initials: 'AK',
+        avatarColor: Color(0xFF2563EB),
+        matchSubstrings: <String>['alice'],
+      ),
+      TransactionReportMockCashier(
+        filterId: '__mock_cashier_bob__',
+        displayName: 'Bob M.',
+        initials: 'BM',
+        avatarColor: Color(0xFF7C3AED),
+        matchSubstrings: <String>['bob'],
+      ),
+      TransactionReportMockCashier(
+        filterId: '__mock_cashier_chloe__',
+        displayName: 'Chloe R.',
+        initials: 'CR',
+        avatarColor: Color(0xFF0D9488),
+        matchSubstrings: <String>['chloe'],
+      ),
+      TransactionReportMockCashier(
+        filterId: '__mock_cashier_david__',
+        displayName: 'David N.',
+        initials: 'DN',
+        avatarColor: Color(0xFFEA580C),
+        matchSubstrings: <String>['david'],
+      ),
+    ];
 
 TransactionReportMockCashier? _mockCashierMatchingAgent(String? agentId) {
   if (agentId == null || agentId.trim().isEmpty) return null;
@@ -80,7 +81,9 @@ String transactionReportCashierDisplayLabel(
   final m = _mockCashierMatchingAgent(tx.agentId);
   if (m != null) return m.displayName;
   final raw = (tx.agentId ?? '').trim();
-  if (agentIdLooksLikeOpaqueTechnicalId(raw)) return 'Staff';
+  if (agentIdLooksLikeOpaqueTechnicalId(raw)) {
+    return FlipperL10n.current.cashierStaffFallback;
+  }
   return cashierLabelFromAgentId(raw);
 }
 
@@ -128,7 +131,9 @@ String transactionReportCashierDisplayLabelForAgentId(
   final m = _mockCashierMatchingAgent(agentId);
   if (m != null) return m.displayName;
   final raw = agentId.trim();
-  if (agentIdLooksLikeOpaqueTechnicalId(raw)) return 'Staff';
+  if (agentIdLooksLikeOpaqueTechnicalId(raw)) {
+    return FlipperL10n.current.cashierStaffFallback;
+  }
   return cashierLabelFromAgentId(agentId);
 }
 
@@ -163,10 +168,7 @@ Color transactionReportCashierAvatarColorForAgentId(
 }
 
 /// Filter by exact [ITransaction.agentId] (Supabase `users.id` / Ditto agent id).
-bool transactionMatchesCashierFilter(
-  ITransaction tx,
-  String? cashierAgentId,
-) {
+bool transactionMatchesCashierFilter(ITransaction tx, String? cashierAgentId) {
   if (cashierAgentId == null || cashierAgentId.isEmpty) return true;
   return (tx.agentId ?? '').trim() == cashierAgentId.trim();
 }

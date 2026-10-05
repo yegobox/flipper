@@ -1,24 +1,51 @@
 import 'package:flipper_dashboard/features/services_gigs/models/service_gig_provider.dart';
+import 'package:flipper_localize/flipper_localize.dart';
+
+/// Short localized label for a raw request [status] wire value.
+String gigStatusShortLabel(FlipperAppLocalizations l10n, String status) {
+  switch (status) {
+    case 'requested':
+      return l10n.gigsStatusRequested;
+    case 'pending_payment':
+      return l10n.gigsStatusPendingPayment;
+    case 'paid':
+      return l10n.gigsStatusPaid;
+    case 'in_progress':
+      return l10n.gigsStatusInProgress;
+    case 'completed':
+      return l10n.gigsStatusCompleted;
+    case 'declined':
+      return l10n.gigsStatusDeclined;
+    case 'expired':
+      return l10n.gigsStatusExpired;
+    case 'cancelled':
+      return l10n.gigsStatusCancelled;
+    case 'accepted':
+      return l10n.gigsStatusAccepted;
+    default:
+      return status.replaceAll('_', ' ');
+  }
+}
 
 class ServiceGigRequest {
   final String id;
   final String customerUserId;
   final String providerUserId;
-  
+
   /// Customer details (denormalized for display)
   final String? customerDisplayName;
   final String? customerProfileImageUrl;
   final String? customerPhone;
-  
+
   /// Provider details (denormalized for display)
   final String? providerDisplayName;
   final String? providerProfileImageUrl;
   final String? providerPhone;
-  
+
   final String? requestedService;
   final String customerMessage;
   final String status;
-  
+
   /// Timeline
   final DateTime acceptDeadlineAt;
   final DateTime? paymentDeadlineAt;
@@ -27,11 +54,11 @@ class ServiceGigRequest {
   final DateTime? providerStartedAt;
   final DateTime? providerCompletedAt;
   final DateTime? customerConfirmedAt;
-  
+
   /// Customer business context
   final String? customerBusinessId;
   final String? customerBranchId;
-  
+
   /// Payment details
   final int? paymentAmountRwf;
   final int? platformFeeRwf;
@@ -39,26 +66,26 @@ class ServiceGigRequest {
   final String? mtnFinancialTransactionId;
   final String? mtnPaymentReference;
   final int? mtnSettledAmountRwf;
-  
+
   /// Service execution
   final String? serviceLocation;
   final DateTime? scheduledDateTime;
   final String? specialInstructions;
-  
+
   /// Communication
   final List<RequestMessage>? messages;
-  
+
   /// Reviews (after completion)
   final String? customerReview;
   final int? customerRating;
   final DateTime? reviewSubmittedAt;
   final String? providerResponse;
-  
+
   /// Cancellation
   final String? cancellationReason;
   final String? cancelledBy;
   final DateTime? cancelledAt;
-  
+
   /// Provider payout dispatch (admin-only).
   final String providerPayoutStatus;
   final DateTime? providerPayoutDispatchedAt;
@@ -117,7 +144,8 @@ class ServiceGigRequest {
 
   /// Provider can still accept (within server deadline).
   bool get canProviderRespond =>
-      status == 'requested' && DateTime.now().toUtc().isBefore(acceptDeadlineAt);
+      status == 'requested' &&
+      DateTime.now().toUtc().isBefore(acceptDeadlineAt);
 
   bool get isAwaitingPayment => status == 'pending_payment';
 
@@ -130,8 +158,7 @@ class ServiceGigRequest {
   }
 
   /// Service is in progress (paid and not yet completed).
-  bool get isInProgress => 
-      status == 'paid' || status == 'in_progress';
+  bool get isInProgress => status == 'paid' || status == 'in_progress';
 
   /// Service has been completed.
   bool get isCompleted => status == 'completed';
@@ -146,8 +173,7 @@ class ServiceGigRequest {
   bool get isExpired => status == 'expired';
 
   /// Can customer leave a review.
-  bool get canLeaveReview => 
-      isCompleted && customerRating == null;
+  bool get canLeaveReview => isCompleted && customerRating == null;
 
   /// Get time remaining for provider to accept.
   Duration? get timeRemainingForAccept {
@@ -164,34 +190,40 @@ class ServiceGigRequest {
   /// Format time remaining nicely.
   static String formatDuration(Duration? duration) {
     if (duration == null) return '';
-    if (duration.isNegative) return 'Expired';
+    final l10n = FlipperL10n.current;
+    if (duration.isNegative) return l10n.gigsStatusExpired;
     final hours = duration.inHours;
     final minutes = duration.inMinutes.remainder(60);
     if (hours > 0) {
-      return '${hours}h ${minutes}m';
+      return l10n.gigsDurationHoursMinutes('$hours', '$minutes');
     }
-    return '${minutes}m';
+    return l10n.gigsDurationMinutes('$minutes');
   }
 
   /// Get status display label.
   String get statusLabel {
+    final l10n = FlipperL10n.current;
     switch (status) {
       case 'requested':
-        return canProviderRespond ? 'Awaiting Provider Response' : 'Accept Window Expired';
+        return canProviderRespond
+            ? l10n.gigsStatusAwaitingProviderResponse
+            : l10n.gigsStatusAcceptWindowExpired;
       case 'pending_payment':
-        return canCustomerPay ? 'Awaiting Payment' : 'Payment Window Expired';
+        return canCustomerPay
+            ? l10n.gigsStatusAwaitingPayment
+            : l10n.gigsStatusPaymentWindowExpired;
       case 'paid':
-        return 'Paid - Ready to Start';
+        return l10n.gigsStatusPaidReadyToStart;
       case 'in_progress':
-        return 'In Progress';
+        return l10n.gigsStatusInProgress;
       case 'completed':
-        return 'Completed';
+        return l10n.gigsStatusCompleted;
       case 'declined':
-        return 'Declined by Provider';
+        return l10n.gigsStatusDeclinedByProvider;
       case 'expired':
-        return 'Expired';
+        return l10n.gigsStatusExpired;
       case 'cancelled':
-        return 'Cancelled';
+        return l10n.gigsStatusCancelled;
       default:
         return status;
     }
@@ -253,8 +285,9 @@ class ServiceGigRequest {
       paymentDeadlineAt: json['payment_deadline_at'] != null
           ? parseTs(json['payment_deadline_at'])
           : null,
-      acceptedAt:
-          json['accepted_at'] != null ? parseTs(json['accepted_at']) : null,
+      acceptedAt: json['accepted_at'] != null
+          ? parseTs(json['accepted_at'])
+          : null,
       paidAt: json['paid_at'] != null ? parseTs(json['paid_at']) : null,
       providerStartedAt: json['provider_started_at'] != null
           ? parseTs(json['provider_started_at'])
@@ -276,8 +309,8 @@ class ServiceGigRequest {
       providerEarningsRwf: json['provider_earnings_rwf'] is int
           ? json['provider_earnings_rwf']
           : int.tryParse(json['provider_earnings_rwf']?.toString() ?? ''),
-      mtnFinancialTransactionId:
-          json['mtn_financial_transaction_id']?.toString(),
+      mtnFinancialTransactionId: json['mtn_financial_transaction_id']
+          ?.toString(),
       mtnPaymentReference: json['mtn_payment_reference']?.toString(),
       mtnSettledAmountRwf: json['mtn_settled_amount_rwf'] is int
           ? json['mtn_settled_amount_rwf']
@@ -306,8 +339,8 @@ class ServiceGigRequest {
       providerPayoutDispatchedAt: json['provider_payout_dispatched_at'] != null
           ? parseTs(json['provider_payout_dispatched_at'])
           : null,
-      providerPayoutDispatchedBy:
-          json['provider_payout_dispatched_by']?.toString(),
+      providerPayoutDispatchedBy: json['provider_payout_dispatched_by']
+          ?.toString(),
       providerPayoutReference: json['provider_payout_reference']?.toString(),
       createdAt: parseTs(json['created_at']),
       updatedAt: parseTs(json['updated_at']),
@@ -315,60 +348,59 @@ class ServiceGigRequest {
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'customer_user_id': customerUserId,
-        'provider_user_id': providerUserId,
-        'customer_display_name': customerDisplayName,
-        'customer_profile_image_url': customerProfileImageUrl,
-        'customer_phone': customerPhone,
-        'provider_display_name': providerDisplayName,
-        'provider_profile_image_url': providerProfileImageUrl,
-        'provider_phone': providerPhone,
-        'requested_service': requestedService,
-        'customer_message': customerMessage,
-        'status': status,
-        'accept_deadline_at': acceptDeadlineAt.toIso8601String(),
-        if (paymentDeadlineAt != null)
-          'payment_deadline_at': paymentDeadlineAt!.toIso8601String(),
-        if (acceptedAt != null) 'accepted_at': acceptedAt!.toIso8601String(),
-        if (paidAt != null) 'paid_at': paidAt!.toIso8601String(),
-        if (providerStartedAt != null)
-          'provider_started_at': providerStartedAt!.toIso8601String(),
-        if (providerCompletedAt != null)
-          'provider_completed_at': providerCompletedAt!.toIso8601String(),
-        if (customerConfirmedAt != null)
-          'customer_confirmed_at': customerConfirmedAt!.toIso8601String(),
-        'customer_business_id': customerBusinessId,
-        'customer_branch_id': customerBranchId,
-        'payment_amount_rwf': paymentAmountRwf,
-        'platform_fee_rwf': platformFeeRwf,
-        'provider_earnings_rwf': providerEarningsRwf,
-        'mtn_financial_transaction_id': mtnFinancialTransactionId,
-        'mtn_payment_reference': mtnPaymentReference,
-        'mtn_settled_amount_rwf': mtnSettledAmountRwf,
-        'service_location': serviceLocation,
-        if (scheduledDateTime != null)
-          'scheduled_date_time': scheduledDateTime!.toIso8601String(),
-        'special_instructions': specialInstructions,
-        if (messages != null)
-          'messages': messages!.map((m) => m.toJson()).toList(),
-        'customer_review': customerReview,
-        'customer_rating': customerRating,
-        if (reviewSubmittedAt != null)
-          'review_submitted_at': reviewSubmittedAt!.toIso8601String(),
-        'provider_response': providerResponse,
-        'cancellation_reason': cancellationReason,
-        'cancelled_by': cancelledBy,
-        if (cancelledAt != null) 'cancelled_at': cancelledAt!.toIso8601String(),
-        'provider_payout_status': providerPayoutStatus,
-        if (providerPayoutDispatchedAt != null)
-          'provider_payout_dispatched_at':
-              providerPayoutDispatchedAt!.toIso8601String(),
-        'provider_payout_dispatched_by': providerPayoutDispatchedBy,
-        'provider_payout_reference': providerPayoutReference,
-        'created_at': createdAt.toIso8601String(),
-        'updated_at': updatedAt.toIso8601String(),
-      };
+    'id': id,
+    'customer_user_id': customerUserId,
+    'provider_user_id': providerUserId,
+    'customer_display_name': customerDisplayName,
+    'customer_profile_image_url': customerProfileImageUrl,
+    'customer_phone': customerPhone,
+    'provider_display_name': providerDisplayName,
+    'provider_profile_image_url': providerProfileImageUrl,
+    'provider_phone': providerPhone,
+    'requested_service': requestedService,
+    'customer_message': customerMessage,
+    'status': status,
+    'accept_deadline_at': acceptDeadlineAt.toIso8601String(),
+    if (paymentDeadlineAt != null)
+      'payment_deadline_at': paymentDeadlineAt!.toIso8601String(),
+    if (acceptedAt != null) 'accepted_at': acceptedAt!.toIso8601String(),
+    if (paidAt != null) 'paid_at': paidAt!.toIso8601String(),
+    if (providerStartedAt != null)
+      'provider_started_at': providerStartedAt!.toIso8601String(),
+    if (providerCompletedAt != null)
+      'provider_completed_at': providerCompletedAt!.toIso8601String(),
+    if (customerConfirmedAt != null)
+      'customer_confirmed_at': customerConfirmedAt!.toIso8601String(),
+    'customer_business_id': customerBusinessId,
+    'customer_branch_id': customerBranchId,
+    'payment_amount_rwf': paymentAmountRwf,
+    'platform_fee_rwf': platformFeeRwf,
+    'provider_earnings_rwf': providerEarningsRwf,
+    'mtn_financial_transaction_id': mtnFinancialTransactionId,
+    'mtn_payment_reference': mtnPaymentReference,
+    'mtn_settled_amount_rwf': mtnSettledAmountRwf,
+    'service_location': serviceLocation,
+    if (scheduledDateTime != null)
+      'scheduled_date_time': scheduledDateTime!.toIso8601String(),
+    'special_instructions': specialInstructions,
+    if (messages != null) 'messages': messages!.map((m) => m.toJson()).toList(),
+    'customer_review': customerReview,
+    'customer_rating': customerRating,
+    if (reviewSubmittedAt != null)
+      'review_submitted_at': reviewSubmittedAt!.toIso8601String(),
+    'provider_response': providerResponse,
+    'cancellation_reason': cancellationReason,
+    'cancelled_by': cancelledBy,
+    if (cancelledAt != null) 'cancelled_at': cancelledAt!.toIso8601String(),
+    'provider_payout_status': providerPayoutStatus,
+    if (providerPayoutDispatchedAt != null)
+      'provider_payout_dispatched_at': providerPayoutDispatchedAt!
+          .toIso8601String(),
+    'provider_payout_dispatched_by': providerPayoutDispatchedBy,
+    'provider_payout_reference': providerPayoutReference,
+    'created_at': createdAt.toIso8601String(),
+    'updated_at': updatedAt.toIso8601String(),
+  };
 }
 
 /// Message in the request conversation
@@ -390,13 +422,13 @@ class RequestMessage {
   });
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'sender_user_id': senderUserId,
-        'sender_display_name': senderDisplayName,
-        'message': message,
-        'sent_at': sentAt.toIso8601String(),
-        'is_system_message': isSystemMessage,
-      };
+    'id': id,
+    'sender_user_id': senderUserId,
+    'sender_display_name': senderDisplayName,
+    'message': message,
+    'sent_at': sentAt.toIso8601String(),
+    'is_system_message': isSystemMessage,
+  };
 
   factory RequestMessage.fromJson(Map<String, dynamic> json) {
     return RequestMessage(
@@ -448,11 +480,38 @@ class ServiceCategory {
       name: json['name']?.toString() ?? '',
       icon: json['icon']?.toString() ?? 'category',
       description: json['description']?.toString(),
-      subcategories: (json['subcategories'] as List?)?.map((e) => e.toString()).toList() ?? [],
+      subcategories:
+          (json['subcategories'] as List?)?.map((e) => e.toString()).toList() ??
+          [],
       providerCount: json['provider_count'] is int
           ? json['provider_count']
           : int.tryParse(json['provider_count']?.toString() ?? '0') ?? 0,
     );
+  }
+
+  /// Localized display name. [name] stays English: it is matched against
+  /// provider service lines in [matchesProvider].
+  String localizedName(FlipperAppLocalizations l10n) {
+    switch (id) {
+      case 'home_services':
+        return l10n.gigsCategoryHomeServices;
+      case 'beauty_wellness':
+        return l10n.gigsCategoryBeautyWellness;
+      case 'delivery_transport':
+        return l10n.gigsCategoryDeliveryTransport;
+      case 'tech_support':
+        return l10n.gigsCategoryTechSupport;
+      case 'events':
+        return l10n.gigsCategoryEvents;
+      case 'lessons':
+        return l10n.gigsCategoryLessons;
+      case 'healthcare':
+        return l10n.gigsCategoryHealthcare;
+      case 'other':
+        return l10n.gigsCategoryOther;
+      default:
+        return name;
+    }
   }
 
   /// True if [provider] tagged this category or any service line matches keywords.
@@ -461,7 +520,8 @@ class ServiceCategory {
     for (final s in provider.services) {
       final line = s.toLowerCase();
       if (line.isEmpty) continue;
-      if (name.toLowerCase().contains(line) || line.contains(name.toLowerCase())) {
+      if (name.toLowerCase().contains(line) ||
+          line.contains(name.toLowerCase())) {
         return true;
       }
       for (final sub in subcategories) {
@@ -472,52 +532,54 @@ class ServiceCategory {
   }
 
   static List<ServiceCategory> get defaultCategories => [
-        const ServiceCategory(
-          id: 'home_services',
-          name: 'Home Services',
-          icon: 'home_repair_service',
-          subcategories: ['Plumbing', 'Electrical', 'Cleaning', 'Painting', 'Carpentry'],
-        ),
-        const ServiceCategory(
-          id: 'beauty_wellness',
-          name: 'Beauty & Wellness',
-          icon: 'spa',
-          subcategories: ['Hair Styling', 'Makeup', 'Massage', 'Nail Care'],
-        ),
-        const ServiceCategory(
-          id: 'delivery_transport',
-          name: 'Delivery & Transport',
-          icon: 'local_shipping',
-          subcategories: ['Package Delivery', 'Moving Help', 'Errands'],
-        ),
-        const ServiceCategory(
-          id: 'tech_support',
-          name: 'Tech Support',
-          icon: 'devices',
-          subcategories: ['Phone Repair', 'Computer Repair', 'Installation'],
-        ),
-        const ServiceCategory(
-          id: 'events',
-          name: 'Events',
-          icon: 'celebration',
-          subcategories: ['Photography', 'Catering', 'Decoration', 'Music/DJ'],
-        ),
-        const ServiceCategory(
-          id: 'lessons',
-          name: 'Lessons & Training',
-          icon: 'school',
-          subcategories: ['Tutoring', 'Music Lessons', 'Sports Coaching'],
-        ),
-        const ServiceCategory(
-          id: 'healthcare',
-          name: 'Healthcare',
-          icon: 'medical_services',
-          subcategories: ['Nursing', 'Elderly Care', 'Childcare'],
-        ),
-        const ServiceCategory(
-          id: 'other',
-          name: 'Other',
-          icon: 'more_horiz',
-        ),
-      ];
+    const ServiceCategory(
+      id: 'home_services',
+      name: 'Home Services',
+      icon: 'home_repair_service',
+      subcategories: [
+        'Plumbing',
+        'Electrical',
+        'Cleaning',
+        'Painting',
+        'Carpentry',
+      ],
+    ),
+    const ServiceCategory(
+      id: 'beauty_wellness',
+      name: 'Beauty & Wellness',
+      icon: 'spa',
+      subcategories: ['Hair Styling', 'Makeup', 'Massage', 'Nail Care'],
+    ),
+    const ServiceCategory(
+      id: 'delivery_transport',
+      name: 'Delivery & Transport',
+      icon: 'local_shipping',
+      subcategories: ['Package Delivery', 'Moving Help', 'Errands'],
+    ),
+    const ServiceCategory(
+      id: 'tech_support',
+      name: 'Tech Support',
+      icon: 'devices',
+      subcategories: ['Phone Repair', 'Computer Repair', 'Installation'],
+    ),
+    const ServiceCategory(
+      id: 'events',
+      name: 'Events',
+      icon: 'celebration',
+      subcategories: ['Photography', 'Catering', 'Decoration', 'Music/DJ'],
+    ),
+    const ServiceCategory(
+      id: 'lessons',
+      name: 'Lessons & Training',
+      icon: 'school',
+      subcategories: ['Tutoring', 'Music Lessons', 'Sports Coaching'],
+    ),
+    const ServiceCategory(
+      id: 'healthcare',
+      name: 'Healthcare',
+      icon: 'medical_services',
+      subcategories: ['Nursing', 'Elderly Care', 'Childcare'],
+    ),
+    const ServiceCategory(id: 'other', name: 'Other', icon: 'more_horiz'),
+  ];
 }

@@ -11,6 +11,7 @@ import 'package:flipper_dashboard/import_purchase_viewmodel.dart';
 import 'package:flipper_models/sync/capella/manual_purchase_ditto.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as model;
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -23,11 +24,11 @@ final _money = NumberFormat('#,##0.##');
 final _date = DateFormat('d MMM yyyy');
 
 /// Tax brackets as an owner reads them, not as RRA codes.
-const _taxLabels = {
-  'B': 'VAT 18%',
-  'A': 'Exempt',
-  'C': 'Zero-rated',
-  'D': 'Non-VAT',
+Map<String, String> _taxLabels(FlipperAppLocalizations l10n) => {
+  'B': l10n.manualPurchaseTaxVat18,
+  'A': l10n.manualPurchaseTaxExempt,
+  'C': l10n.manualPurchaseTaxZeroRated,
+  'D': l10n.manualPurchaseTaxNonVat,
 };
 
 /// Phone layout for recording a supplier purchase: one column of sections,
@@ -158,14 +159,13 @@ class _ManualPurchaseMobileScreenState
   }
 
   Future<void> _pickDueDate(ManualPurchaseState state) async {
-    final current =
-        state.effectiveDueDate;
+    final current = state.effectiveDueDate;
     final picked = await showDatePicker(
       context: context,
       initialDate: current,
       firstDate: state.purchaseDate,
       lastDate: state.purchaseDate.add(const Duration(days: 730)),
-      helpText: 'Pay supplier by',
+      helpText: context.flipperL10n.manualPurchasePaySupplierBy,
     );
     if (picked != null) {
       ref.read(manualPurchaseProvider.notifier).setDueDate(picked);
@@ -239,6 +239,7 @@ class _ManualPurchaseMobileScreenState
     final state = ref.watch(manualPurchaseProvider);
     final notifier = ref.read(manualPurchaseProvider.notifier);
     final busy = _submitting || state.isSaving;
+    final l10n = context.flipperL10n;
     ref.listen(manualPurchaseProvider, (_, next) {
       if (next.invoiceAutoFilled && _invoiceController.text != next.invoiceNo) {
         _invoiceController.text = next.invoiceNo;
@@ -248,7 +249,7 @@ class _ManualPurchaseMobileScreenState
     return Scaffold(
       backgroundColor: _T.canvas,
       appBar: CustomAppBar(
-        title: 'Record purchase',
+        title: l10n.manualPurchaseRecordPurchase,
         onPop: () => Navigator.of(context).maybePop(),
       ),
       body: Form(
@@ -258,12 +259,12 @@ class _ManualPurchaseMobileScreenState
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           children: [
             _Section(
-              title: 'Supplier',
+              title: l10n.manualPurchaseSupplier,
               children: [
                 _TapRow(
                   icon: Icons.storefront_outlined,
                   label: state.supplierName.trim().isEmpty
-                      ? 'Choose supplier'
+                      ? l10n.manualPurchaseChooseSupplier
                       : state.supplierName,
                   placeholder: state.supplierName.trim().isEmpty,
                   onTap: _pickSupplier,
@@ -274,13 +275,15 @@ class _ManualPurchaseMobileScreenState
                     controller: _tinController,
                     keyboardType: TextInputType.number,
                     inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                    decoration: _inputDecoration('TIN (optional)'),
+                    decoration: _inputDecoration(
+                      l10n.manualPurchaseTinOptional,
+                    ),
                     validator: (value) {
                       final v = value?.trim() ?? '';
                       if (v.isEmpty) return null;
                       return RegExp(r'^\d{9}$').hasMatch(v)
                           ? null
-                          : 'TIN must be 9 digits';
+                          : l10n.manualPurchaseTinMustBe9Digits;
                     },
                     onChanged: (value) => notifier.setSupplier(tin: value),
                   ),
@@ -288,21 +291,24 @@ class _ManualPurchaseMobileScreenState
               ],
             ),
             _Section(
-              title: 'Invoice',
+              title: l10n.invoice,
               children: [
                 _FieldRow(
                   child: TextFormField(
                     controller: _invoiceController,
                     keyboardType: TextInputType.number,
                     inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                    decoration: _inputDecoration('Invoice number').copyWith(
-                      helperText: state.invoiceAutoFilled
-                          ? 'Next number after your last invoice'
-                          : null,
-                    ),
+                    decoration:
+                        _inputDecoration(
+                          l10n.manualPurchaseInvoiceNumber,
+                        ).copyWith(
+                          helperText: state.invoiceAutoFilled
+                              ? l10n.manualPurchaseNextInvoiceHint
+                              : null,
+                        ),
                     validator: (value) =>
                         int.tryParse(value?.trim() ?? '') == null
-                        ? 'Enter the invoice number'
+                        ? l10n.manualPurchaseEnterInvoiceNumber
                         : null,
                     onChanged: notifier.setInvoiceNo,
                   ),
@@ -310,14 +316,14 @@ class _ManualPurchaseMobileScreenState
                 const _Divider(),
                 _TapRow(
                   icon: Icons.calendar_today_outlined,
-                  label: 'Purchase date',
+                  label: l10n.manualPurchasePurchaseDate,
                   value: _date.format(state.purchaseDate),
                   onTap: () => _pickPurchaseDate(state.purchaseDate),
                 ),
               ],
             ),
             _Section(
-              title: 'How did you pay?',
+              title: l10n.manualPurchaseHowDidYouPay,
               children: [
                 Padding(
                   padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
@@ -352,7 +358,7 @@ class _ManualPurchaseMobileScreenState
                   const _Divider(),
                   _TapRow(
                     icon: Icons.event_outlined,
-                    label: 'Pay supplier by',
+                    label: l10n.manualPurchasePaySupplierBy,
                     value: _date.format(state.effectiveDueDate),
                     onTap: () => _pickDueDate(state),
                   ),
@@ -366,10 +372,11 @@ class _ManualPurchaseMobileScreenState
                         keyboardType: const TextInputType.numberWithOptions(
                           decimal: true,
                         ),
-                        decoration: _inputDecoration('Paid now'),
-                        onChanged: (v) => notifier.setPaidUpfront(
-                          parseAmount(v),
+                        decoration: _inputDecoration(
+                          l10n.manualPurchasePaidNow,
                         ),
+                        onChanged: (v) =>
+                            notifier.setPaidUpfront(parseAmount(v)),
                       ),
                     ),
                   ],
@@ -378,15 +385,14 @@ class _ManualPurchaseMobileScreenState
               ],
             ),
             _Section(
-              title: 'Items',
+              title: l10n.items,
               trailing: state.lines.isEmpty ? null : '${state.lines.length}',
               children: [
                 if (state.lines.isEmpty)
                   Padding(
                     padding: const EdgeInsets.fromLTRB(14, 18, 14, 6),
                     child: Text(
-                      'Add what you bought from your catalog, or type a new '
-                      'item.',
+                      l10n.manualPurchaseItemsEmptyHint,
                       style: ImportPurchaseHelpers.text(
                         size: 14,
                         weight: FontWeight.w500,
@@ -406,7 +412,7 @@ class _ManualPurchaseMobileScreenState
                         child: OutlinedButton.icon(
                           onPressed: _addFromCatalog,
                           icon: const Icon(Icons.search, size: 18),
-                          label: const Text('From catalog'),
+                          label: Text(l10n.manualPurchaseFromCatalog),
                           style: _secondaryButtonStyle,
                         ),
                       ),
@@ -415,7 +421,7 @@ class _ManualPurchaseMobileScreenState
                         child: OutlinedButton.icon(
                           onPressed: _newLine,
                           icon: const Icon(Icons.add, size: 18),
-                          label: const Text('New item'),
+                          label: Text(l10n.manualPurchaseNewItem),
                           style: _secondaryButtonStyle,
                         ),
                       ),
@@ -635,7 +641,7 @@ class _OwedBanner extends StatelessWidget {
           const SizedBox(width: 10),
           Expanded(
             child: Text(
-              'You will owe this supplier',
+              context.flipperL10n.manualPurchaseYouWillOwe,
               style: ImportPurchaseHelpers.text(
                 size: 13.5,
                 weight: FontWeight.w600,
@@ -666,7 +672,10 @@ class _LineTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final name = line.name.trim().isEmpty ? 'Unnamed item' : line.name;
+    final l10n = context.flipperL10n;
+    final name = line.name.trim().isEmpty
+        ? l10n.manualPurchaseUnnamedItem
+        : line.name;
     return InkWell(
       onTap: onTap,
       child: Padding(
@@ -689,7 +698,7 @@ class _LineTile extends StatelessWidget {
                   const SizedBox(height: 3),
                   Text(
                     '${_money.format(line.qty)} × ${_money.format(line.unitPrice)}'
-                    ' · ${_taxLabels[line.taxTyCd] ?? line.taxTyCd}',
+                    ' · ${_taxLabels(l10n)[line.taxTyCd] ?? line.taxTyCd}',
                     style: ImportPurchaseHelpers.text(
                       size: 13,
                       weight: FontWeight.w500,
@@ -752,15 +761,16 @@ class _TotalsSection extends StatelessWidget {
       ),
     );
 
+    final l10n = context.flipperL10n;
     return _Section(
-      title: 'Summary',
+      title: l10n.manualPurchaseSummary,
       children: [
         const SizedBox(height: 4),
-        row('Taxable (VAT 18%)', state.taxblAmt('B')),
-        row('VAT included', state.taxAmt('B')),
-        if (exempt > 0) row('Exempt / zero-rated', exempt),
+        row(l10n.manualPurchaseTaxableVat18, state.taxblAmt('B')),
+        row(l10n.manualPurchaseVatIncluded, state.taxAmt('B')),
+        if (exempt > 0) row(l10n.manualPurchaseExemptZeroRated, exempt),
         const _Divider(),
-        row('Total', state.totAmt, strong: true),
+        row(l10n.failedPaymentTotal, state.totAmt, strong: true),
         const SizedBox(height: 4),
       ],
     );
@@ -804,7 +814,7 @@ class _SaveBar extends StatelessWidget {
                       borderRadius: BorderRadius.circular(_T.radiusSm),
                     ),
                   ),
-                  child: const Text('Save as waiting'),
+                  child: Text(context.flipperL10n.manualPurchaseSaveAsWaiting),
                 ),
               ),
               const SizedBox(width: 10),
@@ -831,8 +841,13 @@ class _SaveBar extends StatelessWidget {
                           fit: BoxFit.scaleDown,
                           child: Text(
                             total > 0
-                                ? 'Approve · ${_money.format(total)}'
-                                : 'Save & approve',
+                                ? context.flipperL10n
+                                      .manualPurchaseApproveWithTotal(
+                                        _money.format(total),
+                                      )
+                                : context
+                                      .flipperL10n
+                                      .manualPurchaseSaveAndApprove,
                           ),
                         ),
                 ),
@@ -927,6 +942,7 @@ class _SupplierPickerSheetState extends State<_SupplierPickerSheet> {
               )
               .toList();
     final exact = matches.any((s) => s.name.toLowerCase() == q);
+    final l10n = context.flipperL10n;
 
     return Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
@@ -942,7 +958,7 @@ class _SupplierPickerSheetState extends State<_SupplierPickerSheet> {
                 textCapitalization: TextCapitalization.words,
                 onChanged: (_) => setState(() {}),
                 decoration: InputDecoration(
-                  hintText: 'Search suppliers',
+                  hintText: l10n.manualPurchaseSearchSuppliers,
                   prefixIcon: const Icon(Icons.search),
                   filled: true,
                   fillColor: _T.surface2,
@@ -960,10 +976,10 @@ class _SupplierPickerSheetState extends State<_SupplierPickerSheet> {
               ),
               title: Text(
                 q.isEmpty || exact
-                    ? 'New supplier'
-                    : 'Add "${_query.text.trim()}"',
+                    ? l10n.manualPurchaseNewSupplier
+                    : l10n.manualPurchaseAddNamed(_query.text.trim()),
               ),
-              subtitle: const Text('Save a supplier you have not used before'),
+              subtitle: Text(l10n.manualPurchaseNewSupplierHint),
               onTap: () => Navigator.of(
                 context,
               ).pop(_SupplierChoice.create(exact ? '' : _query.text.trim())),
@@ -976,8 +992,10 @@ class _SupplierPickerSheetState extends State<_SupplierPickerSheet> {
                   ? Center(
                       child: Text(
                         all.isEmpty
-                            ? 'No suppliers yet'
-                            : 'No supplier matches "${_query.text.trim()}"',
+                            ? l10n.manualPurchaseNoSuppliersYet
+                            : l10n.manualPurchaseNoSupplierMatches(
+                                _query.text.trim(),
+                              ),
                         style: ImportPurchaseHelpers.text(
                           weight: FontWeight.w500,
                           color: _T.muted,
@@ -1007,8 +1025,10 @@ class _SupplierPickerSheetState extends State<_SupplierPickerSheet> {
                               ? null
                               : Text(
                                   [
-                                    if (s.tin.isNotEmpty) 'TIN ${s.tin}',
-                                    if (!s.isSaved) 'From your invoices',
+                                    if (s.tin.isNotEmpty)
+                                      l10n.manualPurchaseTinValue(s.tin),
+                                    if (!s.isSaved)
+                                      l10n.manualPurchaseFromYourInvoices,
                                   ].join(' · '),
                                 ),
                           onTap: () => Navigator.of(
@@ -1061,6 +1081,7 @@ class _CatalogSearchSheetState extends State<_CatalogSearchSheet> {
   @override
   Widget build(BuildContext context) {
     final hasQuery = _query.text.trim().isNotEmpty;
+    final l10n = context.flipperL10n;
     return Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
       child: SizedBox(
@@ -1074,7 +1095,7 @@ class _CatalogSearchSheetState extends State<_CatalogSearchSheet> {
                 autofocus: true,
                 onChanged: _search,
                 decoration: InputDecoration(
-                  hintText: 'Search your catalog',
+                  hintText: l10n.manualPurchaseSearchCatalog,
                   prefixIcon: const Icon(Icons.search),
                   suffixIcon: _searching
                       ? const Padding(
@@ -1099,7 +1120,7 @@ class _CatalogSearchSheetState extends State<_CatalogSearchSheet> {
               child: !hasQuery
                   ? Center(
                       child: Text(
-                        'Type a product name',
+                        l10n.manualPurchaseTypeProductName,
                         style: ImportPurchaseHelpers.text(
                           weight: FontWeight.w500,
                           color: _T.muted,
@@ -1109,7 +1130,7 @@ class _CatalogSearchSheetState extends State<_CatalogSearchSheet> {
                   : _results.isEmpty && !_searching
                   ? Center(
                       child: Text(
-                        'No product matches "${_query.text.trim()}"',
+                        l10n.manualPurchaseNoProductMatches(_query.text.trim()),
                         style: ImportPurchaseHelpers.text(
                           weight: FontWeight.w500,
                           color: _T.muted,
@@ -1127,8 +1148,11 @@ class _CatalogSearchSheetState extends State<_CatalogSearchSheet> {
                           title: Text(v.name),
                           subtitle: Text(
                             [
-                              if (cost != null) 'Cost ${_money.format(cost)}',
-                              _taxLabels[v.taxTyCd ?? 'B'] ?? '',
+                              if (cost != null)
+                                l10n.manualPurchaseCostValue(
+                                  _money.format(cost),
+                                ),
+                              _taxLabels(l10n)[v.taxTyCd ?? 'B'] ?? '',
                             ].where((s) => s.isNotEmpty).join(' · '),
                           ),
                           trailing: const Icon(
@@ -1206,8 +1230,7 @@ class _LineEditorSheetState extends State<_LineEditorSheet> {
   /// Catalog items keep their name; only new lines are typed in.
   bool get _fromCatalog => widget.line?.catalogVariantId != null;
 
-  static double _num(String raw) =>
-      parseAmount(raw);
+  static double _num(String raw) => parseAmount(raw);
 
   @override
   void dispose() {
@@ -1235,6 +1258,7 @@ class _LineEditorSheetState extends State<_LineEditorSheet> {
   Widget build(BuildContext context) {
     final total = _num(_qty.text) * _num(_price.text);
     final isNew = widget.line == null;
+    final l10n = context.flipperL10n;
 
     return Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
@@ -1247,7 +1271,9 @@ class _LineEditorSheetState extends State<_LineEditorSheet> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                isNew ? 'New item' : 'Edit item',
+                isNew
+                    ? l10n.manualPurchaseNewItem
+                    : l10n.manualPurchaseEditItem,
                 style: ImportPurchaseHelpers.text(
                   size: 18,
                   weight: FontWeight.w700,
@@ -1259,12 +1285,13 @@ class _LineEditorSheetState extends State<_LineEditorSheet> {
                 readOnly: _fromCatalog,
                 autofocus: isNew,
                 textCapitalization: TextCapitalization.sentences,
-                decoration: const InputDecoration(
-                  labelText: 'Item name',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: l10n.manualPurchaseItemName,
+                  border: const OutlineInputBorder(),
                 ),
-                validator: (v) =>
-                    (v ?? '').trim().isEmpty ? 'Enter the item name' : null,
+                validator: (v) => (v ?? '').trim().isEmpty
+                    ? l10n.manualPurchaseEnterItemName
+                    : null,
               ),
               const SizedBox(height: 12),
               Row(
@@ -1277,13 +1304,14 @@ class _LineEditorSheetState extends State<_LineEditorSheet> {
                       keyboardType: const TextInputType.numberWithOptions(
                         decimal: true,
                       ),
-                      decoration: const InputDecoration(
-                        labelText: 'Quantity',
-                        border: OutlineInputBorder(),
+                      decoration: InputDecoration(
+                        labelText: l10n.quantity,
+                        border: const OutlineInputBorder(),
                       ),
                       onChanged: (_) => setState(() {}),
-                      validator: (v) =>
-                          _num(v ?? '') <= 0 ? 'More than 0' : null,
+                      validator: (v) => _num(v ?? '') <= 0
+                          ? l10n.manualPurchaseMoreThanZero
+                          : null,
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -1293,9 +1321,9 @@ class _LineEditorSheetState extends State<_LineEditorSheet> {
                       keyboardType: const TextInputType.numberWithOptions(
                         decimal: true,
                       ),
-                      decoration: const InputDecoration(
-                        labelText: 'Unit cost',
-                        border: OutlineInputBorder(),
+                      decoration: InputDecoration(
+                        labelText: l10n.manualPurchaseUnitCost,
+                        border: const OutlineInputBorder(),
                       ),
                       onChanged: (_) => setState(() {}),
                     ),
@@ -1311,16 +1339,18 @@ class _LineEditorSheetState extends State<_LineEditorSheet> {
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
                   ),
-                  decoration: const InputDecoration(
-                    labelText: 'Selling price (optional)',
-                    helperText: 'Leave empty to sell at cost',
+                  decoration: InputDecoration(
+                    labelText:
+                        FlipperL10n.current.manualPurchaseSellingPriceOptional,
+                    helperText:
+                        FlipperL10n.current.manualPurchaseSellAtCostHelper,
                     border: OutlineInputBorder(),
                   ),
                 ),
               ],
               const SizedBox(height: 16),
               Text(
-                'Tax',
+                l10n.manualPurchaseTax,
                 style: ImportPurchaseHelpers.text(
                   size: 13,
                   weight: FontWeight.w600,
@@ -1332,7 +1362,7 @@ class _LineEditorSheetState extends State<_LineEditorSheet> {
                 spacing: 8,
                 runSpacing: 8,
                 children: [
-                  for (final e in _taxLabels.entries)
+                  for (final e in _taxLabels(l10n).entries)
                     ChoiceChip(
                       label: Text(e.value),
                       selected: _tax == e.key,
@@ -1346,7 +1376,7 @@ class _LineEditorSheetState extends State<_LineEditorSheet> {
               Row(
                 children: [
                   Text(
-                    'Line total',
+                    l10n.manualPurchaseLineTotal,
                     style: ImportPurchaseHelpers.text(
                       weight: FontWeight.w500,
                       color: _T.ink2,
@@ -1373,7 +1403,7 @@ class _LineEditorSheetState extends State<_LineEditorSheet> {
                     borderRadius: BorderRadius.circular(_T.radiusSm),
                   ),
                 ),
-                child: Text(isNew ? 'Add item' : 'Done'),
+                child: Text(isNew ? l10n.manualPurchaseAddItem : l10n.done),
               ),
               if (!isNew) ...[
                 const SizedBox(height: 6),
@@ -1382,7 +1412,7 @@ class _LineEditorSheetState extends State<_LineEditorSheet> {
                       Navigator.of(context).pop(const _LineEdit.remove()),
                   style: TextButton.styleFrom(foregroundColor: _T.redStrong),
                   icon: const Icon(Icons.delete_outline),
-                  label: const Text('Remove item'),
+                  label: Text(l10n.removeItem),
                 ),
               ],
             ],

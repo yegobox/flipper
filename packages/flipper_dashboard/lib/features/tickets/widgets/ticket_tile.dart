@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flutter/material.dart';
@@ -30,9 +31,9 @@ class _TicketTileState extends State<TicketTile>
     with AutomaticKeepAliveClientMixin {
   int? _minutesRemaining;
   Timer? _timer;
-  String? _timeRemainingString; // Cached string for time remaining
-  final DateFormat _dateFormat =
-      DateFormat('MMM d, yyyy hh:mm a'); // Date formatter
+  final DateFormat _dateFormat = DateFormat(
+    'MMM d, yyyy hh:mm a',
+  ); // Date formatter
 
   @override
   bool get wantKeepAlive => true; // Keep the state alive even when offscreen
@@ -61,19 +62,15 @@ class _TicketTileState extends State<TicketTile>
       _updateTimeRemainingString(); // Update the formatted string too
     } else {
       _minutesRemaining = null;
-      _timeRemainingString = null;
     }
   }
 
+  /// Rebuilds so the remaining-time chip refreshes. The text itself is
+  /// formatted in [build]: it needs localizations, which cannot be read from
+  /// [initState] (where the first update runs).
   void _updateTimeRemainingString() {
     if (mounted) {
-      setState(() {
-        if (_minutesRemaining != null) {
-          _timeRemainingString = _formatTimeRemaining(_minutesRemaining!);
-        } else {
-          _timeRemainingString = null;
-        }
-      });
+      setState(() {});
     }
   }
 
@@ -91,9 +88,9 @@ class _TicketTileState extends State<TicketTile>
     super.dispose();
   }
 
-  String _formatTimeRemaining(int minutes) {
+  String _formatTimeRemaining(int minutes, FlipperAppLocalizations l10n) {
     if (minutes < 0) {
-      return 'Overdue';
+      return l10n.ticketOverdue;
     }
 
     final days = minutes ~/ (60 * 24);
@@ -101,11 +98,11 @@ class _TicketTileState extends State<TicketTile>
     final remainingMinutes = minutes % 60;
 
     if (days > 0) {
-      return '${days}d ${hours}h left';
+      return l10n.ticketDaysHoursLeft('$days', '$hours');
     } else if (hours > 0) {
-      return '${hours}h ${remainingMinutes}m left';
+      return l10n.ticketHoursMinutesLeft('$hours', '$remainingMinutes');
     } else {
-      return '$minutes min left';
+      return l10n.ticketMinutesLeft('$minutes');
     }
   }
 
@@ -113,30 +110,31 @@ class _TicketTileState extends State<TicketTile>
   Widget build(BuildContext context) {
     super.build(context); // Important for AutomaticKeepAliveClientMixin
 
+    final l10n = context.flipperL10n;
     final ticket = widget.ticket;
-    final ticketStatus =
-        TicketStatusExtension.fromString(ticket.status ?? PARKED);
+    final timeRemaining = _minutesRemaining == null
+        ? null
+        : _formatTimeRemaining(_minutesRemaining!, l10n);
+    final ticketStatus = TicketStatusExtension.fromString(
+      ticket.status ?? PARKED,
+    );
     final screenWidth = MediaQuery.of(context).size.width;
     final isSmallScreen = screenWidth < 360;
 
-    final subtotalFormatted =
-        (ticket.subTotal ?? 0.0).toStringAsFixed(2); // Format once
+    final subtotalFormatted = (ticket.subTotal ?? 0.0).toStringAsFixed(
+      2,
+    ); // Format once
 
     return Card(
       elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8.0),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
       child: InkWell(
         // Use InkWell for ripple effect on tap
         onTap: widget.onTap,
         borderRadius: BorderRadius.circular(8.0), // Match Card's border radius
 
         child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 16.0,
-            vertical: 12.0,
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
           child: Column(
             crossAxisAlignment:
                 CrossAxisAlignment.start, // Align the whole column to the left
@@ -154,7 +152,7 @@ class _TicketTileState extends State<TicketTile>
                           children: [
                             Flexible(
                               child: Text(
-                                ticket.ticketName ?? "N/A",
+                                ticket.ticketName ?? l10n.ticketNotAvailable,
                                 style: GoogleFonts.outfit(
                                   fontWeight: FontWeight.w500,
                                   fontSize: 17,
@@ -166,7 +164,14 @@ class _TicketTileState extends State<TicketTile>
                             const SizedBox(width: 8),
                             // Display ID in a smaller, subtle format
                             Text(
-                              '(ID: ${safeSubstring(ticket.id, 0, end: 8, ellipsis: false)})',
+                              l10n.ticketIdShort(
+                                safeSubstring(
+                                  ticket.id,
+                                  0,
+                                  end: 8,
+                                  ellipsis: false,
+                                ),
+                              ),
                               style: GoogleFonts.outfit(
                                 fontWeight: FontWeight.w400,
                                 fontSize: 12,
@@ -191,7 +196,7 @@ class _TicketTileState extends State<TicketTile>
                             // Display subtotal
                             Flexible(
                               child: Text(
-                                'Subtotal: $subtotalFormatted',
+                                l10n.ticketSubtotalValue(subtotalFormatted),
                                 style: GoogleFonts.outfit(
                                   fontWeight: FontWeight.w500,
                                   fontSize: 14,
@@ -206,11 +211,18 @@ class _TicketTileState extends State<TicketTile>
                                 padding: const EdgeInsets.only(left: 12),
                                 child: Row(
                                   children: [
-                                    const Icon(Icons.event,
-                                        size: 16, color: Colors.deepPurple),
+                                    const Icon(
+                                      Icons.event,
+                                      size: 16,
+                                      color: Colors.deepPurple,
+                                    ),
                                     const SizedBox(width: 3),
                                     Text(
-                                      'Due: ${_dateFormat.format(ticket.dueDate!.toLocal())}', // Use formatted date
+                                      l10n.ticketDueOn(
+                                        _dateFormat.format(
+                                          ticket.dueDate!.toLocal(),
+                                        ),
+                                      ),
                                       style: GoogleFonts.outfit(
                                         fontWeight: FontWeight.w500,
                                         fontSize: 13,
@@ -225,19 +237,22 @@ class _TicketTileState extends State<TicketTile>
                               Padding(
                                 padding: const EdgeInsets.only(left: 10),
                                 child: Chip(
-                                  avatar: const Icon(Icons.timer,
-                                      size: 16, color: Colors.deepPurple),
+                                  avatar: const Icon(
+                                    Icons.timer,
+                                    size: 16,
+                                    color: Colors.deepPurple,
+                                  ),
                                   label: Text(
-                                    _timeRemainingString ??
-                                        '', // Use cached string
+                                    timeRemaining ?? '',
                                     style: const TextStyle(
                                       fontWeight: FontWeight.w500,
                                       fontSize: 13,
                                       color: Colors.deepPurple,
                                     ),
                                   ),
-                                  backgroundColor:
-                                      Colors.deepPurple.withValues(alpha: 0.1),
+                                  backgroundColor: Colors.deepPurple.withValues(
+                                    alpha: 0.1,
+                                  ),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(8),
                                   ),
@@ -263,22 +278,21 @@ class _TicketTileState extends State<TicketTile>
                               context: context,
                               builder: (BuildContext context) {
                                 return AlertDialog(
-                                  title: const Text('Delete Ticket'),
-                                  content: const Text(
-                                      'Are you sure you want to delete this ticket? This action cannot be undone.'),
+                                  title: Text(l10n.ticketDeleteTitle),
+                                  content: Text(l10n.ticketDeleteConfirm),
                                   actions: [
                                     TextButton(
                                       onPressed: () {
                                         Navigator.of(context).pop();
                                       },
-                                      child: const Text('Cancel'),
+                                      child: Text(l10n.cancel),
                                     ),
                                     TextButton(
                                       onPressed: () {
                                         Navigator.of(context).pop();
                                         widget.onDelete(ticket);
                                       },
-                                      child: const Text('Delete'),
+                                      child: Text(l10n.delete),
                                       style: TextButton.styleFrom(
                                         foregroundColor: Colors.red,
                                       ),
@@ -304,7 +318,9 @@ class _TicketTileState extends State<TicketTile>
                         ticket.isLoan == true
                             ? Container(
                                 padding: const EdgeInsets.symmetric(
-                                    horizontal: 12, vertical: 6),
+                                  horizontal: 12,
+                                  vertical: 6,
+                                ),
                                 decoration: BoxDecoration(
                                   color: Colors.orange.withValues(alpha: 0.2),
                                   borderRadius: BorderRadius.circular(12),
@@ -314,7 +330,7 @@ class _TicketTileState extends State<TicketTile>
                                   ),
                                 ),
                                 child: Text(
-                                  'LOAN',
+                                  l10n.ticketLoan.toUpperCase(),
                                   style: GoogleFonts.outfit(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 13,
@@ -325,16 +341,21 @@ class _TicketTileState extends State<TicketTile>
                               )
                             : Container(
                                 padding: const EdgeInsets.symmetric(
-                                    horizontal: 12, vertical: 6),
+                                  horizontal: 12,
+                                  vertical: 6,
+                                ),
                                 decoration: BoxDecoration(
-                                  color:
-                                      ticketStatus.color.withValues(alpha: 0.2),
+                                  color: ticketStatus.color.withValues(
+                                    alpha: 0.2,
+                                  ),
                                   borderRadius: BorderRadius.circular(12),
                                   border: Border.all(
-                                      color: ticketStatus.color, width: 1),
+                                    color: ticketStatus.color,
+                                    width: 1,
+                                  ),
                                 ),
                                 child: Text(
-                                  ticketStatus.displayName,
+                                  ticketStatus.displayLabel(l10n),
                                   style: GoogleFonts.outfit(
                                     fontWeight: FontWeight.w500,
                                     fontSize: 14,
@@ -353,8 +374,10 @@ class _TicketTileState extends State<TicketTile>
                   padding: const EdgeInsets.only(top: 8.0),
                   child: Container(
                     width: double.infinity,
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
                     decoration: BoxDecoration(
                       color: ticketStatus.color.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(12),
@@ -362,7 +385,7 @@ class _TicketTileState extends State<TicketTile>
                     ),
                     child: Center(
                       child: Text(
-                        ticketStatus.displayName,
+                        ticketStatus.displayLabel(l10n),
                         style: GoogleFonts.outfit(
                           fontWeight: FontWeight.w500,
                           fontSize: 14,

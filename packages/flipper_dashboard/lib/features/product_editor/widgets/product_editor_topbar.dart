@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/features/product_editor/product_editor_tokens.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -20,20 +21,27 @@ class ProductEditorTopBar extends StatelessWidget {
   final VoidCallback onBack;
   final bool isSaving;
 
-  String _displayName(String raw) =>
-      raw.trim().isEmpty ? 'Untitled product' : raw.trim();
+  String _displayName(BuildContext context, String raw) => raw.trim().isEmpty
+      ? context.flipperL10n.productEditorUntitledProduct
+      : raw.trim();
 
   @override
   Widget build(BuildContext context) {
-    final mode = isEditMode ? 'EDIT' : 'NEW';
-    final kind = isComposite ? 'COMPOSITE' : 'PRODUCT';
+    final l10n = context.flipperL10n;
+    final breadcrumb = isEditMode
+        ? (isComposite
+              ? l10n.productEditorBreadcrumbEditComposite
+              : l10n.productEditorBreadcrumbEditProduct)
+        : (isComposite
+              ? l10n.productEditorBreadcrumbNewComposite
+              : l10n.productEditorBreadcrumbNewProduct);
 
     Widget title;
     if (productNameController != null) {
       title = ListenableBuilder(
         listenable: productNameController!,
         builder: (context, _) => Text(
-          _displayName(productNameController!.text),
+          _displayName(context, productNameController!.text),
           style: GoogleFonts.outfit(
             fontSize: 17,
             fontWeight: FontWeight.w700,
@@ -45,7 +53,7 @@ class ProductEditorTopBar extends StatelessWidget {
       );
     } else {
       title = Text(
-        _displayName(productName!),
+        _displayName(context, productName!),
         style: GoogleFonts.outfit(
           fontSize: 17,
           fontWeight: FontWeight.w700,
@@ -95,7 +103,7 @@ class ProductEditorTopBar extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'INVENTORY · $mode $kind',
+                  breadcrumb,
                   style: GoogleFonts.outfit(
                     fontSize: 11,
                     fontWeight: FontWeight.w700,

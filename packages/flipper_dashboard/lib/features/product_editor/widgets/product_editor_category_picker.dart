@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/features/product_editor/product_editor_tokens.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/all_providers.dart';
 import 'package:flutter/material.dart';
@@ -188,7 +189,9 @@ class _ProductEditorCategoryPickerState
           if (!listOpen && chips.isNotEmpty) ...[
             const SizedBox(height: 12),
             Text(
-              hasSelection ? 'Switch to' : 'Or pick one of yours',
+              hasSelection
+                  ? context.flipperL10n.productEditorCategorySwitchTo
+                  : context.flipperL10n.productEditorCategoryPickYours,
               style: GoogleFonts.outfit(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
@@ -267,8 +270,8 @@ class _SearchRow extends StatelessWidget {
                 isDense: true,
                 border: InputBorder.none,
                 hintText: hasSelection
-                    ? 'Search to change category…'
-                    : 'Search categories…',
+                    ? context.flipperL10n.productEditorCategorySearchToChange
+                    : context.flipperL10n.productEditorCategorySearch,
                 hintStyle: GoogleFonts.outfit(
                   fontSize: 15,
                   fontWeight: FontWeight.w500,
@@ -320,8 +323,8 @@ class _ResultsList extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
               child: Text(
                 query.isEmpty
-                    ? 'You have no categories yet'
-                    : 'Nothing matches "$query"',
+                    ? context.flipperL10n.productEditorCategoryNoneYet
+                    : context.flipperL10n.productEditorCategoryNoMatch(query),
                 style: GoogleFonts.outfit(
                   fontSize: 13,
                   color: ProductEditorTokens.ink3,
@@ -338,7 +341,9 @@ class _ResultsList extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
               child: Text(
-                '$hiddenCount more — keep typing to narrow it down',
+                context.flipperL10n.productEditorCategoryMoreHidden(
+                  hiddenCount,
+                ),
                 style: GoogleFonts.outfit(
                   fontSize: 11.5,
                   color: ProductEditorTokens.ink4,
@@ -352,7 +357,9 @@ class _ResultsList extends StatelessWidget {
               color: ProductEditorTokens.lineSoft,
             ),
             _ResultRow(
-              label: 'Create "$query"',
+              label: context.flipperL10n.productEditorCategoryCreateNamed(
+                query,
+              ),
               icon: Icons.add_circle_outline,
               emphasised: true,
               onTap: onCreate,
@@ -448,7 +455,7 @@ class _SelectedCategoryBanner extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Filed under',
+                  context.flipperL10n.productEditorCategoryFiledUnder,
                   style: GoogleFonts.outfit(
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
@@ -472,7 +479,7 @@ class _SelectedCategoryBanner extends StatelessWidget {
           const SizedBox(width: 8),
           Semantics(
             button: true,
-            label: 'Remove category',
+            label: context.flipperL10n.productEditorCategoryRemove,
             child: Material(
               color: Colors.transparent,
               child: InkWell(
@@ -484,7 +491,7 @@ class _SelectedCategoryBanner extends StatelessWidget {
                     vertical: 6,
                   ),
                   child: Text(
-                    'Remove',
+                    context.flipperL10n.remove,
                     style: GoogleFonts.outfit(
                       fontSize: 12.5,
                       fontWeight: FontWeight.w700,
@@ -523,7 +530,7 @@ class _NoCategoryYetBanner extends StatelessWidget {
           const SizedBox(width: 10),
           Expanded(
             child: Text(
-              'No category chosen yet — search above or create a new one.',
+              context.flipperL10n.productEditorCategoryNoneChosen,
               style: GoogleFonts.outfit(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
@@ -548,7 +555,7 @@ class _NewCategoryButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Semantics(
       button: true,
-      label: 'Create a new category',
+      label: context.flipperL10n.productEditorCategoryCreateNew,
       child: Material(
         color: ProductEditorTokens.blueTint,
         borderRadius: BorderRadius.circular(10),
@@ -568,7 +575,7 @@ class _NewCategoryButton extends StatelessWidget {
                 ),
                 const SizedBox(width: 4),
                 Text(
-                  'New',
+                  context.flipperL10n.productEditorCategoryNew,
                   style: GoogleFonts.outfit(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,

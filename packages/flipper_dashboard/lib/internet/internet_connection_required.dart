@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/services/internet_connection_service.dart';
 import 'package:flipper_ui/style_widget/button.dart';
@@ -30,32 +31,27 @@ class InternetConnectionRequired extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                const Icon(
-                  Icons.wifi_off_rounded,
-                  size: 80,
-                  color: Colors.red,
-                ),
+                const Icon(Icons.wifi_off_rounded, size: 80, color: Colors.red),
                 const SizedBox(height: 24),
-                const Flippertext.semibold(
-                  'Internet Connection Required',
+                Flippertext.semibold(
+                  context.flipperL10n.internetRequiredTitle,
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 16),
-                const Flippertext.regular(
-                  'You need to connect to the internet to continue using Flipper. '
-                  'Our system requires an internet connection every 5 days to verify your account.',
+                Flippertext.regular(
+                  context.flipperL10n.internetRequiredBody,
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 32),
                 FlipperButton(
-                  text: 'Check Connection',
+                  text: context.flipperL10n.internetRequiredCheck,
                   onPressed: model.checkConnection,
                   isLoading: model.isBusy,
                   color: Colors.blue,
                 ),
                 const SizedBox(height: 16),
                 Flippertext.small(
-                  'If you continue to see this screen, please check your internet connection and try again.',
+                  context.flipperL10n.internetRequiredHint,
                   textAlign: TextAlign.center,
                 ),
               ],

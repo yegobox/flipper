@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/view_models/ScannViewModel.dart';
 
@@ -32,15 +33,15 @@ class BasicInfoSection extends StatelessWidget {
               },
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Product name is required';
+                  return context.flipperL10n.productEntryNameRequired;
                 } else if (value.length < 3) {
-                  return 'Product name must be at least 3 characters long';
+                  return context.flipperL10n.productEntryNameTooShort;
                 }
                 return null;
               },
               decoration: InputDecoration(
-                labelText: 'Product Name',
-                hintText: 'e.g. Arabica Coffee',
+                labelText: context.flipperL10n.productEntryProductName,
+                hintText: context.flipperL10n.productEntryProductNameHint,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8.0),
                 ),

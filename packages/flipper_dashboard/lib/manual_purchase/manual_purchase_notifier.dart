@@ -4,20 +4,25 @@ import 'package:flipper_models/domain/party/party_draft.dart';
 import 'package:flipper_models/domain/party/supplier_factory.dart';
 import 'package:flipper_models/sync/capella/manual_purchase_ditto.dart';
 import 'package:flipper_dashboard/manual_purchase/purchase_suggestions.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:intl/intl.dart';
 
-/// EBM payment type codes accepted on a purchase.
-const Map<String, String> purchasePaymentTypes = {
-  '01': 'Cash',
-  '02': 'Credit',
-  '03': 'Cash/Credit',
-  '04': 'Bank check',
-  '05': 'Debit/credit card',
-  '06': 'Mobile money',
-  '07': 'Other',
-};
+/// EBM payment type codes accepted on a purchase, with labels in the current
+/// app language. The keys are the wire codes; only the values are localized.
+Map<String, String> get purchasePaymentTypes {
+  final l10n = FlipperL10n.current;
+  return {
+    '01': l10n.cash,
+    '02': l10n.credit,
+    '03': l10n.paymentCashCredit,
+    '04': l10n.paymentBankCheck,
+    '05': l10n.paymentDebitCreditCard,
+    '06': l10n.paymentMobileMoney,
+    '07': l10n.paymentOther,
+  };
+}
 
 class ManualPurchaseLine {
   /// Stable identity for row widgets; survives edits and removals.
@@ -139,10 +144,10 @@ class ManualPurchaseState {
 
   /// What will be owed once the purchase is approved.
   double get amountOwed => switch (pmtTyCd) {
-        '02' => totAmt,
-        '03' => (totAmt - paidUpfront).clamp(0, totAmt).toDouble(),
-        _ => 0,
-      };
+    '02' => totAmt,
+    '03' => (totAmt - paidUpfront).clamp(0, totAmt).toDouble(),
+    _ => 0,
+  };
 
   bool get isValid =>
       supplierName.trim().isNotEmpty &&
@@ -257,7 +262,10 @@ class ManualPurchaseNotifier extends StateNotifier<ManualPurchaseState> {
   }
 
   void setPaidUpfront(double amount) {
-    state = state.copyWith(paidUpfront: amount < 0 ? 0 : amount, clearError: true);
+    state = state.copyWith(
+      paidUpfront: amount < 0 ? 0 : amount,
+      clearError: true,
+    );
   }
 
   Future<Supplier?> createSupplier({
@@ -278,8 +286,9 @@ class ManualPurchaseNotifier extends StateNotifier<ManualPurchaseState> {
         kind: PartyKind.supplier,
         bhfId: await ProxyService.box.bhfId() ?? '00',
       );
-      final supplier = await ProxyService.getStrategy(Strategy.capella)
-          .upsertSupplierParty(draft);
+      final supplier = await ProxyService.getStrategy(
+        Strategy.capella,
+      ).upsertSupplierParty(draft);
       state = state.copyWith(
         supplierName: supplier.custNm ?? name,
         supplierTin: supplier.custTin ?? tin,
@@ -401,9 +410,8 @@ class ManualPurchaseNotifier extends StateNotifier<ManualPurchaseState> {
     if (!s.isValid) {
       state = s.copyWith(
         error: s.pmtTyCd == '03' && s.paidUpfront > s.totAmt
-            ? 'The amount paid now cannot be more than the purchase total.'
-            : 'Supplier, a numeric invoice number and at least one line '
-                'with quantity above zero are required.',
+            ? FlipperL10n.current.manualPurchasePaidExceedsTotal
+            : FlipperL10n.current.manualPurchaseRequiredFields,
       );
       return null;
     }
@@ -497,11 +505,11 @@ class ManualPurchaseNotifier extends StateNotifier<ManualPurchaseState> {
 
       final saved = await ProxyService.getStrategy(Strategy.capella)
           .saveManualPurchase(
-        purchase: purchase,
-        branchId: branchId,
-        supplier: supplier,
-        catalogTargets: catalogTargets,
-      );
+            purchase: purchase,
+            branchId: branchId,
+            supplier: supplier,
+            catalogTargets: catalogTargets,
+          );
 
       state = state.copyWith(isSaving: false);
       return saved;

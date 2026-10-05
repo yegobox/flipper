@@ -91,7 +91,7 @@ class _DashboardAllAppsSheetBody extends ConsumerWidget {
         .maybeWhen(data: (b) => b.name?.trim(), orElse: () => null);
     final subtitle = branchName != null && branchName.isNotEmpty
         ? branchName
-        : 'your business';
+        : context.flipperL10n.dashboardAllAppsYourBusiness;
 
     final stockSummary = ref
         .watch(stockValueSummaryProvider)
@@ -142,7 +142,7 @@ class _DashboardAllAppsSheetBody extends ConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'All apps',
+                          context.flipperL10n.allApps,
                           style: GoogleFonts.outfit(
                             fontSize: 19,
                             fontWeight: FontWeight.w700,
@@ -152,7 +152,9 @@ class _DashboardAllAppsSheetBody extends ConsumerWidget {
                         ),
                         const SizedBox(height: 1),
                         Text(
-                          'Everything in $subtitle',
+                          context.flipperL10n.dashboardAllAppsEverythingIn(
+                            subtitle,
+                          ),
                           style: GoogleFonts.outfit(
                             fontSize: 12.5,
                             fontWeight: FontWeight.w500,
@@ -216,7 +218,10 @@ class _DashboardAllAppsSheetBody extends ConsumerWidget {
                           tile: tile,
                           badge: badge,
                           onTap: () async {
-                            final navigator = Navigator.of(context, rootNavigator: true);
+                            final navigator = Navigator.of(
+                              context,
+                              rootNavigator: true,
+                            );
                             navigator.pop();
                             await navigateToDashboardAppPage(
                               context: navigator.context,

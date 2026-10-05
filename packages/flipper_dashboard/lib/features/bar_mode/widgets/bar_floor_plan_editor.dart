@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flipper_dashboard/features/bar_mode/providers/bar_mode_providers.dart';
 import 'package:flipper_dashboard/features/bar_mode/theme/bar_tokens.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_admin_widgets.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/models/bar_table.dart';
 import 'package:flipper_services/proxy.dart';
@@ -28,8 +29,7 @@ class BarFloorPlanEditor extends ConsumerStatefulWidget {
   const BarFloorPlanEditor({super.key});
 
   @override
-  ConsumerState<BarFloorPlanEditor> createState() =>
-      _BarFloorPlanEditorState();
+  ConsumerState<BarFloorPlanEditor> createState() => _BarFloorPlanEditorState();
 }
 
 class _BarFloorPlanEditorState extends ConsumerState<BarFloorPlanEditor> {
@@ -55,8 +55,9 @@ class _BarFloorPlanEditorState extends ConsumerState<BarFloorPlanEditor> {
       );
     }).toList();
     zones.sort(
-      (a, b) => (a.tables.firstOrNull?.ordinal ?? 0)
-          .compareTo(b.tables.firstOrNull?.ordinal ?? 0),
+      (a, b) => (a.tables.firstOrNull?.ordinal ?? 0).compareTo(
+        b.tables.firstOrNull?.ordinal ?? 0,
+      ),
     );
     return zones;
   }
@@ -157,10 +158,15 @@ class _BarFloorPlanEditorState extends ConsumerState<BarFloorPlanEditor> {
     final name = await _promptZoneName(context);
     if (name == null || name.trim().isEmpty) return;
     final trimmed = name.trim();
-    final zoneId =
-        trimmed.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '_');
-    final zone = _ZoneGroup(zoneId: zoneId, zoneName: trimmed, tables: const []);
-    await _runBusy(() => _addTable(zone, ref.read(barTablesProvider).value ?? []));
+    final zoneId = trimmed.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '_');
+    final zone = _ZoneGroup(
+      zoneId: zoneId,
+      zoneName: trimmed,
+      tables: const [],
+    );
+    await _runBusy(
+      () => _addTable(zone, ref.read(barTablesProvider).value ?? []),
+    );
   }
 
   Future<void> _deleteTable(
@@ -168,22 +174,22 @@ class _BarFloorPlanEditorState extends ConsumerState<BarFloorPlanEditor> {
     required Set<String> openTableIds,
   }) async {
     if (openTableIds.contains(table.id)) {
-      _snack('Close the open tab on ${table.name} before deleting.');
+      _snack(context.flipperL10n.barCloseTabBeforeDeleting(table.name));
       return;
     }
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Delete table?'),
-        content: Text('Remove ${table.name} from the floor plan?'),
+        title: Text(ctx.flipperL10n.barDeleteTableQuestion),
+        content: Text(ctx.flipperL10n.barRemoveTableBody(table.name)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
+            child: Text(ctx.flipperL10n.cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Delete'),
+            child: Text(ctx.flipperL10n.delete),
           ),
         ],
       ),
@@ -201,29 +207,28 @@ class _BarFloorPlanEditorState extends ConsumerState<BarFloorPlanEditor> {
     _ZoneGroup zone, {
     required Set<String> openTableIds,
   }) async {
-    final openInZone =
-        zone.tables.where((t) => openTableIds.contains(t.id)).toList();
+    final openInZone = zone.tables
+        .where((t) => openTableIds.contains(t.id))
+        .toList();
     if (openInZone.isNotEmpty) {
-      _snack(
-        'Close open tabs in ${zone.zoneName} before deleting the zone.',
-      );
+      _snack(context.flipperL10n.barCloseZoneTabsBeforeDeleting(zone.zoneName));
       return;
     }
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Delete zone?'),
+        title: Text(ctx.flipperL10n.barDeleteZoneQuestion),
         content: Text(
-          'Remove ${zone.zoneName} and its ${zone.tables.length} tables?',
+          ctx.flipperL10n.barRemoveZoneBody(zone.zoneName, zone.tables.length),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
+            child: Text(ctx.flipperL10n.cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Delete zone'),
+            child: Text(ctx.flipperL10n.barDeleteZone),
           ),
         ],
       ),
@@ -238,9 +243,9 @@ class _BarFloorPlanEditorState extends ConsumerState<BarFloorPlanEditor> {
 
   void _snack(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -263,7 +268,7 @@ class _BarFloorPlanEditorState extends ConsumerState<BarFloorPlanEditor> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'No tables configured yet.',
+                  context.flipperL10n.barNoTablesConfiguredYet,
                   style: GoogleFonts.outfit(
                     fontSize: 14,
                     color: BarTokens.ink2,
@@ -271,7 +276,7 @@ class _BarFloorPlanEditorState extends ConsumerState<BarFloorPlanEditor> {
                 ),
                 const SizedBox(height: 14),
                 BarPrimaryButton(
-                  label: 'Load default floor plan',
+                  label: context.flipperL10n.barLoadDefaultFloorPlan,
                   icon: Icons.grid_view,
                   onPressed: _busy ? null : _seedDefaults,
                 ),
@@ -295,13 +300,12 @@ class _BarFloorPlanEditorState extends ConsumerState<BarFloorPlanEditor> {
                 onDeleteZone: () => _deleteZone(zone, openTableIds: openIds),
                 onAddTable: () => _addTable(zone, tables),
                 onSaveTable: _saveTable,
-                onDeleteTable: (t) =>
-                    _deleteTable(t, openTableIds: openIds),
+                onDeleteTable: (t) => _deleteTable(t, openTableIds: openIds),
               ),
               const SizedBox(height: 14),
             ],
             _DashedAddButton(
-              label: 'Add zone',
+              label: context.flipperL10n.barAddZone,
               onPressed: _busy ? null : _addZone,
             ),
           ],
@@ -354,7 +358,7 @@ class _ZoneCard extends StatelessWidget {
               ),
               const SizedBox(width: 12),
               Text(
-                '${zone.tables.length} tables',
+                context.flipperL10n.barTablesCount(zone.tables.length),
                 style: GoogleFonts.jetBrainsMono(
                   fontSize: 12.5,
                   fontWeight: FontWeight.w600,
@@ -362,7 +366,7 @@ class _ZoneCard extends StatelessWidget {
                 ),
               ),
               IconButton(
-                tooltip: 'Delete zone',
+                tooltip: context.flipperL10n.barDeleteZone,
                 onPressed: busy ? null : onDeleteZone,
                 icon: Icon(Icons.delete_outline, color: BarTokens.ink3),
               ),
@@ -404,7 +408,7 @@ class _ZoneCard extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           _DashedAddButton(
-            label: 'Add table',
+            label: context.flipperL10n.barAddTable,
             onPressed: busy ? null : onAddTable,
           ),
         ],
@@ -560,66 +564,69 @@ class _TableRowState extends State<_TableRow> {
                     color: BarTokens.blue,
                     child: SizedBox(width: 4),
                   ),
-              Expanded(
-                flex: 2,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                  child: TextField(
-                    controller: _nameController,
-                    enabled: widget.enabled,
-                    style: GoogleFonts.outfit(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w800,
-                      color: BarTokens.ink1,
+                Expanded(
+                  flex: 2,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    child: TextField(
+                      controller: _nameController,
+                      enabled: widget.enabled,
+                      style: GoogleFonts.outfit(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w800,
+                        color: BarTokens.ink1,
+                      ),
+                      decoration: InputDecoration(
+                        isDense: true,
+                        filled: true,
+                        fillColor: BarTokens.surface,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 8,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(color: BarTokens.line),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(color: BarTokens.line),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(color: BarTokens.blue),
+                        ),
+                      ),
+                      onSubmitted: (_) => _commitName(),
+                      onEditingComplete: _commitName,
                     ),
-                    decoration: InputDecoration(
-                      isDense: true,
-                      filled: true,
-                      fillColor: BarTokens.surface,
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 8,
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: const BorderSide(color: BarTokens.line),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: const BorderSide(color: BarTokens.line),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: const BorderSide(color: BarTokens.blue),
-                      ),
-                    ),
-                    onSubmitted: (_) => _commitName(),
-                    onEditingComplete: _commitName,
                   ),
                 ),
-              ),
-              _SeatStepper(
-                seats: widget.table.seats,
-                enabled: widget.enabled,
-                onChanged: _setSeats,
-              ),
-              if (widget.isOpen)
-                Padding(
-                  padding: const EdgeInsets.only(left: 4),
-                  child: Icon(
-                    Icons.shield_outlined,
-                    size: 16,
-                    color: BarTokens.blue,
+                _SeatStepper(
+                  seats: widget.table.seats,
+                  enabled: widget.enabled,
+                  onChanged: _setSeats,
+                ),
+                if (widget.isOpen)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 4),
+                    child: Icon(
+                      Icons.shield_outlined,
+                      size: 16,
+                      color: BarTokens.blue,
+                    ),
+                  ),
+                IconButton(
+                  tooltip: context.flipperL10n.barDeleteTable,
+                  onPressed: widget.enabled ? widget.onDelete : null,
+                  icon: Icon(Icons.close, size: 18, color: BarTokens.ink3),
+                  padding: const EdgeInsets.all(8),
+                  constraints: const BoxConstraints(
+                    minWidth: 36,
+                    minHeight: 36,
                   ),
                 ),
-              IconButton(
-                tooltip: 'Delete table',
-                onPressed: widget.enabled ? widget.onDelete : null,
-                icon: Icon(Icons.close, size: 18, color: BarTokens.ink3),
-                padding: const EdgeInsets.all(8),
-                constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-              ),
-            ],
+              ],
             ),
           ),
         ),
@@ -671,7 +678,7 @@ class _SeatStepper extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  'SEATS',
+                  context.flipperL10n.barSeatsLabel,
                   style: GoogleFonts.jetBrainsMono(
                     fontSize: 8,
                     fontWeight: FontWeight.w700,
@@ -802,24 +809,24 @@ Future<String?> _promptZoneName(BuildContext context) {
   return showDialog<String>(
     context: context,
     builder: (ctx) => AlertDialog(
-      title: const Text('Add zone'),
+      title: Text(ctx.flipperL10n.barAddZone),
       content: TextField(
         controller: controller,
         autofocus: true,
-        decoration: const InputDecoration(
-          labelText: 'Zone name',
-          hintText: 'e.g. Patio',
+        decoration: InputDecoration(
+          labelText: ctx.flipperL10n.barZoneName,
+          hintText: ctx.flipperL10n.barZoneNameHint,
         ),
         onSubmitted: (v) => Navigator.pop(ctx, v),
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(ctx),
-          child: const Text('Cancel'),
+          child: Text(ctx.flipperL10n.cancel),
         ),
         FilledButton(
           onPressed: () => Navigator.pop(ctx, controller.text),
-          child: const Text('Add'),
+          child: Text(ctx.flipperL10n.add),
         ),
       ],
     ),

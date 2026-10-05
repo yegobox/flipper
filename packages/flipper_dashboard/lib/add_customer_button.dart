@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/customers.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -14,48 +15,52 @@ class AddCustomerButton extends StatelessWidget {
         height: 60,
         width: double.infinity,
         child: TextButton(
-            style: ButtonStyle(
-              shape: WidgetStateProperty.resolveWith<OutlinedBorder>(
-                (states) => RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(4.0),
-                ),
-              ),
-              backgroundColor:
-                  WidgetStateProperty.all<Color>(const Color(0xffF2F2F2)),
-              overlayColor: WidgetStateProperty.resolveWith<Color?>(
-                (Set<WidgetState> states) {
-                  if (states.contains(WidgetState.hovered)) {
-                    return const Color(0xffF2F2F2);
-                  }
-                  if (states.contains(WidgetState.focused) ||
-                      states.contains(WidgetState.pressed)) {
-                    return const Color(0xffF2F2F2);
-                  }
-                  return null;
-                },
+          style: ButtonStyle(
+            shape: WidgetStateProperty.resolveWith<OutlinedBorder>(
+              (states) => RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(4.0),
               ),
             ),
-            onPressed: () {
-              showModalBottomSheet(
-                context: context,
-                shape: const RoundedRectangleBorder(
-                  borderRadius:
-                      BorderRadius.vertical(top: Radius.circular(10.0)),
-                ),
-                useRootNavigator: true,
-                builder: (BuildContext context) {
-                  return Padding(
-                    padding: const EdgeInsets.only(top: 20.0),
-                    child: Customers(),
-                  );
-                },
-              );
-            },
-            child: Text("Add Customer",
-                style: GoogleFonts.outfit(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 15,
-                    color: Color(0xff006AFE)))),
+            backgroundColor: WidgetStateProperty.all<Color>(
+              const Color(0xffF2F2F2),
+            ),
+            overlayColor: WidgetStateProperty.resolveWith<Color?>((
+              Set<WidgetState> states,
+            ) {
+              if (states.contains(WidgetState.hovered)) {
+                return const Color(0xffF2F2F2);
+              }
+              if (states.contains(WidgetState.focused) ||
+                  states.contains(WidgetState.pressed)) {
+                return const Color(0xffF2F2F2);
+              }
+              return null;
+            }),
+          ),
+          onPressed: () {
+            showModalBottomSheet(
+              context: context,
+              shape: const RoundedRectangleBorder(
+                borderRadius: BorderRadius.vertical(top: Radius.circular(10.0)),
+              ),
+              useRootNavigator: true,
+              builder: (BuildContext context) {
+                return Padding(
+                  padding: const EdgeInsets.only(top: 20.0),
+                  child: Customers(),
+                );
+              },
+            );
+          },
+          child: Text(
+            context.flipperL10n.addCustomer,
+            style: GoogleFonts.outfit(
+              fontWeight: FontWeight.w600,
+              fontSize: 15,
+              color: Color(0xff006AFE),
+            ),
+          ),
+        ),
       ),
     );
   }

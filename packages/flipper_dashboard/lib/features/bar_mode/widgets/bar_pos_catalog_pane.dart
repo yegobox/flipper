@@ -5,6 +5,7 @@ import 'package:flipper_dashboard/features/bar_mode/theme/bar_layout_breakpoints
 import 'package:flipper_dashboard/features/bar_mode/theme/bar_tokens.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_catalog_search_row.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_catalog_tiles.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/providers/outer_variant_provider.dart';
 import 'package:flipper_models/providers/visible_stocks_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -79,8 +80,11 @@ class _BarPosCatalogPaneState extends ConsumerState<BarPosCatalogPane> {
   Widget build(BuildContext context) {
     final variantsAsync = ref.watch(outerVariantsProvider(widget.branchId));
     final stocksById =
-        ref.watch(stocksForVisibleVariantsProvider(widget.branchId)).asData?.value ??
-            const <String, Stock?>{};
+        ref
+            .watch(stocksForVisibleVariantsProvider(widget.branchId))
+            .asData
+            ?.value ??
+        const <String, Stock?>{};
 
     final pad = widget.horizontalPadding;
 
@@ -99,7 +103,7 @@ class _BarPosCatalogPaneState extends ConsumerState<BarPosCatalogPane> {
               if (variants.isEmpty) {
                 return Center(
                   child: Text(
-                    'No products match your search',
+                    context.flipperL10n.barNoProductsMatch,
                     style: GoogleFonts.outfit(color: BarTokens.ink3),
                   ),
                 );

@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:supabase_models/brick/models/tenant.model.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 
 HotelRoom _room(int i) => HotelRoom(
   id: 'r$i',
@@ -56,6 +57,9 @@ Future<void> _pump(WidgetTester tester, double width) async {
         ),
       ],
       child: MaterialApp(
+        localizationsDelegates: FlipperLocalizationDelegates.delegates,
+        supportedLocales: FlipperLocalizationDelegates.supportedLocales,
+
         home: Scaffold(
           body: MediaQuery(
             data: MediaQueryData(size: Size(width, 900)),
@@ -107,7 +111,16 @@ void main() {
       expect(grid.width, closeTo(1900, 1.0));
     });
 
-    for (final width in <double>[1920, 1900, 1600, 1440, 1280, 1024, 1000, 900]) {
+    for (final width in <double>[
+      1920,
+      1900,
+      1600,
+      1440,
+      1280,
+      1024,
+      1000,
+      900,
+    ]) {
       testWidgets('lays out without overflow at ${width.toInt()}px', (
         tester,
       ) async {

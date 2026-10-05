@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/features/services_gigs/models/service_gig_request.dart';
 import 'package:flipper_dashboard/features/services_gigs/services/service_gig_request_repository.dart';
 import 'package:flipper_dashboard/services/payment_service.dart';
@@ -59,12 +60,17 @@ class _GigPaymentSheetState extends State<GigPaymentSheet> {
     super.initState();
     final stored = ProxyService.box.getUserPhone()?.trim() ?? '';
     final mustLinkPhone = ProxyService.box.getNeedAccountLinkWithPhone();
-    final plausible = _isPlausibleMoMoNumber(stored) && !_looksLikeEmail(stored);
+    final plausible =
+        _isPlausibleMoMoNumber(stored) && !_looksLikeEmail(stored);
     _showMoMoNumberGuidance =
-        mustLinkPhone || stored.isEmpty || _looksLikeEmail(stored) || !plausible;
+        mustLinkPhone ||
+        stored.isEmpty ||
+        _looksLikeEmail(stored) ||
+        !plausible;
     if (plausible && !mustLinkPhone) {
-      _phoneController.text =
-          stored.replaceAll(RegExp(r'\s'), '').replaceFirst(RegExp(r'^\+'), '');
+      _phoneController.text = stored
+          .replaceAll(RegExp(r'\s'), '')
+          .replaceFirst(RegExp(r'^\+'), '');
     }
     final budget = _r.paymentAmountRwf;
     if (budget != null) {
@@ -86,23 +92,16 @@ class _GigPaymentSheetState extends State<GigPaymentSheet> {
     if (_amountLocked) {
       amount = _r.paymentAmountRwf!;
     } else {
-      final rawAmount =
-          _amountController.text.replaceAll(RegExp(r'[\s,]'), '');
+      final rawAmount = _amountController.text.replaceAll(RegExp(r'[\s,]'), '');
       final parsed = int.tryParse(rawAmount);
       if (parsed == null || parsed < 100) {
-        showWarningNotification(
-          context,
-          'Enter an amount of at least 100 RWF.',
-        );
+        showWarningNotification(context, context.flipperL10n.gigsErrMinAmount);
         return;
       }
       amount = parsed;
     }
     if (amount < 100) {
-      showWarningNotification(
-        context,
-        'Enter an amount of at least 100 RWF.',
-      );
+      showWarningNotification(context, context.flipperL10n.gigsErrMinAmount);
       return;
     }
 
@@ -113,7 +112,7 @@ class _GigPaymentSheetState extends State<GigPaymentSheet> {
         !_isPlausibleMoMoNumber(phone)) {
       showWarningNotification(
         context,
-        'Enter the MTN MoMo number to charge (mobile wallet, not email).',
+        context.flipperL10n.gigsEnterMomoNumberFull,
       );
       return;
     }
@@ -143,11 +142,9 @@ class _GigPaymentSheetState extends State<GigPaymentSheet> {
       // sends them chasing a debit that never happened; telling someone whose
       // payment is merely slow that it failed invites a second charge.
       final msg = settlement.refused
-          ? '${settlement.message ?? 'The payment was declined.'} '
-              'Nothing was charged — you can try again.'
-          : 'Payment was not confirmed yet. Approve the MTN prompt on your phone. '
-              'If money left your account, contact support with this request '
-              'rather than paying again.';
+          ? '${settlement.message ?? context.flipperL10n.gigsPaymentDeclinedDefault} '
+                '${context.flipperL10n.gigsNothingChargedTryAgain}'
+          : context.flipperL10n.gigsPaymentNotConfirmed;
       setState(() {
         _submitting = false;
         _sheetError = msg;
@@ -168,8 +165,7 @@ class _GigPaymentSheetState extends State<GigPaymentSheet> {
       );
     } on ServiceGigRequestException catch (e) {
       if (!mounted) return;
-      const followUp =
-          'If money left your wallet, contact support with this request.';
+      final followUp = context.flipperL10n.gigsMoneyLeftContactSupport;
       setState(() {
         _submitting = false;
         _sheetError = '${e.message}\n$followUp';
@@ -179,8 +175,7 @@ class _GigPaymentSheetState extends State<GigPaymentSheet> {
       return;
     } catch (_) {
       if (!mounted) return;
-      const msg =
-          'Payment may have been sent but we could not update the request.';
+      final msg = context.flipperL10n.gigsPaymentSentNotUpdated;
       setState(() {
         _submitting = false;
         _sheetError = msg;
@@ -225,7 +220,7 @@ class _GigPaymentSheetState extends State<GigPaymentSheet> {
               ),
               const SizedBox(height: 16),
               Text(
-                'Pay ${widget.providerLabel}',
+                context.flipperL10n.gigsPayProvider(widget.providerLabel),
                 style: GoogleFonts.outfit(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
@@ -233,8 +228,7 @@ class _GigPaymentSheetState extends State<GigPaymentSheet> {
               ),
               const SizedBox(height: 8),
               Text(
-                'We send an MTN MoMo prompt to the number below. Approve it on your phone; '
-                'we wait up to 5 minutes for confirmation before marking this request paid.',
+                context.flipperL10n.gigsPaySheetIntro,
                 style: GoogleFonts.outfit(
                   fontSize: 13,
                   height: 1.4,
@@ -259,9 +253,7 @@ class _GigPaymentSheetState extends State<GigPaymentSheet> {
                         const SizedBox(width: 10),
                         Expanded(
                           child: Text(
-                            'If you signed in with email (or we do not have a mobile wallet on file), '
-                            'enter the MTN MoMo number that should be charged. '
-                            'This must be a mobile money line—not an email.',
+                            context.flipperL10n.gigsPaySheetEmailNote,
                             style: GoogleFonts.outfit(
                               fontSize: 12,
                               height: 1.45,
@@ -286,26 +278,26 @@ class _GigPaymentSheetState extends State<GigPaymentSheet> {
                     : [FilteringTextInputFormatter.digitsOnly],
                 style: GoogleFonts.outfit(fontSize: 16),
                 decoration: InputDecoration(
-                  labelText: 'Amount (RWF)',
+                  labelText: context.flipperL10n.gigsAmountRwf,
                   hintText: _amountLocked ? null : 'e.g. 5000',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                   prefixIcon: const Icon(Icons.payments_outlined),
                   filled: _amountLocked,
-                  fillColor:
-                      _amountLocked ? Colors.grey.shade100 : null,
+                  fillColor: _amountLocked ? Colors.grey.shade100 : null,
                 ),
                 validator: (v) {
                   if (_amountLocked) {
                     final n = _r.paymentAmountRwf;
-                    if (n == null || n < 100) return 'Minimum 100 RWF';
+                    if (n == null || n < 100)
+                      return context.flipperL10n.gigsMinimum100Rwf;
                     return null;
                   }
                   final t = v?.replaceAll(RegExp(r'[\s,]'), '') ?? '';
                   final n = int.tryParse(t);
                   if (n == null || n < 100) {
-                    return 'Minimum 100 RWF';
+                    return context.flipperL10n.gigsMinimum100Rwf;
                   }
                   return null;
                 },
@@ -317,10 +309,10 @@ class _GigPaymentSheetState extends State<GigPaymentSheet> {
                 keyboardType: TextInputType.phone,
                 style: GoogleFonts.outfit(fontSize: 16),
                 decoration: InputDecoration(
-                  labelText: 'MTN MoMo number to charge',
+                  labelText: context.flipperL10n.gigsMomoNumberLabel,
                   hintText: '2507XXXXXXXX',
                   helperText: _showMoMoNumberGuidance
-                      ? 'Use the wallet number MTN will prompt, not your login email'
+                      ? context.flipperL10n.gigsMomoNumberHelper
                       : null,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -330,13 +322,13 @@ class _GigPaymentSheetState extends State<GigPaymentSheet> {
                 validator: (v) {
                   final t = v?.trim().replaceAll(RegExp(r'\s'), '') ?? '';
                   if (t.length < 9) {
-                    return 'Enter the MTN MoMo number to charge';
+                    return context.flipperL10n.gigsErrEnterMomoNumber;
                   }
                   if (_looksLikeEmail(t)) {
-                    return 'Enter a mobile number, not an email';
+                    return context.flipperL10n.gigsErrMobileNotEmail;
                   }
                   if (!_isPlausibleMoMoNumber(t)) {
-                    return 'Enter a valid mobile number (digits only, 9–15)';
+                    return context.flipperL10n.gigsErrValidMobile;
                   }
                   return null;
                 },
@@ -382,7 +374,7 @@ class _GigPaymentSheetState extends State<GigPaymentSheet> {
                           ),
                           const SizedBox(width: 12),
                           Text(
-                            'Waiting for payment…',
+                            context.flipperL10n.gigsWaitingForPayment,
                             style: GoogleFonts.outfit(
                               fontWeight: FontWeight.w600,
                               color: Colors.white,
@@ -391,14 +383,18 @@ class _GigPaymentSheetState extends State<GigPaymentSheet> {
                         ],
                       )
                     : Text(
-                        'Send payment request',
+                        context.flipperL10n.gigsSendPaymentRequest,
                         style: GoogleFonts.outfit(fontWeight: FontWeight.w600),
                       ),
               ),
               TextButton(
-                onPressed:
-                    _submitting ? null : () => Navigator.of(context).pop(false),
-                child: Text('Cancel', style: GoogleFonts.outfit()),
+                onPressed: _submitting
+                    ? null
+                    : () => Navigator.of(context).pop(false),
+                child: Text(
+                  context.flipperL10n.cancel,
+                  style: GoogleFonts.outfit(),
+                ),
               ),
             ],
           ),

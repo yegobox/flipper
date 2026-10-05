@@ -1,5 +1,6 @@
 // ignore_for_file: unused_result
 
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/access_provider.dart';
 import 'package:flipper_models/providers/active_branch_provider.dart';
@@ -84,7 +85,7 @@ class _ErrorWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Tooltip(
-      message: 'Error: ${error.toString()}',
+      message: context.flipperL10n.errorMessage(error.toString()),
       child: const CircleAvatarWidget(
         text: "!",
         backgroundColor: Colors.red,
@@ -177,7 +178,9 @@ class _BranchContent extends ConsumerWidget {
               child: MouseRegion(
                 cursor: SystemMouseCursors.click,
                 child: Tooltip(
-                  message: branchData?.name ?? "Branch not available",
+                  message:
+                      branchData?.name ??
+                      context.flipperL10n.branchNotAvailable,
                   preferBelow: false,
                   verticalOffset: 20,
                   decoration: BoxDecoration(

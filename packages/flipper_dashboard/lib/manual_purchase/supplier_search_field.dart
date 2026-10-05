@@ -1,5 +1,6 @@
 import 'package:flipper_dashboard/features/import_purchase/import_purchase_tokens.dart';
 import 'package:flipper_dashboard/manual_purchase/new_supplier_modal.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:supabase_models/brick/models/supplier.model.dart';
@@ -84,12 +85,16 @@ class _SupplierSearchFieldState extends ConsumerState<SupplierSearchField> {
     if (query.isEmpty) {
       return widget.suppliers.take(20);
     }
-    return widget.suppliers.where((s) {
-      final name = (s.custNm ?? '').toLowerCase();
-      final tin = (s.custTin ?? '').toLowerCase();
-      final phone = (s.telNo ?? '').toLowerCase();
-      return name.contains(query) || tin.contains(query) || phone.contains(query);
-    }).take(20);
+    return widget.suppliers
+        .where((s) {
+          final name = (s.custNm ?? '').toLowerCase();
+          final tin = (s.custTin ?? '').toLowerCase();
+          final phone = (s.telNo ?? '').toLowerCase();
+          return name.contains(query) ||
+              tin.contains(query) ||
+              phone.contains(query);
+        })
+        .take(20);
   }
 
   void _showOverlay() {
@@ -139,7 +144,7 @@ class _SupplierSearchFieldState extends ConsumerState<SupplierSearchField> {
                   Padding(
                     padding: const EdgeInsets.all(16),
                     child: Text(
-                      'No matching suppliers',
+                      context.flipperL10n.manualPurchaseNoMatchingSuppliers,
                       style: TextStyle(color: _hintColor, fontSize: 14),
                     ),
                   )
@@ -192,10 +197,14 @@ class _SupplierSearchFieldState extends ConsumerState<SupplierSearchField> {
                     ),
                     child: Row(
                       children: [
-                        Icon(Icons.add_circle_outline, color: _accent, size: 20),
+                        Icon(
+                          Icons.add_circle_outline,
+                          color: _accent,
+                          size: 20,
+                        ),
                         const SizedBox(width: 10),
                         Text(
-                          'Create a new supplier',
+                          context.flipperL10n.manualPurchaseCreateNewSupplier,
                           style: TextStyle(
                             color: _accent,
                             fontWeight: FontWeight.w600,
@@ -223,7 +232,7 @@ class _SupplierSearchFieldState extends ConsumerState<SupplierSearchField> {
         focusNode: widget.focusNode,
         validator: widget.validator,
         decoration: InputDecoration(
-          hintText: 'Search or enter supplier name',
+          hintText: context.flipperL10n.manualPurchaseSearchOrEnterSupplier,
           hintStyle: TextStyle(color: _hintColor, fontSize: 15),
           prefixIcon: Icon(Icons.search, color: _hintColor, size: 20),
           isDense: true,

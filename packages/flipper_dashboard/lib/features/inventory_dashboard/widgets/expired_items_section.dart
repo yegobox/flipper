@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/inventory_models.dart';
@@ -16,6 +17,7 @@ class ExpiredItemsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
     return Card(
       elevation: 2,
       margin: EdgeInsets.zero, // Remove default card margin
@@ -28,9 +30,9 @@ class ExpiredItemsSection extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  'Expired Items',
-                  style: TextStyle(
+                Text(
+                  l10n.inventoryDashboardExpiredItems,
+                  style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
@@ -43,7 +45,7 @@ class ExpiredItemsSection extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
                     minimumSize: const Size(80, 40),
                   ),
-                  child: const Text('View All'),
+                  child: Text(l10n.inventoryDashboardViewAll),
                 ),
               ],
             ),
@@ -56,26 +58,29 @@ class ExpiredItemsSection extends StatelessWidget {
               child: DataTable(
                 columnSpacing: 20,
                 headingRowColor: WidgetStateProperty.all(
-                  Theme.of(context)
-                      .colorScheme
-                      .surfaceContainerHighest
-                      .withValues(alpha: 0.3),
+                  Theme.of(
+                    context,
+                  ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
                 ),
-                columns: const [
-                  DataColumn(label: Text('ID')),
-                  DataColumn(label: Text('Item')),
-                  DataColumn(label: Text('Category')),
-                  DataColumn(label: Text('Quantity')),
-                  DataColumn(label: Text('Location')),
-                  DataColumn(label: Text('Expired On')),
-                  DataColumn(label: Text('Actions')),
+                columns: [
+                  DataColumn(label: Text(l10n.idLabel)),
+                  DataColumn(label: Text(l10n.item)),
+                  DataColumn(label: Text(l10n.category)),
+                  DataColumn(label: Text(l10n.quantity)),
+                  DataColumn(label: Text(l10n.location)),
+                  DataColumn(label: Text(l10n.inventoryDashboardExpiredOn)),
+                  DataColumn(label: Text(l10n.actions)),
                 ],
                 rows: expiredItems.map((item) {
                   return DataRow(
                     cells: [
-                      DataCell(Text(item.id.length > 5
-                          ? item.id.substring(0, 5) + '...'
-                          : item.id)),
+                      DataCell(
+                        Text(
+                          item.id.length > 5
+                              ? item.id.substring(0, 5) + '...'
+                              : item.id,
+                        ),
+                      ),
                       DataCell(Text(item.name)),
                       DataCell(Text(item.category)),
                       DataCell(Text(item.quantity.toString())),
@@ -96,8 +101,10 @@ class ExpiredItemsSection extends StatelessWidget {
                               },
                             ),
                             IconButton(
-                              icon: const Icon(Icons.visibility_outlined,
-                                  size: 20),
+                              icon: const Icon(
+                                Icons.visibility_outlined,
+                                size: 20,
+                              ),
                               onPressed: () {
                                 onViewItemDetails(context, item);
                               },
@@ -121,7 +128,7 @@ class ExpiredItemsSection extends StatelessWidget {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('All Expired Items'),
+          title: Text(context.flipperL10n.inventoryDashboardAllExpiredItems),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -129,14 +136,17 @@ class ExpiredItemsSection extends StatelessWidget {
                 return ListTile(
                   title: Text(item.name),
                   subtitle: Text(
-                      'Expired on: ${DateFormat('MMM dd, yyyy').format(item.expiryDate)}'),
+                    context.flipperL10n.inventoryDashboardExpiredOnDate(
+                      DateFormat('MMM dd, yyyy').format(item.expiryDate),
+                    ),
+                  ),
                 );
               }).toList(),
             ),
           ),
           actions: <Widget>[
             TextButton(
-              child: const Text('Close'),
+              child: Text(context.flipperL10n.close),
               onPressed: () {
                 Navigator.of(context).pop();
               },

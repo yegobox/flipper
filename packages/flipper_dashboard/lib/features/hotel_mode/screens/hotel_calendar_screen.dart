@@ -7,6 +7,7 @@ import 'package:flipper_dashboard/features/hotel_mode/theme/hotel_layout_breakpo
 import 'package:flipper_dashboard/features/hotel_mode/theme/hotel_tokens.dart';
 import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_desk_nav.dart';
 import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_reservation_sheet.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/models/hotel_room.dart';
 import 'package:flipper_models/models/hotel_stay.dart';
 import 'package:flipper_models/sync/utils/hotel_mode_utils.dart';
@@ -66,7 +67,7 @@ class HotelCalendarScreen extends ConsumerWidget {
                       const Center(child: CircularProgressIndicator()),
                   error: (e, _) => Center(child: Text('$e')),
                   data: (rooms) => rooms.isEmpty
-                      ? _empty()
+                      ? _empty(context.flipperL10n)
                       : _grid(
                           context,
                           ref,
@@ -95,6 +96,7 @@ class HotelCalendarScreen extends ConsumerWidget {
     final anchor = ref.watch(hotelCalendarAnchorProvider);
     final notifier = ref.read(hotelCalendarAnchorProvider.notifier);
     final span = days.length;
+    final l10n = context.flipperL10n;
 
     return Container(
       padding: EdgeInsets.symmetric(
@@ -116,12 +118,12 @@ class HotelCalendarScreen extends ConsumerWidget {
                 // The legend is the widest optional item; drop it before the
                 // paging controls, which the desk cannot work without.
                 if (!compact && constraints.maxWidth >= 900) ...[
-                  _legend(),
+                  _legend(l10n),
                   const SizedBox(width: 18),
                 ],
                 _navButton(Icons.chevron_left, () => notifier.shiftDays(-span)),
                 const SizedBox(width: 6),
-                _todayButton(notifier),
+                _todayButton(notifier, l10n),
                 const SizedBox(width: 6),
                 _navButton(Icons.chevron_right, () => notifier.shiftDays(span)),
               ],
@@ -139,8 +141,9 @@ class HotelCalendarScreen extends ConsumerWidget {
             ),
           ),
           Text(
-            'Tap a free night to hold the room · '
-            '${DateFormat('MMMM yyyy').format(anchor)}',
+            l10n.hotelCalendarTapFreeNight(
+              DateFormat('MMMM yyyy').format(anchor),
+            ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: GoogleFonts.outfit(
@@ -154,7 +157,7 @@ class HotelCalendarScreen extends ConsumerWidget {
     );
   }
 
-  Widget _legend() {
+  Widget _legend(FlipperAppLocalizations l10n) {
     Widget dot(Color ink, String label) => Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -181,13 +184,13 @@ class HotelCalendarScreen extends ConsumerWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        dot(HotelTokens.vacantInk, 'Free'),
+        dot(HotelTokens.vacantInk, l10n.hotelLegendFree),
         const SizedBox(width: 14),
-        dot(HotelTokens.reservedInk, 'Reserved'),
+        dot(HotelTokens.reservedInk, l10n.hotelLegendReserved),
         const SizedBox(width: 14),
-        dot(HotelTokens.occupiedInk, 'In house'),
+        dot(HotelTokens.occupiedInk, l10n.hotelLegendInHouse),
         const SizedBox(width: 14),
-        dot(HotelTokens.blockedInk, 'Blocked'),
+        dot(HotelTokens.blockedInk, l10n.hotelLegendBlocked),
       ],
     );
   }
@@ -213,7 +216,10 @@ class HotelCalendarScreen extends ConsumerWidget {
     );
   }
 
-  Widget _todayButton(HotelCalendarAnchor notifier) {
+  Widget _todayButton(
+    HotelCalendarAnchor notifier,
+    FlipperAppLocalizations l10n,
+  ) {
     return Material(
       color: HotelTokens.surface,
       borderRadius: BorderRadius.circular(HotelTokens.radiusMd),
@@ -229,7 +235,7 @@ class HotelCalendarScreen extends ConsumerWidget {
             border: Border.all(color: HotelTokens.line, width: 1.5),
           ),
           child: Text(
-            'Today',
+            l10n.hotelToday,
             style: GoogleFonts.outfit(
               fontSize: 13.5,
               fontWeight: FontWeight.w700,
@@ -241,10 +247,10 @@ class HotelCalendarScreen extends ConsumerWidget {
     );
   }
 
-  Widget _empty() {
+  Widget _empty(FlipperAppLocalizations l10n) {
     return Center(
       child: Text(
-        'No rooms on this branch yet.',
+        l10n.hotelNoRoomsYet,
         style: GoogleFonts.outfit(
           fontSize: 14.5,
           fontWeight: FontWeight.w600,
@@ -277,7 +283,7 @@ class HotelCalendarScreen extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _dayHeader(rooms, stays, days, cellWidth),
+            _dayHeader(context.flipperL10n, rooms, stays, days, cellWidth),
             Expanded(
               child: ListView.builder(
                 itemCount: rooms.length,
@@ -300,6 +306,7 @@ class HotelCalendarScreen extends ConsumerWidget {
   }
 
   Widget _dayHeader(
+    FlipperAppLocalizations l10n,
     List<HotelRoom> rooms,
     List<HotelStay> stays,
     List<DateTime> days,
@@ -322,7 +329,7 @@ class HotelCalendarScreen extends ConsumerWidget {
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  'Room',
+                  l10n.hotelRoom,
                   style: GoogleFonts.outfit(
                     fontSize: 12,
                     fontWeight: FontWeight.w800,
@@ -356,7 +363,13 @@ class HotelCalendarScreen extends ConsumerWidget {
                     ),
                   ),
                   Text(
-                    '${hotelFreeRoomCountForDay(rooms: rooms, stays: stays, day: day)} free',
+                    l10n.hotelFreeRoomsCount(
+                      hotelFreeRoomCountForDay(
+                        rooms: rooms,
+                        stays: stays,
+                        day: day,
+                      ),
+                    ),
                     style: GoogleFonts.jetBrainsMono(
                       fontSize: 9,
                       fontWeight: FontWeight.w600,
@@ -456,8 +469,8 @@ class HotelCalendarScreen extends ConsumerWidget {
               ? '${occupant.guestName} · ${DateFormat('d MMM').format(occupant.checkInAt.toLocal())} → '
                     '${DateFormat('d MMM').format(occupant.expectedCheckOutAt.toLocal())}'
               : free
-              ? 'Free — tap to hold ${room.name}'
-              : 'Blocked for maintenance',
+              ? context.flipperL10n.hotelCalendarFreeTapToHold(room.name)
+              : context.flipperL10n.hotelBlockedForMaintenance,
           waitDuration: const Duration(milliseconds: 400),
           child: Material(
             color: free ? HotelTokens.surface : colors.tint,

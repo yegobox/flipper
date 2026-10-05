@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'dart:io';
 
 import 'package:excel/excel.dart';
@@ -53,7 +54,7 @@ class _ItemsDialogState extends ConsumerState<ItemsDialog> {
   /// Loads current stock docs from Ditto for export (fresh read, no Riverpod cache).
   /// Optionally waits briefly if mesh replication has not landed rows yet.
   Future<({Map<String, Stock> byId, bool incompleteSync})>
-      _resolveStocksForExport(List<Variant> variants) async {
+  _resolveStocksForExport(List<Variant> variants) async {
     final branchId = ProxyService.box.getBranchId();
     if (branchId == null || branchId.isEmpty) {
       return (byId: <String, Stock>{}, incompleteSync: false);
@@ -86,8 +87,7 @@ class _ItemsDialogState extends ConsumerState<ItemsDialog> {
 
     var stocksById = await runBatch();
 
-    bool missingIds() =>
-        stockIds.any((id) => !stocksById.containsKey(id));
+    bool missingIds() => stockIds.any((id) => !stocksById.containsKey(id));
 
     var incompleteSync = false;
 
@@ -136,7 +136,7 @@ class _ItemsDialogState extends ConsumerState<ItemsDialog> {
   /// Export items to Excel file
   Future<void> _exportItemsToExcel(List<Variant> variants) async {
     if (variants.isEmpty) {
-      toast('No items to export');
+      toast(context.flipperL10n.itemsExportNone);
       return;
     }
 
@@ -147,7 +147,7 @@ class _ItemsDialogState extends ConsumerState<ItemsDialog> {
     try {
       // Pick file save location
       final result = await FilePicker.platform.saveFile(
-        dialogTitle: 'Save Excel file',
+        dialogTitle: context.flipperL10n.itemsExportSaveDialogTitle,
         fileName: 'items_export_${DateTime.now().millisecondsSinceEpoch}.xlsx',
         type: FileType.custom,
         allowedExtensions: ['xlsx'],
@@ -170,16 +170,17 @@ class _ItemsDialogState extends ConsumerState<ItemsDialog> {
       final sheet = excel['sheet1'];
 
       // Add headers
+      final l10n = FlipperL10n.current;
       sheet.appendRow([
-        TextCellValue('Product Name'),
-        TextCellValue('Variant Name'),
-        TextCellValue('Item Code'),
+        TextCellValue(l10n.itemsExportProductName),
+        TextCellValue(l10n.itemsExportVariantName),
+        TextCellValue(l10n.itemsExportItemCode),
         TextCellValue('SKU'),
-        TextCellValue('Quantity'),
-        TextCellValue('Retail Price'),
-        TextCellValue('Supply Price'),
-        TextCellValue('Category'),
-        TextCellValue('Unit'),
+        TextCellValue(l10n.quantity),
+        TextCellValue(l10n.itemsExportRetailPrice),
+        TextCellValue(l10n.supplyPrice),
+        TextCellValue(l10n.category),
+        TextCellValue(l10n.itemsExportUnit),
       ]);
 
       // Add data rows — quantities from one Ditto batch read (not the live per-row stock stream).
@@ -210,32 +211,29 @@ class _ItemsDialogState extends ConsumerState<ItemsDialog> {
         _isExporting = false;
       });
 
-      toast('Successfully exported ${variants.length} items');
+      toast(FlipperL10n.current.itemsExportSuccess(variants.length));
       if (resolved.incompleteSync && mounted) {
-        toast(
-          'Some quantities may still be catching up from sync; '
-          're-export later if totals look wrong.',
-        );
+        toast(FlipperL10n.current.itemsExportIncompleteSync);
       }
     } catch (e) {
       talker.error('Error exporting items: $e');
       setState(() {
         _isExporting = false;
       });
-      toast('Failed to export items: $e');
+      toast(FlipperL10n.current.itemsExportFailed(e.toString()));
     }
   }
 
   String _getItemTypeName(String? itemTyCd) {
     switch (itemTyCd) {
       case '1':
-        return 'Raw Material';
+        return context.flipperL10n.itemsTypeRawMaterial;
       case '2':
-        return 'Finished Product';
+        return context.flipperL10n.itemsTypeFinishedProduct;
       case '3':
-        return 'Service';
+        return context.flipperL10n.itemsTypeService;
       default:
-        return 'Unknown';
+        return context.flipperL10n.itemsTypeUnknown;
     }
   }
 
@@ -252,7 +250,9 @@ class _ItemsDialogState extends ConsumerState<ItemsDialog> {
   Widget build(BuildContext context) {
     final branchId = ProxyService.box.getBranchId();
     if (branchId == null) {
-      return const Dialog(child: Center(child: Text("No branch selected")));
+      return Dialog(
+        child: Center(child: Text(context.flipperL10n.noBranchSelected)),
+      );
     }
     final variantsAsyncValue = ref.watch(outerVariantsProvider(branchId));
 
@@ -271,7 +271,10 @@ class _ItemsDialogState extends ConsumerState<ItemsDialog> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Items', style: Theme.of(context).textTheme.headlineSmall),
+                Text(
+                  context.flipperL10n.items,
+                  style: Theme.of(context).textTheme.headlineSmall,
+                ),
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -289,11 +292,11 @@ class _ItemsDialogState extends ConsumerState<ItemsDialog> {
                               final notifier = ref.read(
                                 outerVariantsProvider(branchId).notifier,
                               );
-                              final variants =
-                                  await notifier.futureFetchAllVariants();
+                              final variants = await notifier
+                                  .futureFetchAllVariants();
                               await _exportItemsToExcel(variants);
                             },
-                      tooltip: 'Export to Excel',
+                      tooltip: context.flipperL10n.itemsExportToExcel,
                     ),
                     IconButton(
                       icon: const Icon(Icons.close),
@@ -308,7 +311,7 @@ class _ItemsDialogState extends ConsumerState<ItemsDialog> {
             TextField(
               controller: _searchController,
               decoration: InputDecoration(
-                hintText: 'Search by name...',
+                hintText: context.flipperL10n.itemsSearchByName,
                 prefixIcon: const Icon(Icons.search),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
@@ -335,17 +338,25 @@ class _ItemsDialogState extends ConsumerState<ItemsDialog> {
                         }
                         if (snapshot.hasError) {
                           return Center(
-                            child: Text('Error: ${snapshot.error}'),
+                            child: Text(
+                              context.flipperL10n.errorMessage(
+                                '${snapshot.error}',
+                              ),
+                            ),
                           );
                         }
                         final transactions = snapshot.data ?? [];
                         WidgetsBinding.instance.addPostFrameCallback((_) {
                           toast(
-                            'Found ${transactions.length} transactions synced',
+                            context.flipperL10n.itemsTransactionsSyncedCount(
+                              transactions.length,
+                            ),
                           );
                         });
-                        return const Center(
-                          child: Text('Transactions synced successfully'),
+                        return Center(
+                          child: Text(
+                            context.flipperL10n.itemsTransactionsSynced,
+                          ),
                         );
                       },
                     )
@@ -360,7 +371,9 @@ class _ItemsDialogState extends ConsumerState<ItemsDialog> {
                             .toList();
 
                         if (filteredVariants.isEmpty) {
-                          return const Center(child: Text('No items found.'));
+                          return Center(
+                            child: Text(context.flipperL10n.itemsNoneFound),
+                          );
                         }
 
                         return ListView.builder(
@@ -383,62 +396,77 @@ class _ItemsDialogState extends ConsumerState<ItemsDialog> {
                               child: Material(
                                 color: Colors.transparent,
                                 child: ListTile(
-                                title: Text(
-                                  variant.name,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
+                                  title: Text(
+                                    variant.name,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  subtitle: Text(
+                                    '${_getItemTypeName(variant.itemTyCd)} - ${variant.itemCd ?? context.flipperL10n.dashNotAvailable}',
+                                  ),
+                                  trailing: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      if (variant.stockId != null &&
+                                          variant.stockId!.isNotEmpty)
+                                        ref
+                                            .watch(
+                                              stockByVariantProvider(
+                                                variant.stockId!,
+                                              ),
+                                            )
+                                            .when(
+                                              data: (stock) => Text(
+                                                context.flipperL10n.itemsStockValue(
+                                                  '${stock?.currentStock ?? 0}',
+                                                ),
+                                              ),
+                                              loading: () => Text(
+                                                context
+                                                    .flipperL10n
+                                                    .itemsStockLoading,
+                                              ),
+                                              error: (err, stack) => Text(
+                                                context
+                                                    .flipperL10n
+                                                    .itemsStockError,
+                                              ),
+                                            )
+                                      else
+                                        Text(
+                                          context.flipperL10n.itemsStockValue(
+                                            '0',
+                                          ),
+                                        ),
+                                      IconButton(
+                                        icon: const Icon(Icons.copy),
+                                        onPressed: () {
+                                          if (variant.itemCd != null) {
+                                            Clipboard.setData(
+                                              ClipboardData(
+                                                text: variant.itemCd!,
+                                              ),
+                                            );
+                                            setState(() {
+                                              _copiedVariantId = variant.id;
+                                            });
+                                            Timer(
+                                              const Duration(seconds: 2),
+                                              () {
+                                                if (mounted) {
+                                                  setState(() {
+                                                    _copiedVariantId = null;
+                                                  });
+                                                }
+                                              },
+                                            );
+                                          }
+                                        },
+                                      ),
+                                    ],
                                   ),
                                 ),
-                                subtitle: Text(
-                                  '${_getItemTypeName(variant.itemTyCd)} - ${variant.itemCd ?? 'N/A'}',
-                                ),
-                                trailing: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    if (variant.stockId != null &&
-                                        variant.stockId!.isNotEmpty)
-                                      ref
-                                          .watch(
-                                            stockByVariantProvider(
-                                              variant.stockId!,
-                                            ),
-                                          )
-                                          .when(
-                                            data: (stock) => Text(
-                                              'Stock: ${stock?.currentStock ?? 0}',
-                                            ),
-                                            loading: () =>
-                                                const Text('Stock: loading...'),
-                                            error: (err, stack) =>
-                                                const Text('Stock: error'),
-                                          )
-                                    else
-                                      const Text('Stock: 0'),
-                                    IconButton(
-                                      icon: const Icon(Icons.copy),
-                                      onPressed: () {
-                                        if (variant.itemCd != null) {
-                                          Clipboard.setData(
-                                            ClipboardData(
-                                              text: variant.itemCd!,
-                                            ),
-                                          );
-                                          setState(() {
-                                            _copiedVariantId = variant.id;
-                                          });
-                                          Timer(const Duration(seconds: 2), () {
-                                            if (mounted) {
-                                              setState(() {
-                                                _copiedVariantId = null;
-                                              });
-                                            }
-                                          });
-                                        }
-                                      },
-                                    ),
-                                  ],
-                                ),
-                              ),
                               ),
                             );
                           },
@@ -446,8 +474,11 @@ class _ItemsDialogState extends ConsumerState<ItemsDialog> {
                       },
                       loading: () =>
                           const Center(child: CircularProgressIndicator()),
-                      error: (error, stack) =>
-                          Center(child: Text('Error loading items: $error')),
+                      error: (error, stack) => Center(
+                        child: Text(
+                          context.flipperL10n.itemsErrorLoading('$error'),
+                        ),
+                      ),
                     ),
             ),
           ],

@@ -5,6 +5,7 @@ import 'package:flipper_dashboard/features/hotel_mode/providers/hotel_mode_provi
 import 'package:flipper_dashboard/features/hotel_mode/services/hotel_quotation_actions.dart';
 import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_reservation_sheet.dart';
 import 'package:flipper_dashboard/utils/sale_receipt_settlement.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/DatabaseSyncInterface.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/models/hotel_quotation.dart';
@@ -87,7 +88,7 @@ abstract final class HotelDeskActions {
       );
       ref
           .read(hotelModeProvider.notifier)
-          .showToast('Auto room charge is off — use + Room charge');
+          .showToast(FlipperL10n.current.hotelAutoRoomChargeOff);
     }
     return stay;
   }
@@ -134,7 +135,9 @@ abstract final class HotelDeskActions {
       notifier.showToast(e.message);
     } catch (e, st) {
       talker.error('hotel: room charge failed for ${room.name}', e, st);
-      notifier.showToast('Room charge not posted: $e');
+      notifier.showToast(
+        FlipperL10n.current.hotelRoomChargeNotPosted(e.toString()),
+      );
     }
   }
 
@@ -170,7 +173,9 @@ abstract final class HotelDeskActions {
 
       ref
           .read(hotelModeProvider.notifier)
-          .showToast('Room ${room.name} held for ${draft.guestName}');
+          .showToast(
+            FlipperL10n.current.hotelRoomHeldFor(room.name, draft.guestName),
+          );
       return stay;
     } on StateError catch (e) {
       ref.read(hotelModeProvider.notifier).showToast(e.message);
@@ -246,7 +251,7 @@ abstract final class HotelDeskActions {
         // failed confirmation would train them to ignore toasts.
         if (outcome != BookingNotificationOutcome.outOfCredits) return;
         try {
-          notifier.showToast('SMS not sent — branch is out of credits');
+          notifier.showToast(FlipperL10n.current.hotelSmsOutOfCredits);
         } catch (e) {
           talker.info('hotel: credits toast dropped, desk closed: $e');
         }
@@ -310,7 +315,9 @@ abstract final class HotelDeskActions {
           'hotel: quotation ${quotation.reference} was not accepted for '
           'delivery to $email',
         );
-        notifier.showToast('${quotation.reference} was not sent — try again');
+        notifier.showToast(
+          FlipperL10n.current.hotelQuotationNotSent(quotation.reference),
+        );
         return QuotationSendResult.failed;
       }
 
@@ -322,11 +329,22 @@ abstract final class HotelDeskActions {
           sentAt: DateTime.now().toUtc(),
         ),
       );
-      notifier.showToast('${quotation.reference} emailed to $email');
+      notifier.showToast(
+        FlipperL10n.current.hotelQuotationEmailed(quotation.reference, email),
+      );
       return QuotationSendResult.sent;
     } catch (e, st) {
-      talker.error('hotel: quotation ${quotation.reference} email failed', e, st);
-      notifier.showToast('Could not email ${quotation.reference}: $e');
+      talker.error(
+        'hotel: quotation ${quotation.reference} email failed',
+        e,
+        st,
+      );
+      notifier.showToast(
+        FlipperL10n.current.hotelQuotationEmailFailed(
+          quotation.reference,
+          e.toString(),
+        ),
+      );
       return QuotationSendResult.failed;
     }
   }
@@ -347,7 +365,10 @@ abstract final class HotelDeskActions {
         clerkName: clerk.name ?? 'Front desk',
       );
       notifier.showToast(
-        '${quotation.reference} booked · Room ${room.name} held',
+        FlipperL10n.current.hotelQuotationBooked(
+          quotation.reference,
+          room.name,
+        ),
       );
     } on StateError catch (e) {
       notifier.showToast(e.message);
@@ -440,7 +461,9 @@ abstract final class HotelDeskActions {
         }
       }
       if (room == null) {
-        notifier.showToast('Room ${stay.roomName} is no longer on this branch');
+        notifier.showToast(
+          FlipperL10n.current.hotelRoomNoLongerOnBranch(stay.roomName),
+        );
         return;
       }
       await chargeRoomToFolio(ref: ref, room: room, stay: stay, clerk: clerk);
@@ -511,7 +534,7 @@ abstract final class HotelDeskActions {
     ref
         .read(hotelModeProvider.notifier)
         .afterCheckOut(
-          message: 'Room ${stay.roomName} checked out',
+          message: FlipperL10n.current.hotelRoomCheckedOut(stay.roomName),
           autoLogout: HotelModeSettings.autoLogout,
         );
   }

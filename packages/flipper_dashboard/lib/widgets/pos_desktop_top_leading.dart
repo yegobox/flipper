@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/theme/pos_tokens.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -28,9 +29,9 @@ class PosDesktopTopLeading extends ConsumerWidget {
           margin: const EdgeInsets.symmetric(horizontal: 10),
           color: PosTokens.line,
         ),
-        const Text(
-          'Point of Sale',
-          style: TextStyle(
+        Text(
+          context.flipperL10n.dashboardAppPointOfSale,
+          style: const TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w500,
             color: PosTokens.ink3,

@@ -32,8 +32,10 @@ class CustomersState extends ConsumerState<Customers> {
   final TextEditingController _searchController = TextEditingController();
   final _routerService = locator<RouterService>();
   bool _openingCustomerForm = false;
+
   /// Customer id currently being attached/removed — drives per-row spinner.
   String? _saleActionCustomerId;
+
   /// Desktop side panel (add / edit) — null when closed.
   _CustomerFormPanel? _formPanel;
 
@@ -92,12 +94,14 @@ class CustomersState extends ConsumerState<Customers> {
           ),
           body: transactionAsyncValue.when(
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (error, stack) => Center(child: Text('Error: $error')),
+            error: (error, stack) =>
+                Center(child: Text(context.flipperL10n.errorMessage('$error'))),
             data: (transaction) {
               return customersRef.when(
-                loading: () =>
-                    const Center(child: CircularProgressIndicator()),
-                error: (error, stack) => Center(child: Text('Error: $error')),
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (error, stack) => Center(
+                  child: Text(context.flipperL10n.errorMessage('$error')),
+                ),
                 data: (allCustomers) {
                   final filteredCustomers = ref
                       .read(customersProvider.notifier)
@@ -214,33 +218,33 @@ class CustomersState extends ConsumerState<Customers> {
             children: [
               _buildHelpItem(
                 Icons.search_rounded,
-                'Search customers by name or phone number',
+                context.flipperL10n.customersHelpSearch,
               ),
               _buildHelpItem(
                 Icons.edit_outlined,
-                'Use Edit on a customer row to update their details',
+                context.flipperL10n.customersHelpEdit,
               ),
               _buildHelpItem(
                 Icons.touch_app_outlined,
-                'Tap a customer to attach them to the current sale',
+                context.flipperL10n.customersHelpTap,
               ),
               if (!isWide)
                 _buildHelpItem(
                   Icons.swipe_rounded,
-                  'On phone, swipe a row for quick delete, edit, add, or remove',
+                  context.flipperL10n.customersHelpSwipe,
                 ),
               _buildHelpItem(
                 Icons.person_add_outlined,
-                'Add a new customer with the button below the search field',
+                context.flipperL10n.customersHelpAdd,
               ),
             ],
           ),
         ),
         actions: [
           TextButton(
-            child: const Text(
-              'Close',
-              style: TextStyle(color: PosTokens.blue),
+            child: Text(
+              context.flipperL10n.close,
+              style: const TextStyle(color: PosTokens.blue),
             ),
             onPressed: () => Navigator.of(context).pop(),
           ),
@@ -274,16 +278,16 @@ class CustomersState extends ConsumerState<Customers> {
       child: Align(
         alignment: Alignment.centerLeft,
         child: customers.isEmpty
-            ? const Text(
-                'No customers found',
-                style: TextStyle(
+            ? Text(
+                context.flipperL10n.customersNoneFound,
+                style: const TextStyle(
                   fontSize: 14,
                   color: PosTokens.ink3,
                   fontStyle: FontStyle.italic,
                 ),
               )
             : Text(
-                '${customers.length} ${customers.length == 1 ? 'customer' : 'customers'} found',
+                context.flipperL10n.customersFoundCount(customers.length),
                 style: const TextStyle(fontSize: 14, color: PosTokens.ink3),
               ),
       ),
@@ -350,12 +354,7 @@ class CustomersState extends ConsumerState<Customers> {
     }
 
     return ListView.builder(
-      padding: EdgeInsets.fromLTRB(
-        isWide ? 20 : 16,
-        0,
-        isWide ? 20 : 16,
-        24,
-      ),
+      padding: EdgeInsets.fromLTRB(isWide ? 20 : 16, 0, isWide ? 20 : 16, 24),
       physics: const AlwaysScrollableScrollPhysics(),
       itemCount: displayedCustomers.length,
       itemBuilder: (context, index) {
@@ -375,9 +374,9 @@ class CustomersState extends ConsumerState<Customers> {
           children: [
             Icon(Icons.person_off_outlined, size: 64, color: PosTokens.ink4),
             const SizedBox(height: 16),
-            const Text(
-              'No customers found',
-              style: TextStyle(
+            Text(
+              context.flipperL10n.customersNoneFound,
+              style: const TextStyle(
                 color: PosTokens.ink1,
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
@@ -386,24 +385,26 @@ class CustomersState extends ConsumerState<Customers> {
             const SizedBox(height: 8),
             Text(
               _searchController.text.isNotEmpty
-                  ? 'Try different search terms or add a new customer'
-                  : 'Add a customer to get started',
+                  ? context.flipperL10n.customersTryDifferentSearch
+                  : context.flipperL10n.customersAddToGetStarted,
               textAlign: TextAlign.center,
               style: const TextStyle(color: PosTokens.ink3),
             ),
             const SizedBox(height: 24),
             AddNewCustomerButton(
               label: _searchController.text.isNotEmpty
-                  ? 'Add "${_searchController.text}" as new customer'
-                  : 'Add new customer',
+                  ? context.flipperL10n.customersAddAsNew(
+                      _searchController.text,
+                    )
+                  : context.flipperL10n.customersAddNew,
               isLoading: _openingCustomerForm,
               onPressed: _openingCustomerForm
                   ? null
                   : () => _openCustomerForm(
-                        context,
-                        transactionId: transaction.id,
-                        searchedKey: _searchController.text,
-                      ),
+                      context,
+                      transactionId: transaction.id,
+                      searchedKey: _searchController.text,
+                    ),
             ),
           ],
         ),
@@ -417,8 +418,7 @@ class CustomersState extends ConsumerState<Customers> {
     ITransaction transaction,
     bool isWide,
   ) {
-    final nameInitial =
-        (customer.custNm != null && customer.custNm!.isNotEmpty)
+    final nameInitial = (customer.custNm != null && customer.custNm!.isNotEmpty)
         ? customer.custNm![0].toUpperCase()
         : '?';
 
@@ -475,7 +475,7 @@ class CustomersState extends ConsumerState<Customers> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      customer.custNm ?? 'No Name',
+                      customer.custNm ?? context.flipperL10n.customersNoName,
                       style: const TextStyle(
                         fontWeight: FontWeight.w600,
                         fontSize: 16,
@@ -517,7 +517,9 @@ class CustomersState extends ConsumerState<Customers> {
                             const SizedBox(width: 4),
                             Flexible(
                               child: Text(
-                                'TIN: ${customer.custTin!}',
+                                context.flipperL10n.customersTinValue(
+                                  customer.custTin!,
+                                ),
                                 style: const TextStyle(color: PosTokens.ink2),
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -653,11 +655,11 @@ class CustomersState extends ConsumerState<Customers> {
           onPressed: isSaleActionBusy
               ? null
               : () => _openCustomerForm(
-                    context,
-                    transactionId: transaction.id,
-                    searchedKey: customer.custNm ?? '',
-                    customer: customer,
-                  ),
+                  context,
+                  transactionId: transaction.id,
+                  searchedKey: customer.custNm ?? '',
+                  customer: customer,
+                ),
           icon: const Icon(Icons.edit_outlined, size: 20),
           color: PosTokens.ink2,
         ),
@@ -675,14 +677,12 @@ class CustomersState extends ConsumerState<Customers> {
           )
         else
           IconButton(
-            tooltip: isSelected ? 'Remove from sale' : 'Add to sale',
+            tooltip: isSelected
+                ? context.flipperL10n.customersRemoveFromSale
+                : context.flipperL10n.customersAddToSale,
             onPressed: () {
               if (isSelected) {
-                _removeCustomerFromSale(
-                  customer,
-                  transaction,
-                  model: model,
-                );
+                _removeCustomerFromSale(customer, transaction, model: model);
               } else {
                 _attachCustomer(customer, transaction, model: model);
               }
@@ -749,19 +749,17 @@ class CustomersState extends ConsumerState<Customers> {
         }
       },
       itemBuilder: (context) => [
-        const PopupMenuItem(
+        PopupMenuItem(
           value: _CustomerAction.edit,
           child: ListTile(
             contentPadding: EdgeInsets.zero,
-            leading: Icon(Icons.edit_outlined, color: PosTokens.blue),
-            title: Text('Edit'),
+            leading: const Icon(Icons.edit_outlined, color: PosTokens.blue),
+            title: Text(context.flipperL10n.edit),
             dense: true,
           ),
         ),
         PopupMenuItem(
-          value: isSelected
-              ? _CustomerAction.remove
-              : _CustomerAction.attach,
+          value: isSelected ? _CustomerAction.remove : _CustomerAction.attach,
           child: ListTile(
             contentPadding: EdgeInsets.zero,
             leading: Icon(
@@ -770,16 +768,20 @@ class CustomersState extends ConsumerState<Customers> {
                   : Icons.person_add_alt_1_outlined,
               color: isSelected ? PosTokens.warnAmber : PosTokens.gain,
             ),
-            title: Text(isSelected ? 'Remove from sale' : 'Add to sale'),
+            title: Text(
+              isSelected
+                  ? context.flipperL10n.customersRemoveFromSale
+                  : context.flipperL10n.customersAddToSale,
+            ),
             dense: true,
           ),
         ),
-        const PopupMenuItem(
+        PopupMenuItem(
           value: _CustomerAction.delete,
           child: ListTile(
             contentPadding: EdgeInsets.zero,
-            leading: Icon(Icons.delete_outline, color: PosTokens.loss),
-            title: Text('Delete'),
+            leading: const Icon(Icons.delete_outline, color: PosTokens.loss),
+            title: Text(context.flipperL10n.delete),
             dense: true,
           ),
         ),
@@ -825,11 +827,9 @@ class CustomersState extends ConsumerState<Customers> {
         customerNameController.clear();
       }
 
-      await ProxyService.getStrategy(Strategy.capella)
-          .assignCustomerToTransaction(
-        customer: customer,
-        transaction: target,
-      );
+      await ProxyService.getStrategy(
+        Strategy.capella,
+      ).assignCustomerToTransaction(customer: customer, transaction: target);
 
       if (name.isNotEmpty) {
         await ProxyService.box.writeString(key: 'customerName', value: name);
@@ -853,7 +853,7 @@ class CustomersState extends ConsumerState<Customers> {
 
       if (!mounted) return;
       _showCustomersToast(
-        'Customer ${customer.custNm ?? ''} added to sale',
+        context.flipperL10n.customersAddedToSale(customer.custNm ?? ''),
         backgroundColor: PosTokens.gain,
       );
       // Return to checkout so the red "customer attached" control is visible.
@@ -861,7 +861,9 @@ class CustomersState extends ConsumerState<Customers> {
     } catch (e, s) {
       talker.warning('Customers.attach failed: $e\n$s');
       _showCustomersToast(
-        e.toString().isNotEmpty ? e.toString() : 'Failed to add customer to sale',
+        e.toString().isNotEmpty
+            ? e.toString()
+            : context.flipperL10n.customersFailedToAdd,
         backgroundColor: PosTokens.loss,
       );
     } finally {
@@ -869,18 +871,11 @@ class CustomersState extends ConsumerState<Customers> {
     }
   }
 
-  void _showCustomersToast(
-    String message, {
-    Color? backgroundColor,
-  }) {
+  void _showCustomersToast(String message, {Color? backgroundColor}) {
     if (!mounted) return;
     // Use this State's context (Customers Scaffold), not the root navigator —
     // Customers is a CustomPage above the dashboard, so root snackbars sit behind it.
-    showCustomSnackBarUtil(
-      context,
-      message,
-      backgroundColor: backgroundColor,
-    );
+    showCustomSnackBarUtil(context, message, backgroundColor: backgroundColor);
   }
 
   Future<void> _removeCustomerFromSale(
@@ -901,8 +896,9 @@ class CustomersState extends ConsumerState<Customers> {
 
     try {
       final oldCustomerId = target.customerId;
-      await ProxyService.getStrategy(Strategy.capella)
-          .removeCustomerFromTransaction(transaction: target);
+      await ProxyService.getStrategy(
+        Strategy.capella,
+      ).removeCustomerFromTransaction(transaction: target);
 
       await ProxyService.box.remove(key: 'customerName');
       await ProxyService.box.remove(key: 'currentSaleCustomerPhoneNumber');
@@ -915,7 +911,7 @@ class CustomersState extends ConsumerState<Customers> {
       }
       ref.invalidate(transactionByIdProvider(target.id));
       _showCustomersToast(
-        'Customer removed from sale',
+        context.flipperL10n.customersRemovedFromSale,
         backgroundColor: PosTokens.warnAmber,
       );
     } catch (e, s) {
@@ -923,7 +919,7 @@ class CustomersState extends ConsumerState<Customers> {
       _showCustomersToast(
         e.toString().isNotEmpty
             ? e.toString()
-            : 'Failed to remove customer from sale',
+            : context.flipperL10n.customersFailedToRemove,
         backgroundColor: PosTokens.loss,
       );
     } finally {
@@ -939,8 +935,7 @@ class CustomersState extends ConsumerState<Customers> {
       context: context,
       useRootNavigator: true,
       barrierColor: PosTokens.ink1.withValues(alpha: 0.58),
-      builder: (dialogContext) =>
-          _DeleteCustomerDialog(customer: customer),
+      builder: (dialogContext) => _DeleteCustomerDialog(customer: customer),
     );
     if (confirmed != true || !mounted) return;
 
@@ -950,11 +945,7 @@ class CustomersState extends ConsumerState<Customers> {
         ?.value;
     // Detach cart only when this customer is the one on the sale.
     if (livePending?.customerId == customer.id) {
-      await _removeCustomerFromSale(
-        customer,
-        livePending!,
-        model: model,
-      );
+      await _removeCustomerFromSale(customer, livePending!, model: model);
     }
     // Delete the record without CoreViewModel.deleteCustomer, which
     // clears any attached cart customer regardless of id match.
@@ -967,7 +958,7 @@ class CustomersState extends ConsumerState<Customers> {
     );
     if (!mounted) return;
     _showCustomersToast(
-      'Customer deleted',
+      context.flipperL10n.customersDeleted,
       backgroundColor: PosTokens.blue,
     );
     ref.invalidate(customersProvider);
@@ -1027,14 +1018,11 @@ class CustomersState extends ConsumerState<Customers> {
       );
 
       if (message != null && message.isNotEmpty) {
-        _showCustomersToast(
-          message,
-          backgroundColor: Colors.green[600],
-        );
+        _showCustomersToast(message, backgroundColor: Colors.green[600]);
       }
     } catch (e) {
       _showCustomersToast(
-        'Could not open customer form: $e',
+        context.flipperL10n.customersCouldNotOpenForm(e.toString()),
         backgroundColor: PosTokens.loss,
       );
     } finally {
@@ -1070,24 +1058,19 @@ class CustomersState extends ConsumerState<Customers> {
     bool isWide,
   ) {
     return Padding(
-      padding: EdgeInsets.fromLTRB(
-        isWide ? 20 : 16,
-        0,
-        isWide ? 20 : 16,
-        12,
-      ),
+      padding: EdgeInsets.fromLTRB(isWide ? 20 : 16, 0, isWide ? 20 : 16, 12),
       child: AddNewCustomerButton(
         label: _getButtonText(customersRef, searchKeyword),
         isLoading: _openingCustomerForm,
         onPressed: _openingCustomerForm
             ? null
             : () => _handleButtonPress(
-                  context,
-                  model,
-                  customersRef,
-                  searchKeyword,
-                  transaction,
-                ),
+                context,
+                model,
+                customersRef,
+                searchKeyword,
+                transaction,
+              ),
       ),
     );
   }
@@ -1103,12 +1086,12 @@ class CustomersState extends ConsumerState<Customers> {
         .isEmpty;
 
     if (searchKeyword.isEmpty) {
-      return 'Add new customer';
+      return context.flipperL10n.customersAddNew;
     }
 
     return isCustomerListEmpty
-        ? 'Add customer "$searchKeyword"'
-        : 'Add "$searchKeyword" to sale';
+        ? context.flipperL10n.customersAddNamed(searchKeyword)
+        : context.flipperL10n.customersAddNamedToSale(searchKeyword);
   }
 
   Future<void> _handleButtonPress(
@@ -1158,7 +1141,8 @@ class _DeleteCustomerDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final name = (customer.custNm ?? 'this customer').trim();
+    final name = (customer.custNm ?? context.flipperL10n.customersThisCustomer)
+        .trim();
     final phone = (customer.telNo ?? '').trim();
     final tin = (customer.custTin ?? '').trim();
     final media = MediaQuery.sizeOf(context);
@@ -1217,9 +1201,9 @@ class _DeleteCustomerDialog extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            'Delete customer?',
-                            style: TextStyle(
+                          Text(
+                            context.flipperL10n.customersDeleteTitle,
+                            style: const TextStyle(
                               fontSize: 22,
                               fontWeight: FontWeight.w700,
                               color: PosTokens.ink1,
@@ -1228,7 +1212,7 @@ class _DeleteCustomerDialog extends StatelessWidget {
                           ),
                           const SizedBox(height: 6),
                           Text(
-                            'Remove $name from your customer list. This cannot be undone.',
+                            context.flipperL10n.customersDeleteBody(name),
                             style: const TextStyle(
                               fontSize: 14,
                               height: 1.35,
@@ -1252,14 +1236,23 @@ class _DeleteCustomerDialog extends StatelessWidget {
                     ),
                     child: Column(
                       children: [
-                        _DeleteCustomerDetailRow(label: context.flipperL10n.name, value: name),
+                        _DeleteCustomerDetailRow(
+                          label: context.flipperL10n.name,
+                          value: name,
+                        ),
                         if (phone.isNotEmpty) ...[
                           const SizedBox(height: 10),
-                          _DeleteCustomerDetailRow(label: context.flipperL10n.phone, value: phone),
+                          _DeleteCustomerDetailRow(
+                            label: context.flipperL10n.phone,
+                            value: phone,
+                          ),
                         ],
                         if (tin.isNotEmpty) ...[
                           const SizedBox(height: 10),
-                          _DeleteCustomerDetailRow(label: context.flipperL10n.tin, value: tin),
+                          _DeleteCustomerDetailRow(
+                            label: context.flipperL10n.tin,
+                            value: tin,
+                          ),
                         ],
                       ],
                     ),
@@ -1277,18 +1270,18 @@ class _DeleteCustomerDialog extends StatelessWidget {
                     borderRadius: BorderRadius.circular(14),
                     border: Border.all(color: const Color(0xFFFED7AA)),
                   ),
-                  child: const Row(
+                  child: Row(
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.warning_amber_rounded,
                         size: 20,
                         color: Color(0xFFC2410C),
                       ),
-                      SizedBox(width: 10),
+                      const SizedBox(width: 10),
                       Expanded(
                         child: Text(
-                          'This action cannot be undone.',
-                          style: TextStyle(
+                          context.flipperL10n.actionCannotBeUndone,
+                          style: const TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
                             color: Color(0xFF9A3412),
@@ -1312,9 +1305,9 @@ class _DeleteCustomerDialog extends StatelessWidget {
                           ),
                           minimumSize: const Size.fromHeight(50),
                         ),
-                        child: const Text(
-                          'Cancel',
-                          style: TextStyle(
+                        child: Text(
+                          context.flipperL10n.cancel,
+                          style: const TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w700,
                           ),
@@ -1326,9 +1319,9 @@ class _DeleteCustomerDialog extends StatelessWidget {
                       child: FilledButton.icon(
                         onPressed: () => Navigator.of(context).pop(true),
                         icon: const Icon(Icons.delete_outline, size: 19),
-                        label: const Text(
-                          'Delete',
-                          style: TextStyle(
+                        label: Text(
+                          context.flipperL10n.delete,
+                          style: const TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w700,
                           ),

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flipper_localize/flipper_localize.dart';
 
 import 'package:flipper_dashboard/features/service_mode_hotkey.dart';
 import 'package:flipper_services/proxy.dart';
@@ -79,7 +80,7 @@ Future<void> _copyPendingSaleTransaction(BuildContext context) async {
   if (!context.mounted) return;
   showSuccessNotification(
     context,
-    'Pending transaction copied to clipboard',
+    context.flipperL10n.dashPendingTransactionCopied,
     duration: const Duration(seconds: 2),
   );
 }

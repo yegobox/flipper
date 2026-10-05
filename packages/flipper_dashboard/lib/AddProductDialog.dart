@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 
 /// Design palette aligned with the Add Product modal spec.
@@ -31,10 +32,7 @@ class _AddProductPalette {
 class AddProductDialog extends StatelessWidget {
   final Function(String) onChoiceSelected;
 
-  const AddProductDialog({
-    super.key,
-    required this.onChoiceSelected,
-  });
+  const AddProductDialog({super.key, required this.onChoiceSelected});
 
   static const double _modalRadius = 32;
 
@@ -66,9 +64,9 @@ class AddProductDialog extends StatelessWidget {
                   context: context,
                   background: _AddProductPalette.blueBg,
                   border: _AddProductPalette.blue,
-                  title: 'Single Product',
-                  subtitle: 'Add and configure one item',
-                  badgeLabel: 'QUICK',
+                  title: context.flipperL10n.addProductSingleTitle,
+                  subtitle: context.flipperL10n.addProductSingleSubtitle,
+                  badgeLabel: context.flipperL10n.addProductBadgeQuick,
                   badgeForeground: _AddProductPalette.blue,
                   badgeBackground: _AddProductPalette.blueBadgeBg,
                   leading: _singleProductLeading(),
@@ -79,9 +77,9 @@ class AddProductDialog extends StatelessWidget {
                   context: context,
                   background: _AddProductPalette.purpleBg,
                   border: _AddProductPalette.purple,
-                  title: 'Bulk Add',
-                  subtitle: 'Import multiple products at once',
-                  badgeLabel: 'FAST',
+                  title: context.flipperL10n.addProductBulkTitle,
+                  subtitle: context.flipperL10n.addProductBulkSubtitle,
+                  badgeLabel: context.flipperL10n.addProductBadgeFast,
                   badgeForeground: _AddProductPalette.purple,
                   badgeBackground: _AddProductPalette.purpleBadgeBg,
                   leading: _bulkAddLeading(),
@@ -92,9 +90,9 @@ class AddProductDialog extends StatelessWidget {
                   context: context,
                   background: _AddProductPalette.tealBg,
                   border: _AddProductPalette.teal,
-                  title: 'Add Rooms',
-                  subtitle: 'Hotel & accommodation',
-                  badgeLabel: 'HOTEL',
+                  title: context.flipperL10n.addProductRoomsTitle,
+                  subtitle: context.flipperL10n.addProductRoomsSubtitle,
+                  badgeLabel: context.flipperL10n.addProductBadgeHotel,
                   badgeForeground: _AddProductPalette.teal,
                   badgeBackground: _AddProductPalette.tealBadgeBg,
                   leading: _roomsLeading(),
@@ -105,9 +103,9 @@ class AddProductDialog extends StatelessWidget {
                   context: context,
                   background: _AddProductPalette.amberBg,
                   border: _AddProductPalette.amber,
-                  title: 'Sync Fuel',
-                  subtitle: 'Diesel & gasoline from RRA',
-                  badgeLabel: 'FUEL',
+                  title: context.flipperL10n.addProductFuelTitle,
+                  subtitle: context.flipperL10n.addProductFuelSubtitle,
+                  badgeLabel: context.flipperL10n.addProductBadgeFuel,
                   badgeForeground: _AddProductPalette.amber,
                   badgeBackground: _AddProductPalette.amberBadgeBg,
                   leading: _fuelLeading(),
@@ -159,20 +157,20 @@ class AddProductDialog extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Add Product',
+                context.flipperL10n.addProductAction,
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: _AddProductPalette.title,
-                      letterSpacing: -0.2,
-                    ),
+                  fontWeight: FontWeight.bold,
+                  color: _AddProductPalette.title,
+                  letterSpacing: -0.2,
+                ),
               ),
               const SizedBox(height: 4),
               Text(
-                'Choose how you\'d like to add',
+                context.flipperL10n.addProductChooseHow,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: _AddProductPalette.subtitle,
-                      fontWeight: FontWeight.w500,
-                    ),
+                  color: _AddProductPalette.subtitle,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ],
           ),
@@ -313,7 +311,8 @@ class AddProductDialog extends StatelessWidget {
                     children: [
                       Text(
                         title,
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(
                               fontWeight: FontWeight.bold,
                               color: _AddProductPalette.title,
                               letterSpacing: -0.2,
@@ -323,16 +322,19 @@ class AddProductDialog extends StatelessWidget {
                       Text(
                         subtitle,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: _AddProductPalette.subtitle,
-                              height: 1.35,
-                            ),
+                          color: _AddProductPalette.subtitle,
+                          height: 1.35,
+                        ),
                       ),
                     ],
                   ),
                 ),
                 const SizedBox(width: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 5,
+                  ),
                   decoration: BoxDecoration(
                     color: badgeBackground,
                     borderRadius: BorderRadius.circular(999),
@@ -370,11 +372,11 @@ class AddProductDialog extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         ),
         child: Text(
-          'Cancel',
+          context.flipperL10n.cancel,
           style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                color: _AddProductPalette.subtitle,
-                fontWeight: FontWeight.bold,
-              ),
+            color: _AddProductPalette.subtitle,
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ),
     );

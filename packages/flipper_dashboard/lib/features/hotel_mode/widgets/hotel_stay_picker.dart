@@ -1,5 +1,7 @@
 import 'package:flipper_dashboard/features/hotel_mode/providers/hotel_mode_providers.dart';
 import 'package:flipper_dashboard/features/hotel_mode/theme/hotel_tokens.dart';
+import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_shared_widgets.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/models/hotel_stay.dart';
 import 'package:flipper_models/sync/utils/hotel_mode_utils.dart';
 import 'package:flutter/material.dart';
@@ -115,7 +117,7 @@ class _HotelStayPickerState extends ConsumerState<HotelStayPicker> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                widget.title ?? 'Charge to room',
+                widget.title ?? context.flipperL10n.hotelChargeToRoom,
                 style: GoogleFonts.outfit(
                   fontSize: 19,
                   fontWeight: FontWeight.w800,
@@ -126,7 +128,7 @@ class _HotelStayPickerState extends ConsumerState<HotelStayPicker> {
               const SizedBox(height: 2),
               Text(
                 widget.subtitle ??
-                    'Pick the guest whose folio picks up this bill.',
+                    context.flipperL10n.hotelChargeToRoomSubtitle,
                 style: GoogleFonts.outfit(
                   fontSize: 13,
                   height: 1.35,
@@ -141,7 +143,7 @@ class _HotelStayPickerState extends ConsumerState<HotelStayPicker> {
           onPressed: () => Navigator.of(context).pop(),
           icon: const Icon(Icons.close, size: 20),
           color: HotelTokens.ink3,
-          tooltip: 'Close',
+          tooltip: context.flipperL10n.close,
         ),
       ],
     );
@@ -155,7 +157,7 @@ class _HotelStayPickerState extends ConsumerState<HotelStayPicker> {
       style: GoogleFonts.outfit(fontSize: 14.5, fontWeight: FontWeight.w600),
       decoration: InputDecoration(
         isDense: true,
-        hintText: 'Room number, guest name or phone',
+        hintText: context.flipperL10n.hotelStaySearchHint,
         hintStyle: GoogleFonts.outfit(
           fontSize: 14,
           fontWeight: FontWeight.w500,
@@ -232,7 +234,10 @@ class _HotelStayPickerState extends ConsumerState<HotelStayPicker> {
                       ),
                     ),
                     Text(
-                      '${hotelStaySummary(stay)} · out $out',
+                      context.flipperL10n.hotelStayOutLine(
+                        hotelStaySummaryText(context.flipperL10n, stay),
+                        out,
+                      ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.outfit(
@@ -259,19 +264,20 @@ class _HotelStayPickerState extends ConsumerState<HotelStayPicker> {
   Widget _emptyState({required bool loading}) {
     return _notice(
       icon: loading ? Icons.hourglass_empty : Icons.hotel_outlined,
-      title: loading ? 'Looking up guests…' : 'Nobody is checked in',
+      title: loading
+          ? context.flipperL10n.hotelLookingUpGuests
+          : context.flipperL10n.hotelNobodyCheckedIn,
       body: loading
-          ? 'Reading the rooms from this branch.'
-          : 'A tab can only be charged to a guest who has checked in. '
-                'Reservations pick up charges once they arrive.',
+          ? context.flipperL10n.hotelReadingRooms
+          : context.flipperL10n.hotelNoGuestsBody,
     );
   }
 
   Widget _noMatches() {
     return _notice(
       icon: Icons.search_off,
-      title: 'No guest matches "${_term.trim()}"',
-      body: 'Search by room number, guest name or phone.',
+      title: context.flipperL10n.hotelNoGuestMatches(_term.trim()),
+      body: context.flipperL10n.hotelSearchByHint,
     );
   }
 

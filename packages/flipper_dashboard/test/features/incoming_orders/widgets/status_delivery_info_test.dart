@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/features/incoming_orders/om_tokens.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/features/incoming_orders/widgets/status_delivery_info.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flutter/material.dart';
@@ -25,6 +26,8 @@ void main() {
     testWidgets('displays title correctly', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
+          localizationsDelegates: FlipperLocalizationDelegates.delegates,
+          supportedLocales: FlipperLocalizationDelegates.supportedLocales,
           home: Scaffold(body: StatusDeliveryInfo(request: mockRequest)),
         ),
       );
@@ -35,6 +38,8 @@ void main() {
     testWidgets('displays status information correctly', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
+          localizationsDelegates: FlipperLocalizationDelegates.delegates,
+          supportedLocales: FlipperLocalizationDelegates.supportedLocales,
           home: Scaffold(body: StatusDeliveryInfo(request: mockRequest)),
         ),
       );
@@ -46,6 +51,8 @@ void main() {
     testWidgets('displays delivery information correctly', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
+          localizationsDelegates: FlipperLocalizationDelegates.delegates,
+          supportedLocales: FlipperLocalizationDelegates.supportedLocales,
           home: Scaffold(body: StatusDeliveryInfo(request: mockRequest)),
         ),
       );
@@ -57,6 +64,8 @@ void main() {
     testWidgets('shows correct status icon for pending', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
+          localizationsDelegates: FlipperLocalizationDelegates.delegates,
+          supportedLocales: FlipperLocalizationDelegates.supportedLocales,
           home: Scaffold(body: StatusDeliveryInfo(request: mockRequest)),
         ),
       );
@@ -82,6 +91,8 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
+          localizationsDelegates: FlipperLocalizationDelegates.delegates,
+          supportedLocales: FlipperLocalizationDelegates.supportedLocales,
           home: Scaffold(body: StatusDeliveryInfo(request: approvedRequest)),
         ),
       );
@@ -107,6 +118,8 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
+          localizationsDelegates: FlipperLocalizationDelegates.delegates,
+          supportedLocales: FlipperLocalizationDelegates.supportedLocales,
           home: Scaffold(body: StatusDeliveryInfo(request: voidedRequest)),
         ),
       );
@@ -131,6 +144,8 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
+          localizationsDelegates: FlipperLocalizationDelegates.delegates,
+          supportedLocales: FlipperLocalizationDelegates.supportedLocales,
           home: Scaffold(body: StatusDeliveryInfo(request: nullStatusRequest)),
         ),
       );
@@ -144,6 +159,8 @@ void main() {
     testWidgets('shows calendar icon for delivery info', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
+          localizationsDelegates: FlipperLocalizationDelegates.delegates,
+          supportedLocales: FlipperLocalizationDelegates.supportedLocales,
           home: Scaffold(body: StatusDeliveryInfo(request: mockRequest)),
         ),
       );
@@ -154,6 +171,8 @@ void main() {
     testWidgets('has correct container structure', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
+          localizationsDelegates: FlipperLocalizationDelegates.delegates,
+          supportedLocales: FlipperLocalizationDelegates.supportedLocales,
           home: Scaffold(body: StatusDeliveryInfo(request: mockRequest)),
         ),
       );
@@ -187,6 +206,8 @@ void main() {
         tester.view.physicalSize = Size(width, 600);
         await tester.pumpWidget(
           MaterialApp(
+            localizationsDelegates: FlipperLocalizationDelegates.delegates,
+            supportedLocales: FlipperLocalizationDelegates.supportedLocales,
             home: Scaffold(body: StatusDeliveryInfo(request: mockRequest)),
           ),
         );
@@ -244,6 +265,8 @@ void main() {
     testWidgets('displays order note title', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
+          localizationsDelegates: FlipperLocalizationDelegates.delegates,
+          supportedLocales: FlipperLocalizationDelegates.supportedLocales,
           home: Scaffold(body: OrderNote(request: mockRequest)),
         ),
       );
@@ -254,6 +277,8 @@ void main() {
     testWidgets('displays order note content', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
+          localizationsDelegates: FlipperLocalizationDelegates.delegates,
+          supportedLocales: FlipperLocalizationDelegates.supportedLocales,
           home: Scaffold(body: OrderNote(request: mockRequest)),
         ),
       );
@@ -271,6 +296,8 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
+          localizationsDelegates: FlipperLocalizationDelegates.delegates,
+          supportedLocales: FlipperLocalizationDelegates.supportedLocales,
           home: Scaffold(body: OrderNote(request: nullNoteRequest)),
         ),
       );
@@ -282,6 +309,8 @@ void main() {
     testWidgets('has correct structure', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
+          localizationsDelegates: FlipperLocalizationDelegates.delegates,
+          supportedLocales: FlipperLocalizationDelegates.supportedLocales,
           home: Scaffold(body: OrderNote(request: mockRequest)),
         ),
       );

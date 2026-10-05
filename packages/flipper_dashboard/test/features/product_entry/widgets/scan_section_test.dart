@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/features/product_entry/widgets/scan_section.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
@@ -22,6 +23,8 @@ void main() {
     required VoidCallback onRequestCamera,
   }) {
     return MaterialApp(
+      localizationsDelegates: FlipperLocalizationDelegates.delegates,
+      supportedLocales: FlipperLocalizationDelegates.supportedLocales,
       home: Scaffold(
         body: Form(
           child: ScanSection(

@@ -171,16 +171,14 @@ class CheckOutState extends ConsumerState<CheckOut>
         error: transactionAsyncValue.error!,
         isExpense: false,
         onRecovered: () async {
-          ref.refresh(
-            pendingTransactionStreamProvider(isExpense: false),
-          );
+          ref.refresh(pendingTransactionStreamProvider(isExpense: false));
         },
         onClose: () {
           if (!mounted) return;
           onWillPop(
             context: context,
             navigationPurpose: NavigationPurpose.home,
-            message: 'Do you want to go home?',
+            message: context.flipperL10n.goHomeQuestion,
           );
         },
       );
@@ -376,8 +374,9 @@ class CheckOutState extends ConsumerState<CheckOut>
                     // Pass the real prior-paid: a resumed loan/layaway's earlier
                     // installments must count towards the sale total, or paying
                     // off the remainder re-parks the ticket still owing.
-                    final overrideAlreadyPaid =
-                        await _priorPaidForCompletion(txn);
+                    final overrideAlreadyPaid = await _priorPaidForCompletion(
+                      txn,
+                    );
                     return await _handleCompleteTransaction(
                       txn,
                       immediateCompletion,
@@ -418,7 +417,9 @@ class CheckOutState extends ConsumerState<CheckOut>
             posCartDisplayItemsForTransaction(items, transactionId).length,
       ),
     );
-    return count > 0 ? 'Preview Cart ($count)' : 'Preview Cart';
+    return count > 0
+        ? context.flipperL10n.previewCartWithCount(count)
+        : context.flipperL10n.previewCart;
   }
 
   Future<void> _resetCheckoutAfterSuccessfulSale(
@@ -457,8 +458,8 @@ class CheckOutState extends ConsumerState<CheckOut>
       );
       final settleBranch =
           (settling.branchId != null && settling.branchId!.isNotEmpty)
-              ? settling.branchId!
-              : branchId;
+          ? settling.branchId!
+          : branchId;
       ref.invalidate(
         transactionItemsStreamProvider(
           transactionId: settling.transactionId,
@@ -519,8 +520,9 @@ class CheckOutState extends ConsumerState<CheckOut>
     final settling = ref.read(effectiveSettlingTillTicketProvider);
     final ITransaction target;
     if (settling != null && settling.transactionId.isNotEmpty) {
-      final ticket =
-          ref.read(transactionByIdProvider(settling.transactionId)).value;
+      final ticket = ref
+          .read(transactionByIdProvider(settling.transactionId))
+          .value;
       if (ticket == null) return null;
       target = ticket;
     } else {
@@ -531,11 +533,13 @@ class CheckOutState extends ConsumerState<CheckOut>
     final attached = (customerId == null || customerId.isEmpty)
         ? null
         : ref
-            .read(oldImplementationOfRiverpod.attachedCustomerProvider(
-              customerId,
-            ))
-            .asData
-            ?.value;
+              .read(
+                oldImplementationOfRiverpod.attachedCustomerProvider(
+                  customerId,
+                ),
+              )
+              .asData
+              ?.value;
 
     return missingCustomerDetailsForPay(
       transaction: target,
@@ -615,7 +619,7 @@ class CheckOutState extends ConsumerState<CheckOut>
               onWillPop(
                 context: context,
                 navigationPurpose: NavigationPurpose.home,
-                message: 'Do you want to go home?',
+                message: context.flipperL10n.goHomeQuestion,
               );
             }
           },

@@ -4,6 +4,7 @@ import 'package:flipper_dashboard/features/bar_mode/theme/bar_tokens.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_admin_widgets.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_keypad.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_shared_widgets.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/sync/utils/bar_mode_utils.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -23,6 +24,7 @@ class _BarLockDesktopScreenState extends ConsumerState<BarLockDesktopScreen> {
   @override
   Widget build(BuildContext context) {
     final staffAsync = ref.watch(barStaffProvider);
+    final l10n = context.flipperL10n;
 
     return Container(
       color: BarTokens.bg,
@@ -34,7 +36,7 @@ class _BarLockDesktopScreenState extends ConsumerState<BarLockDesktopScreen> {
             children: [
               const BarFlipperBrand(),
               Text(
-                'Bar mode · Shared register',
+                l10n.barModeSharedRegister,
                 style: GoogleFonts.outfit(
                   fontSize: 14,
                   color: BarTokens.ink3,
@@ -64,7 +66,7 @@ class _BarLockDesktopScreenState extends ConsumerState<BarLockDesktopScreen> {
                         child: staffAsync.when(
                           loading: () =>
                               const Center(child: CircularProgressIndicator()),
-                          error: (_, __) => const Text('Could not load staff'),
+                          error: (_, __) => Text(l10n.barCouldNotLoadStaff),
                           data: (allStaff) => _peoplePane(allStaff),
                         ),
                       ),
@@ -76,8 +78,8 @@ class _BarLockDesktopScreenState extends ConsumerState<BarLockDesktopScreen> {
                           enabled: _selected != null,
                           title: _selected?.name ?? '—',
                           hint: _selected == null
-                              ? 'Tap your name on the left, then enter your PIN'
-                              : 'Enter your 6-digit PIN to log orders',
+                              ? l10n.barLockHintTapLeft
+                              : l10n.barLockHintEnterPin,
                           avatarLabel: _selected == null
                               ? null
                               : barTenantInitials(_selected!.name),
@@ -113,11 +115,12 @@ class _BarLockDesktopScreenState extends ConsumerState<BarLockDesktopScreen> {
   }
 
   Widget _peoplePane(List<Tenant> staff) {
+    final l10n = context.flipperL10n;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'WHO\'S ON THE REGISTER?',
+          l10n.barWhosOnRegister.toUpperCase(),
           style: GoogleFonts.outfit(
             fontSize: 11,
             fontWeight: FontWeight.w800,
@@ -127,7 +130,7 @@ class _BarLockDesktopScreenState extends ConsumerState<BarLockDesktopScreen> {
         ),
         const SizedBox(height: 4),
         Text(
-          'Who\'s on the register?',
+          l10n.barWhosOnRegister,
           style: GoogleFonts.outfit(
             fontSize: 22,
             fontWeight: FontWeight.w800,
@@ -193,7 +196,7 @@ class _BarLockDesktopScreenState extends ConsumerState<BarLockDesktopScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                person.name ?? 'Staff',
+                                person.name ?? l10n.barStaffFallback,
                                 style: GoogleFonts.outfit(
                                   fontWeight: FontWeight.w700,
                                   fontSize: 15,

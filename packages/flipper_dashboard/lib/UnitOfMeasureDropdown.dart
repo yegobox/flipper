@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 
@@ -27,7 +28,9 @@ class UnitOfMeasureDropdown extends StatelessWidget {
 
     if (error != null) {
       return Center(
-        child: Text('Error: $error'), // Show an error message
+        child: Text(
+          context.flipperL10n.errorMessage(error.toString()),
+        ), // Show an error message
       );
     }
 
@@ -40,21 +43,11 @@ class UnitOfMeasureDropdown extends StatelessWidget {
         compareFn: (String i, String s) => i == s,
         decoratorProps: const DropDownDecoratorProps(
           decoration: InputDecoration(
-            border: OutlineInputBorder(
-              borderSide: BorderSide.none,
-            ),
-            disabledBorder: OutlineInputBorder(
-              borderSide: BorderSide.none,
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderSide: BorderSide.none,
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderSide: BorderSide.none,
-            ),
-            errorBorder: OutlineInputBorder(
-              borderSide: BorderSide.none,
-            ),
+            border: OutlineInputBorder(borderSide: BorderSide.none),
+            disabledBorder: OutlineInputBorder(borderSide: BorderSide.none),
+            enabledBorder: OutlineInputBorder(borderSide: BorderSide.none),
+            focusedBorder: OutlineInputBorder(borderSide: BorderSide.none),
+            errorBorder: OutlineInputBorder(borderSide: BorderSide.none),
             contentPadding: EdgeInsets.fromLTRB(12, 12, 8, 0),
           ),
         ),

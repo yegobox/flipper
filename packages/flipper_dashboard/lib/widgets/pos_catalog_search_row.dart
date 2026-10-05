@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'dart:async';
 
 import 'package:flipper_dashboard/HandleScannWhileSelling.dart';
@@ -17,18 +18,21 @@ class PosCatalogSearchRow extends ConsumerWidget {
   const PosCatalogSearchRow({
     super.key,
     required this.controller,
-    this.hintText = 'Search products…',
+    this.hintText,
   });
 
   final TextEditingController controller;
-  final String hintText;
+  final String? hintText;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Row(
       children: [
         Expanded(
-          child: _PosSearchField(controller: controller, hintText: hintText),
+          child: _PosSearchField(
+            controller: controller,
+            hintText: hintText ?? context.flipperL10n.searchProducts,
+          ),
         ),
         const SizedBox(width: 8),
         _PosScanButton(
@@ -46,7 +50,7 @@ class _PosSearchField extends StatefulHookConsumerWidget {
   const _PosSearchField({required this.controller, required this.hintText});
 
   final TextEditingController controller;
-  final String hintText;
+  final String? hintText;
 
   @override
   ConsumerState<_PosSearchField> createState() => _PosSearchFieldState();
@@ -185,7 +189,7 @@ class _PosScanButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Tooltip(
-      message: 'Scan mode',
+      message: context.flipperL10n.posScanMode,
       child: Material(
         color: isActive ? PosTokens.blueTint : PosTokens.surface,
         borderRadius: BorderRadius.circular(PosTokens.radiusMd),

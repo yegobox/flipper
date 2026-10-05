@@ -2,12 +2,16 @@ import 'package:flipper_dashboard/features/bar_mode/widgets/bar_keypad.dart';
 import 'package:flipper_models/sync/utils/bar_mode_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 
 void main() {
   testWidgets('BarKeypad fills dots and submits on 6 digits', (tester) async {
     String? submitted;
     await tester.pumpWidget(
       MaterialApp(
+        localizationsDelegates: FlipperLocalizationDelegates.delegates,
+        supportedLocales: FlipperLocalizationDelegates.supportedLocales,
+
         home: Scaffold(
           body: BarKeypad(
             enabled: true,
@@ -32,6 +36,9 @@ void main() {
   testWidgets('BarKeypad Clear resets entry', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
+        localizationsDelegates: FlipperLocalizationDelegates.delegates,
+        supportedLocales: FlipperLocalizationDelegates.supportedLocales,
+
         home: Scaffold(
           body: BarKeypad(
             enabled: true,

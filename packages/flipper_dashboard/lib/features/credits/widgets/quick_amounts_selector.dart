@@ -1,12 +1,11 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 
 class QuickAmountsSelector extends StatelessWidget {
   final Function(int) onAmountSelected;
 
-  const QuickAmountsSelector({
-    Key? key,
-    required this.onAmountSelected,
-  }) : super(key: key);
+  const QuickAmountsSelector({Key? key, required this.onAmountSelected})
+    : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -17,10 +16,10 @@ class QuickAmountsSelector extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Quick Add',
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
+          context.flipperL10n.creditsQuickAdd,
+          style: Theme.of(
+            context,
+          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 16),
         Row(

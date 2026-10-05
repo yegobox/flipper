@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/manual_purchase/manual_purchase_mobile_screen.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -9,7 +10,13 @@ Future<void> _pumpPhone(WidgetTester tester, Size size) async {
   tester.view.devicePixelRatio = 3;
   addTearDown(tester.view.reset);
   await tester.pumpWidget(
-    const ProviderScope(child: MaterialApp(home: ManualPurchaseMobileScreen())),
+    const ProviderScope(
+      child: MaterialApp(
+        localizationsDelegates: FlipperLocalizationDelegates.delegates,
+        supportedLocales: FlipperLocalizationDelegates.supportedLocales,
+        home: ManualPurchaseMobileScreen(),
+      ),
+    ),
   );
   await tester.pumpAndSettle();
 }
@@ -37,8 +44,9 @@ void main() {
 
       // Credit terms appear only for credit payment types.
       expect(find.text('Pay supplier by'), findsNothing);
-      await _center(tester, find.text('Cash/Credit'));
-      await tester.tap(find.text('Cash/Credit'));
+      // Shares the POS payment label, "Cash / Credit".
+      await _center(tester, find.text('Cash / Credit'));
+      await tester.tap(find.text('Cash / Credit'));
       await tester.pumpAndSettle();
       await _center(tester, find.text('You will owe this supplier'));
       expect(find.text('Pay supplier by'), findsOneWidget);

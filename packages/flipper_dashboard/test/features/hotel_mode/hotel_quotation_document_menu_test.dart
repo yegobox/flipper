@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:supabase_models/brick/models/tenant.model.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 
 HotelQuotation _quote({
   String id = 'q1',
@@ -67,6 +68,9 @@ Future<void> _pump(
         ),
       ],
       child: MaterialApp(
+        localizationsDelegates: FlipperLocalizationDelegates.delegates,
+        supportedLocales: FlipperLocalizationDelegates.supportedLocales,
+
         home: Scaffold(
           body: MediaQuery(
             data: MediaQueryData(size: Size(width, 1000)),

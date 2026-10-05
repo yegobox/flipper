@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/db_model_export.dart';
 
 /// Commission input mode for a sale attributed to an agent.
@@ -63,7 +64,8 @@ void mergeAgentAttributionOnto(ITransaction target, ITransaction? source) {
   target.attributedAgentUserId ??= source.attributedAgentUserId;
   target.agentCommissionType ??= source.agentCommissionType;
   target.agentCommissionValue ??= source.agentCommissionValue;
-  if (target.agentCommissionAmount == null && source.agentCommissionAmount != null) {
+  if (target.agentCommissionAmount == null &&
+      source.agentCommissionAmount != null) {
     target.agentCommissionAmount = source.agentCommissionAmount;
   }
 }
@@ -137,5 +139,5 @@ String tenantDisplayName(Tenant tenant) {
   final name = (tenant.name ?? '').trim();
   if (name.isNotEmpty) return name;
   final email = (tenant.email ?? tenant.phoneNumber ?? '').trim();
-  return email.isNotEmpty ? email : 'Agent';
+  return email.isNotEmpty ? email : FlipperL10n.current.endOfShiftAgent;
 }

@@ -5,6 +5,7 @@ import 'package:flipper_dashboard/logout/pos_user_switch_lock_provider.dart';
 import 'package:flipper_dashboard/logout/shift_before_logout.dart';
 import 'package:flipper_dashboard/providers/navigation_providers.dart';
 import 'package:flipper_dashboard/widgets/pos_shift_gate.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/helperModels/pin.dart';
 import 'package:flipper_models/helpers/pos_payment_role_tenant.dart';
 import 'package:flipper_models/helperModels/talker.dart';
@@ -33,9 +34,7 @@ void _invalidateAccessProviders(WidgetRef ref, String? userId) {
   if (userId == null || userId.isEmpty) return;
   ref.invalidate(allAccessesProvider(userId));
   ref.invalidate(tenantProvider(userId));
-  ref.invalidate(
-    isAdminProvider(userId, featureName: AppFeature.Settings),
-  );
+  ref.invalidate(isAdminProvider(userId, featureName: AppFeature.Settings));
   for (final f in features) {
     ref.invalidate(userAccessesProvider(userId, featureName: f));
     ref.invalidate(isAdminProvider(userId, featureName: f));
@@ -70,9 +69,10 @@ Pin _pinFromRecord({
   required String? preservedBranchId,
 }) {
   final fallbackBusinessId =
-      tenant.businessId ?? preservedBusinessId ?? ProxyService.box.getBusinessId();
-  final fallbackBranchId =
-      preservedBranchId ?? ProxyService.box.getBranchId();
+      tenant.businessId ??
+      preservedBusinessId ??
+      ProxyService.box.getBusinessId();
+  final fallbackBranchId = preservedBranchId ?? ProxyService.box.getBranchId();
   final parsed = int.tryParse(enteredPin) ?? tenant.pin ?? 0;
   final boxBranchId = ProxyService.box.getBranchId() ?? fallbackBranchId;
   final boxBusinessId = ProxyService.box.getBusinessId() ?? fallbackBusinessId;
@@ -184,8 +184,8 @@ Future<bool> completePosUserSwitchAfterPin({
     if (context.mounted) {
       await dialogService.showCustomDialog(
         variant: DialogType.info,
-        title: 'Cannot switch user',
-        description: 'This staff member has no linked user account.',
+        title: FlipperL10n.current.posSwitchCannotSwitchUser,
+        description: FlipperL10n.current.posSwitchNoLinkedAccount,
       );
     }
     return false;
@@ -211,7 +211,7 @@ Future<bool> completePosUserSwitchAfterPin({
     if (pinRecord != null &&
         pinRecord.userId.trim().isNotEmpty &&
         pinRecord.userId.trim() != expectedUserId) {
-      throw StateError('PIN does not match the selected staff member.');
+      throw StateError(FlipperL10n.current.posSwitchPinMismatch);
     }
 
     final forceOffline = await _shouldForceOfflineLogin(
@@ -220,11 +220,12 @@ Future<bool> completePosUserSwitchAfterPin({
     );
 
     if (pinRecord == null && !forceOffline) {
-      final localMatch = int.tryParse(enteredPin) != null &&
+      final localMatch =
+          int.tryParse(enteredPin) != null &&
           tenant.pin != null &&
           int.tryParse(enteredPin) == tenant.pin;
       if (!localMatch) {
-        throw StateError('Could not resolve PIN for the selected staff member.');
+        throw StateError(FlipperL10n.current.posSwitchPinUnresolved);
       }
     }
 
@@ -240,10 +241,7 @@ Future<bool> completePosUserSwitchAfterPin({
         pin.businessId!.isEmpty ||
         pin.branchId == null ||
         pin.branchId!.isEmpty) {
-      throw StateError(
-        'Cannot switch user without business/branch context. '
-        'Sign out and sign in again, then retry Switch User.',
-      );
+      throw StateError(FlipperL10n.current.posSwitchMissingContext);
     }
 
     final userPhone = (pin.phoneNumber != null && pin.phoneNumber!.isNotEmpty)
@@ -267,10 +265,7 @@ Future<bool> completePosUserSwitchAfterPin({
       key: 'businessId',
       value: pin.businessId!,
     );
-    await ProxyService.box.writeString(
-      key: 'branchId',
-      value: pin.branchId!,
-    );
+    await ProxyService.box.writeString(key: 'branchId', value: pin.branchId!);
 
     await ProxyService.box.writeBool(key: 'authComplete', value: true);
 
@@ -286,7 +281,10 @@ Future<bool> completePosUserSwitchAfterPin({
     }
     if (branchId != null && branchId.isNotEmpty) {
       await ProxyService.box.writeString(key: 'branchId', value: branchId);
-      await ProxyService.box.writeString(key: 'branchIdString', value: branchId);
+      await ProxyService.box.writeString(
+        key: 'branchIdString',
+        value: branchId,
+      );
     }
 
     final displayName = tenant.name?.trim();
@@ -302,7 +300,7 @@ Future<bool> completePosUserSwitchAfterPin({
     if (context.mounted) {
       await dialogService.showCustomDialog(
         variant: DialogType.info,
-        title: 'Could not switch user',
+        title: FlipperL10n.current.posSwitchCouldNotSwitch,
         description: e.toString(),
       );
     }
@@ -315,7 +313,7 @@ Future<bool> completePosUserSwitchAfterPin({
   if (tenantIsCashier(tenant)) {
     final response = await dialogService.showCustomDialog(
       variant: DialogType.startShift,
-      title: 'Start New Shift',
+      title: FlipperL10n.current.startNewShift,
     );
     if (response != null && response.confirmed) {
       ref.invalidate(currentOpenShiftProvider);

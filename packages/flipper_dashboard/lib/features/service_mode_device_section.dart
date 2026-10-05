@@ -3,6 +3,7 @@ import 'package:flipper_dashboard/features/bar_mode/theme/bar_tokens.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_admin_widgets.dart';
 import 'package:flipper_dashboard/features/hotel_mode/hotel_mode_settings.dart';
 import 'package:flipper_dashboard/features/service_mode_switch.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -47,7 +48,7 @@ class _ServiceModeDeviceSectionState extends State<ServiceModeDeviceSection> {
     setDeviceServiceMode(mode);
     showCustomSnackBarUtil(
       context,
-      'This device now runs ${mode.deviceLabel}.',
+      context.flipperL10n.serviceModeDeviceNowRuns(mode.deviceLabel),
     );
   }
 
@@ -55,8 +56,9 @@ class _ServiceModeDeviceSectionState extends State<ServiceModeDeviceSection> {
     setDeviceServiceMode(null);
     showCustomSnackBarUtil(
       context,
-      'This device follows the branch default again '
-      '(${activeServiceMode.deviceLabel}).',
+      context.flipperL10n.serviceModeDeviceFollowsBranch(
+        activeServiceMode.deviceLabel,
+      ),
     );
   }
 
@@ -72,19 +74,20 @@ class _ServiceModeDeviceSectionState extends State<ServiceModeDeviceSection> {
     );
     final active = activeServiceMode;
     final pinned = deviceServiceMode != null;
+    final l10n = context.flipperL10n;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 28),
-        const BarAdminEyebrow(label: 'This device'),
+        BarAdminEyebrow(label: l10n.serviceModeThisDevice),
         BarCard(
           padding: const EdgeInsets.fromLTRB(18, 16, 18, 18),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'What this terminal opens',
+                l10n.serviceModeWhatTerminalOpens,
                 style: GoogleFonts.outfit(
                   fontSize: 16.5,
                   fontWeight: FontWeight.w800,
@@ -94,11 +97,8 @@ class _ServiceModeDeviceSectionState extends State<ServiceModeDeviceSection> {
               const SizedBox(height: 3),
               Text(
                 hotelEnabled && barEnabled
-                    ? 'This branch runs both. Put the front desk on the desk '
-                          'terminal and the table floor on the bar counter — '
-                          'each device keeps its own choice.'
-                    : 'Pick what this screen shows after login. Other devices '
-                          'on this branch keep their own choice.',
+                    ? l10n.serviceModeBranchRunsBoth
+                    : l10n.serviceModePickAfterLogin,
                 style: GoogleFonts.outfit(
                   fontSize: 13,
                   height: 1.4,
@@ -132,7 +132,7 @@ class _ServiceModeDeviceSectionState extends State<ServiceModeDeviceSection> {
                     const SizedBox(width: 7),
                     Expanded(
                       child: Text(
-                        'Pinned on this device only.',
+                        l10n.serviceModePinnedOnDevice,
                         style: GoogleFonts.outfit(
                           fontSize: 12.5,
                           fontWeight: FontWeight.w500,
@@ -148,7 +148,7 @@ class _ServiceModeDeviceSectionState extends State<ServiceModeDeviceSection> {
                         minimumSize: const Size(0, 34),
                       ),
                       child: Text(
-                        'Use branch default',
+                        l10n.serviceModeUseBranchDefault,
                         style: GoogleFonts.outfit(
                           fontSize: 12.5,
                           fontWeight: FontWeight.w700,

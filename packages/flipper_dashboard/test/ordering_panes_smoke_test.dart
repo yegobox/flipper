@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/ordering/ordering_cart_panel.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/ordering/ordering_supplier_picker.dart';
 import 'package:flipper_dashboard/ordering/ordering_top_bar.dart';
 import 'package:flipper_dashboard/ordering/ordering_catalog_rail.dart';
@@ -44,7 +45,6 @@ Variant _variant(String id, String name, String category, double stock) =>
       stock: Stock(id: 's$id', branchId: 'b1', currentStock: stock),
     );
 
-
 TransactionItem _line(String id, String name, num qty, num price) =>
     TransactionItem(
       id: id,
@@ -60,7 +60,6 @@ TransactionItem _line(String id, String name, num qty, num price) =>
       active: true,
       taxAmt: (price * qty) * 0.18,
     );
-
 
 /// Lays the pane out at real desktop logical pixels.
 ///
@@ -99,6 +98,8 @@ void main() {
           orderingShowMarginProvider.overrideWith((ref) => true),
         ],
         child: MaterialApp(
+          localizationsDelegates: FlipperLocalizationDelegates.delegates,
+          supportedLocales: FlipperLocalizationDelegates.supportedLocales,
           home: Scaffold(
             backgroundColor: OrderingTokens.bg,
             body: OrderingCatalogTable(
@@ -113,8 +114,9 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('catalogue table renders rows, headers and the stepper',
-      (tester) async {
+  testWidgets('catalogue table renders rows, headers and the stepper', (
+    tester,
+  ) async {
     await pump(tester, [
       _variant('1', 'EQUERRE NTO', 'Tools', 600),
       _variant('2', 'COUDE ADAPTER', 'Plumbing', 12),
@@ -140,14 +142,10 @@ void main() {
       'overflowing', (tester) async {
     // 1000px window - 186 rail - 300 cart is the tightest pane the workspace
     // ever hands the table.
-    await pump(
-      tester,
-      [
-        _variant('1', 'EQUERRE NTO', 'Tools', 600),
-        _variant('2', 'COUDE ADAPTER', 'Plumbing', 12),
-      ],
-      size: const Size(514, 700),
-    );
+    await pump(tester, [
+      _variant('1', 'EQUERRE NTO', 'Tools', 600),
+      _variant('2', 'COUDE ADAPTER', 'Plumbing', 12),
+    ], size: const Size(514, 700));
 
     expect(tester.takeException(), isNull);
     expect(find.text('RETAIL · MARGIN'), findsNothing);
@@ -157,15 +155,13 @@ void main() {
     expect(find.text('ORDER QTY'), findsOneWidget);
   });
 
-  testWidgets('empty catalogue shows the nothing-to-order state',
-      (tester) async {
+  testWidgets('empty catalogue shows the nothing-to-order state', (
+    tester,
+  ) async {
     await pump(tester, const []);
 
     expect(tester.takeException(), isNull);
-    expect(
-      find.text('This supplier has no products to order'),
-      findsOneWidget,
-    );
+    expect(find.text('This supplier has no products to order'), findsOneWidget);
   });
 
   group('order pane', () {
@@ -196,6 +192,8 @@ void main() {
             ),
           ],
           child: MaterialApp(
+            localizationsDelegates: FlipperLocalizationDelegates.delegates,
+            supportedLocales: FlipperLocalizationDelegates.supportedLocales,
             home: Scaffold(
               body: OrderingCartPanel(
                 supplierName: 'Quincaillerie Rubavu',
@@ -211,8 +209,9 @@ void main() {
       await tester.pumpAndSettle();
     }
 
-    testWidgets('with no payment option configured the order still goes',
-        (tester) async {
+    testWidgets('with no payment option configured the order still goes', (
+      tester,
+    ) async {
       await pumpCartWithFinance(
         tester,
         const [],
@@ -233,8 +232,9 @@ void main() {
       expect(placeTaps, 1);
     });
 
-    testWidgets('a lone payment option is taken without a click',
-        (tester) async {
+    testWidgets('a lone payment option is taken without a click', (
+      tester,
+    ) async {
       await pumpCartWithFinance(
         tester,
         [finance('f1', 'Supplier credit')],
@@ -249,8 +249,7 @@ void main() {
       expect(placeTaps, 1);
     });
 
-    testWidgets('several options do block until one is picked',
-        (tester) async {
+    testWidgets('several options do block until one is picked', (tester) async {
       await pumpCartWithFinance(
         tester,
         [finance('f1', 'Supplier credit'), finance('f2', 'MoMo')],
@@ -260,7 +259,11 @@ void main() {
       expect(find.text('Choose how you are paying'), findsOneWidget);
       await tester.tap(find.text('Choose how you are paying'));
       await tester.pump();
-      expect(placeTaps, 0, reason: 'the button is disabled, not silently inert');
+      expect(
+        placeTaps,
+        0,
+        reason: 'the button is disabled, not silently inert',
+      );
 
       await tester.tap(find.text('MoMo'));
       await tester.pumpAndSettle();
@@ -296,6 +299,8 @@ void main() {
             ),
           ],
           child: MaterialApp(
+            localizationsDelegates: FlipperLocalizationDelegates.delegates,
+            supportedLocales: FlipperLocalizationDelegates.supportedLocales,
             home: Scaffold(
               body: OrderingCartPanel(
                 supplierName: 'Quincaillerie Rubavu',
@@ -323,12 +328,10 @@ void main() {
       expect(find.text('Clear all'), findsNothing);
     });
 
-    testWidgets('lines total up and the submit names the amount',
-        (tester) async {
-      await pumpCart(
-        tester,
-        lines: [_line('1', 'EQUERRE NTO', 3, 11000)],
-      );
+    testWidgets('lines total up and the submit names the amount', (
+      tester,
+    ) async {
+      await pumpCart(tester, lines: [_line('1', 'EQUERRE NTO', 3, 11000)]);
 
       expect(tester.takeException(), isNull);
       expect(find.text('1 line · 3 units'), findsOneWidget);
@@ -337,18 +340,13 @@ void main() {
       expect(find.text('VAT 18%'), findsOneWidget);
       expect(find.text('Total'), findsOneWidget);
       expect(find.text('Supplier credit'), findsOneWidget);
-      expect(
-        find.textContaining('Place order · RWF 38,940'),
-        findsOneWidget,
-      );
+      expect(find.textContaining('Place order · RWF 38,940'), findsOneWidget);
     });
 
-    testWidgets('a line fits the narrowest panel with both warnings',
-        (tester) async {
-      _useDesktopSurface(
-        tester,
-        const Size(OrderingTokens.cartMinWidth, 760),
-      );
+    testWidgets('a line fits the narrowest panel with both warnings', (
+      tester,
+    ) async {
+      _useDesktopSurface(tester, const Size(OrderingTokens.cartMinWidth, 760));
 
       await tester.pumpWidget(
         ProviderScope(
@@ -373,6 +371,8 @@ void main() {
             ),
           ],
           child: MaterialApp(
+            localizationsDelegates: FlipperLocalizationDelegates.delegates,
+            supportedLocales: FlipperLocalizationDelegates.supportedLocales,
             home: Scaffold(
               body: OrderingCartPanel(
                 supplierName: 'Quincaillerie Rubavu',
@@ -392,8 +392,7 @@ void main() {
       expect(find.textContaining('vs last'), findsOneWidget);
     });
 
-    testWidgets('the confirmation replaces the cart once sent',
-        (tester) async {
+    testWidgets('the confirmation replaces the cart once sent', (tester) async {
       _useDesktopSurface(tester, const Size(430, 760));
 
       await tester.pumpWidget(
@@ -414,6 +413,8 @@ void main() {
             ),
           ],
           child: MaterialApp(
+            localizationsDelegates: FlipperLocalizationDelegates.delegates,
+            supportedLocales: FlipperLocalizationDelegates.supportedLocales,
             home: Scaffold(
               body: OrderingCartPanel(
                 supplierName: 'Quincaillerie Rubavu',
@@ -429,10 +430,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(tester.takeException(), isNull);
-      expect(
-        find.text('Order sent to Quincaillerie Rubavu'),
-        findsOneWidget,
-      );
+      expect(find.text('Order sent to Quincaillerie Rubavu'), findsOneWidget);
       expect(
         find.textContaining('2 lines · 7 units · RWF 129,800'),
         findsOneWidget,
@@ -444,8 +442,7 @@ void main() {
   });
 
   group('catalogue rail', () {
-    testWidgets('lists categories with counts and the filters',
-        (tester) async {
+    testWidgets('lists categories with counts and the filters', (tester) async {
       _useDesktopSurface(tester, const Size(OrderingTokens.railWidth, 700));
 
       await tester.pumpWidget(
@@ -470,6 +467,8 @@ void main() {
             ),
           ],
           child: const MaterialApp(
+            localizationsDelegates: FlipperLocalizationDelegates.delegates,
+            supportedLocales: FlipperLocalizationDelegates.supportedLocales,
             home: Scaffold(body: OrderingCatalogRail(supplierId: 'b2')),
           ),
         ),
@@ -492,12 +491,10 @@ void main() {
       expect(find.text('Show retail margin'), findsOneWidget);
     });
 
-    testWidgets('withholds the margin toggle when the pane cannot show it',
-        (tester) async {
-      _useDesktopSurface(
-        tester,
-        const Size(OrderingTokens.railWidth, 700),
-      );
+    testWidgets('withholds the margin toggle when the pane cannot show it', (
+      tester,
+    ) async {
+      _useDesktopSurface(tester, const Size(OrderingTokens.railWidth, 700));
 
       await tester.pumpWidget(
         ProviderScope(
@@ -505,11 +502,13 @@ void main() {
             productFromSupplierWrapper.overrideWith(
               (ref) async => [_variant('1', 'EQUERRE NTO', 'Tools', 600)],
             ),
-            orderingLastOrderProvider('b2').overrideWith(
-              (ref) => Stream.value(null),
-            ),
+            orderingLastOrderProvider(
+              'b2',
+            ).overrideWith((ref) => Stream.value(null)),
           ],
           child: const MaterialApp(
+            localizationsDelegates: FlipperLocalizationDelegates.delegates,
+            supportedLocales: FlipperLocalizationDelegates.supportedLocales,
             home: Scaffold(
               body: OrderingCatalogRail(
                 supplierId: 'b2',
@@ -552,6 +551,8 @@ void main() {
             ),
           ],
           child: MaterialApp(
+            localizationsDelegates: FlipperLocalizationDelegates.delegates,
+            supportedLocales: FlipperLocalizationDelegates.supportedLocales,
             home: Scaffold(
               body: OrderingSupplierPicker(
                 onPicked: (_) {},
@@ -573,8 +574,9 @@ void main() {
           description: line,
         );
 
-    testWidgets('ranks ordered-from suppliers above the rest of the roster',
-        (tester) async {
+    testWidgets('ranks ordered-from suppliers above the rest of the roster', (
+      tester,
+    ) async {
       await pumpPicker(
         tester,
         frequent: [
@@ -609,12 +611,10 @@ void main() {
       expect(find.text('duhire'), findsOneWidget);
     });
 
-    testWidgets('with no order history, the roster carries the whole list',
-        (tester) async {
-      await pumpPicker(
-        tester,
-        others: [branch('b3', 'Muhima Hardware')],
-      );
+    testWidgets('with no order history, the roster carries the whole list', (
+      tester,
+    ) async {
+      await pumpPicker(tester, others: [branch('b3', 'Muhima Hardware')]);
 
       expect(tester.takeException(), isNull);
       expect(find.text('SUPPLIERS YOU ORDER FROM MOST'), findsNothing);
@@ -622,8 +622,9 @@ void main() {
       expect(find.text('Muhima Hardware'), findsOneWidget);
     });
 
-    testWidgets('a long roster builds lazily instead of all at once',
-        (tester) async {
+    testWidgets('a long roster builds lazily instead of all at once', (
+      tester,
+    ) async {
       final roster = [
         for (var i = 0; i < 300; i++)
           branch('b$i', 'Branch ${i.toString().padLeft(3, '0')}'),
@@ -710,8 +711,9 @@ void main() {
       expect(addTaps, 1);
     });
 
-    testWidgets('a long supplier row still fits a narrow window',
-        (tester) async {
+    testWidgets('a long supplier row still fits a narrow window', (
+      tester,
+    ) async {
       await pumpPicker(
         tester,
         size: const Size(620, 700),
@@ -749,6 +751,8 @@ void main() {
             ),
           ],
           child: MaterialApp(
+            localizationsDelegates: FlipperLocalizationDelegates.delegates,
+            supportedLocales: FlipperLocalizationDelegates.supportedLocales,
             home: Scaffold(
               body: OrderingTopBar(
                 transaction: ITransaction(
@@ -779,8 +783,9 @@ void main() {
       await tester.pumpAndSettle();
     }
 
-    testWidgets('names the order and the branch it is placed from',
-        (tester) async {
+    testWidgets('names the order and the branch it is placed from', (
+      tester,
+    ) async {
       await pumpTopBar(tester);
 
       expect(tester.takeException(), isNull);
@@ -791,8 +796,9 @@ void main() {
       expect(find.text('add top match'), findsOneWidget);
     });
 
-    testWidgets('a long supplier chip elides instead of overflowing',
-        (tester) async {
+    testWidgets('a long supplier chip elides instead of overflowing', (
+      tester,
+    ) async {
       await pumpTopBar(
         tester,
         size: const Size(760, 200),

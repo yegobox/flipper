@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/PreviewSaleButton.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/providers/pay_button_provider.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flutter/material.dart';
@@ -20,6 +21,8 @@ void main() {
     return UncontrolledProviderScope(
       container: container,
       child: MaterialApp(
+        localizationsDelegates: FlipperLocalizationDelegates.delegates,
+        supportedLocales: FlipperLocalizationDelegates.supportedLocales,
         home: Scaffold(
           body: PreviewSaleButton(
             mode: SellingMode.forSelling,
@@ -39,8 +42,9 @@ void main() {
   setUp(() => container = ProviderContainer());
   tearDown(() => container.dispose());
 
-  testWidgets('releases the spinner when the sale is not waiting on payment',
-      (tester) async {
+  testWidgets('releases the spinner when the sale is not waiting on payment', (
+    tester,
+  ) async {
     var calls = 0;
     await tester.pumpWidget(
       buildButton(
@@ -61,8 +65,9 @@ void main() {
     expect(container.read(payButtonStateProvider)[ButtonType.pay], false);
   });
 
-  testWidgets('keeps the spinner while an out-of-band payment is pending',
-      (tester) async {
+  testWidgets('keeps the spinner while an out-of-band payment is pending', (
+    tester,
+  ) async {
     await tester.pumpWidget(
       buildButton(
         container: container,
@@ -82,8 +87,9 @@ void main() {
     expect(container.read(payButtonStateProvider)[ButtonType.pay], true);
   });
 
-  testWidgets('a pending payment that times out releases the spinner',
-      (tester) async {
+  testWidgets('a pending payment that times out releases the spinner', (
+    tester,
+  ) async {
     // The shared error snackbar needs room to lay out; the default 800x600 test
     // surface squeezes its Row and reports an overflow that has nothing to do
     // with the behaviour under test.
@@ -134,8 +140,9 @@ void main() {
   });
 }
 
-typedef CompleteTransactionStub = Future<bool> Function(
-  bool immediateCompletion, [
-  Function? onPaymentConfirmed,
-  Function(String)? onPaymentFailed,
-]);
+typedef CompleteTransactionStub =
+    Future<bool> Function(
+      bool immediateCompletion, [
+      Function? onPaymentConfirmed,
+      Function(String)? onPaymentFailed,
+    ]);

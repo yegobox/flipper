@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/helpers/ticket_review_actions.dart';
@@ -59,7 +60,7 @@ class _ReviewQueueScreenState extends ConsumerState<ReviewQueueScreen> {
       if (mounted) {
         showCustomSnackBarUtil(
           context,
-          'Failed to mark ticket as reviewed',
+          context.flipperL10n.ticketMarkReviewedFailed,
           backgroundColor: Colors.red,
         );
       }
@@ -88,7 +89,7 @@ class _ReviewQueueScreenState extends ConsumerState<ReviewQueueScreen> {
     if (approved == true && mounted) {
       showCustomSnackBarUtil(
         context,
-        'Ticket reviewed',
+        context.flipperL10n.ticketReviewedSuccess,
         backgroundColor: Colors.green,
       );
     }
@@ -99,7 +100,7 @@ class _ReviewQueueScreenState extends ConsumerState<ReviewQueueScreen> {
     if (!mounted) return;
     showCustomSnackBarUtil(
       context,
-      'Ticket reviewed',
+      context.flipperL10n.ticketReviewedSuccess,
       backgroundColor: Colors.green,
     );
   }
@@ -143,7 +144,7 @@ class _ReviewQueueScreenState extends ConsumerState<ReviewQueueScreen> {
           onPressed: () => locator<RouterService>().back(),
         ),
         title: Text(
-          'Review Queue',
+          context.flipperL10n.ticketReviewQueue,
           style: GoogleFonts.outfit(
             fontWeight: FontWeight.w700,
             fontSize: 18,
@@ -155,7 +156,7 @@ class _ReviewQueueScreenState extends ConsumerState<ReviewQueueScreen> {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, st) => Center(
           child: Text(
-            'Could not load the review queue',
+            context.flipperL10n.ticketReviewQueueLoadFailed,
             style: GoogleFonts.outfit(color: Colors.grey[700]),
           ),
         ),
@@ -163,7 +164,7 @@ class _ReviewQueueScreenState extends ConsumerState<ReviewQueueScreen> {
           if (tickets.isEmpty) {
             return Center(
               child: Text(
-                'Nothing waiting for review',
+                context.flipperL10n.ticketReviewQueueEmpty,
                 style: GoogleFonts.outfit(
                   fontSize: 14,
                   color: Colors.grey[600],
@@ -190,16 +191,11 @@ class _ReviewQueueScreenState extends ConsumerState<ReviewQueueScreen> {
                   paidAmount: paid,
                   showResume: false,
                   showMarkReviewed: true,
-                  markReviewedLabel: 'Review details',
+                  markReviewedLabel: context.flipperL10n.ticketReviewDetails,
                   canManage: false,
-                  onTap: () => _openReviewDetails(
-                    ticket,
-                    canReview: canReview,
-                  ),
-                  onMarkReviewed: () => _openReviewDetails(
-                    ticket,
-                    canReview: canReview,
-                  ),
+                  onTap: () => _openReviewDetails(ticket, canReview: canReview),
+                  onMarkReviewed: () =>
+                      _openReviewDetails(ticket, canReview: canReview),
                   onDelete: () => showCustomSnackBarUtil(
                     context,
                     ticketDeleteBlockedByReviewMessage(ticket.status),

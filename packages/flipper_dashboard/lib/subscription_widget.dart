@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 
 import 'package:stacked/stacked.dart';
 import 'package:flipper_ui/flipper_ui.dart';
@@ -35,26 +36,29 @@ class _SubscriptionWidgetState extends State<SubscriptionWidget> {
                   validatorFunc: (name) {
                     // validate if is a gmail email regex
                     if (name.isEmpty) {
-                      return 'Please enter your voucher';
+                      return context.flipperL10n.subscriptionEnterVoucherError;
                     }
                   },
                   controller: _phoneNumber,
-                  placeholder: 'Enter Voucher',
+                  placeholder: context.flipperL10n.subscriptionEnterVoucher,
                 ),
               ),
-              const Padding(
-                padding: EdgeInsets.all(4.0),
+              Padding(
+                padding: const EdgeInsets.all(4.0),
                 child: Text(
-                  'Activate flipper pro!',
+                  context.flipperL10n.subscriptionActivatePro,
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.grey),
+                  style: const TextStyle(color: Colors.grey),
                 ),
               ),
               Stack(
                 children: [
                   Padding(
                     padding: const EdgeInsets.only(
-                        left: 8.0, right: 8.0, bottom: 10),
+                      left: 8.0,
+                      right: 8.0,
+                      bottom: 10,
+                    ),
                     child: SizedBox(
                       width: double.infinity,
                       height: 52,
@@ -67,15 +71,15 @@ class _SubscriptionWidgetState extends State<SubscriptionWidget> {
                             onTap: () {
                               if (_sub.currentState!.validate()) {}
                             },
-                            title: 'Upgrade to Pro',
+                            title: context.flipperL10n.subscriptionUpgradeToPro,
                             busy: model.isProcessing,
                           ),
                         ),
                       ),
                     ),
-                  )
+                  ),
                 ],
-              )
+              ),
             ],
           ),
         );

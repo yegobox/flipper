@@ -8,6 +8,7 @@ import 'package:flipper_dashboard/features/bar_mode/providers/bar_mode_providers
 import 'package:flipper_dashboard/features/bar_mode/theme/bar_tokens.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_pos_catalog_pane.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_shared_widgets.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/models/bar_table.dart';
 import 'package:flipper_models/sync/utils/bar_mode_utils.dart';
 import 'package:flipper_services/proxy.dart';
@@ -38,8 +39,8 @@ class BarPosDesktopScreen extends HookConsumerWidget {
     final total = barTabTotal(lines);
     final isManager = barTenantIsManager(cashier);
     final canChargeRoom = BarRoomCharge.isAvailable(ref);
-    final myLines =
-        lines.where((l) => l.loggedByTenantId == cashier.id).length;
+    final myLines = lines.where((l) => l.loggedByTenantId == cashier.id).length;
+    final l10n = context.flipperL10n;
 
     return Container(
       color: BarTokens.posBg,
@@ -49,7 +50,7 @@ class BarPosDesktopScreen extends HookConsumerWidget {
             flex: 3,
             child: Column(
               children: [
-                _topBar(ref, cashier, staff),
+                _topBar(l10n, ref, cashier, staff),
                 Expanded(
                   child: BarPosCatalogPane(
                     branchId: branchId,
@@ -74,7 +75,7 @@ class BarPosDesktopScreen extends HookConsumerWidget {
             ),
             child: Column(
               children: [
-                _cartHead(ref),
+                _cartHead(l10n, ref),
                 BarTableHead(
                   tableBadge: table.name,
                   zoneName: table.zoneName,
@@ -84,7 +85,17 @@ class BarPosDesktopScreen extends HookConsumerWidget {
                       ? null
                       : barOpenerName(tab, lines),
                 ),
-                Expanded(child: _linesList(lines, cashier, isManager, ref, tab, table)),
+                Expanded(
+                  child: _linesList(
+                    l10n,
+                    lines,
+                    cashier,
+                    isManager,
+                    ref,
+                    tab,
+                    table,
+                  ),
+                ),
                 _footer(
                   context: context,
                   ref: ref,
@@ -107,7 +118,12 @@ class BarPosDesktopScreen extends HookConsumerWidget {
     );
   }
 
-  Widget _topBar(WidgetRef ref, dynamic cashier, List staff) {
+  Widget _topBar(
+    FlipperAppLocalizations l10n,
+    WidgetRef ref,
+    dynamic cashier,
+    List staff,
+  ) {
     return Container(
       height: 64,
       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -121,7 +137,7 @@ class BarPosDesktopScreen extends HookConsumerWidget {
             onPressed: () =>
                 ref.read(barModeProvider.notifier).setScreen(BarScreen.tables),
             icon: const Icon(Icons.grid_view, size: 18),
-            label: const Text('Tables'),
+            label: Text(l10n.barTables),
             style: TextButton.styleFrom(foregroundColor: BarTokens.blue),
           ),
           const Spacer(),
@@ -134,7 +150,7 @@ class BarPosDesktopScreen extends HookConsumerWidget {
     );
   }
 
-  Widget _cartHead(WidgetRef ref) {
+  Widget _cartHead(FlipperAppLocalizations l10n, WidgetRef ref) {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
       decoration: const BoxDecoration(
@@ -146,8 +162,9 @@ class BarPosDesktopScreen extends HookConsumerWidget {
             color: BarTokens.surface2,
             borderRadius: BorderRadius.circular(10),
             child: InkWell(
-              onTap: () =>
-                  ref.read(barModeProvider.notifier).setScreen(BarScreen.tables),
+              onTap: () => ref
+                  .read(barModeProvider.notifier)
+                  .setScreen(BarScreen.tables),
               borderRadius: BorderRadius.circular(10),
               child: Container(
                 height: 40,
@@ -161,7 +178,7 @@ class BarPosDesktopScreen extends HookConsumerWidget {
                     const Icon(Icons.chevron_left, size: 18),
                     const SizedBox(width: 4),
                     Text(
-                      'Tables',
+                      l10n.barTables,
                       style: GoogleFonts.outfit(
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
@@ -177,9 +194,9 @@ class BarPosDesktopScreen extends HookConsumerWidget {
             color: BarTokens.surface,
             borderRadius: BorderRadius.circular(10),
             child: InkWell(
-              onTap: () => ref.read(barModeProvider.notifier).saveToTab(
-                    autoLogout: BarModeSettings.autoLogout,
-                  ),
+              onTap: () => ref
+                  .read(barModeProvider.notifier)
+                  .saveToTab(autoLogout: BarModeSettings.autoLogout),
               borderRadius: BorderRadius.circular(10),
               child: Container(
                 height: 40,
@@ -190,10 +207,14 @@ class BarPosDesktopScreen extends HookConsumerWidget {
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.archive_outlined, size: 15, color: BarTokens.ink2),
+                    Icon(
+                      Icons.archive_outlined,
+                      size: 15,
+                      color: BarTokens.ink2,
+                    ),
                     const SizedBox(width: 8),
                     Text(
-                      'Save to tab',
+                      l10n.barSaveToTab,
                       style: GoogleFonts.outfit(
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
@@ -210,6 +231,7 @@ class BarPosDesktopScreen extends HookConsumerWidget {
   }
 
   Widget _linesList(
+    FlipperAppLocalizations l10n,
     List<TransactionItem> lines,
     dynamic cashier,
     bool isManager,
@@ -229,11 +251,15 @@ class BarPosDesktopScreen extends HookConsumerWidget {
                 color: BarTokens.surface2,
                 borderRadius: BorderRadius.circular(18),
               ),
-              child: Icon(Icons.shopping_cart_outlined, size: 34, color: BarTokens.ink3),
+              child: Icon(
+                Icons.shopping_cart_outlined,
+                size: 34,
+                color: BarTokens.ink3,
+              ),
             ),
             const SizedBox(height: 14),
             Text(
-              'Fresh tab for ${table.name}',
+              l10n.barFreshTabFor(table.name),
               style: GoogleFonts.outfit(
                 fontWeight: FontWeight.w800,
                 fontSize: 16,
@@ -241,7 +267,7 @@ class BarPosDesktopScreen extends HookConsumerWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              'Tap a product to add the first round',
+              l10n.barTapProductFirstRound,
               style: GoogleFonts.outfit(color: BarTokens.ink3, fontSize: 13.5),
             ),
           ],
@@ -255,8 +281,7 @@ class BarPosDesktopScreen extends HookConsumerWidget {
       separatorBuilder: (_, __) => const SizedBox(height: 8),
       itemBuilder: (context, i) {
         final line = lines[i];
-        final editable =
-            isManager || line.loggedByTenantId == cashier.id;
+        final editable = isManager || line.loggedByTenantId == cashier.id;
         return _BarCartLine(
           line: line,
           editable: editable,
@@ -272,15 +297,13 @@ class BarPosDesktopScreen extends HookConsumerWidget {
     ITransaction tab,
     TransactionItem line,
     int delta,
-  ) =>
-      BarPosActions.changeQty(ref: ref, tab: tab, line: line, delta: delta);
+  ) => BarPosActions.changeQty(ref: ref, tab: tab, line: line, delta: delta);
 
   Future<void> _deleteLine(
     WidgetRef ref,
     ITransaction tab,
     TransactionItem line,
-  ) =>
-      BarPosActions.deleteLine(ref: ref, tab: tab, line: line);
+  ) => BarPosActions.deleteLine(ref: ref, tab: tab, line: line);
 
   Widget _footer({
     required BuildContext context,
@@ -296,9 +319,10 @@ class BarPosDesktopScreen extends HookConsumerWidget {
     required bool canChargeRoom,
     required bool empty,
   }) {
+    final l10n = context.flipperL10n;
     final footNote = serverCount > 1
-        ? 'Logged by $serverCount staff · you added $myLines'
-        : "You've logged $myLines line${myLines == 1 ? '' : 's'} on this tab";
+        ? l10n.barLoggedByStaff('$serverCount', '$myLines')
+        : l10n.barYouLoggedLines(myLines);
 
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
@@ -315,8 +339,8 @@ class BarPosDesktopScreen extends HookConsumerWidget {
               Expanded(
                 child: Text(
                   lineCount > 0
-                      ? 'Tab total · $lineCount item${lineCount == 1 ? '' : 's'}'
-                      : 'Tab total',
+                      ? l10n.barTabTotalItems(lineCount)
+                      : l10n.barTabTotal,
                   style: GoogleFonts.outfit(
                     fontSize: 14,
                     fontWeight: FontWeight.w800,
@@ -356,7 +380,10 @@ class BarPosDesktopScreen extends HookConsumerWidget {
               Expanded(
                 child: Text(
                   footNote,
-                  style: GoogleFonts.outfit(fontSize: 12, color: BarTokens.ink3),
+                  style: GoogleFonts.outfit(
+                    fontSize: 12,
+                    color: BarTokens.ink3,
+                  ),
                 ),
               ),
             ],
@@ -375,7 +402,10 @@ class BarPosDesktopScreen extends HookConsumerWidget {
                       height: 46,
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(BarTokens.radiusMd),
-                        border: Border.all(color: BarTokens.lineStrong, width: 1.5),
+                        border: Border.all(
+                          color: BarTokens.lineStrong,
+                          width: 1.5,
+                        ),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -383,7 +413,7 @@ class BarPosDesktopScreen extends HookConsumerWidget {
                           const Icon(Icons.logout, size: 18),
                           const SizedBox(width: 8),
                           Text(
-                            'Logout',
+                            l10n.logOut,
                             style: GoogleFonts.outfit(
                               fontWeight: FontWeight.w700,
                               fontSize: 14.5,
@@ -401,9 +431,9 @@ class BarPosDesktopScreen extends HookConsumerWidget {
                 child: Material(
                   color: Colors.transparent,
                   child: InkWell(
-                    onTap: () => ref.read(barModeProvider.notifier).saveToTab(
-                          autoLogout: BarModeSettings.autoLogout,
-                        ),
+                    onTap: () => ref
+                        .read(barModeProvider.notifier)
+                        .saveToTab(autoLogout: BarModeSettings.autoLogout),
                     borderRadius: BorderRadius.circular(BarTokens.radiusMd),
                     child: Ink(
                       height: 46,
@@ -416,7 +446,7 @@ class BarPosDesktopScreen extends HookConsumerWidget {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            'Save to tab',
+                            l10n.barSaveToTab,
                             style: GoogleFonts.outfit(
                               color: Colors.white,
                               fontWeight: FontWeight.w700,
@@ -475,8 +505,8 @@ class BarPosDesktopScreen extends HookConsumerWidget {
                     const SizedBox(width: 9),
                     Text(
                       isManager || !BarModeSettings.managerSettle
-                          ? 'Settle bill & close table'
-                          : 'Settle bill · manager PIN',
+                          ? l10n.barSettleAndClose
+                          : l10n.barSettleManagerPin,
                       style: GoogleFonts.outfit(
                         fontSize: 14.5,
                         fontWeight: FontWeight.w700,
@@ -527,7 +557,7 @@ class BarPosDesktopScreen extends HookConsumerWidget {
                       ),
                       const SizedBox(width: 9),
                       Text(
-                        'Charge to room',
+                        l10n.barChargeToRoom,
                         style: GoogleFonts.outfit(
                           fontSize: 14.5,
                           fontWeight: FontWeight.w700,
@@ -628,13 +658,16 @@ class _BarCartLineState extends ConsumerState<_BarCartLine> {
                             if (serverName != null)
                               BarLineServerBadge(
                                 initials: serverInitials,
-                                firstName: barFirstName(serverName) ?? serverName,
+                                firstName:
+                                    barFirstName(serverName) ?? serverName,
                                 color: serverColor,
                               ),
                           ],
                         ),
                         Text(
-                          'RWF ${NumberFormat('#,###').format(line.price)} each',
+                          context.flipperL10n.barPriceEach(
+                            'RWF ${NumberFormat('#,###').format(line.price)}',
+                          ),
                           style: GoogleFonts.jetBrainsMono(
                             fontSize: 12,
                             color: BarTokens.ink3,
@@ -676,12 +709,19 @@ class _BarCartLineState extends ConsumerState<_BarCartLine> {
                       icon: const Icon(Icons.delete_outline, size: 17),
                       color: BarTokens.ink3,
                       padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                      constraints: const BoxConstraints(
+                        minWidth: 32,
+                        minHeight: 32,
+                      ),
                     )
                   else
                     const Padding(
                       padding: EdgeInsets.all(4),
-                      child: Icon(Icons.verified_user_outlined, size: 16, color: BarTokens.ink4),
+                      child: Icon(
+                        Icons.verified_user_outlined,
+                        size: 16,
+                        color: BarTokens.ink4,
+                      ),
                     ),
                 ],
               ),
@@ -700,7 +740,9 @@ class _BarCartLineState extends ConsumerState<_BarCartLine> {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        _open ? 'Hide details' : 'Edit price & quantity',
+                        _open
+                            ? context.flipperL10n.barHideDetails
+                            : context.flipperL10n.barEditPriceQty,
                         style: GoogleFonts.outfit(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
@@ -751,11 +793,7 @@ class _BarCartLineState extends ConsumerState<_BarCartLine> {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(8),
-      child: SizedBox(
-        width: 32,
-        height: 32,
-        child: Icon(icon, size: 15),
-      ),
+      child: SizedBox(width: 32, height: 32, child: Icon(icon, size: 15)),
     );
   }
 }

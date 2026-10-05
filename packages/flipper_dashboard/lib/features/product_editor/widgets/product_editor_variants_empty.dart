@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/features/product_editor/product_editor_tokens.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -48,8 +49,8 @@ class ProductEditorVariantsEmpty extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             isEditMode
-                ? 'This product has no variants'
-                : 'No variants yet',
+                ? context.flipperL10n.productEditorNoVariantsExisting
+                : context.flipperL10n.productEditorNoVariantsYet,
             style: GoogleFonts.outfit(
               fontSize: 14,
               fontWeight: FontWeight.w700,
@@ -58,7 +59,7 @@ class ProductEditorVariantsEmpty extends StatelessWidget {
           ),
           const SizedBox(height: 3),
           Text(
-            'Scan a barcode or type a name above to add one',
+            context.flipperL10n.productEditorNoVariantsHint,
             textAlign: TextAlign.center,
             style: GoogleFonts.outfit(
               fontSize: 12.5,

@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 
@@ -26,9 +27,12 @@ void showPaymentSettingsModal(BuildContext context) async {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  'Payment Settings',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                Text(
+                  context.flipperL10n.paymentSettingsTitle,
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 IconButton(
                   icon: const Icon(Icons.close),
@@ -54,7 +58,11 @@ void showPaymentSettingsModal(BuildContext context) async {
                     },
                   ),
                   title: const Text('MTN Mobile Money'),
-                  subtitle: Text(isEnabled ? 'Enabled' : 'Disabled'),
+                  subtitle: Text(
+                    isEnabled
+                        ? context.flipperL10n.paymentSettingsEnabled
+                        : context.flipperL10n.paymentSettingsDisabled,
+                  ),
                   trailing: Switch(
                     value: isEnabled,
                     onChanged: (bool value) async {

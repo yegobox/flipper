@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
@@ -30,46 +31,52 @@ mixin Headers<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   }
 
   List<GridColumn> zReportTableHeader(EdgeInsets headerPadding) {
+    final l10n = context.flipperL10n;
+    String up(String s) => s.toUpperCase();
     return <GridColumn>[
       GridColumn(
         columnName: 'Name',
-        label: _zReportHeaderLabel(headerPadding, 'RECEIPT NO.'),
+        label: _zReportHeaderLabel(headerPadding, up(l10n.reportReceiptNo)),
       ),
       GridColumn(
         columnName: 'Cashier',
-        label: _zReportHeaderLabel(headerPadding, 'CASHIER', active: true),
+        label: _zReportHeaderLabel(
+          headerPadding,
+          up(l10n.reportCashier),
+          active: true,
+        ),
       ),
       GridColumn(
         columnName: 'Customer',
-        label: _zReportHeaderLabel(headerPadding, 'CUSTOMER'),
+        label: _zReportHeaderLabel(headerPadding, up(l10n.customer)),
       ),
       GridColumn(
         columnName: 'Type',
-        label: _zReportHeaderLabel(headerPadding, 'TYPE'),
+        label: _zReportHeaderLabel(headerPadding, up(l10n.reportType)),
       ),
       GridColumn(
         columnName: 'Status',
-        label: _zReportHeaderLabel(headerPadding, 'STATUS'),
+        label: _zReportHeaderLabel(headerPadding, up(l10n.reportStatus)),
       ),
       GridColumn(
         columnName: 'SaleTotal',
-        label: _zReportHeaderLabel(headerPadding, 'SALE TOTAL'),
+        label: _zReportHeaderLabel(headerPadding, up(l10n.reportSaleTotal)),
       ),
       GridColumn(
         columnName: 'ByHand',
-        label: _zReportHeaderLabel(headerPadding, 'BY HAND'),
+        label: _zReportHeaderLabel(headerPadding, up(l10n.reportByHand)),
       ),
       GridColumn(
         columnName: 'Credit',
-        label: _zReportHeaderLabel(headerPadding, 'CREDIT'),
+        label: _zReportHeaderLabel(headerPadding, up(l10n.credit)),
       ),
       GridColumn(
         columnName: 'Tax',
-        label: _zReportHeaderLabel(headerPadding, 'TAX'),
+        label: _zReportHeaderLabel(headerPadding, up(l10n.manualPurchaseTax)),
       ),
       GridColumn(
         columnName: 'BalanceDue',
-        label: _zReportHeaderLabel(headerPadding, 'BALANCE DUE'),
+        label: _zReportHeaderLabel(headerPadding, up(l10n.reportBalanceDue)),
       ),
       GridColumn(
         columnName: 'Actions',
@@ -93,7 +100,10 @@ mixin Headers<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           ),
           padding: headerPadding,
           alignment: Alignment.center,
-          child: const Text('Name', overflow: TextOverflow.ellipsis),
+          child: Text(
+            context.flipperL10n.name,
+            overflow: TextOverflow.ellipsis,
+          ),
         ),
       ),
       GridColumn(
@@ -105,7 +115,10 @@ mixin Headers<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           ),
           padding: headerPadding,
           alignment: Alignment.center,
-          child: const Text('Current Stock', overflow: TextOverflow.ellipsis),
+          child: Text(
+            context.flipperL10n.currentStock,
+            overflow: TextOverflow.ellipsis,
+          ),
         ),
       ),
       GridColumn(
@@ -117,7 +130,10 @@ mixin Headers<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           ),
           padding: headerPadding,
           alignment: Alignment.center,
-          child: const Text('Price', overflow: TextOverflow.ellipsis),
+          child: Text(
+            context.flipperL10n.retailPrice,
+            overflow: TextOverflow.ellipsis,
+          ),
         ),
       ),
     ];
@@ -134,7 +150,10 @@ mixin Headers<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           ),
           padding: headerPadding,
           alignment: Alignment.center,
-          child: const Text('Item Code', overflow: TextOverflow.ellipsis),
+          child: Text(
+            context.flipperL10n.reportItemCode,
+            overflow: TextOverflow.ellipsis,
+          ),
         ),
       ),
       GridColumn(
@@ -146,7 +165,10 @@ mixin Headers<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           ),
           padding: headerPadding,
           alignment: Alignment.center,
-          child: const Text('Name', overflow: TextOverflow.ellipsis),
+          child: Text(
+            context.flipperL10n.name,
+            overflow: TextOverflow.ellipsis,
+          ),
         ),
       ),
       GridColumn(
@@ -158,7 +180,10 @@ mixin Headers<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           ),
           padding: headerPadding,
           alignment: Alignment.center,
-          child: const Text('Barcode', overflow: TextOverflow.ellipsis),
+          child: Text(
+            context.flipperL10n.reportBarcode,
+            overflow: TextOverflow.ellipsis,
+          ),
         ),
       ),
       GridColumn(
@@ -170,7 +195,10 @@ mixin Headers<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           ),
           padding: headerPadding,
           alignment: Alignment.center,
-          child: const Text('Price', overflow: TextOverflow.ellipsis),
+          child: Text(
+            context.flipperL10n.retailPrice,
+            overflow: TextOverflow.ellipsis,
+          ),
         ),
       ),
       GridColumn(
@@ -182,7 +210,10 @@ mixin Headers<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           ),
           padding: headerPadding,
           alignment: Alignment.center,
-          child: const Text('Tax Rate', overflow: TextOverflow.ellipsis),
+          child: Text(
+            context.flipperL10n.reportTaxRate,
+            overflow: TextOverflow.ellipsis,
+          ),
         ),
       ),
       GridColumn(
@@ -194,7 +225,10 @@ mixin Headers<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           ),
           padding: headerPadding,
           alignment: Alignment.center,
-          child: const Text('Qty', overflow: TextOverflow.ellipsis),
+          child: Text(
+            context.flipperL10n.manualPurchaseQty,
+            overflow: TextOverflow.ellipsis,
+          ),
         ),
       ),
       GridColumn(
@@ -206,7 +240,10 @@ mixin Headers<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           ),
           padding: headerPadding,
           alignment: Alignment.center,
-          child: const Text('profit Made', overflow: TextOverflow.ellipsis),
+          child: Text(
+            context.flipperL10n.reportProfitMade,
+            overflow: TextOverflow.ellipsis,
+          ),
         ),
       ),
       GridColumn(
@@ -218,7 +255,10 @@ mixin Headers<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           ),
           padding: headerPadding,
           alignment: Alignment.center,
-          child: const Text('Supply amount', overflow: TextOverflow.ellipsis),
+          child: Text(
+            context.flipperL10n.reportSupplyAmount,
+            overflow: TextOverflow.ellipsis,
+          ),
         ),
       ),
       GridColumn(
@@ -230,7 +270,10 @@ mixin Headers<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           ),
           padding: headerPadding,
           alignment: Alignment.center,
-          child: const Text('Current stock', overflow: TextOverflow.ellipsis),
+          child: Text(
+            context.flipperL10n.currentStock,
+            overflow: TextOverflow.ellipsis,
+          ),
         ),
       ),
       GridColumn(
@@ -242,7 +285,10 @@ mixin Headers<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           ),
           padding: headerPadding,
           alignment: Alignment.center,
-          child: const Text('TaxPayable', overflow: TextOverflow.ellipsis),
+          child: Text(
+            context.flipperL10n.reportTaxPayable,
+            overflow: TextOverflow.ellipsis,
+          ),
         ),
       ),
       GridColumn(
@@ -254,7 +300,10 @@ mixin Headers<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           ),
           padding: headerPadding,
           alignment: Alignment.center,
-          child: const Text('Net Profit', overflow: TextOverflow.ellipsis),
+          child: Text(
+            context.flipperL10n.reportNetProfit,
+            overflow: TextOverflow.ellipsis,
+          ),
         ),
       ),
     ];

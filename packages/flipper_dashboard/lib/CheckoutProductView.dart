@@ -343,7 +343,7 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
                             border: Border.all(color: statusStyle.borderColor),
                           ),
                           child: Text(
-                            status,
+                            _statusLabel(context.flipperL10n, status),
                             style: TextStyle(
                               fontWeight: FontWeight.w800,
                               fontSize: 12,
@@ -385,9 +385,9 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
                   minimumSize: Size.zero,
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
-                child: const Text(
-                  'Customer',
-                  style: TextStyle(
+                child: Text(
+                  context.flipperL10n.customer,
+                  style: const TextStyle(
                     fontWeight: FontWeight.w700,
                     color: Color(0xFF0078D4),
                     fontSize: 13,
@@ -411,7 +411,7 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
                 child: Text(
-                  'Clear',
+                  context.flipperL10n.clear,
                   style: TextStyle(
                     fontWeight: FontWeight.w700,
                     color: Colors.red.shade600,
@@ -435,11 +435,11 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
         ? name
         : (phone != null && phone.isNotEmpty)
         ? phone
-        : 'No customer';
+        : context.flipperL10n.checkoutNoCustomer;
     final time = createdAt != null
         ? '${createdAt.hour.toString().padLeft(2, '0')}:${createdAt.minute.toString().padLeft(2, '0')}'
         : '—';
-    return '$who · Walk-in · $time';
+    return '$who · ${context.flipperL10n.checkoutWalkIn} · $time';
   }
 
   String _catalogSubtitle(ITransaction? transaction) {
@@ -448,7 +448,9 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
         ? '${createdAt.hour.toString().padLeft(2, '0')}:${createdAt.minute.toString().padLeft(2, '0')}'
         : '—';
     final name = transaction?.customerName?.trim();
-    final who = (name != null && name.isNotEmpty) ? name : 'Walk-in';
+    final who = (name != null && name.isNotEmpty)
+        ? name
+        : context.flipperL10n.checkoutWalkIn;
     return '$who · $time';
   }
 
@@ -462,6 +464,20 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
         ),
       ),
     );
+  }
+
+  /// Display text for a transaction status; [status] itself stays the raw value.
+  String _statusLabel(FlipperAppLocalizations l10n, String status) {
+    switch (status) {
+      case 'PENDING':
+        return l10n.orderStatusPending.toUpperCase();
+      case 'OPEN':
+        return l10n.checkoutStatusOpen.toUpperCase();
+      case 'COMPLETED':
+        return l10n.checkoutStatusCompleted.toUpperCase();
+      default:
+        return status;
+    }
   }
 
   ({Color dotColor, Color bgColor, Color borderColor, Color textColor})
@@ -502,8 +518,7 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
         ? t.taxAmount!.toDouble()
         : summary.lineTax;
     final total = sub + taxVal;
-    final itemText =
-        '${summary.activeLineCount} item${summary.activeLineCount == 1 ? '' : 's'}';
+    final itemText = context.flipperL10n.cartItemCount(summary.activeLineCount);
 
     Widget moneyCol(String label, String amount, {required Color amountColor}) {
       return Expanded(
@@ -572,7 +587,7 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
                 ),
               ),
               moneyCol(
-                'Total',
+                context.flipperL10n.checkoutTotal,
                 total.toCurrencyFormatted(symbol: sym),
                 amountColor: const Color(0xFF1B7F3A),
               ),
@@ -608,14 +623,14 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
                 ),
                 padding: const EdgeInsets.symmetric(vertical: 12),
               ),
-              child: const Row(
+              child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(FluentIcons.arrow_left_20_regular, size: 18),
-                  SizedBox(width: 6),
+                  const Icon(FluentIcons.arrow_left_20_regular, size: 18),
+                  const SizedBox(width: 6),
                   Text(
-                    'Tickets',
-                    style: TextStyle(fontWeight: FontWeight.w700),
+                    context.flipperL10n.tickets,
+                    style: const TextStyle(fontWeight: FontWeight.w700),
                   ),
                 ],
               ),
@@ -637,9 +652,9 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text(
-                    'Items',
-                    style: TextStyle(fontWeight: FontWeight.w800),
+                  Text(
+                    context.flipperL10n.items,
+                    style: const TextStyle(fontWeight: FontWeight.w800),
                   ),
                   const SizedBox(width: 8),
                   Container(
@@ -690,7 +705,9 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
     return MposCartBar(
       itemCount: count,
       total: total,
-      actionLabel: canCollectPayment ? 'Review & Pay' : 'Review & Send',
+      actionLabel: canCollectPayment
+          ? context.flipperL10n.checkoutReviewAndPay
+          : context.flipperL10n.checkoutReviewAndSend,
       onReviewPay: count > 0
           ? () {
               final cached = readCachedPendingCartTransactionWidget(
@@ -726,7 +743,7 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
                   if (t == null) {
                     showErrorNotification(
                       context,
-                      'Could not open checkout for this cart. Please try again.',
+                      context.flipperL10n.checkoutCouldNotOpen,
                     );
                     return;
                   }
@@ -804,14 +821,17 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
                 ),
                 padding: const EdgeInsets.symmetric(horizontal: 12),
               ),
-              child: const Row(
+              child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(FluentIcons.scan_camera_16_filled, size: 18),
-                  SizedBox(width: 6),
+                  const Icon(FluentIcons.scan_camera_16_filled, size: 18),
+                  const SizedBox(width: 6),
                   Text(
-                    'Scan',
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+                    context.flipperL10n.checkoutScan,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ],
               ),
@@ -836,7 +856,7 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
             ),
             const SizedBox(height: 16),
             Text(
-              'Items not available',
+              context.flipperL10n.checkoutItemsNotAvailable,
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
                 color: Theme.of(context).colorScheme.onSurface,
                 fontWeight: FontWeight.w500,
@@ -853,7 +873,7 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       showCustomSnackBarUtil(
         context,
-        'Error loading items: ${error.toString()}',
+        context.flipperL10n.checkoutErrorLoadingItemsDetail(error.toString()),
         backgroundColor: Colors.red[600],
         duration: const Duration(seconds: 5),
       );
@@ -872,7 +892,7 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
             ),
             const SizedBox(height: 16),
             Text(
-              'Error loading Items',
+              context.flipperL10n.checkoutErrorLoadingItems,
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
                 color: Theme.of(context).colorScheme.error,
                 fontWeight: FontWeight.w500,
@@ -895,7 +915,7 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
                 ),
               ),
               icon: const Icon(FluentIcons.arrow_sync_20_filled),
-              label: const Text('Retry'),
+              label: Text(context.flipperL10n.retry),
             ),
           ],
         ),

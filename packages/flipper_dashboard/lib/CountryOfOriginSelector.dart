@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/providers/country_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/legacy.dart';
@@ -84,11 +85,12 @@ class CountryOfOriginSelector extends ConsumerWidget {
               }).toList(),
               isExpanded: true,
               underline: const SizedBox(),
-              hint: const Text("Select Country of Origin"),
+              hint: Text(context.flipperL10n.countryOfOriginSelect),
             );
           },
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, stack) => const Text("Failed to load countries"),
+          error: (error, stack) =>
+              Text(context.flipperL10n.countryOfOriginLoadFailed),
         ),
       ),
     );

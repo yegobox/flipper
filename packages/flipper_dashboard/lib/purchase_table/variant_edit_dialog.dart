@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:dropdown_search/dropdown_search.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:supabase_models/brick/models/all_models.dart';
@@ -28,8 +29,9 @@ Future<void> showVariantEditDialog(
   return showDialog(
     context: context,
     builder: (BuildContext context) {
+      final l10n = context.flipperL10n;
       return AlertDialog(
-        title: const Text('Assign Variant'),
+        title: Text(l10n.purchaseAssignVariant),
         content: SizedBox(
           width: 400,
           child: Column(
@@ -54,12 +56,12 @@ Future<void> showVariantEditDialog(
                       baseStyle: TextStyle(fontSize: 13),
                       decoration: InputDecoration(border: OutlineInputBorder()),
                     ),
-                    popupProps: const PopupProps.menu(
+                    popupProps: PopupProps.menu(
                       showSearchBox: true,
                       searchFieldProps: TextFieldProps(
                         decoration: InputDecoration(
-                          hintText: 'Search variants...',
-                          border: OutlineInputBorder(),
+                          hintText: l10n.purchaseSearchVariants,
+                          border: const OutlineInputBorder(),
                           contentPadding: EdgeInsets.symmetric(horizontal: 12),
                         ),
                       ),
@@ -74,26 +76,26 @@ Future<void> showVariantEditDialog(
               const SizedBox(height: 16),
               TextFormField(
                 controller: nameController,
-                decoration: const InputDecoration(
-                  labelText: 'Name',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: l10n.name,
+                  border: const OutlineInputBorder(),
                 ),
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: supplyPriceController,
-                decoration: const InputDecoration(
-                  labelText: 'Supply Price',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: l10n.purchaseSupplyPrice,
+                  border: const OutlineInputBorder(),
                 ),
                 keyboardType: TextInputType.number,
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: retailPriceController,
-                decoration: const InputDecoration(
-                  labelText: 'Retail Price',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: l10n.createRetailPrice,
+                  border: const OutlineInputBorder(),
                 ),
                 keyboardType: TextInputType.number,
               ),
@@ -105,14 +107,14 @@ Future<void> showVariantEditDialog(
             onPressed: () {
               Navigator.of(context).pop();
             },
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
           TextButton(
             onPressed: () {
               saveItemName();
               Navigator.of(context).pop();
             },
-            child: const Text('Save'),
+            child: Text(l10n.save),
           ),
         ],
       );

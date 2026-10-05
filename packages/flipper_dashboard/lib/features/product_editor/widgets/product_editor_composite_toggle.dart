@@ -1,5 +1,6 @@
 import 'package:flipper_dashboard/ToggleButtonWidget.dart';
 import 'package:flipper_dashboard/features/product_editor/product_editor_tokens.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -40,7 +41,7 @@ class ProductEditorCompositeToggle extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Composite item',
+                  context.flipperL10n.productEditorCompositeItem,
                   style: GoogleFonts.outfit(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
@@ -48,7 +49,7 @@ class ProductEditorCompositeToggle extends ConsumerWidget {
                   ),
                 ),
                 Text(
-                  'Built from other products — price is the sum of its components',
+                  context.flipperL10n.productEditorCompositeHint,
                   style: GoogleFonts.outfit(
                     fontSize: 12,
                     color: ProductEditorTokens.ink3,

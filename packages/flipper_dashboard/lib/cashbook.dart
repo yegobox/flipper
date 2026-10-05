@@ -1,5 +1,6 @@
 // ignore_for_file: unused_result
 
+import 'package:flipper_localize/flipper_localize.dart';
 import 'dart:async';
 
 import 'package:flipper_dashboard/DateCoreWidget.dart';
@@ -224,7 +225,9 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
       child: Row(
         children: [
           _HeaderIconButton(
-            tooltip: model.newTransactionPressed ? 'Back' : 'Close',
+            tooltip: model.newTransactionPressed
+                ? context.flipperL10n.back
+                : context.flipperL10n.close,
             onPressed: () => _onCashbookClosePressed(model),
             child: model.newTransactionPressed
                 ? TransactionDetailSvgs.icon(
@@ -240,7 +243,7 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
           ),
           Expanded(
             child: Text(
-              'Cash Book',
+              context.flipperL10n.cashbookTitle,
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.w700,
@@ -257,7 +260,7 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
             maintainAnimation: true,
             maintainState: true,
             child: _HeaderIconButton(
-              tooltip: 'Select dates',
+              tooltip: context.flipperL10n.cashbookSelectDates,
               onPressed: handleDateTimePicker,
               child: DashboardQuickAccessSvgs.assetIcon(
                 DashboardQuickAccessSvgs.calendar,
@@ -518,7 +521,10 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
                     _buildAmountSection(currency),
                     const SizedBox(height: 20),
                     Text(
-                      isIncome ? 'RECEIVED AS' : 'PAID WITH',
+                      (isIncome
+                              ? context.flipperL10n.cashbookReceivedAs
+                              : context.flipperL10n.cashbookPaidWith)
+                          .toUpperCase(),
                       style: _captionLabelStyle(context),
                     ),
                     const SizedBox(height: 10),
@@ -533,12 +539,15 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
                     const SizedBox(height: 10),
                     _buildCategoryChips(isIncome),
                     const SizedBox(height: 18),
-                    Text('NOTE', style: _captionLabelStyle(context)),
+                    Text(
+                      context.flipperL10n.cashbookNote.toUpperCase(),
+                      style: _captionLabelStyle(context),
+                    ),
                     const SizedBox(height: 10),
                     TextFormField(
                       controller: _descriptionController,
                       decoration: InputDecoration(
-                        hintText: 'Optional note...',
+                        hintText: context.flipperL10n.cashbookOptionalNoteHint,
                         hintStyle: TextStyle(color: Colors.grey.shade500),
                         filled: true,
                         fillColor: _CashbookColors.beigeField,
@@ -606,7 +615,9 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
           const SizedBox(width: 10),
           Expanded(
             child: Text(
-              isIncome ? 'Money coming in' : 'Money going out',
+              isIncome
+                  ? context.flipperL10n.cashbookMoneyIn
+                  : context.flipperL10n.cashbookMoneyOut,
               style: TextStyle(
                 fontWeight: FontWeight.w700,
                 fontSize: 16,
@@ -641,7 +652,7 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'AMOUNT',
+              context.flipperL10n.amount.toUpperCase(),
               style: Theme.of(context).textTheme.labelSmall!.copyWith(
                 letterSpacing: 1.2,
                 fontWeight: FontWeight.w700,
@@ -690,13 +701,13 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Please enter an amount';
+                        return context.flipperL10n.pleaseEnterAnAmount;
                       }
                       if (double.tryParse(value) == null) {
-                        return 'Please enter a valid amount';
+                        return context.flipperL10n.cashbookEnterValidAmount;
                       }
                       if (double.parse(value) <= 0) {
-                        return 'Amount must be greater than zero';
+                        return context.flipperL10n.cashbookAmountPositive;
                       }
                       return null;
                     },
@@ -713,7 +724,7 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
                 _amountChip('+50', () => _adjustAmount(50)),
                 _amountChip('+100', () => _adjustAmount(100)),
                 _amountChip('+500', () => _adjustAmount(500)),
-                _amountChip('Clear', _clearAmountField),
+                _amountChip(context.flipperL10n.clear, _clearAmountField),
               ],
             ),
           ],
@@ -796,7 +807,7 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
               ),
             ActionChip(
               avatar: Icon(Icons.add, size: 18, color: Colors.grey.shade700),
-              label: const Text('New'),
+              label: Text(context.flipperL10n.cashbookNewEntry),
               onPressed: () => _createCategoryInline(list, isIncome),
               backgroundColor: Colors.white,
               side: BorderSide(color: Colors.grey.shade400),
@@ -914,7 +925,7 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
                 shape: shape,
                 textStyle: textStyle,
               ),
-              child: const Text('Cancel'),
+              child: Text(context.flipperL10n.cancel),
             ),
           ),
         ),
@@ -943,7 +954,11 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
                         color: Colors.white,
                       ),
                     )
-                  : Text(isIncome ? 'Save cash in' : 'Save cash out'),
+                  : Text(
+                      isIncome
+                          ? context.flipperL10n.cashbookSaveCashIn
+                          : context.flipperL10n.cashbookSaveCashOut,
+                    ),
             ),
           ),
         ),
@@ -1055,7 +1070,9 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
 
       showSuccessNotification(
         context,
-        '${isIncome ? 'Cash in' : 'Cash out'} transaction saved successfully',
+        isIncome
+            ? context.flipperL10n.cashbookCashInSaved
+            : context.flipperL10n.cashbookCashOutSaved,
       );
 
       final String tid = saveResult.transactionId;
