@@ -6,6 +6,7 @@ import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/imports_purchases_client.dart';
 import 'package:flipper_models/imports_purchases_map.dart';
 import 'package:flipper_models/services/pos_purchase_journal_poster.dart';
+import 'package:flipper_models/services/purchase_approval_deps.dart';
 import 'package:flipper_models/services/purchase_expense_recorder.dart';
 import 'package:flipper_models/sync/capella/manual_purchase_ditto.dart';
 import 'package:flipper_models/view_models/purchase_report_item.dart';
@@ -351,7 +352,8 @@ class ImportPurchaseViewModel extends StateNotifier<ImportPurchaseState> {
         // Stock first: each waiting line goes onto its product (created for
         // new items) and becomes a purchase record; approving twice is a
         // no-op for lines already stocked in.
-        final stock = await stockInManualPurchase(purchase);
+        final deps = PurchaseApprovalDeps.fromProxy();
+        final stock = await stockInManualPurchase(purchase, deps);
         await PosPurchaseJournalPoster.postPurchase(
           purchase: purchase,
           postToLedger: postToLedger,
@@ -360,6 +362,7 @@ class ImportPurchaseViewModel extends StateNotifier<ImportPurchaseState> {
         // the Cash/Credit "paid now" lives on the purchase's bill.
         await PurchaseExpenseRecorder.record(
           purchase: purchase,
+          deps: deps,
           paidUpfront: purchase.pmtTyCd == '03'
               ? await PurchaseExpenseRecorder.paidUpfrontFromBill(purchase.id)
               : 0,
