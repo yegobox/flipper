@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_web/core/routing/app_entry_route.dart';
 import 'package:flipper_web/features/business_selection/business_selection_providers.dart';
 import 'package:flipper_web/features/business_selection/selected_business_restore.dart';
@@ -46,7 +47,11 @@ class AuthWrapper extends ConsumerWidget {
                 body: Center(child: CircularProgressIndicator()),
               ),
               error: (error, _) => Scaffold(
-                body: Center(child: Text('Error checking preferences: $error')),
+                body: Center(
+                  child: Text(
+                    context.flipperL10n.webAuthErrorCheckingPrefs('$error'),
+                  ),
+                ),
               ),
             );
           case AuthState.unauthenticated:
@@ -80,8 +85,9 @@ class AuthWrapper extends ConsumerWidget {
           ),
         ),
       ),
-      error: (error, stackTrace) =>
-          Scaffold(body: Center(child: Text('Error: $error'))),
+      error: (error, stackTrace) => Scaffold(
+        body: Center(child: Text(context.flipperL10n.errorMessage('$error'))),
+      ),
     );
   }
 }

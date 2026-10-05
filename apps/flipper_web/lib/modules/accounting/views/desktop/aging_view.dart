@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_derive.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_models.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_providers.dart';
@@ -7,11 +8,17 @@ import 'package:flipper_web/modules/accounting/widgets/accounting_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-const _agingBuckets = <({String key, String label, Color color})>[
-  (key: 'current', label: 'Current', color: AccountingTokens.accent),
-  (key: 'd30', label: '1–30 days', color: Color(0xFF0EA5A4)),
-  (key: 'd60', label: '31–60 days', color: Color(0xFFE89A2A)),
-  (key: 'd90', label: '60+ days', color: AccountingTokens.loss),
+List<({String key, String label, Color color})> _agingBucketsFor(
+  FlipperAppLocalizations l10n,
+) => [
+  (
+    key: 'current',
+    label: l10n.booksAgingCurrent,
+    color: AccountingTokens.accent,
+  ),
+  (key: 'd30', label: l10n.booksAging1to30, color: const Color(0xFF0EA5A4)),
+  (key: 'd60', label: l10n.booksAging31to60, color: const Color(0xFFE89A2A)),
+  (key: 'd90', label: l10n.booksAging60plus, color: AccountingTokens.loss),
 ];
 
 class AccountingAgingView extends ConsumerWidget {
@@ -26,6 +33,7 @@ class AccountingAgingView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.flipperL10n;
     final isAr = kind == 'ar';
     final rows = isAr
         ? ref.watch(accountingArAgingProvider)
@@ -39,21 +47,26 @@ class AccountingAgingView extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           AccountingPageHeader(
-            eyebrow: isAr ? 'Money in' : 'Money out',
-            title: isAr ? 'Accounts receivable' : 'Accounts payable',
-            subtitle:
-                '${isAr ? 'What customers owe you' : 'What you owe suppliers'} · aged · $currency',
+            eyebrow: isAr ? l10n.booksMoneyIn : l10n.booksMoneyOut,
+            title: isAr
+                ? l10n.booksAccountsReceivable
+                : l10n.booksAccountsPayable,
+            subtitle: isAr
+                ? l10n.booksArSubtitle(currency)
+                : l10n.booksApSubtitle(currency),
             actions: [
               AccountingButton(
-                label: isAr ? 'Send reminders' : 'Schedule payment',
+                label: isAr
+                    ? l10n.booksSendReminders
+                    : l10n.booksSchedulePayment,
                 icon: Icons.mail_outlined,
                 small: true,
                 onPressed: () => showAccountingToast(
                   context,
-                  isAr ? 'Reminders sent' : 'Payment scheduled',
+                  isAr ? l10n.booksRemindersSent : l10n.booksPaymentScheduled,
                   subtitle: isAr
-                      ? 'Emailed 4 customers with open balances'
-                      : 'Queued 4 supplier payments',
+                      ? l10n.booksEmailedCustomers('4')
+                      : l10n.booksQueuedSupplierPayments('4'),
                   icon: Icons.mail_outlined,
                   tone: isAr
                       ? AccountingToastTone.success
@@ -61,7 +74,7 @@ class AccountingAgingView extends ConsumerWidget {
                 ),
               ),
               AccountingButton(
-                label: isAr ? 'New invoice' : 'New bill',
+                label: isAr ? l10n.booksNewInvoice : l10n.booksNewBill,
                 icon: Icons.add,
                 primary: true,
                 small: true,
@@ -94,7 +107,10 @@ class _AgingSummaryCard extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(20, 18, 20, 0),
             child: Row(
               children: [
-                Text('Aging summary', style: AccountingTokens.cardTitle),
+                Text(
+                  context.flipperL10n.booksAgingSummary,
+                  style: AccountingTokens.cardTitle,
+                ),
                 const Spacer(),
                 Text(
                   '$currency ${money(totals.total)}',
@@ -120,7 +136,9 @@ class _AgingSummaryCard extends StatelessWidget {
                       child: Row(
                         children: [
                           if (totals.total > 0)
-                            for (final b in _agingBuckets)
+                            for (final b in _agingBucketsFor(
+                              context.flipperL10n,
+                            ))
                               if ((totals.buckets[b.key] ?? 0) > 0)
                                 Expanded(
                                   flex: totals.buckets[b.key]!,
@@ -134,7 +152,7 @@ class _AgingSummaryCard extends StatelessWidget {
                 const SizedBox(height: 14),
                 Row(
                   children: [
-                    for (final b in _agingBuckets)
+                    for (final b in _agingBucketsFor(context.flipperL10n))
                       Expanded(
                         child: Container(
                           decoration: BoxDecoration(
@@ -190,6 +208,7 @@ class _AgingTableCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
     return AccountingCard(
       padding: EdgeInsets.zero,
       child: Column(
@@ -197,17 +216,13 @@ class _AgingTableCard extends StatelessWidget {
           _AgingTableRow(
             isHeader: true,
             cells: [
-              isAr ? 'Customer' : 'Supplier',
-              'Reference',
-              ..._agingBuckets.map((b) => b.label),
-              'Total',
+              isAr ? l10n.customer : l10n.booksSupplier,
+              l10n.booksReference,
+              ..._agingBucketsFor(l10n).map((b) => b.label),
+              l10n.booksTotal,
             ],
           ),
-          for (final r in rows)
-            _AgingDataRow(
-              isAr: isAr,
-              row: r,
-            ),
+          for (final r in rows) _AgingDataRow(isAr: isAr, row: r),
           _AgingFooterRow(totals: totals),
         ],
       ),
@@ -216,10 +231,7 @@ class _AgingTableCard extends StatelessWidget {
 }
 
 class _AgingTableRow extends StatelessWidget {
-  const _AgingTableRow({
-    required this.cells,
-    this.isHeader = false,
-  });
+  const _AgingTableRow({required this.cells, this.isHeader = false});
 
   final List<String> cells;
   final bool isHeader;
@@ -298,14 +310,14 @@ class _AgingFooterRow extends StatelessWidget {
           Expanded(
             flex: 32,
             child: Text(
-              'Totals',
+              context.flipperL10n.booksTotals,
               style: AccountingTokens.sans(
                 fontSize: 13.5,
                 fontWeight: FontWeight.w700,
               ),
             ),
           ),
-          for (final b in _agingBuckets)
+          for (final b in _agingBucketsFor(context.flipperL10n))
             Expanded(
               flex: 10,
               child: Text(
@@ -347,8 +359,11 @@ class _AgingDataRow extends StatelessWidget {
       child: InkWell(
         onTap: () => showAccountingToast(
           context,
-          'Statement of account',
-          subtitle: '${row.name} · ${money(row.total)} outstanding',
+          context.flipperL10n.booksStatementOfAccount,
+          subtitle: context.flipperL10n.booksOutstanding(
+            money(row.total),
+            row.name,
+          ),
           icon: isAr ? Icons.north_east : Icons.south_west,
         ),
         hoverColor: AccountingTokens.surface2,

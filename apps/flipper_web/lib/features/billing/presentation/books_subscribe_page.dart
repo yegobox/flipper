@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_payments/flipper_payments.dart';
 import 'package:flipper_web/features/billing/data/books_payment_rails.dart';
 import 'package:flipper_web/features/billing/application/books_billing_providers.dart';
@@ -54,18 +55,19 @@ class _BooksSubscribePageState extends ConsumerState<BooksSubscribePage> {
   Widget build(BuildContext context) {
     final restore = ref.watch(selectedBusinessRestoreProvider);
     if (restore.isLoading) {
-      return const Scaffold(
+      return Scaffold(
         backgroundColor: PaymentTokens.app,
-        body: PaymentCenterLoading(message: 'Loading your business…'),
+        body: PaymentCenterLoading(
+          message: context.flipperL10n.webBillingLoadingBusiness,
+        ),
       );
     }
 
     final business = ref.watch(selectedBusinessProvider);
     if (business == null) {
       return _Message(
-        message: 'Pick the business you are paying for, then the plans and '
-            'their prices appear here.',
-        actionLabel: 'Choose a business',
+        message: context.flipperL10n.webBillingPickBusiness,
+        actionLabel: context.flipperL10n.webBillingChooseBusiness,
         onAction: () => context.go('/business-selection'),
       );
     }
@@ -83,7 +85,8 @@ class _BooksSubscribePageState extends ConsumerState<BooksSubscribePage> {
 
     // A payment finished while this page was open (here, or on another
     // device): entitlement now says yes, so offer the way in.
-    final unlocked = access.status == BooksAccessStatus.entitled &&
+    final unlocked =
+        access.status == BooksAccessStatus.entitled &&
         !payment.isBusy &&
         payment.stage != BooksPaymentStage.confirmed;
 
@@ -102,14 +105,19 @@ class _BooksSubscribePageState extends ConsumerState<BooksSubscribePage> {
 
     return PaymentScreenShell(
       key: const Key('books-subscribe-page'),
-      title: access.hasLapsed ? 'Renew your subscription' : 'Subscribe',
+      title: access.hasLapsed
+          ? context.flipperL10n.webBillingRenewTitle
+          : context.flipperL10n.webBillingSubscribe,
       showBack: true,
       onBack: () => context.go('/accounting'),
       badge: ref.read(booksPaymentRailsProvider).isCardTestMode
-          ? const PaymentHeaderBadge(label: 'TEST')
+          ? PaymentHeaderBadge(label: context.flipperL10n.webBillingTestBadge)
           : null,
       overlay: payment.stage == BooksPaymentStage.preparing
-          ? PaymentLoadingOverlay(message: payment.message ?? 'One moment…')
+          ? PaymentLoadingOverlay(
+              message:
+                  payment.message ?? context.flipperL10n.webBillingOneMoment,
+            )
           : null,
       aside: vm == null
           ? null
@@ -123,28 +131,31 @@ class _BooksSubscribePageState extends ConsumerState<BooksSubscribePage> {
       children: [
         PaymentIntroBlock(
           title: business.name.isEmpty ? 'Flipper Books' : business.name,
-          subtitle: 'One subscription opens this business on the web, the '
-              'phone and the desktop app.',
+          subtitle: context.flipperL10n.webBillingIntroSubtitle,
         ),
         const SizedBox(height: PaymentTokens.blockGap),
         if (!showChooser)
           _ConfirmedCard(
-            message: payment.message ??
-                'Your subscription is active. Books is ready to open.',
+            message:
+                payment.message ?? context.flipperL10n.webBillingActiveReady,
           )
         else
           catalog.when(
-            loading: () => const Padding(
-              padding: EdgeInsets.all(40),
-              child: PaymentCenterLoading(message: 'Loading plans…'),
+            loading: () => Padding(
+              padding: const EdgeInsets.all(40),
+              child: PaymentCenterLoading(
+                message: context.flipperL10n.webBillingLoadingPlans,
+              ),
             ),
             error: (error, _) => _Inline(
-              message: 'Could not load the plans: ${_describe(error)}',
-              actionLabel: 'Try again',
+              message: context.flipperL10n.webBillingCouldNotLoadPlans(
+                _describe(error),
+              ),
+              actionLabel: context.flipperL10n.webBillingTryAgain,
               onAction: () => ref.invalidate(booksCatalogProvider),
             ),
             data: (_) => vm == null
-                ? const _Inline(message: 'No plans are on sale right now.')
+                ? _Inline(message: context.flipperL10n.webBillingNoPlans)
                 : _buildChooser(
                     context,
                     vm: vm,
@@ -156,7 +167,6 @@ class _BooksSubscribePageState extends ConsumerState<BooksSubscribePage> {
     );
   }
 
-
   /// What the chooser and the sticky rail both need. Computed once in
   /// `build`, because the total and the pay button now live in the shell's
   /// aside while the plan tiles stay in the form column — two scopes, one
@@ -167,8 +177,9 @@ class _BooksSubscribePageState extends ConsumerState<BooksSubscribePage> {
     required BooksPaymentState payment,
     required bool cardAvailable,
   }) {
-    final templates =
-        catalog.templates.where((t) => !t.isEnterprise).toList(growable: false);
+    final templates = catalog.templates
+        .where((t) => !t.isEnterprise)
+        .toList(growable: false);
     if (templates.isEmpty) return null;
 
     final template = _selectedTemplate(catalog, templates, access);
@@ -217,7 +228,7 @@ class _BooksSubscribePageState extends ConsumerState<BooksSubscribePage> {
           ),
         ),
         const SizedBox(height: PaymentTokens.blockGap),
-        const PaymentSectionLabel('Plan'),
+        PaymentSectionLabel(context.flipperL10n.webBillingPlan),
         for (final candidate in templates) ...[
           PaymentPlanTile(
             key: Key('books-subscribe-plan-${candidate.slug}'),
@@ -228,34 +239,37 @@ class _BooksSubscribePageState extends ConsumerState<BooksSubscribePage> {
             onTap: locked
                 ? () {}
                 : () => setState(() {
-                      _templateId = candidate.id;
-                      _addonSlugs.clear();
-                    }),
+                    _templateId = candidate.id;
+                    _addonSlugs.clear();
+                  }),
           ),
           const SizedBox(height: 8),
         ],
         if (template.addons.isNotEmpty) ...[
           const SizedBox(height: 8),
-          const PaymentSectionLabel('Add-ons'),
+          PaymentSectionLabel(context.flipperL10n.webBillingAddons),
           for (final addon in template.addons)
             PaymentAddonRow(
               name: addon.name,
-              priceLine:
-                  formatPaymentAddonPriceFor(template, addon, cadence: _cadence),
+              priceLine: formatPaymentAddonPriceFor(
+                template,
+                addon,
+                cadence: _cadence,
+              ),
               enabled: _addonSlugs.contains(addon.slug),
               onChanged: locked
                   ? (_) {}
                   : (on) => setState(() {
-                        if (on) {
-                          _addonSlugs.add(addon.slug);
-                        } else {
-                          _addonSlugs.remove(addon.slug);
-                        }
-                      }),
+                      if (on) {
+                        _addonSlugs.add(addon.slug);
+                      } else {
+                        _addonSlugs.remove(addon.slug);
+                      }
+                    }),
             ),
         ],
         const SizedBox(height: PaymentTokens.blockGap),
-        const PaymentSectionLabel('Pay with'),
+        PaymentSectionLabel(context.flipperL10n.webBillingPayWith),
         if (cardAvailable)
           PaymentRailSelector(
             key: const Key('books-subscribe-rail'),
@@ -315,42 +329,46 @@ class _BooksSubscribePageState extends ConsumerState<BooksSubscribePage> {
       Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-        _StageBanner(payment: payment),
-        PaymentPrimaryButton(
-          key: const Key('books-subscribe-pay'),
-          label: rail == PaymentRail.card
-              ? 'Continue to card payment'
-              : 'Pay ${formatPaymentRwf(selection.totalRwf)} RWF',
-          loading: locked,
-          loadingLabel: payment.stage == BooksPaymentStage.awaitingApproval
-              ? 'Waiting for your approval…'
-              : payment.stage == BooksPaymentStage.awaitingCheckout
-                  ? 'Waiting for the card payment…'
-                  : 'Preparing…',
-          onPressed: locked
-              ? null
-              : () => _pay(
+          _StageBanner(payment: payment),
+          PaymentPrimaryButton(
+            key: const Key('books-subscribe-pay'),
+            label: rail == PaymentRail.card
+                ? context.flipperL10n.webBillingContinueToCard
+                : context.flipperL10n.webBillingPayAmount(
+                    formatPaymentRwf(selection.totalRwf),
+                  ),
+            loading: locked,
+            loadingLabel: payment.stage == BooksPaymentStage.awaitingApproval
+                ? context.flipperL10n.webBillingWaitingApproval
+                : payment.stage == BooksPaymentStage.awaitingCheckout
+                ? context.flipperL10n.webBillingWaitingCard
+                : context.flipperL10n.webBillingPreparingShort,
+            onPressed: locked
+                ? null
+                : () => _pay(
                     business: business,
                     branchId: branchId,
                     selection: selection,
                     rail: rail,
                   ),
-        ),
-        if (payment.stage == BooksPaymentStage.failed ||
-            payment.stage == BooksPaymentStage.timedOut) ...[
-          const SizedBox(height: 8),
-          PaymentSecondaryButton(
-            key: const Key('books-subscribe-retry'),
-            label: payment.stage == BooksPaymentStage.timedOut
-                ? 'Check again'
-                : 'Start over',
-            onPressed: () => _retry(payment, business.id),
           ),
-        ],
-        const SizedBox(height: 8),
-        PaymentCtaNote(
-          provider: rail == PaymentRail.card ? 'Dodo Payments' : 'MTN Mobile Money',
-        ),
+          if (payment.stage == BooksPaymentStage.failed ||
+              payment.stage == BooksPaymentStage.timedOut) ...[
+            const SizedBox(height: 8),
+            PaymentSecondaryButton(
+              key: const Key('books-subscribe-retry'),
+              label: payment.stage == BooksPaymentStage.timedOut
+                  ? context.flipperL10n.webBillingCheckAgain
+                  : context.flipperL10n.webBillingStartOver,
+              onPressed: () => _retry(payment, business.id),
+            ),
+          ],
+          const SizedBox(height: 8),
+          PaymentCtaNote(
+            provider: rail == PaymentRail.card
+                ? 'Dodo Payments'
+                : 'MTN Mobile Money',
+          ),
         ],
       ),
     ];
@@ -364,7 +382,8 @@ class _BooksSubscribePageState extends ConsumerState<BooksSubscribePage> {
     final chosen = catalog.byId(_templateId);
     if (chosen != null && !chosen.isEnterprise) return chosen;
     // A renewal starts on the plan the business already has.
-    final current = catalog.byId(access.plan?.planTemplateId) ??
+    final current =
+        catalog.byId(access.plan?.planTemplateId) ??
         catalog.byName(access.plan?.selectedPlan);
     if (current != null && !current.isEnterprise) return current;
     return templates.first;
@@ -400,7 +419,7 @@ class _BooksSubscribePageState extends ConsumerState<BooksSubscribePage> {
     }
     final phone = _phoneController.text;
     if (phone.isNotEmpty && !MomoMsisdn.isPlausible(phone)) {
-      return 'Enter a valid Mobile Money number, e.g. 0788123456.';
+      return context.flipperL10n.webBillingInvalidMomo;
     }
     return null;
   }
@@ -467,25 +486,25 @@ class _StageBanner extends StatelessWidget {
     }
     final (Color tint, Color ink, IconData icon) = switch (payment.stage) {
       BooksPaymentStage.failed => (
-          PaymentTokens.lossTint,
-          PaymentTokens.loss,
-          FluentIcons.error_circle_20_regular,
-        ),
+        PaymentTokens.lossTint,
+        PaymentTokens.loss,
+        FluentIcons.error_circle_20_regular,
+      ),
       BooksPaymentStage.timedOut => (
-          PaymentTokens.warnTint,
-          PaymentTokens.warnAmber,
-          FluentIcons.clock_20_regular,
-        ),
+        PaymentTokens.warnTint,
+        PaymentTokens.warnAmber,
+        FluentIcons.clock_20_regular,
+      ),
       BooksPaymentStage.confirmed => (
-          PaymentTokens.gainTint,
-          PaymentTokens.gainInk,
-          FluentIcons.checkmark_circle_20_regular,
-        ),
+        PaymentTokens.gainTint,
+        PaymentTokens.gainInk,
+        FluentIcons.checkmark_circle_20_regular,
+      ),
       _ => (
-          PaymentTokens.blueTint,
-          PaymentTokens.blue700,
-          FluentIcons.phone_20_regular,
-        ),
+        PaymentTokens.blueTint,
+        PaymentTokens.blue700,
+        FluentIcons.phone_20_regular,
+      ),
     };
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -565,7 +584,7 @@ class _ConfirmedCard extends StatelessWidget {
         const SizedBox(height: PaymentTokens.blockGap),
         PaymentPrimaryButton(
           key: const Key('books-subscribe-done'),
-          label: 'Open Books',
+          label: context.flipperL10n.webBillingOpenBooks,
           icon: FluentIcons.arrow_right_20_regular,
           onPressed: () => context.go('/accounting'),
         ),
@@ -610,7 +629,7 @@ class _Message extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return PaymentScreenShell(
-      title: 'Subscribe',
+      title: context.flipperL10n.webBillingSubscribe,
       showBack: false,
       children: [
         const SizedBox(height: 24),

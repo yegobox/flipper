@@ -1,10 +1,12 @@
 import 'package:flipper_analytics/flipper_analytics.dart';
 import 'package:flipper_design_system/flipper_design_system.dart';
 import 'package:flipper_hr/features/branding/hr_brand_panel.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_hr/router/hr_router.dart';
 import 'package:flipper_web/core/branding/brand_panel_builder.dart';
 import 'package:flipper_web/core/data_connector_web_auth.dart';
 import 'package:flipper_web/core/flipper_web_host.dart';
+import 'package:flipper_web/core/localization/locale_provider.dart';
 import 'package:flipper_web/core/routing/post_selection_route.dart';
 import 'package:flipper_web/core/secrets.dart';
 import 'package:flipper_web/core/utils/http_overrides.dart';
@@ -59,6 +61,9 @@ class FlipperHrApp extends ConsumerWidget {
       // has a dark palette of its own.
       themeMode: ThemeMode.light,
       routerConfig: ref.watch(hrRouterProvider),
+      locale: ref.watch(localeProvider),
+      localizationsDelegates: FlipperLocalizationDelegates.delegates,
+      supportedLocales: FlipperLocalizationDelegates.supportedLocales,
       // Web-native: remove Android overscroll glow; keep momentum scrolling.
       scrollBehavior: kIsWeb ? const _WebScrollBehavior() : null,
     );

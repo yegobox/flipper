@@ -4,6 +4,7 @@ import 'dart:math' as math;
 
 import 'package:flipper_auth/auth_scanner_actions.dart';
 import 'package:flipper_auth/features/totp/providers/providers/totp_notifier.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_scanner/scanner_view.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flutter/foundation.dart' hide Category;
@@ -62,9 +63,9 @@ class _TOTPScreenState extends ConsumerState<TOTPScreen> {
           isDark ? const Color(0xFF1C1C1E) : const Color(0xFFF2F2F7),
       appBar: AppBar(
         leading: SizedBox.shrink(),
-        title: const Text(
-          'Authenticator',
-          style: TextStyle(fontWeight: FontWeight.w600),
+        title: Text(
+          context.flipperL10n.authAuthenticator,
+          style: const TextStyle(fontWeight: FontWeight.w600),
         ),
         backgroundColor: isDark ? const Color(0xFF2C2C2E) : Colors.white,
         elevation: 0,
@@ -103,8 +104,8 @@ class _TOTPScreenState extends ConsumerState<TOTPScreen> {
           foregroundColor: Colors.white,
           elevation: 8,
           icon: const Icon(Icons.add, size: 20),
-          label: const Text(
-            'Add account',
+          label: Text(
+            context.flipperL10n.authAddAccount,
             style: TextStyle(fontWeight: FontWeight.w600),
           ),
         ),
@@ -126,7 +127,7 @@ class _TOTPScreenState extends ConsumerState<TOTPScreen> {
             ),
             const SizedBox(height: 16),
             Text(
-              'Something went wrong',
+              context.flipperL10n.authSomethingWentWrong,
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
@@ -144,10 +145,10 @@ class _TOTPScreenState extends ConsumerState<TOTPScreen> {
                 ),
               )
             else
-              const Text(
-                'An unexpected error occurred. Please try again.',
+              Text(
+                context.flipperL10n.authUnexpectedErrorTryAgain,
                 textAlign: TextAlign.center,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 14,
                   color: Colors.grey,
                 ),
@@ -157,7 +158,7 @@ class _TOTPScreenState extends ConsumerState<TOTPScreen> {
               onPressed: () {
                 ref.read(totpNotifierProvider.notifier).loadAccounts();
               },
-              child: const Text('Try again'),
+              child: Text(context.flipperL10n.authTryAgain),
             ),
           ],
         ),
@@ -196,7 +197,7 @@ class _TOTPScreenState extends ConsumerState<TOTPScreen> {
             ),
             const SizedBox(height: 32),
             Text(
-              'No accounts added',
+              context.flipperL10n.authNoAccountsAdded,
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w600,
@@ -205,7 +206,7 @@ class _TOTPScreenState extends ConsumerState<TOTPScreen> {
             ),
             const SizedBox(height: 12),
             Text(
-              'Add your first account to start\ngenerating verification codes',
+              context.flipperL10n.authAddFirstAccountHint,
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 16,
@@ -313,7 +314,7 @@ class _ModernTOTPCardState extends ConsumerState<ModernTOTPCard> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Code copied to clipboard'),
+          content: Text(context.flipperL10n.authCodeCopied),
           backgroundColor: const Color(0xFF0066CC),
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(

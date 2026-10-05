@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flipper_hr/features/invite/data/hr_invite.dart';
 import 'package:flipper_hr/features/invite/data/hr_invite_repository.dart';
 import 'package:flipper_hr/features/invite/data/hr_invite_wire.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -61,7 +62,7 @@ class ApiHubHrInviteRepository implements HrInviteRepository {
     final trimmedContact = contact.trim();
     if (trimmedContact.isEmpty) {
       throw HrInviteException(
-        'A phone number or email is needed before this person can be invited.',
+        FlipperL10n.current.hrInviteNeedsContact,
         step: HrInviteStep.resolveAccount,
       );
     }
@@ -100,14 +101,14 @@ class ApiHubHrInviteRepository implements HrInviteRepository {
       '/v2/api/user',
       HrInviteWire.accountBody(contact: contact),
       HrInviteStep.resolveAccount,
-      'Could not find or create a Flipper account for $contact.',
+      FlipperL10n.current.hrInviteErrorAccount(contact),
     );
 
     final decoded = _decode(response, HrInviteStep.resolveAccount);
     final id = HrInviteWire.accountIdOf(decoded);
     if (id == null) {
       throw HrInviteException(
-        'Flipper answered without an account id for $contact. '
+        '${FlipperL10n.current.hrInviteErrorNoAccountId(contact)} '
         '${_trim(response.body)}',
         step: HrInviteStep.resolveAccount,
       );
@@ -138,7 +139,7 @@ class ApiHubHrInviteRepository implements HrInviteRepository {
       final tenantId = HrInviteWire.tenantIdOf(data);
       if (tenantId == null) {
         throw HrInviteException(
-          'The membership was created but Flipper did not return its id.',
+          FlipperL10n.current.hrInviteErrorNoMembershipId,
           step: HrInviteStep.grantMembership,
         );
       }
@@ -153,7 +154,7 @@ class ApiHubHrInviteRepository implements HrInviteRepository {
       );
     } catch (e) {
       throw HrInviteException(
-        'Could not give $name access to this business: $e',
+        FlipperL10n.current.hrInviteErrorGrantAccess(name, '$e'),
         step: HrInviteStep.grantMembership,
         cause: e,
       );
@@ -177,13 +178,13 @@ class ApiHubHrInviteRepository implements HrInviteRepository {
         ownerName: ownerName,
       ),
       HrInviteStep.issuePin,
-      'Could not create a sign-in PIN for $ownerName.',
+      FlipperL10n.current.hrInviteErrorCreatePin(ownerName),
     );
 
     final pin = HrInviteWire.pinOf(_decode(response, HrInviteStep.issuePin));
     if (pin == null) {
       throw HrInviteException(
-        'The PIN was requested but Flipper did not return one. '
+        '${FlipperL10n.current.hrInviteErrorNoPin} '
         '${_trim(response.body)}',
         step: HrInviteStep.issuePin,
       );
@@ -208,8 +209,7 @@ class ApiHubHrInviteRepository implements HrInviteRepository {
           .maybeSingle();
       if (row == null) {
         throw HrInviteException(
-          'The account was created but has no membership for this business, so '
-          'signing in would land nowhere. Try inviting this person again.',
+          FlipperL10n.current.hrInviteErrorNoMembership,
           step: HrInviteStep.verify,
         );
       }
@@ -217,7 +217,7 @@ class ApiHubHrInviteRepository implements HrInviteRepository {
       rethrow;
     } catch (e) {
       throw HrInviteException(
-        'Could not confirm the new membership: $e',
+        FlipperL10n.current.hrInviteErrorConfirmMembership('$e'),
         step: HrInviteStep.verify,
         cause: e,
       );
@@ -241,8 +241,7 @@ class ApiHubHrInviteRepository implements HrInviteRepository {
           .timeout(_timeout);
     } on TimeoutException catch (e) {
       throw HrInviteException(
-        '$friendly Flipper did not answer in time — check the connection and '
-        'try again.',
+        '$friendly ${FlipperL10n.current.hrInviteErrorTimeout}',
         step: step,
         cause: e,
       );
@@ -265,7 +264,7 @@ class ApiHubHrInviteRepository implements HrInviteRepository {
       return jsonDecode(response.body);
     } catch (e) {
       throw HrInviteException(
-        'Flipper answered with something that is not JSON: '
+        '${FlipperL10n.current.hrInviteErrorNotJson} '
         '${_trim(response.body)}',
         step: step,
         cause: e,
@@ -286,7 +285,9 @@ class ApiHubHrInviteRepository implements HrInviteRepository {
     required String businessId,
     required String branchId,
   }) {
-    final detail = e.message.isEmpty ? 'Supabase rejected the request.' : e.message;
+    final detail = e.message.isEmpty
+        ? 'Supabase rejected the request.'
+        : e.message;
     // PGRST202 means the function signature on the server is not the one this
     // client calls — i.e. the create_agent migration has not been applied here.
     if (e.code == 'PGRST202') {

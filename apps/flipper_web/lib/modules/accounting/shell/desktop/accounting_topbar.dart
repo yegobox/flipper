@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_providers.dart';
 import 'package:flipper_web/modules/accounting/routing/accounting_route.dart';
 import 'package:flipper_web/modules/accounting/theme/accounting_tokens.dart';
@@ -33,7 +34,10 @@ class AccountingTopbar extends ConsumerWidget {
             children: [
               Flexible(
                 flex: compact ? 1 : 0,
-                child: _Breadcrumb(section: view.section, label: view.label),
+                child: _Breadcrumb(
+                  section: view.sectionLabel(context.flipperL10n),
+                  label: view.localizedLabel(context.flipperL10n),
+                ),
               ),
               const Spacer(),
               if (!hideSearch) ...[
@@ -49,8 +53,8 @@ class AccountingTopbar extends ConsumerWidget {
                   ref.read(notificationsReadProvider.notifier).state = true;
                   showAccountingToast(
                     context,
-                    'All caught up',
-                    subtitle: 'Notifications marked read',
+                    context.flipperL10n.booksAllCaughtUp,
+                    subtitle: context.flipperL10n.booksNotificationsMarkedRead,
                     accIcon: AccIcon.check,
                     tone: AccountingToastTone.success,
                   );
@@ -124,7 +128,9 @@ class _TopSearchFieldState extends State<_TopSearchField> {
   @override
   void initState() {
     super.initState();
-    _focusNode.addListener(() => setState(() => _focused = _focusNode.hasFocus));
+    _focusNode.addListener(
+      () => setState(() => _focused = _focusNode.hasFocus),
+    );
   }
 
   @override
@@ -168,12 +174,18 @@ class _TopSearchFieldState extends State<_TopSearchField> {
           Expanded(
             child: TextField(
               focusNode: _focusNode,
-              style: AccountingTokens.sans(fontSize: 14, color: AccountingTokens.ink1),
+              style: AccountingTokens.sans(
+                fontSize: 14,
+                color: AccountingTokens.ink1,
+              ),
               decoration: InputDecoration(
                 isDense: true,
                 border: InputBorder.none,
-                hintText: 'Search entries, accounts, invoices…',
-                hintStyle: AccountingTokens.sans(fontSize: 14, color: AccountingTokens.ink4),
+                hintText: context.flipperL10n.booksSearchPlaceholder,
+                hintStyle: AccountingTokens.sans(
+                  fontSize: 14,
+                  color: AccountingTokens.ink4,
+                ),
                 contentPadding: EdgeInsets.zero,
               ),
             ),
@@ -187,7 +199,10 @@ class _TopSearchFieldState extends State<_TopSearchField> {
             ),
             child: Text(
               '⌘K',
-              style: AccountingTokens.mono(fontSize: 11, color: AccountingTokens.ink3),
+              style: AccountingTokens.mono(
+                fontSize: 11,
+                color: AccountingTokens.ink3,
+              ),
             ),
           ),
         ],
@@ -208,7 +223,7 @@ class _PeriodButton extends ConsumerWidget {
     final months = List.generate(12, (i) => DateTime(fiscalYear, i + 1, 1));
 
     return PopupMenuButton<DateTime>(
-      tooltip: 'Fiscal period',
+      tooltip: context.flipperL10n.booksFiscalPeriod,
       offset: const Offset(0, 44),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       onSelected: (monthStart) {
@@ -219,7 +234,7 @@ class _PeriodButton extends ConsumerWidget {
         );
         showAccountingToast(
           context,
-          'Period changed',
+          context.flipperL10n.booksPeriodChanged,
           subtitle: DateFormat('MMM yyyy').format(monthStart),
           accIcon: AccIcon.calendar,
         );
@@ -228,7 +243,7 @@ class _PeriodButton extends ConsumerWidget {
         PopupMenuItem<DateTime>(
           enabled: false,
           child: Text(
-            'Fiscal period $fiscalYear',
+            context.flipperL10n.booksFiscalPeriodYear('$fiscalYear'),
             style: AccountingTokens.sans(
               fontSize: 11,
               fontWeight: FontWeight.w700,
@@ -305,8 +320,9 @@ class _NotificationsButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
     return PopupMenuButton<String>(
-      tooltip: 'Notifications',
+      tooltip: l10n.booksNotifications,
       offset: const Offset(0, 44),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       onSelected: (value) {
@@ -323,7 +339,7 @@ class _NotificationsButton extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  'Notifications',
+                  l10n.booksNotifications,
                   style: AccountingTokens.sans(
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
@@ -336,29 +352,29 @@ class _NotificationsButton extends StatelessWidget {
                   Navigator.pop(context);
                   onMarkRead();
                 },
-                child: const Text('Mark all read'),
+                child: Text(l10n.booksMarkAllRead),
               ),
             ],
           ),
         ),
         if (pending > 0)
-          const PopupMenuItem(
+          PopupMenuItem(
             value: 'journal',
             child: ListTile(
               contentPadding: EdgeInsets.zero,
-              leading: AccountingIcon(icon: AccIcon.receipt, size: 20),
-              title: Text('Journal entries awaiting approval'),
-              subtitle: Text('Review pending double-entry postings'),
+              leading: const AccountingIcon(icon: AccIcon.receipt, size: 20),
+              title: Text(l10n.booksEntriesAwaitingApprovalTitle),
+              subtitle: Text(l10n.booksReviewPendingPostings),
             ),
           )
         else
-          const PopupMenuItem(
+          PopupMenuItem(
             enabled: false,
-            child: Text('No new notifications'),
+            child: Text(l10n.booksNoNewNotifications),
           ),
       ],
       child: Tooltip(
-        message: 'Notifications',
+        message: l10n.booksNotifications,
         child: Material(
           color: Colors.transparent,
           child: InkWell(

@@ -1,5 +1,6 @@
 import 'package:flipper_hr/features/invite/data/hr_invite.dart';
 import 'package:flipper_hr/features/people/data/employee.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -14,10 +15,8 @@ Future<HrRole?> showInviteRoleDialog(
 }) {
   return showDialog<HrRole>(
     context: context,
-    builder: (context) => _InviteRoleDialog(
-      employee: employee,
-      directReports: directReports,
-    ),
+    builder: (context) =>
+        _InviteRoleDialog(employee: employee, directReports: directReports),
   );
 }
 
@@ -47,10 +46,11 @@ class _InviteRoleDialogState extends State<_InviteRoleDialog> {
     // An email reaches /v2/api/user, but the PIN is confirmed by an SMS OTP, so
     // a record with no phone produces a login nobody can complete.
     final hasPhone = employee.phone.trim().isNotEmpty;
+    final l10n = context.flipperL10n;
 
     return AlertDialog(
       key: const Key('invite-role-dialog'),
-      title: Text('Invite ${employee.fullName} to HR'),
+      title: Text(l10n.hrInviteTitle(employee.fullName)),
       content: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 420),
         child: Column(
@@ -59,40 +59,24 @@ class _InviteRoleDialogState extends State<_InviteRoleDialog> {
           children: [
             Text(
               contact.isEmpty
-                  ? 'This record has no phone number or email, so there is '
-                        'nowhere to send an invite. Add one first.'
-                  : 'They will get a PIN to sign in at hr.useflipper.com with, '
-                        'confirmed by a code sent to $contact.',
+                  ? l10n.hrInviteNoContact
+                  : l10n.hrInviteWillGetPin(contact),
               style: theme.textTheme.bodyMedium,
             ),
             if (contact.isNotEmpty && !hasPhone) ...[
               const SizedBox(height: 12),
-              _Warning(
-                'This record has an email but no phone number. Signing in '
-                'needs a code sent by SMS, so add a phone number before '
-                'inviting.',
-              ),
+              _Warning(l10n.hrInviteEmailNoPhone),
             ],
             if (employee.hasFlipperAccount) ...[
               const SizedBox(height: 12),
-              _Warning(
-                'They already have an account. Inviting again issues a fresh '
-                'PIN and updates what they can do — it does not create a '
-                'second person.',
-              ),
+              _Warning(l10n.hrInviteAlreadyHasAccount),
             ],
             if (widget.directReports > 0) ...[
               const SizedBox(height: 12),
-              _Warning(
-                '${widget.directReports} '
-                '${widget.directReports == 1 ? 'person' : 'people'} '
-                'report to them, so they will approve that leave whichever role '
-                'you pick. The roster and everyone else\'s pay is what the '
-                'manager role adds.',
-              ),
+              _Warning(l10n.hrInviteDirectReports(widget.directReports)),
             ],
             const SizedBox(height: 20),
-            Text('What can they do?', style: theme.textTheme.titleSmall),
+            Text(l10n.hrInviteWhatCanTheyDo, style: theme.textTheme.titleSmall),
             const SizedBox(height: 4),
             // RadioGroup owns the selection: the per-tile groupValue/onChanged
             // pair is deprecated in this Flutter.
@@ -107,7 +91,7 @@ class _InviteRoleDialogState extends State<_InviteRoleDialog> {
                       key: Key('invite-role-${role.name}'),
                       value: role,
                       title: Text(role.label),
-                      subtitle: Text(_describe(role)),
+                      subtitle: Text(_describe(l10n, role)),
                       contentPadding: EdgeInsets.zero,
                       dense: true,
                     ),
@@ -120,27 +104,24 @@ class _InviteRoleDialogState extends State<_InviteRoleDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+          child: Text(l10n.cancel),
         ),
         FilledButton(
           key: const Key('invite-confirm'),
           onPressed: contact.isEmpty
               ? null
               : () => Navigator.of(context).pop(_role),
-          child: const Text('Send invite'),
+          child: Text(l10n.hrSendInvite),
         ),
       ],
     );
   }
 
-  static String _describe(HrRole role) => switch (role) {
-    HrRole.staff =>
-      'Sees their own record, books leave and checks their balance — plus '
-          'approves leave for anyone who reports to them.',
-    HrRole.manager =>
-      'Everything above, plus the branch roster, pay, and approving leave for '
-          'the whole business.',
-  };
+  static String _describe(FlipperAppLocalizations l10n, HrRole role) =>
+      switch (role) {
+        HrRole.staff => l10n.hrRoleStaffDescription,
+        HrRole.manager => l10n.hrRoleManagerDescription,
+      };
 }
 
 /// Shows the issued PIN. This is the only time it is visible — apihub does not
@@ -156,9 +137,10 @@ Future<void> showInvitePinDialog(
     barrierDismissible: false,
     builder: (context) {
       final theme = Theme.of(context);
+      final l10n = context.flipperL10n;
       return AlertDialog(
         key: const Key('invite-pin-dialog'),
-        title: const Text('Invite sent'),
+        title: Text(l10n.hrInviteSent),
         content: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 420),
           child: Column(
@@ -166,8 +148,10 @@ Future<void> showInvitePinDialog(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                '$name can now sign in at hr.useflipper.com as '
-                '${invite.role.label.split('—').first.trim().toLowerCase()}.',
+                l10n.hrInviteCanNowSignIn(
+                  name,
+                  invite.role.shortLabel.toLowerCase(),
+                ),
                 style: theme.textTheme.bodyMedium,
               ),
               const SizedBox(height: 16),
@@ -204,7 +188,7 @@ Future<void> showInvitePinDialog(
                     ),
                     IconButton(
                       key: const Key('invite-pin-copy'),
-                      tooltip: 'Copy PIN',
+                      tooltip: l10n.hrCopyPin,
                       icon: const Icon(Icons.copy_all_outlined),
                       onPressed: () async {
                         await Clipboard.setData(
@@ -212,7 +196,7 @@ Future<void> showInvitePinDialog(
                         );
                         if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('PIN copied.')),
+                            SnackBar(content: Text(l10n.hrPinCopied)),
                           );
                         }
                       },
@@ -222,10 +206,7 @@ Future<void> showInvitePinDialog(
               ),
               const SizedBox(height: 12),
               Text(
-                'Signing in asks for this PIN, then a code sent to '
-                '${invite.phoneNumber}. Pass the PIN on now — it is not shown '
-                'again, and a lost one is replaced by inviting them a second '
-                'time.',
+                l10n.hrInvitePinHelp(invite.phoneNumber),
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
@@ -236,7 +217,7 @@ Future<void> showInvitePinDialog(
         actions: [
           FilledButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Done'),
+            child: Text(l10n.done),
           ),
         ],
       );
@@ -255,11 +236,7 @@ class _Warning extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(
-          Icons.info_outline,
-          size: 18,
-          color: theme.colorScheme.tertiary,
-        ),
+        Icon(Icons.info_outline, size: 18, color: theme.colorScheme.tertiary),
         const SizedBox(width: 8),
         Expanded(
           child: Text(

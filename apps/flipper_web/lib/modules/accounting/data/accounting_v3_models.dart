@@ -1,3 +1,5 @@
+import 'package:flipper_web/modules/accounting/data/accounting_models.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 
 /// [partiallyPaid] is never stored (Supabase only accepts the other four);
@@ -405,74 +407,101 @@ class CloseTask {
   );
 }
 
-const accountingRoles = <RoleDefinition>[
+/// Display text for a stored recurring-schedule frequency value
+/// (`Monthly`, `Weekly`, …). Unknown values are shown as stored.
+String booksFrequencyLabel(String freq, FlipperAppLocalizations l10n) =>
+    switch (freq) {
+      'Monthly' => l10n.booksFreqMonthly,
+      'Weekly' => l10n.booksFreqWeekly,
+      'Quarterly' => l10n.booksFreqQuarterly,
+      'Yearly' => l10n.booksFreqYearly,
+      _ => freq,
+    };
+
+/// Display name for an account type (pills, pickers).
+String booksAccountTypeLabel(AccountType type, FlipperAppLocalizations l10n) =>
+    switch (type) {
+      AccountType.asset => l10n.booksTypeAsset,
+      AccountType.liability => l10n.booksTypeLiability,
+      AccountType.equity => l10n.booksTypeEquity,
+      AccountType.income => l10n.booksTypeIncome,
+      AccountType.expense => l10n.booksTypeExpense,
+    };
+
+/// Display text for a stored payment-terms value (`Net 30` …).
+String booksTermsLabel(String terms, FlipperAppLocalizations l10n) {
+  final m = RegExp(r'^Net (\d+)$').firstMatch(terms.trim());
+  return m == null ? terms : l10n.booksNetDays(m.group(1)!);
+}
+
+List<RoleDefinition> accountingRoles(FlipperAppLocalizations l10n) => [
   RoleDefinition(
-    role: 'Owner',
-    desc: 'Full access — approve, post, file taxes, manage team',
-    color: Color(0xFF2563EB),
+    role: l10n.booksRoleOwner,
+    desc: l10n.booksRoleOwnerDesc,
+    color: const Color(0xFF2563EB),
   ),
   RoleDefinition(
-    role: 'Bookkeeper',
-    desc: 'Create & edit entries, invoices and bills; cannot approve or file',
-    color: Color(0xFF0D9488),
+    role: l10n.booksRoleBookkeeper,
+    desc: l10n.booksRoleBookkeeperDesc,
+    color: const Color(0xFF0D9488),
   ),
   RoleDefinition(
-    role: 'Cashier',
-    desc: 'Record sales and receipts from POS only',
-    color: Color(0xFFE08600),
+    role: l10n.booksRoleCashier,
+    desc: l10n.booksRoleCashierDesc,
+    color: const Color(0xFFE08600),
   ),
   RoleDefinition(
-    role: 'Viewer',
-    desc: 'Read-only access to reports and statements',
-    color: Color(0xFF7C3AED),
+    role: l10n.booksRoleViewer,
+    desc: l10n.booksRoleViewerDesc,
+    color: const Color(0xFF7C3AED),
   ),
 ];
 
-const accountingPermissions = <PermissionRow>[
+List<PermissionRow> accountingPermissions(FlipperAppLocalizations l10n) => [
   PermissionRow(
-    cap: 'View reports & statements',
+    cap: l10n.booksCapViewReports,
     owner: true,
     bookkeeper: true,
     cashier: false,
     viewer: true,
   ),
   PermissionRow(
-    cap: 'Create invoices & bills',
+    cap: l10n.booksCapCreateInvoicesBills,
     owner: true,
     bookkeeper: true,
     cashier: false,
     viewer: false,
   ),
   PermissionRow(
-    cap: 'Record payments & receipts',
+    cap: l10n.booksCapRecordPayments,
     owner: true,
     bookkeeper: true,
     cashier: true,
     viewer: false,
   ),
   PermissionRow(
-    cap: 'Post & edit journal entries',
+    cap: l10n.booksCapPostJournal,
     owner: true,
     bookkeeper: true,
     cashier: false,
     viewer: false,
   ),
   PermissionRow(
-    cap: 'Approve entries',
+    cap: l10n.booksCapApproveEntries,
     owner: true,
     bookkeeper: false,
     cashier: false,
     viewer: false,
   ),
   PermissionRow(
-    cap: 'File VAT with RRA',
+    cap: l10n.booksCapFileVat,
     owner: true,
     bookkeeper: false,
     cashier: false,
     viewer: false,
   ),
   PermissionRow(
-    cap: 'Close periods & manage team',
+    cap: l10n.booksCapClosePeriods,
     owner: true,
     bookkeeper: false,
     cashier: false,

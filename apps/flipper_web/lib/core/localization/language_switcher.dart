@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'locale_provider.dart';
@@ -8,49 +9,37 @@ class LanguageSwitcher extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final currentLocale = ref.watch(localeProvider);
+    final l10n = context.flipperL10n;
+
+    final options = <(String code, String flag, String label)>[
+      ('en', '🇺🇸', l10n.english),
+      ('fr', '🇫🇷', l10n.french),
+      ('rw', '🇷🇼', l10n.kinyarwanda),
+      ('sw', '🇹🇿', l10n.swahili),
+    ];
 
     return PopupMenuButton<Locale>(
       icon: const Icon(Icons.language),
+      tooltip: l10n.language,
       onSelected: (Locale locale) {
         ref.read(localeProvider.notifier).setLocale(locale);
       },
       itemBuilder: (BuildContext context) => [
-        PopupMenuItem(
-          value: const Locale('en'),
-          child: Row(
-            children: [
-              const Text('🇺🇸'),
-              const SizedBox(width: 8),
-              const Text('English'),
-              if (currentLocale.languageCode == 'en')
-                const Icon(Icons.check, size: 16),
-            ],
+        for (final (code, flag, label) in options)
+          PopupMenuItem(
+            value: Locale(code),
+            child: Row(
+              children: [
+                Text(flag),
+                const SizedBox(width: 8),
+                Text(label),
+                if (currentLocale.languageCode == code) ...[
+                  const SizedBox(width: 8),
+                  const Icon(Icons.check, size: 16),
+                ],
+              ],
+            ),
           ),
-        ),
-        PopupMenuItem(
-          value: const Locale('fr'),
-          child: Row(
-            children: [
-              const Text('🇷🇼'),
-              const SizedBox(width: 8),
-              const Text('Kinyarwanda'),
-              if (currentLocale.languageCode == 'fr')
-                const Icon(Icons.check, size: 16),
-            ],
-          ),
-        ),
-        PopupMenuItem(
-          value: const Locale('sw'),
-          child: Row(
-            children: [
-              const Text('🇹🇿'),
-              const SizedBox(width: 8),
-              const Text('Kiswahili'),
-              if (currentLocale.languageCode == 'sw')
-                const Icon(Icons.check, size: 16),
-            ],
-          ),
-        ),
       ],
     );
   }

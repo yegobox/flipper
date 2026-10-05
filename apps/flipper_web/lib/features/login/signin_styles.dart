@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'dart:math' as math;
 
 import 'package:flipper_design_system/flipper_design_system.dart';
@@ -7,25 +8,25 @@ import 'package:flutter/material.dart';
 // ── Design tokens (mirrors flipper_login/SignInTokens) ───────────────────────
 
 abstract final class SITokens {
-  static const Color surface     = Color(0xFFFFFFFF);
-  static const Color surface2    = Color(0xFFF7F9FE);
-  static const Color ink1        = Color(0xFF0B1220);
-  static const Color ink2        = Color(0xFF4A5567);
-  static const Color ink3        = Color(0xFF7E8AA0);
-  static const Color line        = Color(0xFFE6ECF5);
-  static const Color blue        = Color(0xFF2563EB);
-  static const Color blueTint    = Color(0xFFEAF1FE);
-  static const Color blueTint2   = Color(0xFFDEEAFD);
-  static const Color win         = Color(0xFF10B981);
-  static const Color winTint     = Color(0xFFDEF7EC);
-  static const Color danger      = Color(0xFFC0392B);
-  static const Color dangerTint  = Color(0xFFFDF1EF);
+  static const Color surface = Color(0xFFFFFFFF);
+  static const Color surface2 = Color(0xFFF7F9FE);
+  static const Color ink1 = Color(0xFF0B1220);
+  static const Color ink2 = Color(0xFF4A5567);
+  static const Color ink3 = Color(0xFF7E8AA0);
+  static const Color line = Color(0xFFE6ECF5);
+  static const Color blue = Color(0xFF2563EB);
+  static const Color blueTint = Color(0xFFEAF1FE);
+  static const Color blueTint2 = Color(0xFFDEEAFD);
+  static const Color win = Color(0xFF10B981);
+  static const Color winTint = Color(0xFFDEF7EC);
+  static const Color danger = Color(0xFFC0392B);
+  static const Color dangerTint = Color(0xFFFDF1EF);
 
-  static const double radiusMd           = 14;
-  static const double formMaxWidth       = 380;
-  static const double desktopBreakpoint  = 920;
-  static const int    pinCellCount       = 6;
-  static const double pinCellHeight      = 60;
+  static const double radiusMd = 14;
+  static const double formMaxWidth = 380;
+  static const double desktopBreakpoint = 920;
+  static const int pinCellCount = 6;
+  static const double pinCellHeight = 60;
 
   static const LinearGradient brandGradient = LinearGradient(
     colors: [Color(0xFF22D3EE), Color(0xFF2563EB), Color(0xFF4F46E5)],
@@ -50,32 +51,31 @@ extension SITextExt on BuildContext {
     Color? color,
     double? letterSpacing,
     double? height,
-  }) =>
-      Theme.of(this).textTheme.bodyMedium!.copyWith(
-            fontSize: fontSize,
-            fontWeight: fontWeight,
-            color: color ?? SITokens.ink1,
-            letterSpacing: letterSpacing,
-            height: height,
-          );
+  }) => Theme.of(this).textTheme.bodyMedium!.copyWith(
+    fontSize: fontSize,
+    fontWeight: fontWeight,
+    color: color ?? SITokens.ink1,
+    letterSpacing: letterSpacing,
+    height: height,
+  );
 
   TextStyle siPinDigit({double fontSize = 24}) =>
       Theme.of(this).textTheme.headlineSmall!.copyWith(
-            fontSize: fontSize,
-            fontWeight: FontWeight.w600,
-            color: SITokens.ink1,
-            letterSpacing: 2,
-          );
+        fontSize: fontSize,
+        fontWeight: FontWeight.w600,
+        color: SITokens.ink1,
+        letterSpacing: 2,
+      );
 }
 
 // ── Animation constants (mirrors flipper_login/SignInMotion) ─────────────────
 
 abstract final class SIMotion {
-  static const Duration shake          = Duration(milliseconds: 400);
+  static const Duration shake = Duration(milliseconds: 400);
   static const Duration cellTransition = Duration(milliseconds: 150);
-  static const Duration dotPop         = Duration(milliseconds: 120);
-  static const Duration floatCycle     = Duration(milliseconds: 6000);
-  static const double   floatAmplitude = 9.0;
+  static const Duration dotPop = Duration(milliseconds: 120);
+  static const Duration floatCycle = Duration(milliseconds: 6000);
+  static const double floatAmplitude = 9.0;
 
   static Animation<double> pinShake(AnimationController c) =>
       TweenSequence<double>([
@@ -129,7 +129,7 @@ class SIBottomBar extends StatelessWidget {
         const Icon(Icons.verified_user_outlined, size: 14, color: SITokens.win),
         const SizedBox(width: 6),
         Text(
-          'Secured with end-to-end encryption',
+          context.flipperL10n.webAuthSecuredE2e,
           style: context.siText(fontSize: 12.5, color: SITokens.ink3),
         ),
       ],
@@ -201,7 +201,7 @@ class _SIPinCell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Color border     = SITokens.line;
+    Color border = SITokens.line;
     Color background = SITokens.surface;
     List<BoxShadow>? shadows;
 
@@ -229,8 +229,8 @@ class _SIPinCell extends StatelessWidget {
       ),
       child: filled
           ? (showDigit
-              ? Text(digit!, style: context.siPinDigit(fontSize: 24))
-              : _SIPinDot(key: ValueKey('dot-$index-$digit')))
+                ? Text(digit!, style: context.siPinDigit(fontSize: 24))
+                : _SIPinDot(key: ValueKey('dot-$index-$digit')))
           : null,
     );
   }
@@ -264,14 +264,14 @@ class SIStatusLine extends StatelessWidget {
   final bool hasError;
   final bool isSuccess;
   final String message;
-  final String successLabel;
+  final String? successLabel;
 
   const SIStatusLine({
     super.key,
     required this.hasError,
     required this.isSuccess,
     this.message = '',
-    this.successLabel = 'your business',
+    this.successLabel,
   });
 
   @override
@@ -283,7 +283,9 @@ class SIStatusLine extends StatelessWidget {
           const SizedBox(width: 7),
           Expanded(
             child: Text(
-              'Verified — opening $successLabel…',
+              context.flipperL10n.webAuthVerifiedOpening(
+                successLabel ?? context.flipperL10n.webAuthYourBusiness,
+              ),
               style: context.siText(
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
@@ -380,10 +382,8 @@ class _WebBrandPanelState extends State<WebBrandPanel>
   @override
   void initState() {
     super.initState();
-    _float = AnimationController(
-      vsync: this,
-      duration: SIMotion.floatCycle,
-    )..repeat(reverse: true);
+    _float = AnimationController(vsync: this, duration: SIMotion.floatCycle)
+      ..repeat(reverse: true);
   }
 
   @override
@@ -446,8 +446,7 @@ class _WebBrandPanelState extends State<WebBrandPanel>
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
                                   border: Border.all(
-                                    color:
-                                        Colors.white.withValues(alpha: 0.14),
+                                    color: Colors.white.withValues(alpha: 0.14),
                                   ),
                                 ),
                               ),
@@ -541,7 +540,7 @@ class _BrandCopy extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            'Your shop, your team, your numbers — all in one place.',
+            context.flipperL10n.webAuthBrandTitle,
             style: context.siText(
               fontSize: 30,
               fontWeight: FontWeight.w700,
@@ -552,7 +551,7 @@ class _BrandCopy extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            "Pick up right where you left off. Today's sales, stock, and reports are ready.",
+            context.flipperL10n.webAuthBrandBody,
             style: context.siText(
               fontSize: 15.5,
               height: 1.5,
@@ -562,11 +561,19 @@ class _BrandCopy extends StatelessWidget {
           const SizedBox(height: 26),
           Row(
             children: [
-              _stat(context, '12,400+', 'businesses'),
+              _stat(
+                context,
+                '12,400+',
+                context.flipperL10n.webHomeTrustBusinesses,
+              ),
               const SizedBox(width: 28),
-              _stat(context, 'RWF 1.2B', 'processed monthly'),
+              _stat(
+                context,
+                'RWF 1.2B',
+                context.flipperL10n.webHomeStatProcessedMonthly,
+              ),
               const SizedBox(width: 28),
-              _stat(context, '99.9%', 'uptime'),
+              _stat(context, '99.9%', context.flipperL10n.webHomeStatUptime),
             ],
           ),
         ],
@@ -587,8 +594,7 @@ class _BrandCopy extends StatelessWidget {
         const SizedBox(height: 2),
         Text(
           label,
-          style:
-              context.siText(fontSize: 12.5, color: const Color(0xFFBFD3FF)),
+          style: context.siText(fontSize: 12.5, color: const Color(0xFFBFD3FF)),
         ),
       ],
     );
@@ -641,7 +647,7 @@ class _MiniChartCard extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  'Revenue · this week',
+                  context.flipperL10n.webHomeRevenueThisWeek,
                   style: context.siText(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
@@ -671,8 +677,9 @@ class _MiniChartCard extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             'RWF 248,500',
-            style:
-                context.siPinDigit(fontSize: 19).copyWith(fontWeight: FontWeight.w800),
+            style: context
+                .siPinDigit(fontSize: 19)
+                .copyWith(fontWeight: FontWeight.w800),
           ),
           const SizedBox(height: 9),
           SizedBox(
@@ -689,9 +696,12 @@ class _MiniChartCard extends StatelessWidget {
                       child: DecoratedBox(
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(4),
-                          gradient:
-                              i == _bars.length - 1 ? SITokens.brandGradient : null,
-                          color: i == _bars.length - 1 ? null : SITokens.blueTint2,
+                          gradient: i == _bars.length - 1
+                              ? SITokens.brandGradient
+                              : null,
+                          color: i == _bars.length - 1
+                              ? null
+                              : SITokens.blueTint2,
                         ),
                         child: SizedBox(height: 48 * _bars[i]),
                       ),
@@ -722,7 +732,11 @@ class _MiniSaleCard extends StatelessWidget {
               color: SITokens.winTint,
               borderRadius: BorderRadius.circular(10),
             ),
-            child: const Icon(Icons.check_rounded, color: SITokens.win, size: 17),
+            child: const Icon(
+              Icons.check_rounded,
+              color: SITokens.win,
+              size: 17,
+            ),
           ),
           const SizedBox(width: 11),
           Expanded(
@@ -730,7 +744,7 @@ class _MiniSaleCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'New sale',
+                  context.flipperL10n.webHomeNewSale,
                   style: context.siText(
                     fontSize: 12.5,
                     fontWeight: FontWeight.w700,
@@ -749,10 +763,9 @@ class _MiniSaleCard extends StatelessWidget {
           ),
           Text(
             '+12,000',
-            style: context.siPinDigit(fontSize: 14).copyWith(
-              fontWeight: FontWeight.w800,
-              color: SITokens.win,
-            ),
+            style: context
+                .siPinDigit(fontSize: 14)
+                .copyWith(fontWeight: FontWeight.w800, color: SITokens.win),
           ),
         ],
       ),
@@ -789,13 +802,13 @@ class _MiniStreakCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                '12 days',
+                context.flipperL10n.webHomeDays(12),
                 style: context
                     .siPinDigit(fontSize: 16)
                     .copyWith(fontWeight: FontWeight.w800),
               ),
               Text(
-                'Sales streak',
+                context.flipperL10n.webHomeSalesStreak,
                 style: context.siText(fontSize: 11, color: SITokens.ink3),
               ),
             ],

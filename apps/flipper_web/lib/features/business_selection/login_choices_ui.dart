@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_design_system/flipper_design_system.dart';
 import 'package:flipper_web/models/user_profile.dart';
 import 'package:flutter/material.dart';
@@ -41,7 +42,7 @@ String displayUserName(UserProfile profile, List<Business> businesses) {
   }
   final phone = profile.phoneNumber.trim();
   if (phone.isNotEmpty) return phone;
-  return 'User';
+  return FlipperL10n.current.webBizUser;
 }
 
 String displayUserContact(UserProfile profile, List<Business> businesses) {
@@ -56,10 +57,15 @@ String displayUserContact(UserProfile profile, List<Business> businesses) {
   return phone.startsWith('+') ? phone.substring(1) : phone;
 }
 
-String businessChoiceSubtitle(Business business, int branchCount, String userId) {
-  final role = business.userId == userId ? 'Owner' : 'Member';
-  final branchWord = branchCount == 1 ? 'branch' : 'branches';
-  return '$role · $branchCount $branchWord';
+String businessChoiceSubtitle(
+  Business business,
+  int branchCount,
+  String userId,
+) {
+  final l10n = FlipperL10n.current;
+  return business.userId == userId
+      ? l10n.webBizOwnerBranches(branchCount)
+      : l10n.webBizMemberBranches(branchCount);
 }
 
 LoginChoiceIconTone iconToneForIndex(int index) {
@@ -395,7 +401,9 @@ class _LoginChoicesAccountMenu extends StatelessWidget {
           const Divider(height: 1, color: LoginChoicesTokens.line),
           _LoginChoicesMenuRow(
             icon: Icons.logout_rounded,
-            label: isSigningOut ? 'Signing out…' : 'Sign out',
+            label: isSigningOut
+                ? context.flipperL10n.webBizSigningOut
+                : context.flipperL10n.signOut,
             color: LoginChoicesTokens.signOut,
             isLoading: isSigningOut,
             onTap: isSigningOut ? null : () => onSignOut(),
@@ -506,10 +514,7 @@ class BusinessChoiceTile extends StatelessWidget {
       selected: false,
       child: Row(
         children: [
-          LoginChoiceIcon(
-            icon: Icons.storefront_outlined,
-            tone: iconTone,
-          ),
+          LoginChoiceIcon(icon: Icons.storefront_outlined, tone: iconTone),
           const SizedBox(width: 14),
           Expanded(
             child: Column(
@@ -610,9 +615,9 @@ class BranchChoiceTile extends StatelessWidget {
                           color: const Color(0xFFE7E5FF),
                           borderRadius: BorderRadius.circular(999),
                         ),
-                        child: const Text(
-                          'DEFAULT',
-                          style: TextStyle(
+                        child: Text(
+                          context.flipperL10n.webBizDefault,
+                          style: const TextStyle(
                             color: Color(0xFF4F46E5),
                             fontSize: 12,
                             fontWeight: FontWeight.w900,
@@ -651,7 +656,10 @@ class BranchChoiceTile extends StatelessWidget {
               height: 28,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                border: Border.all(color: LoginChoicesTokens.lineStrong, width: 2),
+                border: Border.all(
+                  color: LoginChoicesTokens.lineStrong,
+                  width: 2,
+                ),
               ),
             ),
         ],
@@ -676,10 +684,12 @@ class _AddBusinessTileState extends State<AddBusinessTile> {
   @override
   Widget build(BuildContext context) {
     final isActive = _isHovered || _isPressed;
-    final foreground =
-        isActive ? LoginChoicesTokens.blue : LoginChoicesTokens.ink2;
-    final borderColor =
-        isActive ? LoginChoicesTokens.blue : LoginChoicesTokens.lineStrong;
+    final foreground = isActive
+        ? LoginChoicesTokens.blue
+        : LoginChoicesTokens.ink2;
+    final borderColor = isActive
+        ? LoginChoicesTokens.blue
+        : LoginChoicesTokens.lineStrong;
 
     return MouseRegion(
       cursor: SystemMouseCursors.click,
@@ -702,7 +712,9 @@ class _AddBusinessTileState extends State<AddBusinessTile> {
             curve: Curves.easeOut,
             margin: const EdgeInsets.only(top: 2),
             decoration: BoxDecoration(
-              color: isActive ? LoginChoicesTokens.blueTint : Colors.transparent,
+              color: isActive
+                  ? LoginChoicesTokens.blueTint
+                  : Colors.transparent,
               borderRadius: BorderRadius.circular(14),
             ),
             child: CustomPaint(
@@ -719,7 +731,7 @@ class _AddBusinessTileState extends State<AddBusinessTile> {
                       Icon(Icons.add_rounded, size: 18, color: foreground),
                       const SizedBox(width: 8),
                       Text(
-                        'Add a business',
+                        context.flipperL10n.webBizAddBusiness,
                         style: TextStyle(
                           color: foreground,
                           fontSize: 14.5,
@@ -894,7 +906,9 @@ class _LoginChoiceCardState extends State<LoginChoiceCard> {
           duration: const Duration(milliseconds: 150),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
           decoration: BoxDecoration(
-            color: selected ? LoginChoicesTokens.blueTint : LoginChoicesTokens.surface,
+            color: selected
+                ? LoginChoicesTokens.blueTint
+                : LoginChoicesTokens.surface,
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
               color: selected
@@ -906,8 +920,9 @@ class _LoginChoiceCardState extends State<LoginChoiceCard> {
             ),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF102040)
-                    .withValues(alpha: hovered || selected ? .14 : .05),
+                color: const Color(
+                  0xFF102040,
+                ).withValues(alpha: hovered || selected ? .14 : .05),
                 blurRadius: hovered || selected ? 18 : 2,
                 offset: Offset(0, hovered || selected ? 6 : 1),
               ),

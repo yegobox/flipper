@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -103,6 +104,8 @@ class TestWrapper extends StatelessWidget {
         countriesProvider.overrideWithValue(['Rwanda', 'Kenya', 'Uganda']),
       ],
       child: MaterialApp(
+        localizationsDelegates: FlipperLocalizationDelegates.delegates,
+        supportedLocales: FlipperLocalizationDelegates.supportedLocales,
         // Use a test-appropriate theme to avoid layout issues
         theme: ThemeData(
           visualDensity: VisualDensity.compact,
@@ -245,7 +248,11 @@ void main() {
       await tester.pumpWidget(
         UncontrolledProviderScope(
           container: container,
-          child: MaterialApp(home: Scaffold(body: const SignupView())),
+          child: MaterialApp(
+            localizationsDelegates: FlipperLocalizationDelegates.delegates,
+            supportedLocales: FlipperLocalizationDelegates.supportedLocales,
+            home: Scaffold(body: const SignupView()),
+          ),
         ),
       );
       return container;

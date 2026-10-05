@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_hr/features/invite/data/hr_invite.dart';
 import 'package:flipper_hr/features/people/data/employee.dart';
 import 'package:flipper_hr/features/people/data/employee_repository.dart';
@@ -44,6 +45,8 @@ Future<void> _pumpPeople(
         hrClockProvider.overrideWithValue(() => _today),
       ],
       child: const MaterialApp(
+        localizationsDelegates: FlipperLocalizationDelegates.delegates,
+        supportedLocales: FlipperLocalizationDelegates.supportedLocales,
         home: Scaffold(
           body: PeoplePage(
             businessId: 'biz-1',
@@ -75,11 +78,14 @@ void main() {
         invites: invites,
       );
 
-      await container.read(peopleActionsProvider).invite(
-        employee: (await container.read(rosterProvider('branch-1').future))
-            .single,
-        role: HrRole.staff,
-      );
+      await container
+          .read(peopleActionsProvider)
+          .invite(
+            employee: (await container.read(
+              rosterProvider('branch-1').future,
+            )).single,
+            role: HrRole.staff,
+          );
 
       expect(invites.calls.single.contact, '0788123456');
       expect(invites.calls.single.name, 'Aline Uwase');
@@ -92,39 +98,41 @@ void main() {
       final invites = FakeHrInviteRepository();
       final container = _container(
         people: FakeEmployeeRepository(
-          seed: [
-            employee(id: 'e-1', phone: '', email: 'aline@example.com'),
-          ],
+          seed: [employee(id: 'e-1', phone: '', email: 'aline@example.com')],
         ),
         invites: invites,
       );
 
-      await container.read(peopleActionsProvider).invite(
-        employee: (await container.read(rosterProvider('branch-1').future))
-            .single,
-        role: HrRole.staff,
-      );
+      await container
+          .read(peopleActionsProvider)
+          .invite(
+            employee: (await container.read(
+              rosterProvider('branch-1').future,
+            )).single,
+            role: HrRole.staff,
+          );
 
       expect(invites.calls.single.contact, 'aline@example.com');
     });
 
-    test('links the account onto the record, which is what leave resolves through',
-        () async {
-      final people = FakeEmployeeRepository(seed: [employee(id: 'e-1')]);
-      final container = _container(
-        people: people,
-        invites: FakeHrInviteRepository(),
-      );
+    test(
+      'links the account onto the record, which is what leave resolves through',
+      () async {
+        final people = FakeEmployeeRepository(seed: [employee(id: 'e-1')]);
+        final container = _container(
+          people: people,
+          invites: FakeHrInviteRepository(),
+        );
 
-      final invite = await container.read(peopleActionsProvider).invite(
-        employee: people.people.single,
-        role: HrRole.staff,
-      );
+        final invite = await container
+            .read(peopleActionsProvider)
+            .invite(employee: people.people.single, role: HrRole.staff);
 
-      expect(invite.userId, 'user-new');
-      expect(people.people.single.userId, 'user-new');
-      expect(people.people.single.hasFlipperAccount, isTrue);
-    });
+        expect(invite.userId, 'user-new');
+        expect(people.people.single.userId, 'user-new');
+        expect(people.people.single.hasFlipperAccount, isTrue);
+      },
+    );
 
     test('refreshes the roster so the row shows the new account', () async {
       final people = FakeEmployeeRepository(seed: [employee(id: 'e-1')]);
@@ -135,10 +143,9 @@ void main() {
       final before = await container.read(rosterProvider('branch-1').future);
       expect(before.single.hasFlipperAccount, isFalse);
 
-      await container.read(peopleActionsProvider).invite(
-        employee: before.single,
-        role: HrRole.manager,
-      );
+      await container
+          .read(peopleActionsProvider)
+          .invite(employee: before.single, role: HrRole.manager);
 
       final after = await container.read(rosterProvider('branch-1').future);
       expect(after.single.userId, 'user-new');
@@ -156,11 +163,14 @@ void main() {
       );
 
       await expectLater(
-        container.read(peopleActionsProvider).invite(
-          employee: (await container.read(rosterProvider('branch-1').future))
-              .single,
-          role: HrRole.staff,
-        ),
+        container
+            .read(peopleActionsProvider)
+            .invite(
+              employee: (await container.read(
+                rosterProvider('branch-1').future,
+              )).single,
+              role: HrRole.staff,
+            ),
         throwsA(
           isA<HrInviteException>().having(
             (e) => e.step,
@@ -171,35 +181,37 @@ void main() {
       );
     });
 
-    test('a failed link is reported as linkEmployee, not as a failed invite',
-        () async {
-      // The distinction matters to whoever reads the message: the account and the
-      // PIN are real by then, so "try again" is wrong advice.
-      final people = FakeEmployeeRepository(seed: [employee(id: 'e-1')]);
-      final container = _container(
-        people: people,
-        invites: FakeHrInviteRepository(),
-      );
-      final employeeRow = people.people.single;
-      people.failWith = EmployeeRepositoryException('row-level security');
+    test(
+      'a failed link is reported as linkEmployee, not as a failed invite',
+      () async {
+        // The distinction matters to whoever reads the message: the account and the
+        // PIN are real by then, so "try again" is wrong advice.
+        final people = FakeEmployeeRepository(seed: [employee(id: 'e-1')]);
+        final container = _container(
+          people: people,
+          invites: FakeHrInviteRepository(),
+        );
+        final employeeRow = people.people.single;
+        people.failWith = EmployeeRepositoryException('row-level security');
 
-      await expectLater(
-        container.read(peopleActionsProvider).invite(
-          employee: employeeRow,
-          role: HrRole.staff,
-        ),
-        throwsA(
-          isA<HrInviteException>()
-              .having((e) => e.step, 'step', HrInviteStep.linkEmployee)
-              .having((e) => e.message, 'message', contains('row-level')),
-        ),
-      );
-    });
+        await expectLater(
+          container
+              .read(peopleActionsProvider)
+              .invite(employee: employeeRow, role: HrRole.staff),
+          throwsA(
+            isA<HrInviteException>()
+                .having((e) => e.step, 'step', HrInviteStep.linkEmployee)
+                .having((e) => e.message, 'message', contains('row-level')),
+          ),
+        );
+      },
+    );
   });
 
   group('the roster row', () {
-    testWidgets('offers an invite for someone with no account yet',
-        (tester) async {
+    testWidgets('offers an invite for someone with no account yet', (
+      tester,
+    ) async {
       await _pumpPeople(
         tester,
         people: FakeEmployeeRepository(seed: [employee(id: 'e-1')]),
@@ -260,9 +272,7 @@ void main() {
       await _pumpPeople(
         tester,
         people: FakeEmployeeRepository(
-          seed: [
-            employee(id: 'e-1', firstName: 'Aline', lastName: 'Uwase'),
-          ],
+          seed: [employee(id: 'e-1', firstName: 'Aline', lastName: 'Uwase')],
         ),
         invites: invites,
       );
@@ -337,10 +347,7 @@ void main() {
       await tester.tap(find.text('Invite to HR'));
       await tester.pumpAndSettle();
 
-      expect(
-        find.textContaining('nowhere to send an invite'),
-        findsOneWidget,
-      );
+      expect(find.textContaining('nowhere to send an invite'), findsOneWidget);
       expect(
         tester
             .widget<FilledButton>(find.byKey(const Key('invite-confirm')))
@@ -349,14 +356,13 @@ void main() {
       );
     });
 
-    testWidgets('an email-only record warns that sign-in needs SMS',
-        (tester) async {
+    testWidgets('an email-only record warns that sign-in needs SMS', (
+      tester,
+    ) async {
       await _pumpPeople(
         tester,
         people: FakeEmployeeRepository(
-          seed: [
-            employee(id: 'e-1', phone: '', email: 'aline@example.com'),
-          ],
+          seed: [employee(id: 'e-1', phone: '', email: 'aline@example.com')],
         ),
         invites: FakeHrInviteRepository(),
       );
@@ -392,10 +398,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byKey(const Key('invite-pin-dialog')), findsNothing);
-      expect(
-        find.text('Branch does not belong to business'),
-        findsOneWidget,
-      );
+      expect(find.text('Branch does not belong to business'), findsOneWidget);
     });
 
     testWidgets('a link failure says the invite was sent', (tester) async {

@@ -6,21 +6,28 @@
 library;
 
 import 'package:flipper_hr/features/attendance/data/attendance_session.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 
 /// Where someone stands right now.
 enum AttendanceState {
   /// No session today.
-  absent('Not in'),
+  absent,
 
   /// Clocked in and still working.
-  clockedIn('Clocked in'),
+  clockedIn,
 
   /// Worked today and clocked out.
-  clockedOut('Clocked out');
+  clockedOut;
 
-  const AttendanceState(this.label);
-
-  final String label;
+  /// Display name in the current app language.
+  String get label {
+    final l10n = FlipperL10n.current;
+    return switch (this) {
+      AttendanceState.absent => l10n.hrAttendanceNotIn,
+      AttendanceState.clockedIn => l10n.hrAttendanceClockedIn,
+      AttendanceState.clockedOut => l10n.hrAttendanceClockedOut,
+    };
+  }
 }
 
 /// One employee's sessions for one work date, with the day's totals.

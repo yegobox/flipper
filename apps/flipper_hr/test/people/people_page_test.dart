@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_hr/features/people/data/employee.dart';
 import 'package:flipper_hr/features/people/data/employee_repository.dart';
 import 'package:flipper_hr/features/people/data/people_providers.dart';
@@ -27,6 +28,8 @@ Future<void> _pumpPeople(
         hrClockProvider.overrideWithValue(() => _today),
       ],
       child: const MaterialApp(
+        localizationsDelegates: FlipperLocalizationDelegates.delegates,
+        supportedLocales: FlipperLocalizationDelegates.supportedLocales,
         home: Scaffold(
           body: PeoplePage(
             businessId: 'biz-1',
@@ -65,8 +68,9 @@ void main() {
       expect(find.text('Everyone at Kigali Main'), findsOneWidget);
     });
 
-    testWidgets('hides terminated people until their status is picked',
-        (tester) async {
+    testWidgets('hides terminated people until their status is picked', (
+      tester,
+    ) async {
       await _pumpPeople(
         tester,
         FakeEmployeeRepository(
@@ -106,8 +110,9 @@ void main() {
       expect(find.text('RWF 650K'), findsOneWidget);
     });
 
-    testWidgets('renders cards instead of a table on a narrow window',
-        (tester) async {
+    testWidgets('renders cards instead of a table on a narrow window', (
+      tester,
+    ) async {
       await _pumpPeople(
         tester,
         FakeEmployeeRepository(seed: [employee(id: 'e-1')]),
@@ -120,8 +125,9 @@ void main() {
   });
 
   group('empty and error states', () {
-    testWidgets('an empty branch offers to add the first person',
-        (tester) async {
+    testWidgets('an empty branch offers to add the first person', (
+      tester,
+    ) async {
       await _pumpPeople(tester, FakeEmployeeRepository());
 
       expect(find.text('No one on this branch yet'), findsOneWidget);
@@ -163,8 +169,9 @@ void main() {
       expect(find.byKey(const Key('employee-row-e-2')), findsOneWidget);
     });
 
-    testWidgets('a search matching no one offers to clear the filters',
-        (tester) async {
+    testWidgets('a search matching no one offers to clear the filters', (
+      tester,
+    ) async {
       await _pumpPeople(
         tester,
         FakeEmployeeRepository(seed: [employee(id: 'e-1')]),
@@ -185,8 +192,9 @@ void main() {
   });
 
   group('adding someone', () {
-    testWidgets('saves a valid person and shows them on the roster',
-        (tester) async {
+    testWidgets('saves a valid person and shows them on the roster', (
+      tester,
+    ) async {
       final repository = FakeEmployeeRepository();
       await _pumpPeople(tester, repository);
 
@@ -220,8 +228,9 @@ void main() {
       expect(find.text('Aline Uwase was added to the roster.'), findsOneWidget);
     });
 
-    testWidgets('a missing name blocks the save and reports why',
-        (tester) async {
+    testWidgets('a missing name blocks the save and reports why', (
+      tester,
+    ) async {
       final repository = FakeEmployeeRepository();
       await _pumpPeople(tester, repository);
 
@@ -237,8 +246,9 @@ void main() {
       expect(find.byKey(const Key('employee-form-save')), findsOneWidget);
     });
 
-    testWidgets('a failed write keeps the form open with the message',
-        (tester) async {
+    testWidgets('a failed write keeps the form open with the message', (
+      tester,
+    ) async {
       final repository = FakeEmployeeRepository();
       await _pumpPeople(tester, repository);
 
@@ -271,8 +281,9 @@ void main() {
   });
 
   group('editing', () {
-    testWidgets('tapping a row opens that person with their details',
-        (tester) async {
+    testWidgets('tapping a row opens that person with their details', (
+      tester,
+    ) async {
       final repository = FakeEmployeeRepository(
         seed: [employee(id: 'e-1', jobTitle: 'Cashier')],
       );
@@ -319,8 +330,9 @@ void main() {
       );
     });
 
-    testWidgets('terminating asks first and records the last day',
-        (tester) async {
+    testWidgets('terminating asks first and records the last day', (
+      tester,
+    ) async {
       final repository = FakeEmployeeRepository(
         seed: [employee(id: 'e-1', firstName: 'Aline')],
       );
@@ -357,14 +369,13 @@ void main() {
       expect(repository.people.single.status, EmploymentStatus.active);
     });
 
-    testWidgets('the menu only offers transitions that make sense',
-        (tester) async {
+    testWidgets('the menu only offers transitions that make sense', (
+      tester,
+    ) async {
       await _pumpPeople(
         tester,
         FakeEmployeeRepository(
-          seed: [
-            employee(id: 'e-1', status: EmploymentStatus.onLeave),
-          ],
+          seed: [employee(id: 'e-1', status: EmploymentStatus.onLeave)],
         ),
       );
 
@@ -412,9 +423,7 @@ void main() {
 
       expect(find.text('REPORTS TO'), findsOneWidget);
       expect(
-        tester
-            .widget<Text>(find.byKey(const Key('employee-manager-e-1')))
-            .data,
+        tester.widget<Text>(find.byKey(const Key('employee-manager-e-1'))).data,
         'Jean Bosco',
       );
       // Nobody above Jean, so his leave falls to whoever runs the business.
@@ -426,8 +435,9 @@ void main() {
       );
     });
 
-    testWidgets('a new hire can be pointed at their manager on the way in',
-        (tester) async {
+    testWidgets('a new hire can be pointed at their manager on the way in', (
+      tester,
+    ) async {
       final repository = FakeEmployeeRepository(
         seed: [employee(id: 'e-boss', firstName: 'Jean', lastName: 'Bosco')],
       );
@@ -463,8 +473,9 @@ void main() {
       expect(saved.managerId, 'e-boss');
     });
 
-    testWidgets('the form never offers a loop back down the line',
-        (tester) async {
+    testWidgets('the form never offers a loop back down the line', (
+      tester,
+    ) async {
       // Jean manages Yves, who manages Aline. Editing Yves may only offer Jean:
       // pointing him at Aline is the cycle the database trigger refuses.
       await _pumpPeople(

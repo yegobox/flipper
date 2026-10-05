@@ -9,9 +9,7 @@
 String booksSubscribeReturnUrl(String planId, {Uri? base}) {
   final page = base ?? Uri.base;
   final path = page.path.isEmpty ? '/' : page.path;
-  final query = Uri(
-    queryParameters: {'planId': planId, 'rail': 'card'},
-  ).query;
+  final query = Uri(queryParameters: {'planId': planId, 'rail': 'card'}).query;
   // `Uri.origin` is only defined for http(s). Anything else — a `file:` page
   // in a test VM, a desktop build — has nowhere for Dodo to send anyone, so
   // keep the route and drop the host rather than throw mid-payment.

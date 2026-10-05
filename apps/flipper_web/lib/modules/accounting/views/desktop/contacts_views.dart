@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/domain/party/party_draft.dart';
 import 'package:flipper_models/domain/party/party_validation.dart';
 import 'package:flipper_web/core/supabase_provider.dart';
@@ -32,7 +33,8 @@ class AccountingContactsDrawerHost extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     ref.listen(accountingViewProvider, (_, view) {
-      if (view != AccountingView.customers && view != AccountingView.suppliers) {
+      if (view != AccountingView.customers &&
+          view != AccountingView.suppliers) {
         ref.read(contactsUiProvider.notifier).state = null;
       }
     });
@@ -69,7 +71,9 @@ class AccountingContactsDrawerHost extends ConsumerWidget {
       if (!context.mounted) return;
       showAccountingToast(
         context,
-        ui.isCustomer ? 'Customer added' : 'Supplier added',
+        ui.isCustomer
+            ? context.flipperL10n.booksCustomerAdded
+            : context.flipperL10n.booksSupplierAdded,
         subtitle: contact.name,
         accIcon: AccIcon.check,
         tone: AccountingToastTone.success,
@@ -148,7 +152,8 @@ class AccountingContactsView extends ConsumerStatefulWidget {
       _AccountingContactsViewState();
 }
 
-class _AccountingContactsViewState extends ConsumerState<AccountingContactsView> {
+class _AccountingContactsViewState
+    extends ConsumerState<AccountingContactsView> {
   String _query = '';
 
   @override
@@ -196,170 +201,184 @@ class _AccountingContactsViewState extends ConsumerState<AccountingContactsView>
         .toList();
     final totalBal = people.fold<int>(0, (s, p) => s + p.balance);
     final owing = people.where((p) => p.balance > 0).length;
+    final l10n = context.flipperL10n;
+    final isCustomer = widget.isCustomer;
 
     return SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(28, 24, 28, 40),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              AccountingPageHeader(
-                eyebrow: widget.isCustomer ? 'Sales' : 'Purchases',
-                title: widget.isCustomer ? 'Customers' : 'Suppliers',
-                subtitle:
-                    '${widget.isCustomer ? 'People and businesses you sell to' : 'Vendors you buy from'} · ${people.length} records',
-                actions: [
-                  AccountingInlineSearch(
-                    hintText:
-                        'Search ${widget.isCustomer ? 'customers' : 'suppliers'}…',
-                    onChanged: (v) => setState(() => _query = v),
-                  ),
-                  AccountingButton(
-                    label: widget.isCustomer ? 'New customer' : 'New supplier',
-                    accIcon: AccIcon.plus,
-                    primary: true,
-                    onPressed: _openCreate,
-                  ),
-                ],
+      padding: const EdgeInsets.fromLTRB(28, 24, 28, 40),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          AccountingPageHeader(
+            eyebrow: isCustomer ? l10n.sales : l10n.purchases,
+            title: isCustomer ? l10n.customers : l10n.booksSuppliers,
+            subtitle: isCustomer
+                ? l10n.booksCustomersSubtitle('${people.length}')
+                : l10n.booksSuppliersSubtitle('${people.length}'),
+            actions: [
+              AccountingInlineSearch(
+                hintText: isCustomer
+                    ? l10n.booksSearchCustomers
+                    : l10n.booksSearchSuppliers,
+                onChanged: (v) => setState(() => _query = v),
               ),
-              AccountingKpiGrid(
-                maxColumns: 3,
-                children: [
-                  AccountingKpiCard(
-                    label: 'Total ${widget.isCustomer ? 'customers' : 'suppliers'}',
-                    textValue: '${people.length}',
-                    icon: AccIcon.users,
-                    tone: KpiTone.blue,
-                    currencyPrefix: false,
-                  ),
-                  AccountingKpiCard(
-                    label: widget.isCustomer ? 'With open balance' : 'With bills due',
-                    textValue: '$owing',
-                    icon: AccIcon.receipt,
-                    tone: KpiTone.amber,
-                    currencyPrefix: false,
-                  ),
-                  AccountingKpiCard(
-                    label: widget.isCustomer ? 'Total receivable' : 'Total payable',
-                    value: totalBal,
-                    icon: AccIcon.wallet,
-                    tone: KpiTone.green,
-                  ),
-                ],
+              AccountingButton(
+                label: isCustomer
+                    ? l10n.booksNewCustomer
+                    : l10n.booksNewSupplier,
+                accIcon: AccIcon.plus,
+                primary: true,
+                onPressed: _openCreate,
               ),
-              const SizedBox(height: 16),
-              if (list.isEmpty)
-                AccountingCard(
-                  child: Padding(
-                    padding: const EdgeInsets.all(32),
-                    child: Center(
-                      child: Text(
-                        ql.isEmpty
-                            ? 'No ${widget.isCustomer ? 'customers' : 'suppliers'} yet.'
-                            : 'No matches for “$_query”.',
-                        style: AccountingTokens.sans(color: AccountingTokens.ink3),
-                      ),
-                    ),
-                  ),
-                )
-              else
-                AccountingDataTable(
-                  columns: [
-                    AccountingTableColumn(
-                      label: widget.isCustomer ? 'Customer' : 'Supplier',
-                    ),
-                    const AccountingTableColumn(label: 'Contact'),
-                    const AccountingTableColumn(label: 'Phone'),
-                    const AccountingTableColumn(label: 'Terms'),
-                    AccountingTableColumn(
-                      label: widget.isCustomer ? 'Owes you' : 'You owe',
-                      align: TextAlign.right,
-                    ),
-                    const AccountingTableColumn(label: '', width: 52),
-                  ],
-                  onRowTap: (i) => _openDetail(list[i]),
-                  rowTapExcludeTrailingColumns: 1,
-                  rows: [
-                    for (final p in list)
-                      [
-                        _ContactCell(person: p, isCustomer: widget.isCustomer),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              p.contact,
-                              style: AccountingTokens.sans(fontSize: 13),
-                            ),
-                            if (p.email.isNotEmpty)
-                              Text(
-                                p.email,
-                                style: AccountingTokens.sans(
-                                  fontSize: 11.5,
-                                  color: AccountingTokens.ink3,
-                                ),
-                              ),
-                          ],
-                        ),
-                        Text(
-                          p.phone.isEmpty ? '—' : p.phone,
-                          style: AccountingTokens.mono(
-                            fontSize: 13.5,
-                            color: AccountingTokens.ink3,
-                          ),
-                        ),
-                        AccountingTag(label: p.terms),
-                        Align(
-                          alignment: Alignment.centerRight,
-                          child: Text(
-                            p.balance > 0 ? money(p.balance) : '—',
-                            style: AccountingTokens.mono(
-                              fontSize: 13.5,
-                              fontWeight: FontWeight.w700,
-                              color: p.balance > 0
-                                  ? AccountingTokens.ink1
-                                  : AccountingTokens.ink4,
-                            ),
-                          ),
-                        ),
-                        Align(
-                          alignment: Alignment.centerRight,
-                          child: PopupMenuButton<String>(
-                            padding: EdgeInsets.zero,
-                            offset: const Offset(0, 36),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            onSelected: (a) => _onMenu(a, p),
-                            itemBuilder: (context) => [
-                              const PopupMenuItem(
-                                value: 'view',
-                                child: Text('View record'),
-                              ),
-                              const PopupMenuItem(
-                                value: 'statement',
-                                child: Text('Send statement'),
-                              ),
-                              const PopupMenuItem(
-                                value: 'call',
-                                child: Text('Call contact'),
-                              ),
-                              if (!p.fromAging)
-                                const PopupMenuItem(
-                                  value: 'delete',
-                                  child: Text('Delete'),
-                                ),
-                            ],
-                            child: AccountingIconButton(
-                              small: true,
-                              icon: AccIcon.more,
-                            ),
-                          ),
-                        ),
-                      ],
-                  ],
-                ),
             ],
           ),
+          AccountingKpiGrid(
+            maxColumns: 3,
+            children: [
+              AccountingKpiCard(
+                label: isCustomer
+                    ? l10n.booksTotalCustomers
+                    : l10n.booksTotalSuppliers,
+                textValue: '${people.length}',
+                icon: AccIcon.users,
+                tone: KpiTone.blue,
+                currencyPrefix: false,
+              ),
+              AccountingKpiCard(
+                label: isCustomer
+                    ? l10n.booksWithOpenBalance
+                    : l10n.booksWithBillsDue,
+                textValue: '$owing',
+                icon: AccIcon.receipt,
+                tone: KpiTone.amber,
+                currencyPrefix: false,
+              ),
+              AccountingKpiCard(
+                label: isCustomer
+                    ? l10n.booksTotalReceivable
+                    : l10n.booksTotalPayable,
+                value: totalBal,
+                icon: AccIcon.wallet,
+                tone: KpiTone.green,
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          if (list.isEmpty)
+            AccountingCard(
+              child: Padding(
+                padding: const EdgeInsets.all(32),
+                child: Center(
+                  child: Text(
+                    ql.isEmpty
+                        ? (isCustomer
+                              ? l10n.booksNoCustomersYet
+                              : l10n.booksNoSuppliersYet)
+                        : l10n.booksNoMatchesFor(_query),
+                    style: AccountingTokens.sans(color: AccountingTokens.ink3),
+                  ),
+                ),
+              ),
+            )
+          else
+            AccountingDataTable(
+              columns: [
+                AccountingTableColumn(
+                  label: isCustomer ? l10n.customer : l10n.booksSupplier,
+                ),
+                AccountingTableColumn(label: l10n.booksContact),
+                AccountingTableColumn(label: l10n.phone),
+                AccountingTableColumn(label: l10n.booksTerms),
+                AccountingTableColumn(
+                  label: isCustomer ? l10n.booksOwesYou : l10n.booksYouOwe,
+                  align: TextAlign.right,
+                ),
+                const AccountingTableColumn(label: '', width: 52),
+              ],
+              onRowTap: (i) => _openDetail(list[i]),
+              rowTapExcludeTrailingColumns: 1,
+              rows: [
+                for (final p in list)
+                  [
+                    _ContactCell(person: p, isCustomer: widget.isCustomer),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          p.contact,
+                          style: AccountingTokens.sans(fontSize: 13),
+                        ),
+                        if (p.email.isNotEmpty)
+                          Text(
+                            p.email,
+                            style: AccountingTokens.sans(
+                              fontSize: 11.5,
+                              color: AccountingTokens.ink3,
+                            ),
+                          ),
+                      ],
+                    ),
+                    Text(
+                      p.phone.isEmpty ? '—' : p.phone,
+                      style: AccountingTokens.mono(
+                        fontSize: 13.5,
+                        color: AccountingTokens.ink3,
+                      ),
+                    ),
+                    AccountingTag(label: p.terms),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: Text(
+                        p.balance > 0 ? money(p.balance) : '—',
+                        style: AccountingTokens.mono(
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w700,
+                          color: p.balance > 0
+                              ? AccountingTokens.ink1
+                              : AccountingTokens.ink4,
+                        ),
+                      ),
+                    ),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: PopupMenuButton<String>(
+                        padding: EdgeInsets.zero,
+                        offset: const Offset(0, 36),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        onSelected: (a) => _onMenu(a, p),
+                        itemBuilder: (context) => [
+                          PopupMenuItem(
+                            value: 'view',
+                            child: Text(l10n.booksViewRecord),
+                          ),
+                          PopupMenuItem(
+                            value: 'statement',
+                            child: Text(l10n.booksSendStatement),
+                          ),
+                          PopupMenuItem(
+                            value: 'call',
+                            child: Text(l10n.booksCallContact),
+                          ),
+                          if (!p.fromAging)
+                            PopupMenuItem(
+                              value: 'delete',
+                              child: Text(l10n.delete),
+                            ),
+                        ],
+                        child: AccountingIconButton(
+                          small: true,
+                          icon: AccIcon.more,
+                        ),
+                      ),
+                    ),
+                  ],
+              ],
+            ),
+        ],
+      ),
     );
   }
 
@@ -370,7 +389,7 @@ class _AccountingContactsViewState extends ConsumerState<AccountingContactsView>
       case 'statement':
         showAccountingToast(
           context,
-          'Statement sent',
+          context.flipperL10n.booksStatementSent,
           subtitle: '${p.name} · ${p.email.isNotEmpty ? p.email : p.phone}',
           accIcon: AccIcon.mail,
           tone: AccountingToastTone.success,
@@ -379,7 +398,9 @@ class _AccountingContactsViewState extends ConsumerState<AccountingContactsView>
         showAccountingToast(
           context,
           p.contact,
-          subtitle: p.phone.isNotEmpty ? p.phone : 'No phone on file',
+          subtitle: p.phone.isNotEmpty
+              ? p.phone
+              : context.flipperL10n.booksNoPhoneOnFile,
           accIcon: AccIcon.phone,
         );
       case 'delete':
@@ -397,23 +418,20 @@ class _AccountingContactsViewState extends ConsumerState<AccountingContactsView>
     // reference them via customerId) — deleting one needs explicit consent.
     var deleteParty = false;
     if (contact.partyId != null) {
-      deleteParty = await showDialog<bool>(
+      deleteParty =
+          await showDialog<bool>(
             context: context,
             builder: (ctx) => AlertDialog(
-              title: Text('Delete ${contact.name}?'),
-              content: const Text(
-                'This contact is shared with the POS app. Deleting it removes '
-                'the customer record everywhere; past sales keep their '
-                'snapshot but lose the link. Delete anyway?',
-              ),
+              title: Text(ctx.flipperL10n.booksDeleteNamed(contact.name)),
+              content: Text(ctx.flipperL10n.booksDeleteSharedContactBody),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(ctx).pop(false),
-                  child: const Text('Cancel'),
+                  child: Text(ctx.flipperL10n.cancel),
                 ),
                 TextButton(
                   onPressed: () => Navigator.of(ctx).pop(true),
-                  child: const Text('Delete everywhere'),
+                  child: Text(ctx.flipperL10n.booksDeleteEverywhere),
                 ),
               ],
             ),
@@ -423,21 +441,25 @@ class _AccountingContactsViewState extends ConsumerState<AccountingContactsView>
     }
 
     if (contact.uuid != null) {
-      await ref.read(accountingDocumentsRepositoryProvider).deleteContact(
-            businessId: businessId,
-            contactId: contact.uuid!,
-          );
+      await ref
+          .read(accountingDocumentsRepositoryProvider)
+          .deleteContact(businessId: businessId, contactId: contact.uuid!);
     }
     if (deleteParty && contact.partyId != null) {
-      await ref.read(partyRepositoryProvider).deleteParty(
+      await ref
+          .read(partyRepositoryProvider)
+          .deleteParty(
             id: contact.partyId!,
             kind: widget.isCustomer ? PartyKind.customer : PartyKind.supplier,
           );
     }
     if (!mounted) return;
-    showAccountingToast(context, 'Deleted', subtitle: contact.name);
+    showAccountingToast(
+      context,
+      context.flipperL10n.booksDeleted,
+      subtitle: contact.name,
+    );
   }
-
 }
 
 class _ContactCell extends StatelessWidget {
@@ -451,7 +473,9 @@ class _ContactCell extends StatelessWidget {
     final initials = person.name.length >= 2
         ? person.name.substring(0, 2).toUpperCase()
         : person.name.toUpperCase();
-    const sinceLabel = 'Customer since';
+    final sinceText = isCustomer
+        ? context.flipperL10n.booksCustomerSince(person.since)
+        : context.flipperL10n.booksSupplierSince(person.since);
     return Row(
       children: [
         _ContactAvatar(initials: initials, isCustomer: isCustomer),
@@ -470,7 +494,7 @@ class _ContactCell extends StatelessWidget {
                 ),
               ),
               Text(
-                '$sinceLabel ${person.since}',
+                sinceText,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: AccountingTokens.sans(
@@ -506,7 +530,10 @@ class _ContactDetailDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final lifetime = docs.fold<int>(0, (s, d) => s + docTotals(d.lines).total);
-    final kindLabel = isCustomer ? 'Customer' : 'Supplier';
+    final l10n = context.flipperL10n;
+    final sinceText = isCustomer
+        ? l10n.booksCustomerSince(person.since)
+        : l10n.booksSupplierSince(person.since);
     final initials = person.name.length >= 2
         ? person.name.substring(0, 2).toUpperCase()
         : person.name.toUpperCase();
@@ -527,174 +554,173 @@ class _ContactDetailDrawer extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(24, 22, 16, 22),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _ContactAvatar(
-                          initials: initials,
-                          isCustomer: isCustomer,
-                          large: true,
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 22, 16, 22),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _ContactAvatar(
+                  initials: initials,
+                  isCustomer: isCustomer,
+                  large: true,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        person.name,
+                        style: AccountingTokens.sans(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -0.02,
                         ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                person.name,
-                                style: AccountingTokens.sans(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w800,
-                                  letterSpacing: -0.02,
-                                ),
-                              ),
-                              const SizedBox(height: 3),
-                              Text(
-                                '$kindLabel · since ${person.since} · ${person.terms}',
-                                style: AccountingTokens.sans(
-                                  fontSize: 12.5,
-                                  color: AccountingTokens.ink3,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        AccountingIconButton(
-                          icon: AccIcon.x,
-                          onPressed: onClose,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const Divider(height: 1, color: AccountingTokens.line),
-                  Expanded(
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.fromLTRB(24, 22, 24, 24),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                child: _MiniStat(
-                                  label: isCustomer
-                                      ? 'Outstanding balance'
-                                      : 'Amount payable',
-                                  value: '$currency ${money(person.balance)}',
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: _MiniStat(
-                                  label: isCustomer
-                                      ? 'Lifetime billed'
-                                      : 'Lifetime purchased',
-                                  value: '$currency ${money(lifetime)}',
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 22),
-                          Text(
-                            'CONTACT DETAILS',
-                            style: AccountingTokens.sans(
-                              fontSize: 11.5,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 0.7,
-                              color: AccountingTokens.ink4,
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          _IconDetailRow(
-                            icon: AccIcon.user,
-                            label: 'Primary contact',
-                            value: person.contact,
-                          ),
-                          _IconDetailRow(
-                            icon: AccIcon.mail,
-                            label: 'Email',
-                            value: person.email.isEmpty ? '—' : person.email,
-                          ),
-                          _IconDetailRow(
-                            icon: AccIcon.phone,
-                            label: 'Phone',
-                            value: person.phone.isEmpty ? '—' : person.phone,
-                            mono: true,
-                          ),
-                          _IconDetailRow(
-                            icon: AccIcon.shieldCheck,
-                            label: 'TIN',
-                            value: person.tin.isEmpty ? '—' : person.tin,
-                            mono: true,
-                          ),
-                          const SizedBox(height: 22),
-                          Text(
-                            '${isCustomer ? 'INVOICES' : 'BILLS'} (${docs.length})',
-                            style: AccountingTokens.sans(
-                              fontSize: 11.5,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 0.7,
-                              color: AccountingTokens.ink4,
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          if (docs.isEmpty)
-                            Container(
-                              padding: const EdgeInsets.all(18),
-                              decoration: BoxDecoration(
-                                color: AccountingTokens.surface2,
-                                borderRadius:
-                                    BorderRadius.circular(AccountingTokens.radiusMd),
-                              ),
-                              child: Text(
-                                'No documents yet.',
-                                style: AccountingTokens.sans(
-                                  color: AccountingTokens.ink3,
-                                ),
-                              ),
-                            )
-                          else
-                            _DrawerDocsTable(
-                              isCustomer: isCustomer,
-                              docs: docs,
-                            ),
-                        ],
                       ),
+                      const SizedBox(height: 3),
+                      Text(
+                        '$sinceText · ${booksTermsLabel(person.terms, l10n)}',
+                        style: AccountingTokens.sans(
+                          fontSize: 12.5,
+                          color: AccountingTokens.ink3,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                AccountingIconButton(icon: AccIcon.x, onPressed: onClose),
+              ],
+            ),
+          ),
+          const Divider(height: 1, color: AccountingTokens.line),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(24, 22, 24, 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _MiniStat(
+                          label: isCustomer
+                              ? l10n.booksOutstandingBalance
+                              : l10n.booksAmountPayable,
+                          value: '$currency ${money(person.balance)}',
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _MiniStat(
+                          label: isCustomer
+                              ? l10n.booksLifetimeBilled
+                              : l10n.booksLifetimePurchased,
+                          value: '$currency ${money(lifetime)}',
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 22),
+                  Text(
+                    l10n.booksContactDetails,
+                    style: AccountingTokens.sans(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.7,
+                      color: AccountingTokens.ink4,
                     ),
                   ),
-                  const Divider(height: 1, color: AccountingTokens.line),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: AccountingButton(
-                            label: 'Send statement',
-                            accIcon: AccIcon.mail,
-                            onPressed: () => showAccountingToast(
-                              context,
-                              'Statement sent',
-                              subtitle:
-                                  '${person.name} · ${person.email.isNotEmpty ? person.email : person.phone}',
-                              accIcon: AccIcon.mail,
-                              tone: AccountingToastTone.success,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: AccountingButton(
-                            label: isCustomer ? 'New invoice' : 'New bill',
-                            accIcon: AccIcon.plus,
-                            primary: true,
-                            onPressed: onNewDoc,
-                          ),
-                        ),
-                      ],
+                  const SizedBox(height: 10),
+                  _IconDetailRow(
+                    icon: AccIcon.user,
+                    label: l10n.booksPrimaryContact,
+                    value: person.contact,
+                  ),
+                  _IconDetailRow(
+                    icon: AccIcon.mail,
+                    label: l10n.email,
+                    value: person.email.isEmpty ? '—' : person.email,
+                  ),
+                  _IconDetailRow(
+                    icon: AccIcon.phone,
+                    label: l10n.phone,
+                    value: person.phone.isEmpty ? '—' : person.phone,
+                    mono: true,
+                  ),
+                  _IconDetailRow(
+                    icon: AccIcon.shieldCheck,
+                    label: l10n.tin,
+                    value: person.tin.isEmpty ? '—' : person.tin,
+                    mono: true,
+                  ),
+                  const SizedBox(height: 22),
+                  Text(
+                    isCustomer
+                        ? l10n.booksInvoicesHeader('${docs.length}')
+                        : l10n.booksBillsHeader('${docs.length}'),
+                    style: AccountingTokens.sans(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.7,
+                      color: AccountingTokens.ink4,
                     ),
                   ),
+                  const SizedBox(height: 10),
+                  if (docs.isEmpty)
+                    Container(
+                      padding: const EdgeInsets.all(18),
+                      decoration: BoxDecoration(
+                        color: AccountingTokens.surface2,
+                        borderRadius: BorderRadius.circular(
+                          AccountingTokens.radiusMd,
+                        ),
+                      ),
+                      child: Text(
+                        l10n.booksNoDocumentsYet,
+                        style: AccountingTokens.sans(
+                          color: AccountingTokens.ink3,
+                        ),
+                      ),
+                    )
+                  else
+                    _DrawerDocsTable(isCustomer: isCustomer, docs: docs),
+                ],
+              ),
+            ),
+          ),
+          const Divider(height: 1, color: AccountingTokens.line),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
+            child: Row(
+              children: [
+                Expanded(
+                  child: AccountingButton(
+                    label: l10n.booksSendStatement,
+                    accIcon: AccIcon.mail,
+                    onPressed: () => showAccountingToast(
+                      context,
+                      l10n.booksStatementSent,
+                      subtitle:
+                          '${person.name} · ${person.email.isNotEmpty ? person.email : person.phone}',
+                      accIcon: AccIcon.mail,
+                      tone: AccountingToastTone.success,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: AccountingButton(
+                    label: isCustomer
+                        ? l10n.booksNewInvoice
+                        : l10n.booksNewBill,
+                    accIcon: AccIcon.plus,
+                    primary: true,
+                    onPressed: onNewDoc,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -769,7 +795,10 @@ class _IconDetailRow extends StatelessWidget {
             width: 120,
             child: Text(
               label,
-              style: AccountingTokens.sans(fontSize: 13, color: AccountingTokens.ink3),
+              style: AccountingTokens.sans(
+                fontSize: 13,
+                color: AccountingTokens.ink3,
+              ),
             ),
           ),
           Expanded(
@@ -805,9 +834,18 @@ class _MiniStat extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: AccountingTokens.sans(fontSize: 11, color: AccountingTokens.ink3)),
+          Text(
+            label,
+            style: AccountingTokens.sans(
+              fontSize: 11,
+              color: AccountingTokens.ink3,
+            ),
+          ),
           const SizedBox(height: 4),
-          Text(value, style: AccountingTokens.mono(fontWeight: FontWeight.w800)),
+          Text(
+            value,
+            style: AccountingTokens.mono(fontWeight: FontWeight.w800),
+          ),
         ],
       ),
     );
@@ -815,10 +853,7 @@ class _MiniStat extends StatelessWidget {
 }
 
 class _DrawerDocsTable extends StatelessWidget {
-  const _DrawerDocsTable({
-    required this.isCustomer,
-    required this.docs,
-  });
+  const _DrawerDocsTable({required this.isCustomer, required this.docs});
 
   final bool isCustomer;
   final List<AccountingDocument> docs;
@@ -840,10 +875,12 @@ class _DrawerDocsTable extends StatelessWidget {
           ),
           children: [
             for (final label in [
-              isCustomer ? 'Invoice' : 'Bill',
-              'Date',
-              'Status',
-              'Amount',
+              isCustomer
+                  ? context.flipperL10n.invoice
+                  : context.flipperL10n.booksBill,
+              context.flipperL10n.sortCompactDate,
+              context.flipperL10n.booksStatus,
+              context.flipperL10n.amount,
             ])
               Padding(
                 padding: const EdgeInsets.fromLTRB(0, 8, 8, 8),
@@ -972,9 +1009,11 @@ class _ContactFormDrawerState extends State<_ContactFormDrawer> {
 
   @override
   Widget build(BuildContext context) {
-    final kind = widget.isCustomer ? 'customer' : 'supplier';
-    final nameLabel =
-        widget.isCustomer ? 'Business / customer name' : 'Supplier name';
+    final l10n = context.flipperL10n;
+    final isCustomer = widget.isCustomer;
+    final nameLabel = isCustomer
+        ? l10n.booksBusinessCustomerName
+        : l10n.booksSupplierName;
 
     return Container(
       width: 540,
@@ -990,161 +1029,167 @@ class _ContactFormDrawerState extends State<_ContactFormDrawer> {
         ],
       ),
       child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 22, 16, 22),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 22, 16, 22),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        isCustomer
+                            ? l10n.booksNewCustomer
+                            : l10n.booksNewSupplier,
+                        style: AccountingTokens.sans(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -0.02,
+                        ),
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        isCustomer
+                            ? l10n.booksAddCustomerToContacts
+                            : l10n.booksAddSupplierToContacts,
+                        style: AccountingTokens.sans(
+                          fontSize: 12.5,
+                          color: AccountingTokens.ink3,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                AccountingIconButton(
+                  icon: AccIcon.x,
+                  onPressed: widget.onClose,
+                ),
+              ],
+            ),
+          ),
+          const Divider(height: 1, color: AccountingTokens.line),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(24, 22, 24, 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'New $kind',
-                          style: AccountingTokens.sans(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: -0.02,
-                          ),
+                  _ContactFormField(
+                    label: nameLabel,
+                    icon: AccIcon.building,
+                    controller: _name,
+                    placeholder: l10n.booksExampleBusinessName,
+                    autofocus: true,
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: _ContactFormField(
+                          label: l10n.booksPrimaryContact,
+                          icon: AccIcon.user,
+                          controller: _contact,
+                          placeholder: l10n.booksFullName,
                         ),
-                        const SizedBox(height: 3),
-                        Text(
-                          'Add a $kind to your contacts',
-                          style: AccountingTokens.sans(
-                            fontSize: 12.5,
-                            color: AccountingTokens.ink3,
-                          ),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: _ContactFormField(
+                          label: l10n.phone,
+                          icon: AccIcon.phone,
+                          controller: _phone,
+                          placeholder: '+250 …',
+                          mono: true,
                         ),
-                      ],
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: _ContactFormField(
+                          label: l10n.email,
+                          icon: AccIcon.mail,
+                          controller: _email,
+                          placeholder: l10n.booksEmailPlaceholder,
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: _ContactFormField(
+                          label: l10n.tin,
+                          icon: AccIcon.hash,
+                          controller: _tin,
+                          placeholder: l10n.booksTaxId,
+                          mono: true,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    l10n.booksPaymentTerms,
+                    style: AccountingTokens.sans(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w700,
+                      color: AccountingTokens.ink2,
                     ),
                   ),
-                  AccountingIconButton(
-                    icon: AccIcon.x,
+                  const SizedBox(height: 7),
+                  _TermsSegment(
+                    value: _terms,
+                    onChanged: (v) => setState(() => _terms = v),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const Divider(height: 1, color: AccountingTokens.line),
+          if (_showError)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 12, 24, 0),
+              child: Text(
+                _validationError!,
+                style: AccountingTokens.sans(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w600,
+                  color: AccountingTokens.loss,
+                ),
+              ),
+            ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
+            child: Row(
+              children: [
+                Expanded(
+                  child: AccountingButton(
+                    label: l10n.cancel,
                     onPressed: widget.onClose,
                   ),
-                ],
-              ),
-            ),
-            const Divider(height: 1, color: AccountingTokens.line),
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(24, 22, 24, 24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _ContactFormField(
-                      label: nameLabel,
-                      icon: AccIcon.building,
-                      controller: _name,
-                      placeholder: 'e.g. Karake Retail Group',
-                      autofocus: true,
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: _ContactFormField(
-                            label: 'Primary contact',
-                            icon: AccIcon.user,
-                            controller: _contact,
-                            placeholder: 'Full name',
-                          ),
-                        ),
-                        const SizedBox(width: 14),
-                        Expanded(
-                          child: _ContactFormField(
-                            label: 'Phone',
-                            icon: AccIcon.phone,
-                            controller: _phone,
-                            placeholder: '+250 …',
-                            mono: true,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: _ContactFormField(
-                            label: 'Email',
-                            icon: AccIcon.mail,
-                            controller: _email,
-                            placeholder: 'name@email.rw',
-                          ),
-                        ),
-                        const SizedBox(width: 14),
-                        Expanded(
-                          child: _ContactFormField(
-                            label: 'TIN',
-                            icon: AccIcon.hash,
-                            controller: _tin,
-                            placeholder: 'Tax ID',
-                            mono: true,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Payment terms',
-                      style: AccountingTokens.sans(
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w700,
-                        color: AccountingTokens.ink2,
-                      ),
-                    ),
-                    const SizedBox(height: 7),
-                    _TermsSegment(
-                      value: _terms,
-                      onChanged: (v) => setState(() => _terms = v),
-                    ),
-                  ],
                 ),
-              ),
-            ),
-            const Divider(height: 1, color: AccountingTokens.line),
-            if (_showError)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(24, 12, 24, 0),
-                child: Text(
-                  _validationError!,
-                  style: AccountingTokens.sans(
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w600,
-                    color: AccountingTokens.loss,
+                const SizedBox(width: 12),
+                Expanded(
+                  child: AccountingButton(
+                    label: isCustomer
+                        ? l10n.addCustomer
+                        : l10n.booksAddSupplier,
+                    accIcon: AccIcon.plus,
+                    primary: true,
+                    enabled: _ok,
+                    onPressed: _ok ? _submit : null,
                   ),
                 ),
-              ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: AccountingButton(
-                      label: 'Cancel',
-                      onPressed: widget.onClose,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: AccountingButton(
-                      label: 'Add $kind',
-                      accIcon: AccIcon.plus,
-                      primary: true,
-                      enabled: _ok,
-                      onPressed: _ok ? _submit : null,
-                    ),
-                  ),
-                ],
-              ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -1236,10 +1281,13 @@ class _ContactFormFieldState extends State<_ContactFormField> {
                   controller: widget.controller,
                   focusNode: _focusNode,
                   autofocus: widget.autofocus,
-                  style: (widget.mono ? AccountingTokens.mono : AccountingTokens.sans)(
-                    fontSize: 14.5,
-                    color: AccountingTokens.ink1,
-                  ),
+                  style:
+                      (widget.mono
+                      ? AccountingTokens.mono
+                      : AccountingTokens.sans)(
+                        fontSize: 14.5,
+                        color: AccountingTokens.ink1,
+                      ),
                   decoration: InputDecoration(
                     isDense: true,
                     border: InputBorder.none,
@@ -1261,10 +1309,7 @@ class _ContactFormFieldState extends State<_ContactFormField> {
 }
 
 class _TermsSegment extends StatelessWidget {
-  const _TermsSegment({
-    required this.value,
-    required this.onChanged,
-  });
+  const _TermsSegment({required this.value, required this.onChanged});
 
   final String value;
   final ValueChanged<String> onChanged;
@@ -1287,7 +1332,7 @@ class _TermsSegment extends StatelessWidget {
             if (i > 0) const SizedBox(width: 4),
             Expanded(
               child: _SegButton(
-                label: _options[i],
+                label: booksTermsLabel(_options[i], context.flipperL10n),
                 selected: value == _options[i],
                 onTap: () => onChanged(_options[i]),
               ),

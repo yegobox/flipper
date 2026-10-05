@@ -5,6 +5,7 @@ import 'package:flipper_hr/features/attendance/data/attendance_session.dart';
 import 'package:flipper_hr/features/attendance/widgets/attendance_state_chip.dart';
 import 'package:flipper_hr/features/people/data/employee.dart';
 import 'package:flipper_hr/features/people/data/people_providers.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -69,17 +70,20 @@ class _AttendancePageState extends ConsumerState<AttendancePage> {
   }
 
   Future<void> _clockIn(Employee employee) => _run(() async {
-    await ref.read(attendanceActionsProvider).clockIn(
-      employeeId: employee.id,
-      source: AttendanceSource.manager,
-    );
-    if (mounted) _toast('${employee.fullName} is clocked in.');
+    await ref
+        .read(attendanceActionsProvider)
+        .clockIn(employeeId: employee.id, source: AttendanceSource.manager);
+    if (mounted) {
+      _toast(context.flipperL10n.hrPersonClockedIn(employee.fullName));
+    }
   });
 
   Future<void> _clockOut(Employee employee, AttendanceSession session) =>
       _run(() async {
         await ref.read(attendanceActionsProvider).clockOut(session: session);
-        if (mounted) _toast('${employee.fullName} is clocked out.');
+        if (mounted) {
+          _toast(context.flipperL10n.hrPersonClockedOut(employee.fullName));
+        }
       });
 
   void _toast(String message, {bool isError = false}) {
@@ -126,25 +130,43 @@ class _AttendancePageState extends ConsumerState<AttendancePage> {
               ),
             ),
             ...switch ((roster, attendance)) {
-          (AsyncError(:final error), _) => [
-            _fill(_Message(message: _messageOf(error), onRetry: () {
-              ref.invalidate(rosterProvider(widget.branchId));
-            })),
-          ],
-          (_, AsyncError(:final error)) => [
-            _fill(_Message(message: _messageOf(error), onRetry: () {
-              ref.invalidate(
-                branchAttendanceProvider(
-                  BranchDay(branchId: widget.branchId, date: date),
+              (AsyncError(:final error), _) => [
+                _fill(
+                  _Message(
+                    message: _messageOf(error),
+                    onRetry: () {
+                      ref.invalidate(rosterProvider(widget.branchId));
+                    },
+                  ),
                 ),
-              );
-            })),
+              ],
+              (_, AsyncError(:final error)) => [
+                _fill(
+                  _Message(
+                    message: _messageOf(error),
+                    onRetry: () {
+                      ref.invalidate(
+                        branchAttendanceProvider(
+                          BranchDay(branchId: widget.branchId, date: date),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+              (
+                AsyncData(value: final people),
+                AsyncData(value: final sessions),
+              ) =>
+                _board(
+                  people: people,
+                  sessions: sessions,
+                  date: date,
+                  now: now,
+                ),
+              _ => [_fill(const Center(child: CircularProgressIndicator()))],
+            },
           ],
-          (AsyncData(value: final people), AsyncData(value: final sessions)) =>
-            _board(people: people, sessions: sessions, date: date, now: now),
-          _ => [_fill(const Center(child: CircularProgressIndicator()))],
-        },
-      ],
         ),
       ),
     );
@@ -161,19 +183,18 @@ class _AttendancePageState extends ConsumerState<AttendancePage> {
   }) {
     // Terminated people are not on the board: they have no hours to record, and
     // their history stays readable on their own timesheet.
-    final onRoster = [
-      for (final e in people)
-        if (e.status.isEmployed) e,
-    ]..sort((a, b) => a.fullName.toLowerCase().compareTo(b.fullName.toLowerCase()));
+    final onRoster =
+        [
+          for (final e in people)
+            if (e.status.isEmployed) e,
+        ]..sort(
+          (a, b) =>
+              a.fullName.toLowerCase().compareTo(b.fullName.toLowerCase()),
+        );
 
     if (onRoster.isEmpty) {
       return [
-        _fill(
-          const _Message(
-            message: 'No one is on this branch yet. Add people first, then '
-                'their hours can be recorded here.',
-          ),
-        ),
+        _fill(_Message(message: context.flipperL10n.hrAttendanceNoOneOnBranch)),
       ];
     }
 
@@ -193,13 +214,23 @@ class _AttendancePageState extends ConsumerState<AttendancePage> {
             spacing: 12,
             runSpacing: 12,
             children: [
-              _Tile(label: 'On roster', value: '${onRoster.length}'),
-              _Tile(label: 'Clocked in', value: '$present'),
               _Tile(
-                label: 'Recorded',
-                value: '${days.values.where((d) => d.sessions.isNotEmpty).length}',
+                label: context.flipperL10n.hrOnRoster,
+                value: '${onRoster.length}',
               ),
-              _Tile(label: 'Hours', value: formatWorkedMinutes(worked)),
+              _Tile(
+                label: context.flipperL10n.hrAttendanceClockedIn,
+                value: '$present',
+              ),
+              _Tile(
+                label: context.flipperL10n.hrRecorded,
+                value:
+                    '${days.values.where((d) => d.sessions.isNotEmpty).length}',
+              ),
+              _Tile(
+                label: context.flipperL10n.hrHours,
+                value: formatWorkedMinutes(worked),
+              ),
             ],
           ),
         ),
@@ -251,7 +282,10 @@ class _Header extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Attendance', style: theme.textTheme.headlineSmall),
+              Text(
+                context.flipperL10n.hrAttendance,
+                style: theme.textTheme.headlineSmall,
+              ),
               const SizedBox(height: 4),
               Text(
                 branchName == null
@@ -270,14 +304,14 @@ class _Header extends StatelessWidget {
             child: TextButton(
               key: const Key('attendance-today'),
               onPressed: onToday,
-              child: const Text('Today'),
+              child: Text(context.flipperL10n.hrToday),
             ),
           ),
         OutlinedButton.icon(
           key: const Key('attendance-pick-date'),
           onPressed: onPickDate,
           icon: const Icon(Icons.calendar_today_outlined, size: 18),
-          label: const Text('Change day'),
+          label: Text(context.flipperL10n.hrChangeDay),
         ),
       ],
     );
@@ -353,13 +387,13 @@ class _BoardRow extends StatelessWidget {
               OutlinedButton(
                 key: Key('clock-out-${employee.id}'),
                 onPressed: busy ? null : () => onClockOut(open),
-                child: const Text('Clock out'),
+                child: Text(context.flipperL10n.hrClockOut),
               )
             else
               FilledButton(
                 key: Key('clock-in-${employee.id}'),
                 onPressed: busy ? null : onClockIn,
-                child: const Text('Clock in'),
+                child: Text(context.flipperL10n.hrClockIn),
               ),
           ],
         ),
@@ -370,15 +404,18 @@ class _BoardRow extends StatelessWidget {
   /// The line under the name: what happened today, in the order a manager scans
   /// for — when they arrived, how long, and whether anything is odd.
   String _detail(AttendanceDay? day) {
+    final l10n = FlipperL10n.current;
     if (day == null || day.sessions.isEmpty) {
-      return employee.jobTitle.isEmpty ? 'No hours today' : employee.jobTitle;
+      return employee.jobTitle.isEmpty
+          ? l10n.hrNoHoursToday
+          : employee.jobTitle;
     }
     final parts = <String>[
-      if (day.firstIn != null) 'In ${formatClockTime(day.firstIn!)}',
-      if (day.lastOut != null) 'out ${formatClockTime(day.lastOut!)}',
+      if (day.firstIn != null) l10n.hrInAt(formatClockTime(day.firstIn!)),
+      if (day.lastOut != null) l10n.hrOutAt(formatClockTime(day.lastOut!)),
       formatWorkedMinutes(day.workedMinutes),
-      if (day.sessions.length > 1) '${day.sessions.length} sessions',
-      if (day.hasOvernightSession) 'overnight',
+      if (day.sessions.length > 1) l10n.hrSessionsCount(day.sessions.length),
+      if (day.hasOvernightSession) l10n.hrOvernight,
     ];
     return parts.join(' · ');
   }
@@ -459,7 +496,7 @@ class _Message extends StatelessWidget {
                 FilledButton(
                   key: const Key('attendance-retry'),
                   onPressed: onRetry,
-                  child: const Text('Try again'),
+                  child: Text(context.flipperL10n.hrTryAgain),
                 ),
               ],
             ],

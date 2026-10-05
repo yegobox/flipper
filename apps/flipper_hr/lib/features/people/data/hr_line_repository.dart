@@ -1,4 +1,5 @@
 import 'package:flipper_hr/features/people/data/person_ref.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_hr/features/people/data/supabase_employee_repository.dart'
     show describeBackendError;
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -46,11 +47,14 @@ class SupabaseHrLineRepository implements HrLineRepository {
         );
       }
       throw HrLineException(
-        describeBackendError('Could not load your team.', e),
+        describeBackendError(FlipperL10n.current.hrErrorLoadYourTeam, e),
         cause: e,
       );
     } catch (e) {
-      throw HrLineException('Could not load your team: $e', cause: e);
+      throw HrLineException(
+        '${FlipperL10n.current.hrErrorLoadYourTeam} $e',
+        cause: e,
+      );
     }
   }
 

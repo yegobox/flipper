@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_web/core/utils/error_logging.dart';
 import 'package:flipper_web/features/login/signin_styles.dart';
 import 'package:flipper_web/features/business_selection/selected_business_restore.dart';
@@ -16,18 +17,15 @@ class AccountingModuleScreen extends ConsumerWidget {
     final restore = ref.watch(selectedBusinessRestoreProvider);
 
     return restore.when(
-      loading: () => const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      ),
+      loading: () =>
+          const Scaffold(body: Center(child: CircularProgressIndicator())),
       error: (error, stackTrace) {
-        logCaughtError(
-          error,
-          stackTrace,
-          type: 'business_context_restore',
-        );
+        logCaughtError(error, stackTrace, type: 'business_context_restore');
         return Scaffold(
           body: Center(
-            child: Text('Could not restore business context: $error'),
+            child: Text(
+              context.flipperL10n.booksCouldNotRestoreBusiness('$error'),
+            ),
           ),
         );
       },
@@ -45,11 +43,8 @@ class _AccountingBootstrappedShell extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     ref.listen(accountingCoaBootstrapProvider, (previous, next) {
       next.whenOrNull(
-        error: (error, stackTrace) => logCaughtError(
-          error,
-          stackTrace,
-          type: 'accounting_bootstrap',
-        ),
+        error: (error, stackTrace) =>
+            logCaughtError(error, stackTrace, type: 'accounting_bootstrap'),
       );
     });
     // COA bootstrap + journal replication run in background; views use

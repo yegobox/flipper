@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_models.dart';
 import 'package:flipper_web/modules/accounting/theme/accounting_tokens.dart';
 import 'package:flutter/material.dart';
@@ -9,10 +10,23 @@ class StatusPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
     final (bg, fg, label) = switch (status) {
-      JournalStatus.posted => (AccountingTokens.gainTint, AccountingTokens.gainInk, 'posted'),
-      JournalStatus.pending => (AccountingTokens.warnTint, AccountingTokens.warnAmber, 'pending'),
-      JournalStatus.draft => (AccountingTokens.surface2, AccountingTokens.ink3, 'draft'),
+      JournalStatus.posted => (
+        AccountingTokens.gainTint,
+        AccountingTokens.gainInk,
+        l10n.booksPillPosted,
+      ),
+      JournalStatus.pending => (
+        AccountingTokens.warnTint,
+        AccountingTokens.warnAmber,
+        l10n.booksPillPending,
+      ),
+      JournalStatus.draft => (
+        AccountingTokens.surface2,
+        AccountingTokens.ink3,
+        l10n.booksPillDraft,
+      ),
     };
 
     return Container(
@@ -32,7 +46,14 @@ class StatusPill extends StatelessWidget {
               decoration: BoxDecoration(color: fg, shape: BoxShape.circle),
             ),
             const SizedBox(width: 6),
-            Text(label, style: AccountingTokens.sans(fontSize: 12, fontWeight: FontWeight.w600, color: fg)),
+            Text(
+              label,
+              style: AccountingTokens.sans(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: fg,
+              ),
+            ),
           ],
         ),
       ),
@@ -56,9 +77,23 @@ class MatchedPill extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(width: 6, height: 6, decoration: const BoxDecoration(color: AccountingTokens.gainInk, shape: BoxShape.circle)),
+            Container(
+              width: 6,
+              height: 6,
+              decoration: const BoxDecoration(
+                color: AccountingTokens.gainInk,
+                shape: BoxShape.circle,
+              ),
+            ),
             const SizedBox(width: 6),
-            Text('Matched', style: AccountingTokens.sans(fontSize: 12, fontWeight: FontWeight.w600, color: AccountingTokens.gainInk)),
+            Text(
+              context.flipperL10n.booksMatched,
+              style: AccountingTokens.sans(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: AccountingTokens.gainInk,
+              ),
+            ),
           ],
         ),
       ),

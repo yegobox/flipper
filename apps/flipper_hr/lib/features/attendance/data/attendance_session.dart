@@ -10,21 +10,28 @@
 /// per-day view is derived — see `attendance_day.dart`.
 library;
 
+import 'package:flipper_localize/flipper_localize.dart';
+
 /// Who recorded the punch.
 ///
 /// Kept because a corrected or on-behalf entry and a self-service one carry very
 /// different weight in a dispute about hours.
 enum AttendanceSource {
   /// The person clocked themselves in or out.
-  self('self', 'Self'),
+  self('self'),
 
   /// Recorded for them by whoever manages the roster.
-  manager('manager', 'Recorded by manager');
+  manager('manager');
 
-  const AttendanceSource(this.wire, this.label);
+  const AttendanceSource(this.wire);
 
   final String wire;
-  final String label;
+
+  /// Display name in the current app language. Never persisted.
+  String get label => switch (this) {
+    AttendanceSource.self => FlipperL10n.current.hrAttendanceSourceSelf,
+    AttendanceSource.manager => FlipperL10n.current.hrAttendanceSourceManager,
+  };
 
   static AttendanceSource fromWire(String? raw) {
     if (raw == null) return AttendanceSource.self;

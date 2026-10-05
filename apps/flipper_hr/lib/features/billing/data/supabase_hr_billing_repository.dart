@@ -1,5 +1,6 @@
 import 'package:flipper_hr/features/billing/data/hr_billing_repository.dart';
 import 'package:flipper_hr/features/billing/data/hr_entitlement.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Entitlement and purchases as Supabase RPC calls.
@@ -15,11 +16,9 @@ class SupabaseHrBillingRepository implements HrBillingRepository {
 
   @override
   Future<HrAccessState> fetchAccessState({String? businessId}) async {
-    final raw = await _rpc(
-      'hr_access_state',
-      {'p_business_id': businessId},
-      'Could not check this business\'s subscription.',
-    );
+    final raw = await _rpc('hr_access_state', {
+      'p_business_id': businessId,
+    }, FlipperL10n.current.hrErrorCheckSubscription);
     return HrAccessState.fromJson(raw);
   }
 
@@ -33,7 +32,7 @@ class SupabaseHrBillingRepository implements HrBillingRepository {
       'p_business_id': businessId,
       'p_slug': slug,
       'p_is_yearly': isYearly,
-    }, 'Could not load the price of this plan.');
+    }, FlipperL10n.current.hrErrorLoadPlanPrice);
     return HrPlanQuote.fromJson(raw);
   }
 
@@ -49,7 +48,7 @@ class SupabaseHrBillingRepository implements HrBillingRepository {
       'p_slug': slug,
       'p_is_yearly': isYearly,
       'p_phone': phoneNumber,
-    }, 'Could not start the subscription.');
+    }, FlipperL10n.current.hrErrorStartSubscription);
     return HrSubscriptionStart.fromJson(raw);
   }
 
@@ -57,7 +56,7 @@ class SupabaseHrBillingRepository implements HrBillingRepository {
   Future<HrAccessState> skipPayment({required String businessId}) async {
     final raw = await _rpc('hr_skip_payment', {
       'p_business_id': businessId,
-    }, 'Could not skip this payment.');
+    }, FlipperL10n.current.hrErrorSkipPayment);
     return HrAccessState.fromJson(raw);
   }
 

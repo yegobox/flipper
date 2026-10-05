@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_personal/src/personal_home_screen.dart';
 
@@ -8,7 +9,7 @@ class RewardsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Your Rewards'),
+        title: Text(context.flipperL10n.personalYourRewards),
         backgroundColor: FlipperPalette.primaryGreen,
         elevation: 0,
       ),
@@ -18,24 +19,24 @@ class RewardsScreen extends StatelessWidget {
         children: [
           _buildRewardCard(
             context,
-            'Free Coffee',
-            'Get a free coffee from our partner cafes.',
+            context.flipperL10n.personalRewardFreeCoffee,
+            context.flipperL10n.personalRewardFreeCoffeeBody,
             Icons.coffee,
             FlipperPalette.accentBlue,
           ),
           const SizedBox(height: 16),
           _buildRewardCard(
             context,
-            '10% Discount',
-            'Enjoy a 10% discount on your next purchase.',
+            context.flipperL10n.personalRewardDiscount,
+            context.flipperL10n.personalRewardDiscountBody,
             Icons.local_offer,
             FlipperPalette.warningOrange,
           ),
           const SizedBox(height: 16),
           _buildRewardCard(
             context,
-            'Early Access',
-            'Get early access to new features.',
+            context.flipperL10n.personalRewardEarlyAccess,
+            context.flipperL10n.personalRewardEarlyAccessBody,
             Icons.star,
             FlipperPalette.gemPurple,
           ),

@@ -1,5 +1,6 @@
 // ignore_for_file: constant_identifier_names
 
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/helperModels/signup_countries.dart';
 import 'dart:convert';
 import 'package:flipper_analytics/flipper_analytics.dart';
@@ -86,7 +87,7 @@ final signupRepositoryProvider = Provider<SignupRepository>((ref) {
 
 class SignupRepository {
   SignupRepository({required ProductAnalytics analytics})
-      : _analytics = analytics {
+    : _analytics = analytics {
     _httpClient = http.Client();
   }
 
@@ -219,7 +220,9 @@ class SignupRepository {
         final errorMessage =
             errorData?['message'] ??
             errorData?['error'] ??
-            'Registration failed with status code: ${response.statusCode}';
+            FlipperL10n.current.webSignupRegistrationFailedStatus(
+              '${response.statusCode}',
+            );
         throw Exception(errorMessage);
       }
     } catch (e) {
@@ -229,22 +232,18 @@ class SignupRepository {
 
       // Provide more specific error messages based on exception type
       if (e.toString().contains('SocketException')) {
-        throw Exception(
-          'Network error: Unable to connect to server. Please check your internet connection.',
-        );
+        throw Exception(FlipperL10n.current.webSignupNetworkConnect);
       } else if (e.toString().contains('timeout')) {
-        throw Exception(
-          'Request timed out. The server is taking too long to respond. Please try again later.',
-        );
+        throw Exception(FlipperL10n.current.webSignupServerSlow);
       } else if (e.toString().contains('HttpException')) {
-        throw Exception(
-          'Network error: Unable to complete the request. Please try again later.',
-        );
+        throw Exception(FlipperL10n.current.webSignupNetworkIncomplete);
       } else if (e.toString().contains('Exception:')) {
         // If it's already a formatted exception, pass it through
         throw e;
       } else {
-        throw Exception('Registration failed: ${e.toString()}');
+        throw Exception(
+          FlipperL10n.current.webSignupRegistrationFailed(e.toString()),
+        );
       }
     }
   }
@@ -318,7 +317,7 @@ class SignupRepository {
       );
     } catch (e) {
       if (kDebugMode) print('Send OTP error: $e');
-      throw Exception('Network error while sending the code. Please try again.');
+      throw Exception(FlipperL10n.current.webSignupNetworkSendCode);
     }
 
     if (response.statusCode == 200) {
@@ -326,11 +325,13 @@ class SignupRepository {
     }
     if (response.statusCode == 409) {
       throw Exception(
-        _decodeOrEmpty(response.body)['error'] ?? 'Contact already exists',
+        _decodeOrEmpty(response.body)['error'] ??
+            FlipperL10n.current.webSignupContactExists,
       );
     }
     throw Exception(
-      _decodeOrEmpty(response.body)['error'] ?? 'Failed to send OTP for signup',
+      _decodeOrEmpty(response.body)['error'] ??
+          FlipperL10n.current.webSignupSendOtpFailed,
     );
   }
 
@@ -349,7 +350,7 @@ class SignupRepository {
       );
     } catch (e) {
       if (kDebugMode) print('Verify OTP error: $e');
-      throw Exception('Network error while checking the code. Please try again.');
+      throw Exception(FlipperL10n.current.webSignupNetworkCheckCode);
     }
 
     if (response.statusCode == 200) {
@@ -366,9 +367,11 @@ class SignupRepository {
       final supabase = Supabase.instance.client;
       final response = await supabase.from('business_types').select();
       return (response as List)
-          .map((e) => BusinessType.fromSupabaseRow(
-                Map<String, dynamic>.from(e as Map),
-              ))
+          .map(
+            (e) => BusinessType.fromSupabaseRow(
+              Map<String, dynamic>.from(e as Map),
+            ),
+          )
           .toList();
     } catch (e) {
       if (kDebugMode) {

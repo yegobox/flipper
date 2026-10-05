@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flipper_design_system/flipper_design_system.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_web/features/login/signin_styles.dart';
 import 'package:flipper_web/repositories/auth_repository.dart';
 import 'package:flutter/material.dart';
@@ -22,21 +23,21 @@ class _PinScreenState extends ConsumerState<PinScreen>
     with TickerProviderStateMixin {
   final _pinController = TextEditingController();
   final _otpController = TextEditingController();
-  final _pinFocus      = FocusNode();
-  final _otpFocus      = FocusNode();
+  final _pinFocus = FocusNode();
+  final _otpFocus = FocusNode();
 
-  bool _isLoading   = false;
-  bool _isDone      = false;
-  bool _showPin     = false;
-  bool _hasError    = false;
-  String _errorMsg  = '';
+  bool _isLoading = false;
+  bool _isDone = false;
+  bool _showPin = false;
+  bool _hasError = false;
+  String _errorMsg = '';
   late bool _isPinVerified;
   _OtpType _otpType = _OtpType.authenticator;
 
   late AnimationController _fadeCtrl;
   late AnimationController _shakeCtrl;
-  late Animation<double>   _fadeAnim;
-  late Animation<double>   _shakeOffset;
+  late Animation<double> _fadeAnim;
+  late Animation<double> _shakeOffset;
 
   @override
   void initState() {
@@ -50,16 +51,21 @@ class _PinScreenState extends ConsumerState<PinScreen>
 
     _shakeCtrl = AnimationController(vsync: this, duration: SIMotion.shake);
 
-    _fadeAnim    = CurvedAnimation(parent: _fadeCtrl, curve: Curves.easeOut);
+    _fadeAnim = CurvedAnimation(parent: _fadeCtrl, curve: Curves.easeOut);
     _shakeOffset = SIMotion.pinShake(_shakeCtrl);
 
-    _pinFocus.addListener(() { if (mounted) setState(() {}); });
+    _pinFocus.addListener(() {
+      if (mounted) setState(() {});
+    });
     _pinController.addListener(_onPinChanged);
   }
 
   void _onPinChanged() {
     if (_hasError) {
-      setState(() { _hasError = false; _errorMsg = ''; });
+      setState(() {
+        _hasError = false;
+        _errorMsg = '';
+      });
     } else {
       if (mounted) setState(() {});
     }
@@ -99,7 +105,11 @@ class _PinScreenState extends ConsumerState<PinScreen>
   Future<void> _handleSubmission() async {
     if (_isLoading || _isDone) return;
 
-    setState(() { _isLoading = true; _hasError = false; _errorMsg = ''; });
+    setState(() {
+      _isLoading = true;
+      _hasError = false;
+      _errorMsg = '';
+    });
     HapticFeedback.lightImpact();
 
     try {
@@ -110,7 +120,7 @@ class _PinScreenState extends ConsumerState<PinScreen>
         if (pin.length < 4) {
           setState(() {
             _hasError = true;
-            _errorMsg = 'PIN must be at least 4 digits';
+            _errorMsg = context.flipperL10n.webPinTooShort;
           });
           _playShake();
           return;
@@ -123,7 +133,7 @@ class _PinScreenState extends ConsumerState<PinScreen>
           } else {
             setState(() {
               _hasError = true;
-              _errorMsg = 'Invalid PIN. Please try again.';
+              _errorMsg = context.flipperL10n.webPinInvalid;
             });
             _pinController.clear();
             _playShake();
@@ -136,8 +146,8 @@ class _PinScreenState extends ConsumerState<PinScreen>
           setState(() {
             _hasError = true;
             _errorMsg = _otpType == _OtpType.sms
-                ? 'OTP is required'
-                : 'Authenticator code is required';
+                ? context.flipperL10n.webPinOtpRequired
+                : context.flipperL10n.webPinAuthCodeRequired;
           });
           return;
         }
@@ -155,8 +165,8 @@ class _PinScreenState extends ConsumerState<PinScreen>
             setState(() {
               _hasError = true;
               _errorMsg = _otpType == _OtpType.sms
-                  ? 'Invalid OTP. Please try again.'
-                  : 'Invalid authenticator code. Please try again.';
+                  ? context.flipperL10n.webPinOtpInvalid
+                  : context.flipperL10n.webPinAuthCodeInvalid;
             });
             _playShake();
           }
@@ -180,14 +190,12 @@ class _PinScreenState extends ConsumerState<PinScreen>
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('Trouble signing in?'),
-        content: const Text(
-          'If you have forgotten your PIN, contact your account administrator or reach out to Flipper support.',
-        ),
+        title: Text(context.flipperL10n.webPinTroubleTitle),
+        content: Text(context.flipperL10n.webPinTroubleBody),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('OK'),
+            child: Text(context.flipperL10n.ok),
           ),
         ],
       ),
@@ -260,7 +268,9 @@ class _PinScreenState extends ConsumerState<PinScreen>
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              _isPinVerified ? 'Verify your identity' : 'Welcome back',
+              _isPinVerified
+                  ? context.flipperL10n.webPinVerifyIdentity
+                  : context.flipperL10n.welcomeBack,
               style: context.siText(
                 fontSize: compact ? 32 : 40,
                 fontWeight: FontWeight.w800,
@@ -270,8 +280,10 @@ class _PinScreenState extends ConsumerState<PinScreen>
             const SizedBox(height: 10),
             Text(
               _isPinVerified
-                  ? 'Enter the code ${_otpType == _OtpType.sms ? 'we sent you' : 'from your authenticator app'} to continue.'
-                  : 'Enter your PIN to manage your business securely.',
+                  ? (_otpType == _OtpType.sms
+                        ? context.flipperL10n.webPinEnterSmsCode
+                        : context.flipperL10n.webPinEnterAuthCode)
+                  : context.flipperL10n.webPinEnterPinSubtitle,
               style: context.siText(
                 fontSize: compact ? 15 : 16,
                 height: 1.5,
@@ -284,10 +296,12 @@ class _PinScreenState extends ConsumerState<PinScreen>
             const SizedBox(height: 26),
             FlipperGradientButton(
               text: _isDone
-                  ? 'Signed in ✓'
+                  ? context.flipperL10n.webPinSignedIn
                   : (_isLoading
-                      ? 'Verifying…'
-                      : (_isPinVerified ? 'Verify' : 'Sign in')),
+                        ? context.flipperL10n.webPinVerifying
+                        : (_isPinVerified
+                              ? context.flipperL10n.webPinVerify
+                              : context.flipperL10n.webPinSignIn)),
               icon: _isDone ? null : Icons.arrow_outward_rounded,
               isLoading: _isLoading,
               onPressed: (_isLoading || _isDone) ? null : _handleSubmission,
@@ -297,7 +311,7 @@ class _PinScreenState extends ConsumerState<PinScreen>
               child: TextButton(
                 onPressed: _showHelp,
                 child: Text(
-                  'Trouble signing in?',
+                  context.flipperL10n.webPinTroubleTitle,
                   style: context.siText(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
@@ -311,7 +325,7 @@ class _PinScreenState extends ConsumerState<PinScreen>
               child: TextButton(
                 onPressed: () => context.go('/signup'),
                 child: Text(
-                  "Don't have an account? Sign up",
+                  context.flipperL10n.webPinNoAccountSignUp,
                   style: context.siText(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
@@ -351,7 +365,9 @@ class _PinScreenState extends ConsumerState<PinScreen>
                 color: SITokens.ink3,
               ),
               label: Text(
-                _showPin ? 'Hide' : 'Show',
+                _showPin
+                    ? context.flipperL10n.webPinHide
+                    : context.flipperL10n.webPinShow,
                 style: context.siText(
                   fontSize: 12.5,
                   fontWeight: FontWeight.w600,
@@ -439,17 +455,27 @@ class _PinScreenState extends ConsumerState<PinScreen>
           child: Row(
             children: [
               Expanded(
-                child: _toggleItem('Authenticator', _OtpType.authenticator, compact),
+                child: _toggleItem(
+                  context.flipperL10n.webPinAuthenticator,
+                  _OtpType.authenticator,
+                  compact,
+                ),
               ),
               Expanded(
-                child: _toggleItem('SMS / Email', _OtpType.sms, compact),
+                child: _toggleItem(
+                  context.flipperL10n.webPinSmsEmail,
+                  _OtpType.sms,
+                  compact,
+                ),
               ),
             ],
           ),
         ),
         const SizedBox(height: 16),
         Text(
-          isAuthenticator ? 'Authenticator Code' : 'SMS / Email Code',
+          isAuthenticator
+              ? context.flipperL10n.webPinAuthenticatorCode
+              : context.flipperL10n.webPinSmsEmailCode,
           style: context.siText(
             fontSize: compact ? 13 : 14,
             fontWeight: FontWeight.w700,

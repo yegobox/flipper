@@ -4,6 +4,7 @@ import 'package:flipper_hr/features/people/data/employee_validation.dart';
 import 'package:flipper_hr/features/people/data/money_format.dart';
 import 'package:flipper_hr/features/people/data/supabase_employee_repository.dart'
     show rlsViolationCode;
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -131,8 +132,9 @@ class _EmployeeFormState extends State<EmployeeForm> {
     if (mounted) setState(() => _saving = false);
   }
 
-  String _messageOf(Object error) =>
-      error.toString().replaceFirst('EmployeeRepositoryException: ', '')
+  String _messageOf(Object error) => error
+      .toString()
+      .replaceFirst('EmployeeRepositoryException: ', '')
       .replaceFirst('Exception: ', '');
 
   Future<void> _pickDate({
@@ -152,6 +154,7 @@ class _EmployeeFormState extends State<EmployeeForm> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isNarrow = MediaQuery.sizeOf(context).width < 720;
+    final l10n = context.flipperL10n;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -162,13 +165,13 @@ class _EmployeeFormState extends State<EmployeeForm> {
             children: [
               Expanded(
                 child: Text(
-                  _draft.isPersisted ? 'Edit person' : 'Add a person',
+                  _draft.isPersisted ? l10n.hrEditPerson : l10n.hrAddAPerson,
                   style: theme.textTheme.titleLarge,
                 ),
               ),
               IconButton(
                 key: const Key('employee-form-close'),
-                tooltip: 'Close',
+                tooltip: l10n.close,
                 onPressed: _saving ? null : widget.onCancel,
                 icon: const Icon(Icons.close),
               ),
@@ -185,41 +188,44 @@ class _EmployeeFormState extends State<EmployeeForm> {
                 if (_saveError != null) ...[
                   _ErrorBanner(
                     message: _saveError!,
-                    onDiagnose:
-                        _saveError!.contains(rlsViolationCode) ? widget.onDiagnose : null,
+                    onDiagnose: _saveError!.contains(rlsViolationCode)
+                        ? widget.onDiagnose
+                        : null,
                   ),
                   const SizedBox(height: 16),
                 ],
                 _Section(
-                  title: 'Identity',
+                  title: l10n.hrSectionIdentity,
                   children: [
                     _pair(
                       isNarrow,
                       _text(
                         fieldKey: 'firstName',
-                        label: 'First name',
+                        label: l10n.hrFirstName,
                         field: EmployeeField.firstName,
-                        onChanged: (v) => _update((d) => d.copyWith(firstName: v)),
+                        onChanged: (v) =>
+                            _update((d) => d.copyWith(firstName: v)),
                       ),
                       _text(
                         fieldKey: 'lastName',
-                        label: 'Last name',
+                        label: l10n.hrLastName,
                         field: EmployeeField.lastName,
-                        onChanged: (v) => _update((d) => d.copyWith(lastName: v)),
+                        onChanged: (v) =>
+                            _update((d) => d.copyWith(lastName: v)),
                       ),
                     ),
                     _pair(
                       isNarrow,
                       _text(
                         fieldKey: 'phone',
-                        label: 'Phone',
+                        label: l10n.phone,
                         field: EmployeeField.phone,
                         keyboardType: TextInputType.phone,
                         onChanged: (v) => _update((d) => d.copyWith(phone: v)),
                       ),
                       _text(
                         fieldKey: 'email',
-                        label: 'Email (optional)',
+                        label: l10n.hrEmailOptional,
                         field: EmployeeField.email,
                         keyboardType: TextInputType.emailAddress,
                         onChanged: (v) => _update((d) => d.copyWith(email: v)),
@@ -229,7 +235,7 @@ class _EmployeeFormState extends State<EmployeeForm> {
                       isNarrow,
                       _text(
                         fieldKey: 'nationalId',
-                        label: 'National ID (optional)',
+                        label: l10n.hrNationalIdOptional,
                         field: EmployeeField.nationalId,
                         keyboardType: TextInputType.number,
                         onChanged: (v) =>
@@ -237,7 +243,7 @@ class _EmployeeFormState extends State<EmployeeForm> {
                       ),
                       _text(
                         fieldKey: 'rssbNumber',
-                        label: 'RSSB number (optional)',
+                        label: l10n.hrRssbNumberOptional,
                         onChanged: (v) =>
                             _update((d) => d.copyWith(rssbNumber: v)),
                       ),
@@ -245,20 +251,20 @@ class _EmployeeFormState extends State<EmployeeForm> {
                   ],
                 ),
                 _Section(
-                  title: 'Role',
+                  title: l10n.hrSectionRole,
                   children: [
                     _pair(
                       isNarrow,
                       _text(
                         fieldKey: 'jobTitle',
-                        label: 'Job title',
+                        label: l10n.hrJobTitle,
                         field: EmployeeField.jobTitle,
                         onChanged: (v) =>
                             _update((d) => d.copyWith(jobTitle: v)),
                       ),
                       _text(
                         fieldKey: 'department',
-                        label: 'Department (optional)',
+                        label: l10n.hrDepartmentOptional,
                         onChanged: (v) =>
                             _update((d) => d.copyWith(department: v)),
                       ),
@@ -269,8 +275,8 @@ class _EmployeeFormState extends State<EmployeeForm> {
                         key: const Key('employee-type'),
                         initialValue: _draft.type,
                         isExpanded: true,
-                        decoration: const InputDecoration(
-                          labelText: 'Employment type',
+                        decoration: InputDecoration(
+                          labelText: l10n.hrEmploymentType,
                         ),
                         items: [
                           for (final t in EmploymentType.values)
@@ -284,7 +290,7 @@ class _EmployeeFormState extends State<EmployeeForm> {
                         key: const Key('employee-status'),
                         initialValue: _draft.status,
                         isExpanded: true,
-                        decoration: const InputDecoration(labelText: 'Status'),
+                        decoration: InputDecoration(labelText: l10n.hrStatus),
                         items: [
                           for (final s in EmploymentStatus.values)
                             DropdownMenuItem(value: s, child: Text(s.label)),
@@ -299,7 +305,7 @@ class _EmployeeFormState extends State<EmployeeForm> {
                       isNarrow,
                       _DateField(
                         fieldKey: const Key('employee-hire-date'),
-                        label: 'Start date',
+                        label: l10n.hrStartDate,
                         value: _draft.hireDate,
                         error: _errors[EmployeeField.hireDate],
                         onTap: () => _pickDate(
@@ -310,7 +316,7 @@ class _EmployeeFormState extends State<EmployeeForm> {
                       ),
                       _DateField(
                         fieldKey: const Key('employee-end-date'),
-                        label: 'Last day (optional)',
+                        label: l10n.hrLastDayOptional,
                         value: _draft.endDate,
                         error: _errors[EmployeeField.endDate],
                         onTap: () => _pickDate(
@@ -328,19 +334,17 @@ class _EmployeeFormState extends State<EmployeeForm> {
                   ],
                 ),
                 _Section(
-                  title: 'Pay',
+                  title: l10n.hrSectionPay,
                   children: [
                     _pair(
                       isNarrow,
                       _text(
                         fieldKey: 'baseSalary',
-                        label: 'Base pay (${_draft.currency})',
+                        label: l10n.hrBasePayWithCurrency(_draft.currency),
                         field: EmployeeField.baseSalary,
                         keyboardType: TextInputType.number,
                         inputFormatters: [
-                          FilteringTextInputFormatter.allow(
-                            RegExp(r'[0-9.,]'),
-                          ),
+                          FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
                         ],
                         onChanged: (v) => _update(
                           (d) => d.copyWith(baseSalary: _parseAmount(v)),
@@ -350,8 +354,8 @@ class _EmployeeFormState extends State<EmployeeForm> {
                         key: const Key('employee-pay-frequency'),
                         initialValue: _draft.payFrequency,
                         isExpanded: true,
-                        decoration: const InputDecoration(
-                          labelText: 'Pay frequency',
+                        decoration: InputDecoration(
+                          labelText: l10n.hrPayFrequency,
                         ),
                         items: [
                           for (final f in PayFrequency.values)
@@ -364,13 +368,12 @@ class _EmployeeFormState extends State<EmployeeForm> {
                     ),
                     _text(
                       fieldKey: 'annualLeaveDays',
-                      label: 'Annual leave days',
+                      label: l10n.hrAnnualLeaveDays,
                       field: EmployeeField.annualLeaveDays,
                       keyboardType: TextInputType.number,
-                      helper:
-                          'Leave blank for the legal minimum of '
-                          '${LeaveType.annual.entitlementDays!.toInt()} working '
-                          'days',
+                      helper: l10n.hrAnnualLeaveDaysHelper(
+                        '${LeaveType.annual.entitlementDays!.toInt()}',
+                      ),
                       inputFormatters: [
                         FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
                       ],
@@ -385,9 +388,7 @@ class _EmployeeFormState extends State<EmployeeForm> {
                       key: const Key('employee-payment-method'),
                       initialValue: _draft.paymentMethod,
                       isExpanded: true,
-                      decoration: const InputDecoration(
-                        labelText: 'Paid by',
-                      ),
+                      decoration: InputDecoration(labelText: l10n.paidBy),
                       items: [
                         for (final m in PaymentMethod.values)
                           DropdownMenuItem(value: m, child: Text(m.label)),
@@ -399,10 +400,10 @@ class _EmployeeFormState extends State<EmployeeForm> {
                     if (_draft.paymentMethod == PaymentMethod.mobileMoney)
                       _text(
                         fieldKey: 'momoPhone',
-                        label: 'Mobile money number',
+                        label: l10n.hrMobileMoneyNumber,
                         field: EmployeeField.momoPhone,
                         keyboardType: TextInputType.phone,
-                        helper: 'Leave blank to pay the contact number above',
+                        helper: l10n.hrMobileMoneyNumberHelper,
                         onChanged: (v) =>
                             _update((d) => d.copyWith(momoPhone: v)),
                       ),
@@ -411,14 +412,14 @@ class _EmployeeFormState extends State<EmployeeForm> {
                         isNarrow,
                         _text(
                           fieldKey: 'bankName',
-                          label: 'Bank',
+                          label: l10n.hrBank,
                           field: EmployeeField.bankName,
                           onChanged: (v) =>
                               _update((d) => d.copyWith(bankName: v)),
                         ),
                         _text(
                           fieldKey: 'bankAccount',
-                          label: 'Account number',
+                          label: l10n.hrAccountNumber,
                           field: EmployeeField.bankAccount,
                           onChanged: (v) =>
                               _update((d) => d.copyWith(bankAccount: v)),
@@ -427,11 +428,11 @@ class _EmployeeFormState extends State<EmployeeForm> {
                   ],
                 ),
                 _Section(
-                  title: 'Notes',
+                  title: l10n.hrSectionNotes,
                   children: [
                     _text(
                       fieldKey: 'notes',
-                      label: 'Notes (optional)',
+                      label: l10n.hrNotesOptional,
                       maxLines: 3,
                       onChanged: (v) => _update((d) => d.copyWith(notes: v)),
                     ),
@@ -449,7 +450,7 @@ class _EmployeeFormState extends State<EmployeeForm> {
             children: [
               TextButton(
                 onPressed: _saving ? null : widget.onCancel,
-                child: const Text('Cancel'),
+                child: Text(l10n.cancel),
               ),
               const SizedBox(width: 12),
               FilledButton(
@@ -461,7 +462,11 @@ class _EmployeeFormState extends State<EmployeeForm> {
                         height: 16,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : Text(_draft.isPersisted ? 'Save changes' : 'Add person'),
+                    : Text(
+                        _draft.isPersisted
+                            ? l10n.hrSaveChanges
+                            : l10n.hrAddPerson,
+                      ),
               ),
             ],
           ),
@@ -473,13 +478,7 @@ class _EmployeeFormState extends State<EmployeeForm> {
   /// Two fields side by side on wide layouts, stacked when narrow.
   Widget _pair(bool isNarrow, Widget left, Widget right) {
     if (isNarrow) {
-      return Column(
-        children: [
-          left,
-          const SizedBox(height: 12),
-          right,
-        ],
-      );
+      return Column(children: [left, const SizedBox(height: 12), right]);
     }
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -507,28 +506,23 @@ class _EmployeeFormState extends State<EmployeeForm> {
         ? _draft.managerId
         : null;
     final missing = _draft.hasManager && selected == null;
+    final l10n = context.flipperL10n;
 
     return DropdownButtonFormField<String?>(
       key: const Key('employee-manager'),
       initialValue: selected,
       isExpanded: true,
       decoration: InputDecoration(
-        labelText: 'Reports to',
+        labelText: l10n.hrReportsTo,
         errorText: _errors[EmployeeField.managerId],
         helperText: missing
-            ? 'Their current manager is not on this branch\'s roster. Pick '
-                  'someone here to change it.'
+            ? l10n.hrManagerNotOnRoster
             : options.isEmpty
-            ? 'Nobody to choose yet — leave requests go to whoever manages the '
-                  'business.'
-            : 'Their leave requests go to this person. Leave it unset and they '
-                  'go to whoever manages the business.',
+            ? l10n.hrManagerNobodyToChoose
+            : l10n.hrManagerHelper,
       ),
       items: [
-        const DropdownMenuItem<String?>(
-          value: null,
-          child: Text('No manager'),
-        ),
+        DropdownMenuItem<String?>(value: null, child: Text(l10n.hrNoManager)),
         for (final option in options)
           DropdownMenuItem<String?>(
             value: option.id,
@@ -602,10 +596,7 @@ class _Section extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          for (final child in children) ...[
-            child,
-            const SizedBox(height: 12),
-          ],
+          for (final child in children) ...[child, const SizedBox(height: 12)],
         ],
       ),
     );
@@ -641,7 +632,7 @@ class _DateField extends StatelessWidget {
           suffixIcon: onClear == null
               ? const Icon(Icons.calendar_today_outlined, size: 18)
               : IconButton(
-                  tooltip: 'Clear',
+                  tooltip: context.flipperL10n.clear,
                   icon: const Icon(Icons.clear, size: 18),
                   onPressed: onClear,
                 ),
@@ -675,15 +666,12 @@ class _ErrorBanner extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  message,
-                  style: TextStyle(color: scheme.onErrorContainer),
-                ),
+                Text(message, style: TextStyle(color: scheme.onErrorContainer)),
                 if (onDiagnose != null)
                   TextButton(
                     key: const Key('employee-form-diagnose'),
                     onPressed: onDiagnose,
-                    child: const Text('Why was this denied?'),
+                    child: Text(context.flipperL10n.hrWhyWasThisDenied),
                   ),
               ],
             ),

@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_v3_models.dart';
 
 /// VAT-exclusive line totals (18% Rwanda standard).
@@ -58,12 +59,12 @@ AccountingDocument withPaymentsApplied(
 }
 
 String docStatusLabel(DocStatus status) => switch (status) {
-      DocStatus.draft => 'Draft',
-      DocStatus.sent => 'Sent',
-      DocStatus.partiallyPaid => 'Part paid',
-      DocStatus.paid => 'Paid',
-      DocStatus.overdue => 'Overdue',
-    };
+  DocStatus.draft => FlipperL10n.current.booksDraft,
+  DocStatus.sent => FlipperL10n.current.booksStatusSent,
+  DocStatus.partiallyPaid => FlipperL10n.current.booksStatusPartPaid,
+  DocStatus.paid => FlipperL10n.current.booksStatusPaid,
+  DocStatus.overdue => FlipperL10n.current.booksStatusOverdue,
+};
 
 String nextDocumentId(DocKind kind, List<AccountingDocument> docs) {
   final prefix = kind == DocKind.invoice ? 'INV-' : 'BILL-';

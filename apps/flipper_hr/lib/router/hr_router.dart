@@ -13,6 +13,7 @@ import 'package:flipper_hr/features/people/people_page.dart';
 import 'package:flipper_hr/features/session/data/hr_session.dart';
 import 'package:flipper_hr/features/session/data/hr_session_providers.dart';
 import 'package:flipper_hr/router/hr_redirect.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_web/features/business_selection/business_selection_providers.dart';
 import 'package:flipper_web/features/business_selection/business_selection_wrapper.dart';
 import 'package:flipper_web/features/login/auth_providers.dart';
@@ -101,7 +102,7 @@ final hrRouterProvider = Provider<GoRouter>((ref) {
             path: '/overview',
             name: HrRoute.home,
             builder: (context, state) => HrBillingGate(
-              featureName: 'The dashboard',
+              featureName: context.flipperL10n.hrFeatureDashboard,
               child: HrBranchScope(
                 builder:
                     (
@@ -124,7 +125,7 @@ final hrRouterProvider = Provider<GoRouter>((ref) {
             // are the one who can pay for it. Self-service leave and time below
             // are deliberately left open.
             builder: (context, state) => HrBillingGate(
-              featureName: 'The roster',
+              featureName: context.flipperL10n.hrFeatureRoster,
               child: HrBranchScope(
                 builder:
                     (
@@ -143,16 +144,16 @@ final hrRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/approvals',
             name: HrRoute.approvals,
-            builder: (context, state) => const HrBillingGate(
-              featureName: 'Approvals',
-              child: _Approvals(),
+            builder: (context, state) => HrBillingGate(
+              featureName: context.flipperL10n.hrApprovals,
+              child: const _Approvals(),
             ),
           ),
           GoRoute(
             path: '/attendance',
             name: HrRoute.attendance,
             builder: (context, state) => HrBillingGate(
-              featureName: 'The attendance board',
+              featureName: context.flipperL10n.hrFeatureAttendanceBoard,
               child: HrBranchScope(
                 builder:
                     (

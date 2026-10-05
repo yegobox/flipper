@@ -1,6 +1,7 @@
 // lib/features/auth/views/login_screen.dart
 // ignore_for_file: unused_local_variable
 
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flipper_auth/features/auth/providers/auth_notifier.dart';
@@ -32,6 +33,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Widget build(BuildContext context) {
     final authState = ref.watch(authNotifierProvider);
     final authNotifier = ref.read(authNotifierProvider.notifier);
+    final l10n = context.flipperL10n;
 
     ref.listen<AuthState>(authNotifierProvider, (previous, next) {
       if (next.isAuthenticated) {
@@ -88,7 +90,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         ),
                         const SizedBox(height: 24),
                         Text(
-                          'Sign in',
+                          l10n.authSignIn,
                           style: Theme.of(context)
                               .textTheme
                               .headlineMedium
@@ -99,7 +101,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'to continue to your account',
+                          l10n.authToContinueToAccount,
                           style:
                               Theme.of(context).textTheme.bodyMedium?.copyWith(
                                     color: Colors.grey[600],
@@ -114,17 +116,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   // Email field
                   _buildInputField(
                     controller: _emailController,
-                    label: 'Email',
-                    hintText: 'Enter your email',
+                    label: l10n.email,
+                    hintText: l10n.authEnterYourEmail,
                     prefixIcon: Icons.email_outlined,
                     keyboardType: TextInputType.emailAddress,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Please enter your email';
+                        return l10n.authPleaseEnterEmail;
                       }
                       if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
                           .hasMatch(value)) {
-                        return 'Please enter a valid email';
+                        return l10n.authPleaseEnterValidEmail;
                       }
                       return null;
                     },
@@ -135,8 +137,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   // Password field
                   _buildInputField(
                     controller: _passwordController,
-                    label: 'Password',
-                    hintText: 'Enter your password',
+                    label: l10n.authPassword,
+                    hintText: l10n.authEnterYourPassword,
                     prefixIcon: Icons.lock_outline,
                     obscureText: !_isPasswordVisible,
                     suffixIcon: IconButton(
@@ -154,10 +156,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Please enter your password';
+                        return l10n.authPleaseEnterPassword;
                       }
                       if (value.length < 6) {
-                        return 'Password must be at least 6 characters';
+                        return l10n.authPasswordMinLength;
                       }
                       return null;
                     },
@@ -186,7 +188,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            'Keep me signed in',
+                            l10n.authKeepMeSignedIn,
                             style: TextStyle(
                               fontSize: 14,
                               color: Colors.grey[700],
@@ -199,7 +201,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           // Handle forgot password
                         },
                         child: Text(
-                          'Forgot password?',
+                          l10n.authForgotPassword,
                           style: TextStyle(
                             fontSize: 14,
                             color: Colors.blue[600],
@@ -237,9 +239,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                     AlwaysStoppedAnimation<Color>(Colors.white),
                               ),
                             )
-                          : const Text(
-                              'Sign in',
-                              style: TextStyle(
+                          : Text(
+                              l10n.authSignIn,
+                              style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w500,
                               ),
@@ -300,7 +302,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           color: Colors.grey[600],
                         ),
                         children: [
-                          const TextSpan(text: "Don't have an account? "),
+                          TextSpan(text: '${l10n.authNoAccountPrompt} '),
                           WidgetSpan(
                             child: GestureDetector(
                               onTap: () {
@@ -311,7 +313,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 );
                               },
                               child: Text(
-                                'Create one',
+                                l10n.authCreateOne,
                                 style: TextStyle(
                                   fontSize: 14,
                                   color: Colors.blue[600],

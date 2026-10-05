@@ -5,6 +5,7 @@ import 'package:flipper_web/features/business_selection/business_branch_selector
 import 'package:flipper_web/features/business_selection/business_selection_providers.dart';
 import 'package:flipper_web/features/business_selection/selected_business_restore.dart';
 import 'package:flipper_web/features/login/auth_providers.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -30,7 +31,7 @@ class HrAuthGate extends ConsumerWidget {
     return authState.when(
       loading: () => const _HrGateLoading(),
       error: (error, _) => _HrGateMessage(
-        message: 'Could not check your session: $error',
+        message: context.flipperL10n.hrCouldNotCheckSession('$error'),
         onRetry: () => ref.invalidate(authStateProvider),
       ),
       data: (state) {
@@ -70,7 +71,7 @@ class HrAuthGate extends ConsumerWidget {
     return hasSelection.when(
       loading: () => const _HrGateLoading(),
       error: (error, _) => _HrGateMessage(
-        message: 'Could not load your businesses: $error',
+        message: context.flipperL10n.hrCouldNotLoadBusinesses('$error'),
         onRetry: () => ref.invalidate(hasSelectedBusinessAndBranchProvider),
       ),
       data: (selected) {
@@ -162,12 +163,12 @@ class _HrGateMessage extends StatelessWidget {
                   children: [
                     OutlinedButton(
                       onPressed: () => context.go('/login'),
-                      child: const Text('Back to sign in'),
+                      child: Text(context.flipperL10n.hrBackToSignIn),
                     ),
                     const SizedBox(width: 12),
                     FilledButton(
                       onPressed: onRetry,
-                      child: const Text('Retry'),
+                      child: Text(context.flipperL10n.retry),
                     ),
                   ],
                 ),

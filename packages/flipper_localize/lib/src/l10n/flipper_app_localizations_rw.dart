@@ -16667,6 +16667,1957 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   String get ticketCompleteInProgress => 'Turimo kurangiza tike…';
 
   @override
+  String get hrWeekdayMonday => 'Kuwa mbere';
+
+  @override
+  String get hrWeekdayShortMon => 'Mbe';
+
+  @override
+  String get hrWeekdayTuesday => 'Kuwa kabiri';
+
+  @override
+  String get hrWeekdayShortTue => 'Kab';
+
+  @override
+  String get hrWeekdayWednesday => 'Kuwa gatatu';
+
+  @override
+  String get hrWeekdayShortWed => 'Gtu';
+
+  @override
+  String get hrWeekdayThursday => 'Kuwa kane';
+
+  @override
+  String get hrWeekdayShortThu => 'Kan';
+
+  @override
+  String get hrWeekdayFriday => 'Kuwa gatanu';
+
+  @override
+  String get hrWeekdayShortFri => 'Gnu';
+
+  @override
+  String get hrWeekdaySaturday => 'Kuwa gatandatu';
+
+  @override
+  String get hrWeekdayShortSat => 'Gnd';
+
+  @override
+  String get hrWeekdaySunday => 'Ku cyumweru';
+
+  @override
+  String get hrWeekdayShortSun => 'Cyu';
+
+  @override
+  String get hrMonthJanuary => 'Mutarama';
+
+  @override
+  String get hrMonthShortJan => 'Mut';
+
+  @override
+  String get hrMonthFebruary => 'Gashyantare';
+
+  @override
+  String get hrMonthShortFeb => 'Gas';
+
+  @override
+  String get hrMonthMarch => 'Werurwe';
+
+  @override
+  String get hrMonthShortMar => 'Wer';
+
+  @override
+  String get hrMonthApril => 'Mata';
+
+  @override
+  String get hrMonthShortApr => 'Mat';
+
+  @override
+  String get hrMonthMay => 'Gicurasi';
+
+  @override
+  String get hrMonthShortMay => 'Gic';
+
+  @override
+  String get hrMonthJune => 'Kamena';
+
+  @override
+  String get hrMonthShortJun => 'Kam';
+
+  @override
+  String get hrMonthJuly => 'Nyakanga';
+
+  @override
+  String get hrMonthShortJul => 'Nya';
+
+  @override
+  String get hrMonthAugust => 'Kanama';
+
+  @override
+  String get hrMonthShortAug => 'Kan';
+
+  @override
+  String get hrMonthSeptember => 'Nzeri';
+
+  @override
+  String get hrMonthShortSep => 'Nze';
+
+  @override
+  String get hrMonthOctober => 'Ukwakira';
+
+  @override
+  String get hrMonthShortOct => 'Ukw';
+
+  @override
+  String get hrMonthNovember => 'Ugushyingo';
+
+  @override
+  String get hrMonthShortNov => 'Ugu';
+
+  @override
+  String get hrMonthDecember => 'Ukuboza';
+
+  @override
+  String get hrMonthShortDec => 'Uku';
+
+  @override
+  String hrLongDate(String weekday, String day, String month) {
+    return '$weekday, $day $month';
+  }
+
+  @override
+  String hrDaysCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Iminsi $count',
+      one: 'Umunsi 1',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String hrDaysFractional(String days) {
+    return 'Iminsi $days';
+  }
+
+  @override
+  String hrDurationMinutes(String minutes) {
+    return '${minutes}min';
+  }
+
+  @override
+  String hrDurationHours(String hours) {
+    return '${hours}h';
+  }
+
+  @override
+  String hrDurationHoursMinutes(String hours, String minutes) {
+    return '${hours}h ${minutes}min';
+  }
+
+  @override
+  String get hrGoodMorning => 'Mwaramutse';
+
+  @override
+  String get hrGoodAfternoon => 'Mwiriwe';
+
+  @override
+  String get hrGoodEvening => 'Mwiriwe';
+
+  @override
+  String hrGreetingWithName(String greeting, String name) {
+    return '$greeting, $name';
+  }
+
+  @override
+  String get hrAddAPerson => 'Ongeramo umuntu';
+
+  @override
+  String get hrApprovals => 'Kwemeza';
+
+  @override
+  String hrReviewRequests(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Suzuma ubusabe $count',
+      one: 'Suzuma ubusabe 1',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get hrAttendanceBoard => 'Ikibaho cy\'ubwitabire';
+
+  @override
+  String get hrHeadcount => 'Umubare w\'abakozi';
+
+  @override
+  String hrActiveCount(String count) {
+    return '$count bakora';
+  }
+
+  @override
+  String get hrOnLeave => 'Mu kiruhuko';
+
+  @override
+  String get hrWaitingOnYou => 'Bigutegereje';
+
+  @override
+  String get hrNeedsADecision => 'Bikeneye icyemezo';
+
+  @override
+  String get hrAllClear => 'Nta kibazo';
+
+  @override
+  String get hrNewThisMonth => 'Bashya uku kwezi';
+
+  @override
+  String get hrMonthlyPayroll => 'Imishahara y\'ukwezi';
+
+  @override
+  String get hrEstimated => 'Igereranyo';
+
+  @override
+  String get hrNeedsYourDecision => 'Bikeneye icyemezo cyawe';
+
+  @override
+  String get hrNeedsYourDecisionSubtitle =>
+      'Ubusabe bw\'ikiruhuko butarasubizwa';
+
+  @override
+  String get hrOpenQueue => 'Fungura urutonde';
+
+  @override
+  String get hrCouldNotLoadApprovalsQueue =>
+      'Ntibyashobotse gufungura urutonde rwo kwemeza.';
+
+  @override
+  String get hrTryAgain => 'Ongera ugerageze';
+
+  @override
+  String get hrNothingWaitingOnYou =>
+      'Nta kigutegereje. Ubusabe bwose bwafatiwe icyemezo.';
+
+  @override
+  String hrMoreWaiting(String count) {
+    return 'Ibindi $count bitegereje';
+  }
+
+  @override
+  String hrEmployeeWithId(String id) {
+    return 'Umukozi $id';
+  }
+
+  @override
+  String get hrOutToday => 'Badahari uyu munsi';
+
+  @override
+  String get hrRoster => 'Abakozi';
+
+  @override
+  String get hrEveryoneIsInToday => 'Bose bahari uyu munsi.';
+
+  @override
+  String get hrJoinedThisMonth => 'Abinjiye uku kwezi';
+
+  @override
+  String get hrNobodyNewThisMonth => 'Nta mushya winjiye uku kwezi.';
+
+  @override
+  String get hrEmploymentFullTime => 'Igihe cyose';
+
+  @override
+  String get hrEmploymentPartTime => 'Igihe gito';
+
+  @override
+  String get hrEmploymentContract => 'Amasezerano';
+
+  @override
+  String get hrEmploymentIntern => 'Umunyeshuri wimenyereza';
+
+  @override
+  String get hrEmploymentCasual => 'Nyakabyizi';
+
+  @override
+  String get hrStatusActive => 'Arakora';
+
+  @override
+  String get hrStatusSuspended => 'Yahagaritswe';
+
+  @override
+  String get hrStatusTerminated => 'Yasezerewe';
+
+  @override
+  String get hrPayMonthly => 'Buri kwezi';
+
+  @override
+  String get hrPayWeekly => 'Buri cyumweru';
+
+  @override
+  String get hrPayDaily => 'Buri munsi';
+
+  @override
+  String get hrPayHourly => 'Ku isaha';
+
+  @override
+  String get hrPaymentBankTransfer => 'Kohereza muri banki';
+
+  @override
+  String get hrAttendanceNotIn => 'Ntarahagera';
+
+  @override
+  String get hrAttendanceClockedIn => 'Yinjiye';
+
+  @override
+  String get hrAttendanceClockedOut => 'Yasohotse';
+
+  @override
+  String get hrAttendanceSourceSelf => 'Ubwe';
+
+  @override
+  String get hrAttendanceSourceManager => 'Byanditswe n\'umuyobozi';
+
+  @override
+  String get hrLeaveStatusPending => 'Birategereje';
+
+  @override
+  String get hrLeaveStatusRejected => 'Byanzwe';
+
+  @override
+  String get hrLeaveStatusCancelled => 'Byahagaritswe';
+
+  @override
+  String get hrLeaveTypeAnnual => 'Ikiruhuko cy\'umwaka';
+
+  @override
+  String get hrLeaveTypeSick => 'Ikiruhuko cy\'uburwayi';
+
+  @override
+  String get hrLeaveTypeMaternity => 'Ikiruhuko cyo kubyara';
+
+  @override
+  String get hrLeaveTypePaternity => 'Ikiruhuko cy\'umubyeyi w\'umugabo';
+
+  @override
+  String get hrLeaveTypeCompassionate => 'Ikiruhuko cy\'impamvu z\'umuryango';
+
+  @override
+  String get hrLeaveTypeUnpaid => 'Ikiruhuko kidahemberwa';
+
+  @override
+  String hrPersonAddedToRoster(String name) {
+    return '$name yongewe ku rutonde rw\'abakozi.';
+  }
+
+  @override
+  String hrSavedChangesTo(String name) {
+    return 'Impinduka kuri $name zabitswe.';
+  }
+
+  @override
+  String hrInviteSentNotLinked(String message) {
+    return 'Ubutumire bwoherejwe, ariko ntibwahujwe. $message';
+  }
+
+  @override
+  String hrPersonIsNowStatus(String name, String status) {
+    return '$name ubu ni $status.';
+  }
+
+  @override
+  String hrTerminatePersonTitle(String name) {
+    return 'Gusezerera $name?';
+  }
+
+  @override
+  String hrTerminatePersonBody(String date) {
+    return 'Umunsi we wa nyuma uzandikwa ku wa $date. Amakuru ye azagumaho ku mateka y\'imishahara ariko avanwe ku rutonde rw\'abakozi.';
+  }
+
+  @override
+  String get hrTerminate => 'Sezerera';
+
+  @override
+  String get hrAccessDiagnostic => 'Isuzuma ry\'uburenganzira';
+
+  @override
+  String hrDiagnosticFailed(String error) {
+    return 'Isuzuma ryanze: $error';
+  }
+
+  @override
+  String get hrPeople => 'Abakozi';
+
+  @override
+  String get hrEveryoneOnThisBranch => 'Abakozi bose b\'iri shami';
+
+  @override
+  String hrEveryoneAtBranch(String branch) {
+    return 'Abakozi bose ba $branch';
+  }
+
+  @override
+  String get hrAddPerson => 'Ongeramo umuntu';
+
+  @override
+  String get hrSearchPeopleHint => 'Shakisha izina, umwanya, telefone…';
+
+  @override
+  String get hrStatus => 'Imimerere';
+
+  @override
+  String get hrEmployed => 'Bakozi';
+
+  @override
+  String get hrDepartment => 'Ishami ry\'akazi';
+
+  @override
+  String get hrAllDepartments => 'Amashami yose';
+
+  @override
+  String get hrSortBy => 'Tondeka ukurikije';
+
+  @override
+  String get hrReportsTo => 'Ayoborwa na';
+
+  @override
+  String get hrContact => 'Aho abarizwa';
+
+  @override
+  String get hrTenure => 'Igihe amaze';
+
+  @override
+  String get hrBasePay => 'Umushahara fatizo';
+
+  @override
+  String hrReportsToName(String name) {
+    return 'Ayoborwa na $name';
+  }
+
+  @override
+  String get hrResendHrInvite => 'Ongera wohereze ubutumire bwa HR';
+
+  @override
+  String get hrInviteToHr => 'Tumira muri HR';
+
+  @override
+  String get hrMarkActive => 'Shyira ku bakora';
+
+  @override
+  String get hrMarkOnLeave => 'Shyira mu kiruhuko';
+
+  @override
+  String get hrSuspend => 'Hagarika';
+
+  @override
+  String get hrNoOneOnBranchYet => 'Nta mukozi uri kuri iri shami';
+
+  @override
+  String get hrNoOneOnBranchYetMessage =>
+      'Ongeramo umukozi wa mbere utangire gukurikirana ubwitabire, ibiruhuko n\'imishahara.';
+
+  @override
+  String get hrNoOneMatchesFilters => 'Nta muntu uhuye n\'ibi byatoranyijwe';
+
+  @override
+  String get hrClearFilters => 'Siba ibyatoranyijwe';
+
+  @override
+  String get hrWhyWasThisDenied => 'Kuki byanzwe?';
+
+  @override
+  String hrTenureStarts(String date) {
+    return 'Azatangira $date';
+  }
+
+  @override
+  String hrTenureDays(String days) {
+    return 'iminsi $days';
+  }
+
+  @override
+  String hrTenureMonths(String months) {
+    return 'amezi $months';
+  }
+
+  @override
+  String hrTenureYears(String years) {
+    return 'imyaka $years';
+  }
+
+  @override
+  String hrTenureYearsMonths(String years, String months) {
+    return 'imyaka $years n\'amezi $months';
+  }
+
+  @override
+  String get hrSortNameAsc => 'Izina (A–Z)';
+
+  @override
+  String get hrSortNameDesc => 'Izina (Z–A)';
+
+  @override
+  String get hrSortNewestHire => 'Uwinjiye vuba';
+
+  @override
+  String get hrSortLongestServing => 'Umaze igihe kirekire';
+
+  @override
+  String get hrSortHighestPaid => 'Uhembwa menshi';
+
+  @override
+  String get hrEditPerson => 'Hindura umukozi';
+
+  @override
+  String get hrSectionIdentity => 'Umwirondoro';
+
+  @override
+  String get hrFirstName => 'Izina ry\'irikirisitu';
+
+  @override
+  String get hrLastName => 'Izina ry\'umuryango';
+
+  @override
+  String get hrEmailOptional => 'Imeyili (si ngombwa)';
+
+  @override
+  String get hrNationalIdOptional => 'Indangamuntu (si ngombwa)';
+
+  @override
+  String get hrRssbNumberOptional => 'Nimero ya RSSB (si ngombwa)';
+
+  @override
+  String get hrSectionRole => 'Umwanya';
+
+  @override
+  String get hrJobTitle => 'Umwanya w\'akazi';
+
+  @override
+  String get hrDepartmentOptional => 'Ishami ry\'akazi (si ngombwa)';
+
+  @override
+  String get hrEmploymentType => 'Ubwoko bw\'akazi';
+
+  @override
+  String get hrStartDate => 'Itariki yo gutangira';
+
+  @override
+  String get hrLastDayOptional => 'Umunsi wa nyuma (si ngombwa)';
+
+  @override
+  String get hrSectionPay => 'Umushahara';
+
+  @override
+  String hrBasePayWithCurrency(String currency) {
+    return 'Umushahara fatizo ($currency)';
+  }
+
+  @override
+  String get hrPayFrequency => 'Inshuro zo guhemba';
+
+  @override
+  String get hrAnnualLeaveDays => 'Iminsi y\'ikiruhuko cy\'umwaka';
+
+  @override
+  String hrAnnualLeaveDaysHelper(String days) {
+    return 'Siga ubusa kugira ngo hakoreshwe iminsi $days y\'akazi iteganywa n\'amategeko';
+  }
+
+  @override
+  String get hrMobileMoneyNumber => 'Nimero ya mobile money';
+
+  @override
+  String get hrMobileMoneyNumberHelper =>
+      'Siga ubusa kugira ngo hishyurwe nimero ya telefone iri hejuru';
+
+  @override
+  String get hrBank => 'Banki';
+
+  @override
+  String get hrAccountNumber => 'Nimero ya konti';
+
+  @override
+  String get hrSectionNotes => 'Ibisobanuro';
+
+  @override
+  String get hrNotesOptional => 'Ibisobanuro (si ngombwa)';
+
+  @override
+  String get hrSaveChanges => 'Bika impinduka';
+
+  @override
+  String get hrManagerNotOnRoster =>
+      'Umuyobozi we w\'ubu ntari ku rutonde rw\'abakozi b\'iri shami. Hitamo umuntu hano kugira ngo umuhindure.';
+
+  @override
+  String get hrManagerNobodyToChoose =>
+      'Nta muntu wo guhitamo — ubusabe bw\'ikiruhuko bujya ku muyobozi w\'ubucuruzi.';
+
+  @override
+  String get hrManagerHelper =>
+      'Ubusabe bwe bw\'ikiruhuko buzajya kuri uyu muntu. Nubireka, buzajya ku muyobozi w\'ubucuruzi.';
+
+  @override
+  String get hrNoManager => 'Nta muyobozi';
+
+  @override
+  String get hrFirstNameRequired => 'Izina ry\'irikirisitu rirakenewe';
+
+  @override
+  String get hrLastNameRequired => 'Izina ry\'umuryango rirakenewe';
+
+  @override
+  String get hrJobTitleRequired => 'Umwanya w\'akazi urakenewe';
+
+  @override
+  String get hrPhoneNumberRequired => 'Nimero ya telefone irakenewe';
+
+  @override
+  String get hrEnterValidPhoneNumber => 'Andika nimero ya telefone yemewe';
+
+  @override
+  String get hrEnterValidEmail => 'Andika imeyili yemewe';
+
+  @override
+  String hrNationalIdLength(String min, String max) {
+    return 'Indangamuntu igira inyuguti hagati ya $min na $max';
+  }
+
+  @override
+  String get hrStartDateTooFarAhead =>
+      'Itariki yo gutangira ntishobora kurenza umwaka uri imbere';
+
+  @override
+  String get hrLastDayRequiredToTerminate =>
+      'Umunsi wa nyuma urakenewe kugira ngo usezerere';
+
+  @override
+  String get hrLastDayBeforeStart =>
+      'Umunsi wa nyuma ntushobora kubanziriza itariki yo gutangira';
+
+  @override
+  String get hrCannotReportToSelf => 'Umuntu ntashobora kwiyobora';
+
+  @override
+  String get hrPayCannotBeNegative =>
+      'Umushahara ntushobora kuba munsi ya zeru';
+
+  @override
+  String get hrLeaveDaysCannotBeNegative =>
+      'Iminsi y\'ikiruhuko ntishobora kuba munsi ya zeru';
+
+  @override
+  String get hrLeaveDaysTooMany =>
+      'Ibyo birenze umwaka w\'akazi — andika iminsi, si amasaha';
+
+  @override
+  String get hrMobileMoneyNumberRequired => 'Nimero ya mobile money irakenewe';
+
+  @override
+  String get hrEnterValidMobileMoneyNumber =>
+      'Andika nimero ya mobile money yemewe';
+
+  @override
+  String get hrBankNameRequired => 'Izina rya banki rirakenewe';
+
+  @override
+  String get hrAccountNumberRequired => 'Nimero ya konti irakenewe';
+
+  @override
+  String get hrPickFirstDayOfLeave => 'Hitamo umunsi wa mbere w\'ikiruhuko.';
+
+  @override
+  String get hrPickLastDayOfLeave => 'Hitamo umunsi wa nyuma w\'ikiruhuko.';
+
+  @override
+  String get hrLastDayBeforeFirstDay =>
+      'Umunsi wa nyuma ntushobora kubanziriza uwa mbere.';
+
+  @override
+  String get hrLeaveTooFarAhead =>
+      'Ikiruhuko ntigishobora gusabwa mbere y\'umwaka urenga. Reba umwaka kuri izi tariki.';
+
+  @override
+  String get hrLeaveCannotStartInPast =>
+      'Ikiruhuko ntigishobora gutangira mu bihe byashize.';
+
+  @override
+  String hrLeaveBackdatedTooFar(String days) {
+    return 'Ibi byatangiye hashize iminsi irenga $days. Saba ushinzwe urutonde rw\'abakozi abyandike.';
+  }
+
+  @override
+  String hrLeaveReasonRequired(String leaveType) {
+    return 'Sobanura muri make impamvu ukeneye $leaveType.';
+  }
+
+  @override
+  String get hrPickAtLeastOneDay => 'Hitamo nibura umunsi umwe.';
+
+  @override
+  String get hrPeriodAllWeekend =>
+      'Icyo gihe ni impera z\'icyumweru gusa — hitamo nibura umunsi umwe w\'akazi.';
+
+  @override
+  String hrLeaveOverlaps(String start, String end, String status) {
+    return 'Ibi bihura n\'ikiruhuko usanganywe kuva $start kugeza $end ($status).';
+  }
+
+  @override
+  String hrNoLeaveLeft(String leaveType, String year) {
+    return 'Nta $leaveType gisigaye cya $year.';
+  }
+
+  @override
+  String hrOnlyLeaveLeft(
+    String left,
+    String leaveType,
+    String year,
+    String requested,
+  ) {
+    return 'Hasigaye $left gusa bya $leaveType bya $year; ubu busabe burasaba $requested.';
+  }
+
+  @override
+  String get hrRequestLeave => 'Saba ikiruhuko';
+
+  @override
+  String hrLeaveForName(String name) {
+    return 'Ikiruhuko cya $name';
+  }
+
+  @override
+  String get hrLeaveTypeField => 'Ubwoko';
+
+  @override
+  String get hrFirstDay => 'Umunsi wa mbere';
+
+  @override
+  String get hrLastDay => 'Umunsi wa nyuma';
+
+  @override
+  String get hrNoteOptional => 'Icyitonderwa (si ngombwa)';
+
+  @override
+  String get hrReason => 'Impamvu';
+
+  @override
+  String get hrSending => 'Birimo koherezwa…';
+
+  @override
+  String get hrSendRequest => 'Ohereza ubusabe';
+
+  @override
+  String hrLeaveCostCalendarDays(String days) {
+    return '$days (iminsi yose)';
+  }
+
+  @override
+  String hrLeaveCostWorkingDays(String days) {
+    return '$days (iminsi y\'akazi)';
+  }
+
+  @override
+  String get hrUnpaidLeaveNoLimit =>
+      'ikiruhuko kidahemberwa nta mbibi y\'umwaka gifite';
+
+  @override
+  String hrMoreThanYouHaveLeft(String days) {
+    return '$days birenze ibyo usigaranye';
+  }
+
+  @override
+  String hrLeftAfterThis(String days) {
+    return '$days bizasigara nyuma y\'ibi';
+  }
+
+  @override
+  String get hrLeaveTakenNoLimit => 'byafashwe · nta mbibi y\'umwaka';
+
+  @override
+  String hrLeaveLeftOf(String days) {
+    return 'bisigaye kuri $days';
+  }
+
+  @override
+  String hrLeaveAwaitingApproval(String days) {
+    return '$days bitegereje kwemezwa';
+  }
+
+  @override
+  String get hrLeaveRequestSent =>
+      'Ubusabe bw\'ikiruhuko bwoherejwe. Uzabubona hano nibumara gufatirwa icyemezo.';
+
+  @override
+  String get hrWithdrawRequestTitle => 'Gukuraho ubu busabe?';
+
+  @override
+  String hrWithdrawRequestBody(String start, String end) {
+    return 'Ikiruhuko cyawe kuva $start kugeza $end kizahagarikwa, iminsi isubire mu yo usigaranye.';
+  }
+
+  @override
+  String get hrKeepIt => 'Bigumane';
+
+  @override
+  String get hrWithdraw => 'Kuraho';
+
+  @override
+  String get hrRequestWithdrawn => 'Ubusabe bwakuweho.';
+
+  @override
+  String get hrCouldNotLoadYourRecord =>
+      'Ntibyashobotse gufungura amakuru yawe';
+
+  @override
+  String get hrCouldNotLoadYourLeave =>
+      'Ntibyashobotse gufungura ibiruhuko byawe';
+
+  @override
+  String get hrMyLeave => 'Ibiruhuko byanjye';
+
+  @override
+  String hrBalancesFor(String name, String year) {
+    return '$name · ibisigaye bya $year';
+  }
+
+  @override
+  String hrRequestsGoTo(String name) {
+    return 'Ubusabe bujya kuri $name';
+  }
+
+  @override
+  String get hrEmploymentEndedNotice =>
+      'Akazi kawe kararangiye, nta kiruhuko gishya gishobora gusabwa. Amateka yawe aguma hano.';
+
+  @override
+  String get hrRequests => 'Ubusabe';
+
+  @override
+  String get hrNoLeaveBookedYet =>
+      'Nta kiruhuko urasaba. Ibisigaye hejuru ni byo ufite uyu mwaka.';
+
+  @override
+  String get hrNoEmployeeRecordTitle => 'Nta mukozi uhuye n\'iyi konti';
+
+  @override
+  String get hrNoEmployeeRecordLeaveBody =>
+      'Ikiruhuko gisabirwa umuntu uri ku rutonde rw\'abakozi b\'ishami, kandi iyi konti ntiirahuzwa n\'umuntu n\'umwe. Saba ushinzwe urutonde rw\'abakozi bawe agutumire avuye ku rupapuro rw\'Abakozi — ni byo bihuza amakuru yawe n\'iyi konti. Niba yarabikoze, reba ko nimero ya telefone iri ku makuru yawe ari yo winjiriyeho.';
+
+  @override
+  String get hrLeaveApproved => 'Ikiruhuko cyemejwe.';
+
+  @override
+  String get hrLeaveRejected => 'Ikiruhuko cyanzwe.';
+
+  @override
+  String get hrLeave => 'Ibiruhuko';
+
+  @override
+  String get hrWithTheirManager => 'Biri ku muyobozi wabo';
+
+  @override
+  String get hrWithTheirManagerCaption =>
+      'Umuyobozi wabo ntarasubiza. Kubifatira icyemezo hano ni ugufata icyemezo mu mwanya we.';
+
+  @override
+  String get hrDecided => 'Byafatiwe icyemezo';
+
+  @override
+  String get hrNothingWaitingOnYouShort => 'Nta kigutegereje';
+
+  @override
+  String hrRequestsWaitingOnYou(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Ubusabe $count buragutegereje',
+      one: 'Ubusabe 1 buragutegereje',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String hrWithAnotherManager(String count) {
+    return '$count biri ku wundi muyobozi';
+  }
+
+  @override
+  String get hrYourTeam => 'Itsinda ryawe';
+
+  @override
+  String get hrApproveThisLeave => 'Kwemeza iki kiruhuko?';
+
+  @override
+  String get hrRejectThisLeave => 'Kwanga iki kiruhuko?';
+
+  @override
+  String get hrRejectReasonLabel => 'Kubera iki? (azabibona)';
+
+  @override
+  String get hrApprove => 'Emeza';
+
+  @override
+  String get hrReject => 'Anga';
+
+  @override
+  String get hrOnlyTheirManagerCanAnswer =>
+      'Umuyobozi wabo wenyine ni we ushobora gusubiza ubu busabe.';
+
+  @override
+  String get hrNoLeaveRequestsYet => 'Nta busabe bw\'ikiruhuko burahari';
+
+  @override
+  String get hrNoLeaveRequestsOwnerHint =>
+      'Tumira abantu uvuye ku rupapuro rw\'Abakozi bazajya basaba ibiruhuko ubwabo. Shyiraho umuyobozi wa buri muntu, ubusabe bwe buzajya kuri uwo muyobozi; abadafite umuyobozi ubusabe bwabo buzaza hano.';
+
+  @override
+  String get hrNoLeaveRequestsManagerHint =>
+      'Ubusabe bw\'abo uyobora buzagaragara hano kugira ngo ubwemeze.';
+
+  @override
+  String get hrErrorLoadPeopleOnBranch =>
+      'Ntibyashobotse gufungura abakozi b\'iri shami.';
+
+  @override
+  String get hrErrorLoadPersonRecord =>
+      'Ntibyashobotse gufungura amakuru y\'uyu muntu.';
+
+  @override
+  String hrErrorAddPerson(String name) {
+    return 'Ntibyashobotse kongeramo $name.';
+  }
+
+  @override
+  String hrErrorSavePerson(String name) {
+    return 'Ntibyashobotse kubika impinduka kuri $name.';
+  }
+
+  @override
+  String get hrErrorLinkAccount =>
+      'Ubutumire bwoherejwe, ariko aya makuru ntiyahujwe na konti nshya. Ibiruhuko bye ntibizakora kugeza bihujwe.';
+
+  @override
+  String hrErrorChangeStatus(String status) {
+    return 'Ntibyashobotse guhindura uyu muntu ngo abe $status.';
+  }
+
+  @override
+  String get hrThisPerson => 'uyu muntu';
+
+  @override
+  String get hrErrorLoadYourLeave =>
+      'Ntibyashobotse gufungura ibiruhuko byawe.';
+
+  @override
+  String get hrErrorLoadBranchLeave =>
+      'Ntibyashobotse gufungura ibiruhuko by\'iri shami.';
+
+  @override
+  String get hrErrorLoadTeamLeave =>
+      'Ntibyashobotse gufungura ibiruhuko by\'itsinda ryawe.';
+
+  @override
+  String get hrErrorSendLeaveRequest =>
+      'Ntibyashobotse kohereza ubu busabe bw\'ikiruhuko.';
+
+  @override
+  String get hrErrorWithdrawRequest =>
+      'Ntibyashobotse gukuraho ubu busabe. Bushobora kuba bwarafatiwe icyemezo.';
+
+  @override
+  String get hrErrorApproveAlreadyDecided =>
+      'Ntibyashobotse kwemeza ubu busabe: bwamaze gufatirwa icyemezo cyangwa bwakuweho. Vugurura urebe aho bugeze.';
+
+  @override
+  String get hrErrorRejectAlreadyDecided =>
+      'Ntibyashobotse kwanga ubu busabe: bwamaze gufatirwa icyemezo cyangwa bwakuweho. Vugurura urebe aho bugeze.';
+
+  @override
+  String get hrErrorApproveRequest => 'Ntibyashobotse kwemeza ubu busabe.';
+
+  @override
+  String get hrErrorRejectRequest => 'Ntibyashobotse kwanga ubu busabe.';
+
+  @override
+  String get hrErrorLoadDayAttendance =>
+      'Ntibyashobotse gufungura ubwitabire bw\'uyu munsi.';
+
+  @override
+  String get hrErrorLoadTimesheet =>
+      'Ntibyashobotse gufungura iyi lisiti y\'amasaha.';
+
+  @override
+  String get hrErrorCheckClockedIn => 'Ntibyashobotse kureba niba winjiye.';
+
+  @override
+  String get hrErrorCorrectEntry => 'Ntibyashobotse gukosora iki cyanditswe.';
+
+  @override
+  String get hrErrorServerReturnedNothing =>
+      'Seriveri yemeye igikorwa ariko nta cyo yagaruye cyo kwerekana.';
+
+  @override
+  String get hrErrorClockInNotAllowed => 'Ntiwemerewe kwinjiza uyu muntu.';
+
+  @override
+  String get hrErrorClockOutNotAllowed => 'Ntiwemerewe gusohora uyu muntu.';
+
+  @override
+  String get hrErrorClockIn => 'Ntibyashobotse kwinjira.';
+
+  @override
+  String get hrErrorClockOut => 'Ntibyashobotse gusohoka.';
+
+  @override
+  String get hrErrorLoadYourTeam => 'Ntibyashobotse gufungura itsinda ryawe.';
+
+  @override
+  String hrErrorResolveAccess(String error) {
+    return 'Ntibyashobotse kumenya ibyo wemerewe: $error';
+  }
+
+  @override
+  String get hrRoleStaffLabel => 'Umukozi — asaba ibiruhuko bye';
+
+  @override
+  String get hrRoleManagerLabel => 'Umuyobozi — abakozi no kwemeza';
+
+  @override
+  String get hrRoleStaff => 'Umukozi';
+
+  @override
+  String get hrRoleManager => 'Umuyobozi';
+
+  @override
+  String hrInviteTitle(String name) {
+    return 'Tumira $name muri HR';
+  }
+
+  @override
+  String get hrInviteNoContact =>
+      'Aya makuru nta telefone cyangwa imeyili afite, nta ho ubutumire bwoherezwa. Banza wongeremo kimwe.';
+
+  @override
+  String hrInviteWillGetPin(String contact) {
+    return 'Azahabwa PIN yo kwinjira kuri hr.useflipper.com, yemezwa na kode yoherejwe kuri $contact.';
+  }
+
+  @override
+  String get hrInviteEmailNoPhone =>
+      'Aya makuru afite imeyili ariko nta telefone. Kwinjira bisaba kode yoherezwa kuri SMS, ongeramo nimero ya telefone mbere yo gutumira.';
+
+  @override
+  String get hrInviteAlreadyHasAccount =>
+      'Asanzwe afite konti. Kongera kumutumira bimuha PIN nshya kandi bigahindura ibyo yemerewe — ntibirema undi muntu.';
+
+  @override
+  String hrInviteDirectReports(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Abantu $count bayoborwa na we, bityo azemeza ibiruhuko byabo uko uruhare wahitamo rwaba ruri kose. Uruhare rw\'umuyobozi rwongeraho urutonde rw\'abakozi n\'imishahara ya bose.',
+      one:
+          'Umuntu 1 ayoborwa na we, bityo azemeza ikiruhuko cye uko uruhare wahitamo rwaba ruri kose. Uruhare rw\'umuyobozi rwongeraho urutonde rw\'abakozi n\'imishahara ya bose.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get hrInviteWhatCanTheyDo => 'Ashobora gukora iki?';
+
+  @override
+  String get hrSendInvite => 'Ohereza ubutumire';
+
+  @override
+  String get hrRoleStaffDescription =>
+      'Abona amakuru ye, asaba ibiruhuko kandi akareba ibyo asigaranye — akemeza n\'ibiruhuko by\'abo ayobora.';
+
+  @override
+  String get hrRoleManagerDescription =>
+      'Ibyo byose hejuru, wongeyeho urutonde rw\'abakozi b\'ishami, imishahara no kwemeza ibiruhuko by\'ubucuruzi bwose.';
+
+  @override
+  String get hrInviteSent => 'Ubutumire bwoherejwe';
+
+  @override
+  String hrInviteCanNowSignIn(String name, String role) {
+    return '$name ashobora noneho kwinjira kuri hr.useflipper.com nk\'$role.';
+  }
+
+  @override
+  String get hrCopyPin => 'Koporora PIN';
+
+  @override
+  String get hrPinCopied => 'PIN yakoporowe.';
+
+  @override
+  String hrInvitePinHelp(String phone) {
+    return 'Kwinjira bisaba iyi PIN, hanyuma kode yoherezwa kuri $phone. Tanga PIN ubu — ntizongera kugaragara, kandi iyatakaye isimbuzwa no kongera kumutumira.';
+  }
+
+  @override
+  String get hrInviteNeedsContact =>
+      'Nimero ya telefone cyangwa imeyili irakenewe mbere yo gutumira uyu muntu.';
+
+  @override
+  String hrInviteErrorAccount(String contact) {
+    return 'Ntibyashobotse kubona cyangwa gukora konti ya Flipper ya $contact.';
+  }
+
+  @override
+  String hrInviteErrorNoAccountId(String contact) {
+    return 'Flipper yasubije nta nimero ya konti ya $contact.';
+  }
+
+  @override
+  String get hrInviteErrorNoMembershipId =>
+      'Ubunyamuryango bwakozwe ariko Flipper ntiyagaruye nimero yabwo.';
+
+  @override
+  String hrInviteErrorGrantAccess(String name, String error) {
+    return 'Ntibyashobotse guha $name uburenganzira kuri ubu bucuruzi: $error';
+  }
+
+  @override
+  String hrInviteErrorCreatePin(String name) {
+    return 'Ntibyashobotse gukora PIN yo kwinjira ya $name.';
+  }
+
+  @override
+  String get hrInviteErrorNoPin => 'PIN yasabwe ariko Flipper ntiyayigaruye.';
+
+  @override
+  String get hrInviteErrorNoMembership =>
+      'Konti yakozwe ariko nta bunyamuryango ifite kuri ubu bucuruzi, kwinjira ntacyo byageraho. Ongera utumire uyu muntu.';
+
+  @override
+  String hrInviteErrorConfirmMembership(String error) {
+    return 'Ntibyashobotse kwemeza ubunyamuryango bushya: $error';
+  }
+
+  @override
+  String get hrInviteErrorTimeout =>
+      'Flipper ntiyasubije ku gihe — reba murandasi wongere ugerageze.';
+
+  @override
+  String get hrInviteErrorNotJson => 'Flipper yasubije ikintu kitari JSON:';
+
+  @override
+  String get hrEnterValidMomoNumber =>
+      'Andika nimero ya MTN cyangwa Airtel yemewe, urugero 0788123456.';
+
+  @override
+  String get hrMomoUnreadableReply =>
+      'Uburyo bwo kwishyura bwohereje igisubizo kidasomeka.';
+
+  @override
+  String get hrMomoNoReference =>
+      'Kwishyura byatangiye ariko nta nimero y\'icyitegererezo yagarutse — reba raporo ya Mobile Money mbere yo kongera kugerageza.';
+
+  @override
+  String get hrMomoMissingReference =>
+      'Nimero y\'icyitegererezo cyo kwishyura irabura.';
+
+  @override
+  String get hrMomoRejectedInvalid =>
+      'Ubusabe bwo kwishyura bwanzwe kuko butemewe.';
+
+  @override
+  String get hrMomoNotAuthorised => 'Iyi konti ntiyemerewe kwakira ubwishyu.';
+
+  @override
+  String get hrMomoServiceNotFound => 'Serivisi yo kwishyura ntiyabonetse.';
+
+  @override
+  String get hrMomoAlreadySubmitted => 'Ubwo bwishyu bwamaze koherezwa.';
+
+  @override
+  String get hrMomoUnavailable =>
+      'Mobile Money ntiboneka ubu. Ongera ugerageze mu kanya.';
+
+  @override
+  String hrMomoCouldNotStart(String status) {
+    return 'Kwishyura ntibyashoboye gutangira (HTTP $status).';
+  }
+
+  @override
+  String get hrErrorCheckSubscription =>
+      'Ntibyashobotse kugenzura ifatabuguzi ry\'ubu bucuruzi.';
+
+  @override
+  String get hrErrorLoadPlanPrice =>
+      'Ntibyashobotse kubona igiciro cy\'iri fatabuguzi.';
+
+  @override
+  String get hrErrorStartSubscription =>
+      'Ntibyashobotse gutangiza ifatabuguzi.';
+
+  @override
+  String get hrErrorSkipPayment => 'Ntibyashobotse gusimbuka ubu bwishyu.';
+
+  @override
+  String get hrPreparingSubscription => 'Turimo gutegura ifatabuguzi ryawe…';
+
+  @override
+  String hrErrorStartSubscriptionWith(String error) {
+    return 'Ntibyashobotse gutangiza ifatabuguzi: $error';
+  }
+
+  @override
+  String get hrSubscriptionAlreadyActive => 'Iri fatabuguzi risanzwe rikora.';
+
+  @override
+  String get hrSendingRequestToPhone =>
+      'Turimo kohereza ubusabe kuri telefone yawe…';
+
+  @override
+  String hrPaymentCouldNotStartWith(String error) {
+    return 'Kwishyura ntibyashoboye gutangira: $error';
+  }
+
+  @override
+  String get hrApproveMomoOnPhone =>
+      'Emeza ubusabe bwa Mobile Money kuri telefone yawe.';
+
+  @override
+  String get hrPaymentReceivedActive =>
+      'Ubwishyu bwakiriwe. Ifatabuguzi ryawe rirakora.';
+
+  @override
+  String get hrPaymentNotCompleted =>
+      'Kwishyura ntibyarangiriye kuri telefone yawe.';
+
+  @override
+  String get hrPaymentNoVerdictYet =>
+      'Ntiturabona igisubizo cya Mobile Money. Niba wemeje ubusabe, birafunguka vuba — ongera urebe mu kanya.';
+
+  @override
+  String get hrSubscriptionEnded => 'Ifatabuguzi ryawe ryarangiye';
+
+  @override
+  String get hrThisNeedsSubscription => 'Ibi bisaba ifatabuguzi';
+
+  @override
+  String hrFeatureNeedsSubscription(String feature) {
+    return '$feature bisaba ifatabuguzi';
+  }
+
+  @override
+  String get hrSubscriptionEndedBody =>
+      'Nta cyasibwe — urutonde rw\'abakozi, ibiruhuko n\'ubwitabire byose biracyahari. Vugurura ifatabuguzi kugira ngo wongere ubifungure.';
+
+  @override
+  String get hrSubscriptionPitch =>
+      'Flipper HR ni igice cy\'ifatabuguzi rya Flipper. Ishyura rimwe ku bucuruzi, urutonde rw\'abakozi, ibiruhuko n\'ubwitabire bifungukire bose.';
+
+  @override
+  String get hrPaymentOnItsWay =>
+      'Hari ubwishyu buri mu nzira. Niba wabwemeje kuri telefone yawe, birafunguka Mobile Money ikimara kubwemeza.';
+
+  @override
+  String get hrRenewNow => 'Vugurura ubu';
+
+  @override
+  String get hrSeeThePlan => 'Reba ifatabuguzi';
+
+  @override
+  String get hrSubscriptionCheckFailedOpen =>
+      'Ntibyashobotse kugenzura ifatabuguzi ry\'ubu bucuruzi, ubu birasigara bifunguye.';
+
+  @override
+  String get hrTestPricingOn =>
+      'Ibiciro by\'igerageza birakora kuri uyu mushinga, amafatabuguzi arishyurwa amafaranga make.';
+
+  @override
+  String hrSkipEndsSoon(String used, String max) {
+    return 'Urakoresha uburenganzira bw\'ubuntu utishyuye (wakoresheje $used kuri $max). Birarangira vuba.';
+  }
+
+  @override
+  String hrSkipEndsToday(String used, String max) {
+    return 'Urakoresha uburenganzira bw\'ubuntu utishyuye (wakoresheje $used kuri $max). Birarangira uyu munsi.';
+  }
+
+  @override
+  String hrSkipEndsInDays(int days, String used, String max) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other:
+          'Urakoresha uburenganzira bw\'ubuntu utishyuye (wakoresheje $used kuri $max). Birarangira mu minsi $days.',
+      one:
+          'Urakoresha uburenganzira bw\'ubuntu utishyuye (wakoresheje $used kuri $max). Birarangira mu munsi 1.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get hrPayNow => 'Ishyura ubu';
+
+  @override
+  String get hrSubscriptionEndsToday =>
+      'Ifatabuguzi ryawe rirarangira uyu munsi.';
+
+  @override
+  String get hrSubscriptionEndsTomorrow => 'Ifatabuguzi ryawe rirarangira ejo.';
+
+  @override
+  String hrSubscriptionEndsInDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'Ifatabuguzi ryawe rirarangira mu minsi $days.',
+      one: 'Ifatabuguzi ryawe rirarangira mu munsi 1.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get hrRenew => 'Vugurura';
+
+  @override
+  String get hrFeatureDashboard => 'Imbonerahamwe';
+
+  @override
+  String get hrFeatureRoster => 'Urutonde rw\'abakozi';
+
+  @override
+  String get hrFeatureAttendanceBoard => 'Ikibaho cy\'ubwitabire';
+
+  @override
+  String hrErrorSkipPaymentWith(String error) {
+    return 'Ntibyashobotse gusimbuka ubu bwishyu: $error';
+  }
+
+  @override
+  String get hrSkipping => 'Birimo gusimbukwa…';
+
+  @override
+  String hrSkipForNow(String count) {
+    return 'Simbuka ubu (hasigaye $count)';
+  }
+
+  @override
+  String get hrSubscribePickBusiness =>
+      'Hitamo ubucuruzi wishyurira, hanyuma ifatabuguzi n\'igiciro cyaryo bigaragare hano.';
+
+  @override
+  String get hrChooseABusiness => 'Hitamo ubucuruzi';
+
+  @override
+  String hrCouldNotLoadPlan(String error) {
+    return 'Ntibyashobotse kubona ifatabuguzi: $error';
+  }
+
+  @override
+  String get hrRenewYourSubscription => 'Vugurura ifatabuguzi ryawe';
+
+  @override
+  String get hrSubscribeToFlipper => 'Fatira ifatabuguzi rya Flipper';
+
+  @override
+  String get hrPeriodYearly => 'Buri mwaka';
+
+  @override
+  String hrTestPricingNormally(String amount, String period) {
+    return 'Ibiciro by\'igerageza birakora — ubusanzwe ni $amount $period.';
+  }
+
+  @override
+  String get hrWhatBusinessIsUsing => 'Ibyo ubu bucuruzi bukoresha';
+
+  @override
+  String get hrUsagePosUsers => 'Abakoresha POS';
+
+  @override
+  String get hrUsageBranches => 'Amashami';
+
+  @override
+  String get hrUsageHrEmployees => 'Abakozi muri HR';
+
+  @override
+  String hrUsageUnlimited(String used) {
+    return '$used · nta mbibi';
+  }
+
+  @override
+  String hrUsageOf(String used, String cap) {
+    return '$used kuri $cap';
+  }
+
+  @override
+  String get hrMomoNumberLabel => 'Nimero ya Mobile Money';
+
+  @override
+  String get hrPaymentReceived => 'Ubwishyu bwakiriwe.';
+
+  @override
+  String get hrOpenFlipperHr => 'Fungura Flipper HR';
+
+  @override
+  String get hrPreparing => 'Birimo gutegurwa…';
+
+  @override
+  String get hrWaitingForApproval => 'Dutegereje ko wemeza…';
+
+  @override
+  String hrPayWithMomo(String amount) {
+    return 'Ishyura $amount ukoresheje Mobile Money';
+  }
+
+  @override
+  String hrMomoPromptNote(String amount) {
+    return 'Uzakira ubutumwa bwa Mobile Money kuri iyi nimero. Kubwemeza bizakwishyuza $amount.';
+  }
+
+  @override
+  String get hrPerYear => 'ku mwaka';
+
+  @override
+  String get hrPerMonth => 'ku kwezi';
+
+  @override
+  String get hrExpandMenu => 'Agura menyu';
+
+  @override
+  String get hrCollapseMenu => 'Funga menyu';
+
+  @override
+  String get hrSearchPeople => 'Shakisha abakozi…';
+
+  @override
+  String get hrSwitchBusinessOrBranch => 'Hindura ubucuruzi cyangwa ishami';
+
+  @override
+  String get hrSigningOut => 'Birimo gusohoka…';
+
+  @override
+  String get hrNavYou => 'Wowe';
+
+  @override
+  String get hrAttendance => 'Ubwitabire';
+
+  @override
+  String get hrMyTime => 'Igihe cyanjye';
+
+  @override
+  String get hrPickBranchToContinue => 'Hitamo ishami kugira ngo ukomeze';
+
+  @override
+  String get hrPickBranchBody =>
+      'Amakuru ya HR ari ku ishami, hitamo iryo uri gukoraho.';
+
+  @override
+  String get hrChooseBusinessOrBranch => 'Hitamo ubucuruzi cyangwa ishami';
+
+  @override
+  String hrCouldNotCheckSession(String error) {
+    return 'Ntibyashobotse kugenzura konti winjiyemo: $error';
+  }
+
+  @override
+  String hrCouldNotLoadBusinesses(String error) {
+    return 'Ntibyashobotse gufungura ubucuruzi bwawe: $error';
+  }
+
+  @override
+  String get hrBackToSignIn => 'Subira ku kwinjira';
+
+  @override
+  String get hrBrandTagline =>
+      'Itsinda ryawe, igihe cyawe, abakozi bawe — byose ahantu hamwe.';
+
+  @override
+  String get hrBrandSubtitle =>
+      'Ubwitabire, imishahara n\'ibiruhuko biba biteguye ukimara kwinjira.';
+
+  @override
+  String get hrBrandStatEmployees => 'abakozi bacungwa';
+
+  @override
+  String get hrBrandStatPayroll => 'imishahara itunganywa buri kwezi';
+
+  @override
+  String get hrBrandStatUptime => 'igihe sisitemu ikora';
+
+  @override
+  String get hrBrandPayrollThisMonth => 'Imishahara · uku kwezi';
+
+  @override
+  String get hrBrandNewHire => 'Umukozi mushya';
+
+  @override
+  String get hrBrandDayOne => 'Umunsi 1';
+
+  @override
+  String get hrBrandAttendanceStreak => 'Kwitabira ubudahwema';
+
+  @override
+  String get hrClockedInToast => 'Winjiye.';
+
+  @override
+  String hrClockedOutToast(String worked) {
+    return 'Wasohotse — $worked uyu munsi.';
+  }
+
+  @override
+  String hrYourHoursForLastDays(String days) {
+    return 'Amasaha yawe y\'iminsi $days ishize.';
+  }
+
+  @override
+  String get hrNoRecordNoHours =>
+      'Nta makuru y\'umukozi afitanye isano n\'iyi konti, nta masaha yo gukurikirana. Saba ushinzwe HR akongeremo.';
+
+  @override
+  String get hrRecentDays => 'Iminsi iheruka';
+
+  @override
+  String hrClockedInAt(String time) {
+    return 'Winjiye saa $time';
+  }
+
+  @override
+  String get hrNotClockedInToday => 'Ntiwinjiye uyu munsi';
+
+  @override
+  String hrLastOutAt(String time) {
+    return 'Wasohotse bwa nyuma saa $time';
+  }
+
+  @override
+  String get hrClockOut => 'Sohoka';
+
+  @override
+  String get hrClockIn => 'Injira';
+
+  @override
+  String hrWorkedInDays(String worked, String days) {
+    return '$worked mu minsi $days';
+  }
+
+  @override
+  String get hrToday => 'Uyu munsi';
+
+  @override
+  String get hrOvernight => 'ijoro ryose';
+
+  @override
+  String get hrNoHours => 'Nta masaha';
+
+  @override
+  String hrSessionUntilNow(String start) {
+    return '$start – ubu';
+  }
+
+  @override
+  String hrBreakDuration(String duration) {
+    return '$duration z\'ikiruhuko';
+  }
+
+  @override
+  String hrPersonClockedIn(String name) {
+    return '$name yinjiye.';
+  }
+
+  @override
+  String hrPersonClockedOut(String name) {
+    return '$name yasohotse.';
+  }
+
+  @override
+  String get hrAttendanceNoOneOnBranch =>
+      'Nta mukozi uri kuri iri shami. Banza wongeremo abakozi, hanyuma amasaha yabo azandikwe hano.';
+
+  @override
+  String get hrOnRoster => 'Ku rutonde';
+
+  @override
+  String get hrRecorded => 'Byanditswe';
+
+  @override
+  String get hrHours => 'Amasaha';
+
+  @override
+  String get hrChangeDay => 'Hindura umunsi';
+
+  @override
+  String get hrNoHoursToday => 'Nta masaha uyu munsi';
+
+  @override
+  String hrInAt(String time) {
+    return 'Yinjiye $time';
+  }
+
+  @override
+  String hrOutAt(String time) {
+    return 'yasohotse $time';
+  }
+
+  @override
+  String hrSessionsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Ibihe $count',
+      one: 'Igihe 1',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get authSignIn => 'Injira';
+
+  @override
+  String get authToContinueToAccount => 'kugira ngo ukomeze kuri konti yawe';
+
+  @override
+  String get authEnterYourEmail => 'Andika imeyili yawe';
+
+  @override
+  String get authPleaseEnterEmail => 'Andika imeyili yawe';
+
+  @override
+  String get authPleaseEnterValidEmail => 'Andika imeyili yemewe';
+
+  @override
+  String get authPassword => 'Ijambo ry\'ibanga';
+
+  @override
+  String get authEnterYourPassword => 'Andika ijambo ry\'ibanga';
+
+  @override
+  String get authPleaseEnterPassword => 'Andika ijambo ry\'ibanga ryawe';
+
+  @override
+  String get authPasswordMinLength =>
+      'Ijambo ry\'ibanga rigomba kugira nibura inyuguti 6';
+
+  @override
+  String get authKeepMeSignedIn => 'Gumana winjiye';
+
+  @override
+  String get authForgotPassword => 'Wibagiwe ijambo ry\'ibanga?';
+
+  @override
+  String get authNoAccountPrompt => 'Nta konti ufite?';
+
+  @override
+  String get authCreateOne => 'Fungura imwe';
+
+  @override
+  String get authCreateYourAccount => 'Fungura konti yawe';
+
+  @override
+  String get authSignupSubtitle =>
+      'Tangira ukoresheje uburyo bumwe bwizewe bwo kwiyandikisha, ubu bwihutishijwe kuri telefone.';
+
+  @override
+  String get authFullName => 'Amazina yose';
+
+  @override
+  String get authEnterFullName => 'Andika amazina yawe yose';
+
+  @override
+  String get authPleaseEnterName => 'Andika izina ryawe';
+
+  @override
+  String get authHidePassword => 'Hisha ijambo ry\'ibanga';
+
+  @override
+  String get authShowPassword => 'Erekana ijambo ry\'ibanga';
+
+  @override
+  String get authConfirmPassword => 'Emeza ijambo ry\'ibanga';
+
+  @override
+  String get authConfirmYourPassword => 'Emeza ijambo ry\'ibanga ryawe';
+
+  @override
+  String get authPleaseConfirmPassword => 'Emeza ijambo ry\'ibanga ryawe';
+
+  @override
+  String get authPasswordsDoNotMatch => 'Amagambo y\'ibanga ntahura';
+
+  @override
+  String get authCreateAccountButton => 'Fungura konti';
+
+  @override
+  String get authAlreadyHaveAccount => 'Usanzwe ufite konti? Injira';
+
+  @override
+  String get authBusinessSetup => 'Gutunganya ubucuruzi';
+
+  @override
+  String get authAuthenticator => 'Kwemeza umwirondoro';
+
+  @override
+  String get authAddAccount => 'Ongeramo konti';
+
+  @override
+  String get authSomethingWentWrong => 'Hari ikitagenze neza';
+
+  @override
+  String get authUnexpectedErrorTryAgain =>
+      'Habaye ikosa ritunguranye. Ongera ugerageze.';
+
+  @override
+  String get authTryAgain => 'Ongera ugerageze';
+
+  @override
+  String get authNoAccountsAdded => 'Nta konti yongewemo';
+
+  @override
+  String get authAddFirstAccountHint =>
+      'Ongeramo konti yawe ya mbere utangire kubona kode zo kwemeza';
+
+  @override
+  String get authCodeCopied => 'Kode yakoporowe';
+
+  @override
+  String get authInvalidQrCode => 'Kode ya QR itemewe';
+
+  @override
+  String get authAccountAdded => 'Konti yongewemo neza';
+
+  @override
+  String authFailedToAddAccount(String error) {
+    return 'Kongeramo konti byanze: $error';
+  }
+
+  @override
+  String get personalReadyForAdventure => 'Witeguye urugendo?';
+
+  @override
+  String personalDayStreak(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Iminsi $count ikurikiranya!',
+      one: 'Umunsi 1 ukurikiranya!',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get personalTodaysProgress => 'Aho ugeze uyu munsi';
+
+  @override
+  String personalCompletedOf(String done, String total) {
+    return '$done/$total byarangiye';
+  }
+
+  @override
+  String get personalXpProgress => 'Aho XP igeze';
+
+  @override
+  String personalXpToday(String xp) {
+    return '+$xp XP uyu munsi';
+  }
+
+  @override
+  String get personalFindChallenges => 'Shakisha ibibazo';
+
+  @override
+  String get personalViewRewards => 'Reba ibihembo';
+
+  @override
+  String get personalLeaderboard => 'Urutonde rw\'abatsinze';
+
+  @override
+  String get personalRecentAchievements => 'Ibyo wagezeho vuba';
+
+  @override
+  String get personalOpeningAchievements => 'Turafungura ibyo wagezeho byose!';
+
+  @override
+  String get personalViewAll => 'Reba byose';
+
+  @override
+  String get personalAchievementFirstSteps => 'Intambwe za mbere';
+
+  @override
+  String get personalAchievementExplorer => 'Umushakashatsi';
+
+  @override
+  String get personalAchievementStreakMaster => 'Intyoza mu gukurikiranya';
+
+  @override
+  String get personalAchievementSocialStar => 'Icyamamare mu bandi';
+
+  @override
+  String get personalHowToLevelUp => 'Uko wazamuka urwego';
+
+  @override
+  String get personalDiscoverQuests => 'Menya ibibazo byihishe';
+
+  @override
+  String get personalDiscoverQuestsBody =>
+      'Sura ubucuruzi bwo hafi ufungure ibibazo by\'ibanga kandi ubone XP y\'inyongera!';
+
+  @override
+  String get personalDailyChallenges => 'Rangiza ibibazo bya buri munsi';
+
+  @override
+  String get personalDailyChallengesBody =>
+      'Komeza gukurikiranya kandi uzamuke ku rutonde hamwe n\'inshuti!';
+
+  @override
+  String get personalTeamUp => 'Fatanya n\'inshuti';
+
+  @override
+  String get personalTeamUpBody =>
+      'Mwishyire hamwe mu bibazo by\'itsinda mubone ibihembo byikubye!';
+
+  @override
+  String get personalAdventureBegins => 'Reka urugendo rutangire! 🚀';
+
+  @override
+  String get personalStartAdventure => 'Tangira urugendo rwawe!';
+
+  @override
+  String get personalSyncingAdventures =>
+      'Turimo guhuza n\'ibikorwa biri hafi...';
+
+  @override
+  String get personalLoggingOut => 'Birimo gusohoka...';
+
+  @override
+  String get personalLoggedOut => 'Wasohotse neza!';
+
+  @override
+  String personalLogoutFailed(String error) {
+    return 'Gusohoka byanze: $error';
+  }
+
+  @override
+  String get personalCouldNotDetermineLocation =>
+      'Ntibyashobotse kumenya aho uri.';
+
+  @override
+  String get personalBusinessIdNotFound =>
+      'Nimero y\'ubucuruzi ntiyabonetse. Ongera winjire.';
+
+  @override
+  String get personalFailedToFetchChallenges => 'Kubona ibibazo byanze';
+
+  @override
+  String get personalFailedToFetchChallengesRetry =>
+      'Kubona ibibazo byanze. Ongera ugerageze.';
+
+  @override
+  String get personalYourRewards => 'Ibihembo byawe';
+
+  @override
+  String get personalRewardFreeCoffee => 'Ikawa y\'ubuntu';
+
+  @override
+  String get personalRewardFreeCoffeeBody =>
+      'Habwa ikawa y\'ubuntu mu tubari tw\'abafatanyabikorwa bacu.';
+
+  @override
+  String get personalRewardDiscount => 'Igabanywa rya 10%';
+
+  @override
+  String get personalRewardDiscountBody =>
+      'Bona igabanywa rya 10% ku kugura gutaha.';
+
+  @override
+  String get personalRewardEarlyAccess => 'Kugera mbere';
+
+  @override
+  String get personalRewardEarlyAccessBody =>
+      'Bona ibintu bishya mbere y\'abandi.';
+
+  @override
+  String get personalChallengeDiscovered => 'Ikibazo cyabonetse!';
+
+  @override
+  String get personalRewardAvailable => 'Igihembo kirahari!';
+
+  @override
+  String get personalLater => 'Nyuma';
+
+  @override
+  String get personalClaimReward => 'Fata igihembo';
+
+  @override
+  String get personalFailedToClaimReward =>
+      'Gufata igihembo byanze. Ongera ugerageze.';
+
+  @override
+  String get personalRewardClaimed => 'Igihembo cyafashwe neza!';
+
+  @override
+  String personalErrorLoadingRewards(String error) {
+    return 'Ikosa mu gufungura ibihembo: $error';
+  }
+
+  @override
+  String get personalChallengeClaimed => 'Ikibazo cyafashwe';
+
+  @override
+  String personalClaimedOn(String date) {
+    return 'Cyafashwe ku wa $date';
+  }
+
+  @override
+  String personalBusinessLabel(String business) {
+    return 'Ubucuruzi: $business';
+  }
+
+  @override
+  String personalRewardLabel(String reward) {
+    return 'Igihembo: $reward';
+  }
+
+  @override
+  String get personalSpecialReward => 'Igihembo kidasanzwe';
+
+  @override
+  String get personalClaim => 'Fata';
+
+  @override
+  String get personalNoChallengesNearby =>
+      'Nta bibazo byabonetse hafi. Gerageza kwimuka!';
+
+  @override
+  String get personalTapToDiscover => 'Kanda umenye ibibazo biri hafi';
+
+  @override
+  String get personalTapToSearchAgain => 'Kanda wongere ushakishe';
+
+  @override
+  String get personalSearchingChallenges =>
+      'Turimo gushakisha ibibazo biri hafi...';
+
+  @override
+  String get personalChallengesFound => 'Ibibazo byabonetse!';
+
+  @override
+  String personalNearbyRewards(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Ibihembo $count biri hafi',
+      one: 'Igihembo 1 kiri hafi',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get personalChallengeClaimedToast => 'Ikibazo cyafashwe neza! 🎉';
+
+  @override
+  String personalFailedToClaimChallenge(String error) {
+    return 'Gufata ikibazo byanze: $error';
+  }
+
+  @override
   String get manualPurchaseSellPrice => 'Igiciro cyo kugurisha';
 
   @override
@@ -19469,4 +21420,3163 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
 
   @override
   String get loginFailed => 'Kwinjira byanze';
+
+  @override
+  String get webPricingTitle => 'Ibiciro byoroshye kandi bisobanutse';
+
+  @override
+  String get webPlanMobile => 'Telefone';
+
+  @override
+  String get webPlanMobileDesktop => 'Telefone + Mudasobwa';
+
+  @override
+  String get webPlanEnterprise => 'Ikigo';
+
+  @override
+  String get webCurrencyPerMonth => 'RWF / ukwezi';
+
+  @override
+  String get webFeatureMobileAppAccess => 'Gukoresha porogaramu ya telefone';
+
+  @override
+  String get webFeatureBasicBusinessTools =>
+      'Ibikoresho by\'ibanze by\'ubucuruzi';
+
+  @override
+  String get webFeatureDataEncryption => 'Amakuru arinzwe n\'ibanga';
+
+  @override
+  String get webFeatureSingleDevice => 'Igikoresho kimwe';
+
+  @override
+  String get webFeatureTaxReportingAddon => '+ Raporo z\'imisoro (+30,000 RWF)';
+
+  @override
+  String get webFeatureMobileDesktopAppAccess =>
+      'Gukoresha porogaramu kuri telefone na mudasobwa';
+
+  @override
+  String get webFeatureAdvancedBusinessTools =>
+      'Ibikoresho by\'ubucuruzi bigezweho';
+
+  @override
+  String get webFeatureMilitaryGradeEncryption =>
+      'Ibanga ry\'amakuru ryo ku rwego rwo hejuru';
+
+  @override
+  String get webFeaturePrioritySupport => 'Ubufasha bwihutirwa';
+
+  @override
+  String get webFeatureMultipleDevices => 'Ibikoresho byinshi';
+
+  @override
+  String get webFeatureAdvancedAnalytics => 'Isesengura rigezweho';
+
+  @override
+  String get webFeatureFullPlatformAccess => 'Gukoresha urubuga rwose';
+
+  @override
+  String get webFeatureEnterpriseGradeSecurity =>
+      'Umutekano ku rwego rw\'ibigo';
+
+  @override
+  String get webFeature247DedicatedSupport => 'Ubufasha bwihariye 24/7';
+
+  @override
+  String get webFeatureUnlimitedUsersBranches =>
+      'Abakoresha n\'amashami bitagira umubare';
+
+  @override
+  String get webFeatureCustomIntegrations => 'Guhuza na sisitemu zihariye';
+
+  @override
+  String get webFeaturePremiumTaxConsulting =>
+      '+ Ubujyanama bwihariye ku misoro (+400,000 RWF)';
+
+  @override
+  String get webGetStarted => 'Tangira';
+
+  @override
+  String get booksReceivables => 'Amafaranga ugomba kwishyurwa';
+
+  @override
+  String get booksBills => 'Fagitire zo kwishyura';
+
+  @override
+  String get booksSuppliers => 'Abatanga ibicuruzwa';
+
+  @override
+  String get booksPayables => 'Amafaranga ugomba kwishyura';
+
+  @override
+  String get booksJournalEntries => 'Inyandiko z\'ibaruramari';
+
+  @override
+  String get booksGeneralLedger => 'Igitabo rusange cy\'ibaruramari';
+
+  @override
+  String get booksRecurring => 'Ibisubirwamo';
+
+  @override
+  String get booksBankReconciliation => 'Guhuza konti ya banki';
+
+  @override
+  String get booksFinancialStatements => 'Raporo z\'imari';
+
+  @override
+  String get booksTrialBalance => 'Iringaniza rya konti';
+
+  @override
+  String get booksTaxVat => 'Imisoro na TVA';
+
+  @override
+  String get booksChartOfAccounts => 'Urutonde rwa konti';
+
+  @override
+  String get booksPeriodClose => 'Gufunga igihe cy\'ibaruramari';
+
+  @override
+  String get booksAuditTrail => 'Amateka y\'ibikorwa';
+
+  @override
+  String get booksUsersRoles => 'Abakoresha n\'inshingano';
+
+  @override
+  String get booksOverview => 'Incamake';
+
+  @override
+  String get booksDaybook => 'Igitabo cya buri munsi';
+
+  @override
+  String get booksSetup => 'Igenamiterere';
+
+  @override
+  String get booksCompliance => 'Kubahiriza amategeko';
+
+  @override
+  String booksClosingBalance(String amount) {
+    return 'Ibisigaye $amount';
+  }
+
+  @override
+  String booksAccountPostingHistory(String currency) {
+    return 'Amateka y\'inyandiko kuri buri konti · $currency';
+  }
+
+  @override
+  String get booksReadingStatement => 'Turi gusoma inyandiko ya banki…';
+
+  @override
+  String get booksStatementImported => 'Inyandiko ya banki yatumijwe';
+
+  @override
+  String booksStatementLinesLoaded(int count, String source) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Imirongo $count yapakiwe',
+      one: 'Umurongo 1 wapakiwe',
+    );
+    return '$source · $_temp0';
+  }
+
+  @override
+  String get booksImportFailed => 'Gutumiza byanze';
+
+  @override
+  String get booksMatchDifferentAccountTitle =>
+      'Guhuza kuri konti itandukanye?';
+
+  @override
+  String booksMatchDifferentAccountBody(
+    String account,
+    String amount,
+    String bankCode,
+    String code,
+  ) {
+    return 'Iyi nyandiko yimura $amount kuri $account ($code), si kuri Banki ($bankCode). Uhuze uko byagenda kose?';
+  }
+
+  @override
+  String get booksMatch => 'Huza';
+
+  @override
+  String get booksBankLineMatched => 'Umurongo wa banki wahujwe';
+
+  @override
+  String get booksBankCatSaleIncome => 'Igurisha / amafaranga yinjiye';
+
+  @override
+  String get booksBankCatSaleIncomeHint => 'Amafaranga winjije';
+
+  @override
+  String get booksBankCatCustomerPaid => 'Umukiriya yishyuye umwenda';
+
+  @override
+  String get booksBankCatCustomerPaidHint => 'Yari akurimo umwenda';
+
+  @override
+  String get booksBankCatOwnerAdded => 'Nyir\'ubucuruzi yongeyemo amafaranga';
+
+  @override
+  String get booksBankCatOwnerAddedHint => 'Imari washyizemo';
+
+  @override
+  String get booksBankCatLoanReceived => 'Inguzanyo wahawe';
+
+  @override
+  String get booksBankCatLoanReceivedHint => 'Amafaranga watijwe';
+
+  @override
+  String get booksBankCatFromCash => 'Byavuye mu isanduku';
+
+  @override
+  String get booksBankCatFromCashHint => 'Byakuwe mu isanduku yawe';
+
+  @override
+  String get booksBankCatFromMomo => 'Byavuye kuri Mobile Money';
+
+  @override
+  String get booksBankCatFromMomoHint => 'Byakuwe kuri MoMo';
+
+  @override
+  String get booksBankCatOtherIncome => 'Andi mafaranga yinjiye';
+
+  @override
+  String get booksBankCatOtherIncomeHint => 'Ibindi byose byakiriwe';
+
+  @override
+  String get booksBankCatBankFee => 'Amafaranga ya serivisi ya banki';
+
+  @override
+  String get booksBankCatBankFeeHint => 'Ayo banki yakuyeho';
+
+  @override
+  String get booksBankCatPaidSupplier =>
+      'Kwishyura utanga ibicuruzwa / kugura ibicuruzwa';
+
+  @override
+  String get booksBankCatPaidSupplierHint => 'Ububiko cyangwa ibicuruzwa';
+
+  @override
+  String get booksBankCatRent => 'Ubukode';
+
+  @override
+  String get booksBankCatRentHint => 'Ubukode bw\'iduka cyangwa ibiro';
+
+  @override
+  String get booksBankCatSalaries => 'Imishahara';
+
+  @override
+  String get booksBankCatSalariesHint => 'Kwishyura abakozi';
+
+  @override
+  String get booksBankCatUtilities => 'Serivisi z\'ibanze';
+
+  @override
+  String get booksBankCatUtilitiesHint => 'Amashanyarazi, amazi, interineti';
+
+  @override
+  String get booksBankCatTransport => 'Ingendo / lisansi';
+
+  @override
+  String get booksBankCatTransportHint => 'Ingendo n\'itangwa ry\'ibicuruzwa';
+
+  @override
+  String get booksBankCatLoanRepayment => 'Kwishyura inguzanyo';
+
+  @override
+  String get booksBankCatLoanRepaymentHint => 'Wishyuye inguzanyo';
+
+  @override
+  String get booksBankCatOwnerWithdrew => 'Nyir\'ubucuruzi yakuyemo amafaranga';
+
+  @override
+  String get booksBankCatOwnerWithdrewHint => 'Kubikuza ku giti cye';
+
+  @override
+  String get booksBankCatToCash => 'Kwimurira mu isanduku';
+
+  @override
+  String get booksBankCatToCashHint => 'Byashyizwe mu isanduku yawe';
+
+  @override
+  String get booksBankCatToMomo => 'Kwimurira kuri Mobile Money';
+
+  @override
+  String get booksBankCatToMomoHint => 'Byashyizwe kuri MoMo';
+
+  @override
+  String get booksBankCatOtherExpense => 'Ibindi byakoreshejwe';
+
+  @override
+  String get booksBankCatOtherExpenseHint => 'Ibindi byose wishyuye';
+
+  @override
+  String get booksEntryCreatedMatched => 'Inyandiko yakozwe kandi irahuzwa';
+
+  @override
+  String booksEntryCreatedMatchedDetail(
+    String amount,
+    String category,
+    String ref,
+  ) {
+    return '$category — $amount kuri Banki ($ref)';
+  }
+
+  @override
+  String get booksCouldNotCreateEntry => 'Ntibyakunze gukora inyandiko';
+
+  @override
+  String get booksWhereMoneyFrom => 'Aya mafaranga yavuye he?';
+
+  @override
+  String get booksWhatPaymentFor => 'Ubu bwishyu bwari ubw\'iki?';
+
+  @override
+  String get booksPickClosestMatch =>
+      'Hitamo igihuye cyane — tuzacyandika neza mu mwanya wawe.';
+
+  @override
+  String get booksMatchBankLine => 'Huza umurongo wa banki';
+
+  @override
+  String get booksBank => 'Banki';
+
+  @override
+  String booksBankRecSubtitle(String bank, String currency, String period) {
+    return 'Banki · $bank · inyandiko ya $period · $currency';
+  }
+
+  @override
+  String get booksImportStatement => 'Tumiza inyandiko ya banki';
+
+  @override
+  String get booksReconciled => 'Byahujwe';
+
+  @override
+  String get booksFinishReconciliation => 'Soza guhuza';
+
+  @override
+  String get booksReconciliationComplete => 'Guhuza byarangiye';
+
+  @override
+  String booksLinesMatchedOfTotal(String matched, String total) {
+    return 'Imirongo $matched kuri $total yahujwe';
+  }
+
+  @override
+  String get booksStatementBalance => 'Asigaye ku nyandiko ya banki';
+
+  @override
+  String get booksFromImportedStatement => 'bivuye ku nyandiko yatumijwe';
+
+  @override
+  String get booksMatched => 'Byahujwe';
+
+  @override
+  String get booksNoLinesYet => 'nta murongo urahari';
+
+  @override
+  String booksOfTotal(String total) {
+    return 'kuri $total';
+  }
+
+  @override
+  String get booksNeedsAttention => 'Bikeneye kwitabwaho';
+
+  @override
+  String get booksStatementLines => 'Imirongo y\'inyandiko ya banki';
+
+  @override
+  String get booksMatchEachLine =>
+      'Huza buri murongo wa banki n\'inyandiko y\'ibaruramari';
+
+  @override
+  String get booksNoStatementLines =>
+      'Nta mirongo y\'inyandiko ya banki irahari. Tumiza inyandiko ngo utangire.';
+
+  @override
+  String booksVatSubtitle(String period, String rate) {
+    return 'TVA ya $rate% (igipimo gisanzwe mu Rwanda) · igihe $period';
+  }
+
+  @override
+  String get booksFileWithRra => 'Menyekanisha kuri RRA';
+
+  @override
+  String get booksVatReturnSubmitted => 'Imenyekanisha rya TVA ryoherejwe';
+
+  @override
+  String booksRraAckRef(String ref) {
+    return 'Icyemezo cya RRA · nimero $ref';
+  }
+
+  @override
+  String get booksOutputVatOnSales => 'TVA yakiriwe (ku byagurishijwe)';
+
+  @override
+  String get booksInputVatReclaimable => 'TVA yishyuwe (igarurwa)';
+
+  @override
+  String get booksNetVatPayable => 'TVA isigaye kwishyurwa';
+
+  @override
+  String booksDueDate(String date) {
+    return 'Igihe ntarengwa $date';
+  }
+
+  @override
+  String get booksVatReturnSummary => 'Incamake y\'imenyekanisha rya TVA';
+
+  @override
+  String get booksDraft => 'Umushinga';
+
+  @override
+  String get booksTotalSalesVatInclusive => 'Ibyagurishijwe byose (harimo TVA)';
+
+  @override
+  String get booksOutputVatCollected => 'TVA yakiriwe';
+
+  @override
+  String get booksInputVatOnPurchases => 'TVA yishyuwe ku byaguzwe';
+
+  @override
+  String get booksNetVatDueToRra => 'TVA isigaye yo kwishyura RRA';
+
+  @override
+  String get booksPrint => 'Capa';
+
+  @override
+  String get booksPreparingPrintLayout => 'Turi gutegura icapwa';
+
+  @override
+  String get booksGeneratingPdf => 'Turi gukora PDF';
+
+  @override
+  String booksStatementPack(String currency) {
+    return 'Raporo z\'imari · $currency';
+  }
+
+  @override
+  String get booksIncomeStatement => 'Raporo y\'inyungu n\'igihombo';
+
+  @override
+  String get booksBalanceSheet => 'Ishusho y\'umutungo';
+
+  @override
+  String get booksCashFlow => 'Urujya n\'uruza rw\'amafaranga';
+
+  @override
+  String get booksNetRevenue => 'Amafaranga yinjiye nyayo';
+
+  @override
+  String get booksCogs => 'Ikiguzi cy\'ibyagurishijwe';
+
+  @override
+  String get booksGrossProfit => 'Inyungu mbumbe';
+
+  @override
+  String get booksOperatingExpenses => 'Amafaranga y\'imikorere';
+
+  @override
+  String get booksTotalAssets => 'Umutungo wose';
+
+  @override
+  String get booksTotalLiabilities => 'Imyenda yose';
+
+  @override
+  String get booksTotalEquity => 'Imari shingiro yose';
+
+  @override
+  String get booksLiabilitiesPlusEquity => 'Imyenda + imari shingiro';
+
+  @override
+  String get booksOperatingActivities => 'Ibikorwa by\'imikorere';
+
+  @override
+  String get booksInvestingActivities => 'Ibikorwa by\'ishoramari';
+
+  @override
+  String get booksFinancingActivities => 'Ibikorwa by\'imari';
+
+  @override
+  String get booksNetChangeInCash => 'Impinduka y\'amafaranga ari mu isanduku';
+
+  @override
+  String get booksBalancedAssetsEqual =>
+      'Biraringaniye — umutungo ungana n\'imyenda wongeyeho imari shingiro';
+
+  @override
+  String booksAsOfPeriod(String currency, String period) {
+    return 'Kugeza $period · $currency';
+  }
+
+  @override
+  String get booksInBalance => 'Biraringaniye';
+
+  @override
+  String get booksOutOfBalance => 'Ntibiringaniye';
+
+  @override
+  String get booksNoAccountsYet => 'Nta konti zirapakirwa.';
+
+  @override
+  String get booksTotals => 'Igiteranyo';
+
+  @override
+  String get booksAssets => 'Umutungo';
+
+  @override
+  String get booksLiabilities => 'Imyenda';
+
+  @override
+  String get booksEquity => 'Imari shingiro';
+
+  @override
+  String get booksIncome => 'Amafaranga yinjiye';
+
+  @override
+  String get booksExpenses => 'Amafaranga yakoreshejwe';
+
+  @override
+  String booksCoaSubtitle(String count) {
+    return 'Konti $count · imiterere y\'igitabo ifite nimero';
+  }
+
+  @override
+  String get booksFilterByType => 'Shungura ukurikije ubwoko';
+
+  @override
+  String get booksAllTypes => 'Ubwoko bwose';
+
+  @override
+  String get booksFilter => 'Shungura';
+
+  @override
+  String get booksAddAccount => 'Ongeramo konti';
+
+  @override
+  String get booksNetIncome => 'Inyungu nyayo';
+
+  @override
+  String get booksNetLoss => 'Igihombo nyacyo';
+
+  @override
+  String get booksOpenOnWiderScreen =>
+      'Fungura kuri ecran nini ngo ubone imbuga ya mudasobwa';
+
+  @override
+  String get booksFreqMonthly => 'Buri kwezi';
+
+  @override
+  String get booksFreqWeekly => 'Buri cyumweru';
+
+  @override
+  String get booksFreqQuarterly => 'Buri gihembwe';
+
+  @override
+  String get booksFreqYearly => 'Buri mwaka';
+
+  @override
+  String get booksRoleOwner => 'Nyir\'ubucuruzi';
+
+  @override
+  String get booksRoleOwnerDesc =>
+      'Uburenganzira bwose — kwemeza, kwandika, kumenyekanisha imisoro, gucunga itsinda';
+
+  @override
+  String get booksRoleBookkeeper => 'Umucungamari';
+
+  @override
+  String get booksRoleBookkeeperDesc =>
+      'Gukora no guhindura inyandiko, fagitire n\'izo kwishyura; ntashobora kwemeza cyangwa kumenyekanisha';
+
+  @override
+  String get booksRoleCashier => 'Umubitsi';
+
+  @override
+  String get booksRoleCashierDesc =>
+      'Kwandika ibyagurishijwe n\'inyemezabwishyu bivuye kuri POS gusa';
+
+  @override
+  String get booksRoleViewer => 'Ureba gusa';
+
+  @override
+  String get booksRoleViewerDesc => 'Kureba raporo n\'imbonerahamwe gusa';
+
+  @override
+  String get booksCapViewReports => 'Kureba raporo n\'imbonerahamwe z\'imari';
+
+  @override
+  String get booksCapCreateInvoicesBills => 'Gukora fagitire';
+
+  @override
+  String get booksCapRecordPayments => 'Kwandika ubwishyu n\'inyemezabwishyu';
+
+  @override
+  String get booksCapPostJournal =>
+      'Kwandika no guhindura inyandiko z\'ibaruramari';
+
+  @override
+  String get booksCapApproveEntries => 'Kwemeza inyandiko';
+
+  @override
+  String get booksCapFileVat => 'Kumenyekanisha TVA kuri RRA';
+
+  @override
+  String get booksCapClosePeriods => 'Gufunga ibihe no gucunga itsinda';
+
+  @override
+  String get booksRecurringEntries => 'Inyandiko zisubirwamo';
+
+  @override
+  String booksRecurringSubtitle(String currency) {
+    return 'Ubukode, imishahara n\'izindi nyandiko zisubirwamo byiyandika ubwabyo · $currency';
+  }
+
+  @override
+  String get booksNewSchedule => 'Gahunda nshya';
+
+  @override
+  String get booksActiveSchedules => 'Gahunda zikora';
+
+  @override
+  String booksCountOfTotal(String count, String total) {
+    return '$count kuri $total';
+  }
+
+  @override
+  String get booksMonthlyCommitted => 'Ibyiyemejwe buri kwezi';
+
+  @override
+  String get booksNextRun => 'Igihe gikurikiyeho';
+
+  @override
+  String get booksNoRecurringYet =>
+      'Nta gahunda zisubirwamo zirahari. Kora imwe ngo wandike ubukode, imishahara cyangwa izindi nyandiko zisubirwamo.';
+
+  @override
+  String get booksSchedule => 'Gahunda';
+
+  @override
+  String get booksFrequency => 'Inshuro';
+
+  @override
+  String get booksPostsTo => 'Byandikwa kuri';
+
+  @override
+  String get booksStatus => 'Imiterere';
+
+  @override
+  String get booksPaused => '— byahagaritswe —';
+
+  @override
+  String get booksRunNow => 'Kora nonaha';
+
+  @override
+  String get booksScheduleResumed => 'Gahunda yasubukuwe';
+
+  @override
+  String get booksSchedulePaused => 'Gahunda yahagaritswe';
+
+  @override
+  String get booksEntryPosted => 'Inyandiko yanditswe';
+
+  @override
+  String get booksAlreadyPostedThisPeriod => 'Byamaze kwandikwa muri iki gihe';
+
+  @override
+  String get booksCouldNotPostEntry => 'Ntibyakunze kwandika inyandiko';
+
+  @override
+  String get booksScheduleCreated => 'Gahunda yakozwe';
+
+  @override
+  String get booksScheduleUpdated => 'Gahunda yavuguruwe';
+
+  @override
+  String booksPeriodCloseSubtitle(String currency, String period) {
+    return 'Funga $period ibitabo bimaze kurangira · $currency';
+  }
+
+  @override
+  String booksPeriodLocked(String period) {
+    return '$period yafunzwe';
+  }
+
+  @override
+  String get booksReopenPeriod => 'Ongera ufungure igihe';
+
+  @override
+  String get booksCouldNotReopenPeriod => 'Ntibyakunze kongera gufungura igihe';
+
+  @override
+  String get booksPeriodReopened => 'Igihe cyongeye gufungurwa';
+
+  @override
+  String booksPeriodPostableAgain(String period) {
+    return '$period yongeye kwemera inyandiko';
+  }
+
+  @override
+  String get booksClosePeriod => 'Funga igihe';
+
+  @override
+  String get booksCouldNotClosePeriod => 'Ntibyakunze gufunga igihe';
+
+  @override
+  String get booksPeriodClosed => 'Igihe cyafunzwe';
+
+  @override
+  String booksPeriodLockedReadOnly(String period) {
+    return '$period yafunzwe · inyandiko ziraboneka gusa ntizihindurwa';
+  }
+
+  @override
+  String get booksCloseChecklist => 'Urutonde rwo gufunga';
+
+  @override
+  String booksStepsComplete(String done, String total) {
+    return 'Intambwe $done kuri $total zarangiye';
+  }
+
+  @override
+  String get booksReview => 'Suzuma';
+
+  @override
+  String get booksWhatClosingDoes => 'Icyo gufunga bikora';
+
+  @override
+  String get booksCloseNoteLocks =>
+      'Bifunga igihe. Inyandiko zanditswe ntizishobora guhindurwa — keretse wongeye gufungura.';
+
+  @override
+  String get booksCloseNoteRollsForward =>
+      'Bijyana imbere. Inyungu nyayo ijya mu nyungu zabitswe kandi ibisigaye bijya mu kwezi gukurikira.';
+
+  @override
+  String get booksCloseNoteAuditPoint =>
+      'Bikora ingingo y\'igenzura. Ifoto y\'uko byari bimeze yandikwa mu mateka y\'ibikorwa n\'izina ryawe n\'igihe.';
+
+  @override
+  String get booksAllChecksPassed =>
+      'Igenzura ryose ryatsinze — byiteguye gufungwa.';
+
+  @override
+  String get booksFinishChecklist =>
+      'Rangiza buri ntambwe y\'urutonde ngo ubashe gufunga.';
+
+  @override
+  String get booksAuditSubtitle =>
+      'Buri mpinduka, uwayikoze n\'igihe · ntibihindurwa';
+
+  @override
+  String get booksAllUsers => 'Abakoresha bose';
+
+  @override
+  String get booksExport => 'Ohereza hanze';
+
+  @override
+  String get booksExportingAuditLog => 'Turi kohereza amateka y\'ibikorwa';
+
+  @override
+  String booksEventsCsv(String count) {
+    return 'Ibikorwa $count · CSV';
+  }
+
+  @override
+  String get booksNoAuditEvents => 'Nta bikorwa by\'igenzura birahari.';
+
+  @override
+  String get booksRolesSubtitle =>
+      'Genzura ushobora kureba no guhindura ibitabo';
+
+  @override
+  String get booksInviteTeammate => 'Tumira mugenzi wawe';
+
+  @override
+  String get booksInviteSent => 'Ubutumire bwoherejwe';
+
+  @override
+  String get booksInvitationsComingSoon => 'Gutumira itsinda biraza vuba';
+
+  @override
+  String booksTeamCount(String count) {
+    return 'Itsinda ($count)';
+  }
+
+  @override
+  String get booksOnlyYouHaveAccess =>
+      'Ni wowe wenyine ufite uburenganzira. Tumira bagenzi bawe mufatanye.';
+
+  @override
+  String get booksYou => 'Wowe';
+
+  @override
+  String get booksRoles => 'Inshingano';
+
+  @override
+  String get booksCapability => 'Ububasha';
+
+  @override
+  String get booksActiveNow => 'Ari ku murongo ubu';
+
+  @override
+  String get booksRoleSystem => 'Sisitemu';
+
+  @override
+  String get booksTaskAllPosted => 'Inyandiko zose z\'ibaruramari zanditswe';
+
+  @override
+  String booksTaskPendingApproval(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Inyandiko $count ziracyategereje kwemezwa',
+      one: 'Inyandiko 1 iracyategereje kwemezwa',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get booksTaskNoPending => 'Nta nyandiko zitegereje';
+
+  @override
+  String get booksTaskBankReconciled => 'Konti za banki zahujwe';
+
+  @override
+  String booksTaskLinesUnmatched(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Imirongo $count itarahuzwa',
+      one: 'Umurongo 1 utarahuzwa',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get booksTaskAllLinesMatched => 'Imirongo yose yahujwe';
+
+  @override
+  String get booksTaskReceivablesReviewed =>
+      'Amafaranga ugomba kwishyurwa yasuzumwe';
+
+  @override
+  String get booksTaskNoOpenReceivables =>
+      'Nta mafaranga ugomba kwishyurwa ahari';
+
+  @override
+  String booksTaskAgingOverdue(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Igihe cyemejwe · fagitire $count zarengeje igihe',
+      one: 'Igihe cyemejwe · fagitire 1 yarengeje igihe',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String booksTaskAgingBalances(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Igihe cyemejwe · asigaye $count',
+      one: 'Igihe cyemejwe · asigaye 1',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get booksTaskPayablesReviewed =>
+      'Amafaranga ugomba kwishyura yasuzumwe';
+
+  @override
+  String get booksTaskNoOpenPayables => 'Nta mafaranga ugomba kwishyura ahari';
+
+  @override
+  String get booksTaskAllBillsEntered =>
+      'Fagitire zose z\'abatanga ibicuruzwa zanditswe';
+
+  @override
+  String get booksTaskVatPrepared => 'Imenyekanisha rya TVA ryateguwe';
+
+  @override
+  String get booksTaskNoVatActivity => 'Nta TVA yabayeho muri iki gihe';
+
+  @override
+  String booksTaskVatNetPayable(String amount, String date) {
+    return 'Isigaye kwishyurwa $amount · igihe ntarengwa $date';
+  }
+
+  @override
+  String get booksTaskDepreciationPosted => 'Igabanuka ry\'agaciro ryanditswe';
+
+  @override
+  String get booksTaskDepreciationMaybePending =>
+      'Inyandiko zitegereje zishobora kuba zirimo igabanuka ry\'agaciro';
+
+  @override
+  String get booksTaskDepreciationUpToDate =>
+      'Igabanuka ry\'agaciro riri ku gihe';
+
+  @override
+  String get booksStatusSent => 'Yoherejwe';
+
+  @override
+  String get booksStatusPartPaid => 'Yishyuwe igice';
+
+  @override
+  String get booksStatusPaid => 'Yishyuwe';
+
+  @override
+  String get booksStatusOverdue => 'Yarengeje igihe';
+
+  @override
+  String get booksSignOutTitle => 'Gusohoka?';
+
+  @override
+  String get booksSignOutBody =>
+      'Bisoza isesiyo yawe kandi bigasiba guhuza kwa Ditto kuri iyi tab. Hitamo “Vugurura uvuye ku gicu” niba ushaka gusa kongera kuzana amakuru ya Books.';
+
+  @override
+  String get booksRefreshFromCloud => 'Vugurura uvuye ku gicu';
+
+  @override
+  String get booksResyncDitto => 'Ongera uhuze amakuru ya Ditto';
+
+  @override
+  String get booksSupplier => 'Utanga ibicuruzwa';
+
+  @override
+  String get booksAgingCurrent => 'Bitararenga igihe';
+
+  @override
+  String get booksAging1to30 => 'Iminsi 1–30';
+
+  @override
+  String get booksAging31to60 => 'Iminsi 31–60';
+
+  @override
+  String get booksAging60plus => 'Iminsi 60+';
+
+  @override
+  String get booksMoneyIn => 'Amafaranga yinjiye';
+
+  @override
+  String get booksMoneyOut => 'Amafaranga asohoka';
+
+  @override
+  String get booksAccountsReceivable => 'Amafaranga ugomba kwishyurwa';
+
+  @override
+  String get booksAccountsPayable => 'Amafaranga ugomba kwishyura';
+
+  @override
+  String booksArSubtitle(String currency) {
+    return 'Ibyo abakiriya bakurimo · ukurikije igihe · $currency';
+  }
+
+  @override
+  String booksApSubtitle(String currency) {
+    return 'Ibyo urimo abatanga ibicuruzwa · ukurikije igihe · $currency';
+  }
+
+  @override
+  String get booksSendReminders => 'Ohereza ibyibutsa';
+
+  @override
+  String get booksSchedulePayment => 'Teganya ubwishyu';
+
+  @override
+  String get booksRemindersSent => 'Ibyibutsa byoherejwe';
+
+  @override
+  String get booksPaymentScheduled => 'Ubwishyu bwateganyijwe';
+
+  @override
+  String booksEmailedCustomers(String count) {
+    return 'Abakiriya $count bafite amafaranga basigaye bohererejwe imeyili';
+  }
+
+  @override
+  String booksQueuedSupplierPayments(String count) {
+    return 'Ubwishyu $count bw\'abatanga ibicuruzwa buri ku murongo';
+  }
+
+  @override
+  String get booksNewInvoice => 'Fagitire nshya';
+
+  @override
+  String get booksNewBill => 'Fagitire nshya yo kwishyura';
+
+  @override
+  String get booksAgingSummary => 'Incamake ukurikije igihe';
+
+  @override
+  String get booksReference => 'Indango';
+
+  @override
+  String get booksTotal => 'Igiteranyo';
+
+  @override
+  String get booksStatementOfAccount => 'Raporo ya konti';
+
+  @override
+  String booksOutstanding(String amount, String name) {
+    return '$name · $amount bitarishyurwa';
+  }
+
+  @override
+  String booksJournalSubtitle(String currency) {
+    return 'Buri gikorwa nk\'inyandiko ebyiri ziringaniye · $currency';
+  }
+
+  @override
+  String get booksFilterBySource => 'Shungura ukurikije inkomoko';
+
+  @override
+  String get booksAllSources => 'Inkomoko zose';
+
+  @override
+  String get booksRecordExpense => 'Andika ibyakoreshejwe';
+
+  @override
+  String get booksNewJournalEntry => 'Inyandiko nshya y\'ibaruramari';
+
+  @override
+  String get booksFilterAll => 'Byose';
+
+  @override
+  String get booksFilterPosted => 'Byanditswe';
+
+  @override
+  String get booksFilterPending => 'Bitegereje';
+
+  @override
+  String get booksFilterDrafts => 'Imishinga';
+
+  @override
+  String booksEntriesAwaitingApproval(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Inyandiko $count zitegereje kwemezwa',
+      one: 'Inyandiko 1 itegereje kwemezwa',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get booksNoEntriesMatchFilter =>
+      'Nta nyandiko zihuye n\'iri shungura.';
+
+  @override
+  String get booksDrAbbr => 'Debi';
+
+  @override
+  String get booksCrAbbr => 'Kredi';
+
+  @override
+  String get booksFinancialOverview => 'Incamake y\'imari';
+
+  @override
+  String get booksAtAGlance => 'Ibitabo mu ncamake';
+
+  @override
+  String booksDashSubtitleEntity(
+    String currency,
+    String entity,
+    String period,
+  ) {
+    return '$entity · igihe cy\'ibaruramari $period · amafaranga yose ari muri $currency';
+  }
+
+  @override
+  String booksDashSubtitle(String currency, String period) {
+    return 'Igihe cy\'ibaruramari $period · amafaranga yose ari muri $currency';
+  }
+
+  @override
+  String get booksGeneralLedgerLines => 'Imirongo y\'igitabo rusange';
+
+  @override
+  String get booksExportingExcel => 'Turi kohereza muri Excel';
+
+  @override
+  String get booksExportingCsv => 'Turi kohereza CSV';
+
+  @override
+  String get booksExcelWorkbook => 'Dosiye ya Excel (.xlsx)';
+
+  @override
+  String get booksPdfReport => 'Raporo ya PDF';
+
+  @override
+  String get booksCsvRawLedger => 'CSV (igitabo uko kiri)';
+
+  @override
+  String get booksVsPriorPeriod => 'ugereranyije n\'igihe cyabanje';
+
+  @override
+  String get booksCashAndBank => 'Amafaranga n\'ari kuri banki';
+
+  @override
+  String booksAcrossAccounts(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'kuri konti $count',
+      one: 'kuri konti 1',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get booksReceivable => 'Ugomba kwishyurwa';
+
+  @override
+  String booksOverdue60(String amount) {
+    return '$amount byarengejeho iminsi 60+';
+  }
+
+  @override
+  String get booksNoOverdue60 => 'nta byarengejeho iminsi 60+';
+
+  @override
+  String get booksPayable => 'Ugomba kwishyura';
+
+  @override
+  String get booksNoOpenBills => 'nta fagitire zifunguye';
+
+  @override
+  String booksOpenBills(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Fagitire $count zifunguye',
+      one: 'Fagitire 1 ifunguye',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get booksRevenueVsExpenses => 'Amafaranga yinjiye n\'ayakoreshejwe';
+
+  @override
+  String get booksTrailing6Months => 'Amezi 6 ashize';
+
+  @override
+  String get booksWhereMoneyWent => 'Aho amafaranga yagiye';
+
+  @override
+  String get booksOpexBreakdown => 'Isesengura ry\'amafaranga y\'imikorere';
+
+  @override
+  String get booksOpexShort => 'imikorere';
+
+  @override
+  String get booksRecentJournalEntries => 'Inyandiko z\'ibaruramari za vuba';
+
+  @override
+  String get booksNoJournalEntriesYet =>
+      'Nta nyandiko z\'ibaruramari zirahari.';
+
+  @override
+  String get booksProfitLoss => 'Inyungu n\'igihombo';
+
+  @override
+  String booksDocAlreadyExists(String id) {
+    return '$id isanzwe ihari';
+  }
+
+  @override
+  String get booksUseAnotherNumber => 'Koresha indi nimero';
+
+  @override
+  String get booksBillSaved => 'Fagitire yabitswe';
+
+  @override
+  String get booksDraftSaved => 'Umushinga wabitswe';
+
+  @override
+  String get booksInvoiceSentPosted => 'Fagitire yoherejwe kandi yanditswe';
+
+  @override
+  String get booksBillRecordedPosted =>
+      'Fagitire yanditswe kandi yinjijwe mu bitabo';
+
+  @override
+  String get booksPaymentRecorded => 'Ubwishyu bwanditswe';
+
+  @override
+  String booksInvoicesSubtitle(String currency) {
+    return 'Ohereza fagitire ku bakiriya maze wishyurwe · $currency';
+  }
+
+  @override
+  String booksBillsSubtitle(String currency) {
+    return 'Kurikirana ibyo urimo abatanga ibicuruzwa · $currency';
+  }
+
+  @override
+  String get booksPdfSummary => 'Incamake ya PDF';
+
+  @override
+  String booksInvoicesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Fagitire $count',
+      one: 'Fagitire 1',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String booksBillsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Fagitire zo kwishyura $count',
+      one: 'Fagitire yo kwishyura 1',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get booksOutstandingLabel => 'Bitarishyurwa';
+
+  @override
+  String get booksOwedToSuppliers => 'Ibyo urimo abatanga ibicuruzwa';
+
+  @override
+  String get booksDrafts => 'Imishinga';
+
+  @override
+  String get booksNoInvoicesYet =>
+      'Nta fagitire irahari. Kora fagitire ngo utangire.';
+
+  @override
+  String get booksNoBillsYet =>
+      'Nta fagitire yo kwishyura irahari. Andika imwe ngo utangire.';
+
+  @override
+  String booksNoInvoicesInTab(String tab) {
+    return 'Nta fagitire iri muri “$tab”.';
+  }
+
+  @override
+  String booksNoBillsInTab(String tab) {
+    return 'Nta fagitire yo kwishyura iri muri “$tab”.';
+  }
+
+  @override
+  String get booksBill => 'Fagitire yo kwishyura';
+
+  @override
+  String get booksDue => 'Igihe ntarengwa';
+
+  @override
+  String get booksOpenPreview => 'Fungura urebe';
+
+  @override
+  String get booksRecordPayment => 'Andika ubwishyu';
+
+  @override
+  String get booksPayThisBill => 'Ishyura iyi fagitire';
+
+  @override
+  String get booksSendReminder => 'Ohereza icyibutsa';
+
+  @override
+  String get booksReminderSent => 'Icyibutsa cyoherejwe';
+
+  @override
+  String get booksDeleted => 'Byasibwe';
+
+  @override
+  String get booksCustomerAdded => 'Umukiriya yongeweho';
+
+  @override
+  String get booksSupplierAdded => 'Utanga ibicuruzwa yongeweho';
+
+  @override
+  String booksCustomersSubtitle(String count) {
+    return 'Abantu n\'ibigo ugurisha · inyandiko $count';
+  }
+
+  @override
+  String booksSuppliersSubtitle(String count) {
+    return 'Abo ugura · inyandiko $count';
+  }
+
+  @override
+  String get booksSearchCustomers => 'Shakisha abakiriya…';
+
+  @override
+  String get booksSearchSuppliers => 'Shakisha abatanga ibicuruzwa…';
+
+  @override
+  String get booksNewCustomer => 'Umukiriya mushya';
+
+  @override
+  String get booksNewSupplier => 'Utanga ibicuruzwa mushya';
+
+  @override
+  String get booksTotalCustomers => 'Abakiriya bose';
+
+  @override
+  String get booksTotalSuppliers => 'Abatanga ibicuruzwa bose';
+
+  @override
+  String get booksWithOpenBalance => 'Bafite amafaranga basigaye';
+
+  @override
+  String get booksWithBillsDue => 'Bafite fagitire zigomba kwishyurwa';
+
+  @override
+  String get booksTotalReceivable => 'Ayo ugomba kwishyurwa yose';
+
+  @override
+  String get booksTotalPayable => 'Ayo ugomba kwishyura yose';
+
+  @override
+  String get booksNoCustomersYet => 'Nta bakiriya barahari.';
+
+  @override
+  String get booksNoSuppliersYet => 'Nta batanga ibicuruzwa barahari.';
+
+  @override
+  String booksNoMatchesFor(String query) {
+    return 'Nta bihuye na “$query”.';
+  }
+
+  @override
+  String get booksContact => 'Uwo kuvugisha';
+
+  @override
+  String get booksTerms => 'Amasezerano';
+
+  @override
+  String get booksOwesYou => 'Akurimo';
+
+  @override
+  String get booksYouOwe => 'Urimo';
+
+  @override
+  String get booksViewRecord => 'Reba inyandiko';
+
+  @override
+  String get booksSendStatement => 'Ohereza raporo ya konti';
+
+  @override
+  String get booksCallContact => 'Hamagara';
+
+  @override
+  String get booksStatementSent => 'Raporo ya konti yoherejwe';
+
+  @override
+  String get booksNoPhoneOnFile => 'Nta telefoni yanditswe';
+
+  @override
+  String booksDeleteNamed(String name) {
+    return 'Gusiba $name?';
+  }
+
+  @override
+  String get booksDeleteSharedContactBody =>
+      'Uyu muntu asangiwe na porogaramu ya POS. Kumusiba bikuraho inyandiko y\'umukiriya ahantu hose; ibyagurishijwe mbere bigumana kopi yabyo ariko bigatakaza isano. Usibe uko byagenda kose?';
+
+  @override
+  String get booksDeleteEverywhere => 'Siba ahantu hose';
+
+  @override
+  String booksCustomerSince(String date) {
+    return 'Umukiriya kuva $date';
+  }
+
+  @override
+  String booksSupplierSince(String date) {
+    return 'Utanga ibicuruzwa kuva $date';
+  }
+
+  @override
+  String get booksOutstandingBalance => 'Amafaranga asigaye kwishyurwa';
+
+  @override
+  String get booksAmountPayable => 'Amafaranga yo kwishyura';
+
+  @override
+  String get booksLifetimeBilled => 'Ayishyuzwa yose kugeza ubu';
+
+  @override
+  String get booksLifetimePurchased => 'Ibyaguzwe byose kugeza ubu';
+
+  @override
+  String get booksContactDetails => 'AMAKURU YO KUVUGANA';
+
+  @override
+  String get booksPrimaryContact => 'Uwo kuvugisha w\'ibanze';
+
+  @override
+  String booksInvoicesHeader(String count) {
+    return 'FAGITIRE ($count)';
+  }
+
+  @override
+  String booksBillsHeader(String count) {
+    return 'FAGITIRE ZO KWISHYURA ($count)';
+  }
+
+  @override
+  String get booksNoDocumentsYet => 'Nta nyandiko zirahari.';
+
+  @override
+  String get booksAddCustomerToContacts => 'Ongeramo umukiriya mu bo muvugana';
+
+  @override
+  String get booksAddSupplierToContacts =>
+      'Ongeramo utanga ibicuruzwa mu bo muvugana';
+
+  @override
+  String get booksBusinessCustomerName => 'Izina ry\'ikigo / umukiriya';
+
+  @override
+  String get booksSupplierName => 'Izina ry\'utanga ibicuruzwa';
+
+  @override
+  String get booksExampleBusinessName => 'urugero: Karake Retail Group';
+
+  @override
+  String get booksFullName => 'Amazina yose';
+
+  @override
+  String get booksEmailPlaceholder => 'izina@email.rw';
+
+  @override
+  String get booksTaxId => 'Nimero y\'umusoreshwa';
+
+  @override
+  String get booksPaymentTerms => 'Amasezerano yo kwishyura';
+
+  @override
+  String get booksAddSupplier => 'Ongeramo utanga ibicuruzwa';
+
+  @override
+  String booksNetDays(String days) {
+    return 'Iminsi $days';
+  }
+
+  @override
+  String booksNewInvoiceTitle(String id) {
+    return 'Fagitire nshya · $id';
+  }
+
+  @override
+  String booksEditInvoiceTitle(String id) {
+    return 'Hindura fagitire · $id';
+  }
+
+  @override
+  String booksNewBillTitle(String id) {
+    return 'Fagitire nshya yo kwishyura · $id';
+  }
+
+  @override
+  String booksEditBillTitle(String id) {
+    return 'Hindura fagitire yo kwishyura · $id';
+  }
+
+  @override
+  String get booksInvoiceEditorSubtitle =>
+      'Ohereza fagitire ku mukiriya — Flipper yandika igurisha na TVA ubwayo.';
+
+  @override
+  String get booksBillEditorSubtitle =>
+      'Andika fagitire y\'utanga ibicuruzwa — Flipper yandika ibyakoreshejwe na TVA yishyuwe.';
+
+  @override
+  String get booksSelectCustomer => 'Hitamo umukiriya…';
+
+  @override
+  String get booksSelectSupplier => 'Hitamo utanga ibicuruzwa…';
+
+  @override
+  String get booksIssueDate => 'Itariki yatangiweho';
+
+  @override
+  String get booksBillDate => 'Itariki ya fagitire';
+
+  @override
+  String get booksDueDateLabel => 'Itariki ntarengwa';
+
+  @override
+  String get booksLineItems => 'Ibiri kuri fagitire';
+
+  @override
+  String get booksAddLine => 'Ongeraho umurongo';
+
+  @override
+  String get booksInvoiceWillPost => 'Iyi fagitire izandikwa itya';
+
+  @override
+  String get booksBillWillPost => 'Iyi fagitire yo kwishyura izandikwa itya';
+
+  @override
+  String get booksSaveDraft => 'Bika umushinga';
+
+  @override
+  String get booksSaveAndSend => 'Bika wohereze';
+
+  @override
+  String get booksDownloadPdfOnly => 'Kuramo PDF gusa';
+
+  @override
+  String get booksApproveInPurchases => 'Emeza muri Ibyaguzwe';
+
+  @override
+  String get booksRecordBill => 'Andika fagitire';
+
+  @override
+  String booksNewScheduleTitle(String id) {
+    return 'Gahunda nshya · $id';
+  }
+
+  @override
+  String booksEditScheduleTitle(String id) {
+    return 'Hindura gahunda · $id';
+  }
+
+  @override
+  String get booksScheduleEditorSubtitle =>
+      'Inyandiko zisubirwamo ziyandika ubwazo mu buryo buringaniye.';
+
+  @override
+  String get booksScheduleName => 'Izina rya gahunda';
+
+  @override
+  String get booksScheduleNameHint => 'urugero: Ubukode bwa buri kwezi';
+
+  @override
+  String get booksDay => 'Umunsi';
+
+  @override
+  String get booksDayHint => 'urugero: 1';
+
+  @override
+  String get booksDebitAccountLabel =>
+      'Konti ya debi (ibyakoreshejwe / umutungo)';
+
+  @override
+  String get booksCreditAccountLabel => 'Konti ya kredi (aho amafaranga ava)';
+
+  @override
+  String get booksSelectAccount => 'Hitamo konti…';
+
+  @override
+  String get booksAccountsMustDiffer =>
+      'Konti ya debi n\'iya kredi zigomba gutandukana.';
+
+  @override
+  String get booksActive => 'Irakora';
+
+  @override
+  String get booksPausedLabel => 'Yahagaritswe';
+
+  @override
+  String get booksSaveSchedule => 'Bika gahunda';
+
+  @override
+  String get booksPaymentFailed => 'Ubwishyu bwanze';
+
+  @override
+  String booksInvoicePaidMessage(String amount, String who) {
+    return '$who yishyuye $amount. Fagitire yashyizweho ko yishyuwe.';
+  }
+
+  @override
+  String booksBillPartPaidMessage(String amount, String balance, String who) {
+    return 'Wishyuye $amount $who. Hasigaye $balance.';
+  }
+
+  @override
+  String booksBillSettledMessage(String amount, String who) {
+    return 'Wishyuye $amount $who. Fagitire yarishyuwe yose.';
+  }
+
+  @override
+  String get booksPayBill => 'Ishyura fagitire';
+
+  @override
+  String booksAmountDue(String amount, String id, String who) {
+    return '$id · $who · $amount bigomba kwishyurwa';
+  }
+
+  @override
+  String get booksDepositTo => 'Shyira kuri';
+
+  @override
+  String get booksPayFrom => 'Ishyura uvanye kuri';
+
+  @override
+  String get booksAmountReceived => 'Amafaranga yakiriwe';
+
+  @override
+  String get booksPostsAs => 'Byandikwa bitya';
+
+  @override
+  String get booksBusinessFallback => 'Ubucuruzi';
+
+  @override
+  String get booksInvoiceUpper => 'FAGITIRE';
+
+  @override
+  String get booksBillUpper => 'FAGITIRE YO KWISHYURA';
+
+  @override
+  String get booksBillTo => 'Yohererezwa';
+
+  @override
+  String get booksFrom => 'Bivuye kuri';
+
+  @override
+  String get booksIssued => 'Yatanzwe';
+
+  @override
+  String get booksDescription => 'Ibisobanuro';
+
+  @override
+  String get booksQty => 'Ingano';
+
+  @override
+  String get booksItemOrService => 'Igicuruzwa cyangwa serivisi';
+
+  @override
+  String get booksItemOrServiceHint => 'Igicuruzwa cyangwa serivisi…';
+
+  @override
+  String booksBalancedEquation(String amount, String total) {
+    return 'Biraringaniye · $total = $amount';
+  }
+
+  @override
+  String get booksVat18 => 'TVA (18%)';
+
+  @override
+  String get booksPillPosted => 'yanditswe';
+
+  @override
+  String get booksPillPending => 'itegereje';
+
+  @override
+  String get booksPillDraft => 'umushinga';
+
+  @override
+  String get booksTypeAsset => 'Umutungo';
+
+  @override
+  String get booksTypeLiability => 'Umwenda';
+
+  @override
+  String get booksTypeEquity => 'Imari shingiro';
+
+  @override
+  String get booksTypeIncome => 'Amafaranga yinjiye';
+
+  @override
+  String get booksTypeExpense => 'Ibyakoreshejwe';
+
+  @override
+  String get booksCodeInUse => 'Kode isanzwe ikoreshwa';
+
+  @override
+  String get booksPickDifferentCode => 'Hitamo indi kode ya konti';
+
+  @override
+  String get booksAccountCreated => 'Konti yafunguwe';
+
+  @override
+  String get booksCouldNotCreateAccount => 'Ntibyakunze gufungura konti';
+
+  @override
+  String get booksNewAccount => 'Konti nshya';
+
+  @override
+  String get booksAddLineToCoa => 'Ongeraho umurongo ku rutonde rwa konti';
+
+  @override
+  String get booksAccountType => 'Ubwoko bwa konti';
+
+  @override
+  String get booksCode => 'Kode';
+
+  @override
+  String get booksCodeHint => 'urugero: 6060';
+
+  @override
+  String get booksCategoryHint => 'urugero: Amafaranga y\'imikorere';
+
+  @override
+  String get booksAccountName => 'Izina rya konti';
+
+  @override
+  String get booksAccountNameHint => 'urugero: Ibikoresho byo mu biro';
+
+  @override
+  String get booksCreating => 'Turi gufungura…';
+
+  @override
+  String get booksCreateAccount => 'Fungura konti';
+
+  @override
+  String get booksDrShort => 'Db';
+
+  @override
+  String get booksCrShort => 'Kr';
+
+  @override
+  String booksEntryMeta(String date, String ref, String source) {
+    return '$date · $ref · binyuze kuri $source';
+  }
+
+  @override
+  String booksBalancedDrCr(String cr, String dr) {
+    return 'Biraringaniye · $dr = $cr';
+  }
+
+  @override
+  String get booksApprovedPosted => 'Byemejwe kandi byanditswe';
+
+  @override
+  String get booksSentBackToDrafts => 'Byasubijwe mu mishinga';
+
+  @override
+  String get booksReject => 'Anga';
+
+  @override
+  String get booksApprove => 'Emeza';
+
+  @override
+  String get booksSubmittedForApproval => 'Byoherejwe ngo byemezwe';
+
+  @override
+  String get booksSubmittedForApprovalBody =>
+      'Debi zingana na kredi. Suzuma kandi wemeze uri ku gice cy\'Ibyemezo kugira ngo byandikwe mu gitabo.';
+
+  @override
+  String get booksRecordExpenseSubtitle =>
+      'Hitamo icyiciro n\'uburyo wishyuye — Flipper yandika inyandiko iringaniye.';
+
+  @override
+  String get booksExpenseCategory => 'Icyiciro cy\'ibyakoreshejwe';
+
+  @override
+  String get booksAddExpenseAccount => '+ Ongeramo konti y\'ibyakoreshejwe';
+
+  @override
+  String get booksPaidVia => 'Byishyuwe hakoreshejwe';
+
+  @override
+  String get booksMemoDescription => 'Icyitonderwa / ibisobanuro';
+
+  @override
+  String get booksExpenseMemoHint => 'Ibi byakoreshejwe byari iby\'iki?';
+
+  @override
+  String get booksSubmitForApproval => 'Ohereza ngo byemezwe';
+
+  @override
+  String get booksJournalPreview => 'Igaragazwa ry\'inyandiko';
+
+  @override
+  String booksBalancedAmount(String amount) {
+    return 'Biraringaniye · $amount';
+  }
+
+  @override
+  String get booksTplRecordSale => 'Andika igurisha';
+
+  @override
+  String get booksTplPayExpense => 'Ishyura ibyakoreshejwe';
+
+  @override
+  String get booksTplReceivePayment => 'Akira ubwishyu';
+
+  @override
+  String get booksTplPayBill => 'Ishyura fagitire';
+
+  @override
+  String booksDraftKeptInDrafts(String ref) {
+    return '$ref yabitswe mu Mishinga';
+  }
+
+  @override
+  String get booksCouldNotSaveEntry => 'Ntibyakunze kubika inyandiko';
+
+  @override
+  String get booksQuickStart => 'Gutangira vuba';
+
+  @override
+  String get booksEntryMemoHint => 'Iyi nyandiko ni iy\'iki?';
+
+  @override
+  String get booksLines => 'Imirongo';
+
+  @override
+  String booksDebitCreditHint(String into, String out) {
+    return 'Buri nyandiko igira impande ebyiri. Amafaranga $into kuri konti ni debi; amafaranga $out ni kredi. Bigomba kungana.';
+  }
+
+  @override
+  String get booksMoneyIntoWord => 'yinjira';
+
+  @override
+  String get booksMoneyOutWord => 'isohoka';
+
+  @override
+  String get booksComposerSubtitle =>
+      'Hitamo konti wandike amafaranga — Flipper ituma biringanira.';
+
+  @override
+  String get booksAccountUpper => 'KONTI';
+
+  @override
+  String get booksDebitUpper => 'DEBI';
+
+  @override
+  String get booksCreditUpper => 'KREDI';
+
+  @override
+  String get booksBalanced => 'Biraringaniye';
+
+  @override
+  String get booksEnterAmounts => 'Andika amafaranga';
+
+  @override
+  String booksOffBy(String amount) {
+    return 'Harimo ikinyuranyo cya $amount';
+  }
+
+  @override
+  String get booksTotalDebits => 'Debi zose';
+
+  @override
+  String get booksTotalCredits => 'Kredi zose';
+
+  @override
+  String get booksSearchAccounts => 'Shakisha konti…';
+
+  @override
+  String get booksDataRefreshed => 'Amakuru ya Books yavuguruwe avuye ku gicu';
+
+  @override
+  String booksActionFailed(String error) {
+    return 'Igikorwa cyanze: $error';
+  }
+
+  @override
+  String get booksAllCaughtUp => 'Byose biri ku gihe';
+
+  @override
+  String get booksNotificationsMarkedRead =>
+      'Ubutumwa bwashyizweho ko bwasomwe';
+
+  @override
+  String get booksSearchPlaceholder => 'Shakisha inyandiko, konti, fagitire…';
+
+  @override
+  String get booksFiscalPeriod => 'Igihe cy\'ibaruramari';
+
+  @override
+  String get booksPeriodChanged => 'Igihe cyahinduwe';
+
+  @override
+  String booksFiscalPeriodYear(String year) {
+    return 'Igihe cy\'ibaruramari $year';
+  }
+
+  @override
+  String get booksNotifications => 'Ubutumwa';
+
+  @override
+  String get booksMarkAllRead => 'Shyiraho ko byose byasomwe';
+
+  @override
+  String get booksEntriesAwaitingApprovalTitle =>
+      'Inyandiko z\'ibaruramari zitegereje kwemezwa';
+
+  @override
+  String get booksReviewPendingPostings => 'Suzuma inyandiko ebyiri zitegereje';
+
+  @override
+  String get booksNoNewNotifications => 'Nta butumwa bushya';
+
+  @override
+  String get booksNoPendingEntries => 'Nta nyandiko z\'ibaruramari zitegereje';
+
+  @override
+  String get booksTabSnapshot => 'Incamake';
+
+  @override
+  String get booksTabApprovals => 'Ibyemezo';
+
+  @override
+  String booksCouldNotRestoreBusiness(String error) {
+    return 'Ntibyakunze kugarura amakuru y\'ubucuruzi: $error';
+  }
+
+  @override
+  String get webHomeNavPlatform => 'Urubuga';
+
+  @override
+  String get webHomeNavFeatures => 'Ibiranga';
+
+  @override
+  String get webHomeLogIn => 'Injira';
+
+  @override
+  String get webHomeStartFree => 'Tangira ku buntu';
+
+  @override
+  String get webHomeHeroLine1 => 'Ibaruramari';
+
+  @override
+  String get webHomeHeroLine2Lead => 'ryikora';
+
+  @override
+  String get webHomeHeroLine2Accent => 'ubwaryo.';
+
+  @override
+  String get webHomeHeroBody =>
+      'Flipper Books ni ibaruramari rigezweho ry\'ubucuruzi buri gukura. Buri igurisha rivuye kuri Flipper POS rihita ryandikwa mu gitabo cyawe — kandi Flow AI igashyira mu byiciro, igahuza, ikanamenyekanisha ibisigaye. Wowe ucunga ubucuruzi bwawe gusa.';
+
+  @override
+  String get webHomeSeeHowItWorks => 'Reba uko bikora';
+
+  @override
+  String get webHomeCheckEbmReady => 'Byiteguye RRA / EBM';
+
+  @override
+  String get webHomeCheckOffline => 'Bikora nta interineti';
+
+  @override
+  String get webHomeCheckRwf => 'Byubakiwe RWF';
+
+  @override
+  String get webHomeTrustTagline =>
+      'Byubakiwe ubucuruzi aho buri hose — n\'uburyo amafaranga agenda koko.';
+
+  @override
+  String get webHomeTrustTaxIntegration => 'ihuzwa n\'imisoro';
+
+  @override
+  String get webHomeTrustBusinesses => 'ubucuruzi';
+
+  @override
+  String get webHomeTrustMomoBank => 'Guhuza MoMo na banki';
+
+  @override
+  String get webHomeTrustRealtimeLedger => 'Igitabo kivugururwa ako kanya';
+
+  @override
+  String get webHomeSuiteEyebrow => 'Urubuga rumwe';
+
+  @override
+  String get webHomeSuiteTitle =>
+      'Porogaramu eshatu. Igitabo kimwe. Nta kwandika kabiri.';
+
+  @override
+  String get webHomeSuiteBody =>
+      'Flipper POS, Books na Flow si porogaramu zifatanyijwe gusa — ni sisitemu imwe. Amafaranga ayinyuramo rimwe, kandi ibitabo byawe bigahora biri ku murongo.';
+
+  @override
+  String get webHomeLoopSellOnPos => 'Gurisha kuri POS →';
+
+  @override
+  String get webHomeLoopPostsToBooks => 'byandikwa muri Books';
+
+  @override
+  String get webHomeLoopFlowReconciles => 'Flow irahuza';
+
+  @override
+  String get webHomeLoopTail =>
+      '→ ubona inyungu ako kanya. Uruziga rumwe, rwikora rwose.';
+
+  @override
+  String get webHomePosRole => 'Gurisha';
+
+  @override
+  String get webHomePosTagline => 'Kuri konteri';
+
+  @override
+  String get webHomePosBody =>
+      'Andika ibyagurishijwe kuri telefone cyangwa mudasobwa, sikana ibicuruzwa, wakire amafaranga cyangwa MoMo. Bikora ukimara gufungura iduka — ufite interineti cyangwa utayifite.';
+
+  @override
+  String get webHomeBooksRole => 'Ibaruramari';
+
+  @override
+  String get webHomeBooksTagline => 'Isoko y\'ukuri';
+
+  @override
+  String get webHomeBooksBody =>
+      'Buri igurisha ryandikwa nk\'inyandiko iringaniye. Inyungu n\'igihombo, urujya n\'uruza rw\'amafaranga, amadeni n\'imisoro byiteguye EBM ako kanya — nta mpapuro z\'imibare, nta kwihuta ku mpera z\'ukwezi.';
+
+  @override
+  String get webHomeFlowRole => 'Kwikoresha';
+
+  @override
+  String get webHomeFlowTagline => 'Umucungamari wa AI';
+
+  @override
+  String get webHomeFlowBody =>
+      'Flow ikurikirana byose — ishyira mu byiciro, ihuza, igaragaza ibidasanzwe kandi itegura imisoro. Akazi kafataga umucungamari icyumweru gakorwa ako kanya.';
+
+  @override
+  String get webHomeMeetFlow => 'Menya Flow AI';
+
+  @override
+  String get webHomeFlowHeadlineLead => 'Ibitabo byawe, bicungwa na';
+
+  @override
+  String get webHomeFlowHeadlineAccent => 'umucungamari wa AI.';
+
+  @override
+  String get webHomeFlowLead =>
+      'Flow ihindura ibikorwa bisanzwe ibaruramari risukuye kandi ryiteguye igenzura — kandi ikakubaza gusa igihe ikeneye icyemezo koko. Ruhuka nta mihangayiko y\'ibaruramari.';
+
+  @override
+  String get webHomeFlowAutoCat => 'Gushyira mu byiciro byikora';
+
+  @override
+  String get webHomeFlowAutoCatBody =>
+      'Buri igurisha, ibyakoreshejwe n\'iyimurwa bishyirwa kuri konti ikwiye bikimara kuba.';
+
+  @override
+  String get webHomeFlowRecon => 'Guhuza banki na MoMo';
+
+  @override
+  String get webHomeFlowReconBody =>
+      'Flow ihuza igitabo cyawe n\'inyandiko za banki ubwayo kandi ikagaragaza gusa ibidasanzwe nyabyo.';
+
+  @override
+  String get webHomeFlowTax => 'Imisoro na TVA, byateguwe';
+
+  @override
+  String get webHomeFlowTaxBody =>
+      'Imenyekanisha ryiteguye EBM rikorwa rivuye mu gitabo cyawe, bityo amatariki ntarengwa ya RRA ntakomeze kuguhangayikisha.';
+
+  @override
+  String get webHomeFlowAnomaly => 'Kumenyesha ibidasanzwe';
+
+  @override
+  String get webHomeFlowAnomalyBody =>
+      'Inyandiko zisubiwemo, igabanuka ry\'inyungu n\'amafaranga akoreshwa mu buryo budasanzwe bigaragazwa mbere y\'uko biba ikibazo.';
+
+  @override
+  String get webHomeExploreFlow => 'Menya byinshi kuri Flow AI';
+
+  @override
+  String get webHomeWatchingLedger => 'Ikurikirana igitabo cyawe';
+
+  @override
+  String get webHomeChatUser1 =>
+      'Igurisha rishya rya RWF 12,000 ryinjiye kuri POS, ryishyuwe na MoMo. Ryandike.';
+
+  @override
+  String get webHomeChatBot1 =>
+      'Byakozwe — nanditse inyandiko iringaniye kandi nyihuza na konti yawe ya MTN MoMo. Dore inyandiko:';
+
+  @override
+  String get webHomeChatUser2 => 'Hari icyo nkwiye kureba iki cyumweru?';
+
+  @override
+  String get webHomeChatBot2 =>
+      'TVA ya Gicurasi yiteguye kumenyekanishwa (RWF 318,400) kandi umwe mu batanga ibicuruzwa yishyuwe kabiri — nabigaragaje mu Mafaranga ugomba kwishyura.';
+
+  @override
+  String get webHomeCapMultiBranch => 'Amashami menshi';
+
+  @override
+  String get webHomeCapStatementsBody =>
+      'Raporo y\'inyungu n\'igihombo, ishusho y\'umutungo n\'urujya n\'uruza rw\'amafaranga bikorwa ako kanya biturutse mu gitabo rusange.';
+
+  @override
+  String get webHomeCapBankRecBody =>
+      'Huza imirongo y\'igitabo n\'inyandiko za banki na MoMo icyarimwe, ibidasanzwe bikakugaragarira.';
+
+  @override
+  String get webHomeCapArAp => 'Amafaranga wishyurwa n\'ayo wishyura';
+
+  @override
+  String get webHomeCapArApBody =>
+      'Kurikirana abakurimo n\'ibyo urimo, ukurikije igihe n\'ibyibutsa byikora.';
+
+  @override
+  String get webHomeCapTaxBody =>
+      'Ihuzwa na EBM 2.1 na TVA ibarwa buri gihe — imenyekanisha rigategurwa mbere y\'itariki ntarengwa.';
+
+  @override
+  String get webHomeCapCoaBody =>
+      'Imiterere y\'igitabo ifite nimero, yorohereza igenzura kandi ijyana n\'uko ubucuruzi bwawe buteguye.';
+
+  @override
+  String get webHomeCapMultiBranchBody =>
+      'Huriza amaduka yose mu bitabo bimwe, hanyuma urebe buri shami ukwaryo.';
+
+  @override
+  String get webHomeInsideBooks => 'MURI BOOKS';
+
+  @override
+  String get webHomeCapTitle => 'Ibyo umucungamari akora byose — byubatswemo.';
+
+  @override
+  String get webHomeCapBody =>
+      'Ibaruramari ry\'impande ebyiri rihagije umugenzuzi wawe kandi ryoroshye ku buryo wariyoborera.';
+
+  @override
+  String get webHomePricingEyebrow => 'IBICIRO';
+
+  @override
+  String get webHomePricingBody =>
+      'Hitamo ifatabuguzi rikunogeye. Buri fatabuguzi ririmo Flipper yose — POS, Books na Flow.';
+
+  @override
+  String get webHomeContactSales => 'Vugana n\'abacuruzi bacu';
+
+  @override
+  String get webHomeBandTitle => 'Iduka ryawe, ibitabo byawe, hamwe.';
+
+  @override
+  String get webHomeBandBody =>
+      'Tangira kugurisha kuri Flipper uyu munsi maze ureke Flow icunge ibitabo byawe — byikora, ako kanya. Komereza aho wari ugeze.';
+
+  @override
+  String get webHomeTalkToSales => 'Vugana n\'abacuruzi bacu';
+
+  @override
+  String get webHomeStatProcessedMonthly => 'atunganywa buri kwezi';
+
+  @override
+  String get webHomeStatUptime => 'igihe sisitemu ikora';
+
+  @override
+  String get webHomeRevenueThisWeek => 'Amafaranga yinjiye · iki cyumweru';
+
+  @override
+  String get webHomeNewSale => 'Igurisha rishya';
+
+  @override
+  String webHomeDays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Iminsi $count',
+      one: 'Umunsi 1',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get webHomeSalesStreak => 'Iminsi ikurikiranye ugurisha';
+
+  @override
+  String get webHomeFooterTagline =>
+      'Urubuga rw\'ubucuruzi ruhuza byose muri Afurika — kugurisha, ibaruramari n\'umucungamari wa AI, hamwe.';
+
+  @override
+  String get webHomeCopyright =>
+      '© 2026 Flipper. Yakorewe ubucuruzi aho buri hose.';
+
+  @override
+  String get webHomePrivacy => 'Ibanga';
+
+  @override
+  String get webHomeTerms => 'Amabwiriza';
+
+  @override
+  String get webHomeFooterPlatform => 'URUBUGA';
+
+  @override
+  String get webHomeFooterCompany => 'IKIGO';
+
+  @override
+  String get webHomeFooterSupport => 'UBUFASHA';
+
+  @override
+  String get webHomeAbout => 'Abo turi bo';
+
+  @override
+  String get webHomeBlog => 'Blogu';
+
+  @override
+  String get webHomeCareers => 'Akazi';
+
+  @override
+  String get webHomeContact => 'Twandikire';
+
+  @override
+  String get webHomeHelpCenter => 'Ahabonerwa ubufasha';
+
+  @override
+  String get webHomeDownload => 'Kuramo';
+
+  @override
+  String get webHomeStatus => 'Uko sisitemu ihagaze';
+
+  @override
+  String get webHomeCommunity => 'Umuryango';
+
+  @override
+  String get webHomePoweredBy => 'Flipper Books · ikoresha';
+
+  @override
+  String get webHomeMostPopular => 'Ikunzwe cyane';
+
+  @override
+  String get webHomeSwitchToLight => 'Hindura ujye ku ibara ryera';
+
+  @override
+  String get webHomeSwitchToDark => 'Hindura ujye ku ibara ryijimye';
+
+  @override
+  String get webHomeLightMode => 'Ibara ryera';
+
+  @override
+  String get webHomeDarkMode => 'Ibara ryijimye';
+
+  @override
+  String get webHomeMockFinancialOverview => 'INCAMAKE Y\'IMARI';
+
+  @override
+  String get webHomeMockCashOnHand => 'Amafaranga ahari';
+
+  @override
+  String get webHomeMockRevenueTrend => 'Uko amafaranga yinjira ahinduka';
+
+  @override
+  String get webHomeMockLast8Months => 'Amezi 8 ashize';
+
+  @override
+  String get webHomeMockCostOfSales => 'Ikiguzi cy\'ibyagurishijwe';
+
+  @override
+  String get webHomeMockOperatingExp => 'Amafaranga y\'imikorere';
+
+  @override
+  String get webHomeMockAutoPosted => 'BYANDITSWE BYIKORA';
+
+  @override
+  String webHomeMockToast(String account, String pos) {
+    return 'Igurisha rishya kuri $pos — ryashyizwe muri $account kandi rihuzwa na MoMo.';
+  }
+
+  @override
+  String get webHomeMockSalesRevenue => 'Amafaranga y\'ibyagurishijwe';
+
+  @override
+  String get webHomeMockBalancedSuffix => '· iraringaniye';
+
+  @override
+  String get webHomeMockPending => '● BITEGEREJE';
+
+  @override
+  String get webHomeMockSearchOrScan => 'Shakisha cyangwa sikana…';
+
+  @override
+  String webHomeMockLeft(String count) {
+    return '$count bisigaye';
+  }
+
+  @override
+  String get webAppsFinance => 'Imari';
+
+  @override
+  String get webAppsSell => 'Kugurisha';
+
+  @override
+  String get webAppsEverything => 'Ibintu byose by\'ubucuruzi bwawe';
+
+  @override
+  String webAppsComingSoon(String app) {
+    return '$app — biraza vuba';
+  }
+
+  @override
+  String get webBillingInvalidMomo =>
+      'Andika nimero ya Mobile Money ikwiye, urugero: 0788123456.';
+
+  @override
+  String get webBillingPreparing => 'Turi gutegura ifatabuguzi ryawe…';
+
+  @override
+  String webBillingCouldNotSave(String error) {
+    return 'Ntibyakunze kubika ifatabuguzi: $error';
+  }
+
+  @override
+  String get webBillingNoPlanIdCharge =>
+      'Iri fatabuguzi nta nimero y\'ifatabuguzi rirabona, ntirishobora kwishyurwa mu mutekano. Ongera ufungure ugerageze.';
+
+  @override
+  String get webBillingNoPlanIdPay =>
+      'Iri fatabuguzi nta nimero y\'ifatabuguzi rirabona, ntirishobora kwishyurwa mu mutekano. Ongera ufungure ugerageze.';
+
+  @override
+  String get webBillingSendingRequest =>
+      'Turi kohereza icyifuzo kuri telefone yawe…';
+
+  @override
+  String get webBillingApproveOnPhone =>
+      'Emeza icyifuzo cya Mobile Money kuri telefone yawe.';
+
+  @override
+  String webBillingCouldNotStart(String error) {
+    return 'Ubwishyu ntibwashoboye gutangira: $error';
+  }
+
+  @override
+  String get webBillingConsentDeclined =>
+      'Uruhushya rwa Mobile Money rwanzwe, nta kintu cyishyujwe.';
+
+  @override
+  String get webBillingCouldNotStartPlain =>
+      'Ubwishyu ntibwashoboye gutangira.';
+
+  @override
+  String get webBillingNoReference =>
+      'Uburyo bwo kwishyura bwakiriye ubwishyu ariko ntibwatanga nimero yo kubukurikirana. Reba kuri telefone yawe, hanyuma wongere ugerageze.';
+
+  @override
+  String get webBillingPaymentReceived =>
+      'Ubwishyu bwakiriwe. Ifatabuguzi ryawe rirakora.';
+
+  @override
+  String get webBillingNotCompletedOnPhone =>
+      'Ubwishyu ntibwarangiriye kuri telefone yawe.';
+
+  @override
+  String get webBillingMomoNoVerdict =>
+      'Ntiturabona igisubizo cya Mobile Money. Niba wemeje icyifuzo, Books irafunguka vuba — ongera urebe mu kanya.';
+
+  @override
+  String get webBillingCardNeedsEmail =>
+      'Kwishyura ukoresheje ikarita bisaba imeyili yo kwakiriraho inyemezabwishyu.';
+
+  @override
+  String get webBillingOpeningPaymentPage =>
+      'Turi gufungura urupapuro rwo kwishyura…';
+
+  @override
+  String webBillingCardCouldNotStart(String error) {
+    return 'Kwishyura ukoresheje ikarita ntibyashoboye gutangira: $error';
+  }
+
+  @override
+  String get webBillingAlreadyActive => 'Iri fatabuguzi risanzwe rikora.';
+
+  @override
+  String get webBillingCouldNotOpenCardPage =>
+      'Ntibyakunze gufungura urupapuro rwo kwishyura n\'ikarita muri iyi mushakisha.';
+
+  @override
+  String get webBillingSubscriptionEnded =>
+      'Iri fatabuguzi ryarangiye. Hitamo ifatabuguzi ngo wongere utangire.';
+
+  @override
+  String get webBillingFinishOnOpenedPage =>
+      'Rangiriza kwishyura ku rupapuro rumaze gufunguka. Books irafunguka hano ikarita ikimara kwishyuzwa.';
+
+  @override
+  String get webBillingCheckingCard =>
+      'Turi kugenzura ubwishyu bw\'ikarita yawe…';
+
+  @override
+  String webBillingCouldNotCheckCard(String error) {
+    return 'Ntibyakunze kugenzura ubwishyu bw\'ikarita: $error';
+  }
+
+  @override
+  String get webBillingCardDeclined =>
+      'Ikarita yanzwe. Ongera ufungure urupapuro rwo kwishyura ukoreshe indi karita.';
+
+  @override
+  String get webBillingCardNoVerdict =>
+      'Ntiturabona amakuru ku bwishyu bw\'ikarita. Niba warabirangije, Books irafunguka vuba — ongera urebe mu kanya.';
+
+  @override
+  String get webBillingCheckingSubscription =>
+      'Turi kugenzura ifatabuguzi ryawe…';
+
+  @override
+  String get webBillingEnded => 'Ifatabuguzi ryawe ryarangiye';
+
+  @override
+  String get webBillingNeedsSubscription => 'Flipper Books isaba ifatabuguzi';
+
+  @override
+  String get webBillingEndedBody =>
+      'Nta kintu cyasibwe — ibitabo byawe, ibyagurishijwe n\'ububiko byose biracyahari. Ongera ufate ifatabuguzi ngo wongere ubifungure.';
+
+  @override
+  String get webBillingNeedsBody =>
+      'Ifatabuguzi rimwe rikora kuri ubu bucuruzi ku rubuga, kuri telefone no kuri mudasobwa. Ishyura rimwe maze Flipper ifunguke aho uyikoresha hose.';
+
+  @override
+  String get webBillingAwaitingSettlement =>
+      'Hari ubwishyu buri mu nzira. Niba wabwemeje kuri telefone yawe, birafunguka Mobile Money ikimara kubwemeza.';
+
+  @override
+  String get webBillingRenewNow => 'Ongera ufate ifatabuguzi';
+
+  @override
+  String get webBillingChoosePlan => 'Hitamo ifatabuguzi';
+
+  @override
+  String get webBillingSwitchBusiness => 'Hindura ubucuruzi';
+
+  @override
+  String get webBillingLoadingBusiness => 'Turi kuzana ubucuruzi bwawe…';
+
+  @override
+  String get webBillingPickBusiness =>
+      'Hitamo ubucuruzi wishyurira, maze amafatabuguzi n\'ibiciro byayo bigaragare hano.';
+
+  @override
+  String get webBillingChooseBusiness => 'Hitamo ubucuruzi';
+
+  @override
+  String get webBillingRenewTitle => 'Ongera ufate ifatabuguzi ryawe';
+
+  @override
+  String get webBillingSubscribe => 'Fata ifatabuguzi';
+
+  @override
+  String get webBillingTestBadge => 'IGERAGEZA';
+
+  @override
+  String get webBillingOneMoment => 'Akanya gato…';
+
+  @override
+  String get webBillingIntroSubtitle =>
+      'Ifatabuguzi rimwe rifungura ubu bucuruzi ku rubuga, kuri telefone no kuri mudasobwa.';
+
+  @override
+  String get webBillingActiveReady =>
+      'Ifatabuguzi ryawe rirakora. Books yiteguye gufungurwa.';
+
+  @override
+  String get webBillingLoadingPlans => 'Turi kuzana amafatabuguzi…';
+
+  @override
+  String webBillingCouldNotLoadPlans(String error) {
+    return 'Ntibyakunze kuzana amafatabuguzi: $error';
+  }
+
+  @override
+  String get webBillingTryAgain => 'Ongera ugerageze';
+
+  @override
+  String get webBillingNoPlans => 'Nta fatabuguzi riri ku isoko ubu.';
+
+  @override
+  String get webBillingPlan => 'Ifatabuguzi';
+
+  @override
+  String get webBillingAddons => 'Ibyongerwaho';
+
+  @override
+  String get webBillingPayWith => 'Ishyura ukoresheje';
+
+  @override
+  String get webBillingContinueToCard => 'Komeza wishyure n\'ikarita';
+
+  @override
+  String webBillingPayAmount(String amount) {
+    return 'Ishyura $amount RWF';
+  }
+
+  @override
+  String get webBillingWaitingApproval => 'Dutegereje ko wemeza…';
+
+  @override
+  String get webBillingWaitingCard => 'Dutegereje ubwishyu bw\'ikarita…';
+
+  @override
+  String get webBillingPreparingShort => 'Turi gutegura…';
+
+  @override
+  String get webBillingCheckAgain => 'Ongera urebe';
+
+  @override
+  String get webBillingStartOver => 'Ongera utangire';
+
+  @override
+  String get webBillingOpenBooks => 'Fungura Books';
+
+  @override
+  String get webPayNotAuthorised =>
+      'Iyi konti ntiyemerewe kwishyuza nk\'umukozi.';
+
+  @override
+  String get webPayEnterAmount => 'Andika amafaranga mwumvikanyeho muri RWF.';
+
+  @override
+  String get webPayStarting => 'Turi gutangiza ubwishyu…';
+
+  @override
+  String webPayCouldNotStart(String error) {
+    return 'Ntibyakunze gutangiza ubwishyu: $error';
+  }
+
+  @override
+  String get webPayNoPaymentYetCard =>
+      'Nta bwishyu buraboneka. Ongera wohereze umurongo cyangwa urebe nimero nyuma — ubwishyu bukozwe nyuma y\'uko ibi bifungwa buracyabarwa.';
+
+  @override
+  String get webPayNoApprovalYet =>
+      'Ntibiremezwa. Umukiriya ashobora kubyemeza; reba nimero nyuma cyangwa wongere utangire.';
+
+  @override
+  String get webPayPaidActive =>
+      'Byishyuwe. Ifatabuguzi rirakora kandi igiciro mwumvikanyeho ni cyo kizajya cyishyurwa.';
+
+  @override
+  String get webPayDidNotGoThrough => 'Ubwishyu ntibwakunze.';
+
+  @override
+  String get webPayLinkExpired =>
+      'Umurongo wo kwishyura warangiye utarishyurwa.';
+
+  @override
+  String get webPayAskCustomerApprove =>
+      'Saba umukiriya kwemeza icyifuzo cya Mobile Money kuri telefone ye.';
+
+  @override
+  String get webPaySendLink =>
+      'Oherereza umukiriya umurongo wo kwishyura maze utegereze ko yishyura.';
+
+  @override
+  String get webPayWaitingSettle => 'Dutegereje ko ubwishyu bwemezwa…';
+
+  @override
+  String get webPayTitle => 'Ubwishyu bwihariye';
+
+  @override
+  String get webPayCheckingAccess => 'Turi kugenzura uburenganzira…';
+
+  @override
+  String webPayCouldNotCheckAccess(String error) {
+    return 'Ntibyakunze kugenzura uburenganzira bw\'umukozi: $error';
+  }
+
+  @override
+  String get webPayStaffOnlyBody =>
+      'Uru rupapuro ni urw\'abakozi bashinzwe kwishyuza. Saba umuyobozi akongere ku rutonde rwabo.';
+
+  @override
+  String get webPayPerYear => '/umwaka';
+
+  @override
+  String get webPayPerMonth => '/ukwezi';
+
+  @override
+  String get webPayNegotiatedPrice => 'Igiciro mwumvikanyeho';
+
+  @override
+  String get webPayNegotiatedBody =>
+      'Ishyuza amafaranga mwumvikanye n\'umukiriya. Ahinduka igiciro cye gisanzwe, kandi ibyo yishyuraga mbere bigahagarara.';
+
+  @override
+  String webPaySignedInAs(String name) {
+    return 'Winjiye nka $name.';
+  }
+
+  @override
+  String get webPaySearchHint =>
+      'Shakisha ukoresheje izina, telefoni, imeyili cyangwa nimero';
+
+  @override
+  String get webPayAgreedAmount => 'Amafaranga mwumvikanyeho';
+
+  @override
+  String get webPayAmountHint => 'Amafaranga muri RWF kuri buri gihe';
+
+  @override
+  String get webPayCustomerPaysWith => 'Umukiriya yishyura akoresheje';
+
+  @override
+  String get webPayLinkCopied => 'Umurongo wakoporowe';
+
+  @override
+  String get webPayNoteHint => 'Icyitonderwa (si ngombwa)';
+
+  @override
+  String get webPayNotSelected => 'Ntibyahiswemo';
+
+  @override
+  String get webPayBillingPeriod => 'Igihe cyo kwishyura';
+
+  @override
+  String get webPayPaysWith => 'Yishyura akoresheje';
+
+  @override
+  String get webPayCard => 'Ikarita';
+
+  @override
+  String get webPayPricePerPeriod => 'Igiciro kuri buri gihe';
+
+  @override
+  String get webPayChargedNow => 'Byishyuzwa ubu, hanyuma buri gihe';
+
+  @override
+  String get webPayCreateCardLink => 'Kora umurongo wo kwishyura n\'ikarita';
+
+  @override
+  String webPayChargeByMomo(String amount) {
+    return 'Ishyuza $amount RWF kuri Mobile Money';
+  }
+
+  @override
+  String get webPayWaitingCustomerApproval => 'Dutegereje ko umukiriya yemeza…';
+
+  @override
+  String get webPayStartingShort => 'Biratangira…';
+
+  @override
+  String get webPayConfirmTitle => 'Kwishyuza ubu bucuruzi?';
+
+  @override
+  String webPayConfirmSummary(String amount, String cadence, String rail) {
+    return '$amount RWF · $cadence · $rail';
+  }
+
+  @override
+  String get webPayConfirmBodyMomo =>
+      'Iki kiba igiciro cye gisanzwe. Ifatabuguzi ryose ry\'ikarita rihari rihita rihagarikwa.';
+
+  @override
+  String get webPayConfirmBodyCard =>
+      'Iki kiba igiciro cye gisanzwe. Ifatabuguzi ryose ry\'ikarita rihari rihita rihagarikwa, kandi uruhushya rwe rwa Mobile Money rugakurwaho.';
+
+  @override
+  String get webPayCharge => 'Ishyuza';
+
+  @override
+  String get webPayStaffOnly => 'Abakozi gusa';
+
+  @override
+  String get webPayBackToBooks => 'Subira kuri Books';
+
+  @override
+  String get webPaySearching => 'Turi gushakisha…';
+
+  @override
+  String webPaySearchFailed(String error) {
+    return 'Gushakisha byanze: $error';
+  }
+
+  @override
+  String webPayNoBusinessMatches(String query) {
+    return 'Nta bucuruzi buhuye na “$query”.';
+  }
+
+  @override
+  String get webPayChange => 'Hindura';
+
+  @override
+  String get webPayCopyLink => 'Koporora umurongo';
+
+  @override
+  String get webPayOpen => 'Fungura';
+
+  @override
+  String webPayExistingPayment(String id, String status) {
+    return 'Ubwishyu buhari $id buri $status';
+  }
+
+  @override
+  String webPayLinkSuffix(String link) {
+    return 'umurongo: $link';
+  }
+
+  @override
+  String get webPayReference => 'Indango';
+
+  @override
+  String get webPayRail => 'Uburyo';
+
+  @override
+  String get webPayPaidThrough => 'Byishyuwe kugeza';
+
+  @override
+  String get webPayMomoCharge => 'Kwishyuza kwa MoMo';
+
+  @override
+  String get webPayMtnTransaction => 'Igikorwa cya MTN';
+
+  @override
+  String get webPayDodoSubscription => 'Ifatabuguzi rya Dodo';
+
+  @override
+  String get webPayDodoPayment => 'Ubwishyu bwa Dodo';
+
+  @override
+  String get webPayCancelledCardSub => 'Ifatabuguzi ry\'ikarita ryahagaritswe';
+
+  @override
+  String get webPayRevokedMandate => 'Uruhushya rwa MoMo rwakuweho';
+
+  @override
+  String get webPayPaid => 'Byishyuwe';
+
+  @override
+  String get webPaySettledBody =>
+      'Amafaranga mwumvikanyeho ubu ni cyo giciro gisanzwe cy\'ubu bucuruzi. Bika indango iri hepfo ku bw\'ubufasha.';
+
+  @override
+  String get webPayCopyAllIds => 'Koporora nimero zose';
+
+  @override
+  String get webPayCopied => 'Byakoporowe';
+
+  @override
+  String get webPayNewPayment => 'Ubwishyu bushya';
+
+  @override
+  String get webPinTooShort => 'PIN igomba kuba nibura imibare 4';
+
+  @override
+  String get webPinInvalid => 'PIN si yo. Ongera ugerageze.';
+
+  @override
+  String get webPinOtpRequired => 'OTP irakenewe';
+
+  @override
+  String get webPinAuthCodeRequired => 'Kode y\'authenticator irakenewe';
+
+  @override
+  String get webPinOtpInvalid => 'OTP si yo. Ongera ugerageze.';
+
+  @override
+  String get webPinAuthCodeInvalid =>
+      'Kode y\'authenticator si yo. Ongera ugerageze.';
+
+  @override
+  String get webPinTroubleTitle => 'Ufite ikibazo cyo kwinjira?';
+
+  @override
+  String get webPinTroubleBody =>
+      'Niba wibagiwe PIN yawe, vugana n\'umuyobozi wa konti yawe cyangwa ubufasha bwa Flipper.';
+
+  @override
+  String get webPinVerifyIdentity => 'Emeza umwirondoro wawe';
+
+  @override
+  String get webPinEnterSmsCode =>
+      'Andika kode twakoherereje kugira ngo ukomeze.';
+
+  @override
+  String get webPinEnterAuthCode =>
+      'Andika kode iri muri porogaramu yawe ya authenticator kugira ngo ukomeze.';
+
+  @override
+  String get webPinEnterPinSubtitle =>
+      'Andika PIN yawe ucunge ubucuruzi bwawe mu mutekano.';
+
+  @override
+  String get webPinSignedIn => 'Winjiye ✓';
+
+  @override
+  String get webPinVerifying => 'Turi kugenzura…';
+
+  @override
+  String get webPinVerify => 'Emeza';
+
+  @override
+  String get webPinSignIn => 'Injira';
+
+  @override
+  String get webPinNoAccountSignUp => 'Nta konti ufite? Iyandikishe';
+
+  @override
+  String get webPinHide => 'Hisha';
+
+  @override
+  String get webPinShow => 'Erekana';
+
+  @override
+  String get webPinAuthenticator => 'Authenticator';
+
+  @override
+  String get webPinSmsEmail => 'SMS / Imeyili';
+
+  @override
+  String get webPinAuthenticatorCode => 'Kode ya Authenticator';
+
+  @override
+  String get webPinSmsEmailCode => 'Kode ya SMS / Imeyili';
+
+  @override
+  String get webSignupTypeRetailer => 'Umucuruzi wa Flipper';
+
+  @override
+  String get webSignupTypeIndividual => 'Umuntu ku giti cye';
+
+  @override
+  String get webSignupTypeEnterprise => 'Ikigo';
+
+  @override
+  String get webSignupUsernameCheckError =>
+      'Habaye ikosa mu kugenzura izina ry\'ukoresha';
+
+  @override
+  String get webSignupNoTinData => 'Nta makuru abonetse kuri iyi TIN';
+
+  @override
+  String get webSignupEnterContactFirst =>
+      'Banza wandike nimero ya telefoni cyangwa imeyili.';
+
+  @override
+  String get webSignupFailedToSendCode => 'Kohereza kode byanze.';
+
+  @override
+  String get webSignupWrongCode => 'Iyo kode si yo. Ongera ugerageze.';
+
+  @override
+  String get webSignupCouldNotCheckCode => 'Ntibyakunze kugenzura iyo kode.';
+
+  @override
+  String get webSignupUsernameRequired => 'Izina ry\'ukoresha rirakenewe';
+
+  @override
+  String get webSignupUsernameTooShort =>
+      'Izina ry\'ukoresha rigomba kuba nibura inyuguti 4';
+
+  @override
+  String get webSignupEnterFullName => 'Andika amazina yawe yose';
+
+  @override
+  String get webSignupSelectBusinessType => 'Hitamo ubwoko bw\'ubucuruzi';
+
+  @override
+  String get webSignupInvalidTin =>
+      'Andika nimero ya TIN ikwiye (nibura inyuguti 9)';
+
+  @override
+  String get webSignupSelectCountry => 'Hitamo igihugu';
+
+  @override
+  String webSignupEnterCodeSentTo(String contact) {
+    return 'Andika kode twohereje kuri $contact kugira ngo ukomeze.';
+  }
+
+  @override
+  String webSignupVerifyFirst(String contact) {
+    return 'Banza wemeze $contact — kanda “Ohereza kode”.';
+  }
+
+  @override
+  String get webSignupUsernameTaken =>
+      'Izina ry\'ukoresha ntirihari. Hitamo irindi.';
+
+  @override
+  String get webSignupUsernameCheckRetry =>
+      'Habaye ikosa mu kugenzura izina ry\'ukoresha. Ongera ugerageze.';
+
+  @override
+  String get webSignupFillRequired => 'Uzuza neza ibisabwa byose';
+
+  @override
+  String get webSignupNetworkError =>
+      'Ikibazo cy\'umuyoboro. Reba interineti yawe wongere ugerageze.';
+
+  @override
+  String get webSignupTimeout => 'Igihe cyarenze. Ongera ugerageze nyuma.';
+
+  @override
+  String webSignupFailedCreate(String error) {
+    return 'Gufungura konti byanze: $error';
+  }
+
+  @override
+  String get webSignupDismiss => 'Funga';
+
+  @override
+  String get webSignupBusinessSetup => 'Gutunganya ubucuruzi';
+
+  @override
+  String get webSignupSubtitle =>
+      'Tunganya konti y\'ubucuruzi bwawe kuri Flipper kugira ngo utangire.';
+
+  @override
+  String get webSignupUsername => 'Izina ry\'ukoresha';
+
+  @override
+  String get webSignupFullName => 'Amazina yose';
+
+  @override
+  String get webSignupFullNameHint => 'Andika amazina yawe yose';
+
+  @override
+  String get webSignupFullNameRequired => 'Amazina yose arakenewe';
+
+  @override
+  String get webSignupPhoneEmail => 'Telefoni / Imeyili';
+
+  @override
+  String get webSignupUsage => 'Icyo uzayikoresha';
+
+  @override
+  String get webSignupUsageHint => 'Uko uteganya gukoresha Flipper';
+
+  @override
+  String webSignupTinBusiness(String name) {
+    return 'Ubucuruzi: $name';
+  }
+
+  @override
+  String get webSignupTinUnavailable =>
+      'Gushakisha TIN ntibikunda — igenzura ryasimbutswe.';
+
+  @override
+  String get webSignupCountry => 'Igihugu';
+
+  @override
+  String get webSignupAlreadyHaveAccount => 'Usanzwe ufite konti? Injira';
+
+  @override
+  String get webSignupChooseDifferentUsername =>
+      'Hitamo irindi zina ry\'ukoresha. Iri riri ntirihari cyangwa ntiriragenzurwa.';
+
+  @override
+  String get webSignupAccountCreated => 'Konti yafunguwe neza!';
+
+  @override
+  String get webSignupFailedTryAgain =>
+      'Gufungura konti byanze. Ongera ugerageze.';
+
+  @override
+  String get webSignupUsernameNotAvailable => 'Izina ry\'ukoresha ntirihari';
+
+  @override
+  String get webSignupUsernameHint => 'Andika izina ry\'ukoresha';
+
+  @override
+  String get webSignupContactRequired =>
+      'Nimero ya telefoni cyangwa imeyili irakenewe';
+
+  @override
+  String get webSignupInvalidEmail => 'Andika imeyili ikwiye';
+
+  @override
+  String get webSignupInvalidPhone => 'Andika nimero ya telefoni ikwiye';
+
+  @override
+  String get webSignupContactHint => '783054874 cyangwa imeyili@yawe.com';
+
+  @override
+  String get webSignupResend => 'Ongera wohereze';
+
+  @override
+  String get webSignupSendCode => 'Ohereza kode';
+
+  @override
+  String webSignupContactVerified(String contact) {
+    return '$contact yemejwe.';
+  }
+
+  @override
+  String get webSignupVerificationCode => 'Kode yo kwemeza';
+
+  @override
+  String get webSignupEnter6Digit => 'Andika kode y\'imibare 6';
+
+  @override
+  String webSignupCodeSentHint(String contact) {
+    return 'Twohereje kode kuri $contact.';
+  }
+
+  @override
+  String webSignupCodeSentTo(String contact) {
+    return 'Kode yoherejwe kuri $contact';
+  }
+
+  @override
+  String get webSignupEnterTin => 'Andika nimero ya TIN';
+
+  @override
+  String get webSignupTinRequired => 'Nimero ya TIN irakenewe';
+
+  @override
+  String get webSignupTinTooShort =>
+      'Nimero ya TIN igomba kuba nibura imibare 9';
+
+  @override
+  String get webSignupPickCountryFromList => 'Hitamo igihugu kiri ku rutonde';
+
+  @override
+  String get webSignupSearchCountry => 'Shakisha igihugu cyawe';
+
+  @override
+  String get webSignupCreateYourAccount => 'Fungura konti yawe';
+
+  @override
+  String get webAuthSecuredE2e =>
+      'Birinzwe n\'ibanga kuva ku mpera kugera ku yindi';
+
+  @override
+  String webAuthVerifiedOpening(String target) {
+    return 'Byemejwe — turi gufungura $target…';
+  }
+
+  @override
+  String get webAuthYourBusiness => 'ubucuruzi bwawe';
+
+  @override
+  String get webAuthBrandTitle =>
+      'Iduka ryawe, itsinda ryawe, imibare yawe — hamwe.';
+
+  @override
+  String get webAuthBrandBody =>
+      'Komereza aho wari ugeze. Ibyagurishijwe, ububiko na raporo by\'uyu munsi biriteguye.';
+
+  @override
+  String webAuthErrorCheckingPrefs(String error) {
+    return 'Habaye ikosa mu kugenzura ibyo wahisemo: $error';
+  }
+
+  @override
+  String get webBizNoBusinesses => 'Nta bucuruzi buhari';
+
+  @override
+  String get webBizChooseBusiness => 'Hitamo ubucuruzi';
+
+  @override
+  String get webBizChooseBusinessSubtitle => 'Hitamo ubucuruzi ushaka gucunga.';
+
+  @override
+  String get webBizNotSeeing =>
+      'Ntubona ubucuruzi bwawe? Saba nyirabwo agutumire.';
+
+  @override
+  String get webBizChooseBranch => 'Hitamo ishami';
+
+  @override
+  String get webBizChooseBranchSubtitle => 'Hitamo ishami ushaka kwinjiramo';
+
+  @override
+  String get webBizCouldNotSet =>
+      'Ntibyakunze guhitamo ubucuruzi. Ongera ugerageze.';
+
+  @override
+  String get webBizProfileLoadFailed =>
+      'Ntibyakunze kuzana umwirondoro wawe. Ibi bishobora guterwa n\'uko nta murandasi uhari cyangwa isesiyo yawe yarangiye.';
+
+  @override
+  String get webBizBackToLogin => 'Subira ku kwinjira';
+
+  @override
+  String get webBizUser => 'Umukoresha';
+
+  @override
+  String webBizOwnerBranches(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Nyir\'ubucuruzi · amashami $count',
+      one: 'Nyir\'ubucuruzi · ishami 1',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String webBizMemberBranches(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Umunyamuryango · amashami $count',
+      one: 'Umunyamuryango · ishami 1',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get webBizSigningOut => 'Turi gusohoka…';
+
+  @override
+  String get webBizDefault => 'IBANZE';
+
+  @override
+  String get webBizAddBusiness => 'Ongeramo ubucuruzi';
+
+  @override
+  String get webAuthPinNotFound => 'PIN ntiyabonetse';
+
+  @override
+  String get webAuthAccessDenied => 'Ntiwemerewe — genzura kwinjira kwawe';
+
+  @override
+  String webAuthInvalidPinCode(String code) {
+    return 'PIN si yo ($code)';
+  }
+
+  @override
+  String get webAuthNetworkFailed =>
+      'Kwihuza ku murandasi byanze. Reba interineti yawe.';
+
+  @override
+  String get webAuthTimedOut => 'Igihe cyarenze. Ongera ugerageze.';
+
+  @override
+  String get webAuthOtpNotFound => 'OTP ntiyabonetse';
+
+  @override
+  String get webAuthInvalidOtp => 'OTP si yo';
+
+  @override
+  String get webAuthTotpNotFound => 'Kode y\'authenticator ntiyabonetse';
+
+  @override
+  String get webAuthInvalidTotp => 'Kode y\'authenticator si yo';
+
+  @override
+  String webSignupRegistrationFailedStatus(String code) {
+    return 'Kwiyandikisha byanze, kode: $code';
+  }
+
+  @override
+  String get webSignupNetworkConnect =>
+      'Ikibazo cy\'umuyoboro: ntibyakunze kugera kuri seriveri. Reba interineti yawe.';
+
+  @override
+  String get webSignupServerSlow =>
+      'Igihe cyarenze. Seriveri iratinda gusubiza. Ongera ugerageze nyuma.';
+
+  @override
+  String get webSignupNetworkIncomplete =>
+      'Ikibazo cy\'umuyoboro: ntibyakunze kurangiza icyifuzo. Ongera ugerageze nyuma.';
+
+  @override
+  String webSignupRegistrationFailed(String error) {
+    return 'Kwiyandikisha byanze: $error';
+  }
+
+  @override
+  String get webSignupNetworkSendCode =>
+      'Ikibazo cy\'umuyoboro mu kohereza kode. Ongera ugerageze.';
+
+  @override
+  String get webSignupContactExists => 'Uyu muntu asanzwe ahari';
+
+  @override
+  String get webSignupSendOtpFailed => 'Kohereza OTP yo kwiyandikisha byanze';
+
+  @override
+  String get webSignupNetworkCheckCode =>
+      'Ikibazo cy\'umuyoboro mu kugenzura kode. Ongera ugerageze.';
 }

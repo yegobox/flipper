@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_backend_config.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_derive.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_document_math.dart';
@@ -58,8 +59,8 @@ class AccountingBillingPanelHost extends ConsumerWidget {
           if (context.mounted) {
             showAccountingToast(
               context,
-              '${doc.id} already exists',
-              subtitle: 'Use another number',
+              context.flipperL10n.booksDocAlreadyExists(doc.id),
+              subtitle: context.flipperL10n.booksUseAnotherNumber,
               icon: Icons.error_outline,
             );
           }
@@ -115,27 +116,27 @@ class AccountingBillingPanelHost extends ConsumerWidget {
         // Its ledger entry belongs to the purchase/cashbook; nothing posted.
         showAccountingToast(
           context,
-          'Bill saved',
+          context.flipperL10n.booksBillSaved,
           subtitle: '${doc.id} · ${doc.who} · $currency ${money(t)}',
           icon: Icons.check,
         );
       } else if (mode == 'draft') {
         showAccountingToast(
           context,
-          'Draft saved',
+          context.flipperL10n.booksDraftSaved,
           subtitle: '${doc.id} · ${doc.who}',
         );
       } else if (isInvoice) {
         showAccountingToast(
           context,
-          'Invoice sent & posted',
+          context.flipperL10n.booksInvoiceSentPosted,
           subtitle: '${doc.id} → ${doc.who} · $currency ${money(t)}',
           icon: Icons.mail_outline,
         );
       } else {
         showAccountingToast(
           context,
-          'Bill recorded & posted',
+          context.flipperL10n.booksBillRecordedPosted,
           subtitle: '${doc.id} · ${doc.who} · $currency ${money(t)}',
           icon: Icons.check,
         );
@@ -166,7 +167,7 @@ class AccountingBillingPanelHost extends ConsumerWidget {
       if (!context.mounted) return;
       showAccountingToast(
         context,
-        'Payment recorded',
+        context.flipperL10n.booksPaymentRecorded,
         subtitle: doc.id,
         icon: Icons.check,
       );
@@ -296,6 +297,7 @@ class _AccountingDocListViewState extends ConsumerState<AccountingDocListView> {
         .where((d) => docIsOpen(d) && d.status == DocStatus.overdue)
         .fold<int>(0, (s, d) => s + docBalance(d));
     final draftCount = _docs.where((d) => d.status == DocStatus.draft).length;
+    final l10n = context.flipperL10n;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(28, 24, 28, 40),
@@ -303,35 +305,41 @@ class _AccountingDocListViewState extends ConsumerState<AccountingDocListView> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           AccountingPageHeader(
-            eyebrow: _isInvoice ? 'Sales' : 'Purchases',
-            title: _isInvoice ? 'Invoices' : 'Bills',
+            eyebrow: _isInvoice ? l10n.sales : l10n.purchases,
+            title: _isInvoice ? l10n.invoices : l10n.booksBills,
             subtitle: _isInvoice
-                ? 'Bill your customers and get paid · $currency'
-                : 'Track what you owe your suppliers · $currency',
+                ? l10n.booksInvoicesSubtitle(currency)
+                : l10n.booksBillsSubtitle(currency),
             actions: [
               PopupMenuButton<String>(
                 offset: const Offset(0, 40),
-                itemBuilder: (context) => const [
+                itemBuilder: (context) => [
                   PopupMenuItem(
                     value: 'xlsx',
-                    child: Text('Excel workbook (.xlsx)'),
+                    child: Text(l10n.booksExcelWorkbook),
                   ),
-                  PopupMenuItem(value: 'pdf', child: Text('PDF summary')),
+                  PopupMenuItem(
+                    value: 'pdf',
+                    child: Text(l10n.booksPdfSummary),
+                  ),
                 ],
                 onSelected: (v) => showAccountingToast(
                   context,
-                  v == 'xlsx' ? 'Exporting to Excel' : 'Generating PDF',
-                  subtitle:
-                      '${_docs.length} ${_isInvoice ? 'invoices' : 'bills'}',
+                  v == 'xlsx'
+                      ? l10n.booksExportingExcel
+                      : l10n.booksGeneratingPdf,
+                  subtitle: _isInvoice
+                      ? l10n.booksInvoicesCount(_docs.length)
+                      : l10n.booksBillsCount(_docs.length),
                   icon: Icons.download_outlined,
                 ),
-                child: const AccountingButton(
-                  label: 'Export',
+                child: AccountingButton(
+                  label: l10n.booksExport,
                   icon: Icons.download_outlined,
                 ),
               ),
               AccountingButton(
-                label: _isInvoice ? 'New invoice' : 'New bill',
+                label: _isInvoice ? l10n.booksNewInvoice : l10n.booksNewBill,
                 icon: Icons.add,
                 primary: true,
                 onPressed: () => _openBilling(
@@ -344,19 +352,21 @@ class _AccountingDocListViewState extends ConsumerState<AccountingDocListView> {
             maxColumns: 3,
             children: [
               AccountingKpiCard(
-                label: _isInvoice ? 'Outstanding' : 'Owed to suppliers',
+                label: _isInvoice
+                    ? l10n.booksOutstandingLabel
+                    : l10n.booksOwedToSuppliers,
                 value: outstanding,
                 icon: AccIcon.receipt,
                 tone: KpiTone.blue,
               ),
               AccountingKpiCard(
-                label: 'Overdue',
+                label: l10n.booksStatusOverdue,
                 value: overdue,
                 icon: AccIcon.clock,
                 tone: KpiTone.red,
               ),
               AccountingKpiCard(
-                label: 'Drafts',
+                label: l10n.booksDrafts,
                 value: draftCount,
                 icon: AccIcon.receipt,
                 tone: KpiTone.amber,
@@ -385,9 +395,12 @@ class _AccountingDocListViewState extends ConsumerState<AccountingDocListView> {
                     child: Center(
                       child: Text(
                         _docs.isEmpty
-                            ? 'No ${_isInvoice ? 'invoices' : 'bills'} yet. '
-                                  '${_isInvoice ? 'Create an invoice' : 'Record a bill'} to get started.'
-                            : 'No ${_isInvoice ? 'invoices' : 'bills'} in "${_tabLabel(tab)}".',
+                            ? (_isInvoice
+                                  ? l10n.booksNoInvoicesYet
+                                  : l10n.booksNoBillsYet)
+                            : (_isInvoice
+                                  ? l10n.booksNoInvoicesInTab(_tabLabel(tab))
+                                  : l10n.booksNoBillsInTab(_tabLabel(tab))),
                         style: AccountingTokens.sans(
                           color: AccountingTokens.ink3,
                         ),
@@ -401,18 +414,22 @@ class _AccountingDocListViewState extends ConsumerState<AccountingDocListView> {
                       dataRowMinHeight: 48,
                       columns: [
                         DataColumn(
-                          label: Text(_isInvoice ? 'Invoice' : 'Bill'),
+                          label: Text(
+                            _isInvoice ? l10n.invoice : l10n.booksBill,
+                          ),
                         ),
                         DataColumn(
-                          label: Text(_isInvoice ? 'Customer' : 'Supplier'),
+                          label: Text(
+                            _isInvoice ? l10n.customer : l10n.booksSupplier,
+                          ),
                         ),
-                        const DataColumn(label: Text('Date')),
-                        const DataColumn(label: Text('Due')),
-                        const DataColumn(label: Text('Status')),
-                        const DataColumn(
+                        DataColumn(label: Text(l10n.sortCompactDate)),
+                        DataColumn(label: Text(l10n.booksDue)),
+                        DataColumn(label: Text(l10n.booksStatus)),
+                        DataColumn(
                           label: Align(
                             alignment: Alignment.centerRight,
-                            child: Text('Amount'),
+                            child: Text(l10n.amount),
                           ),
                         ),
                         const DataColumn(label: Text('')),
@@ -461,13 +478,13 @@ class _AccountingDocListViewState extends ConsumerState<AccountingDocListView> {
                                   onSelected: (action) =>
                                       _onRowAction(action, d),
                                   itemBuilder: (context) => [
-                                    const PopupMenuItem(
+                                    PopupMenuItem(
                                       value: 'preview',
-                                      child: Text('Open & preview'),
+                                      child: Text(l10n.booksOpenPreview),
                                     ),
-                                    const PopupMenuItem(
+                                    PopupMenuItem(
                                       value: 'edit',
-                                      child: Text('Edit'),
+                                      child: Text(l10n.edit),
                                     ),
                                     if (_isInvoice
                                         ? d.status != DocStatus.paid
@@ -476,19 +493,19 @@ class _AccountingDocListViewState extends ConsumerState<AccountingDocListView> {
                                         value: 'pay',
                                         child: Text(
                                           _isInvoice
-                                              ? 'Record payment'
-                                              : 'Pay this bill',
+                                              ? l10n.booksRecordPayment
+                                              : l10n.booksPayThisBill,
                                         ),
                                       ),
                                     if (_isInvoice &&
                                         d.status != DocStatus.paid)
-                                      const PopupMenuItem(
+                                      PopupMenuItem(
                                         value: 'remind',
-                                        child: Text('Send reminder'),
+                                        child: Text(l10n.booksSendReminder),
                                       ),
-                                    const PopupMenuItem(
+                                    PopupMenuItem(
                                       value: 'delete',
-                                      child: Text('Delete'),
+                                      child: Text(l10n.delete),
                                     ),
                                   ],
                                 ),
@@ -505,11 +522,11 @@ class _AccountingDocListViewState extends ConsumerState<AccountingDocListView> {
   }
 
   String _tabLabel(DocTabFilter f) => switch (f) {
-    DocTabFilter.all => 'All',
-    DocTabFilter.draft => 'Draft',
-    DocTabFilter.sent => 'Sent',
-    DocTabFilter.overdue => 'Overdue',
-    DocTabFilter.paid => 'Paid',
+    DocTabFilter.all => context.flipperL10n.booksFilterAll,
+    DocTabFilter.draft => context.flipperL10n.booksDraft,
+    DocTabFilter.sent => context.flipperL10n.booksStatusSent,
+    DocTabFilter.overdue => context.flipperL10n.booksStatusOverdue,
+    DocTabFilter.paid => context.flipperL10n.booksStatusPaid,
   };
 
   void _onRowAction(String action, AccountingDocument d) {
@@ -523,7 +540,7 @@ class _AccountingDocListViewState extends ConsumerState<AccountingDocListView> {
       case 'remind':
         showAccountingToast(
           context,
-          'Reminder sent',
+          context.flipperL10n.booksReminderSent,
           subtitle: '${d.who} · ${d.id}',
           icon: Icons.mail_outline,
         );
@@ -544,7 +561,7 @@ class _AccountingDocListViewState extends ConsumerState<AccountingDocListView> {
     if (!mounted) return;
     showAccountingToast(
       context,
-      'Deleted',
+      context.flipperL10n.booksDeleted,
       subtitle: doc.id,
       icon: Icons.delete_outline,
     );
