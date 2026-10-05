@@ -18,6 +18,8 @@ import 'package:flipper_services/GlobalLogError.dart';
 import 'package:flipper_services/Miscellaneous.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flutter/foundation.dart'
+    show TargetPlatform, defaultTargetPlatform;
 import 'package:flutter/gestures.dart' show PointerDeviceKind;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -953,7 +955,12 @@ class _PinLoginState extends State<PinLogin>
             focusNode: _pinFocusNode,
             autofocus: true,
             enabled: !_isProcessing && !_isDone,
-            keyboardType: TextInputType.number,
+            // On Windows the PIN comes from the on-screen keypad or a
+            // physical keyboard; `none` keeps the touch keyboard from
+            // covering the keypad.
+            keyboardType: defaultTargetPlatform == TargetPlatform.windows
+                ? TextInputType.none
+                : TextInputType.number,
             textInputAction:
                 _showOtpField ? TextInputAction.next : TextInputAction.done,
             inputFormatters: [
