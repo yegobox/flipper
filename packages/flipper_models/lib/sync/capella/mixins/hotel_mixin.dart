@@ -23,29 +23,7 @@ import 'package:supabase_models/brick/models/transactionItem.model.dart';
 import 'package:talker/talker.dart';
 import 'package:uuid/uuid.dart';
 
-TransactionItem? _hotelFindLine(List<TransactionItem> lines, String lineId) {
-  for (final line in lines) {
-    if (line.id == lineId) return line;
-  }
-  return null;
-}
-
-/// Keys of Ditto sync subscriptions already registered for hotel collections,
-/// **per Ditto instance**.
-///
-/// Store queries/observers only read locally; without these subscriptions a
-/// fresh device never replicates hotel documents from the mesh/cloud. A single
-/// process-wide set looked safe but was not: subscriptions live on the Ditto
-/// instance, so when [DittoService] rebuilds one — a re-login, say — the keys
-/// survived, every registration was skipped as already-done, and replication
-/// silently stopped. An [Expando] ties the bookkeeping to the instance it
-/// actually describes, so a new instance subscribes again.
-final Expando<Set<String>> _hotelSyncSubscriptionKeys = Expando(
-  'hotelSyncSubscriptionKeys',
-);
-
-Set<String> _subscriptionKeysFor(Object ditto) =>
-    _hotelSyncSubscriptionKeys[ditto] ??= <String>{};
+part 'hotel_mixin_mapping.dart';
 
 mixin CapellaHotelMixin implements HotelInterface {
   DittoService get dittoService;
@@ -135,9 +113,12 @@ mixin CapellaHotelMixin implements HotelInterface {
   }
 
   void _ensureHotelRoomsSync(dynamic ditto, String branchId) {
-    _ensureHotelSyncSubscription(ditto, 'hotel_rooms|$branchId', _hotelRoomsSql, {
-      'branchId': branchId,
-    });
+    _ensureHotelSyncSubscription(
+      ditto,
+      'hotel_rooms|$branchId',
+      _hotelRoomsSql,
+      {'branchId': branchId},
+    );
   }
 
   void _ensureHotelStaysSync(dynamic ditto, String branchId) {
@@ -167,94 +148,6 @@ mixin CapellaHotelMixin implements HotelInterface {
       'SELECT * FROM transaction_items WHERE branchId = :branchId',
       {'branchId': branchId},
     );
-  }
-
-  // --- Result mapping -------------------------------------------------------
-
-  List<HotelRoom> _roomsFromResult(dynamic queryResult) {
-    final list = <HotelRoom>[];
-    for (final item in queryResult.items as Iterable<dynamic>) {
-      try {
-        list.add(
-          HotelRoom.fromJson(
-            Map<String, dynamic>.from(item.value as Map<dynamic, dynamic>),
-          ),
-        );
-      } catch (e) {
-        talker.error('hotel_rooms map error: $e');
-      }
-    }
-    return list;
-  }
-
-  List<HotelStay> _staysFromResult(dynamic queryResult) {
-    final list = <HotelStay>[];
-    for (final item in queryResult.items as Iterable<dynamic>) {
-      try {
-        list.add(
-          HotelStay.fromJson(
-            Map<String, dynamic>.from(item.value as Map<dynamic, dynamic>),
-          ),
-        );
-      } catch (e) {
-        talker.error('hotel_stays map error: $e');
-      }
-    }
-    return list;
-  }
-
-  List<HotelQuotation> _quotationsFromResult(dynamic queryResult) {
-    final list = <HotelQuotation>[];
-    for (final item in queryResult.items as Iterable<dynamic>) {
-      try {
-        list.add(
-          HotelQuotation.fromJson(
-            Map<String, dynamic>.from(item.value as Map<dynamic, dynamic>),
-          ),
-        );
-      } catch (e) {
-        talker.error('hotel_quotations map error: $e');
-      }
-    }
-    return list;
-  }
-
-  HotelBranchSettings? _settingsFromResult(dynamic queryResult) {
-    try {
-      final items = queryResult.items as Iterable<dynamic>;
-      if (items.isEmpty) return null;
-      final raw = Map<String, dynamic>.from(items.first.value as Map);
-      return HotelBranchSettings.fromJson(raw);
-    } catch (e) {
-      talker.error('hotel_branch_settings map error: $e');
-      return null;
-    }
-  }
-
-  BranchDocumentSettings? _documentSettingsFromResult(dynamic queryResult) {
-    try {
-      final items = queryResult.items as Iterable<dynamic>;
-      if (items.isEmpty) return null;
-      final raw = Map<String, dynamic>.from(items.first.value as Map);
-      return BranchDocumentSettings.fromJson(raw);
-    } catch (e) {
-      talker.error('branch_document_settings map error: $e');
-      return null;
-    }
-  }
-
-  List<TransactionItem> _linesFromResult(dynamic queryResult) {
-    final lines = <TransactionItem>[];
-    for (final item in queryResult.items as Iterable<dynamic>) {
-      try {
-        final data = Map<String, dynamic>.from(item.value as Map);
-        final line = hotelFolioLineFromDitto(data);
-        if (line != null) lines.add(line);
-      } catch (e) {
-        talker.error('hotelFolioLines map: $e');
-      }
-    }
-    return lines;
   }
 
   /// Initial `execute` + `registerObserver` on the same query, bridged to a
@@ -668,7 +561,6 @@ mixin CapellaHotelMixin implements HotelInterface {
     );
   }
 
-
   @override
   Future<List<HotelStay>> hotelStaysInRange({
     required String branchId,
@@ -710,9 +602,7 @@ mixin CapellaHotelMixin implements HotelInterface {
       from: checkInAt,
       to: expectedCheckOutAt,
     )) {
-      throw StateError(
-        'Room ${room.name} is not available for those dates.',
-      );
+      throw StateError('Room ${room.name} is not available for those dates.');
     }
 
     final now = DateTime.now().toUtc();
@@ -803,7 +693,9 @@ mixin CapellaHotelMixin implements HotelInterface {
     // A reservation has no folio until the guest arrives, so it cannot take a
     // bar tab.
     return stays
-        .where((stay) => stay.status == HotelStayStatus.inHouse && stay.hasFolio)
+        .where(
+          (stay) => stay.status == HotelStayStatus.inHouse && stay.hasFolio,
+        )
         .toList();
   }
 
@@ -1011,9 +903,7 @@ mixin CapellaHotelMixin implements HotelInterface {
   }
 
   @override
-  Future<List<ITransaction>> hotelOpenFolios({
-    required String branchId,
-  }) async {
+  Future<List<ITransaction>> hotelOpenFolios({required String branchId}) async {
     final ditto = dittoHandle;
     if (ditto == null) return [];
     _ensureHotelStaysSync(ditto, branchId);
@@ -1025,9 +915,7 @@ mixin CapellaHotelMixin implements HotelInterface {
   }
 
   @override
-  Stream<List<ITransaction>> hotelOpenFoliosStream({
-    required String branchId,
-  }) {
+  Stream<List<ITransaction>> hotelOpenFoliosStream({required String branchId}) {
     final ditto = dittoHandle;
     if (ditto == null) return Stream.value(const <ITransaction>[]);
     _ensureHotelStaysSync(ditto, branchId);
@@ -1250,7 +1138,9 @@ mixin CapellaHotelMixin implements HotelInterface {
       loggedByName: clerkName,
     );
 
-    final doc = await TransactionItemDittoAdapter.instance.toDittoDocument(line);
+    final doc = await TransactionItemDittoAdapter.instance.toDittoDocument(
+      line,
+    );
     await ditto.store.execute(
       'INSERT INTO transaction_items DOCUMENTS (:doc)',
       arguments: {'doc': doc},
@@ -1318,10 +1208,7 @@ mixin CapellaHotelMixin implements HotelInterface {
       transactionId: stay.transactionId,
       branchId: stay.branchId,
       variantId: variantId,
-      productName: hotelRoomChargeName(
-        roomName: stay.roomName,
-        nights: nights,
-      ),
+      productName: hotelRoomChargeName(roomName: stay.roomName, nights: nights),
       defaultPrice: stay.nightlyRate,
       // A room night is not stock-controlled; the cap only exists to satisfy
       // the shared line path.
@@ -1490,7 +1377,9 @@ mixin CapellaHotelMixin implements HotelInterface {
     // losing both the 3% tourism tax on nights and the 18% VAT on extras.
     applySaleAccountingFields(transaction: settled, lines: lines);
 
-    final doc = await ITransactionDittoAdapter.instance.toDittoDocument(settled);
+    final doc = await ITransactionDittoAdapter.instance.toDittoDocument(
+      settled,
+    );
     await ditto.store.execute(
       'INSERT INTO transactions DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE',
       arguments: {'doc': doc},
