@@ -2,6 +2,7 @@
 ///
 /// Shows detailed information about a data source including tables and schema.
 
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
@@ -28,7 +29,7 @@ class DataSourceDetailScreen extends HookConsumerWidget {
     // Handle case where data source doesn't exist
     if (dataSource == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Data Source')),
+        appBar: AppBar(title: Text(context.flipperL10n.aiDataSourceTitle)),
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -36,13 +37,13 @@ class DataSourceDetailScreen extends HookConsumerWidget {
               const Icon(Icons.error_outline, size: 64, color: Colors.red),
               const SizedBox(height: 16),
               Text(
-                'Data source not found',
+                context.flipperL10n.aiDataSourceNotFound,
                 style: Theme.of(context).textTheme.headlineSmall,
               ),
               const SizedBox(height: 8),
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text('Go Back'),
+                child: Text(context.flipperL10n.aiDataSourceGoBack),
               ),
             ],
           ),
@@ -64,7 +65,7 @@ class DataSourceDetailScreen extends HookConsumerWidget {
                 ),
               );
             },
-            tooltip: 'Edit',
+            tooltip: context.flipperL10n.edit,
           ),
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -72,7 +73,7 @@ class DataSourceDetailScreen extends HookConsumerWidget {
               ref.invalidate(tablesProvider(dataSourceId));
               ref.invalidate(dataSourceMetadataProvider(dataSourceId));
             },
-            tooltip: 'Refresh',
+            tooltip: context.flipperL10n.refresh,
           ),
         ],
       ),
@@ -91,7 +92,7 @@ class DataSourceDetailScreen extends HookConsumerWidget {
 
             // Tables Section
             Text(
-              'Tables',
+              context.flipperL10n.aiDataSourceTables,
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 8),
@@ -152,7 +153,7 @@ class DataSourceDetailScreen extends HookConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'URL',
+                        context.flipperL10n.aiDataSourceUrl,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               color: Theme.of(context).colorScheme.outline,
                             ),
@@ -160,7 +161,7 @@ class DataSourceDetailScreen extends HookConsumerWidget {
                       const SizedBox(height: 4),
                       Text(
                         dataSource.getCredential<String>('supabaseUrl') ??
-                            'N/A',
+                            context.flipperL10n.aiDataSourceNotAvailable,
                         style: Theme.of(context).textTheme.bodyMedium,
                       ),
                     ],
@@ -179,7 +180,9 @@ class DataSourceDetailScreen extends HookConsumerWidget {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    'Last connected: ${_formatDateTime(status!.lastConnectedAt!)}',
+                    context.flipperL10n.aiDataSourceLastConnected(
+                      _formatDateTime(status!.lastConnectedAt!),
+                    ),
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
                 ],
@@ -202,7 +205,7 @@ class DataSourceDetailScreen extends HookConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Information',
+              context.flipperL10n.aiDataSourceInformation,
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 12),
@@ -219,7 +222,8 @@ class DataSourceDetailScreen extends HookConsumerWidget {
                 }
                 if (snapshot.hasError) {
                   return Text(
-                    'Failed to load metadata: ${snapshot.error}',
+                    context.flipperL10n
+                        .aiDataSourceMetadataFailed('${snapshot.error}'),
                     style:
                         TextStyle(color: Theme.of(context).colorScheme.error),
                   );
@@ -231,20 +235,21 @@ class DataSourceDetailScreen extends HookConsumerWidget {
                   children: [
                     _buildMetadataItem(
                       context,
-                      'Tables',
+                      context.flipperL10n.aiDataSourceTables,
                       '${metadata['tableCount'] ?? 0}',
                       Icons.table_chart,
                     ),
                     _buildMetadataItem(
                       context,
-                      'Total Rows',
+                      context.flipperL10n.aiDataSourceTotalRows,
                       '${metadata['totalRows'] ?? 0}',
                       Icons.storage,
                     ),
                     _buildMetadataItem(
                       context,
-                      'Type',
-                      metadata['type']?.toString() ?? 'Unknown',
+                      context.flipperL10n.aiDataSourceTypeLabel,
+                      metadata['type']?.toString() ??
+                          context.flipperL10n.aiDataSourceUnknown,
                       Icons.info,
                     ),
                   ],
@@ -320,7 +325,8 @@ class DataSourceDetailScreen extends HookConsumerWidget {
               padding: const EdgeInsets.all(32),
               child: Center(
                 child: Text(
-                  'Failed to load tables: ${snapshot.error}',
+                  context.flipperL10n
+                      .aiDataSourceTablesFailed('${snapshot.error}'),
                   style: TextStyle(color: Theme.of(context).colorScheme.error),
                 ),
               ),
@@ -342,7 +348,7 @@ class DataSourceDetailScreen extends HookConsumerWidget {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      'No tables found',
+                      context.flipperL10n.aiDataSourceNoTables,
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                   ],
@@ -379,7 +385,10 @@ class DataSourceDetailScreen extends HookConsumerWidget {
         ),
         title: Text(table.name),
         subtitle: Text(
-          '${table.columns.length} columns${table.rowCount != null ? ' • ${table.rowCount} rows' : ''}',
+          table.rowCount != null
+              ? '${context.flipperL10n.aiDataSourceColumnsCount(table.columns.length)} • ${context.flipperL10n.aiDataSourceRowsCount('${table.rowCount}')}'
+              : context.flipperL10n
+                  .aiDataSourceColumnsCount(table.columns.length),
         ),
         children: [
           const Divider(height: 1),
@@ -389,7 +398,7 @@ class DataSourceDetailScreen extends HookConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Columns',
+                  context.flipperL10n.aiDataSourceColumns,
                   style: Theme.of(context).textTheme.titleSmall,
                 ),
                 const SizedBox(height: 8),
@@ -438,7 +447,7 @@ class DataSourceDetailScreen extends HookConsumerWidget {
             ),
           if (!column.isNullable)
             Text(
-              'NOT NULL',
+              context.flipperL10n.aiDataSourceNotNull,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: Theme.of(context).colorScheme.error,
                     fontSize: 10,
@@ -454,11 +463,12 @@ class DataSourceDetailScreen extends HookConsumerWidget {
     final difference = now.difference(dateTime);
 
     if (difference.inMinutes < 1) {
-      return 'Just now';
+      return FlipperL10n.current.aiDataSourceJustNow;
     } else if (difference.inHours < 1) {
-      return '${difference.inMinutes}m ago';
+      return FlipperL10n.current
+          .aiDataSourceMinutesAgo('${difference.inMinutes}');
     } else if (difference.inDays < 1) {
-      return '${difference.inHours}h ago';
+      return FlipperL10n.current.aiDataSourceHoursAgo('${difference.inHours}');
     } else {
       return '${dateTime.day}/${dateTime.month}/${dateTime.year}';
     }
@@ -517,9 +527,9 @@ class DataSourceDetailScreen extends HookConsumerWidget {
       case DataSourceType.googleSheets:
         return 'Google Sheets';
       case DataSourceType.csv:
-        return 'CSV File';
+        return FlipperL10n.current.aiDataSourceCsvFile;
       case DataSourceType.json:
-        return 'JSON File';
+        return FlipperL10n.current.aiDataSourceJsonFile;
     }
   }
 }

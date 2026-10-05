@@ -2,6 +2,7 @@
 ///
 /// Screen for managing data source connections.
 
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -33,7 +34,7 @@ class DataSourceListScreen extends HookConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Data Sources'),
+        title: Text(context.flipperL10n.aiDataSources),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -41,7 +42,7 @@ class DataSourceListScreen extends HookConsumerWidget {
               ref.invalidate(dataSourcesProvider);
               ref.invalidate(connectionStatusesProvider);
             },
-            tooltip: 'Refresh',
+            tooltip: context.flipperL10n.refresh,
           ),
         ],
       ),
@@ -71,7 +72,7 @@ class DataSourceListScreen extends HookConsumerWidget {
           );
         },
         icon: const Icon(Icons.add),
-        label: const Text('Add Data Source'),
+        label: Text(context.flipperL10n.aiDataSourceAdd),
       ),
     );
   }
@@ -88,13 +89,12 @@ class DataSourceListScreen extends HookConsumerWidget {
           ),
           const SizedBox(height: 24),
           Text(
-            'No Data Sources Connected',
+            context.flipperL10n.aiDataSourceNoneConnected,
             style: Theme.of(context).textTheme.headlineSmall,
           ),
           const SizedBox(height: 8),
           Text(
-            'Connect a database so the AI can include its schema and sample rows\n'
-            'when answering in Business or Personal chat.',
+            context.flipperL10n.aiDataSourceNoneHint,
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: Theme.of(context).colorScheme.outline,
@@ -109,7 +109,7 @@ class DataSourceListScreen extends HookConsumerWidget {
               );
             },
             icon: const Icon(Icons.add),
-            label: const Text('Connect Your First Data Source'),
+            label: Text(context.flipperL10n.aiDataSourceConnectFirst),
           ),
         ],
       ),
@@ -132,7 +132,8 @@ class DataSourceListScreen extends HookConsumerWidget {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => DataSourceDetailScreen(dataSourceId: dataSource.id),
+              builder: (context) =>
+                  DataSourceDetailScreen(dataSourceId: dataSource.id),
             ),
           );
         },
@@ -171,8 +172,12 @@ class DataSourceListScreen extends HookConsumerWidget {
                           children: [
                             Text(
                               _getDataSourceTypeName(dataSource.type),
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: Theme.of(context).colorScheme.outline,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(
+                                    color:
+                                        Theme.of(context).colorScheme.outline,
                                   ),
                             ),
                             const SizedBox(width: 8),
@@ -187,8 +192,11 @@ class DataSourceListScreen extends HookConsumerWidget {
                                   borderRadius: BorderRadius.circular(4),
                                 ),
                                 child: Text(
-                                  'Active',
-                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  context.flipperL10n.aiDataSourceActive,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
+                                      ?.copyWith(
                                         color: Colors.green,
                                         fontWeight: FontWeight.w600,
                                       ),
@@ -210,7 +218,10 @@ class DataSourceListScreen extends HookConsumerWidget {
                 children: [
                   if (status?.lastConnectedAt != null) ...[
                     Text(
-                      'Last connected: ${DateFormat('MMM d, y HH:mm').format(status!.lastConnectedAt!)}',
+                      context.flipperL10n.aiDataSourceLastConnected(
+                        DateFormat('MMM d, y HH:mm')
+                            .format(status!.lastConnectedAt!),
+                      ),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: Theme.of(context).colorScheme.outline,
                           ),
@@ -222,13 +233,13 @@ class DataSourceListScreen extends HookConsumerWidget {
                     TextButton.icon(
                       onPressed: () => notifier.disconnect(dataSource.id),
                       icon: const Icon(Icons.link_off),
-                      label: const Text('Disconnect'),
+                      label: Text(context.flipperL10n.aiDataSourceDisconnect),
                     )
                   else
                     TextButton.icon(
                       onPressed: () => notifier.connect(dataSource.id),
                       icon: const Icon(Icons.link),
-                      label: const Text('Connect'),
+                      label: Text(context.flipperL10n.aiDataSourceConnect),
                     ),
                   const SizedBox(width: 8),
                   IconButton(
@@ -241,12 +252,13 @@ class DataSourceListScreen extends HookConsumerWidget {
                       );
                     },
                     icon: const Icon(Icons.edit),
-                    tooltip: 'Edit',
+                    tooltip: context.flipperL10n.edit,
                   ),
                   IconButton(
-                    onPressed: () => _confirmDelete(context, ref, notifier, dataSource),
+                    onPressed: () =>
+                        _confirmDelete(context, ref, notifier, dataSource),
                     icon: const Icon(Icons.delete, color: Colors.red),
-                    tooltip: 'Delete',
+                    tooltip: context.flipperL10n.delete,
                   ),
                 ],
               ),
@@ -266,24 +278,24 @@ class DataSourceListScreen extends HookConsumerWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Data Source'),
+        title: Text(context.flipperL10n.aiDataSourceDeleteTitle),
         content: Text(
-          'Are you sure you want to delete "${dataSource.name}"? '
-          'This will remove the connection and all associated data.',
+          context.flipperL10n.aiDataSourceDeleteConfirm(dataSource.name),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(context.flipperL10n.cancel),
           ),
           FilledButton(
             onPressed: () async {
+              final l10n = context.flipperL10n;
               await notifier.removeDataSource(dataSource.id);
               if (context.mounted) {
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text('Data source "${dataSource.name}" deleted'),
+                    content: Text(l10n.aiDataSourceDeleted(dataSource.name)),
                     backgroundColor: Theme.of(context).colorScheme.primary,
                   ),
                 );
@@ -292,7 +304,7 @@ class DataSourceListScreen extends HookConsumerWidget {
             style: FilledButton.styleFrom(
               backgroundColor: Theme.of(context).colorScheme.error,
             ),
-            child: const Text('Delete'),
+            child: Text(context.flipperL10n.delete),
           ),
         ],
       ),
@@ -353,9 +365,9 @@ class DataSourceListScreen extends HookConsumerWidget {
       case DataSourceType.googleSheets:
         return 'Google Sheets';
       case DataSourceType.csv:
-        return 'CSV File';
+        return FlipperL10n.current.aiDataSourceCsvFile;
       case DataSourceType.json:
-        return 'JSON File';
+        return FlipperL10n.current.aiDataSourceJsonFile;
     }
   }
 }

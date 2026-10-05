@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_socials/ui/common/app_colors.dart';
 import 'package:flipper_socials/ui/common/ui_helpers.dart';
@@ -82,9 +83,9 @@ class InfoAlertDialog extends StackedView<InfoAlertDialogModel> {
                 height: 50,
                 width: double.infinity,
                 alignment: Alignment.center,
-                child: const Text(
-                  'Got it',
-                  style: TextStyle(
+                child: Text(
+                  context.flipperL10n.dialogGotIt,
+                  style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
                     fontSize: 16,

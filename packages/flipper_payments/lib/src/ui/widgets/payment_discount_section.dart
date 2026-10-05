@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_payments/src/ui/payment_typography.dart';
 import 'package:flipper_payments/src/ui/widgets/payment_input.dart';
 import 'package:flipper_payments/src/ui/widgets/payment_toggle_switch.dart';
@@ -10,15 +11,19 @@ class PaymentDiscountSection extends StatefulWidget {
     required this.onCodeChanged,
     this.errorMessage,
     this.isValidating = false,
-    this.label = 'Apply Discount Code',
-    this.hint = 'Enter the code exactly as it appears.',
+    this.label,
+    this.hint,
   });
 
   final ValueChanged<String> onCodeChanged;
   final String? errorMessage;
   final bool isValidating;
-  final String label;
-  final String hint;
+
+  /// Defaults to the localized "Apply Discount Code".
+  final String? label;
+
+  /// Defaults to the localized "Enter the code exactly as it appears.".
+  final String? hint;
 
   @override
   State<PaymentDiscountSection> createState() => _PaymentDiscountSectionState();
@@ -50,7 +55,10 @@ class _PaymentDiscountSectionState extends State<PaymentDiscountSection> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(widget.label, style: PaymentTypography.inlineLabel()),
+              Text(
+                widget.label ?? context.flipperL10n.applyDiscountCode,
+                style: PaymentTypography.inlineLabel(),
+              ),
               PaymentToggleSwitch(
                 value: _enabled,
                 onChanged: (v) {
@@ -70,11 +78,13 @@ class _PaymentDiscountSectionState extends State<PaymentDiscountSection> {
           const SizedBox(height: 12),
           PaymentInput(
             controller: _controller,
-            hintText: 'Discount code',
+            hintText: context.flipperL10n.discountCode,
             leadingIcon: FluentIcons.tag_20_regular,
             onChanged: widget.onCodeChanged,
           ),
-          PaymentInputHint(text: widget.hint),
+          PaymentInputHint(
+            text: widget.hint ?? context.flipperL10n.paywallDiscountHint,
+          ),
           if (widget.isValidating)
             Padding(
               padding: const EdgeInsets.only(top: 8),
@@ -86,7 +96,10 @@ class _PaymentDiscountSectionState extends State<PaymentDiscountSection> {
                     child: CircularProgressIndicator(strokeWidth: 2),
                   ),
                   const SizedBox(width: 8),
-                  Text('Validating code…', style: PaymentTypography.hint()),
+                  Text(
+                    context.flipperL10n.validatingCode,
+                    style: PaymentTypography.hint(),
+                  ),
                 ],
               ),
             ),

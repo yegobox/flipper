@@ -1,5 +1,6 @@
 import 'package:flipper_routing/ui/common/app_colors.dart';
 import 'package:flipper_routing/ui/common/ui_helpers.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
@@ -43,13 +44,17 @@ class InfoAlertDialog extends StackedView<InfoAlertDialogModel> {
                       Text(
                         request.title!,
                         style: const TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.w900),
+                          fontSize: 16,
+                          fontWeight: FontWeight.w900,
+                        ),
                       ),
                       verticalSpaceTiny,
                       Text(
                         request.description!,
-                        style:
-                            const TextStyle(fontSize: 14, color: kcMediumGrey),
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: kcMediumGrey,
+                        ),
                         maxLines: 3,
                         softWrap: true,
                       ),
@@ -66,25 +71,20 @@ class InfoAlertDialog extends StackedView<InfoAlertDialogModel> {
                     ),
                   ),
                   alignment: Alignment.center,
-                  child: const Text(
-                    '⭐️',
-                    style: TextStyle(fontSize: 30),
-                  ),
-                )
+                  child: const Text('⭐️', style: TextStyle(fontSize: 30)),
+                ),
               ],
             ),
             verticalSpaceMedium,
             GestureDetector(
-              onTap: () => completer(DialogResponse(
-                confirmed: true,
-              )),
+              onTap: () => completer(DialogResponse(confirmed: true)),
               child: Container(
                 height: 50,
                 width: double.infinity,
                 alignment: Alignment.center,
-                child: const Text(
-                  'Got it',
-                  style: TextStyle(
+                child: Text(
+                  context.flipperL10n.dialogGotIt,
+                  style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
@@ -95,7 +95,7 @@ class InfoAlertDialog extends StackedView<InfoAlertDialogModel> {
                   borderRadius: BorderRadius.circular(10),
                 ),
               ),
-            )
+            ),
           ],
         ),
       ),

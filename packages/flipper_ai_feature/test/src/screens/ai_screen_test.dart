@@ -8,6 +8,7 @@ import 'package:flipper_ai_feature/src/widgets/welcome_view.dart';
 import 'package:flipper_models/providers/ai_provider.dart';
 import 'package:flipper_models/services/payment_verification_service.dart';
 import 'package:flipper_routing/app.locator.dart' as loc;
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -194,7 +195,11 @@ void main() {
         availableModelsProvider.overrideWith((ref) async => []),
         ...overrides,
       ],
-      child: MaterialApp(home: ScaffoldMessenger(child: widget)),
+      child: MaterialApp(
+        localizationsDelegates: FlipperLocalizationDelegates.delegates,
+        supportedLocales: FlipperLocalizationDelegates.supportedLocales,
+        home: ScaffoldMessenger(child: widget),
+      ),
     );
   }
 

@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_payments/src/dodo/dodo_models.dart' show DodoCheckout;
 
 /// Wire shapes for the connector's staff-only negotiated-price payments
@@ -31,8 +32,8 @@ enum CustomPaymentRail {
   bool get isMomo => this == CustomPaymentRail.momo;
 
   String get label => switch (this) {
-    CustomPaymentRail.momo => 'Mobile Money',
-    CustomPaymentRail.card => 'Card',
+    CustomPaymentRail.momo => FlipperL10n.current.paywallRailMobileMoney,
+    CustomPaymentRail.card => FlipperL10n.current.paywallRailCard,
   };
 }
 
@@ -53,8 +54,8 @@ enum CustomPaymentCadence {
       };
 
   String get label => switch (this) {
-    CustomPaymentCadence.monthly => 'Monthly',
-    CustomPaymentCadence.yearly => 'Yearly',
+    CustomPaymentCadence.monthly => FlipperL10n.current.paywallCadenceMonthly,
+    CustomPaymentCadence.yearly => FlipperL10n.current.paywallCadenceYearly,
   };
 }
 

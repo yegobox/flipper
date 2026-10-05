@@ -1,4 +1,5 @@
 import 'package:flipper_design_system/flipper_design_system.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/services/park_transaction_service.dart';
@@ -224,7 +225,7 @@ class _ParkTicketFooter extends StatelessWidget {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            'AMOUNT',
+                            context.flipperL10n.uiTicketAmount,
                             style: GoogleFonts.poppins(
                               fontSize: 10,
                               fontWeight: FontWeight.w600,
@@ -251,8 +252,9 @@ class _ParkTicketFooter extends StatelessWidget {
                         valueListenable: hasCustomerNotifier,
                         builder: (context, hasCustomer, _) {
                           return AsyncActionGradientButton(
-                            idleLabel: 'Park transaction',
-                            loadingLabel: 'Parking…',
+                            idleLabel:
+                                context.flipperL10n.uiTicketParkTransaction,
+                            loadingLabel: context.flipperL10n.uiTicketParking,
                             icon: Icons.bookmark_rounded,
                             syncNotifier: isSavingNotifier,
                             enabled: hasCustomer,
@@ -520,7 +522,7 @@ class SharedTicketFormState extends ConsumerState<SharedTicketForm> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to park transaction: $e'),
+            content: Text(context.flipperL10n.uiTicketParkFailed('$e')),
             backgroundColor: Colors.red,
             behavior: SnackBarBehavior.floating,
           ),
@@ -565,7 +567,7 @@ class SharedTicketFormState extends ConsumerState<SharedTicketForm> {
                   children: [
                     const _SheetHandle(),
                     Text(
-                      'Attach customer',
+                      context.flipperL10n.uiTicketAttachCustomer,
                       style: GoogleFonts.poppins(
                         fontWeight: FontWeight.w700,
                         fontSize: 18,
@@ -577,7 +579,7 @@ class SharedTicketFormState extends ConsumerState<SharedTicketForm> {
                       onChanged: (v) => setSheetState(() => query = v),
                       style: GoogleFonts.poppins(fontSize: 15),
                       decoration: InputDecoration(
-                        hintText: 'Search customers…',
+                        hintText: context.flipperL10n.uiTicketSearchCustomers,
                         hintStyle: GoogleFonts.poppins(color: _kLabel),
                         prefixIcon: const Icon(Icons.search, size: 20),
                         filled: true,
@@ -607,7 +609,7 @@ class SharedTicketFormState extends ConsumerState<SharedTicketForm> {
                               contentPadding: EdgeInsets.zero,
                               leading: const Icon(Icons.person_off_outlined),
                               title: Text(
-                                'No customer',
+                                context.flipperL10n.uiTicketNoCustomer,
                                 style: GoogleFonts.poppins(
                                   fontWeight: FontWeight.w500,
                                 ),
@@ -622,7 +624,7 @@ class SharedTicketFormState extends ConsumerState<SharedTicketForm> {
                             contentPadding: EdgeInsets.zero,
                             leading: _customerAvatar(initial, size: 40),
                             title: Text(
-                              c.custNm ?? 'Unknown',
+                              c.custNm ?? context.flipperL10n.uiTicketUnknown,
                               style: GoogleFonts.poppins(
                                 fontWeight: FontWeight.w700,
                               ),
@@ -730,30 +732,36 @@ class SharedTicketFormState extends ConsumerState<SharedTicketForm> {
               ),
             ],
             const SizedBox(height: 22),
-            _fieldLabel('Ticket name'),
+            _fieldLabel(context.flipperL10n.uiTicketName),
             const SizedBox(height: 8),
             _borderedField(
               controller: _ticketNameController,
               enabled: !isSaving,
               icon: Icons.local_offer_outlined,
-              hint: 'Ticket name',
+              hint: context.flipperL10n.uiTicketName,
               validator: (v) => (v == null || v.trim().isEmpty)
-                  ? 'Enter a ticket name'
+                  ? context.flipperL10n.uiTicketEnterName
                   : null,
             ),
             const SizedBox(height: 18),
-            _fieldLabel('Notes', trailing: 'Optional'),
+            _fieldLabel(
+              context.flipperL10n.uiTicketNotes,
+              trailing: context.flipperL10n.uiTicketOptional,
+            ),
             const SizedBox(height: 8),
             _borderedField(
               controller: _noteController,
               enabled: !isSaving,
               icon: Icons.dehaze_rounded,
-              hint: 'Add notes',
+              hint: context.flipperL10n.uiTicketAddNotes,
               maxLines: 3,
               minHeight: 88,
             ),
             const SizedBox(height: 18),
-            _fieldLabel('Attach customer', trailing: 'Optional'),
+            _fieldLabel(
+              context.flipperL10n.uiTicketAttachCustomer,
+              trailing: context.flipperL10n.uiTicketOptional,
+            ),
             const SizedBox(height: 8),
             _customerField(isSaving: isSaving),
             const SizedBox(height: 18),
@@ -767,7 +775,7 @@ class SharedTicketFormState extends ConsumerState<SharedTicketForm> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const SizedBox(height: 18),
-                        _fieldLabel('Payment due'),
+                        _fieldLabel(context.flipperL10n.uiTicketPaymentDue),
                         const SizedBox(height: 10),
                         _duePresetRow(isSaving: isSaving),
                         const SizedBox(height: 10),
@@ -814,7 +822,7 @@ class SharedTicketFormState extends ConsumerState<SharedTicketForm> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Send to kitchen',
+                  context.flipperL10n.uiTicketSendToKitchen,
                   style: GoogleFonts.poppins(
                     fontWeight: FontWeight.w700,
                     fontSize: 15,
@@ -823,7 +831,7 @@ class SharedTicketFormState extends ConsumerState<SharedTicketForm> {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  'Show this ticket on the Kitchen Display',
+                  context.flipperL10n.uiTicketShowOnKds,
                   style: GoogleFonts.poppins(
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
@@ -914,7 +922,7 @@ class SharedTicketFormState extends ConsumerState<SharedTicketForm> {
                         ],
                       )
                     : Text(
-                        'Select customer',
+                        context.flipperL10n.uiTicketSelectCustomer,
                         style: GoogleFonts.poppins(
                           fontSize: 15,
                           fontWeight: FontWeight.w500,
@@ -961,7 +969,7 @@ class SharedTicketFormState extends ConsumerState<SharedTicketForm> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Mark as loan',
+                  context.flipperL10n.uiTicketMarkAsLoan,
                   style: GoogleFonts.poppins(
                     fontWeight: FontWeight.w700,
                     fontSize: 15,
@@ -970,7 +978,7 @@ class SharedTicketFormState extends ConsumerState<SharedTicketForm> {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  'Track payment for later collection',
+                  context.flipperL10n.uiTicketTrackPaymentLater,
                   style: GoogleFonts.poppins(
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
@@ -1006,17 +1014,21 @@ class SharedTicketFormState extends ConsumerState<SharedTicketForm> {
     return Row(
       children: [
         Expanded(
-          child: _presetChip('1 week', _DuePreset.oneWeek, isSaving: isSaving),
+          child: _presetChip(
+              context.flipperL10n.uiTicketOneWeek, _DuePreset.oneWeek,
+              isSaving: isSaving),
         ),
         const SizedBox(width: 8),
         Expanded(
-          child:
-              _presetChip('2 weeks', _DuePreset.twoWeeks, isSaving: isSaving),
+          child: _presetChip(
+              context.flipperL10n.uiTicketTwoWeeks, _DuePreset.twoWeeks,
+              isSaving: isSaving),
         ),
         const SizedBox(width: 8),
         Expanded(
-          child:
-              _presetChip('1 month', _DuePreset.oneMonth, isSaving: isSaving),
+          child: _presetChip(
+              context.flipperL10n.uiTicketOneMonth, _DuePreset.oneMonth,
+              isSaving: isSaving),
         ),
       ],
     );
@@ -1058,8 +1070,9 @@ class SharedTicketFormState extends ConsumerState<SharedTicketForm> {
   }
 
   Widget _dueDateRow({required bool isSaving}) {
-    final dateText =
-        _dueDate != null ? _formatIsoDate(_dueDate!.toLocal()) : 'Select date';
+    final dateText = _dueDate != null
+        ? _formatIsoDate(_dueDate!.toLocal())
+        : context.flipperL10n.uiTicketSelectDate;
 
     return Material(
       color: Colors.transparent,
@@ -1095,7 +1108,7 @@ class SharedTicketFormState extends ConsumerState<SharedTicketForm> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      'Due date',
+                      context.flipperL10n.uiTicketDueDate,
                       style: GoogleFonts.poppins(
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
@@ -1221,7 +1234,7 @@ class _ParkHeader extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Park transaction',
+                context.flipperL10n.uiTicketParkTransaction,
                 style: GoogleFonts.poppins(
                   fontWeight: FontWeight.w700,
                   fontSize: 20,
@@ -1231,7 +1244,7 @@ class _ParkHeader extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                'Hold this sale to finish later',
+                context.flipperL10n.uiTicketHoldSale,
                 style: GoogleFonts.poppins(
                   fontSize: 13,
                   fontWeight: FontWeight.w500,

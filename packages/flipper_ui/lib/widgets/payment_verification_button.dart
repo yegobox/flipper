@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flipper_models/providers/payment_verification_provider.dart';
@@ -18,14 +19,15 @@ Future<PaymentVerificationResponse> triggerManualPaymentVerification(
 
 /// A button widget that checks subscription status and navigates when pressed.
 class PaymentVerificationButton extends ConsumerWidget {
-  final String label;
+  /// Defaults to the localized "Check subscription".
+  final String? label;
   final IconData icon;
   final Color? color;
   final bool showLoading;
 
   const PaymentVerificationButton({
     super.key,
-    this.label = 'Check subscription',
+    this.label,
     this.icon = Icons.payment,
     this.color,
     this.showLoading = true,
@@ -46,7 +48,7 @@ class PaymentVerificationButton extends ConsumerWidget {
               child: CircularProgressIndicator(strokeWidth: 2),
             )
           : Icon(icon),
-      label: Text(label),
+      label: Text(label ?? context.flipperL10n.checkSubscription),
       style: ElevatedButton.styleFrom(
         backgroundColor: color,
         disabledBackgroundColor: Colors.grey.shade300,
@@ -57,20 +59,26 @@ class PaymentVerificationButton extends ConsumerWidget {
 
 /// A menu item that checks subscription status and navigates when selected.
 class PaymentVerificationMenuItem extends ConsumerWidget {
-  final String label;
+  /// Defaults to the localized "Check subscription".
+  final String? label;
+
+  /// Defaults to the localized "Refresh status after payment"; pass an empty
+  /// string to hide it.
   final String? subtitle;
   final IconData icon;
 
   const PaymentVerificationMenuItem({
     super.key,
-    this.label = 'Check subscription',
-    this.subtitle = 'Refresh status after payment',
+    this.label,
+    this.subtitle,
     this.icon = Icons.payment,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final verificationState = ref.watch(manualPaymentVerificationProvider);
+    final l10n = context.flipperL10n;
+    final subtitleText = subtitle ?? l10n.uiRefreshStatusAfterPayment;
 
     return ListTile(
       leading: verificationState.isLoading
@@ -80,8 +88,8 @@ class PaymentVerificationMenuItem extends ConsumerWidget {
               child: CircularProgressIndicator(strokeWidth: 2),
             )
           : Icon(icon),
-      title: Text(label),
-      subtitle: subtitle != null ? Text(subtitle!) : null,
+      title: Text(label ?? l10n.checkSubscription),
+      subtitle: subtitleText.isNotEmpty ? Text(subtitleText) : null,
       enabled: !verificationState.isLoading,
       onTap: verificationState.isLoading
           ? null
@@ -93,12 +101,13 @@ class PaymentVerificationMenuItem extends ConsumerWidget {
 String paymentVerificationResultMessage(PaymentVerificationResponse response) {
   switch (response.result) {
     case PaymentVerificationResult.active:
-      return 'Subscription is active.';
+      return FlipperL10n.current.uiSubscriptionActive;
     case PaymentVerificationResult.noPlan:
-      return 'No plan found — opening payment setup.';
+      return FlipperL10n.current.uiNoPlanOpeningSetup;
     case PaymentVerificationResult.planExistsButInactive:
-      return 'Plan found but not active — opening payment screen.';
+      return FlipperL10n.current.uiPlanInactiveOpeningPayment;
     case PaymentVerificationResult.error:
-      return response.errorMessage ?? 'Could not verify payment status.';
+      return response.errorMessage ??
+          FlipperL10n.current.uiCouldNotVerifyPayment;
   }
 }

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flipper_models/providers/local_inference_engine.dart';
@@ -39,7 +40,8 @@ class AiScreen extends ConsumerStatefulWidget {
   ConsumerState<AiScreen> createState() => _AiScreenState();
 }
 
-class _AiScreenState extends ConsumerState<AiScreen> with WidgetsBindingObserver {
+class _AiScreenState extends ConsumerState<AiScreen>
+    with WidgetsBindingObserver {
   final _controller = TextEditingController();
   final _scrollController = ScrollController();
   final _chatService = FloChatService();
@@ -65,7 +67,7 @@ class _AiScreenState extends ConsumerState<AiScreen> with WidgetsBindingObserver
   List<String> _thinkingSteps = [];
   int? _thinkingActiveIndex;
   String? _attachedFilePath;
-  String _shopName = 'your shop';
+  late String _shopName = FlipperL10n.current.aiYourShop;
   String _currency = '';
   FloDailyBriefing? _briefing;
   FloDailyBriefing? _remoteBriefing;
@@ -234,8 +236,9 @@ class _AiScreenState extends ConsumerState<AiScreen> with WidgetsBindingObserver
 
   void _subscribeToMessages(String conversationId) {
     _messageSub?.cancel();
-    _messageSub =
-        ProxyService.strategy.subscribeToMessages(conversationId).listen((msgs) {
+    _messageSub = ProxyService.strategy
+        .subscribeToMessages(conversationId)
+        .listen((msgs) {
       if (!mounted) return;
       setState(() => _messages = msgs);
       _scrollToBottom();
@@ -274,7 +277,7 @@ class _AiScreenState extends ConsumerState<AiScreen> with WidgetsBindingObserver
     if (text.trim().isEmpty) return;
     final branchId = ProxyService.box.getBranchId();
     if (branchId == null) {
-      _showError('Branch ID is required');
+      _showError(FlipperL10n.current.aiBranchIdRequired);
       return;
     }
     if (text.startsWith('[file](')) return;
@@ -400,15 +403,15 @@ class _AiScreenState extends ConsumerState<AiScreen> with WidgetsBindingObserver
           shopName: _shopName,
         );
       }
-      response ??= const FloChatResponse(
+      response ??= FloChatResponse(
         blocks: [
           {
             'type': 'text',
-            'html': 'No response was produced. Please try again.',
+            'html': FlipperL10n.current.aiNoResponse,
           },
         ],
         modelUsed: '',
-        thinking: [],
+        thinking: const [],
       );
 
       final payload = FloMessagePayload(blocks: response.blocks);
@@ -436,7 +439,7 @@ class _AiScreenState extends ConsumerState<AiScreen> with WidgetsBindingObserver
     } on FloChatException catch (e) {
       _showError(e.message);
     } catch (e) {
-      _showError('Error: $e');
+      _showError(FlipperL10n.current.errorMessage('$e'));
     } finally {
       if (mounted) {
         setState(() {
@@ -454,7 +457,8 @@ class _AiScreenState extends ConsumerState<AiScreen> with WidgetsBindingObserver
       if (msg.role != 'user' && msg.role != 'assistant') continue;
       var content = msg.text;
       if (FloMessagePayload.isFloMessage(content)) {
-        content = FloMessagePayload.tryParse(content).blocks
+        content = FloMessagePayload.tryParse(content)
+            .blocks
             .where((b) => b['type'] == 'text')
             .map((b) => b['html']?.toString() ?? '')
             .join('\n');
@@ -488,7 +492,7 @@ class _AiScreenState extends ConsumerState<AiScreen> with WidgetsBindingObserver
         replyToMessageId: lastMessage.whatsappMessageId,
       );
     } catch (e) {
-      _showError('Failed to send WhatsApp message: $e');
+      _showError(FlipperL10n.current.aiWhatsappSendMessageFailed('$e'));
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }

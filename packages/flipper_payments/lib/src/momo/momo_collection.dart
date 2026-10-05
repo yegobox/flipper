@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_payments/src/logging.dart';
 import 'package:flipper_payments/src/momo/momo_client.dart';
 import 'package:flipper_payments/src/momo/momo_models.dart';
@@ -208,7 +209,7 @@ class MomoCollection {
         initiation: initiation,
         message: settlement.reason?.isNotEmpty == true
             ? settlement.reason
-            : 'The payment was not completed on the payer\'s phone.',
+            : FlipperL10n.current.paywallNotCompletedOnPhone,
       );
     }
     return MomoCollectionResult(
@@ -216,9 +217,7 @@ class MomoCollection {
       reference: initiation.reference,
       settlement: settlement,
       initiation: initiation,
-      message:
-          'No confirmation yet. The payment may still go through — check the '
-          'MoMo statement before charging again.',
+      message: FlipperL10n.current.paywallNoConfirmationYet,
     );
   }
 }

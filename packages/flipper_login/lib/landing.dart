@@ -1,4 +1,5 @@
 import 'package:flipper_design_system/flipper_design_system.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_login/login_semantics.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/proxy.dart';
@@ -20,66 +21,69 @@ class _LandingState extends State<Landing> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
 
-  final List<PageContent> _pagesContent = [
-    PageContent(
-      imagePath: "assets/main.png",
-      title: "Run your whole\nbusiness from one app",
-      highlight: "business",
-      heroLayout: 0,
-      text:
-          "Sell, track stock, and manage your team - Flipper is your business in your pocket.",
-      metrics: const [
-        _LandingMetric(
-            label: 'Revenue', value: '248K', icon: Icons.trending_up),
-        _LandingMetric(
-            label: 'Reports', value: 'Daily', icon: Icons.bar_chart_rounded),
-      ],
-    ),
-    PageContent(
-      imagePath: "assets/image_2.png",
-      title: "Simple, useful reports\nthat help you grow",
-      highlight: "reports",
-      heroLayout: 1,
-      text:
-          "See exactly what sells, what's running low, and where your money goes - every day.",
-      metrics: const [
-        _LandingMetric(
-            label: 'Setup', value: 'Fast', icon: Icons.rocket_launch_outlined),
-        _LandingMetric(
-            label: 'Fees', value: 'Clear', icon: Icons.verified_outlined),
-      ],
-    ),
-    PageContent(
-      imagePath: "assets/image_3.png",
-      title: "Get paid faster,\ntrack every franc",
-      highlight: "track every franc",
-      heroLayout: 2,
-      text:
-          "Accept MoMo, cash, and card. Flipper records every sale and reconciles it for you.",
-      metrics: const [
-        _LandingMetric(
-            label: 'Stock', value: 'Live', icon: Icons.inventory_2_outlined),
-        _LandingMetric(
-            label: 'Growth', value: '+18%', icon: Icons.insights_outlined),
-      ],
-    ),
-    PageContent(
-      imagePath: "assets/image_4.png",
-      title: "Grow your business,\nearn rewards",
-      highlight: "earn rewards",
-      heroLayout: 3,
-      text:
-          "Hit daily goals, keep your streak alive, and level up from Bronze to Gold Seller.",
-      metrics: const [
-        _LandingMetric(
-            label: 'Sales', value: 'MoMo', icon: Icons.payments_outlined),
-        _LandingMetric(
-            label: 'Streak',
-            value: '12d',
-            icon: Icons.local_fire_department_outlined),
-      ],
-    ),
-  ];
+  /// Built per access so slide copy follows the current locale. The metric
+  /// chips are not rendered anywhere, so their labels stay as placeholders.
+  List<PageContent> get _pagesContent {
+    final l10n = context.flipperL10n;
+    return [
+      PageContent(
+        imagePath: "assets/main.png",
+        title: l10n.loginLandingSlide1Title,
+        highlight: l10n.loginLandingSlide1Highlight,
+        heroLayout: 0,
+        text: l10n.loginLandingSlide1Text,
+        metrics: const [
+          _LandingMetric(
+              label: 'Revenue', value: '248K', icon: Icons.trending_up),
+          _LandingMetric(
+              label: 'Reports', value: 'Daily', icon: Icons.bar_chart_rounded),
+        ],
+      ),
+      PageContent(
+        imagePath: "assets/image_2.png",
+        title: l10n.loginLandingSlide2Title,
+        highlight: l10n.loginLandingSlide2Highlight,
+        heroLayout: 1,
+        text: l10n.loginLandingSlide2Text,
+        metrics: const [
+          _LandingMetric(
+              label: 'Setup',
+              value: 'Fast',
+              icon: Icons.rocket_launch_outlined),
+          _LandingMetric(
+              label: 'Fees', value: 'Clear', icon: Icons.verified_outlined),
+        ],
+      ),
+      PageContent(
+        imagePath: "assets/image_3.png",
+        title: l10n.loginLandingSlide3Title,
+        highlight: l10n.loginLandingSlide3Highlight,
+        heroLayout: 2,
+        text: l10n.loginLandingSlide3Text,
+        metrics: const [
+          _LandingMetric(
+              label: 'Stock', value: 'Live', icon: Icons.inventory_2_outlined),
+          _LandingMetric(
+              label: 'Growth', value: '+18%', icon: Icons.insights_outlined),
+        ],
+      ),
+      PageContent(
+        imagePath: "assets/image_4.png",
+        title: l10n.loginLandingSlide4Title,
+        highlight: l10n.loginLandingSlide4Highlight,
+        heroLayout: 3,
+        text: l10n.loginLandingSlide4Text,
+        metrics: const [
+          _LandingMetric(
+              label: 'Sales', value: 'MoMo', icon: Icons.payments_outlined),
+          _LandingMetric(
+              label: 'Streak',
+              value: '12d',
+              icon: Icons.local_fire_department_outlined),
+        ],
+      ),
+    ];
+  }
 
   final signInButtonKey = Key('signInButtonKey');
 
@@ -107,6 +111,7 @@ class _LandingState extends State<Landing> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
     return ResponsiveLayout(
       mobile: _buildMobileLanding(context),
       desktop: Container(
@@ -160,13 +165,13 @@ class _LandingState extends State<Landing> {
                     // providers wired up on web/mobile. Desktop uses the same
                     // OTP signup + PIN sign-in as mobile.
                     _buildButton(
-                      text: "Create Account",
+                      text: l10n.createAccount,
                       key: const Key(LoginMaestroIds.landingCreateAccount),
                       onPressed: _goToCreateAccount,
                     ),
                     const SizedBox(height: 22),
                     _buildButton(
-                      text: "Sign In",
+                      text: l10n.loginSignIn,
                       key: signInButtonKey,
                       onPressed: _goToSignIn,
                     ),
@@ -181,10 +186,12 @@ class _LandingState extends State<Landing> {
   }
 
   Widget _buildMobileLanding(BuildContext context) {
+    final l10n = context.flipperL10n;
+    final pageCount = _pagesContent.length;
     return Semantics(
       key: const Key(LoginMaestroIds.landingScreen),
       identifier: LoginMaestroIds.landingScreen,
-      label: 'Flipper landing',
+      label: l10n.loginLandingSemantic,
       child: Scaffold(
         backgroundColor: const Color(0xFFF5F8FD),
         body: SafeArea(
@@ -213,13 +220,13 @@ class _LandingState extends State<Landing> {
                         Semantics(
                           key: const Key(LoginMaestroIds.landingSignIn),
                           identifier: LoginMaestroIds.landingSignIn,
-                          label: 'Sign in',
+                          label: l10n.loginSignIn,
                           button: true,
                           child: TextButton(
                             key: signInButtonKey,
                             onPressed: _goToSignIn,
-                            child: const Text(
-                              'Sign in',
+                            child: Text(
+                              l10n.loginSignIn,
                               style: TextStyle(
                                 color: Color(0xFF7E8AA0),
                                 fontSize: 18,
@@ -241,7 +248,7 @@ class _LandingState extends State<Landing> {
                     ),
                   ),
                   PageIndicator(
-                    count: _pagesContent.length,
+                    count: pageCount,
                     currentIndex: _currentPage,
                     activeColor: const Color(0xFF4F46E5),
                     inactiveColor: const Color(0xFFD6DEEA),
@@ -253,43 +260,43 @@ class _LandingState extends State<Landing> {
                       children: [
                         Semantics(
                           key: Key(
-                            _currentPage < _pagesContent.length - 1
+                            _currentPage < pageCount - 1
                                 ? LoginMaestroIds.landingNext
                                 : LoginMaestroIds.landingCreateAccount,
                           ),
-                          identifier: _currentPage < _pagesContent.length - 1
+                          identifier: _currentPage < pageCount - 1
                               ? LoginMaestroIds.landingNext
                               : LoginMaestroIds.landingCreateAccount,
-                          label: _currentPage < _pagesContent.length - 1
-                              ? 'Next'
-                              : 'Create account',
+                          label: _currentPage < pageCount - 1
+                              ? l10n.loginNext
+                              : l10n.createAccount,
                           button: true,
                           child: FlipperGradientButton(
-                            text: _currentPage < _pagesContent.length - 1
-                                ? 'Next'
-                                : 'Create account',
-                            icon: _currentPage < _pagesContent.length - 1
+                            text: _currentPage < pageCount - 1
+                                ? l10n.loginNext
+                                : l10n.createAccount,
+                            icon: _currentPage < pageCount - 1
                                 ? Icons.chevron_right_rounded
                                 : Icons.person_add_alt_1_rounded,
-                            onPressed: _currentPage < _pagesContent.length - 1
+                            onPressed: _currentPage < pageCount - 1
                                 ? _goToNextPage
                                 : _goToCreateAccount,
                           ),
                         ),
                         const SizedBox(height: 14),
-                        if (_currentPage < _pagesContent.length - 1) ...[
+                        if (_currentPage < pageCount - 1) ...[
                           Semantics(
                             key: const Key(
                               LoginMaestroIds.landingSkipCreateAccount,
                             ),
                             identifier:
                                 LoginMaestroIds.landingSkipCreateAccount,
-                            label: 'Skip intro and create account',
+                            label: l10n.loginSkipIntroSemantic,
                             button: true,
                             child: TextButton(
                               onPressed: _goToCreateAccount,
-                              child: const Text(
-                                'Skip intro - Create account',
+                              child: Text(
+                                l10n.loginSkipIntro,
                                 style: TextStyle(
                                   color: Color(0xFF4F46E5),
                                   fontWeight: FontWeight.w800,
@@ -302,12 +309,12 @@ class _LandingState extends State<Landing> {
                               LoginMaestroIds.landingSecondarySignIn,
                             ),
                             identifier: LoginMaestroIds.landingSecondarySignIn,
-                            label: 'Already selling on Flipper? Sign in',
+                            label: l10n.loginAlreadySellingSignIn,
                             button: true,
                             child: TextButton(
                               onPressed: _goToSignIn,
-                              child: const Text(
-                                'Already selling on Flipper? Sign in',
+                              child: Text(
+                                l10n.loginAlreadySellingSignIn,
                                 style: TextStyle(
                                   color: Color(0xFF4F46E5),
                                   fontWeight: FontWeight.w800,
@@ -321,12 +328,12 @@ class _LandingState extends State<Landing> {
                               LoginMaestroIds.landingSecondarySignIn,
                             ),
                             identifier: LoginMaestroIds.landingSecondarySignIn,
-                            label: 'Already selling on Flipper? Sign in',
+                            label: l10n.loginAlreadySellingSignIn,
                             button: true,
                             child: TextButton(
                               onPressed: _goToSignIn,
-                              child: const Text(
-                                'Already selling on Flipper? Sign in',
+                              child: Text(
+                                l10n.loginAlreadySellingSignIn,
                                 style: TextStyle(
                                   color: Color(0xFF4F46E5),
                                   fontWeight: FontWeight.w800,
@@ -726,18 +733,18 @@ class _RevenueCard extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Row(
-            children: const [
+            children: [
               Expanded(
                 child: Text(
-                  'Revenue · this week',
-                  style: TextStyle(
+                  context.flipperL10n.loginRevenueThisWeek,
+                  style: const TextStyle(
                     color: Color(0xFF7E8AA0),
                     fontWeight: FontWeight.w800,
                     fontSize: 13,
                   ),
                 ),
               ),
-              Text(
+              const Text(
                 '~ 18%',
                 style: TextStyle(
                   color: Color(0xFF10B981),
@@ -822,26 +829,26 @@ class _SaleCard extends StatelessWidget {
             child: const Icon(Icons.check_rounded, color: Color(0xFF10B981)),
           ),
           const SizedBox(width: 12),
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  'New sale',
+                  context.flipperL10n.loginNewSale,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: Color(0xFF0B1220),
                     fontWeight: FontWeight.w900,
                     fontSize: 16,
                   ),
                 ),
                 Text(
-                  'Solar Kit · MoMo',
+                  context.flipperL10n.loginSampleSaleDetail,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: Color(0xFF7E8AA0),
                     fontWeight: FontWeight.w700,
                     fontSize: 13,
@@ -895,9 +902,9 @@ class _ReportCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 12),
-              const Text(
-                'Daily report',
-                style: TextStyle(
+              Text(
+                context.flipperL10n.loginDailyReport,
+                style: const TextStyle(
                   color: Color(0xFF0B1220),
                   fontWeight: FontWeight.w900,
                   fontSize: 16,
@@ -906,11 +913,11 @@ class _ReportCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          const _ReportBar(label: 'Sales', value: .78),
+          _ReportBar(label: context.flipperL10n.sales, value: .78),
           const SizedBox(height: 10),
-          const _ReportBar(label: 'Stock', value: .55),
+          _ReportBar(label: context.flipperL10n.loginStock, value: .55),
           const SizedBox(height: 10),
-          const _ReportBar(label: 'Tax', value: .36),
+          _ReportBar(label: context.flipperL10n.loginTax, value: .36),
         ],
       ),
     );
@@ -983,26 +990,26 @@ class _StreakCard extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 12),
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  '12 days',
+                  context.flipperL10n.loginStreakDays(12),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: Color(0xFF0B1220),
                     fontWeight: FontWeight.w900,
                     fontSize: 17,
                   ),
                 ),
                 Text(
-                  'Sales streak',
+                  context.flipperL10n.loginSalesStreak,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: Color(0xFF7E8AA0),
                     fontWeight: FontWeight.w700,
                     fontSize: 13,
@@ -1053,11 +1060,11 @@ class _BadgeCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text(
-                  'Gold Seller',
+                Text(
+                  context.flipperL10n.loginGoldSeller,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: Color(0xFF0B1220),
                     fontWeight: FontWeight.w900,
                     fontSize: 17,
@@ -1117,8 +1124,14 @@ class _LandingSlideTitle extends StatelessWidget {
       height: 1.08,
       letterSpacing: 0,
     );
-    final before = title.substring(0, title.indexOf(highlight));
-    final after = title.substring(title.indexOf(highlight) + highlight.length);
+    final start = highlight.isEmpty ? -1 : title.indexOf(highlight);
+    if (start < 0) {
+      // A translation whose highlight is not a verbatim part of the title
+      // renders plain rather than throwing a RangeError.
+      return Text(title, textAlign: TextAlign.center, style: base);
+    }
+    final before = title.substring(0, start);
+    final after = title.substring(start + highlight.length);
 
     return RichText(
       textAlign: TextAlign.center,

@@ -2,6 +2,7 @@
 /// AI Feature Container - Wrapper for embedding AI features in any app
 
 import 'package:flipper_ai_feature/flipper_ai_feature.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 // import 'ai_screen.dart';
 
@@ -20,7 +21,7 @@ class AIFeatureContainer extends StatelessWidget {
   const AIFeatureContainer({
     super.key,
     this.fullScreen = true,
-    this.title = 'AI Assistant',
+    this.title,
     this.primaryColor,
     this.onClose,
   });
@@ -59,7 +60,7 @@ class AIFeatureContainer extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  title!,
+                  title ?? context.flipperL10n.aiAssistant,
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -126,7 +127,7 @@ class AIFeatureDrawerTile extends StatelessWidget {
         Icons.smart_toy,
         color: color ?? Theme.of(context).primaryColor,
       ),
-      title: const Text('AI Assistant'),
+      title: Text(context.flipperL10n.aiAssistant),
       onTap: onTap,
     );
   }

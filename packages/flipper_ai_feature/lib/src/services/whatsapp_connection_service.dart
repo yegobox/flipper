@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/whatsapp_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -102,9 +103,9 @@ class WhatsAppConnectionService {
 
   Future<WhatsAppConnectionState> connect(String phoneNumberId) async {
     if (phoneNumberId.isEmpty) {
-      return const WhatsAppConnectionState(
+      return WhatsAppConnectionState(
         isConnected: false,
-        error: 'Please enter a phone number ID',
+        error: FlipperL10n.current.aiWhatsappPhoneIdEmpty,
       );
     }
 
@@ -114,9 +115,9 @@ class WhatsAppConnectionService {
       );
 
       if (!isValid) {
-        return const WhatsAppConnectionState(
+        return WhatsAppConnectionState(
           isConnected: false,
-          error: 'Invalid phone number ID',
+          error: FlipperL10n.current.aiWhatsappPhoneIdInvalid,
         );
       }
 
@@ -166,12 +167,12 @@ class WhatsAppConnectionService {
   Future<void> _updateBusinessMessagingChannels(String? phoneNumberId) async {
     final businessId = ProxyService.box.getBusinessId();
     if (businessId == null || businessId.isEmpty) {
-      throw Exception('No business selected — cannot save WhatsApp connection');
+      throw Exception(FlipperL10n.current.aiWhatsappNoBusiness);
     }
 
     final business = await _currentBusiness(hydrateRemote: false);
     if (business == null) {
-      throw Exception('Business not found — cannot save WhatsApp connection');
+      throw Exception(FlipperL10n.current.aiWhatsappBusinessNotFound);
     }
 
     // Mutate in place (avoids broken Business.copyWith field drops).
@@ -182,8 +183,7 @@ class WhatsAppConnectionService {
     // which PostgREST can reject / store incorrectly for jsonb columns.
     await Supabase.instance.client
         .from('businesses')
-        .update({'messaging_channels': channels})
-        .eq('id', businessId);
+        .update({'messaging_channels': channels}).eq('id', businessId);
 
     // Keep local Brick / Turso in sync for offline reads.
     await _repository.upsert<Business>(

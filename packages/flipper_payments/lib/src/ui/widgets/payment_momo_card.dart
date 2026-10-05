@@ -4,6 +4,7 @@ import 'package:flipper_payments/src/ui/widgets/payment_hero_badge.dart';
 import 'package:flipper_payments/src/ui/widgets/payment_input.dart';
 import 'package:flipper_payments/src/ui/widgets/payment_toggle_switch.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -25,6 +26,10 @@ class PaymentMobileMoneyCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
+    const provider = 'MTN Mobile Money';
+    final processedUsing = l10n.paywallProcessedUsing(provider);
+    final providerAt = processedUsing.indexOf(provider);
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
@@ -53,7 +58,7 @@ class PaymentMobileMoneyCard extends StatelessWidget {
               ),
               const SizedBox(width: 12),
               Text(
-                'Mobile Money Payment',
+                l10n.paywallMomoPayment,
                 style: PaymentTypography.cardTitle(color: PaymentTokens.ink1),
               ),
             ],
@@ -62,14 +67,22 @@ class PaymentMobileMoneyCard extends StatelessWidget {
           Text.rich(
             TextSpan(
               style: PaymentTypography.body().copyWith(fontSize: 13.5),
-              children: [
-                const TextSpan(text: 'Payment will be processed using '),
-                TextSpan(
-                  text: 'MTN Mobile Money',
-                  style: PaymentTypography.inlineLabel().copyWith(fontSize: 13.5),
-                ),
-                const TextSpan(text: '.'),
-              ],
+              children: providerAt < 0
+                  ? [TextSpan(text: processedUsing)]
+                  : [
+                      TextSpan(text: processedUsing.substring(0, providerAt)),
+                      TextSpan(
+                        text: provider,
+                        style: PaymentTypography.inlineLabel().copyWith(
+                          fontSize: 13.5,
+                        ),
+                      ),
+                      TextSpan(
+                        text: processedUsing.substring(
+                          providerAt + provider.length,
+                        ),
+                      ),
+                    ],
             ),
           ),
           const SizedBox(height: 16),
@@ -94,14 +107,14 @@ class PaymentMobileMoneyCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Use different phone number',
+                        l10n.paywallUseDifferentNumber,
                         style: PaymentTypography.inlineLabel().copyWith(
                           fontSize: 14,
                         ),
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        'Try another MTN number if the current one failed',
+                        l10n.paywallTryAnotherNumber,
                         style: PaymentTypography.hint().copyWith(fontSize: 12),
                       ),
                     ],
@@ -124,9 +137,7 @@ class PaymentMobileMoneyCard extends StatelessWidget {
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               onChanged: onPhoneChanged,
             ),
-            PaymentInputHint(
-              text: phoneError ?? 'Must start with 250 78 or 250 79.',
-            ),
+            PaymentInputHint(text: phoneError ?? l10n.paywallMomoNumberRule),
           ],
         ],
       ),

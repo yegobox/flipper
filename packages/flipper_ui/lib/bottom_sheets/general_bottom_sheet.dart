@@ -2,6 +2,7 @@
 // import 'package:flipper_dashboard/loader.dart';
 // import 'package:flipper_models/db_model_export.dart';
 // import 'package:flipper_services/drive_service.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flipper_ui/helpers/hex.dart';
 import 'package:flutter/material.dart';
@@ -80,7 +81,7 @@ class FlipperBottomSheet {
                 key: const Key('EnableBackup'),
                 padding: const EdgeInsets.only(left: 18, right: 18, top: 10),
                 child: BoxButton(
-                  title: 'Add Backup',
+                  title: context.flipperL10n.addBackup,
                   onTap: () async {
                     //if the payment method is not enabled, enable it first!.
                     // final drive = GoogleDrive();
@@ -98,11 +99,9 @@ class FlipperBottomSheet {
                   },
                 ),
               ),
-              const Padding(
-                padding: EdgeInsets.all(8.0),
-                child: Text(
-                  'Enabling backup will save your data on daily basis so you wont worry lossing data',
-                ),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(context.flipperL10n.uiBackupDescription),
               ),
             ]),
           ),
@@ -137,12 +136,13 @@ class FlipperBottomSheet {
                             child: Column(children: <Widget>[
                               ListTile(
                                 title: Text(
-                                  ticket.note ?? 'No Name',
+                                  ticket.note ??
+                                      context.flipperL10n.uiTicketNoName,
                                   style: const TextStyle(color: Colors.black),
                                 ),
                                 trailing: TextButton(
-                                  child: const Text(
-                                    'Resume',
+                                  child: Text(
+                                    context.flipperL10n.uiTicketResume,
                                   ),
                                   onPressed: () async {
                                     await model.resumeOrder(
@@ -194,12 +194,12 @@ class FlipperBottomSheet {
                     controller: controller,
                     validator: (value) {
                       if (value!.isEmpty) {
-                        return 'Note is required';
+                        return context.flipperL10n.uiNoteRequired;
                       }
                       return null;
                     },
                     decoration: InputDecoration(
-                      hintText: 'Add note',
+                      hintText: context.flipperL10n.addNote,
                       fillColor: Theme.of(context)
                           .copyWith(canvasColor: Colors.cyan[50])
                           .canvasColor,
@@ -220,7 +220,7 @@ class FlipperBottomSheet {
               Padding(
                 padding: const EdgeInsets.all(2.0),
                 child: BoxButton(
-                  title: "Save",
+                  title: context.flipperL10n.save,
                   onTap: () {
                     if (formKey.currentState!.validate()) {
                       model.addNoteToSale(

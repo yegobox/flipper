@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -29,42 +30,46 @@ class FloHomeView extends StatelessWidget {
   final FloDailyBriefing? briefing;
   final bool briefingLoading;
 
-  static const suggestions = [
-    {
-      'icon': 'chart',
-      'tone': 'blue',
-      't': "Summarize today's performance",
-      'd': 'Revenue, profit & units at a glance',
-      'q': "Summarize today's business performance",
-    },
-    {
-      'icon': 'coins',
-      'tone': 'gain',
-      't': 'Most profitable products',
-      'd': 'Ranked by margin this week',
-      'q': 'Which products are most profitable this week?',
-    },
-    {
-      'icon': 'users',
-      'tone': 'violet',
-      't': 'How many users in MiniData?',
-      'd': 'Counts & recent activity',
-      'q': 'How many users do we have in MiniData?',
-    },
-    {
-      'icon': 'trend',
-      'tone': 'xp',
-      't': "This week's sales trend",
-      'd': '7-day revenue movement',
-      'q': "Show this week's sales trend",
-    },
-  ];
+  /// Starter questions. `q` is sent as the user's message, so it follows the
+  /// app language like anything else the user would type.
+  static List<Map<String, String>> suggestionsFor(
+          FlipperAppLocalizations l10n) =>
+      [
+        {
+          'icon': 'chart',
+          'tone': 'blue',
+          't': l10n.floSuggestTodayTitle,
+          'd': l10n.floSuggestTodayDesc,
+          'q': l10n.floSuggestTodayQuestion,
+        },
+        {
+          'icon': 'coins',
+          'tone': 'gain',
+          't': l10n.floSuggestProfitTitle,
+          'd': l10n.floSuggestProfitDesc,
+          'q': l10n.floSuggestProfitQuestion,
+        },
+        {
+          'icon': 'users',
+          'tone': 'violet',
+          't': l10n.floSuggestUsersTitle,
+          'd': l10n.floSuggestUsersDesc,
+          'q': l10n.floSuggestUsersQuestion,
+        },
+        {
+          'icon': 'trend',
+          'tone': 'xp',
+          't': l10n.floSuggestTrendTitle,
+          'd': l10n.floSuggestTrendDesc,
+          'q': l10n.floSuggestTrendQuestion,
+        },
+      ];
 
-  String _greeting() {
+  String _greeting(FlipperAppLocalizations l10n) {
     final hour = DateTime.now().hour;
-    if (hour < 12) return 'Good morning';
-    if (hour < 17) return 'Good afternoon';
-    return 'Good evening';
+    if (hour < 12) return l10n.floGoodMorning;
+    if (hour < 17) return l10n.floGoodAfternoon;
+    return l10n.floGoodEvening;
   }
 
   String _eyebrow() {
@@ -76,8 +81,17 @@ class FloHomeView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
+    // Split around the highlighted word so it keeps its gradient in any
+    // language's word order.
+    const highlightToken = '\u0001';
+    final askParts =
+        l10n.floAskMeAnything(highlightToken).split(highlightToken);
+    final askBefore = askParts.first;
+    final askAfter = askParts.length > 1 ? askParts.sublist(1).join() : '';
     return Padding(
-      padding: EdgeInsets.fromLTRB(isMobile ? 16 : 28, 26, isMobile ? 16 : 28, 18),
+      padding:
+          EdgeInsets.fromLTRB(isMobile ? 16 : 28, 26, isMobile ? 16 : 28, 18),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -101,7 +115,7 @@ class FloHomeView extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '${_greeting()}, $shopName.',
+                      l10n.floGreetingShop(_greeting(l10n), shopName),
                       style: TextStyle(
                         fontSize: isMobile ? 23 : 27,
                         fontWeight: FontWeight.w700,
@@ -114,7 +128,7 @@ class FloHomeView extends StatelessWidget {
                       crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
                         Text(
-                          'Ask me ',
+                          askBefore,
                           style: TextStyle(
                             fontSize: isMobile ? 23 : 27,
                             fontWeight: FontWeight.w700,
@@ -124,7 +138,7 @@ class FloHomeView extends StatelessWidget {
                           ),
                         ),
                         FloGradientText(
-                          'anything',
+                          l10n.floAnything,
                           style: TextStyle(
                             fontSize: isMobile ? 23 : 27,
                             fontWeight: FontWeight.w700,
@@ -133,7 +147,7 @@ class FloHomeView extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          ' about your business.',
+                          askAfter,
                           style: TextStyle(
                             fontSize: isMobile ? 23 : 27,
                             fontWeight: FontWeight.w700,
@@ -150,9 +164,9 @@ class FloHomeView extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 8),
-          const Text(
-            'I read live from your connected data and answer with numbers, charts and next steps — in plain language.',
-            style: TextStyle(
+          Text(
+            l10n.floHomeIntro,
+            style: const TextStyle(
               fontSize: 14.5,
               height: 1.5,
               color: FloTheme.ink2,
@@ -163,7 +177,7 @@ class FloHomeView extends StatelessWidget {
             briefing: briefing,
             loading: briefingLoading,
           ),
-          _SectionLabel('Try asking'),
+          _SectionLabel(l10n.floTryAsking),
           GridView.count(
             crossAxisCount: isMobile ? 1 : 2,
             shrinkWrap: true,
@@ -172,36 +186,37 @@ class FloHomeView extends StatelessWidget {
             crossAxisSpacing: 10,
             childAspectRatio: isMobile ? 3.8 : 3.2,
             children: [
-              for (final s in suggestions)
+              for (final s in suggestionsFor(l10n))
                 _SuggestCard(
-                  iconName: s['icon'] as String,
-                  tone: s['tone'] as String,
-                  title: s['t'] as String,
-                  desc: s['d'] as String,
-                  onTap: () => onSuggestionTap(s['q'] as String),
+                  iconName: s['icon']!,
+                  tone: s['tone']!,
+                  title: s['t']!,
+                  desc: s['d']!,
+                  onTap: () => onSuggestionTap(s['q']!),
                 ),
             ],
           ),
-          _SectionLabel('Channels'),
+          _SectionLabel(l10n.floChannels),
           if (isMobile)
             Column(
               children: [
                 _ChannelCard(
                   title: 'MiniData',
-                  desc: 'Live Supabase data — sales, users, products.',
+                  desc: l10n.floMiniDataDesc,
                   connected: true,
                   isData: true,
-                  actionLabel: 'Manage',
+                  actionLabel: l10n.floManage,
                   onAction: onManageSources,
                 ),
                 const SizedBox(height: 10),
                 _ChannelCard(
                   title: 'WhatsApp',
                   desc: whatsAppConnected
-                      ? 'You can chat with Flo over WhatsApp.'
-                      : 'Talk to Flo from your phone — set up in a minute.',
+                      ? l10n.floWhatsAppConnectedDesc
+                      : l10n.floWhatsAppSetupDesc,
                   connected: whatsAppConnected,
-                  actionLabel: whatsAppConnected ? 'Manage' : 'Connect',
+                  actionLabel:
+                      whatsAppConnected ? l10n.floManage : l10n.floConnect,
                   primaryAction: !whatsAppConnected,
                   onAction: onConnectWhatsApp,
                 ),
@@ -214,10 +229,10 @@ class FloHomeView extends StatelessWidget {
                 Expanded(
                   child: _ChannelCard(
                     title: 'MiniData',
-                    desc: 'Live Supabase data — sales, users, products.',
+                    desc: l10n.floMiniDataDesc,
                     connected: true,
                     isData: true,
-                    actionLabel: 'Manage',
+                    actionLabel: l10n.floManage,
                     onAction: onManageSources,
                   ),
                 ),
@@ -226,10 +241,11 @@ class FloHomeView extends StatelessWidget {
                   child: _ChannelCard(
                     title: 'WhatsApp',
                     desc: whatsAppConnected
-                        ? 'You can chat with Flo over WhatsApp.'
-                        : 'Talk to Flo from your phone — set up in a minute.',
+                        ? l10n.floWhatsAppConnectedDesc
+                        : l10n.floWhatsAppSetupDesc,
                     connected: whatsAppConnected,
-                    actionLabel: whatsAppConnected ? 'Manage' : 'Connect',
+                    actionLabel:
+                        whatsAppConnected ? l10n.floManage : l10n.floConnect,
                     primaryAction: !whatsAppConnected,
                     onAction: onConnectWhatsApp,
                   ),
@@ -274,14 +290,15 @@ class _DailyBriefingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dateLabel = briefing?.dateLabel ??
-        DateFormat('d MMM').format(DateTime.now());
+    final dateLabel =
+        briefing?.dateLabel ?? DateFormat('d MMM').format(DateTime.now());
+    final l10n = context.flipperL10n;
     final headline = loading
-        ? 'Loading today\'s briefing…'
-        : (briefing?.headline ?? 'Daily briefing unavailable');
+        ? l10n.floLoadingBriefing
+        : (briefing?.headline ?? l10n.floBriefingUnavailable);
     final bodyHtml = loading
-        ? 'Reading live sales from MiniData.'
-        : (briefing?.bodyHtml ?? 'Check your data connection and try again.');
+        ? l10n.floReadingLiveSales
+        : (briefing?.bodyHtml ?? l10n.floCheckDataConnection);
     final stats = briefing?.stats ?? const [];
 
     return Container(
@@ -300,7 +317,8 @@ class _DailyBriefingCard extends StatelessWidget {
             child: Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
                   decoration: BoxDecoration(
                     color: FloTheme.blueTint,
                     borderRadius: BorderRadius.circular(FloTheme.radiusPill),
@@ -311,7 +329,7 @@ class _DailyBriefingCard extends StatelessWidget {
                       FloIcons.sparkle(size: 13, color: FloTheme.blue),
                       const SizedBox(width: 6),
                       Text(
-                        'DAILY BRIEFING',
+                        l10n.floDailyBriefing,
                         style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w700,
@@ -331,7 +349,7 @@ class _DailyBriefingCard extends StatelessWidget {
                   )
                 else
                   Text(
-                    '$dateLabel · auto',
+                    l10n.floDateAuto(dateLabel),
                     style: FloTheme.mono(12).copyWith(color: FloTheme.ink3),
                   ),
               ],
@@ -619,14 +637,20 @@ class _ChannelCard extends StatelessWidget {
                       ),
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 7, vertical: 2),
                       decoration: BoxDecoration(
-                        color: connected ? FloTheme.gainTint : FloTheme.surface2,
-                        borderRadius: BorderRadius.circular(FloTheme.radiusPill),
-                        border: connected ? null : Border.all(color: FloTheme.line),
+                        color:
+                            connected ? FloTheme.gainTint : FloTheme.surface2,
+                        borderRadius:
+                            BorderRadius.circular(FloTheme.radiusPill),
+                        border:
+                            connected ? null : Border.all(color: FloTheme.line),
                       ),
                       child: Text(
-                        connected ? 'CONNECTED' : 'NOT SET UP',
+                        connected
+                            ? context.flipperL10n.floConnected
+                            : context.flipperL10n.floNotSetUp,
                         style: TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.w700,
@@ -640,7 +664,8 @@ class _ChannelCard extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   desc,
-                  style: const TextStyle(fontSize: 12, color: FloTheme.ink3, height: 1.4),
+                  style: const TextStyle(
+                      fontSize: 12, color: FloTheme.ink3, height: 1.4),
                 ),
               ],
             ),

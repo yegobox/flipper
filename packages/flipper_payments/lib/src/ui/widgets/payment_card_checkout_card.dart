@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_payments/src/ui/payment_tokens.dart';
 import 'package:flipper_payments/src/ui/payment_typography.dart';
 import 'package:flipper_payments/src/ui/widgets/payment_input.dart';
@@ -61,6 +62,7 @@ class PaymentCardCheckoutCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
     return Container(
       padding: flat ? EdgeInsets.zero : const EdgeInsets.all(18),
       decoration: flat
@@ -92,7 +94,7 @@ class PaymentCardCheckoutCard extends StatelessWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  'Card Payment',
+                  l10n.paywallCardPayment,
                   style: PaymentTypography.cardTitle(color: PaymentTokens.ink1),
                 ),
               ),
@@ -107,7 +109,7 @@ class PaymentCardCheckoutCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(PaymentTokens.rSm),
                   ),
                   child: Text(
-                    'TEST MODE',
+                    l10n.paywallTestMode,
                     style: PaymentTypography.hint(
                       color: PaymentTokens.warnAmber,
                     ).copyWith(fontWeight: FontWeight.w700, fontSize: 11),
@@ -117,14 +119,12 @@ class PaymentCardCheckoutCard extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            'You will be taken to a secure payment page to enter your Visa or '
-            'Mastercard details. Come back here once you are done — the plan '
-            'activates on its own.',
+            l10n.paywallCardRedirectInfo,
             style: PaymentTypography.body().copyWith(fontSize: 13.5),
           ),
           const SizedBox(height: 16),
           Text(
-            'Email for the receipt',
+            l10n.paywallReceiptEmail,
             style: PaymentTypography.inlineLabel().copyWith(fontSize: 14),
           ),
           const SizedBox(height: 8),
@@ -135,9 +135,7 @@ class PaymentCardCheckoutCard extends StatelessWidget {
             keyboardType: TextInputType.emailAddress,
             onChanged: onEmailChanged,
           ),
-          PaymentInputHint(
-            text: emailError ?? 'Invoices and card receipts are sent here.',
-          ),
+          PaymentInputHint(text: emailError ?? l10n.paywallReceiptEmailHint),
           if (discountApplied && discountOnCard) ...[
             const SizedBox(height: 14),
             _Notice(
@@ -145,10 +143,8 @@ class PaymentCardCheckoutCard extends StatelessWidget {
               tint: PaymentTokens.gainTint,
               ink: PaymentTokens.gainInk,
               text: discountedTotal == null
-                  ? 'Your discount applies to card payments: the card is '
-                        'charged the discounted price now and at each renewal.'
-                  : 'Your discount applies: the card is charged '
-                        '$discountedTotal now and at each renewal.',
+                  ? l10n.paywallCardDiscountApplies
+                  : l10n.paywallCardDiscountAppliesAmount(discountedTotal!),
             ),
           ] else if (discountApplied) ...[
             const SizedBox(height: 14),
@@ -156,9 +152,7 @@ class PaymentCardCheckoutCard extends StatelessWidget {
               icon: FluentIcons.info_20_regular,
               tint: PaymentTokens.warnTint,
               ink: PaymentTokens.warnAmber,
-              text:
-                  'Discount codes apply to Mobile Money payments only. '
-                  'Paying by card charges the full plan price.',
+              text: l10n.paywallDiscountMomoOnly,
             ),
           ],
           if (pendingCheckoutLink != null) ...[
@@ -167,14 +161,12 @@ class PaymentCardCheckoutCard extends StatelessWidget {
               icon: FluentIcons.link_20_regular,
               tint: PaymentTokens.blueTint,
               ink: PaymentTokens.blue700,
-              text:
-                  'A payment page is already waiting for this plan. Open it '
-                  'to finish — a new one would not replace it.',
+              text: l10n.paywallPendingCheckout,
               action: onOpenPendingLink == null
                   ? null
                   : TextButton(
                       onPressed: onOpenPendingLink,
-                      child: const Text('Open payment page'),
+                      child: Text(l10n.paywallOpenPaymentPage),
                     ),
             ),
           ],

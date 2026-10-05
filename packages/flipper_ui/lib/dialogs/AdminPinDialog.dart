@@ -199,7 +199,7 @@ class _AdminPinDialogState extends State<_AdminPinDialog>
     if (_pin == _firstPin) {
       _save(_pin);
     } else {
-      _reject('PINs didn\'t match. Try again.');
+      _reject(context.flipperL10n.uiAdminPinMismatch);
       setState(() => _firstPin = null);
     }
   }
@@ -216,9 +216,7 @@ class _AdminPinDialogState extends State<_AdminPinDialog>
       _reject('');
     } else {
       final left = _kMaxFailedAttempts - _failedAttempts;
-      _reject(
-        'Incorrect PIN. $left ${left == 1 ? 'attempt' : 'attempts'} left.',
-      );
+      _reject(context.flipperL10n.uiAdminPinIncorrect(left));
     }
   }
 
@@ -266,7 +264,7 @@ class _AdminPinDialogState extends State<_AdminPinDialog>
       setState(() {
         _phase = _Phase.entry;
         _pin = '';
-        _error = 'Couldn\'t save the PIN. Please try again.';
+        _error = context.flipperL10n.uiAdminPinSaveFailed;
       });
     }
   }
@@ -276,21 +274,23 @@ class _AdminPinDialogState extends State<_AdminPinDialog>
   // ---------------------------------------------------------------------------
 
   String get _title {
-    if (_phase == _Phase.success) return 'PIN saved';
-    if (!_isSetMode) return 'Enter admin PIN';
-    return _isConfirming ? 'Confirm your PIN' : 'Set up admin PIN';
+    final l10n = context.flipperL10n;
+    if (_phase == _Phase.success) return l10n.uiAdminPinSaved;
+    if (!_isSetMode) return l10n.uiAdminPinEnter;
+    return _isConfirming ? l10n.uiAdminPinConfirm : l10n.uiAdminPinSetUp;
   }
 
   String get _subtitle {
+    final l10n = context.flipperL10n;
     if (_phase == _Phase.success) {
-      return 'Sensitive actions now require this PIN.';
+      return l10n.uiAdminPinSavedSubtitle;
     }
     if (!_isSetMode) {
-      return 'This action is protected. Enter your 4-digit administrator PIN.';
+      return l10n.uiAdminPinVerifySubtitle;
     }
     return _isConfirming
-        ? 'Enter the same 4 digits again to confirm.'
-        : 'Choose a 4-digit PIN to protect edits, deletes and settings.';
+        ? l10n.uiAdminPinConfirmSubtitle
+        : l10n.uiAdminPinSetSubtitle;
   }
 
   // ---------------------------------------------------------------------------
@@ -402,7 +402,7 @@ class _AdminPinDialogState extends State<_AdminPinDialog>
         borderRadius: BorderRadius.circular(999),
       ),
       child: Text(
-        _isConfirming ? 'Step 2 of 2' : 'Step 1 of 2',
+        context.flipperL10n.signupStepOf(_isConfirming ? '2' : '1', '2'),
         style: GoogleFonts.outfit(
           fontSize: 12,
           fontWeight: FontWeight.w600,
@@ -487,7 +487,8 @@ class _AdminPinDialogState extends State<_AdminPinDialog>
     );
 
     return Semantics(
-      label: 'PIN, ${_pin.length} of $_kPinLength digits entered',
+      label: context.flipperL10n
+          .uiAdminPinDigitsSemantic('${_pin.length}', '$_kPinLength'),
       child: AnimatedBuilder(
         animation: _shake,
         builder: (context, child) {
@@ -516,7 +517,7 @@ class _AdminPinDialogState extends State<_AdminPinDialog>
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                'Too many attempts. Try again in ${_lockoutSecondsLeft}s.',
+                context.flipperL10n.uiAdminPinLockout('$_lockoutSecondsLeft'),
                 style: GoogleFonts.outfit(
                   fontSize: 13,
                   fontWeight: FontWeight.w500,
@@ -577,7 +578,7 @@ class _AdminPinDialogState extends State<_AdminPinDialog>
               const SizedBox(width: 10),
               Expanded(
                 child: _KeypadKey(
-                  semanticsLabel: 'Delete',
+                  semanticsLabel: context.flipperL10n.delete,
                   onTap: _inputEnabled ? _onBackspace : null,
                   onLongPress: _inputEnabled ? _onClear : null,
                   background: Colors.transparent,
@@ -624,7 +625,8 @@ class _AdminPinDialogState extends State<_AdminPinDialog>
           TextButton(
             onPressed: _startOver,
             style: TextButton.styleFrom(foregroundColor: _kSubtitleText),
-            child: Text('Start over', style: textStyle),
+            child:
+                Text(context.flipperL10n.uiAdminPinStartOver, style: textStyle),
           ),
         const Spacer(),
         TextButton(

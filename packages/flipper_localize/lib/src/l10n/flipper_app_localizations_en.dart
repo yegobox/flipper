@@ -1598,4 +1598,2696 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
 
   @override
   String get cartEmptyHint => 'Tap a product or scan a barcode to start a sale';
+
+  @override
+  String get scannerAlignQrCode => 'Align QR code within frame';
+
+  @override
+  String get scannerInstructionSelling => 'Scan product barcode to add to cart';
+
+  @override
+  String get scannerInstructionAttendance =>
+      'Scan attendance QR code to check in';
+
+  @override
+  String get scannerInstructionLogin =>
+      'Scan QR code to log in to your account';
+
+  @override
+  String get scannerScanning => 'Scanning...';
+
+  @override
+  String get scannerStatusProcessing => 'Processing';
+
+  @override
+  String get scannerSendingLoginToDesktop => 'Sending login to desktop...';
+
+  @override
+  String get scannerWaitingForDesktop => 'Waiting for desktop';
+
+  @override
+  String get scannerLoginSentCompleting =>
+      'Login sent — completing on your computer...';
+
+  @override
+  String get scannerScanSuccessful => 'Scan Successful';
+
+  @override
+  String get scannerQrProcessedSuccessfully => 'QR code processed successfully';
+
+  @override
+  String get scannerLoginSuccessful => 'Login Successful';
+
+  @override
+  String get scannerDesktopAuthenticated => 'Desktop device authenticated';
+
+  @override
+  String get scannerLoginFailed => 'Login Failed';
+
+  @override
+  String get scannerCouldNotAuthenticateDesktop =>
+      'Could not authenticate desktop device';
+
+  @override
+  String get scannerQrCodeDetected => 'QR Code Detected';
+
+  @override
+  String get scannerProcessingRequest => 'Processing your request...';
+
+  @override
+  String get scannerHelpTitle => 'Scanner Help';
+
+  @override
+  String get scannerHelpPositionCode => 'Position the code within the frame';
+
+  @override
+  String get scannerHelpWellLit => 'Make sure it\'s well-lit and not blurry';
+
+  @override
+  String get scannerHelpUseFlash => 'Use flash in low light';
+
+  @override
+  String get scannerHelpToggleFlash => 'Toggle the flash icon at the bottom';
+
+  @override
+  String get scannerHelpCleanLens => 'Clean your camera lens';
+
+  @override
+  String get scannerHelpBetterResults => 'For better scanning results';
+
+  @override
+  String get scannerTitleProduct => 'Product Scanner';
+
+  @override
+  String get scannerTitleAttendance => 'Attendance Scanner';
+
+  @override
+  String get scannerTitleLogin => 'Login Scanner';
+
+  @override
+  String get scannerTitleQr => 'QR Scanner';
+
+  @override
+  String get scannerGalleryComingSoon => 'Gallery selection coming soon';
+
+  @override
+  String get scannerInvalidQrFormat => 'Invalid QR code format';
+
+  @override
+  String scannerLoginError(String error) {
+    return 'Login error: $error';
+  }
+
+  @override
+  String get scannerDesktopNoResponse =>
+      'Desktop did not respond — check it is on the QR login screen';
+
+  @override
+  String get scannerDesktopSelectBusiness =>
+      'Desktop logged in — select your business there';
+
+  @override
+  String get scannerDesktopLoginSuccessful => 'Desktop login successful';
+
+  @override
+  String get scannerDesktopLoginFailed => 'Desktop login failed';
+
+  @override
+  String get dialogGotIt => 'Got it';
+
+  @override
+  String get socialsRequestEarlyAccess => 'Request Early Access';
+
+  @override
+  String get socialsEarlyAccessHint =>
+      'Enter your email, phone number and a message why you want to join!';
+
+  @override
+  String get socialsPleaseEnterMessage => 'Please enter a message';
+
+  @override
+  String get socialsThanksForInterest => 'Thank you for your interest';
+
+  @override
+  String get socialsThanksWeWillGetBack =>
+      'Thank you for your interest, we will get back to you soon';
+
+  @override
+  String get socialsExpressInterest => 'Express interest';
+
+  @override
+  String get appInitStepFirebase => 'Connecting services';
+
+  @override
+  String get appInitStepLocator => 'Preparing app';
+
+  @override
+  String get appInitStepPlatform => 'Setting up device';
+
+  @override
+  String get appInitStepDiagnostics => 'Setting up diagnostics';
+
+  @override
+  String get appInitStepDatabase => 'Opening local database';
+
+  @override
+  String get appInitStepServices => 'Loading services';
+
+  @override
+  String get appInitStepAnalytics => 'Starting analytics';
+
+  @override
+  String get appInitStepCloudStorage => 'Connecting cloud storage';
+
+  @override
+  String get appInitStepSync => 'Preparing sync';
+
+  @override
+  String get appInitStepFinishing => 'Finishing up';
+
+  @override
+  String get appInitStepStartup => 'Startup';
+
+  @override
+  String get appInitFailedTitle => 'Initialization Failed';
+
+  @override
+  String appInitFailedMessage(String step) {
+    return 'The app could not finish starting at \"$step\". Tap Try again — it will resume from that step.';
+  }
+
+  @override
+  String get appInitTryAgain => 'Try again';
+
+  @override
+  String get appInitCopyErrorDetails => 'Copy error details';
+
+  @override
+  String get appInitTechnicalDetails => 'Technical details';
+
+  @override
+  String get paywallRailMobileMoney => 'Mobile Money';
+
+  @override
+  String get paywallRailCard => 'Card';
+
+  @override
+  String get paywallRailMomoDescription =>
+      'Approve on your phone with MTN MoMo';
+
+  @override
+  String get paywallRailCardDescription => 'Pay by Visa or Mastercard';
+
+  @override
+  String get paywallCadenceDaily => 'Daily';
+
+  @override
+  String get paywallCadenceMonthly => 'Monthly';
+
+  @override
+  String get paywallCadenceYearly => 'Yearly';
+
+  @override
+  String get paywallPeriodDay => '/day';
+
+  @override
+  String get paywallPeriodMonth => '/month';
+
+  @override
+  String get paywallPeriodYear => '/year';
+
+  @override
+  String paywallPaidInFull(String amount) {
+    return 'Paid in full — one charge of RWF $amount.';
+  }
+
+  @override
+  String paywallInstallmentsEach(int count, String amount) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count payments of RWF $amount each.',
+      one: '1 payment of RWF $amount.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String paywallPricePerMonthBilledYearly(String amount) {
+    return '$amount RWF/mo · billed yearly';
+  }
+
+  @override
+  String paywallPricePerDay(String amount) {
+    return '$amount RWF/day';
+  }
+
+  @override
+  String paywallPricePerMonth(String amount) {
+    return '$amount RWF/month';
+  }
+
+  @override
+  String get paywallCardPayment => 'Card Payment';
+
+  @override
+  String get paywallTestMode => 'TEST MODE';
+
+  @override
+  String get paywallCardRedirectInfo =>
+      'You will be taken to a secure payment page to enter your Visa or Mastercard details. Come back here once you are done — the plan activates on its own.';
+
+  @override
+  String get paywallReceiptEmail => 'Email for the receipt';
+
+  @override
+  String get paywallReceiptEmailHint =>
+      'Invoices and card receipts are sent here.';
+
+  @override
+  String get paywallCardDiscountApplies =>
+      'Your discount applies to card payments: the card is charged the discounted price now and at each renewal.';
+
+  @override
+  String paywallCardDiscountAppliesAmount(String amount) {
+    return 'Your discount applies: the card is charged $amount now and at each renewal.';
+  }
+
+  @override
+  String get paywallDiscountMomoOnly =>
+      'Discount codes apply to Mobile Money payments only. Paying by card charges the full plan price.';
+
+  @override
+  String get paywallPendingCheckout =>
+      'A payment page is already waiting for this plan. Open it to finish — a new one would not replace it.';
+
+  @override
+  String get paywallOpenPaymentPage => 'Open payment page';
+
+  @override
+  String get paywallDiscountHint => 'Enter the code exactly as it appears.';
+
+  @override
+  String get paywallNeedHelp => 'Need Help?';
+
+  @override
+  String get paywallChatWithSupport => 'Chat with support about this payment';
+
+  @override
+  String get paywallMomoPayment => 'Mobile Money Payment';
+
+  @override
+  String paywallProcessedUsing(String provider) {
+    return 'Payment will be processed using $provider.';
+  }
+
+  @override
+  String get paywallUseDifferentNumber => 'Use different phone number';
+
+  @override
+  String get paywallTryAnotherNumber =>
+      'Try another MTN number if the current one failed';
+
+  @override
+  String get paywallMomoNumberRule => 'Must start with 250 78 or 250 79.';
+
+  @override
+  String get paywallProcessing => 'Processing…';
+
+  @override
+  String paywallSecurePaymentVia(String provider) {
+    return 'Secure payment via $provider';
+  }
+
+  @override
+  String get paywallHowToPay => 'How would you like to pay?';
+
+  @override
+  String get paywallLoading => 'Loading…';
+
+  @override
+  String paywallPercentOff(String percent) {
+    return '($percent% off)';
+  }
+
+  @override
+  String get paywallSplitIntoPayments => 'Split into payments';
+
+  @override
+  String get paywallPaymentSummary => 'Payment Summary';
+
+  @override
+  String get paywallTotal => 'Total';
+
+  @override
+  String get paywallSubscriptionEnded =>
+      'This subscription has ended. Choose a plan to start again.';
+
+  @override
+  String get paywallPaymentPageNotReady =>
+      'The payment page is not ready yet. Try again in a moment.';
+
+  @override
+  String get paywallCouldNotOpenPageCopyLink =>
+      'Could not open the payment page on this device. Copy the link, or pay with Mobile Money instead.';
+
+  @override
+  String get paywallCouldNotOpenPage =>
+      'Could not open the payment page on this device.';
+
+  @override
+  String get paywallServiceNoResponse =>
+      'The payments service did not respond. Check your connection and try again.';
+
+  @override
+  String get paywallServiceUnreachable =>
+      'Could not reach the payments service. Check your connection and try again.';
+
+  @override
+  String get paywallBusinessRequiredForCard =>
+      'A business is required to start a card subscription.';
+
+  @override
+  String get paywallCardStartedNoReference =>
+      'The card subscription started but the connector sent no reference. Check the billing screen before trying again.';
+
+  @override
+  String get paywallNoCardUpdateLink =>
+      'The connector did not return a link to update the card.';
+
+  @override
+  String get paywallNoPortalLink =>
+      'The connector did not return a billing portal link.';
+
+  @override
+  String get paywallCardNotAuthorised =>
+      'Card payment is not authorised on this connector.';
+
+  @override
+  String get paywallCardUnavailable =>
+      'Card payment is not available right now. Use Mobile Money, or try again later.';
+
+  @override
+  String paywallCouldNotAction(String action, String status) {
+    return 'Could not $action (HTTP $status).';
+  }
+
+  @override
+  String paywallUnreadableReply(String status) {
+    return 'The billing service sent an unreadable reply (HTTP $status).';
+  }
+
+  @override
+  String get paywallActionStartCardSubscription => 'start a card subscription';
+
+  @override
+  String get paywallActionReadCardSubscription => 'read the card subscription';
+
+  @override
+  String get paywallActionRefreshCardSubscription =>
+      'refresh the card subscription';
+
+  @override
+  String get paywallActionGetCardLink => 'get a new card link';
+
+  @override
+  String get paywallActionOpenBillingPortal => 'open the billing portal';
+
+  @override
+  String get paywallActionCancelCardSubscription =>
+      'cancel the card subscription';
+
+  @override
+  String get paywallActionStartCustomPayment => 'start the custom payment';
+
+  @override
+  String get paywallActionReadCustomPayment => 'read the custom payment';
+
+  @override
+  String get paywallActionListCustomPayments => 'list custom payments';
+
+  @override
+  String get paywallEnterAmountAboveZero =>
+      'Enter an amount greater than zero.';
+
+  @override
+  String get paywallEnterValidMomoNumber =>
+      'Enter a valid Mobile Money number, e.g. 0788123456.';
+
+  @override
+  String paywallPaymentNotStarted(String status) {
+    return 'The payment could not be started (HTTP $status).';
+  }
+
+  @override
+  String paywallGatewayUnreadable(String status) {
+    return 'The payment gateway sent an unreadable reply (HTTP $status).';
+  }
+
+  @override
+  String get paywallStartedNoReference =>
+      'The payment started but no reference came back — check the MoMo statement before trying again.';
+
+  @override
+  String paywallPreApprovalFailed(String status) {
+    return 'Pre-approval failed (HTTP $status).';
+  }
+
+  @override
+  String get paywallRequestRejected => 'The payment request was rejected.';
+
+  @override
+  String get paywallDeviceNotAuthorised =>
+      'This device is not authorised to take payments.';
+
+  @override
+  String get paywallServiceNotFound =>
+      'The payment service could not be found.';
+
+  @override
+  String get paywallAlreadySubmitted =>
+      'That payment has already been submitted.';
+
+  @override
+  String get paywallMomoUnavailableNow =>
+      'Mobile Money is unavailable right now. Please try again shortly.';
+
+  @override
+  String get paywallMomoNotSetUp =>
+      'Mobile Money is not set up on this device yet.';
+
+  @override
+  String get paywallNotCompletedOnPhone =>
+      'The payment was not completed on the payer\'s phone.';
+
+  @override
+  String get paywallNoConfirmationYet =>
+      'No confirmation yet. The payment may still go through — check the MoMo statement before charging again.';
+
+  @override
+  String get paywallConsentDeclined =>
+      'Mobile Money consent was declined, so nothing was charged. Approve the request on your phone and try again.';
+
+  @override
+  String get paywallChooseBusinessFirst => 'Choose a business first.';
+
+  @override
+  String get paywallAmountAboveZero => 'Amount must be greater than zero.';
+
+  @override
+  String get paywallCustomerMomoRequired =>
+      'The customer\'s Mobile Money number is required.';
+
+  @override
+  String get paywallStaffNotAuthorised =>
+      'This account is not authorised for staff payments.';
+
+  @override
+  String get paywallAlreadyCollecting =>
+      'Something is already collecting from this business.';
+
+  @override
+  String get paywallStaffNotConfigured =>
+      'Staff payments are not configured on this connector.';
+
+  @override
+  String accountingShiftUser(String id) {
+    return 'User: $id';
+  }
+
+  @override
+  String get accountingShiftHistory => 'Shift History';
+
+  @override
+  String get accountingLoadingShiftHistory => 'Loading shift history...';
+
+  @override
+  String get accountingNoMatchingShifts => 'No matching shifts';
+
+  @override
+  String get accountingNoShiftsFound => 'No shifts found';
+
+  @override
+  String get accountingAdjustFiltersHint =>
+      'Try adjusting your filters or search query.';
+
+  @override
+  String get accountingNoShiftsHint =>
+      'Shift records will appear here once you\nstart managing your shifts.';
+
+  @override
+  String get accountingClearFilters => 'Clear Filters';
+
+  @override
+  String accountingCashSalesRange(String currency) {
+    return 'CASH SALES RANGE ($currency)';
+  }
+
+  @override
+  String get accountingFilterShifts => 'Filter shifts';
+
+  @override
+  String get accountingDateRange => 'DATE RANGE';
+
+  @override
+  String get accountingFrom => 'From';
+
+  @override
+  String get accountingTo => 'To';
+
+  @override
+  String get accountingStatusLabel => 'STATUS';
+
+  @override
+  String get accountingAllShifts => 'All shifts';
+
+  @override
+  String get accountingShiftOpen => 'Open';
+
+  @override
+  String get accountingShiftClosed => 'Closed';
+
+  @override
+  String get accountingMinimum => 'Minimum';
+
+  @override
+  String get accountingMaximum => 'Maximum';
+
+  @override
+  String get accountingNoLimit => 'No limit';
+
+  @override
+  String get accountingSortBy => 'SORT BY';
+
+  @override
+  String get accountingNewestFirst => 'Newest first';
+
+  @override
+  String get accountingOldestFirst => 'Oldest first';
+
+  @override
+  String get accountingCashSalesHighToLow => 'Cash sales — high to low';
+
+  @override
+  String get accountingCashSalesLowToHigh => 'Cash sales — low to high';
+
+  @override
+  String get accountingClearAll => 'Clear all';
+
+  @override
+  String get accountingApplyFilters => 'Apply filters';
+
+  @override
+  String get accountingDatePlaceholder => 'mm/dd/yyyy';
+
+  @override
+  String get accountingTotalShifts => 'TOTAL SHIFTS';
+
+  @override
+  String get accountingTotalCashSales => 'TOTAL CASH SALES';
+
+  @override
+  String get accountingOpenClosed => 'OPEN / CLOSED';
+
+  @override
+  String get accountingSearchShiftsHint => 'Search by user ID or date...';
+
+  @override
+  String accountingShowingShifts(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Showing $count shifts',
+      one: 'Showing 1 shift',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String accountingStartedAt(String time) {
+    return 'Started $time';
+  }
+
+  @override
+  String accountingCashDifference(String amount) {
+    return 'Cash difference: $amount';
+  }
+
+  @override
+  String get accountingTimePeriod => 'TIME PERIOD';
+
+  @override
+  String get accountingStartTime => 'Start Time';
+
+  @override
+  String get accountingEndTime => 'End Time';
+
+  @override
+  String accountingDuration(String duration) {
+    return 'Duration: $duration';
+  }
+
+  @override
+  String get accountingInProgress => 'In Progress';
+
+  @override
+  String get accountingFinancialSummary => 'FINANCIAL SUMMARY';
+
+  @override
+  String get accountingOpeningBalance => 'Opening Balance';
+
+  @override
+  String get accountingCashSales => 'Cash Sales';
+
+  @override
+  String get accountingExpectedCash => 'Expected Cash';
+
+  @override
+  String get accountingClosingBalance => 'Closing Balance';
+
+  @override
+  String get uiAdminPinMismatch => 'PINs didn\'t match. Try again.';
+
+  @override
+  String uiAdminPinIncorrect(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Incorrect PIN. $count attempts left.',
+      one: 'Incorrect PIN. 1 attempt left.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get uiAdminPinSaveFailed =>
+      'Couldn\'t save the PIN. Please try again.';
+
+  @override
+  String get uiAdminPinSaved => 'PIN saved';
+
+  @override
+  String get uiAdminPinEnter => 'Enter admin PIN';
+
+  @override
+  String get uiAdminPinConfirm => 'Confirm your PIN';
+
+  @override
+  String get uiAdminPinSetUp => 'Set up admin PIN';
+
+  @override
+  String get uiAdminPinSavedSubtitle =>
+      'Sensitive actions now require this PIN.';
+
+  @override
+  String get uiAdminPinVerifySubtitle =>
+      'This action is protected. Enter your 4-digit administrator PIN.';
+
+  @override
+  String get uiAdminPinConfirmSubtitle =>
+      'Enter the same 4 digits again to confirm.';
+
+  @override
+  String get uiAdminPinSetSubtitle =>
+      'Choose a 4-digit PIN to protect edits, deletes and settings.';
+
+  @override
+  String uiAdminPinDigitsSemantic(String entered, String total) {
+    return 'PIN, $entered of $total digits entered';
+  }
+
+  @override
+  String uiAdminPinLockout(String seconds) {
+    return 'Too many attempts. Try again in ${seconds}s.';
+  }
+
+  @override
+  String get uiAdminPinStartOver => 'Start over';
+
+  @override
+  String get uiMonthShortJan => 'Jan';
+
+  @override
+  String get uiMonthShortFeb => 'Feb';
+
+  @override
+  String get uiMonthShortMar => 'Mar';
+
+  @override
+  String get uiMonthShortApr => 'Apr';
+
+  @override
+  String get uiMonthShortMay => 'May';
+
+  @override
+  String get uiMonthShortJun => 'Jun';
+
+  @override
+  String get uiMonthShortJul => 'Jul';
+
+  @override
+  String get uiMonthShortAug => 'Aug';
+
+  @override
+  String get uiMonthShortSep => 'Sep';
+
+  @override
+  String get uiMonthShortOct => 'Oct';
+
+  @override
+  String get uiMonthShortNov => 'Nov';
+
+  @override
+  String get uiMonthShortDec => 'Dec';
+
+  @override
+  String get uiTicketResumeOrder => 'Resume order';
+
+  @override
+  String get uiTicketResuming => 'Resuming…';
+
+  @override
+  String get uiTicketCustomerSection => 'CUSTOMER';
+
+  @override
+  String uiTicketItemsSection(String count) {
+    return 'ITEMS · $count';
+  }
+
+  @override
+  String uiTicketCouldNotLoadItems(String error) {
+    return 'Could not load items: $error';
+  }
+
+  @override
+  String get uiTicketStatusSection => 'STATUS';
+
+  @override
+  String get uiTicketResumeTicket => 'Resume ticket';
+
+  @override
+  String get uiTicketWalkIn => 'Walk-in';
+
+  @override
+  String get uiTicketLoan => 'Loan';
+
+  @override
+  String get uiTicketNoItems => 'No items on this ticket.';
+
+  @override
+  String uiTicketPaymentsSection(String count) {
+    return 'PAYMENTS · $count';
+  }
+
+  @override
+  String get uiTicketTotalPaidSoFar => 'Total paid so far';
+
+  @override
+  String get uiTicketStillDue => 'Still due';
+
+  @override
+  String get uiTicketUnknown => 'Unknown';
+
+  @override
+  String uiTicketPaymentLine(String index, String method) {
+    return 'Payment $index · $method';
+  }
+
+  @override
+  String uiTicketPaidBy(String name) {
+    return 'Paid by $name';
+  }
+
+  @override
+  String get uiTicketStatusWaiting => 'Waiting';
+
+  @override
+  String get uiTicketStatusInProgress => 'In Progress';
+
+  @override
+  String get uiTicketStatusCompleted => 'Completed';
+
+  @override
+  String get uiTicketBadgeInProgress => 'IN PROGRESS';
+
+  @override
+  String get uiTicketBadgeCompleted => 'COMPLETED';
+
+  @override
+  String get uiTicketBadgeParked => 'PARKED';
+
+  @override
+  String get uiTicketDateNotRecorded => 'Date not recorded';
+
+  @override
+  String uiTicketTodayAt(String time) {
+    return 'Today · $time';
+  }
+
+  @override
+  String uiTicketYesterdayAt(String time) {
+    return 'Yesterday · $time';
+  }
+
+  @override
+  String get uiTicketParkTransaction => 'Park transaction';
+
+  @override
+  String get uiTicketParking => 'Parking…';
+
+  @override
+  String uiTicketParkFailed(String error) {
+    return 'Failed to park transaction: $error';
+  }
+
+  @override
+  String get uiTicketAttachCustomer => 'Attach customer';
+
+  @override
+  String get uiTicketSearchCustomers => 'Search customers…';
+
+  @override
+  String get uiTicketNoCustomer => 'No customer';
+
+  @override
+  String get uiTicketName => 'Ticket name';
+
+  @override
+  String get uiTicketEnterName => 'Enter a ticket name';
+
+  @override
+  String get uiTicketNotes => 'Notes';
+
+  @override
+  String get uiTicketOptional => 'Optional';
+
+  @override
+  String get uiTicketAddNotes => 'Add notes';
+
+  @override
+  String get uiTicketPaymentDue => 'Payment due';
+
+  @override
+  String get uiTicketSendToKitchen => 'Send to kitchen';
+
+  @override
+  String get uiTicketShowOnKds => 'Show this ticket on the Kitchen Display';
+
+  @override
+  String get uiTicketSelectCustomer => 'Select customer';
+
+  @override
+  String get uiTicketMarkAsLoan => 'Mark as loan';
+
+  @override
+  String get uiTicketTrackPaymentLater => 'Track payment for later collection';
+
+  @override
+  String get uiTicketOneWeek => '1 week';
+
+  @override
+  String get uiTicketTwoWeeks => '2 weeks';
+
+  @override
+  String get uiTicketOneMonth => '1 month';
+
+  @override
+  String get uiTicketSelectDate => 'Select date';
+
+  @override
+  String get uiTicketDueDate => 'Due date';
+
+  @override
+  String get uiTicketHoldSale => 'Hold this sale to finish later';
+
+  @override
+  String get uiWorkOrderUnknownProduct => 'Unknown Product';
+
+  @override
+  String uiWorkOrderId(String id) {
+    return 'ID: $id';
+  }
+
+  @override
+  String get uiWorkOrderStart => 'Start';
+
+  @override
+  String get uiWorkOrderRecordOutput => 'Record Output';
+
+  @override
+  String get uiWorkOrderCompleted => 'Completed';
+
+  @override
+  String get uiWorkOrderInProgress => 'In Progress';
+
+  @override
+  String get uiWorkOrderPlanned => 'Planned';
+
+  @override
+  String get uiWorkOrderActual => 'Actual';
+
+  @override
+  String get uiWorkOrderVariance => 'Variance';
+
+  @override
+  String get uiWorkOrderEfficiency => 'Efficiency';
+
+  @override
+  String get uiWorkOrderTargetDate => 'Target Date';
+
+  @override
+  String get uiWorkOrderShift => 'Shift';
+
+  @override
+  String get uiWorkOrderNotApplicable => 'N/A';
+
+  @override
+  String get uiWorkOrderNotes => 'Notes';
+
+  @override
+  String get uiWorkOrderTimeline => 'Timeline';
+
+  @override
+  String get uiWorkOrderCreated => 'Created';
+
+  @override
+  String get uiWorkOrderStarted => 'Started';
+
+  @override
+  String get uiProduceItems => 'Items';
+
+  @override
+  String get uiProduceSelectItem => 'Select Item to Produce';
+
+  @override
+  String get uiProduceDescription =>
+      'Choose an item from the list below to begin production.';
+
+  @override
+  String uiProduceItemsRemaining(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items remaining',
+      one: '1 item remaining',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String uiProduceAssignedCount(String count) {
+    return '$count assigned';
+  }
+
+  @override
+  String uiProduceQty(String qty) {
+    return 'Qty: $qty';
+  }
+
+  @override
+  String get uiProduceAssigned => 'Assigned';
+
+  @override
+  String get uiProduceInProgress => 'In Progress';
+
+  @override
+  String get uiProduceBackToList => 'Back to list';
+
+  @override
+  String get uiProduceDetails => 'Production Details';
+
+  @override
+  String get uiPaymentModeSelect => 'Select Payment Mode';
+
+  @override
+  String get uiPaymentModeFailed => 'Payment failed';
+
+  @override
+  String get uiPaymentModePleaseSelect => 'Please select a payment mode';
+
+  @override
+  String get uiPaymentModeSelectFinancing => 'Select Financing Option';
+
+  @override
+  String uiPaymentModeInterest(String rate) {
+    return 'Interest: $rate%';
+  }
+
+  @override
+  String get uiBackupDescription =>
+      'Enabling backup will save your data daily, so you won\'t have to worry about losing it.';
+
+  @override
+  String get uiTicketNoName => 'No Name';
+
+  @override
+  String get uiTicketResume => 'Resume';
+
+  @override
+  String get uiNoteRequired => 'Note is required';
+
+  @override
+  String uiNotificationSemantic(String message) {
+    return '$message notification';
+  }
+
+  @override
+  String uiDeleteConfirmSemantic(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Delete confirmation for $count items',
+      one: 'Delete confirmation for 1 item',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String uiDeleteItemsQuestion(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Delete $count items?',
+      one: 'Delete 1 item?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String uiMoreItems(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '+ $count more items',
+      one: '+ 1 more item',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get uiRefreshStatusAfterPayment => 'Refresh status after payment';
+
+  @override
+  String get uiSubscriptionActive => 'Subscription is active.';
+
+  @override
+  String get uiNoPlanOpeningSetup => 'No plan found — opening payment setup.';
+
+  @override
+  String get uiPlanInactiveOpeningPayment =>
+      'Plan found but not active — opening payment screen.';
+
+  @override
+  String get uiCouldNotVerifyPayment => 'Could not verify payment status.';
+
+  @override
+  String get uiTimerDone => 'Done!';
+
+  @override
+  String get uiTimerDelivered => 'Delivered!';
+
+  @override
+  String get uiTimerUntilDelivered => 'Until Delivered';
+
+  @override
+  String uiTimerDays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Days',
+      one: '1 Day',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String uiTimerHours(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Hours',
+      one: '1 Hour',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String uiTimerMinutes(String count) {
+    return '$count MIN';
+  }
+
+  @override
+  String uiTimerSeconds(String count) {
+    return '$count SEC';
+  }
+
+  @override
+  String get uiEnterCouponCode => 'Enter Coupon Code';
+
+  @override
+  String get uiShop => 'Shop';
+
+  @override
+  String uiShopActiveSemantic(String name) {
+    return '$name active';
+  }
+
+  @override
+  String uiShopInactiveSemantic(String name) {
+    return '$name inactive';
+  }
+
+  @override
+  String get uiSaveTicket => 'Save Ticket';
+
+  @override
+  String get floSuggestTodayTitle => 'Summarize today\'s performance';
+
+  @override
+  String get floSuggestTodayDesc => 'Revenue, profit & units at a glance';
+
+  @override
+  String get floSuggestTodayQuestion =>
+      'Summarize today\'s business performance';
+
+  @override
+  String get floSuggestProfitTitle => 'Most profitable products';
+
+  @override
+  String get floSuggestProfitDesc => 'Ranked by margin this week';
+
+  @override
+  String get floSuggestProfitQuestion =>
+      'Which products are most profitable this week?';
+
+  @override
+  String get floSuggestUsersTitle => 'How many users in MiniData?';
+
+  @override
+  String get floSuggestUsersDesc => 'Counts & recent activity';
+
+  @override
+  String get floSuggestUsersQuestion =>
+      'How many users do we have in MiniData?';
+
+  @override
+  String get floSuggestTrendTitle => 'This week\'s sales trend';
+
+  @override
+  String get floSuggestTrendDesc => '7-day revenue movement';
+
+  @override
+  String get floSuggestTrendQuestion => 'Show this week\'s sales trend';
+
+  @override
+  String get floGoodMorning => 'Good morning';
+
+  @override
+  String get floGoodAfternoon => 'Good afternoon';
+
+  @override
+  String get floGoodEvening => 'Good evening';
+
+  @override
+  String floGreetingShop(String greeting, String shop) {
+    return '$greeting, $shop.';
+  }
+
+  @override
+  String floAskMeAnything(String anything) {
+    return 'Ask me $anything about your business.';
+  }
+
+  @override
+  String get floAnything => 'anything';
+
+  @override
+  String get floHomeIntro =>
+      'I read live from your connected data and answer with numbers, charts and next steps — in plain language.';
+
+  @override
+  String get floTryAsking => 'Try asking';
+
+  @override
+  String get floChannels => 'Channels';
+
+  @override
+  String get floMiniDataDesc => 'Live Supabase data — sales, users, products.';
+
+  @override
+  String get floManage => 'Manage';
+
+  @override
+  String get floConnect => 'Connect';
+
+  @override
+  String get floWhatsAppConnectedDesc => 'You can chat with Flo over WhatsApp.';
+
+  @override
+  String get floWhatsAppSetupDesc =>
+      'Talk to Flo from your phone — set up in a minute.';
+
+  @override
+  String get floLoadingBriefing => 'Loading today\'s briefing…';
+
+  @override
+  String get floBriefingUnavailable => 'Daily briefing unavailable';
+
+  @override
+  String get floReadingLiveSales => 'Reading live sales from MiniData.';
+
+  @override
+  String get floCheckDataConnection =>
+      'Check your data connection and try again.';
+
+  @override
+  String get floDailyBriefing => 'DAILY BRIEFING';
+
+  @override
+  String floDateAuto(String date) {
+    return '$date · auto';
+  }
+
+  @override
+  String get floConnected => 'CONNECTED';
+
+  @override
+  String get floNotSetUp => 'NOT SET UP';
+
+  @override
+  String aiWhatsappReadInboxFailed(String error) {
+    return 'Could not read WhatsApp messages\n$error';
+  }
+
+  @override
+  String aiWhatsappSendFailed(String error) {
+    return 'Send failed: $error';
+  }
+
+  @override
+  String get aiWhatsappAnswerCustomers => 'Answer customers on WhatsApp';
+
+  @override
+  String get aiWhatsappConnectPitch =>
+      'Connect your Meta WhatsApp Business account to see customer messages here and draft replies with Flo.';
+
+  @override
+  String get aiWhatsappConnect => 'Connect WhatsApp';
+
+  @override
+  String get aiWhatsappSelectCustomer => 'Select a customer';
+
+  @override
+  String get aiWhatsappInboxSource => 'WhatsApp inbox · data-connector + Ditto';
+
+  @override
+  String get aiWhatsappCustomers => 'Customers · WhatsApp';
+
+  @override
+  String get floTimeNow => 'now';
+
+  @override
+  String floTimeMinutesShort(String count) {
+    return '${count}m';
+  }
+
+  @override
+  String floTimeDaysShort(String count) {
+    return '${count}d';
+  }
+
+  @override
+  String get aiWhatsappNoMessages => 'No WhatsApp messages yet';
+
+  @override
+  String get aiWhatsappNoMessagesHint =>
+      'Inbound messages load from data-connector (local Ditto is a backup). When Meta posts to the webhook they appear here within a few seconds.';
+
+  @override
+  String get aiWhatsappNoThreadMessages => 'No messages in this thread yet';
+
+  @override
+  String get aiWhatsappPdfDownloadFailed => 'Could not download this PDF';
+
+  @override
+  String get aiWhatsappSavePdf => 'Save PDF';
+
+  @override
+  String aiWhatsappSavedFile(String file) {
+    return 'Saved $file';
+  }
+
+  @override
+  String aiWhatsappDownloadFailed(String error) {
+    return 'Download failed: $error';
+  }
+
+  @override
+  String get aiWhatsappPdfDocument => 'PDF document';
+
+  @override
+  String get aiWhatsappFloSuggestedReply => 'Flo suggested reply';
+
+  @override
+  String get aiWhatsappSend => 'Send';
+
+  @override
+  String get aiWhatsappEditFirst => 'Edit first';
+
+  @override
+  String get aiWhatsappDraft => 'Draft';
+
+  @override
+  String get aiWhatsappReplyHint => 'Reply on WhatsApp…';
+
+  @override
+  String get floBusinessAi => 'Business AI';
+
+  @override
+  String get floMiniDataConnectedLive => 'MiniData connected · live';
+
+  @override
+  String get floNewChat => 'New chat';
+
+  @override
+  String get floAskFlo => 'Ask Flo';
+
+  @override
+  String get floMessages => 'Messages';
+
+  @override
+  String get floNewConversation => 'New conversation';
+
+  @override
+  String get floChatWithFloAndCustomers => 'Chat with Flo & customers';
+
+  @override
+  String get floOn => 'On';
+
+  @override
+  String get floOff => 'Off';
+
+  @override
+  String get floManageDataSources => 'Manage data sources';
+
+  @override
+  String get floQuickSummarizeToday => 'Summarize today';
+
+  @override
+  String get floQuickTopProducts => 'Top products';
+
+  @override
+  String get floQuickUserCount => 'User count';
+
+  @override
+  String get floQuickSalesTrend => 'Sales trend';
+
+  @override
+  String get floComposerHint => 'Ask about sales, stock, customers or tax…';
+
+  @override
+  String get floStopDictating => 'Stop dictating';
+
+  @override
+  String get floDictate => 'Dictate — speak and Flo types it';
+
+  @override
+  String get floCanMakeMistakes =>
+      'Flo can make mistakes — check important figures. ';
+
+  @override
+  String get floGroundedInMiniData => 'Grounded in MiniData.';
+
+  @override
+  String get floStarting => 'Starting…';
+
+  @override
+  String get floListening => 'Listening…';
+
+  @override
+  String get floModeCloud => 'Cloud';
+
+  @override
+  String get floModeOnDevice => 'On-Device';
+
+  @override
+  String get floChooseAiMode => 'Choose AI mode';
+
+  @override
+  String get floOnDeviceSubtitle => 'Free · offline · private';
+
+  @override
+  String get floCloudSubtitle => 'More capable · uses connection';
+
+  @override
+  String get floThinkingUnderstanding => 'Understanding question';
+
+  @override
+  String get floThinkingQuerying => 'Querying MiniData';
+
+  @override
+  String get floThinkingComposing => 'Composing answer';
+
+  @override
+  String get floCopied => 'Copied!';
+
+  @override
+  String get floCopyChart => 'Copy chart';
+
+  @override
+  String get floSuggestedFollowUps => 'SUGGESTED FOLLOW-UPS';
+
+  @override
+  String get aiDataSourceEdit => 'Edit Data Source';
+
+  @override
+  String get aiDataSourceConnectTitle => 'Connect Data Source';
+
+  @override
+  String get aiDataSourceType => 'Data Source Type';
+
+  @override
+  String get aiDataSourceConnectionName => 'Connection Name';
+
+  @override
+  String get aiDataSourceConnectionNameHint => 'e.g., Production Database';
+
+  @override
+  String get aiDataSourceSupabaseUrl => 'Supabase URL';
+
+  @override
+  String get aiDataSourceAnonKey => 'Anon/Public Key';
+
+  @override
+  String get aiDataSourceServiceKey => 'Service Role Key (Optional)';
+
+  @override
+  String get aiDataSourceServiceKeyHelper => 'Required for admin operations';
+
+  @override
+  String get aiDataSourceTestFailedCredentials =>
+      'Connection test failed. Please check your credentials.';
+
+  @override
+  String aiDataSourceTestFailed(String error) {
+    return 'Connection test failed: $error';
+  }
+
+  @override
+  String get aiDataSourceTesting => 'Testing...';
+
+  @override
+  String get aiDataSourceTestConnection => 'Test Connection';
+
+  @override
+  String get aiDataSourcePrivacyNote =>
+      'When connected, the assistant can use schema and sample rows from this source in your chats. Credentials are stored only on this device.';
+
+  @override
+  String get aiDataSourceEnterName => 'Please enter a connection name';
+
+  @override
+  String get aiDataSourceEnterUrl => 'Please enter the Supabase URL';
+
+  @override
+  String get aiDataSourceEnterKey =>
+      'Please enter an Anon/Public Key or Service Role Key';
+
+  @override
+  String get aiDataSourceUpdated => 'Data source updated successfully';
+
+  @override
+  String get aiDataSourceConnected => 'Data source connected successfully';
+
+  @override
+  String aiDataSourceConnectFailed(String error) {
+    return 'Failed to connect: $error';
+  }
+
+  @override
+  String get aiDataSourceConnecting => 'Connecting...';
+
+  @override
+  String get aiDataSourceUpdate => 'Update';
+
+  @override
+  String get aiDataSourceConnect => 'Connect';
+
+  @override
+  String get aiDataSourceStatusConnected => 'Connected';
+
+  @override
+  String get aiDataSourceStatusConnecting => 'Connecting';
+
+  @override
+  String get aiDataSourceStatusError => 'Error';
+
+  @override
+  String get aiDataSourceStatusDisconnected => 'Disconnected';
+
+  @override
+  String get aiDataSourceTitle => 'Data Source';
+
+  @override
+  String get aiDataSourceNotFound => 'Data source not found';
+
+  @override
+  String get aiDataSourceGoBack => 'Go Back';
+
+  @override
+  String get aiDataSourceTables => 'Tables';
+
+  @override
+  String get aiDataSourceUrl => 'URL';
+
+  @override
+  String get aiDataSourceNotAvailable => 'N/A';
+
+  @override
+  String aiDataSourceLastConnected(String time) {
+    return 'Last connected: $time';
+  }
+
+  @override
+  String get aiDataSourceInformation => 'Information';
+
+  @override
+  String aiDataSourceMetadataFailed(String error) {
+    return 'Failed to load metadata: $error';
+  }
+
+  @override
+  String get aiDataSourceTotalRows => 'Total Rows';
+
+  @override
+  String get aiDataSourceTypeLabel => 'Type';
+
+  @override
+  String get aiDataSourceUnknown => 'Unknown';
+
+  @override
+  String aiDataSourceTablesFailed(String error) {
+    return 'Failed to load tables: $error';
+  }
+
+  @override
+  String get aiDataSourceNoTables => 'No tables found';
+
+  @override
+  String aiDataSourceColumnsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count columns',
+      one: '1 column',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String aiDataSourceRowsCount(String count) {
+    return '$count rows';
+  }
+
+  @override
+  String get aiDataSourceColumns => 'Columns';
+
+  @override
+  String get aiDataSourceNotNull => 'NOT NULL';
+
+  @override
+  String get aiDataSourceJustNow => 'Just now';
+
+  @override
+  String aiDataSourceMinutesAgo(String count) {
+    return '${count}m ago';
+  }
+
+  @override
+  String aiDataSourceHoursAgo(String count) {
+    return '${count}h ago';
+  }
+
+  @override
+  String get aiDataSourceCsvFile => 'CSV File';
+
+  @override
+  String get aiDataSourceJsonFile => 'JSON File';
+
+  @override
+  String get aiDataSources => 'Data Sources';
+
+  @override
+  String get aiDataSourceAdd => 'Add Data Source';
+
+  @override
+  String get aiDataSourceNoneConnected => 'No Data Sources Connected';
+
+  @override
+  String get aiDataSourceNoneHint =>
+      'Connect a database so the AI can include its schema and sample rows\nwhen answering in Business or Personal chat.';
+
+  @override
+  String get aiDataSourceConnectFirst => 'Connect Your First Data Source';
+
+  @override
+  String get aiDataSourceActive => 'Active';
+
+  @override
+  String get aiDataSourceDisconnect => 'Disconnect';
+
+  @override
+  String get aiDataSourceDeleteTitle => 'Delete Data Source';
+
+  @override
+  String aiDataSourceDeleteConfirm(String name) {
+    return 'Are you sure you want to delete \"$name\"? This will remove the connection and all associated data.';
+  }
+
+  @override
+  String aiDataSourceDeleted(String name) {
+    return 'Data source \"$name\" deleted';
+  }
+
+  @override
+  String get aiWhatsappPhoneIdEmpty => 'Phone Number ID cannot be empty';
+
+  @override
+  String get aiWhatsappPhoneIdInvalid =>
+      'Phone Number ID must contain only digits and be 5-15 characters long';
+
+  @override
+  String get aiWhatsappConnectedSuccess =>
+      'WhatsApp account connected successfully';
+
+  @override
+  String get aiWhatsappDisconnectedSuccess =>
+      'WhatsApp account disconnected successfully';
+
+  @override
+  String get aiWhatsappConnected => 'Connected';
+
+  @override
+  String get aiWhatsappNotConnected => 'Not connected';
+
+  @override
+  String get aiWhatsappAccountActive => 'Account active';
+
+  @override
+  String get aiWhatsappSavedToBusiness =>
+      'Saved to your business account — it stays connected on other devices when you sign in.';
+
+  @override
+  String get aiWhatsappDisconnecting => 'Disconnecting...';
+
+  @override
+  String get aiWhatsappDisconnect => 'Disconnect';
+
+  @override
+  String get aiWhatsappConnectIntro =>
+      'Connect your WhatsApp Business account to receive and reply to customer messages.';
+
+  @override
+  String get aiWhatsappStep1 => 'Go to your Meta Business Suite';
+
+  @override
+  String get aiWhatsappStep2 =>
+      'Find your Phone Number ID in WhatsApp settings';
+
+  @override
+  String get aiWhatsappStep3 => 'Paste it below and connect';
+
+  @override
+  String get aiWhatsappPhoneIdLabel => 'Phone Number ID';
+
+  @override
+  String get aiWhatsappPhoneIdHint => 'e.g., 101514826127381';
+
+  @override
+  String get aiWhatsappConnectionError => 'Connection Error';
+
+  @override
+  String get aiWhatsappTryAgain => 'Try Again';
+
+  @override
+  String get aiMessageHint => 'Message';
+
+  @override
+  String aiRecordingStartFailed(String error) {
+    return 'Failed to start recording: $error';
+  }
+
+  @override
+  String get aiVoiceMessageSent => 'Voice message sent!';
+
+  @override
+  String get aiAudioCorrupted => 'Audio file is corrupted or incomplete';
+
+  @override
+  String get aiRecordingTooShort => 'Recording too short (minimum 1 second)';
+
+  @override
+  String aiRecordingStopFailed(String error) {
+    return 'Failed to stop recording: $error';
+  }
+
+  @override
+  String get aiMicPermissionTitle => 'Microphone Permission';
+
+  @override
+  String get aiMicPermissionBody =>
+      'Microphone access is required to record voice messages. Please enable it in your device settings.';
+
+  @override
+  String aiFilePickError(String error) {
+    return 'Error picking file: $error';
+  }
+
+  @override
+  String get aiSlideToCancel => 'Slide to cancel';
+
+  @override
+  String get aiSlideUpToLock => 'Slide up to lock';
+
+  @override
+  String get aiHoldAndSlide => 'Hold & slide to control recording';
+
+  @override
+  String get aiExcelAnalysis => 'Excel Analysis';
+
+  @override
+  String get aiExcelAnalystTitle => 'AI Excel Business Analyst';
+
+  @override
+  String get aiExcelAnalystSubtitle =>
+      'Interactive Exploration & Visual Trends';
+
+  @override
+  String aiModelDefaultSuffix(String name) {
+    return '$name (Default)';
+  }
+
+  @override
+  String get aiExcelNoData => 'No data found in Excel file';
+
+  @override
+  String get aiExcelSourceData => 'Source Data:';
+
+  @override
+  String get aiExcelVisualAnalysis => 'Visual Analysis:';
+
+  @override
+  String aiChartRenderError(String error) {
+    return 'Error rendering chart: $error';
+  }
+
+  @override
+  String get aiExcelAskForCharts => 'Ask questions to generate charts';
+
+  @override
+  String get aiExcelAnalystChat => 'Analyst Chat';
+
+  @override
+  String get aiExcelAskHint => 'Ask about this data...';
+
+  @override
+  String get aiAssistant => 'AI Assistant';
+
+  @override
+  String get aiConversations => 'Conversations';
+
+  @override
+  String get aiAdd => 'Add';
+
+  @override
+  String get aiNewConversation => 'New Conversation';
+
+  @override
+  String get aiDeleteConversation => 'Delete Conversation';
+
+  @override
+  String aiDaysAgo(String count) {
+    return '${count}d ago';
+  }
+
+  @override
+  String get aiPurchaseCredits => 'Purchase Credits';
+
+  @override
+  String get aiCopied => 'Copied';
+
+  @override
+  String get aiProcessingExpandThinking =>
+      'AI is processing... Expand thinking to see details.';
+
+  @override
+  String get aiHideThinking => 'Hide Thinking';
+
+  @override
+  String get aiShowThinking => 'Show Thinking';
+
+  @override
+  String get aiWelcomeTitle => 'Your Business AI Assistant';
+
+  @override
+  String get aiWelcomeSubtitle =>
+      'Ready to help you with insights about your business. Try asking one of the questions below.';
+
+  @override
+  String get aiSamplePersonalBooks => 'What are some good books on leadership?';
+
+  @override
+  String get aiSamplePersonalEmail =>
+      'Help me draft an email to a potential partner.';
+
+  @override
+  String get aiSamplePersonalTime =>
+      'Give me some tips for better time management.';
+
+  @override
+  String get aiSampleBusinessSales => 'What were my total sales last week?';
+
+  @override
+  String get aiSampleBusinessTopProducts =>
+      'Show me a breakdown of my top-selling products this month.';
+
+  @override
+  String get aiSampleBusinessTax =>
+      'Generate a tax summary for the last quarter.';
+
+  @override
+  String get aiTaxBreakdown => 'TAX BREAKDOWN';
+
+  @override
+  String get aiTotalTax => 'TOTAL TAX';
+
+  @override
+  String get aiTaxSummaryReport => 'Tax Summary Report';
+
+  @override
+  String get aiCopyReport => 'Copy Report';
+
+  @override
+  String get aiInventoryVisualization => 'Inventory Visualization';
+
+  @override
+  String get aiComingSoon => 'Coming Soon';
+
+  @override
+  String get uiTicketDue => 'DUE';
+
+  @override
+  String get uiTicketAmount => 'AMOUNT';
+
+  @override
+  String get aiYourShop => 'your shop';
+
+  @override
+  String get aiBranchIdRequired => 'Branch ID is required';
+
+  @override
+  String get aiNoResponse => 'No response was produced. Please try again.';
+
+  @override
+  String aiWhatsappSendMessageFailed(String error) {
+    return 'Failed to send WhatsApp message: $error';
+  }
+
+  @override
+  String get aiChartNotFound => 'Error: Could not find chart to copy.';
+
+  @override
+  String get aiChartImageFailed => 'Error: Could not generate image data.';
+
+  @override
+  String get aiChartCopied => 'Chart copied to clipboard!';
+
+  @override
+  String aiChartCopyFailed(String error) {
+    return 'Failed to copy chart: $error';
+  }
+
+  @override
+  String get aiVoiceUnavailable =>
+      'Voice input isn\'t available on this platform yet.';
+
+  @override
+  String aiVoiceStartFailed(String error) {
+    return 'Could not start voice input: $error';
+  }
+
+  @override
+  String get aiMicAccessOff =>
+      'Microphone access is off. Enable it for Flipper in your system settings, then try again.';
+
+  @override
+  String aiListenStartFailed(String error) {
+    return 'Could not start listening: $error';
+  }
+
+  @override
+  String get aiVoiceNeedsNetwork =>
+      'Voice input needs a network connection right now.';
+
+  @override
+  String get aiMicInUse => 'The microphone is in use by another app.';
+
+  @override
+  String aiVoiceFailed(String error) {
+    return 'Voice input failed ($error).';
+  }
+
+  @override
+  String get aiLocalUnavailable =>
+      'On-device AI is not available on this device.';
+
+  @override
+  String get aiLocalPreparing => 'Preparing the on-device model…';
+
+  @override
+  String aiLocalLoadFailed(String error) {
+    return 'Could not load the on-device model: $error';
+  }
+
+  @override
+  String get aiLocalReadingShopData => 'Reading your shop data…';
+
+  @override
+  String get aiLocalThinking => 'Thinking on-device…';
+
+  @override
+  String aiLocalGenerationFailed(String error) {
+    return 'On-device generation failed: $error';
+  }
+
+  @override
+  String get floBriefingSalesComingIn => 'Sales are coming in today.';
+
+  @override
+  String floBriefingBody(String revenue, String transactions, String units) {
+    return 'Revenue reached <b>RWF $revenue</b> across <b>$transactions</b> ($units units) so far today — live from your device.';
+  }
+
+  @override
+  String floBriefingTransactions(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count transactions',
+      one: '1 transaction',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get floStatRevenue => 'Revenue';
+
+  @override
+  String get floStatNetProfit => 'Net profit';
+
+  @override
+  String get floStatUnitsSold => 'Units sold';
+
+  @override
+  String get aiWhatsappNoBusiness =>
+      'No business selected — cannot save WhatsApp connection';
+
+  @override
+  String get aiWhatsappBusinessNotFound =>
+      'Business not found — cannot save WhatsApp connection';
+
+  @override
+  String get loginErrorTimeout =>
+      'The Flipper server took too long to answer. Your connection may be slow. Try again. (TIMEOUT)';
+
+  @override
+  String get loginErrorSessionExpired =>
+      'Your session expired. Enter your PIN again. (SESSION)';
+
+  @override
+  String get loginErrorPinCheckFailed =>
+      'That PIN could not be checked. Try again. (PIN)';
+
+  @override
+  String get loginErrorBadResponse =>
+      'The Flipper server sent an unexpected response. Try again in a minute. (BAD-RESPONSE)';
+
+  @override
+  String get loginErrorTls =>
+      'Secure connection failed. Make sure your phone\'s date and time are set automatically, then try again. (TLS)';
+
+  @override
+  String get loginErrorTlsNetwork =>
+      'The connection to the Flipper server dropped before it was secured. Your network may be unstable. Try again, or switch between mobile data and Wi-Fi. (TLS-NET)';
+
+  @override
+  String get loginErrorDns =>
+      'Can\'t find the Flipper server. Your internet may be off or limited. Check mobile data or Wi-Fi. (DNS)';
+
+  @override
+  String get loginErrorNetwork =>
+      'Couldn\'t reach the Flipper server. Check your internet connection and try again. (NET)';
+
+  @override
+  String get loginErrorOfflineFirst =>
+      'This phone can\'t sign you in offline yet. Connect to the internet and sign in once, then offline sign-in will work. (OFFLINE-FIRST)';
+
+  @override
+  String get loginErrorUnknown => 'Sign-in failed. Try again. (UNKNOWN)';
+
+  @override
+  String get loginErrorNoAccountForPin =>
+      'No account uses this PIN. Check the PIN and try again. (PIN-404)';
+
+  @override
+  String get loginErrorHttp404 =>
+      'The Flipper server could not find what the app asked for. Update the app and try again. (HTTP-404)';
+
+  @override
+  String get loginErrorHttp429 =>
+      'Too many attempts. Wait a minute, then try again. (HTTP-429)';
+
+  @override
+  String loginErrorHttpRefused(String status) {
+    return 'The Flipper server refused this request. Update the app and try again. (HTTP-$status)';
+  }
+
+  @override
+  String loginErrorHttpServer(String status) {
+    return 'Flipper servers are having trouble right now. Try again in a minute. (HTTP-$status)';
+  }
+
+  @override
+  String loginErrorHttpOther(String status) {
+    return 'The Flipper server could not check this PIN. Try again. (HTTP-$status)';
+  }
+
+  @override
+  String get loginYourBusiness => 'your business';
+
+  @override
+  String get loginPinRequired => 'PIN is required';
+
+  @override
+  String get loginPinTooShort => 'PIN must be at least 4 digits';
+
+  @override
+  String loginPinTooLong(String max) {
+    return 'PIN must be at most $max digits';
+  }
+
+  @override
+  String get loginAuthenticatorCodeRequired => 'Authenticator code is required';
+
+  @override
+  String get loginOtpRequired => 'OTP is required';
+
+  @override
+  String get loginAuthenticatorCodeInvalidFormat =>
+      'Authenticator code must be a 6-digit number.';
+
+  @override
+  String get loginOtpInvalidFormat => 'OTP must be a 6-digit number.';
+
+  @override
+  String get loginInvalidPinReenter =>
+      'Invalid PIN. Please re-enter and try again.';
+
+  @override
+  String get loginAuthenticatorUnavailable =>
+      'Could not verify authenticator. Check your connection, or sign in online once so offline MFA can be cached.';
+
+  @override
+  String get loginAuthenticatorInvalidCode =>
+      'Invalid authenticator code. Please try again.';
+
+  @override
+  String get loginPinSubtitle =>
+      'Enter your PIN to manage your business securely.';
+
+  @override
+  String get loginSignedIn => 'Signed in';
+
+  @override
+  String get loginSignIn => 'Sign in';
+
+  @override
+  String get loginCreateAnAccount => 'Create an account';
+
+  @override
+  String get loginNewToFlipperCreateAccount =>
+      'New to Flipper? Create an account';
+
+  @override
+  String get loginShowPin => 'Show PIN';
+
+  @override
+  String get loginHidePin => 'Hide PIN';
+
+  @override
+  String get loginShow => 'Show';
+
+  @override
+  String get loginHide => 'Hide';
+
+  @override
+  String loginPinDigitsEntered(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count digits entered',
+      one: '1 digit entered',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get loginAuthenticator => 'Authenticator';
+
+  @override
+  String get loginAuthenticatorCode => 'Authenticator code';
+
+  @override
+  String get loginSmsCode => 'SMS code';
+
+  @override
+  String get loginPinEntryCells => 'PIN entry cells';
+
+  @override
+  String loginVerifiedOpening(String business) {
+    return 'Verified — opening $business…';
+  }
+
+  @override
+  String get loginShowOrHidePin => 'Show or hide PIN';
+
+  @override
+  String get loginBackspace => 'Backspace';
+
+  @override
+  String get loginSecuredE2e => 'Secured with end-to-end encryption';
+
+  @override
+  String get loginBrandHeadline =>
+      'Your shop, your team, your numbers — all in one place.';
+
+  @override
+  String get loginBrandSubhead =>
+      'Pick up right where you left off. Today’s sales, stock, and reports are ready.';
+
+  @override
+  String get loginStatBusinesses => 'businesses';
+
+  @override
+  String get loginStatProcessedMonthly => 'processed monthly';
+
+  @override
+  String get loginStatUptime => 'uptime';
+
+  @override
+  String get loginRevenueThisWeek => 'Revenue · this week';
+
+  @override
+  String get loginNewSale => 'New sale';
+
+  @override
+  String get loginSampleSaleDetail => 'Solar Kit · MoMo';
+
+  @override
+  String loginStreakDays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days',
+      one: '1 day',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get loginSalesStreak => 'Sales streak';
+
+  @override
+  String get loginLandingSlide1Title => 'Run your whole\nbusiness from one app';
+
+  @override
+  String get loginLandingSlide1Highlight => 'business';
+
+  @override
+  String get loginLandingSlide1Text =>
+      'Sell, track stock, and manage your team - Flipper is your business in your pocket.';
+
+  @override
+  String get loginLandingSlide2Title =>
+      'Simple, useful reports\nthat help you grow';
+
+  @override
+  String get loginLandingSlide2Highlight => 'reports';
+
+  @override
+  String get loginLandingSlide2Text =>
+      'See exactly what sells, what\'s running low, and where your money goes - every day.';
+
+  @override
+  String get loginLandingSlide3Title => 'Get paid faster,\ntrack every franc';
+
+  @override
+  String get loginLandingSlide3Highlight => 'track every franc';
+
+  @override
+  String get loginLandingSlide3Text =>
+      'Accept MoMo, cash, and card. Flipper records every sale and reconciles it for you.';
+
+  @override
+  String get loginLandingSlide4Title => 'Grow your business,\nearn rewards';
+
+  @override
+  String get loginLandingSlide4Highlight => 'earn rewards';
+
+  @override
+  String get loginLandingSlide4Text =>
+      'Hit daily goals, keep your streak alive, and level up from Bronze to Gold Seller.';
+
+  @override
+  String get loginLandingSemantic => 'Flipper landing';
+
+  @override
+  String get loginNext => 'Next';
+
+  @override
+  String get loginSkipIntroSemantic => 'Skip intro and create account';
+
+  @override
+  String get loginSkipIntro => 'Skip intro - Create account';
+
+  @override
+  String get loginAlreadySellingSignIn => 'Already selling on Flipper? Sign in';
+
+  @override
+  String get loginDailyReport => 'Daily report';
+
+  @override
+  String get loginStock => 'Stock';
+
+  @override
+  String get loginTax => 'Tax';
+
+  @override
+  String get loginGoldSeller => 'Gold Seller';
+
+  @override
+  String get loginFinalizingAuthentication => 'Finalizing authentication...';
+
+  @override
+  String get loginAuthTimedOut => 'Authentication timed out. Please try again.';
+
+  @override
+  String get loginPhoneLoginNavigationFailed =>
+      'Failed to navigate to phone login';
+
+  @override
+  String get loginSignInFailed => 'Sign in failed';
+
+  @override
+  String get loginAuthenticationFailed => 'Authentication failed';
+
+  @override
+  String get loginUnexpectedError => 'An unexpected error occurred';
+
+  @override
+  String get loginAuthDomainUnauthorized =>
+      'Authentication domain not authorized. Please contact support.';
+
+  @override
+  String get loginAccountDisabled => 'This account has been disabled.';
+
+  @override
+  String get loginAccountExistsDifferentCredential =>
+      'An account already exists with the same email address but different sign-in credentials.';
+
+  @override
+  String loginMicrosoftFailedWithReason(String error) {
+    return 'Microsoft login failed: $error';
+  }
+
+  @override
+  String get loginMicrosoftFailed =>
+      'Microsoft login failed. Please try again later.';
+
+  @override
+  String loginAppleAuthorizationFailed(String error) {
+    return 'Apple authorization failed: $error';
+  }
+
+  @override
+  String loginAppleFailed(String error) {
+    return 'Apple login failed: $error';
+  }
+
+  @override
+  String get loginWelcomeToFlipper => 'Welcome to Flipper';
+
+  @override
+  String get loginHowToSignIn => 'How would you like to sign in?';
+
+  @override
+  String get loginLoggingIn => 'Logging in...';
+
+  @override
+  String get loginTryAgainOrUsePin => 'Please try again or use PIN login';
+
+  @override
+  String get loginSuccessful => 'Login successful!';
+
+  @override
+  String get loginQrScanned => 'QR Code scanned! Completing login...';
+
+  @override
+  String get loginFailedTryAgain => 'Login failed. Please try again.';
+
+  @override
+  String get loginSuccessfulRedirecting => 'Login successful! Redirecting...';
+
+  @override
+  String get loginQrTitle => 'Log in to Flipper by QR Code';
+
+  @override
+  String get loginQrStep1 => '1. Open Flipper on your phone';
+
+  @override
+  String get loginQrStep2 => '2. Go to Profile Icon > LongPress on it.';
+
+  @override
+  String get loginQrStep3 =>
+      '3. Point your phone at this screen to confirm login';
+
+  @override
+  String get loginDownloadApp => 'Don\'t have the Flipper app? Download it:';
+
+  @override
+  String get loginOpeningAppStore => 'Opening App Store...';
+
+  @override
+  String get loginOpeningPlayStore => 'Opening Play Store...';
+
+  @override
+  String get loginSwitchToPin => 'Switch to PIN login';
+
+  @override
+  String get loginDeviceOffline => 'Device is offline';
+
+  @override
+  String get loginInvalidEmail => 'Invalid Email';
+
+  @override
+  String get loginGmailRequired => 'Gmail Email is required';
+
+  @override
+  String get loginEnterEmail => 'Enter Email';
+
+  @override
+  String get loginAddEmailHint =>
+      'After entering your email, click on add email';
+
+  @override
+  String get signupErrorGeneric => 'An error occurred during signup';
+
+  @override
+  String get signupOtpExpiredOrInvalid =>
+      'OTP expired or invalid. Please request a new code.';
+
+  @override
+  String get signupResendOtp => 'Resend OTP';
+
+  @override
+  String get signupNewOtpSent => 'New OTP sent successfully!';
+
+  @override
+  String signupFailedToResendOtp(String error) {
+    return 'Failed to resend OTP: $error';
+  }
+
+  @override
+  String get signupUsername => 'Username';
+
+  @override
+  String get signupUsernameHint => 'Enter your username';
+
+  @override
+  String get signupFullName => 'Full Name';
+
+  @override
+  String get signupFullNameHint => 'First name, Last name';
+
+  @override
+  String get signupPhoneOrEmail => 'Phone / Email';
+
+  @override
+  String get signupPhoneOrEmailHint => '783054874 or your@email.com';
+
+  @override
+  String get signupOtpResent => 'OTP resent successfully!';
+
+  @override
+  String get signupResend => 'Resend';
+
+  @override
+  String get signupOtpSent => 'OTP sent successfully!';
+
+  @override
+  String signupFailedToSendOtp(String error) {
+    return 'Failed to send OTP: $error';
+  }
+
+  @override
+  String get signupSendCode => 'Send Code';
+
+  @override
+  String get signupOtpCode => 'OTP Code';
+
+  @override
+  String get signupOtpHint => 'Enter the 6-digit OTP';
+
+  @override
+  String get signupPhoneVerified => 'Phone number verified successfully!';
+
+  @override
+  String get signupUsage => 'Usage';
+
+  @override
+  String get signupCountry => 'Country';
+
+  @override
+  String get signupSearchCountry => 'Search your country';
+
+  @override
+  String get signupStepIdentity => 'Identity';
+
+  @override
+  String get signupStepVerify => 'Verify';
+
+  @override
+  String signupStepOf(String step, String total) {
+    return 'Step $step of $total';
+  }
+
+  @override
+  String get signupRewardTitle => 'Finish setup to unlock 500 points';
+
+  @override
+  String get signupRewardSubtitle =>
+      'Spend points on lower fees & premium reports';
+
+  @override
+  String get signupStep1Title => 'Who are you?';
+
+  @override
+  String get signupStep1Description =>
+      'This is how you’ll sign in and how teammates find you.';
+
+  @override
+  String get signupStep2Title => 'How do we reach you?';
+
+  @override
+  String get signupStep2Description =>
+      'We’ll send a one-time code to verify it’s really you.';
+
+  @override
+  String get signupStep3Title => 'Tell us about your shop';
+
+  @override
+  String get signupStep3Description => 'We’ll tailor Flipper to how you sell.';
+
+  @override
+  String get signupCreateAccountClaim => 'Create account · claim 500 pts';
+
+  @override
+  String signupTermsAgreement(String terms, String privacy) {
+    return 'By continuing you agree to Flipper’s $terms & $privacy';
+  }
+
+  @override
+  String get signupTermsLink => 'Terms';
+
+  @override
+  String get signupPrivacyLink => 'Privacy';
+
+  @override
+  String get signupVerificationFailed => 'Verification failed';
+
+  @override
+  String get signupNameTooLong => 'Name is too long';
+
+  @override
+  String get signupContactRequired => 'Phone number or email is required';
+
+  @override
+  String get signupContactInvalid =>
+      'Please enter a valid phone number or email address';
+
+  @override
+  String get signupUsernameRequired => 'Username/business name is required';
+
+  @override
+  String get signupUsernameTaken => 'That username is already taken';
+
+  @override
+  String get signupUsernameCheckUnavailable => 'Name search not available';
+
+  @override
+  String get signupOtpMustBe6Digits => 'OTP must be 6 digits';
+
+  @override
+  String get signupOtpDigitsOnly => 'OTP must contain only digits';
+
+  @override
+  String get signupValidateTin => 'Please validate TIN';
+
+  @override
+  String get signupPhoneMustBeVerified => 'Phone number must be verified';
+
+  @override
+  String get signupFieldRequired => 'This field is required.';
+
+  @override
+  String get signupSelectOption => 'Please select an option';
+
+  @override
+  String get signupJoinFlipper => 'Join Flipper';
+
+  @override
+  String get signupJourneyTagline => 'Start your journey with us today 🚀';
+
+  @override
+  String get signupNoMatches => 'No matches';
+
+  @override
+  String get signupTinExtractFailed =>
+      'Could not extract TIN from the provided document';
+
+  @override
+  String signupTinPdfError(String error) {
+    return 'Error processing PDF: $error';
+  }
+
+  @override
+  String signupTinValidated(String name) {
+    return 'TIN validated: $name';
+  }
+
+  @override
+  String get signupTinNoData => 'No data found for this TIN';
+
+  @override
+  String get signupTinServiceUnavailable =>
+      'Service Unavailable: Validation skipped';
+
+  @override
+  String signupTinValidationError(String error) {
+    return 'Error validating TIN: $error';
+  }
+
+  @override
+  String get phoneAuthSelectCountryTitle =>
+      'Select the country where your business is located';
+
+  @override
+  String get phoneAuthSearchCountry => 'Search country...';
+
+  @override
+  String get phoneAuthAgreeSellerAgreement =>
+      'I agree to Flipper\'s Seller Agreement and Privacy Policy.';
+
+  @override
+  String get phoneAuthRecaptchaNotice =>
+      'This app is protected by reCAPTCHA Enterprise and Google Privacy Policy and Terms of Service apply.';
+
+  @override
+  String get phoneAuthEnterPhone => 'Please enter your phone number';
+
+  @override
+  String get phoneAuthInvalidPhone => 'Please enter a valid phone number';
+
+  @override
+  String get phoneAuthTitle => 'Phone Verification';
+
+  @override
+  String get phoneAuthSubtitle =>
+      'We\'ll send a verification code to your phone number to verify your identity.';
+
+  @override
+  String get phoneAuthPhoneHint => '783054874 (without leading 0)';
+
+  @override
+  String phoneAuthTermsAgreement(String terms, String privacy) {
+    return 'By continuing, you agree to our $terms and $privacy';
+  }
+
+  @override
+  String get phoneAuthTermsOfService => 'Terms of Service';
+
+  @override
+  String get phoneAuthPrivacyPolicy => 'Privacy Policy';
+
+  @override
+  String get phoneAuthVerificationCode => 'Verification Code';
+
+  @override
+  String get phoneAuthChangeNumber => 'Change Phone Number';
+
+  @override
+  String phoneAuthVerificationFailed(String error) {
+    return 'Verification failed: $error';
+  }
+
+  @override
+  String get phoneAuthUnknownError => 'An unknown error occurred';
+
+  @override
+  String phoneAuthErrorOccurred(String error) {
+    return 'An error occurred: $error';
+  }
+
+  @override
+  String get phoneAuthNewCodeSent => 'New verification code sent';
+
+  @override
+  String get phoneAuthEnterValidCode => 'Please enter a valid 6-digit code';
+
+  @override
+  String get phoneAuthCodeExpired =>
+      'This verification code has expired. Please request a new one.';
+
+  @override
+  String phoneAuthFailedToVerify(String error) {
+    return 'Failed to verify code: $error';
+  }
+
+  @override
+  String phoneAuthAuthFailed(String error) {
+    return 'Authentication failed: $error';
+  }
+
+  @override
+  String get loginFailed => 'Login failed';
 }

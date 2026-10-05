@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_payments/src/http/payments_http_client.dart';
 import 'package:flipper_payments/src/logging.dart';
 import 'package:flipper_payments/src/momo/momo_models.dart';
@@ -102,13 +103,11 @@ class MomoClient {
     String currency = 'RWF',
   }) async {
     if (amount <= 0) {
-      throw const MomoException('Enter an amount greater than zero.');
+      throw MomoException(FlipperL10n.current.paywallEnterAmountAboveZero);
     }
     final partyId = MomoMsisdn.toPartyId(phoneNumber);
     if (partyId == null) {
-      throw const MomoException(
-        'Enter a valid Mobile Money number, e.g. 0788123456.',
-      );
+      throw MomoException(FlipperL10n.current.paywallEnterValidMomoNumber);
     }
     if (!MomoMsisdn.isRwandaMobile(phoneNumber)) {
       // Not fatal — Flipper has businesses outside Rwanda — but the collection
@@ -151,7 +150,7 @@ class MomoClient {
     _throwForStatus(status, response.body, 'payNow');
     if (status != 200 && status != 202) {
       throw MomoException(
-        'The payment could not be started (HTTP $status).',
+        FlipperL10n.current.paywallPaymentNotStarted('$status'),
         statusCode: status,
         gatewayMessage: momoGatewayMessage(response.body),
       );
@@ -160,7 +159,7 @@ class MomoClient {
     final decoded = _decodeObject(response.body);
     if (decoded == null) {
       throw MomoException(
-        'The payment gateway sent an unreadable reply (HTTP $status).',
+        FlipperL10n.current.paywallGatewayUnreadable('$status'),
         statusCode: status,
       );
     }
@@ -168,10 +167,11 @@ class MomoClient {
     if (reference == null || reference.isEmpty) {
       // Never treat this as a plain failure: the request may well have reached
       // MTN, so a caller that retries without an idempotency key debits twice.
-      payLogError('MoMo payNow: HTTP $status with no reference. ${response.body}');
+      payLogError(
+        'MoMo payNow: HTTP $status with no reference. ${response.body}',
+      );
       throw MomoException(
-        'The payment started but no reference came back — check the MoMo '
-        'statement before trying again.',
+        FlipperL10n.current.paywallStartedNoReference,
         statusCode: status,
       );
     }
@@ -221,8 +221,11 @@ class MomoClient {
         reason: momoGatewayMessage(response.body),
       );
     }
-    final settlement =
-        MomoSettlement.fromJson(id, decoded, httpStatus: response.statusCode);
+    final settlement = MomoSettlement.fromJson(
+      id,
+      decoded,
+      httpStatus: response.statusCode,
+    );
     payLogInfo('MoMo status $id → $settlement');
     return settlement;
   }
@@ -247,9 +250,7 @@ class MomoClient {
   }) async {
     final partyId = MomoMsisdn.toPartyId(phoneNumber);
     if (partyId == null) {
-      throw const MomoException(
-        'Enter a valid Mobile Money number, e.g. 0788123456.',
-      );
+      throw MomoException(FlipperL10n.current.paywallEnterValidMomoNumber);
     }
 
     final response = await _http.post(
@@ -279,7 +280,11 @@ class MomoClient {
       return MomoMandate(
         state: MomoMandateState.failed,
         nextAction: 'retry_preapproval',
-        error: detail ?? 'Pre-approval failed (HTTP ${response.statusCode}).',
+        error:
+            detail ??
+            FlipperL10n.current.paywallPreApprovalFailed(
+              '${response.statusCode}',
+            ),
       );
     }
     final mandate = MomoMandate.fromJson(decoded);
@@ -350,14 +355,11 @@ class MomoClient {
 
   void _throwForStatus(int status, String body, String label) {
     final fallback = switch (status) {
-      400 => 'The payment request was rejected.',
-      401 || 403 => 'This device is not authorised to take payments.',
-      404 => 'The payment service could not be found.',
-      409 => 'That payment has already been submitted.',
-      500 ||
-      502 ||
-      503 ||
-      504 => 'Mobile Money is unavailable right now. Please try again shortly.',
+      400 => FlipperL10n.current.paywallRequestRejected,
+      401 || 403 => FlipperL10n.current.paywallDeviceNotAuthorised,
+      404 => FlipperL10n.current.paywallServiceNotFound,
+      409 => FlipperL10n.current.paywallAlreadySubmitted,
+      500 || 502 || 503 || 504 => FlipperL10n.current.paywallMomoUnavailableNow,
       _ => null,
     };
     if (fallback == null) return;

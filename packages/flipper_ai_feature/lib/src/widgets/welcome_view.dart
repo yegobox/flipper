@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import '../theme/ai_theme.dart';
 
@@ -13,17 +14,18 @@ class WelcomeView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
     final isPersonal = useCase == 'personal';
     final sampleQuestions = isPersonal
         ? [
-            'What are some good books on leadership?',
-            'Help me draft an email to a potential partner.',
-            'Give me some tips for better time management.',
+            l10n.aiSamplePersonalBooks,
+            l10n.aiSamplePersonalEmail,
+            l10n.aiSamplePersonalTime,
           ]
         : [
-            'What were my total sales last week?',
-            'Show me a breakdown of my top-selling products this month.',
-            'Generate a tax summary for the last quarter.',
+            l10n.aiSampleBusinessSales,
+            l10n.aiSampleBusinessTopProducts,
+            l10n.aiSampleBusinessTax,
           ];
 
     return Center(
@@ -45,9 +47,9 @@ class WelcomeView extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 24),
-            const Text(
-              'Your Business AI Assistant',
-              style: TextStyle(
+            Text(
+              l10n.aiWelcomeTitle,
+              style: const TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
                 color: AiTheme.textColor,
@@ -55,9 +57,9 @@ class WelcomeView extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 12),
-            const Text(
-              'Ready to help you with insights about your business. Try asking one of the questions below.',
-              style: TextStyle(fontSize: 16, color: AiTheme.hintColor),
+            Text(
+              l10n.aiWelcomeSubtitle,
+              style: const TextStyle(fontSize: 16, color: AiTheme.hintColor),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 32),

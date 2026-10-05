@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 
 class FluentButtonBase extends StatefulWidget {
@@ -101,11 +102,13 @@ class SaveTicketButton extends StatelessWidget {
   const SaveTicketButton({
     super.key,
     required this.onPressed,
-    this.label = 'Save Ticket',
+    this.label,
   });
 
   final VoidCallback? onPressed;
-  final String label;
+
+  /// Defaults to the localized "Save Ticket".
+  final String? label;
 
   @override
   Widget build(BuildContext context) {
@@ -115,7 +118,7 @@ class SaveTicketButton extends StatelessWidget {
       onPressed: onPressed,
       child: Center(
         child: Text(
-          label,
+          label ?? context.flipperL10n.uiSaveTicket,
           style: theme.textTheme.bodyMedium?.copyWith(
             fontSize: 14,
             fontWeight: FontWeight.w600,

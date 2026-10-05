@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_payments/src/logging.dart';
 import 'package:flipper_payments/src/momo/momo_client.dart';
 import 'package:flipper_payments/src/momo/momo_models.dart';
@@ -126,9 +127,7 @@ class MomoSubscriptionCharger {
       return MomoSubscriptionResult(
         outcome: MomoSubscriptionOutcome.preapprovalRefused,
         mandate: mandate,
-        message: mandate.error ??
-            'Mobile Money consent was declined, so nothing was charged. '
-            'Approve the request on your phone and try again.',
+        message: mandate.error ?? FlipperL10n.current.paywallConsentDeclined,
       );
     }
 

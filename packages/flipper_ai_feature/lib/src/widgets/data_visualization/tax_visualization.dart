@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'visualization_interface.dart';
@@ -55,7 +56,7 @@ class TaxVisualization implements VisualizationInterface {
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
-                  'TAX BREAKDOWN',
+                  FlipperL10n.current.aiTaxBreakdown,
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
@@ -305,9 +306,9 @@ class TaxVisualization implements VisualizationInterface {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Text(
-                  'TOTAL TAX',
-                  style: TextStyle(
+                Text(
+                  FlipperL10n.current.aiTotalTax,
+                  style: const TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.w600,
                     color: Color(0xFF6B7280),
@@ -476,9 +477,9 @@ class TaxVisualization implements VisualizationInterface {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
-                              'Tax Summary Report',
-                              style: TextStyle(
+                            Text(
+                              context.flipperL10n.aiTaxSummaryReport,
+                              style: const TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold,
                                 color: Color(0xFF1F2937),
@@ -497,7 +498,7 @@ class TaxVisualization implements VisualizationInterface {
                       IconButton(
                         onPressed: onCopyGraph,
                         icon: const Icon(Icons.copy_outlined),
-                        tooltip: 'Copy Report',
+                        tooltip: context.flipperL10n.aiCopyReport,
                         style: IconButton.styleFrom(
                           backgroundColor: const Color(0xFFF3F4F6),
                           foregroundColor: const Color(0xFF6B7280),

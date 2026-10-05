@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:supabase_models/brick/models/message.model.dart';
@@ -84,7 +85,8 @@ class _MessageBubbleState extends State<MessageBubble> {
         padding: const EdgeInsets.symmetric(vertical: 8),
         child: FloBlockRenderer(
           blocks: payload.blocks,
-          isMobile: MediaQuery.sizeOf(context).width < FloTheme.mobileBreakpoint,
+          isMobile:
+              MediaQuery.sizeOf(context).width < FloTheme.mobileBreakpoint,
         ),
       );
     }
@@ -170,7 +172,8 @@ class _MessageBubbleState extends State<MessageBubble> {
                                                 BorderRadius.circular(8),
                                           ),
                                         ),
-                                        child: const Text("Purchase Credits"),
+                                        child: Text(context
+                                            .flipperL10n.aiPurchaseCredits),
                                       ),
                                     ),
                                 ],
@@ -315,11 +318,12 @@ class _MessageBubbleState extends State<MessageBubble> {
                     color: _showCopied ? Colors.green : AiTheme.secondaryColor,
                   ),
                   if (_showCopied)
-                    const Padding(
-                      padding: EdgeInsets.only(left: 4.0),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 4.0),
                       child: Text(
-                        'Copied',
-                        style: TextStyle(fontSize: 12, color: Colors.green),
+                        context.flipperL10n.aiCopied,
+                        style:
+                            const TextStyle(fontSize: 12, color: Colors.green),
                       ),
                     ),
                 ],
@@ -401,7 +405,7 @@ class _MessageBubbleState extends State<MessageBubble> {
         else if (reasoningText != null && !_showThinking)
           // Show a placeholder if content is empty but reasoning is hidden
           Text(
-            "AI is processing... Expand thinking to see details.",
+            context.flipperL10n.aiProcessingExpandThinking,
             style: TextStyle(
               color: AiTheme.onAssistantMessageColor.withValues(alpha: 0.5),
               fontSize: 14,
@@ -430,7 +434,9 @@ class _MessageBubbleState extends State<MessageBubble> {
             ),
             const SizedBox(width: 6),
             Text(
-              _showThinking ? 'Hide Thinking' : 'Show Thinking',
+              _showThinking
+                  ? context.flipperL10n.aiHideThinking
+                  : context.flipperL10n.aiShowThinking,
               style: TextStyle(
                 color: AiTheme.primaryColor.withValues(alpha: 0.8),
                 fontSize: 13,

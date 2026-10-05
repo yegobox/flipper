@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_models/brick/models/message.model.dart';
 
@@ -40,7 +41,8 @@ class FloThreadView extends StatelessWidget {
       itemBuilder: (context, index) {
         return Center(
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: FloTheme.contentMaxWidth),
+            constraints:
+                const BoxConstraints(maxWidth: FloTheme.contentMaxWidth),
             child: _buildRow(context, index),
           ),
         );
@@ -60,10 +62,10 @@ class FloThreadView extends StatelessWidget {
             Expanded(
               child: FloThinkingSteps(
                 steps: thinkingSteps.isEmpty
-                    ? const [
-                        'Understanding question',
-                        'Querying MiniData',
-                        'Composing answer',
+                    ? [
+                        context.flipperL10n.floThinkingUnderstanding,
+                        context.flipperL10n.floThinkingQuerying,
+                        context.flipperL10n.floThinkingComposing,
                       ]
                     : thinkingSteps,
                 activeIndex: thinkingActiveIndex,

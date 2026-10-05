@@ -2150,5 +2150,1573 @@
     "cartEmptyHint": "Tap a product or scan a barcode to start a sale",
     "@cartEmptyHint": {
         "description": "Desktop empty-cart hint"
-    }
+    },
+    "scannerAlignQrCode": "Align QR code within frame",
+    "scannerInstructionSelling": "Scan product barcode to add to cart",
+    "scannerInstructionAttendance": "Scan attendance QR code to check in",
+    "scannerInstructionLogin": "Scan QR code to log in to your account",
+    "scannerScanning": "Scanning...",
+    "scannerStatusProcessing": "Processing",
+    "scannerSendingLoginToDesktop": "Sending login to desktop...",
+    "scannerWaitingForDesktop": "Waiting for desktop",
+    "scannerLoginSentCompleting": "Login sent — completing on your computer...",
+    "scannerScanSuccessful": "Scan Successful",
+    "scannerQrProcessedSuccessfully": "QR code processed successfully",
+    "scannerLoginSuccessful": "Login Successful",
+    "scannerDesktopAuthenticated": "Desktop device authenticated",
+    "scannerLoginFailed": "Login Failed",
+    "scannerCouldNotAuthenticateDesktop": "Could not authenticate desktop device",
+    "scannerQrCodeDetected": "QR Code Detected",
+    "scannerProcessingRequest": "Processing your request...",
+    "scannerHelpTitle": "Scanner Help",
+    "scannerHelpPositionCode": "Position the code within the frame",
+    "scannerHelpWellLit": "Make sure it's well-lit and not blurry",
+    "scannerHelpUseFlash": "Use flash in low light",
+    "scannerHelpToggleFlash": "Toggle the flash icon at the bottom",
+    "scannerHelpCleanLens": "Clean your camera lens",
+    "scannerHelpBetterResults": "For better scanning results",
+    "scannerTitleProduct": "Product Scanner",
+    "scannerTitleAttendance": "Attendance Scanner",
+    "scannerTitleLogin": "Login Scanner",
+    "scannerTitleQr": "QR Scanner",
+    "scannerGalleryComingSoon": "Gallery selection coming soon",
+    "scannerInvalidQrFormat": "Invalid QR code format",
+    "scannerLoginError": "Login error: {error}",
+    "@scannerLoginError": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "scannerDesktopNoResponse": "Desktop did not respond — check it is on the QR login screen",
+    "scannerDesktopSelectBusiness": "Desktop logged in — select your business there",
+    "scannerDesktopLoginSuccessful": "Desktop login successful",
+    "scannerDesktopLoginFailed": "Desktop login failed",
+    "dialogGotIt": "Got it",
+    "socialsRequestEarlyAccess": "Request Early Access",
+    "socialsEarlyAccessHint": "Enter your email, phone number and a message why you want to join!",
+    "socialsPleaseEnterMessage": "Please enter a message",
+    "socialsThanksForInterest": "Thank you for your interest",
+    "socialsThanksWeWillGetBack": "Thank you for your interest, we will get back to you soon",
+    "socialsExpressInterest": "Express interest",
+    "appInitStepFirebase": "Connecting services",
+    "appInitStepLocator": "Preparing app",
+    "appInitStepPlatform": "Setting up device",
+    "appInitStepDiagnostics": "Setting up diagnostics",
+    "appInitStepDatabase": "Opening local database",
+    "appInitStepServices": "Loading services",
+    "appInitStepAnalytics": "Starting analytics",
+    "appInitStepCloudStorage": "Connecting cloud storage",
+    "appInitStepSync": "Preparing sync",
+    "appInitStepFinishing": "Finishing up",
+    "appInitStepStartup": "Startup",
+    "appInitFailedTitle": "Initialization Failed",
+    "appInitFailedMessage": "The app could not finish starting at \"{step}\". Tap Try again — it will resume from that step.",
+    "@appInitFailedMessage": {
+        "placeholders": {
+            "step": {
+                "type": "String"
+            }
+        }
+    },
+    "appInitTryAgain": "Try again",
+    "appInitCopyErrorDetails": "Copy error details",
+    "appInitTechnicalDetails": "Technical details",
+    "paywallRailMobileMoney": "Mobile Money",
+    "paywallRailCard": "Card",
+    "paywallRailMomoDescription": "Approve on your phone with MTN MoMo",
+    "paywallRailCardDescription": "Pay by Visa or Mastercard",
+    "paywallCadenceDaily": "Daily",
+    "paywallCadenceMonthly": "Monthly",
+    "paywallCadenceYearly": "Yearly",
+    "paywallPeriodDay": "/day",
+    "paywallPeriodMonth": "/month",
+    "paywallPeriodYear": "/year",
+    "paywallPaidInFull": "Paid in full — one charge of RWF {amount}.",
+    "@paywallPaidInFull": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
+    "paywallInstallmentsEach": "{count, plural, =1{1 payment of RWF {amount}.} other{{count} payments of RWF {amount} each.}}",
+    "@paywallInstallmentsEach": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            },
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
+    "paywallPricePerMonthBilledYearly": "{amount} RWF/mo · billed yearly",
+    "@paywallPricePerMonthBilledYearly": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
+    "paywallPricePerDay": "{amount} RWF/day",
+    "@paywallPricePerDay": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
+    "paywallPricePerMonth": "{amount} RWF/month",
+    "@paywallPricePerMonth": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
+    "paywallCardPayment": "Card Payment",
+    "paywallTestMode": "TEST MODE",
+    "paywallCardRedirectInfo": "You will be taken to a secure payment page to enter your Visa or Mastercard details. Come back here once you are done — the plan activates on its own.",
+    "paywallReceiptEmail": "Email for the receipt",
+    "paywallReceiptEmailHint": "Invoices and card receipts are sent here.",
+    "paywallCardDiscountApplies": "Your discount applies to card payments: the card is charged the discounted price now and at each renewal.",
+    "paywallCardDiscountAppliesAmount": "Your discount applies: the card is charged {amount} now and at each renewal.",
+    "@paywallCardDiscountAppliesAmount": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
+    "paywallDiscountMomoOnly": "Discount codes apply to Mobile Money payments only. Paying by card charges the full plan price.",
+    "paywallPendingCheckout": "A payment page is already waiting for this plan. Open it to finish — a new one would not replace it.",
+    "paywallOpenPaymentPage": "Open payment page",
+    "paywallDiscountHint": "Enter the code exactly as it appears.",
+    "paywallNeedHelp": "Need Help?",
+    "paywallChatWithSupport": "Chat with support about this payment",
+    "paywallMomoPayment": "Mobile Money Payment",
+    "paywallProcessedUsing": "Payment will be processed using {provider}.",
+    "@paywallProcessedUsing": {
+        "placeholders": {
+            "provider": {
+                "type": "String"
+            }
+        }
+    },
+    "paywallUseDifferentNumber": "Use different phone number",
+    "paywallTryAnotherNumber": "Try another MTN number if the current one failed",
+    "paywallMomoNumberRule": "Must start with 250 78 or 250 79.",
+    "paywallProcessing": "Processing…",
+    "paywallSecurePaymentVia": "Secure payment via {provider}",
+    "@paywallSecurePaymentVia": {
+        "placeholders": {
+            "provider": {
+                "type": "String"
+            }
+        }
+    },
+    "paywallHowToPay": "How would you like to pay?",
+    "paywallLoading": "Loading…",
+    "paywallPercentOff": "({percent}% off)",
+    "@paywallPercentOff": {
+        "placeholders": {
+            "percent": {
+                "type": "String"
+            }
+        }
+    },
+    "paywallSplitIntoPayments": "Split into payments",
+    "paywallPaymentSummary": "Payment Summary",
+    "paywallTotal": "Total",
+    "paywallSubscriptionEnded": "This subscription has ended. Choose a plan to start again.",
+    "paywallPaymentPageNotReady": "The payment page is not ready yet. Try again in a moment.",
+    "paywallCouldNotOpenPageCopyLink": "Could not open the payment page on this device. Copy the link, or pay with Mobile Money instead.",
+    "paywallCouldNotOpenPage": "Could not open the payment page on this device.",
+    "paywallServiceNoResponse": "The payments service did not respond. Check your connection and try again.",
+    "paywallServiceUnreachable": "Could not reach the payments service. Check your connection and try again.",
+    "paywallBusinessRequiredForCard": "A business is required to start a card subscription.",
+    "paywallCardStartedNoReference": "The card subscription started but the connector sent no reference. Check the billing screen before trying again.",
+    "paywallNoCardUpdateLink": "The connector did not return a link to update the card.",
+    "paywallNoPortalLink": "The connector did not return a billing portal link.",
+    "paywallCardNotAuthorised": "Card payment is not authorised on this connector.",
+    "paywallCardUnavailable": "Card payment is not available right now. Use Mobile Money, or try again later.",
+    "paywallCouldNotAction": "Could not {action} (HTTP {status}).",
+    "@paywallCouldNotAction": {
+        "placeholders": {
+            "action": {
+                "type": "String"
+            },
+            "status": {
+                "type": "String"
+            }
+        }
+    },
+    "paywallUnreadableReply": "The billing service sent an unreadable reply (HTTP {status}).",
+    "@paywallUnreadableReply": {
+        "placeholders": {
+            "status": {
+                "type": "String"
+            }
+        }
+    },
+    "paywallActionStartCardSubscription": "start a card subscription",
+    "paywallActionReadCardSubscription": "read the card subscription",
+    "paywallActionRefreshCardSubscription": "refresh the card subscription",
+    "paywallActionGetCardLink": "get a new card link",
+    "paywallActionOpenBillingPortal": "open the billing portal",
+    "paywallActionCancelCardSubscription": "cancel the card subscription",
+    "paywallActionStartCustomPayment": "start the custom payment",
+    "paywallActionReadCustomPayment": "read the custom payment",
+    "paywallActionListCustomPayments": "list custom payments",
+    "paywallEnterAmountAboveZero": "Enter an amount greater than zero.",
+    "paywallEnterValidMomoNumber": "Enter a valid Mobile Money number, e.g. 0788123456.",
+    "paywallPaymentNotStarted": "The payment could not be started (HTTP {status}).",
+    "@paywallPaymentNotStarted": {
+        "placeholders": {
+            "status": {
+                "type": "String"
+            }
+        }
+    },
+    "paywallGatewayUnreadable": "The payment gateway sent an unreadable reply (HTTP {status}).",
+    "@paywallGatewayUnreadable": {
+        "placeholders": {
+            "status": {
+                "type": "String"
+            }
+        }
+    },
+    "paywallStartedNoReference": "The payment started but no reference came back — check the MoMo statement before trying again.",
+    "paywallPreApprovalFailed": "Pre-approval failed (HTTP {status}).",
+    "@paywallPreApprovalFailed": {
+        "placeholders": {
+            "status": {
+                "type": "String"
+            }
+        }
+    },
+    "paywallRequestRejected": "The payment request was rejected.",
+    "paywallDeviceNotAuthorised": "This device is not authorised to take payments.",
+    "paywallServiceNotFound": "The payment service could not be found.",
+    "paywallAlreadySubmitted": "That payment has already been submitted.",
+    "paywallMomoUnavailableNow": "Mobile Money is unavailable right now. Please try again shortly.",
+    "paywallMomoNotSetUp": "Mobile Money is not set up on this device yet.",
+    "paywallNotCompletedOnPhone": "The payment was not completed on the payer's phone.",
+    "paywallNoConfirmationYet": "No confirmation yet. The payment may still go through — check the MoMo statement before charging again.",
+    "paywallConsentDeclined": "Mobile Money consent was declined, so nothing was charged. Approve the request on your phone and try again.",
+    "paywallChooseBusinessFirst": "Choose a business first.",
+    "paywallAmountAboveZero": "Amount must be greater than zero.",
+    "paywallCustomerMomoRequired": "The customer's Mobile Money number is required.",
+    "paywallStaffNotAuthorised": "This account is not authorised for staff payments.",
+    "paywallAlreadyCollecting": "Something is already collecting from this business.",
+    "paywallStaffNotConfigured": "Staff payments are not configured on this connector.",
+    "accountingShiftUser": "User: {id}",
+    "@accountingShiftUser": {
+        "placeholders": {
+            "id": {
+                "type": "String"
+            }
+        }
+    },
+    "accountingShiftHistory": "Shift History",
+    "accountingLoadingShiftHistory": "Loading shift history...",
+    "accountingNoMatchingShifts": "No matching shifts",
+    "accountingNoShiftsFound": "No shifts found",
+    "accountingAdjustFiltersHint": "Try adjusting your filters or search query.",
+    "accountingNoShiftsHint": "Shift records will appear here once you\nstart managing your shifts.",
+    "accountingClearFilters": "Clear Filters",
+    "accountingCashSalesRange": "CASH SALES RANGE ({currency})",
+    "@accountingCashSalesRange": {
+        "placeholders": {
+            "currency": {
+                "type": "String"
+            }
+        }
+    },
+    "accountingFilterShifts": "Filter shifts",
+    "accountingDateRange": "DATE RANGE",
+    "accountingFrom": "From",
+    "accountingTo": "To",
+    "accountingStatusLabel": "STATUS",
+    "accountingAllShifts": "All shifts",
+    "accountingShiftOpen": "Open",
+    "accountingShiftClosed": "Closed",
+    "accountingMinimum": "Minimum",
+    "accountingMaximum": "Maximum",
+    "accountingNoLimit": "No limit",
+    "accountingSortBy": "SORT BY",
+    "accountingNewestFirst": "Newest first",
+    "accountingOldestFirst": "Oldest first",
+    "accountingCashSalesHighToLow": "Cash sales — high to low",
+    "accountingCashSalesLowToHigh": "Cash sales — low to high",
+    "accountingClearAll": "Clear all",
+    "accountingApplyFilters": "Apply filters",
+    "accountingDatePlaceholder": "mm/dd/yyyy",
+    "accountingTotalShifts": "TOTAL SHIFTS",
+    "accountingTotalCashSales": "TOTAL CASH SALES",
+    "accountingOpenClosed": "OPEN / CLOSED",
+    "accountingSearchShiftsHint": "Search by user ID or date...",
+    "accountingShowingShifts": "{count, plural, =1{Showing 1 shift} other{Showing {count} shifts}}",
+    "@accountingShowingShifts": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "accountingStartedAt": "Started {time}",
+    "@accountingStartedAt": {
+        "placeholders": {
+            "time": {
+                "type": "String"
+            }
+        }
+    },
+    "accountingCashDifference": "Cash difference: {amount}",
+    "@accountingCashDifference": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
+    "accountingTimePeriod": "TIME PERIOD",
+    "accountingStartTime": "Start Time",
+    "accountingEndTime": "End Time",
+    "accountingDuration": "Duration: {duration}",
+    "@accountingDuration": {
+        "placeholders": {
+            "duration": {
+                "type": "String"
+            }
+        }
+    },
+    "accountingInProgress": "In Progress",
+    "accountingFinancialSummary": "FINANCIAL SUMMARY",
+    "accountingOpeningBalance": "Opening Balance",
+    "accountingCashSales": "Cash Sales",
+    "accountingExpectedCash": "Expected Cash",
+    "accountingClosingBalance": "Closing Balance",
+    "uiAdminPinMismatch": "PINs didn't match. Try again.",
+    "uiAdminPinIncorrect": "{count, plural, =1{Incorrect PIN. 1 attempt left.} other{Incorrect PIN. {count} attempts left.}}",
+    "@uiAdminPinIncorrect": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "uiAdminPinSaveFailed": "Couldn't save the PIN. Please try again.",
+    "uiAdminPinSaved": "PIN saved",
+    "uiAdminPinEnter": "Enter admin PIN",
+    "uiAdminPinConfirm": "Confirm your PIN",
+    "uiAdminPinSetUp": "Set up admin PIN",
+    "uiAdminPinSavedSubtitle": "Sensitive actions now require this PIN.",
+    "uiAdminPinVerifySubtitle": "This action is protected. Enter your 4-digit administrator PIN.",
+    "uiAdminPinConfirmSubtitle": "Enter the same 4 digits again to confirm.",
+    "uiAdminPinSetSubtitle": "Choose a 4-digit PIN to protect edits, deletes and settings.",
+    "uiAdminPinDigitsSemantic": "PIN, {entered} of {total} digits entered",
+    "@uiAdminPinDigitsSemantic": {
+        "placeholders": {
+            "entered": {
+                "type": "String"
+            },
+            "total": {
+                "type": "String"
+            }
+        }
+    },
+    "uiAdminPinLockout": "Too many attempts. Try again in {seconds}s.",
+    "@uiAdminPinLockout": {
+        "placeholders": {
+            "seconds": {
+                "type": "String"
+            }
+        }
+    },
+    "uiAdminPinStartOver": "Start over",
+    "uiMonthShortJan": "Jan",
+    "uiMonthShortFeb": "Feb",
+    "uiMonthShortMar": "Mar",
+    "uiMonthShortApr": "Apr",
+    "uiMonthShortMay": "May",
+    "uiMonthShortJun": "Jun",
+    "uiMonthShortJul": "Jul",
+    "uiMonthShortAug": "Aug",
+    "uiMonthShortSep": "Sep",
+    "uiMonthShortOct": "Oct",
+    "uiMonthShortNov": "Nov",
+    "uiMonthShortDec": "Dec",
+    "uiTicketResumeOrder": "Resume order",
+    "uiTicketResuming": "Resuming…",
+    "uiTicketCustomerSection": "CUSTOMER",
+    "uiTicketItemsSection": "ITEMS · {count}",
+    "@uiTicketItemsSection": {
+        "placeholders": {
+            "count": {
+                "type": "String"
+            }
+        }
+    },
+    "uiTicketCouldNotLoadItems": "Could not load items: {error}",
+    "@uiTicketCouldNotLoadItems": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "uiTicketStatusSection": "STATUS",
+    "uiTicketResumeTicket": "Resume ticket",
+    "uiTicketWalkIn": "Walk-in",
+    "uiTicketLoan": "Loan",
+    "uiTicketNoItems": "No items on this ticket.",
+    "uiTicketPaymentsSection": "PAYMENTS · {count}",
+    "@uiTicketPaymentsSection": {
+        "placeholders": {
+            "count": {
+                "type": "String"
+            }
+        }
+    },
+    "uiTicketTotalPaidSoFar": "Total paid so far",
+    "uiTicketStillDue": "Still due",
+    "uiTicketUnknown": "Unknown",
+    "uiTicketPaymentLine": "Payment {index} · {method}",
+    "@uiTicketPaymentLine": {
+        "placeholders": {
+            "index": {
+                "type": "String"
+            },
+            "method": {
+                "type": "String"
+            }
+        }
+    },
+    "uiTicketPaidBy": "Paid by {name}",
+    "@uiTicketPaidBy": {
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "uiTicketStatusWaiting": "Waiting",
+    "uiTicketStatusInProgress": "In Progress",
+    "uiTicketStatusCompleted": "Completed",
+    "uiTicketBadgeInProgress": "IN PROGRESS",
+    "uiTicketBadgeCompleted": "COMPLETED",
+    "uiTicketBadgeParked": "PARKED",
+    "uiTicketDateNotRecorded": "Date not recorded",
+    "uiTicketTodayAt": "Today · {time}",
+    "@uiTicketTodayAt": {
+        "placeholders": {
+            "time": {
+                "type": "String"
+            }
+        }
+    },
+    "uiTicketYesterdayAt": "Yesterday · {time}",
+    "@uiTicketYesterdayAt": {
+        "placeholders": {
+            "time": {
+                "type": "String"
+            }
+        }
+    },
+    "uiTicketParkTransaction": "Park transaction",
+    "uiTicketParking": "Parking…",
+    "uiTicketParkFailed": "Failed to park transaction: {error}",
+    "@uiTicketParkFailed": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "uiTicketAttachCustomer": "Attach customer",
+    "uiTicketSearchCustomers": "Search customers…",
+    "uiTicketNoCustomer": "No customer",
+    "uiTicketName": "Ticket name",
+    "uiTicketEnterName": "Enter a ticket name",
+    "uiTicketNotes": "Notes",
+    "uiTicketOptional": "Optional",
+    "uiTicketAddNotes": "Add notes",
+    "uiTicketPaymentDue": "Payment due",
+    "uiTicketSendToKitchen": "Send to kitchen",
+    "uiTicketShowOnKds": "Show this ticket on the Kitchen Display",
+    "uiTicketSelectCustomer": "Select customer",
+    "uiTicketMarkAsLoan": "Mark as loan",
+    "uiTicketTrackPaymentLater": "Track payment for later collection",
+    "uiTicketOneWeek": "1 week",
+    "uiTicketTwoWeeks": "2 weeks",
+    "uiTicketOneMonth": "1 month",
+    "uiTicketSelectDate": "Select date",
+    "uiTicketDueDate": "Due date",
+    "uiTicketHoldSale": "Hold this sale to finish later",
+    "uiWorkOrderUnknownProduct": "Unknown Product",
+    "uiWorkOrderId": "ID: {id}",
+    "@uiWorkOrderId": {
+        "placeholders": {
+            "id": {
+                "type": "String"
+            }
+        }
+    },
+    "uiWorkOrderStart": "Start",
+    "uiWorkOrderRecordOutput": "Record Output",
+    "uiWorkOrderCompleted": "Completed",
+    "uiWorkOrderInProgress": "In Progress",
+    "uiWorkOrderPlanned": "Planned",
+    "uiWorkOrderActual": "Actual",
+    "uiWorkOrderVariance": "Variance",
+    "uiWorkOrderEfficiency": "Efficiency",
+    "uiWorkOrderTargetDate": "Target Date",
+    "uiWorkOrderShift": "Shift",
+    "uiWorkOrderNotApplicable": "N/A",
+    "uiWorkOrderNotes": "Notes",
+    "uiWorkOrderTimeline": "Timeline",
+    "uiWorkOrderCreated": "Created",
+    "uiWorkOrderStarted": "Started",
+    "uiProduceItems": "Items",
+    "uiProduceSelectItem": "Select Item to Produce",
+    "uiProduceDescription": "Choose an item from the list below to begin production.",
+    "uiProduceItemsRemaining": "{count, plural, =1{1 item remaining} other{{count} items remaining}}",
+    "@uiProduceItemsRemaining": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "uiProduceAssignedCount": "{count} assigned",
+    "@uiProduceAssignedCount": {
+        "placeholders": {
+            "count": {
+                "type": "String"
+            }
+        }
+    },
+    "uiProduceQty": "Qty: {qty}",
+    "@uiProduceQty": {
+        "placeholders": {
+            "qty": {
+                "type": "String"
+            }
+        }
+    },
+    "uiProduceAssigned": "Assigned",
+    "uiProduceInProgress": "In Progress",
+    "uiProduceBackToList": "Back to list",
+    "uiProduceDetails": "Production Details",
+    "uiPaymentModeSelect": "Select Payment Mode",
+    "uiPaymentModeFailed": "Payment failed",
+    "uiPaymentModePleaseSelect": "Please select a payment mode",
+    "uiPaymentModeSelectFinancing": "Select Financing Option",
+    "uiPaymentModeInterest": "Interest: {rate}%",
+    "@uiPaymentModeInterest": {
+        "placeholders": {
+            "rate": {
+                "type": "String"
+            }
+        }
+    },
+    "uiBackupDescription": "Enabling backup will save your data daily, so you won't have to worry about losing it.",
+    "uiTicketNoName": "No Name",
+    "uiTicketResume": "Resume",
+    "uiNoteRequired": "Note is required",
+    "uiNotificationSemantic": "{message} notification",
+    "@uiNotificationSemantic": {
+        "placeholders": {
+            "message": {
+                "type": "String"
+            }
+        }
+    },
+    "uiDeleteConfirmSemantic": "{count, plural, =1{Delete confirmation for 1 item} other{Delete confirmation for {count} items}}",
+    "@uiDeleteConfirmSemantic": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "uiDeleteItemsQuestion": "{count, plural, =1{Delete 1 item?} other{Delete {count} items?}}",
+    "@uiDeleteItemsQuestion": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "uiMoreItems": "{count, plural, =1{+ 1 more item} other{+ {count} more items}}",
+    "@uiMoreItems": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "uiRefreshStatusAfterPayment": "Refresh status after payment",
+    "uiSubscriptionActive": "Subscription is active.",
+    "uiNoPlanOpeningSetup": "No plan found — opening payment setup.",
+    "uiPlanInactiveOpeningPayment": "Plan found but not active — opening payment screen.",
+    "uiCouldNotVerifyPayment": "Could not verify payment status.",
+    "uiTimerDone": "Done!",
+    "uiTimerDelivered": "Delivered!",
+    "uiTimerUntilDelivered": "Until Delivered",
+    "uiTimerDays": "{count, plural, =1{1 Day} other{{count} Days}}",
+    "@uiTimerDays": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "uiTimerHours": "{count, plural, =1{1 Hour} other{{count} Hours}}",
+    "@uiTimerHours": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "uiTimerMinutes": "{count} MIN",
+    "@uiTimerMinutes": {
+        "placeholders": {
+            "count": {
+                "type": "String"
+            }
+        }
+    },
+    "uiTimerSeconds": "{count} SEC",
+    "@uiTimerSeconds": {
+        "placeholders": {
+            "count": {
+                "type": "String"
+            }
+        }
+    },
+    "uiEnterCouponCode": "Enter Coupon Code",
+    "uiShop": "Shop",
+    "uiShopActiveSemantic": "{name} active",
+    "@uiShopActiveSemantic": {
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "uiShopInactiveSemantic": "{name} inactive",
+    "@uiShopInactiveSemantic": {
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "uiSaveTicket": "Save Ticket",
+    "floSuggestTodayTitle": "Summarize today's performance",
+    "floSuggestTodayDesc": "Revenue, profit & units at a glance",
+    "floSuggestTodayQuestion": "Summarize today's business performance",
+    "floSuggestProfitTitle": "Most profitable products",
+    "floSuggestProfitDesc": "Ranked by margin this week",
+    "floSuggestProfitQuestion": "Which products are most profitable this week?",
+    "floSuggestUsersTitle": "How many users in MiniData?",
+    "floSuggestUsersDesc": "Counts & recent activity",
+    "floSuggestUsersQuestion": "How many users do we have in MiniData?",
+    "floSuggestTrendTitle": "This week's sales trend",
+    "floSuggestTrendDesc": "7-day revenue movement",
+    "floSuggestTrendQuestion": "Show this week's sales trend",
+    "floGoodMorning": "Good morning",
+    "floGoodAfternoon": "Good afternoon",
+    "floGoodEvening": "Good evening",
+    "floGreetingShop": "{greeting}, {shop}.",
+    "@floGreetingShop": {
+        "placeholders": {
+            "greeting": {
+                "type": "String"
+            },
+            "shop": {
+                "type": "String"
+            }
+        }
+    },
+    "floAskMeAnything": "Ask me {anything} about your business.",
+    "@floAskMeAnything": {
+        "placeholders": {
+            "anything": {
+                "type": "String"
+            }
+        }
+    },
+    "floAnything": "anything",
+    "floHomeIntro": "I read live from your connected data and answer with numbers, charts and next steps — in plain language.",
+    "floTryAsking": "Try asking",
+    "floChannels": "Channels",
+    "floMiniDataDesc": "Live Supabase data — sales, users, products.",
+    "floManage": "Manage",
+    "floConnect": "Connect",
+    "floWhatsAppConnectedDesc": "You can chat with Flo over WhatsApp.",
+    "floWhatsAppSetupDesc": "Talk to Flo from your phone — set up in a minute.",
+    "floLoadingBriefing": "Loading today's briefing…",
+    "floBriefingUnavailable": "Daily briefing unavailable",
+    "floReadingLiveSales": "Reading live sales from MiniData.",
+    "floCheckDataConnection": "Check your data connection and try again.",
+    "floDailyBriefing": "DAILY BRIEFING",
+    "floDateAuto": "{date} · auto",
+    "@floDateAuto": {
+        "placeholders": {
+            "date": {
+                "type": "String"
+            }
+        }
+    },
+    "floConnected": "CONNECTED",
+    "floNotSetUp": "NOT SET UP",
+    "aiWhatsappReadInboxFailed": "Could not read WhatsApp messages\n{error}",
+    "@aiWhatsappReadInboxFailed": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "aiWhatsappSendFailed": "Send failed: {error}",
+    "@aiWhatsappSendFailed": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "aiWhatsappAnswerCustomers": "Answer customers on WhatsApp",
+    "aiWhatsappConnectPitch": "Connect your Meta WhatsApp Business account to see customer messages here and draft replies with Flo.",
+    "aiWhatsappConnect": "Connect WhatsApp",
+    "aiWhatsappSelectCustomer": "Select a customer",
+    "aiWhatsappInboxSource": "WhatsApp inbox · data-connector + Ditto",
+    "aiWhatsappCustomers": "Customers · WhatsApp",
+    "floTimeNow": "now",
+    "floTimeMinutesShort": "{count}m",
+    "@floTimeMinutesShort": {
+        "placeholders": {
+            "count": {
+                "type": "String"
+            }
+        }
+    },
+    "floTimeDaysShort": "{count}d",
+    "@floTimeDaysShort": {
+        "placeholders": {
+            "count": {
+                "type": "String"
+            }
+        }
+    },
+    "aiWhatsappNoMessages": "No WhatsApp messages yet",
+    "aiWhatsappNoMessagesHint": "Inbound messages load from data-connector (local Ditto is a backup). When Meta posts to the webhook they appear here within a few seconds.",
+    "aiWhatsappNoThreadMessages": "No messages in this thread yet",
+    "aiWhatsappPdfDownloadFailed": "Could not download this PDF",
+    "aiWhatsappSavePdf": "Save PDF",
+    "aiWhatsappSavedFile": "Saved {file}",
+    "@aiWhatsappSavedFile": {
+        "placeholders": {
+            "file": {
+                "type": "String"
+            }
+        }
+    },
+    "aiWhatsappDownloadFailed": "Download failed: {error}",
+    "@aiWhatsappDownloadFailed": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "aiWhatsappPdfDocument": "PDF document",
+    "aiWhatsappFloSuggestedReply": "Flo suggested reply",
+    "aiWhatsappSend": "Send",
+    "aiWhatsappEditFirst": "Edit first",
+    "aiWhatsappDraft": "Draft",
+    "aiWhatsappReplyHint": "Reply on WhatsApp…",
+    "floBusinessAi": "Business AI",
+    "floMiniDataConnectedLive": "MiniData connected · live",
+    "floNewChat": "New chat",
+    "floAskFlo": "Ask Flo",
+    "floMessages": "Messages",
+    "floNewConversation": "New conversation",
+    "floChatWithFloAndCustomers": "Chat with Flo & customers",
+    "floOn": "On",
+    "floOff": "Off",
+    "floManageDataSources": "Manage data sources",
+    "floQuickSummarizeToday": "Summarize today",
+    "floQuickTopProducts": "Top products",
+    "floQuickUserCount": "User count",
+    "floQuickSalesTrend": "Sales trend",
+    "floComposerHint": "Ask about sales, stock, customers or tax…",
+    "floStopDictating": "Stop dictating",
+    "floDictate": "Dictate — speak and Flo types it",
+    "floCanMakeMistakes": "Flo can make mistakes — check important figures. ",
+    "floGroundedInMiniData": "Grounded in MiniData.",
+    "floStarting": "Starting…",
+    "floListening": "Listening…",
+    "floModeCloud": "Cloud",
+    "floModeOnDevice": "On-Device",
+    "floChooseAiMode": "Choose AI mode",
+    "floOnDeviceSubtitle": "Free · offline · private",
+    "floCloudSubtitle": "More capable · uses connection",
+    "floThinkingUnderstanding": "Understanding question",
+    "floThinkingQuerying": "Querying MiniData",
+    "floThinkingComposing": "Composing answer",
+    "floCopied": "Copied!",
+    "floCopyChart": "Copy chart",
+    "floSuggestedFollowUps": "SUGGESTED FOLLOW-UPS",
+    "aiDataSourceEdit": "Edit Data Source",
+    "aiDataSourceConnectTitle": "Connect Data Source",
+    "aiDataSourceType": "Data Source Type",
+    "aiDataSourceConnectionName": "Connection Name",
+    "aiDataSourceConnectionNameHint": "e.g., Production Database",
+    "aiDataSourceSupabaseUrl": "Supabase URL",
+    "aiDataSourceAnonKey": "Anon/Public Key",
+    "aiDataSourceServiceKey": "Service Role Key (Optional)",
+    "aiDataSourceServiceKeyHelper": "Required for admin operations",
+    "aiDataSourceTestFailedCredentials": "Connection test failed. Please check your credentials.",
+    "aiDataSourceTestFailed": "Connection test failed: {error}",
+    "@aiDataSourceTestFailed": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "aiDataSourceTesting": "Testing...",
+    "aiDataSourceTestConnection": "Test Connection",
+    "aiDataSourcePrivacyNote": "When connected, the assistant can use schema and sample rows from this source in your chats. Credentials are stored only on this device.",
+    "aiDataSourceEnterName": "Please enter a connection name",
+    "aiDataSourceEnterUrl": "Please enter the Supabase URL",
+    "aiDataSourceEnterKey": "Please enter an Anon/Public Key or Service Role Key",
+    "aiDataSourceUpdated": "Data source updated successfully",
+    "aiDataSourceConnected": "Data source connected successfully",
+    "aiDataSourceConnectFailed": "Failed to connect: {error}",
+    "@aiDataSourceConnectFailed": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "aiDataSourceConnecting": "Connecting...",
+    "aiDataSourceUpdate": "Update",
+    "aiDataSourceConnect": "Connect",
+    "aiDataSourceStatusConnected": "Connected",
+    "aiDataSourceStatusConnecting": "Connecting",
+    "aiDataSourceStatusError": "Error",
+    "aiDataSourceStatusDisconnected": "Disconnected",
+    "aiDataSourceTitle": "Data Source",
+    "aiDataSourceNotFound": "Data source not found",
+    "aiDataSourceGoBack": "Go Back",
+    "aiDataSourceTables": "Tables",
+    "aiDataSourceUrl": "URL",
+    "aiDataSourceNotAvailable": "N/A",
+    "aiDataSourceLastConnected": "Last connected: {time}",
+    "@aiDataSourceLastConnected": {
+        "placeholders": {
+            "time": {
+                "type": "String"
+            }
+        }
+    },
+    "aiDataSourceInformation": "Information",
+    "aiDataSourceMetadataFailed": "Failed to load metadata: {error}",
+    "@aiDataSourceMetadataFailed": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "aiDataSourceTotalRows": "Total Rows",
+    "aiDataSourceTypeLabel": "Type",
+    "aiDataSourceUnknown": "Unknown",
+    "aiDataSourceTablesFailed": "Failed to load tables: {error}",
+    "@aiDataSourceTablesFailed": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "aiDataSourceNoTables": "No tables found",
+    "aiDataSourceColumnsCount": "{count, plural, =1{1 column} other{{count} columns}}",
+    "@aiDataSourceColumnsCount": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "aiDataSourceRowsCount": "{count} rows",
+    "@aiDataSourceRowsCount": {
+        "placeholders": {
+            "count": {
+                "type": "String"
+            }
+        }
+    },
+    "aiDataSourceColumns": "Columns",
+    "aiDataSourceNotNull": "NOT NULL",
+    "aiDataSourceJustNow": "Just now",
+    "aiDataSourceMinutesAgo": "{count}m ago",
+    "@aiDataSourceMinutesAgo": {
+        "placeholders": {
+            "count": {
+                "type": "String"
+            }
+        }
+    },
+    "aiDataSourceHoursAgo": "{count}h ago",
+    "@aiDataSourceHoursAgo": {
+        "placeholders": {
+            "count": {
+                "type": "String"
+            }
+        }
+    },
+    "aiDataSourceCsvFile": "CSV File",
+    "aiDataSourceJsonFile": "JSON File",
+    "aiDataSources": "Data Sources",
+    "aiDataSourceAdd": "Add Data Source",
+    "aiDataSourceNoneConnected": "No Data Sources Connected",
+    "aiDataSourceNoneHint": "Connect a database so the AI can include its schema and sample rows\nwhen answering in Business or Personal chat.",
+    "aiDataSourceConnectFirst": "Connect Your First Data Source",
+    "aiDataSourceActive": "Active",
+    "aiDataSourceDisconnect": "Disconnect",
+    "aiDataSourceDeleteTitle": "Delete Data Source",
+    "aiDataSourceDeleteConfirm": "Are you sure you want to delete \"{name}\"? This will remove the connection and all associated data.",
+    "@aiDataSourceDeleteConfirm": {
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "aiDataSourceDeleted": "Data source \"{name}\" deleted",
+    "@aiDataSourceDeleted": {
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "aiWhatsappPhoneIdEmpty": "Phone Number ID cannot be empty",
+    "aiWhatsappPhoneIdInvalid": "Phone Number ID must contain only digits and be 5-15 characters long",
+    "aiWhatsappConnectedSuccess": "WhatsApp account connected successfully",
+    "aiWhatsappDisconnectedSuccess": "WhatsApp account disconnected successfully",
+    "aiWhatsappConnected": "Connected",
+    "aiWhatsappNotConnected": "Not connected",
+    "aiWhatsappAccountActive": "Account active",
+    "aiWhatsappSavedToBusiness": "Saved to your business account — it stays connected on other devices when you sign in.",
+    "aiWhatsappDisconnecting": "Disconnecting...",
+    "aiWhatsappDisconnect": "Disconnect",
+    "aiWhatsappConnectIntro": "Connect your WhatsApp Business account to receive and reply to customer messages.",
+    "aiWhatsappStep1": "Go to your Meta Business Suite",
+    "aiWhatsappStep2": "Find your Phone Number ID in WhatsApp settings",
+    "aiWhatsappStep3": "Paste it below and connect",
+    "aiWhatsappPhoneIdLabel": "Phone Number ID",
+    "aiWhatsappPhoneIdHint": "e.g., 101514826127381",
+    "aiWhatsappConnectionError": "Connection Error",
+    "aiWhatsappTryAgain": "Try Again",
+    "aiMessageHint": "Message",
+    "aiRecordingStartFailed": "Failed to start recording: {error}",
+    "@aiRecordingStartFailed": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "aiVoiceMessageSent": "Voice message sent!",
+    "aiAudioCorrupted": "Audio file is corrupted or incomplete",
+    "aiRecordingTooShort": "Recording too short (minimum 1 second)",
+    "aiRecordingStopFailed": "Failed to stop recording: {error}",
+    "@aiRecordingStopFailed": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "aiMicPermissionTitle": "Microphone Permission",
+    "aiMicPermissionBody": "Microphone access is required to record voice messages. Please enable it in your device settings.",
+    "aiFilePickError": "Error picking file: {error}",
+    "@aiFilePickError": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "aiSlideToCancel": "Slide to cancel",
+    "aiSlideUpToLock": "Slide up to lock",
+    "aiHoldAndSlide": "Hold & slide to control recording",
+    "aiExcelAnalysis": "Excel Analysis",
+    "aiExcelAnalystTitle": "AI Excel Business Analyst",
+    "aiExcelAnalystSubtitle": "Interactive Exploration & Visual Trends",
+    "aiModelDefaultSuffix": "{name} (Default)",
+    "@aiModelDefaultSuffix": {
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "aiExcelNoData": "No data found in Excel file",
+    "aiExcelSourceData": "Source Data:",
+    "aiExcelVisualAnalysis": "Visual Analysis:",
+    "aiChartRenderError": "Error rendering chart: {error}",
+    "@aiChartRenderError": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "aiExcelAskForCharts": "Ask questions to generate charts",
+    "aiExcelAnalystChat": "Analyst Chat",
+    "aiExcelAskHint": "Ask about this data...",
+    "aiAssistant": "AI Assistant",
+    "aiConversations": "Conversations",
+    "aiAdd": "Add",
+    "aiNewConversation": "New Conversation",
+    "aiDeleteConversation": "Delete Conversation",
+    "aiDaysAgo": "{count}d ago",
+    "@aiDaysAgo": {
+        "placeholders": {
+            "count": {
+                "type": "String"
+            }
+        }
+    },
+    "aiPurchaseCredits": "Purchase Credits",
+    "aiCopied": "Copied",
+    "aiProcessingExpandThinking": "AI is processing... Expand thinking to see details.",
+    "aiHideThinking": "Hide Thinking",
+    "aiShowThinking": "Show Thinking",
+    "aiWelcomeTitle": "Your Business AI Assistant",
+    "aiWelcomeSubtitle": "Ready to help you with insights about your business. Try asking one of the questions below.",
+    "aiSamplePersonalBooks": "What are some good books on leadership?",
+    "aiSamplePersonalEmail": "Help me draft an email to a potential partner.",
+    "aiSamplePersonalTime": "Give me some tips for better time management.",
+    "aiSampleBusinessSales": "What were my total sales last week?",
+    "aiSampleBusinessTopProducts": "Show me a breakdown of my top-selling products this month.",
+    "aiSampleBusinessTax": "Generate a tax summary for the last quarter.",
+    "aiTaxBreakdown": "TAX BREAKDOWN",
+    "aiTotalTax": "TOTAL TAX",
+    "aiTaxSummaryReport": "Tax Summary Report",
+    "aiCopyReport": "Copy Report",
+    "aiInventoryVisualization": "Inventory Visualization",
+    "aiComingSoon": "Coming Soon",
+    "uiTicketDue": "DUE",
+    "uiTicketAmount": "AMOUNT",
+    "aiYourShop": "your shop",
+    "aiBranchIdRequired": "Branch ID is required",
+    "aiNoResponse": "No response was produced. Please try again.",
+    "aiWhatsappSendMessageFailed": "Failed to send WhatsApp message: {error}",
+    "@aiWhatsappSendMessageFailed": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "aiChartNotFound": "Error: Could not find chart to copy.",
+    "aiChartImageFailed": "Error: Could not generate image data.",
+    "aiChartCopied": "Chart copied to clipboard!",
+    "aiChartCopyFailed": "Failed to copy chart: {error}",
+    "@aiChartCopyFailed": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "aiVoiceUnavailable": "Voice input isn't available on this platform yet.",
+    "aiVoiceStartFailed": "Could not start voice input: {error}",
+    "@aiVoiceStartFailed": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "aiMicAccessOff": "Microphone access is off. Enable it for Flipper in your system settings, then try again.",
+    "aiListenStartFailed": "Could not start listening: {error}",
+    "@aiListenStartFailed": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "aiVoiceNeedsNetwork": "Voice input needs a network connection right now.",
+    "aiMicInUse": "The microphone is in use by another app.",
+    "aiVoiceFailed": "Voice input failed ({error}).",
+    "@aiVoiceFailed": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "aiLocalUnavailable": "On-device AI is not available on this device.",
+    "aiLocalPreparing": "Preparing the on-device model…",
+    "aiLocalLoadFailed": "Could not load the on-device model: {error}",
+    "@aiLocalLoadFailed": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "aiLocalReadingShopData": "Reading your shop data…",
+    "aiLocalThinking": "Thinking on-device…",
+    "aiLocalGenerationFailed": "On-device generation failed: {error}",
+    "@aiLocalGenerationFailed": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "floBriefingSalesComingIn": "Sales are coming in today.",
+    "floBriefingBody": "Revenue reached <b>RWF {revenue}</b> across <b>{transactions}</b> ({units} units) so far today — live from your device.",
+    "@floBriefingBody": {
+        "placeholders": {
+            "revenue": {
+                "type": "String"
+            },
+            "transactions": {
+                "type": "String"
+            },
+            "units": {
+                "type": "String"
+            }
+        }
+    },
+    "floBriefingTransactions": "{count, plural, =1{1 transaction} other{{count} transactions}}",
+    "@floBriefingTransactions": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "floStatRevenue": "Revenue",
+    "floStatNetProfit": "Net profit",
+    "floStatUnitsSold": "Units sold",
+    "aiWhatsappNoBusiness": "No business selected — cannot save WhatsApp connection",
+    "aiWhatsappBusinessNotFound": "Business not found — cannot save WhatsApp connection",
+    "loginErrorTimeout": "The Flipper server took too long to answer. Your connection may be slow. Try again. (TIMEOUT)",
+    "@loginErrorTimeout": {
+        "description": "PIN login error; the code in parentheses stays untranslated for support"
+    },
+    "loginErrorSessionExpired": "Your session expired. Enter your PIN again. (SESSION)",
+    "loginErrorPinCheckFailed": "That PIN could not be checked. Try again. (PIN)",
+    "loginErrorBadResponse": "The Flipper server sent an unexpected response. Try again in a minute. (BAD-RESPONSE)",
+    "loginErrorTls": "Secure connection failed. Make sure your phone's date and time are set automatically, then try again. (TLS)",
+    "loginErrorTlsNetwork": "The connection to the Flipper server dropped before it was secured. Your network may be unstable. Try again, or switch between mobile data and Wi-Fi. (TLS-NET)",
+    "loginErrorDns": "Can't find the Flipper server. Your internet may be off or limited. Check mobile data or Wi-Fi. (DNS)",
+    "loginErrorNetwork": "Couldn't reach the Flipper server. Check your internet connection and try again. (NET)",
+    "loginErrorOfflineFirst": "This phone can't sign you in offline yet. Connect to the internet and sign in once, then offline sign-in will work. (OFFLINE-FIRST)",
+    "loginErrorUnknown": "Sign-in failed. Try again. (UNKNOWN)",
+    "loginErrorNoAccountForPin": "No account uses this PIN. Check the PIN and try again. (PIN-404)",
+    "loginErrorHttp404": "The Flipper server could not find what the app asked for. Update the app and try again. (HTTP-404)",
+    "loginErrorHttp429": "Too many attempts. Wait a minute, then try again. (HTTP-429)",
+    "loginErrorHttpRefused": "The Flipper server refused this request. Update the app and try again. (HTTP-{status})",
+    "@loginErrorHttpRefused": {
+        "placeholders": {
+            "status": {
+                "type": "String"
+            }
+        }
+    },
+    "loginErrorHttpServer": "Flipper servers are having trouble right now. Try again in a minute. (HTTP-{status})",
+    "@loginErrorHttpServer": {
+        "placeholders": {
+            "status": {
+                "type": "String"
+            }
+        }
+    },
+    "loginErrorHttpOther": "The Flipper server could not check this PIN. Try again. (HTTP-{status})",
+    "@loginErrorHttpOther": {
+        "placeholders": {
+            "status": {
+                "type": "String"
+            }
+        }
+    },
+    "loginYourBusiness": "your business",
+    "@loginYourBusiness": {
+        "description": "Fallback business name in 'Verified — opening {business}…'"
+    },
+    "loginPinRequired": "PIN is required",
+    "loginPinTooShort": "PIN must be at least 4 digits",
+    "loginPinTooLong": "PIN must be at most {max} digits",
+    "@loginPinTooLong": {
+        "placeholders": {
+            "max": {
+                "type": "String"
+            }
+        }
+    },
+    "loginAuthenticatorCodeRequired": "Authenticator code is required",
+    "loginOtpRequired": "OTP is required",
+    "loginAuthenticatorCodeInvalidFormat": "Authenticator code must be a 6-digit number.",
+    "loginOtpInvalidFormat": "OTP must be a 6-digit number.",
+    "loginInvalidPinReenter": "Invalid PIN. Please re-enter and try again.",
+    "loginAuthenticatorUnavailable": "Could not verify authenticator. Check your connection, or sign in online once so offline MFA can be cached.",
+    "loginAuthenticatorInvalidCode": "Invalid authenticator code. Please try again.",
+    "loginPinSubtitle": "Enter your PIN to manage your business securely.",
+    "loginSignedIn": "Signed in",
+    "loginSignIn": "Sign in",
+    "loginCreateAnAccount": "Create an account",
+    "loginNewToFlipperCreateAccount": "New to Flipper? Create an account",
+    "loginShowPin": "Show PIN",
+    "loginHidePin": "Hide PIN",
+    "loginShow": "Show",
+    "loginHide": "Hide",
+    "loginPinDigitsEntered": "{count, plural, =1{1 digit entered} other{{count} digits entered}}",
+    "@loginPinDigitsEntered": {
+        "description": "Screen-reader value for the PIN field",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "loginAuthenticator": "Authenticator",
+    "@loginAuthenticator": {
+        "description": "MFA method toggle: authenticator app (product term kept in rw/sw)"
+    },
+    "loginAuthenticatorCode": "Authenticator code",
+    "loginSmsCode": "SMS code",
+    "loginPinEntryCells": "PIN entry cells",
+    "loginVerifiedOpening": "Verified — opening {business}…",
+    "@loginVerifiedOpening": {
+        "placeholders": {
+            "business": {
+                "type": "String"
+            }
+        }
+    },
+    "loginShowOrHidePin": "Show or hide PIN",
+    "loginBackspace": "Backspace",
+    "loginSecuredE2e": "Secured with end-to-end encryption",
+    "loginBrandHeadline": "Your shop, your team, your numbers — all in one place.",
+    "loginBrandSubhead": "Pick up right where you left off. Today’s sales, stock, and reports are ready.",
+    "loginStatBusinesses": "businesses",
+    "@loginStatBusinesses": {
+        "description": "Label under the '12,400+' stat on the sign-in brand panel"
+    },
+    "loginStatProcessedMonthly": "processed monthly",
+    "loginStatUptime": "uptime",
+    "loginRevenueThisWeek": "Revenue · this week",
+    "loginNewSale": "New sale",
+    "loginSampleSaleDetail": "Solar Kit · MoMo",
+    "@loginSampleSaleDetail": {
+        "description": "Illustrative sale on the sign-in/landing hero cards"
+    },
+    "loginStreakDays": "{count, plural, =1{1 day} other{{count} days}}",
+    "@loginStreakDays": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "loginSalesStreak": "Sales streak",
+    "loginLandingSlide1Title": "Run your whole\nbusiness from one app",
+    "@loginLandingSlide1Title": {
+        "description": "Landing slide title; must contain loginLandingSlide1Highlight verbatim"
+    },
+    "loginLandingSlide1Highlight": "business",
+    "@loginLandingSlide1Highlight": {
+        "description": "Gradient-highlighted words; must appear verbatim in loginLandingSlide1Title"
+    },
+    "loginLandingSlide1Text": "Sell, track stock, and manage your team - Flipper is your business in your pocket.",
+    "loginLandingSlide2Title": "Simple, useful reports\nthat help you grow",
+    "@loginLandingSlide2Title": {
+        "description": "Landing slide title; must contain loginLandingSlide2Highlight verbatim"
+    },
+    "loginLandingSlide2Highlight": "reports",
+    "@loginLandingSlide2Highlight": {
+        "description": "Gradient-highlighted words; must appear verbatim in loginLandingSlide2Title"
+    },
+    "loginLandingSlide2Text": "See exactly what sells, what's running low, and where your money goes - every day.",
+    "loginLandingSlide3Title": "Get paid faster,\ntrack every franc",
+    "@loginLandingSlide3Title": {
+        "description": "Landing slide title; must contain loginLandingSlide3Highlight verbatim"
+    },
+    "loginLandingSlide3Highlight": "track every franc",
+    "@loginLandingSlide3Highlight": {
+        "description": "Gradient-highlighted words; must appear verbatim in loginLandingSlide3Title"
+    },
+    "loginLandingSlide3Text": "Accept MoMo, cash, and card. Flipper records every sale and reconciles it for you.",
+    "loginLandingSlide4Title": "Grow your business,\nearn rewards",
+    "@loginLandingSlide4Title": {
+        "description": "Landing slide title; must contain loginLandingSlide4Highlight verbatim"
+    },
+    "loginLandingSlide4Highlight": "earn rewards",
+    "@loginLandingSlide4Highlight": {
+        "description": "Gradient-highlighted words; must appear verbatim in loginLandingSlide4Title"
+    },
+    "loginLandingSlide4Text": "Hit daily goals, keep your streak alive, and level up from Bronze to Gold Seller.",
+    "loginLandingSemantic": "Flipper landing",
+    "loginNext": "Next",
+    "loginSkipIntroSemantic": "Skip intro and create account",
+    "loginSkipIntro": "Skip intro - Create account",
+    "loginAlreadySellingSignIn": "Already selling on Flipper? Sign in",
+    "loginDailyReport": "Daily report",
+    "loginStock": "Stock",
+    "loginTax": "Tax",
+    "loginGoldSeller": "Gold Seller",
+    "loginFinalizingAuthentication": "Finalizing authentication...",
+    "loginAuthTimedOut": "Authentication timed out. Please try again.",
+    "loginPhoneLoginNavigationFailed": "Failed to navigate to phone login",
+    "loginSignInFailed": "Sign in failed",
+    "loginAuthenticationFailed": "Authentication failed",
+    "loginUnexpectedError": "An unexpected error occurred",
+    "loginAuthDomainUnauthorized": "Authentication domain not authorized. Please contact support.",
+    "loginAccountDisabled": "This account has been disabled.",
+    "loginAccountExistsDifferentCredential": "An account already exists with the same email address but different sign-in credentials.",
+    "loginMicrosoftFailedWithReason": "Microsoft login failed: {error}",
+    "@loginMicrosoftFailedWithReason": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "loginMicrosoftFailed": "Microsoft login failed. Please try again later.",
+    "loginAppleAuthorizationFailed": "Apple authorization failed: {error}",
+    "@loginAppleAuthorizationFailed": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "loginAppleFailed": "Apple login failed: {error}",
+    "@loginAppleFailed": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "loginWelcomeToFlipper": "Welcome to Flipper",
+    "loginHowToSignIn": "How would you like to sign in?",
+    "loginLoggingIn": "Logging in...",
+    "loginTryAgainOrUsePin": "Please try again or use PIN login",
+    "loginSuccessful": "Login successful!",
+    "loginQrScanned": "QR Code scanned! Completing login...",
+    "loginFailedTryAgain": "Login failed. Please try again.",
+    "loginSuccessfulRedirecting": "Login successful! Redirecting...",
+    "loginQrTitle": "Log in to Flipper by QR Code",
+    "loginQrStep1": "1. Open Flipper on your phone",
+    "loginQrStep2": "2. Go to Profile Icon > LongPress on it.",
+    "loginQrStep3": "3. Point your phone at this screen to confirm login",
+    "loginDownloadApp": "Don't have the Flipper app? Download it:",
+    "loginOpeningAppStore": "Opening App Store...",
+    "loginOpeningPlayStore": "Opening Play Store...",
+    "loginSwitchToPin": "Switch to PIN login",
+    "loginDeviceOffline": "Device is offline",
+    "loginInvalidEmail": "Invalid Email",
+    "loginGmailRequired": "Gmail Email is required",
+    "loginEnterEmail": "Enter Email",
+    "loginAddEmailHint": "After entering your email, click on add email",
+    "signupErrorGeneric": "An error occurred during signup",
+    "signupOtpExpiredOrInvalid": "OTP expired or invalid. Please request a new code.",
+    "signupResendOtp": "Resend OTP",
+    "signupNewOtpSent": "New OTP sent successfully!",
+    "signupFailedToResendOtp": "Failed to resend OTP: {error}",
+    "@signupFailedToResendOtp": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "signupUsername": "Username",
+    "signupUsernameHint": "Enter your username",
+    "signupFullName": "Full Name",
+    "signupFullNameHint": "First name, Last name",
+    "signupPhoneOrEmail": "Phone / Email",
+    "signupPhoneOrEmailHint": "783054874 or your@email.com",
+    "signupOtpResent": "OTP resent successfully!",
+    "signupResend": "Resend",
+    "signupOtpSent": "OTP sent successfully!",
+    "signupFailedToSendOtp": "Failed to send OTP: {error}",
+    "@signupFailedToSendOtp": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "signupSendCode": "Send Code",
+    "signupOtpCode": "OTP Code",
+    "signupOtpHint": "Enter the 6-digit OTP",
+    "signupPhoneVerified": "Phone number verified successfully!",
+    "signupUsage": "Usage",
+    "@signupUsage": {
+        "description": "Signup field label for the business type / how the app will be used"
+    },
+    "signupCountry": "Country",
+    "signupSearchCountry": "Search your country",
+    "signupStepIdentity": "Identity",
+    "signupStepVerify": "Verify",
+    "signupStepOf": "Step {step} of {total}",
+    "@signupStepOf": {
+        "placeholders": {
+            "step": {
+                "type": "String"
+            },
+            "total": {
+                "type": "String"
+            }
+        }
+    },
+    "signupRewardTitle": "Finish setup to unlock 500 points",
+    "signupRewardSubtitle": "Spend points on lower fees & premium reports",
+    "signupStep1Title": "Who are you?",
+    "signupStep1Description": "This is how you’ll sign in and how teammates find you.",
+    "signupStep2Title": "How do we reach you?",
+    "signupStep2Description": "We’ll send a one-time code to verify it’s really you.",
+    "signupStep3Title": "Tell us about your shop",
+    "signupStep3Description": "We’ll tailor Flipper to how you sell.",
+    "signupCreateAccountClaim": "Create account · claim 500 pts",
+    "signupTermsAgreement": "By continuing you agree to Flipper’s {terms} & {privacy}",
+    "@signupTermsAgreement": {
+        "description": "{terms} and {privacy} are rendered as highlighted links (signupTermsLink, signupPrivacyLink)",
+        "placeholders": {
+            "terms": {
+                "type": "String"
+            },
+            "privacy": {
+                "type": "String"
+            }
+        }
+    },
+    "signupTermsLink": "Terms",
+    "signupPrivacyLink": "Privacy",
+    "signupVerificationFailed": "Verification failed",
+    "signupNameTooLong": "Name is too long",
+    "signupContactRequired": "Phone number or email is required",
+    "signupContactInvalid": "Please enter a valid phone number or email address",
+    "signupUsernameRequired": "Username/business name is required",
+    "signupUsernameTaken": "That username is already taken",
+    "signupUsernameCheckUnavailable": "Name search not available",
+    "signupOtpMustBe6Digits": "OTP must be 6 digits",
+    "signupOtpDigitsOnly": "OTP must contain only digits",
+    "signupValidateTin": "Please validate TIN",
+    "signupPhoneMustBeVerified": "Phone number must be verified",
+    "signupFieldRequired": "This field is required.",
+    "signupSelectOption": "Please select an option",
+    "signupJoinFlipper": "Join Flipper",
+    "signupJourneyTagline": "Start your journey with us today 🚀",
+    "signupNoMatches": "No matches",
+    "signupTinExtractFailed": "Could not extract TIN from the provided document",
+    "signupTinPdfError": "Error processing PDF: {error}",
+    "@signupTinPdfError": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "signupTinValidated": "TIN validated: {name}",
+    "@signupTinValidated": {
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "signupTinNoData": "No data found for this TIN",
+    "signupTinServiceUnavailable": "Service Unavailable: Validation skipped",
+    "signupTinValidationError": "Error validating TIN: {error}",
+    "@signupTinValidationError": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "phoneAuthSelectCountryTitle": "Select the country where your business is located",
+    "phoneAuthSearchCountry": "Search country...",
+    "phoneAuthAgreeSellerAgreement": "I agree to Flipper's Seller Agreement and Privacy Policy.",
+    "phoneAuthRecaptchaNotice": "This app is protected by reCAPTCHA Enterprise and Google Privacy Policy and Terms of Service apply.",
+    "phoneAuthEnterPhone": "Please enter your phone number",
+    "phoneAuthInvalidPhone": "Please enter a valid phone number",
+    "phoneAuthTitle": "Phone Verification",
+    "phoneAuthSubtitle": "We'll send a verification code to your phone number to verify your identity.",
+    "phoneAuthPhoneHint": "783054874 (without leading 0)",
+    "phoneAuthTermsAgreement": "By continuing, you agree to our {terms} and {privacy}",
+    "@phoneAuthTermsAgreement": {
+        "description": "{terms} and {privacy} are rendered as tappable links (phoneAuthTermsOfService, phoneAuthPrivacyPolicy)",
+        "placeholders": {
+            "terms": {
+                "type": "String"
+            },
+            "privacy": {
+                "type": "String"
+            }
+        }
+    },
+    "phoneAuthTermsOfService": "Terms of Service",
+    "phoneAuthPrivacyPolicy": "Privacy Policy",
+    "phoneAuthVerificationCode": "Verification Code",
+    "phoneAuthChangeNumber": "Change Phone Number",
+    "phoneAuthVerificationFailed": "Verification failed: {error}",
+    "@phoneAuthVerificationFailed": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "phoneAuthUnknownError": "An unknown error occurred",
+    "phoneAuthErrorOccurred": "An error occurred: {error}",
+    "@phoneAuthErrorOccurred": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "phoneAuthNewCodeSent": "New verification code sent",
+    "phoneAuthEnterValidCode": "Please enter a valid 6-digit code",
+    "phoneAuthCodeExpired": "This verification code has expired. Please request a new one.",
+    "phoneAuthFailedToVerify": "Failed to verify code: {error}",
+    "@phoneAuthFailedToVerify": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "phoneAuthAuthFailed": "Authentication failed: {error}",
+    "@phoneAuthAuthFailed": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "loginFailed": "Login failed"
 }

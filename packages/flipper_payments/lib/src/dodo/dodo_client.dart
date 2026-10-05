@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flipper_localize/flipper_localize.dart';
+
 import 'package:flipper_payments/src/http/payments_http_client.dart';
 import 'package:flipper_payments/src/logging.dart';
 import 'package:flipper_payments/src/dodo/dodo_models.dart';
@@ -76,8 +78,7 @@ class DodoClient {
         'Dodo $what: no response from $url within ${_timeout.inSeconds}s',
       );
       throw DodoException(
-        'The payments service did not respond. Check your connection and try '
-        'again.',
+        FlipperL10n.current.paywallServiceNoResponse,
         gatewayMessage: 'No response from $url after ${_timeout.inSeconds}s.',
       );
     } catch (e) {
@@ -86,8 +87,7 @@ class DodoClient {
       // broken payment otherwise.
       payLogError('Dodo $what: could not reach $url — $e');
       throw DodoException(
-        'Could not reach the payments service. Check your connection and try '
-        'again.',
+        FlipperL10n.current.paywallServiceUnreachable,
         gatewayMessage: 'Could not reach $url: $e',
       );
     }
@@ -167,9 +167,7 @@ class DodoClient {
     String? discountCode,
   }) async {
     if (businessId.trim().isEmpty) {
-      throw const DodoException(
-        'A business is required to start a card subscription.',
-      );
+      throw DodoException(FlipperL10n.current.paywallBusinessRequiredForCard);
     }
 
     final payload = <String, dynamic>{
@@ -211,7 +209,10 @@ class DodoClient {
       () => _http.post(url, headers: _headers, body: json.encode(payload)),
     );
 
-    final decoded = _requireObject(response, 'start a card subscription');
+    final decoded = _requireObject(
+      response,
+      FlipperL10n.current.paywallActionStartCardSubscription,
+    );
     final result = DodoStartResult.fromJson(decoded);
 
     if (result.planId.isEmpty || result.dodoSubscriptionId.isEmpty) {
@@ -222,8 +223,7 @@ class DodoClient {
         'Dodo start: HTTP ${response.statusCode} with no ids. ${response.body}',
       );
       throw DodoException(
-        'The card subscription started but the connector sent no reference. '
-        'Check the billing screen before trying again.',
+        FlipperL10n.current.paywallCardStartedNoReference,
         statusCode: response.statusCode,
       );
     }
@@ -242,7 +242,10 @@ class DodoClient {
       () => _http.get(url, headers: _headers),
     );
     return DodoSubscriptionStatus.fromJson(
-      _requireObject(response, 'read the card subscription'),
+      _requireObject(
+        response,
+        FlipperL10n.current.paywallActionReadCardSubscription,
+      ),
     );
   }
 
@@ -258,7 +261,10 @@ class DodoClient {
       () => _http.get(url, headers: _headers),
     );
     return DodoSubscriptionStatus.fromJson(
-      _requireObject(response, 'read the card subscription'),
+      _requireObject(
+        response,
+        FlipperL10n.current.paywallActionReadCardSubscription,
+      ),
     );
   }
 
@@ -276,7 +282,10 @@ class DodoClient {
       () => _http.post(url, headers: _headers, body: '{}'),
     );
     final status = DodoSubscriptionStatus.fromJson(
-      _requireObject(response, 'refresh the card subscription'),
+      _requireObject(
+        response,
+        FlipperL10n.current.paywallActionRefreshCardSubscription,
+      ),
     );
     payLogInfo('Dodo sync $id → $status');
     return status;
@@ -295,7 +304,10 @@ class DodoClient {
       url,
       () => _http.post(url, headers: _headers, body: '{}'),
     );
-    final decoded = _requireObject(response, 'get a new card link');
+    final decoded = _requireObject(
+      response,
+      FlipperL10n.current.paywallActionGetCardLink,
+    );
     final checkout = DodoCheckout.fromJson(
       decoded['checkout'] is Map
           ? Map<String, dynamic>.from(decoded['checkout'] as Map)
@@ -303,7 +315,7 @@ class DodoClient {
     );
     if (!checkout.hasLink) {
       throw DodoException(
-        'The connector did not return a link to update the card.',
+        FlipperL10n.current.paywallNoCardUpdateLink,
         statusCode: response.statusCode,
       );
     }
@@ -319,11 +331,14 @@ class DodoClient {
       url,
       () => _http.post(url, headers: _headers, body: '{}'),
     );
-    final decoded = _requireObject(response, 'open the billing portal');
+    final decoded = _requireObject(
+      response,
+      FlipperL10n.current.paywallActionOpenBillingPortal,
+    );
     final link = decoded['portal_link']?.toString().trim();
     if (link == null || link.isEmpty) {
       throw DodoException(
-        'The connector did not return a billing portal link.',
+        FlipperL10n.current.paywallNoPortalLink,
         statusCode: response.statusCode,
       );
     }
@@ -347,7 +362,10 @@ class DodoClient {
         body: json.encode({'at_period_end': atPeriodEnd}),
       ),
     );
-    return _requireObject(response, 'cancel the card subscription');
+    return _requireObject(
+      response,
+      FlipperL10n.current.paywallActionCancelCardSubscription,
+    );
   }
 
   // ── internals ────────────────────────────────────────────────────────────
@@ -378,6 +396,8 @@ class DodoClient {
   /// The connector already maps its failures onto meaningful codes — a Dodo 404
   /// stays a 404, a tier with no product configured is a 400, a disabled rail is
   /// a 503 — so the status is worth keeping alongside the message.
+  /// [what] is the localized action phrase shown in the failure message, e.g.
+  /// "start a card subscription".
   static Map<String, dynamic> _requireObject(
     http.Response response,
     String what,
@@ -387,21 +407,21 @@ class DodoClient {
 
     if (status == 401 || status == 403) {
       throw DodoException(
-        'Card payment is not authorised on this connector.',
+        FlipperL10n.current.paywallCardNotAuthorised,
         statusCode: status,
         gatewayMessage: gateway,
       );
     }
     if (status == 503) {
       throw DodoException(
-        'Card payment is not available right now. Use Mobile Money, or try again later.',
+        FlipperL10n.current.paywallCardUnavailable,
         statusCode: status,
         gatewayMessage: gateway,
       );
     }
     if (status < 200 || status >= 300) {
       throw DodoException(
-        'Could not $what (HTTP $status).',
+        FlipperL10n.current.paywallCouldNotAction(what, '$status'),
         statusCode: status,
         gatewayMessage: gateway,
       );
@@ -410,7 +430,7 @@ class DodoClient {
     final decoded = _decodeObject(response.body);
     if (decoded == null) {
       throw DodoException(
-        'The billing service sent an unreadable reply (HTTP $status).',
+        FlipperL10n.current.paywallUnreadableReply('$status'),
         statusCode: status,
       );
     }

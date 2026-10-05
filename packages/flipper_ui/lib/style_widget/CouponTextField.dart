@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -12,7 +13,7 @@ class CustomizableTextField extends StatefulWidget {
     required this.controller,
     required this.validateState,
     required this.onCouponChanged,
-    this.wording = 'Enter Coupon Code',
+    this.wording,
   }) : super(key: key);
 
   @override
@@ -61,7 +62,7 @@ class _CustomizableTextFieldState extends State<CustomizableTextField> {
       child: TextField(
         controller: widget.controller,
         decoration: InputDecoration(
-          labelText: widget.wording,
+          labelText: widget.wording ?? context.flipperL10n.uiEnterCouponCode,
           border: _border,
           enabledBorder: _border,
           focusedBorder: _border,
