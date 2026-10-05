@@ -1,10 +1,10 @@
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/talker.dart';
+import 'package:flipper_models/services/purchase_approval_deps.dart';
 import 'package:flipper_models/sync/utils/branch_transfer_rra.dart';
 import 'package:flipper_models/sync/utils/rra_new_variant_register.dart';
 import 'package:flipper_models/sync/utils/rra_sar_sequence.dart';
 import 'package:flipper_services/constants.dart';
-import 'package:flipper_services/proxy.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:meta/meta.dart';
 import 'package:supabase_models/brick/models/sars.model.dart';
@@ -39,6 +39,7 @@ Future<BranchTransferRraResult> reportPurchaseStockInToRra({
   required String branchId,
   required List<PurchaseStockInLine> lines,
   required String supplierName,
+  required PurchaseApprovalDeps deps,
   String supplierTin = '',
   String? businessId,
   @visibleForTesting Future<Ebm?> Function(String businessId)? resolveEbm,
@@ -48,13 +49,13 @@ Future<BranchTransferRraResult> reportPurchaseStockInToRra({
   if (stocked.isEmpty) return BranchTransferRraResult.skipped;
 
   try {
-    final branchEbm = await ProxyService.strategy.ebm(
+    final branchEbm = await deps.strategy.ebm(
       branchId: branchId,
       fetchRemote: false,
     );
     if (branchEbm?.vatEnabled != true) return BranchTransferRraResult.skipped;
 
-    final resolvedBusinessId = businessId ?? ProxyService.box.getBusinessId();
+    final resolvedBusinessId = businessId ?? deps.businessId;
     if (resolvedBusinessId == null || resolvedBusinessId.isEmpty) {
       return BranchTransferRraResult.skipped;
     }
@@ -112,7 +113,7 @@ Future<BranchTransferRraResult> reportPurchaseStockInToRra({
             ));
     final hasTin = RegExp(r'^\d{9}$').hasMatch(supplierTin.trim());
     final ioResp = await retryTransientRraCall(
-      () => ProxyService.tax.saveStockItems(
+      () => deps.tax.saveStockItems(
         items: items,
         updateMaster: false,
         tinNumber: tin,
@@ -151,7 +152,7 @@ Future<BranchTransferRraResult> reportPurchaseStockInToRra({
     var mastersSucceeded = true;
     for (final line in stocked) {
       final resp = await retryTransientRraCall(
-        () => ProxyService.tax.saveStockMaster(
+        () => deps.tax.saveStockMaster(
           variant: line.variant,
           URI: taxUrl,
           stockMasterQty: line.onHandAfter,
@@ -160,10 +161,7 @@ Future<BranchTransferRraResult> reportPurchaseStockInToRra({
       if (resp.resultCd == '000') {
         final stockId = line.stockId;
         if (stockId != null) {
-          await ProxyService.strategy.updateStock(
-            stockId: stockId,
-            ebmSynced: true,
-          );
+          await deps.strategy.updateStock(stockId: stockId, ebmSynced: true);
         }
       } else {
         mastersSucceeded = false;

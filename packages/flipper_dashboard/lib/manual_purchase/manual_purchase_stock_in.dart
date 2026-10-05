@@ -1,10 +1,10 @@
 import 'package:flipper_dashboard/features/import_purchase/ipm_purchase_line_defaults.dart';
-import 'package:flipper_models/SyncStrategy.dart';
+import 'package:flipper_models/DatabaseSyncInterface.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/talker.dart';
+import 'package:flipper_models/services/purchase_approval_deps.dart';
 import 'package:flipper_models/sync/capella/manual_purchase_ditto.dart';
 import 'package:flipper_models/sync/utils/purchase_stock_rra.dart';
-import 'package:flipper_services/proxy.dart';
 
 /// What approving a manual purchase did to stock.
 class ManualPurchaseStockInResult {
@@ -55,8 +55,8 @@ PurchaseLineStockAction planPurchaseLineStockIn(
 Future<({double onHand, String? stockId})> addPurchasedStock({
   required Variant variant,
   required double qty,
+  required DatabaseSyncInterface capella,
 }) async {
-  final capella = ProxyService.getStrategy(Strategy.capella);
   final now = DateTime.now().toUtc();
   final unitPrice = (variant.retailPrice ?? variant.supplyPrice ?? 0)
       .toDouble();
@@ -103,8 +103,9 @@ Future<({double onHand, String? stockId})> addPurchasedStock({
 /// The stock-in is reported to RRA; a failure there is returned, not thrown.
 Future<ManualPurchaseStockInResult> stockInManualPurchase(
   Purchase purchase,
+  PurchaseApprovalDeps deps,
 ) async {
-  final capella = ProxyService.getStrategy(Strategy.capella);
+  final capella = deps.capella;
   final targets = await ManualPurchaseDitto.catalogTargets(purchase.id);
   final reported = <PurchaseStockInLine>[];
   var created = 0;
@@ -132,7 +133,11 @@ Future<ManualPurchaseStockInResult> stockInManualPurchase(
       created++;
     }
 
-    final added = await addPurchasedStock(variant: target, qty: qty);
+    final added = await addPurchasedStock(
+      variant: target,
+      qty: qty,
+      capella: capella,
+    );
     await ManualPurchaseDitto.markLineStockedIn(
       line: line,
       targetVariantId: target.id,
@@ -154,9 +159,10 @@ Future<ManualPurchaseStockInResult> stockInManualPurchase(
   await ManualPurchaseDitto.markPurchaseApproved(purchase);
 
   final rra = await reportPurchaseStockInToRra(
-    branchId: purchase.branchId ?? ProxyService.box.getBranchId() ?? '',
+    branchId: purchase.branchId ?? deps.branchId ?? '',
     lines: reported,
     supplierName: purchase.spplrNm,
+    deps: deps,
     supplierTin: purchase.spplrTin,
   );
   return ManualPurchaseStockInResult(

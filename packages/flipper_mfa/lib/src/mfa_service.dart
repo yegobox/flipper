@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'dart:math';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -10,11 +11,14 @@ enum TotpVerifyOutcome {
   /// Code matched the stored secret.
   valid,
 
-  /// Secret was available; code did not match (or no secret anywhere).
+  /// Secret was available; code did not match.
   invalidCode,
 
   /// Could not fetch remote secret and no local cache to verify against.
   unavailable,
+
+  /// The server answered but has no authenticator secret for this user.
+  notEnrolled,
 }
 
 class MfaService {
@@ -147,42 +151,75 @@ class MfaService {
     if (cached != null && cached.isNotEmpty) {
       final outcome = _verifyAgainstSecret(cached, code);
       if (outcome == TotpVerifyOutcome.valid || localOnly) return outcome;
-      final fresh = await _fetchAndCacheSecret(userId: userId, pin: pin);
-      if (fresh == null || fresh == cached) return outcome;
+      final fetched = await _fetchSecret(userId: userId, pin: pin);
+      final fresh = fetched.secret;
+      if (fresh == null) {
+        // The server dropped the secret (MFA removed): say so, rather than
+        // blaming the code. Unreachable keeps the cached-secret verdict.
+        return fetched.reached ? TotpVerifyOutcome.notEnrolled : outcome;
+      }
+      if (fresh == cached) return outcome;
       return _verifyAgainstSecret(fresh, code);
     }
 
     if (localOnly) return TotpVerifyOutcome.unavailable;
-    final fresh = await _fetchAndCacheSecret(userId: userId, pin: pin);
-    if (fresh == null) return TotpVerifyOutcome.unavailable;
+    final fetched = await _fetchSecret(userId: userId, pin: pin);
+    final fresh = fetched.secret;
+    if (fresh == null) {
+      return fetched.reached
+          ? TotpVerifyOutcome.notEnrolled
+          : TotpVerifyOutcome.unavailable;
+    }
     return _verifyAgainstSecret(fresh, code);
   }
 
   Future<String?> _fetchAndCacheSecret({
     required String userId,
     int? pin,
+  }) async => (await _fetchSecret(userId: userId, pin: pin)).secret;
+
+  /// [reached] is true when the server answered, so a null [secret] means
+  /// the user has no authenticator enrolled rather than a network failure.
+  Future<({String? secret, bool reached})> _fetchSecret({
+    required String userId,
+    int? pin,
   }) async {
+    final String? secret;
     try {
-      final secret = await _remoteSecret(
-        userId,
-      ).timeout(const Duration(seconds: 5));
-      if (secret == null || secret.isEmpty) return null;
-      await LocalMfaSecretCache.save(userId: userId, secret: secret, pin: pin);
-      return secret;
-    } catch (_) {
-      return null;
+      secret = await _remoteSecret(userId).timeout(const Duration(seconds: 5));
+    } catch (e) {
+      debugPrint('MFA secret fetch failed for $userId: $e');
+      return (secret: null, reached: false);
     }
+    if (secret == null || secret.isEmpty) {
+      return (secret: null, reached: true);
+    }
+    try {
+      await LocalMfaSecretCache.save(userId: userId, secret: secret, pin: pin);
+    } catch (e) {
+      // Still verify this sign-in; the next one fetches again.
+      debugPrint('MFA secret cache write failed: $e');
+    }
+    return (secret: secret, reached: true);
   }
 
   /// Seed the on-device secret after PIN validation so the authenticator
   /// check that follows needs no network. No-op when already cached.
+  ///
+  /// Never throws: callers fire it in the background with `unawaited`, so a
+  /// cache failure here must not surface as an unhandled async error.
   Future<bool> prefetchAndCacheSecret({
     required String userId,
     int? pin,
   }) async {
-    final cached = await LocalMfaSecretCache.read(userId, pin: pin);
-    if (cached != null && cached.isNotEmpty) return true;
-    return await _fetchAndCacheSecret(userId: userId, pin: pin) != null;
+    try {
+      final cached = await LocalMfaSecretCache.read(userId, pin: pin);
+      if (cached != null && cached.isNotEmpty) return true;
+      return await _fetchAndCacheSecret(userId: userId, pin: pin) != null;
+    } catch (e) {
+      debugPrint('MFA secret prefetch failed: $e');
+      return false;
+    }
   }
 
   /// Persist [secret] for [userId] on this device (call after MFA setup).

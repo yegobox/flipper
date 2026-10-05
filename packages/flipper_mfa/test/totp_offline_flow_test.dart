@@ -89,10 +89,54 @@ void main() {
   );
 
   test('no cached secret and server unreachable: unavailable', () async {
+    final offline = MfaService(
+      remoteSecret: (_) async => throw const SocketException('offline'),
+    );
+    expect(
+      await offline.verifyTotpForUser(userId: userId, code: '123456'),
+      TotpVerifyOutcome.unavailable,
+    );
+  });
+
+  test('server has no secret for the user: notEnrolled', () async {
     remoteValue = null;
     expect(
       await mfa.verifyTotpForUser(userId: userId, code: '123456'),
-      TotpVerifyOutcome.unavailable,
+      TotpVerifyOutcome.notEnrolled,
+    );
+    expect(remoteCalls, 1);
+  });
+
+  test('cached secret but MFA removed on the server: notEnrolled', () async {
+    await mfa.cacheSecretLocally(userId: userId, secret: secret);
+    remoteValue = null;
+    expect(
+      await mfa.verifyTotpForUser(userId: userId, code: '000000'),
+      TotpVerifyOutcome.notEnrolled,
+    );
+    expect(remoteCalls, 1);
+  });
+
+  test('prefetch never throws when the server fails', () async {
+    final failing = MfaService(
+      remoteSecret: (_) async => throw StateError('boom'),
+    );
+    expect(await failing.prefetchAndCacheSecret(userId: userId), isFalse);
+  });
+
+  test('a later sign-in uses the secret prefetched after SMS', () async {
+    expect(await mfa.prefetchAndCacheSecret(userId: userId, pin: 4321), isTrue);
+    expect(remoteCalls, 1);
+    final offline = MfaService(
+      remoteSecret: (_) async => throw const SocketException('offline'),
+    );
+    expect(
+      await offline.verifyTotpForUser(
+        userId: userId,
+        code: totp.generateTOTPCode(secret),
+        pin: 4321,
+      ),
+      TotpVerifyOutcome.valid,
     );
   });
 
