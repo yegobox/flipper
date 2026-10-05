@@ -7,6 +7,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_mode_admin_section.dart';
 import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_mode_admin_section.dart';
 import 'package:flipper_dashboard/features/service_mode_device_section.dart';
+import 'package:flipper_dashboard/features/till_hardware_section.dart';
 import 'package:flipper_dashboard/ReinitializeEbm.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/TaxSettingsModal.dart';
@@ -1274,6 +1275,8 @@ class _AdminControlState extends ConsumerState<AdminControl> {
                   // branch with no service mode on, and a fixed SizedBox here
                   // would leave a double gap in the common case.
                   const ServiceModeDeviceSection(),
+                  // Desktop only; carries its own top gap like the one above.
+                  const TillHardwareSection(),
                   const SizedBox(height: 28),
                   _buildMainSections(context),
                 ],

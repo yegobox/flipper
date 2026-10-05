@@ -18529,5 +18529,85 @@
     "webSignupNetworkSendCode": "Network error while sending the code. Please try again.",
     "webSignupContactExists": "Contact already exists",
     "webSignupSendOtpFailed": "Failed to send OTP for signup",
-    "webSignupNetworkCheckCode": "Network error while checking the code. Please try again."
+    "webSignupNetworkCheckCode": "Network error while checking the code. Please try again.",
+    "tillHardwareTitle": "Printer & customer display",
+    "@tillHardwareTitle": {
+        "description": "Admin Control section for this till's receipt printer and back display"
+    },
+    "tillHardwareSubtitle": "Hardware on this till only. Not shared with other devices.",
+    "receiptPrinterLabel": "Receipt printer",
+    "receiptPrinterAuto": "Receipts print here automatically after every sale.",
+    "receiptPrinterAutomatic": "Choose automatically",
+    "@receiptPrinterAutomatic": {
+        "description": "Printer dropdown option: use the till's only paper printer, or ask when there are several"
+    },
+    "receiptPrinterNotPaper": "{name} (not a paper printer)",
+    "@receiptPrinterNotPaper": {
+        "description": "Marks PDF/XPS/OneNote/Fax/AnyDesk printers in the dropdown",
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "receiptPrinterNoneFound": "Windows reports no printers. Install the printer driver, then reopen this page.",
+    "receiptPrinterTest": "Test print",
+    "receiptPrinterTestSent": "Test page sent to {printer}",
+    "@receiptPrinterTestSent": {
+        "placeholders": {
+            "printer": {
+                "type": "String"
+            }
+        }
+    },
+    "receiptPrinterTestFailed": "{printer} did not accept the test page: {error}",
+    "@receiptPrinterTestFailed": {
+        "placeholders": {
+            "printer": {
+                "type": "String"
+            },
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "customerDisplayLabel": "Customer display",
+    "@customerDisplayLabel": {
+        "description": "The small numeric display on the back of the till, facing the customer"
+    },
+    "customerDisplayHint": "Shows the total, then the change, on the small display on the back of the till.",
+    "customerDisplayOff": "Off",
+    "customerDisplaySerial": "On a COM port",
+    "customerDisplayPort": "Port",
+    "customerDisplayBaud": "Speed (baud)",
+    "customerDisplayNoPorts": "This till reports no COM ports.",
+    "customerDisplayWindowsOnly": "Customer displays are supported on Windows tills.",
+    "customerDisplayTest": "Test display",
+    "customerDisplayTestSent": "Every segment (8.8.8.8.8.8.8.8) should now be lit on the back display.",
+    "customerDisplayFind": "Find automatically",
+    "customerDisplayFindPrompt": "Trying {port} at {baud} baud. Does the back display show 8.8.8.8.8.8.8.8?",
+    "@customerDisplayFindPrompt": {
+        "placeholders": {
+            "port": {
+                "type": "String"
+            },
+            "baud": {
+                "type": "String"
+            }
+        }
+    },
+    "customerDisplayFindYes": "Yes, it does",
+    "customerDisplayFindNo": "No, try next",
+    "customerDisplayFound": "Customer display set to {port} at {baud} baud",
+    "@customerDisplayFound": {
+        "placeholders": {
+            "port": {
+                "type": "String"
+            },
+            "baud": {
+                "type": "String"
+            }
+        }
+    },
+    "customerDisplayNotFound": "No setting lit the display. Check its cable, or pick the port and speed by hand."
 }

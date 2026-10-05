@@ -24497,4 +24497,100 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   @override
   String get webSignupNetworkCheckCode =>
       'Hitilafu ya mtandao wakati wa kukagua msimbo. Tafadhali jaribu tena.';
+
+  @override
+  String get tillHardwareTitle => 'Printa na skrini ya mteja';
+
+  @override
+  String get tillHardwareSubtitle =>
+      'Vifaa vya kituo hiki cha malipo pekee. Havishirikiwi na vifaa vingine.';
+
+  @override
+  String get receiptPrinterLabel => 'Printa ya risiti';
+
+  @override
+  String get receiptPrinterAuto =>
+      'Risiti huchapishwa hapa kiotomatiki baada ya kila mauzo.';
+
+  @override
+  String get receiptPrinterAutomatic => 'Chagua kiotomatiki';
+
+  @override
+  String receiptPrinterNotPaper(String name) {
+    return '$name (si printa ya karatasi)';
+  }
+
+  @override
+  String get receiptPrinterNoneFound =>
+      'Windows haionyeshi printa yoyote. Sakinisha programu ya printa, kisha fungua ukurasa huu tena.';
+
+  @override
+  String get receiptPrinterTest => 'Chapisha jaribio';
+
+  @override
+  String receiptPrinterTestSent(String printer) {
+    return 'Ukurasa wa jaribio umetumwa kwa $printer';
+  }
+
+  @override
+  String receiptPrinterTestFailed(String printer, String error) {
+    return '$printer haikupokea ukurasa wa jaribio: $error';
+  }
+
+  @override
+  String get customerDisplayLabel => 'Skrini ya mteja';
+
+  @override
+  String get customerDisplayHint =>
+      'Huonyesha jumla, kisha chenji, kwenye skrini ndogo nyuma ya kituo cha malipo.';
+
+  @override
+  String get customerDisplayOff => 'Imezimwa';
+
+  @override
+  String get customerDisplaySerial => 'Kwenye mlango wa COM';
+
+  @override
+  String get customerDisplayPort => 'Mlango';
+
+  @override
+  String get customerDisplayBaud => 'Kasi (baud)';
+
+  @override
+  String get customerDisplayNoPorts =>
+      'Kituo hiki hakionyeshi mlango wowote wa COM.';
+
+  @override
+  String get customerDisplayWindowsOnly =>
+      'Skrini za mteja zinatumika kwenye vituo vya malipo vya Windows.';
+
+  @override
+  String get customerDisplayTest => 'Jaribu skrini';
+
+  @override
+  String get customerDisplayTestSent =>
+      'Sehemu zote (8.8.8.8.8.8.8.8) sasa zinapaswa kuwaka kwenye skrini ya nyuma.';
+
+  @override
+  String get customerDisplayFind => 'Tafuta kiotomatiki';
+
+  @override
+  String customerDisplayFindPrompt(String port, String baud) {
+    return 'Inajaribu $port kwa baud $baud. Je, skrini ya nyuma inaonyesha 8.8.8.8.8.8.8.8?';
+  }
+
+  @override
+  String get customerDisplayFindYes => 'Ndiyo';
+
+  @override
+  String get customerDisplayFindNo => 'Hapana, jaribu inayofuata';
+
+  @override
+  String customerDisplayFound(String port, String baud) {
+    return 'Skrini ya mteja imewekwa kwenye $port kwa baud $baud';
+  }
+
+  @override
+  String get customerDisplayNotFound =>
+      'Hakuna mpangilio ulioiwasha skrini. Kagua kebo yake, au chagua mlango na kasi wewe mwenyewe.';
 }
