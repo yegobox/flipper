@@ -24593,4 +24593,70 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   @override
   String get customerDisplayNotFound =>
       'Hakuna mpangilio ulioiwasha skrini. Kagua kebo yake, au chagua mlango na kasi wewe mwenyewe.';
+
+  @override
+  String get builtinPrinterLabel => 'Printa ya risiti iliyojengewa ndani';
+
+  @override
+  String get builtinPrinterHint =>
+      'Printa ya mm 58 ya mashine hii, inatumika moja kwa moja — hakuna programu ya printa ya Windows inayohitajika. Inapatikana yenyewe kwenye risiti ya kwanza.';
+
+  @override
+  String builtinPrinterUsing(String printer) {
+    return 'Inatumia $printer';
+  }
+
+  @override
+  String get builtinPrinterNotFound => 'Bado haijapatikana.';
+
+  @override
+  String get builtinPrinterOff =>
+      'Imezimwa. Risiti zinatumia printa ya Windows hapo juu.';
+
+  @override
+  String get builtinPrinterSearch => 'Tafuta';
+
+  @override
+  String get builtinPrinterSearching => 'Inatafuta…';
+
+  @override
+  String get builtinPrinterFind => 'Tafuta printa';
+
+  @override
+  String get builtinPrinterTurnOff => 'Zima';
+
+  @override
+  String get builtinPrinterTurnOn => 'Washa';
+
+  @override
+  String builtinPrinterFound(String printer) {
+    return 'Printa iliyojengewa ndani imepatikana: $printer';
+  }
+
+  @override
+  String get builtinPrinterNoneAnswered =>
+      'Hakuna printa iliyojengewa ndani iliyojibu. Angalia karatasi na umeme, kisha jaribu Tafuta printa.';
+
+  @override
+  String builtinPrinterFindPrompt(String printer) {
+    return 'Mstari wa majaribio umetumwa kwa $printer. Je, umechapishwa?';
+  }
+
+  @override
+  String get builtinPrinterTestSent =>
+      'Ukurasa wa majaribio umetumwa kwa printa iliyojengewa ndani';
+
+  @override
+  String get builtinPrinterQrLabel => 'Msimbo wa QR wa risiti';
+
+  @override
+  String get builtinPrinterQrImage =>
+      'Picha (inafanya kazi kwenye kila printa)';
+
+  @override
+  String get builtinPrinterQrNative => 'Ya printa (ikiwa QR B imechapishwa)';
+
+  @override
+  String get builtinPrinterWindowsOnly =>
+      'Printa zilizojengewa ndani zinatumika kwenye mashine za Windows.';
 }

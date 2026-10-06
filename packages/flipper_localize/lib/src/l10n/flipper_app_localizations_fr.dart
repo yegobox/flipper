@@ -24834,4 +24834,71 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   @override
   String get customerDisplayNotFound =>
       'Aucun réglage n\'a allumé l\'afficheur. Vérifiez son câble ou choisissez le port et la vitesse manuellement.';
+
+  @override
+  String get builtinPrinterLabel => 'Imprimante de reçus intégrée';
+
+  @override
+  String get builtinPrinterHint =>
+      'L\'imprimante 58 mm de la caisse, utilisée directement — aucun pilote Windows nécessaire. Elle est détectée automatiquement au premier reçu.';
+
+  @override
+  String builtinPrinterUsing(String printer) {
+    return 'Utilise $printer';
+  }
+
+  @override
+  String get builtinPrinterNotFound => 'Pas encore trouvée.';
+
+  @override
+  String get builtinPrinterOff =>
+      'Désactivée. Les reçus utilisent l\'imprimante Windows ci-dessus.';
+
+  @override
+  String get builtinPrinterSearch => 'Rechercher';
+
+  @override
+  String get builtinPrinterSearching => 'Recherche…';
+
+  @override
+  String get builtinPrinterFind => 'Trouver l\'imprimante';
+
+  @override
+  String get builtinPrinterTurnOff => 'Désactiver';
+
+  @override
+  String get builtinPrinterTurnOn => 'Activer';
+
+  @override
+  String builtinPrinterFound(String printer) {
+    return 'Imprimante intégrée trouvée : $printer';
+  }
+
+  @override
+  String get builtinPrinterNoneAnswered =>
+      'Aucune imprimante intégrée n\'a répondu. Vérifiez le papier et l\'alimentation, puis essayez Trouver l\'imprimante.';
+
+  @override
+  String builtinPrinterFindPrompt(String printer) {
+    return 'Une ligne de test a été envoyée à $printer. S\'est-elle imprimée ?';
+  }
+
+  @override
+  String get builtinPrinterTestSent =>
+      'Page de test envoyée à l\'imprimante intégrée';
+
+  @override
+  String get builtinPrinterQrLabel => 'Code QR du reçu';
+
+  @override
+  String get builtinPrinterQrImage =>
+      'Image (fonctionne sur toutes les imprimantes)';
+
+  @override
+  String get builtinPrinterQrNative =>
+      'Celui de l\'imprimante (si QR B s\'est imprimé)';
+
+  @override
+  String get builtinPrinterWindowsOnly =>
+      'Les imprimantes intégrées sont prises en charge sur les caisses Windows.';
 }

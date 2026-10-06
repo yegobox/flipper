@@ -18609,5 +18609,44 @@
             }
         }
     },
-    "customerDisplayNotFound": "No setting lit the display. Check its cable, or pick the port and speed by hand."
+    "customerDisplayNotFound": "No setting lit the display. Check its cable, or pick the port and speed by hand.",
+    "builtinPrinterLabel": "Built-in receipt printer",
+    "builtinPrinterHint": "The till's own 58 mm printer, used directly — no Windows driver needed. It is found automatically on the first receipt.",
+    "builtinPrinterUsing": "Using {printer}",
+    "@builtinPrinterUsing": {
+        "placeholders": {
+            "printer": {
+                "type": "String"
+            }
+        }
+    },
+    "builtinPrinterNotFound": "Not found yet.",
+    "builtinPrinterOff": "Off. Receipts use the Windows printer above.",
+    "builtinPrinterSearch": "Search",
+    "builtinPrinterSearching": "Searching…",
+    "builtinPrinterFind": "Find printer",
+    "builtinPrinterTurnOff": "Turn off",
+    "builtinPrinterTurnOn": "Turn on",
+    "builtinPrinterFound": "Built-in printer found: {printer}",
+    "@builtinPrinterFound": {
+        "placeholders": {
+            "printer": {
+                "type": "String"
+            }
+        }
+    },
+    "builtinPrinterNoneAnswered": "No built-in printer answered. Check paper and power, then try Find printer.",
+    "builtinPrinterFindPrompt": "A test line was sent to {printer}. Did it print?",
+    "@builtinPrinterFindPrompt": {
+        "placeholders": {
+            "printer": {
+                "type": "String"
+            }
+        }
+    },
+    "builtinPrinterTestSent": "Test page sent to the built-in printer",
+    "builtinPrinterQrLabel": "Receipt QR code",
+    "builtinPrinterQrImage": "Image (works on every printer)",
+    "builtinPrinterQrNative": "Printer's own (if QR B printed)",
+    "builtinPrinterWindowsOnly": "Built-in printers are supported on Windows tills."
 }

@@ -25,6 +25,7 @@ import 'package:flutter/material.dart';
 import 'package:flipper_models/helpers/desktop_pdf_open.dart';
 import 'package:flipper_models/helpers/receipt_pdf_filename.dart';
 import 'package:flipper_models/helpers/receipt_printer_autoselect.dart';
+import 'package:flipper_services/builtin_printer/builtin_printer_service.dart';
 import 'package:flipper_models/widgets/printer_picker_dialog.dart';
 import 'package:universal_platform/universal_platform.dart';
 
@@ -596,6 +597,10 @@ mixin TransactionMixinOld {
         'printed from this device',
       );
     } else {
+      if (!alwaysShowPicker &&
+          await _printOnBuiltinPrinter(bytes, probeSerial: false)) {
+        return;
+      }
       List<Printer> printers;
       try {
         printers = await Printing.listPrinters().timeout(
@@ -664,6 +669,14 @@ mixin TransactionMixinOld {
           );
           ProxyService.box.writeString(key: 'defaultPrinter', value: auto.name);
         }
+      }
+
+      // No Windows printer to use: a fresh till without a driver. Look for a
+      // built-in one before asking the cashier to pick.
+      if (!alwaysShowPicker &&
+          selectedPrinter == null &&
+          await _printOnBuiltinPrinter(bytes, probeSerial: true)) {
+        return;
       }
 
       if (selectedPrinter == null) {
@@ -964,6 +977,7 @@ mixin TransactionMixinOld {
   /// rather than treat the receipt as delivered.
   Future<bool> _printOnSavedDefaultPrinter(Uint8List bytes) async {
     if (Platform.isAndroid || Platform.isIOS) return false;
+    if (await _printOnBuiltinPrinter(bytes, probeSerial: false)) return true;
     final savedPrinterName = ProxyService.box.readString(key: 'defaultPrinter');
     try {
       final printers = await Printing.listPrinters().timeout(
@@ -977,7 +991,8 @@ mixin TransactionMixinOld {
         }
       }
       match ??= pickAutoReceiptPrinter(printers);
-      if (match == null) return false;
+      if (match == null)
+        return _printOnBuiltinPrinter(bytes, probeSerial: true);
       await Printing.directPrintPdf(
         printer: match,
         onLayout: (PdfPageFormat format) async => bytes,
@@ -990,6 +1005,33 @@ mixin TransactionMixinOld {
       );
       return false;
     }
+  }
+
+  /// Prints the receipt's ESC/POS rendering (see [receiptEscPos]) on the
+  /// till's built-in thermal printer, with no Windows driver involved.
+  ///
+  /// Uses the saved built-in printer, else one that is plugged in and
+  /// identifies itself without printing (a USB receipt printer, a printer on
+  /// LPT) — preferred over Windows queues, which on tills are often set up
+  /// for the wrong paper or point at a dead port. [probeSerial] also walks
+  /// the COM ports, which takes seconds: only when Windows has no printer.
+  Future<bool> _printOnBuiltinPrinter(
+    Uint8List? bytes, {
+    required bool probeSerial,
+  }) async {
+    final escpos = bytes == null ? null : receiptEscPos[bytes];
+    if (escpos == null) return false;
+    final builtin = BuiltinPrinterService.instance;
+    final printed = await builtin.tryPrint(escpos, probeSerial: probeSerial);
+    final target = builtin.savedTarget;
+    talker.info(
+      printed
+          ? '[receipt_presentation] printed on the built-in printer '
+                '${target?.label}'
+          : '[receipt_presentation] no built-in printer printed'
+                '${target == null ? '' : ' (saved ${target.label})'}',
+    );
+    return printed;
   }
 
   ///  combines the `saveTransaction` and  `ProxyService.strategy.updateTransaction` calls into a single, more streamlined function

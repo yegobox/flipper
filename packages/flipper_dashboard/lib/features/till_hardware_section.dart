@@ -4,6 +4,8 @@ import 'package:flipper_dashboard/features/bar_mode/theme/bar_tokens.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_admin_widgets.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/helpers/receipt_printer_autoselect.dart';
+import 'package:flipper_services/builtin_printer/builtin_printer_service.dart';
+import 'package:flipper_services/builtin_printer/escpos.dart';
 import 'package:flipper_services/customer_display/customer_display_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
@@ -43,6 +45,10 @@ class _TillHardwareSectionState extends State<TillHardwareSection> {
   String? _printerName;
   bool _printBusy = false;
 
+  final _builtin = BuiltinPrinterService.instance;
+  PrinterTarget? _builtinTarget;
+  bool _builtinBusy = false;
+
   late CustomerDisplaySettings _displaySettings;
   List<String> _ports = const [];
   bool _displayBusy = false;
@@ -51,6 +57,7 @@ class _TillHardwareSectionState extends State<TillHardwareSection> {
   void initState() {
     super.initState();
     _printerName = ProxyService.box.readString(key: _kDefaultPrinterKey);
+    _builtinTarget = _builtin.savedTarget;
     _displaySettings = _display.settings;
     _ports = _display.availablePorts();
     unawaited(_loadPrinters());
@@ -140,6 +147,112 @@ class _TillHardwareSectionState extends State<TillHardwareSection> {
       ),
     );
     return doc.save();
+  }
+
+  /// Runs [action] with the built-in printer controls disabled, then shows
+  /// [message] (when it returns one) and refreshes the saved printer.
+  Future<void> _builtinAction(
+    Future<({String message, bool ok})?> Function() action,
+  ) async {
+    setState(() => _builtinBusy = true);
+    try {
+      final result = await action();
+      if (!mounted) return;
+      if (result != null) {
+        showCustomSnackBarUtil(
+          context,
+          result.message,
+          type: result.ok ? NotificationType.success : NotificationType.error,
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _builtinBusy = false;
+          _builtinTarget = _builtin.savedTarget;
+        });
+      }
+    }
+  }
+
+  /// Search without printing: attached USB/LPT printers, then a status
+  /// query on every COM port.
+  Future<void> _searchBuiltin() {
+    final l10n = context.flipperL10n;
+    return _builtinAction(() async {
+      await _builtin.forget();
+      final found = await _builtin.ensureTarget(probeSerial: true);
+      return found == null
+          ? (message: l10n.builtinPrinterNoneAnswered, ok: false)
+          : (message: l10n.builtinPrinterFound(found.label), ok: true);
+    });
+  }
+
+  /// For printers that ignore the status query: prints one line on each
+  /// port × speed until the cashier confirms it came out. A port that will
+  /// not open is skipped at once rather than tried at every speed.
+  Future<void> _findBuiltin() {
+    final l10n = context.flipperL10n;
+    return _builtinAction(() async {
+      String? deadPath;
+      for (final target in _builtin.manualCandidates()) {
+        if (target.path == deadPath) continue;
+        final error = await _builtin.probePrint(target);
+        if (!mounted) return null;
+        if (error != null) {
+          deadPath = target.path;
+          continue;
+        }
+        final answer = await _confirmBuiltin(target);
+        if (!mounted || answer == null) return null;
+        if (answer) {
+          await _builtin.save(target);
+          return (message: l10n.builtinPrinterFound(target.label), ok: true);
+        }
+      }
+      return (message: l10n.builtinPrinterNoneAnswered, ok: false);
+    });
+  }
+
+  Future<void> _testBuiltin() {
+    final l10n = context.flipperL10n;
+    return _builtinAction(() async {
+      final error = await _builtin.testPrint();
+      return error == null
+          ? (message: l10n.builtinPrinterTestSent, ok: true)
+          : (
+              message: l10n.receiptPrinterTestFailed(
+                _builtinTarget?.label ?? '',
+                error,
+              ),
+              ok: false,
+            );
+    });
+  }
+
+  /// True: it printed. False: try the next setting. Null: the cashier stopped.
+  Future<bool?> _confirmBuiltin(PrinterTarget target) {
+    final l10n = context.flipperL10n;
+    return showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        content: Text(l10n.builtinPrinterFindPrompt(target.label)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(l10n.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(l10n.customerDisplayFindNo),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(l10n.customerDisplayFindYes),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _saveDisplay(CustomerDisplaySettings next) async {
@@ -272,6 +385,8 @@ class _TillHardwareSectionState extends State<TillHardwareSection> {
               const SizedBox(height: 16),
               _buildPrinter(l10n),
               const Divider(height: 32, color: BarTokens.line),
+              _buildBuiltinPrinter(l10n),
+              const Divider(height: 32, color: BarTokens.line),
               _buildDisplay(l10n),
             ],
           ),
@@ -347,6 +462,102 @@ class _TillHardwareSectionState extends State<TillHardwareSection> {
     return auto == null
         ? l10n.receiptPrinterAutomatic
         : '${l10n.receiptPrinterAutomatic} (${auto.name})';
+  }
+
+  Widget _buildBuiltinPrinter(FlipperAppLocalizations l10n) {
+    final target = _builtinTarget;
+    final off = !_builtin.autoDetectAllowed;
+    final busy = _builtinBusy;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(l10n.builtinPrinterLabel, style: _titleStyle),
+        const SizedBox(height: 3),
+        Text(l10n.builtinPrinterHint, style: _hintStyle),
+        const SizedBox(height: 12),
+        if (!_builtin.isSupported)
+          Text(l10n.builtinPrinterWindowsOnly, style: _hintStyle)
+        else ...[
+          Text(
+            busy
+                ? l10n.builtinPrinterSearching
+                : off
+                ? l10n.builtinPrinterOff
+                : target == null
+                ? l10n.builtinPrinterNotFound
+                : l10n.builtinPrinterUsing(target.label),
+            style: _titleStyle.copyWith(fontSize: 14),
+          ),
+          if (busy) ...[
+            const SizedBox(height: 8),
+            const LinearProgressIndicator(minHeight: 2),
+          ],
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              if (off)
+                OutlinedButton(
+                  onPressed: busy ? null : _searchBuiltin,
+                  child: Text(l10n.builtinPrinterTurnOn),
+                )
+              else ...[
+                OutlinedButton.icon(
+                  onPressed: busy || target == null ? null : _testBuiltin,
+                  icon: const Icon(Icons.print_outlined, size: 18),
+                  label: Text(l10n.receiptPrinterTest),
+                ),
+                OutlinedButton(
+                  onPressed: busy ? null : _searchBuiltin,
+                  child: Text(l10n.builtinPrinterSearch),
+                ),
+                OutlinedButton(
+                  onPressed: busy ? null : _findBuiltin,
+                  child: Text(l10n.builtinPrinterFind),
+                ),
+                TextButton(
+                  onPressed: busy
+                      ? null
+                      : () => _builtinAction(() async {
+                          await _builtin.turnOff();
+                          return null;
+                        }),
+                  child: Text(l10n.builtinPrinterTurnOff),
+                ),
+              ],
+            ],
+          ),
+          if (!off && target != null) ...[
+            const SizedBox(height: 12),
+            _labelled(
+              l10n.builtinPrinterQrLabel,
+              DropdownButton<EscPosQrMode>(
+                value: _builtin.qrMode,
+                onChanged: busy
+                    ? null
+                    : (mode) async {
+                        if (mode == null) return;
+                        await _builtin.setQrMode(mode);
+                        if (mounted) setState(() {});
+                      },
+                items: [
+                  DropdownMenuItem(
+                    value: EscPosQrMode.raster,
+                    child: Text(l10n.builtinPrinterQrImage),
+                  ),
+                  DropdownMenuItem(
+                    value: EscPosQrMode.native,
+                    child: Text(l10n.builtinPrinterQrNative),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ],
+    );
   }
 
   Widget _buildDisplay(FlipperAppLocalizations l10n) {

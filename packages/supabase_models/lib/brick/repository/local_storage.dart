@@ -205,6 +205,11 @@ class SharedPreferenceStorage implements LocalStorage {
     'customerDisplayType',
     'customerDisplayPort',
     'customerDisplayBaud',
+    // Built-in receipt printer driven with raw ESC/POS (no Windows driver).
+    'builtinPrinterTransport',
+    'builtinPrinterPath',
+    'builtinPrinterBaud',
+    'builtinPrinterQrMode',
     // Cash book form defaults: last category per direction + last method.
     'cashbookLastCategoryIn',
     'cashbookLastCategoryOut',
