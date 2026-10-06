@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/features/incoming_orders/widgets/action_row.dart';
 import 'package:flipper_dashboard/features/incoming_orders/providers/incoming_orders_provider.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -56,6 +57,8 @@ void main() {
             ).overrideWithValue(AsyncValue.data([])),
           ],
           child: MaterialApp(
+            localizationsDelegates: FlipperLocalizationDelegates.delegates,
+            supportedLocales: FlipperLocalizationDelegates.supportedLocales,
             home: Scaffold(body: ActionRow(request: mockRequest)),
           ),
         ),
@@ -78,6 +81,8 @@ void main() {
             ).overrideWithValue(AsyncValue.data([])),
           ],
           child: MaterialApp(
+            localizationsDelegates: FlipperLocalizationDelegates.delegates,
+            supportedLocales: FlipperLocalizationDelegates.supportedLocales,
             home: Scaffold(body: ActionRow(request: mockRequest)),
           ),
         ),
@@ -103,6 +108,8 @@ void main() {
             ).overrideWithValue(AsyncValue.data([])),
           ],
           child: MaterialApp(
+            localizationsDelegates: FlipperLocalizationDelegates.delegates,
+            supportedLocales: FlipperLocalizationDelegates.supportedLocales,
             home: Scaffold(body: ActionRow(request: mockRequest)),
           ),
         ),
@@ -160,6 +167,8 @@ void main() {
             ).overrideWithValue(AsyncValue.data([])),
           ],
           child: MaterialApp(
+            localizationsDelegates: FlipperLocalizationDelegates.delegates,
+            supportedLocales: FlipperLocalizationDelegates.supportedLocales,
             home: Scaffold(body: ActionRow(request: approvedRequest)),
           ),
         ),
@@ -184,6 +193,8 @@ void main() {
             ).overrideWithValue(AsyncValue.loading()),
           ],
           child: MaterialApp(
+            localizationsDelegates: FlipperLocalizationDelegates.delegates,
+            supportedLocales: FlipperLocalizationDelegates.supportedLocales,
             home: Scaffold(body: ActionRow(request: mockRequest)),
           ),
         ),
