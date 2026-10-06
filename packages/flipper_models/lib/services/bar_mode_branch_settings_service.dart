@@ -132,20 +132,28 @@ abstract final class BarModeBranchSettingsService {
   }
 
   /// Live-sync remote changes into the local cache while the app runs.
-  static void startWatchingActiveBranch() {
+  ///
+  /// [onEnabledChanged] fires when a remote change turns the service on or
+  /// off, so the UI can re-resolve which surface this terminal shows.
+  static void startWatchingActiveBranch({void Function()? onEnabledChanged}) {
     final branchId = ProxyService.box.getBranchId();
     if (branchId == null) return;
 
     unawaited(_watchSub?.cancel());
     _watchSub = _sync
         .barBranchSettingsStream(branchId: branchId)
-        .listen((settings) {
-      if (settings != null) {
-        _applyToLocalCache(settings);
-      }
-    }, onError: (Object e, StackTrace s) {
-      talker.warning('Bar branch settings watch error: $e\n$s');
-    });
+        .listen(
+          (settings) {
+            if (settings != null) {
+              final wasEnabled = _readLocalEnabled();
+              _applyToLocalCache(settings);
+              if (settings.enabled != wasEnabled) onEnabledChanged?.call();
+            }
+          },
+          onError: (Object e, StackTrace s) {
+            talker.warning('Bar branch settings watch error: $e\n$s');
+          },
+        );
   }
 
   static Future<void> stopWatching() async {
@@ -168,10 +176,7 @@ abstract final class BarModeBranchSettingsService {
   static void _applyToLocalCache(BarBranchSettings settings) {
     final box = ProxyService.box;
     box.writeBool(key: enabledKey, value: settings.enabled);
-    box.writeBool(
-      key: launchOnStartKey,
-      value: settings.enabled,
-    );
+    box.writeBool(key: launchOnStartKey, value: settings.enabled);
     box.writeBool(key: requirePinKey, value: settings.requirePin);
     box.writeBool(key: floorFirstKey, value: settings.floorFirst);
     box.writeBool(key: managerSettleKey, value: settings.managerSettle);

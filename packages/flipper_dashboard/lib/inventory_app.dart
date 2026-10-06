@@ -5,6 +5,7 @@ import 'package:flipper_dashboard/features/bar_mode/bar_mode_host.dart';
 import 'package:flipper_dashboard/features/bar_mode/bar_mode_settings.dart';
 import 'package:flipper_dashboard/features/hotel_mode/hotel_mode_host.dart';
 import 'package:flipper_dashboard/features/hotel_mode/hotel_mode_settings.dart';
+import 'package:flipper_dashboard/features/service_mode_shell.dart';
 import 'package:flipper_dashboard/features/service_mode_switch.dart';
 import 'package:flipper_dashboard/Ai.dart';
 import 'package:flipper_dashboard/TransactionWidget.dart';
@@ -222,7 +223,7 @@ class InventoryApp extends HookConsumerWidget {
       );
     }();
 
-    return PosShiftGate(child: salesBody);
+    return ServiceModeShellGuard(child: PosShiftGate(child: salesBody));
   }
 }
 

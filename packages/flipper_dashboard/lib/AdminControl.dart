@@ -7,6 +7,8 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_mode_admin_section.dart';
 import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_mode_admin_section.dart';
 import 'package:flipper_dashboard/features/service_mode_device_section.dart';
+import 'package:flipper_dashboard/features/service_mode_shell.dart';
+import 'package:flipper_dashboard/features/service_mode_switch.dart';
 import 'package:flipper_dashboard/features/till_hardware_section.dart';
 import 'package:flipper_dashboard/ReinitializeEbm.dart';
 import 'package:flipper_localize/flipper_localize.dart';
@@ -168,6 +170,11 @@ class _AdminControlState extends ConsumerState<AdminControl> {
   bool isRemovingReceiptLogo = false;
   bool userLoggingEnabled = false;
   final settingsService = locator<SettingsService>();
+
+  /// [serviceModeRevision] when this screen opened. The Bar / Hotel toggles and
+  /// the device picker only change the mode; leaving Settings is what moves the
+  /// terminal onto that mode's own screen.
+  late final int _serviceModeRevisionAtOpen;
 
   /// Loaded from Supabase `users` via [ProxyService.box.getUserId] (set at login).
   User? _profileUser;
@@ -376,6 +383,7 @@ class _AdminControlState extends ConsumerState<AdminControl> {
   @override
   void initState() {
     super.initState();
+    _serviceModeRevisionAtOpen = serviceModeRevision.value;
     isPosDefault = ProxyService.box.readBool(key: 'isPosDefault') ?? false;
     enableDebug = ProxyService.box.readBool(key: 'enableDebug') ?? false;
     isOrdersDefault = ProxyService.box.readBool(key: 'isOrdersDefault') ?? true;
@@ -949,6 +957,13 @@ class _AdminControlState extends ConsumerState<AdminControl> {
     _profileEmailEditController.dispose();
     _profileNameEditController.dispose();
     _profilePhoneEditController.dispose();
+    if (serviceModeRevision.value != _serviceModeRevisionAtOpen) {
+      // After the frame, once this route is off the stack, so the sync sees
+      // the shell underneath rather than Settings.
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => syncServiceModeShell(),
+      );
+    }
     super.dispose();
   }
 
@@ -1197,9 +1212,21 @@ class _AdminControlState extends ConsumerState<AdminControl> {
               // Go back to wherever Admin was opened from (POS, bar floor…).
               // Pushing a fresh FlipperAppRoute here stacked a second
               // dashboard and dropped bar-floor users out of bar mode.
-              onPressed: () => navigator.router.canPop()
-                  ? navigator.back()
-                  : navigator.clearStackAndShow(FlipperAppRoute()),
+              // A mode switched here is applied straight away: turning Bar
+              // and Hotel off must land on POS, not back on the bar floor
+              // this screen was opened from.
+              onPressed: () async {
+                if (!navigator.router.canPop()) {
+                  await navigator.clearStackAndShow(FlipperAppRoute());
+                  return;
+                }
+                final modeChanged =
+                    serviceModeRevision.value != _serviceModeRevisionAtOpen;
+                // `pop`, not `back`: back returns before the route is gone,
+                // and the sync must see the screen underneath.
+                final popped = await navigator.pop();
+                if (popped && modeChanged) syncServiceModeShell();
+              },
               icon: const Icon(Icons.close, size: 22),
               tooltip: context.flipperL10n.close,
             ),

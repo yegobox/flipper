@@ -7,6 +7,7 @@ import 'package:flipper_dashboard/features/bar_mode/widgets/bar_admin_widgets.da
 import 'package:flipper_dashboard/features/hotel_mode/hotel_mode_settings.dart';
 import 'package:flipper_dashboard/features/hotel_mode/theme/hotel_tokens.dart';
 import 'package:flipper_dashboard/features/service_mode_hotkey.dart';
+import 'package:flipper_dashboard/features/service_mode_shell.dart';
 import 'package:flipper_dashboard/features/service_mode_switch.dart';
 import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_room_charge_picker.dart';
 import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_room_plan_editor.dart';
@@ -16,13 +17,10 @@ import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/models/branch_document_settings.dart';
 import 'package:flipper_models/services/branch_document_settings_service.dart';
-import 'package:flipper_routing/app.locator.dart';
-import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-import 'package:stacked_services/stacked_services.dart';
 import 'package:supabase_models/brick/models/variant.model.dart';
 
 /// Hotel Mode (front desk) section for [AdminControl].
@@ -305,8 +303,12 @@ class _HotelModeAdminSectionState extends State<HotelModeAdminSection> {
               label: l10n.hotelOpenFrontDesk,
               onPressed: _enabled
                   ? () {
-                      HotelModeSettings.setLaunchOnStart(true);
-                      locator<RouterService>().navigateTo(HotelModeHostRoute());
+                      // Pin first: leaving Settings re-syncs the shell,
+                      // and an older pick must not send it straight back.
+                      if (!isPhoneLayout) {
+                        setDeviceServiceMode(ServiceMode.hotel);
+                      }
+                      openServiceModeShell(ServiceMode.hotel);
                     }
                   : null,
             ),

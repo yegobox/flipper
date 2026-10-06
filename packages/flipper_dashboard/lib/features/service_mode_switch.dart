@@ -199,6 +199,30 @@ ServiceMode get startupServiceMode => resolveStartupServiceMode(
   deviceMode: deviceServiceMode,
 );
 
+/// Which shell an automatic sync should move this device to, or null to leave
+/// it where it is.
+///
+/// [currentShell] is the surface the top route shows: the POS dashboard or a
+/// mode host. It is null when anything else is on top (Settings, Reports, a
+/// payment screen), and a sync never pulls the operator out of those — the
+/// switch happens once they come back to a shell.
+///
+/// A phone is never moved *into* a mode by itself: it opens one only when
+/// someone asks for it. But a mode the branch no longer offers
+/// ([currentShellOffered] false) is left on every device — turning Bar and
+/// Hotel off in Settings must land on POS, not on a host for a service that
+/// is gone until the app restarts.
+ServiceMode? serviceModeShellTarget({
+  required ServiceMode? currentShell,
+  required ServiceMode wanted,
+  required bool isPhone,
+  required bool currentShellOffered,
+}) {
+  if (currentShell == null || currentShell == wanted) return null;
+  if (!isPhone) return wanted;
+  return currentShellOffered ? null : ServiceMode.pos;
+}
+
 /// Services the branch offers, in the order the pickers show them.
 List<ServiceMode> availableServiceModes({
   required bool hotelEnabled,
