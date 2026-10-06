@@ -8393,7 +8393,7 @@
   "customerDisplayFound": "Icyerekana cy'umukiriya cyashyizwe kuri {port} kuri baud {baud}",
   "customerDisplayNotFound": "Nta genamiterere ryatumye icyerekana caka. Genzura umugozi wacyo, cyangwa uhitemo porte n'umuvuduko ubwawe.",
     "builtinPrinterLabel": "Icapiro ry'inyemezabwishyu ryometse",
-    "builtinPrinterHint": "Icapiro rya mm 58 ry'iyi mashini, rikoreshwa ako kanya — nta porogaramu y'icapiro ya Windows ikenewe. Riboneka ubwaryo ku nyemezabwishyu ya mbere.",
+    "builtinPrinterHint": "Icapiro rya mm 58 ry'iyi mashini, rikoreshwa ako kanya — nta porogaramu y'icapiro ya Windows ikenewe. Amacapiro ya USB n'aya parallel aboneka ku nyemezabwishyu ya mbere; icapiro riri kuri COM rishakishwa gusa iyo Windows nta capiro ifite. Bitabaye ibyo, koresha Shakisha cyangwa Shakisha icapiro hepfo.",
     "builtinPrinterUsing": "Rikoresha {printer}",
     "builtinPrinterNotFound": "Ntiraraboneka.",
     "builtinPrinterOff": "Kizimije. Inyemezabwishyu zikoresha icapiro rya Windows riri hejuru.",

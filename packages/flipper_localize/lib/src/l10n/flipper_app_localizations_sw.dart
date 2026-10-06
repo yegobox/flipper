@@ -24599,7 +24599,7 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
 
   @override
   String get builtinPrinterHint =>
-      'Printa ya mm 58 ya mashine hii, inatumika moja kwa moja — hakuna programu ya printa ya Windows inayohitajika. Inapatikana yenyewe kwenye risiti ya kwanza.';
+      'Printa ya mm 58 ya mashine hii, inatumika moja kwa moja — hakuna programu ya printa ya Windows inayohitajika. Printa za USB na parallel hupatikana kwenye risiti ya kwanza; printa iliyo kwenye mlango wa COM hutafutwa tu wakati Windows haina printa. Vinginevyo tumia Tafuta au Tafuta printa hapa chini.';
 
   @override
   String builtinPrinterUsing(String printer) {
