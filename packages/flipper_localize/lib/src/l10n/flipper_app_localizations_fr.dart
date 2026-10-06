@@ -24840,7 +24840,7 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
 
   @override
   String get builtinPrinterHint =>
-      'L\'imprimante 58 mm de la caisse, utilisée directement — aucun pilote Windows nécessaire. Elle est détectée automatiquement au premier reçu.';
+      'L\'imprimante 58 mm de la caisse, utilisée directement — aucun pilote Windows nécessaire. Les imprimantes USB et parallèles sont détectées au premier reçu ; une imprimante sur port COM n\'est recherchée que si Windows n\'a aucune imprimante. Sinon, utilisez Rechercher ou Trouver l\'imprimante ci-dessous.';
 
   @override
   String builtinPrinterUsing(String printer) {

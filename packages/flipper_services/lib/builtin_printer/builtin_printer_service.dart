@@ -56,7 +56,9 @@ class BuiltinPrinterService {
   /// Speeds built-in printers ship at, most common first.
   static const List<int> bauds = [9600, 19200, 38400, 115200];
 
-  /// A logo receipt is ~10 KB; even at 9600 baud that is ~10 s on the wire.
+  /// Backstop for a whole job. The worker bounds each chunk itself (serial
+  /// timeouts, or overlapped I/O it cancels), so this only fires if it is
+  /// still finishing a cancel; a logo receipt is ~10 KB, ~10 s at 9600 baud.
   static const Duration _writeTimeout = Duration(seconds: 45);
 
   static const String notFoundMessage =
@@ -268,11 +270,10 @@ class BuiltinPrinterService {
       talker.warning('[builtin_printer] ${to.label}: ${e.message}');
       throw BuiltinPrinterException('$notFoundMessage (${e.message})');
     } on TimeoutException {
-      // The worker is stuck in WriteFile on a printer that stopped taking
-      // data. Abandon it; the next job starts a fresh one.
+      // Not disposed: killing an isolate cannot interrupt a native write,
+      // and would leak the (exclusive) port handle. The worker finishes or
+      // cancels the write, closes the port, and serves the next job.
       talker.warning('[builtin_printer] ${to.label}: write timed out');
-      worker.dispose();
-      _worker = null;
       throw BuiltinPrinterException('$notFoundMessage (timed out)');
     }
   }

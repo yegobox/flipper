@@ -24432,7 +24432,7 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
 
   @override
   String get builtinPrinterHint =>
-      'The till\'s own 58 mm printer, used directly — no Windows driver needed. It is found automatically on the first receipt.';
+      'The till\'s own 58 mm printer, used directly — no Windows driver needed. USB and parallel printers are found on the first receipt; a printer on a COM port is searched for only when Windows has no printer. Otherwise use Search or Find printer below.';
 
   @override
   String builtinPrinterUsing(String printer) {

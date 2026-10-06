@@ -84,9 +84,11 @@ class ParallelStatus {
   /// Attached and able to take a job now.
   bool get ready => printerAttached && bits & (paperEmpty | offLine) == 0;
 
-  /// Why a job cannot go out, for the cashier; null when [ready].
+  /// Why a job cannot go out, for the cashier, from flags the port reports
+  /// explicitly; null otherwise. A low SELECT alone does not count: many
+  /// ports and printers never drive it.
   String? get problem {
-    if (bits & (powerOff | notConnected) != 0 || bits & selected == 0) {
+    if (bits & (powerOff | notConnected) != 0) {
       return 'printer is off or not connected';
     }
     if (bits & paperEmpty != 0) return 'printer is out of paper';
@@ -167,7 +169,8 @@ const Set<int> knownReceiptPrinterVendors = {
   0x154F, // SNBC
   0x0DD4, // Custom
   0x1D90, // Citizen
-  0x04B8, // Epson (TM series)
+  // Not Epson (0x04B8): the same vendor id covers its inkjets and office
+  // printers, which must never be sent ESC/POS unasked.
 };
 
 /// Ports worth probing, likeliest first: known printer bridges, then on-board

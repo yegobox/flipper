@@ -40874,7 +40874,7 @@ abstract class FlipperAppLocalizations {
   /// No description provided for @builtinPrinterHint.
   ///
   /// In en, this message translates to:
-  /// **'The till\'s own 58 mm printer, used directly — no Windows driver needed. It is found automatically on the first receipt.'**
+  /// **'The till\'s own 58 mm printer, used directly — no Windows driver needed. USB and parallel printers are found on the first receipt; a printer on a COM port is searched for only when Windows has no printer. Otherwise use Search or Find printer below.'**
   String get builtinPrinterHint;
 
   /// No description provided for @builtinPrinterUsing.

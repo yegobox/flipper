@@ -24690,7 +24690,7 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
 
   @override
   String get builtinPrinterHint =>
-      'Icapiro rya mm 58 ry\'iyi mashini, rikoreshwa ako kanya — nta porogaramu y\'icapiro ya Windows ikenewe. Riboneka ubwaryo ku nyemezabwishyu ya mbere.';
+      'Icapiro rya mm 58 ry\'iyi mashini, rikoreshwa ako kanya — nta porogaramu y\'icapiro ya Windows ikenewe. Amacapiro ya USB n\'aya parallel aboneka ku nyemezabwishyu ya mbere; icapiro riri kuri COM rishakishwa gusa iyo Windows nta capiro ifite. Bitabaye ibyo, koresha Shakisha cyangwa Shakisha icapiro hepfo.';
 
   @override
   String builtinPrinterUsing(String printer) {

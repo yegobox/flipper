@@ -18611,7 +18611,7 @@
     },
     "customerDisplayNotFound": "No setting lit the display. Check its cable, or pick the port and speed by hand.",
     "builtinPrinterLabel": "Built-in receipt printer",
-    "builtinPrinterHint": "The till's own 58 mm printer, used directly — no Windows driver needed. It is found automatically on the first receipt.",
+    "builtinPrinterHint": "The till's own 58 mm printer, used directly — no Windows driver needed. USB and parallel printers are found on the first receipt; a printer on a COM port is searched for only when Windows has no printer. Otherwise use Search or Find printer below.",
     "builtinPrinterUsing": "Using {printer}",
     "@builtinPrinterUsing": {
         "placeholders": {

@@ -203,6 +203,15 @@ void main() {
         ).isKnownReceiptPrinter,
         isTrue,
       );
+      // Epson also makes inkjets under the same vendor id.
+      expect(
+        const UsbPrinterInfo(
+          path: 'x',
+          vid: 0x04B8,
+          pid: 0x0202,
+        ).isKnownReceiptPrinter,
+        isFalse,
+      );
       // HP office printer.
       expect(
         const UsbPrinterInfo(
@@ -225,6 +234,15 @@ void main() {
       expect(const ParallelStatus(0x00).printerAttached, isFalse);
       expect(const ParallelStatus(0xA0).printerAttached, isFalse);
       expect(const ParallelStatus(0x90).printerAttached, isFalse);
+    });
+
+    test('LPT writes are refused only on explicit flags, not SELECT low', () {
+      expect(const ParallelStatus(0x00).problem, isNull);
+      expect(const ParallelStatus(0x80).problem, isNull);
+      expect(const ParallelStatus(0x10).problem, contains('off'));
+      expect(const ParallelStatus(0x20).problem, contains('not connected'));
+      expect(const ParallelStatus(0x04).problem, contains('paper'));
+      expect(const ParallelStatus(0x08).problem, contains('offline'));
     });
 
     test('targets round-trip through the worker message', () {
