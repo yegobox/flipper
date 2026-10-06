@@ -68,6 +68,8 @@ void main() {
     addTearDown(controller.dispose);
     await tester.pumpWidget(
       MaterialApp(
+        localizationsDelegates: FlipperLocalizationDelegates.delegates,
+        supportedLocales: FlipperLocalizationDelegates.supportedLocales,
         home: Scaffold(
           body: Column(
             children: [
@@ -104,6 +106,8 @@ void main() {
     final navKey = GlobalKey<NavigatorState>();
     await tester.pumpWidget(
       MaterialApp(
+        localizationsDelegates: FlipperLocalizationDelegates.delegates,
+        supportedLocales: FlipperLocalizationDelegates.supportedLocales,
         navigatorKey: navKey,
         home: Scaffold(
           body: BarKeypad(
