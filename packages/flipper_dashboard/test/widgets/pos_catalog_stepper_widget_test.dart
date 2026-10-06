@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'dart:async';
 
 import 'package:flipper_dashboard/itemRow.dart';

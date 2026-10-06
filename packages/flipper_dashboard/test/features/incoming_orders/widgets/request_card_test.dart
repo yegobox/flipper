@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/features/incoming_orders/om_tokens.dart';
 import 'package:flipper_dashboard/features/incoming_orders/widgets/request_card.dart';
 import 'package:flipper_models/db_model_export.dart';
