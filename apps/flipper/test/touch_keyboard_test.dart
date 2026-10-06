@@ -39,6 +39,17 @@ void main() {
     expect(keyboard.shows, 1);
   });
 
+  test('re-tapping a field that already has focus opens it again', () {
+    // POS Received Amount is focused on load, so Windows never sees a focus
+    // change; the framework still re-sends show on every tap.
+    tracker.handleTextInputCall(_setClient(const TextInputConfiguration()));
+    press(PointerDeviceKind.touch);
+    tracker.handleTextInputCall(_show);
+    press(PointerDeviceKind.touch);
+    tracker.handleTextInputCall(_show);
+    expect(keyboard.shows, 2);
+  });
+
   test('a pen tap counts as touch', () {
     press(PointerDeviceKind.stylus);
     tracker.handleTextInputCall(_setClient(const TextInputConfiguration()));
