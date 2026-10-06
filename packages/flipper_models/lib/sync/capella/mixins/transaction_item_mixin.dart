@@ -6,6 +6,7 @@ import 'package:flipper_models/sync/interfaces/transaction_item_interface.dart';
 import 'package:flipper_models/sync/ditto_observer_utils.dart';
 import 'package:flipper_models/sync/capella/mixins/transaction_mixin.dart';
 import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
+import 'package:flipper_models/sync/utils/transaction_item_flag_filters.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:supabase_models/brick/repository.dart';
@@ -63,8 +64,9 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
         talker.error('Ditto not initialized for addTransactionItem');
         return;
       }
-      final docMap = await TransactionItemDittoAdapter.instance
-          .toDittoDocument(item);
+      final docMap = await TransactionItemDittoAdapter.instance.toDittoDocument(
+        item,
+      );
       await ditto.store.execute(
         "INSERT INTO transaction_items DOCUMENTS (:doc)",
         arguments: {'doc': docMap},
@@ -75,30 +77,32 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
           (item.price.toDouble() * item.qty.toDouble());
       await (capella as CapellaTransactionMixin)
           .dittoAdjustTransactionSubtotalByDelta(
-        transactionId: transaction.id,
-        delta: lineTotal,
-      );
+            transactionId: transaction.id,
+            delta: lineTotal,
+          );
       return;
     }
 
     final v = variation!;
-    final ok = await (capella as dynamic).saveTransactionItem(
-      compositePrice: compositePrice,
-      ignoreForReport: ignoreForReport,
-      updatableQty: quantity,
-      variation: v,
-      doneWithTransaction: doneWithTransaction ?? false,
-      amountTotal: amountTotal,
-      customItem: false,
-      pendingTransaction: transaction,
-      invoiceNumber: null,
-      currentStock: currentStock,
-      useTransactionItemForQty: true,
-      partOfComposite: partOfComposite,
-      item: null,
-      sarTyCd: null,
-      updatePendingTransactionSubtotal: true,
-    ) as bool;
+    final ok =
+        await (capella as dynamic).saveTransactionItem(
+              compositePrice: compositePrice,
+              ignoreForReport: ignoreForReport,
+              updatableQty: quantity,
+              variation: v,
+              doneWithTransaction: doneWithTransaction ?? false,
+              amountTotal: amountTotal,
+              customItem: false,
+              pendingTransaction: transaction,
+              invoiceNumber: null,
+              currentStock: currentStock,
+              useTransactionItemForQty: true,
+              partOfComposite: partOfComposite,
+              item: null,
+              sarTyCd: null,
+              updatePendingTransactionSubtotal: true,
+            )
+            as bool;
     if (!ok) {
       throw StateError('saveTransactionItem failed in addTransactionItem');
     }
@@ -183,14 +187,13 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
         conditions.add('id = :id');
         arguments['id'] = id;
       }
-      if (active != null) {
-        conditions.add('active = :active');
-        arguments['active'] = active;
-      }
-      if (doneWithTransaction != null) {
-        conditions.add('doneWithTransaction = :doneWithTransaction');
-        arguments['doneWithTransaction'] = doneWithTransaction;
-      }
+      final flags = transactionItemFlagFilters(
+        active: active,
+        doneWithTransaction: doneWithTransaction,
+        pinnedToTransaction: transactionId != null,
+      );
+      conditions.addAll(flags.conditions);
+      arguments.addAll(flags.arguments);
       if (itemIds != null && itemIds.isNotEmpty) {
         final idParts = <String>[];
         for (var i = 0; i < itemIds.length; i++) {
@@ -299,9 +302,9 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
         'endDate': localEndDate.toIso8601String(),
       },
     );
-    return _parseTransactionItemQuery(result)
-        .where((i) => _reportItemBranchMatches(i, branchId))
-        .toList();
+    return _parseTransactionItemQuery(
+      result,
+    ).where((i) => _reportItemBranchMatches(i, branchId)).toList();
   }
 
   /// One-shot fetch using the same DQL scope as [transactionItemsStreams] (pre–May-26 report path).
@@ -326,9 +329,9 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
         'endDate': endDate.add(const Duration(days: 1)).toIso8601String(),
       },
     );
-    return _parseTransactionItemQuery(result)
-        .where((i) => _reportItemBranchMatches(i, branchId))
-        .toList();
+    return _parseTransactionItemQuery(
+      result,
+    ).where((i) => _reportItemBranchMatches(i, branchId)).toList();
   }
 
   /// Inclusive report-day window (Ditto playground / transaction paging parity).
@@ -356,9 +359,9 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
         'endDate': localEndDate.toIso8601String(),
       },
     );
-    return _parseTransactionItemQuery(result)
-        .where((i) => _reportItemBranchMatches(i, branchId))
-        .toList();
+    return _parseTransactionItemQuery(
+      result,
+    ).where((i) => _reportItemBranchMatches(i, branchId)).toList();
   }
 
   /// All PLU rows for Transaction Reports in [startDate]…[endDate] (branch-scoped).
@@ -418,12 +421,11 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
     required DateTime startDate,
     required DateTime endDate,
     required String branchId,
-  }) =>
-      fetchTransactionItemsReportScope(
-        startDate: startDate,
-        endDate: endDate,
-        branchId: branchId,
-      );
+  }) => fetchTransactionItemsReportScope(
+    startDate: startDate,
+    endDate: endDate,
+    branchId: branchId,
+  );
 
   num? _dittoOptNum(dynamic v) {
     if (v == null) return null;
@@ -580,7 +582,7 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
       return Stream.value([]);
     }
 
-    String baseQuery = 'SELECT * FROM transaction_items';
+    const baseQuery = 'SELECT * FROM transaction_items';
     final arguments = <String, dynamic>{};
     final conditions = <String>[];
 
@@ -594,14 +596,15 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
       conditions.add('(branchId = :branchId OR branch_id = :branchId)');
       arguments['branchId'] = branchId;
     }
-    if (active != null) {
-      conditions.add('active = :active');
-      arguments['active'] = active;
-    }
-    if (doneWithTransaction != null) {
-      conditions.add('doneWithTransaction = :doneWithTransaction');
-      arguments['doneWithTransaction'] = doneWithTransaction;
-    }
+    final flags = transactionItemFlagFilters(
+      active: active,
+      doneWithTransaction: doneWithTransaction,
+      pinnedToTransaction: transactionId != null,
+    );
+    // Flags sit where they always did in the WHERE clause; they are spliced
+    // in below so a pinned ticket's subscription can leave them out.
+    final flagsAt = conditions.length;
+    arguments.addAll(flags.arguments);
     if (requestId != null) {
       conditions.add('inventoryRequestId = :requestId');
       arguments['requestId'] = requestId;
@@ -627,12 +630,18 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
       }
     }
 
-    if (conditions.isNotEmpty) {
-      baseQuery += ' WHERE ' + conditions.join(' AND ');
-    }
+    String withWhere(List<String> where) =>
+        where.isEmpty ? baseQuery : '$baseQuery WHERE ${where.join(' AND ')}';
+    final queryConditions = [...conditions]
+      ..insertAll(flagsAt, flags.conditions);
+    // A ticket's subscription replicates all of its lines: the flag filters
+    // only shape what is shown, and a superset of one ticket costs nothing.
+    final subscriptionConditions = transactionId != null
+        ? conditions
+        : queryConditions;
     // Ditto 5: sync subscriptions reject ORDER BY; use unordered query for replication only.
-    final subscriptionQuery = baseQuery;
-    final query = '$baseQuery ORDER BY createdAt DESC';
+    final subscriptionQuery = withWhere(subscriptionConditions);
+    final query = '${withWhere(queryConditions)} ORDER BY createdAt DESC';
 
     /// A workaround to first register to whole data instead of subset
     /// this is because after test on new device, it can't pull data using complex query

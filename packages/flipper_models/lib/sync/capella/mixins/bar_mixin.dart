@@ -575,6 +575,10 @@ mixin CapellaBarMixin implements BarInterface {
       sku: sku ?? variant?.sku,
       loggedByTenantId: cashierTenantId,
       loggedByName: cashierName,
+      // Same flags a POS line carries, or POS reads of this ticket
+      // (Resume, Collect, receipt, KDS) filter the line out.
+      active: true,
+      doneWithTransaction: false,
     );
 
     final doc = await TransactionItemDittoAdapter.instance.toDittoDocument(
