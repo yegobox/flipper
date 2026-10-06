@@ -1,4 +1,7 @@
+import 'package:flipper_dashboard/features/bar_mode/bar_mode_settings.dart';
+import 'package:flipper_dashboard/features/hotel_mode/hotel_mode_settings.dart';
 import 'package:flipper_dashboard/features/service_mode_switch.dart';
+import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flutter/widgets.dart';
@@ -35,17 +38,35 @@ bool _isShellRoute(Route<dynamic> route) =>
 /// Moves this device onto the shell [activeServiceMode] asks for, if it is
 /// sitting on a different one.
 ///
-/// Does nothing while something other than a shell is on top, and nothing on
-/// a phone (see [serviceModeShellTarget]). Safe to call from anywhere and as
-/// often as you like: it only navigates when the shell is actually wrong.
+/// Does nothing while something other than a shell is on top. On a phone it
+/// only ever leaves a mode that was turned off (see [serviceModeShellTarget]).
+/// Safe to call from anywhere and as often as you like: it only navigates
+/// when the shell is actually wrong.
 void syncServiceModeShell() {
   final router = locator<RouterService>().router;
+  final routeName = router.current.name;
+  final currentShell = _shellOf(routeName);
+  final wanted = activeServiceMode;
   final target = serviceModeShellTarget(
-    currentShell: _shellOf(router.current.name),
-    wanted: activeServiceMode,
+    currentShell: currentShell,
+    wanted: wanted,
     isPhone: isPhoneLayout,
+    currentShellOffered: switch (currentShell) {
+      ServiceMode.bar => BarModeSettings.enabled,
+      ServiceMode.hotel => HotelModeSettings.enabled,
+      ServiceMode.pos || null => true,
+    },
   );
-  if (target != null) _showShell(target);
+  if (currentShell == null) {
+    talker.debug('Service mode shell sync deferred: $routeName is on top');
+  }
+  if (target == null) return;
+  talker.info(
+    'Service mode shell: $routeName -> ${serviceModeShellRouteName(target)} '
+    '(resolved ${wanted.name}; bar=${BarModeSettings.enabled}, '
+    'hotel=${HotelModeSettings.enabled}, device=${deviceServiceMode?.name})',
+  );
+  _showShell(target);
 }
 
 /// Opens [mode]'s shell because someone asked for it (the hotkey, an "Open"

@@ -1212,9 +1212,21 @@ class _AdminControlState extends ConsumerState<AdminControl> {
               // Go back to wherever Admin was opened from (POS, bar floor…).
               // Pushing a fresh FlipperAppRoute here stacked a second
               // dashboard and dropped bar-floor users out of bar mode.
-              onPressed: () => navigator.router.canPop()
-                  ? navigator.back()
-                  : navigator.clearStackAndShow(FlipperAppRoute()),
+              // A mode switched here is applied straight away: turning Bar
+              // and Hotel off must land on POS, not back on the bar floor
+              // this screen was opened from.
+              onPressed: () async {
+                if (!navigator.router.canPop()) {
+                  await navigator.clearStackAndShow(FlipperAppRoute());
+                  return;
+                }
+                final modeChanged =
+                    serviceModeRevision.value != _serviceModeRevisionAtOpen;
+                // `pop`, not `back`: back returns before the route is gone,
+                // and the sync must see the screen underneath.
+                final popped = await navigator.pop();
+                if (popped && modeChanged) syncServiceModeShell();
+              },
               icon: const Icon(Icons.close, size: 22),
               tooltip: context.flipperL10n.close,
             ),
