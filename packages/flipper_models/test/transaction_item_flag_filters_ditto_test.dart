@@ -52,22 +52,21 @@ void main() {
 
       const txn = 'tab-1';
       const branch = 'branch-1';
-      Future<void> line(String id, Map<String, dynamic> flags) =>
-          store.execute(
-            'INSERT INTO transaction_items DOCUMENTS (:doc)',
-            arguments: {
-              'doc': {
-                '_id': id,
-                'id': id,
-                'transactionId': txn,
-                'branchId': branch,
-                'name': id,
-                'qty': 1,
-                'price': 100,
-                ...flags,
-              },
-            },
-          );
+      Future<void> line(String id, Map<String, dynamic> flags) => store.execute(
+        'INSERT INTO transaction_items DOCUMENTS (:doc)',
+        arguments: {
+          'doc': {
+            '_id': id,
+            'id': id,
+            'transactionId': txn,
+            'branchId': branch,
+            'name': id,
+            'qty': 1,
+            'price': 100,
+            ...flags,
+          },
+        },
+      );
 
       // A POS line.
       await line('pos', {'active': true, 'doneWithTransaction': false});
