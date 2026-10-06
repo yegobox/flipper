@@ -16,6 +16,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+/// A second tap inside this window is a double tap, not a new request.
+const Duration _dashboardNavDoubleTapWindow = Duration(milliseconds: 600);
+DateTime? _lastDashboardNavAt;
+
 /// Central navigation for dashboard quick-access apps (grid tiles, launcher shortcuts).
 ///
 /// Keep in sync with [AppIconsGrid] and [dashboardAllAppsCatalog].
@@ -31,6 +35,16 @@ Future<void> navigateToDashboardAppPage({
     onAppSelected(page);
     return;
   }
+
+  // Pushed routes only complete when popped, so an in-flight flag would block
+  // every later navigation; a short window drops just the double tap that
+  // would otherwise push the same page twice.
+  final now = DateTime.now();
+  final last = _lastDashboardNavAt;
+  if (last != null && now.difference(last) < _dashboardNavDoubleTapWindow) {
+    return;
+  }
+  _lastDashboardNavAt = now;
 
   final nav = navigator ?? Navigator.maybeOf(context, rootNavigator: true);
 

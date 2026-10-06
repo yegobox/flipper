@@ -461,7 +461,7 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
                 style: TextButton.styleFrom(
                   foregroundColor: const Color(0xFF1D4ED8),
                   padding: EdgeInsets.zero,
-                  minimumSize: const Size(0, 32),
+                  minimumSize: const Size(0, 44),
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
                 child: _backToNewSaleBusy

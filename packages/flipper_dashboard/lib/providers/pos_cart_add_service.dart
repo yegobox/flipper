@@ -13,6 +13,7 @@ import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 /// Grid / scanner: tap → instant cart ([posCartDisplayItemsProvider]), Ditto in background.
@@ -47,8 +48,10 @@ class PosCartAddService {
     }
 
     // While Send-for-Review / Pay is finishing, the old ticket is still the
-    // cached pending id. Reject taps so lines are not attached to it.
+    // cached pending id. Reject taps so lines are not attached to it — with a
+    // buzz, so the cashier knows the tap registered and to try again.
     if (ProxyService.box.readBool(key: 'transactionCompleting') ?? false) {
+      unawaited(HapticFeedback.vibrate());
       return;
     }
 

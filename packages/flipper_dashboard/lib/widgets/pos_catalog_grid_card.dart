@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flipper_dashboard/theme/pos_tokens.dart';
 import 'package:flipper_dashboard/utils/pos_product_tile.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
@@ -58,6 +60,40 @@ class _PosCatalogGridCardState extends State<PosCatalogGridCard> {
   bool _hovered = false;
   bool _pressed = false;
 
+  /// A quick finger tap reports down and up in the same frame, so the press
+  /// scale never showed; hold it at least this long so every tap is seen.
+  static const Duration _minPressFeedback = Duration(milliseconds: 90);
+  DateTime? _pressedAt;
+  Timer? _releaseTimer;
+
+  @override
+  void dispose() {
+    _releaseTimer?.cancel();
+    super.dispose();
+  }
+
+  void _press() {
+    _releaseTimer?.cancel();
+    _pressedAt = DateTime.now();
+    setState(() => _pressed = true);
+  }
+
+  void _release() {
+    final pressedAt = _pressedAt;
+    _pressedAt = null;
+    final held = pressedAt == null
+        ? _minPressFeedback
+        : DateTime.now().difference(pressedAt);
+    if (held >= _minPressFeedback) {
+      if (_pressed) setState(() => _pressed = false);
+      return;
+    }
+    _releaseTimer?.cancel();
+    _releaseTimer = Timer(_minPressFeedback - held, () {
+      if (mounted) setState(() => _pressed = false);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final reducedMotion = PosTokens.prefersReducedMotion(context);
@@ -82,9 +118,9 @@ class _PosCatalogGridCardState extends State<PosCatalogGridCard> {
           ? SystemMouseCursors.click
           : SystemMouseCursors.forbidden,
       child: GestureDetector(
-        onTapDown: interactive ? (_) => setState(() => _pressed = true) : null,
-        onTapUp: (_) => setState(() => _pressed = false),
-        onTapCancel: () => setState(() => _pressed = false),
+        onTapDown: interactive ? (_) => _press() : null,
+        onTapUp: (_) => _release(),
+        onTapCancel: _release,
         onTap: interactive ? widget.onTap : null,
         onLongPress: widget.onLongPress,
         child: AnimatedScale(

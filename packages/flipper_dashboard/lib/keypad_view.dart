@@ -276,6 +276,11 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
     );
 
     if (key == 'C') {
+      // Clear the display on the tap itself; the cart lookups below used to
+      // run first, so the key looked unresponsive until they finished.
+      ref.read(keypadProvider.notifier).reset();
+      HapticFeedback.lightImpact();
+
       // Properly handle the clear key by calling the CoreViewModel's handleClearKey method
       List<TransactionItem> items =
           await ProxyService.getStrategy(Strategy.capella).transactionItems(
@@ -287,13 +292,10 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
             active: false,
           );
 
+      if (!mounted) return;
       widget.model.handleClearKey(items, transaction.value, () {
         ref.read(keypadProvider.notifier).reset();
       });
-
-      // Also reset the keypad display
-      ref.read(keypadProvider.notifier).reset();
-      HapticFeedback.lightImpact();
     } else if (key == 'Confirm') {
       await _handleConfirmKey(transaction);
     } else if (key == '+') {
@@ -311,54 +313,73 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
 
     widget.model.keypad.setCashReceived(amount: amount);
 
+    // One save per dialog: a second tap while saving would record it twice.
+    var saving = false;
     bool? dialogResult = await showDialog<bool>(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(
-            context.flipperL10n.saveTransactionTitle(widget.transactionType),
+        return StatefulBuilder(
+          builder: (context, setDialogState) => AlertDialog(
+            title: Text(
+              context.flipperL10n.saveTransactionTitle(widget.transactionType),
+            ),
+            content: Text(context.flipperL10n.confirmSaveTransaction),
+            actions: <Widget>[
+              TextButton(
+                child: Text(context.flipperL10n.cancel),
+                onPressed: () => Navigator.of(context).pop(false),
+              ),
+              TextButton(
+                onPressed: saving
+                    ? null
+                    : () async {
+                        setDialogState(() => saving = true);
+                        final bool isIncome =
+                            (widget.transactionType == TransactionType.cashIn ||
+                            widget.transactionType == TransactionType.sale);
+                        Category? activeCat = await ProxyService.strategy
+                            .activeCategory(
+                              branchId: ProxyService.box.getBranchId()!,
+                            );
+                        if (activeCat == null) {
+                          showWarningNotification(
+                            context,
+                            context.flipperL10n.categoryMustBeSelected,
+                          );
+                          setDialogState(() => saving = false);
+                          return;
+                        }
+                        try {
+                          await HandleTransactionFromCashBook(
+                            cashReceived: amount,
+                            paymentType:
+                                ProxyService.box.paymentType() ?? "Cash",
+                            discount: 0,
+                            transactionType: widget.transactionType,
+                            isIncome: isIncome,
+                          );
+                          Navigator.of(
+                            context,
+                          ).pop(true); // Return true on success
+                          widget.onConfirm(); // Ensure pop is called
+                        } catch (e) {
+                          talker.error(e);
+                          Navigator.of(context).pop(
+                            true,
+                          ); // Return true even on error to close dialog
+                          widget.onConfirm(); // Ensure pop is called
+                        }
+                      },
+                child: saving
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : Text(context.flipperL10n.confirm),
+              ),
+            ],
           ),
-          content: Text(context.flipperL10n.confirmSaveTransaction),
-          actions: <Widget>[
-            TextButton(
-              child: Text(context.flipperL10n.cancel),
-              onPressed: () => Navigator.of(context).pop(false),
-            ),
-            TextButton(
-              child: Text(context.flipperL10n.confirm),
-              onPressed: () async {
-                final bool isIncome =
-                    (widget.transactionType == TransactionType.cashIn ||
-                    widget.transactionType == TransactionType.sale);
-                Category? activeCat = await ProxyService.strategy
-                    .activeCategory(branchId: ProxyService.box.getBranchId()!);
-                if (activeCat == null) {
-                  showWarningNotification(
-                    context,
-                    context.flipperL10n.categoryMustBeSelected,
-                  );
-                  return;
-                }
-                try {
-                  await HandleTransactionFromCashBook(
-                    cashReceived: amount,
-                    paymentType: ProxyService.box.paymentType() ?? "Cash",
-                    discount: 0,
-                    transactionType: widget.transactionType,
-                    isIncome: isIncome,
-                  );
-                  Navigator.of(context).pop(true); // Return true on success
-                  widget.onConfirm(); // Ensure pop is called
-                } catch (e) {
-                  talker.error(e);
-                  Navigator.of(
-                    context,
-                  ).pop(true); // Return true even on error to close dialog
-                  widget.onConfirm(); // Ensure pop is called
-                }
-              },
-            ),
-          ],
         );
       },
     );

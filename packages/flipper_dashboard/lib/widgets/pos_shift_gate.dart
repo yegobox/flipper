@@ -36,6 +36,11 @@ final requiresOpenShiftProvider = FutureProvider.autoDispose<bool>((ref) async {
 /// Only applies to Cashiers who can sell — view-only staff browse without a
 /// shift, and Admins/Owners/Managers are never blocked. Shows an intentional
 /// full-panel CTA (not a floating startup dialog).
+///
+/// While the role/shift lookups are still loading the POS shows straight away:
+/// a spinner here used to render on black (nothing paints under it on the
+/// opaque route) every time the page opened. The CTA replaces the POS as soon
+/// as the lookups say a shift is required and missing.
 class PosShiftGate extends ConsumerWidget {
   const PosShiftGate({super.key, required this.child});
 
@@ -66,7 +71,7 @@ class PosShiftGate extends ConsumerWidget {
     final colorScheme = theme.colorScheme;
 
     return requiresShiftAsync.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () => child,
       // Fail open — a role-lookup error shouldn't block a non-Cashier's sale.
       error: (_, __) => child,
       data: (requiresShift) {
@@ -75,8 +80,8 @@ class PosShiftGate extends ConsumerWidget {
         final shiftAsync = ref.watch(currentOpenShiftProvider);
 
         return shiftAsync.when(
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, _) => Center(
+          loading: () => child,
+          error: (e, _) => _GateSurface(
             child: Padding(
               padding: const EdgeInsets.all(24),
               child: Column(
@@ -100,7 +105,7 @@ class PosShiftGate extends ConsumerWidget {
           data: (shift) {
             if (shift != null) return child;
 
-            return Center(
+            return _GateSurface(
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 420),
                 child: Padding(
@@ -143,6 +148,21 @@ class PosShiftGate extends ConsumerWidget {
           },
         );
       },
+    );
+  }
+}
+
+/// Opaque backdrop for the gate's own screens, so they never show on black.
+class _GateSurface extends StatelessWidget {
+  const _GateSurface({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return ColoredBox(
+      color: Theme.of(context).colorScheme.surface,
+      child: Center(child: child),
     );
   }
 }

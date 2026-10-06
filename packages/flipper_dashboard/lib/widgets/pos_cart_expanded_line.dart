@@ -1,5 +1,7 @@
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/theme/pos_tokens.dart';
+import 'package:flipper_design_system/flipper_design_system.dart'
+    show TouchInputMode;
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -335,7 +337,7 @@ class _CollapsedHeader extends StatelessWidget {
               style: TextButton.styleFrom(
                 foregroundColor: PosTokens.blue,
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                minimumSize: Size.zero,
+                minimumSize: Size(0, TouchInputMode.of(context) ? 40 : 0),
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
               child: Text(
@@ -404,8 +406,10 @@ class _CompactQtyStepper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final height = PosTokens.smallControlHeight(context);
+    final sideWidth = height == PosTokens.controlHeightSm ? 30.0 : 40.0;
     return Container(
-      height: PosTokens.controlHeightSm,
+      height: height,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(PosTokens.radiusSm),
         border: Border.all(color: PosTokens.line),
@@ -417,8 +421,8 @@ class _CompactQtyStepper extends StatelessWidget {
           _StepperSide(
             icon: FluentIcons.subtract_24_regular,
             onPressed: decrementEnabled ? onDecrement : null,
-            width: 30,
-            height: PosTokens.controlHeightSm - 2,
+            width: sideWidth,
+            height: height - 2,
           ),
           ConstrainedBox(
             constraints: const BoxConstraints(minWidth: 28),
@@ -438,8 +442,8 @@ class _CompactQtyStepper extends StatelessWidget {
           _StepperSide(
             icon: FluentIcons.add_24_regular,
             onPressed: incrementEnabled ? onIncrement : null,
-            width: 30,
-            height: PosTokens.controlHeightSm - 2,
+            width: sideWidth,
+            height: height - 2,
           ),
         ],
       ),
@@ -776,7 +780,9 @@ class _TrashButton extends StatelessWidget {
       tooltip: context.flipperL10n.posCartRemoveLine,
       onPressed: onPressed,
       padding: EdgeInsets.zero,
-      constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+      constraints: BoxConstraints.tight(
+        Size.square(PosTokens.smallControlHeight(context)),
+      ),
       icon: Icon(
         FluentIcons.delete_20_regular,
         size: 18,

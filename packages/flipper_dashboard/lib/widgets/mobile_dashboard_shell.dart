@@ -71,20 +71,34 @@ class _MobileDashboardShellState extends ConsumerState<MobileDashboardShell> {
               ),
             ),
           ),
+          // The nav overlays the content so its raised New sale button can
+          // overlap the dashboard while staying fully tappable.
           Expanded(
-            child: DashboardView(
-              isBigScreen: widget.isBigScreen,
-              model: widget.model,
-              onQuickAccessSeeAll: _openDrawer,
+            child: Stack(
+              children: [
+                Positioned.fill(
+                  bottom: DashboardMobileBottomNav.barExtent(context),
+                  child: DashboardView(
+                    isBigScreen: widget.isBigScreen,
+                    model: widget.model,
+                    onQuickAccessSeeAll: _openDrawer,
+                  ),
+                ),
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  child: DashboardMobileBottomNav(
+                    activeTab: _activeTab,
+                    onTabSelected: (tab) {
+                      if (tab == DashboardMobileTab.home) {
+                        setState(() => _activeTab = DashboardMobileTab.home);
+                      }
+                    },
+                  ),
+                ),
+              ],
             ),
-          ),
-          DashboardMobileBottomNav(
-            activeTab: _activeTab,
-            onTabSelected: (tab) {
-              if (tab == DashboardMobileTab.home) {
-                setState(() => _activeTab = DashboardMobileTab.home);
-              }
-            },
           ),
         ],
       ),

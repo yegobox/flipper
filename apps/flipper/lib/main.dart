@@ -848,8 +848,12 @@ class _FlipperAppState extends State<FlipperApp> {
                 textScaler: TextScaler.noScaling,
               ),
               // Windows touch keyboard: slide the focused field into view
-              // instead of letting the window shrink.
-              child: KeyboardPan(occlusion: keyboardOcclusion, child: app),
+              // instead of letting the window shrink. [TouchInputDetector]
+              // grows controls to finger size while a touchscreen is in use.
+              child: KeyboardPan(
+                occlusion: keyboardOcclusion,
+                child: TouchInputDetector(child: app),
+              ),
             );
           },
         );

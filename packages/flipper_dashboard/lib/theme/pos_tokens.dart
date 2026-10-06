@@ -1,5 +1,7 @@
 import 'dart:ui';
 
+import 'package:flipper_design_system/flipper_design_system.dart'
+    show TouchInputMode;
 import 'package:flutter/material.dart';
 
 /// Design tokens for the desktop register.
@@ -79,12 +81,20 @@ abstract final class PosTokens {
   // Control sizes
   static const double controlHeight = 40;
   static const double controlHeightSm = 32;
+
+  /// Finger-sized height for small controls while a touchscreen is in use.
+  static const double touchControlHeight = 44;
   static const double iconSm = 16;
   static const double iconMd = 20;
   static const double searchFieldHeight = controlHeight;
   static const double scanButtonSize = controlHeight;
   static const double payButtonHeight = 52;
   static const double chipHeight = controlHeightSm;
+
+  /// [controlHeightSm] for mouse, [touchControlHeight] once touch is active
+  /// (see [TouchInputMode]).
+  static double smallControlHeight(BuildContext context) =>
+      TouchInputMode.of(context) ? touchControlHeight : controlHeightSm;
 
   // Motion (ANIMATIONS.md)
   static const Duration hoverTransition = Duration(milliseconds: 120);

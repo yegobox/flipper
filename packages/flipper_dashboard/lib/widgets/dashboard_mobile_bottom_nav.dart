@@ -20,94 +20,118 @@ class DashboardMobileBottomNav extends ConsumerWidget {
 
   static const Color _blue = Color(0xFF2563EB);
 
+  static const double _barHeight = 64;
+
+  /// How far the New sale button rises above the bar.
+  static const double _fabRise = 28;
+
+  static double _barPad(BuildContext context) {
+    final bottomPad = MediaQuery.paddingOf(context).bottom;
+    return bottomPad > 0 ? bottomPad : 8.0;
+  }
+
+  /// Height of the solid bar. Content above should stop here and let the
+  /// raised button overlap it — lay the nav over the content in a Stack.
+  static double barExtent(BuildContext context) =>
+      _barHeight + _barPad(context);
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final bottomPad = MediaQuery.paddingOf(context).bottom;
+    final barPad = _barPad(context);
 
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border(top: BorderSide(color: Colors.grey.shade200)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            offset: const Offset(0, -2),
-            blurRadius: 8,
-          ),
-        ],
-      ),
-      padding: EdgeInsets.only(bottom: bottomPad > 0 ? bottomPad : 8),
-      child: SizedBox(
-        height: 64,
-        child: Stack(
-          clipBehavior: Clip.none,
-          alignment: Alignment.center,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _NavItem(
-                  icon: FluentIcons.home_24_regular,
-                  label: context.flipperL10n.home,
-                  selected: activeTab == DashboardMobileTab.home,
-                  onTap: () => onTabSelected(DashboardMobileTab.home),
-                ),
-                _NavItem(
-                  icon: FluentIcons.cart_24_regular,
-                  label: context.flipperL10n.sales,
-                  selected: activeTab == DashboardMobileTab.sales,
-                  onTap: () async {
-                    onTabSelected(DashboardMobileTab.sales);
-                    await navigateToDashboardAppPage(
-                      context: context,
-                      isBigScreen: false,
-                      page: 'Transactions',
-                    );
-                  },
-                ),
-                const SizedBox(width: 72),
-                _NavItem(
-                  icon: FluentIcons.box_24_regular,
-                  label: context.flipperL10n.inventory,
-                  selected: activeTab == DashboardMobileTab.inventory,
-                  onTap: () async {
-                    onTabSelected(DashboardMobileTab.inventory);
-                    await navigateToDashboardAppPage(
-                      context: context,
-                      isBigScreen: false,
-                      page: 'Inventory',
-                    );
-                  },
-                ),
-                _NavItem(
-                  icon: FluentIcons.grid_24_regular,
-                  label: context.flipperL10n.more,
-                  selected: activeTab == DashboardMobileTab.more,
-                  onTap: () async {
-                    onTabSelected(DashboardMobileTab.more);
-                    await DashboardAllAppsSheet.show(context, ref);
-                  },
-                ),
-              ],
-            ),
-            Positioned(
-              left: 0,
-              right: 0,
-              top: -28,
-              child: Center(
-                child: _NewSaleFab(
-                  onTap: () async {
-                    await navigateToDashboardAppPage(
-                      context: context,
-                      isBigScreen: false,
-                      page: 'Inventory',
-                    );
-                  },
+    // The Stack is tall enough to contain the raised button. A child sticking
+    // out of a Stack (negative top + Clip.none) still paints, but taps on the
+    // overhang are never hit-tested — the top half of "+" used to be dead.
+    return SizedBox(
+      height: _fabRise + _barHeight + barPad,
+      child: Stack(
+        alignment: Alignment.topCenter,
+        children: [
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            height: _barHeight + barPad,
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                border: Border(top: BorderSide(color: Colors.grey.shade200)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.04),
+                    offset: const Offset(0, -2),
+                    blurRadius: 8,
+                  ),
+                ],
+              ),
+              padding: EdgeInsets.only(bottom: barPad),
+              // Ink of the tab InkWells paints on this Material, above the
+              // white fill, so taps visibly ripple.
+              child: Material(
+                type: MaterialType.transparency,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    _NavItem(
+                      icon: FluentIcons.home_24_regular,
+                      label: context.flipperL10n.home,
+                      selected: activeTab == DashboardMobileTab.home,
+                      onTap: () => onTabSelected(DashboardMobileTab.home),
+                    ),
+                    _NavItem(
+                      icon: FluentIcons.cart_24_regular,
+                      label: context.flipperL10n.sales,
+                      selected: activeTab == DashboardMobileTab.sales,
+                      onTap: () async {
+                        onTabSelected(DashboardMobileTab.sales);
+                        await navigateToDashboardAppPage(
+                          context: context,
+                          isBigScreen: false,
+                          page: 'Transactions',
+                        );
+                      },
+                    ),
+                    const SizedBox(width: 72),
+                    _NavItem(
+                      icon: FluentIcons.box_24_regular,
+                      label: context.flipperL10n.inventory,
+                      selected: activeTab == DashboardMobileTab.inventory,
+                      onTap: () async {
+                        onTabSelected(DashboardMobileTab.inventory);
+                        await navigateToDashboardAppPage(
+                          context: context,
+                          isBigScreen: false,
+                          page: 'Inventory',
+                        );
+                      },
+                    ),
+                    _NavItem(
+                      icon: FluentIcons.grid_24_regular,
+                      label: context.flipperL10n.more,
+                      selected: activeTab == DashboardMobileTab.more,
+                      onTap: () async {
+                        onTabSelected(DashboardMobileTab.more);
+                        await DashboardAllAppsSheet.show(context, ref);
+                      },
+                    ),
+                  ],
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+          Positioned(
+            top: 0,
+            child: _NewSaleFab(
+              onTap: () async {
+                await navigateToDashboardAppPage(
+                  context: context,
+                  isBigScreen: false,
+                  page: 'Inventory',
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -172,7 +196,7 @@ class _NewSaleFab extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
+            Ink(
               width: 58,
               height: 58,
               decoration: BoxDecoration(

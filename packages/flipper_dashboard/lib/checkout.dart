@@ -134,8 +134,9 @@ class CheckOutState extends ConsumerState<CheckOut>
 
   @override
   Widget build(BuildContext context) {
-    return PosShiftGate(
-      child: Material(color: Colors.white, child: _buildMainContent()),
+    return Material(
+      color: Colors.white,
+      child: PosShiftGate(child: _buildMainContent()),
     );
   }
 
