@@ -126,8 +126,7 @@ void listenCachedPendingCartTransactionSync(
 ITransaction? readCachedPendingCartTransactionWidget(
   WidgetRef ref, {
   required bool isExpense,
-}) =>
-    ref.read(cachedPendingCartTransactionProvider(isExpense));
+}) => ref.read(cachedPendingCartTransactionProvider(isExpense));
 
 void writeCachedPendingCartTransactionContainer(
   ProviderContainer container, {
@@ -140,8 +139,9 @@ void writeCachedPendingCartTransactionContainer(
     return;
   }
   container
-      .read(cachedPendingCartTransactionProvider(isExpense).notifier)
-      .state = transaction;
+          .read(cachedPendingCartTransactionProvider(isExpense).notifier)
+          .state =
+      transaction;
 }
 
 void writeCachedPendingCartTransactionWidget(

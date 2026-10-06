@@ -59,15 +59,18 @@ final posCartDisplayEpochProvider = StateProvider<int>((ref) => 0);
 ///
 /// Used by mobile checkout and ticket resume so [posCartStreamReconciliationProvider]
 /// does not replace the sale with a freshly auto-created empty pending cart.
-final pinnedPosCartTransactionIdProvider = StateProvider<String?>((ref) => null);
+final pinnedPosCartTransactionIdProvider = StateProvider<String?>(
+  (ref) => null,
+);
 
 /// Transaction id of the sale that just completed. While set, the cart shows
 /// empty for that id across every consumer (list, totals, badges) in the same
 /// frame — instead of lingering until the Ditto stream/pending providers
 /// reconcile. Cleared once a different pending transaction becomes active (the
 /// next sale), so a completed id is never permanently suppressed.
-final suppressedCartTransactionIdProvider =
-    StateProvider<String?>((ref) => null);
+final suppressedCartTransactionIdProvider = StateProvider<String?>(
+  (ref) => null,
+);
 
 void bumpPosCartDisplayEpoch(Ref ref) {
   ref.read(posCartDisplayEpochProvider.notifier).update((n) => n + 1);
@@ -87,15 +90,18 @@ final posCartPendingTransactionIdProvider = Provider.family<String?, bool>((
   if (cacheId != null && cacheId.isNotEmpty) return cacheId;
 
   final streamId = ref.watch(
-    pendingTransactionStreamProvider(isExpense: isExpense)
-        .select((a) => a.asData?.value.id),
+    pendingTransactionStreamProvider(
+      isExpense: isExpense,
+    ).select((a) => a.asData?.value.id),
   );
   if (streamId != null && streamId.isNotEmpty) return streamId;
 
   final optId = ref.watch(
     optimisticCartProvider.select((s) => s.activeTransactionId),
   );
-  if (optId == null || optId.isEmpty || OptimisticCartBootstrap.isBootstrap(optId)) {
+  if (optId == null ||
+      optId.isEmpty ||
+      OptimisticCartBootstrap.isBootstrap(optId)) {
     return null;
   }
   return optId;
@@ -121,7 +127,9 @@ final posCartPendingTransactionIdProvider = Provider.family<String?, bool>((
 /// Returns null for a suppressed id — a just-completed or just-re-parked ticket
 /// is suppressed before its row leaves PENDING, and recovering from it would
 /// flash the banner back on (or, worse, re-park a sale that just completed).
-final effectiveSettlingTillTicketProvider = Provider<SettlingTillTicket?>((ref) {
+final effectiveSettlingTillTicketProvider = Provider<SettlingTillTicket?>((
+  ref,
+) {
   final live = ref.watch(settlingTillTicketProvider);
   if (live != null) return live;
 
@@ -137,7 +145,8 @@ final effectiveSettlingTillTicketProvider = Provider<SettlingTillTicket?>((ref) 
 
   // Only when the pinned sale is held by neither of the rows the checkout is
   // already observing — so the common POS path opens no extra Ditto observer.
-  final needsLookup = pinnedId != null &&
+  final needsLookup =
+      pinnedId != null &&
       pinnedId.isNotEmpty &&
       cached?.id != pinnedId &&
       streamed?.id != pinnedId;
@@ -156,7 +165,10 @@ final effectiveSettlingTillTicketProvider = Provider<SettlingTillTicket?>((ref) 
 });
 
 /// Transaction id used to merge Ditto line items with optimistic ghosts.
-final posCartMergeTxnIdProvider = Provider.family<String, bool>((ref, isExpense) {
+final posCartMergeTxnIdProvider = Provider.family<String, bool>((
+  ref,
+  isExpense,
+) {
   final pendingId = ref.watch(posCartPendingTransactionIdProvider(isExpense));
   final optimisticId = ref.watch(
     optimisticCartProvider.select((s) => s.activeTransactionId),
@@ -355,10 +367,9 @@ final posCartStreamReconciliationProvider = Provider<void>((ref) {
     if (!next.hasValue) return;
     final items = next.value!;
     Future.microtask(
-      () => ref.read(optimisticCartProvider.notifier).onStreamEmitted(
-            transactionId: pendingId,
-            items: items,
-          ),
+      () => ref
+          .read(optimisticCartProvider.notifier)
+          .onStreamEmitted(transactionId: pendingId, items: items),
     );
   }, fireImmediately: true);
 });
@@ -376,15 +387,16 @@ final posCartDisplayItemsProvider = Provider<List<TransactionItem>>((ref) {
   if (settling != null && settling.transactionId.isNotEmpty) {
     final settlingBranchId =
         (settling.branchId != null && settling.branchId!.isNotEmpty)
-            ? settling.branchId!
-            : (ProxyService.box.getBranchId() ?? '0');
+        ? settling.branchId!
+        : (ProxyService.box.getBranchId() ?? '0');
     // The live Ditto stream is the source of truth once it warms up, but on a
     // cold subscription it resolves AsyncLoading first — so fall back to the
     // items pre-fetched at Collect time (settling.seedItems) so the cart paints
     // instantly instead of flashing empty. Settling only ever adds lines, so
     // the ticket's lines don't legitimately empty out mid-settle; prefer the
     // seed until the stream actually has rows.
-    final streamItems = ref
+    final streamItems =
+        ref
             .watch(
               transactionItemsStreamProvider(
                 transactionId: settling.transactionId,
@@ -394,8 +406,7 @@ final posCartDisplayItemsProvider = Provider<List<TransactionItem>>((ref) {
             .asData
             ?.value ??
         const <TransactionItem>[];
-    final scoped =
-        streamItems.isNotEmpty ? streamItems : settling.seedItems;
+    final scoped = streamItems.isNotEmpty ? streamItems : settling.seedItems;
     final optimistic = ref.watch(optimisticCartProvider);
     if (optimistic.hasPendingFor(settling.transactionId)) {
       return mergeTransactionItemsWithOptimisticCart(
@@ -409,26 +420,29 @@ final posCartDisplayItemsProvider = Provider<List<TransactionItem>>((ref) {
 
   final isExpense = _posCartIsExpense(ref);
   final optimisticState = ref.watch(optimisticCartProvider);
-  final hasPending =
-      optimisticState.pendingQtyByVariantId.values.any((q) => q > 0);
+  final hasPending = optimisticState.pendingQtyByVariantId.values.any(
+    (q) => q > 0,
+  );
 
   final pendingId = ref.watch(posCartPendingTransactionIdProvider(isExpense));
   final mergeTxnId = ref.watch(posCartMergeTxnIdProvider(isExpense));
   final pinnedTxnId = ref.watch(pinnedPosCartTransactionIdProvider);
   final branchId = ProxyService.box.getBranchId() ?? '0';
-  final cachedPending =
-      readCachedPendingCartTransaction(ref, isExpense: isExpense);
+  final cachedPending = readCachedPendingCartTransaction(
+    ref,
+    isExpense: isExpense,
+  );
   // Prefer the pending cart's own branch (where saveTransactionItem wrote
   // lines). Using only the box branch made the stream show rows while a
   // branch-scoped completion poll for transaction.branchId returned [].
   final cachedBranch = cachedPending?.branchId?.trim();
   final mergeBranchId = pinnedTxnId != null && pinnedTxnId.isNotEmpty
       ? (cachedBranch != null && cachedBranch.isNotEmpty
-          ? cachedBranch
-          : branchId)
+            ? cachedBranch
+            : branchId)
       : (cachedBranch != null && cachedBranch.isNotEmpty
-          ? cachedBranch
-          : branchId);
+            ? cachedBranch
+            : branchId);
 
   final txnIdForMerge = (pendingId != null && pendingId.isNotEmpty)
       ? pendingId
@@ -449,18 +463,19 @@ final posCartDisplayItemsProvider = Provider<List<TransactionItem>>((ref) {
 
   // In-flight taps: sync-read last stream snapshot (no Ditto wait), merge ghosts.
   if (hasPending) {
-    final cachedStream = txnIdForMerge.isEmpty ||
+    final cachedStream =
+        txnIdForMerge.isEmpty ||
             OptimisticCartBootstrap.isBootstrap(txnIdForMerge)
         ? const <TransactionItem>[]
         : (ref
-                .read(
-                  transactionItemsStreamProvider(
-                    transactionId: txnIdForMerge,
-                    branchId: mergeBranchId,
-                  ),
-                )
-                .value ??
-            const <TransactionItem>[]);
+                  .read(
+                    transactionItemsStreamProvider(
+                      transactionId: txnIdForMerge,
+                      branchId: mergeBranchId,
+                    ),
+                  )
+                  .value ??
+              const <TransactionItem>[]);
     return mergeTransactionItemsWithOptimisticCart(
       streamItems: cachedStream,
       optimistic: optimisticState,
@@ -568,8 +583,7 @@ final posCartPaymentRefreshSignalProvider = Provider<double>((ref) {
 /// from [optimisticCartProvider] only so the product grid does not watch Ditto.
 final posCartQtyByVariantIdProvider = Provider<Map<String, int>>((ref) {
   final optimistic = ref.watch(optimisticCartProvider);
-  final hasPending =
-      optimistic.pendingQtyByVariantId.values.any((q) => q > 0);
+  final hasPending = optimistic.pendingQtyByVariantId.values.any((q) => q > 0);
   if (hasPending) {
     final out = <String, int>{};
     final keys = <String>{
@@ -577,7 +591,8 @@ final posCartQtyByVariantIdProvider = Provider<Map<String, int>>((ref) {
       ...optimistic.lastStreamQtySumByVariantId.keys,
     };
     for (final vid in keys) {
-      final q = (optimistic.lastStreamQtySumByVariantId[vid] ?? 0) +
+      final q =
+          (optimistic.lastStreamQtySumByVariantId[vid] ?? 0) +
           (optimistic.pendingQtyByVariantId[vid] ?? 0);
       if (q > 0) out[vid] = q.round();
     }
@@ -661,8 +676,10 @@ List<TransactionItem> checkoutLineItemsForTransaction({
   required String transactionId,
   List<TransactionItem>? streamItems,
 }) {
-  final fromMerged =
-      posCartDisplayItemsForTransaction(mergedCart, transactionId);
+  final fromMerged = posCartDisplayItemsForTransaction(
+    mergedCart,
+    transactionId,
+  );
   if (fromMerged.isNotEmpty) return fromMerged;
   if (streamItems == null || streamItems.isEmpty) return const [];
   final active = streamItems.where((i) => i.active != false).toList();
@@ -812,9 +829,7 @@ bool clearSuppressedCartTransactionIfContainer(
 }) {
   if (transactionId.isEmpty) return false;
   final suppressed = container.read(suppressedCartTransactionIdProvider);
-  if (suppressed == null ||
-      suppressed.isEmpty ||
-      suppressed != transactionId) {
+  if (suppressed == null || suppressed.isEmpty || suppressed != transactionId) {
     return false;
   }
   container.read(suppressedCartTransactionIdProvider.notifier).state = null;
@@ -849,10 +864,7 @@ bool clearPinnedPosCartTransactionIfWidget(
 ///
 /// Returns null when no ticket is being collected (purchases never are), or
 /// when the ticket has already left PENDING.
-ITransaction? readSettlingCartTransaction(
-  Ref ref, {
-  required bool isExpense,
-}) =>
+ITransaction? readSettlingCartTransaction(Ref ref, {required bool isExpense}) =>
     readSettlingCartTransactionContainer(ref.container, isExpense: isExpense);
 
 ITransaction? readSettlingCartTransactionContainer(
@@ -868,10 +880,8 @@ ITransaction? readSettlingCartTransactionContainer(
   final cached = container.read(cachedPendingCartTransactionProvider(false));
   final txn = (cached != null && cached.id == settling.transactionId)
       ? cached
-      : container
-              .read(transactionByIdProvider(settling.transactionId))
-              .value ??
-          settling.ticketSnapshot;
+      : container.read(transactionByIdProvider(settling.transactionId)).value ??
+            settling.ticketSnapshot;
   if (txn == null || txn.status != PENDING) return null;
   return txn;
 }
@@ -886,9 +896,7 @@ String? readPosCartTransactionIdFast(Ref ref, {required bool isExpense}) {
   if (settlingTxn != null) return settlingTxn.id;
 
   final cached = readCachedPendingCartTransaction(ref, isExpense: isExpense);
-  if (cached != null &&
-      cached.id.isNotEmpty &&
-      cached.status == PENDING) {
+  if (cached != null && cached.id.isNotEmpty && cached.status == PENDING) {
     return cached.id;
   }
 
@@ -913,7 +921,9 @@ String? readPosCartTransactionIdFast(Ref ref, {required bool isExpense}) {
 
 /// Writes stream pending txn into cache when checkout opens (desktop split).
 void warmPosCartPendingTransactionCache(Ref ref, {required bool isExpense}) {
-  final txn = ref.read(pendingTransactionStreamProvider(isExpense: isExpense)).value;
+  final txn = ref
+      .read(pendingTransactionStreamProvider(isExpense: isExpense))
+      .value;
   scheduleWriteCachedPendingCartTransaction(
     ref,
     isExpense: isExpense,
@@ -933,7 +943,9 @@ void warmPosCartPendingTransactionCacheWidget(
   WidgetRef ref, {
   required bool isExpense,
 }) {
-  final txn = ref.read(pendingTransactionStreamProvider(isExpense: isExpense)).value;
+  final txn = ref
+      .read(pendingTransactionStreamProvider(isExpense: isExpense))
+      .value;
   scheduleWriteCachedPendingCartTransactionWidget(
     ref,
     isExpense: isExpense,
