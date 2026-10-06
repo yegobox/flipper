@@ -24426,4 +24426,68 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
   @override
   String get customerDisplayNotFound =>
       'No setting lit the display. Check its cable, or pick the port and speed by hand.';
+
+  @override
+  String get builtinPrinterLabel => 'Built-in receipt printer';
+
+  @override
+  String get builtinPrinterHint =>
+      'The till\'s own 58 mm printer, used directly — no Windows driver needed. It is found automatically on the first receipt.';
+
+  @override
+  String builtinPrinterUsing(String printer) {
+    return 'Using $printer';
+  }
+
+  @override
+  String get builtinPrinterNotFound => 'Not found yet.';
+
+  @override
+  String get builtinPrinterOff =>
+      'Off. Receipts use the Windows printer above.';
+
+  @override
+  String get builtinPrinterSearch => 'Search';
+
+  @override
+  String get builtinPrinterSearching => 'Searching…';
+
+  @override
+  String get builtinPrinterFind => 'Find printer';
+
+  @override
+  String get builtinPrinterTurnOff => 'Turn off';
+
+  @override
+  String get builtinPrinterTurnOn => 'Turn on';
+
+  @override
+  String builtinPrinterFound(String printer) {
+    return 'Built-in printer found: $printer';
+  }
+
+  @override
+  String get builtinPrinterNoneAnswered =>
+      'No built-in printer answered. Check paper and power, then try Find printer.';
+
+  @override
+  String builtinPrinterFindPrompt(String printer) {
+    return 'A test line was sent to $printer. Did it print?';
+  }
+
+  @override
+  String get builtinPrinterTestSent => 'Test page sent to the built-in printer';
+
+  @override
+  String get builtinPrinterQrLabel => 'Receipt QR code';
+
+  @override
+  String get builtinPrinterQrImage => 'Image (works on every printer)';
+
+  @override
+  String get builtinPrinterQrNative => 'Printer\'s own (if QR B printed)';
+
+  @override
+  String get builtinPrinterWindowsOnly =>
+      'Built-in printers are supported on Windows tills.';
 }

@@ -40864,6 +40864,114 @@ abstract class FlipperAppLocalizations {
   /// In en, this message translates to:
   /// **'No setting lit the display. Check its cable, or pick the port and speed by hand.'**
   String get customerDisplayNotFound;
+
+  /// No description provided for @builtinPrinterLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Built-in receipt printer'**
+  String get builtinPrinterLabel;
+
+  /// No description provided for @builtinPrinterHint.
+  ///
+  /// In en, this message translates to:
+  /// **'The till\'s own 58 mm printer, used directly — no Windows driver needed. It is found automatically on the first receipt.'**
+  String get builtinPrinterHint;
+
+  /// No description provided for @builtinPrinterUsing.
+  ///
+  /// In en, this message translates to:
+  /// **'Using {printer}'**
+  String builtinPrinterUsing(String printer);
+
+  /// No description provided for @builtinPrinterNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Not found yet.'**
+  String get builtinPrinterNotFound;
+
+  /// No description provided for @builtinPrinterOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Off. Receipts use the Windows printer above.'**
+  String get builtinPrinterOff;
+
+  /// No description provided for @builtinPrinterSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Search'**
+  String get builtinPrinterSearch;
+
+  /// No description provided for @builtinPrinterSearching.
+  ///
+  /// In en, this message translates to:
+  /// **'Searching…'**
+  String get builtinPrinterSearching;
+
+  /// No description provided for @builtinPrinterFind.
+  ///
+  /// In en, this message translates to:
+  /// **'Find printer'**
+  String get builtinPrinterFind;
+
+  /// No description provided for @builtinPrinterTurnOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn off'**
+  String get builtinPrinterTurnOff;
+
+  /// No description provided for @builtinPrinterTurnOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on'**
+  String get builtinPrinterTurnOn;
+
+  /// No description provided for @builtinPrinterFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Built-in printer found: {printer}'**
+  String builtinPrinterFound(String printer);
+
+  /// No description provided for @builtinPrinterNoneAnswered.
+  ///
+  /// In en, this message translates to:
+  /// **'No built-in printer answered. Check paper and power, then try Find printer.'**
+  String get builtinPrinterNoneAnswered;
+
+  /// No description provided for @builtinPrinterFindPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'A test line was sent to {printer}. Did it print?'**
+  String builtinPrinterFindPrompt(String printer);
+
+  /// No description provided for @builtinPrinterTestSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Test page sent to the built-in printer'**
+  String get builtinPrinterTestSent;
+
+  /// No description provided for @builtinPrinterQrLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Receipt QR code'**
+  String get builtinPrinterQrLabel;
+
+  /// No description provided for @builtinPrinterQrImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Image (works on every printer)'**
+  String get builtinPrinterQrImage;
+
+  /// No description provided for @builtinPrinterQrNative.
+  ///
+  /// In en, this message translates to:
+  /// **'Printer\'s own (if QR B printed)'**
+  String get builtinPrinterQrNative;
+
+  /// No description provided for @builtinPrinterWindowsOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Built-in printers are supported on Windows tills.'**
+  String get builtinPrinterWindowsOnly;
 }
 
 class _FlipperAppLocalizationsDelegate

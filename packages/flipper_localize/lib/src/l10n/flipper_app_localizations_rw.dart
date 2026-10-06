@@ -24684,4 +24684,69 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   @override
   String get customerDisplayNotFound =>
       'Nta genamiterere ryatumye icyerekana caka. Genzura umugozi wacyo, cyangwa uhitemo porte n\'umuvuduko ubwawe.';
+
+  @override
+  String get builtinPrinterLabel => 'Icapiro ry\'inyemezabwishyu ryometse';
+
+  @override
+  String get builtinPrinterHint =>
+      'Icapiro rya mm 58 ry\'iyi mashini, rikoreshwa ako kanya — nta porogaramu y\'icapiro ya Windows ikenewe. Riboneka ubwaryo ku nyemezabwishyu ya mbere.';
+
+  @override
+  String builtinPrinterUsing(String printer) {
+    return 'Rikoresha $printer';
+  }
+
+  @override
+  String get builtinPrinterNotFound => 'Ntiraraboneka.';
+
+  @override
+  String get builtinPrinterOff =>
+      'Kizimije. Inyemezabwishyu zikoresha icapiro rya Windows riri hejuru.';
+
+  @override
+  String get builtinPrinterSearch => 'Shakisha';
+
+  @override
+  String get builtinPrinterSearching => 'Irashakisha…';
+
+  @override
+  String get builtinPrinterFind => 'Shakisha icapiro';
+
+  @override
+  String get builtinPrinterTurnOff => 'Zimya';
+
+  @override
+  String get builtinPrinterTurnOn => 'Fungura';
+
+  @override
+  String builtinPrinterFound(String printer) {
+    return 'Icapiro ryometse ryabonetse: $printer';
+  }
+
+  @override
+  String get builtinPrinterNoneAnswered =>
+      'Nta capiro ryometse ryasubije. Genzura impapuro n\'umuriro, hanyuma ugerageze Shakisha icapiro.';
+
+  @override
+  String builtinPrinterFindPrompt(String printer) {
+    return 'Umurongo w\'igerageza woherejwe kuri $printer. Wasohotse?';
+  }
+
+  @override
+  String get builtinPrinterTestSent =>
+      'Urupapuro rw\'igerageza rwoherejwe ku capiro ryometse';
+
+  @override
+  String get builtinPrinterQrLabel => 'QR code y\'inyemezabwishyu';
+
+  @override
+  String get builtinPrinterQrImage => 'Ifoto (ikora ku capiro ryose)';
+
+  @override
+  String get builtinPrinterQrNative => 'Iy\'icapiro (niba QR B yasohotse)';
+
+  @override
+  String get builtinPrinterWindowsOnly =>
+      'Amacapiro yometse akora kuri mashini za Windows.';
 }

@@ -15,6 +15,9 @@ import 'package:flipper_services/proxy.dart';
 import 'package:uuid/uuid.dart';
 import 'package:flipper_models/helpers/deferred_sale_receipt_persist.dart';
 import 'package:receipt/print.dart';
+import 'package:flipper_models/helpers/escpos_receipt.dart';
+import 'package:flipper_services/builtin_printer/builtin_printer_service.dart';
+import 'package:printing/printing.dart';
 
 typedef ReceiptHandleResult = ({
   RwApiResponse response,
@@ -42,8 +45,7 @@ Future<Customer?> resolveCustomerForReceipt({
   final hasName =
       _nonEmptyCustomerField(transaction.customerName) ||
       _nonEmptyCustomerField(ProxyService.box.customerName());
-  final effectivePurchaseCode =
-      purchaseCode ?? ProxyService.box.purchaseCode();
+  final effectivePurchaseCode = purchaseCode ?? ProxyService.box.purchaseCode();
   final needsTinFromCustomer =
       _nonEmptyCustomerField(effectivePurchaseCode) &&
       !_nonEmptyCustomerField(transaction.customerTin);
@@ -51,8 +53,9 @@ Future<Customer?> resolveCustomerForReceipt({
   if (hasName && !needsTinFromCustomer) return null;
 
   try {
-    final resolved = await ProxyService.getStrategy(Strategy.capella)
-        .customerById(customerId);
+    final resolved = await ProxyService.getStrategy(
+      Strategy.capella,
+    ).customerById(customerId);
     talker.info('Resolved customer from id: ${resolved?.id}');
     return resolved;
   } catch (e) {
@@ -365,6 +368,7 @@ class TaxController<OBJ> {
     RwApiResponse? signedResponse,
     List<TransactionItem>? transactionItems,
     Receipt? presentationReceiptForPdf,
+
     /// When false, always sign/print locally (used when fulfilling a delegated job).
     bool allowDelegationFallback = true,
   }) async {
@@ -376,9 +380,9 @@ class TaxController<OBJ> {
         lineItems = await ProxyService.getStrategy(Strategy.capella)
             .transactionItems(
               transactionId: transaction.id,
-              branchId: (await ProxyService.getStrategy(Strategy.capella).activeBranch(
-                branchId: ProxyService.box.getBranchId()!,
-              )).id,
+              branchId: (await ProxyService.getStrategy(
+                Strategy.capella,
+              ).activeBranch(branchId: ProxyService.box.getBranchId()!)).id,
               doneWithTransaction: false,
               active: true,
             );
@@ -518,15 +522,17 @@ class TaxController<OBJ> {
     bool deferPresentation = false,
     Receipt? presentationReceipt,
   }) async {
-    Business? business = await ProxyService.getStrategy(Strategy.capella).getBusiness(
-      businessId: ProxyService.box.getBusinessId()!,
-    );
-    final ebm = await ProxyService.getStrategy(Strategy.capella).ebm(
-      branchId: ProxyService.box.getBranchId()!,
-    );
+    Business? business = await ProxyService.getStrategy(
+      Strategy.capella,
+    ).getBusiness(businessId: ProxyService.box.getBusinessId()!);
+    final ebm = await ProxyService.getStrategy(
+      Strategy.capella,
+    ).ebm(branchId: ProxyService.box.getBranchId()!);
     final receipt =
         presentationReceipt ??
-        await ProxyService.getStrategy(Strategy.capella).getReceipt(transactionId: transaction.id);
+        await ProxyService.getStrategy(
+          Strategy.capella,
+        ).getReceipt(transactionId: transaction.id);
     if (receipt == null) {
       throw Exception(
         'Receipt not found for transaction ${transaction.id}. '
@@ -562,26 +568,26 @@ class TaxController<OBJ> {
       }
     }
 
-    final taxConfigTaxB = await ProxyService.getStrategy(Strategy.capella).getByTaxType(
-      taxtype: "B",
-    );
-    final taxConfigTaxA = await ProxyService.getStrategy(Strategy.capella).getByTaxType(
-      taxtype: "A",
-    );
-    final taxConfigTaxC = await ProxyService.getStrategy(Strategy.capella).getByTaxType(
-      taxtype: "C",
-    );
-    final taxConfigTaxD = await ProxyService.getStrategy(Strategy.capella).getByTaxType(
-      taxtype: "D",
-    );
-    final taxConfigTaxTT = await ProxyService.getStrategy(Strategy.capella).getByTaxType(
-      taxtype: "TT",
-    );
+    final taxConfigTaxB = await ProxyService.getStrategy(
+      Strategy.capella,
+    ).getByTaxType(taxtype: "B");
+    final taxConfigTaxA = await ProxyService.getStrategy(
+      Strategy.capella,
+    ).getByTaxType(taxtype: "A");
+    final taxConfigTaxC = await ProxyService.getStrategy(
+      Strategy.capella,
+    ).getByTaxType(taxtype: "C");
+    final taxConfigTaxD = await ProxyService.getStrategy(
+      Strategy.capella,
+    ).getByTaxType(taxtype: "D");
+    final taxConfigTaxTT = await ProxyService.getStrategy(
+      Strategy.capella,
+    ).getByTaxType(taxtype: "TT");
 
     Uint8List? bytes;
-    final paymentTypes = await ProxyService.getStrategy(Strategy.capella).getPaymentType(
-      transactionId: transaction.id,
-    );
+    final paymentTypes = await ProxyService.getStrategy(
+      Strategy.capella,
+    ).getPaymentType(transactionId: transaction.id);
 
     var customerNameForPrint =
         transaction.customerName ?? ProxyService.box.customerName() ?? '';
@@ -590,18 +596,31 @@ class TaxController<OBJ> {
       customerNameForPrint = 'Walk-in Customer';
     }
 
+    final customerPhone = (transaction.customerPhone?.isNotEmpty ?? false)
+        ? transaction.customerPhone
+        : ProxyService.box.currentSaleCustomerPhoneNumber();
+    final customerTin = (transaction.customerTin?.isNotEmpty ?? false)
+        ? transaction.customerTin
+        : ProxyService.box.customerTin();
+    final timeFromServer =
+        responses.data?.vsdcRcptPbctDate?.toCompactDateTime() ??
+        receipt.timeReceivedFromserver!;
+    final totalTax = ebm!.vatEnabled == true
+        ? (totalB * 18 / 118).toStringAsFixed(2)
+        : 0.toStringAsFixed(2);
+    final printOnBuiltin = _printsOnBuiltinPrinter(
+      skipPresentation: skipPresentation,
+      deferPresentation: deferPresentation,
+    );
+
     await Print().print(
-      vatEnabled: ebm!.vatEnabled ?? false,
+      vatEnabled: ebm.vatEnabled ?? false,
       taxTT: totalTT,
       totalTaxTT: calculateTotalTax(totalTT, taxConfigTaxTT!),
-      customerPhone: (transaction.customerPhone?.isNotEmpty ?? false)
-          ? transaction.customerPhone
-          : ProxyService.box.currentSaleCustomerPhoneNumber(),
+      customerPhone: customerPhone,
       totalDiscount: totalDiscount,
       whenCreated: receipt.whenCreated!,
-      timeFromServer:
-          responses.data?.vsdcRcptPbctDate?.toCompactDateTime() ??
-          receipt.timeReceivedFromserver!,
+      timeFromServer: timeFromServer,
       taxB: totalB,
       taxC: totalC,
       taxA: totalA,
@@ -614,9 +633,7 @@ class TaxController<OBJ> {
       currencySymbol: "RW",
       originalInvoiceNumber: originalInvoiceNumber,
       transaction: transaction,
-      totalTax: ebm.vatEnabled == true
-          ? (totalB * 18 / 118).toStringAsFixed(2)
-          : 0.toStringAsFixed(2),
+      totalTax: totalTax,
       items: transactionItems,
       cash: transaction.subTotal!,
       // A credit / part-paid sale is receipted for the full amount, and its
@@ -642,9 +659,7 @@ class TaxController<OBJ> {
       brandFooter: business.name!,
       emails: [business.email ?? ""],
       brandEmail: business.email ?? "info@yegobox.com",
-      customerTin: (transaction.customerTin?.isNotEmpty ?? false)
-          ? transaction.customerTin
-          : ProxyService.box.customerTin(),
+      customerTin: customerTin,
       receiptType: receiptType,
       customerName: customerNameForPrint,
       printCallback: (Uint8List data) {
@@ -652,7 +667,44 @@ class TaxController<OBJ> {
         onSuccess?.call();
       },
       skipPresentation: skipPresentation,
-      deferPresentation: deferPresentation,
+      deferPresentation: deferPresentation || printOnBuiltin,
+    );
+
+    final builtin = BuiltinPrinterService.instance;
+    await _attachEscPos(
+      bytes,
+      printNow: printOnBuiltin,
+      build: () => EscPosReceipt(
+        items: transactionItems,
+        receiptType: receiptType,
+        vatEnabled: ebm.vatEnabled ?? false,
+        totalDiscount: totalDiscount,
+        taxA: totalA,
+        totalTax: totalTax,
+        brandName: business.name!,
+        brandAddress: business.adrs ?? "",
+        brandTel: business.phoneNumber ?? "",
+        brandTIN: (ebm.tinNumber).toString(),
+        brandEmail: business.email ?? "info@yegobox.com",
+        customerName: customerNameForPrint,
+        customerTin: customerTin,
+        customerPhone: customerPhone,
+        originalInvoiceNumber: originalInvoiceNumber,
+        paymentTypeCode: builtin.paymentTypeCode,
+        invoiceNum: receipt.invcNo!,
+        saleDate: transaction.lastTouched,
+        whenCreated: receipt.whenCreated!,
+        timeFromServer: timeFromServer,
+        sdcId: receipt.sdcId ?? "",
+        rcptNo: receipt.rcptNo ?? 0,
+        totRcptNo: receipt.totRcptNo ?? 0,
+        internalData: receipt.intrlData ?? "",
+        receiptSignature: receipt.rcptSign ?? "",
+        receiptQrCode: receipt.qrCode ?? "",
+        mrc: builtin.resolveMrc(receipt.mrcNo ?? ""),
+        logo: builtin.receiptLogo(),
+        qrMode: builtin.qrMode,
+      ),
     );
 
     transaction.receiptPrinted = true;
@@ -696,17 +748,27 @@ class TaxController<OBJ> {
       customerNameForPrint = 'Walk-in Customer';
     }
 
+    final customerPhone = (transaction.customerPhone?.isNotEmpty ?? false)
+        ? transaction.customerPhone
+        : ProxyService.box.currentSaleCustomerPhoneNumber();
+    final customerTin = (transaction.customerTin?.isNotEmpty ?? false)
+        ? transaction.customerTin
+        : ProxyService.box.customerTin();
+    final whenCreated = transaction.lastPaymentDate ?? DateTime.now();
+    final printOnBuiltin = _printsOnBuiltinPrinter(
+      skipPresentation: false,
+      deferPresentation: deferPresentation,
+    );
+
     Uint8List? bytes;
     await Print().print(
       vatEnabled: false,
       taxTT: 0,
       totalTaxTT: 0,
-      customerPhone: (transaction.customerPhone?.isNotEmpty ?? false)
-          ? transaction.customerPhone
-          : ProxyService.box.currentSaleCustomerPhoneNumber(),
+      customerPhone: customerPhone,
       totalDiscount: 0,
-      whenCreated: transaction.lastPaymentDate ?? DateTime.now(),
-      timeFromServer: transaction.lastPaymentDate ?? DateTime.now(),
+      whenCreated: whenCreated,
+      timeFromServer: whenCreated,
       taxB: 0,
       taxC: 0,
       taxA: 0,
@@ -742,9 +804,7 @@ class TaxController<OBJ> {
       brandFooter: business.name ?? "",
       emails: [business.email ?? ""],
       brandEmail: business.email ?? "info@yegobox.com",
-      customerTin: (transaction.customerTin?.isNotEmpty ?? false)
-          ? transaction.customerTin
-          : ProxyService.box.customerTin(),
+      customerTin: customerTin,
       receiptType: TransactionReceptType.NS,
       customerName: customerNameForPrint,
       isFiscalReceipt: false,
@@ -753,7 +813,35 @@ class TaxController<OBJ> {
         onSuccess?.call();
       },
       skipPresentation: false,
-      deferPresentation: deferPresentation,
+      deferPresentation: deferPresentation || printOnBuiltin,
+    );
+
+    final builtin = BuiltinPrinterService.instance;
+    await _attachEscPos(
+      bytes,
+      printNow: printOnBuiltin,
+      build: () => EscPosReceipt(
+        items: transactionItems,
+        receiptType: TransactionReceptType.NS,
+        vatEnabled: false,
+        totalDiscount: 0,
+        taxA: 0,
+        totalTax: 0.toStringAsFixed(2),
+        brandName: business.name ?? "",
+        brandAddress: business.adrs ?? "",
+        brandTel: business.phoneNumber ?? "",
+        brandTIN: business.tinNumber?.toString() ?? "",
+        brandEmail: business.email ?? "info@yegobox.com",
+        customerName: customerNameForPrint,
+        customerTin: customerTin,
+        customerPhone: customerPhone,
+        paymentTypeCode: builtin.paymentTypeCode,
+        invoiceNum: 0,
+        saleDate: transaction.lastTouched,
+        whenCreated: whenCreated,
+        isFiscalReceipt: false,
+        logo: builtin.receiptLogo(),
+      ),
     );
 
     transaction.receiptPrinted = true;
@@ -761,6 +849,48 @@ class TaxController<OBJ> {
       Strategy.capella,
     ).updateTransaction(transactionId: transaction.id, receiptPrinted: true);
     return bytes;
+  }
+
+  /// Windows tills render every roll receipt for the built-in thermal
+  /// printer too. A4 receipts stay on the Windows printer.
+  bool get _rendersEscPos =>
+      !kIsWeb &&
+      Platform.isWindows &&
+      !BuiltinPrinterService.instance.receiptsUseA4;
+
+  /// True when the receipt package would present this receipt itself (copy
+  /// reprints, delegated jobs) but the till has a built-in printer: it is
+  /// printed there instead of on the first Windows printer.
+  bool _printsOnBuiltinPrinter({
+    required bool skipPresentation,
+    required bool deferPresentation,
+  }) =>
+      _rendersEscPos &&
+      !skipPresentation &&
+      !deferPresentation &&
+      BuiltinPrinterService.instance.savedTarget != null;
+
+  /// Attaches the 58 mm ESC/POS rendering to the receipt [pdf] (see
+  /// [receiptEscPos]) and, when [printNow], prints it on the built-in printer,
+  /// falling back to the Windows print dialog. Never fails the receipt.
+  Future<void> _attachEscPos(
+    Uint8List? pdf, {
+    required bool printNow,
+    required EscPosReceipt Function() build,
+  }) async {
+    if (pdf == null || !_rendersEscPos) return;
+    Uint8List escpos;
+    try {
+      escpos = build().build();
+      receiptEscPos[pdf] = escpos;
+    } catch (e, s) {
+      talker.error('[builtin_printer] could not lay out the receipt: $e', s);
+      if (printNow) await Printing.layoutPdf(onLayout: (_) async => pdf);
+      return;
+    }
+    if (printNow && !await BuiltinPrinterService.instance.tryPrint(escpos)) {
+      await Printing.layoutPdf(onLayout: (_) async => pdf);
+    }
   }
 
   /**
@@ -772,11 +902,14 @@ class TaxController<OBJ> {
    * @param receiptType - Type of receipt (e.g. 'SALES')
    * @param transaction - The transaction object
   */
-  Future<({
-    RwApiResponse response,
-    Receipt? presentationReceipt,
-    DeferredSaleReceiptPersist? deferredPersist,
-  })> generateRRAReceiptSignature({
+  Future<
+    ({
+      RwApiResponse response,
+      Receipt? presentationReceipt,
+      DeferredSaleReceiptPersist? deferredPersist,
+    })
+  >
+  generateRRAReceiptSignature({
     required String receiptType,
     required ITransaction transaction,
     String? purchaseCode,
@@ -821,9 +954,9 @@ class TaxController<OBJ> {
       // increment the counter before we pass it in
       // this is because if we don't then the EBM counter will give us the
 
-      Ebm? ebm = await ProxyService.getStrategy(Strategy.capella).ebm(
-        branchId: ProxyService.box.getBranchId()!,
-      );
+      Ebm? ebm = await ProxyService.getStrategy(
+        Strategy.capella,
+      ).ebm(branchId: ProxyService.box.getBranchId()!);
       DateTime now = DateTime.now();
 
       String? serverUrl =
@@ -932,15 +1065,15 @@ class TaxController<OBJ> {
             sarTyCd: transaction.sarTyCd,
             taxAmount: transaction.taxAmount,
           );
-          await ProxyService.getStrategy(Strategy.capella).addTransaction(
-            transaction: newTransaction,
-          );
+          await ProxyService.getStrategy(
+            Strategy.capella,
+          ).addTransaction(transaction: newTransaction);
           //query item and re-assign
           final List<TransactionItem> items =
               await ProxyService.getStrategy(Strategy.capella).transactionItems(
-                branchId: (await ProxyService.getStrategy(Strategy.capella).activeBranch(
-                  branchId: ProxyService.box.getBranchId()!,
-                )).id,
+                branchId: (await ProxyService.getStrategy(
+                  Strategy.capella,
+                ).activeBranch(branchId: ProxyService.box.getBranchId()!)).id,
                 transactionId: transaction.id,
               );
           // copy TransactionItem
@@ -952,9 +1085,9 @@ class TaxController<OBJ> {
               variantId: item.variantId,
             );
             // get variant
-            Variant? variant = await ProxyService.getStrategy(Strategy.capella).getVariant(
-              id: item.variantId,
-            );
+            Variant? variant = await ProxyService.getStrategy(
+              Strategy.capella,
+            ).getVariant(id: item.variantId);
 
             await ProxyService.getStrategy(Strategy.capella).addTransactionItem(
               transaction: newTransaction,
@@ -978,8 +1111,7 @@ class TaxController<OBJ> {
           transaction.sarNo = usedInvcNo.toString();
           transaction.receiptNumber = usedInvcNo;
           transaction.totalReceiptNumber = usedInvcNo;
-          transaction.invoiceNumber =
-              transaction.invoiceNumber ?? usedInvcNo;
+          transaction.invoiceNumber = transaction.invoiceNumber ?? usedInvcNo;
           if (persistReceiptTransactionFields) {
             await ProxyService.getStrategy(Strategy.capella).updateTransaction(
               transaction: transaction,
@@ -1138,8 +1270,8 @@ class TaxController<OBJ> {
             await TransactionItemDittoAdapter.instance.toDittoDocument(item),
           );
         }
-        final transactionSnapshot =
-            await ITransactionDittoAdapter.instance.toDittoDocument(transaction);
+        final transactionSnapshot = await ITransactionDittoAdapter.instance
+            .toDittoDocument(transaction);
 
         await ProxyService.getStrategy(Strategy.capella).createDelegation(
           transactionId: transaction.id,
