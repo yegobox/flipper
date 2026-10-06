@@ -1136,6 +1136,10 @@ mixin CapellaHotelMixin implements HotelInterface {
       sku: sku ?? variant?.sku,
       loggedByTenantId: clerkTenantId,
       loggedByName: clerkName,
+      // Same flags a POS line carries, or POS reads of this ticket
+      // (Resume, Collect, receipt, KDS) filter the line out.
+      active: true,
+      doneWithTransaction: false,
     );
 
     final doc = await TransactionItemDittoAdapter.instance.toDittoDocument(
@@ -1250,6 +1254,7 @@ mixin CapellaHotelMixin implements HotelInterface {
           'prc': stay.nightlyRate,
           'discount': 0,
           'active': true,
+          'doneWithTransaction': false,
           'loggedByTenantId': clerkTenantId,
           'loggedByName': clerkName,
           'createdAt': now,

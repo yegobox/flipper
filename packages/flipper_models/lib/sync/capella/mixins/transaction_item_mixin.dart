@@ -6,6 +6,7 @@ import 'package:flipper_models/sync/interfaces/transaction_item_interface.dart';
 import 'package:flipper_models/sync/ditto_observer_utils.dart';
 import 'package:flipper_models/sync/capella/mixins/transaction_mixin.dart';
 import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
+import 'package:flipper_models/sync/utils/transaction_item_flag_filters.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:supabase_models/brick/repository.dart';
@@ -183,14 +184,13 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
         conditions.add('id = :id');
         arguments['id'] = id;
       }
-      if (active != null) {
-        conditions.add('active = :active');
-        arguments['active'] = active;
-      }
-      if (doneWithTransaction != null) {
-        conditions.add('doneWithTransaction = :doneWithTransaction');
-        arguments['doneWithTransaction'] = doneWithTransaction;
-      }
+      final flags = transactionItemFlagFilters(
+        active: active,
+        doneWithTransaction: doneWithTransaction,
+        pinnedToTransaction: transactionId != null,
+      );
+      conditions.addAll(flags.conditions);
+      arguments.addAll(flags.arguments);
       if (itemIds != null && itemIds.isNotEmpty) {
         final idParts = <String>[];
         for (var i = 0; i < itemIds.length; i++) {
@@ -580,7 +580,7 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
       return Stream.value([]);
     }
 
-    String baseQuery = 'SELECT * FROM transaction_items';
+    const baseQuery = 'SELECT * FROM transaction_items';
     final arguments = <String, dynamic>{};
     final conditions = <String>[];
 
@@ -594,14 +594,15 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
       conditions.add('(branchId = :branchId OR branch_id = :branchId)');
       arguments['branchId'] = branchId;
     }
-    if (active != null) {
-      conditions.add('active = :active');
-      arguments['active'] = active;
-    }
-    if (doneWithTransaction != null) {
-      conditions.add('doneWithTransaction = :doneWithTransaction');
-      arguments['doneWithTransaction'] = doneWithTransaction;
-    }
+    final flags = transactionItemFlagFilters(
+      active: active,
+      doneWithTransaction: doneWithTransaction,
+      pinnedToTransaction: transactionId != null,
+    );
+    // Flags sit where they always did in the WHERE clause; they are spliced
+    // in below so a pinned ticket's subscription can leave them out.
+    final flagsAt = conditions.length;
+    arguments.addAll(flags.arguments);
     if (requestId != null) {
       conditions.add('inventoryRequestId = :requestId');
       arguments['requestId'] = requestId;
@@ -627,12 +628,17 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
       }
     }
 
-    if (conditions.isNotEmpty) {
-      baseQuery += ' WHERE ' + conditions.join(' AND ');
-    }
+    String withWhere(List<String> where) =>
+        where.isEmpty ? baseQuery : '$baseQuery WHERE ${where.join(' AND ')}';
+    final queryConditions = [...conditions]
+      ..insertAll(flagsAt, flags.conditions);
+    // A ticket's subscription replicates all of its lines: the flag filters
+    // only shape what is shown, and a superset of one ticket costs nothing.
+    final subscriptionConditions =
+        transactionId != null ? conditions : queryConditions;
     // Ditto 5: sync subscriptions reject ORDER BY; use unordered query for replication only.
-    final subscriptionQuery = baseQuery;
-    final query = '$baseQuery ORDER BY createdAt DESC';
+    final subscriptionQuery = withWhere(subscriptionConditions);
+    final query = '${withWhere(queryConditions)} ORDER BY createdAt DESC';
 
     /// A workaround to first register to whole data instead of subset
     /// this is because after test on new device, it can't pull data using complex query
