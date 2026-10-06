@@ -76,8 +76,9 @@ void main() {
       env.restore();
     });
 
-    testWidgets('renders accordion panel without Material ExpansionTile',
-        (tester) async {
+    testWidgets('renders accordion panel without Material ExpansionTile', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         ProviderScope(
           child: MaterialApp(
