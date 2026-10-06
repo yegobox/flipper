@@ -6808,7 +6808,7 @@
     "customerDisplayFound": "Afficheur client configuré sur {port} à {baud} bauds",
     "customerDisplayNotFound": "Aucun réglage n'a allumé l'afficheur. Vérifiez son câble ou choisissez le port et la vitesse manuellement.",
     "builtinPrinterLabel": "Imprimante de reçus intégrée",
-    "builtinPrinterHint": "L'imprimante 58 mm de la caisse, utilisée directement — aucun pilote Windows nécessaire. Elle est détectée automatiquement au premier reçu.",
+    "builtinPrinterHint": "L'imprimante 58 mm de la caisse, utilisée directement — aucun pilote Windows nécessaire. Les imprimantes USB et parallèles sont détectées au premier reçu ; une imprimante sur port COM n'est recherchée que si Windows n'a aucune imprimante. Sinon, utilisez Rechercher ou Trouver l'imprimante ci-dessous.",
     "builtinPrinterUsing": "Utilise {printer}",
     "builtinPrinterNotFound": "Pas encore trouvée.",
     "builtinPrinterOff": "Désactivée. Les reçus utilisent l'imprimante Windows ci-dessus.",

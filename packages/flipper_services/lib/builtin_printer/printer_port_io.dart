@@ -268,14 +268,24 @@ void _workerMain(SendPort ready) {
           final h = ensureOpen(target);
           try {
             if (target.transport == PrinterTransport.parallel) {
-              // Fail fast on no paper / cover open / powered off instead of
-              // blocking in WriteFile until the port gives up.
-              final problem = ParallelStatus(_parallelStatus(h)).problem;
+              // Fail fast on no paper / cover open / powered off. parport.sys
+              // on Windows 10 often has no status IOCTL at all (error 1):
+              // then write anyway.
+              ParallelStatus? status;
+              try {
+                status = ParallelStatus(_parallelStatus(h));
+              } on PrinterPortException {
+                status = null;
+              }
+              final problem = status?.problem;
               if (problem != null) throw PrinterPortException(problem);
             }
             _writeAll(
               h,
               bytes,
+              // USB and LPT writes have no COMMTIMEOUTS: bound each chunk
+              // with overlapped I/O and cancel it if the printer stalls.
+              overlapped: target.transport != PrinterTransport.serial,
               // With CTS flow control the printer paces us; otherwise pause
               // between chunks at high speeds so a small buffer cannot overrun.
               pauseMs:
@@ -328,7 +338,6 @@ void _workerMain(SendPort ready) {
 
 int _openParallel(String port) {
   final path = '\\\\.\\$port'.toNativeUtf16();
-  final timeouts = calloc<COMMTIMEOUTS>();
   try {
     final handle = CreateFile(
       path,
@@ -336,7 +345,7 @@ int _openParallel(String port) {
       0,
       nullptr,
       OPEN_EXISTING,
-      0,
+      FILE_FLAG_OVERLAPPED,
       NULL,
     );
     if (handle == INVALID_HANDLE_VALUE) {
@@ -345,16 +354,9 @@ int _openParallel(String port) {
         'no parallel port, or in use by another program',
       );
     }
-    // parallel.sys honours the serial timeout IOCTL for writes: bound a job
-    // to a printer that stops taking data. Best effort.
-    timeouts.ref
-      ..WriteTotalTimeoutConstant = 10000
-      ..WriteTotalTimeoutMultiplier = 5;
-    SetCommTimeouts(handle, timeouts);
     return handle;
   } finally {
     free(path);
-    free(timeouts);
   }
 }
 
@@ -364,27 +366,75 @@ const _ioctlParQueryInformation = 0x00160004;
 
 int _parallelStatus(int handle) {
   final out = calloc<Uint8>();
-  final returned = calloc<Uint32>();
   try {
-    final ok = DeviceIoControl(
+    final n = _overlappedIo(
       handle,
-      _ioctlParQueryInformation,
-      nullptr,
-      0,
-      out,
-      1,
-      returned,
-      nullptr,
+      2000,
+      'parallel port status',
+      (ov) => DeviceIoControl(
+        handle,
+        _ioctlParQueryInformation,
+        nullptr,
+        0,
+        out,
+        1,
+        nullptr,
+        ov,
+      ),
     );
-    if (ok == 0 || returned.value != 1) {
-      throw PrinterPortException(
-        'parallel port status unavailable (Windows error ${GetLastError()})',
-      );
+    if (n != 1) {
+      throw PrinterPortException('parallel port status unavailable');
     }
     return out.value;
   } finally {
     free(out);
-    free(returned);
+  }
+}
+
+/// How long one chunk may take before the printer counts as stalled.
+const _chunkTimeoutMs = 10000;
+
+/// Runs one overlapped I/O request on [handle] and waits up to [timeoutMs].
+/// On timeout the request is cancelled with `CancelIoEx` (supported by
+/// usbprint.sys and parport.sys) and the cancellation awaited, so the worker
+/// stays responsive and the handle can be closed safely. Returns the bytes
+/// transferred.
+int _overlappedIo(
+  int handle,
+  int timeoutMs,
+  String what,
+  int Function(Pointer<OVERLAPPED> ov) start,
+) {
+  final event = CreateEvent(nullptr, TRUE, FALSE, nullptr);
+  if (event == 0) {
+    throw PrinterPortException('$what: CreateEvent failed');
+  }
+  final ov = calloc<OVERLAPPED>();
+  final done = calloc<Uint32>();
+  try {
+    ov.ref.hEvent = event;
+    if (start(ov) == 0) {
+      final error = GetLastError();
+      if (error != ERROR_IO_PENDING) {
+        throw PrinterPortException('$what failed (Windows error $error)');
+      }
+      if (WaitForSingleObject(event, timeoutMs) == WAIT_TIMEOUT) {
+        CancelIoEx(handle, ov);
+        // Wait for the cancel to land before the OVERLAPPED is freed.
+        GetOverlappedResult(handle, ov, done, TRUE);
+        throw PrinterPortException('$what timed out — printer not taking data');
+      }
+    }
+    if (GetOverlappedResult(handle, ov, done, FALSE) == 0) {
+      throw PrinterPortException(
+        '$what failed (Windows error ${GetLastError()})',
+      );
+    }
+    return done.value;
+  } finally {
+    CloseHandle(event);
+    free(ov);
+    free(done);
   }
 }
 
@@ -397,7 +447,7 @@ int _openUsb(String devicePath) {
       FILE_SHARE_READ | FILE_SHARE_WRITE,
       nullptr,
       OPEN_EXISTING,
-      0,
+      FILE_FLAG_OVERLAPPED,
       NULL,
     );
     if (handle == INVALID_HANDLE_VALUE) {
@@ -490,7 +540,12 @@ int _openUsb(String devicePath) {
 
 const _chunk = 1024;
 
-void _writeAll(int handle, Uint8List bytes, {required int pauseMs}) {
+void _writeAll(
+  int handle,
+  Uint8List bytes, {
+  required int pauseMs,
+  bool overlapped = false,
+}) {
   final buffer = calloc<Uint8>(_chunk);
   final written = calloc<Uint32>();
   try {
@@ -498,6 +553,21 @@ void _writeAll(int handle, Uint8List bytes, {required int pauseMs}) {
       final end = (offset + _chunk).clamp(0, bytes.length);
       final n = end - offset;
       buffer.asTypedList(n).setRange(0, n, bytes, offset);
+      if (overlapped) {
+        final sent = _overlappedIo(
+          handle,
+          _chunkTimeoutMs,
+          'write at byte $offset',
+          (ov) => WriteFile(handle, buffer, n, nullptr, ov),
+        );
+        if (sent != n) {
+          throw PrinterPortException(
+            'write stopped at byte ${offset + sent} — printer offline or out '
+            'of paper?',
+          );
+        }
+        continue;
+      }
       final ok = WriteFile(handle, buffer, n, written, nullptr);
       if (ok == 0 || written.value != n) {
         throw PrinterPortException(
