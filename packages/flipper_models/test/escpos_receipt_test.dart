@@ -66,6 +66,8 @@ List<String> _textLines(Uint8List bytes) {
     if (b == 0x1B) {
       // ESC @ is 2 bytes; ESC t/a/E/d take one argument.
       i += bytes[i + 1] == 0x40 ? 2 : 3;
+    } else if (b == 0x1C) {
+      i += 2; // FS . (leave Chinese mode)
     } else if (b == 0x1D) {
       final cmd = bytes[i + 1];
       if (cmd == 0x76) {
@@ -217,6 +219,11 @@ void main() {
       expect(text, isNot(contains('SDC')));
       expect(text, isNot(contains('MRC')));
       expect(text, isNot(contains('RRA VSDC')));
+    });
+
+    test('starts by leaving Chinese mode', () {
+      final bytes = _receipt([_item('Soap', price: 1180)]).build();
+      expect(bytes.sublist(0, 4), [0x1B, 0x40, 0x1C, 0x2E]);
     });
 
     test('ends with feed and cut', () {

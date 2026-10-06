@@ -56,6 +56,45 @@ List<SerialPortInfo> describeSerialPorts() {
   ];
 }
 
+/// LPT ports Windows has (`LPT1`, …), lowest first. Only real parallel
+/// hardware (`parport.sys`) creates these DOS names.
+List<String> listParallelPorts() {
+  if (!printerPortsSupported) return const [];
+  var size = 1 << 16;
+  for (var attempt = 0; attempt < 4; attempt++) {
+    final buffer = wsalloc(size);
+    try {
+      final length = QueryDosDevice(nullptr, buffer, size);
+      if (length == 0) {
+        if (GetLastError() == ERROR_INSUFFICIENT_BUFFER) {
+          size *= 2;
+          continue;
+        }
+        return const [];
+      }
+      final chars = buffer.cast<Uint16>().asTypedList(length);
+      final ports = <String>[];
+      var start = 0;
+      for (var i = 0; i < length; i++) {
+        if (chars[i] != 0) continue;
+        if (i > start) {
+          final name = String.fromCharCodes(chars, start, i);
+          if (RegExp(r'^LPT\d+$').hasMatch(name)) ports.add(name);
+        }
+        start = i + 1;
+      }
+      ports.sort(
+        (a, b) =>
+            int.parse(a.substring(3)).compareTo(int.parse(b.substring(3))),
+      );
+      return ports;
+    } finally {
+      free(buffer);
+    }
+  }
+  return const [];
+}
+
 /// `GUID_DEVINTERFACE_USBPRINT`: devices bound to Windows' inbox
 /// `usbprint.sys` ("USB Printing Support"). Needs no vendor driver.
 const _usbPrintInterface = '{28d78fad-5a12-11d1-ae5b-0000f803a8c2}';
@@ -163,6 +202,13 @@ class PrinterPortWorker {
     return reply as int?;
   }
 
+  /// The status byte of a parallel [target] (see [ParallelStatus]); prints
+  /// nothing.
+  Future<ParallelStatus> parallelStatus(PrinterTarget target) async {
+    final bits = await _request(['status', ...target.toMessage()]);
+    return ParallelStatus(bits as int);
+  }
+
   /// Closes the handle (it reopens on the next call).
   Future<void> close() => _request(const ['close']);
 
@@ -198,6 +244,9 @@ void _workerMain(SendPort ready) {
       if (target.transport == PrinterTransport.usb) {
         handle = _openUsb(target.path);
         ctsFlow = false;
+      } else if (target.transport == PrinterTransport.parallel) {
+        handle = _openParallel(target.path);
+        ctsFlow = false;
       } else {
         final opened = _openSerial(target.path, target.baud);
         handle = opened.handle;
@@ -218,6 +267,12 @@ void _workerMain(SendPort ready) {
           final bytes = args[5] as Uint8List;
           final h = ensureOpen(target);
           try {
+            if (target.transport == PrinterTransport.parallel) {
+              // Fail fast on no paper / cover open / powered off instead of
+              // blocking in WriteFile until the port gives up.
+              final problem = ParallelStatus(_parallelStatus(h)).problem;
+              if (problem != null) throw PrinterPortException(problem);
+            }
             _writeAll(
               h,
               bytes,
@@ -234,7 +289,18 @@ void _workerMain(SendPort ready) {
             closePort();
             rethrow;
           }
+          // An LPT port is opened exclusively: release it between jobs so a
+          // Windows queue on the same port still works.
+          if (target.transport == PrinterTransport.parallel) closePort();
           reply.send(const ['ok', null]);
+        case 'status':
+          final target = PrinterTarget.fromMessage(args, 2);
+          try {
+            final bits = _parallelStatus(ensureOpen(target));
+            reply.send(['ok', bits]);
+          } finally {
+            closePort();
+          }
         case 'query':
           final target = PrinterTarget.fromMessage(args, 2);
           final bytes = args[5] as Uint8List;
@@ -258,6 +324,68 @@ void _workerMain(SendPort ready) {
       reply.send(['err', e is PrinterPortException ? e.message : e.toString()]);
     }
   });
+}
+
+int _openParallel(String port) {
+  final path = '\\\\.\\$port'.toNativeUtf16();
+  final timeouts = calloc<COMMTIMEOUTS>();
+  try {
+    final handle = CreateFile(
+      path,
+      GENERIC_READ | GENERIC_WRITE,
+      0,
+      nullptr,
+      OPEN_EXISTING,
+      0,
+      NULL,
+    );
+    if (handle == INVALID_HANDLE_VALUE) {
+      throw PrinterPortException(
+        '$port could not be opened (Windows error ${GetLastError()}) — '
+        'no parallel port, or in use by another program',
+      );
+    }
+    // parallel.sys honours the serial timeout IOCTL for writes: bound a job
+    // to a printer that stops taking data. Best effort.
+    timeouts.ref
+      ..WriteTotalTimeoutConstant = 10000
+      ..WriteTotalTimeoutMultiplier = 5;
+    SetCommTimeouts(handle, timeouts);
+    return handle;
+  } finally {
+    free(path);
+    free(timeouts);
+  }
+}
+
+/// `IOCTL_PAR_QUERY_INFORMATION`: CTL_CODE(FILE_DEVICE_PARALLEL_PORT, 1,
+/// METHOD_BUFFERED, FILE_ANY_ACCESS).
+const _ioctlParQueryInformation = 0x00160004;
+
+int _parallelStatus(int handle) {
+  final out = calloc<Uint8>();
+  final returned = calloc<Uint32>();
+  try {
+    final ok = DeviceIoControl(
+      handle,
+      _ioctlParQueryInformation,
+      nullptr,
+      0,
+      out,
+      1,
+      returned,
+      nullptr,
+    );
+    if (ok == 0 || returned.value != 1) {
+      throw PrinterPortException(
+        'parallel port status unavailable (Windows error ${GetLastError()})',
+      );
+    }
+    return out.value;
+  } finally {
+    free(out);
+    free(returned);
+  }
 }
 
 int _openUsb(String devicePath) {

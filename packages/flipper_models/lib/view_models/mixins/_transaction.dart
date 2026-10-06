@@ -598,7 +598,7 @@ mixin TransactionMixinOld {
       );
     } else {
       if (!alwaysShowPicker &&
-          await _printOnBuiltinPrinter(bytes, detect: false)) {
+          await _printOnBuiltinPrinter(bytes, probeSerial: false)) {
         return;
       }
       List<Printer> printers;
@@ -675,7 +675,7 @@ mixin TransactionMixinOld {
       // built-in one before asking the cashier to pick.
       if (!alwaysShowPicker &&
           selectedPrinter == null &&
-          await _printOnBuiltinPrinter(bytes, detect: true)) {
+          await _printOnBuiltinPrinter(bytes, probeSerial: true)) {
         return;
       }
 
@@ -977,7 +977,7 @@ mixin TransactionMixinOld {
   /// rather than treat the receipt as delivered.
   Future<bool> _printOnSavedDefaultPrinter(Uint8List bytes) async {
     if (Platform.isAndroid || Platform.isIOS) return false;
-    if (await _printOnBuiltinPrinter(bytes, detect: false)) return true;
+    if (await _printOnBuiltinPrinter(bytes, probeSerial: false)) return true;
     final savedPrinterName = ProxyService.box.readString(key: 'defaultPrinter');
     try {
       final printers = await Printing.listPrinters().timeout(
@@ -991,7 +991,8 @@ mixin TransactionMixinOld {
         }
       }
       match ??= pickAutoReceiptPrinter(printers);
-      if (match == null) return _printOnBuiltinPrinter(bytes, detect: true);
+      if (match == null)
+        return _printOnBuiltinPrinter(bytes, probeSerial: true);
       await Printing.directPrintPdf(
         printer: match,
         onLayout: (PdfPageFormat format) async => bytes,
@@ -1009,25 +1010,26 @@ mixin TransactionMixinOld {
   /// Prints the receipt's ESC/POS rendering (see [receiptEscPos]) on the
   /// till's built-in thermal printer, with no Windows driver involved.
   ///
-  /// Uses the saved built-in printer; with [detect] it also looks for one.
-  /// Callers detect only when Windows has no printer of its own to use, so a
-  /// till whose driver-installed printer already works is left alone.
+  /// Uses the saved built-in printer, else one that is plugged in and
+  /// identifies itself without printing (a USB receipt printer, a printer on
+  /// LPT) — preferred over Windows queues, which on tills are often set up
+  /// for the wrong paper or point at a dead port. [probeSerial] also walks
+  /// the COM ports, which takes seconds: only when Windows has no printer.
   Future<bool> _printOnBuiltinPrinter(
     Uint8List? bytes, {
-    required bool detect,
+    required bool probeSerial,
   }) async {
     final escpos = bytes == null ? null : receiptEscPos[bytes];
     if (escpos == null) return false;
     final builtin = BuiltinPrinterService.instance;
-    if (!detect && builtin.savedTarget == null) return false;
-    final printed = await builtin.tryPrint(escpos, includeUsb: detect);
+    final printed = await builtin.tryPrint(escpos, probeSerial: probeSerial);
     final target = builtin.savedTarget;
     talker.info(
       printed
           ? '[receipt_presentation] printed on the built-in printer '
                 '${target?.label}'
-          : '[receipt_presentation] no built-in printer answered'
-                '${detect ? ' (searched)' : ' (saved ${target?.label})'}',
+          : '[receipt_presentation] no built-in printer printed'
+                '${target == null ? '' : ' (saved ${target.label})'}',
     );
     return printed;
   }

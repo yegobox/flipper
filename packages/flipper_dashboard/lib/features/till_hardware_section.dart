@@ -175,13 +175,13 @@ class _TillHardwareSectionState extends State<TillHardwareSection> {
     }
   }
 
-  /// Status-query search. An explicit request, so a USB receipt printer is
-  /// accepted even when Windows has a printer of its own.
+  /// Search without printing: attached USB/LPT printers, then a status
+  /// query on every COM port.
   Future<void> _searchBuiltin() {
     final l10n = context.flipperL10n;
     return _builtinAction(() async {
       await _builtin.forget();
-      final found = await _builtin.ensureTarget(includeUsb: true);
+      final found = await _builtin.ensureTarget(probeSerial: true);
       return found == null
           ? (message: l10n.builtinPrinterNoneAnswered, ok: false)
           : (message: l10n.builtinPrinterFound(found.label), ok: true);

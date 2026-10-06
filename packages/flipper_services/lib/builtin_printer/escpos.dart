@@ -42,9 +42,12 @@ class EscPos {
   /// The bytes built so far.
   Uint8List bytes() => _out.toBytes();
 
-  /// `ESC @` then PC850: clears any style left over from a previous job.
+  /// `ESC @`, `FS .`, then PC850: clears any style left over from a previous
+  /// job and leaves Chinese mode. Printers sold with GB2312 fonts (the P70E's
+  /// built-in one) start in Chinese mode, where every byte above 0x7F begins
+  /// a two-byte hanzi — so é would print as a Chinese character.
   void init() {
-    _out.add([_esc, 0x40, _esc, 0x74, _codePagePc850]);
+    _out.add([_esc, 0x40, 0x1C, 0x2E, _esc, 0x74, _codePagePc850]);
   }
 
   void align(EscPosAlign a) => _out.add([_esc, 0x61, a.index]);

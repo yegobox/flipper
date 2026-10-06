@@ -8,9 +8,9 @@ import 'package:qr/qr.dart';
 
 void main() {
   group('EscPos commands', () {
-    test('init resets the printer and selects PC850', () {
+    test('init resets, leaves Chinese mode and selects PC850', () {
       final p = EscPos()..init();
-      expect(p.bytes(), [0x1B, 0x40, 0x1B, 0x74, 2]);
+      expect(p.bytes(), [0x1B, 0x40, 0x1C, 0x2E, 0x1B, 0x74, 2]);
     });
 
     test('styled text resets its style after the line', () {
@@ -214,11 +214,27 @@ void main() {
       );
     });
 
+    test('LPT status: attached only when SELECT is up and not unplugged', () {
+      // Powered printer with paper: SELECT only.
+      expect(const ParallelStatus(0x80).printerAttached, isTrue);
+      expect(const ParallelStatus(0x80).ready, isTrue);
+      // Out of paper: still a printer, but not ready.
+      expect(const ParallelStatus(0x84).printerAttached, isTrue);
+      expect(const ParallelStatus(0x84).problem, contains('paper'));
+      // Nothing on the cable / powered off.
+      expect(const ParallelStatus(0x00).printerAttached, isFalse);
+      expect(const ParallelStatus(0xA0).printerAttached, isFalse);
+      expect(const ParallelStatus(0x90).printerAttached, isFalse);
+    });
+
     test('targets round-trip through the worker message', () {
       const serial = PrinterTarget.serial('COM3', 9600);
       const usb = PrinterTarget.usb(r'\\?\usb#vid_0416&pid_5011#x');
       expect(PrinterTarget.fromMessage(serial.toMessage(), 0), serial);
       expect(PrinterTarget.fromMessage(usb.toMessage(), 0), usb);
+      const lpt = PrinterTarget.parallel('LPT1');
+      expect(PrinterTarget.fromMessage(lpt.toMessage(), 0), lpt);
+      expect(lpt.label, 'LPT1');
       expect(usb.label, 'USB 0416:5011');
       expect(serial.label, 'COM3 @ 9600');
     });

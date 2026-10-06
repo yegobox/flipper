@@ -11,6 +11,8 @@ List<SerialPortInfo> describeSerialPorts() => const [];
 
 List<UsbPrinterInfo> listUsbPrinters() => const [];
 
+List<String> listParallelPorts() => const [];
+
 class PrinterPortWorker {
   static Future<PrinterPortWorker?> spawn() async => null;
 
@@ -21,6 +23,9 @@ class PrinterPortWorker {
     Uint8List bytes, {
     int timeoutMs = 400,
   }) async => null;
+
+  Future<ParallelStatus> parallelStatus(PrinterTarget target) async =>
+      const ParallelStatus(0);
 
   Future<void> close() async {}
 

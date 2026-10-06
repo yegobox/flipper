@@ -56,6 +56,9 @@ class BuiltinPrinterService {
   /// Speeds built-in printers ship at, most common first.
   static const List<int> bauds = [9600, 19200, 38400, 115200];
 
+  /// A logo receipt is ~10 KB; even at 9600 baud that is ~10 s on the wire.
+  static const Duration _writeTimeout = Duration(seconds: 45);
+
   static const String notFoundMessage =
       'Built-in printer not found. Check paper and restart.';
 
@@ -90,6 +93,9 @@ class BuiltinPrinterService {
     final path = box.readString(key: pathKey);
     if (path == null || path.isEmpty) return null;
     if (transport == PrinterTransport.usb.name) return PrinterTarget.usb(path);
+    if (transport == PrinterTransport.parallel.name) {
+      return PrinterTarget.parallel(path);
+    }
     if (transport == PrinterTransport.serial.name) {
       return PrinterTarget.serial(
         path,
@@ -140,40 +146,74 @@ class BuiltinPrinterService {
   }
 
   /// The saved printer, or one found now (and saved) when auto-detection is
-  /// allowed. [includeUsb] also accepts a USB receipt printer, which cannot
-  /// be confirmed with a status query; callers pass it only when Windows has
-  /// no working printer of its own, so a driver-installed printer that
-  /// already works is never taken over.
-  Future<PrinterTarget?> ensureTarget({bool includeUsb = false}) async {
+  /// allowed.
+  ///
+  /// Printers that are physically present and identifiable without printing
+  /// anything — a USB receipt printer, a printer on an LPT port — are always
+  /// looked for: they print raw at 58 mm even on a till whose Windows queue
+  /// points somewhere dead (seen on a P70E: XP-58 and XP-80C queues on a USB
+  /// port while the printer sat on LPT1). That check takes milliseconds.
+  ///
+  /// [probeSerial] also walks the COM ports with a status query, which takes
+  /// seconds; callers pass it only when Windows has no printer to use.
+  Future<PrinterTarget?> ensureTarget({bool probeSerial = false}) async {
     final saved = savedTarget;
     if (saved != null) return saved;
-    if (!autoDetectAllowed || _searchedEmpty) return null;
-    final found = await (_detecting ??= detect(
-      includeUsb: includeUsb,
-    ).whenComplete(() => _detecting = null));
+    if (!autoDetectAllowed) return null;
+    var found = await findAttached();
+    if (found == null && probeSerial && !_searchedEmpty) {
+      found = await (_detecting ??= probeSerialPorts().whenComplete(
+        () => _detecting = null,
+      ));
+      if (found == null) {
+        _searchedEmpty = true;
+        talker.info('[builtin_printer] no built-in printer answered');
+      }
+    }
     if (found != null) {
       await save(found);
       talker.info('[builtin_printer] found ${found.label}');
-    } else {
-      _searchedEmpty = true;
-      talker.info('[builtin_printer] no built-in printer answered');
     }
     return found;
   }
 
-  /// Looks for a built-in printer without printing anything.
+  /// A receipt printer that is plugged in and identifiable without printing:
+  /// a USB printer-class device from a receipt-printer vendor, or an LPT port
+  /// whose status lines show a powered printer on the cable.
+  Future<PrinterTarget?> findAttached() async {
+    if (!isSupported) return null;
+    for (final usb in listUsbPrinters()) {
+      if (usb.isKnownReceiptPrinter) return PrinterTarget.usb(usb.path);
+    }
+    final lpts = listParallelPorts();
+    if (lpts.isEmpty) return null;
+    final worker = await _spawn();
+    if (worker == null) return null;
+    for (final port in lpts) {
+      final target = PrinterTarget.parallel(port);
+      try {
+        final status = await worker
+            .parallelStatus(target)
+            .timeout(const Duration(seconds: 3));
+        talker.info(
+          '[builtin_printer] $port status 0x${status.bits.toRadixString(16)}',
+        );
+        if (status.printerAttached) return target;
+      } catch (e) {
+        talker.info('[builtin_printer] $port: $e');
+      }
+    }
+    return null;
+  }
+
+  /// Looks for a printer on the COM ports without printing anything.
   ///
-  /// COM ports are tried at each speed with `DLE EOT 1`; only a valid status
+  /// Each port is tried at each speed with `DLE EOT 1`; only a valid status
   /// byte counts, because serial writes "succeed" at any speed and a wrong
   /// one just prints garbage. Known USB-serial bridges and on-board UARTs go
   /// first; the customer display's port is skipped.
-  Future<PrinterTarget?> detect({bool includeUsb = false}) async {
+  Future<PrinterTarget?> probeSerialPorts() async {
     if (!isSupported) return null;
-    if (includeUsb) {
-      for (final usb in listUsbPrinters()) {
-        if (usb.isKnownReceiptPrinter) return PrinterTarget.usb(usb.path);
-      }
-    }
     final worker = await _spawn();
     if (worker == null) return null;
     final displayPort = CustomerDisplaySettings.read().port;
@@ -201,12 +241,13 @@ class BuiltinPrinterService {
     }
   }
 
-  /// Every port × speed and USB printer, for the cashier-confirmed search
-  /// when no printer answers the status query.
+  /// Every USB printer, LPT port and COM port × speed, for the
+  /// cashier-confirmed search when nothing identifies itself.
   List<PrinterTarget> manualCandidates() {
     final displayPort = CustomerDisplaySettings.read().port;
     return [
       for (final usb in listUsbPrinters()) PrinterTarget.usb(usb.path),
+      for (final port in listParallelPorts()) PrinterTarget.parallel(port),
       for (final port in orderSerialCandidates(
         describeSerialPorts(),
         exclude: displayPort,
@@ -222,19 +263,26 @@ class BuiltinPrinterService {
     final worker = await _spawn();
     if (worker == null) throw BuiltinPrinterException(notFoundMessage);
     try {
-      await worker.write(to, bytes);
+      await worker.write(to, bytes).timeout(_writeTimeout);
     } on PrinterPortException catch (e) {
       talker.warning('[builtin_printer] ${to.label}: ${e.message}');
       throw BuiltinPrinterException('$notFoundMessage (${e.message})');
+    } on TimeoutException {
+      // The worker is stuck in WriteFile on a printer that stopped taking
+      // data. Abandon it; the next job starts a fresh one.
+      talker.warning('[builtin_printer] ${to.label}: write timed out');
+      worker.dispose();
+      _worker = null;
+      throw BuiltinPrinterException('$notFoundMessage (timed out)');
     }
   }
 
   /// Prints [escpos] on the built-in printer, finding it first if needed.
   /// Returns false (never throws) when there is none or it failed, so the
   /// caller can fall back to the Windows printer path.
-  Future<bool> tryPrint(Uint8List escpos, {bool includeUsb = false}) async {
+  Future<bool> tryPrint(Uint8List escpos, {bool probeSerial = false}) async {
     try {
-      final target = await ensureTarget(includeUsb: includeUsb);
+      final target = await ensureTarget(probeSerial: probeSerial);
       if (target == null) return false;
       await print(escpos, target: target);
       return true;

@@ -6,6 +6,10 @@ enum PrinterTransport {
 
   /// A USB printer-class device on Windows' inbox `usbprint.sys`.
   usb,
+
+  /// A parallel (LPT) port on Windows' inbox `parport.sys`. P70E tills wire
+  /// their built-in printer here (its self-test page says 接口:并口).
+  parallel,
 }
 
 /// Where to send ESC/POS bytes.
@@ -17,20 +21,26 @@ class PrinterTarget {
     : transport = PrinterTransport.usb,
       baud = 0;
 
+  const PrinterTarget.parallel(this.path)
+    : transport = PrinterTransport.parallel,
+      baud = 0;
+
   final PrinterTransport transport;
 
-  /// `COM3`, or a USB device interface path.
+  /// `COM3`, `LPT1`, or a USB device interface path.
   final String path;
 
-  /// Serial speed; unused for USB.
+  /// Serial speed; unused for USB and parallel.
   final int baud;
 
   String get key => '${transport.name}|$path|$baud';
 
   /// Short label for settings and logs.
-  String get label => transport == PrinterTransport.usb
-      ? 'USB ${describeUsbPath(path)}'
-      : '$path @ $baud';
+  String get label => switch (transport) {
+    PrinterTransport.usb => 'USB ${describeUsbPath(path)}',
+    PrinterTransport.parallel => path,
+    PrinterTransport.serial => '$path @ $baud',
+  };
 
   List<Object> toMessage() => [transport.name, path, baud];
 
@@ -38,9 +48,11 @@ class PrinterTarget {
     final transport = args[start] as String;
     final path = args[start + 1] as String;
     final baud = args[start + 2] as int;
-    return transport == PrinterTransport.usb.name
-        ? PrinterTarget.usb(path)
-        : PrinterTarget.serial(path, baud);
+    if (transport == PrinterTransport.usb.name) return PrinterTarget.usb(path);
+    if (transport == PrinterTransport.parallel.name) {
+      return PrinterTarget.parallel(path);
+    }
+    return PrinterTarget.serial(path, baud);
   }
 
   @override
@@ -48,6 +60,39 @@ class PrinterTarget {
 
   @override
   int get hashCode => key.hashCode;
+}
+
+/// The status byte `parport.sys` reports for an LPT port
+/// (`IOCTL_PAR_QUERY_INFORMATION`, flags from `ntddpar.h`).
+class ParallelStatus {
+  const ParallelStatus(this.bits);
+
+  final int bits;
+
+  static const int paperEmpty = 0x04;
+  static const int offLine = 0x08;
+  static const int powerOff = 0x10;
+  static const int notConnected = 0x20;
+  static const int busy = 0x40;
+  static const int selected = 0x80;
+
+  /// A powered printer is on the cable: it raises SELECT, and the port does
+  /// not report it powered off or unplugged. Read without printing anything.
+  bool get printerAttached =>
+      bits & selected != 0 && bits & (powerOff | notConnected) == 0;
+
+  /// Attached and able to take a job now.
+  bool get ready => printerAttached && bits & (paperEmpty | offLine) == 0;
+
+  /// Why a job cannot go out, for the cashier; null when [ready].
+  String? get problem {
+    if (bits & (powerOff | notConnected) != 0 || bits & selected == 0) {
+      return 'printer is off or not connected';
+    }
+    if (bits & paperEmpty != 0) return 'printer is out of paper';
+    if (bits & offLine != 0) return 'printer is offline (cover open?)';
+    return null;
+  }
 }
 
 /// A COM port and what the registry says is behind it.
