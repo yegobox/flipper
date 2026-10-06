@@ -68,6 +68,8 @@ void main() {
     addTearDown(controller.dispose);
     await tester.pumpWidget(
       MaterialApp(
+        localizationsDelegates: FlipperLocalizationDelegates.delegates,
+        supportedLocales: FlipperLocalizationDelegates.supportedLocales,
         home: Scaffold(
           body: Column(
             children: [
@@ -104,6 +106,8 @@ void main() {
     final navKey = GlobalKey<NavigatorState>();
     await tester.pumpWidget(
       MaterialApp(
+        localizationsDelegates: FlipperLocalizationDelegates.delegates,
+        supportedLocales: FlipperLocalizationDelegates.supportedLocales,
         navigatorKey: navKey,
         home: Scaffold(
           body: BarKeypad(
@@ -121,10 +125,7 @@ void main() {
     await tester.pumpAndSettle();
 
     for (var i = 0; i < 6; i++) {
-      expect(
-        await tester.sendKeyEvent(LogicalKeyboardKey.digit1),
-        isFalse,
-      );
+      expect(await tester.sendKeyEvent(LogicalKeyboardKey.digit1), isFalse);
     }
     await tester.pump(const Duration(milliseconds: 100));
 

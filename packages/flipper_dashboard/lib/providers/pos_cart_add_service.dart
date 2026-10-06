@@ -124,7 +124,9 @@ class PosCartAddService {
     final sessionAtStart = ref.read(pendingCartSaleSessionProvider);
 
     try {
-      var txn = readCachedPendingCartTransaction(ref, isExpense: isOrdering);
+      var txn =
+          readSettlingCartTransaction(ref, isExpense: isOrdering) ??
+          readCachedPendingCartTransaction(ref, isExpense: isOrdering);
       txn ??= await resolvePendingTransactionForPersist(
         ref: ref,
         pendingProv: pendingProv,

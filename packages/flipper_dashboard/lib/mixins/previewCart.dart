@@ -763,10 +763,12 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
 
       // Validate stock levels before proceeding
       final itemsSw = Stopwatch()..start();
-      // Settling a queued till ticket: its line items were persisted by the
-      // staff who created it (no optimistic taps to wait for), so read them
-      // directly instead of polling for a display/Ditto qty match — the poll can
-      // never converge here because the cart is scoped to the ticket's branch.
+      // Settling a queued till ticket: its original lines were persisted by the
+      // staff who created it, and anything the collector added goes through
+      // the same write ledger as a normal cart. So wait on that ledger, then
+      // read the ticket's lines directly instead of polling for a display/Ditto
+      // qty match — the poll can never converge here because the cart is
+      // scoped to the ticket's branch.
       // Reuse the settling snapshot captured at the top of this flow. Re-reading
       // the provider here would let an asynchronously cleared settling state
       // flip this ticket back to normal cart polling (which never converges for
@@ -784,6 +786,19 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
             : (transaction.branchId != null && transaction.branchId!.isNotEmpty
                   ? transaction.branchId!
                   : ProxyService.box.getBranchId()!);
+        final cartNotifier = ref.read(optimisticCartProvider.notifier);
+        var addsSettled = await awaitQueuedCartWritesWhileProgressing(
+          cartNotifier,
+        );
+        if (addsSettled) {
+          try {
+            await awaitQueuedCartWrites().timeout(
+              const Duration(milliseconds: _cartWriteStallMs),
+            );
+          } on TimeoutException {
+            addsSettled = false;
+          }
+        }
         final items = await ProxyService.getStrategy(Strategy.capella)
             .transactionItems(
               branchId: settlingBranchId,
@@ -791,7 +806,13 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
               doneWithTransaction: false,
               active: true,
             );
-        persistedCart = items.isNotEmpty ? items : null;
+        cartNotifier.reconcileFromPersistedItems(
+          transactionId: transactionId,
+          items: items,
+        );
+        // null = a line the collector added never saved; block like a normal
+        // cart rather than charge for less than the customer is taking.
+        persistedCart = addsSettled && items.isNotEmpty ? items : null;
       } else {
         persistedCart = await _settlePersistedCartForCompletion(
           ref: ref,

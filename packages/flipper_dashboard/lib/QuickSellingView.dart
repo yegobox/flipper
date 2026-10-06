@@ -595,9 +595,11 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       effectiveSettlingTillTicketProvider.select((ticket) => ticket != null),
     );
 
+    // Shown while settling too: a customer adding items to a collected ticket
+    // re-saves it, and [_showParkDialog] parks the ticket itself and ends the
+    // settling session.
     final showSaveTicket =
         transaction != null &&
-        !isSettling &&
         ref.watch(posCartDisplayItemsProvider.select((l) => l.isNotEmpty));
 
     return Container(
