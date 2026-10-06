@@ -10,6 +10,7 @@ import 'package:flipper_models/view_models/product_viewmodel.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/setting_service.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -67,8 +68,9 @@ void main() {
     );
     mockProductViewModel = MockProductViewModel();
     mockSettingsService = MockSettingsService();
-    when(() => mockSettingsService.isAllowSellingBelowStock())
-        .thenAnswer((_) async => true);
+    when(
+      () => mockSettingsService.isAllowSellingBelowStock(),
+    ).thenAnswer((_) async => true);
     if (locator.isRegistered<SettingsService>()) {
       locator.unregister<SettingsService>();
     }
@@ -135,6 +137,8 @@ void main() {
       UncontrolledProviderScope(
         container: container,
         child: MaterialApp(
+          localizationsDelegates: FlipperLocalizationDelegates.delegates,
+          supportedLocales: FlipperLocalizationDelegates.supportedLocales,
           home: Scaffold(
             body: RowItem(
               color: '#2563EB',
@@ -173,7 +177,10 @@ void main() {
       await tester.pump();
 
       // The pending id is still unresolved — that is the whole point.
-      expect(container.read(posCartPendingTransactionIdProvider(false)), isNull);
+      expect(
+        container.read(posCartPendingTransactionIdProvider(false)),
+        isNull,
+      );
       expect(
         container.read(optimisticCartProvider).activeTransactionId,
         OptimisticCartBootstrap.txnId,
