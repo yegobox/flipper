@@ -370,7 +370,8 @@ final posCartDisplayItemsProvider = Provider<List<TransactionItem>>((ref) {
   // While a till role settles a queued ticket, the whole checkout acts on that
   // ticket — not the collector's own (usually empty) pending cart. Source the
   // lines straight from the ticket's item stream so totals, the payment gate,
-  // and completion hints all see it. Read-only; no optimistic merge needed.
+  // and completion hints all see it. Existing lines are read-only, but the
+  // customer may add more, so catalog taps on the ticket merge in as ghosts.
   final settling = ref.watch(settlingTillTicketProvider);
   if (settling != null && settling.transactionId.isNotEmpty) {
     final settlingBranchId =
@@ -380,9 +381,9 @@ final posCartDisplayItemsProvider = Provider<List<TransactionItem>>((ref) {
     // The live Ditto stream is the source of truth once it warms up, but on a
     // cold subscription it resolves AsyncLoading first — so fall back to the
     // items pre-fetched at Collect time (settling.seedItems) so the cart paints
-    // instantly instead of flashing empty. Settling is read-only, so the
-    // ticket's lines don't legitimately empty out mid-settle; prefer the seed
-    // until the stream actually has rows.
+    // instantly instead of flashing empty. Settling only ever adds lines, so
+    // the ticket's lines don't legitimately empty out mid-settle; prefer the
+    // seed until the stream actually has rows.
     final streamItems = ref
             .watch(
               transactionItemsStreamProvider(
@@ -395,6 +396,14 @@ final posCartDisplayItemsProvider = Provider<List<TransactionItem>>((ref) {
         const <TransactionItem>[];
     final scoped =
         streamItems.isNotEmpty ? streamItems : settling.seedItems;
+    final optimistic = ref.watch(optimisticCartProvider);
+    if (optimistic.hasPendingFor(settling.transactionId)) {
+      return mergeTransactionItemsWithOptimisticCart(
+        streamItems: scoped,
+        optimistic: optimistic,
+        transactionId: settling.transactionId,
+      );
+    }
     return scoped.where((i) => i.active != false).toList();
   }
 
@@ -830,12 +839,52 @@ bool clearPinnedPosCartTransactionIfWidget(
   );
 }
 
+/// The till ticket being collected, as the target for catalog taps.
+///
+/// While settling, a tap must append to the ticket on screen. The pending-cart
+/// cache and stream cannot be trusted for that: the observer emits whichever
+/// PENDING row was touched last, and mints a fresh cart when the ticket drops
+/// out of its query, so resolving the tap through them put the customer's extra
+/// items on a brand-new transaction instead of the ticket being collected.
+///
+/// Returns null when no ticket is being collected (purchases never are), or
+/// when the ticket has already left PENDING.
+ITransaction? readSettlingCartTransaction(
+  Ref ref, {
+  required bool isExpense,
+}) =>
+    readSettlingCartTransactionContainer(ref.container, isExpense: isExpense);
+
+ITransaction? readSettlingCartTransactionContainer(
+  ProviderContainer container, {
+  required bool isExpense,
+}) {
+  if (isExpense) return null;
+  final settling = container.read(effectiveSettlingTillTicketProvider);
+  if (settling == null || settling.transactionId.isEmpty) return null;
+
+  // Prefer the freshest row already in memory; the snapshot taken at Collect
+  // is forced PENDING and only stands in until the row provider resolves.
+  final cached = container.read(cachedPendingCartTransactionProvider(false));
+  final txn = (cached != null && cached.id == settling.transactionId)
+      ? cached
+      : container
+              .read(transactionByIdProvider(settling.transactionId))
+              .value ??
+          settling.ticketSnapshot;
+  if (txn == null || txn.status != PENDING) return null;
+  return txn;
+}
+
 /// Synchronous txn id for grid tap (no stream subscription).
 ///
 /// Only returns a **pending** cart id. After Send-for-Review / Pay the stream
 /// can briefly still hold the just-completed (or `pendingReview`) row; tapping
 /// into that id orphans lines off the next empty cart.
 String? readPosCartTransactionIdFast(Ref ref, {required bool isExpense}) {
+  final settlingTxn = readSettlingCartTransaction(ref, isExpense: isExpense);
+  if (settlingTxn != null) return settlingTxn.id;
+
   final cached = readCachedPendingCartTransaction(ref, isExpense: isExpense);
   if (cached != null &&
       cached.id.isNotEmpty &&
