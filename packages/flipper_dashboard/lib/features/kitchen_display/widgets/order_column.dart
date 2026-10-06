@@ -1,14 +1,18 @@
 import 'package:flipper_dashboard/features/kitchen_display/kitchen_stage.dart';
 import 'package:flipper_dashboard/features/kitchen_display/widgets/order_card.dart';
+import 'package:flipper_design_system/flipper_design_system.dart'
+    show TouchInputMode;
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/sync/interfaces/transaction_interface.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-/// Touch screens drag on long-press, so a swipe still scrolls the column; a
-/// mouse drags straight away.
-bool get _dragOnLongPress =>
+/// Touch drags on long-press, so a swipe still scrolls the column; a mouse
+/// drags straight away. Follows the active input ([TouchInputMode]) rather
+/// than only the platform, so a Windows touchscreen scrolls by swipe too.
+bool _dragOnLongPress(BuildContext context) =>
+    TouchInputMode.of(context) ||
     defaultTargetPlatform == TargetPlatform.android ||
     defaultTargetPlatform == TargetPlatform.iOS;
 
@@ -159,7 +163,7 @@ class OrderColumn extends StatelessWidget {
     );
     final whileDragging = Opacity(opacity: 0.5, child: card());
 
-    if (_dragOnLongPress) {
+    if (_dragOnLongPress(context)) {
       return LongPressDraggable<KitchenDragData>(
         key: ValueKey<String>(id),
         data: data,

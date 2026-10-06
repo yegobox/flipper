@@ -8,6 +8,8 @@ import 'package:flipper_dashboard/features/tickets/widgets/review_queue_banner.d
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
 import 'package:flipper_dashboard/theme/pos_tokens.dart';
+import 'package:flipper_design_system/flipper_design_system.dart'
+    show TouchInputMode;
 import 'package:flipper_dashboard/widgets/destructive_confirm_dialog.dart';
 import 'package:flipper_dashboard/SearchCustomer.dart';
 import 'package:flipper_dashboard/TextEditingControllersMixin.dart';
@@ -4176,7 +4178,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                     0xFF1D4ED8,
                   ).withValues(alpha: 0.6),
                   padding: const EdgeInsets.symmetric(horizontal: 8),
-                  minimumSize: Size.zero,
+                  minimumSize: Size(0, TouchInputMode.of(context) ? 40 : 0),
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
                 child: _backToNewSaleBusy

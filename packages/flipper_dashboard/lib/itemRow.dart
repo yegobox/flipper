@@ -187,8 +187,32 @@ class _RowItemState extends ConsumerState<RowItem>
     _initImageCache();
   }
 
+  // Rapid "–" taps on a saved cart line: each tap lowers the shown qty at
+  // once, and one write lands after the taps stop. Reading the line's qty per
+  // tap and awaiting a write each time made quick taps all write the same
+  // stale value, so most of them were lost.
+  static const Duration _decrementFlushDelay = Duration(milliseconds: 300);
+  Timer? _decrementFlushTimer;
+  int _pendingDecrements = 0;
+
+  /// How many of [_pendingDecrements] have already been sent to Ditto.
+  int _writtenDecrements = 0;
+
+  /// Cart qty the pending decrements apply to; once the cart shows any other
+  /// qty the write has landed (or something else changed it) and the cart wins.
+  num? _pendingDecrementBaseQty;
+  List<TransactionItem> _pendingDecrementItems = const [];
+
+  /// Qty each batched line still has after the writes sent so far.
+  final Map<String, double> _pendingDecrementQtyLeft = {};
+  String _pendingDecrementTxnId = '';
+
   @override
   void dispose() {
+    if (_decrementFlushTimer?.isActive ?? false) {
+      _decrementFlushTimer!.cancel();
+      unawaited(_flushPendingDecrements());
+    }
     super.dispose();
   }
 
@@ -810,16 +834,23 @@ class _RowItemState extends ConsumerState<RowItem>
       child: _buildPosMobileListRow(textTheme, colorScheme),
     );
 
+    // Same enablement as the row's "+" (physical on-hand, so "sell below
+    // stock" still works). Read during build — `watch` is build-only.
+    final canTapAdd = _physicalStockValue(ref) > 0;
+
     return GestureDetector(
-      onTap: isMultiSelectActive
-          ? () {
-              if (itemId != null) {
-                ref
-                    .read(selectedItemIdsProvider.notifier)
-                    .toggleSelection(itemId);
-              }
-            }
-          : null,
+      // The whole card is the touch target: a tap on the name or photo adds
+      // the item, same as the "+" (which used to be the only live spot).
+      behavior: HitTestBehavior.opaque,
+      onTap: () {
+        if (isMultiSelectActive) {
+          if (itemId != null) {
+            ref.read(selectedItemIdsProvider.notifier).toggleSelection(itemId);
+          }
+          return;
+        }
+        if (canTapAdd) _onAddToCartWithOptimistic();
+      },
       onLongPress: () {
         if (itemId != null && !widget.isOrdering && _canManageProducts()) {
           ref.read(selectedItemIdsProvider.notifier).toggleSelection(itemId);
@@ -1036,7 +1067,11 @@ class _RowItemState extends ConsumerState<RowItem>
         // already correct on the same frame. The id is only needed to address
         // the decrement, and [_decrementVariantFromCart] resolves its own
         // fallback when it is empty.
-        final displayQty = ref.watch(posCartQtyForVariantProvider(v.id));
+        final cartQty = ref.watch(posCartQtyForVariantProvider(v.id));
+        final displayQty =
+            _pendingDecrements > 0 && cartQty == _pendingDecrementBaseQty
+            ? math.max(0, cartQty - _pendingDecrements)
+            : cartQty;
 
         if (displayQty <= 0) {
           return _buildPlusOnlyButton(textTheme, colorScheme);
@@ -1221,8 +1256,10 @@ class _RowItemState extends ConsumerState<RowItem>
         .where((it) => !OptimisticCartIds.isOptimistic(it.id))
         .toList();
     if (persisted.isNotEmpty) {
-      unawaited(
-        _decrementOne(transactionId: transactionId, matchingItems: persisted),
+      _queueDecrement(
+        transactionId: transactionId,
+        variantId: variantId,
+        persisted: persisted,
       );
       return;
     }
@@ -1239,39 +1276,84 @@ class _RowItemState extends ConsumerState<RowItem>
     // from [posCartDisplayItemsProvider], so rolling the ghost back is enough.
   }
 
-  Future<void> _decrementOne({
+  void _queueDecrement({
     required String transactionId,
-    required List<TransactionItem> matchingItems,
-  }) async {
-    if (matchingItems.isEmpty) return;
+    required String variantId,
+    required List<TransactionItem> persisted,
+  }) {
+    final cartQty = ref.read(posCartQtyForVariantProvider(variantId));
+    if (_pendingDecrements == 0 || cartQty != _pendingDecrementBaseQty) {
+      // Start a fresh batch against what the cart shows right now.
+      _pendingDecrements = 0;
+      _writtenDecrements = 0;
+      _pendingDecrementBaseQty = cartQty;
+      _pendingDecrementItems = persisted;
+      _pendingDecrementQtyLeft
+        ..clear()
+        ..addEntries(persisted.map((it) => MapEntry(it.id, it.qty.toDouble())));
+      _pendingDecrementTxnId = transactionId;
+    }
+    if (cartQty - _pendingDecrements <= 0) return;
 
-    // Prefer decrementing an item with qty > 1; otherwise delete one row
-    // (handles the case where the same variant exists as multiple qty=1 rows).
-    matchingItems.sort((a, b) {
-      final aq = a.qty;
-      final bq = b.qty;
-      return bq.compareTo(aq);
-    });
+    setState(() => _pendingDecrements++);
+    _decrementFlushTimer?.cancel();
+    _decrementFlushTimer = Timer(
+      _decrementFlushDelay,
+      () => unawaited(_flushPendingDecrements()),
+    );
+  }
 
-    final item = matchingItems.first;
-    final currentQty = item.qty;
+  /// Writes the decrements not sent yet. Lines are emptied largest-first; a
+  /// line with more than enough qty is lowered relative to its stored value
+  /// (`qty = qty - n`) so a concurrent add is never overwritten.
+  Future<void> _flushPendingDecrements() async {
+    var remaining = (_pendingDecrements - _writtenDecrements).toDouble();
+    if (remaining <= 0) return;
+    _writtenDecrements = _pendingDecrements;
 
+    final items =
+        _pendingDecrementItems
+            .where((it) => (_pendingDecrementQtyLeft[it.id] ?? 0) > 0)
+            .toList()
+          ..sort(
+            (a, b) => _pendingDecrementQtyLeft[b.id]!.compareTo(
+              _pendingDecrementQtyLeft[a.id]!,
+            ),
+          );
+    final transactionId = _pendingDecrementTxnId;
+    final strategy = ProxyService.getStrategy(Strategy.capella);
     try {
-      if (currentQty > 1) {
-        await ProxyService.getStrategy(Strategy.capella).updateTransactionItem(
-          qty: (currentQty - 1).toDouble(),
-          transactionItemId: item.id,
-          ignoreForReport: false,
-        );
-      } else {
-        await ProxyService.getStrategy(Strategy.capella).deleteItemFromCart(
-          transactionItemId: item,
-          transactionId: transactionId,
-        );
+      for (final item in items) {
+        if (remaining <= 0) break;
+        final left = _pendingDecrementQtyLeft[item.id]!;
+        if (left > remaining) {
+          _pendingDecrementQtyLeft[item.id] = left - remaining;
+          await strategy.updateTransactionItem(
+            qty: -remaining,
+            incrementQty: true,
+            transactionItemId: item.id,
+            ignoreForReport: false,
+          );
+          remaining = 0;
+        } else {
+          _pendingDecrementQtyLeft[item.id] = 0;
+          remaining -= left;
+          await strategy.deleteItemFromCart(
+            transactionItemId: item,
+            transactionId: transactionId,
+          );
+        }
       }
     } catch (e) {
       // Keep UI resilient; errors are surfaced via existing global handlers/logging.
       talker.error('Failed to decrement item: $e');
+      // Not confirmed — stop showing the lowered qty; the cart shows the truth.
+      if (mounted) {
+        setState(() {
+          _pendingDecrements = 0;
+          _writtenDecrements = 0;
+        });
+      }
     }
   }
 
@@ -1485,6 +1567,14 @@ class _RowItemState extends ConsumerState<RowItem>
   void _onAddToCartWithOptimistic() {
     final v = widget.variant;
     if (v == null) return;
+    // An add right after "–" takes back a decrement not yet written, instead
+    // of racing the batched write (which would then remove the added unit).
+    if (_pendingDecrements > _writtenDecrements &&
+        ref.read(posCartQtyForVariantProvider(v.id)) ==
+            _pendingDecrementBaseQty) {
+      setState(() => _pendingDecrements--);
+      return;
+    }
     ref
         .read(posCartAddServiceProvider)
         .tapAdd(

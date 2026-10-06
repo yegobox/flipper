@@ -7,6 +7,7 @@ export 'src/tokens/flipper_sync_status.dart';
 export 'src/tokens/flipper_typography.dart';
 export 'src/theme/flipper_theme.dart';
 export 'src/theme/flipper_theme_extension.dart';
+export 'src/theme/touch_input_mode.dart';
 export 'src/widgets/flipper_button.dart';
 export 'src/widgets/flipper_data_table.dart';
 export 'src/widgets/flipper_divider.dart';
