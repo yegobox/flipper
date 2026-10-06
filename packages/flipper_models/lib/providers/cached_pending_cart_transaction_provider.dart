@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/providers/pos_cart_display_provider.dart'
+    show pinnedPosCartTransactionIdProvider;
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flutter_riverpod/legacy.dart' show StateProvider;
@@ -72,6 +74,19 @@ void scheduleWriteCachedPendingCartTransaction(
   });
 }
 
+/// Whether a pending-stream emission may become the cached cart.
+///
+/// A pinned cart (a resumed / collected ticket, mobile checkout) is the sale on
+/// screen no matter what the stream says. The observer emits whichever PENDING
+/// row was touched last — and mints a fresh one when the pinned row drops out
+/// of its query — so caching every emission flipped the cart off a collected
+/// ticket, and the customer's extra items landed on a new transaction.
+/// Mirrors the pin guard in `posCartStreamReconciliationProvider`.
+bool _emissionMayReplaceCache(String? pinnedId, ITransaction? emitted) {
+  if (pinnedId == null || pinnedId.isEmpty) return true;
+  return emitted != null && emitted.id == pinnedId;
+}
+
 /// Keeps [cachedPendingCartTransactionProvider] aligned with the Ditto stream.
 void listenCachedPendingCartTransactionSync(
   Ref ref, {
@@ -79,7 +94,11 @@ void listenCachedPendingCartTransactionSync(
 }) {
   final pendingProv = pendingTransactionStreamProvider(isExpense: isExpense);
   final initial = ref.read(pendingProv);
-  if (initial.hasValue) {
+  if (initial.hasValue &&
+      _emissionMayReplaceCache(
+        ref.read(pinnedPosCartTransactionIdProvider),
+        initial.value,
+      )) {
     scheduleWriteCachedPendingCartTransaction(
       ref,
       isExpense: isExpense,
@@ -88,7 +107,11 @@ void listenCachedPendingCartTransactionSync(
   }
 
   ref.listen(pendingProv, (_, next) {
-    if (next.hasValue) {
+    if (next.hasValue &&
+        _emissionMayReplaceCache(
+          ref.read(pinnedPosCartTransactionIdProvider),
+          next.value,
+        )) {
       scheduleWriteCachedPendingCartTransaction(
         ref,
         isExpense: isExpense,
@@ -103,8 +126,7 @@ void listenCachedPendingCartTransactionSync(
 ITransaction? readCachedPendingCartTransactionWidget(
   WidgetRef ref, {
   required bool isExpense,
-}) =>
-    ref.read(cachedPendingCartTransactionProvider(isExpense));
+}) => ref.read(cachedPendingCartTransactionProvider(isExpense));
 
 void writeCachedPendingCartTransactionContainer(
   ProviderContainer container, {
@@ -117,8 +139,9 @@ void writeCachedPendingCartTransactionContainer(
     return;
   }
   container
-      .read(cachedPendingCartTransactionProvider(isExpense).notifier)
-      .state = transaction;
+          .read(cachedPendingCartTransactionProvider(isExpense).notifier)
+          .state =
+      transaction;
 }
 
 void writeCachedPendingCartTransactionWidget(
@@ -163,7 +186,11 @@ void listenCachedPendingCartTransactionSyncWidget(
 }) {
   final pendingProv = pendingTransactionStreamProvider(isExpense: isExpense);
   final initial = ref.read(pendingProv);
-  if (initial.hasValue) {
+  if (initial.hasValue &&
+      _emissionMayReplaceCache(
+        ref.read(pinnedPosCartTransactionIdProvider),
+        initial.value,
+      )) {
     scheduleWriteCachedPendingCartTransactionWidget(
       ref,
       isExpense: isExpense,
@@ -172,7 +199,11 @@ void listenCachedPendingCartTransactionSyncWidget(
   }
 
   ref.listen(pendingProv, (_, next) {
-    if (next.hasValue) {
+    if (next.hasValue &&
+        _emissionMayReplaceCache(
+          ref.read(pinnedPosCartTransactionIdProvider),
+          next.value,
+        )) {
       scheduleWriteCachedPendingCartTransactionWidget(
         ref,
         isExpense: isExpense,

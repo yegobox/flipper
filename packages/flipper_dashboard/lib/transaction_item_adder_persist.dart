@@ -39,6 +39,9 @@ DateTime? _lastCartWriteFinishedAt;
 Future<void> awaitQueuedCartWrites() => _persistLock.synchronized(() async {});
 
 String? readPendingCartTransactionId(Ref ref, {required bool isExpense}) {
+  final settlingId = readSettlingCartTransaction(ref, isExpense: isExpense)?.id;
+  if (settlingId != null) return settlingId;
+
   final pendingProv = pendingTransactionStreamProvider(isExpense: isExpense);
   final fromStream = ref.read(pendingProv).value?.id;
   if (fromStream != null && fromStream.isNotEmpty) return fromStream;
@@ -57,6 +60,10 @@ Future<ITransaction?> resolvePendingTransactionForPersist({
   required dynamic pendingProv,
   required bool isOrdering,
 }) async {
+  // A till ticket being collected owns every add until it is paid or parked.
+  final settlingTxn = readSettlingCartTransaction(ref, isExpense: isOrdering);
+  if (settlingTxn != null) return settlingTxn;
+
   var pendingTransaction = readCachedPendingCartTransaction(
     ref,
     isExpense: isOrdering,
