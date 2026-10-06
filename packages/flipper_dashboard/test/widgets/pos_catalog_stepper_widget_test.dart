@@ -68,8 +68,9 @@ void main() {
     );
     mockProductViewModel = MockProductViewModel();
     mockSettingsService = MockSettingsService();
-    when(() => mockSettingsService.isAllowSellingBelowStock())
-        .thenAnswer((_) async => true);
+    when(
+      () => mockSettingsService.isAllowSellingBelowStock(),
+    ).thenAnswer((_) async => true);
     if (locator.isRegistered<SettingsService>()) {
       locator.unregister<SettingsService>();
     }
@@ -176,7 +177,10 @@ void main() {
       await tester.pump();
 
       // The pending id is still unresolved — that is the whole point.
-      expect(container.read(posCartPendingTransactionIdProvider(false)), isNull);
+      expect(
+        container.read(posCartPendingTransactionIdProvider(false)),
+        isNull,
+      );
       expect(
         container.read(optimisticCartProvider).activeTransactionId,
         OptimisticCartBootstrap.txnId,
