@@ -51,3 +51,11 @@ bool patchUserAccessNames(
   }
   return changed;
 }
+
+/// Normalises `businesses.business_type_id` received from Supabase (an int,
+/// or its string form). Returns null for anything that must never overwrite
+/// the local value: missing, unparseable, zero or negative.
+int? usableBusinessTypeId(Object? raw) {
+  final id = raw is int ? raw : int.tryParse(raw?.toString().trim() ?? '');
+  return id != null && id > 0 ? id : null;
+}

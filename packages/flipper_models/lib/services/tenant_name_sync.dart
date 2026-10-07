@@ -10,17 +10,18 @@ import 'package:supabase_models/brick/models/branch.model.dart';
 import 'package:supabase_models/brick/models/business.model.dart';
 import 'package:supabase_models/brick/repository.dart';
 
-/// Brings business/branch names renamed in Supabase into this device.
+/// Brings business/branch names renamed in Supabase into this device, plus
+/// the business type (`business_type_id`), which is server-owned too.
 ///
 /// Names are read from three local copies, none of which refreshes on its own:
 /// Brick SQLite (`getBusiness`/`activeBusiness` are `localOnly`), the Ditto
 /// `businesses`/`branches` docs (`sendOnly`, so the server never writes them
 /// back), and the nested Ditto `user_access` doc (rewritten only at login).
 ///
-/// Only the `name` field is patched, and only when it differs. Whole server
-/// rows are never upserted: that could overwrite device-owned fields such as
-/// `isDefault`, and `Business.copyWith` drops fields. Every step is
-/// best-effort; failures are logged, never thrown.
+/// Only `name` (and, on the Brick business row, `businessTypeId`) is patched,
+/// and only when it differs. Whole server rows are never upserted: that could
+/// overwrite device-owned fields such as `isDefault`, and `Business.copyWith`
+/// drops fields. Every step is best-effort; failures are logged, never thrown.
 class TenantNameSync {
   TenantNameSync._();
 
@@ -37,6 +38,27 @@ class TenantNameSync {
     final ditto = await _patchDittoDoc('businesses', id, newName);
     final access = await _patchUserAccess(businessId: id, name: newName);
     return brick || ditto || access;
+  }
+
+  /// Applies a server `business_type_id` to business [id]'s Brick row.
+  ///
+  /// A business created as Personal (2) and switched to Business (1) in
+  /// Supabase keeps 2 in its local row forever otherwise: the row is only
+  /// written at signup, and the login payload carries no type. Only the Brick
+  /// row stores it; the Ditto docs and `user_access` have no type field.
+  static Future<bool> applyBusinessType(String? id, Object? rawType) async {
+    final typeId = usableBusinessTypeId(rawType);
+    if (id == null || id.isEmpty || typeId == null) return false;
+    return _patchBrickBusinessType(id, typeId);
+  }
+
+  /// Applies a Realtime `businesses` row (name and type). Returns true if any
+  /// local copy changed.
+  static Future<bool> applyBusinessRow(Map<String, dynamic> record) async {
+    final id = record['id']?.toString();
+    final name = await applyBusinessName(id, record['name']);
+    final type = await applyBusinessType(id, record['business_type_id']);
+    return name || type;
   }
 
   /// Applies [name] to branch [id]. Returns true if any local copy changed.
@@ -88,7 +110,7 @@ class TenantNameSync {
     final (business, branches) = await (
       client
           .from('businesses')
-          .select('id, name')
+          .select('id, name, business_type_id')
           .eq('id', businessId)
           .maybeSingle(),
       client.from('branches').select('id, name').eq('business_id', businessId),
@@ -103,6 +125,7 @@ class TenantNameSync {
     return TenantNames(
       businessId: businessId,
       businessName: usableTenantName(business?['name']),
+      businessTypeId: usableBusinessTypeId(business?['business_type_id']),
       branchNames: branchNames,
     );
   }
@@ -113,7 +136,12 @@ class TenantNameSync {
     if (names.businessName != null) {
       changed =
           await applyBusinessName(names.businessId, names.businessName) ||
-              changed;
+          changed;
+    }
+    if (names.businessTypeId != null) {
+      changed =
+          await applyBusinessType(names.businessId, names.businessTypeId) ||
+          changed;
     }
     for (final entry in names.branchNames.entries) {
       changed = await applyBranchName(entry.key, entry.value) || changed;
@@ -140,6 +168,29 @@ class TenantNameSync {
       return true;
     } catch (e) {
       talker.warning('TenantNameSync: Brick business $id not patched: $e');
+      return false;
+    }
+  }
+
+  static Future<bool> _patchBrickBusinessType(String id, int typeId) async {
+    try {
+      final repository = Repository();
+      final rows = await repository.get<Business>(
+        query: Query(where: [Where('id').isExactly(id)]),
+        policy: OfflineFirstGetPolicy.localOnly,
+      );
+      final row = rows.firstOrNull;
+      if (row == null || row.businessTypeId == typeId) return false;
+      // In place and localOnly, like the name: never push the row back up.
+      row.businessTypeId = typeId;
+      await repository.upsert<Business>(
+        row,
+        policy: OfflineFirstUpsertPolicy.localOnly,
+        skipDittoSync: true,
+      );
+      return true;
+    } catch (e) {
+      talker.warning('TenantNameSync: Brick business $id type not patched: $e');
       return false;
     }
   }
@@ -226,17 +277,21 @@ class TenantNameSync {
   }
 }
 
-/// Business and branch names as Supabase has them, from
-/// [TenantNameSync.fetchNames].
+/// Business and branch names, and the business type, as Supabase has them,
+/// from [TenantNameSync.fetchNames].
 class TenantNames {
   const TenantNames({
     required this.businessId,
     required this.businessName,
+    this.businessTypeId,
     required this.branchNames,
   });
 
   final String businessId;
   final String? businessName;
+
+  /// `business_type_id`, or null if Supabase had no usable value.
+  final int? businessTypeId;
 
   /// Branch id → name.
   final Map<String, String> branchNames;
