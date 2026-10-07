@@ -11,6 +11,19 @@ import 'package:path_provider/path_provider.dart';
 import 'package:syncfusion_flutter_pdf/pdf.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:path/path.dart' as path;
+import 'package:flipper_models/sync/models/transaction_with_items.dart';
+
+/// Rows whose EBM receipt code is [code].
+///
+/// The report window also returns parked rows, and an open bar tab or hotel
+/// folio has no receipt yet — a row without a code simply matches nothing.
+List<TransactionWithItems> withReceiptType(
+  List<TransactionWithItems> rows,
+  String code,
+) =>
+    rows
+        .where((t) => (t.transaction.receiptType ?? '').toUpperCase() == code)
+        .toList();
 
 class ReportService {
   Future<void> generateReport({
@@ -52,26 +65,13 @@ class ReportService {
     final ebm = await ProxyService.getStrategy(
       Strategy.capella,
     ).ebm(branchId: ProxyService.box.getBranchId()!);
-    transactionsWithItems.map((t) => print(t.transaction.receiptType)).toList();
     // Data processing - exclude refunded transactions
-    final salesTransactions = transactionsWithItems
-        .where((t) => t.transaction.receiptType!.toUpperCase() == 'NS')
-        .toList();
-    final refundTransactions = transactionsWithItems
-        .where((t) => t.transaction.receiptType!.toUpperCase() == 'NR')
-        .toList();
-    final tsTransactions = transactionsWithItems
-        .where((t) => t.transaction.receiptType!.toUpperCase() == 'TS')
-        .toList();
-    final psTransactions = transactionsWithItems
-        .where((t) => t.transaction.receiptType!.toUpperCase() == 'PS')
-        .toList();
-    final crTransactions = transactionsWithItems
-        .where((t) => t.transaction.receiptType!.toUpperCase() == 'CR')
-        .toList();
-    final trTransactions = transactionsWithItems
-        .where((t) => t.transaction.receiptType!.toUpperCase() == 'TR')
-        .toList();
+    final salesTransactions = withReceiptType(transactionsWithItems, 'NS');
+    final refundTransactions = withReceiptType(transactionsWithItems, 'NR');
+    final tsTransactions = withReceiptType(transactionsWithItems, 'TS');
+    final psTransactions = withReceiptType(transactionsWithItems, 'PS');
+    final crTransactions = withReceiptType(transactionsWithItems, 'CR');
+    final trTransactions = withReceiptType(transactionsWithItems, 'TR');
 
     final totalSales = salesTransactions.fold(
       0.0,

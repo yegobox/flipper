@@ -69,6 +69,10 @@ class _FakeBox extends Mock implements LocalStorage {
   String? getBusinessId() => 'biz1';
   @override
   String? paymentType() => 'Cash';
+  @override
+  bool isProformaMode() => false;
+  @override
+  bool isTrainingMode() => false;
 }
 
 /// Strategy stub for the one call the mixin makes outward: looking up the
@@ -783,6 +787,74 @@ void main() {
         transactionId: stay.transactionId,
       );
       expect(persisted!.taxAmount, closeTo(expectedTax, 0.01));
+    });
+
+    test('a folio is reported on the day it is settled, in local time',
+        () async {
+      // Regression: the folio kept its check-in createdAt (in UTC), so the
+      // Transaction Report filed a whole stay under the arrival day — and the
+      // first two hours after midnight under the day before.
+      final room = await savedRoom();
+      final stay = await sync.checkInGuest(
+        branchId: _branch,
+        room: room,
+        guestName: 'Aline Uwase',
+        checkInAt: DateTime.utc(2026, 1, 10, 14),
+        expectedCheckOutAt: DateTime.utc(2026, 1, 12, 11),
+        nightlyRate: 50000,
+        clerkTenantId: 'c1',
+        clerkName: 'Richie',
+      );
+      await sync.addChargeToFolio(
+        transactionId: stay.transactionId,
+        branchId: _branch,
+        variantId: 'v-room',
+        productName: 'Room 101 · 2 nights',
+        defaultPrice: 50000,
+        stock: 2,
+        clerkTenantId: 'c1',
+        clerkName: 'Richie',
+        qty: 2,
+      );
+
+      final opened = ditto.store.collections['transactions']![
+          stay.transactionId]!;
+      expect(opened['receiptType'], TransactionReceptType.NS);
+      expect(opened['createdAt'] as String, isNot(endsWith('Z')));
+
+      // Age the folio and its line, as if the guest arrived days ago.
+      const arrival = '2026-01-10T14:00:00.000';
+      ditto.store.collections['transactions']![stay.transactionId]![
+          'createdAt'] = arrival;
+      for (final line in ditto.store.docs('transaction_items')) {
+        ditto.store.collections['transaction_items']![line['_id']]![
+            'createdAt'] = arrival;
+      }
+
+      final folio = await sync.hotelFolio(transactionId: stay.transactionId);
+      final before = DateTime.now();
+      final settled = await sync.checkOutGuest(
+        stay: stay,
+        transaction: folio!,
+        lines: await sync.hotelFolioLines(transactionId: stay.transactionId),
+        paymentType: 'Cash',
+        cashReceived: 100000,
+        customerChangeDue: 0,
+      );
+
+      expect(settled.createdAt!.isUtc, isFalse);
+      expect(settled.createdAt!.isBefore(before), isFalse);
+      final stored = ditto.store.collections['transactions']![
+          stay.transactionId]!;
+      expect(stored['createdAt'], settled.createdAt!.toIso8601String());
+
+      // The lines move with the sale, so the report's line grid (windowed by
+      // each line's own createdAt) still finds them on the settlement day.
+      final lineDates = ditto.store
+          .docs('transaction_items')
+          .map((l) => l['createdAt'])
+          .toSet();
+      expect(lineDates, {settled.createdAt!.toIso8601String()});
     });
 
     test('open folios are listed for the dashboard, settled ones are not',

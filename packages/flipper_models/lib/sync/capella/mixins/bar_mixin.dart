@@ -16,6 +16,8 @@ import 'package:supabase_models/brick/models/transactionItem.model.dart';
 import 'package:talker/talker.dart';
 import 'package:uuid/uuid.dart';
 import 'package:flipper_models/sync/utils/sale_accounting_fields.dart';
+import 'package:flipper_models/sync/utils/service_mode_sale_date.dart';
+import 'package:flipper_models/helpers/default_sale_receipt_type.dart';
 
 TransactionItem? _barFindLine(List<TransactionItem> lines, String lineId) {
   for (final line in lines) {
@@ -32,6 +34,11 @@ final Set<String> _barSyncSubscriptionKeys = <String>{};
 mixin CapellaBarMixin implements BarInterface {
   DittoService get dittoService;
   Talker get talker;
+
+  /// The Ditto instance every bar query runs against. [dittoService] is typed
+  /// to the real `Ditto`, which cannot be constructed in a unit test, so tests
+  /// override this with an in-memory store (same seam as the hotel mixin).
+  dynamic get dittoHandle => dittoService.dittoInstance;
 
   static const _barBranchSettingsSql =
       'SELECT * FROM bar_branch_settings WHERE branchId = :branchId LIMIT 1';
@@ -147,7 +154,7 @@ mixin CapellaBarMixin implements BarInterface {
   Future<BarBranchSettings?> barBranchSettings({
     required String branchId,
   }) async {
-    final ditto = dittoService.dittoInstance;
+    final ditto = dittoHandle;
     if (ditto == null) return null;
     _ensureBarSettingsSync(ditto, branchId);
     final result = await ditto.store.execute(
@@ -161,7 +168,7 @@ mixin CapellaBarMixin implements BarInterface {
   Stream<BarBranchSettings?> barBranchSettingsStream({
     required String branchId,
   }) {
-    final ditto = dittoService.dittoInstance;
+    final ditto = dittoHandle;
     if (ditto == null) return Stream.value(null);
     _ensureBarSettingsSync(ditto, branchId);
 
@@ -205,7 +212,7 @@ mixin CapellaBarMixin implements BarInterface {
 
   @override
   Future<void> saveBarBranchSettings(BarBranchSettings settings) async {
-    final ditto = dittoService.dittoInstance;
+    final ditto = dittoHandle;
     if (ditto == null) throw StateError('Ditto not initialized');
     final doc = settings.copyWith(updatedAt: DateTime.now().toUtc()).toJson();
     await ditto.store.execute(
@@ -216,7 +223,7 @@ mixin CapellaBarMixin implements BarInterface {
 
   @override
   Future<List<BarTable>> barTables({required String branchId}) async {
-    final ditto = dittoService.dittoInstance;
+    final ditto = dittoHandle;
     if (ditto == null) return [];
     _ensureBarTablesSync(ditto, branchId);
     final result = await ditto.store.execute(
@@ -228,7 +235,7 @@ mixin CapellaBarMixin implements BarInterface {
 
   @override
   Stream<List<BarTable>> barTablesStream({required String branchId}) {
-    final ditto = dittoService.dittoInstance;
+    final ditto = dittoHandle;
     if (ditto == null) {
       return Stream.value(<BarTable>[]);
     }
@@ -274,7 +281,7 @@ mixin CapellaBarMixin implements BarInterface {
 
   @override
   Future<void> saveBarTable(BarTable table) async {
-    final ditto = dittoService.dittoInstance;
+    final ditto = dittoHandle;
     if (ditto == null) throw StateError('Ditto not initialized');
     await ditto.store.execute(
       'INSERT INTO bar_tables DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE',
@@ -287,7 +294,7 @@ mixin CapellaBarMixin implements BarInterface {
     required String id,
     required String branchId,
   }) async {
-    final ditto = dittoService.dittoInstance;
+    final ditto = dittoHandle;
     if (ditto == null) return;
     await ditto.store.execute(
       'DELETE FROM bar_tables WHERE (_id = :id OR id = :id) AND branchId = :branchId',
@@ -297,7 +304,7 @@ mixin CapellaBarMixin implements BarInterface {
 
   @override
   Future<void> seedDefaultFloorPlan({required String branchId}) async {
-    final ditto = dittoService.dittoInstance;
+    final ditto = dittoHandle;
     if (ditto == null) return;
     final existing = await barTables(branchId: branchId);
     if (existing.isNotEmpty) return;
@@ -314,7 +321,7 @@ mixin CapellaBarMixin implements BarInterface {
 
   @override
   Stream<List<ITransaction>> barTabsStream({required String branchId}) {
-    final ditto = dittoService.dittoInstance;
+    final ditto = dittoHandle;
     if (ditto == null) return Stream.value(<ITransaction>[]);
     _ensureBarTabsSync(ditto, branchId);
 
@@ -358,7 +365,7 @@ mixin CapellaBarMixin implements BarInterface {
     required String branchId,
     required String tableId,
   }) async {
-    final ditto = dittoService.dittoInstance;
+    final ditto = dittoHandle;
     if (ditto == null) return null;
     final result = await ditto.store.execute(
       'SELECT * FROM transactions WHERE branchId = :branchId AND tableId = :tableId AND status = :status LIMIT 1',
@@ -387,7 +394,7 @@ mixin CapellaBarMixin implements BarInterface {
   Future<List<TransactionItem>> barTabLines({
     required String transactionId,
   }) async {
-    final ditto = dittoService.dittoInstance;
+    final ditto = dittoHandle;
     if (ditto == null) return [];
     final result = await ditto.store.execute(
       'SELECT * FROM transaction_items WHERE transactionId = :transactionId',
@@ -409,7 +416,7 @@ mixin CapellaBarMixin implements BarInterface {
     );
     if (existing != null) return existing;
 
-    final ditto = dittoService.dittoInstance;
+    final ditto = dittoHandle;
     if (ditto == null) throw StateError('Ditto not initialized');
 
     final now = DateTime.now().toUtc();
@@ -429,7 +436,8 @@ mixin CapellaBarMixin implements BarInterface {
       ticketName: table.name,
       tableId: table.id,
       note: 'Opened by $cashierName',
-      createdAt: now,
+      receiptType: defaultSaleReceiptType(),
+      createdAt: serviceModeReportDate(now),
       updatedAt: now,
       lastTouched: now,
       reference: ref,
@@ -445,7 +453,7 @@ mixin CapellaBarMixin implements BarInterface {
   }
 
   Future<void> _adjustSubtotal(String transactionId, double delta) async {
-    final ditto = dittoService.dittoInstance;
+    final ditto = dittoHandle;
     if (ditto == null) return;
     final txn = await barTabForTableById(transactionId);
     if (txn == null) return;
@@ -463,7 +471,7 @@ mixin CapellaBarMixin implements BarInterface {
   }
 
   Future<ITransaction?> barTabForTableById(String transactionId) async {
-    final ditto = dittoService.dittoInstance;
+    final ditto = dittoHandle;
     if (ditto == null) return null;
     final result = await ditto.store.execute(
       'SELECT * FROM transactions WHERE _id = :id OR id = :id LIMIT 1',
@@ -488,7 +496,7 @@ mixin CapellaBarMixin implements BarInterface {
     String? color,
     String? sku,
   }) async {
-    final ditto = dittoService.dittoInstance;
+    final ditto = dittoHandle;
     if (ditto == null) throw StateError('Ditto not initialized');
 
     final lines = await barTabLines(transactionId: transactionId);
@@ -602,7 +610,7 @@ mixin CapellaBarMixin implements BarInterface {
     required num qty,
     required num stockCap,
   }) async {
-    final ditto = dittoService.dittoInstance;
+    final ditto = dittoHandle;
     if (ditto == null) return;
 
     final lines = await barTabLines(transactionId: transactionId);
@@ -639,7 +647,7 @@ mixin CapellaBarMixin implements BarInterface {
     required String transactionId,
     required num price,
   }) async {
-    final ditto = dittoService.dittoInstance;
+    final ditto = dittoHandle;
     if (ditto == null) return;
 
     final lines = await barTabLines(transactionId: transactionId);
@@ -667,7 +675,7 @@ mixin CapellaBarMixin implements BarInterface {
     required String lineId,
     required String transactionId,
   }) async {
-    final ditto = dittoService.dittoInstance;
+    final ditto = dittoHandle;
     if (ditto == null) return;
 
     final lines = await barTabLines(transactionId: transactionId);
@@ -687,7 +695,7 @@ mixin CapellaBarMixin implements BarInterface {
   Future<void> refreshBarTabSubTotal({required String transactionId}) async {
     final lines = await barTabLines(transactionId: transactionId);
     final total = barTabTotal(lines);
-    final ditto = dittoService.dittoInstance;
+    final ditto = dittoHandle;
     if (ditto == null) return;
     final nowIso = DateTime.now().toUtc().toIso8601String();
     await ditto.store.execute(
@@ -709,16 +717,18 @@ mixin CapellaBarMixin implements BarInterface {
     required double cashReceived,
     required double customerChangeDue,
   }) async {
-    final ditto = dittoService.dittoInstance;
+    final ditto = dittoHandle;
     if (ditto == null) throw StateError('Ditto not initialized');
 
     final nowIso = DateTime.now().toUtc().toIso8601String();
+    final saleDate = serviceModeReportDate(DateTime.parse(nowIso));
     final updated = transaction.copyWith(
       status: COMPLETE,
       paymentType: paymentType,
       cashReceived: cashReceived,
       customerChangeDue: customerChangeDue,
       tableId: null,
+      createdAt: saleDate,
       updatedAt: DateTime.parse(nowIso),
       lastTouched: DateTime.parse(nowIso),
     );
@@ -734,6 +744,11 @@ mixin CapellaBarMixin implements BarInterface {
     await ditto.store.execute(
       'INSERT INTO transactions DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE',
       arguments: {'doc': doc},
+    );
+    await restampServiceModeSaleLines(
+      ditto,
+      transactionId: transaction.id,
+      saleDate: saleDate,
     );
 
     return updated;

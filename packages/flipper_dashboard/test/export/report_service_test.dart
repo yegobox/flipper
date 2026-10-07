@@ -1,5 +1,7 @@
 import 'package:flipper_dashboard/export/report_service.dart';
+import 'package:flipper_models/sync/models/transaction_with_items.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:supabase_models/brick/models/transaction.model.dart';
 
 // flutter test test/export/report_service_test.dart
 void main() {
@@ -311,6 +313,40 @@ void main() {
 
         expect(safeSubTotal, equals(0.0));
         expect(safeDiscount, equals(0.0));
+      });
+    });
+
+    group('withReceiptType', () {
+      TransactionWithItems row(String id, String? receiptType) =>
+          TransactionWithItems(
+            transaction: ITransaction(
+              id: id,
+              branchId: 'b1',
+              status: 'parked',
+              transactionType: 'Sale',
+              paymentType: 'Cash',
+              cashReceived: 0,
+              customerChangeDue: 0,
+              isIncome: true,
+              isExpense: false,
+              agentId: 'c1',
+              receiptType: receiptType,
+              updatedAt: DateTime(2026),
+            ),
+            items: const [],
+          );
+
+      test('rows without a receipt type match nothing instead of throwing',
+          () {
+        // Regression: an open bar tab or hotel folio has no receipt yet, and
+        // `receiptType!` crashed the whole Z/X report.
+        final rows = [row('a', 'NS'), row('b', null), row('c', 'ns')];
+
+        expect(
+          withReceiptType(rows, 'NS').map((r) => r.transaction.id),
+          ['a', 'c'],
+        );
+        expect(withReceiptType(rows, 'NR'), isEmpty);
       });
     });
   });

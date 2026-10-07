@@ -13,6 +13,8 @@ import 'package:flipper_models/sync/utils/cart_line_doc_cache.dart';
 import 'package:flipper_models/sync/utils/hotel_mode_utils.dart';
 import 'package:flipper_models/sync/utils/hotel_room_rra.dart';
 import 'package:flipper_models/sync/utils/sale_accounting_fields.dart';
+import 'package:flipper_models/sync/utils/service_mode_sale_date.dart';
+import 'package:flipper_models/helpers/default_sale_receipt_type.dart';
 import 'package:flipper_models/sync/utils/rra_line_utils.dart';
 import 'package:flipper_models/sync/utils/sale_line_pricing.dart';
 import 'package:flipper_services/constants.dart';
@@ -496,7 +498,8 @@ mixin CapellaHotelMixin implements HotelInterface {
       customerPhone: guestPhone,
       ticketName: 'Room ${room.name} · $guestName',
       note: note ?? 'Checked in by $clerkName',
-      createdAt: now,
+      receiptType: defaultSaleReceiptType(),
+      createdAt: serviceModeReportDate(now),
       updatedAt: now,
       lastTouched: now,
       reference: ref,
@@ -662,7 +665,8 @@ mixin CapellaHotelMixin implements HotelInterface {
       customerPhone: stay.guestPhone,
       ticketName: 'Room ${stay.roomName} · ${stay.guestName}',
       note: stay.note ?? 'Checked in by $clerkName',
-      createdAt: now,
+      receiptType: defaultSaleReceiptType(),
+      createdAt: serviceModeReportDate(now),
       updatedAt: now,
       lastTouched: now,
       reference: ref,
@@ -1372,6 +1376,7 @@ mixin CapellaHotelMixin implements HotelInterface {
       paymentType: paymentType,
       cashReceived: cashReceived,
       customerChangeDue: customerChangeDue,
+      createdAt: serviceModeReportDate(now),
       updatedAt: now,
       lastTouched: now,
     );
@@ -1388,6 +1393,11 @@ mixin CapellaHotelMixin implements HotelInterface {
     await ditto.store.execute(
       'INSERT INTO transactions DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE',
       arguments: {'doc': doc},
+    );
+    await restampServiceModeSaleLines(
+      ditto,
+      transactionId: transaction.id,
+      saleDate: now,
     );
     cartLineDocCache.forget(transaction.id);
 
