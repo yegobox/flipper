@@ -18648,5 +18648,52 @@
     "builtinPrinterQrLabel": "Receipt QR code",
     "builtinPrinterQrImage": "Image (works on every printer)",
     "builtinPrinterQrNative": "Printer's own (if QR B printed)",
-    "builtinPrinterWindowsOnly": "Built-in printers are supported on Windows tills."
+    "builtinPrinterWindowsOnly": "Built-in printers are supported on Windows tills.",
+    "branchLocationPinOnMap": "Pin location on map (optional)",
+    "branchLocationPickerTitle": "Branch location",
+    "branchLocationUseCurrent": "Use my current location",
+    "branchLocationSet": "Set location",
+    "branchLocationClear": "Remove pin",
+    "branchLocationMissing": "No map location yet",
+    "branchLocationUnavailable": "Couldn't get your location. Check that location is on and allowed for Flipper.",
+    "branchLocationSaved": "Branch location saved",
+    "branchLocationSaveFailed": "Couldn't save the branch location",
+    "branchLocationPromptTitle": "Where is {branch}?",
+    "@branchLocationPromptTitle": {
+        "placeholders": {
+            "branch": {
+                "type": "String"
+            }
+        }
+    },
+    "branchLocationPromptBody": "Are you at {branch} right now? Flipper can save this spot as the branch location. Only do this while you are at the branch.",
+    "@branchLocationPromptBody": {
+        "placeholders": {
+            "branch": {
+                "type": "String"
+            }
+        }
+    },
+    "branchLocationSave": "Save location",
+    "branchLocationNotNow": "Not now",
+    "branchLocationServiceOff": "Location is turned off on this device. Turn it on, then try again.",
+    "branchLocationDenied": "Flipper wasn't allowed to use your location. Allow it when asked to save the branch location.",
+    "branchLocationBlocked": "Location access is blocked for Flipper. Open settings, allow location, then try again.",
+    "branchLocationOpenSettings": "Open settings",
+    "branchLocationPickerHint": "Drag the map so the pin sits on the branch.",
+    "branchLocationSearchHint": "Search address or place",
+    "branchLocationNoResults": "No places found. Try a street, area or landmark.",
+    "branchLocationFindingAddress": "Finding address…",
+    "branchLocationNoAddress": "No street address here",
+    "branchLocationAccuracy": "Accurate to about {meters} m",
+    "@branchLocationAccuracy": {
+        "placeholders": {
+            "meters": {
+                "type": "String"
+            }
+        }
+    },
+    "branchLocationZoomIn": "Zoom in",
+    "branchLocationZoomOut": "Zoom out",
+    "branchLocationDragInstead": "You can still drag the map to place the pin."
 }

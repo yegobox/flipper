@@ -214,6 +214,9 @@ class SharedPreferenceStorage implements LocalStorage {
     'cashbookLastCategoryIn',
     'cashbookLastCategoryOut',
     'cashbookLastPaymentMethod',
+    // JSON map branchId → ISO time until which the Android "where is this
+    // branch?" prompt stays quiet.
+    'branchLocationPromptSnooze',
     // Add new preference keys above this line
   };
 

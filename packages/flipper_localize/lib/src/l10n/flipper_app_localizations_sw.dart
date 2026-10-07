@@ -24659,4 +24659,95 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   @override
   String get builtinPrinterWindowsOnly =>
       'Printa zilizojengewa ndani zinatumika kwenye mashine za Windows.';
+
+  @override
+  String get branchLocationPinOnMap => 'Weka alama kwenye ramani (si lazima)';
+
+  @override
+  String get branchLocationPickerTitle => 'Mahali pa tawi';
+
+  @override
+  String get branchLocationUseCurrent => 'Tumia mahali nilipo sasa';
+
+  @override
+  String get branchLocationSet => 'Weka mahali';
+
+  @override
+  String get branchLocationClear => 'Ondoa alama';
+
+  @override
+  String get branchLocationMissing => 'Bado hakuna mahali kwenye ramani';
+
+  @override
+  String get branchLocationUnavailable =>
+      'Imeshindwa kupata mahali ulipo. Hakikisha eneo limewashwa na Flipper imeruhusiwa.';
+
+  @override
+  String get branchLocationSaved => 'Mahali pa tawi pamehifadhiwa';
+
+  @override
+  String get branchLocationSaveFailed => 'Imeshindwa kuhifadhi mahali pa tawi';
+
+  @override
+  String branchLocationPromptTitle(String branch) {
+    return '$branch iko wapi?';
+  }
+
+  @override
+  String branchLocationPromptBody(String branch) {
+    return 'Je, uko $branch sasa hivi? Flipper inaweza kuhifadhi mahali hapa kama mahali pa tawi. Fanya hivi ukiwa tawini tu.';
+  }
+
+  @override
+  String get branchLocationSave => 'Hifadhi mahali';
+
+  @override
+  String get branchLocationNotNow => 'Si sasa';
+
+  @override
+  String get branchLocationServiceOff =>
+      'Eneo limezimwa kwenye kifaa hiki. Liwashe, kisha ujaribu tena.';
+
+  @override
+  String get branchLocationDenied =>
+      'Flipper haikuruhusiwa kutumia eneo lako. Iruhusu ukiulizwa ili kuhifadhi mahali pa tawi.';
+
+  @override
+  String get branchLocationBlocked =>
+      'Ufikiaji wa eneo umezuiwa kwa Flipper. Fungua mipangilio, ruhusu eneo, kisha ujaribu tena.';
+
+  @override
+  String get branchLocationOpenSettings => 'Fungua mipangilio';
+
+  @override
+  String get branchLocationPickerHint =>
+      'Buruta ramani ili alama ikae juu ya tawi.';
+
+  @override
+  String get branchLocationSearchHint => 'Tafuta anwani au mahali';
+
+  @override
+  String get branchLocationNoResults =>
+      'Hakuna mahali palipopatikana. Jaribu mtaa, eneo au alama maarufu.';
+
+  @override
+  String get branchLocationFindingAddress => 'Inatafuta anwani…';
+
+  @override
+  String get branchLocationNoAddress => 'Hakuna anwani ya mtaa hapa';
+
+  @override
+  String branchLocationAccuracy(String meters) {
+    return 'Usahihi wa takriban mita $meters';
+  }
+
+  @override
+  String get branchLocationZoomIn => 'Kuza';
+
+  @override
+  String get branchLocationZoomOut => 'Punguza';
+
+  @override
+  String get branchLocationDragInstead =>
+      'Bado unaweza kuburuta ramani kuweka alama.';
 }

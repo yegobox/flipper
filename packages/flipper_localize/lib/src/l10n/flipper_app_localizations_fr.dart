@@ -24901,4 +24901,96 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   @override
   String get builtinPrinterWindowsOnly =>
       'Les imprimantes intégrées sont prises en charge sur les caisses Windows.';
+
+  @override
+  String get branchLocationPinOnMap => 'Placer sur la carte (facultatif)';
+
+  @override
+  String get branchLocationPickerTitle => 'Emplacement de la succursale';
+
+  @override
+  String get branchLocationUseCurrent => 'Utiliser ma position actuelle';
+
+  @override
+  String get branchLocationSet => 'Définir l\'emplacement';
+
+  @override
+  String get branchLocationClear => 'Retirer l\'épingle';
+
+  @override
+  String get branchLocationMissing => 'Pas encore d\'emplacement sur la carte';
+
+  @override
+  String get branchLocationUnavailable =>
+      'Impossible d\'obtenir votre position. Vérifiez que la localisation est activée et autorisée pour Flipper.';
+
+  @override
+  String get branchLocationSaved => 'Emplacement de la succursale enregistré';
+
+  @override
+  String get branchLocationSaveFailed =>
+      'Impossible d\'enregistrer l\'emplacement de la succursale';
+
+  @override
+  String branchLocationPromptTitle(String branch) {
+    return 'Où se trouve $branch ?';
+  }
+
+  @override
+  String branchLocationPromptBody(String branch) {
+    return 'Êtes-vous à $branch en ce moment ? Flipper peut enregistrer cet endroit comme emplacement de la succursale. Faites-le uniquement lorsque vous êtes sur place.';
+  }
+
+  @override
+  String get branchLocationSave => 'Enregistrer l\'emplacement';
+
+  @override
+  String get branchLocationNotNow => 'Pas maintenant';
+
+  @override
+  String get branchLocationServiceOff =>
+      'La localisation est désactivée sur cet appareil. Activez-la, puis réessayez.';
+
+  @override
+  String get branchLocationDenied =>
+      'Flipper n\'a pas été autorisé à utiliser votre position. Autorisez-le lorsque la demande s\'affiche pour enregistrer l\'emplacement de la succursale.';
+
+  @override
+  String get branchLocationBlocked =>
+      'L\'accès à la position est bloqué pour Flipper. Ouvrez les paramètres, autorisez la localisation, puis réessayez.';
+
+  @override
+  String get branchLocationOpenSettings => 'Ouvrir les paramètres';
+
+  @override
+  String get branchLocationPickerHint =>
+      'Déplacez la carte pour que l\'épingle soit sur la succursale.';
+
+  @override
+  String get branchLocationSearchHint => 'Rechercher une adresse ou un lieu';
+
+  @override
+  String get branchLocationNoResults =>
+      'Aucun lieu trouvé. Essayez une rue, un quartier ou un point de repère.';
+
+  @override
+  String get branchLocationFindingAddress => 'Recherche de l\'adresse…';
+
+  @override
+  String get branchLocationNoAddress => 'Pas d\'adresse ici';
+
+  @override
+  String branchLocationAccuracy(String meters) {
+    return 'Précis à environ $meters m';
+  }
+
+  @override
+  String get branchLocationZoomIn => 'Zoom avant';
+
+  @override
+  String get branchLocationZoomOut => 'Zoom arrière';
+
+  @override
+  String get branchLocationDragInstead =>
+      'Vous pouvez toujours déplacer la carte pour placer l\'épingle.';
 }

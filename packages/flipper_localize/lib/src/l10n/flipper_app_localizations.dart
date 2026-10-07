@@ -40972,6 +40972,162 @@ abstract class FlipperAppLocalizations {
   /// In en, this message translates to:
   /// **'Built-in printers are supported on Windows tills.'**
   String get builtinPrinterWindowsOnly;
+
+  /// No description provided for @branchLocationPinOnMap.
+  ///
+  /// In en, this message translates to:
+  /// **'Pin location on map (optional)'**
+  String get branchLocationPinOnMap;
+
+  /// No description provided for @branchLocationPickerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Branch location'**
+  String get branchLocationPickerTitle;
+
+  /// No description provided for @branchLocationUseCurrent.
+  ///
+  /// In en, this message translates to:
+  /// **'Use my current location'**
+  String get branchLocationUseCurrent;
+
+  /// No description provided for @branchLocationSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Set location'**
+  String get branchLocationSet;
+
+  /// No description provided for @branchLocationClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove pin'**
+  String get branchLocationClear;
+
+  /// No description provided for @branchLocationMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'No map location yet'**
+  String get branchLocationMissing;
+
+  /// No description provided for @branchLocationUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t get your location. Check that location is on and allowed for Flipper.'**
+  String get branchLocationUnavailable;
+
+  /// No description provided for @branchLocationSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Branch location saved'**
+  String get branchLocationSaved;
+
+  /// No description provided for @branchLocationSaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save the branch location'**
+  String get branchLocationSaveFailed;
+
+  /// No description provided for @branchLocationPromptTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Where is {branch}?'**
+  String branchLocationPromptTitle(String branch);
+
+  /// No description provided for @branchLocationPromptBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you at {branch} right now? Flipper can save this spot as the branch location. Only do this while you are at the branch.'**
+  String branchLocationPromptBody(String branch);
+
+  /// No description provided for @branchLocationSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save location'**
+  String get branchLocationSave;
+
+  /// No description provided for @branchLocationNotNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Not now'**
+  String get branchLocationNotNow;
+
+  /// No description provided for @branchLocationServiceOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Location is turned off on this device. Turn it on, then try again.'**
+  String get branchLocationServiceOff;
+
+  /// No description provided for @branchLocationDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Flipper wasn\'t allowed to use your location. Allow it when asked to save the branch location.'**
+  String get branchLocationDenied;
+
+  /// No description provided for @branchLocationBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Location access is blocked for Flipper. Open settings, allow location, then try again.'**
+  String get branchLocationBlocked;
+
+  /// No description provided for @branchLocationOpenSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Open settings'**
+  String get branchLocationOpenSettings;
+
+  /// No description provided for @branchLocationPickerHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag the map so the pin sits on the branch.'**
+  String get branchLocationPickerHint;
+
+  /// No description provided for @branchLocationSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search address or place'**
+  String get branchLocationSearchHint;
+
+  /// No description provided for @branchLocationNoResults.
+  ///
+  /// In en, this message translates to:
+  /// **'No places found. Try a street, area or landmark.'**
+  String get branchLocationNoResults;
+
+  /// No description provided for @branchLocationFindingAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Finding address…'**
+  String get branchLocationFindingAddress;
+
+  /// No description provided for @branchLocationNoAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'No street address here'**
+  String get branchLocationNoAddress;
+
+  /// No description provided for @branchLocationAccuracy.
+  ///
+  /// In en, this message translates to:
+  /// **'Accurate to about {meters} m'**
+  String branchLocationAccuracy(String meters);
+
+  /// No description provided for @branchLocationZoomIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Zoom in'**
+  String get branchLocationZoomIn;
+
+  /// No description provided for @branchLocationZoomOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Zoom out'**
+  String get branchLocationZoomOut;
+
+  /// No description provided for @branchLocationDragInstead.
+  ///
+  /// In en, this message translates to:
+  /// **'You can still drag the map to place the pin.'**
+  String get branchLocationDragInstead;
 }
 
 class _FlipperAppLocalizationsDelegate

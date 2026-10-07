@@ -3,9 +3,11 @@
 import 'package:flipper_localize/flipper_localize.dart';
 import 'dart:async';
 
+import 'package:flipper_dashboard/features/branch_location/branch_location_picker.dart';
+import 'package:flipper_dashboard/features/branch_location/branch_services.dart';
+import 'package:flipper_models/helpers/branch_coordinates.dart';
 import 'package:flipper_models/providers/branch_business_provider.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
-import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_dashboard/customappbar.dart';
@@ -24,8 +26,13 @@ class _AddBranchState extends ConsumerState<AddBranch> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final _routerService = locator<RouterService>();
 
+  BranchServices get _services => ref.read(branchServicesProvider);
+
   String? _nameError;
   String? _locationError;
+
+  /// Optional map pin for the branch being created.
+  BranchLocationPick? _pickedLocation;
 
   bool _isDefaultBranch(Branch branch) => branch.isDefault == true;
 
@@ -45,7 +52,7 @@ class _AddBranchState extends ConsumerState<AddBranch> {
 
   Future<void> _refreshBranchesFromSupabase() async {
     if (!mounted) return;
-    final businessId = ProxyService.box.getBusinessId();
+    final businessId = _services.box.getBusinessId();
     if (businessId == null) return;
     await hydrateBusinessBranchesFromRemote(businessId: businessId);
     if (!mounted) return;
@@ -54,7 +61,7 @@ class _AddBranchState extends ConsumerState<AddBranch> {
 
   @override
   Widget build(BuildContext context) {
-    final businessId = ProxyService.box.getBusinessId();
+    final businessId = _services.box.getBusinessId();
     final branches = ref.watch(
       allBusinessBranchesProvider(businessId: businessId),
     );
@@ -113,6 +120,8 @@ class _AddBranchState extends ConsumerState<AddBranch> {
                       errorText: _locationError,
                       onChanged: (_) => setState(() => _locationError = null),
                     ),
+                    SizedBox(height: 8),
+                    _buildMapPinRow(),
                     SizedBox(height: 24),
                     SizedBox(
                       width: double.infinity,
@@ -246,6 +255,110 @@ class _AddBranchState extends ConsumerState<AddBranch> {
     );
   }
 
+  Future<void> _pickNewBranchLocation() async {
+    final picked = _pickedLocation;
+    final result = await showBranchLocationPicker(
+      context,
+      location: _services.location,
+      places: _services.placeSearch,
+      latitude: picked?.latitude,
+      longitude: picked?.longitude,
+    );
+    if (result == null || !mounted) return;
+    setState(() {
+      _pickedLocation = result;
+      // The map's street address is a good default for the Location field.
+      final address = result.address;
+      if (address != null && _locationController.text.trim().isEmpty) {
+        _locationController.text = address;
+        _locationError = null;
+      }
+    });
+  }
+
+  Widget _buildMapPinRow() {
+    final picked = _pickedLocation;
+    if (picked == null) {
+      return TextButton.icon(
+        onPressed: _pickNewBranchLocation,
+        icon: const Icon(Icons.add_location_alt_outlined, size: 18),
+        label: Text(context.flipperL10n.branchLocationPinOnMap),
+      );
+    }
+    final coordinates = formatBranchCoordinates(
+      picked.latitude,
+      picked.longitude,
+    );
+    return Row(
+      children: [
+        Icon(Icons.location_pin, size: 18, color: Colors.red.shade400),
+        SizedBox(width: 8),
+        Expanded(
+          child: InkWell(
+            onTap: _pickNewBranchLocation,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  picked.address ?? coordinates,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: 13, color: Colors.grey.shade800),
+                ),
+                if (picked.address != null)
+                  Text(
+                    coordinates,
+                    style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
+                  ),
+              ],
+            ),
+          ),
+        ),
+        Semantics(
+          label: context.flipperL10n.branchLocationClear,
+          button: true,
+          child: IconButton(
+            icon: Icon(Icons.close, size: 18, color: Colors.grey.shade600),
+            onPressed: () => setState(() => _pickedLocation = null),
+            splashRadius: 18,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _setBranchLocation(Branch branch) async {
+    final result = await showBranchLocationPicker(
+      context,
+      location: _services.location,
+      places: _services.placeSearch,
+      latitude: branch.latitude,
+      longitude: branch.longitude,
+    );
+    if (result == null || !mounted) return;
+    try {
+      await _services.strategy.updateBranchCoordinates(
+        branchId: branch.id,
+        latitude: result.latitude,
+        longitude: result.longitude,
+        flipperHttpClient: _services.http,
+      );
+      await _refreshBranchesFromSupabase();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.flipperL10n.branchLocationSaved)),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(context.flipperL10n.branchLocationSaveFailed),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   Widget _buildBranchesList(List<Branch> branches) {
     if (branches.isEmpty) {
       return Center(
@@ -261,6 +374,10 @@ class _AddBranchState extends ConsumerState<AddBranch> {
       itemBuilder: (context, index) {
         final branch = branches[index];
         final canDelete = _canDeleteBranch(branch, branches);
+        final hasMapLocation = hasRealBranchCoordinates(
+          branch.latitude,
+          branch.longitude,
+        );
         return Padding(
           padding: const EdgeInsets.symmetric(vertical: 12.0),
           child: Row(
@@ -302,7 +419,41 @@ class _AddBranchState extends ConsumerState<AddBranch> {
                           ),
                         ),
                       ),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4.0),
+                      child: Text(
+                        hasMapLocation
+                            ? formatBranchCoordinates(
+                                branch.latitude!,
+                                branch.longitude!,
+                              )
+                            : context.flipperL10n.branchLocationMissing,
+                        style: TextStyle(
+                          color: hasMapLocation
+                              ? Colors.grey.shade500
+                              : Colors.orange.shade700,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
                   ],
+                ),
+              ),
+              Semantics(
+                label: context.flipperL10n.branchLocationSet,
+                button: true,
+                child: IconButton(
+                  icon: Icon(
+                    hasMapLocation
+                        ? Icons.location_on_outlined
+                        : Icons.add_location_alt_outlined,
+                    color: hasMapLocation
+                        ? Colors.grey.shade600
+                        : Colors.orange.shade700,
+                    size: 20,
+                  ),
+                  onPressed: () => _setBranchLocation(branch),
+                  splashRadius: 20,
                 ),
               ),
               if (branch.isDefault == true)
@@ -399,9 +550,9 @@ class _AddBranchState extends ConsumerState<AddBranch> {
       if (confirmed ?? false) {
         if (!_canDeleteBranch(branch, branches)) return;
         try {
-          await ProxyService.strategy.deleteBranch(
+          await _services.strategy.deleteBranch(
             branchId: branch.id,
-            flipperHttpClient: ProxyService.http,
+            flipperHttpClient: _services.http,
           );
           await _refreshBranchesFromSupabase();
         } catch (e) {
@@ -425,14 +576,16 @@ class _AddBranchState extends ConsumerState<AddBranch> {
     if (validateForm()) {
       try {
         ref.read(isProcessingProvider.notifier).startProcessing();
-        await ProxyService.strategy.addBranch(
+        await _services.strategy.addBranch(
           isDefault: false,
           active: true,
           name: _nameController.text,
-          businessId: ProxyService.box.getBusinessId()!,
+          businessId: _services.box.getBusinessId()!,
           location: _locationController.text,
-          userOwnerPhoneNumber: ProxyService.box.getUserPhone()!,
-          flipperHttpClient: ProxyService.http,
+          latitude: _pickedLocation?.latitude,
+          longitude: _pickedLocation?.longitude,
+          userOwnerPhoneNumber: _services.box.getUserPhone()!,
+          flipperHttpClient: _services.http,
         );
         await _refreshBranchesFromSupabase();
         _nameController.clear();
@@ -440,6 +593,7 @@ class _AddBranchState extends ConsumerState<AddBranch> {
         setState(() {
           _nameError = null;
           _locationError = null;
+          _pickedLocation = null;
         });
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(

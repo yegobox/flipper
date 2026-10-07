@@ -30,13 +30,28 @@ abstract class BranchInterface {
     int? id,
   });
   void clearData({required ClearData data, required String identifier});
-  Future<List<Business>> businesses(
-      {required String userId, required bool active});
+  Future<List<Business>> businesses({
+    required String userId,
+    required bool active,
+  });
   Future<List<Category>> categories({required String branchId});
   Stream<List<Category>> categoryStream({String? branchId});
   Future<Branch> activeBranch({required String branchId});
   Stream<Branch> activeBranchStream({required String branchId});
   Future<void> saveBranch(Branch branch);
-  FutureOr<void> updateBranch(
-      {required String branchId, String? name, bool? active, bool? isDefault});
+  FutureOr<void> updateBranch({
+    required String branchId,
+    String? name,
+    bool? active,
+    bool? isDefault,
+  });
+
+  /// Store a branch's real location in Supabase (via flipper-turbo) and in the
+  /// local caches.
+  Future<void> updateBranchCoordinates({
+    required String branchId,
+    required num latitude,
+    required num longitude,
+    required HttpClientInterface flipperHttpClient,
+  });
 }

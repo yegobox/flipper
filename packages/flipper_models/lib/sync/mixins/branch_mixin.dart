@@ -36,9 +36,7 @@ mixin BranchMixin implements BranchInterface {
         refreshUserAccessOnly: true,
       );
     } catch (e, s) {
-      talker.warning(
-        'user_access refresh after branch change failed: $e\n$s',
-      );
+      talker.warning('user_access refresh after branch change failed: $e\n$s');
     }
   }
 
@@ -80,6 +78,8 @@ mixin BranchMixin implements BranchInterface {
         "name": name,
         "businessId": businessId,
         "location": location,
+        if (latitude != null) "latitude": latitude,
+        if (longitude != null) "longitude": longitude,
       }),
     );
     if (response.statusCode == 201) {
@@ -147,6 +147,36 @@ mixin BranchMixin implements BranchInterface {
     branchs.active = active ?? branchs.active;
 
     await saveBranch(branchs);
+  }
+
+  @override
+  Future<void> updateBranchCoordinates({
+    required String branchId,
+    required num latitude,
+    required num longitude,
+    required HttpClientInterface flipperHttpClient,
+  }) async {
+    // flipper-turbo serializes NON_NULL, so this PATCH writes only these two
+    // columns.
+    final response = await flipperHttpClient.patch(
+      Uri.parse('$apihub/v2/api/branch/$branchId'),
+      body: jsonEncode(<String, dynamic>{
+        'latitude': latitude,
+        'longitude': longitude,
+      }),
+    );
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw Exception(
+        'Failed to update branch location (${response.statusCode})',
+      );
+    }
+    final cached = await branch(serverId: branchId);
+    if (cached == null) return;
+    await saveBranch(
+      cached
+        ..latitude = latitude
+        ..longitude = longitude,
+    );
   }
 
   @override

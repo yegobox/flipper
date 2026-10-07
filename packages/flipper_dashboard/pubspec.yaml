@@ -52,6 +52,9 @@ dependencies:
   # Splash screen handle
   flutter_native_splash: ^2.3.2
   permission_handler: ^12.0.3
+  # Branch location picker (OpenStreetMap tiles, no API key).
+  flutter_map: ^8.3.2
+  latlong2: ^0.10.1
   flutter_svg: ^2.0.0
   modal_bottom_sheet: ^3.0.0-pre
   flipper_ui: any

@@ -24749,4 +24749,97 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   @override
   String get builtinPrinterWindowsOnly =>
       'Amacapiro yometse akora kuri mashini za Windows.';
+
+  @override
+  String get branchLocationPinOnMap =>
+      'Shyira ikimenyetso ku ikarita (si ngombwa)';
+
+  @override
+  String get branchLocationPickerTitle => 'Aho ishami riherereye';
+
+  @override
+  String get branchLocationUseCurrent => 'Koresha aho ndi ubu';
+
+  @override
+  String get branchLocationSet => 'Shyiraho aho riherereye';
+
+  @override
+  String get branchLocationClear => 'Kuraho ikimenyetso';
+
+  @override
+  String get branchLocationMissing => 'Nta hantu ku ikarita harashyirwaho';
+
+  @override
+  String get branchLocationUnavailable =>
+      'Ntibyashobotse kubona aho uri. Reba ko location ifunguye kandi Flipper yemerewe kuyikoresha.';
+
+  @override
+  String get branchLocationSaved => 'Aho ishami riherereye habitswe';
+
+  @override
+  String get branchLocationSaveFailed =>
+      'Ntibyashobotse kubika aho ishami riherereye';
+
+  @override
+  String branchLocationPromptTitle(String branch) {
+    return '$branch iherereye he?';
+  }
+
+  @override
+  String branchLocationPromptBody(String branch) {
+    return 'Uri kuri $branch ubu? Flipper ishobora kubika aha hantu nk\'aho ishami riherereye. Bikore gusa uri ku ishami.';
+  }
+
+  @override
+  String get branchLocationSave => 'Bika aho riherereye';
+
+  @override
+  String get branchLocationNotNow => 'Si ubu';
+
+  @override
+  String get branchLocationServiceOff =>
+      'Location yazimwe kuri iki gikoresho. Yifungure, hanyuma wongere ugerageze.';
+
+  @override
+  String get branchLocationDenied =>
+      'Flipper ntiyemerewe gukoresha aho uri. Yemerere nubazwa kugira ngo ubike aho ishami riherereye.';
+
+  @override
+  String get branchLocationBlocked =>
+      'Flipper yabujijwe gukoresha location. Fungura igenamiterere, wemerere location, hanyuma wongere ugerageze.';
+
+  @override
+  String get branchLocationOpenSettings => 'Fungura igenamiterere';
+
+  @override
+  String get branchLocationPickerHint =>
+      'Kurura ikarita kugira ngo ikimenyetso kibe ku ishami.';
+
+  @override
+  String get branchLocationSearchHint => 'Shakisha aderesi cyangwa ahantu';
+
+  @override
+  String get branchLocationNoResults =>
+      'Nta hantu habonetse. Gerageza umuhanda, agace cyangwa ahantu hazwi.';
+
+  @override
+  String get branchLocationFindingAddress => 'Turashaka aderesi…';
+
+  @override
+  String get branchLocationNoAddress => 'Nta aderesi y\'umuhanda ihari';
+
+  @override
+  String branchLocationAccuracy(String meters) {
+    return 'Bihuye hafi kuri metero $meters';
+  }
+
+  @override
+  String get branchLocationZoomIn => 'Egereza';
+
+  @override
+  String get branchLocationZoomOut => 'Igiza kure';
+
+  @override
+  String get branchLocationDragInstead =>
+      'Ushobora no gukurura ikarita ugashyiraho ikimenyetso.';
 }
