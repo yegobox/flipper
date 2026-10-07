@@ -167,6 +167,13 @@ void main() {
         });
 
         final open = await sync.barTabForTableById(tab.id);
+        final seenStatuses = <Object?>[];
+        ditto.store.registerObserver(
+          'SELECT * FROM transactions WHERE _id = :id OR id = :id',
+          arguments: {'id': tab.id},
+          onChange: (r) =>
+              seenStatuses.addAll(r.items.map((i) => i.value['status'])),
+        );
         ditto.store.failOn = 'UPDATE transaction_items';
         await expectLater(
           sync.settleBarTab(
@@ -183,6 +190,10 @@ void main() {
         final stored = ditto.store.collections['transactions']![tab.id]!;
         expect(stored['status'], PARKED);
         expect(stored['tableId'], _table.id);
+
+        // And no observer ever saw the rolled-back completion.
+        await Future<void>.delayed(Duration.zero);
+        expect(seenStatuses, isNot(contains(COMPLETE)));
       },
     );
   });

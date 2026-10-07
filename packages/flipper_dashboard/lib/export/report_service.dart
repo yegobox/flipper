@@ -315,7 +315,9 @@ class ReportService {
     final receiptTypeCounts = transactions.fold<Map<String, int>>(
       {'CS': 0, 'CR': 0, 'TS': 0, 'TR': 0, 'PS': 0},
       (counts, t) {
-        final type = t.receiptType;
+        // Same normalisation as [withReceiptType], so a row counted in a
+        // payment bucket is also counted here.
+        final type = t.receiptType?.toUpperCase();
         if (type != null && counts.containsKey(type)) {
           counts[type] = counts[type]! + 1;
         }

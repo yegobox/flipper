@@ -68,8 +68,14 @@ class FakeDittoStore {
     collections.putIfAbsent(collection, () => {})[id] = {...doc};
   }
 
+  /// True while [transaction] runs: writes mark [_notifyPending] instead of
+  /// notifying, so observers only ever see committed state.
+  bool _inTransaction = false;
+  bool _notifyPending = false;
+
   /// Runs [body] as one write: if it throws, every collection goes back to
-  /// what it held before, like a rolled-back Ditto transaction.
+  /// what it held before, like a rolled-back Ditto transaction. Observers are
+  /// notified once on commit and not at all on rollback.
   Future<T> transaction<T>(Future<T> Function(FakeDittoStore txn) body) async {
     final snapshot = {
       for (final c in collections.entries)
@@ -77,13 +83,21 @@ class FakeDittoStore {
           for (final d in c.value.entries) d.key: {...d.value},
         },
     };
+    _inTransaction = true;
+    _notifyPending = false;
     try {
-      return await body(this);
+      final result = await body(this);
+      _inTransaction = false;
+      if (_notifyPending) _notify();
+      return result;
     } catch (_) {
       collections
         ..clear()
         ..addAll(snapshot);
       rethrow;
+    } finally {
+      _inTransaction = false;
+      _notifyPending = false;
     }
   }
 
@@ -122,6 +136,10 @@ class FakeDittoStore {
   }
 
   void _notify() {
+    if (_inTransaction) {
+      _notifyPending = true;
+      return;
+    }
     for (final observer in List.of(_observers)) {
       unawaited(
         execute(
