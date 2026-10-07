@@ -24901,4 +24901,53 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   @override
   String get builtinPrinterWindowsOnly =>
       'Les imprimantes intégrées sont prises en charge sur les caisses Windows.';
+
+  @override
+  String get branchLocationPinOnMap => 'Placer sur la carte (facultatif)';
+
+  @override
+  String get branchLocationPickerTitle => 'Emplacement de la succursale';
+
+  @override
+  String get branchLocationTapToPlace =>
+      'Touchez la carte pour placer l\'épingle, ou utilisez votre position actuelle.';
+
+  @override
+  String get branchLocationUseCurrent => 'Utiliser ma position actuelle';
+
+  @override
+  String get branchLocationSet => 'Définir l\'emplacement';
+
+  @override
+  String get branchLocationClear => 'Retirer l\'épingle';
+
+  @override
+  String get branchLocationMissing => 'Pas encore d\'emplacement sur la carte';
+
+  @override
+  String get branchLocationUnavailable =>
+      'Impossible d\'obtenir votre position. Vérifiez que la localisation est activée et autorisée pour Flipper.';
+
+  @override
+  String get branchLocationSaved => 'Emplacement de la succursale enregistré';
+
+  @override
+  String get branchLocationSaveFailed =>
+      'Impossible d\'enregistrer l\'emplacement de la succursale';
+
+  @override
+  String branchLocationPromptTitle(String branch) {
+    return 'Où se trouve $branch ?';
+  }
+
+  @override
+  String branchLocationPromptBody(String branch) {
+    return 'Êtes-vous à $branch en ce moment ? Flipper peut enregistrer cet endroit comme emplacement de la succursale. Faites-le uniquement lorsque vous êtes sur place.';
+  }
+
+  @override
+  String get branchLocationSave => 'Enregistrer l\'emplacement';
+
+  @override
+  String get branchLocationNotNow => 'Pas maintenant';
 }

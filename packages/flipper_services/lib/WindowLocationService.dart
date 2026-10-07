@@ -1,6 +1,7 @@
 import 'package:geolocator/geolocator.dart';
 
 import 'abstractions/location.dart';
+import 'geolocator_position.dart';
 
 class WindowsLocationService implements FlipperLocation {
   @override
@@ -20,7 +21,8 @@ class WindowsLocationService implements FlipperLocation {
       permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.deniedForever) {
         return Future.error(
-            'Location permissions are denied, we cannot request permissions.');
+          'Location permissions are denied, we cannot request permissions.',
+        );
       }
     }
 
@@ -46,10 +48,12 @@ class WindowsLocationService implements FlipperLocation {
         permission == LocationPermission.whileInUse;
   }
 
+  @override
+  Future<({double latitude, double longitude})?> currentPosition({
+    Duration timeout = const Duration(seconds: 20),
+  }) => geolocatorCurrentPosition(timeout: timeout);
+
   Map<String, String> _defaultLocationValues() {
-    return {
-      "longitude": "11",
-      "latitude": "11",
-    };
+    return {"longitude": "11", "latitude": "11"};
   }
 }

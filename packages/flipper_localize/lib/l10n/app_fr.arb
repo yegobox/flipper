@@ -6824,5 +6824,19 @@
     "builtinPrinterQrLabel": "Code QR du reçu",
     "builtinPrinterQrImage": "Image (fonctionne sur toutes les imprimantes)",
     "builtinPrinterQrNative": "Celui de l'imprimante (si QR B s'est imprimé)",
-    "builtinPrinterWindowsOnly": "Les imprimantes intégrées sont prises en charge sur les caisses Windows."
+    "builtinPrinterWindowsOnly": "Les imprimantes intégrées sont prises en charge sur les caisses Windows.",
+    "branchLocationPinOnMap": "Placer sur la carte (facultatif)",
+    "branchLocationPickerTitle": "Emplacement de la succursale",
+    "branchLocationTapToPlace": "Touchez la carte pour placer l'épingle, ou utilisez votre position actuelle.",
+    "branchLocationUseCurrent": "Utiliser ma position actuelle",
+    "branchLocationSet": "Définir l'emplacement",
+    "branchLocationClear": "Retirer l'épingle",
+    "branchLocationMissing": "Pas encore d'emplacement sur la carte",
+    "branchLocationUnavailable": "Impossible d'obtenir votre position. Vérifiez que la localisation est activée et autorisée pour Flipper.",
+    "branchLocationSaved": "Emplacement de la succursale enregistré",
+    "branchLocationSaveFailed": "Impossible d'enregistrer l'emplacement de la succursale",
+    "branchLocationPromptTitle": "Où se trouve {branch} ?",
+    "branchLocationPromptBody": "Êtes-vous à {branch} en ce moment ? Flipper peut enregistrer cet endroit comme emplacement de la succursale. Faites-le uniquement lorsque vous êtes sur place.",
+    "branchLocationSave": "Enregistrer l'emplacement",
+    "branchLocationNotNow": "Pas maintenant"
 }

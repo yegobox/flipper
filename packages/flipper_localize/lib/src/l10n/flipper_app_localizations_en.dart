@@ -24490,4 +24490,52 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
   @override
   String get builtinPrinterWindowsOnly =>
       'Built-in printers are supported on Windows tills.';
+
+  @override
+  String get branchLocationPinOnMap => 'Pin location on map (optional)';
+
+  @override
+  String get branchLocationPickerTitle => 'Branch location';
+
+  @override
+  String get branchLocationTapToPlace =>
+      'Tap the map to place the pin, or use your current location.';
+
+  @override
+  String get branchLocationUseCurrent => 'Use my current location';
+
+  @override
+  String get branchLocationSet => 'Set location';
+
+  @override
+  String get branchLocationClear => 'Remove pin';
+
+  @override
+  String get branchLocationMissing => 'No map location yet';
+
+  @override
+  String get branchLocationUnavailable =>
+      'Couldn\'t get your location. Check that location is on and allowed for Flipper.';
+
+  @override
+  String get branchLocationSaved => 'Branch location saved';
+
+  @override
+  String get branchLocationSaveFailed => 'Couldn\'t save the branch location';
+
+  @override
+  String branchLocationPromptTitle(String branch) {
+    return 'Where is $branch?';
+  }
+
+  @override
+  String branchLocationPromptBody(String branch) {
+    return 'Are you at $branch right now? Flipper can save this spot as the branch location. Only do this while you are at the branch.';
+  }
+
+  @override
+  String get branchLocationSave => 'Save location';
+
+  @override
+  String get branchLocationNotNow => 'Not now';
 }

@@ -406,6 +406,28 @@ class CapellaSync extends AiStrategyImpl
     );
   }
 
+  // TODO(ditto-migration): Supabase + Brick still go through the legacy
+  // strategy, as addBranch does.
+  @override
+  Future<void> updateBranchCoordinates({
+    required String branchId,
+    required num latitude,
+    required num longitude,
+    required HttpClientInterface flipperHttpClient,
+  }) async {
+    await _legacy.updateBranchCoordinates(
+      branchId: branchId,
+      latitude: latitude,
+      longitude: longitude,
+      flipperHttpClient: flipperHttpClient,
+    );
+    await updateBranchCoordinatesInDitto(
+      branchId: branchId,
+      latitude: latitude,
+      longitude: longitude,
+    );
+  }
+
   @override
   FutureOr<void> addColor({
     required String name,

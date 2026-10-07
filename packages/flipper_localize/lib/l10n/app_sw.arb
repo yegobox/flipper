@@ -8417,5 +8417,19 @@
     "builtinPrinterQrLabel": "Msimbo wa QR wa risiti",
     "builtinPrinterQrImage": "Picha (inafanya kazi kwenye kila printa)",
     "builtinPrinterQrNative": "Ya printa (ikiwa QR B imechapishwa)",
-    "builtinPrinterWindowsOnly": "Printa zilizojengewa ndani zinatumika kwenye mashine za Windows."
+    "builtinPrinterWindowsOnly": "Printa zilizojengewa ndani zinatumika kwenye mashine za Windows.",
+    "branchLocationPinOnMap": "Weka alama kwenye ramani (si lazima)",
+    "branchLocationPickerTitle": "Mahali pa tawi",
+    "branchLocationTapToPlace": "Gusa ramani kuweka alama, au tumia mahali ulipo sasa.",
+    "branchLocationUseCurrent": "Tumia mahali nilipo sasa",
+    "branchLocationSet": "Weka mahali",
+    "branchLocationClear": "Ondoa alama",
+    "branchLocationMissing": "Bado hakuna mahali kwenye ramani",
+    "branchLocationUnavailable": "Imeshindwa kupata mahali ulipo. Hakikisha eneo limewashwa na Flipper imeruhusiwa.",
+    "branchLocationSaved": "Mahali pa tawi pamehifadhiwa",
+    "branchLocationSaveFailed": "Imeshindwa kuhifadhi mahali pa tawi",
+    "branchLocationPromptTitle": "{branch} iko wapi?",
+    "branchLocationPromptBody": "Je, uko {branch} sasa hivi? Flipper inaweza kuhifadhi mahali hapa kama mahali pa tawi. Fanya hivi ukiwa tawini tu.",
+    "branchLocationSave": "Hifadhi mahali",
+    "branchLocationNotNow": "Si sasa"
 }

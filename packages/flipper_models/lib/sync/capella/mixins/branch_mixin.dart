@@ -81,6 +81,20 @@ mixin CapellaBranchMixin implements BranchInterface {
     talker.info('Updated branch: $branchId');
   }
 
+  /// Ditto half of [CapellaSync.updateBranchCoordinates].
+  Future<void> updateBranchCoordinatesInDitto({
+    required String branchId,
+    required num latitude,
+    required num longitude,
+  }) async {
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) return;
+    await ditto.store.execute(
+      "UPDATE branches SET latitude = :latitude, longitude = :longitude WHERE id = :id",
+      arguments: {"id": branchId, "latitude": latitude, "longitude": longitude},
+    );
+  }
+
   @override
   Future<void> saveBranch(Branch branch) async {
     if (dittoService.dittoInstance == null) {
@@ -95,8 +109,8 @@ mixin CapellaBranchMixin implements BranchInterface {
         "businessId": branch.businessId ?? '',
         "location": branch.location ?? '',
         "description": branch.description ?? '',
-        "longitude": branch.longitude ?? 0,
-        "latitude": branch.latitude ?? 0,
+        "longitude": branch.longitude,
+        "latitude": branch.latitude,
         "isDefault": branch.isDefault ?? false,
         "active": branch.active ?? true,
         "serverId": branch.serverId ?? 0,

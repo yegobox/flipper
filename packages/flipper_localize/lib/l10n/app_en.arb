@@ -18648,5 +18648,33 @@
     "builtinPrinterQrLabel": "Receipt QR code",
     "builtinPrinterQrImage": "Image (works on every printer)",
     "builtinPrinterQrNative": "Printer's own (if QR B printed)",
-    "builtinPrinterWindowsOnly": "Built-in printers are supported on Windows tills."
+    "builtinPrinterWindowsOnly": "Built-in printers are supported on Windows tills.",
+    "branchLocationPinOnMap": "Pin location on map (optional)",
+    "branchLocationPickerTitle": "Branch location",
+    "branchLocationTapToPlace": "Tap the map to place the pin, or use your current location.",
+    "branchLocationUseCurrent": "Use my current location",
+    "branchLocationSet": "Set location",
+    "branchLocationClear": "Remove pin",
+    "branchLocationMissing": "No map location yet",
+    "branchLocationUnavailable": "Couldn't get your location. Check that location is on and allowed for Flipper.",
+    "branchLocationSaved": "Branch location saved",
+    "branchLocationSaveFailed": "Couldn't save the branch location",
+    "branchLocationPromptTitle": "Where is {branch}?",
+    "@branchLocationPromptTitle": {
+        "placeholders": {
+            "branch": {
+                "type": "String"
+            }
+        }
+    },
+    "branchLocationPromptBody": "Are you at {branch} right now? Flipper can save this spot as the branch location. Only do this while you are at the branch.",
+    "@branchLocationPromptBody": {
+        "placeholders": {
+            "branch": {
+                "type": "String"
+            }
+        }
+    },
+    "branchLocationSave": "Save location",
+    "branchLocationNotNow": "Not now"
 }

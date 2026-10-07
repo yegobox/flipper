@@ -24749,4 +24749,54 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   @override
   String get builtinPrinterWindowsOnly =>
       'Amacapiro yometse akora kuri mashini za Windows.';
+
+  @override
+  String get branchLocationPinOnMap =>
+      'Shyira ikimenyetso ku ikarita (si ngombwa)';
+
+  @override
+  String get branchLocationPickerTitle => 'Aho ishami riherereye';
+
+  @override
+  String get branchLocationTapToPlace =>
+      'Kanda ku ikarita ushyireho ikimenyetso, cyangwa ukoreshe aho uri ubu.';
+
+  @override
+  String get branchLocationUseCurrent => 'Koresha aho ndi ubu';
+
+  @override
+  String get branchLocationSet => 'Shyiraho aho riherereye';
+
+  @override
+  String get branchLocationClear => 'Kuraho ikimenyetso';
+
+  @override
+  String get branchLocationMissing => 'Nta hantu ku ikarita harashyirwaho';
+
+  @override
+  String get branchLocationUnavailable =>
+      'Ntibyashobotse kubona aho uri. Reba ko location ifunguye kandi Flipper yemerewe kuyikoresha.';
+
+  @override
+  String get branchLocationSaved => 'Aho ishami riherereye habitswe';
+
+  @override
+  String get branchLocationSaveFailed =>
+      'Ntibyashobotse kubika aho ishami riherereye';
+
+  @override
+  String branchLocationPromptTitle(String branch) {
+    return '$branch iherereye he?';
+  }
+
+  @override
+  String branchLocationPromptBody(String branch) {
+    return 'Uri kuri $branch ubu? Flipper ishobora kubika aha hantu nk\'aho ishami riherereye. Bikore gusa uri ku ishami.';
+  }
+
+  @override
+  String get branchLocationSave => 'Bika aho riherereye';
+
+  @override
+  String get branchLocationNotNow => 'Si ubu';
 }

@@ -8409,5 +8409,19 @@
     "builtinPrinterQrLabel": "QR code y'inyemezabwishyu",
     "builtinPrinterQrImage": "Ifoto (ikora ku capiro ryose)",
     "builtinPrinterQrNative": "Iy'icapiro (niba QR B yasohotse)",
-    "builtinPrinterWindowsOnly": "Amacapiro yometse akora kuri mashini za Windows."
+    "builtinPrinterWindowsOnly": "Amacapiro yometse akora kuri mashini za Windows.",
+    "branchLocationPinOnMap": "Shyira ikimenyetso ku ikarita (si ngombwa)",
+    "branchLocationPickerTitle": "Aho ishami riherereye",
+    "branchLocationTapToPlace": "Kanda ku ikarita ushyireho ikimenyetso, cyangwa ukoreshe aho uri ubu.",
+    "branchLocationUseCurrent": "Koresha aho ndi ubu",
+    "branchLocationSet": "Shyiraho aho riherereye",
+    "branchLocationClear": "Kuraho ikimenyetso",
+    "branchLocationMissing": "Nta hantu ku ikarita harashyirwaho",
+    "branchLocationUnavailable": "Ntibyashobotse kubona aho uri. Reba ko location ifunguye kandi Flipper yemerewe kuyikoresha.",
+    "branchLocationSaved": "Aho ishami riherereye habitswe",
+    "branchLocationSaveFailed": "Ntibyashobotse kubika aho ishami riherereye",
+    "branchLocationPromptTitle": "{branch} iherereye he?",
+    "branchLocationPromptBody": "Uri kuri {branch} ubu? Flipper ishobora kubika aha hantu nk'aho ishami riherereye. Bikore gusa uri ku ishami.",
+    "branchLocationSave": "Bika aho riherereye",
+    "branchLocationNotNow": "Si ubu"
 }

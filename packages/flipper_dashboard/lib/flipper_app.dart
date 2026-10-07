@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:flipper_dashboard/features/bar_mode/bar_mode_settings.dart';
+import 'package:flipper_dashboard/features/branch_location/branch_location_backfill.dart';
+import 'package:flipper_dashboard/features/branch_location/branch_services.dart';
 import 'package:flipper_dashboard/features/hotel_mode/hotel_mode_settings.dart';
 import 'package:flipper_dashboard/features/service_mode_switch.dart';
 import 'package:flipper_dashboard/dashboard_quick_apps_navigation.dart';
@@ -39,6 +41,9 @@ class FlipperApp extends HookConsumerWidget {
     // Handles initialization and lifecycle events.
     useEffect(() {
       _initServices(context, coreViewModel);
+      unawaited(
+        _promptBranchLocation(context, ref.read(branchServicesProvider)),
+      );
       final observer = _AppLifecycleObserver(() => _handleResumedState(ref));
       WidgetsBinding.instance.addObserver(observer);
       return () => WidgetsBinding.instance.removeObserver(observer);
@@ -68,14 +73,16 @@ class FlipperApp extends HookConsumerWidget {
     ProxyService.status.updateStatusColor();
     // Pick up business/branch renames made in Supabase while backgrounded.
     // Throttled inside catchUp; offline is a logged no-op.
-    unawaited(TenantNameSync.catchUp().then((changed) {
-      if (!changed) return;
-      try {
-        invalidateTenantNameProviders(ref);
-      } catch (_) {
-        // Widget disposed while the catch-up ran; nothing left to refresh.
-      }
-    }));
+    unawaited(
+      TenantNameSync.catchUp().then((changed) {
+        if (!changed) return;
+        try {
+          invalidateTenantNameProviders(ref);
+        } catch (_) {
+          // Widget disposed while the catch-up ran; nothing left to refresh.
+        }
+      }),
+    );
   }
 
   /// Safety net when a login path lands on [FlipperApp] before branch settings
@@ -99,6 +106,20 @@ class FlipperApp extends HookConsumerWidget {
     } catch (_) {
       // A branch with no branding document is the normal case.
     }
+  }
+
+  /// Android only: ask an owner/admin standing at a branch that still has
+  /// placeholder coordinates to save the real ones. Waits so it never lands
+  /// on top of the startup permission requests or the service-mode redirect.
+  Future<void> _promptBranchLocation(
+    BuildContext context,
+    BranchServices services,
+  ) async {
+    if (!services.isAndroid) return;
+    await waitForViewSize();
+    await Future<void>.delayed(const Duration(seconds: 8));
+    if (!context.mounted) return;
+    await maybePromptBranchLocationBackfill(context, services);
   }
 
   Future<void> _redirectToServiceModeWhenBranchEnabled() async {

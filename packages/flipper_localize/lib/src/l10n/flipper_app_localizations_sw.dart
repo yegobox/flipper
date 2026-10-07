@@ -24659,4 +24659,52 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   @override
   String get builtinPrinterWindowsOnly =>
       'Printa zilizojengewa ndani zinatumika kwenye mashine za Windows.';
+
+  @override
+  String get branchLocationPinOnMap => 'Weka alama kwenye ramani (si lazima)';
+
+  @override
+  String get branchLocationPickerTitle => 'Mahali pa tawi';
+
+  @override
+  String get branchLocationTapToPlace =>
+      'Gusa ramani kuweka alama, au tumia mahali ulipo sasa.';
+
+  @override
+  String get branchLocationUseCurrent => 'Tumia mahali nilipo sasa';
+
+  @override
+  String get branchLocationSet => 'Weka mahali';
+
+  @override
+  String get branchLocationClear => 'Ondoa alama';
+
+  @override
+  String get branchLocationMissing => 'Bado hakuna mahali kwenye ramani';
+
+  @override
+  String get branchLocationUnavailable =>
+      'Imeshindwa kupata mahali ulipo. Hakikisha eneo limewashwa na Flipper imeruhusiwa.';
+
+  @override
+  String get branchLocationSaved => 'Mahali pa tawi pamehifadhiwa';
+
+  @override
+  String get branchLocationSaveFailed => 'Imeshindwa kuhifadhi mahali pa tawi';
+
+  @override
+  String branchLocationPromptTitle(String branch) {
+    return '$branch iko wapi?';
+  }
+
+  @override
+  String branchLocationPromptBody(String branch) {
+    return 'Je, uko $branch sasa hivi? Flipper inaweza kuhifadhi mahali hapa kama mahali pa tawi. Fanya hivi ukiwa tawini tu.';
+  }
+
+  @override
+  String get branchLocationSave => 'Hifadhi mahali';
+
+  @override
+  String get branchLocationNotNow => 'Si sasa';
 }
