@@ -1,4 +1,3 @@
-import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/features/incoming_orders/widgets/action_row.dart';
 import 'package:flipper_dashboard/features/incoming_orders/providers/incoming_orders_provider.dart';
 import 'package:flipper_models/db_model_export.dart';
