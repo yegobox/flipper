@@ -45,8 +45,7 @@ class _OfflineDittoService implements DittoService {
   Ditto? get dittoInstance => null;
 
   @override
-  dynamic noSuchMethod(Invocation invocation) =>
-      super.noSuchMethod(invocation);
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 /// Uses the mixin's *own* [CapellaHotelMixin.dittoHandle], unlike [_HotelSync]
@@ -322,61 +321,65 @@ void main() {
       expect(folio['customerName'], 'Aline Uwase');
     });
 
-    test('a second check-in on an occupied room resumes, never duplicates',
-        () async {
-      final room = await savedRoom();
-      final first = await sync.checkInGuest(
-        branchId: _branch,
-        room: room,
-        guestName: 'Aline Uwase',
-        checkInAt: DateTime.utc(2026, 1, 10, 14),
-        expectedCheckOutAt: DateTime.utc(2026, 1, 12, 11),
-        nightlyRate: 50000,
-        clerkTenantId: 'c1',
-        clerkName: 'Richie',
-      );
-      final second = await sync.checkInGuest(
-        branchId: _branch,
-        room: room,
-        guestName: 'Someone Else',
-        checkInAt: DateTime.utc(2026, 1, 10, 15),
-        expectedCheckOutAt: DateTime.utc(2026, 1, 13, 11),
-        nightlyRate: 90000,
-        clerkTenantId: 'c1',
-        clerkName: 'Richie',
-      );
+    test(
+      'a second check-in on an occupied room resumes, never duplicates',
+      () async {
+        final room = await savedRoom();
+        final first = await sync.checkInGuest(
+          branchId: _branch,
+          room: room,
+          guestName: 'Aline Uwase',
+          checkInAt: DateTime.utc(2026, 1, 10, 14),
+          expectedCheckOutAt: DateTime.utc(2026, 1, 12, 11),
+          nightlyRate: 50000,
+          clerkTenantId: 'c1',
+          clerkName: 'Richie',
+        );
+        final second = await sync.checkInGuest(
+          branchId: _branch,
+          room: room,
+          guestName: 'Someone Else',
+          checkInAt: DateTime.utc(2026, 1, 10, 15),
+          expectedCheckOutAt: DateTime.utc(2026, 1, 13, 11),
+          nightlyRate: 90000,
+          clerkTenantId: 'c1',
+          clerkName: 'Richie',
+        );
 
-      expect(second.id, first.id);
-      expect(second.guestName, 'Aline Uwase');
-      expect(ditto.store.docs('transactions'), hasLength(1));
-    });
+        expect(second.id, first.id);
+        expect(second.guestName, 'Aline Uwase');
+        expect(ditto.store.docs('transactions'), hasLength(1));
+      },
+    );
 
-    test('arriving a reservation mints its folio and flips it in house',
-        () async {
-      final room = await savedRoom();
-      final booked = await sync.reserveRoom(
-        branchId: _branch,
-        room: room,
-        guestName: 'Aline Uwase',
-        checkInAt: DateTime.utc(2026, 2, 1, 14),
-        expectedCheckOutAt: DateTime.utc(2026, 2, 3, 11),
-        nightlyRate: 60000,
-        clerkTenantId: 'c1',
-        clerkName: 'Richie',
-      );
-      expect(booked.hasFolio, isFalse);
-      expect(ditto.store.docs('transactions'), isEmpty);
+    test(
+      'arriving a reservation mints its folio and flips it in house',
+      () async {
+        final room = await savedRoom();
+        final booked = await sync.reserveRoom(
+          branchId: _branch,
+          room: room,
+          guestName: 'Aline Uwase',
+          checkInAt: DateTime.utc(2026, 2, 1, 14),
+          expectedCheckOutAt: DateTime.utc(2026, 2, 3, 11),
+          nightlyRate: 60000,
+          clerkTenantId: 'c1',
+          clerkName: 'Richie',
+        );
+        expect(booked.hasFolio, isFalse);
+        expect(ditto.store.docs('transactions'), isEmpty);
 
-      final arrived = await sync.checkInReservation(
-        stay: booked,
-        clerkTenantId: 'c1',
-        clerkName: 'Richie',
-      );
+        final arrived = await sync.checkInReservation(
+          stay: booked,
+          clerkTenantId: 'c1',
+          clerkName: 'Richie',
+        );
 
-      expect(arrived.status, HotelStayStatus.inHouse);
-      expect(arrived.hasFolio, isTrue);
-      expect(ditto.store.docs('transactions'), hasLength(1));
-    });
+        expect(arrived.status, HotelStayStatus.inHouse);
+        expect(arrived.hasFolio, isTrue);
+        expect(ditto.store.docs('transactions'), hasLength(1));
+      },
+    );
 
     test('arriving an already in-house stay changes nothing', () async {
       final room = await savedRoom();
@@ -437,34 +440,36 @@ void main() {
       expect(folio?.subTotal, 100000);
     });
 
-    test('a charge with no registered itemCd is refused, not silently sold',
-        () async {
-      final room = await savedRoom();
-      final stay = await sync.checkInGuest(
-        branchId: _branch,
-        room: room,
-        guestName: 'Aline Uwase',
-        checkInAt: DateTime.utc(2026, 1, 10, 14),
-        expectedCheckOutAt: DateTime.utc(2026, 1, 12, 11),
-        nightlyRate: 50000,
-        clerkTenantId: 'c1',
-        clerkName: 'Richie',
-      );
-
-      expect(
-        () => sync.addChargeToFolio(
-          transactionId: stay.transactionId,
+    test(
+      'a charge with no registered itemCd is refused, not silently sold',
+      () async {
+        final room = await savedRoom();
+        final stay = await sync.checkInGuest(
           branchId: _branch,
-          variantId: 'unknown-variant',
-          productName: 'Mystery item',
-          defaultPrice: 1000,
-          stock: 5,
+          room: room,
+          guestName: 'Aline Uwase',
+          checkInAt: DateTime.utc(2026, 1, 10, 14),
+          expectedCheckOutAt: DateTime.utc(2026, 1, 12, 11),
+          nightlyRate: 50000,
           clerkTenantId: 'c1',
           clerkName: 'Richie',
-        ),
-        throwsA(isA<StateError>()),
-      );
-    });
+        );
+
+        expect(
+          () => sync.addChargeToFolio(
+            transactionId: stay.transactionId,
+            branchId: _branch,
+            variantId: 'unknown-variant',
+            productName: 'Mystery item',
+            defaultPrice: 1000,
+            stock: 5,
+            clerkTenantId: 'c1',
+            clerkName: 'Richie',
+          ),
+          throwsA(isA<StateError>()),
+        );
+      },
+    );
 
     test('an unregistered room on an EBM branch says so', () async {
       // On a fiscalised branch a missing item is a real problem: the nights
@@ -515,153 +520,164 @@ void main() {
       );
     });
 
-    test('a branch not on EBM still bills the nights, without RRA fields',
-        () async {
-      // A property that is not registered for EBM still runs a hotel. Refusing
-      // to record the charge leaves a folio that can never total anything,
-      // which is worse than one that is simply not fiscalised.
-      final room = await savedRoom();
-      final stay = await sync.checkInGuest(
-        branchId: _branch,
-        room: room,
-        guestName: 'Aline Uwase',
-        checkInAt: DateTime.utc(2026, 1, 10, 14),
-        expectedCheckOutAt: DateTime.utc(2026, 1, 12, 11),
-        nightlyRate: 85000,
-        clerkTenantId: 'c1',
-        clerkName: 'Richie',
-      );
-
-      await sync.postRoomCharge(
-        stay: stay,
-        clerkTenantId: 'c1',
-        clerkName: 'Richie',
-      );
-
-      final lines = await sync.hotelFolioLines(
-        transactionId: stay.transactionId,
-      );
-      expect(lines, hasLength(1));
-      expect(lines.single.qty, 2);
-      expect(lines.single.price, 85000);
-      // No fabricated fiscal identity on an unregistered line.
-      expect(lines.single.itemCd, isNull);
-
-      final folio = await sync.hotelFolio(transactionId: stay.transactionId);
-      expect(folio?.subTotal, 170000);
-    });
-
-    test('a registered room bills its nights against its own RRA item',
-        () async {
-      final room = (await savedRoom()).copyWith(variantId: 'v-room');
-      await sync.saveHotelRoom(room);
-
-      final stay = await sync.checkInGuest(
-        branchId: _branch,
-        room: room,
-        guestName: 'Aline Uwase',
-        checkInAt: DateTime.utc(2026, 1, 10, 14),
-        expectedCheckOutAt: DateTime.utc(2026, 1, 12, 11),
-        nightlyRate: 55000,
-        clerkTenantId: 'c1',
-        clerkName: 'Richie',
-      );
-
-      await sync.postRoomCharge(
-        stay: stay,
-        clerkTenantId: 'c1',
-        clerkName: 'Richie',
-      );
-
-      final lines = await sync.hotelFolioLines(
-        transactionId: stay.transactionId,
-      );
-      expect(lines, hasLength(1));
-      expect(lines.single.qty, 2, reason: 'two nights');
-      expect(lines.single.itemCd, 'RW1NTXU0000001');
-
-      final folio = await sync.hotelFolio(transactionId: stay.transactionId);
-      expect(folio?.subTotal, 110000);
-    });
-
-    test('the branch fallback product is used even with auto-post off',
-        () async {
-      // autoPostRoomCharge governs whether it happens automatically; it must
-      // not stop the desk posting the charge by hand.
-      await sync.saveHotelBranchSettings(
-        const HotelBranchSettings(
+    test(
+      'a branch not on EBM still bills the nights, without RRA fields',
+      () async {
+        // A property that is not registered for EBM still runs a hotel. Refusing
+        // to record the charge leaves a folio that can never total anything,
+        // which is worse than one that is simply not fiscalised.
+        final room = await savedRoom();
+        final stay = await sync.checkInGuest(
           branchId: _branch,
-          enabled: true,
-          autoPostRoomCharge: false,
-          roomChargeVariantId: 'v-room',
-        ),
-      );
-      final room = await savedRoom();
-      final stay = await sync.checkInGuest(
-        branchId: _branch,
-        room: room,
-        guestName: 'Aline Uwase',
-        checkInAt: DateTime.utc(2026, 1, 10, 14),
-        expectedCheckOutAt: DateTime.utc(2026, 1, 11, 11),
-        nightlyRate: 55000,
-        clerkTenantId: 'c1',
-        clerkName: 'Richie',
-      );
+          room: room,
+          guestName: 'Aline Uwase',
+          checkInAt: DateTime.utc(2026, 1, 10, 14),
+          expectedCheckOutAt: DateTime.utc(2026, 1, 12, 11),
+          nightlyRate: 85000,
+          clerkTenantId: 'c1',
+          clerkName: 'Richie',
+        );
 
-      await sync.postRoomCharge(
-        stay: stay,
-        clerkTenantId: 'c1',
-        clerkName: 'Richie',
-      );
-
-      expect(
-        await sync.hotelFolioLines(transactionId: stay.transactionId),
-        hasLength(1),
-      );
-    });
-
-    test('a non-EBM branch looks its EBM up once, not once per charge', () async {
-      // A branch with no EBM row has nothing cached in Ditto, so every lookup
-      // falls through to Supabase. Asking per charge made the properties that
-      // never fiscalise pay the most.
-      final room = await savedRoom();
-      final stay = await sync.checkInGuest(
-        branchId: _branch,
-        room: room,
-        guestName: 'Aline Uwase',
-        checkInAt: DateTime.utc(2026, 1, 10, 14),
-        expectedCheckOutAt: DateTime.utc(2026, 1, 11, 11),
-        nightlyRate: 55000,
-        clerkTenantId: 'c1',
-        clerkName: 'Richie',
-      );
-      strategy.ebmFetchRemoteCalls.clear();
-
-      for (var i = 0; i < 3; i++) {
         await sync.postRoomCharge(
           stay: stay,
           clerkTenantId: 'c1',
           clerkName: 'Richie',
         );
-      }
 
-      expect(
-        strategy.ebmFetchRemoteCalls,
-        hasLength(1),
-        reason: 'three charges should share one memoised EBM lookup',
-      );
-    });
+        final lines = await sync.hotelFolioLines(
+          transactionId: stay.transactionId,
+        );
+        expect(lines, hasLength(1));
+        expect(lines.single.qty, 2);
+        expect(lines.single.price, 85000);
+        // No fabricated fiscal identity on an unregistered line.
+        expect(lines.single.itemCd, isNull);
 
-    test('the memo expires rather than pinning a branch as non-EBM forever',
-        () async {
-      // A property that configures EBM mid-session must start registering
-      // without a restart.
-      expect(await HotelRraCapability.supports(_branch), isFalse);
-      expect(HotelRraCapability.isCached(_branch), isTrue);
+        final folio = await sync.hotelFolio(transactionId: stay.transactionId);
+        expect(folio?.subTotal, 170000);
+      },
+    );
 
-      HotelRraCapability.invalidate(_branch);
-      expect(HotelRraCapability.isCached(_branch), isFalse);
-    });
+    test(
+      'a registered room bills its nights against its own RRA item',
+      () async {
+        final room = (await savedRoom()).copyWith(variantId: 'v-room');
+        await sync.saveHotelRoom(room);
+
+        final stay = await sync.checkInGuest(
+          branchId: _branch,
+          room: room,
+          guestName: 'Aline Uwase',
+          checkInAt: DateTime.utc(2026, 1, 10, 14),
+          expectedCheckOutAt: DateTime.utc(2026, 1, 12, 11),
+          nightlyRate: 55000,
+          clerkTenantId: 'c1',
+          clerkName: 'Richie',
+        );
+
+        await sync.postRoomCharge(
+          stay: stay,
+          clerkTenantId: 'c1',
+          clerkName: 'Richie',
+        );
+
+        final lines = await sync.hotelFolioLines(
+          transactionId: stay.transactionId,
+        );
+        expect(lines, hasLength(1));
+        expect(lines.single.qty, 2, reason: 'two nights');
+        expect(lines.single.itemCd, 'RW1NTXU0000001');
+
+        final folio = await sync.hotelFolio(transactionId: stay.transactionId);
+        expect(folio?.subTotal, 110000);
+      },
+    );
+
+    test(
+      'the branch fallback product is used even with auto-post off',
+      () async {
+        // autoPostRoomCharge governs whether it happens automatically; it must
+        // not stop the desk posting the charge by hand.
+        await sync.saveHotelBranchSettings(
+          const HotelBranchSettings(
+            branchId: _branch,
+            enabled: true,
+            autoPostRoomCharge: false,
+            roomChargeVariantId: 'v-room',
+          ),
+        );
+        final room = await savedRoom();
+        final stay = await sync.checkInGuest(
+          branchId: _branch,
+          room: room,
+          guestName: 'Aline Uwase',
+          checkInAt: DateTime.utc(2026, 1, 10, 14),
+          expectedCheckOutAt: DateTime.utc(2026, 1, 11, 11),
+          nightlyRate: 55000,
+          clerkTenantId: 'c1',
+          clerkName: 'Richie',
+        );
+
+        await sync.postRoomCharge(
+          stay: stay,
+          clerkTenantId: 'c1',
+          clerkName: 'Richie',
+        );
+
+        expect(
+          await sync.hotelFolioLines(transactionId: stay.transactionId),
+          hasLength(1),
+        );
+      },
+    );
+
+    test(
+      'a non-EBM branch looks its EBM up once, not once per charge',
+      () async {
+        // A branch with no EBM row has nothing cached in Ditto, so every lookup
+        // falls through to Supabase. Asking per charge made the properties that
+        // never fiscalise pay the most.
+        final room = await savedRoom();
+        final stay = await sync.checkInGuest(
+          branchId: _branch,
+          room: room,
+          guestName: 'Aline Uwase',
+          checkInAt: DateTime.utc(2026, 1, 10, 14),
+          expectedCheckOutAt: DateTime.utc(2026, 1, 11, 11),
+          nightlyRate: 55000,
+          clerkTenantId: 'c1',
+          clerkName: 'Richie',
+        );
+        strategy.ebmFetchRemoteCalls.clear();
+
+        for (var i = 0; i < 3; i++) {
+          await sync.postRoomCharge(
+            stay: stay,
+            clerkTenantId: 'c1',
+            clerkName: 'Richie',
+          );
+        }
+
+        expect(
+          strategy.ebmFetchRemoteCalls,
+          hasLength(1),
+          reason: 'three charges should share one memoised EBM lookup',
+        );
+      },
+    );
+
+    test(
+      'the memo expires rather than pinning a branch as non-EBM forever',
+      () async {
+        // A property that configures EBM mid-session must start registering
+        // without a restart.
+        expect(await HotelRraCapability.supports(_branch), isFalse);
+        expect(HotelRraCapability.isCached(_branch), isTrue);
+
+        HotelRraCapability.invalidate(_branch);
+        expect(HotelRraCapability.isCached(_branch), isFalse);
+      },
+    );
 
     test('posting a room charge never makes a remote EBM call', () async {
       // `ebm(fetchRemote: true)` — the default — skips Ditto and goes straight
@@ -705,9 +721,7 @@ void main() {
         clerkTenantId: 'c1',
         clerkName: 'Richie',
       );
-      final folio = await sync.hotelFolio(
-        transactionId: stay.transactionId,
-      );
+      final folio = await sync.hotelFolio(transactionId: stay.transactionId);
 
       final settled = await sync.checkOutGuest(
         stay: stay,
@@ -729,162 +743,171 @@ void main() {
       expect(after.housekeeping, HotelHousekeeping.dirty);
     });
 
-    test('a settled folio carries the tax the ledger splits revenue by',
-        () async {
-      // Regression: checkOutGuest used to write the completed transaction
-      // without taxAmount. The server-side poster books revenue as
-      // subTotal - taxAmount, so every folio landed 100% in revenue 4010 and
-      // nothing in VAT payable 2100 — losing both the 3% tourism tax on the
-      // nights and the 18% VAT on anything charged to the room.
-      final room = await savedRoom();
-      final stay = await sync.checkInGuest(
-        branchId: _branch,
-        room: room,
-        guestName: 'Aline Uwase',
-        checkInAt: DateTime.utc(2026, 1, 10, 14),
-        expectedCheckOutAt: DateTime.utc(2026, 1, 12, 11),
-        nightlyRate: 50000,
-        clerkTenantId: 'c1',
-        clerkName: 'Richie',
-      );
+    test(
+      'a settled folio carries the tax the ledger splits revenue by',
+      () async {
+        // Regression: checkOutGuest used to write the completed transaction
+        // without taxAmount. The server-side poster books revenue as
+        // subTotal - taxAmount, so every folio landed 100% in revenue 4010 and
+        // nothing in VAT payable 2100 — losing both the 3% tourism tax on the
+        // nights and the 18% VAT on anything charged to the room.
+        final room = await savedRoom();
+        final stay = await sync.checkInGuest(
+          branchId: _branch,
+          room: room,
+          guestName: 'Aline Uwase',
+          checkInAt: DateTime.utc(2026, 1, 10, 14),
+          expectedCheckOutAt: DateTime.utc(2026, 1, 12, 11),
+          nightlyRate: 50000,
+          clerkTenantId: 'c1',
+          clerkName: 'Richie',
+        );
 
-      await sync.addChargeToFolio(
-        transactionId: stay.transactionId,
-        branchId: _branch,
-        variantId: 'v-room',
-        productName: 'Room 101 · 2 nights',
-        defaultPrice: 50000,
-        stock: 2,
-        clerkTenantId: 'c1',
-        clerkName: 'Richie',
-        qty: 2,
-      );
+        await sync.addChargeToFolio(
+          transactionId: stay.transactionId,
+          branchId: _branch,
+          variantId: 'v-room',
+          productName: 'Room 101 · 2 nights',
+          defaultPrice: 50000,
+          stock: 2,
+          clerkTenantId: 'c1',
+          clerkName: 'Richie',
+          qty: 2,
+        );
 
-      final lines = await sync.hotelFolioLines(
-        transactionId: stay.transactionId,
-      );
-      final folio = await sync.hotelFolio(transactionId: stay.transactionId);
+        final lines = await sync.hotelFolioLines(
+          transactionId: stay.transactionId,
+        );
+        final folio = await sync.hotelFolio(transactionId: stay.transactionId);
 
-      final settled = await sync.checkOutGuest(
-        stay: stay,
-        transaction: folio!,
-        lines: lines,
-        paymentType: 'Cash',
-        cashReceived: 100000,
-        customerChangeDue: 0,
-      );
+        final settled = await sync.checkOutGuest(
+          stay: stay,
+          transaction: folio!,
+          lines: lines,
+          paymentType: 'Cash',
+          cashReceived: 100000,
+          customerChangeDue: 0,
+        );
 
-      final expectedTax = lines.fold<double>(
-        0,
-        (sum, line) => sum + (line.taxAmt?.toDouble() ?? 0),
-      );
-      expect(expectedTax, greaterThan(0));
-      expect(settled.taxAmount, closeTo(expectedTax, 0.01));
-      expect(settled.numberOfItems, lines.length);
+        final expectedTax = lines.fold<double>(
+          0,
+          (sum, line) => sum + (line.taxAmt?.toDouble() ?? 0),
+        );
+        expect(expectedTax, greaterThan(0));
+        expect(settled.taxAmount, closeTo(expectedTax, 0.01));
+        expect(settled.numberOfItems, lines.length);
 
-      // And it survives the write, not just the in-memory copy.
-      final persisted = await sync.hotelFolio(
-        transactionId: stay.transactionId,
-      );
-      expect(persisted!.taxAmount, closeTo(expectedTax, 0.01));
-    });
+        // And it survives the write, not just the in-memory copy.
+        final persisted = await sync.hotelFolio(
+          transactionId: stay.transactionId,
+        );
+        expect(persisted!.taxAmount, closeTo(expectedTax, 0.01));
+      },
+    );
 
-    test('a folio is reported on the day it is settled, in local time',
-        () async {
-      // Regression: the folio kept its check-in createdAt (in UTC), so the
-      // Transaction Report filed a whole stay under the arrival day — and the
-      // first two hours after midnight under the day before.
-      final room = await savedRoom();
-      final stay = await sync.checkInGuest(
-        branchId: _branch,
-        room: room,
-        guestName: 'Aline Uwase',
-        checkInAt: DateTime.utc(2026, 1, 10, 14),
-        expectedCheckOutAt: DateTime.utc(2026, 1, 12, 11),
-        nightlyRate: 50000,
-        clerkTenantId: 'c1',
-        clerkName: 'Richie',
-      );
-      await sync.addChargeToFolio(
-        transactionId: stay.transactionId,
-        branchId: _branch,
-        variantId: 'v-room',
-        productName: 'Room 101 · 2 nights',
-        defaultPrice: 50000,
-        stock: 2,
-        clerkTenantId: 'c1',
-        clerkName: 'Richie',
-        qty: 2,
-      );
+    test(
+      'a folio is reported on the day it is settled, in local time',
+      () async {
+        // Regression: the folio kept its check-in createdAt (in UTC), so the
+        // Transaction Report filed a whole stay under the arrival day — and the
+        // first two hours after midnight under the day before.
+        final room = await savedRoom();
+        final stay = await sync.checkInGuest(
+          branchId: _branch,
+          room: room,
+          guestName: 'Aline Uwase',
+          checkInAt: DateTime.utc(2026, 1, 10, 14),
+          expectedCheckOutAt: DateTime.utc(2026, 1, 12, 11),
+          nightlyRate: 50000,
+          clerkTenantId: 'c1',
+          clerkName: 'Richie',
+        );
+        await sync.addChargeToFolio(
+          transactionId: stay.transactionId,
+          branchId: _branch,
+          variantId: 'v-room',
+          productName: 'Room 101 · 2 nights',
+          defaultPrice: 50000,
+          stock: 2,
+          clerkTenantId: 'c1',
+          clerkName: 'Richie',
+          qty: 2,
+        );
 
-      final opened = ditto.store.collections['transactions']![
-          stay.transactionId]!;
-      expect(opened['receiptType'], TransactionReceptType.NS);
-      expect(opened['createdAt'] as String, isNot(endsWith('Z')));
+        final opened =
+            ditto.store.collections['transactions']![stay.transactionId]!;
+        expect(opened['receiptType'], TransactionReceptType.NS);
+        expect(opened['createdAt'] as String, isNot(endsWith('Z')));
 
-      // Age the folio and its line, as if the guest arrived days ago.
-      const arrival = '2026-01-10T14:00:00.000';
-      ditto.store.collections['transactions']![stay.transactionId]![
-          'createdAt'] = arrival;
-      for (final line in ditto.store.docs('transaction_items')) {
-        ditto.store.collections['transaction_items']![line['_id']]![
-            'createdAt'] = arrival;
-      }
+        // Age the folio and its line, as if the guest arrived days ago.
+        const arrival = '2026-01-10T14:00:00.000';
+        ditto.store.collections['transactions']![stay
+                .transactionId]!['createdAt'] =
+            arrival;
+        for (final line in ditto.store.docs('transaction_items')) {
+          ditto
+                  .store
+                  .collections['transaction_items']![line['_id']]!['createdAt'] =
+              arrival;
+        }
 
-      final folio = await sync.hotelFolio(transactionId: stay.transactionId);
-      final before = DateTime.now();
-      final settled = await sync.checkOutGuest(
-        stay: stay,
-        transaction: folio!,
-        lines: await sync.hotelFolioLines(transactionId: stay.transactionId),
-        paymentType: 'Cash',
-        cashReceived: 100000,
-        customerChangeDue: 0,
-      );
+        final folio = await sync.hotelFolio(transactionId: stay.transactionId);
+        final before = DateTime.now();
+        final settled = await sync.checkOutGuest(
+          stay: stay,
+          transaction: folio!,
+          lines: await sync.hotelFolioLines(transactionId: stay.transactionId),
+          paymentType: 'Cash',
+          cashReceived: 100000,
+          customerChangeDue: 0,
+        );
 
-      expect(settled.createdAt!.isUtc, isFalse);
-      expect(settled.createdAt!.isBefore(before), isFalse);
-      final stored = ditto.store.collections['transactions']![
-          stay.transactionId]!;
-      expect(stored['createdAt'], settled.createdAt!.toIso8601String());
+        expect(settled.createdAt!.isUtc, isFalse);
+        expect(settled.createdAt!.isBefore(before), isFalse);
+        final stored =
+            ditto.store.collections['transactions']![stay.transactionId]!;
+        expect(stored['createdAt'], settled.createdAt!.toIso8601String());
 
-      // The lines move with the sale, so the report's line grid (windowed by
-      // each line's own createdAt) still finds them on the settlement day.
-      final lineDates = ditto.store
-          .docs('transaction_items')
-          .map((l) => l['createdAt'])
-          .toSet();
-      expect(lineDates, {settled.createdAt!.toIso8601String()});
-    });
+        // The lines move with the sale, so the report's line grid (windowed by
+        // each line's own createdAt) still finds them on the settlement day.
+        final lineDates = ditto.store
+            .docs('transaction_items')
+            .map((l) => l['createdAt'])
+            .toSet();
+        expect(lineDates, {settled.createdAt!.toIso8601String()});
+      },
+    );
 
-    test('open folios are listed for the dashboard, settled ones are not',
-        () async {
-      final room = await savedRoom();
-      final stay = await sync.checkInGuest(
-        branchId: _branch,
-        room: room,
-        guestName: 'Aline Uwase',
-        checkInAt: DateTime.utc(2026, 1, 10, 14),
-        expectedCheckOutAt: DateTime.utc(2026, 1, 12, 11),
-        nightlyRate: 50000,
-        clerkTenantId: 'c1',
-        clerkName: 'Richie',
-      );
+    test(
+      'open folios are listed for the dashboard, settled ones are not',
+      () async {
+        final room = await savedRoom();
+        final stay = await sync.checkInGuest(
+          branchId: _branch,
+          room: room,
+          guestName: 'Aline Uwase',
+          checkInAt: DateTime.utc(2026, 1, 10, 14),
+          expectedCheckOutAt: DateTime.utc(2026, 1, 12, 11),
+          nightlyRate: 50000,
+          clerkTenantId: 'c1',
+          clerkName: 'Richie',
+        );
 
-      expect(await sync.hotelOpenFolios(branchId: _branch), hasLength(1));
+        expect(await sync.hotelOpenFolios(branchId: _branch), hasLength(1));
 
-      final folio = await sync.hotelFolio(transactionId: stay.transactionId);
-      await sync.checkOutGuest(
-        stay: stay,
-        transaction: folio!,
-        lines: await sync.hotelFolioLines(transactionId: stay.transactionId),
-        paymentType: 'Cash',
-        cashReceived: 0,
-        customerChangeDue: 0,
-      );
+        final folio = await sync.hotelFolio(transactionId: stay.transactionId);
+        await sync.checkOutGuest(
+          stay: stay,
+          transaction: folio!,
+          lines: await sync.hotelFolioLines(transactionId: stay.transactionId),
+          paymentType: 'Cash',
+          cashReceived: 0,
+          customerChangeDue: 0,
+        );
 
-      expect(await sync.hotelOpenFolios(branchId: _branch), isEmpty);
-    });
+        expect(await sync.hotelOpenFolios(branchId: _branch), isEmpty);
+      },
+    );
   });
 
   group('default ditto handle', () {
@@ -908,14 +931,13 @@ void main() {
       expect(await real.hotelStaysStream(branchId: _branch).first, isEmpty);
     });
 
-    test('writes throw a clear error rather than overflowing the stack',
-        () async {
-      final real = _RealHandleHotelSync();
-      expect(
-        () => real.saveHotelRoom(_room()),
-        throwsA(isA<StateError>()),
-      );
-    });
+    test(
+      'writes throw a clear error rather than overflowing the stack',
+      () async {
+        final real = _RealHandleHotelSync();
+        expect(() => real.saveHotelRoom(_room()), throwsA(isA<StateError>()));
+      },
+    );
   });
 
   group('rooms', () {
@@ -957,20 +979,22 @@ void main() {
       expect(second, hasLength(first.length));
     });
 
-    test('housekeeping updates in place without touching other fields',
-        () async {
-      await sync.saveHotelRoom(_room());
-      await sync.setHotelRoomHousekeeping(
-        roomId: 'r1',
-        branchId: _branch,
-        housekeeping: HotelHousekeeping.outOfOrder,
-      );
+    test(
+      'housekeeping updates in place without touching other fields',
+      () async {
+        await sync.saveHotelRoom(_room());
+        await sync.setHotelRoomHousekeeping(
+          roomId: 'r1',
+          branchId: _branch,
+          housekeeping: HotelHousekeeping.outOfOrder,
+        );
 
-      final room = (await sync.hotelRooms(branchId: _branch)).single;
-      expect(room.housekeeping, HotelHousekeeping.outOfOrder);
-      expect(room.name, '101');
-      expect(room.nightlyRate, 50000);
-    });
+        final room = (await sync.hotelRooms(branchId: _branch)).single;
+        expect(room.housekeeping, HotelHousekeeping.outOfOrder);
+        expect(room.name, '101');
+        expect(room.nightlyRate, 50000);
+      },
+    );
 
     test('delete is scoped to the branch', () async {
       await sync.saveHotelRoom(_room());
@@ -981,34 +1005,36 @@ void main() {
       expect(await sync.hotelRooms(branchId: _branch), isEmpty);
     });
 
-    test('a rename reaches the room\'s live stays, not checked-out ones',
-        () async {
-      await sync.saveHotelRoom(_room());
-      for (final stay in [
-        _stay(id: 'in', status: HotelStayStatus.inHouse),
-        _stay(id: 'res', status: HotelStayStatus.reserved),
-        _stay(id: 'out', status: HotelStayStatus.checkedOut),
-        _stay(id: 'other', roomId: 'r2'),
-      ]) {
-        await ditto.store.execute(
-          'INSERT INTO hotel_stays DOCUMENTS (:doc)',
-          arguments: {'doc': stay.toJson()},
-        );
-      }
+    test(
+      'a rename reaches the room\'s live stays, not checked-out ones',
+      () async {
+        await sync.saveHotelRoom(_room());
+        for (final stay in [
+          _stay(id: 'in', status: HotelStayStatus.inHouse),
+          _stay(id: 'res', status: HotelStayStatus.reserved),
+          _stay(id: 'out', status: HotelStayStatus.checkedOut),
+          _stay(id: 'other', roomId: 'r2'),
+        ]) {
+          await ditto.store.execute(
+            'INSERT INTO hotel_stays DOCUMENTS (:doc)',
+            arguments: {'doc': stay.toJson()},
+          );
+        }
 
-      await sync.saveHotelRoom(_room().copyWith(name: 'Garden Suite'));
+        await sync.saveHotelRoom(_room().copyWith(name: 'Garden Suite'));
 
-      final names = {
-        for (final doc in ditto.store.docs('hotel_stays'))
-          doc['id']: doc['roomName'],
-      };
-      expect(names, {
-        'in': 'Garden Suite',
-        'res': 'Garden Suite',
-        'out': '101',
-        'other': '101',
-      });
-    });
+        final names = {
+          for (final doc in ditto.store.docs('hotel_stays'))
+            doc['id']: doc['roomName'],
+        };
+        expect(names, {
+          'in': 'Garden Suite',
+          'res': 'Garden Suite',
+          'out': '101',
+          'other': '101',
+        });
+      },
+    );
   });
 
   group('branch settings', () {
@@ -1342,18 +1368,20 @@ void main() {
       expect(ditto.store.docs('transaction_items'), isEmpty);
     });
 
-    test('changing price adjusts by the difference across the whole qty',
-        () async {
-      await sync.setFolioLinePrice(
-        lineId: 'l1',
-        transactionId: 't1',
-        price: 2000,
-      );
-      // 3000 + (2000-1500)*2
-      expect(subTotal(), 4000);
-      final lines = await sync.hotelFolioLines(transactionId: 't1');
-      expect(lines.single.price, 2000);
-    });
+    test(
+      'changing price adjusts by the difference across the whole qty',
+      () async {
+        await sync.setFolioLinePrice(
+          lineId: 'l1',
+          transactionId: 't1',
+          price: 2000,
+        );
+        // 3000 + (2000-1500)*2
+        expect(subTotal(), 4000);
+        final lines = await sync.hotelFolioLines(transactionId: 't1');
+        expect(lines.single.price, 2000);
+      },
+    );
 
     test('a stale stored subtotal is corrected by any line edit', () async {
       // Recomputing from lines, rather than adding a delta to what is stored,
@@ -1411,17 +1439,19 @@ void main() {
       expect(await sync.hotelFolioLines(transactionId: 't1'), hasLength(1));
     });
 
-    test('refresh recomputes the subtotal from the lines, fixing drift',
-        () async {
-      ditto.store.seed(
-        'transaction_items',
-        _lineDoc(id: 'l2', transactionId: 't1', qty: '1', price: '500'),
-      );
+    test(
+      'refresh recomputes the subtotal from the lines, fixing drift',
+      () async {
+        ditto.store.seed(
+          'transaction_items',
+          _lineDoc(id: 'l2', transactionId: 't1', qty: '1', price: '500'),
+        );
 
-      await sync.refreshFolioSubTotal(transactionId: 't1');
-      // (2 * 1500) + (1 * 500), regardless of the stored 3000.
-      expect(subTotal(), 3500);
-    });
+        await sync.refreshFolioSubTotal(transactionId: 't1');
+        // (2 * 1500) + (1 * 500), regardless of the stored 3000.
+        expect(subTotal(), 3500);
+      },
+    );
 
     test('lines of another folio are untouched', () async {
       ditto.store.seed(
@@ -1446,8 +1476,12 @@ void main() {
       ditto.store.seed('transactions', _folioDoc(id: 'cart', subTotal: 3000));
       ditto.store.seed(
         'transaction_items',
-        _lineDoc(id: 'room-night', transactionId: 'folio', qty: '1',
-            price: '5000'),
+        _lineDoc(
+          id: 'room-night',
+          transactionId: 'folio',
+          qty: '1',
+          price: '5000',
+        ),
       );
       ditto.store.seed(
         'transaction_items',
@@ -1509,8 +1543,9 @@ void main() {
         clerkName: 'Richie',
       );
 
-      final moved = (await sync.hotelFolioLines(transactionId: 'folio'))
-          .firstWhere((l) => l.id == 'taxed');
+      final moved = (await sync.hotelFolioLines(
+        transactionId: 'folio',
+      )).firstWhere((l) => l.id == 'taxed');
       expect(moved.itemCd, 'RW2NTXU0000042');
       expect(moved.taxAmt, 457.63);
       expect(moved.taxTyCd, 'B');
@@ -1629,26 +1664,32 @@ void main() {
   });
 
   group('cancelHotelStay', () {
-    test('cancels the stay, drops its empty folio and frees the room',
-        () async {
-      await sync.saveHotelRoom(_room(housekeeping: HotelHousekeeping.dirty));
-      await sync.saveHotelStay(_stay(id: 's1', roomId: 'r1'));
-      ditto.store.seed('transactions', _folioDoc(id: 't1'));
+    test(
+      'cancels the stay, drops its empty folio and frees the room',
+      () async {
+        await sync.saveHotelRoom(_room(housekeeping: HotelHousekeeping.dirty));
+        await sync.saveHotelStay(_stay(id: 's1', roomId: 'r1'));
+        ditto.store.seed('transactions', _folioDoc(id: 't1'));
 
-      await sync.cancelHotelStay(stay: _stay(id: 's1', roomId: 'r1'));
+        await sync.cancelHotelStay(
+          stay: _stay(id: 's1', roomId: 'r1'),
+        );
 
-      expect(await sync.hotelStays(branchId: _branch), isEmpty);
-      expect(ditto.store.docs('transactions'), isEmpty);
+        expect(await sync.hotelStays(branchId: _branch), isEmpty);
+        expect(ditto.store.docs('transactions'), isEmpty);
 
-      final room = (await sync.hotelRooms(branchId: _branch)).single;
-      expect(room.housekeeping, HotelHousekeeping.clean);
-    });
+        final room = (await sync.hotelRooms(branchId: _branch)).single;
+        expect(room.housekeeping, HotelHousekeeping.clean);
+      },
+    );
 
     test('leaves a completed transaction alone', () async {
       await sync.saveHotelRoom(_room());
       ditto.store.seed('transactions', _folioDoc(id: 't1', status: 'complete'));
 
-      await sync.cancelHotelStay(stay: _stay(id: 's1', roomId: 'r1'));
+      await sync.cancelHotelStay(
+        stay: _stay(id: 's1', roomId: 'r1'),
+      );
 
       // Only PARKED folios are dropped; a settled sale is history.
       expect(ditto.store.docs('transactions'), hasLength(1));
@@ -1686,18 +1727,20 @@ void main() {
   group('sync subscriptions', () {
     // The registry keyed by `collection|branchId` is a process-global set, so
     // these use a branch id no other test touches.
-    test('registers replication subscriptions for the collections it reads',
-        () async {
-      const fresh = 'branch-sub-1';
-      await sync.hotelRooms(branchId: fresh);
-      await sync.hotelStays(branchId: fresh);
-      await sync.hotelBranchSettings(branchId: fresh);
+    test(
+      'registers replication subscriptions for the collections it reads',
+      () async {
+        const fresh = 'branch-sub-1';
+        await sync.hotelRooms(branchId: fresh);
+        await sync.hotelStays(branchId: fresh);
+        await sync.hotelBranchSettings(branchId: fresh);
 
-      final dql = ditto.sync.registered.map((r) => r.dql).join(' | ');
-      expect(dql, contains('hotel_rooms'));
-      expect(dql, contains('hotel_stays'));
-      expect(dql, contains('hotel_branch_settings'));
-    });
+        final dql = ditto.sync.registered.map((r) => r.dql).join(' | ');
+        expect(dql, contains('hotel_rooms'));
+        expect(dql, contains('hotel_stays'));
+        expect(dql, contains('hotel_branch_settings'));
+      },
+    );
 
     test('the same branch is not subscribed twice on one instance', () async {
       const fresh = 'branch-sub-2';

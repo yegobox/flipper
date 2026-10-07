@@ -21,10 +21,9 @@ import 'package:flipper_models/sync/models/transaction_with_items.dart';
 List<TransactionWithItems> withReceiptType(
   List<TransactionWithItems> rows,
   String code,
-) =>
-    rows
-        .where((t) => (t.transaction.receiptType ?? '').toUpperCase() == code)
-        .toList();
+) => rows
+    .where((t) => (t.transaction.receiptType ?? '').toUpperCase() == code)
+    .toList();
 
 class ReportService {
   Future<void> generateReport({

@@ -16,19 +16,26 @@ void main() {
       test('throws ArgumentError when Z report has no endDate', () {
         expect(
           () => reportService.generateReport(
-              reportType: 'Z', startDate: DateTime.now()),
-          throwsA(isA<ArgumentError>().having(
-            (e) => e.message,
-            'message',
-            'endDate is required for Z-Reports',
-          )),
+            reportType: 'Z',
+            startDate: DateTime.now(),
+          ),
+          throwsA(
+            isA<ArgumentError>().having(
+              (e) => e.message,
+              'message',
+              'endDate is required for Z-Reports',
+            ),
+          ),
         );
       });
 
       test('validates Z report requires endDate', () {
         expect(
           () => reportService.generateReport(
-              reportType: 'Z', endDate: null, startDate: DateTime.now()),
+            reportType: 'Z',
+            endDate: null,
+            startDate: DateTime.now(),
+          ),
           throwsA(isA<ArgumentError>()),
         );
       });
@@ -73,10 +80,20 @@ void main() {
       test('UTC conversion for local day range', () {
         // Test local to UTC conversion for day boundaries
         final localDate = DateTime(2024, 1, 15, 14, 30, 45);
-        final localStartOfDay =
-            DateTime(localDate.year, localDate.month, localDate.day);
+        final localStartOfDay = DateTime(
+          localDate.year,
+          localDate.month,
+          localDate.day,
+        );
         final localEndOfDay = DateTime(
-            localDate.year, localDate.month, localDate.day, 23, 59, 59, 999);
+          localDate.year,
+          localDate.month,
+          localDate.day,
+          23,
+          59,
+          59,
+          999,
+        );
 
         final utcStartOfDay = localStartOfDay.toUtc();
         final utcEndOfDay = localEndOfDay.toUtc();
@@ -98,8 +115,11 @@ void main() {
       test('handles timezone edge cases in date calculations', () {
         // Test edge case: end of year with timezone
         final endOfYear = DateTime(2024, 12, 31, 23, 59, 59);
-        final startOfDay =
-            DateTime(endOfYear.year, endOfYear.month, endOfYear.day);
+        final startOfDay = DateTime(
+          endOfYear.year,
+          endOfYear.month,
+          endOfYear.day,
+        );
 
         expect(startOfDay.year, equals(2024));
         expect(startOfDay.month, equals(12));
@@ -113,8 +133,11 @@ void main() {
 
       test('leap year date handling in service context', () {
         final leapYearDate = DateTime(2024, 2, 29, 12, 0, 0);
-        final startOfDay =
-            DateTime(leapYearDate.year, leapYearDate.month, leapYearDate.day);
+        final startOfDay = DateTime(
+          leapYearDate.year,
+          leapYearDate.month,
+          leapYearDate.day,
+        );
 
         expect(startOfDay.year, equals(2024));
         expect(startOfDay.month, equals(2));
@@ -160,7 +183,9 @@ void main() {
       test('validates required parameters', () {
         expect(
           () => reportService.generateReport(
-              reportType: 'Z', startDate: DateTime.now()),
+            reportType: 'Z',
+            startDate: DateTime.now(),
+          ),
           throwsA(isA<ArgumentError>()),
         );
       });
@@ -243,17 +268,36 @@ void main() {
         final startDate = DateTime(endDate.year, endDate.month, endDate.day);
 
         // Verify the date range would capture transactions correctly
-        final testTransaction1 =
-            DateTime(2024, 1, 15, 8, 0, 0); // Should be included
-        final testTransaction2 =
-            DateTime(2024, 1, 14, 23, 59, 59); // Should be excluded
+        final testTransaction1 = DateTime(
+          2024,
+          1,
+          15,
+          8,
+          0,
+          0,
+        ); // Should be included
+        final testTransaction2 = DateTime(
+          2024,
+          1,
+          14,
+          23,
+          59,
+          59,
+        ); // Should be excluded
         final testTransaction3 = DateTime(
-            2024, 1, 15, 13, 0, 0); // Should be included (before endDate)
+          2024,
+          1,
+          15,
+          13,
+          0,
+          0,
+        ); // Should be included (before endDate)
 
         expect(
-            testTransaction1.isAfter(startDate) ||
-                testTransaction1.isAtSameMomentAs(startDate),
-            isTrue);
+          testTransaction1.isAfter(startDate) ||
+              testTransaction1.isAtSameMomentAs(startDate),
+          isTrue,
+        );
         expect(testTransaction1.isBefore(endDate), isTrue);
 
         expect(testTransaction2.isBefore(startDate), isTrue);
@@ -264,8 +308,11 @@ void main() {
 
       test('validates UTC conversion preserves date boundaries', () {
         final localEndDate = DateTime(2024, 1, 15, 14, 30, 45);
-        final localStartDate =
-            DateTime(localEndDate.year, localEndDate.month, localEndDate.day);
+        final localStartDate = DateTime(
+          localEndDate.year,
+          localEndDate.month,
+          localEndDate.day,
+        );
 
         final utcStartDate = localStartDate.toUtc();
         final utcEndDate = localEndDate.toUtc();
@@ -279,7 +326,9 @@ void main() {
         final localDuration = localEndDate.difference(localStartDate);
         final utcDuration = utcEndDate.difference(utcStartDate);
         expect(
-            utcDuration.inMilliseconds, equals(localDuration.inMilliseconds));
+          utcDuration.inMilliseconds,
+          equals(localDuration.inMilliseconds),
+        );
       });
     });
 
@@ -291,10 +340,12 @@ void main() {
           {'receiptType': 'CS', 'subTotal': 25.0},
         ];
 
-        final salesTransactions =
-            transactions.where((t) => t['receiptType'] == 'NS').toList();
-        final refundTransactions =
-            transactions.where((t) => t['receiptType'] == 'NR').toList();
+        final salesTransactions = transactions
+            .where((t) => t['receiptType'] == 'NS')
+            .toList();
+        final refundTransactions = transactions
+            .where((t) => t['receiptType'] == 'NR')
+            .toList();
 
         expect(salesTransactions.length, equals(1));
         expect(refundTransactions.length, equals(1));
@@ -336,16 +387,15 @@ void main() {
             items: const [],
           );
 
-      test('rows without a receipt type match nothing instead of throwing',
-          () {
+      test('rows without a receipt type match nothing instead of throwing', () {
         // Regression: an open bar tab or hotel folio has no receipt yet, and
         // `receiptType!` crashed the whole Z/X report.
         final rows = [row('a', 'NS'), row('b', null), row('c', 'ns')];
 
-        expect(
-          withReceiptType(rows, 'NS').map((r) => r.transaction.id),
-          ['a', 'c'],
-        );
+        expect(withReceiptType(rows, 'NS').map((r) => r.transaction.id), [
+          'a',
+          'c',
+        ]);
         expect(withReceiptType(rows, 'NR'), isEmpty);
       });
     });

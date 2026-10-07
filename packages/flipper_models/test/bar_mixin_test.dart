@@ -76,108 +76,114 @@ void main() {
   });
 
   group('Transaction Report fields', () {
-    test('an open tab carries a receipt type and a local report date',
-        () async {
-      final tab = await sync.openBarTab(
-        branchId: _branch,
-        table: _table,
-        cashierTenantId: 'c1',
-        cashierName: 'Richie',
-      );
+    test(
+      'an open tab carries a receipt type and a local report date',
+      () async {
+        final tab = await sync.openBarTab(
+          branchId: _branch,
+          table: _table,
+          cashierTenantId: 'c1',
+          cashierName: 'Richie',
+        );
 
-      final stored = ditto.store.collections['transactions']![tab.id]!;
-      // Regression: a null receiptType crashed the Z/X report and left the
-      // report's Type column blank for every bar tab.
-      expect(stored['receiptType'], TransactionReceptType.NS);
-      // Report windows are local wall clock compared as strings; a UTC stamp
-      // files the hours after midnight under the previous day.
-      expect(stored['createdAt'] as String, isNot(endsWith('Z')));
-    });
+        final stored = ditto.store.collections['transactions']![tab.id]!;
+        // Regression: a null receiptType crashed the Z/X report and left the
+        // report's Type column blank for every bar tab.
+        expect(stored['receiptType'], TransactionReceptType.NS);
+        // Report windows are local wall clock compared as strings; a UTC stamp
+        // files the hours after midnight under the previous day.
+        expect(stored['createdAt'] as String, isNot(endsWith('Z')));
+      },
+    );
 
-    test('a settled tab is reported on the day it is paid, with its lines',
-        () async {
-      final tab = await sync.openBarTab(
-        branchId: _branch,
-        table: _table,
-        cashierTenantId: 'c1',
-        cashierName: 'Richie',
-      );
+    test(
+      'a settled tab is reported on the day it is paid, with its lines',
+      () async {
+        final tab = await sync.openBarTab(
+          branchId: _branch,
+          table: _table,
+          cashierTenantId: 'c1',
+          cashierName: 'Richie',
+        );
 
-      // A tab opened before midnight, with a round ordered then too.
-      const lastNight = '2026-01-10T22:30:00.000';
-      ditto.store.collections['transactions']![tab.id]!['createdAt'] =
-          lastNight;
-      ditto.store.seed('transaction_items', {
-        '_id': 'line-1',
-        'id': 'line-1',
-        'transactionId': tab.id,
-        'branchId': _branch,
-        'name': 'Beer',
-        'qty': 2,
-        'price': 1500,
-        'variantId': 'v1',
-        'active': true,
-        'doneWithTransaction': false,
-        'createdAt': lastNight,
-      });
+        // A tab opened before midnight, with a round ordered then too.
+        const lastNight = '2026-01-10T22:30:00.000';
+        ditto.store.collections['transactions']![tab.id]!['createdAt'] =
+            lastNight;
+        ditto.store.seed('transaction_items', {
+          '_id': 'line-1',
+          'id': 'line-1',
+          'transactionId': tab.id,
+          'branchId': _branch,
+          'name': 'Beer',
+          'qty': 2,
+          'price': 1500,
+          'variantId': 'v1',
+          'active': true,
+          'doneWithTransaction': false,
+          'createdAt': lastNight,
+        });
 
-      final open = await sync.barTabForTableById(tab.id);
-      final before = DateTime.now();
-      final settled = await sync.settleBarTab(
-        transaction: open!,
-        lines: await sync.barTabLines(transactionId: tab.id),
-        paymentType: 'Cash',
-        cashReceived: 3000,
-        customerChangeDue: 0,
-      );
-
-      expect(settled.status, COMPLETE);
-      expect(settled.createdAt!.isUtc, isFalse);
-      expect(settled.createdAt!.isBefore(before), isFalse);
-
-      final stored = ditto.store.collections['transactions']![tab.id]!;
-      expect(stored['createdAt'], settled.createdAt!.toIso8601String());
-
-      final line = ditto.store.collections['transaction_items']!['line-1']!;
-      expect(line['createdAt'], settled.createdAt!.toIso8601String());
-    });
-
-    test('a failed line re-stamp leaves the tab open, not half-settled',
-        () async {
-      final tab = await sync.openBarTab(
-        branchId: _branch,
-        table: _table,
-        cashierTenantId: 'c1',
-        cashierName: 'Richie',
-      );
-      ditto.store.seed('transaction_items', {
-        '_id': 'line-1',
-        'id': 'line-1',
-        'transactionId': tab.id,
-        'branchId': _branch,
-        'name': 'Beer',
-        'qty': 2,
-        'price': 1500,
-        'variantId': 'v1',
-      });
-
-      final open = await sync.barTabForTableById(tab.id);
-      ditto.store.failOn = 'UPDATE transaction_items';
-      await expectLater(
-        sync.settleBarTab(
+        final open = await sync.barTabForTableById(tab.id);
+        final before = DateTime.now();
+        final settled = await sync.settleBarTab(
           transaction: open!,
           lines: await sync.barTabLines(transactionId: tab.id),
           paymentType: 'Cash',
           cashReceived: 3000,
           customerChangeDue: 0,
-        ),
-        throwsStateError,
-      );
+        );
 
-      // Still parked on its table, so the cashier can simply settle again.
-      final stored = ditto.store.collections['transactions']![tab.id]!;
-      expect(stored['status'], PARKED);
-      expect(stored['tableId'], _table.id);
-    });
+        expect(settled.status, COMPLETE);
+        expect(settled.createdAt!.isUtc, isFalse);
+        expect(settled.createdAt!.isBefore(before), isFalse);
+
+        final stored = ditto.store.collections['transactions']![tab.id]!;
+        expect(stored['createdAt'], settled.createdAt!.toIso8601String());
+
+        final line = ditto.store.collections['transaction_items']!['line-1']!;
+        expect(line['createdAt'], settled.createdAt!.toIso8601String());
+      },
+    );
+
+    test(
+      'a failed line re-stamp leaves the tab open, not half-settled',
+      () async {
+        final tab = await sync.openBarTab(
+          branchId: _branch,
+          table: _table,
+          cashierTenantId: 'c1',
+          cashierName: 'Richie',
+        );
+        ditto.store.seed('transaction_items', {
+          '_id': 'line-1',
+          'id': 'line-1',
+          'transactionId': tab.id,
+          'branchId': _branch,
+          'name': 'Beer',
+          'qty': 2,
+          'price': 1500,
+          'variantId': 'v1',
+        });
+
+        final open = await sync.barTabForTableById(tab.id);
+        ditto.store.failOn = 'UPDATE transaction_items';
+        await expectLater(
+          sync.settleBarTab(
+            transaction: open!,
+            lines: await sync.barTabLines(transactionId: tab.id),
+            paymentType: 'Cash',
+            cashReceived: 3000,
+            customerChangeDue: 0,
+          ),
+          throwsStateError,
+        );
+
+        // Still parked on its table, so the cashier can simply settle again.
+        final stored = ditto.store.collections['transactions']![tab.id]!;
+        expect(stored['status'], PARKED);
+        expect(stored['tableId'], _table.id);
+      },
+    );
   });
 }

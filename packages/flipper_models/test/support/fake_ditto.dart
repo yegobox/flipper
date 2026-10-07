@@ -73,7 +73,9 @@ class FakeDittoStore {
   Future<T> transaction<T>(Future<T> Function(FakeDittoStore txn) body) async {
     final snapshot = {
       for (final c in collections.entries)
-        c.key: {for (final d in c.value.entries) d.key: {...d.value}},
+        c.key: {
+          for (final d in c.value.entries) d.key: {...d.value},
+        },
     };
     try {
       return await body(this);
@@ -122,8 +124,10 @@ class FakeDittoStore {
   void _notify() {
     for (final observer in List.of(_observers)) {
       unawaited(
-        execute(observer.sql, arguments: observer.arguments)
-            .then(observer.onChange),
+        execute(
+          observer.sql,
+          arguments: observer.arguments,
+        ).then(observer.onChange),
       );
     }
   }
@@ -147,9 +151,9 @@ class FakeDittoStore {
     final descending = (m.group(4) ?? 'ASC').toUpperCase() == 'DESC';
     final limit = m.group(5) == null ? null : int.parse(m.group(5)!);
 
-    var rows = docs(collection)
-        .where((doc) => _Where.matches(where, doc, args))
-        .toList();
+    var rows = docs(
+      collection,
+    ).where((doc) => _Where.matches(where, doc, args)).toList();
 
     if (orderBy != null) {
       rows.sort((a, b) {
@@ -272,14 +276,22 @@ abstract final class _Where {
     return _and(clause.trim(), doc, args);
   }
 
-  static bool _and(String clause, Map<String, dynamic> doc, Map<String, dynamic> args) {
+  static bool _and(
+    String clause,
+    Map<String, dynamic> doc,
+    Map<String, dynamic> args,
+  ) {
     for (final part in _split(clause, ' AND ')) {
       if (!_or(part, doc, args)) return false;
     }
     return true;
   }
 
-  static bool _or(String clause, Map<String, dynamic> doc, Map<String, dynamic> args) {
+  static bool _or(
+    String clause,
+    Map<String, dynamic> doc,
+    Map<String, dynamic> args,
+  ) {
     final stripped = _stripParens(clause.trim());
     final parts = _split(stripped, ' OR ');
     if (parts.length > 1) {
@@ -288,12 +300,22 @@ abstract final class _Where {
     return _term(stripped, doc, args);
   }
 
-  static final _isNotNull = RegExp(r'^(\w+)\s+IS\s+NOT\s+NULL$', caseSensitive: false);
-  static final _inList = RegExp(r"^(\w+)\s+IN\s+\((.*)\)$", caseSensitive: false);
+  static final _isNotNull = RegExp(
+    r'^(\w+)\s+IS\s+NOT\s+NULL$',
+    caseSensitive: false,
+  );
+  static final _inList = RegExp(
+    r"^(\w+)\s+IN\s+\((.*)\)$",
+    caseSensitive: false,
+  );
   static final _eq = RegExp(r'^(\w+)\s*=\s*(.+)$');
   static final _ne = RegExp(r'^(\w+)\s*!=\s*(.+)$');
 
-  static bool _term(String clause, Map<String, dynamic> doc, Map<String, dynamic> args) {
+  static bool _term(
+    String clause,
+    Map<String, dynamic> doc,
+    Map<String, dynamic> args,
+  ) {
     final term = _stripParens(clause.trim());
 
     final nn = _isNotNull.firstMatch(term);
