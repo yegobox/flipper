@@ -68,11 +68,51 @@ class FakeDittoStore {
     collections.putIfAbsent(collection, () => {})[id] = {...doc};
   }
 
+  /// True while [transaction] runs: writes mark [_notifyPending] instead of
+  /// notifying, so observers only ever see committed state.
+  bool _inTransaction = false;
+  bool _notifyPending = false;
+
+  /// Runs [body] as one write: if it throws, every collection goes back to
+  /// what it held before, like a rolled-back Ditto transaction. Observers are
+  /// notified once on commit and not at all on rollback.
+  Future<T> transaction<T>(Future<T> Function(FakeDittoStore txn) body) async {
+    final snapshot = {
+      for (final c in collections.entries)
+        c.key: {
+          for (final d in c.value.entries) d.key: {...d.value},
+        },
+    };
+    _inTransaction = true;
+    _notifyPending = false;
+    try {
+      final result = await body(this);
+      _inTransaction = false;
+      if (_notifyPending) _notify();
+      return result;
+    } catch (_) {
+      collections
+        ..clear()
+        ..addAll(snapshot);
+      rethrow;
+    } finally {
+      _inTransaction = false;
+      _notifyPending = false;
+    }
+  }
+
+  /// When set, any statement containing this text throws — lets a test
+  /// simulate a write failing partway through a transaction.
+  String? failOn;
+
   Future<FakeDittoResult> execute(
     String sql, {
     Map<String, dynamic>? arguments,
   }) async {
     executed.add(sql);
+    if (failOn != null && sql.contains(failOn!)) {
+      throw StateError('FakeDitto: simulated failure on $failOn');
+    }
     final args = arguments ?? const <String, dynamic>{};
     final trimmed = sql.trim();
     final upper = trimmed.toUpperCase();
@@ -96,10 +136,16 @@ class FakeDittoStore {
   }
 
   void _notify() {
+    if (_inTransaction) {
+      _notifyPending = true;
+      return;
+    }
     for (final observer in List.of(_observers)) {
       unawaited(
-        execute(observer.sql, arguments: observer.arguments)
-            .then(observer.onChange),
+        execute(
+          observer.sql,
+          arguments: observer.arguments,
+        ).then(observer.onChange),
       );
     }
   }
@@ -123,9 +169,9 @@ class FakeDittoStore {
     final descending = (m.group(4) ?? 'ASC').toUpperCase() == 'DESC';
     final limit = m.group(5) == null ? null : int.parse(m.group(5)!);
 
-    var rows = docs(collection)
-        .where((doc) => _Where.matches(where, doc, args))
-        .toList();
+    var rows = docs(
+      collection,
+    ).where((doc) => _Where.matches(where, doc, args)).toList();
 
     if (orderBy != null) {
       rows.sort((a, b) {
@@ -248,14 +294,22 @@ abstract final class _Where {
     return _and(clause.trim(), doc, args);
   }
 
-  static bool _and(String clause, Map<String, dynamic> doc, Map<String, dynamic> args) {
+  static bool _and(
+    String clause,
+    Map<String, dynamic> doc,
+    Map<String, dynamic> args,
+  ) {
     for (final part in _split(clause, ' AND ')) {
       if (!_or(part, doc, args)) return false;
     }
     return true;
   }
 
-  static bool _or(String clause, Map<String, dynamic> doc, Map<String, dynamic> args) {
+  static bool _or(
+    String clause,
+    Map<String, dynamic> doc,
+    Map<String, dynamic> args,
+  ) {
     final stripped = _stripParens(clause.trim());
     final parts = _split(stripped, ' OR ');
     if (parts.length > 1) {
@@ -264,12 +318,22 @@ abstract final class _Where {
     return _term(stripped, doc, args);
   }
 
-  static final _isNotNull = RegExp(r'^(\w+)\s+IS\s+NOT\s+NULL$', caseSensitive: false);
-  static final _inList = RegExp(r"^(\w+)\s+IN\s+\((.*)\)$", caseSensitive: false);
+  static final _isNotNull = RegExp(
+    r'^(\w+)\s+IS\s+NOT\s+NULL$',
+    caseSensitive: false,
+  );
+  static final _inList = RegExp(
+    r"^(\w+)\s+IN\s+\((.*)\)$",
+    caseSensitive: false,
+  );
   static final _eq = RegExp(r'^(\w+)\s*=\s*(.+)$');
   static final _ne = RegExp(r'^(\w+)\s*!=\s*(.+)$');
 
-  static bool _term(String clause, Map<String, dynamic> doc, Map<String, dynamic> args) {
+  static bool _term(
+    String clause,
+    Map<String, dynamic> doc,
+    Map<String, dynamic> args,
+  ) {
     final term = _stripParens(clause.trim());
 
     final nn = _isNotNull.firstMatch(term);

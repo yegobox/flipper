@@ -6,11 +6,24 @@ import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_dashboard/export/transaction_report_full_export_loader.dart';
 import 'package:flipper_dashboard/export/utils/report_theme.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:syncfusion_flutter_pdf/pdf.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:path/path.dart' as path;
+import 'package:flipper_models/sync/models/transaction_with_items.dart';
+
+/// Rows whose EBM receipt code is [code].
+///
+/// The report window also returns parked rows, and an open bar tab or hotel
+/// folio has no receipt yet — a row without a code simply matches nothing.
+List<TransactionWithItems> withReceiptType(
+  List<TransactionWithItems> rows,
+  String code,
+) => rows
+    .where((t) => (t.transaction.receiptType ?? '').toUpperCase() == code)
+    .toList();
 
 class ReportService {
   Future<void> generateReport({
@@ -46,32 +59,23 @@ class ReportService {
       endDate: endDate,
       branchId: ProxyService.box.getBranchId()!,
       forceRealData: !(ProxyService.box.enableDebug() ?? false),
+      // Settled sales only, as the Sale and PLU reports do. The window also
+      // returns parked tickets (open bar tabs, hotel folios, held POS carts)
+      // that already carry NS but have not been paid.
+      status: COMPLETE,
     );
 
     talker.info(startDate.toIso8601String(), endDate.toIso8601String());
     final ebm = await ProxyService.getStrategy(
       Strategy.capella,
     ).ebm(branchId: ProxyService.box.getBranchId()!);
-    transactionsWithItems.map((t) => print(t.transaction.receiptType)).toList();
     // Data processing - exclude refunded transactions
-    final salesTransactions = transactionsWithItems
-        .where((t) => t.transaction.receiptType!.toUpperCase() == 'NS')
-        .toList();
-    final refundTransactions = transactionsWithItems
-        .where((t) => t.transaction.receiptType!.toUpperCase() == 'NR')
-        .toList();
-    final tsTransactions = transactionsWithItems
-        .where((t) => t.transaction.receiptType!.toUpperCase() == 'TS')
-        .toList();
-    final psTransactions = transactionsWithItems
-        .where((t) => t.transaction.receiptType!.toUpperCase() == 'PS')
-        .toList();
-    final crTransactions = transactionsWithItems
-        .where((t) => t.transaction.receiptType!.toUpperCase() == 'CR')
-        .toList();
-    final trTransactions = transactionsWithItems
-        .where((t) => t.transaction.receiptType!.toUpperCase() == 'TR')
-        .toList();
+    final salesTransactions = withReceiptType(transactionsWithItems, 'NS');
+    final refundTransactions = withReceiptType(transactionsWithItems, 'NR');
+    final tsTransactions = withReceiptType(transactionsWithItems, 'TS');
+    final psTransactions = withReceiptType(transactionsWithItems, 'PS');
+    final crTransactions = withReceiptType(transactionsWithItems, 'CR');
+    final trTransactions = withReceiptType(transactionsWithItems, 'TR');
 
     final totalSales = salesTransactions.fold(
       0.0,
@@ -311,7 +315,9 @@ class ReportService {
     final receiptTypeCounts = transactions.fold<Map<String, int>>(
       {'CS': 0, 'CR': 0, 'TS': 0, 'TR': 0, 'PS': 0},
       (counts, t) {
-        final type = t.receiptType;
+        // Same normalisation as [withReceiptType], so a row counted in a
+        // payment bucket is also counted here.
+        final type = t.receiptType?.toUpperCase();
         if (type != null && counts.containsKey(type)) {
           counts[type] = counts[type]! + 1;
         }
