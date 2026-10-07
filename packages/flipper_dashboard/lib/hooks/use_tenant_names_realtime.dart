@@ -24,8 +24,9 @@ void invalidateTenantNameProviders(WidgetRef ref) {
 /// Keeps business and branch names in step with Supabase.
 ///
 /// Subscribes to Realtime UPDATEs on `public.businesses` (this business) and
-/// `public.branches` (its branches) and hands the new `name` to
-/// [TenantNameSync], which patches Brick, the Ditto docs and `user_access`.
+/// `public.branches` (its branches) and hands the new `name` (and, for the
+/// business, `business_type_id`) to [TenantNameSync], which patches Brick,
+/// the Ditto docs and `user_access`.
 /// On mount it also runs [TenantNameSync.catchUp] for renames made while the
 /// app was closed. Same shape as `useAccessPermissionsRealtimeSync`.
 ///
@@ -41,11 +42,15 @@ void useTenantNamesRealtimeSync(WidgetRef ref) {
     var disposed = false;
 
     void refreshIfChanged(Future<bool> patch) {
-      unawaited(patch.then((changed) {
-        if (changed && !disposed) invalidateTenantNameProviders(ref);
-      }).catchError((Object e) {
-        talker.warning('tenant names realtime: patch failed: $e');
-      }));
+      unawaited(
+        patch
+            .then((changed) {
+              if (changed && !disposed) invalidateTenantNameProviders(ref);
+            })
+            .catchError((Object e) {
+              talker.warning('tenant names realtime: patch failed: $e');
+            }),
+      );
     }
 
     refreshIfChanged(TenantNameSync.catchUp(businessId: businessId));
@@ -62,10 +67,7 @@ void useTenantNamesRealtimeSync(WidgetRef ref) {
             value: businessId,
           ),
           callback: (payload) => refreshIfChanged(
-            TenantNameSync.applyBusinessName(
-              payload.newRecord['id']?.toString(),
-              payload.newRecord['name'],
-            ),
+            TenantNameSync.applyBusinessRow(payload.newRecord),
           ),
         )
         .onPostgresChanges(
