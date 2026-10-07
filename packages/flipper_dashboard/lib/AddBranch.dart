@@ -32,7 +32,7 @@ class _AddBranchState extends ConsumerState<AddBranch> {
   String? _locationError;
 
   /// Optional map pin for the branch being created.
-  BranchCoordinates? _pickedLocation;
+  BranchLocationPick? _pickedLocation;
 
   bool _isDefaultBranch(Branch branch) => branch.isDefault == true;
 
@@ -255,43 +255,62 @@ class _AddBranchState extends ConsumerState<AddBranch> {
     );
   }
 
+  Future<void> _pickNewBranchLocation() async {
+    final picked = _pickedLocation;
+    final result = await showBranchLocationPicker(
+      context,
+      location: _services.location,
+      places: _services.placeSearch,
+      latitude: picked?.latitude,
+      longitude: picked?.longitude,
+    );
+    if (result == null || !mounted) return;
+    setState(() {
+      _pickedLocation = result;
+      // The map's street address is a good default for the Location field.
+      final address = result.address;
+      if (address != null && _locationController.text.trim().isEmpty) {
+        _locationController.text = address;
+        _locationError = null;
+      }
+    });
+  }
+
   Widget _buildMapPinRow() {
     final picked = _pickedLocation;
     if (picked == null) {
       return TextButton.icon(
-        onPressed: () async {
-          final result = await showBranchLocationPicker(
-            context,
-            location: _services.location,
-          );
-          if (result != null && mounted) {
-            setState(() => _pickedLocation = result);
-          }
-        },
+        onPressed: _pickNewBranchLocation,
         icon: const Icon(Icons.add_location_alt_outlined, size: 18),
         label: Text(context.flipperL10n.branchLocationPinOnMap),
       );
     }
+    final coordinates = formatBranchCoordinates(
+      picked.latitude,
+      picked.longitude,
+    );
     return Row(
       children: [
         Icon(Icons.location_pin, size: 18, color: Colors.red.shade400),
         SizedBox(width: 8),
         Expanded(
           child: InkWell(
-            onTap: () async {
-              final result = await showBranchLocationPicker(
-                context,
-                location: _services.location,
-                latitude: picked.latitude,
-                longitude: picked.longitude,
-              );
-              if (result != null && mounted) {
-                setState(() => _pickedLocation = result);
-              }
-            },
-            child: Text(
-              formatBranchCoordinates(picked.latitude, picked.longitude),
-              style: TextStyle(fontSize: 13, color: Colors.grey.shade700),
+            onTap: _pickNewBranchLocation,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  picked.address ?? coordinates,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: 13, color: Colors.grey.shade800),
+                ),
+                if (picked.address != null)
+                  Text(
+                    coordinates,
+                    style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
+                  ),
+              ],
             ),
           ),
         ),
@@ -312,6 +331,7 @@ class _AddBranchState extends ConsumerState<AddBranch> {
     final result = await showBranchLocationPicker(
       context,
       location: _services.location,
+      places: _services.placeSearch,
       latitude: branch.latitude,
       longitude: branch.longitude,
     );

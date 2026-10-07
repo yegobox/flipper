@@ -24758,10 +24758,6 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   String get branchLocationPickerTitle => 'Aho ishami riherereye';
 
   @override
-  String get branchLocationTapToPlace =>
-      'Kanda ku ikarita ushyireho ikimenyetso, cyangwa ukoreshe aho uri ubu.';
-
-  @override
   String get branchLocationUseCurrent => 'Koresha aho ndi ubu';
 
   @override
@@ -24816,6 +24812,34 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   String get branchLocationOpenSettings => 'Fungura igenamiterere';
 
   @override
-  String get branchLocationTapMapInstead =>
-      'Ushobora no gushyiraho ikimenyetso ukanze ku ikarita.';
+  String get branchLocationPickerHint =>
+      'Kurura ikarita kugira ngo ikimenyetso kibe ku ishami.';
+
+  @override
+  String get branchLocationSearchHint => 'Shakisha aderesi cyangwa ahantu';
+
+  @override
+  String get branchLocationNoResults =>
+      'Nta hantu habonetse. Gerageza umuhanda, agace cyangwa ahantu hazwi.';
+
+  @override
+  String get branchLocationFindingAddress => 'Turashaka aderesi…';
+
+  @override
+  String get branchLocationNoAddress => 'Nta aderesi y\'umuhanda ihari';
+
+  @override
+  String branchLocationAccuracy(String meters) {
+    return 'Bihuye hafi kuri metero $meters';
+  }
+
+  @override
+  String get branchLocationZoomIn => 'Egereza';
+
+  @override
+  String get branchLocationZoomOut => 'Igiza kure';
+
+  @override
+  String get branchLocationDragInstead =>
+      'Ushobora no gukurura ikarita ugashyiraho ikimenyetso.';
 }

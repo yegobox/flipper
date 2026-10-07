@@ -3,6 +3,7 @@ import 'package:flipper_models/DatabaseSyncInterface.dart';
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_services/abstractions/location.dart';
 import 'package:flipper_services/constants.dart' as platform;
+import 'package:flipper_services/place_search.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:supabase_models/brick/models/branch.model.dart';
@@ -16,11 +17,16 @@ import 'package:supabase_models/brick/repository/storage.dart';
 class BranchServices {
   const BranchServices();
 
+  /// One shared client so Nominatim's one-request-per-second spacing holds
+  /// across every picker opened in the session.
+  static final PlaceSearch _places = NominatimPlaceSearch();
+
   LocalStorage get box => ProxyService.box;
   DatabaseSyncInterface get strategy => ProxyService.strategy;
   FlipperLocation get location => ProxyService.location;
   HttpClientInterface get http => ProxyService.http;
   bool get isAndroid => platform.isAndroid;
+  PlaceSearch get placeSearch => _places;
 
   /// The branch as Supabase has it, or null when offline or missing.
   Future<Branch?> remoteBranch(String branchId) async {

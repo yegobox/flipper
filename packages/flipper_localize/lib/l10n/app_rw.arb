@@ -8412,7 +8412,6 @@
     "builtinPrinterWindowsOnly": "Amacapiro yometse akora kuri mashini za Windows.",
     "branchLocationPinOnMap": "Shyira ikimenyetso ku ikarita (si ngombwa)",
     "branchLocationPickerTitle": "Aho ishami riherereye",
-    "branchLocationTapToPlace": "Kanda ku ikarita ushyireho ikimenyetso, cyangwa ukoreshe aho uri ubu.",
     "branchLocationUseCurrent": "Koresha aho ndi ubu",
     "branchLocationSet": "Shyiraho aho riherereye",
     "branchLocationClear": "Kuraho ikimenyetso",
@@ -8428,5 +8427,13 @@
     "branchLocationDenied": "Flipper ntiyemerewe gukoresha aho uri. Yemerere nubazwa kugira ngo ubike aho ishami riherereye.",
     "branchLocationBlocked": "Flipper yabujijwe gukoresha location. Fungura igenamiterere, wemerere location, hanyuma wongere ugerageze.",
     "branchLocationOpenSettings": "Fungura igenamiterere",
-    "branchLocationTapMapInstead": "Ushobora no gushyiraho ikimenyetso ukanze ku ikarita."
+    "branchLocationPickerHint": "Kurura ikarita kugira ngo ikimenyetso kibe ku ishami.",
+    "branchLocationSearchHint": "Shakisha aderesi cyangwa ahantu",
+    "branchLocationNoResults": "Nta hantu habonetse. Gerageza umuhanda, agace cyangwa ahantu hazwi.",
+    "branchLocationFindingAddress": "Turashaka aderesi…",
+    "branchLocationNoAddress": "Nta aderesi y'umuhanda ihari",
+    "branchLocationAccuracy": "Bihuye hafi kuri metero {meters}",
+    "branchLocationZoomIn": "Egereza",
+    "branchLocationZoomOut": "Igiza kure",
+    "branchLocationDragInstead": "Ushobora no gukurura ikarita ugashyiraho ikimenyetso."
 }

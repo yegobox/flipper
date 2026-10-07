@@ -8420,7 +8420,6 @@
     "builtinPrinterWindowsOnly": "Printa zilizojengewa ndani zinatumika kwenye mashine za Windows.",
     "branchLocationPinOnMap": "Weka alama kwenye ramani (si lazima)",
     "branchLocationPickerTitle": "Mahali pa tawi",
-    "branchLocationTapToPlace": "Gusa ramani kuweka alama, au tumia mahali ulipo sasa.",
     "branchLocationUseCurrent": "Tumia mahali nilipo sasa",
     "branchLocationSet": "Weka mahali",
     "branchLocationClear": "Ondoa alama",
@@ -8436,5 +8435,13 @@
     "branchLocationDenied": "Flipper haikuruhusiwa kutumia eneo lako. Iruhusu ukiulizwa ili kuhifadhi mahali pa tawi.",
     "branchLocationBlocked": "Ufikiaji wa eneo umezuiwa kwa Flipper. Fungua mipangilio, ruhusu eneo, kisha ujaribu tena.",
     "branchLocationOpenSettings": "Fungua mipangilio",
-    "branchLocationTapMapInstead": "Bado unaweza kuweka alama kwa kugusa ramani."
+    "branchLocationPickerHint": "Buruta ramani ili alama ikae juu ya tawi.",
+    "branchLocationSearchHint": "Tafuta anwani au mahali",
+    "branchLocationNoResults": "Hakuna mahali palipopatikana. Jaribu mtaa, eneo au alama maarufu.",
+    "branchLocationFindingAddress": "Inatafuta anwani…",
+    "branchLocationNoAddress": "Hakuna anwani ya mtaa hapa",
+    "branchLocationAccuracy": "Usahihi wa takriban mita {meters}",
+    "branchLocationZoomIn": "Kuza",
+    "branchLocationZoomOut": "Punguza",
+    "branchLocationDragInstead": "Bado unaweza kuburuta ramani kuweka alama."
 }

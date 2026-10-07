@@ -75,6 +75,7 @@ void main() {
     expect(outcome.hasFix, isTrue);
     expect(outcome.latitude, -1.9441);
     expect(outcome.longitude, 30.0619);
+    expect(outcome.accuracy, 5);
     expect(geo.requests, 0);
   });
 

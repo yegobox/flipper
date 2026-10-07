@@ -6827,7 +6827,6 @@
     "builtinPrinterWindowsOnly": "Les imprimantes intégrées sont prises en charge sur les caisses Windows.",
     "branchLocationPinOnMap": "Placer sur la carte (facultatif)",
     "branchLocationPickerTitle": "Emplacement de la succursale",
-    "branchLocationTapToPlace": "Touchez la carte pour placer l'épingle, ou utilisez votre position actuelle.",
     "branchLocationUseCurrent": "Utiliser ma position actuelle",
     "branchLocationSet": "Définir l'emplacement",
     "branchLocationClear": "Retirer l'épingle",
@@ -6843,5 +6842,13 @@
     "branchLocationDenied": "Flipper n'a pas été autorisé à utiliser votre position. Autorisez-le lorsque la demande s'affiche pour enregistrer l'emplacement de la succursale.",
     "branchLocationBlocked": "L'accès à la position est bloqué pour Flipper. Ouvrez les paramètres, autorisez la localisation, puis réessayez.",
     "branchLocationOpenSettings": "Ouvrir les paramètres",
-    "branchLocationTapMapInstead": "Vous pouvez toujours placer l'épingle en touchant la carte."
+    "branchLocationPickerHint": "Déplacez la carte pour que l'épingle soit sur la succursale.",
+    "branchLocationSearchHint": "Rechercher une adresse ou un lieu",
+    "branchLocationNoResults": "Aucun lieu trouvé. Essayez une rue, un quartier ou un point de repère.",
+    "branchLocationFindingAddress": "Recherche de l'adresse…",
+    "branchLocationNoAddress": "Pas d'adresse ici",
+    "branchLocationAccuracy": "Précis à environ {meters} m",
+    "branchLocationZoomIn": "Zoom avant",
+    "branchLocationZoomOut": "Zoom arrière",
+    "branchLocationDragInstead": "Vous pouvez toujours déplacer la carte pour placer l'épingle."
 }

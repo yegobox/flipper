@@ -24909,10 +24909,6 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   String get branchLocationPickerTitle => 'Emplacement de la succursale';
 
   @override
-  String get branchLocationTapToPlace =>
-      'Touchez la carte pour placer l\'épingle, ou utilisez votre position actuelle.';
-
-  @override
   String get branchLocationUseCurrent => 'Utiliser ma position actuelle';
 
   @override
@@ -24967,6 +24963,34 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   String get branchLocationOpenSettings => 'Ouvrir les paramètres';
 
   @override
-  String get branchLocationTapMapInstead =>
-      'Vous pouvez toujours placer l\'épingle en touchant la carte.';
+  String get branchLocationPickerHint =>
+      'Déplacez la carte pour que l\'épingle soit sur la succursale.';
+
+  @override
+  String get branchLocationSearchHint => 'Rechercher une adresse ou un lieu';
+
+  @override
+  String get branchLocationNoResults =>
+      'Aucun lieu trouvé. Essayez une rue, un quartier ou un point de repère.';
+
+  @override
+  String get branchLocationFindingAddress => 'Recherche de l\'adresse…';
+
+  @override
+  String get branchLocationNoAddress => 'Pas d\'adresse ici';
+
+  @override
+  String branchLocationAccuracy(String meters) {
+    return 'Précis à environ $meters m';
+  }
+
+  @override
+  String get branchLocationZoomIn => 'Zoom avant';
+
+  @override
+  String get branchLocationZoomOut => 'Zoom arrière';
+
+  @override
+  String get branchLocationDragInstead =>
+      'Vous pouvez toujours déplacer la carte pour placer l\'épingle.';
 }

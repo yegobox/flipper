@@ -24498,10 +24498,6 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
   String get branchLocationPickerTitle => 'Branch location';
 
   @override
-  String get branchLocationTapToPlace =>
-      'Tap the map to place the pin, or use your current location.';
-
-  @override
   String get branchLocationUseCurrent => 'Use my current location';
 
   @override
@@ -24555,6 +24551,34 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
   String get branchLocationOpenSettings => 'Open settings';
 
   @override
-  String get branchLocationTapMapInstead =>
-      'You can still place the pin by tapping the map.';
+  String get branchLocationPickerHint =>
+      'Drag the map so the pin sits on the branch.';
+
+  @override
+  String get branchLocationSearchHint => 'Search address or place';
+
+  @override
+  String get branchLocationNoResults =>
+      'No places found. Try a street, area or landmark.';
+
+  @override
+  String get branchLocationFindingAddress => 'Finding address…';
+
+  @override
+  String get branchLocationNoAddress => 'No street address here';
+
+  @override
+  String branchLocationAccuracy(String meters) {
+    return 'Accurate to about $meters m';
+  }
+
+  @override
+  String get branchLocationZoomIn => 'Zoom in';
+
+  @override
+  String get branchLocationZoomOut => 'Zoom out';
+
+  @override
+  String get branchLocationDragInstead =>
+      'You can still drag the map to place the pin.';
 }

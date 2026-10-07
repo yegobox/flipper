@@ -40985,12 +40985,6 @@ abstract class FlipperAppLocalizations {
   /// **'Branch location'**
   String get branchLocationPickerTitle;
 
-  /// No description provided for @branchLocationTapToPlace.
-  ///
-  /// In en, this message translates to:
-  /// **'Tap the map to place the pin, or use your current location.'**
-  String get branchLocationTapToPlace;
-
   /// No description provided for @branchLocationUseCurrent.
   ///
   /// In en, this message translates to:
@@ -41081,11 +41075,59 @@ abstract class FlipperAppLocalizations {
   /// **'Open settings'**
   String get branchLocationOpenSettings;
 
-  /// No description provided for @branchLocationTapMapInstead.
+  /// No description provided for @branchLocationPickerHint.
   ///
   /// In en, this message translates to:
-  /// **'You can still place the pin by tapping the map.'**
-  String get branchLocationTapMapInstead;
+  /// **'Drag the map so the pin sits on the branch.'**
+  String get branchLocationPickerHint;
+
+  /// No description provided for @branchLocationSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search address or place'**
+  String get branchLocationSearchHint;
+
+  /// No description provided for @branchLocationNoResults.
+  ///
+  /// In en, this message translates to:
+  /// **'No places found. Try a street, area or landmark.'**
+  String get branchLocationNoResults;
+
+  /// No description provided for @branchLocationFindingAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Finding address…'**
+  String get branchLocationFindingAddress;
+
+  /// No description provided for @branchLocationNoAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'No street address here'**
+  String get branchLocationNoAddress;
+
+  /// No description provided for @branchLocationAccuracy.
+  ///
+  /// In en, this message translates to:
+  /// **'Accurate to about {meters} m'**
+  String branchLocationAccuracy(String meters);
+
+  /// No description provided for @branchLocationZoomIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Zoom in'**
+  String get branchLocationZoomIn;
+
+  /// No description provided for @branchLocationZoomOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Zoom out'**
+  String get branchLocationZoomOut;
+
+  /// No description provided for @branchLocationDragInstead.
+  ///
+  /// In en, this message translates to:
+  /// **'You can still drag the map to place the pin.'**
+  String get branchLocationDragInstead;
 }
 
 class _FlipperAppLocalizationsDelegate

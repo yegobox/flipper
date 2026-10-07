@@ -41,6 +41,7 @@ Future<LocationOutcome> geolocatorCurrentPosition({
     return LocationOutcome.fix(
       latitude: position.latitude,
       longitude: position.longitude,
+      accuracy: position.accuracy > 0 ? position.accuracy : null,
     );
   } on LocationServiceDisabledException {
     return const LocationOutcome.failed(LocationFailure.serviceDisabled);

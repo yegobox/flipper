@@ -19,14 +19,19 @@ class LocationOutcome {
   const LocationOutcome.fix({
     required double this.latitude,
     required double this.longitude,
+    this.accuracy,
   }) : failure = null;
 
   const LocationOutcome.failed(LocationFailure this.failure)
     : latitude = null,
-      longitude = null;
+      longitude = null,
+      accuracy = null;
 
   final double? latitude;
   final double? longitude;
+
+  /// Radius in metres the true position is likely within, when known.
+  final double? accuracy;
   final LocationFailure? failure;
 
   bool get hasFix => failure == null;
