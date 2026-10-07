@@ -1,9 +1,11 @@
 import 'dart:convert';
 
+import 'package:flipper_dashboard/features/branch_location/branch_location_picker.dart';
 import 'package:flipper_dashboard/features/branch_location/branch_services.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/helpers/branch_coordinates.dart';
 import 'package:flipper_models/helperModels/talker.dart';
+import 'package:flipper_services/abstractions/location.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_models/brick/repository/storage.dart';
@@ -70,17 +72,33 @@ Future<void> maybePromptBranchLocationBackfill(
       return;
     }
 
-    final position = await services.location.currentPosition();
-    if (position == null) {
-      await _snooze(box, branchId, _failureSnooze);
-      if (context.mounted) _showSnack(context, l10n.branchLocationUnavailable);
+    final outcome = await services.location.currentPosition();
+    if (outcome.failure case final failure?) {
+      // Refusing the system dialog is an answer like "Not now"; anything
+      // else (location off, blocked, no fix) is worth another try tomorrow.
+      await _snooze(
+        box,
+        branchId,
+        failure == LocationFailure.denied ? _notNowSnooze : _failureSnooze,
+      );
+      if (!context.mounted) return;
+      _showSnack(
+        context,
+        locationFailureMessage(context, failure),
+        action: locationFailureNeedsSettings(failure)
+            ? SnackBarAction(
+                label: l10n.branchLocationOpenSettings,
+                onPressed: () => services.location.openSettingsFor(failure),
+              )
+            : null,
+      );
       return;
     }
     try {
       await services.strategy.updateBranchCoordinates(
         branchId: branchId,
-        latitude: position.latitude,
-        longitude: position.longitude,
+        latitude: outcome.latitude!,
+        longitude: outcome.longitude!,
         flipperHttpClient: services.http,
       );
     } catch (e) {
@@ -116,8 +134,17 @@ Future<void> _snooze(LocalStorage box, String branchId, Duration duration) {
   return box.writeString(key: _snoozeKey, value: jsonEncode(snoozes));
 }
 
-void _showSnack(BuildContext context, String message) {
-  ScaffoldMessenger.maybeOf(
-    context,
-  )?.showSnackBar(SnackBar(content: Text(message)));
+void _showSnack(
+  BuildContext context,
+  String message, {
+  SnackBarAction? action,
+}) {
+  ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+    SnackBar(
+      content: Text(message),
+      action: action,
+      // Long enough to reach the settings button.
+      duration: Duration(seconds: action == null ? 4 : 10),
+    ),
+  );
 }

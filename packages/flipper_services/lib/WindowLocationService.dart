@@ -49,9 +49,13 @@ class WindowsLocationService implements FlipperLocation {
   }
 
   @override
-  Future<({double latitude, double longitude})?> currentPosition({
+  Future<LocationOutcome> currentPosition({
     Duration timeout = const Duration(seconds: 20),
   }) => geolocatorCurrentPosition(timeout: timeout);
+
+  @override
+  Future<bool> openSettingsFor(LocationFailure failure) =>
+      geolocatorOpenSettingsFor(failure);
 
   Map<String, String> _defaultLocationValues() {
     return {"longitude": "11", "latitude": "11"};

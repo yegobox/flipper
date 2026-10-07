@@ -24707,4 +24707,23 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
 
   @override
   String get branchLocationNotNow => 'Si sasa';
+
+  @override
+  String get branchLocationServiceOff =>
+      'Eneo limezimwa kwenye kifaa hiki. Liwashe, kisha ujaribu tena.';
+
+  @override
+  String get branchLocationDenied =>
+      'Flipper haikuruhusiwa kutumia eneo lako. Iruhusu ukiulizwa ili kuhifadhi mahali pa tawi.';
+
+  @override
+  String get branchLocationBlocked =>
+      'Ufikiaji wa eneo umezuiwa kwa Flipper. Fungua mipangilio, ruhusu eneo, kisha ujaribu tena.';
+
+  @override
+  String get branchLocationOpenSettings => 'Fungua mipangilio';
+
+  @override
+  String get branchLocationTapMapInstead =>
+      'Bado unaweza kuweka alama kwa kugusa ramani.';
 }

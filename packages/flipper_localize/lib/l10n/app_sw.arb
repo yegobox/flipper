@@ -8431,5 +8431,10 @@
     "branchLocationPromptTitle": "{branch} iko wapi?",
     "branchLocationPromptBody": "Je, uko {branch} sasa hivi? Flipper inaweza kuhifadhi mahali hapa kama mahali pa tawi. Fanya hivi ukiwa tawini tu.",
     "branchLocationSave": "Hifadhi mahali",
-    "branchLocationNotNow": "Si sasa"
+    "branchLocationNotNow": "Si sasa",
+    "branchLocationServiceOff": "Eneo limezimwa kwenye kifaa hiki. Liwashe, kisha ujaribu tena.",
+    "branchLocationDenied": "Flipper haikuruhusiwa kutumia eneo lako. Iruhusu ukiulizwa ili kuhifadhi mahali pa tawi.",
+    "branchLocationBlocked": "Ufikiaji wa eneo umezuiwa kwa Flipper. Fungua mipangilio, ruhusu eneo, kisha ujaribu tena.",
+    "branchLocationOpenSettings": "Fungua mipangilio",
+    "branchLocationTapMapInstead": "Bado unaweza kuweka alama kwa kugusa ramani."
 }

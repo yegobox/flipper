@@ -6838,5 +6838,10 @@
     "branchLocationPromptTitle": "Où se trouve {branch} ?",
     "branchLocationPromptBody": "Êtes-vous à {branch} en ce moment ? Flipper peut enregistrer cet endroit comme emplacement de la succursale. Faites-le uniquement lorsque vous êtes sur place.",
     "branchLocationSave": "Enregistrer l'emplacement",
-    "branchLocationNotNow": "Pas maintenant"
+    "branchLocationNotNow": "Pas maintenant",
+    "branchLocationServiceOff": "La localisation est désactivée sur cet appareil. Activez-la, puis réessayez.",
+    "branchLocationDenied": "Flipper n'a pas été autorisé à utiliser votre position. Autorisez-le lorsque la demande s'affiche pour enregistrer l'emplacement de la succursale.",
+    "branchLocationBlocked": "L'accès à la position est bloqué pour Flipper. Ouvrez les paramètres, autorisez la localisation, puis réessayez.",
+    "branchLocationOpenSettings": "Ouvrir les paramètres",
+    "branchLocationTapMapInstead": "Vous pouvez toujours placer l'épingle en touchant la carte."
 }

@@ -24950,4 +24950,23 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
 
   @override
   String get branchLocationNotNow => 'Pas maintenant';
+
+  @override
+  String get branchLocationServiceOff =>
+      'La localisation est désactivée sur cet appareil. Activez-la, puis réessayez.';
+
+  @override
+  String get branchLocationDenied =>
+      'Flipper n\'a pas été autorisé à utiliser votre position. Autorisez-le lorsque la demande s\'affiche pour enregistrer l\'emplacement de la succursale.';
+
+  @override
+  String get branchLocationBlocked =>
+      'L\'accès à la position est bloqué pour Flipper. Ouvrez les paramètres, autorisez la localisation, puis réessayez.';
+
+  @override
+  String get branchLocationOpenSettings => 'Ouvrir les paramètres';
+
+  @override
+  String get branchLocationTapMapInstead =>
+      'Vous pouvez toujours placer l\'épingle en touchant la carte.';
 }

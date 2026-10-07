@@ -24538,4 +24538,23 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
 
   @override
   String get branchLocationNotNow => 'Not now';
+
+  @override
+  String get branchLocationServiceOff =>
+      'Location is turned off on this device. Turn it on, then try again.';
+
+  @override
+  String get branchLocationDenied =>
+      'Flipper wasn\'t allowed to use your location. Allow it when asked to save the branch location.';
+
+  @override
+  String get branchLocationBlocked =>
+      'Location access is blocked for Flipper. Open settings, allow location, then try again.';
+
+  @override
+  String get branchLocationOpenSettings => 'Open settings';
+
+  @override
+  String get branchLocationTapMapInstead =>
+      'You can still place the pin by tapping the map.';
 }

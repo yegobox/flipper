@@ -41056,6 +41056,36 @@ abstract class FlipperAppLocalizations {
   /// In en, this message translates to:
   /// **'Not now'**
   String get branchLocationNotNow;
+
+  /// No description provided for @branchLocationServiceOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Location is turned off on this device. Turn it on, then try again.'**
+  String get branchLocationServiceOff;
+
+  /// No description provided for @branchLocationDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Flipper wasn\'t allowed to use your location. Allow it when asked to save the branch location.'**
+  String get branchLocationDenied;
+
+  /// No description provided for @branchLocationBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Location access is blocked for Flipper. Open settings, allow location, then try again.'**
+  String get branchLocationBlocked;
+
+  /// No description provided for @branchLocationOpenSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Open settings'**
+  String get branchLocationOpenSettings;
+
+  /// No description provided for @branchLocationTapMapInstead.
+  ///
+  /// In en, this message translates to:
+  /// **'You can still place the pin by tapping the map.'**
+  String get branchLocationTapMapInstead;
 }
 
 class _FlipperAppLocalizationsDelegate

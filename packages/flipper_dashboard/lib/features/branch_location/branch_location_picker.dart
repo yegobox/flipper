@@ -32,6 +32,23 @@ Future<BranchCoordinates?> showBranchLocationPicker(
 String formatBranchCoordinates(num latitude, num longitude) =>
     '${latitude.toStringAsFixed(5)}, ${longitude.toStringAsFixed(5)}';
 
+/// What to tell the user when the device position could not be read.
+String locationFailureMessage(BuildContext context, LocationFailure failure) {
+  final l10n = context.flipperL10n;
+  return switch (failure) {
+    LocationFailure.serviceDisabled => l10n.branchLocationServiceOff,
+    LocationFailure.denied => l10n.branchLocationDenied,
+    LocationFailure.deniedForever => l10n.branchLocationBlocked,
+    LocationFailure.unavailable => l10n.branchLocationUnavailable,
+  };
+}
+
+/// Failures only the system settings can fix: the OS will not show the
+/// permission dialog again, or location is switched off.
+bool locationFailureNeedsSettings(LocationFailure failure) =>
+    failure == LocationFailure.deniedForever ||
+    failure == LocationFailure.serviceDisabled;
+
 class _BranchLocationPickerDialog extends StatefulWidget {
   const _BranchLocationPickerDialog({required this.location, this.initial});
 
@@ -48,7 +65,7 @@ class _BranchLocationPickerDialogState
   final _mapController = MapController();
   LatLng? _pin;
   bool _locating = false;
-  bool _locationFailed = false;
+  LocationFailure? _failure;
 
   @override
   void initState() {
@@ -65,20 +82,19 @@ class _BranchLocationPickerDialogState
   Future<void> _useCurrentLocation() async {
     setState(() {
       _locating = true;
-      _locationFailed = false;
+      _failure = null;
     });
-    final position = await widget.location.currentPosition();
+    final outcome = await widget.location.currentPosition();
     if (!mounted) return;
+    final fix = outcome.hasFix
+        ? LatLng(outcome.latitude!, outcome.longitude!)
+        : null;
     setState(() {
       _locating = false;
-      _locationFailed = position == null;
-      if (position != null) {
-        _pin = LatLng(position.latitude, position.longitude);
-      }
+      _failure = outcome.failure;
+      if (fix != null) _pin = fix;
     });
-    if (_pin != null && position != null) {
-      _mapController.move(_pin!, 17);
-    }
+    if (fix != null) _mapController.move(fix, 17);
   }
 
   @override
@@ -165,12 +181,30 @@ class _BranchLocationPickerDialogState
                 ),
               ],
             ),
-            if (_locationFailed)
+            if (_failure case final failure?)
               Padding(
                 padding: const EdgeInsets.only(top: 8),
-                child: Text(
-                  l10n.branchLocationUnavailable,
-                  style: TextStyle(fontSize: 12, color: Colors.red.shade400),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        // The map still works without GPS, so say so.
+                        '${locationFailureMessage(context, failure)} '
+                        '${l10n.branchLocationTapMapInstead}',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.red.shade400,
+                        ),
+                      ),
+                    ),
+                    if (locationFailureNeedsSettings(failure))
+                      TextButton(
+                        onPressed: () =>
+                            widget.location.openSettingsFor(failure),
+                        child: Text(l10n.branchLocationOpenSettings),
+                      ),
+                  ],
                 ),
               ),
           ],

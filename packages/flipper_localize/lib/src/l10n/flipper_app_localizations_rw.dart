@@ -24799,4 +24799,23 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
 
   @override
   String get branchLocationNotNow => 'Si ubu';
+
+  @override
+  String get branchLocationServiceOff =>
+      'Location yazimwe kuri iki gikoresho. Yifungure, hanyuma wongere ugerageze.';
+
+  @override
+  String get branchLocationDenied =>
+      'Flipper ntiyemerewe gukoresha aho uri. Yemerere nubazwa kugira ngo ubike aho ishami riherereye.';
+
+  @override
+  String get branchLocationBlocked =>
+      'Flipper yabujijwe gukoresha location. Fungura igenamiterere, wemerere location, hanyuma wongere ugerageze.';
+
+  @override
+  String get branchLocationOpenSettings => 'Fungura igenamiterere';
+
+  @override
+  String get branchLocationTapMapInstead =>
+      'Ushobora no gushyiraho ikimenyetso ukanze ku ikarita.';
 }

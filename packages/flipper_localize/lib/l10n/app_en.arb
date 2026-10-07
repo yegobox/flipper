@@ -18676,5 +18676,10 @@
         }
     },
     "branchLocationSave": "Save location",
-    "branchLocationNotNow": "Not now"
+    "branchLocationNotNow": "Not now",
+    "branchLocationServiceOff": "Location is turned off on this device. Turn it on, then try again.",
+    "branchLocationDenied": "Flipper wasn't allowed to use your location. Allow it when asked to save the branch location.",
+    "branchLocationBlocked": "Location access is blocked for Flipper. Open settings, allow location, then try again.",
+    "branchLocationOpenSettings": "Open settings",
+    "branchLocationTapMapInstead": "You can still place the pin by tapping the map."
 }
