@@ -741,15 +741,19 @@ mixin CapellaBarMixin implements BarInterface {
     final doc = await ITransactionDittoAdapter.instance.toDittoDocument(
       updated,
     );
-    await ditto.store.execute(
-      'INSERT INTO transactions DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE',
-      arguments: {'doc': doc},
-    );
-    await restampServiceModeSaleLines(
-      ditto,
-      transactionId: transaction.id,
-      saleDate: saleDate,
-    );
+    // One write: a completed tab whose lines kept their old dates would be
+    // reported on a different day from its own line items.
+    await ditto.store.transaction((txn) async {
+      await txn.execute(
+        'INSERT INTO transactions DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE',
+        arguments: {'doc': doc},
+      );
+      await restampServiceModeSaleLines(
+        txn,
+        transactionId: transaction.id,
+        saleDate: saleDate,
+      );
+    });
 
     return updated;
   }

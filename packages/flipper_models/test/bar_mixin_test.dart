@@ -141,5 +141,43 @@ void main() {
       final line = ditto.store.collections['transaction_items']!['line-1']!;
       expect(line['createdAt'], settled.createdAt!.toIso8601String());
     });
+
+    test('a failed line re-stamp leaves the tab open, not half-settled',
+        () async {
+      final tab = await sync.openBarTab(
+        branchId: _branch,
+        table: _table,
+        cashierTenantId: 'c1',
+        cashierName: 'Richie',
+      );
+      ditto.store.seed('transaction_items', {
+        '_id': 'line-1',
+        'id': 'line-1',
+        'transactionId': tab.id,
+        'branchId': _branch,
+        'name': 'Beer',
+        'qty': 2,
+        'price': 1500,
+        'variantId': 'v1',
+      });
+
+      final open = await sync.barTabForTableById(tab.id);
+      ditto.store.failOn = 'UPDATE transaction_items';
+      await expectLater(
+        sync.settleBarTab(
+          transaction: open!,
+          lines: await sync.barTabLines(transactionId: tab.id),
+          paymentType: 'Cash',
+          cashReceived: 3000,
+          customerChangeDue: 0,
+        ),
+        throwsStateError,
+      );
+
+      // Still parked on its table, so the cashier can simply settle again.
+      final stored = ditto.store.collections['transactions']![tab.id]!;
+      expect(stored['status'], PARKED);
+      expect(stored['tableId'], _table.id);
+    });
   });
 }

@@ -1390,15 +1390,20 @@ mixin CapellaHotelMixin implements HotelInterface {
     final doc = await ITransactionDittoAdapter.instance.toDittoDocument(
       settled,
     );
-    await ditto.store.execute(
-      'INSERT INTO transactions DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE',
-      arguments: {'doc': doc},
-    );
-    await restampServiceModeSaleLines(
-      ditto,
-      transactionId: transaction.id,
-      saleDate: now,
-    );
+    // One write: a completed folio whose lines kept their old dates would be
+    // reported on a different day from its own line items. If it fails, the
+    // stay and room below stay untouched too, so the desk can retry checkout.
+    await ditto.store.transaction((txn) async {
+      await txn.execute(
+        'INSERT INTO transactions DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE',
+        arguments: {'doc': doc},
+      );
+      await restampServiceModeSaleLines(
+        txn,
+        transactionId: transaction.id,
+        saleDate: now,
+      );
+    });
     cartLineDocCache.forget(transaction.id);
 
     await saveHotelStay(

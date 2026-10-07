@@ -6,6 +6,7 @@ import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_dashboard/export/transaction_report_full_export_loader.dart';
 import 'package:flipper_dashboard/export/utils/report_theme.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:syncfusion_flutter_pdf/pdf.dart';
@@ -59,6 +60,10 @@ class ReportService {
       endDate: endDate,
       branchId: ProxyService.box.getBranchId()!,
       forceRealData: !(ProxyService.box.enableDebug() ?? false),
+      // Settled sales only, as the Sale and PLU reports do. The window also
+      // returns parked tickets (open bar tabs, hotel folios, held POS carts)
+      // that already carry NS but have not been paid.
+      status: COMPLETE,
     );
 
     talker.info(startDate.toIso8601String(), endDate.toIso8601String());

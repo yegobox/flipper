@@ -68,11 +68,35 @@ class FakeDittoStore {
     collections.putIfAbsent(collection, () => {})[id] = {...doc};
   }
 
+  /// Runs [body] as one write: if it throws, every collection goes back to
+  /// what it held before, like a rolled-back Ditto transaction.
+  Future<T> transaction<T>(Future<T> Function(FakeDittoStore txn) body) async {
+    final snapshot = {
+      for (final c in collections.entries)
+        c.key: {for (final d in c.value.entries) d.key: {...d.value}},
+    };
+    try {
+      return await body(this);
+    } catch (_) {
+      collections
+        ..clear()
+        ..addAll(snapshot);
+      rethrow;
+    }
+  }
+
+  /// When set, any statement containing this text throws — lets a test
+  /// simulate a write failing partway through a transaction.
+  String? failOn;
+
   Future<FakeDittoResult> execute(
     String sql, {
     Map<String, dynamic>? arguments,
   }) async {
     executed.add(sql);
+    if (failOn != null && sql.contains(failOn!)) {
+      throw StateError('FakeDitto: simulated failure on $failOn');
+    }
     final args = arguments ?? const <String, dynamic>{};
     final trimmed = sql.trim();
     final upper = trimmed.toUpperCase();

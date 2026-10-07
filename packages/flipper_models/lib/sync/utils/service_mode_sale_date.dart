@@ -15,13 +15,16 @@ DateTime serviceModeReportDate(DateTime at) => at.isUtc ? at.toLocal() : at;
 /// The report's line grid and PLU totals window lines by their own
 /// `createdAt`, so a folio's earlier nights, or bar lines charged to the room,
 /// would otherwise fall outside the day the folio is reported on.
+///
+/// [txn] is the Ditto write transaction that also completes the sale, so a
+/// settled ticket never lands with its lines still on the old dates.
 Future<void> restampServiceModeSaleLines(
-  dynamic ditto, {
+  dynamic txn, {
   required String transactionId,
   required DateTime saleDate,
 }) async {
   final nowIso = DateTime.now().toUtc().toIso8601String();
-  await ditto.store.execute(
+  await txn.execute(
     'UPDATE transaction_items SET createdAt = :createdAt, '
     'updatedAt = :updatedAt, lastTouched = :lastTouched '
     'WHERE transactionId = :transactionId',
