@@ -279,6 +279,8 @@ class TenantOperationsMixin {
           headers: {'Content-Type': 'application/json'},
           body: jsonEncode({
             'phone_number': phone, // phone can also be email
+            // Fills users.name on create; an existing user's real name is kept.
+            'name': name,
           }),
         );
 
