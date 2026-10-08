@@ -190,8 +190,10 @@ final barTabsProvider = StreamProvider<List<ITransaction>>((ref) {
   ).barTabsStream(branchId: branchId);
 });
 
-final barTabLinesProvider =
-    StreamProvider.family<List<TransactionItem>, String>((ref, txnId) async* {
+/// Auto-disposed: it polls every 2 s, and a kept-alive entry per tab ever
+/// shown kept polling after the bar floor was left for another mode.
+final barTabLinesProvider = StreamProvider.autoDispose
+    .family<List<TransactionItem>, String>((ref, txnId) async* {
       final sync = ProxyService.getStrategy(Strategy.capella);
       yield await sync.barTabLines(transactionId: txnId);
       yield* Stream.periodic(
@@ -211,7 +213,8 @@ bool barTenantIsAdmin(Tenant tenant) {
 }
 
 /// Stable key for tracking in-flight staff delete on a roster row.
-String barStaffDeleteKey(Tenant tenant) => '${tenant.id}|${tenant.userId ?? ''}';
+String barStaffDeleteKey(Tenant tenant) =>
+    '${tenant.id}|${tenant.userId ?? ''}';
 
 /// Whether [row] is the same staff member as [deleted] (id or user_id).
 bool barStaffRowMatchesDeleted(Tenant row, Tenant deleted) {
@@ -230,10 +233,7 @@ bool barStaffRowMatchesDeleted(Tenant row, Tenant deleted) {
 ///
 /// Caller must already be on an admin-only screen. Blocks self-delete and
 /// admin-role rows.
-bool barStaffDeleteAllowed({
-  required Tenant target,
-  String? currentUserId,
-}) {
+bool barStaffDeleteAllowed({required Tenant target, String? currentUserId}) {
   final targetUserId = target.userId?.trim();
   final viewerUserId = currentUserId?.trim();
   if (viewerUserId != null &&

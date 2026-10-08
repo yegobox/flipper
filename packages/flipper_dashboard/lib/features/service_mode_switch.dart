@@ -76,6 +76,30 @@ void setDeviceServiceMode(ServiceMode? mode) {
   notifyServiceModeChanged();
 }
 
+/// Whether a mode host that has just finished opening should pin this device
+/// to [hostMode].
+///
+/// A host hydrates the branch settings before it pins, and that can take
+/// seconds. If the pick moved meanwhile ([pickNow] differs from [pickAtOpen])
+/// the operator has already switched on, and pinning would undo it: the shell
+/// guard under the hosts navigates back to this host, whose own replacement
+/// then pins *its* mode once it hydrates — Bar and Hotel bouncing each other
+/// for good, every bounce re-running both hosts' startup work, until the
+/// machine hangs. A host that is already gone ([stillOpen] false) never pins.
+bool shouldPinOpenedServiceMode({
+  required ServiceMode hostMode,
+  required ServiceMode? pickAtOpen,
+  required ServiceMode? pickNow,
+  required bool stillOpen,
+  required bool serviceEnabled,
+  required bool isPhone,
+}) =>
+    stillOpen &&
+    serviceEnabled &&
+    !isPhone &&
+    pickNow == pickAtOpen &&
+    pickNow != hostMode;
+
 /// Resolves the surface a terminal shows from what the branch offers and what
 /// the device asked for.
 ///
@@ -274,6 +298,26 @@ ServiceMode nextServiceMode(ServiceMode current) => switch (current) {
 Future<bool> applyServiceMode(
   ServiceMode mode, {
   Duration persistTimeout = const Duration(seconds: 3),
+}) async {
+  // The pick is written before the branch save is awaited, so without this
+  // the shell guard would open the host mid-save — exactly what step 3 waits
+  // to avoid — and, on a rollback, navigate straight back out again.
+  serviceModeSwitchInProgress = true;
+  try {
+    return await _applyServiceMode(mode, persistTimeout: persistTimeout);
+  } finally {
+    serviceModeSwitchInProgress = false;
+    // One re-sync once the switch has settled, whichever way it went.
+    notifyServiceModeChanged();
+  }
+}
+
+/// True while [applyServiceMode] runs; the shell guard waits for it to end.
+bool serviceModeSwitchInProgress = false;
+
+Future<bool> _applyServiceMode(
+  ServiceMode mode, {
+  required Duration persistTimeout,
 }) async {
   final enablingHotel = mode == ServiceMode.hotel && !HotelModeSettings.enabled;
   final enablingBar = mode == ServiceMode.bar && !BarModeSettings.enabled;

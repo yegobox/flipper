@@ -39,11 +39,15 @@ class _HotelModeHostState extends ConsumerState<HotelModeHost> {
   @override
   void initState() {
     super.initState();
+    final pickAtOpen = deviceServiceMode;
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final branchId = ProxyService.box.getBranchId();
       // Letterhead + stamp ready before anyone taps Download.
       unawaited(HotelQuotationActions.warmUp());
       await HotelModeSettings.hydrateForActiveBranch();
+      // Replaced while hydrating (a quick switch to Bar or POS): neither the
+      // room sweep nor the pin belongs to this desk any more.
+      if (!mounted) return;
       HotelModeSettings.startWatchingActiveBranch();
       if (branchId != null) {
         // No room seeding here: this runs on every device that opens the
@@ -71,10 +75,16 @@ class _HotelModeHostState extends ConsumerState<HotelModeHost> {
       // the startup redirect and the sales pane both read the device pick, so
       // the screen it was left on is the screen it comes back to.
       // A phone is never pinned: it must keep opening on its own home.
-      if (HotelModeSettings.enabled && !isPhoneLayout) {
+      if (shouldPinOpenedServiceMode(
+        hostMode: ServiceMode.hotel,
+        pickAtOpen: pickAtOpen,
+        pickNow: deviceServiceMode,
+        stillOpen: mounted,
+        serviceEnabled: HotelModeSettings.enabled,
+        isPhone: isPhoneLayout,
+      )) {
         setDeviceServiceMode(ServiceMode.hotel);
       }
-      if (!mounted) return;
       await _resolveEntry();
     });
   }
