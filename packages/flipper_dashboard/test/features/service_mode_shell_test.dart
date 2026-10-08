@@ -103,4 +103,97 @@ void main() {
       );
     });
   });
+
+  group('shouldPinOpenedServiceMode', () {
+    bool pin(
+      ServiceMode host, {
+      ServiceMode? atOpen,
+      ServiceMode? now,
+      bool stillOpen = true,
+      bool enabled = true,
+      bool isPhone = false,
+    }) => shouldPinOpenedServiceMode(
+      hostMode: host,
+      pickAtOpen: atOpen,
+      pickNow: now,
+      stillOpen: stillOpen,
+      serviceEnabled: enabled,
+      isPhone: isPhone,
+    );
+
+    test('a host opened with no pick makes this the mode terminal', () {
+      // The startup redirect's hotel-first fallback, or Back onto a host.
+      expect(pin(ServiceMode.hotel), isTrue);
+      expect(pin(ServiceMode.bar), isTrue);
+    });
+
+    test('a host replaced while hydrating never pins', () {
+      expect(pin(ServiceMode.bar, stillOpen: false), isFalse);
+      expect(pin(ServiceMode.hotel, stillOpen: false), isFalse);
+    });
+
+    test('a switch made while the host hydrated is not undone', () {
+      // Bar opened by the hotkey, then the hotkey moved on to Hotel and POS.
+      expect(
+        pin(ServiceMode.bar, atOpen: ServiceMode.bar, now: ServiceMode.hotel),
+        isFalse,
+      );
+      expect(
+        pin(ServiceMode.hotel, atOpen: ServiceMode.hotel, now: ServiceMode.pos),
+        isFalse,
+      );
+      expect(pin(ServiceMode.bar, now: ServiceMode.pos), isFalse);
+    });
+
+    test('already pinned to this host: no second write', () {
+      // A redundant pin still bumps the revision and re-runs the shell sync.
+      expect(
+        pin(ServiceMode.bar, atOpen: ServiceMode.bar, now: ServiceMode.bar),
+        isFalse,
+      );
+    });
+
+    test('a phone or a service that is off is never pinned', () {
+      expect(pin(ServiceMode.bar, isPhone: true), isFalse);
+      expect(pin(ServiceMode.hotel, enabled: false), isFalse);
+    });
+
+    test('a quick Bar -> Hotel switch settles instead of bouncing', () {
+      // Replays the hang: every host that finishes hydrating may pin, and a
+      // pin that differs from the shell on screen opens that mode's host,
+      // which hydrates and may pin in turn. Before the fix each late pin
+      // reopened its own host and the two never stopped.
+      ServiceMode? pick = ServiceMode.bar; // hotkey pinned Bar, opened it
+      final pending = <({ServiceMode host, ServiceMode? atOpen})>[
+        (host: ServiceMode.bar, atOpen: pick),
+      ];
+      pick = ServiceMode.hotel; // hotkey again before Bar finished hydrating
+      var onScreen = ServiceMode.hotel;
+      pending.add((host: ServiceMode.hotel, atOpen: pick));
+
+      var navigations = 0;
+      while (pending.isNotEmpty && navigations < 10) {
+        final host = pending.removeAt(0);
+        final pins = shouldPinOpenedServiceMode(
+          hostMode: host.host,
+          pickAtOpen: host.atOpen,
+          pickNow: pick,
+          stillOpen: host.host == onScreen,
+          serviceEnabled: true,
+          isPhone: false,
+        );
+        if (!pins) continue;
+        pick = host.host;
+        if (onScreen != pick) {
+          onScreen = host.host;
+          navigations++;
+          pending.add((host: onScreen, atOpen: pick));
+        }
+      }
+
+      expect(navigations, 0);
+      expect(pick, ServiceMode.hotel);
+      expect(onScreen, ServiceMode.hotel);
+    });
+  });
 }

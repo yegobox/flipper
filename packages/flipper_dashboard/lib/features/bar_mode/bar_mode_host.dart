@@ -25,8 +25,12 @@ class _BarModeHostState extends ConsumerState<BarModeHost> {
   @override
   void initState() {
     super.initState();
+    final pickAtOpen = deviceServiceMode;
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await BarModeSettings.hydrateForActiveBranch();
+      // Replaced while hydrating (a quick switch to Hotel or POS): pinning
+      // now would drag the device back here. See shouldPinOpenedServiceMode.
+      if (!mounted) return;
       BarModeSettings.startWatchingActiveBranch();
       // No floor-plan seeding here: this runs on every device that opens the
       // bar, usually before Ditto has synced the branch's tables, and the
@@ -37,7 +41,14 @@ class _BarModeHostState extends ConsumerState<BarModeHost> {
       // terminal: the startup redirect and the sales pane both read the device
       // pick, so the screen it was left on is the screen it comes back to.
       // A phone is never pinned: it must keep opening on its own home.
-      if (BarModeSettings.enabled && !isPhoneLayout) {
+      if (shouldPinOpenedServiceMode(
+        hostMode: ServiceMode.bar,
+        pickAtOpen: pickAtOpen,
+        pickNow: deviceServiceMode,
+        stillOpen: mounted,
+        serviceEnabled: BarModeSettings.enabled,
+        isPhone: isPhoneLayout,
+      )) {
         setDeviceServiceMode(ServiceMode.bar);
       }
       ref.read(barModeProvider.notifier).setScreen(BarScreen.lock);
