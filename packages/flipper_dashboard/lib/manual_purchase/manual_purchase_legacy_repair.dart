@@ -165,7 +165,9 @@ class LegacyLineRepairResult {
     this.rebalanced = 0,
     this.retired = 0,
     this.failed = 0,
+    this.deferred = 0,
     this.review = const [],
+    this.settledStockIds = const [],
   });
 
   /// False when Ditto was not open yet, so nothing was looked at.
@@ -177,10 +179,22 @@ class LegacyLineRepairResult {
   /// Lines whose repair threw; a later run tries them again.
   final int failed;
 
+  /// Lines whose stock row has not synced to this device yet: their on-hand
+  /// is unknown, so they are left for a later run rather than retired.
+  final int deferred;
+
   /// Names of lines left as they were (still selling on their own).
   final List<String> review;
 
+  /// Stock rows of lines whose stock now sits on a product. Another device's
+  /// move of the same line shows up here, after a sync, as a balance off
+  /// zero (see [legacyLineBalancesDrifted]).
+  final List<String> settledStockIds;
+
   bool get changedCatalog => merged + rebalanced + retired > 0;
+
+  /// Every line was looked at and settled; nothing is left to retry.
+  bool get complete => ran && failed == 0 && deferred == 0;
 }
 
 /// Clears manual purchase lines that builds before #710 left in the catalog:
@@ -206,12 +220,20 @@ Future<LegacyLineRepairResult> repairLegacyManualPurchaseLines({
   var rebalanced = 0;
   var retired = 0;
   var failed = 0;
+  var deferred = 0;
   final review = <String>[];
+  final settled = <String>[];
   for (final legacy in lines) {
     final line = legacy.line;
     try {
+      // A line without a stock row has nothing on hand. One whose row has
+      // not synced yet might: retiring it would strand that stock.
       final stockId = line.stockId?.trim() ?? '';
-      final onHand = stockId.isEmpty ? 0.0 : await store.onHand(stockId) ?? 0;
+      final onHand = stockId.isEmpty ? 0.0 : await store.onHand(stockId);
+      if (onHand == null) {
+        deferred++;
+        continue;
+      }
       final plan = planLegacyLineRepair(
         line: line,
         onHand: onHand,
@@ -231,6 +253,7 @@ Future<LegacyLineRepairResult> repairLegacyManualPurchaseLines({
           } else {
             rebalanced++;
           }
+          settled.add(stockId);
           talker.info(
             'Legacy purchase line ${line.id}: $onHand moved to '
             '${plan.target!.id} (${plan.action.name})',
@@ -238,7 +261,9 @@ Future<LegacyLineRepairResult> repairLegacyManualPurchaseLines({
         case LegacyLineRepairAction.review:
           review.add(line.itemNm ?? line.name);
         case LegacyLineRepairAction.none:
-          break;
+          if (legacy.targetVariantId != null && stockId.isNotEmpty) {
+            settled.add(stockId);
+          }
       }
     } catch (e, s) {
       failed++;
@@ -256,6 +281,24 @@ Future<LegacyLineRepairResult> repairLegacyManualPurchaseLines({
     rebalanced: rebalanced,
     retired: retired,
     failed: failed,
+    deferred: deferred,
     review: review,
+    settledStockIds: settled,
   );
+}
+
+/// Whether a sync has since put any of [stockIds] (a complete run's
+/// [LegacyLineRepairResult.settledStockIds]) off zero: another device moved
+/// the same line, so the repair has a balance to move back. Reads only those
+/// stock rows, so it is cheap enough for every Purchases load.
+Future<bool> legacyLineBalancesDrifted(
+  List<String> stockIds, {
+  LegacyLineRepairStore store = const DittoLegacyLineRepairStore(),
+}) async {
+  if (stockIds.isEmpty || !store.ready) return false;
+  for (final stockId in stockIds) {
+    final onHand = await store.onHand(stockId);
+    if (onHand != null && onHand != 0) return true;
+  }
+  return false;
 }

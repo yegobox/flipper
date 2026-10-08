@@ -103,6 +103,13 @@ class _FakeStore extends LegacyLineRepairStore {
   }
 }
 
+/// One Primus line (5 on hand) and the one product it was bought for.
+_FakeStore _primus({double line = 5, double product = 12}) => _FakeStore(
+  lines: [_line()],
+  catalog: [_product('v1')],
+  onHandById: {'s-line-1': line, 's-v1': product},
+);
+
 void main() {
   group('planLegacyLineRepair', () {
     test('nothing on hand is only retired', () {
@@ -192,14 +199,8 @@ void main() {
   });
 
   group('repairLegacyManualPurchaseLines', () {
-    _FakeStore primus({double line = 5, double product = 12}) => _FakeStore(
-      lines: [_line()],
-      catalog: [_product('v1')],
-      onHandById: {'s-line-1': line, 's-v1': product},
-    );
-
     test('moves what is left onto the product and retires the line', () async {
-      final store = primus();
+      final store = _primus();
 
       final result = await repairLegacyManualPurchaseLines(
         branchId: 'b1',
@@ -212,7 +213,7 @@ void main() {
     });
 
     test('a second run finds nothing to do', () async {
-      final store = primus();
+      final store = _primus();
       await repairLegacyManualPurchaseLines(branchId: 'b1', store: store);
 
       final again = await repairLegacyManualPurchaseLines(
@@ -225,7 +226,7 @@ void main() {
     });
 
     test('two devices moving the same line converge on one move', () async {
-      final store = primus();
+      final store = _primus();
       // Both devices saw the line at '02' with 5 on hand before either
       // device's move synced: two moves of 5, merged additively.
       await store.move(line: _line(), target: _product('v1'), qty: 5);
@@ -263,7 +264,7 @@ void main() {
     });
 
     test('Ditto not open yet: reports it did not run', () async {
-      final store = primus()..isReady = false;
+      final store = _primus()..isReady = false;
 
       final result = await repairLegacyManualPurchaseLines(
         branchId: 'b1',
@@ -295,6 +296,90 @@ void main() {
       expect(result.failed, 1);
       expect(result.merged, 1);
       expect(store.onHandById['s-v2'], 3);
+      expect(result.complete, isFalse);
+    });
+
+    test(
+      'a line whose stock has not synced yet waits for a later run',
+      () async {
+        final store = _primus()..onHandById.remove('s-line-1');
+
+        final result = await repairLegacyManualPurchaseLines(
+          branchId: 'b1',
+          store: store,
+        );
+
+        expect(result.deferred, 1);
+        expect(result.complete, isFalse);
+        expect(store.repaired, isEmpty);
+
+        // The stock arrives: the next run moves it instead of having retired
+        // the line with it.
+        store.onHandById['s-line-1'] = 5;
+        final later = await repairLegacyManualPurchaseLines(
+          branchId: 'b1',
+          store: store,
+        );
+        expect(later.merged, 1);
+        expect(later.complete, isTrue);
+        expect(store.onHandById, {'s-line-1': 0, 's-v1': 17});
+      },
+    );
+  });
+
+  group('legacyLineBalancesDrifted', () {
+    test('a complete run settles; a synced second move drifts', () async {
+      final store = _FakeStore(
+        lines: [
+          _line(),
+          _line(id: 'empty', name: 'Mutzig', stockId: 's-empty'),
+        ],
+        catalog: [_product('v1')],
+        onHandById: {'s-line-1': 5, 's-empty': 0, 's-v1': 12},
+      );
+      final run = await repairLegacyManualPurchaseLines(
+        branchId: 'b1',
+        store: store,
+      );
+      // Only lines whose stock went to a product can drift.
+      expect(run.settledStockIds, ['s-line-1']);
+      expect(
+        await legacyLineBalancesDrifted(run.settledStockIds, store: store),
+        isFalse,
+      );
+
+      // Another device's move of the same 5 syncs in after this session's
+      // run: the re-check catches it and the next run moves it back.
+      await store.move(line: _line(), target: _product('v1'), qty: 5);
+      expect(
+        await legacyLineBalancesDrifted(run.settledStockIds, store: store),
+        isTrue,
+      );
+      final again = await repairLegacyManualPurchaseLines(
+        branchId: 'b1',
+        store: store,
+      );
+      expect(again.rebalanced, 1);
+      expect(again.settledStockIds, ['s-line-1']);
+      expect(store.onHandById, {'s-line-1': 0, 's-empty': 0, 's-v1': 17});
+    });
+
+    test('both devices correcting the same balance still converge', () async {
+      final store = _primus(line: -5, product: 22);
+      store.repaired.add('line-1');
+      store.targets['line-1'] = 'v1';
+
+      // Each replica moves the -5 back before seeing the other's correction.
+      await store.move(line: _line(), target: _product('v1'), qty: -5);
+      await store.move(line: _line(), target: _product('v1'), qty: -5);
+      expect(store.onHandById, {'s-line-1': 5, 's-v1': 12});
+      expect(
+        await legacyLineBalancesDrifted(['s-line-1'], store: store),
+        isTrue,
+      );
+
+      await repairLegacyManualPurchaseLines(branchId: 'b1', store: store);
+      expect(store.onHandById, {'s-line-1': 0, 's-v1': 17});
     });
   });
 }

@@ -145,6 +145,21 @@ void main() {
       expect(await onHand('s-legacy'), 0);
       expect(await onHand('s-product'), 17);
 
+      // Both replicas correcting the same -5 overshoot the other way, and the
+      // next run moves that back: every correction conserves line + product.
+      await move(5);
+      await move(-5);
+      await move(-5);
+      expect(await onHand('s-legacy'), 5);
+      expect(await onHand('s-product'), 12);
+      await move(5);
+      expect(await onHand('s-legacy'), 0);
+      expect(await onHand('s-product'), 17);
+      final lineReg = (await store.execute(
+        "SELECT * FROM stocks WHERE _id = 's-legacy'",
+      )).items.single.value;
+      expect(lineReg['currentStock'], 0);
+
       await ManualPurchaseDitto.retireLegacyLineOnStore(store, 'waiting');
       expect((await found()).keys, containsAll(['legacy', 'waiting']));
 

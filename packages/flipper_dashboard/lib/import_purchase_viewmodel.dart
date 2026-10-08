@@ -130,21 +130,30 @@ class ImportPurchaseViewModel extends StateNotifier<ImportPurchaseState> {
     }
   }
 
-  /// Branches whose legacy purchase lines were checked this session.
-  static final _legacyLinesChecked = <String>{};
+  /// Per branch: null while the legacy line repair runs, then the stock rows
+  /// its last complete run settled. A branch missing here is not checked yet.
+  static final _legacyLines = <String, List<String>?>{};
 
   /// Old builds left approved manual purchase lines selling as products of
-  /// their own; fold them into the real products once per branch per session.
-  /// The branch stays claimed while the repair runs (a second load skips it),
-  /// but only a complete run keeps it: Ditto not open yet, a throw or a line
-  /// that failed releases it for the next load to retry. Never blocks the
-  /// list: a failure is logged and the list still loads.
+  /// their own; fold them into the real products. The full repair runs once
+  /// per branch per session; later loads only re-read the stock rows it
+  /// settled, and run it again when a sync put one off zero (another device
+  /// moved the same line). A branch stays claimed while either runs, so a
+  /// second load skips it. Ditto not open yet, a throw or a line left to
+  /// retry releases it for the next load. Never blocks the list: a failure is
+  /// logged and the list still loads.
   Future<void> _repairLegacyLinesOnce(String branchId) async {
-    if (!_legacyLinesChecked.add(branchId)) return;
-    var done = false;
+    final settled = _legacyLines[branchId];
+    if (_legacyLines.containsKey(branchId) && settled == null) return;
+    _legacyLines[branchId] = null;
+    List<String>? keep;
     try {
+      if (settled != null && !await legacyLineBalancesDrifted(settled)) {
+        keep = settled;
+        return;
+      }
       final result = await repairLegacyManualPurchaseLines(branchId: branchId);
-      done = result.ran && result.failed == 0;
+      if (result.complete) keep = result.settledStockIds;
       if (result.changedCatalog) {
         talker.info(
           'Legacy purchase lines: ${result.merged} merged into products, '
@@ -161,7 +170,11 @@ class ImportPurchaseViewModel extends StateNotifier<ImportPurchaseState> {
     } catch (e, s) {
       talker.error('Legacy purchase line repair failed', e, s);
     } finally {
-      if (!done) _legacyLinesChecked.remove(branchId);
+      if (keep == null) {
+        _legacyLines.remove(branchId);
+      } else {
+        _legacyLines[branchId] = keep;
+      }
     }
   }
 

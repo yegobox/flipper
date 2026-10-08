@@ -431,8 +431,9 @@ abstract final class ManualPurchaseDitto {
   }
 
   /// Moves [qty] from a legacy line's stock to its catalog product's and
-  /// marks the line a purchase record pointing at [targetVariantId], in one
-  /// local transaction: no crash can leave the stock counted twice or lost.
+  /// marks the line a purchase record pointing at [targetVariantId], with both
+  /// stock registers rewritten, in one local transaction: no crash can leave
+  /// the stock counted twice or lost.
   ///
   /// Both sides are COUNTER increments, which add up across devices. Two
   /// offline devices moving the same line therefore leave it negative by the
@@ -488,19 +489,22 @@ abstract final class ManualPurchaseDitto {
           'id': lineId,
         },
       );
+      // Older builds read the register, not the counter. Written in the same
+      // transaction (which reads its own increments): a repaired line whose
+      // counter is settled is never moved again, so a register write that
+      // failed after the commit would stay stale.
+      for (final stockId in [lineStockId, targetStockId]) {
+        final onHand = await stockOnHandOnStore(txn, stockId) ?? 0;
+        await txn.execute(
+          stockDualWriteRegistersDql(),
+          arguments: {
+            'currentStock': onHand,
+            'rsdQty': onHand,
+            'stockId': stockId,
+          },
+        );
+      }
     });
-    // Older builds read the register, not the counter.
-    for (final stockId in [lineStockId, targetStockId]) {
-      final onHand = await stockOnHandOnStore(store, stockId) ?? 0;
-      await store.execute(
-        stockDualWriteRegistersDql(),
-        arguments: {
-          'currentStock': onHand,
-          'rsdQty': onHand,
-          'stockId': stockId,
-        },
-      );
-    }
   }
 
   /// Every variant on [branchId], for matching a purchase line to the
