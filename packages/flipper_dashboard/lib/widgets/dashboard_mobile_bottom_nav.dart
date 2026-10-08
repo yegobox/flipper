@@ -3,6 +3,7 @@ import 'package:flipper_dashboard/widgets/dashboard_all_apps_sheet.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
@@ -38,6 +39,22 @@ class DashboardMobileBottomNav extends ConsumerWidget {
   /// raised button overlap it — lay the nav over the content in a Stack.
   static double barExtent(BuildContext context) =>
       _barHeight + _barPad(context);
+
+  /// Highlights [tab] while its screen or sheet is open, then hands the
+  /// highlight back to Home — the other tabs open on top of the dashboard
+  /// rather than replacing it.
+  Future<void> _openTab(
+    DashboardMobileTab tab,
+    Future<void> Function() open,
+  ) async {
+    HapticFeedback.selectionClick();
+    onTabSelected(tab);
+    try {
+      await open();
+    } finally {
+      onTabSelected(DashboardMobileTab.home);
+    }
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -80,43 +97,48 @@ class DashboardMobileBottomNav extends ConsumerWidget {
                       icon: FluentIcons.home_24_regular,
                       label: context.flipperL10n.home,
                       selected: activeTab == DashboardMobileTab.home,
-                      onTap: () => onTabSelected(DashboardMobileTab.home),
+                      onTap: () {
+                        if (activeTab != DashboardMobileTab.home) {
+                          HapticFeedback.selectionClick();
+                        }
+                        onTabSelected(DashboardMobileTab.home);
+                      },
                     ),
                     _NavItem(
                       icon: FluentIcons.cart_24_regular,
                       label: context.flipperL10n.sales,
                       selected: activeTab == DashboardMobileTab.sales,
-                      onTap: () async {
-                        onTabSelected(DashboardMobileTab.sales);
-                        await navigateToDashboardAppPage(
+                      onTap: () => _openTab(
+                        DashboardMobileTab.sales,
+                        () => navigateToDashboardAppPage(
                           context: context,
                           isBigScreen: false,
                           page: 'Transactions',
-                        );
-                      },
+                        ),
+                      ),
                     ),
                     const SizedBox(width: 72),
                     _NavItem(
                       icon: FluentIcons.box_24_regular,
                       label: context.flipperL10n.inventory,
                       selected: activeTab == DashboardMobileTab.inventory,
-                      onTap: () async {
-                        onTabSelected(DashboardMobileTab.inventory);
-                        await navigateToDashboardAppPage(
+                      onTap: () => _openTab(
+                        DashboardMobileTab.inventory,
+                        () => navigateToDashboardAppPage(
                           context: context,
                           isBigScreen: false,
                           page: 'Inventory',
-                        );
-                      },
+                        ),
+                      ),
                     ),
                     _NavItem(
                       icon: FluentIcons.grid_24_regular,
                       label: context.flipperL10n.more,
                       selected: activeTab == DashboardMobileTab.more,
-                      onTap: () async {
-                        onTabSelected(DashboardMobileTab.more);
-                        await DashboardAllAppsSheet.show(context, ref);
-                      },
+                      onTap: () => _openTab(
+                        DashboardMobileTab.more,
+                        () => DashboardAllAppsSheet.show(context, ref),
+                      ),
                     ),
                   ],
                 ),
@@ -127,6 +149,7 @@ class DashboardMobileBottomNav extends ConsumerWidget {
             top: 0,
             child: _NewSaleFab(
               onTap: () async {
+                HapticFeedback.lightImpact();
                 await navigateToDashboardAppPage(
                   context: context,
                   isBigScreen: false,

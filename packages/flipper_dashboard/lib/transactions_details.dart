@@ -2,6 +2,7 @@ import 'package:flipper_design_system/flipper_design_system.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/services/transaction_receipt_actions_service.dart';
 import 'package:flipper_dashboard/services/transaction_refund_helpers.dart';
+import 'package:flipper_dashboard/widgets/mpos/mpos_press_button.dart';
 import 'package:flipper_dashboard/widgets/transaction_detail_sheets.dart';
 import 'package:flipper_dashboard/cashbook_form_rules.dart';
 import 'package:flipper_dashboard/widgets/cashbook_svgs.dart';
@@ -292,11 +293,15 @@ class _TxDetailHeader extends StatelessWidget {
     return SizedBox(
       height: 52,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+        // 12 + the 4dp the 48dp hit box adds around each 40dp tile = 16.
+        padding: const EdgeInsets.symmetric(horizontal: 12),
         child: Row(
           children: [
-            _PressScaleButton(
+            MposPressButton(
               onPressed: onBack,
+              semanticLabel: MaterialLocalizations.of(
+                context,
+              ).backButtonTooltip,
               child: _HeaderIconButton(
                 child: TransactionDetailSvgs.icon(
                   TransactionDetailSvgs.chevronLeft(),
@@ -317,8 +322,11 @@ class _TxDetailHeader extends StatelessWidget {
                 ),
               ),
             ),
-            _PressScaleButton(
+            MposPressButton(
               onPressed: onMore,
+              semanticLabel: MaterialLocalizations.of(
+                context,
+              ).moreButtonTooltip,
               child: _HeaderIconButton(
                 child: TransactionDetailSvgs.icon(
                   TransactionDetailSvgs.more(),
@@ -357,7 +365,7 @@ class _TxDetailFooter extends StatelessWidget {
         children: [
           Expanded(
             flex: 10,
-            child: _PressScaleButton(
+            child: MposPressButton(
               onPressed: onMoreActions,
               child: _FooterButton(
                 ghost: true,
@@ -369,7 +377,7 @@ class _TxDetailFooter extends StatelessWidget {
           const SizedBox(width: 11),
           Expanded(
             flex: 13,
-            child: _PressScaleButton(
+            child: MposPressButton(
               onPressed: onInvoice,
               child: _FooterButton(
                 ghost: false,
@@ -1462,38 +1470,6 @@ class _TimelineRow extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _PressScaleButton extends StatefulWidget {
-  const _PressScaleButton({required this.onPressed, required this.child});
-
-  final VoidCallback onPressed;
-  final Widget child;
-
-  static const _pressScale = 0.93;
-
-  @override
-  State<_PressScaleButton> createState() => _PressScaleButtonState();
-}
-
-class _PressScaleButtonState extends State<_PressScaleButton> {
-  bool _pressed = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTapDown: (_) => setState(() => _pressed = true),
-      onTapUp: (_) => setState(() => _pressed = false),
-      onTapCancel: () => setState(() => _pressed = false),
-      onTap: widget.onPressed,
-      child: AnimatedScale(
-        scale: _pressed ? _PressScaleButton._pressScale : 1,
-        duration: const Duration(milliseconds: 100),
-        curve: Curves.ease,
-        child: widget.child,
       ),
     );
   }

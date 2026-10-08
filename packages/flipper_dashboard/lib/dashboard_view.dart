@@ -11,6 +11,7 @@ import 'package:flipper_models/providers/stock_value_report_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_services/utils.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -295,67 +296,77 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
     required String label,
     required bool selected,
     required VoidCallback onTap,
-  }) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(20),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 150),
-          curve: Curves.ease,
-          decoration: BoxDecoration(
-            color: selected ? const Color(0xFF111827) : Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: selected
-                  ? const Color(0xFF111827)
-                  : const Color(0xFFE5E7EB),
-              width: 1.5,
-            ),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-          child: Text(
-            label,
-            style: GoogleFonts.outfit(
-              fontSize: 14.5,
-              fontWeight: FontWeight.w600,
-              color: selected ? Colors.white : const Color(0xFF4B5563),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
+  }) => _mobileChip(
+    label: label,
+    selected: selected,
+    onTap: onTap,
+    selectedFill: const Color(0xFF111827),
+    selectedBorder: const Color(0xFF111827),
+    selectedInk: Colors.white,
+  );
 
   Widget _mobileProfitChip({
     required String label,
     required bool selected,
     required VoidCallback onTap,
+  }) => _mobileChip(
+    label: label,
+    selected: selected,
+    onTap: onTap,
+    selectedFill: _blueTint,
+    selectedBorder: _accentBlue,
+    selectedInk: _accentBlue,
+  );
+
+  /// Filter chip shared by the period and profit rows: same height, padding
+  /// and type; only the selected colours differ (period is the primary
+  /// filter, so it gets the solid fill).
+  ///
+  /// The fill sits *under* a transparent [Material] so the ripple paints on
+  /// top of it — an [InkWell] below an opaque container never shows.
+  Widget _mobileChip({
+    required String label,
+    required bool selected,
+    required VoidCallback onTap,
+    required Color selectedFill,
+    required Color selectedBorder,
+    required Color selectedInk,
   }) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(20),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 150),
-          curve: Curves.ease,
-          decoration: BoxDecoration(
-            color: selected ? _blueTint : Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: selected ? _accentBlue : const Color(0xFFE5E7EB),
-              width: 1.5,
-            ),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 9),
-          child: Text(
-            label,
-            style: GoogleFonts.outfit(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: selected ? _accentBlue : const Color(0xFF4B5563),
+    final shape = BorderRadius.circular(22);
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 150),
+      curve: Curves.ease,
+      decoration: BoxDecoration(
+        color: selected ? selectedFill : Colors.white,
+        borderRadius: shape,
+        border: Border.all(
+          color: selected ? selectedBorder : const Color(0xFFE5E7EB),
+          width: 1.5,
+        ),
+      ),
+      child: Material(
+        type: MaterialType.transparency,
+        child: InkWell(
+          borderRadius: shape,
+          onTap: () {
+            if (!selected) HapticFeedback.selectionClick();
+            onTap();
+          },
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 44),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 18),
+              child: Center(
+                widthFactor: 1,
+                child: Text(
+                  label,
+                  style: GoogleFonts.outfit(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: selected ? selectedInk : const Color(0xFF4B5563),
+                  ),
+                ),
+              ),
             ),
           ),
         ),
@@ -746,9 +757,7 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
                     },
                     style: TextButton.styleFrom(
                       foregroundColor: _accentBlue,
-                      padding: const EdgeInsets.symmetric(horizontal: 4),
-                      minimumSize: Size.zero,
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
                     ),
                     child: Text(
                       context.flipperL10n.dashViewFullReport,

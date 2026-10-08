@@ -11,6 +11,7 @@ import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -1673,31 +1674,38 @@ class _ListFrame extends StatelessWidget {
                             color: _kTextMuted,
                           ),
                         ),
-                        suffixIcon: Tooltip(
-                          message:
-                              context.flipperL10n.dailyReportFilesFocusSearch,
-                          child: GestureDetector(
-                            onTap: () => searchFocus.requestFocus(),
-                            child: Container(
-                              width: 42,
-                              alignment: Alignment.center,
-                              margin: const EdgeInsets.all(7),
-                              decoration: BoxDecoration(
-                                color: _kSurfaceAlt,
-                                borderRadius: BorderRadius.circular(6),
-                                border: Border.all(color: _kBorder),
-                              ),
-                              child: Text(
-                                '⌘K',
-                                style: GoogleFonts.outfit(
-                                  color: _kTextMuted,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w700,
+                        // ⌘K is a keyboard shortcut hint; phones have no
+                        // keyboard to press it on.
+                        suffixIcon:
+                            MediaQuery.sizeOf(context).width <
+                                PosLayoutBreakpoints.mobileLayoutMaxWidth
+                            ? null
+                            : Tooltip(
+                                message: context
+                                    .flipperL10n
+                                    .dailyReportFilesFocusSearch,
+                                child: GestureDetector(
+                                  onTap: () => searchFocus.requestFocus(),
+                                  child: Container(
+                                    width: 42,
+                                    alignment: Alignment.center,
+                                    margin: const EdgeInsets.all(7),
+                                    decoration: BoxDecoration(
+                                      color: _kSurfaceAlt,
+                                      borderRadius: BorderRadius.circular(6),
+                                      border: Border.all(color: _kBorder),
+                                    ),
+                                    child: Text(
+                                      '⌘K',
+                                      style: GoogleFonts.outfit(
+                                        color: _kTextMuted,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                  ),
                                 ),
                               ),
-                            ),
-                          ),
-                        ),
                         filled: true,
                         fillColor: Colors.white,
                         contentPadding: const EdgeInsets.symmetric(

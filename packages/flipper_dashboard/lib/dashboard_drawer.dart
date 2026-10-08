@@ -6,6 +6,7 @@ import 'package:flipper_models/db_model_export.dart';
 
 import 'package:flipper_models/sync/shift_sync.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_dashboard/widgets/mpos/mpos_hit_area.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
@@ -263,23 +264,27 @@ class _DashboardDrawerState extends ConsumerState<DashboardDrawer>
                     ),
                   ),
                 ),
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(999),
-                  ),
+                // 36dp circle drawn, 48dp hit area.
+                MposHitArea(
+                  onTap: () => Navigator.pop(context),
+                  semanticLabel: MaterialLocalizations.of(
+                    context,
+                  ).closeButtonLabel,
                   child: Material(
-                    color: Colors.transparent,
+                    color: Colors.white,
+                    shape: const CircleBorder(),
                     child: InkWell(
                       onTap: () => Navigator.pop(context),
-                      borderRadius: BorderRadius.circular(999),
-                      child: Center(
-                        child: DashboardQuickAccessSvgs.icon(
-                          DashboardQuickAccessSvgs.drawerCloseXIcon(),
-                          width: 14,
-                          height: 14,
+                      customBorder: const CircleBorder(),
+                      child: SizedBox(
+                        width: 36,
+                        height: 36,
+                        child: Center(
+                          child: DashboardQuickAccessSvgs.icon(
+                            DashboardQuickAccessSvgs.drawerCloseXIcon(),
+                            width: 14,
+                            height: 14,
+                          ),
                         ),
                       ),
                     ),
@@ -1384,7 +1389,8 @@ class _BranchItem extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: isLoading ? null : onTap,
-        child: Padding(
+        child: Container(
+          constraints: const BoxConstraints(minHeight: 48),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Row(
             children: [

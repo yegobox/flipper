@@ -3,9 +3,11 @@ import 'package:flipper_design_system/flipper_design_system.dart';
 import 'package:flipper_dashboard/services/transaction_refund_helpers.dart';
 import 'package:flipper_dashboard/services/transaction_receipt_actions_service.dart';
 import 'package:flipper_dashboard/services/transaction_refund_service.dart';
+import 'package:flipper_dashboard/widgets/mpos/mpos_press_button.dart';
 import 'package:flipper_dashboard/widgets/transaction_detail_svgs.dart';
 import 'package:flipper_models/providers/ebm_provider.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_dashboard/widgets/mpos/mpos_hit_area.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -591,13 +593,18 @@ class _IconCircleButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: _SheetColors.surface2,
-      shape: const CircleBorder(),
-      child: InkWell(
-        customBorder: const CircleBorder(),
-        onTap: onPressed,
-        child: SizedBox(width: 34, height: 34, child: Center(child: child)),
+    // 34dp circle drawn, 48dp hit area: taps just outside the circle still
+    // land, and the ripple stays on the circle.
+    return MposHitArea(
+      onTap: onPressed,
+      child: Material(
+        color: _SheetColors.surface2,
+        shape: const CircleBorder(),
+        child: InkWell(
+          customBorder: const CircleBorder(),
+          onTap: onPressed,
+          child: SizedBox(width: 34, height: 34, child: Center(child: child)),
+        ),
       ),
     );
   }
@@ -1472,7 +1479,8 @@ class _RefundDoneOverlayState extends State<_RefundDoneOverlay>
                   child: SizedBox(
                     width: double.infinity,
                     height: 54,
-                    child: _PressScaleButton(
+                    child: MposPressButton(
+                      pressScale: 0.985,
                       onPressed: widget.onDone,
                       child: DecoratedBox(
                         decoration: BoxDecoration(
@@ -1514,32 +1522,3 @@ class _RefundDoneOverlayState extends State<_RefundDoneOverlay>
 }
 
 /// Minimal press-scale for Done button (matches transaction detail).
-class _PressScaleButton extends StatefulWidget {
-  const _PressScaleButton({required this.onPressed, required this.child});
-
-  final VoidCallback onPressed;
-  final Widget child;
-
-  @override
-  State<_PressScaleButton> createState() => _PressScaleButtonState();
-}
-
-class _PressScaleButtonState extends State<_PressScaleButton> {
-  bool _pressed = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTapDown: (_) => setState(() => _pressed = true),
-      onTapUp: (_) => setState(() => _pressed = false),
-      onTapCancel: () => setState(() => _pressed = false),
-      onTap: widget.onPressed,
-      child: AnimatedScale(
-        scale: _pressed ? 0.985 : 1,
-        duration: const Duration(milliseconds: 120),
-        curve: Curves.ease,
-        child: widget.child,
-      ),
-    );
-  }
-}

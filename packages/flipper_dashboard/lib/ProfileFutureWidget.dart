@@ -16,8 +16,8 @@ class ProfileFutureWidget extends StatelessWidget {
             return Padding(
               padding: const EdgeInsets.only(right: 12.0),
               child: SizedBox(
-                height: 40,
-                width: 40,
+                height: 48,
+                width: 48,
                 child: ProfileWidget(
                   branch: branch,
                   sessionActive: true,
@@ -27,22 +27,30 @@ class ProfileFutureWidget extends StatelessWidget {
               ),
             );
           },
-          loading: () {
-            return Padding(
-              padding: const EdgeInsets.only(right: 12.0),
-              child: SizedBox(
-                height: 40,
-                width: 40,
-                child: CircleAvatar(
-                  backgroundColor: Colors.grey.shade300,
-                  radius: 20,
-                ),
-              ),
-            );
-          },
-          error: (error, stackTrace) => const SizedBox.shrink(),
+          // Keep the header balanced while loading or if the branch can't be
+          // read: a placeholder avatar rather than an empty slot.
+          loading: _placeholder,
+          error: (_, __) => _placeholder(),
         );
       },
+    );
+  }
+
+  // 48dp slot (touch target) around a 40dp avatar; 12 + 4 = 16dp from the
+  // edge, matching the leading side.
+  static Widget _placeholder() {
+    return Padding(
+      padding: const EdgeInsets.only(right: 12.0),
+      child: SizedBox(
+        height: 48,
+        width: 48,
+        child: Center(
+          child: CircleAvatar(
+            backgroundColor: Colors.grey.shade300,
+            radius: 20,
+          ),
+        ),
+      ),
     );
   }
 }
