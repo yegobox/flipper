@@ -1,0 +1,128 @@
+// Runs the legacy manual purchase line DQL against a real local Ditto store in
+// DQL_STRICT_MODE, as production does. `flutter test` has no Ditto native
+// library, so this skips unless LIBDITTOFFI_PATH points at one, e.g.
+//
+//   LIBDITTOFFI_PATH=<app>/macos/Pods/DittoFlutter/DittoCore.xcframework/\
+//     macos-arm64_x86_64/DittoCore.framework/DittoCore \
+//     flutter test test/manual_purchase_legacy_ditto_test.dart
+import 'dart:io';
+
+import 'package:ditto_live/ditto_live.dart';
+import 'package:flipper_models/sync/capella/manual_purchase_ditto.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
+import 'package:plugin_platform_interface/plugin_platform_interface.dart';
+
+class _FakePaths extends Fake
+    with MockPlatformInterfaceMixin
+    implements PathProviderPlatform {
+  _FakePaths(this.dir);
+  final String dir;
+  @override
+  Future<String?> getApplicationDocumentsPath() async => dir;
+  @override
+  Future<String?> getApplicationSupportPath() async => dir;
+  @override
+  Future<String?> getTemporaryPath() async => dir;
+}
+
+void main() {
+  final hasDitto = Platform.environment['LIBDITTOFFI_PATH'] != null;
+
+  test(
+    'legacy line DQL finds only approved manual lines and retires them',
+    skip: hasDitto
+        ? false
+        : 'set LIBDITTOFFI_PATH to run against a real Ditto store',
+    () async {
+      TestWidgetsFlutterBinding.ensureInitialized();
+      final dir = await Directory.systemTemp.createTemp('ditto_legacy_lines');
+      PathProviderPlatform.instance = _FakePaths(dir.path);
+      await Ditto.init();
+      final ditto = await Ditto.open(
+        DittoConfig(
+          databaseID: 'aaaaaaaa-bbbb-4ccc-8ddd-ffffffffffff',
+          connect: const DittoConfigConnectSmallPeersOnly(),
+          persistenceDirectory: dir.path,
+        ),
+      );
+      final store = ditto.store;
+      await store.execute('ALTER SYSTEM SET DQL_STRICT_MODE = true');
+
+      Future<void> purchase(
+        String id,
+        String regTyCd, {
+        String branch = 'b1',
+      }) => store.execute(
+        'INSERT INTO purchases DOCUMENTS (:doc)',
+        arguments: {
+          'doc': {'_id': id, 'branchId': branch, 'regTyCd': regTyCd},
+        },
+      );
+      Future<void> line(String id, String purchaseId, String? status) =>
+          store.execute(
+            'INSERT INTO variants DOCUMENTS (:doc)',
+            arguments: {
+              'doc': {
+                '_id': id,
+                'id': id,
+                'branchId': 'b1',
+                'name': 'Line $id',
+                'color': '#ff0000',
+                'purchaseId': purchaseId,
+                'pchsSttsCd': status,
+              },
+            },
+          );
+
+      await purchase('pm', 'M');
+      await purchase('pa', 'A'); // RRA purchase: its '02' lines are not ours
+      await purchase('pm-other', 'M', branch: 'b2');
+      await line('legacy', 'pm', '02');
+      await line('waiting', 'pm', '01');
+      await line('stocked', 'pm', '03');
+      await line('rra', 'pa', '02');
+      await line('other-branch', 'pm-other', '02');
+
+      final purchases = await store.execute(
+        ManualPurchaseDitto.manualPurchaseIdsDql,
+        arguments: {'branchId': 'b1', 'regTyCd': 'M'},
+      );
+      final ids = [for (final p in purchases.items) '${p.value['_id']}'];
+      expect(ids, ['pm']);
+
+      Future<List<String>> legacy() async {
+        final result = await store.execute(
+          ManualPurchaseDitto.legacyLinesDql,
+          arguments: {'ids': ids, 'approved': '02'},
+        );
+        return [for (final i in result.items) '${i.value['_id']}'];
+      }
+
+      expect(await legacy(), ['legacy']);
+
+      await store.execute(
+        ManualPurchaseDitto.mergeLegacyLineDql,
+        arguments: {
+          'record': '03',
+          'now': DateTime.now().toUtc().toIso8601String(),
+          'target': 'product-1',
+          'id': 'legacy',
+        },
+      );
+
+      expect(await legacy(), isEmpty);
+      final after = await store.execute(
+        "SELECT * FROM variants WHERE _id = 'legacy'",
+      );
+      final doc = after.items.single.value;
+      expect(doc['pchsSttsCd'], '03');
+      expect(doc[ManualPurchaseDitto.targetVariantIdField], 'product-1');
+      // A field-level update: nothing the line already had is lost.
+      expect(doc['color'], '#ff0000');
+      expect(doc['name'], 'Line legacy');
+
+      await ditto.close();
+    },
+  );
+}

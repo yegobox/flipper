@@ -60,9 +60,17 @@ class _BarPosCatalogPaneState extends ConsumerState<BarPosCatalogPane> {
     _scrollDebounce?.cancel();
     _scrollDebounce = Timer(const Duration(milliseconds: 300), () {
       if (!mounted) return;
-      ref.read(outerVariantsProvider(widget.branchId).notifier).loadMore();
+      ref
+          .read(_catalog(ref.read(posCatalogStockFilterProvider)).notifier)
+          .loadMore();
     });
   }
+
+  /// The POS grid's stock view, so bar and POS list the same items: in-stock
+  /// by default, which also keeps zero-stock rows (old purchase lines, items
+  /// never stocked) off the floor staff's grid. A search still lists everything.
+  OuterVariantsProvider _catalog(PosStockFilter filter) =>
+      outerVariantsProvider(widget.branchId, stockFilter: filter);
 
   SliverGridDelegate _gridDelegate(double paneWidth) {
     if (widget.forceTwoColumns) {
@@ -78,10 +86,16 @@ class _BarPosCatalogPaneState extends ConsumerState<BarPosCatalogPane> {
 
   @override
   Widget build(BuildContext context) {
-    final variantsAsync = ref.watch(outerVariantsProvider(widget.branchId));
+    final stockFilter = ref.watch(posCatalogStockFilterProvider);
+    final variantsAsync = ref.watch(_catalog(stockFilter));
     final stocksById =
         ref
-            .watch(stocksForVisibleVariantsProvider(widget.branchId))
+            .watch(
+              stocksForVisibleVariantsProvider(
+                widget.branchId,
+                stockFilter: stockFilter,
+              ),
+            )
             .asData
             ?.value ??
         const <String, Stock?>{};

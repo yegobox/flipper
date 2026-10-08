@@ -312,6 +312,83 @@ abstract final class ManualPurchaseDitto {
     await _upsertVariant(line, extra: {targetVariantIdField: targetVariantId});
   }
 
+  /// The legacy-line DQL, public so a real-store test runs these exact
+  /// strings (see `manual_purchase_legacy_ditto_test.dart`).
+  static const manualPurchaseIdsDql =
+      'SELECT * FROM purchases WHERE branchId = :branchId AND regTyCd = :regTyCd';
+  // Bound as a bare array: `IN (:ids)` silently matches nothing in DQL.
+  static const legacyLinesDql =
+      'SELECT * FROM variants WHERE purchaseId IN :ids AND pchsSttsCd = :approved';
+  static const retireLegacyLineDql =
+      'UPDATE variants SET pchsSttsCd = :record, lastTouched = :now '
+      'WHERE _id = :id';
+  static const mergeLegacyLineDql =
+      'UPDATE variants SET pchsSttsCd = :record, lastTouched = :now, '
+      '$targetVariantIdField = :target WHERE _id = :id';
+
+  /// Turns a legacy line (see [legacyApprovedLines]) into a purchase record
+  /// (`'03'`), pointing at [targetVariantId] when its stock moved there.
+  ///
+  /// A field-level UPDATE, not an upsert: the line has been selling as a
+  /// product, and re-writing it from the parsed model would null every field
+  /// the purchase mapper does not read.
+  static Future<void> retireLegacyLine({
+    required String lineId,
+    String? targetVariantId,
+  }) async {
+    final ditto = _dittoOrThrow();
+    final now = DateTime.now().toUtc().toIso8601String();
+    await ditto.store.execute(
+      targetVariantId == null ? retireLegacyLineDql : mergeLegacyLineDql,
+      arguments: {
+        'record': '03',
+        'now': now,
+        'id': lineId,
+        if (targetVariantId != null) 'target': targetVariantId,
+      },
+    );
+  }
+
+  /// Manual purchase lines approved before stock-in existed (#710): those
+  /// builds set every line to `'02'` and gave it its own stock, so the line
+  /// sells as a product of its own. RRA purchase lines also use `'02'`, so
+  /// only lines of `regTyCd 'M'` purchases count.
+  static Future<List<Variant>> legacyApprovedLines(String branchId) async {
+    final ditto = _dittoService.dittoInstance;
+    if (ditto == null) return [];
+    final purchases = await ditto.store.execute(
+      manualPurchaseIdsDql,
+      arguments: {'branchId': branchId, 'regTyCd': 'M'},
+    );
+    final ids = [
+      for (final item in purchases.items)
+        '${item.value['_id'] ?? item.value['id'] ?? ''}',
+    ].where((id) => id.isNotEmpty).toList();
+    if (ids.isEmpty) return [];
+
+    final result = await ditto.store.execute(
+      legacyLinesDql,
+      arguments: {'ids': ids, 'approved': '02'},
+    );
+    return result.items
+        .map((e) => variantFromApiJson(Map<String, dynamic>.from(e.value)))
+        .toList();
+  }
+
+  /// Every variant on [branchId], for matching a purchase line to the
+  /// catalog product it was bought for.
+  static Future<List<Variant>> branchVariants(String branchId) async {
+    final ditto = _dittoService.dittoInstance;
+    if (ditto == null) return [];
+    final result = await ditto.store.execute(
+      'SELECT * FROM variants WHERE branchId = :branchId',
+      arguments: {'branchId': branchId},
+    );
+    return result.items
+        .map((e) => variantFromApiJson(Map<String, dynamic>.from(e.value)))
+        .toList();
+  }
+
   /// Purchase header after every line was stocked in.
   static Future<void> markPurchaseApproved(Purchase purchase) async {
     purchase.hasUnApprovedVariant = false;

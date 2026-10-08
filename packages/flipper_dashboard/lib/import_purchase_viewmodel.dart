@@ -1,11 +1,13 @@
 import 'package:flipper_dashboard/export/export_import.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/export/export_purchase.dart';
+import 'package:flipper_dashboard/manual_purchase/manual_purchase_legacy_repair.dart';
 import 'package:flipper_dashboard/manual_purchase/manual_purchase_stock_in.dart';
 import 'package:flipper_models/ebm_helper.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/imports_purchases_client.dart';
 import 'package:flipper_models/imports_purchases_map.dart';
+import 'package:flipper_models/providers/outer_variant_provider.dart';
 import 'package:flipper_models/services/pos_purchase_journal_poster.dart';
 import 'package:flipper_models/services/purchase_approval_deps.dart';
 import 'package:flipper_models/services/purchase_expense_recorder.dart';
@@ -110,6 +112,8 @@ class ImportPurchaseViewModel extends StateNotifier<ImportPurchaseState> {
           purchaseStatusFilter,
         );
         if (!mounted) return;
+        await _repairLegacyLinesOnce(branchId);
+        if (!mounted) return;
         final manual = await ManualPurchaseDitto.listForBranch(
           branchId,
           statusFilter: purchaseStatusFilter,
@@ -120,6 +124,37 @@ class ImportPurchaseViewModel extends StateNotifier<ImportPurchaseState> {
     } catch (e, s) {
       talker.error('Failed to load import/purchase list', e, s);
       _patchState((s) => s.copyWith(isLoading: false, error: e.toString()));
+    }
+  }
+
+  /// Branches whose legacy purchase lines were checked this session.
+  static final _legacyLinesChecked = <String>{};
+
+  /// Old builds left approved manual purchase lines selling as products of
+  /// their own; fold them into the real products once per branch per session.
+  /// Never blocks the list: a failure is logged and the list still loads.
+  Future<void> _repairLegacyLinesOnce(String branchId) async {
+    if (!_legacyLinesChecked.add(branchId)) return;
+    try {
+      final result = await repairLegacyManualPurchaseLines(
+        branchId: branchId,
+        capella: PurchaseApprovalDeps.fromProxy().capella,
+      );
+      if (result.merged + result.retired > 0) {
+        talker.info(
+          'Legacy purchase lines: ${result.merged} merged into products, '
+          '${result.retired} retired',
+        );
+        // The grids still hold the old lines; reload them from Ditto.
+        for (final catalog in [
+          outerVariantsProvider(branchId),
+          ...posStockFilteredCatalogs(branchId),
+        ]) {
+          _ref.invalidate(catalog);
+        }
+      }
+    } catch (e, s) {
+      talker.error('Legacy purchase line repair failed', e, s);
     }
   }
 
