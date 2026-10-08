@@ -30,6 +30,7 @@ Variant _product(
   String branchId = 'b1',
   String? purchaseId,
   String? pchsSttsCd,
+  String? stockId,
 }) => Variant(
   id: id,
   name: name,
@@ -40,7 +41,7 @@ Variant _product(
   bcd: bcd,
   purchaseId: purchaseId,
   pchsSttsCd: pchsSttsCd,
-  stockId: 's-$id',
+  stockId: stockId ?? 's-$id',
 );
 
 LegacyLineRepairPlan _plan(
@@ -116,6 +117,15 @@ void main() {
       final plan = _plan(_line(), [_product('v1')], onHand: 0);
       expect(plan.action, LegacyLineRepairAction.retire);
       expect(plan.target, isNull);
+    });
+
+    test('a product with no stock row cannot take the stock', () {
+      final noStock = _product('v1', stockId: '');
+      expect(_plan(_line(), [noStock]).action, LegacyLineRepairAction.review);
+
+      // ...so a same-name product that has stock is the only match.
+      final stocked = _product('v2');
+      expect(_plan(_line(), [noStock, stocked]).target, stocked);
     });
 
     test('item code beats barcode beats name', () {

@@ -36,11 +36,14 @@ class LegacyLineRepairPlan {
 String _key(String? value) => (value ?? '').trim().toLowerCase();
 
 /// A sellable catalog row the line's stock may go to: a real product on the
-/// same branch, not another purchase line, and not hidden from the POS.
+/// same branch with a stock row to receive it, not another purchase line, and
+/// not hidden from the POS. A product without stock would make the move throw
+/// on every run instead of leaving the line for review.
 bool _isCatalogProduct(Variant candidate, Variant line) =>
     candidate.id != line.id &&
     candidate.branchId == line.branchId &&
     (candidate.productId ?? '').isNotEmpty &&
+    (candidate.stockId ?? '').trim().isNotEmpty &&
     (candidate.purchaseId ?? '').isEmpty &&
     !const {'01', '03', '04'}.contains(candidate.pchsSttsCd) &&
     !const {'2', '4'}.contains(candidate.imptItemSttsCd);
