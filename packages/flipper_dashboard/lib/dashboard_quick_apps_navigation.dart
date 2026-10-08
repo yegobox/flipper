@@ -1,6 +1,7 @@
 import 'package:flipper_ai_feature/flipper_ai_feature.dart';
 import 'package:flipper_dashboard/books_module_navigation.dart';
 import 'package:flipper_dashboard/features/daily_report_files/daily_report_files_app.dart';
+import 'package:flipper_dashboard/features/incoming_orders/om_tokens.dart';
 import 'package:flipper_dashboard/features/personal_goals/personal_goals_screen.dart';
 import 'package:flipper_dashboard/features/leads/leads_mobile_screen.dart';
 import 'package:flipper_dashboard/features/production_output/production_output_app.dart';
@@ -59,19 +60,13 @@ Future<void> navigateToDashboardAppPage({
       await navigateToBooksModule(context, ref, navigator: nav);
       break;
     case 'POS':
-      await routerService.navigateTo(
-        CheckOutRoute(isBigScreen: isBigScreen),
-      );
+      await routerService.navigateTo(CheckOutRoute(isBigScreen: isBigScreen));
       break;
     case 'Inventory':
-      await routerService.navigateTo(
-        CheckOutRoute(isBigScreen: isBigScreen),
-      );
+      await routerService.navigateTo(CheckOutRoute(isBigScreen: isBigScreen));
       break;
     case 'Cashbook':
-      await routerService.navigateTo(
-        CashbookRoute(isBigScreen: isBigScreen),
-      );
+      await routerService.navigateTo(CashbookRoute(isBigScreen: isBigScreen));
       break;
     case 'Settings':
       await routerService.navigateTo(SettingPageRoute());
@@ -95,9 +90,7 @@ Future<void> navigateToDashboardAppPage({
       await routerService.navigateTo(TransactionsRoute());
       break;
     case 'Tickets':
-      await routerService.navigateTo(
-        TicketsListRoute(transaction: null),
-      );
+      await routerService.navigateTo(TicketsListRoute(transaction: null));
       break;
     case 'Contacts':
       await routerService.navigateTo(CustomersRoute());
@@ -106,9 +99,9 @@ Future<void> navigateToDashboardAppPage({
       await routerService.navigateTo(CreditAppRoute());
       break;
     case 'Chat':
-      await Navigator.of(context).push(
-        MaterialPageRoute<void>(builder: (context) => const AiScreen()),
-      );
+      await Navigator.of(
+        context,
+      ).push(MaterialPageRoute<void>(builder: (context) => const AiScreen()));
       break;
     case 'ProductionOutput':
       await Navigator.of(context).push(
@@ -119,9 +112,7 @@ Future<void> navigateToDashboardAppPage({
       break;
     case 'ServicesGigs':
       await Navigator.of(context).push(
-        MaterialPageRoute<void>(
-          builder: (context) => const ServicesGigsApp(),
-        ),
+        MaterialPageRoute<void>(builder: (context) => const ServicesGigsApp()),
       );
       break;
     case 'Orders':
@@ -131,9 +122,7 @@ Future<void> navigateToDashboardAppPage({
       // Supplier purchases (RRA + manually recorded, incl. bought on credit).
       // Desktop reaches this through DashboardPage.purchases.
       await Navigator.of(context).push(
-        MaterialPageRoute<void>(
-          builder: (_) => const PurchasesMobileScreen(),
-        ),
+        MaterialPageRoute<void>(builder: (_) => const PurchasesMobileScreen()),
       );
       break;
     case 'Leads':
@@ -155,29 +144,33 @@ Future<void> navigateToDashboardAppPage({
       break;
     case 'DailyReports':
       await Navigator.of(context).push(
-        MaterialPageRoute<void>(
-          builder: (_) => const DailyReportFilesApp(),
-        ),
+        MaterialPageRoute<void>(builder: (_) => const DailyReportFilesApp()),
       );
       break;
     case 'StockRecount':
       await Navigator.of(context).push(
-        MaterialPageRoute<void>(
-          builder: (_) => const StockRecountListScreen(),
-        ),
+        MaterialPageRoute<void>(builder: (_) => const StockRecountListScreen()),
       );
       break;
     case 'TransfersReport':
       await Navigator.of(context).push(
         MaterialPageRoute<void>(
-          builder: (_) => const TransfersReportScreen(),
+          // The screen is chrome-less so it can sit inside the desktop
+          // layout; a pushed route needs its own Scaffold and back button.
+          builder: (_) => Scaffold(
+            backgroundColor: OmTokens.canvas,
+            appBar: AppBar(
+              backgroundColor: OmTokens.canvas,
+              elevation: 0,
+              scrolledUnderElevation: 0,
+            ),
+            body: const SafeArea(top: false, child: TransfersReportScreen()),
+          ),
         ),
       );
       break;
     default:
-      await routerService.navigateTo(
-        CheckOutRoute(isBigScreen: isBigScreen),
-      );
+      await routerService.navigateTo(CheckOutRoute(isBigScreen: isBigScreen));
       break;
   }
 }

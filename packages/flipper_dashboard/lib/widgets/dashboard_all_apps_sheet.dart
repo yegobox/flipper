@@ -200,13 +200,20 @@ class _DashboardAllAppsSheetBody extends ConsumerWidget {
                     GridView.builder(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 4,
-                            mainAxisSpacing: 8,
-                            crossAxisSpacing: 4,
-                            childAspectRatio: 0.78,
-                          ),
+                      // Height from content, not width: a fixed aspect ratio
+                      // clipped two-line labels on 360dp phones and at large
+                      // text sizes. 78 = vertical padding + 54 icon + gap.
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 4,
+                        mainAxisSpacing: 8,
+                        crossAxisSpacing: 4,
+                        mainAxisExtent:
+                            80 +
+                            2 *
+                                MediaQuery.textScalerOf(
+                                  context,
+                                ).scale(11.5 * 1.2),
+                      ),
                       itemCount: sections[i].apps.length,
                       itemBuilder: (context, index) {
                         final tile = sections[i].apps[index];

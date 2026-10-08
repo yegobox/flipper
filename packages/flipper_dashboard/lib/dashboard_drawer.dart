@@ -137,11 +137,9 @@ class _DashboardDrawerState extends ConsumerState<DashboardDrawer>
           _buildModernHeader(context),
           Expanded(
             child: SingleChildScrollView(
-              padding: EdgeInsets.only(
-                bottom:
-                    MediaQuery.of(context).padding.bottom +
-                    80, // Account for bottom section
-              ),
+              // The sign-out section sits below this scroll view, not over
+              // it, so no extra clearance is needed.
+              padding: const EdgeInsets.only(bottom: 16),
               child: Column(
                 children: [
                   _buildQuickActions(context),
@@ -759,7 +757,8 @@ class _DashboardDrawerState extends ConsumerState<DashboardDrawer>
         left: 16,
         right: 16,
         top: 16,
-        bottom: MediaQuery.of(context).padding.bottom + 16,
+        // SafeArea below adds the home-indicator inset.
+        bottom: 16,
       ),
       decoration: BoxDecoration(
         color: const Color(0xFFF5F6F8),

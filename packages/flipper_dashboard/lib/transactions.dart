@@ -3,6 +3,7 @@ import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/DateCoreWidget.dart';
 import 'package:flipper_dashboard/export/headless_detailed_transaction_export_host.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/providers/currency_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_models/providers/date_range_provider.dart';
 import 'package:flutter/material.dart';
@@ -266,6 +267,7 @@ class TransactionsState extends ConsumerState<Transactions>
               ref.invalidate(transactionsScreenTransactionsProvider),
           child: _buildModernTransactionList(
             context: context,
+            currency: ref.watch(defaultCurrencyProvider),
             transactions: finalFilteredTransactions,
             routerService: _routerService,
           ),
@@ -284,6 +286,7 @@ class TransactionsState extends ConsumerState<Transactions>
 // QuickBooks-inspired professional transaction list
 Widget _buildModernTransactionList({
   required BuildContext context,
+  required String currency,
   required List<ITransaction> transactions,
   required RouterService routerService,
 }) {
@@ -299,13 +302,18 @@ Widget _buildModernTransactionList({
         // Transaction list
         Expanded(
           child: ListView.builder(
-            padding: EdgeInsets.zero,
+            // Keep the last row clear of the home indicator.
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.paddingOf(context).bottom + 16,
+            ),
             itemCount: transactions.length,
             itemBuilder: (context, index) {
               final transaction = transactions[index];
               final isLastItem = index == transactions.length - 1;
 
               return _buildModernTransactionItem(
+                context: context,
+                currency: currency,
                 transaction: transaction,
                 routerService: routerService,
                 isLastItem: isLastItem,
@@ -319,6 +327,8 @@ Widget _buildModernTransactionList({
 }
 
 Widget _buildModernTransactionItem({
+  required BuildContext context,
+  required String currency,
   required ITransaction transaction,
   required RouterService routerService,
   required bool isLastItem,
@@ -327,6 +337,14 @@ Widget _buildModernTransactionItem({
   final amount = NumberFormat(
     '#,###',
   ).format(double.parse(transaction.subTotal.toString()));
+  final type = transaction.transactionType;
+  final typeLabel = type == null || type.isEmpty
+      ? context.flipperL10n.transactionTypeUnclassified.toUpperCase()
+      : type
+            .split('.')
+            .last
+            .replaceAll(RegExp(r'([a-z])([A-Z])'), r'$1 $2')
+            .toUpperCase();
 
   return InkWell(
     onTap: () => routerService.navigateTo(
@@ -390,27 +408,26 @@ Widget _buildModernTransactionItem({
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      transaction.transactionType
-                          .toString()
-                          .split('.')
-                          .last
-                          .replaceAll(RegExp(r'([a-z])([A-Z])'), r'$1 $2')
-                          .toUpperCase(),
-                      style: GoogleFonts.outfit(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: const Color(0xFF374151),
+                    Expanded(
+                      child: Text(
+                        typeLabel,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.outfit(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: const Color(0xFF374151),
+                        ),
                       ),
                     ),
+                    const SizedBox(width: 12),
                     Text(
                       isIncome == true
-                          ? '+$amount RWF'
+                          ? '+$amount $currency'
                           : isIncome == false
-                          ? '-$amount RWF'
-                          : '$amount RWF', // No prefix for unclassified
+                          ? '-$amount $currency'
+                          : '$amount $currency', // No prefix for unclassified
                       style: FlipperFonts.mono(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,

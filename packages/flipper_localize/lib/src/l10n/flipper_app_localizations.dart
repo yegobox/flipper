@@ -9965,6 +9965,36 @@ abstract class FlipperAppLocalizations {
   /// **'last period'**
   String get dashboardGaugeLastPeriod;
 
+  /// Comparison period in the gauge chip when Today is selected, e.g. '12% vs yesterday'
+  ///
+  /// In en, this message translates to:
+  /// **'yesterday'**
+  String get dashboardCompareYesterday;
+
+  /// Comparison period in the gauge chip when This Week is selected
+  ///
+  /// In en, this message translates to:
+  /// **'last week'**
+  String get dashboardCompareLastWeek;
+
+  /// Comparison period in the gauge chip when This Month is selected
+  ///
+  /// In en, this message translates to:
+  /// **'last month'**
+  String get dashboardCompareLastMonth;
+
+  /// Comparison period in the gauge chip when This Year is selected
+  ///
+  /// In en, this message translates to:
+  /// **'last year'**
+  String get dashboardCompareLastYear;
+
+  /// Shown in the mobile transactions list for a transaction that has no type
+  ///
+  /// In en, this message translates to:
+  /// **'Unclassified'**
+  String get transactionTypeUnclassified;
+
   /// Dashboard app tile: POS
   ///
   /// In en, this message translates to:

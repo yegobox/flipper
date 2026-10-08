@@ -3,6 +3,7 @@ import 'package:flipper_design_system/flipper_design_system.dart';
 import 'dart:math' as math;
 import 'dart:ui' show lerpDouble;
 
+import 'package:flipper_dashboard/theme/mpos_tokens.dart';
 import 'package:flipper_services/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -18,6 +19,7 @@ class DashboardHomeGauge extends StatefulWidget {
     required this.profitType,
     required this.periodLabel,
     required this.isEmpty,
+    required this.currencyCode,
     this.deltaPercent,
     this.comparisonLabel,
   });
@@ -28,6 +30,7 @@ class DashboardHomeGauge extends StatefulWidget {
   final double deductions;
   final String profitType;
   final String periodLabel;
+  final String currencyCode;
   final bool isEmpty;
   final int? deltaPercent;
   final String? comparisonLabel;
@@ -140,11 +143,13 @@ class _DashboardHomeGaugeState extends State<DashboardHomeGauge>
                       ),
                       Positioned(
                         bottom: 8,
+                        left: 16,
+                        right: 16,
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
-                              'RWF',
+                              widget.currencyCode,
                               style: GoogleFonts.outfit(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w500,
@@ -164,18 +169,22 @@ class _DashboardHomeGaugeState extends State<DashboardHomeGauge>
                                         widget.value,
                                         _valueAnimation.value,
                                       )!;
-                                return Text(
-                                  formatNumber(displayed),
-                                  style: FlipperFonts.mono(
-                                    fontSize: 38,
-                                    fontWeight: FontWeight.w700,
-                                    color: widget.isEmpty
-                                        ? Colors.grey.shade400
-                                        : Colors.black87,
-                                    letterSpacing: -1.5,
-                                    fontFeatures: const [
-                                      FontFeature.tabularFigures(),
-                                    ],
+                                return FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  child: Text(
+                                    formatNumber(displayed),
+                                    maxLines: 1,
+                                    style: FlipperFonts.mono(
+                                      fontSize: 38,
+                                      fontWeight: FontWeight.w700,
+                                      color: widget.isEmpty
+                                          ? Colors.grey.shade400
+                                          : Colors.black87,
+                                      letterSpacing: -1.5,
+                                      fontFeatures: const [
+                                        FontFeature.tabularFigures(),
+                                      ],
+                                    ),
                                   ),
                                 );
                               },
@@ -256,10 +265,11 @@ class _DashboardHomeGaugeState extends State<DashboardHomeGauge>
     if (delta == null) return const SizedBox.shrink();
 
     final isUp = delta >= 0;
+    final ink = isUp ? _gainInk : _lossInk;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: const Color(0xFFE6F7EF),
+        color: isUp ? MposTokens.gainTint : MposTokens.lossTint,
         borderRadius: BorderRadius.circular(999),
       ),
       child: Row(
@@ -268,20 +278,24 @@ class _DashboardHomeGaugeState extends State<DashboardHomeGauge>
           Icon(
             isUp ? Icons.arrow_upward : Icons.arrow_downward,
             size: 12,
-            color: _gainInk,
+            color: ink,
           ),
           const SizedBox(width: 2),
-          Text(
-            context.flipperL10n.dashboardGaugeDeltaVs(
-              '${delta.abs()}',
-              widget.comparisonLabel ??
-                  context.flipperL10n.dashboardGaugeLastPeriod,
-            ),
-            style: FlipperFonts.mono(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: _gainInk,
-              fontFeatures: const [FontFeature.tabularFigures()],
+          Flexible(
+            child: Text(
+              context.flipperL10n.dashboardGaugeDeltaVs(
+                '${delta.abs()}',
+                widget.comparisonLabel ??
+                    context.flipperL10n.dashboardGaugeLastPeriod,
+              ),
+              style: FlipperFonts.mono(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: ink,
+                fontFeatures: const [FontFeature.tabularFigures()],
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],
@@ -324,13 +338,18 @@ class _DashboardHomeGaugeState extends State<DashboardHomeGauge>
             ],
           ),
           const SizedBox(height: 6),
-          Text(
-            widget.isEmpty ? '0' : formatNumber(value),
-            style: FlipperFonts.mono(
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-              color: valueColor,
-              fontFeatures: const [FontFeature.tabularFigures()],
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: AlignmentDirectional.centerStart,
+            child: Text(
+              widget.isEmpty ? '0' : formatNumber(value),
+              maxLines: 1,
+              style: FlipperFonts.mono(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: valueColor,
+                fontFeatures: const [FontFeature.tabularFigures()],
+              ),
             ),
           ),
         ],

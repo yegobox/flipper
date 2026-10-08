@@ -3,8 +3,10 @@ import 'package:flipper_localize/flipper_localize.dart';
 import 'dart:developer';
 
 import 'package:flipper_dashboard/widgets/app_icons_grid.dart';
+import 'package:flipper_dashboard/widgets/dashboard_mobile_bottom_nav.dart';
 import 'package:flipper_dashboard/widgets/dashboard_quick_access_svgs.dart';
 import 'package:flipper_dashboard/features/stock_value/stock_value_report_screen.dart';
+import 'package:flipper_models/providers/currency_provider.dart';
 import 'package:flipper_models/providers/stock_value_report_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_services/utils.dart';
@@ -67,6 +69,23 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
     }
   }
 
+  /// What the gauge delta is compared against, e.g. "12% vs yesterday".
+  String _comparisonLabel(String period) {
+    final l10n = context.flipperL10n;
+    switch (period) {
+      case 'Today':
+        return l10n.dashboardCompareYesterday;
+      case 'This Week':
+        return l10n.dashboardCompareLastWeek;
+      case 'This Month':
+        return l10n.dashboardCompareLastMonth;
+      case 'This Year':
+        return l10n.dashboardCompareLastYear;
+      default:
+        return l10n.dashboardGaugeLastPeriod;
+    }
+  }
+
   /// Display label for a profit option; the raw value feeds [displayValue].
   String _profitTypeLabel(String type) {
     final l10n = context.flipperL10n;
@@ -111,7 +130,10 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
                       _buildFooter(),
                       const SizedBox(height: 16),
                     ] else ...[
-                      const SizedBox(height: 16),
+                      // Clear the New sale button, which rises above the bar.
+                      const SizedBox(
+                        height: 16 + DashboardMobileBottomNav.fabRise,
+                      ),
                     ],
                   ],
                 ),
@@ -151,18 +173,21 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
               ),
             ),
             const SizedBox(height: 12),
-            Row(
-              children: profitTypeOptions.map((type) {
-                final isSelected = profitType == type;
-                return Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: _mobileProfitChip(
-                    label: _profitTypeLabel(type),
-                    selected: isSelected,
-                    onTap: () => setState(() => profitType = type),
-                  ),
-                );
-              }).toList(),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: profitTypeOptions.map((type) {
+                  final isSelected = profitType == type;
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: _mobileProfitChip(
+                      label: _profitTypeLabel(type),
+                      selected: isSelected,
+                      onTap: () => setState(() => profitType = type),
+                    ),
+                  );
+                }).toList(),
+              ),
             ),
           ],
         ),
@@ -376,6 +401,7 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
           );
 
     if (_mobileChrome) {
+      final currency = ref.watch(defaultCurrencyProvider);
       return gaugeAsync.when(
         data: (snapshot) {
           final previous = prevAsync.hasValue ? prevAsync.value : null;
@@ -390,17 +416,16 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
                   grossProfit: snapshot.grossProfit,
                   deductions: snapshot.deductions,
                   profitType: profitType,
-                  periodLabel: transactionPeriod,
+                  periodLabel: _periodLabel(transactionPeriod),
+                  currencyCode: currency,
                   isEmpty: !snapshot.hasActivity,
                   deltaPercent: _deltaPercent(snapshot, previous),
-                  comparisonLabel: dashboardComparisonPeriodLabel(
-                    transactionPeriod,
-                  ),
+                  comparisonLabel: _comparisonLabel(transactionPeriod),
                 ),
                 const SizedBox(height: 12),
-                _buildStockValueSummaryCard(context, ref, snapshot.isEmpty),
+                _buildStockValueSummaryCard(context, ref, currency),
                 const SizedBox(height: 12),
-                _buildRevenueExpenseRow(snapshot, previous),
+                _buildRevenueExpenseRow(snapshot, previous, currency),
                 const SizedBox(height: 12),
                 _buildDailyGoalCard(ref),
               ],
@@ -417,7 +442,8 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
               grossProfit: 0,
               deductions: 0,
               profitType: profitType,
-              periodLabel: transactionPeriod,
+              periodLabel: _periodLabel(transactionPeriod),
+              currencyCode: currency,
               isEmpty: true,
             ),
           );
@@ -587,7 +613,7 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
   Widget _buildStockValueSummaryCard(
     BuildContext context,
     WidgetRef ref,
-    bool analyticsEmpty,
+    String currency,
   ) {
     final summaryAsync = ref.watch(stockValueSummaryProvider);
 
@@ -633,28 +659,35 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
                       color: Colors.grey.shade700,
                     ),
                   ),
-                  const Spacer(),
-                  Text.rich(
-                    TextSpan(
-                      children: [
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: AlignmentDirectional.centerEnd,
+                      child: Text.rich(
                         TextSpan(
-                          text: 'RWF ',
-                          style: GoogleFonts.outfit(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.grey.shade500,
-                          ),
+                          children: [
+                            TextSpan(
+                              text: '$currency ',
+                              style: GoogleFonts.outfit(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.grey.shade500,
+                              ),
+                            ),
+                            TextSpan(
+                              text: formatNumber(summary.totalValue),
+                              style: FlipperFonts.mono(
+                                fontSize: 24,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.black87,
+                                letterSpacing: -0.5,
+                              ),
+                            ),
+                          ],
                         ),
-                        TextSpan(
-                          text: formatNumber(summary.totalValue),
-                          style: FlipperFonts.mono(
-                            fontSize: 24,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.black87,
-                            letterSpacing: -0.5,
-                          ),
-                        ),
-                      ],
+                        maxLines: 1,
+                      ),
                     ),
                   ),
                 ],
@@ -684,22 +717,20 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
                   Icon(
                     Icons.warning_amber_rounded,
                     size: 16,
-                    color: hasLowStock && !analyticsEmpty
+                    color: hasLowStock
                         ? const Color(0xFFB45309)
                         : Colors.grey.shade500,
                   ),
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(
-                      analyticsEmpty
-                          ? context.flipperL10n.dashViewItemsLowOnStock(0)
-                          : context.flipperL10n.dashViewItemsLowOnStock(
-                              summary.needsRestockCount,
-                            ),
+                      context.flipperL10n.dashViewItemsLowOnStock(
+                        summary.needsRestockCount,
+                      ),
                       style: GoogleFonts.outfit(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
-                        color: hasLowStock && !analyticsEmpty
+                        color: hasLowStock
                             ? const Color(0xFF92400E)
                             : Colors.grey.shade600,
                       ),
@@ -757,6 +788,7 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
   Widget _buildRevenueExpenseRow(
     DashboardGaugeSnapshot snapshot,
     DashboardGaugeSnapshot? previous,
+    String currency,
   ) {
     final hasRevenue = snapshot.hasRevenue;
     final hasExpenses = snapshot.hasDeductions;
@@ -767,36 +799,43 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
         ? _percentChange(snapshot.deductions, previous?.deductions ?? 0)
         : null;
 
-    return Row(
-      children: [
-        Expanded(
-          child: _summaryStatCard(
-            icon: DashboardQuickAccessSvgs.revenueSummaryIcon(),
-            iconBackground: const Color(0xFFE6F7EF),
-            label: context.flipperL10n.dashViewRevenue,
-            valueText: hasRevenue ? formatNumber(snapshot.revenue) : '0',
-            valueColor: hasRevenue
-                ? _summaryRevenueStroke
-                : Colors.grey.shade400,
-            deltaPercent: revenueDelta,
-            isUp: revenueDelta != null && revenueDelta >= 0,
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(
+            child: _summaryStatCard(
+              icon: DashboardQuickAccessSvgs.revenueSummaryIcon(),
+              currency: currency,
+              iconBackground: const Color(0xFFE6F7EF),
+              label: context.flipperL10n.dashViewRevenue,
+              valueText: hasRevenue ? formatNumber(snapshot.revenue) : '0',
+              valueColor: hasRevenue
+                  ? _summaryRevenueStroke
+                  : Colors.grey.shade400,
+              deltaPercent: revenueDelta,
+              isUp: revenueDelta != null && revenueDelta >= 0,
+            ),
           ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _summaryStatCard(
-            icon: DashboardQuickAccessSvgs.expensesSummaryIcon(),
-            iconBackground: const Color(0xFFFDECEC),
-            label: context.flipperL10n.dashViewExpenses,
-            valueText: hasExpenses ? formatNumber(snapshot.deductions) : '0',
-            valueColor: hasExpenses
-                ? _summaryExpenseStroke
-                : Colors.grey.shade400,
-            deltaPercent: expenseDelta,
-            isUp: expenseDelta != null && expenseDelta >= 0,
+          const SizedBox(width: 12),
+          Expanded(
+            child: _summaryStatCard(
+              icon: DashboardQuickAccessSvgs.expensesSummaryIcon(),
+              currency: currency,
+              iconBackground: const Color(0xFFFDECEC),
+              label: context.flipperL10n.dashViewExpenses,
+              valueText: hasExpenses ? formatNumber(snapshot.deductions) : '0',
+              valueColor: hasExpenses
+                  ? _summaryExpenseStroke
+                  : Colors.grey.shade400,
+              deltaPercent: expenseDelta,
+              isUp: expenseDelta != null && expenseDelta >= 0,
+              // More spending than last period is the bad direction.
+              upIsGood: false,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -807,13 +846,18 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
 
   Widget _summaryStatCard({
     required Widget icon,
+    required String currency,
     required Color iconBackground,
     required String label,
     required String valueText,
     required Color valueColor,
     int? deltaPercent,
     bool isUp = true,
+    bool upIsGood = true,
   }) {
+    final deltaColor = isUp == upIsGood
+        ? _summaryRevenueStroke
+        : _summaryExpenseStroke;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -851,27 +895,32 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
             ),
           ),
           const SizedBox(height: 4),
-          Text.rich(
-            TextSpan(
-              children: [
-                TextSpan(
-                  text: 'RWF ',
-                  style: GoogleFonts.outfit(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.grey.shade500,
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: AlignmentDirectional.centerStart,
+            child: Text.rich(
+              TextSpan(
+                children: [
+                  TextSpan(
+                    text: '$currency ',
+                    style: GoogleFonts.outfit(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.grey.shade500,
+                    ),
                   ),
-                ),
-                TextSpan(
-                  text: valueText,
-                  style: FlipperFonts.mono(
-                    fontSize: 21,
-                    fontWeight: FontWeight.w700,
-                    color: valueColor,
-                    letterSpacing: -0.5,
+                  TextSpan(
+                    text: valueText,
+                    style: FlipperFonts.mono(
+                      fontSize: 21,
+                      fontWeight: FontWeight.w700,
+                      color: valueColor,
+                      letterSpacing: -0.5,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
+              maxLines: 1,
             ),
           ),
           if (deltaPercent != null) ...[
@@ -879,23 +928,27 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
             Row(
               children: [
                 Icon(
-                  isUp ? Icons.trending_up : Icons.arrow_downward,
+                  isUp ? Icons.arrow_upward : Icons.arrow_downward,
                   size: 12,
-                  color: isUp ? _summaryRevenueStroke : _summaryExpenseStroke,
+                  color: deltaColor,
                 ),
                 const SizedBox(width: 2),
-                Text(
-                  isUp
-                      ? context.flipperL10n.dashViewDeltaUp(
-                          '${deltaPercent.abs()}',
-                        )
-                      : context.flipperL10n.dashViewDeltaDown(
-                          '${deltaPercent.abs()}',
-                        ),
-                  style: FlipperFonts.mono(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    color: isUp ? _summaryRevenueStroke : _summaryExpenseStroke,
+                Flexible(
+                  child: Text(
+                    isUp
+                        ? context.flipperL10n.dashViewDeltaUp(
+                            '${deltaPercent.abs()}',
+                          )
+                        : context.flipperL10n.dashViewDeltaDown(
+                            '${deltaPercent.abs()}',
+                          ),
+                    style: FlipperFonts.mono(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: deltaColor,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],

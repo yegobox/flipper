@@ -75,76 +75,80 @@ class _UserManagementAppBar extends StatelessWidget
   Widget build(BuildContext context) {
     return Material(
       color: Colors.white,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          SizedBox(
-            height: kToolbarHeight,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4),
-              child: Row(
-                children: [
-                  _CircleOutlineIconButton(
-                    icon: Icons.close,
-                    onPressed: onClose,
-                  ),
-                  Expanded(
-                    child: Text(
-                      context.flipperL10n.userManagement,
-                      style: GoogleFonts.outfit(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                        color: const Color(0xFF111827),
+      child: SafeArea(
+        bottom: false,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              height: kToolbarHeight,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: Row(
+                  children: [
+                    _CircleOutlineIconButton(
+                      icon: Icons.close,
+                      onPressed: onClose,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        context.flipperL10n.userManagement,
+                        style: GoogleFonts.outfit(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFF111827),
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                     ),
-                  ),
-                  PopupMenuButton<String>(
-                    padding: EdgeInsets.zero,
-                    offset: const Offset(0, 40),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    onSelected: (value) async {
-                      if (value == 'refresh') await onRefresh();
-                    },
-                    itemBuilder: (context) => [
-                      PopupMenuItem<String>(
-                        value: 'refresh',
-                        child: Text(
-                          context.flipperL10n.tenantRefreshUserList,
-                          style: GoogleFonts.outfit(
-                            fontWeight: FontWeight.w500,
-                            fontSize: 15,
+                    PopupMenuButton<String>(
+                      padding: EdgeInsets.zero,
+                      offset: const Offset(0, 40),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      onSelected: (value) async {
+                        if (value == 'refresh') await onRefresh();
+                      },
+                      itemBuilder: (context) => [
+                        PopupMenuItem<String>(
+                          value: 'refresh',
+                          child: Text(
+                            context.flipperL10n.tenantRefreshUserList,
+                            style: GoogleFonts.outfit(
+                              fontWeight: FontWeight.w500,
+                              fontSize: 15,
+                            ),
+                          ),
+                        ),
+                      ],
+                      child: Padding(
+                        padding: const EdgeInsets.all(4),
+                        child: Container(
+                          width: 40,
+                          height: 40,
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(color: _outline),
+                          ),
+                          child: const Icon(
+                            Icons.more_vert,
+                            size: 22,
+                            color: _iconColor,
                           ),
                         ),
                       ),
-                    ],
-                    child: Padding(
-                      padding: const EdgeInsets.all(4),
-                      child: Container(
-                        width: 40,
-                        height: 40,
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(color: _outline),
-                        ),
-                        child: const Icon(
-                          Icons.more_vert,
-                          size: 22,
-                          color: _iconColor,
-                        ),
-                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
-          ),
-          const Divider(height: 1, thickness: 1, color: _outline),
-        ],
+            const Divider(height: 1, thickness: 1, color: _outline),
+          ],
+        ),
       ),
     );
   }

@@ -893,22 +893,6 @@ final dashboardGaugeSnapshotProvider = StreamProvider.autoDispose
       });
     });
 
-/// Label for period-over-period comparison copy on the dashboard gauge.
-String dashboardComparisonPeriodLabel(String period) {
-  switch (period) {
-    case 'Today':
-      return 'yesterday';
-    case 'This Week':
-      return 'last week';
-    case 'This Month':
-      return 'last month';
-    case 'This Year':
-      return 'last year';
-    default:
-      return 'previous period';
-  }
-}
-
 /// Inclusive start of the window immediately before [period]'s current window.
 DateTime dashboardPreviousPeriodStart(String period) {
   final current = dashboardPeriodStart(period);
