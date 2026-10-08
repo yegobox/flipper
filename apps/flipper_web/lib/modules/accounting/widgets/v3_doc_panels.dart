@@ -9,6 +9,7 @@ import 'package:flipper_web/modules/accounting/data/accounting_models.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_providers.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_v3_models.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_v3_providers.dart';
+import 'package:flipper_web/modules/accounting/data/books_bill_payment.dart';
 import 'package:flipper_web/modules/accounting/data/chart_account_resolver.dart';
 import 'package:flipper_web/modules/accounting/theme/accounting_tokens.dart';
 import 'package:flipper_web/modules/accounting/widgets/accounting_page_header.dart';
@@ -666,6 +667,9 @@ class _PaymentModalPanelState extends ConsumerState<PaymentModalPanel> {
               paymentAccount: _method,
               accounts: accounts,
               fallbackTotal: docGrandTotal(widget.doc),
+              cashOut: await ref.read(booksBillCashOutProvider)(
+                widget.doc.uuid!,
+              ),
             );
       } else {
         final poster = DocumentJournalPoster(

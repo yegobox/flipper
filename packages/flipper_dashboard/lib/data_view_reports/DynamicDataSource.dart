@@ -1,3 +1,5 @@
+import 'package:flipper_dashboard/cashbook_form_rules.dart'
+    show cashbookCategoryName;
 import 'package:flipper_dashboard/export/utils/plu_detailed_report_row.dart';
 import 'package:flipper_dashboard/popup_modal.dart';
 import 'package:flipper_dashboard/Refund.dart';
@@ -58,12 +60,14 @@ String _transactionReportStatusLabel(ITransaction tx) {
   return tx.status ?? '—';
 }
 
-/// Grid + export Type column: Cash In / Cash Out for cash book; else receipt code (NS, …).
+/// Grid + export Type column: Cash In / Cash Out for cash book, followed by the
+/// chosen category ("Cash Out · Rent"); else receipt code (NS, …).
 String transactionReportGridTypeLabel(ITransaction t) {
   final rt = t.receiptType;
   if (rt != null &&
       (rt == TransactionType.cashIn || rt == TransactionType.cashOut)) {
-    return rt;
+    final category = cashbookCategoryName(t.transactionType);
+    return category == null ? rt : '$rt · $category';
   }
   return rt ?? '-';
 }

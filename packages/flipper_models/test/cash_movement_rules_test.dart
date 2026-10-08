@@ -66,4 +66,43 @@ void main() {
       );
     });
   });
+
+  group('cashMovementClassification', () {
+    Map<String, Object?> classify({
+      String? categoryName,
+      String? categoryId,
+      String movementName = 'Cash Out',
+    }) => cashMovementClassification(
+      categoryName: categoryName,
+      movementName: movementName,
+      categoryId: categoryId,
+      paymentType: 'MTN MOMO',
+      receiptType: movementName,
+    );
+
+    test('a chosen category is stored as the transaction type', () {
+      expect(classify(categoryName: 'Rent', categoryId: 'cat-1'), {
+        'transactionType': 'Rent',
+        'categoryId': 'cat-1',
+        'paymentType': 'MTN MOMO',
+        'receiptType': 'Cash Out',
+      });
+    });
+
+    test('no category stores the movement name, never "Sale" or blank', () {
+      for (final name in [null, '', '  ', 'Sale']) {
+        final fields = classify(
+          categoryName: name,
+          categoryId: '',
+          movementName: 'Cash In',
+        );
+        expect(fields['transactionType'], 'Cash In', reason: '$name');
+        expect(fields['categoryId'], isNull, reason: '$name');
+      }
+    });
+
+    test('names are trimmed', () {
+      expect(classify(categoryName: ' Rent ')['transactionType'], 'Rent');
+    });
+  });
 }

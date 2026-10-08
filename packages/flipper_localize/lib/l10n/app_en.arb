@@ -4107,6 +4107,10 @@
     "@exportDataSheetExpenses": {
         "description": "Excel sheet name (max 31 chars, no apostrophes)"
     },
+    "exportDataSheetCashIn": "Cash In",
+    "@exportDataSheetCashIn": {
+        "description": "Excel sheet name and its first column header, listing the Cash Book money-in entries (max 31 chars, no apostrophes)"
+    },
     "exportDataSheetPaymentMethods": "Payment Methods",
     "@exportDataSheetPaymentMethods": {
         "description": "Excel sheet name (max 31 chars, no apostrophes)"
@@ -4114,12 +4118,15 @@
     "exportDataTotalSalesLines": "Total Sales (lines):",
     "exportDataNetProfitBeforeExpenses": "Total Net Profit (Before Expenses):",
     "exportDataNetProfitAfterExpenses": "Final Net Profit (After Expenses):",
+    "exportDataNetProfitAfterCashIn": "Final Net Profit (After Cash In):",
+    "exportDataNetProfitAfterExpensesAndCashIn": "Final Net Profit (After Expenses & Cash In):",
     "exportDataPaymentType": "Payment Type",
     "exportDataSaleAmount": "Sale amount",
     "exportDataTransactionCount": "Transaction Count",
     "exportDataPercentOfTotal": "% of Total",
     "exportDataExpense": "Expense",
     "exportDataTotalExpenses": "Total Expenses",
+    "exportDataTotalCashIn": "Total Cash In",
     "exportDataShareSubject": "Report Download - {date}",
     "@exportDataShareSubject": {
         "placeholders": {
@@ -18695,5 +18702,60 @@
     },
     "branchLocationZoomIn": "Zoom in",
     "branchLocationZoomOut": "Zoom out",
-    "branchLocationDragInstead": "You can still drag the map to place the pin."
+    "branchLocationDragInstead": "You can still drag the map to place the pin.",
+    "purchasePaySupplier": "Pay supplier",
+    "purchaseOwedToSupplier": "Owed to supplier: {amount}",
+    "@purchaseOwedToSupplier": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
+    "purchasePaidFrom": "Paid from",
+    "purchasePaidFromBank": "Bank",
+    "purchasePaidFromMomo": "Mobile money",
+    "purchasePayAmountTooHigh": "Enter an amount up to {amount}",
+    "@purchasePayAmountTooHigh": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
+    "purchaseSupplierPaid": "Supplier paid. Still owed: {amount}",
+    "@purchaseSupplierPaid": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
+    "purchaseSupplierPaidInFull": "Supplier paid in full",
+    "purchasePaySupplierFailed": "Payment failed: {error}",
+    "@purchasePaySupplierFailed": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "purchasePaidInFull": "Paid in full",
+    "purchaseSearchHint": "Search supplier, invoice, TIN or item",
+    "purchaseOwesAmount": "Owes {amount}",
+    "@purchaseOwesAmount": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
+    "purchaseSearchNoMatch": "No purchases match “{query}”",
+    "@purchaseSearchNoMatch": {
+        "placeholders": {
+            "query": {
+                "type": "String"
+            }
+        }
+    }
 }

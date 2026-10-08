@@ -19,7 +19,10 @@ void main() {
   group('formulaSheetPrefix', () {
     test('simple names unquoted', () {
       expect(PluExcelFormulaBuilder.formulaSheetPrefix('Report'), 'Report!');
-      expect(PluExcelFormulaBuilder.formulaSheetPrefix('Expenses'), 'Expenses!');
+      expect(
+        PluExcelFormulaBuilder.formulaSheetPrefix('Expenses'),
+        'Expenses!',
+      );
     });
 
     test('names with spaces are quoted', () {
@@ -37,7 +40,10 @@ void main() {
     });
 
     test('trim and empty', () {
-      expect(PluExcelFormulaBuilder.formulaSheetPrefix('  Report  '), 'Report!');
+      expect(
+        PluExcelFormulaBuilder.formulaSheetPrefix('  Report  '),
+        'Report!',
+      );
       expect(PluExcelFormulaBuilder.formulaSheetPrefix(''), '');
     });
   });
@@ -59,8 +65,7 @@ void main() {
       };
     }
 
-    test('type B: VAT-inclusive on net revenue (price×qty − discount)',
-        () {
+    test('type B: VAT-inclusive on net revenue (price×qty − discount)', () {
       expect(
         PluExcelFormulaBuilder.pluTaxPayableExcelFormula(
           rowData: baseRow(ty: 'B'),
@@ -73,19 +78,21 @@ void main() {
       );
     });
 
-    test('type B ignores stored taxAmt (derives from rate, not fiscal fields)',
-        () {
-      expect(
-        PluExcelFormulaBuilder.pluTaxPayableExcelFormula(
-          rowData: baseRow(taxAmt: 12.5),
-          excelRow: 2,
-          priceLetter: 'D',
-          qtyLetter: 'F',
-          taxRateLetter: 'H',
-        ),
-        '=IF((D2*F2-0)<=0,0,ROUND(((D2*F2-0))*H2/(100+H2),2))',
-      );
-    });
+    test(
+      'type B ignores stored taxAmt (derives from rate, not fiscal fields)',
+      () {
+        expect(
+          PluExcelFormulaBuilder.pluTaxPayableExcelFormula(
+            rowData: baseRow(taxAmt: 12.5),
+            excelRow: 2,
+            priceLetter: 'D',
+            qtyLetter: 'F',
+            taxRateLetter: 'H',
+          ),
+          '=IF((D2*F2-0)<=0,0,ROUND(((D2*F2-0))*H2/(100+H2),2))',
+        );
+      },
+    );
 
     test('type B ignores stored tot/taxbl', () {
       expect(
@@ -100,37 +107,40 @@ void main() {
       );
     });
 
-    test('rate-driven for every tax type (A, C, D, F, TT) — rate cell drives it,'
-        ' so a 0-rate line yields 0', () {
-      for (final ty in const ['A', 'C', 'D', 'F', 'TT', 'd']) {
-        expect(
-          PluExcelFormulaBuilder.pluTaxPayableExcelFormula(
-            rowData: baseRow(ty: ty),
-            excelRow: 4,
-            priceLetter: 'D',
-            qtyLetter: 'F',
-            taxRateLetter: 'H',
-          ),
-          '=IF((D4*F4-0)<=0,0,ROUND(((D4*F4-0))*H4/(100+H4),2))',
-          reason: 'tax type $ty should use the per-line rate cell (H4)',
-        );
-      }
-    });
+    test(
+      'rate-driven for every tax type (A, C, D, F, TT) — rate cell drives it,'
+      ' so a 0-rate line yields 0',
+      () {
+        for (final ty in const ['A', 'C', 'D', 'F', 'TT', 'd']) {
+          expect(
+            PluExcelFormulaBuilder.pluTaxPayableExcelFormula(
+              rowData: baseRow(ty: ty),
+              excelRow: 4,
+              priceLetter: 'D',
+              qtyLetter: 'F',
+              taxRateLetter: 'H',
+            ),
+            '=IF((D4*F4-0)<=0,0,ROUND(((D4*F4-0))*H4/(100+H4),2))',
+            reason: 'tax type $ty should use the per-line rate cell (H4)',
+          );
+        }
+      },
+    );
 
-    test('tax column J row 9 keeps J9 and D9 separate (no glued J9D9 token)', () {
-      final f = PluExcelFormulaBuilder.pluTaxPayableExcelFormula(
-        rowData: baseRow(ty: 'B'),
-        excelRow: 9,
-        priceLetter: 'D',
-        qtyLetter: 'F',
-        taxRateLetter: 'J',
-      );
-      expect(
-        f,
-        '=IF((D9*F9-0)<=0,0,ROUND(((D9*F9-0))*J9/(100+J9),2))',
-      );
-      expect(f, isNot(contains('J9D')));
-    });
+    test(
+      'tax column J row 9 keeps J9 and D9 separate (no glued J9D9 token)',
+      () {
+        final f = PluExcelFormulaBuilder.pluTaxPayableExcelFormula(
+          rowData: baseRow(ty: 'B'),
+          excelRow: 9,
+          priceLetter: 'D',
+          qtyLetter: 'F',
+          taxRateLetter: 'J',
+        );
+        expect(f, '=IF((D9*F9-0)<=0,0,ROUND(((D9*F9-0))*J9/(100+J9),2))');
+        expect(f, isNot(contains('J9D')));
+      },
+    );
 
     test('type B subtracts line discount from tax base', () {
       expect(
@@ -221,6 +231,31 @@ void main() {
           totalExpensesRow: 5,
         ),
         "='Stock Recount'!K20-Expenses!B5",
+      );
+    });
+
+    test('finalNetProfitFormula adds the Cash In total', () {
+      expect(
+        PluExcelFormulaBuilder.finalNetProfitFormula(
+          reportSheetName: 'Report',
+          netProfitColumnLetter: 'K',
+          netProfitBeforeExpensesRow: 12,
+          expensesSheetName: 'Expenses',
+          totalExpensesRow: 8,
+          cashInSheetName: 'Cash In',
+          totalCashInRow: 4,
+        ),
+        "=Report!K12-Expenses!B8+'Cash In'!B4",
+      );
+      expect(
+        PluExcelFormulaBuilder.finalNetProfitFormula(
+          reportSheetName: 'Report',
+          netProfitColumnLetter: 'K',
+          netProfitBeforeExpensesRow: 12,
+          cashInSheetName: 'Cash In',
+          totalCashInRow: 3,
+        ),
+        "=Report!K12+'Cash In'!B3",
       );
     });
 

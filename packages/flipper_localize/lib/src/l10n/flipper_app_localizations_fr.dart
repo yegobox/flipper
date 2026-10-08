@@ -4895,6 +4895,9 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   String get exportDataSheetExpenses => 'Dépenses';
 
   @override
+  String get exportDataSheetCashIn => 'Entrées de caisse';
+
+  @override
   String get exportDataSheetPaymentMethods => 'Moyens de paiement';
 
   @override
@@ -4907,6 +4910,14 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   @override
   String get exportDataNetProfitAfterExpenses =>
       'Bénéfice net final (après dépenses) :';
+
+  @override
+  String get exportDataNetProfitAfterCashIn =>
+      'Bénéfice net final (après entrées de caisse) :';
+
+  @override
+  String get exportDataNetProfitAfterExpensesAndCashIn =>
+      'Bénéfice net final (après dépenses et entrées de caisse) :';
 
   @override
   String get exportDataPaymentType => 'Type de paiement';
@@ -4925,6 +4936,9 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
 
   @override
   String get exportDataTotalExpenses => 'Total des dépenses';
+
+  @override
+  String get exportDataTotalCashIn => 'Total des entrées de caisse';
 
   @override
   String exportDataShareSubject(String date) {
@@ -24993,4 +25007,56 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   @override
   String get branchLocationDragInstead =>
       'Vous pouvez toujours déplacer la carte pour placer l\'épingle.';
+
+  @override
+  String get purchasePaySupplier => 'Payer le fournisseur';
+
+  @override
+  String purchaseOwedToSupplier(String amount) {
+    return 'Dû au fournisseur : $amount';
+  }
+
+  @override
+  String get purchasePaidFrom => 'Payé depuis';
+
+  @override
+  String get purchasePaidFromBank => 'Banque';
+
+  @override
+  String get purchasePaidFromMomo => 'Mobile money';
+
+  @override
+  String purchasePayAmountTooHigh(String amount) {
+    return 'Saisissez un montant jusqu\'à $amount';
+  }
+
+  @override
+  String purchaseSupplierPaid(String amount) {
+    return 'Fournisseur payé. Reste dû : $amount';
+  }
+
+  @override
+  String get purchaseSupplierPaidInFull => 'Fournisseur entièrement payé';
+
+  @override
+  String purchasePaySupplierFailed(String error) {
+    return 'Échec du paiement : $error';
+  }
+
+  @override
+  String get purchasePaidInFull => 'Entièrement payé';
+
+  @override
+  String get purchaseSearchHint =>
+      'Rechercher fournisseur, facture, NIF ou article';
+
+  @override
+  String purchaseOwesAmount(String amount) {
+    return 'Dû : $amount';
+  }
+
+  @override
+  String purchaseSearchNoMatch(String query) {
+    return 'Aucun achat ne correspond à « $query »';
+  }
 }

@@ -8417,6 +8417,12 @@ abstract class FlipperAppLocalizations {
   /// **'Expenses'**
   String get exportDataSheetExpenses;
 
+  /// Excel sheet name and its first column header, listing the Cash Book money-in entries (max 31 chars, no apostrophes)
+  ///
+  /// In en, this message translates to:
+  /// **'Cash In'**
+  String get exportDataSheetCashIn;
+
   /// Excel sheet name (max 31 chars, no apostrophes)
   ///
   /// In en, this message translates to:
@@ -8440,6 +8446,18 @@ abstract class FlipperAppLocalizations {
   /// In en, this message translates to:
   /// **'Final Net Profit (After Expenses):'**
   String get exportDataNetProfitAfterExpenses;
+
+  /// No description provided for @exportDataNetProfitAfterCashIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Final Net Profit (After Cash In):'**
+  String get exportDataNetProfitAfterCashIn;
+
+  /// No description provided for @exportDataNetProfitAfterExpensesAndCashIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Final Net Profit (After Expenses & Cash In):'**
+  String get exportDataNetProfitAfterExpensesAndCashIn;
 
   /// No description provided for @exportDataPaymentType.
   ///
@@ -8476,6 +8494,12 @@ abstract class FlipperAppLocalizations {
   /// In en, this message translates to:
   /// **'Total Expenses'**
   String get exportDataTotalExpenses;
+
+  /// No description provided for @exportDataTotalCashIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Cash In'**
+  String get exportDataTotalCashIn;
 
   /// No description provided for @exportDataShareSubject.
   ///
@@ -41128,6 +41152,84 @@ abstract class FlipperAppLocalizations {
   /// In en, this message translates to:
   /// **'You can still drag the map to place the pin.'**
   String get branchLocationDragInstead;
+
+  /// No description provided for @purchasePaySupplier.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay supplier'**
+  String get purchasePaySupplier;
+
+  /// No description provided for @purchaseOwedToSupplier.
+  ///
+  /// In en, this message translates to:
+  /// **'Owed to supplier: {amount}'**
+  String purchaseOwedToSupplier(String amount);
+
+  /// No description provided for @purchasePaidFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid from'**
+  String get purchasePaidFrom;
+
+  /// No description provided for @purchasePaidFromBank.
+  ///
+  /// In en, this message translates to:
+  /// **'Bank'**
+  String get purchasePaidFromBank;
+
+  /// No description provided for @purchasePaidFromMomo.
+  ///
+  /// In en, this message translates to:
+  /// **'Mobile money'**
+  String get purchasePaidFromMomo;
+
+  /// No description provided for @purchasePayAmountTooHigh.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter an amount up to {amount}'**
+  String purchasePayAmountTooHigh(String amount);
+
+  /// No description provided for @purchaseSupplierPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Supplier paid. Still owed: {amount}'**
+  String purchaseSupplierPaid(String amount);
+
+  /// No description provided for @purchaseSupplierPaidInFull.
+  ///
+  /// In en, this message translates to:
+  /// **'Supplier paid in full'**
+  String get purchaseSupplierPaidInFull;
+
+  /// No description provided for @purchasePaySupplierFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment failed: {error}'**
+  String purchasePaySupplierFailed(String error);
+
+  /// No description provided for @purchasePaidInFull.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid in full'**
+  String get purchasePaidInFull;
+
+  /// No description provided for @purchaseSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search supplier, invoice, TIN or item'**
+  String get purchaseSearchHint;
+
+  /// No description provided for @purchaseOwesAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Owes {amount}'**
+  String purchaseOwesAmount(String amount);
+
+  /// No description provided for @purchaseSearchNoMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'No purchases match “{query}”'**
+  String purchaseSearchNoMatch(String query);
 }
 
 class _FlipperAppLocalizationsDelegate

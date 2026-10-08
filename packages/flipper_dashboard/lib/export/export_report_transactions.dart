@@ -22,6 +22,17 @@ List<ITransaction> exportSalesTransactionsOnly(
   return reportTransactions.where(transactionIsReportExportSale).toList();
 }
 
+/// Cash Book money-in rows of the report, for the export's Cash In sheet.
+/// The same rows the Net Profit card adds (`periodCashIn`), so the exported
+/// Final Net Profit and the screen agree.
+List<ITransaction> exportCashInTransactionsOnly(
+  List<ITransaction> reportTransactions,
+) {
+  return reportTransactions
+      .where((tx) => tx.receiptType == TransactionType.cashIn)
+      .toList();
+}
+
 /// Restrict payment-sum map to [transactions] (e.g. sales-only subset).
 Map<String, TransactionPaymentSums> exportPaymentSumsSubsetForTransactions(
   Map<String, TransactionPaymentSums>? full,

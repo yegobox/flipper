@@ -165,6 +165,9 @@ class DetailedTransactionReportExportHostState
       expenseTransactions,
       sales: exportSales,
     );
+    final cashIn = exportCashInTransactionsOnly(
+      fullSnap.transactions,
+    ).map(Expense.fromTransaction).toList();
     if (items.isEmpty) {
       throw StateError('no_line_items');
     }
@@ -189,6 +192,7 @@ class DetailedTransactionReportExportHostState
       config: config,
       headerTitle: headerTitle ?? l10n.reportTitleReport,
       expenses: expenses,
+      cashIn: cashIn,
       bottomEndOfRowTitle: l10n.reportTotalGrossProfit,
       showProfitCalculations: true,
       manualData: manualData.isNotEmpty ? manualData : null,

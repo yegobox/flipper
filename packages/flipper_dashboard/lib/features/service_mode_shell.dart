@@ -43,6 +43,8 @@ bool _isShellRoute(Route<dynamic> route) =>
 /// Safe to call from anywhere and as often as you like: it only navigates
 /// when the shell is actually wrong.
 void syncServiceModeShell() {
+  // [applyServiceMode] bumps the revision again when it finishes.
+  if (serviceModeSwitchInProgress) return;
   final router = locator<RouterService>().router;
   final routeName = router.current.name;
   final currentShell = _shellOf(routeName);
@@ -145,11 +147,22 @@ class ServiceModeShellGuard extends HookWidget {
     final revision = useValueListenable(serviceModeRevision);
     final isTopRoute = ModalRoute.isCurrentOf(context) ?? false;
     useEffect(() {
-      WidgetsBinding.instance.addPostFrameCallback(
-        (_) => syncServiceModeShell(),
-      );
+      _scheduleShellSync();
       return null;
     }, [revision, isTopRoute]);
     return child;
   }
+}
+
+bool _shellSyncScheduled = false;
+
+/// At most one pending sync per frame, however many guards and revision bumps
+/// asked for one: each sync may navigate, and a burst of them stacked hosts.
+void _scheduleShellSync() {
+  if (_shellSyncScheduled) return;
+  _shellSyncScheduled = true;
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    _shellSyncScheduled = false;
+    syncServiceModeShell();
+  });
 }

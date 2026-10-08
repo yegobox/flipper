@@ -171,6 +171,10 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   Future<String?> exportDataGrid({
     required ExportConfig config,
     List<Expense>? expenses,
+
+    /// Cash Book money-in entries. Listed on their own sheet and added to the
+    /// final net profit, as [expenses] are deducted from it.
+    List<Expense>? cashIn,
     bool isStockRecount = false,
     required String headerTitle,
     required String bottomEndOfRowTitle,
@@ -649,22 +653,40 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
             talker.debug('Auto-fitting columns without profit calculations');
           }
 
-          // First add the expenses sheet if there are expenses and we're showing profit calculations
+          // First add the expenses and cash in sheets if we're showing profit calculations
+          final l10n = FlipperL10n.current;
           bool hasExpensesSheet = false;
           if (showProfitCalculations &&
               expenses != null &&
               expenses.isNotEmpty) {
-            _addExpensesSheet(
+            _addCashBookSheet(
               workbook,
               expenses,
-              styler,
               config.currencyFormat,
+              sheetName: l10n.exportDataSheetExpenses,
+              nameHeader: l10n.exportDataExpense,
+              totalLabel: l10n.exportDataTotalExpenses,
+              totalRangeName: 'TotalExpenses',
             );
             hasExpensesSheet = true;
           }
+          bool hasCashInSheet = false;
+          if (showProfitCalculations && cashIn != null && cashIn.isNotEmpty) {
+            _addCashBookSheet(
+              workbook,
+              cashIn,
+              config.currencyFormat,
+              sheetName: l10n.exportDataSheetCashIn,
+              nameHeader: l10n.exportDataSheetCashIn,
+              totalLabel: l10n.exportDataTotalCashIn,
+              totalRangeName: 'TotalCashIn',
+            );
+            hasCashInSheet = true;
+          }
 
-          // Then add the Net Profit row to the report sheet if we have expenses and showing profit calculations
-          if (showProfitCalculations && hasExpensesSheet) {
+          // Then add the Final Net Profit row to the report sheet: before
+          // expenses, less expenses, plus cash in.
+          if (showProfitCalculations && (hasExpensesSheet || hasCashInSheet)) {
             _addNetProfitRow(reportSheet, workbook, config.currencyFormat);
           }
 
@@ -909,8 +931,8 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     return null;
   }
 
-  // Add Final Net Profit row to the report sheet after the Expenses sheet has been created
-  // This calculates: Total Net Profit (Before Expenses) - Total Expenses = Final Net Profit
+  // Add Final Net Profit row to the report sheet after the Expenses / Cash In sheets have been created
+  // This calculates: Total Net Profit (Before Expenses) - Total Expenses + Total Cash In = Final Net Profit
   void _addNetProfitRow(
     excel.Worksheet reportSheet,
     excel.Workbook workbook,
@@ -985,10 +1007,28 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           '#E2EFDA'; // Light green background for Final Net Profit
       finalNetProfitStyle.numberFormat = _excelPluAmountNumberFormat;
 
+      // Find the Expenses / Cash In sheets; at least one exists at this point.
+      // Each one's total sits on its last row.
+      final l10n = FlipperL10n.current;
+      final expensesSheet = _findWorksheetByName(
+        workbook,
+        l10n.exportDataSheetExpenses,
+      );
+      final cashInSheet = _findWorksheetByName(
+        workbook,
+        l10n.exportDataSheetCashIn,
+      );
+
       // Add 'Final Net Profit (After Expenses):' label
       reportSheet
           .getRangeByIndex(finalNetProfitRowIndex, labelCol)
-          .setText(FlipperL10n.current.exportDataNetProfitAfterExpenses);
+          .setText(
+            cashInSheet == null
+                ? l10n.exportDataNetProfitAfterExpenses
+                : expensesSheet == null
+                ? l10n.exportDataNetProfitAfterCashIn
+                : l10n.exportDataNetProfitAfterExpensesAndCashIn,
+          );
       reportSheet.getRangeByIndex(finalNetProfitRowIndex, labelCol).cellStyle =
           finalNetProfitStyle;
 
@@ -998,31 +1038,24 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         netProfitColumn,
       );
 
-      // Find the Expenses sheet which we know exists at this point
-      final expensesSheet = _findWorksheetByName(
-        workbook,
-        FlipperL10n.current.exportDataSheetExpenses,
-      );
-      if (expensesSheet != null) {
-        final lastExpenseRow = expensesSheet.getLastRow();
-        final totalExpensesRowIndex = lastExpenseRow;
-
+      if (expensesSheet != null || cashInSheet != null) {
         // Qualified sheet refs (no XML-escaped \'…\'): Sheets imports handle Report!A1 / Expenses!B1 reliably.
-        final formula =
-            PluExcelFormulaBuilder.finalNetProfitAfterExpensesFormula(
-              reportSheetName: reportSheet.name,
-              expensesSheetName: expensesSheet.name,
-              netProfitColumnLetter: _getColumnLetter(netProfitColumn),
-              netProfitBeforeExpensesRow: totalRowIndex,
-              totalExpensesRow: totalExpensesRowIndex,
-            );
+        final formula = PluExcelFormulaBuilder.finalNetProfitFormula(
+          reportSheetName: reportSheet.name,
+          netProfitColumnLetter: _getColumnLetter(netProfitColumn),
+          netProfitBeforeExpensesRow: totalRowIndex,
+          expensesSheetName: expensesSheet?.name,
+          totalExpensesRow: expensesSheet?.getLastRow(),
+          cashInSheetName: cashInSheet?.name,
+          totalCashInRow: cashInSheet?.getLastRow(),
+        );
 
         finalNetProfitCell.setFormula(formula);
 
         talker.debug('Created Final Net Profit formula: $formula');
       } else {
         talker.error(
-          'Expenses sheet not found when adding Final Net Profit row',
+          'Expenses and Cash In sheets not found when adding Final Net Profit row',
         );
         finalNetProfitCell.setFormula(
           PluExcelFormulaBuilder.netProfitBeforeExpensesOnlyFormula(
@@ -1184,19 +1217,22 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     totalPercentCell.numberFormat = '0.00%';
   }
 
-  void _addExpensesSheet(
+  /// Adds a Cash Book sheet (Expenses or Cash In): one row per entry, then a
+  /// total in column B named [totalRangeName] for the Final Net Profit row.
+  void _addCashBookSheet(
     excel.Workbook workbook,
     List<Expense> expenses,
-    ExcelStyler styler,
-    String currencyFormat,
-  ) {
+    String currencyFormat, {
+    required String sheetName,
+    required String nameHeader,
+    required String totalLabel,
+    required String totalRangeName,
+  }) {
     final l10n = FlipperL10n.current;
-    final expenseSheet = workbook.worksheets.addWithName(
-      l10n.exportDataSheetExpenses,
-    );
+    final expenseSheet = workbook.worksheets.addWithName(sheetName);
 
     // Add headers without styling
-    expenseSheet.getRangeByIndex(1, 1).setText(l10n.exportDataExpense);
+    expenseSheet.getRangeByIndex(1, 1).setText(nameHeader);
     expenseSheet.getRangeByIndex(1, 2).setText(l10n.amount);
 
     // Add expense data
@@ -1212,9 +1248,7 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     final lastDataRow = expenseSheet.getLastRow();
 
     // Add total row without styling
-    expenseSheet
-        .getRangeByIndex(lastDataRow + 1, 1)
-        .setText(l10n.exportDataTotalExpenses);
+    expenseSheet.getRangeByIndex(lastDataRow + 1, 1).setText(totalLabel);
 
     final totalExpensesCell = expenseSheet.getRangeByIndex(lastDataRow + 1, 2);
     totalExpensesCell.setFormula('=SUM(B2:B$lastDataRow)');
@@ -1225,8 +1259,8 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       expenseSheet.autoFitColumn(i);
     }
 
-    // Create named range for the total expenses cell
-    workbook.names.add('TotalExpenses', totalExpensesCell);
+    // Create named range for the total cell
+    workbook.names.add(totalRangeName, totalExpensesCell);
   }
 
   Future<String> _saveExcelFile(excel.Workbook workbook) async {

@@ -1,5 +1,6 @@
 import 'package:flipper_accounting/accounting_ditto_store.dart';
 import 'package:flipper_accounting/accounting_models.dart';
+import 'package:flipper_accounting/accounting_transaction_semantics.dart';
 import 'package:flipper_accounting/audit_trail_recorder.dart';
 import 'package:flipper_accounting/chart_account_resolver.dart';
 import 'package:flipper_accounting/ditto_accounting_ledger_repository.dart';
@@ -103,6 +104,24 @@ class BillBalance {
     );
   }
 
+  /// From the summary a bill caches after every payment
+  /// ([toBillFields]); [fallbackTotal] for bills written before `total` was
+  /// stored.
+  factory BillBalance.fromBillRow(
+    Map<String, dynamic> row, {
+    int fallbackTotal = 0,
+  }) {
+    int field(String key) => num.tryParse('${row[key]}')?.round() ?? 0;
+    final total = num.tryParse('${row['total']}')?.round() ?? fallbackTotal;
+    final paidUpfront = field('paid_upfront');
+    final amountPaid = field('amount_paid');
+    return BillBalance(
+      total: total,
+      paidUpfront: paidUpfront,
+      paidLater: (amountPaid - paidUpfront).clamp(0, amountPaid.abs()),
+    );
+  }
+
   final int total;
   final int paidUpfront;
   final int paidLater;
@@ -129,6 +148,21 @@ class BillBalance {
   };
 }
 
+/// Approved purchases' bills by purchase id: the bill's Ditto `_id` and what
+/// is still owed. Drafts (purchases still waiting) owe nothing yet, and bills
+/// not raised from a purchase are left out.
+Map<String, ({String docId, BillBalance balance})> purchaseBillsFromRows(
+  Iterable<Map<String, dynamic>> rows,
+) => {
+  for (final row in rows)
+    if (row['status'] != 'draft' &&
+        '${row['purchase_id'] ?? row['purchaseId'] ?? ''}'.isNotEmpty)
+      '${row['purchase_id'] ?? row['purchaseId']}': (
+        docId: '${row['_id'] ?? row['id']}',
+        balance: BillBalance.fromBillRow(row),
+      ),
+};
+
 /// Shared date format for bill documents (`d MMM y`, e.g. `3 Oct 2026`).
 final DateFormat billDateFormat = DateFormat('d MMM y');
 
@@ -148,6 +182,66 @@ DateTime? parseBillDueDate(Map<String, dynamic> row) {
   } catch (_) {
     return null;
   }
+}
+
+/// The branch (and cashier) whose expenses list a supplier payment as a
+/// cash-out: home screen, Cashbook, Transaction Report and the daily email.
+class BillPaymentCashOut {
+  const BillPaymentCashOut({required this.branchId, this.agentId});
+
+  final String branchId;
+  final String? agentId;
+}
+
+/// POS payment-type label for the account a supplier was paid from.
+String billPaymentTypeLabel(String accountCode) => switch (accountCode) {
+  '1020' => 'BANK CHECK',
+  '1030' => 'MOBILE MONEY',
+  _ => 'CASH',
+};
+
+/// `transactions` id of a supplier payment's cash-out: one per payment.
+String billPaymentCashOutTxnId(String paymentId) => 'bill_pay_$paymentId';
+
+/// A supplier payment as a completed cash-out, in the shape Capella writes
+/// transactions. Marked [purchaseExpenseReceiptType] so neither ledger poster
+/// books it: the payment already posted Dr Accounts Payable / Cr cash.
+///
+/// Times are local without an offset, like every other cash-out, because
+/// report windows compare them as local wall-clock strings.
+Map<String, dynamic> billPaymentCashOutRow({
+  required BillPayment payment,
+  required BillPaymentCashOut cashOut,
+  required String supplierName,
+  required String docNumber,
+}) {
+  final id = billPaymentCashOutTxnId(payment.id);
+  final at = payment.paidAt.toLocal().toIso8601String();
+  final supplier = supplierName.trim().isEmpty ? 'Supplier' : supplierName;
+  final amount = payment.amount.toDouble();
+  return {
+    '_id': id,
+    'id': id,
+    'branchId': cashOut.branchId,
+    'status': accountingSaleStatusCompleted,
+    'transactionType': 'Supplier payment',
+    'receiptType': purchaseExpenseReceiptType,
+    'paymentType': billPaymentTypeLabel(payment.accountCode),
+    'subTotal': amount,
+    'cashReceived': amount,
+    'customerChangeDue': 0.0,
+    'remainingBalance': 0.0,
+    'isIncome': false,
+    'isExpense': true,
+    'isOriginalTransaction': true,
+    'agentId': cashOut.agentId,
+    'customerName': supplier,
+    'note': 'Payment to $supplier · bill $docNumber',
+    'reference': 'PAY-$docNumber',
+    'createdAt': at,
+    'updatedAt': at,
+    'lastTouched': at,
+  };
 }
 
 /// Records supplier payments against bills and keeps the ledger in step:
@@ -211,6 +305,7 @@ class BillPaymentPoster {
     String? paidBy,
     String? cashbookTxnId,
     String? paymentId,
+    BillPaymentCashOut? cashOut,
   }) async {
     if (amount <= 0) {
       throw ArgumentError.value(amount, 'amount', 'must be positive');
@@ -229,15 +324,18 @@ class BillPaymentPoster {
       throw StateError('Chart of accounts has no Accounts Payable account');
     }
 
+    final id = paymentId ?? const Uuid().v4();
     final payment = BillPayment(
-      id: paymentId ?? const Uuid().v4(),
+      id: id,
       businessId: businessId,
       billDocId: billDocId,
       amount: amount,
       accountCode: paymentAccount,
       paidAt: paidAt ?? DateTime.now(),
       paidBy: paidBy,
-      cashbookTxnId: cashbookTxnId,
+      cashbookTxnId:
+          cashbookTxnId ??
+          (cashOut == null ? null : billPaymentCashOutTxnId(id)),
     );
     await _ditto.upsertPartyDoc(
       billPaymentsCollection,
@@ -248,6 +346,14 @@ class BillPaymentPoster {
     final docNumber = (bill['doc_number'] ?? bill['docNumber'] ?? '')
         .toString();
     final party = (bill['party_name'] ?? bill['partyName'] ?? '').toString();
+    if (cashOut != null && cashbookTxnId == null) {
+      await _writeCashOut(
+        payment: payment,
+        cashOut: cashOut,
+        supplierName: party,
+        docNumber: docNumber,
+      );
+    }
     final ledger = DittoAccountingLedgerRepository(_ditto);
     await ledger.ensureSeeded(businessId: businessId);
     final jeId = entryId(businessId, billDocId, payment.id);
@@ -288,6 +394,80 @@ class BillPaymentPoster {
       fallbackTotal: fallbackTotal,
     );
   }
+
+  /// Where a payment on [billDocId] shows as a cash-out: the branch of the
+  /// purchase the bill is for, else [fallbackBranchId]. Null for bills not
+  /// raised from a purchase (no till was involved).
+  Future<BillPaymentCashOut?> purchaseCashOut(
+    String billDocId, {
+    String? agentId,
+    String? fallbackBranchId,
+  }) async {
+    final bill = await _bill(billDocId);
+    final purchaseId =
+        (bill?['purchase_id'] ?? bill?['purchaseId'])?.toString() ?? '';
+    if (purchaseId.isEmpty) return null;
+    final rows = await _ditto.queryCollection(
+      'purchases',
+      'SELECT * FROM purchases WHERE _id = :id',
+      {'id': purchaseId},
+    );
+    final own = rows.isEmpty
+        ? ''
+        : (rows.first['branchId'] ?? rows.first['branch_id'] ?? '').toString();
+    final branchId = own.isNotEmpty ? own : (fallbackBranchId ?? '');
+    if (branchId.isEmpty) return null;
+    return BillPaymentCashOut(branchId: branchId, agentId: agentId);
+  }
+
+  /// Gives a payment recorded without one (Books "Pay bill" before payments
+  /// wrote cash-outs) its cash-out. Returns false when it already has one.
+  Future<bool> backfillCashOut({
+    required BillPayment payment,
+    required BillPaymentCashOut cashOut,
+  }) async {
+    final txnId = payment.cashbookTxnId ?? billPaymentCashOutTxnId(payment.id);
+    // Only our own cash-out id can be written here; a payment linked to some
+    // other cashbook entry already reconciles the till.
+    if (txnId != billPaymentCashOutTxnId(payment.id)) return false;
+    final existing = await _ditto.queryCollection(
+      'transactions',
+      'SELECT * FROM transactions WHERE _id = :id',
+      {'id': txnId},
+    );
+    if (existing.isNotEmpty) return false;
+    final bill = await _bill(payment.billDocId);
+    await _writeCashOut(
+      payment: payment,
+      cashOut: cashOut,
+      supplierName: (bill?['party_name'] ?? bill?['partyName'] ?? '')
+          .toString(),
+      docNumber: (bill?['doc_number'] ?? bill?['docNumber'] ?? '').toString(),
+    );
+    if (payment.cashbookTxnId == null) {
+      await _ditto.executeUpdate(billPaymentsCollection, payment.id, {
+        'cashbook_txn_id': txnId,
+        'cashbookTxnId': txnId,
+      });
+    }
+    return true;
+  }
+
+  Future<void> _writeCashOut({
+    required BillPayment payment,
+    required BillPaymentCashOut cashOut,
+    required String supplierName,
+    required String docNumber,
+  }) => _ditto.upsertPartyDoc(
+    'transactions',
+    billPaymentCashOutTxnId(payment.id),
+    billPaymentCashOutRow(
+      payment: payment,
+      cashOut: cashOut,
+      supplierName: supplierName,
+      docNumber: docNumber,
+    ),
+  );
 
   /// Recomputes and caches the bill's paid/balance/status from its payments.
   Future<BillBalance> refreshBalance({

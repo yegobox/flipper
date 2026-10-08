@@ -4823,6 +4823,9 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
   String get exportDataSheetExpenses => 'Expenses';
 
   @override
+  String get exportDataSheetCashIn => 'Cash In';
+
+  @override
   String get exportDataSheetPaymentMethods => 'Payment Methods';
 
   @override
@@ -4835,6 +4838,14 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
   @override
   String get exportDataNetProfitAfterExpenses =>
       'Final Net Profit (After Expenses):';
+
+  @override
+  String get exportDataNetProfitAfterCashIn =>
+      'Final Net Profit (After Cash In):';
+
+  @override
+  String get exportDataNetProfitAfterExpensesAndCashIn =>
+      'Final Net Profit (After Expenses & Cash In):';
 
   @override
   String get exportDataPaymentType => 'Payment Type';
@@ -4853,6 +4864,9 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
 
   @override
   String get exportDataTotalExpenses => 'Total Expenses';
+
+  @override
+  String get exportDataTotalCashIn => 'Total Cash In';
 
   @override
   String exportDataShareSubject(String date) {
@@ -24581,4 +24595,55 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
   @override
   String get branchLocationDragInstead =>
       'You can still drag the map to place the pin.';
+
+  @override
+  String get purchasePaySupplier => 'Pay supplier';
+
+  @override
+  String purchaseOwedToSupplier(String amount) {
+    return 'Owed to supplier: $amount';
+  }
+
+  @override
+  String get purchasePaidFrom => 'Paid from';
+
+  @override
+  String get purchasePaidFromBank => 'Bank';
+
+  @override
+  String get purchasePaidFromMomo => 'Mobile money';
+
+  @override
+  String purchasePayAmountTooHigh(String amount) {
+    return 'Enter an amount up to $amount';
+  }
+
+  @override
+  String purchaseSupplierPaid(String amount) {
+    return 'Supplier paid. Still owed: $amount';
+  }
+
+  @override
+  String get purchaseSupplierPaidInFull => 'Supplier paid in full';
+
+  @override
+  String purchasePaySupplierFailed(String error) {
+    return 'Payment failed: $error';
+  }
+
+  @override
+  String get purchasePaidInFull => 'Paid in full';
+
+  @override
+  String get purchaseSearchHint => 'Search supplier, invoice, TIN or item';
+
+  @override
+  String purchaseOwesAmount(String amount) {
+    return 'Owes $amount';
+  }
+
+  @override
+  String purchaseSearchNoMatch(String query) {
+    return 'No purchases match “$query”';
+  }
 }

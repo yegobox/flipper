@@ -2990,16 +2990,20 @@
   "exportDataSheetStockRecount": "Kongera kubara ububiko",
   "exportDataSheetReport": "Raporo",
   "exportDataSheetExpenses": "Ibyakoreshejwe",
+  "exportDataSheetCashIn": "Amafaranga yinjiye",
   "exportDataSheetPaymentMethods": "Uburyo bwo kwishyura",
   "exportDataTotalSalesLines": "Igiteranyo cy'ibyagurishijwe (imirongo):",
   "exportDataNetProfitBeforeExpenses": "Inyungu nyayo yose (mbere y'ibyakoreshejwe):",
   "exportDataNetProfitAfterExpenses": "Inyungu nyayo ya nyuma (nyuma y'ibyakoreshejwe):",
+  "exportDataNetProfitAfterCashIn": "Inyungu nyayo ya nyuma (nyuma y'amafaranga yinjiye):",
+  "exportDataNetProfitAfterExpensesAndCashIn": "Inyungu nyayo ya nyuma (nyuma y'ibyakoreshejwe n'amafaranga yinjiye):",
   "exportDataPaymentType": "Uburyo bwo kwishyura",
   "exportDataSaleAmount": "Amafaranga y'ibyagurishijwe",
   "exportDataTransactionCount": "Umubare w'amagurisha",
   "exportDataPercentOfTotal": "% by'igiteranyo",
   "exportDataExpense": "Icyakoreshejwe",
   "exportDataTotalExpenses": "Igiteranyo cy'ibyakoreshejwe",
+  "exportDataTotalCashIn": "Igiteranyo cy'amafaranga yinjiye",
   "exportDataShareSubject": "Raporo yamanuwe - {date}",
   "mposSaveCustomerBeforeTill": "Bika izina cyangwa nimero ya telefoni y'umukiriya kuri iyi tike mbere yo kuyohereza ku kasi.",
   "mposCouldNotReturnTicket": "Ntibyashobotse gusubiza iyi tike ku kasi. Ongera ugerageze.",
@@ -8435,5 +8439,60 @@
     "branchLocationAccuracy": "Bihuye hafi kuri metero {meters}",
     "branchLocationZoomIn": "Egereza",
     "branchLocationZoomOut": "Igiza kure",
-    "branchLocationDragInstead": "Ushobora no gukurura ikarita ugashyiraho ikimenyetso."
+    "branchLocationDragInstead": "Ushobora no gukurura ikarita ugashyiraho ikimenyetso.",
+    "purchasePaySupplier": "Ishyura umucuruzi ugurisha",
+    "purchaseOwedToSupplier": "Umwenda w'umucuruzi ugurisha: {amount}",
+    "@purchaseOwedToSupplier": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
+    "purchasePaidFrom": "Byishyuwe bivuye kuri",
+    "purchasePaidFromBank": "Banki",
+    "purchasePaidFromMomo": "Mobile money",
+    "purchasePayAmountTooHigh": "Andika amafaranga atarenze {amount}",
+    "@purchasePayAmountTooHigh": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
+    "purchaseSupplierPaid": "Umucuruzi ugurisha yishyuwe. Hasigaye: {amount}",
+    "@purchaseSupplierPaid": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
+    "purchaseSupplierPaidInFull": "Umucuruzi ugurisha yishyuwe yose",
+    "purchasePaySupplierFailed": "Kwishyura byanze: {error}",
+    "@purchasePaySupplierFailed": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "purchasePaidInFull": "Byishyuwe byose",
+    "purchaseSearchHint": "Shakisha umucuruzi, fagitire, TIN cyangwa igicuruzwa",
+    "purchaseOwesAmount": "Umwenda: {amount}",
+    "@purchaseOwesAmount": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
+    "purchaseSearchNoMatch": "Nta byaguzwe bihuye na “{query}”",
+    "@purchaseSearchNoMatch": {
+        "placeholders": {
+            "query": {
+                "type": "String"
+            }
+        }
+    }
 }

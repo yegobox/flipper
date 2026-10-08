@@ -432,6 +432,7 @@ Future<TransactionReportKpiTotals> transactionReportKpiTotals(Ref ref) async {
   var periodOwed = 0.0;
   var periodSubtotal = 0.0;
   var periodExpense = 0.0;
+  var periodCashIn = 0.0;
 
   const batchTx = 500;
   var offset = 0;
@@ -457,6 +458,9 @@ Future<TransactionReportKpiTotals> transactionReportKpiTotals(Ref ref) async {
       if (tx.isExpense == true) {
         periodExpense += tx.subTotal ?? 0.0;
         continue;
+      }
+      if (tx.receiptType == TransactionType.cashIn) {
+        periodCashIn += tx.subTotal ?? 0.0;
       }
       // PLU lines roll up against sales only; expense rows are deducted whole
       // via [periodExpense], so their lines must not also count as profit.
@@ -503,6 +507,7 @@ Future<TransactionReportKpiTotals> transactionReportKpiTotals(Ref ref) async {
     periodOwed: periodOwed,
     periodSubtotal: periodSubtotal,
     periodExpense: periodExpense,
+    periodCashIn: periodCashIn,
   );
 }
 

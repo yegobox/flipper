@@ -2998,16 +2998,20 @@
   "exportDataSheetStockRecount": "Kuhesabu hisa upya",
   "exportDataSheetReport": "Ripoti",
   "exportDataSheetExpenses": "Matumizi",
+  "exportDataSheetCashIn": "Pesa iliyoingia",
   "exportDataSheetPaymentMethods": "Njia za malipo",
   "exportDataTotalSalesLines": "Jumla ya mauzo (mistari):",
   "exportDataNetProfitBeforeExpenses": "Jumla ya faida halisi (kabla ya matumizi):",
   "exportDataNetProfitAfterExpenses": "Faida halisi ya mwisho (baada ya matumizi):",
+  "exportDataNetProfitAfterCashIn": "Faida halisi ya mwisho (baada ya pesa iliyoingia):",
+  "exportDataNetProfitAfterExpensesAndCashIn": "Faida halisi ya mwisho (baada ya matumizi na pesa iliyoingia):",
   "exportDataPaymentType": "Aina ya malipo",
   "exportDataSaleAmount": "Kiasi cha mauzo",
   "exportDataTransactionCount": "Idadi ya miamala",
   "exportDataPercentOfTotal": "% ya jumla",
   "exportDataExpense": "Matumizi",
   "exportDataTotalExpenses": "Jumla ya matumizi",
+  "exportDataTotalCashIn": "Jumla ya pesa iliyoingia",
   "exportDataShareSubject": "Upakuaji wa ripoti - {date}",
   "mposSaveCustomerBeforeTill": "Hifadhi jina au nambari ya simu ya mteja kwenye tiketi hii kabla ya kuituma kwenye kaunta.",
   "mposCouldNotReturnTicket": "Imeshindwa kurudisha tiketi hii kwenye kaunta. Tafadhali jaribu tena.",
@@ -8443,5 +8447,60 @@
     "branchLocationAccuracy": "Usahihi wa takriban mita {meters}",
     "branchLocationZoomIn": "Kuza",
     "branchLocationZoomOut": "Punguza",
-    "branchLocationDragInstead": "Bado unaweza kuburuta ramani kuweka alama."
+    "branchLocationDragInstead": "Bado unaweza kuburuta ramani kuweka alama.",
+    "purchasePaySupplier": "Mlipe msambazaji",
+    "purchaseOwedToSupplier": "Deni kwa msambazaji: {amount}",
+    "@purchaseOwedToSupplier": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
+    "purchasePaidFrom": "Imelipwa kutoka",
+    "purchasePaidFromBank": "Benki",
+    "purchasePaidFromMomo": "Pesa kwa simu",
+    "purchasePayAmountTooHigh": "Weka kiasi kisichozidi {amount}",
+    "@purchasePayAmountTooHigh": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
+    "purchaseSupplierPaid": "Msambazaji amelipwa. Deni lililobaki: {amount}",
+    "@purchaseSupplierPaid": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
+    "purchaseSupplierPaidInFull": "Msambazaji amelipwa yote",
+    "purchasePaySupplierFailed": "Malipo yameshindwa: {error}",
+    "@purchasePaySupplierFailed": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "purchasePaidInFull": "Imelipwa yote",
+    "purchaseSearchHint": "Tafuta msambazaji, ankara, TIN au bidhaa",
+    "purchaseOwesAmount": "Deni: {amount}",
+    "@purchaseOwesAmount": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
+    "purchaseSearchNoMatch": "Hakuna manunuzi yanayolingana na “{query}”",
+    "@purchaseSearchNoMatch": {
+        "placeholders": {
+            "query": {
+                "type": "String"
+            }
+        }
+    }
 }

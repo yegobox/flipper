@@ -4850,6 +4850,9 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   String get exportDataSheetExpenses => 'Matumizi';
 
   @override
+  String get exportDataSheetCashIn => 'Pesa iliyoingia';
+
+  @override
   String get exportDataSheetPaymentMethods => 'Njia za malipo';
 
   @override
@@ -4862,6 +4865,14 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   @override
   String get exportDataNetProfitAfterExpenses =>
       'Faida halisi ya mwisho (baada ya matumizi):';
+
+  @override
+  String get exportDataNetProfitAfterCashIn =>
+      'Faida halisi ya mwisho (baada ya pesa iliyoingia):';
+
+  @override
+  String get exportDataNetProfitAfterExpensesAndCashIn =>
+      'Faida halisi ya mwisho (baada ya matumizi na pesa iliyoingia):';
 
   @override
   String get exportDataPaymentType => 'Aina ya malipo';
@@ -4880,6 +4891,9 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
 
   @override
   String get exportDataTotalExpenses => 'Jumla ya matumizi';
+
+  @override
+  String get exportDataTotalCashIn => 'Jumla ya pesa iliyoingia';
 
   @override
   String exportDataShareSubject(String date) {
@@ -24750,4 +24764,55 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   @override
   String get branchLocationDragInstead =>
       'Bado unaweza kuburuta ramani kuweka alama.';
+
+  @override
+  String get purchasePaySupplier => 'Mlipe msambazaji';
+
+  @override
+  String purchaseOwedToSupplier(String amount) {
+    return 'Deni kwa msambazaji: $amount';
+  }
+
+  @override
+  String get purchasePaidFrom => 'Imelipwa kutoka';
+
+  @override
+  String get purchasePaidFromBank => 'Benki';
+
+  @override
+  String get purchasePaidFromMomo => 'Pesa kwa simu';
+
+  @override
+  String purchasePayAmountTooHigh(String amount) {
+    return 'Weka kiasi kisichozidi $amount';
+  }
+
+  @override
+  String purchaseSupplierPaid(String amount) {
+    return 'Msambazaji amelipwa. Deni lililobaki: $amount';
+  }
+
+  @override
+  String get purchaseSupplierPaidInFull => 'Msambazaji amelipwa yote';
+
+  @override
+  String purchasePaySupplierFailed(String error) {
+    return 'Malipo yameshindwa: $error';
+  }
+
+  @override
+  String get purchasePaidInFull => 'Imelipwa yote';
+
+  @override
+  String get purchaseSearchHint => 'Tafuta msambazaji, ankara, TIN au bidhaa';
+
+  @override
+  String purchaseOwesAmount(String amount) {
+    return 'Deni: $amount';
+  }
+
+  @override
+  String purchaseSearchNoMatch(String query) {
+    return 'Hakuna manunuzi yanayolingana na “$query”';
+  }
 }

@@ -9,6 +9,7 @@ class TransactionReportKpiTotals {
     this.periodOwed = 0,
     this.periodSubtotal = 0,
     this.periodExpense = 0,
+    this.periodCashIn = 0,
   });
 
   /// Sum of PLU line revenue (price × qty) for non-expense sales in scope.
@@ -44,8 +45,14 @@ class TransactionReportKpiTotals {
   /// being visible in the grid.
   final double periodExpense;
 
+  /// Sum of `subTotal` for the Cash Book money-in rows in report scope
+  /// (`receiptType` "Cash In"). Added to Net Profit. Their lines are never
+  /// part of [pluGrossProfit], so this is the only place they count.
+  final double periodCashIn;
+
   /// The Net Profit headline: in-scope gross profit, less line VAT, less
-  /// in-scope expenses. Every term comes from the same row set, so an empty
-  /// report necessarily yields 0.
-  double get netProfit => pluGrossProfit - pluLineTax - periodExpense;
+  /// in-scope expenses, plus in-scope Cash In. Every term comes from the same
+  /// row set, so an empty report necessarily yields 0.
+  double get netProfit =>
+      pluGrossProfit - pluLineTax - periodExpense + periodCashIn;
 }
