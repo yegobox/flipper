@@ -117,6 +117,15 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
+      // Ink decorations are clipped to their Material's rectangle; the New
+      // sale glow drawn as Ink showed up as a pale box around the button.
+      expect(
+        find.descendant(
+          of: find.byType(DashboardMobileBottomNav),
+          matching: find.byType(Ink),
+        ),
+        findsNothing,
+      );
     });
   }
 

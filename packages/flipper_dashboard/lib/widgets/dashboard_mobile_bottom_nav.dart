@@ -219,21 +219,28 @@ class _NewSaleFab extends StatelessWidget {
 
   final VoidCallback onTap;
 
+  static final _radius = BorderRadius.circular(19);
+
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
+    final label = context.flipperL10n.mposNewSale;
+    // The gradient and glow are a plain DecoratedBox, not Ink: Ink paints on
+    // the enclosing Material and is clipped to its rectangle, which cut the
+    // blur off into a pale box around the button and its label. Only the
+    // ripple lives on a Material, and it is clipped to the rounded button.
+    return Semantics(
+      button: true,
+      label: label,
+      excludeSemantics: true,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
         onTap: onTap,
-        borderRadius: BorderRadius.circular(20),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Ink(
-              width: 58,
-              height: 58,
+            DecoratedBox(
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(19),
+                borderRadius: _radius,
                 gradient: const LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
@@ -252,11 +259,24 @@ class _NewSaleFab extends StatelessWidget {
                 ],
                 border: Border.all(color: const Color(0xFFF4F6FB), width: 4),
               ),
-              child: const Icon(Icons.add, color: Colors.white, size: 26),
+              child: Material(
+                type: MaterialType.transparency,
+                borderRadius: _radius,
+                clipBehavior: Clip.antiAlias,
+                child: InkWell(
+                  onTap: onTap,
+                  borderRadius: _radius,
+                  child: const SizedBox(
+                    width: 58,
+                    height: 58,
+                    child: Icon(Icons.add, color: Colors.white, size: 26),
+                  ),
+                ),
+              ),
             ),
             const SizedBox(height: 4),
             Text(
-              context.flipperL10n.mposNewSale,
+              label,
               style: GoogleFonts.outfit(
                 fontSize: 10,
                 fontWeight: FontWeight.w600,
