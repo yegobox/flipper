@@ -50,6 +50,26 @@ void main() {
     expect(purchasePaidInCash('02'), isFalse);
   });
 
+  group('localTimestampIfUtc', () {
+    test('UTC stamps come back as local wall-clock time', () {
+      final utc = DateTime.utc(2026, 10, 7, 22, 30);
+      expect(
+        localTimestampIfUtc(utc.toIso8601String()),
+        utc.toLocal().toIso8601String(),
+      );
+      expect(
+        localTimestampIfUtc(utc.toIso8601String())!.endsWith('Z'),
+        isFalse,
+      );
+    });
+
+    test('local stamps and missing values are left alone', () {
+      expect(localTimestampIfUtc('2026-10-08T00:30:00.000'), isNull);
+      expect(localTimestampIfUtc(null), isNull);
+      expect(localTimestampIfUtc(''), isNull);
+    });
+  });
+
   test('one expense row per purchase, never the purchase id itself', () {
     expect(purchaseExpenseTransactionId('p1'), 'purchase_exp_p1');
     expect(purchaseExpenseTransactionId('p1'), isNot('p1'));

@@ -4,6 +4,8 @@ import 'package:flipper_dashboard/features/import_purchase/import_purchase_helpe
 import 'package:flipper_dashboard/features/import_purchase/import_purchase_tokens.dart';
 import 'package:flipper_dashboard/features/import_purchase/import_purchase_ui.dart';
 import 'package:flipper_dashboard/features/import_purchase/imports_mobile_view.dart';
+import 'package:flipper_dashboard/features/import_purchase/pay_supplier.dart';
+import 'package:flipper_dashboard/features/import_purchase/purchase_list_filters.dart';
 import 'package:flipper_dashboard/features/import_purchase/purchase_approval_mixin.dart';
 import 'package:flipper_dashboard/features/import_purchase/record_purchase_modal.dart';
 import 'package:flipper_dashboard/import_purchase_viewmodel.dart';
@@ -163,6 +165,10 @@ class _PurchasesMobileScreenState extends ConsumerState<PurchasesMobileScreen> {
                     color: _T.muted,
                   ),
                 ),
+                if (!state.isImport) ...[
+                  const SizedBox(height: 10),
+                  const PurchaseSearchField(),
+                ],
               ],
             ),
           ),
@@ -217,11 +223,14 @@ class _PurchaseList extends ConsumerWidget {
     final notifier = ref.read(importPurchaseViewModelProvider.notifier);
     final l10n = context.flipperL10n;
     final filter = state.purchaseStatusFilter;
+    final query = ref.watch(purchaseSearchQueryProvider).trim();
     final purchases = state.purchases.where((p) {
       final lines = p.variants ?? const <model.Variant>[];
       return lines.any(
-        (v) => ImportPurchaseHelpers.matchesPurchaseVariantFilter(v, filter),
-      );
+            (v) =>
+                ImportPurchaseHelpers.matchesPurchaseVariantFilter(v, filter),
+          ) &&
+          purchaseMatchesQuery(p, query);
     }).toList();
 
     final chips = SizedBox(
@@ -259,6 +268,12 @@ class _PurchaseList extends ConsumerWidget {
         icon: Icons.cloud_off_outlined,
         title: l10n.importPurchaseCouldNotLoadPurchases,
         subtitle: state.error!,
+      );
+    } else if (purchases.isEmpty && query.isNotEmpty) {
+      body = _Message(
+        icon: Icons.search_off,
+        title: l10n.purchaseSearchNoMatch(query),
+        subtitle: l10n.importPurchaseNoPurchasesHint,
       );
     } else if (purchases.isEmpty) {
       body = _Message(
@@ -400,6 +415,38 @@ _Pill _statusPill(FlipperAppLocalizations l10n, _PurchaseStatus status) =>
 
 bool _isOnCredit(model.Purchase p) => p.pmtTyCd == '02' || p.pmtTyCd == '03';
 
+/// What the supplier is still owed, once the purchase has a bill: "Owes …"
+/// until it is settled, then "Paid in full" for credit purchases. Before
+/// approval there is no bill yet, so a credit purchase just says "On credit".
+class _BalancePill extends ConsumerWidget {
+  const _BalancePill({required this.purchase, required this.currency});
+
+  final model.Purchase purchase;
+  final String currency;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.flipperL10n;
+    final bill = ref.watch(purchaseBillsProvider).value?[purchase.id];
+    final owed = bill?.balance.balance ?? 0;
+    if (owed > 0) {
+      return _Pill(
+        l10n.purchaseOwesAmount('$currency ${_money.format(owed)}'),
+        fg: _T.amber,
+        bg: _T.amberWash,
+      );
+    }
+    if (!_isOnCredit(purchase)) return const SizedBox.shrink();
+    return bill == null
+        ? _Pill(
+            l10n.importPurchaseOnCredit,
+            fg: _T.accentStrong,
+            bg: _T.accentWash,
+          )
+        : _Pill(l10n.purchasePaidInFull, fg: _T.greenStrong, bg: _T.greenWash);
+  }
+}
+
 class _PurchaseCard extends StatelessWidget {
   const _PurchaseCard({
     required this.purchase,
@@ -490,12 +537,7 @@ class _PurchaseCard extends StatelessWidget {
                     fg: _T.ink2,
                     bg: _T.surface3,
                   ),
-                  if (_isOnCredit(purchase))
-                    _Pill(
-                      l10n.importPurchaseOnCredit,
-                      fg: _T.accentStrong,
-                      bg: _T.accentWash,
-                    ),
+                  _BalancePill(purchase: purchase, currency: currency),
                 ],
               ),
             ],
@@ -673,6 +715,12 @@ class _PurchaseDetailScreenState extends ConsumerState<_PurchaseDetailScreen>
                 ),
                 if (purchase.spplrTin.trim().isNotEmpty)
                   _InfoRow(l10n.importPurchaseSupplierTin, purchase.spplrTin),
+                if (status == _PurchaseStatus.approved)
+                  PaySupplierBar(
+                    purchase: purchase,
+                    currency: currency,
+                    padding: const EdgeInsets.only(top: 12),
+                  ),
               ],
             ),
           ),

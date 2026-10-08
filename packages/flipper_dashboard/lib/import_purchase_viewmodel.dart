@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flipper_dashboard/export/export_import.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/export/export_purchase.dart';
@@ -116,6 +118,7 @@ class ImportPurchaseViewModel extends StateNotifier<ImportPurchaseState> {
         );
         final merged = _mergePurchases(purchases, manual);
         _patchState((s) => s.copyWith(purchases: merged, isLoading: false));
+        unawaited(_backfillExpenses(client, branchId));
       }
     } catch (e, s) {
       talker.error('Failed to load import/purchase list', e, s);
@@ -309,6 +312,12 @@ class ImportPurchaseViewModel extends StateNotifier<ImportPurchaseState> {
       ),
       successMessage: 'Purchase accepted',
     );
+    // The connector approves RRA purchases without an expense row: what was
+    // paid now shows with the other expenses, as for manual purchases.
+    await PurchaseExpenseRecorder.record(
+      purchase: purchase,
+      deps: PurchaseApprovalDeps.fromProxy(),
+    );
   }
 
   Future<void> rejectPurchase({required model.Purchase purchase}) async {
@@ -380,6 +389,35 @@ class ImportPurchaseViewModel extends StateNotifier<ImportPurchaseState> {
       if (!mounted) return;
       final next = {...state.processingIds}..remove(purchase.id);
       _patchState((s) => s.copyWith(processingIds: next));
+    }
+  }
+
+  /// Branches whose approved purchases were checked for missing expense rows
+  /// this session.
+  static final Set<String> _expensesBackfilled = {};
+
+  /// Purchases approved before they wrote expense rows, and Books payments
+  /// made before they wrote cash-outs, get them once per session.
+  Future<void> _backfillExpenses(
+    ImportsPurchasesClient client,
+    String branchId,
+  ) async {
+    if (!_expensesBackfilled.add(branchId)) return;
+    try {
+      final approved = _mergePurchases(
+        await _listPurchases(client, branchId, 'approved'),
+        await ManualPurchaseDitto.listForBranch(
+          branchId,
+          statusFilter: 'approved',
+        ),
+      );
+      await PurchaseExpenseRecorder.backfill(
+        approved: approved,
+        deps: PurchaseApprovalDeps.fromProxy(),
+      );
+    } catch (e, s) {
+      _expensesBackfilled.remove(branchId);
+      talker.error('Purchase expense backfill failed', e, s);
     }
   }
 
