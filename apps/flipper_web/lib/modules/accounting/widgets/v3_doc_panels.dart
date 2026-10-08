@@ -1,6 +1,5 @@
 import 'package:flipper_accounting/bill_payments.dart';
 import 'package:flipper_localize/flipper_localize.dart';
-import 'package:flipper_web/core/user_profile_cache.dart';
 import 'package:flipper_web/features/business_selection/business_branch_selector.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_backend_config.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_derive.dart';
@@ -10,6 +9,7 @@ import 'package:flipper_web/modules/accounting/data/accounting_models.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_providers.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_v3_models.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_v3_providers.dart';
+import 'package:flipper_web/modules/accounting/data/books_bill_payment.dart';
 import 'package:flipper_web/modules/accounting/data/chart_account_resolver.dart';
 import 'package:flipper_web/modules/accounting/theme/accounting_tokens.dart';
 import 'package:flipper_web/modules/accounting/widgets/accounting_page_header.dart';
@@ -659,23 +659,18 @@ class _PaymentModalPanelState extends ConsumerState<PaymentModalPanel> {
     try {
       final businessId = ref.read(accountingBusinessIdProvider);
       if (_tracksPayments) {
-        final poster = BillPaymentPoster(ref.read(dittoServiceProvider));
-        // A purchase's bill paid here shows with that branch's expenses,
-        // like a cash-out on the till.
-        final cashOut = await poster.purchaseCashOut(
-          widget.doc.uuid!,
-          agentId: ref.read(userProfileCacheProvider)?.id,
-          fallbackBranchId: ref.read(selectedBranchProvider)?.id,
-        );
-        _after = await poster.recordPayment(
-          businessId: businessId,
-          billDocId: widget.doc.uuid!,
-          amount: _amount,
-          paymentAccount: _method,
-          accounts: accounts,
-          fallbackTotal: docGrandTotal(widget.doc),
-          cashOut: cashOut,
-        );
+        _after = await BillPaymentPoster(ref.read(dittoServiceProvider))
+            .recordPayment(
+              businessId: businessId,
+              billDocId: widget.doc.uuid!,
+              amount: _amount,
+              paymentAccount: _method,
+              accounts: accounts,
+              fallbackTotal: docGrandTotal(widget.doc),
+              cashOut: await ref.read(booksBillCashOutProvider)(
+                widget.doc.uuid!,
+              ),
+            );
       } else {
         final poster = DocumentJournalPoster(
           ref.read(accountingLedgerRepositoryProvider),
