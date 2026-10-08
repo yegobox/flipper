@@ -4823,6 +4823,9 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
   String get exportDataSheetExpenses => 'Expenses';
 
   @override
+  String get exportDataSheetCashIn => 'Cash In';
+
+  @override
   String get exportDataSheetPaymentMethods => 'Payment Methods';
 
   @override
@@ -4835,6 +4838,14 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
   @override
   String get exportDataNetProfitAfterExpenses =>
       'Final Net Profit (After Expenses):';
+
+  @override
+  String get exportDataNetProfitAfterCashIn =>
+      'Final Net Profit (After Cash In):';
+
+  @override
+  String get exportDataNetProfitAfterExpensesAndCashIn =>
+      'Final Net Profit (After Expenses & Cash In):';
 
   @override
   String get exportDataPaymentType => 'Payment Type';
@@ -4853,6 +4864,9 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
 
   @override
   String get exportDataTotalExpenses => 'Total Expenses';
+
+  @override
+  String get exportDataTotalCashIn => 'Total Cash In';
 
   @override
   String exportDataShareSubject(String date) {

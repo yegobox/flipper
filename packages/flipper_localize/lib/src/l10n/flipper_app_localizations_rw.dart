@@ -4866,6 +4866,9 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   String get exportDataSheetExpenses => 'Ibyakoreshejwe';
 
   @override
+  String get exportDataSheetCashIn => 'Cash In';
+
+  @override
   String get exportDataSheetPaymentMethods => 'Uburyo bwo kwishyura';
 
   @override
@@ -4879,6 +4882,14 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   @override
   String get exportDataNetProfitAfterExpenses =>
       'Inyungu nyayo ya nyuma (nyuma y\'ibyakoreshejwe):';
+
+  @override
+  String get exportDataNetProfitAfterCashIn =>
+      'Final Net Profit (After Cash In):';
+
+  @override
+  String get exportDataNetProfitAfterExpensesAndCashIn =>
+      'Final Net Profit (After Expenses & Cash In):';
 
   @override
   String get exportDataPaymentType => 'Uburyo bwo kwishyura';
@@ -4897,6 +4908,9 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
 
   @override
   String get exportDataTotalExpenses => 'Igiteranyo cy\'ibyakoreshejwe';
+
+  @override
+  String get exportDataTotalCashIn => 'Total Cash In';
 
   @override
   String exportDataShareSubject(String date) {

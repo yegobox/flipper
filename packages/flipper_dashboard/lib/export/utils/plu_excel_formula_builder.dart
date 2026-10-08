@@ -90,10 +90,40 @@ abstract final class PluExcelFormulaBuilder {
     required int netProfitBeforeExpensesRow,
     required int totalExpensesRow,
   }) {
+    return finalNetProfitFormula(
+      reportSheetName: reportSheetName,
+      netProfitColumnLetter: netProfitColumnLetter,
+      netProfitBeforeExpensesRow: netProfitBeforeExpensesRow,
+      expensesSheetName: expensesSheetName,
+      totalExpensesRow: totalExpensesRow,
+    );
+  }
+
+  /// Final net profit on report sheet: [report]![netCol][netRow], less
+  /// [expenses]!B[expRow] and plus [cashIn]!B[cashInRow], each only when its
+  /// sheet is given.
+  static String finalNetProfitFormula({
+    required String reportSheetName,
+    required String netProfitColumnLetter,
+    required int netProfitBeforeExpensesRow,
+    String? expensesSheetName,
+    int? totalExpensesRow,
+    String? cashInSheetName,
+    int? totalCashInRow,
+  }) {
     final rp = formulaSheetPrefix(reportSheetName);
-    final ep = formulaSheetPrefix(expensesSheetName);
-    return '=$rp${netProfitColumnLetter}${netProfitBeforeExpensesRow}-$ep'
-        'B${totalExpensesRow}';
+    final formula = StringBuffer(
+      '=$rp${netProfitColumnLetter}${netProfitBeforeExpensesRow}',
+    );
+    if (expensesSheetName != null && totalExpensesRow != null) {
+      formula.write(
+        '-${formulaSheetPrefix(expensesSheetName)}B$totalExpensesRow',
+      );
+    }
+    if (cashInSheetName != null && totalCashInRow != null) {
+      formula.write('+${formulaSheetPrefix(cashInSheetName)}B$totalCashInRow');
+    }
+    return formula.toString();
   }
 
   /// Same-sheet reference when expenses sheet is missing (fallback).

@@ -4107,6 +4107,10 @@
     "@exportDataSheetExpenses": {
         "description": "Excel sheet name (max 31 chars, no apostrophes)"
     },
+    "exportDataSheetCashIn": "Cash In",
+    "@exportDataSheetCashIn": {
+        "description": "Excel sheet name and its first column header, listing the Cash Book money-in entries (max 31 chars, no apostrophes)"
+    },
     "exportDataSheetPaymentMethods": "Payment Methods",
     "@exportDataSheetPaymentMethods": {
         "description": "Excel sheet name (max 31 chars, no apostrophes)"
@@ -4114,12 +4118,15 @@
     "exportDataTotalSalesLines": "Total Sales (lines):",
     "exportDataNetProfitBeforeExpenses": "Total Net Profit (Before Expenses):",
     "exportDataNetProfitAfterExpenses": "Final Net Profit (After Expenses):",
+    "exportDataNetProfitAfterCashIn": "Final Net Profit (After Cash In):",
+    "exportDataNetProfitAfterExpensesAndCashIn": "Final Net Profit (After Expenses & Cash In):",
     "exportDataPaymentType": "Payment Type",
     "exportDataSaleAmount": "Sale amount",
     "exportDataTransactionCount": "Transaction Count",
     "exportDataPercentOfTotal": "% of Total",
     "exportDataExpense": "Expense",
     "exportDataTotalExpenses": "Total Expenses",
+    "exportDataTotalCashIn": "Total Cash In",
     "exportDataShareSubject": "Report Download - {date}",
     "@exportDataShareSubject": {
         "placeholders": {

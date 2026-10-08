@@ -8417,6 +8417,12 @@ abstract class FlipperAppLocalizations {
   /// **'Expenses'**
   String get exportDataSheetExpenses;
 
+  /// Excel sheet name and its first column header, listing the Cash Book money-in entries (max 31 chars, no apostrophes)
+  ///
+  /// In en, this message translates to:
+  /// **'Cash In'**
+  String get exportDataSheetCashIn;
+
   /// Excel sheet name (max 31 chars, no apostrophes)
   ///
   /// In en, this message translates to:
@@ -8440,6 +8446,18 @@ abstract class FlipperAppLocalizations {
   /// In en, this message translates to:
   /// **'Final Net Profit (After Expenses):'**
   String get exportDataNetProfitAfterExpenses;
+
+  /// No description provided for @exportDataNetProfitAfterCashIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Final Net Profit (After Cash In):'**
+  String get exportDataNetProfitAfterCashIn;
+
+  /// No description provided for @exportDataNetProfitAfterExpensesAndCashIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Final Net Profit (After Expenses & Cash In):'**
+  String get exportDataNetProfitAfterExpensesAndCashIn;
 
   /// No description provided for @exportDataPaymentType.
   ///
@@ -8476,6 +8494,12 @@ abstract class FlipperAppLocalizations {
   /// In en, this message translates to:
   /// **'Total Expenses'**
   String get exportDataTotalExpenses;
+
+  /// No description provided for @exportDataTotalCashIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Cash In'**
+  String get exportDataTotalCashIn;
 
   /// No description provided for @exportDataShareSubject.
   ///

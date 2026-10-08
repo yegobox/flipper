@@ -1396,6 +1396,9 @@ class DataViewState extends ConsumerState<DataView>
         expenseTransactions,
         sales: exportSales,
       );
+      final cashIn = exportCashInTransactionsOnly(
+        fullSnap.transactions,
+      ).map(Expense.fromTransaction).toList();
 
       final config = ExportConfig(
         transactions: exportSales,
@@ -1440,6 +1443,7 @@ class DataViewState extends ConsumerState<DataView>
               ? l10n.reportTitleStockRecount
               : headerTitle!,
           expenses: expenses,
+          cashIn: cashIn,
           bottomEndOfRowTitle: widget.showDetailedReport
               ? l10n.reportTotalGrossProfit
               : l10n.reportClosingBalance,

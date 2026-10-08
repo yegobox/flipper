@@ -199,17 +199,23 @@ CashbookEntryKind classifyCashbookEntry({
   return (title: title, detail: parts.isEmpty ? null : parts.join(' · '));
 }
 
-/// The category to show for a Cash Book movement, or "No category".
-String cashbookCategoryLabel(String? transactionType) {
+/// The category chosen for a Cash Book movement, read from its
+/// `transactionType`, or null when none was picked (blank, or just the
+/// movement's own name "Cash In"/"Cash Out").
+String? cashbookCategoryName(String? transactionType) {
   final raw = transactionType?.trim() ?? '';
   final lower = raw.toLowerCase();
   if (raw.isEmpty ||
       lower == _cashInType.toLowerCase() ||
       lower == _cashOutType.toLowerCase()) {
-    return 'No category';
+    return null;
   }
   return raw;
 }
+
+/// The category to show for a Cash Book movement, or "No category".
+String cashbookCategoryLabel(String? transactionType) =>
+    cashbookCategoryName(transactionType) ?? 'No category';
 
 /// Short label for a non-cash payment method, or null for cash.
 String? cashbookMethodBadge(String? paymentType) {
