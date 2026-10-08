@@ -132,18 +132,20 @@ class ImportPurchaseViewModel extends StateNotifier<ImportPurchaseState> {
 
   /// Old builds left approved manual purchase lines selling as products of
   /// their own; fold them into the real products once per branch per session.
-  /// Never blocks the list: a failure is logged and the list still loads.
+  /// The branch stays claimed while the repair runs (a second load skips it),
+  /// but only a complete run keeps it: Ditto not open yet, a throw or a line
+  /// that failed releases it for the next load to retry. Never blocks the
+  /// list: a failure is logged and the list still loads.
   Future<void> _repairLegacyLinesOnce(String branchId) async {
     if (!_legacyLinesChecked.add(branchId)) return;
+    var done = false;
     try {
-      final result = await repairLegacyManualPurchaseLines(
-        branchId: branchId,
-        capella: PurchaseApprovalDeps.fromProxy().capella,
-      );
-      if (result.merged + result.retired > 0) {
+      final result = await repairLegacyManualPurchaseLines(branchId: branchId);
+      done = result.ran && result.failed == 0;
+      if (result.changedCatalog) {
         talker.info(
           'Legacy purchase lines: ${result.merged} merged into products, '
-          '${result.retired} retired',
+          '${result.rebalanced} rebalanced, ${result.retired} retired',
         );
         // The grids still hold the old lines; reload them from Ditto.
         for (final catalog in [
@@ -155,6 +157,8 @@ class ImportPurchaseViewModel extends StateNotifier<ImportPurchaseState> {
       }
     } catch (e, s) {
       talker.error('Legacy purchase line repair failed', e, s);
+    } finally {
+      if (!done) _legacyLinesChecked.remove(branchId);
     }
   }
 

@@ -1,5 +1,5 @@
 import 'package:flipper_dashboard/manual_purchase/manual_purchase_legacy_repair.dart';
-import 'package:flipper_models/DatabaseSyncInterface.dart';
+import 'package:flipper_models/sync/capella/manual_purchase_ditto.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:supabase_models/brick/models/all_models.dart';
 
@@ -49,56 +49,57 @@ LegacyLineRepairPlan _plan(
   double onHand = 5,
 }) => planLegacyLineRepair(line: line, onHand: onHand, catalog: catalog);
 
+/// Lines, on-hand by stock id and the line flags, kept the way Ditto keeps
+/// them: a move is a pair of counter increments, so replaying one (a second
+/// offline device) adds up instead of being ignored.
 class _FakeStore extends LegacyLineRepairStore {
-  _FakeStore({required this.lines, required this.catalog});
+  _FakeStore({
+    required List<Variant> lines,
+    required this.catalog,
+    required this.onHandById,
+  }) : _lines = {for (final l in lines) l.id: l};
 
-  final List<Variant> lines;
+  final Map<String, Variant> _lines;
   final List<Variant> catalog;
-  final retired = <String, String?>{};
+  final Map<String, double> onHandById;
+  final repaired = <String>{};
+  final targets = <String, String>{};
+  bool isReady = true;
+  String? failOnLine;
 
   @override
-  Future<List<Variant>> legacyLines(String branchId) async =>
-      lines.where((l) => !retired.containsKey(l.id)).toList();
+  bool get ready => isReady;
+
+  @override
+  Future<List<LegacyPurchaseLine>> legacyLines(String branchId) async => [
+    for (final line in _lines.values)
+      LegacyPurchaseLine(
+        line: line,
+        repaired: repaired.contains(line.id),
+        targetVariantId: targets[line.id],
+      ),
+  ];
 
   @override
   Future<List<Variant>> branchVariants(String branchId) async => catalog;
 
   @override
-  Future<void> retire({required String lineId, String? targetVariantId}) async {
-    retired[lineId] = targetVariantId;
-  }
-}
-
-/// Stocks by id, with the two updateStock modes the repair uses.
-class _FakeCapella extends Fake implements DatabaseSyncInterface {
-  _FakeCapella(this.onHand);
-
-  final Map<String, double> onHand;
+  Future<double?> onHand(String stockId) async => onHandById[stockId];
 
   @override
-  Future<Stock?> getStockById({required String id}) async {
-    final qty = onHand[id];
-    return qty == null
-        ? null
-        : Stock(id: id, branchId: 'b1', currentStock: qty);
-  }
+  Future<void> retire(String lineId) async => repaired.add(lineId);
 
   @override
-  Future<void> updateStock({
-    required String stockId,
-    double? qty,
-    double? rsdQty,
-    double? initialStock,
-    bool? ebmSynced,
-    double? currentStock,
-    double? value,
-    bool appending = false,
-    DateTime? lastTouched,
+  Future<void> move({
+    required Variant line,
+    required Variant target,
+    required double qty,
   }) async {
-    if (currentStock == null) return;
-    onHand[stockId] = appending
-        ? (onHand[stockId] ?? 0) + currentStock
-        : currentStock;
+    if (line.id == failOnLine) throw StateError('boom');
+    onHandById[line.stockId!] = (onHandById[line.stockId!] ?? 0) - qty;
+    onHandById[target.stockId!] = (onHandById[target.stockId!] ?? 0) + qty;
+    repaired.add(line.id);
+    targets[line.id] = target.id;
   }
 }
 
@@ -162,40 +163,82 @@ void main() {
     });
   });
 
+  group('planLegacyLineRepair on a repaired line', () {
+    test('settled at zero: nothing to do', () {
+      final plan = planLegacyLineRepair(
+        line: _line(),
+        onHand: 0,
+        catalog: [_product('v1')],
+        repaired: true,
+        repairedTargetId: 'v1',
+      );
+      expect(plan.action, LegacyLineRepairAction.none);
+    });
+
+    test('off zero: back to the product it was given, not a new match', () {
+      final plan = planLegacyLineRepair(
+        line: _line(itemCd: 'X'),
+        onHand: -5,
+        catalog: [
+          _product('v1'),
+          _product('v2', name: 'Other', itemCd: 'X'),
+        ],
+        repaired: true,
+        repairedTargetId: 'v1',
+      );
+      expect(plan.action, LegacyLineRepairAction.rebalance);
+      expect(plan.target!.id, 'v1');
+    });
+  });
+
   group('repairLegacyManualPurchaseLines', () {
+    _FakeStore primus({double line = 5, double product = 12}) => _FakeStore(
+      lines: [_line()],
+      catalog: [_product('v1')],
+      onHandById: {'s-line-1': line, 's-v1': product},
+    );
+
     test('moves what is left onto the product and retires the line', () async {
-      final store = _FakeStore(lines: [_line()], catalog: [_product('v1')]);
-      final capella = _FakeCapella({'s-line-1': 5, 's-v1': 12});
+      final store = primus();
 
       final result = await repairLegacyManualPurchaseLines(
         branchId: 'b1',
-        capella: capella,
         store: store,
       );
 
       expect(result.merged, 1);
-      expect(capella.onHand['s-v1'], 17);
-      expect(capella.onHand['s-line-1'], 0);
-      expect(store.retired, {'line-1': 'v1'});
+      expect(store.onHandById, {'s-line-1': 0, 's-v1': 17});
+      expect(store.targets, {'line-1': 'v1'});
     });
 
     test('a second run finds nothing to do', () async {
-      final store = _FakeStore(lines: [_line()], catalog: [_product('v1')]);
-      final capella = _FakeCapella({'s-line-1': 5, 's-v1': 12});
+      final store = primus();
+      await repairLegacyManualPurchaseLines(branchId: 'b1', store: store);
 
-      await repairLegacyManualPurchaseLines(
-        branchId: 'b1',
-        capella: capella,
-        store: store,
-      );
       final again = await repairLegacyManualPurchaseLines(
         branchId: 'b1',
-        capella: capella,
         store: store,
       );
 
-      expect(again.merged + again.retired, 0);
-      expect(capella.onHand['s-v1'], 17);
+      expect(again.changedCatalog, isFalse);
+      expect(store.onHandById['s-v1'], 17);
+    });
+
+    test('two devices moving the same line converge on one move', () async {
+      final store = primus();
+      // Both devices saw the line at '02' with 5 on hand before either
+      // device's move synced: two moves of 5, merged additively.
+      await store.move(line: _line(), target: _product('v1'), qty: 5);
+      await store.move(line: _line(), target: _product('v1'), qty: 5);
+      expect(store.onHandById, {'s-line-1': -5, 's-v1': 22});
+
+      final result = await repairLegacyManualPurchaseLines(
+        branchId: 'b1',
+        store: store,
+      );
+
+      expect(result.rebalanced, 1);
+      expect(store.onHandById, {'s-line-1': 0, 's-v1': 17});
     });
 
     test('sold-out lines are retired, unmatched stock is left alone', () async {
@@ -205,20 +248,53 @@ void main() {
           _line(id: 'orphan', name: 'Mystery crate', stockId: 's-orphan'),
         ],
         catalog: [_product('v1')],
+        onHandById: {'s-empty': 0, 's-orphan': 4, 's-v1': 1},
       );
-      final capella = _FakeCapella({'s-empty': 0, 's-orphan': 4, 's-v1': 1});
 
       final result = await repairLegacyManualPurchaseLines(
         branchId: 'b1',
-        capella: capella,
         store: store,
       );
 
       expect(result.retired, 1);
       expect(result.review, ['Mystery crate']);
-      expect(store.retired, {'empty': null});
-      expect(capella.onHand['s-orphan'], 4);
-      expect(capella.onHand['s-v1'], 1);
+      expect(store.repaired, {'empty'});
+      expect(store.onHandById, {'s-empty': 0, 's-orphan': 4, 's-v1': 1});
+    });
+
+    test('Ditto not open yet: reports it did not run', () async {
+      final store = primus()..isReady = false;
+
+      final result = await repairLegacyManualPurchaseLines(
+        branchId: 'b1',
+        store: store,
+      );
+
+      expect(result.ran, isFalse);
+      expect(store.onHandById['s-v1'], 12);
+    });
+
+    test('a failing line is counted and the rest still run', () async {
+      final store = _FakeStore(
+        lines: [
+          _line(),
+          _line(id: 'line-2', name: 'Mutzig', stockId: 's-line-2'),
+        ],
+        catalog: [
+          _product('v1'),
+          _product('v2', name: 'Mutzig'),
+        ],
+        onHandById: {'s-line-1': 5, 's-line-2': 3, 's-v1': 0, 's-v2': 0},
+      )..failOnLine = 'line-1';
+
+      final result = await repairLegacyManualPurchaseLines(
+        branchId: 'b1',
+        store: store,
+      );
+
+      expect(result.failed, 1);
+      expect(result.merged, 1);
+      expect(store.onHandById['s-v2'], 3);
     });
   });
 }
