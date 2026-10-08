@@ -1,3 +1,5 @@
+import 'package:flipper_dashboard/cashbook_form_rules.dart'
+    show cashbookCategoryLabel;
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -15,12 +17,14 @@ class Expense {
   /// Creates a new Expense instance
   const Expense({required this.name, required this.amount});
 
-  /// Creates an Expense from an ITransaction
+  /// Creates an Expense from an ITransaction. A Cash Book entry is named by
+  /// its category ("No category" when none was picked), like the Cash Book.
   factory Expense.fromTransaction(ITransaction transaction) {
+    final type = transaction.transactionType?.trim() ?? '';
     return Expense(
-      name:
-          transaction.transactionType ??
-          FlipperL10n.current.reportUnknownExpense,
+      name: type.isEmpty
+          ? FlipperL10n.current.reportUnknownExpense
+          : cashbookCategoryLabel(type),
       amount: transaction.subTotal ?? 0.0,
     );
   }

@@ -4850,6 +4850,9 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   String get exportDataSheetExpenses => 'Matumizi';
 
   @override
+  String get exportDataSheetCashIn => 'Pesa iliyoingia';
+
+  @override
   String get exportDataSheetPaymentMethods => 'Njia za malipo';
 
   @override
@@ -4862,6 +4865,14 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   @override
   String get exportDataNetProfitAfterExpenses =>
       'Faida halisi ya mwisho (baada ya matumizi):';
+
+  @override
+  String get exportDataNetProfitAfterCashIn =>
+      'Faida halisi ya mwisho (baada ya pesa iliyoingia):';
+
+  @override
+  String get exportDataNetProfitAfterExpensesAndCashIn =>
+      'Faida halisi ya mwisho (baada ya matumizi na pesa iliyoingia):';
 
   @override
   String get exportDataPaymentType => 'Aina ya malipo';
@@ -4880,6 +4891,9 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
 
   @override
   String get exportDataTotalExpenses => 'Jumla ya matumizi';
+
+  @override
+  String get exportDataTotalCashIn => 'Jumla ya pesa iliyoingia';
 
   @override
   String exportDataShareSubject(String date) {

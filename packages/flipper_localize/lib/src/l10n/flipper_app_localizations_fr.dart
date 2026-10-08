@@ -4895,6 +4895,9 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   String get exportDataSheetExpenses => 'Dépenses';
 
   @override
+  String get exportDataSheetCashIn => 'Entrées de caisse';
+
+  @override
   String get exportDataSheetPaymentMethods => 'Moyens de paiement';
 
   @override
@@ -4907,6 +4910,14 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   @override
   String get exportDataNetProfitAfterExpenses =>
       'Bénéfice net final (après dépenses) :';
+
+  @override
+  String get exportDataNetProfitAfterCashIn =>
+      'Bénéfice net final (après entrées de caisse) :';
+
+  @override
+  String get exportDataNetProfitAfterExpensesAndCashIn =>
+      'Bénéfice net final (après dépenses et entrées de caisse) :';
 
   @override
   String get exportDataPaymentType => 'Type de paiement';
@@ -4925,6 +4936,9 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
 
   @override
   String get exportDataTotalExpenses => 'Total des dépenses';
+
+  @override
+  String get exportDataTotalCashIn => 'Total des entrées de caisse';
 
   @override
   String exportDataShareSubject(String date) {

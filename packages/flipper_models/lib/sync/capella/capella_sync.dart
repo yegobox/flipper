@@ -975,6 +975,14 @@ class CapellaSync extends AiStrategyImpl
     final movementReceipt = isIncome
         ? TransactionType.cashIn
         : TransactionType.cashOut;
+    final classification = cashMovementClassification(
+      categoryName: transactionTypeForRecord,
+      movementName: utilityVariantName,
+      categoryId: categoryId,
+      paymentType: txn.paymentType,
+      receiptType: movementReceipt,
+    );
+    await _persistCashMovementClassification(txn.id, classification);
     await updateTransaction(
       transaction: txn,
       receiptType: movementReceipt,
@@ -982,7 +990,39 @@ class CapellaSync extends AiStrategyImpl
       lastTouched: DateTime.now(),
     );
     txn.receiptType = movementReceipt;
+    txn.transactionType = classification['transactionType'] as String?;
+    txn.categoryId = classification['categoryId'] as String?;
     return txn;
+  }
+
+  /// Writes the category, payment method and receipt type of a finished cash
+  /// book movement. [collectPayment] sets them on the in-memory transaction,
+  /// but [updateTransaction] has no parameter for them, so without this the
+  /// stored row keeps "Cash Out"/"Cash In" and every report shows no category.
+  Future<void> _persistCashMovementClassification(
+    String transactionId,
+    Map<String, Object?> fields,
+  ) async {
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) {
+      talker.error('Ditto not initialized; cash movement category not saved');
+      return;
+    }
+    final sets = fields.keys.map((k) => '$k = :$k').join(', ');
+    try {
+      await ditto.store.execute(
+        'UPDATE transactions SET $sets WHERE (_id = :id OR id = :id)',
+        arguments: {...fields, 'id': transactionId},
+      );
+    } catch (e, s) {
+      // The movement itself is already recorded; failing here would invite a
+      // retry that records it twice.
+      talker.error(
+        'Saving cash movement category failed for $transactionId',
+        e,
+        s,
+      );
+    }
   }
 
   @override

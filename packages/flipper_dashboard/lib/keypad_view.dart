@@ -418,9 +418,6 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
       Category? category = await ProxyService.strategy.activeCategory(
         branchId: branchId,
       );
-      var shortestSide = MediaQuery.of(context).size.shortestSide;
-      var useMobileLayout = shortestSide < 600;
-
       final updated = await ProxyService.strategy.completeCashMovement(
         branchId: branchId,
         bhfId: bhfId,
@@ -432,9 +429,7 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
         countryCode: "N/A",
         isProformaMode: ProxyService.box.isProformaMode(),
         isTrainingMode: ProxyService.box.isTrainingMode(),
-        transactionTypeForRecord: useMobileLayout
-            ? category?.name ?? ""
-            : TransactionType.sale,
+        transactionTypeForRecord: category?.name ?? transactionType,
         categoryId: category?.id.toString(),
       );
 

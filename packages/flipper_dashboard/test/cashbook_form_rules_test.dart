@@ -251,6 +251,14 @@ void main() {
     });
   });
 
+  test('cashbookCategoryName is null without a real category', () {
+    expect(cashbookCategoryName(' Rent '), 'Rent');
+    expect(cashbookCategoryName('Cash In'), isNull);
+    expect(cashbookCategoryName('cash out'), isNull);
+    expect(cashbookCategoryName('  '), isNull);
+    expect(cashbookCategoryName(null), isNull);
+  });
+
   test('cashbookCategoryLabel', () {
     expect(cashbookCategoryLabel('Rent'), 'Rent');
     expect(cashbookCategoryLabel('cash out'), 'No category');
