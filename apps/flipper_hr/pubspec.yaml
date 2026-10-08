@@ -25,6 +25,9 @@ dependencies:
   # apihub is plain REST (the invite's account and PIN hops), so HR needs an
   # http client of its own rather than reaching through supabase_flutter's.
   http: ^1.2.0
+  # Payslips as PDF, shared from the phone or printed from the browser.
+  pdf: ^3.13.0
+  printing: ^5.15.0
   # The sidebar's expanded/collapsed choice outlives a page reload.
   shared_preferences: ^2.5.3
   supabase_flutter: ^2.12.0

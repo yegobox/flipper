@@ -42,6 +42,14 @@ class EmployeeRowMapper {
       // Nullable on purpose: null is "statutory default", so it must survive the
       // round trip rather than collapsing to 0 the way parseAmount would.
       annualLeaveDays: parseOptionalAmount(row['annual_leave_days']),
+      // Pay settings (0011). Absent on a database that predates it, so every
+      // one falls back to the value the column defaults to.
+      payDay: parseOptionalAmount(row['pay_day'])?.round(),
+      allowances: parseAmount(row['allowances']),
+      taxCategory: TaxCategory.fromWire(row['tax_category'] as String?),
+      rssbEnrolled: row['rssb_enrolled'] is bool
+          ? row['rssb_enrolled'] as bool
+          : true,
       notes: _str(row['notes']),
       createdAt: parseTimestamp(row['created_at']),
       updatedAt: parseTimestamp(row['updated_at']),
@@ -90,6 +98,10 @@ class EmployeeRowMapper {
     // nothing — an empty string would be rejected by the uuid column.
     'manager_id': _nullIfBlank(e.managerId ?? ''),
     'annual_leave_days': e.annualLeaveDays,
+    'pay_day': e.payDay,
+    'allowances': e.allowances,
+    'tax_category': e.taxCategory.wire,
+    'rssb_enrolled': e.rssbEnrolled,
     'notes': _nullIfBlank(e.notes),
   };
 

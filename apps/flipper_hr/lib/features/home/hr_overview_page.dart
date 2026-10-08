@@ -1,6 +1,7 @@
 import 'package:flipper_hr/features/branding/hr_tokens.dart';
 import 'package:flipper_hr/features/leave/data/leave_providers.dart';
 import 'package:flipper_hr/features/leave/data/leave_request.dart';
+import 'package:flipper_hr/features/pay/data/pay_providers.dart';
 import 'package:flipper_hr/features/people/data/employee.dart';
 import 'package:flipper_hr/features/people/data/money_format.dart';
 import 'package:flipper_hr/features/people/data/people_providers.dart';
@@ -43,6 +44,10 @@ class HrOverviewPage extends ConsumerWidget {
     final identity = ref.watch(hrIdentityOrUnknownProvider);
     final roster = ref.watch(rosterProvider(branchId));
     final pending = ref.watch(pendingLeaveProvider(branchId));
+    // Payroll is optional on this page: if the pay book cannot load (an older
+    // database without migration 0011), the dashboard still renders.
+    final payAccounts = ref.watch(branchPayAccountsProvider(branchId)).value;
+    final dueToPay = payAccounts?.where((a) => a.isDue).length ?? 0;
 
     final people = roster.value ?? const <Employee>[];
     final summary = PeopleSummary.from(people, asOf: now);
@@ -79,7 +84,9 @@ class HrOverviewPage extends ConsumerWidget {
               onAddPerson: () => context.go('/people'),
               onReview: () => context.go('/approvals'),
               onAttendance: () => context.go('/attendance'),
+              onPay: () => context.go('/pay'),
               pendingCount: pending.value?.length ?? 0,
+              dueToPay: dueToPay,
             ),
             const SizedBox(height: 20),
             _StatRow(
@@ -88,6 +95,8 @@ class HrOverviewPage extends ConsumerWidget {
               pendingCount: pending.value?.length ?? 0,
               onOpenRoster: () => context.go('/people'),
               onOpenApprovals: () => context.go('/approvals'),
+              onOpenPayroll: () => context.go('/pay'),
+              dueToPay: payAccounts == null ? null : dueToPay,
             ),
             const SizedBox(height: 20),
             if (wide)
@@ -195,13 +204,17 @@ class _QuickActions extends StatelessWidget {
     required this.onAddPerson,
     required this.onReview,
     required this.onAttendance,
+    required this.onPay,
     required this.pendingCount,
+    this.dueToPay = 0,
   });
 
   final VoidCallback onAddPerson;
   final VoidCallback onReview;
   final VoidCallback onAttendance;
+  final VoidCallback onPay;
   final int pendingCount;
+  final int dueToPay;
 
   @override
   Widget build(BuildContext context) {
@@ -229,6 +242,15 @@ class _QuickActions extends StatelessWidget {
           ),
         ),
         OutlinedButton.icon(
+          key: const Key('hr-overview-pay'),
+          onPressed: onPay,
+          style: hrSecondaryButtonStyle(),
+          icon: const Icon(Icons.payments_outlined, size: 17),
+          label: Text(
+            dueToPay == 0 ? l10n.hrPayroll : l10n.hrPayPeopleDue(dueToPay),
+          ),
+        ),
+        OutlinedButton.icon(
           onPressed: onAttendance,
           style: hrSecondaryButtonStyle(),
           icon: const Icon(Icons.schedule_outlined, size: 17),
@@ -248,6 +270,8 @@ class _StatRow extends StatelessWidget {
     required this.pendingCount,
     required this.onOpenRoster,
     required this.onOpenApprovals,
+    this.onOpenPayroll,
+    this.dueToPay,
   });
 
   final PeopleSummary summary;
@@ -255,6 +279,11 @@ class _StatRow extends StatelessWidget {
   final int pendingCount;
   final VoidCallback onOpenRoster;
   final VoidCallback onOpenApprovals;
+  final VoidCallback? onOpenPayroll;
+
+  /// People whose pay day has passed without a payslip. Null when the pay
+  /// book has not loaded.
+  final int? dueToPay;
 
   @override
   Widget build(BuildContext context) {
@@ -263,11 +292,10 @@ class _StatRow extends StatelessWidget {
     String n(int value) => loading ? '—' : '$value';
     final l10n = context.flipperL10n;
 
-    return Wrap(
-      spacing: 12,
-      runSpacing: 12,
-      children: [
-        HrStatTile(
+    return HrStatGrid(
+      tiles: [
+        (w) => HrStatTile(
+          width: w,
           key: const Key('hr-overview-headcount'),
           label: l10n.hrHeadcount,
           value: n(summary.headcount),
@@ -275,14 +303,16 @@ class _StatRow extends StatelessWidget {
           hint: loading ? null : l10n.hrActiveCount('${summary.active}'),
           onTap: onOpenRoster,
         ),
-        HrStatTile(
+        (w) => HrStatTile(
+          width: w,
           label: l10n.hrOnLeave,
           value: n(summary.onLeave),
           icon: Icons.beach_access_outlined,
           tone: summary.onLeave > 0 ? HrTone.warning : HrTone.neutral,
           onTap: onOpenRoster,
         ),
-        HrStatTile(
+        (w) => HrStatTile(
+          width: w,
           key: const Key('hr-overview-pending'),
           label: l10n.hrWaitingOnYou,
           value: loading ? '—' : '$pendingCount',
@@ -291,20 +321,28 @@ class _StatRow extends StatelessWidget {
           hint: pendingCount > 0 ? l10n.hrNeedsADecision : l10n.hrAllClear,
           onTap: onOpenApprovals,
         ),
-        HrStatTile(
+        (w) => HrStatTile(
+          width: w,
           label: l10n.hrNewThisMonth,
           value: n(summary.newThisMonth),
           icon: Icons.auto_awesome_outlined,
           tone: HrTone.positive,
           onTap: onOpenRoster,
         ),
-        HrStatTile(
+        (w) => HrStatTile(
+          width: w,
           label: l10n.hrMonthlyPayroll,
           value: loading
               ? '—'
               : formatCompactMoney(summary.monthlyPayroll, summary.currency),
           icon: Icons.payments_outlined,
-          hint: loading ? null : l10n.hrEstimated,
+          tone: (dueToPay ?? 0) > 0 ? HrTone.warning : HrTone.info,
+          hint: loading
+              ? null
+              : (dueToPay ?? 0) > 0
+              ? l10n.hrPayPeopleDue(dueToPay!)
+              : l10n.hrEstimated,
+          onTap: onOpenPayroll,
         ),
       ],
     );

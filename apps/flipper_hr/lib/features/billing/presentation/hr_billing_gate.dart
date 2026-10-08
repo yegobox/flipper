@@ -1,3 +1,4 @@
+import 'package:flipper_hr/features/host/hr_host.dart';
 import 'package:flipper_hr/features/billing/application/hr_billing_providers.dart';
 import 'package:flipper_hr/features/billing/data/hr_entitlement.dart';
 import 'package:flipper_hr/features/billing/presentation/hr_skip_payment_action.dart';
@@ -6,7 +7,6 @@ import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_web/features/business_selection/business_branch_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 /// Hides a manager surface behind the subscription, with a way out.
 ///
@@ -38,7 +38,7 @@ class HrBillingGate extends ConsumerWidget {
 
 /// The lock itself, split out so it can be laid out and tested without an
 /// entitlement state behind it.
-class HrPaywallPanel extends StatelessWidget {
+class HrPaywallPanel extends ConsumerWidget {
   const HrPaywallPanel({
     super.key,
     required this.access,
@@ -53,7 +53,8 @@ class HrPaywallPanel extends StatelessWidget {
   final String? featureName;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final host = ref.watch(hrHostProvider);
     final l10n = context.flipperL10n;
     final feature = featureName;
     final lapsed = access.hasLapsed;
@@ -124,7 +125,7 @@ class HrPaywallPanel extends StatelessWidget {
                   const SizedBox(height: 20),
                   FilledButton.icon(
                     key: const Key('hr-paywall-subscribe'),
-                    onPressed: () => context.go('/subscribe'),
+                    onPressed: () => host.toSubscribe(context),
                     style: FilledButton.styleFrom(
                       backgroundColor: HrTokens.accent,
                       foregroundColor: Colors.white,
@@ -139,7 +140,9 @@ class HrPaywallPanel extends StatelessWidget {
                     ),
                     label: Text(lapsed ? l10n.hrRenewNow : l10n.hrSeeThePlan),
                   ),
-                  if (businessId != null)
+                  // Skipping is an HR-plan concession; embedded, HR rides on
+                  // the host's plan, which has no such thing.
+                  if (businessId != null && !host.isEmbedded)
                     HrSkipPaymentAction(
                       businessId: businessId!,
                       access: access,
@@ -240,7 +243,7 @@ class HrBillingNotice extends ConsumerWidget {
           icon: Icons.timer_outlined,
           message: message,
           action: TextButton(
-            onPressed: () => context.go('/subscribe'),
+            onPressed: () => ref.read(hrHostProvider).toSubscribe(context),
             child: Text(l10n.hrPayNow),
           ),
         ),
@@ -265,7 +268,7 @@ class HrBillingNotice extends ConsumerWidget {
           icon: Icons.schedule,
           message: message,
           action: TextButton(
-            onPressed: () => context.go('/subscribe'),
+            onPressed: () => ref.read(hrHostProvider).toSubscribe(context),
             child: Text(l10n.hrRenew),
           ),
         ),

@@ -148,6 +148,8 @@ dependencies:
   posthog_flutter: ^5.30.0
   flipper_analytics: any
   flipper_web: any
+  # HR & Payroll under More → Apps, registered in main.dart.
+  flipper_hr: any
   logging: ^1.3.0
   path_provider: ^2.1.0
 

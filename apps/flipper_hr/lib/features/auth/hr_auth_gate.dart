@@ -1,4 +1,5 @@
 import 'package:flipper_hr/features/billing/application/hr_billing_providers.dart';
+import 'package:flipper_hr/features/host/hr_host.dart';
 import 'package:flipper_hr/features/session/data/hr_session.dart';
 import 'package:flipper_hr/features/session/data/hr_session_providers.dart';
 import 'package:flipper_web/features/business_selection/business_branch_selector.dart';
@@ -36,6 +37,14 @@ class HrAuthGate extends ConsumerWidget {
       ),
       data: (state) {
         if (state == AuthState.unauthenticated) {
+          // Embedded, there is no login route: the host signs in before it
+          // opens HR, so a missing session means it could not (offline).
+          if (ref.watch(hrHostProvider).isEmbedded) {
+            return _HrGateMessage(
+              message: context.flipperL10n.hrNeedsInternet,
+              onRetry: () => ref.invalidate(authStateProvider),
+            );
+          }
           _goOnce(context, '/login');
           return const _HrGateLoading();
         }
@@ -76,6 +85,14 @@ class HrAuthGate extends ConsumerWidget {
       ),
       data: (selected) {
         if (!selected) {
+          // Embedded, the branch comes from the host and is picked there.
+          if (ref.watch(hrHostProvider).isEmbedded) {
+            return _HrGateMessage(
+              message: context.flipperL10n.hrPickBranchBody,
+              onRetry: () =>
+                  ref.invalidate(hasSelectedBusinessAndBranchProvider),
+            );
+          }
           _goOnce(context, '/business-selection');
           return const _HrGateLoading();
         }
@@ -103,7 +120,10 @@ class HrAuthGate extends ConsumerWidget {
         return const _HrGateLoading();
       },
       data: (state) {
-        _goOnce(context, state.grantsAccess ? '/overview' : '/subscribe');
+        // Embedded there is no subscribe route; the overview's own
+        // [HrBillingGate] shows the paywall, whose button opens the host's plan.
+        final paid = state.grantsAccess || ref.read(hrHostProvider).isEmbedded;
+        _goOnce(context, paid ? '/overview' : '/subscribe');
         return const _HrGateLoading();
       },
     );
@@ -128,15 +148,16 @@ class _HrGateLoading extends StatelessWidget {
   }
 }
 
-class _HrGateMessage extends StatelessWidget {
+class _HrGateMessage extends ConsumerWidget {
   const _HrGateMessage({required this.message, required this.onRetry});
 
   final String message;
   final VoidCallback onRetry;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final host = ref.watch(hrHostProvider);
     return Scaffold(
       body: Center(
         child: ConstrainedBox(
@@ -158,14 +179,21 @@ class _HrGateMessage extends StatelessWidget {
                   style: theme.textTheme.bodyLarge,
                 ),
                 const SizedBox(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                // Wraps rather than overflowing on a phone, where the longer
+                // embedded label no longer fits beside Retry.
+                Wrap(
+                  alignment: WrapAlignment.center,
+                  spacing: 12,
+                  runSpacing: 8,
                   children: [
                     OutlinedButton(
-                      onPressed: () => context.go('/login'),
-                      child: Text(context.flipperL10n.hrBackToSignIn),
+                      onPressed: () => host.toSignIn(context),
+                      child: Text(
+                        host.isEmbedded
+                            ? context.flipperL10n.hrBackToFlipper
+                            : context.flipperL10n.hrBackToSignIn,
+                      ),
                     ),
-                    const SizedBox(width: 12),
                     FilledButton(
                       onPressed: onRetry,
                       child: Text(context.flipperL10n.retry),

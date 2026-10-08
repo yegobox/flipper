@@ -1,3 +1,4 @@
+import 'package:flipper_dashboard/hr_module_entry.dart';
 import 'package:flipper_dashboard/providers/agent_commission_access_provider.dart';
 import 'package:flipper_dashboard/providers/navigation_providers.dart';
 import 'package:flipper_dashboard/widgets/dashboard_all_apps_catalog.dart';
@@ -31,6 +32,21 @@ bool dashboardAppTileVisible(WidgetRef ref, DashboardAllAppTile tile) {
   final uid = ProxyService.box.getUserId() ?? '';
   final feature = tile.feature;
   if (feature == null) return true;
+
+  // HR holds salaries and national IDs, so it is for whoever runs the
+  // business: an admin, or staff given the 'HR' grant at admin level — the
+  // same grant HR's own RLS honours (migration 0006). 'HR' is not an
+  // [AppFeature], so the generic check below would hide it from everyone.
+  if (tile.page == 'HR') {
+    if (ref.watch(hrAppBuilderProvider) == null) return false;
+    return ref.watch(
+          featureAccessLevelProvider(
+            userId: uid,
+            accessLevel: AccessLevel.ADMIN,
+          ),
+        ) ||
+        ref.watch(featureAccessProvider(userId: uid, featureName: 'HR'));
+  }
 
   if (feature == 'Sales' || tile.page == 'POS' || tile.page == 'Inventory') {
     // Browse the POS/inventory catalog under view (read+) access — selling and

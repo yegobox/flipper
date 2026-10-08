@@ -2,6 +2,7 @@ import 'package:flipper_ai_feature/flipper_ai_feature.dart';
 import 'package:flipper_dashboard/books_module_navigation.dart';
 import 'package:flipper_dashboard/features/daily_report_files/daily_report_files_app.dart';
 import 'package:flipper_dashboard/features/incoming_orders/om_tokens.dart';
+import 'package:flipper_dashboard/hr_module_entry.dart';
 import 'package:flipper_dashboard/features/personal_goals/personal_goals_screen.dart';
 import 'package:flipper_dashboard/features/leads/leads_mobile_screen.dart';
 import 'package:flipper_dashboard/features/production_output/production_output_app.dart';
@@ -97,6 +98,14 @@ Future<void> navigateToDashboardAppPage({
       break;
     case 'Credits':
       await routerService.navigateTo(CreditAppRoute());
+      break;
+    case 'HR':
+      await (nav ?? Navigator.of(context)).push(
+        MaterialPageRoute<void>(
+          settings: const RouteSettings(name: HrModuleEntry.routeName),
+          builder: (context) => const HrModuleEntry(),
+        ),
+      );
       break;
     case 'Chat':
       await Navigator.of(

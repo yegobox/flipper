@@ -15,6 +15,8 @@ import 'package:flipper_models/providers/provider_perf_observer.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/dashboard_quick_apps_navigation.dart';
 import 'package:flipper_dashboard/providers/locale_provider.dart';
+import 'package:flipper_dashboard/hr_module_entry.dart';
+import 'package:flipper_hr/flipper_hr.dart';
 // ignore: depend_on_referenced_packages
 import 'package:flipper_ai_feature/flipper_ai_feature.dart' show initLocalAi;
 import 'package:flipper_dashboard/features/delegations/delegation_notification_listener.dart';
@@ -65,24 +67,32 @@ Future<void> _initializeFirebase() async {
     if (platform case SupportedPlatform.android || SupportedPlatform.ios) {
       debugPrint('📱 [Firebase] Requesting permissions (non-blocking)...');
       // Fire and forget permission requests so they don't block the startup sequence
-      unawaited([
-        Permission.bluetoothConnect,
-        Permission.bluetoothAdvertise,
-        Permission.nearbyWifiDevices,
-        Permission.notification,
-      ].request().timeout(const Duration(seconds: 15), onTimeout: () {
-        debugPrint('⚠️ [Firebase] Background permission request timed out');
-        return {};
-      }));
+      unawaited(
+        [
+          Permission.bluetoothConnect,
+          Permission.bluetoothAdvertise,
+          Permission.nearbyWifiDevices,
+          Permission.notification,
+        ].request().timeout(
+          const Duration(seconds: 15),
+          onTimeout: () {
+            debugPrint('⚠️ [Firebase] Background permission request timed out');
+            return {};
+          },
+        ),
+      );
     }
     // Don't use microtask for Firebase as critical services depend on it
     debugPrint('📱 [Firebase] Calling Firebase.initializeApp...');
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
-    ).timeout(const Duration(seconds: 20), onTimeout: () {
-      debugPrint('⚠️ [Firebase] Firebase.initializeApp timed out');
-      throw TimeoutException('Firebase.initializeApp timed out');
-    });
+    ).timeout(
+      const Duration(seconds: 20),
+      onTimeout: () {
+        debugPrint('⚠️ [Firebase] Firebase.initializeApp timed out');
+        throw TimeoutException('Firebase.initializeApp timed out');
+      },
+    );
     // talker.info('Firebase initialized successfully');
   } catch (e, stackTrace) {
     GlobalErrorHandler.report(e, stackTrace, type: 'firebase_init_error');
@@ -111,19 +121,21 @@ void _reportLocalDbFallback() {
   if (fallbacks.isEmpty && !queueDegraded) {
     return;
   }
-  unawaited(GlobalErrorHandler.logMessage(
-    'Local database opened on a fallback tier',
-    type: 'local_db_fallback',
-    tags: {
-      'local_db_tier': Repository.mainDbTier ?? 'unknown',
-      'queue_db_tier': queueTier ?? 'unknown',
-    },
-    extra: {
-      'failures': [for (final f in fallbacks) f.toString()],
-    },
-  ).catchError((Object e) {
-    debugPrint('Failed to report local DB fallback: $e');
-  }));
+  unawaited(
+    GlobalErrorHandler.logMessage(
+      'Local database opened on a fallback tier',
+      type: 'local_db_fallback',
+      tags: {
+        'local_db_tier': Repository.mainDbTier ?? 'unknown',
+        'queue_db_tier': queueTier ?? 'unknown',
+      },
+      extra: {
+        'failures': [for (final f in fallbacks) f.toString()],
+      },
+    ).catchError((Object e) {
+      debugPrint('Failed to report local DB fallback: $e');
+    }),
+  );
 }
 
 // Function to initialize Print Delegation (Real-time Ditto-based)
@@ -135,10 +147,7 @@ Future<void> _dumpInitErrorToFile(String errorText) async {
   try {
     final dir = await getApplicationSupportDirectory();
     final file = File('${dir.path}/init_error.log');
-    await file.writeAsString(
-      '=== init failure ===\n$errorText\n',
-      flush: true,
-    );
+    await file.writeAsString('=== init failure ===\n$errorText\n', flush: true);
     debugPrint('📝 [main] Wrote init error to ${file.path}');
   } catch (e) {
     debugPrint('Failed to write init error log: $e');
@@ -267,11 +276,7 @@ String _initStepDisplayLabel(FlipperAppLocalizations l10n, String? stepId) {
   }
 }
 
-void _reportInitFailure(
-  _InitStep step,
-  Object error,
-  StackTrace stackTrace,
-) {
+void _reportInitFailure(_InitStep step, Object error, StackTrace stackTrace) {
   try {
     Sentry.captureException(
       error,
@@ -327,7 +332,8 @@ Future<void> _runInitStep(_InitStep step) async {
     debugPrint('✅ [init] ${step.id} in ${watch.elapsedMilliseconds}ms');
   } catch (error, stackTrace) {
     debugPrint(
-        '❌ [init] ${step.id} failed after ${watch.elapsedMilliseconds}ms: $error');
+      '❌ [init] ${step.id} failed after ${watch.elapsedMilliseconds}ms: $error',
+    );
     _reportInitFailure(step, error, stackTrace);
 
     if (step.isCritical) {
@@ -639,85 +645,96 @@ class _StartupFailure extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       localizationsDelegates: FlipperLocalizationDelegates.delegates,
       supportedLocales: FlipperLocalizationDelegates.supportedLocales,
-      home: Builder(builder: (context) {
-        final l10n = context.flipperL10n;
-        return Scaffold(
-          backgroundColor: Colors.white,
-          body: SafeArea(
-            child: Center(
-              child: SingleChildScrollView(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.error_outline,
-                        color: Colors.red, size: 64),
-                    const SizedBox(height: 16),
-                    Text(
-                      l10n.appInitFailedTitle,
-                      style: const TextStyle(
-                          fontSize: 20, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      l10n.appInitFailedMessage(
-                        _initStepDisplayLabel(l10n, stepId ?? 'startup'),
+      home: Builder(
+        builder: (context) {
+          final l10n = context.flipperL10n;
+          return Scaffold(
+            backgroundColor: Colors.white,
+            body: SafeArea(
+              child: Center(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 32,
+                    vertical: 24,
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.error_outline,
+                        color: Colors.red,
+                        size: 64,
                       ),
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(fontSize: 14),
-                    ),
-                    const SizedBox(height: 24),
-                    FilledButton.icon(
-                      onPressed: onRetry,
-                      icon: const Icon(Icons.refresh),
-                      label: Text(l10n.appInitTryAgain),
-                    ),
-                    const SizedBox(height: 8),
-                    TextButton.icon(
-                      onPressed: () {
-                        Clipboard.setData(
-                          ClipboardData(text: '[$stepLabel]\n$details'),
-                        );
-                      },
-                      icon: const Icon(Icons.copy_all, size: 18),
-                      label: Text(l10n.appInitCopyErrorDetails),
-                    ),
-                    const SizedBox(height: 16),
-                    // Shown in every build: without it a field failure is a
-                    // photograph of a screen that says nothing actionable.
-                    Theme(
-                      data: ThemeData(dividerColor: Colors.transparent),
-                      child: ExpansionTile(
-                        title: Text(
-                          l10n.appInitTechnicalDetails,
-                          style: const TextStyle(
-                              fontSize: 13, color: Colors.black54),
+                      const SizedBox(height: 16),
+                      Text(
+                        l10n.appInitFailedTitle,
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
                         ),
-                        childrenPadding: EdgeInsets.zero,
-                        children: [
-                          ConstrainedBox(
-                            constraints: const BoxConstraints(maxHeight: 260),
-                            child: SingleChildScrollView(
-                              child: SelectableText(
-                                details,
-                                style: const TextStyle(
-                                  fontSize: 11,
-                                  color: Colors.black54,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        l10n.appInitFailedMessage(
+                          _initStepDisplayLabel(l10n, stepId ?? 'startup'),
+                        ),
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(fontSize: 14),
+                      ),
+                      const SizedBox(height: 24),
+                      FilledButton.icon(
+                        onPressed: onRetry,
+                        icon: const Icon(Icons.refresh),
+                        label: Text(l10n.appInitTryAgain),
+                      ),
+                      const SizedBox(height: 8),
+                      TextButton.icon(
+                        onPressed: () {
+                          Clipboard.setData(
+                            ClipboardData(text: '[$stepLabel]\n$details'),
+                          );
+                        },
+                        icon: const Icon(Icons.copy_all, size: 18),
+                        label: Text(l10n.appInitCopyErrorDetails),
+                      ),
+                      const SizedBox(height: 16),
+                      // Shown in every build: without it a field failure is a
+                      // photograph of a screen that says nothing actionable.
+                      Theme(
+                        data: ThemeData(dividerColor: Colors.transparent),
+                        child: ExpansionTile(
+                          title: Text(
+                            l10n.appInitTechnicalDetails,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: Colors.black54,
+                            ),
+                          ),
+                          childrenPadding: EdgeInsets.zero,
+                          children: [
+                            ConstrainedBox(
+                              constraints: const BoxConstraints(maxHeight: 260),
+                              child: SingleChildScrollView(
+                                child: SelectableText(
+                                  details,
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    color: Colors.black54,
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
-        );
-      }),
+          );
+        },
+      ),
     );
   }
 }
@@ -765,10 +782,8 @@ class _PhoneCapturePreviewStorage extends DevicePreviewStorage {
   const _PhoneCapturePreviewStorage();
 
   @override
-  Future<DevicePreviewData?> load() async => const DevicePreviewData(
-        isToolbarVisible: false,
-        isFrameVisible: false,
-      );
+  Future<DevicePreviewData?> load() async =>
+      const DevicePreviewData(isToolbarVisible: false, isFrameVisible: false);
 
   @override
   Future<void> save(DevicePreviewData data) async {}
@@ -802,7 +817,8 @@ class _FlipperAppState extends State<FlipperApp> {
     // Remove splash screen after the first frame is rendered
     WidgetsBinding.instance.addPostFrameCallback((_) {
       debugPrint(
-          '🎬 [FlipperApp] First frame rendered, removing splash screen...');
+        '🎬 [FlipperApp] First frame rendered, removing splash screen...',
+      );
       FlutterNativeSplash.remove();
     });
   }
@@ -844,9 +860,9 @@ class _FlipperAppState extends State<FlipperApp> {
           builder: (context, child) {
             final app = DevicePreview.appBuilder(context, child);
             return MediaQuery(
-              data: MediaQuery.of(context).copyWith(
-                textScaler: TextScaler.noScaling,
-              ),
+              data: MediaQuery.of(
+                context,
+              ).copyWith(textScaler: TextScaler.noScaling),
               // Windows touch keyboard: slide the focused field into view
               // instead of letting the window shrink. [TouchInputDetector]
               // grows controls to finger size while a touchscreen is in use.
@@ -867,11 +883,16 @@ class _FlipperAppState extends State<FlipperApp> {
 
     return ProviderScope(
       observers: [StateObserver()],
-      overrides: kDebugMode
-          ? [
-              providerPerfTracingEnabledProvider.overrideWith((ref) => true),
-            ]
-          : const [],
+      overrides: [
+        // flipper_dashboard cannot import an app package, so the app hands it
+        // HR (More → Apps → HR & Payroll).
+        hrAppBuilderProvider.overrideWithValue(
+          ({required onExit, required onUpgrade}) =>
+              HrEmbeddedApp(onExit: onExit, onUpgrade: onUpgrade),
+        ),
+        if (kDebugMode)
+          providerPerfTracingEnabledProvider.overrideWith((ref) => true),
+      ],
       // OverlaySupport must stay outside DevicePreview (layout-safe toasts).
       child: OverlaySupport.global(
         child: PersonalGoalRemoteContributionListener(
@@ -889,9 +910,7 @@ class _FlipperAppState extends State<FlipperApp> {
                 backgroundColor: kFlipperDevicePreviewPhoneCapture
                     ? const Color(0xFFFF00FF)
                     : null,
-                tools: const [
-                  ...DevicePreview.defaultTools,
-                ],
+                tools: const [...DevicePreview.defaultTools],
                 builder: (context) => _DevicePreviewOverlaySafeHost(
                   locale: DevicePreview.locale(context),
                   builder: _buildMaterialApp,

@@ -9,6 +9,9 @@ import 'package:flipper_hr/features/home/hr_overview_page.dart';
 import 'package:flipper_hr/features/home/hr_home_shell.dart';
 import 'package:flipper_hr/features/leave/leave_approvals_page.dart';
 import 'package:flipper_hr/features/leave/my_leave_page.dart';
+import 'package:flipper_hr/features/pay/employee_pay_page.dart';
+import 'package:flipper_hr/features/pay/my_pay_page.dart';
+import 'package:flipper_hr/features/pay/pay_page.dart';
 import 'package:flipper_hr/features/people/people_page.dart';
 import 'package:flipper_hr/features/session/data/hr_session.dart';
 import 'package:flipper_hr/features/session/data/hr_session_providers.dart';
@@ -56,6 +59,15 @@ abstract final class HrRoute {
   /// [myLeave].
   static const myAttendance = 'hrMyAttendance';
 
+  /// Payroll: who is due, payslips, advances, statutory returns.
+  static const payroll = 'hrPayroll';
+
+  /// One person's pay, under [payroll].
+  static const employeePay = 'hrEmployeePay';
+
+  /// Own payslips, payments and advances. Self-service, like [myLeave].
+  static const myPay = 'hrMyPay';
+
   /// The paywall. Reachable while unpaid — it is the one manager surface that
   /// must not be behind the subscription it sells.
   static const subscribe = 'hrSubscribe';
@@ -93,99 +105,7 @@ final hrRouterProvider = Provider<GoRouter>((ref) {
         name: HrRoute.businessSelection,
         builder: (context, state) => const BusinessSelectionWrapper(),
       ),
-      // Everything below shares the signed-in chrome, so switching modules does
-      // not rebuild the app bar or re-resolve the session.
-      ShellRoute(
-        builder: (context, state, child) => HrHomeShell(child: child),
-        routes: [
-          GoRoute(
-            path: '/overview',
-            name: HrRoute.home,
-            builder: (context, state) => HrBillingGate(
-              featureName: context.flipperL10n.hrFeatureDashboard,
-              child: HrBranchScope(
-                builder:
-                    (
-                      context, {
-                      required businessId,
-                      required branchId,
-                      required branchName,
-                    }) => HrOverviewPage(
-                      businessId: businessId,
-                      branchId: branchId,
-                      branchName: branchName,
-                    ),
-              ),
-            ),
-          ),
-          GoRoute(
-            path: '/people',
-            name: HrRoute.people,
-            // Gated: the roster belongs to whoever runs the business, and they
-            // are the one who can pay for it. Self-service leave and time below
-            // are deliberately left open.
-            builder: (context, state) => HrBillingGate(
-              featureName: context.flipperL10n.hrFeatureRoster,
-              child: HrBranchScope(
-                builder:
-                    (
-                      context, {
-                      required businessId,
-                      required branchId,
-                      required branchName,
-                    }) => PeoplePage(
-                      businessId: businessId,
-                      branchId: branchId,
-                      branchName: branchName,
-                    ),
-              ),
-            ),
-          ),
-          GoRoute(
-            path: '/approvals',
-            name: HrRoute.approvals,
-            builder: (context, state) => HrBillingGate(
-              featureName: context.flipperL10n.hrApprovals,
-              child: const _Approvals(),
-            ),
-          ),
-          GoRoute(
-            path: '/attendance',
-            name: HrRoute.attendance,
-            builder: (context, state) => HrBillingGate(
-              featureName: context.flipperL10n.hrFeatureAttendanceBoard,
-              child: HrBranchScope(
-                builder:
-                    (
-                      context, {
-                      required businessId,
-                      required branchId,
-                      required branchName,
-                    }) => AttendancePage(
-                      businessId: businessId,
-                      branchId: branchId,
-                      branchName: branchName,
-                    ),
-              ),
-            ),
-          ),
-          GoRoute(
-            path: '/leave',
-            name: HrRoute.myLeave,
-            builder: (context, state) => const MyLeavePage(),
-          ),
-          GoRoute(
-            path: '/my-time',
-            name: HrRoute.myAttendance,
-            builder: (context, state) => const MyAttendancePage(),
-          ),
-          GoRoute(
-            path: '/subscribe',
-            name: HrRoute.subscribe,
-            builder: (context, state) => const HrSubscribePage(),
-          ),
-        ],
-      ),
+      _hrShellRoute(includeSubscribe: true),
     ],
     redirect: (context, state) {
       if (authState is AsyncLoading) return null;
@@ -200,6 +120,173 @@ final hrRouterProvider = Provider<GoRouter>((ref) {
     },
   );
 });
+
+/// The router for HR opened inside the Flipper app (More → Apps).
+///
+/// No sign-in, signup, business picker or paywall routes: the host signed the
+/// user in, seeded the branch, and sells the plan. `/` still runs
+/// [HrAuthGate], which sends the session to the module it actually has.
+///
+/// Built per [HrEmbeddedApp] and disposed with it, unlike [hrRouterProvider],
+/// so each visit starts from the gate with the branch the host has now.
+GoRouter buildEmbeddedHrRouter() {
+  return GoRouter(
+    initialLocation: '/',
+    routes: [
+      GoRoute(path: '/', builder: (context, state) => const HrAuthGate()),
+      _hrShellRoute(includeSubscribe: false),
+    ],
+  );
+}
+
+/// The signed-in shell and every module in it, shared by both routers so a page
+/// added here reaches web and mobile alike.
+///
+/// Everything in it shares the signed-in chrome, so switching modules does not
+/// rebuild the app bar or re-resolve the session. [includeSubscribe] is off when
+/// embedded: there the host sells the plan, and [HrHost.toSubscribe] opens it.
+ShellRoute _hrShellRoute({required bool includeSubscribe}) {
+  return ShellRoute(
+    builder: (context, state, child) => HrHomeShell(child: child),
+    routes: [
+      GoRoute(
+        path: '/overview',
+        name: HrRoute.home,
+        builder: (context, state) => HrBillingGate(
+          featureName: context.flipperL10n.hrFeatureDashboard,
+          child: HrBranchScope(
+            builder:
+                (
+                  context, {
+                  required businessId,
+                  required branchId,
+                  required branchName,
+                }) => HrOverviewPage(
+                  businessId: businessId,
+                  branchId: branchId,
+                  branchName: branchName,
+                ),
+          ),
+        ),
+      ),
+      GoRoute(
+        path: '/people',
+        name: HrRoute.people,
+        // Gated: the roster belongs to whoever runs the business, and they
+        // are the one who can pay for it. Self-service leave and time below
+        // are deliberately left open.
+        builder: (context, state) => HrBillingGate(
+          featureName: context.flipperL10n.hrFeatureRoster,
+          child: HrBranchScope(
+            builder:
+                (
+                  context, {
+                  required businessId,
+                  required branchId,
+                  required branchName,
+                }) => PeoplePage(
+                  businessId: businessId,
+                  branchId: branchId,
+                  branchName: branchName,
+                ),
+          ),
+        ),
+      ),
+      GoRoute(
+        path: '/pay',
+        name: HrRoute.payroll,
+        // Gated with the roster: salaries are a manager's view, and it is the
+        // manager who pays for the module. "My pay" below stays open.
+        builder: (context, state) => HrBillingGate(
+          featureName: context.flipperL10n.hrPayroll,
+          child: HrBranchScope(
+            builder:
+                (
+                  context, {
+                  required businessId,
+                  required branchId,
+                  required branchName,
+                }) => PayPage(
+                  businessId: businessId,
+                  branchId: branchId,
+                  branchName: branchName,
+                ),
+          ),
+        ),
+        routes: [
+          GoRoute(
+            path: ':employeeId',
+            name: HrRoute.employeePay,
+            builder: (context, state) => HrBillingGate(
+              featureName: context.flipperL10n.hrPayroll,
+              child: HrBranchScope(
+                builder:
+                    (
+                      context, {
+                      required businessId,
+                      required branchId,
+                      required branchName,
+                    }) => EmployeePayPage(
+                      branchId: branchId,
+                      employeeId: state.pathParameters['employeeId']!,
+                    ),
+              ),
+            ),
+          ),
+        ],
+      ),
+      GoRoute(
+        path: '/my-pay',
+        name: HrRoute.myPay,
+        builder: (context, state) => const MyPayPage(),
+      ),
+      GoRoute(
+        path: '/approvals',
+        name: HrRoute.approvals,
+        builder: (context, state) => HrBillingGate(
+          featureName: context.flipperL10n.hrApprovals,
+          child: const _Approvals(),
+        ),
+      ),
+      GoRoute(
+        path: '/attendance',
+        name: HrRoute.attendance,
+        builder: (context, state) => HrBillingGate(
+          featureName: context.flipperL10n.hrFeatureAttendanceBoard,
+          child: HrBranchScope(
+            builder:
+                (
+                  context, {
+                  required businessId,
+                  required branchId,
+                  required branchName,
+                }) => AttendancePage(
+                  businessId: businessId,
+                  branchId: branchId,
+                  branchName: branchName,
+                ),
+          ),
+        ),
+      ),
+      GoRoute(
+        path: '/leave',
+        name: HrRoute.myLeave,
+        builder: (context, state) => const MyLeavePage(),
+      ),
+      GoRoute(
+        path: '/my-time',
+        name: HrRoute.myAttendance,
+        builder: (context, state) => const MyAttendancePage(),
+      ),
+      if (includeSubscribe)
+        GoRoute(
+          path: '/subscribe',
+          name: HrRoute.subscribe,
+          builder: (context, state) => const HrSubscribePage(),
+        ),
+    ],
+  );
+}
 
 /// Scopes the approvals queue, and reads the signed-in profile so a decision
 /// records who made it.

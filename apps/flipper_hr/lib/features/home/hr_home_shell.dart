@@ -1,6 +1,7 @@
 import 'package:flipper_hr/features/billing/presentation/hr_billing_gate.dart';
 import 'package:flipper_hr/features/branding/hr_tokens.dart';
 import 'package:flipper_hr/features/home/hr_sidebar_state.dart';
+import 'package:flipper_hr/features/host/hr_host.dart';
 import 'package:flipper_hr/features/people/data/people_providers.dart';
 import 'package:flipper_hr/features/session/data/hr_identity.dart';
 import 'package:flipper_hr/features/session/data/hr_identity_providers.dart';
@@ -117,6 +118,18 @@ class _HrHomeShellState extends ConsumerState<HrHomeShell> {
         title: const _HrWordmark(),
         actions: [
           _AccountButton(isSigningOut: _isSigningOut, onSignOut: _signOut),
+          // Embedded, HR is one screen of the host app: give it a way back
+          // that does not depend on the system back gesture.
+          if (ref.watch(hrHostProvider).isEmbedded)
+            Semantics(
+              button: true,
+              label: context.flipperL10n.hrBackToFlipper,
+              child: IconButton(
+                key: const Key('hr-exit-to-host'),
+                icon: const Icon(Icons.close),
+                onPressed: ref.read(hrHostProvider).exit,
+              ),
+            ),
           const SizedBox(width: 8),
         ],
         bottom: const PreferredSize(
@@ -212,10 +225,14 @@ class _HrSidebar extends ConsumerWidget {
                   entityName: entityName,
                   subtitle: subtitle,
                   collapsed: collapsed,
-                  onTap: () {
-                    if (inDrawer) Navigator.of(context).pop();
-                    context.go('/business-selection');
-                  },
+                  // Embedded, the branch is the host's; picking another
+                  // happens there, so the card is a label, not a button.
+                  onTap: ref.watch(hrHostProvider).ownsAccount
+                      ? () {
+                          if (inDrawer) Navigator.of(context).pop();
+                          context.go('/business-selection');
+                        }
+                      : null,
                 ),
               ),
 
@@ -293,7 +310,7 @@ class _EntitySwitcher extends StatelessWidget {
   final String entityName;
   final String subtitle;
   final bool collapsed;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -673,7 +690,7 @@ class _IconAction extends StatelessWidget {
 
 /// The one account menu, shared by the topbar and the sidebar footer so the two
 /// never drift apart.
-class _AccountMenu extends StatelessWidget {
+class _AccountMenu extends ConsumerWidget {
   const _AccountMenu({
     required this.identity,
     required this.isSigningOut,
@@ -689,7 +706,8 @@ class _AccountMenu extends StatelessWidget {
   final Widget child;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final host = ref.watch(hrHostProvider);
     return PopupMenuButton<String>(
       tooltip: '',
       // Anchored over the child, as the accounting shell's menus are: the
@@ -703,6 +721,7 @@ class _AccountMenu extends StatelessWidget {
       onSelected: (value) {
         if (value == 'switch') context.go('/business-selection');
         if (value == 'signOut') onSignOut();
+        if (value == 'exit') host.exit();
       },
       itemBuilder: (_) => [
         PopupMenuItem<String>(
@@ -728,32 +747,50 @@ class _AccountMenu extends StatelessWidget {
           ),
         ),
         const PopupMenuDivider(),
-        PopupMenuItem(
-          value: 'switch',
-          child: ListTile(
-            dense: true,
-            contentPadding: EdgeInsets.zero,
-            leading: const Icon(
-              Icons.swap_horiz,
-              size: 18,
-              color: HrTokens.ink2,
-            ),
-            title: Text(context.flipperL10n.hrSwitchBusinessOrBranch),
-          ),
-        ),
-        PopupMenuItem(
-          value: 'signOut',
-          child: ListTile(
-            dense: true,
-            contentPadding: EdgeInsets.zero,
-            leading: const Icon(Icons.logout, size: 18, color: HrTokens.ink2),
-            title: Text(
-              isSigningOut
-                  ? context.flipperL10n.hrSigningOut
-                  : context.flipperL10n.signOut,
+        // Embedded, the account belongs to the host: signing out here would
+        // sign the whole app out of Supabase, and the branch is picked there.
+        if (!host.ownsAccount)
+          PopupMenuItem(
+            value: 'exit',
+            child: ListTile(
+              dense: true,
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(
+                Icons.arrow_back,
+                size: 18,
+                color: HrTokens.ink2,
+              ),
+              title: Text(context.flipperL10n.hrBackToFlipper),
             ),
           ),
-        ),
+        if (host.ownsAccount)
+          PopupMenuItem(
+            value: 'switch',
+            child: ListTile(
+              dense: true,
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(
+                Icons.swap_horiz,
+                size: 18,
+                color: HrTokens.ink2,
+              ),
+              title: Text(context.flipperL10n.hrSwitchBusinessOrBranch),
+            ),
+          ),
+        if (host.ownsAccount)
+          PopupMenuItem(
+            value: 'signOut',
+            child: ListTile(
+              dense: true,
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.logout, size: 18, color: HrTokens.ink2),
+              title: Text(
+                isSigningOut
+                    ? context.flipperL10n.hrSigningOut
+                    : context.flipperL10n.signOut,
+              ),
+            ),
+          ),
       ],
       child: Material(
         color: Colors.transparent,
@@ -808,23 +845,48 @@ class _HrBottomNav extends StatelessWidget {
   final List<HrDestination> destinations;
   final String location;
 
+  /// A phone's bottom bar holds five targets comfortably. Past that, the first
+  /// four stay and the fifth opens the drawer, which lists everything.
+  static const maxVisible = 5;
+
   @override
   Widget build(BuildContext context) {
-    final idx = _indexOf(destinations, location);
+    final overflow = destinations.length > maxVisible;
+    final visible = overflow
+        ? destinations.take(maxVisible - 1).toList()
+        : destinations;
+    final idx = _indexOf(visible, location);
+    final current = _indexOf(destinations, location);
+    // Somewhere only the drawer reaches: light up "More".
+    final onHidden = overflow && current >= visible.length;
     return NavigationBar(
       key: const Key('hr-module-nav'),
       backgroundColor: HrTokens.surface,
       surfaceTintColor: Colors.transparent,
       indicatorColor: HrTokens.accentTint,
-      selectedIndex: idx,
-      onDestinationSelected: (i) => context.go(destinations[i].path),
+      selectedIndex: onHidden ? visible.length : idx,
+      labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+      onDestinationSelected: (i) {
+        if (overflow && i == visible.length) {
+          Scaffold.of(context).openDrawer();
+          return;
+        }
+        context.go(visible[i].path);
+      },
       destinations: [
-        for (final d in destinations)
+        for (final d in visible)
           NavigationDestination(
             key: Key('hr-nav-${d.path.replaceAll('/', '')}'),
             icon: Icon(d.icon, color: HrTokens.ink3),
             selectedIcon: Icon(d.icon, color: HrTokens.accent),
             label: d.label,
+          ),
+        if (overflow)
+          NavigationDestination(
+            key: const Key('hr-nav-more'),
+            icon: const Icon(Icons.menu, color: HrTokens.ink3),
+            selectedIcon: const Icon(Icons.menu, color: HrTokens.accent),
+            label: context.flipperL10n.more,
           ),
       ],
     );
@@ -991,7 +1053,7 @@ class HrNavGroup {
 /// everything else is management. Someone with only one of the two groups gets
 /// one untitled run, because a lone heading labels nothing.
 List<HrNavGroup> hrNavGroups(List<HrDestination> destinations) {
-  const selfService = {'/my-time', '/leave'};
+  const selfService = {'/my-time', '/leave', '/my-pay'};
 
   final manage = [
     for (final d in destinations)
@@ -1035,6 +1097,13 @@ List<HrDestination> hrDestinationsFor(HrSession session) {
   if (session.canManageRoster) {
     destinations.add(
       HrDestination(
+        path: '/pay',
+        label: l10n.hrPayroll,
+        icon: Icons.payments_outlined,
+      ),
+    );
+    destinations.add(
+      HrDestination(
         path: '/attendance',
         label: l10n.hrAttendance,
         icon: Icons.schedule_outlined,
@@ -1063,6 +1132,13 @@ List<HrDestination> hrDestinationsFor(HrSession session) {
         path: '/leave',
         label: l10n.hrMyLeave,
         icon: Icons.beach_access_outlined,
+      ),
+    );
+    destinations.add(
+      HrDestination(
+        path: '/my-pay',
+        label: l10n.hrMyPay,
+        icon: Icons.receipt_long_outlined,
       ),
     );
   }
