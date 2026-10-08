@@ -4,6 +4,7 @@ import 'package:flipper_dashboard/features/import_purchase/import_purchase_helpe
 import 'package:flipper_dashboard/features/import_purchase/import_purchase_tokens.dart';
 import 'package:flipper_dashboard/features/import_purchase/import_purchase_ui.dart';
 import 'package:flipper_dashboard/features/import_purchase/imports_mobile_view.dart';
+import 'package:flipper_dashboard/features/import_purchase/pay_supplier.dart';
 import 'package:flipper_dashboard/features/import_purchase/purchase_approval_mixin.dart';
 import 'package:flipper_dashboard/features/import_purchase/record_purchase_modal.dart';
 import 'package:flipper_dashboard/import_purchase_viewmodel.dart';
@@ -673,6 +674,12 @@ class _PurchaseDetailScreenState extends ConsumerState<_PurchaseDetailScreen>
                 ),
                 if (purchase.spplrTin.trim().isNotEmpty)
                   _InfoRow(l10n.importPurchaseSupplierTin, purchase.spplrTin),
+                if (status == _PurchaseStatus.approved)
+                  PaySupplierBar(
+                    purchase: purchase,
+                    currency: currency,
+                    padding: const EdgeInsets.only(top: 12),
+                  ),
               ],
             ),
           ),

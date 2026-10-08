@@ -10,6 +10,7 @@ import 'assign_variant_modal.dart';
 import 'import_purchase_helpers.dart';
 import 'import_purchase_tokens.dart';
 import 'import_purchase_ui.dart';
+import 'pay_supplier.dart';
 
 class ImportPurchasePurchaseView extends ConsumerStatefulWidget {
   const ImportPurchasePurchaseView({
@@ -461,7 +462,7 @@ class _ImportPurchasePurchaseViewState
   }
 
   Widget _totalPill(num total) {
-    final currency = ProxyService.box.defaultCurrency();
+    final currency = _currency;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
       decoration: BoxDecoration(
@@ -494,6 +495,8 @@ class _ImportPurchasePurchaseViewState
     );
   }
 
+  String get _currency => ProxyService.box.defaultCurrency();
+
   Widget _groupActions(Purchase purchase) {
     final loading = widget.isProcessing(purchase.id);
     if (loading) {
@@ -506,8 +509,20 @@ class _ImportPurchasePurchaseViewState
       );
     }
 
+    final lines = purchase.variants ?? const <Variant>[];
+    final approved =
+        lines.isNotEmpty &&
+        lines.every((v) => v.pchsSttsCd != null && v.pchsSttsCd != '01') &&
+        lines.any((v) => v.pchsSttsCd == '02' || v.pchsSttsCd == '03');
     return Row(
       children: [
+        if (approved)
+          PaySupplierBar(
+            purchase: purchase,
+            currency: _currency,
+            padding: const EdgeInsets.only(right: 10),
+            compact: true,
+          ),
         if (widget.canRetry(purchase.id)) ...[
           IpmButton(
             label: context.flipperL10n.retry,

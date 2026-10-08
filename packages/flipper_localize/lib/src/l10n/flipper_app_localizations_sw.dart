@@ -24750,4 +24750,42 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   @override
   String get branchLocationDragInstead =>
       'Bado unaweza kuburuta ramani kuweka alama.';
+
+  @override
+  String get purchasePaySupplier => 'Mlipe msambazaji';
+
+  @override
+  String purchaseOwedToSupplier(String amount) {
+    return 'Deni kwa msambazaji: $amount';
+  }
+
+  @override
+  String get purchasePaidFrom => 'Imelipwa kutoka';
+
+  @override
+  String get purchasePaidFromBank => 'Benki';
+
+  @override
+  String get purchasePaidFromMomo => 'Pesa kwa simu';
+
+  @override
+  String purchasePayAmountTooHigh(String amount) {
+    return 'Weka kiasi kisichozidi $amount';
+  }
+
+  @override
+  String purchaseSupplierPaid(String amount) {
+    return 'Msambazaji amelipwa. Deni lililobaki: $amount';
+  }
+
+  @override
+  String get purchaseSupplierPaidInFull => 'Msambazaji amelipwa yote';
+
+  @override
+  String purchasePaySupplierFailed(String error) {
+    return 'Malipo yameshindwa: $error';
+  }
+
+  @override
+  String get purchasePaidInFull => 'Imelipwa yote';
 }

@@ -6850,5 +6850,43 @@
     "branchLocationAccuracy": "Précis à environ {meters} m",
     "branchLocationZoomIn": "Zoom avant",
     "branchLocationZoomOut": "Zoom arrière",
-    "branchLocationDragInstead": "Vous pouvez toujours déplacer la carte pour placer l'épingle."
+    "branchLocationDragInstead": "Vous pouvez toujours déplacer la carte pour placer l'épingle.",
+    "purchasePaySupplier": "Payer le fournisseur",
+    "purchaseOwedToSupplier": "Dû au fournisseur : {amount}",
+    "@purchaseOwedToSupplier": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
+    "purchasePaidFrom": "Payé depuis",
+    "purchasePaidFromBank": "Banque",
+    "purchasePaidFromMomo": "Mobile money",
+    "purchasePayAmountTooHigh": "Saisissez un montant jusqu'à {amount}",
+    "@purchasePayAmountTooHigh": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
+    "purchaseSupplierPaid": "Fournisseur payé. Reste dû : {amount}",
+    "@purchaseSupplierPaid": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
+    "purchaseSupplierPaidInFull": "Fournisseur entièrement payé",
+    "purchasePaySupplierFailed": "Échec du paiement : {error}",
+    "@purchasePaySupplierFailed": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "purchasePaidInFull": "Entièrement payé"
 }

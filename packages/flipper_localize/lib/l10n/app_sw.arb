@@ -8443,5 +8443,43 @@
     "branchLocationAccuracy": "Usahihi wa takriban mita {meters}",
     "branchLocationZoomIn": "Kuza",
     "branchLocationZoomOut": "Punguza",
-    "branchLocationDragInstead": "Bado unaweza kuburuta ramani kuweka alama."
+    "branchLocationDragInstead": "Bado unaweza kuburuta ramani kuweka alama.",
+    "purchasePaySupplier": "Mlipe msambazaji",
+    "purchaseOwedToSupplier": "Deni kwa msambazaji: {amount}",
+    "@purchaseOwedToSupplier": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
+    "purchasePaidFrom": "Imelipwa kutoka",
+    "purchasePaidFromBank": "Benki",
+    "purchasePaidFromMomo": "Pesa kwa simu",
+    "purchasePayAmountTooHigh": "Weka kiasi kisichozidi {amount}",
+    "@purchasePayAmountTooHigh": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
+    "purchaseSupplierPaid": "Msambazaji amelipwa. Deni lililobaki: {amount}",
+    "@purchaseSupplierPaid": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
+    "purchaseSupplierPaidInFull": "Msambazaji amelipwa yote",
+    "purchasePaySupplierFailed": "Malipo yameshindwa: {error}",
+    "@purchasePaySupplierFailed": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "purchasePaidInFull": "Imelipwa yote"
 }

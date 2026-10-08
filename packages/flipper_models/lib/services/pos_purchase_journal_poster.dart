@@ -1,3 +1,4 @@
+import 'package:flipper_accounting/accounting_models.dart';
 import 'package:flipper_accounting/audit_trail_recorder.dart';
 import 'package:flipper_accounting/default_chart_of_accounts_seed.dart';
 import 'package:flipper_accounting/ditto_accounting_ledger_repository.dart';
@@ -44,6 +45,22 @@ class PosPurchaseJournalPoster {
     );
   }
 
+  /// The business's chart of accounts, seeded first if it has none.
+  static Future<List<Account>> chartOfAccounts(
+    DittoService ditto,
+    String businessId,
+  ) async {
+    final ledger = DittoAccountingLedgerRepository(ditto);
+    await ledger.ensureSeeded(businessId: businessId);
+    return ledger
+        .watchChartOfAccounts(businessId: businessId)
+        .first
+        .timeout(
+          const Duration(seconds: 5),
+          onTimeout: () => defaultChartOfAccountsSeed,
+        );
+  }
+
   /// Never throws — purchase persistence must not depend on GL success.
   ///
   /// [paidUpfront] and [dueDate] are the credit terms entered on the form;
@@ -61,15 +78,7 @@ class PosPurchaseJournalPoster {
       final ditto = DittoService.instance;
       if (!ditto.isReady()) return;
 
-      final ledger = DittoAccountingLedgerRepository(ditto);
-      await ledger.ensureSeeded(businessId: businessId);
-      final accounts = await ledger
-          .watchChartOfAccounts(businessId: businessId)
-          .first
-          .timeout(
-            const Duration(seconds: 5),
-            onTimeout: () => defaultChartOfAccountsSeed,
-          );
+      final accounts = await chartOfAccounts(ditto, businessId);
 
       await PurchaseJournalPoster(
         ditto,

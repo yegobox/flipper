@@ -24842,4 +24842,42 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   @override
   String get branchLocationDragInstead =>
       'Ushobora no gukurura ikarita ugashyiraho ikimenyetso.';
+
+  @override
+  String get purchasePaySupplier => 'Ishyura umucuruzi ugurisha';
+
+  @override
+  String purchaseOwedToSupplier(String amount) {
+    return 'Umwenda w\'umucuruzi ugurisha: $amount';
+  }
+
+  @override
+  String get purchasePaidFrom => 'Byishyuwe bivuye kuri';
+
+  @override
+  String get purchasePaidFromBank => 'Banki';
+
+  @override
+  String get purchasePaidFromMomo => 'Mobile money';
+
+  @override
+  String purchasePayAmountTooHigh(String amount) {
+    return 'Andika amafaranga atarenze $amount';
+  }
+
+  @override
+  String purchaseSupplierPaid(String amount) {
+    return 'Umucuruzi ugurisha yishyuwe. Hasigaye: $amount';
+  }
+
+  @override
+  String get purchaseSupplierPaidInFull => 'Umucuruzi ugurisha yishyuwe yose';
+
+  @override
+  String purchasePaySupplierFailed(String error) {
+    return 'Kwishyura byanze: $error';
+  }
+
+  @override
+  String get purchasePaidInFull => 'Byishyuwe byose';
 }

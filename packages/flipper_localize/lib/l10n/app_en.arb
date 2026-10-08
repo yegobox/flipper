@@ -18695,5 +18695,43 @@
     },
     "branchLocationZoomIn": "Zoom in",
     "branchLocationZoomOut": "Zoom out",
-    "branchLocationDragInstead": "You can still drag the map to place the pin."
+    "branchLocationDragInstead": "You can still drag the map to place the pin.",
+    "purchasePaySupplier": "Pay supplier",
+    "purchaseOwedToSupplier": "Owed to supplier: {amount}",
+    "@purchaseOwedToSupplier": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
+    "purchasePaidFrom": "Paid from",
+    "purchasePaidFromBank": "Bank",
+    "purchasePaidFromMomo": "Mobile money",
+    "purchasePayAmountTooHigh": "Enter an amount up to {amount}",
+    "@purchasePayAmountTooHigh": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
+    "purchaseSupplierPaid": "Supplier paid. Still owed: {amount}",
+    "@purchaseSupplierPaid": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
+    "purchaseSupplierPaidInFull": "Supplier paid in full",
+    "purchasePaySupplierFailed": "Payment failed: {error}",
+    "@purchasePaySupplierFailed": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "purchasePaidInFull": "Paid in full"
 }

@@ -41128,6 +41128,66 @@ abstract class FlipperAppLocalizations {
   /// In en, this message translates to:
   /// **'You can still drag the map to place the pin.'**
   String get branchLocationDragInstead;
+
+  /// No description provided for @purchasePaySupplier.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay supplier'**
+  String get purchasePaySupplier;
+
+  /// No description provided for @purchaseOwedToSupplier.
+  ///
+  /// In en, this message translates to:
+  /// **'Owed to supplier: {amount}'**
+  String purchaseOwedToSupplier(String amount);
+
+  /// No description provided for @purchasePaidFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid from'**
+  String get purchasePaidFrom;
+
+  /// No description provided for @purchasePaidFromBank.
+  ///
+  /// In en, this message translates to:
+  /// **'Bank'**
+  String get purchasePaidFromBank;
+
+  /// No description provided for @purchasePaidFromMomo.
+  ///
+  /// In en, this message translates to:
+  /// **'Mobile money'**
+  String get purchasePaidFromMomo;
+
+  /// No description provided for @purchasePayAmountTooHigh.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter an amount up to {amount}'**
+  String purchasePayAmountTooHigh(String amount);
+
+  /// No description provided for @purchaseSupplierPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Supplier paid. Still owed: {amount}'**
+  String purchaseSupplierPaid(String amount);
+
+  /// No description provided for @purchaseSupplierPaidInFull.
+  ///
+  /// In en, this message translates to:
+  /// **'Supplier paid in full'**
+  String get purchaseSupplierPaidInFull;
+
+  /// No description provided for @purchasePaySupplierFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment failed: {error}'**
+  String purchasePaySupplierFailed(String error);
+
+  /// No description provided for @purchasePaidInFull.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid in full'**
+  String get purchasePaidInFull;
 }
 
 class _FlipperAppLocalizationsDelegate

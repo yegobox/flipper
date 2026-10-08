@@ -1,5 +1,6 @@
 import 'package:flipper_accounting/bill_payments.dart';
 import 'package:flipper_localize/flipper_localize.dart';
+import 'package:flipper_web/core/user_profile_cache.dart';
 import 'package:flipper_web/features/business_selection/business_branch_selector.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_backend_config.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_derive.dart';
@@ -658,15 +659,23 @@ class _PaymentModalPanelState extends ConsumerState<PaymentModalPanel> {
     try {
       final businessId = ref.read(accountingBusinessIdProvider);
       if (_tracksPayments) {
-        _after = await BillPaymentPoster(ref.read(dittoServiceProvider))
-            .recordPayment(
-              businessId: businessId,
-              billDocId: widget.doc.uuid!,
-              amount: _amount,
-              paymentAccount: _method,
-              accounts: accounts,
-              fallbackTotal: docGrandTotal(widget.doc),
-            );
+        final poster = BillPaymentPoster(ref.read(dittoServiceProvider));
+        // A purchase's bill paid here shows with that branch's expenses,
+        // like a cash-out on the till.
+        final cashOut = await poster.purchaseCashOut(
+          widget.doc.uuid!,
+          agentId: ref.read(userProfileCacheProvider)?.id,
+          fallbackBranchId: ref.read(selectedBranchProvider)?.id,
+        );
+        _after = await poster.recordPayment(
+          businessId: businessId,
+          billDocId: widget.doc.uuid!,
+          amount: _amount,
+          paymentAccount: _method,
+          accounts: accounts,
+          fallbackTotal: docGrandTotal(widget.doc),
+          cashOut: cashOut,
+        );
       } else {
         final poster = DocumentJournalPoster(
           ref.read(accountingLedgerRepositoryProvider),
