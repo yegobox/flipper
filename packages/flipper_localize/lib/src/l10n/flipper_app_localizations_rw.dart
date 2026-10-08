@@ -5817,6 +5817,12 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   String get transactionTypeUnclassified => 'Bitashyizwe mu cyiciro';
 
   @override
+  String get mposLoadFailedTitle => 'Couldn\'t load this';
+
+  @override
+  String get mposLoadFailedBody => 'Check your connection, then try again.';
+
+  @override
   String get dashboardAppPointOfSale => 'Aho kugurishiriza';
 
   @override

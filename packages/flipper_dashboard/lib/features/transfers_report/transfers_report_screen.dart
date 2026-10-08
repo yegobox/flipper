@@ -1,7 +1,10 @@
+import 'dart:developer';
+
 import 'package:flipper_dashboard/features/incoming_orders/om_tokens.dart';
 import 'package:flipper_dashboard/features/incoming_orders/widgets/om_segmented.dart';
 import 'package:flipper_dashboard/features/transfers_report/transfers_report_pdf.dart';
 import 'package:flipper_dashboard/features/transfers_report/transfers_report_provider.dart';
+import 'package:flipper_dashboard/widgets/mpos/mpos_states.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/branch_business_provider.dart';
@@ -190,96 +193,122 @@ class _TransfersReportScreenState extends ConsumerState<TransfersReportScreen> {
                     ),
                   ),
                   Expanded(
-                    child: asyncTransfers.when(
-                      loading: () =>
-                          const Center(child: CircularProgressIndicator()),
-                      error: (e, _) => Center(
-                        child: Text(
-                          context.flipperL10n.transfersReportLoadFailed(
-                            e.toString(),
-                          ),
-                          style: OmTokens.text(color: OmTokens.red),
-                        ),
+                    child: RefreshIndicator(
+                      onRefresh: () => mposAwaitRefresh(
+                        ref.refresh(transfersToBranchProvider.future),
                       ),
-                      data: (list) {
-                        final destName = _destName(branchesAsync, filters);
-                        return ListView(
-                          padding: EdgeInsets.fromLTRB(
-                            hPad,
-                            compact ? 16 : 20,
-                            hPad,
-                            40,
-                          ),
-                          children: [
-                            if (filters.destinationBranchId == null)
-                              _EmptyState(
-                                title: context
-                                    .flipperL10n
-                                    .transfersReportSelectDestination,
-                                body: context
-                                    .flipperL10n
-                                    .transfersReportSelectDestinationBody,
-                              )
-                            else ...[
-                              Text.rich(
-                                TextSpan(
-                                  style: OmTokens.text(
-                                    fontSize: 13.5,
-                                    fontWeight: FontWeight.w600,
-                                    color: OmTokens.muted,
-                                  ),
-                                  children: _countToSpans(
-                                    context.flipperL10n,
-                                    list.length,
-                                    destName,
-                                    OmTokens.text(
-                                      fontSize: 13.5,
-                                      fontWeight: FontWeight.w800,
-                                    ),
-                                  ),
-                                ),
+                      child: asyncTransfers.when(
+                        loading: () => ListView(
+                          physics: const NeverScrollableScrollPhysics(),
+                          padding: EdgeInsets.fromLTRB(hPad, 16, hPad, 40),
+                          children: const [
+                            MposSkeletonCard(height: 120),
+                            SizedBox(height: 12),
+                            MposSkeletonCard(height: 120),
+                            SizedBox(height: 12),
+                            MposSkeletonCard(height: 120),
+                          ],
+                        ),
+                        error: (e, st) {
+                          log('transfers report: $e', stackTrace: st);
+                          return ListView(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            children: [
+                              MposErrorState(
+                                onRetry: () =>
+                                    ref.invalidate(transfersToBranchProvider),
                               ),
-                              const SizedBox(height: 12),
-                              if (list.isEmpty)
+                            ],
+                          );
+                        },
+                        data: (list) {
+                          final destName = _destName(branchesAsync, filters);
+                          return ListView(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            padding: EdgeInsets.fromLTRB(
+                              hPad,
+                              compact ? 16 : 20,
+                              hPad,
+                              40,
+                            ),
+                            children: [
+                              if (filters.destinationBranchId == null)
                                 _EmptyState(
                                   title: context
                                       .flipperL10n
-                                      .transfersReportNoTransfers,
+                                      .transfersReportSelectDestination,
                                   body: context
                                       .flipperL10n
-                                      .transfersReportNoTransfersBody,
+                                      .transfersReportSelectDestinationBody,
                                 )
                               else ...[
-                                for (var i = 0; i < list.length; i++) ...[
-                                  if (i > 0) const SizedBox(height: 12),
-                                  _TransferCard(
-                                    transfer: list[i],
-                                    destName: destName,
-                                    fromName: _fromName(list[i], branchesAsync),
-                                    dateTimeFmt: dateTimeFmt,
-                                    expanded: _expandedIds.contains(list[i].id),
-                                    exporting: _exportingId == list[i].id,
-                                    onToggle: () {
-                                      setState(() {
-                                        if (_expandedIds.contains(list[i].id)) {
-                                          _expandedIds.remove(list[i].id);
-                                        } else {
-                                          _expandedIds.add(list[i].id);
-                                        }
-                                      });
-                                    },
-                                    onExport: () => _exportOne(
-                                      list[i],
+                                Text.rich(
+                                  TextSpan(
+                                    style: OmTokens.text(
+                                      fontSize: 13.5,
+                                      fontWeight: FontWeight.w600,
+                                      color: OmTokens.muted,
+                                    ),
+                                    children: _countToSpans(
+                                      context.flipperL10n,
+                                      list.length,
                                       destName,
-                                      _fromName(list[i], branchesAsync),
+                                      OmTokens.text(
+                                        fontSize: 13.5,
+                                        fontWeight: FontWeight.w800,
+                                      ),
                                     ),
                                   ),
+                                ),
+                                const SizedBox(height: 12),
+                                if (list.isEmpty)
+                                  _EmptyState(
+                                    title: context
+                                        .flipperL10n
+                                        .transfersReportNoTransfers,
+                                    body: context
+                                        .flipperL10n
+                                        .transfersReportNoTransfersBody,
+                                  )
+                                else ...[
+                                  for (var i = 0; i < list.length; i++) ...[
+                                    if (i > 0) const SizedBox(height: 12),
+                                    _TransferCard(
+                                      transfer: list[i],
+                                      destName: destName,
+                                      fromName: _fromName(
+                                        list[i],
+                                        branchesAsync,
+                                      ),
+                                      dateTimeFmt: dateTimeFmt,
+                                      expanded: _expandedIds.contains(
+                                        list[i].id,
+                                      ),
+                                      exporting: _exportingId == list[i].id,
+                                      onToggle: () {
+                                        setState(() {
+                                          if (_expandedIds.contains(
+                                            list[i].id,
+                                          )) {
+                                            _expandedIds.remove(list[i].id);
+                                          } else {
+                                            _expandedIds.add(list[i].id);
+                                          }
+                                        });
+                                      },
+                                      onExport: () => _exportOne(
+                                        list[i],
+                                        destName,
+                                        _fromName(list[i], branchesAsync),
+                                      ),
+                                    ),
+                                  ],
                                 ],
                               ],
                             ],
-                          ],
-                        );
-                      },
+                          );
+                        },
+                      ),
                     ),
                   ),
                 ],

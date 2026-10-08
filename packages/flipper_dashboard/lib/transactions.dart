@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flipper_design_system/flipper_design_system.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/DateCoreWidget.dart';
@@ -17,6 +19,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_dashboard/theme/pos_tokens.dart';
+import 'package:flipper_dashboard/widgets/mpos/mpos_states.dart';
 
 DateTime? _transactionListInstant(ITransaction t) {
   return t.lastTouched ?? t.updatedAt ?? t.createdAt;
@@ -283,15 +286,16 @@ class TransactionsState extends ConsumerState<Transactions>
         }).toList();
 
         if (finalFilteredTransactions.isEmpty) {
-          return _buildEmptyStateWithPeriod(
-            context,
-            transactionTypeOptions[displayedTransactionType],
+          return _refreshable(
+            _buildEmptyStateWithPeriod(
+              context,
+              transactionTypeOptions[displayedTransactionType],
+            ),
           );
         }
 
         return RefreshIndicator(
-          onRefresh: () async =>
-              ref.invalidate(transactionsScreenTransactionsProvider),
+          onRefresh: _refresh,
           child: _buildModernTransactionList(
             context: context,
             currency: ref.watch(defaultCurrencyProvider),
@@ -301,11 +305,51 @@ class TransactionsState extends ConsumerState<Transactions>
         );
       },
       error: (error, stackTrace) {
-        return _buildErrorState(context, error.toString());
+        // The raw error goes to the log, not in front of the user.
+        log('transactions: $error', stackTrace: stackTrace);
+        return _refreshable(
+          MposErrorState(
+            title: context.flipperL10n.transactionsSomethingWentWrong,
+            onRetry: () =>
+                ref.invalidate(transactionsScreenTransactionsProvider),
+          ),
+        );
       },
-      loading: () {
-        return _buildLoadingState(context);
-      },
+      // Placeholder rows in the same card as the list, so the rows replace
+      // them in place instead of popping in under a spinner.
+      loading: () => Container(
+        margin: const EdgeInsets.symmetric(horizontal: 16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.grey.shade200),
+        ),
+        child: const SingleChildScrollView(
+          physics: NeverScrollableScrollPhysics(),
+          child: MposSkeletonList(),
+        ),
+      ),
+    );
+  }
+
+  /// Waits for the reload so the refresh spinner stays up until data arrives.
+  Future<void> _refresh() => mposAwaitRefresh(
+    ref.refresh(transactionsScreenTransactionsProvider.future),
+  );
+
+  /// Empty and error states can still be pulled to refresh.
+  Widget _refreshable(Widget child) {
+    return RefreshIndicator(
+      onRefresh: _refresh,
+      child: LayoutBuilder(
+        builder: (context, constraints) => SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            child: Center(child: child),
+          ),
+        ),
+      ),
     );
   }
 }
@@ -329,6 +373,9 @@ Widget _buildModernTransactionList({
         // Transaction list
         Expanded(
           child: ListView.builder(
+            // Pull-to-refresh must work even when the rows don't fill the
+            // screen.
+            physics: const AlwaysScrollableScrollPhysics(),
             // Keep the last row clear of the home indicator.
             padding: EdgeInsets.only(
               bottom: MediaQuery.paddingOf(context).bottom + 16,
@@ -525,7 +572,7 @@ Widget _buildEmptyStateWithPeriod(BuildContext context, String period) {
   return Container(
     padding: const EdgeInsets.all(32),
     child: Column(
-      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisSize: MainAxisSize.min,
       children: [
         Container(
           width: 100,
@@ -568,85 +615,6 @@ Widget _buildEmptyStateWithPeriod(BuildContext context, String period) {
             fontSize: 14,
             fontWeight: FontWeight.w400,
             color: const Color(0xFF777777),
-          ),
-        ),
-      ],
-    ),
-  );
-}
-
-// Microsoft-inspired loading state
-Widget _buildLoadingState(BuildContext context) {
-  return Container(
-    padding: const EdgeInsets.all(40),
-    child: Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Container(
-          width: 60,
-          height: 60,
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFF0078D4), Color(0xFF106EBE)],
-            ),
-            borderRadius: BorderRadius.circular(30),
-          ),
-          child: const CircularProgressIndicator(
-            color: Colors.white,
-            strokeWidth: 3,
-          ),
-        ),
-        const SizedBox(height: 24),
-        Text(
-          context.flipperL10n.transactionsLoading,
-          style: GoogleFonts.outfit(
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-            color: const Color(0xFF605E5C),
-          ),
-        ),
-      ],
-    ),
-  );
-}
-
-// Professional error state
-Widget _buildErrorState(BuildContext context, String error) {
-  return Container(
-    padding: const EdgeInsets.all(32),
-    child: Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Container(
-          width: 80,
-          height: 80,
-          decoration: BoxDecoration(
-            color: const Color(0xFFFF4444).withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(40),
-          ),
-          child: const Icon(
-            Icons.error_outline_rounded,
-            size: 40,
-            color: Color(0xFFFF4444),
-          ),
-        ),
-        const SizedBox(height: 20),
-        Text(
-          context.flipperL10n.transactionsSomethingWentWrong,
-          style: GoogleFonts.outfit(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-            color: const Color(0xFF1F2937),
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          error,
-          textAlign: TextAlign.center,
-          style: GoogleFonts.outfit(
-            fontSize: 14,
-            fontWeight: FontWeight.w400,
-            color: const Color(0xFF6B7280),
           ),
         ),
       ],

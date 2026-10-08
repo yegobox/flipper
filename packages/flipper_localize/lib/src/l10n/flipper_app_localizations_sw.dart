@@ -5797,6 +5797,12 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   String get transactionTypeUnclassified => 'Haijaainishwa';
 
   @override
+  String get mposLoadFailedTitle => 'Couldn\'t load this';
+
+  @override
+  String get mposLoadFailedBody => 'Check your connection, then try again.';
+
+  @override
   String get dashboardAppPointOfSale => 'Mahali pa mauzo';
 
   @override
