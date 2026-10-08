@@ -24788,4 +24788,17 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
 
   @override
   String get purchasePaidInFull => 'Imelipwa yote';
+
+  @override
+  String get purchaseSearchHint => 'Tafuta msambazaji, ankara, TIN au bidhaa';
+
+  @override
+  String purchaseOwesAmount(String amount) {
+    return 'Deni: $amount';
+  }
+
+  @override
+  String purchaseSearchNoMatch(String query) {
+    return 'Hakuna manunuzi yanayolingana na “$query”';
+  }
 }

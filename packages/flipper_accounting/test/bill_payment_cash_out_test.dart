@@ -180,4 +180,41 @@ void main() {
       );
     });
   });
+
+  group('bill balances for the purchases list', () {
+    test('read from the summary every payment caches on the bill', () {
+      final b = BillBalance.fromBillRow({
+        'total': 200,
+        'paid_upfront': 20,
+        'amount_paid': 70,
+      });
+      expect(b.total, 200);
+      expect(b.paidUpfront, 20);
+      expect(b.paidLater, 50);
+      expect(b.balance, 130);
+    });
+
+    test('older bills without a total use the fallback', () {
+      expect(BillBalance.fromBillRow({}, fallbackTotal: 500).balance, 500);
+    });
+
+    test('an overpaid bill owes nothing', () {
+      final b = BillBalance.fromBillRow({'total': 100, 'amount_paid': 150});
+      expect(b.balance, 0);
+      expect(b.isSettled, isTrue);
+    });
+
+    test('keyed by purchase; drafts and plain bills are left out', () {
+      final bills = purchaseBillsFromRows([
+        {'_id': 'b1', 'purchase_id': 'p1', 'total': 200, 'amount_paid': 50},
+        {'_id': 'b2', 'purchaseId': 'p2', 'total': 300, 'amount_paid': 300},
+        {'_id': 'b3', 'purchase_id': 'p3', 'total': 90, 'status': 'draft'},
+        {'_id': 'b4', 'total': 40},
+      ]);
+      expect(bills.keys, unorderedEquals(['p1', 'p2']));
+      expect(bills['p1']!.docId, 'b1');
+      expect(bills['p1']!.balance.balance, 150);
+      expect(bills['p2']!.balance.isSettled, isTrue);
+    });
+  });
 }

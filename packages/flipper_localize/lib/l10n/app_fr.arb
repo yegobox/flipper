@@ -6888,5 +6888,22 @@
             }
         }
     },
-    "purchasePaidInFull": "Entièrement payé"
+    "purchasePaidInFull": "Entièrement payé",
+    "purchaseSearchHint": "Rechercher fournisseur, facture, NIF ou article",
+    "purchaseOwesAmount": "Dû : {amount}",
+    "@purchaseOwesAmount": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
+    "purchaseSearchNoMatch": "Aucun achat ne correspond à « {query} »",
+    "@purchaseSearchNoMatch": {
+        "placeholders": {
+            "query": {
+                "type": "String"
+            }
+        }
+    }
 }

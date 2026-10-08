@@ -8473,5 +8473,22 @@
             }
         }
     },
-    "purchasePaidInFull": "Byishyuwe byose"
+    "purchasePaidInFull": "Byishyuwe byose",
+    "purchaseSearchHint": "Shakisha umucuruzi, fagitire, TIN cyangwa igicuruzwa",
+    "purchaseOwesAmount": "Umwenda: {amount}",
+    "@purchaseOwesAmount": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
+    "purchaseSearchNoMatch": "Nta byaguzwe bihuye na “{query}”",
+    "@purchaseSearchNoMatch": {
+        "placeholders": {
+            "query": {
+                "type": "String"
+            }
+        }
+    }
 }

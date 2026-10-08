@@ -11,6 +11,7 @@ import 'import_purchase_helpers.dart';
 import 'import_purchase_tokens.dart';
 import 'import_purchase_ui.dart';
 import 'pay_supplier.dart';
+import 'purchase_list_filters.dart';
 
 class ImportPurchasePurchaseView extends ConsumerStatefulWidget {
   const ImportPurchasePurchaseView({
@@ -81,11 +82,13 @@ class _ImportPurchasePurchaseViewState
   }
 
   List<Purchase> get _displayablePurchases {
+    final query = ref.watch(purchaseSearchQueryProvider).trim();
     return widget.purchases.where((purchase) {
       if (purchase.variants == null || purchase.variants!.isEmpty) {
         return false;
       }
-      return _filterVariants(purchase.variants!).isNotEmpty;
+      return _filterVariants(purchase.variants!).isNotEmpty &&
+          purchaseMatchesQuery(purchase, query);
     }).toList();
   }
 
@@ -182,6 +185,11 @@ class _ImportPurchasePurchaseViewState
 
   @override
   Widget build(BuildContext context) {
+    // A new search starts from the first page.
+    ref.listen(
+      purchaseSearchQueryProvider,
+      (_, _) => setState(() => _page = 0),
+    );
     final width = MediaQuery.sizeOf(context).width;
     final isMobile = width <= ImportPurchaseTokens.mobileBreakpoint;
     final gutter = ImportPurchaseTokens.gutter(width);
@@ -211,6 +219,13 @@ class _ImportPurchasePurchaseViewState
                       setState(() => _page = 0);
                     },
                   ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Flexible(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 280),
+                  child: const PurchaseSearchField(),
                 ),
               ),
               if (!isMobile) const Spacer(),

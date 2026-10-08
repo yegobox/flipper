@@ -25031,4 +25031,18 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
 
   @override
   String get purchasePaidInFull => 'Entièrement payé';
+
+  @override
+  String get purchaseSearchHint =>
+      'Rechercher fournisseur, facture, NIF ou article';
+
+  @override
+  String purchaseOwesAmount(String amount) {
+    return 'Dû : $amount';
+  }
+
+  @override
+  String purchaseSearchNoMatch(String query) {
+    return 'Aucun achat ne correspond à « $query »';
+  }
 }

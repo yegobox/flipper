@@ -53,6 +53,26 @@ abstract final class PurchaseSupplierPayment {
     );
   }
 
+  /// Approved purchases' bills by purchase id, updated as payments land
+  /// (each payment re-caches its bill's balance).
+  static Stream<Map<String, PurchaseBill>> watchBills(String businessId) =>
+      DittoService.instance
+          .watchCollection(
+            'accounting_documents',
+            'SELECT * FROM accounting_documents '
+                'WHERE businessId = :businessId AND docKind = :kind',
+            {'businessId': businessId, 'kind': 'bill'},
+          )
+          .map(
+            (rows) => {
+              for (final e in purchaseBillsFromRows(rows).entries)
+                e.key: PurchaseBill(
+                  docId: e.value.docId,
+                  balance: e.value.balance,
+                ),
+            },
+          );
+
   /// Pays [amount] of [bill] from [accountCode] and returns the new balance.
   /// Cash also comes out of the open shift's expected cash. Throws when the
   /// payment cannot be recorded.

@@ -41188,6 +41188,24 @@ abstract class FlipperAppLocalizations {
   /// In en, this message translates to:
   /// **'Paid in full'**
   String get purchasePaidInFull;
+
+  /// No description provided for @purchaseSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search supplier, invoice, TIN or item'**
+  String get purchaseSearchHint;
+
+  /// No description provided for @purchaseOwesAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Owes {amount}'**
+  String purchaseOwesAmount(String amount);
+
+  /// No description provided for @purchaseSearchNoMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'No purchases match “{query}”'**
+  String purchaseSearchNoMatch(String query);
 }
 
 class _FlipperAppLocalizationsDelegate

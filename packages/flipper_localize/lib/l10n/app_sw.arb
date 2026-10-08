@@ -8481,5 +8481,22 @@
             }
         }
     },
-    "purchasePaidInFull": "Imelipwa yote"
+    "purchasePaidInFull": "Imelipwa yote",
+    "purchaseSearchHint": "Tafuta msambazaji, ankara, TIN au bidhaa",
+    "purchaseOwesAmount": "Deni: {amount}",
+    "@purchaseOwesAmount": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
+    "purchaseSearchNoMatch": "Hakuna manunuzi yanayolingana na “{query}”",
+    "@purchaseSearchNoMatch": {
+        "placeholders": {
+            "query": {
+                "type": "String"
+            }
+        }
+    }
 }

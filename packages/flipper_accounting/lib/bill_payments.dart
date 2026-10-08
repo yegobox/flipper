@@ -104,6 +104,24 @@ class BillBalance {
     );
   }
 
+  /// From the summary a bill caches after every payment
+  /// ([toBillFields]); [fallbackTotal] for bills written before `total` was
+  /// stored.
+  factory BillBalance.fromBillRow(
+    Map<String, dynamic> row, {
+    int fallbackTotal = 0,
+  }) {
+    int field(String key) => num.tryParse('${row[key]}')?.round() ?? 0;
+    final total = num.tryParse('${row['total']}')?.round() ?? fallbackTotal;
+    final paidUpfront = field('paid_upfront');
+    final amountPaid = field('amount_paid');
+    return BillBalance(
+      total: total,
+      paidUpfront: paidUpfront,
+      paidLater: (amountPaid - paidUpfront).clamp(0, amountPaid.abs()),
+    );
+  }
+
   final int total;
   final int paidUpfront;
   final int paidLater;
@@ -129,6 +147,21 @@ class BillBalance {
     'status': storedStatus,
   };
 }
+
+/// Approved purchases' bills by purchase id: the bill's Ditto `_id` and what
+/// is still owed. Drafts (purchases still waiting) owe nothing yet, and bills
+/// not raised from a purchase are left out.
+Map<String, ({String docId, BillBalance balance})> purchaseBillsFromRows(
+  Iterable<Map<String, dynamic>> rows,
+) => {
+  for (final row in rows)
+    if (row['status'] != 'draft' &&
+        '${row['purchase_id'] ?? row['purchaseId'] ?? ''}'.isNotEmpty)
+      '${row['purchase_id'] ?? row['purchaseId']}': (
+        docId: '${row['_id'] ?? row['id']}',
+        balance: BillBalance.fromBillRow(row),
+      ),
+};
 
 /// Shared date format for bill documents (`d MMM y`, e.g. `3 Oct 2026`).
 final DateFormat billDateFormat = DateFormat('d MMM y');

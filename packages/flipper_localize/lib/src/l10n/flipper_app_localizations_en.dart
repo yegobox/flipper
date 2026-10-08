@@ -24619,4 +24619,17 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
 
   @override
   String get purchasePaidInFull => 'Paid in full';
+
+  @override
+  String get purchaseSearchHint => 'Search supplier, invoice, TIN or item';
+
+  @override
+  String purchaseOwesAmount(String amount) {
+    return 'Owes $amount';
+  }
+
+  @override
+  String purchaseSearchNoMatch(String query) {
+    return 'No purchases match “$query”';
+  }
 }

@@ -24880,4 +24880,18 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
 
   @override
   String get purchasePaidInFull => 'Byishyuwe byose';
+
+  @override
+  String get purchaseSearchHint =>
+      'Shakisha umucuruzi, fagitire, TIN cyangwa igicuruzwa';
+
+  @override
+  String purchaseOwesAmount(String amount) {
+    return 'Umwenda: $amount';
+  }
+
+  @override
+  String purchaseSearchNoMatch(String query) {
+    return 'Nta byaguzwe bihuye na “$query”';
+  }
 }

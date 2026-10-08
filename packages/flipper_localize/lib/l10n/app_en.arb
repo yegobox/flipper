@@ -18733,5 +18733,22 @@
             }
         }
     },
-    "purchasePaidInFull": "Paid in full"
+    "purchasePaidInFull": "Paid in full",
+    "purchaseSearchHint": "Search supplier, invoice, TIN or item",
+    "purchaseOwesAmount": "Owes {amount}",
+    "@purchaseOwesAmount": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
+    "purchaseSearchNoMatch": "No purchases match “{query}”",
+    "@purchaseSearchNoMatch": {
+        "placeholders": {
+            "query": {
+                "type": "String"
+            }
+        }
+    }
 }

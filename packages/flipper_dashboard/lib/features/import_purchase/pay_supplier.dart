@@ -2,6 +2,7 @@ import 'package:flipper_accounting/bill_payments.dart';
 import 'package:flipper_dashboard/features/import_purchase/import_purchase_helpers.dart';
 import 'package:flipper_dashboard/features/import_purchase/import_purchase_tokens.dart';
 import 'package:flipper_dashboard/features/import_purchase/import_purchase_ui.dart';
+import 'package:flipper_dashboard/features/import_purchase/purchase_list_filters.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/services/purchase_approval_deps.dart';
 import 'package:flipper_models/services/purchase_supplier_payment.dart';
@@ -14,12 +15,6 @@ import 'package:supabase_models/brick/models/all_models.dart' as model;
 typedef _T = ImportPurchaseTokens;
 
 final _money = NumberFormat('#,##0.##');
-
-/// An approved purchase's bill, for the "Pay supplier" action.
-final purchaseBillProvider = FutureProvider.autoDispose
-    .family<PurchaseBill?, String>(
-      (ref, purchaseId) => PurchaseSupplierPayment.billFor(purchaseId),
-    );
 
 /// What is still owed to the supplier of an approved purchase, with the
 /// button that pays it. Nothing for purchases without a bill (RRA) or with
@@ -52,7 +47,7 @@ class PaySupplierBar extends ConsumerWidget {
   }
 
   Widget? _content(BuildContext context, WidgetRef ref) {
-    final bill = ref.watch(purchaseBillProvider(purchase.id)).value;
+    final bill = ref.watch(purchaseBillsProvider).value?[purchase.id];
     if (bill == null) return null;
     final l10n = context.flipperL10n;
     if (bill.balance.isSettled) {
@@ -85,7 +80,6 @@ class PaySupplierBar extends ConsumerWidget {
         FilledButton.icon(
           onPressed: () => showPaySupplierDialog(
             context,
-            ref,
             purchase: purchase,
             bill: bill,
             currency: currency,
@@ -105,11 +99,10 @@ class PaySupplierBar extends ConsumerWidget {
   }
 }
 
-/// Asks how much was paid and from where, records it, then refreshes what
-/// is owed.
+/// Asks how much was paid and from where, then records it. What is owed
+/// updates by itself: the payment re-caches its bill's balance.
 Future<void> showPaySupplierDialog(
-  BuildContext context,
-  WidgetRef ref, {
+  BuildContext context, {
   required model.Purchase purchase,
   required PurchaseBill bill,
   required String currency,
@@ -119,9 +112,7 @@ Future<void> showPaySupplierDialog(
     builder: (_) =>
         _PaySupplierDialog(purchase: purchase, bill: bill, currency: currency),
   );
-  if (after == null) return;
-  ref.invalidate(purchaseBillProvider(purchase.id));
-  if (!context.mounted) return;
+  if (after == null || !context.mounted) return;
   final l10n = context.flipperL10n;
   showImportPurchaseToast(
     context,
