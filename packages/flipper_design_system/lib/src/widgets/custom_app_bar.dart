@@ -89,6 +89,7 @@ class CustomAppBar extends StatefulWidget implements PreferredSizeWidget {
     super.key,
     this.showActionButton,
     this.title,
+    this.subtitle,
     this.icon,
     this.additionalText,
     this.disableButton,
@@ -118,6 +119,9 @@ class CustomAppBar extends StatefulWidget implements PreferredSizeWidget {
   final VoidCallback? onActionButtonClicked;
   final bool? showActionButton;
   final String? title;
+
+  /// A second, smaller line under [title] (e.g. "Walk-in · 12:59").
+  final String? subtitle;
   final bool useTransparentButton;
 
   final Widget? additionalText;
@@ -181,15 +185,35 @@ class _CustomAppBarState extends State<CustomAppBar> {
                             child: widget.title != null
                                 ? Align(
                                     alignment: AlignmentDirectional.centerStart,
-                                    child: Text(
-                                      widget.title!,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: GoogleFonts.outfit(
-                                        fontWeight: FontWeight.w700,
-                                        fontSize: titleFontSize,
-                                        color: Colors.black,
-                                      ),
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          widget.title!,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: GoogleFonts.outfit(
+                                            fontWeight: FontWeight.w700,
+                                            fontSize: titleFontSize,
+                                            color: Colors.black,
+                                          ),
+                                        ),
+                                        if (widget.subtitle != null)
+                                          Text(
+                                            widget.subtitle!,
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: GoogleFonts.outfit(
+                                              fontSize: 12.5,
+                                              color: Colors.grey.shade600,
+                                              fontFeatures: const [
+                                                FontFeature.tabularFigures(),
+                                              ],
+                                            ),
+                                          ),
+                                      ],
                                     ),
                                   )
                                 : const SizedBox.shrink(),
