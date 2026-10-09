@@ -45,6 +45,7 @@ dependencies:
   flipper_ui: any
   supabase_models: any
   flipper_dashboard: any
+  flipper_design_system: any
 
   # On-device AI (iOS + desktop only; gated at runtime in GemmaInferenceEngine).
   # litertlm runs .litertlm weights on both iOS and desktop (single format).

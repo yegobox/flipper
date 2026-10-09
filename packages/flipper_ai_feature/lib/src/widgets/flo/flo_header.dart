@@ -23,6 +23,7 @@ class FloHeader extends StatelessWidget {
     this.menuOpen = false,
     this.menuContent,
     this.modelSelector,
+    this.actionsInAppBar = false,
   });
 
   final FloPanelMode mode;
@@ -41,8 +42,30 @@ class FloHeader extends StatelessWidget {
   /// Optional AI model picker (local vs cloud) rendered in the header.
   final Widget? modelSelector;
 
+  /// The model picker and "+" live in the screen's app bar ([FloHeaderActions])
+  /// and this row is just the mode switch, stretched to full width.
+  final bool actionsInAppBar;
+
   @override
   Widget build(BuildContext context) {
+    if (actionsInAppBar) {
+      return Container(
+        padding: const EdgeInsets.fromLTRB(12, 0, 12, 10),
+        decoration: const BoxDecoration(
+          color: FloTheme.surface,
+          border: Border(bottom: BorderSide(color: FloTheme.line)),
+        ),
+        child: _ModeTabs(
+          mode: mode,
+          unreadCount: unreadCount,
+          whatsAppConnected: whatsAppConnected,
+          isMobile: isMobile,
+          onChanged: onModeChanged,
+          stretch: true,
+        ),
+      );
+    }
+
     return Container(
       padding: EdgeInsets.symmetric(
         horizontal: isMobile ? 12 : 20,
@@ -165,6 +188,7 @@ class _ModeTabs extends StatelessWidget {
     required this.whatsAppConnected,
     required this.isMobile,
     required this.onChanged,
+    this.stretch = false,
   });
 
   final FloPanelMode mode;
@@ -173,8 +197,13 @@ class _ModeTabs extends StatelessWidget {
   final bool isMobile;
   final ValueChanged<FloPanelMode> onChanged;
 
+  /// Split the full width evenly between the tabs instead of hugging them.
+  final bool stretch;
+
   @override
   Widget build(BuildContext context) {
+    Widget tab(Widget t) => stretch ? Expanded(child: t) : t;
+
     return Container(
       padding: const EdgeInsets.all(3),
       decoration: BoxDecoration(
@@ -183,9 +212,9 @@ class _ModeTabs extends StatelessWidget {
         border: Border.all(color: FloTheme.line),
       ),
       child: Row(
-        mainAxisSize: MainAxisSize.min,
+        mainAxisSize: stretch ? MainAxisSize.max : MainAxisSize.min,
         children: [
-          _ModeTab(
+          tab(_ModeTab(
             label: context.flipperL10n.floAskFlo,
             icon: FloIcons.sparkle(
               size: 15,
@@ -195,8 +224,8 @@ class _ModeTabs extends StatelessWidget {
             selected: mode == FloPanelMode.askFlo,
             onTap: () => onChanged(FloPanelMode.askFlo),
             compact: isMobile,
-          ),
-          _ModeTab(
+          )),
+          tab(_ModeTab(
             label: context.flipperL10n.floMessages,
             icon: FloIcons.whatsApp(
               size: 15,
@@ -207,7 +236,7 @@ class _ModeTabs extends StatelessWidget {
             onTap: () => onChanged(FloPanelMode.messages),
             compact: isMobile,
             badge: whatsAppConnected && unreadCount > 0 ? unreadCount : null,
-          ),
+          )),
         ],
       ),
     );
@@ -248,6 +277,7 @@ class _ModeTab extends StatelessWidget {
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               icon,
               const SizedBox(width: 7),
@@ -473,6 +503,36 @@ class _HeadBtn extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// The model picker and "+" for [CustomAppBar]'s trailing slot, when the
+/// header row is reduced to the mode switch ([FloHeader.actionsInAppBar]).
+class FloHeaderActions extends StatelessWidget {
+  const FloHeaderActions({super.key, this.modelSelector, this.onMenuToggle});
+
+  final Widget? modelSelector;
+  final VoidCallback? onMenuToggle;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 4),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (modelSelector != null) ...[
+            modelSelector!,
+            const SizedBox(width: 8),
+          ],
+          _HeadBtn(
+            icon: FloIcons.plus(size: 17, color: FloTheme.ink2),
+            iconOnly: true,
+            onTap: onMenuToggle,
+          ),
+        ],
       ),
     );
   }
