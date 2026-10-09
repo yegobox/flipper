@@ -1,3 +1,4 @@
+import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flipper_dashboard/hr_module_entry.dart';
 import 'package:flipper_dashboard/widgets/dashboard_all_apps_catalog.dart';
 import 'package:flipper_localize/flipper_localize.dart';
@@ -71,6 +72,8 @@ void main() {
       findsOneWidget,
     );
     expect(attempts, 1);
+    // A phone gets Flipper's own header.
+    expect(find.byKey(const Key('hr-offline-app-bar')), findsOneWidget);
 
     await tester.tap(find.text('Retry'));
     await tester.pumpAndSettle();
@@ -123,5 +126,30 @@ void main() {
     await tester.tap(find.text('HR'));
     await tester.pumpAndSettle();
     expect(find.text('More'), findsOneWidget);
+  });
+
+  testWidgets('a wide window shows a plain bar, not the mobile one', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1200, 800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          hrEnsureSupabaseSessionProvider.overrideWithValue(() async => null),
+        ],
+        child: MaterialApp(
+          localizationsDelegates: FlipperLocalizationDelegates.delegates,
+          supportedLocales: FlipperLocalizationDelegates.supportedLocales,
+          home: const HrModuleEntry(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byType(CustomAppBar), findsNothing);
+    expect(find.byType(AppBar), findsOneWidget);
   });
 }

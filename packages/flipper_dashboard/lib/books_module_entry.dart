@@ -1,5 +1,8 @@
+import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flipper_dashboard/native_books_context_bridge.dart';
 import 'package:flipper_dashboard/widgets/dashboard_all_apps_sheet.dart';
+import 'package:flipper_localize/flipper_localize.dart';
+import 'package:flipper_web/features/login/signin_styles.dart';
 import 'package:flipper_web/features/module_launcher/app_launcher_host.dart';
 import 'package:flipper_web/modules/accounting/accounting_module.dart';
 import 'package:flutter/material.dart';
@@ -37,9 +40,25 @@ class _BooksModuleEntryState extends ConsumerState<BooksModuleEntry> {
           );
         }
 
-        return AppLauncherHost(
+        // A phone gets Flipper's own header — round back button, the
+        // module's name — like every other Flipper screen. Wider windows keep
+        // Books' desktop shell, which has its own chrome and app launcher.
+        final mobile =
+            MediaQuery.sizeOf(context).width < SITokens.desktopBreakpoint;
+        final books = AppLauncherHost(
           onOpenLauncher: () => DashboardAllAppsSheet.show(context, ref),
+          hostProvidesHeader: mobile,
           child: const AccountingModuleScreen(),
+        );
+        if (!mobile) return books;
+        return Scaffold(
+          appBar: CustomAppBar(
+            key: const Key('books-app-bar'),
+            title: context.flipperL10n.dashboardAppBooks,
+            icon: Icons.arrow_back,
+            onPop: () => Navigator.of(context).maybePop(),
+          ),
+          body: books,
         );
       },
     );

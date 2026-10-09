@@ -1,5 +1,6 @@
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_web/features/business_selection/business_branch_selector.dart';
+import 'package:flipper_web/features/module_launcher/app_launcher_host.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_providers.dart';
 import 'package:flipper_web/modules/accounting/routing/accounting_route.dart';
 import 'package:flipper_web/modules/accounting/theme/accounting_tokens.dart';
@@ -33,6 +34,9 @@ class AccountingMobileHeader extends ConsumerWidget {
         business?.name ?? context.flipperL10n.booksBusinessFallback;
     final initials = accountingEntityInitials(entityName);
     final fiscalYear = ref.watch(accountingFiscalYearLabelProvider);
+    // Inside the Flipper app the host's header already names the module.
+    final hostHeader =
+        AppLauncherHost.maybeOf(context)?.hostProvidesHeader ?? false;
     final currency = ref.watch(accountingCurrencyProvider);
 
     return DecoratedBox(
@@ -48,10 +52,11 @@ class AccountingMobileHeader extends ConsumerWidget {
             children: [
               Row(
                 children: [
-                  const BooksBrandRow(
-                    logoSize: 32,
-                    variant: BooksBrandVariant.mobile,
-                  ),
+                  if (!hostHeader)
+                    const BooksBrandRow(
+                      logoSize: 32,
+                      variant: BooksBrandVariant.mobile,
+                    ),
                   const Spacer(),
                   _HeaderIconButton(
                     onPressed: () {

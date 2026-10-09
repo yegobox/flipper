@@ -23,6 +23,10 @@ typedef HrAppBuilder =
 /// hidden.
 final hrAppBuilderProvider = Provider<HrAppBuilder?>((ref) => null);
 
+/// Below this width HR runs its phone layout, where the header is Flipper's
+/// CustomAppBar. Matches the HR shell's sidebar breakpoint.
+const double hrMobileHeaderBreakpoint = 840;
+
 /// Signs the app into Supabase if it is not already, returning the access
 /// token or null when that is impossible (offline, no phone in the box).
 ///
@@ -113,12 +117,17 @@ class _HrOffline extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.flipperL10n;
+    // Flipper's CustomAppBar on a phone only, matching HR's own header.
+    final mobile = MediaQuery.sizeOf(context).width < hrMobileHeaderBreakpoint;
     return Scaffold(
-      appBar: CustomAppBar(
-        title: l10n.hrAndPayroll,
-        icon: Icons.arrow_back,
-        onPop: onBack,
-      ),
+      appBar: mobile
+          ? CustomAppBar(
+              key: const Key('hr-offline-app-bar'),
+              title: l10n.hrAndPayroll,
+              icon: Icons.arrow_back,
+              onPop: onBack,
+            )
+          : AppBar(title: Text(l10n.hrAndPayroll)),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(24),
