@@ -1,4 +1,4 @@
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flipper_web/core/session_persistence.dart';
 
 /// Persists last-selected business/branch across app restarts (per user).
 abstract final class BusinessSelectionPersistence {
@@ -11,7 +11,8 @@ abstract final class BusinessSelectionPersistence {
     required String businessId,
     required String branchId,
   }) async {
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await openPreferencesOrNull();
+    if (prefs == null) return;
     await prefs.setString(_userKey, userId.trim());
     await prefs.setString(_businessKey, businessId.trim());
     await prefs.setString(_branchKey, branchId.trim());
@@ -20,7 +21,8 @@ abstract final class BusinessSelectionPersistence {
   static Future<({String businessId, String branchId})?> read({
     required String userId,
   }) async {
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await openPreferencesOrNull();
+    if (prefs == null) return null;
     final storedUser = prefs.getString(_userKey)?.trim();
     if (storedUser == null || storedUser != userId.trim()) return null;
 
@@ -49,7 +51,8 @@ abstract final class BusinessSelectionPersistence {
   }
 
   static Future<void> clear() async {
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await openPreferencesOrNull();
+    if (prefs == null) return;
     await prefs.remove(_userKey);
     await prefs.remove(_businessKey);
     await prefs.remove(_branchKey);

@@ -45,6 +45,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:device_preview_plus/device_preview_plus.dart';
 import 'firebase_options.dart';
 import 'keyboard_pan.dart';
+import 'prefs_file_repair.dart';
 import 'touch_keyboard.dart';
 import 'package:flipper_models/power_sync/supabase.dart';
 import 'package:flipper_services/GlobalLogError.dart';
@@ -371,6 +372,14 @@ Future<void> _initializeAnalytics() async {
 }
 
 List<_InitStep> _buildInitSteps() => <_InitStep>[
+      // Before anything opens SharedPreferences: a NUL-filled prefs file on a
+      // Windows till otherwise throws on every getInstance() (Books dead-ends).
+      const _InitStep(
+        id: 'prefs-repair',
+        label: 'Checking settings',
+        budget: Duration(seconds: 5),
+        run: repairCorruptSharedPreferencesFile,
+      ),
       // Firebase already swallows its own errors; the budget only bounds a hang.
       const _InitStep(
         id: 'firebase',
