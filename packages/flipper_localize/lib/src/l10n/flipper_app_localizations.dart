@@ -42550,6 +42550,102 @@ abstract class FlipperAppLocalizations {
   /// In en, this message translates to:
   /// **'Done'**
   String get dailyGoalDone;
+
+  /// No description provided for @booksExportColItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Item'**
+  String get booksExportColItem;
+
+  /// No description provided for @booksExportColAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get booksExportColAmount;
+
+  /// No description provided for @booksExportColDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get booksExportColDate;
+
+  /// No description provided for @booksExportColEntry.
+  ///
+  /// In en, this message translates to:
+  /// **'Entry'**
+  String get booksExportColEntry;
+
+  /// No description provided for @booksExportColMemo.
+  ///
+  /// In en, this message translates to:
+  /// **'Memo'**
+  String get booksExportColMemo;
+
+  /// No description provided for @booksExportColSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Source'**
+  String get booksExportColSource;
+
+  /// No description provided for @booksExportColDebit.
+  ///
+  /// In en, this message translates to:
+  /// **'Debit'**
+  String get booksExportColDebit;
+
+  /// No description provided for @booksExportColCredit.
+  ///
+  /// In en, this message translates to:
+  /// **'Credit'**
+  String get booksExportColCredit;
+
+  /// No description provided for @booksExportColMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Month'**
+  String get booksExportColMonth;
+
+  /// No description provided for @booksExportColRevenue.
+  ///
+  /// In en, this message translates to:
+  /// **'Revenue'**
+  String get booksExportColRevenue;
+
+  /// No description provided for @booksExportColNet.
+  ///
+  /// In en, this message translates to:
+  /// **'Net'**
+  String get booksExportColNet;
+
+  /// No description provided for @booksExportSheetTrend.
+  ///
+  /// In en, this message translates to:
+  /// **'Trend'**
+  String get booksExportSheetTrend;
+
+  /// No description provided for @booksExportSheetJournal.
+  ///
+  /// In en, this message translates to:
+  /// **'Journal'**
+  String get booksExportSheetJournal;
+
+  /// No description provided for @booksExportReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Export ready'**
+  String get booksExportReady;
+
+  /// No description provided for @booksExportGeneratedAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Generated {date}'**
+  String booksExportGeneratedAt(String date);
+
+  /// No description provided for @booksExportPageOf.
+  ///
+  /// In en, this message translates to:
+  /// **'Page {page} of {total}'**
+  String booksExportPageOf(String page, String total);
 }
 
 class _FlipperAppLocalizationsDelegate

@@ -8714,5 +8714,21 @@
     "dailyGoalRemindersHint": "Kwibutswa niba nta gurisha ryanditswe saa yine, n'incamake nimugoroba. Ntibirenga 2 ku munsi.",
     "dailyGoalOwnerOnly": "Nyir'ubucuruzi cyangwa umuyobozi ni bo bashobora kubihindura.",
     "dailyGoalDoIt": "Kora",
-    "dailyGoalDone": "Byakozwe"
+    "dailyGoalDone": "Byakozwe",
+  "booksExportColItem": "Ikintu",
+  "booksExportColAmount": "Amafaranga",
+  "booksExportColDate": "Itariki",
+  "booksExportColEntry": "Inyandiko",
+  "booksExportColMemo": "Ibisobanuro",
+  "booksExportColSource": "Inkomoko",
+  "booksExportColDebit": "Debit",
+  "booksExportColCredit": "Credit",
+  "booksExportColMonth": "Ukwezi",
+  "booksExportColRevenue": "Amafaranga yinjiye",
+  "booksExportColNet": "Asigaye",
+  "booksExportSheetTrend": "Imigendekere",
+  "booksExportSheetJournal": "Ibitabo by'ibikorwa",
+  "booksExportReady": "Byoherejwe neza",
+  "booksExportGeneratedAt": "Byakozwe {date}",
+  "booksExportPageOf": "Urupapuro {page} kuri {total}"
 }

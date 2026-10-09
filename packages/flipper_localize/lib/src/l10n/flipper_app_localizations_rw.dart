@@ -25716,4 +25716,56 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
 
   @override
   String get dailyGoalDone => 'Byakozwe';
+
+  @override
+  String get booksExportColItem => 'Ikintu';
+
+  @override
+  String get booksExportColAmount => 'Amafaranga';
+
+  @override
+  String get booksExportColDate => 'Itariki';
+
+  @override
+  String get booksExportColEntry => 'Inyandiko';
+
+  @override
+  String get booksExportColMemo => 'Ibisobanuro';
+
+  @override
+  String get booksExportColSource => 'Inkomoko';
+
+  @override
+  String get booksExportColDebit => 'Debit';
+
+  @override
+  String get booksExportColCredit => 'Credit';
+
+  @override
+  String get booksExportColMonth => 'Ukwezi';
+
+  @override
+  String get booksExportColRevenue => 'Amafaranga yinjiye';
+
+  @override
+  String get booksExportColNet => 'Asigaye';
+
+  @override
+  String get booksExportSheetTrend => 'Imigendekere';
+
+  @override
+  String get booksExportSheetJournal => 'Ibitabo by\'ibikorwa';
+
+  @override
+  String get booksExportReady => 'Byoherejwe neza';
+
+  @override
+  String booksExportGeneratedAt(String date) {
+    return 'Byakozwe $date';
+  }
+
+  @override
+  String booksExportPageOf(String page, String total) {
+    return 'Urupapuro $page kuri $total';
+  }
 }

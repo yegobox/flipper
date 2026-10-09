@@ -7129,5 +7129,21 @@
     "dailyGoalRemindersHint": "Un rappel si aucune vente n'est enregistrée avant 10 h et un bilan le soir. Au plus 2 par jour.",
     "dailyGoalOwnerOnly": "Seul le propriétaire ou un administrateur peut les modifier.",
     "dailyGoalDoIt": "Faire",
-    "dailyGoalDone": "Fait"
+    "dailyGoalDone": "Fait",
+    "booksExportColItem": "Élément",
+    "booksExportColAmount": "Montant",
+    "booksExportColDate": "Date",
+    "booksExportColEntry": "Écriture",
+    "booksExportColMemo": "Libellé",
+    "booksExportColSource": "Source",
+    "booksExportColDebit": "Débit",
+    "booksExportColCredit": "Crédit",
+    "booksExportColMonth": "Mois",
+    "booksExportColRevenue": "Produits",
+    "booksExportColNet": "Net",
+    "booksExportSheetTrend": "Tendance",
+    "booksExportSheetJournal": "Journal",
+    "booksExportReady": "Export prêt",
+    "booksExportGeneratedAt": "Généré le {date}",
+    "booksExportPageOf": "Page {page} sur {total}"
 }
