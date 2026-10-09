@@ -23,6 +23,7 @@ void main() {
               profitType: 'Net Profit',
               periodLabel: 'This Month',
               isEmpty: isEmpty,
+              currencyCode: 'RWF',
             ),
           ),
         ),
