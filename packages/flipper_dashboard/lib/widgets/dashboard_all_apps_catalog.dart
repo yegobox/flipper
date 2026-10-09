@@ -187,6 +187,13 @@ List<DashboardAllAppSection> dashboardAllAppsCatalog(BuildContext context) => [
         feature: 'ServicesGigs',
       ),
       DashboardAllAppTile(
+        page: 'HR',
+        label: context.flipperL10n.hrAndPayroll,
+        icon: FluentIcons.people_team_24_regular,
+        color: Color(0xFF2563EB),
+        feature: 'HR',
+      ),
+      DashboardAllAppTile(
         page: 'PersonalGoals',
         label: context.flipperL10n.goals,
         icon: FluentIcons.savings_24_regular,

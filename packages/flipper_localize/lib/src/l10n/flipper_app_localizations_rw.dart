@@ -24929,4 +24929,685 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   String purchaseSearchNoMatch(String query) {
     return 'Nta byaguzwe bihuye na “$query”';
   }
+
+  @override
+  String get hrAndPayroll => 'Abakozi n\'imishahara';
+
+  @override
+  String get hrBackToFlipper => 'Subira kuri Flipper';
+
+  @override
+  String get hrNeedsInternet =>
+      'HR ikenera interineti. Fungura interineti wongere ugerageze.';
+
+  @override
+  String get hrTaxPrimary => 'Akazi k\'ibanze';
+
+  @override
+  String get hrTaxSecondary => 'Umukoresha wa kabiri (30%)';
+
+  @override
+  String get hrTaxCasual => 'Nyakabyizi (15%)';
+
+  @override
+  String get hrPayStatusUnpaid => 'Ntiyishyuwe';
+
+  @override
+  String get hrPayStatusPartlyPaid => 'Yishyuwe igice';
+
+  @override
+  String get hrPayStatusPaid => 'Yishyuwe';
+
+  @override
+  String get hrPayStatusVoid => 'Byahagaritswe';
+
+  @override
+  String get hrPayKindSalary => 'Umushahara';
+
+  @override
+  String get hrPayKindAdvance => 'Avansi';
+
+  @override
+  String get hrPayKindReimbursement => 'Gusubizwa amafaranga';
+
+  @override
+  String get hrPayKindOther => 'Ibindi';
+
+  @override
+  String get hrAdvanceStatusOpen => 'Iracyishyurwa';
+
+  @override
+  String get hrAdvanceStatusRecovered => 'Yagarujwe';
+
+  @override
+  String get hrAdvanceStatusWrittenOff => 'Yasoneye';
+
+  @override
+  String get hrPayErrorLoad => 'Ntibishobotse kuzana amakuru y\'imishahara.';
+
+  @override
+  String get hrPayErrorSave =>
+      'Ntibishobotse kubika iyi nyandiko y\'umushahara.';
+
+  @override
+  String get hrPayroll => 'Imishahara';
+
+  @override
+  String get hrMyPay => 'Umushahara wanjye';
+
+  @override
+  String get hrPayslip => 'Fishi y\'umushahara';
+
+  @override
+  String get hrPayslips => 'Fishi z\'imishahara';
+
+  @override
+  String get hrPayAdvances => 'Avansi';
+
+  @override
+  String get hrPayRequests => 'Ubusabe';
+
+  @override
+  String get hrPayReturns => 'Imenyekanisha';
+
+  @override
+  String get hrPayHistory => 'Amateka';
+
+  @override
+  String get hrPaySummary => 'Incamake';
+
+  @override
+  String get hrPayEmployee => 'Umukozi';
+
+  @override
+  String get hrNationalId => 'Indangamuntu';
+
+  @override
+  String get hrRssbNumber => 'Nimero ya RSSB';
+
+  @override
+  String get hrPayPay => 'Ishyura';
+
+  @override
+  String get hrPayPaySomeone => 'Ishyura umukozi';
+
+  @override
+  String hrPayPayFor(String period) {
+    return 'Ishyura $period';
+  }
+
+  @override
+  String get hrPayChoosePerson => 'Uwo wishyura ni nde?';
+
+  @override
+  String get hrPayRecord => 'Andika ubwishyu';
+
+  @override
+  String get hrPayVoid => 'Hagarika';
+
+  @override
+  String get hrPayShareSlip => 'Sangiza fishi';
+
+  @override
+  String get hrPayBackToPayroll => 'Subira ku mishahara';
+
+  @override
+  String get hrPayReason => 'Impamvu';
+
+  @override
+  String get hrPaySaveUnpaid => 'Bika fishi, wishyure nyuma';
+
+  @override
+  String hrPayConfirmAmount(String amount) {
+    return 'Ishyura $amount';
+  }
+
+  @override
+  String hrPayRemaining(String amount) {
+    return 'Ishyura $amount isigaye';
+  }
+
+  @override
+  String get hrPayRemainingTitle => 'Ishyura ibisigaye';
+
+  @override
+  String get hrPayDueNow => 'Bigomba kwishyurwa';
+
+  @override
+  String get hrPayPeopleToPay => 'abakozi bo kwishyura';
+
+  @override
+  String get hrPayPaidThisMonth => 'Byishyuwe uku kwezi';
+
+  @override
+  String hrPayUnpaidOnSlips(String amount) {
+    return '$amount isigaye ku mafishi';
+  }
+
+  @override
+  String get hrPayAdvancesOwed => 'Avansi zitishyuwe';
+
+  @override
+  String get hrPayCostThisMonth => 'Igiciro cy\'imishahara uku kwezi';
+
+  @override
+  String hrPayPayslipCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Fishi $count',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get hrPayDueToday => 'Byishyurwa uyu munsi';
+
+  @override
+  String hrPayDueOn(String date) {
+    return 'Byishyurwa $date';
+  }
+
+  @override
+  String hrPayNextOn(String date) {
+    return 'Umushahara utaha $date';
+  }
+
+  @override
+  String hrPayOverdueSince(String date) {
+    return 'Byatinze kuva $date';
+  }
+
+  @override
+  String hrPayDueFor(String period) {
+    return 'Bigomba kwishyurwa: $period';
+  }
+
+  @override
+  String hrPayOwesBack(String amount) {
+    return 'Afitiwe $amount';
+  }
+
+  @override
+  String hrPayLastPaid(String amount, String date) {
+    return 'Aheruka kwishyurwa $amount ku wa $date';
+  }
+
+  @override
+  String get hrPayNextPayDay => 'Umunsi w\'umushahara utaha';
+
+  @override
+  String get hrPayLastPayment => 'Ubwishyu buheruka';
+
+  @override
+  String get hrPayLatestNet => 'Umushahara usigaye uheruka';
+
+  @override
+  String hrPayPersonTitle(String name) {
+    return 'Ishyura $name';
+  }
+
+  @override
+  String get hrPayPeriodAlreadyPaid =>
+      'Iki gihe gifite fishi. Hitamo ikindi gihe cyangwa ufungure fishi wishyure ibisigaye.';
+
+  @override
+  String hrPayPeriodHasPayslip(String status, String amount) {
+    return 'Bimaze kuba kuri fishi ($status, $amount).';
+  }
+
+  @override
+  String hrPayAlreadyPaidThisPeriod(String amount) {
+    return 'Ibyamaze gutangwa muri iki gihe: $amount';
+  }
+
+  @override
+  String get hrPayNothingEarned =>
+      'Nta mafaranga yakorewe muri iki gihe. Andika iminsi cyangwa amasaha yakozwe, cyangwa agahimbazamusyi.';
+
+  @override
+  String hrPayRecoverMoreThanOwed(String amount) {
+    return 'Ntushobora kugarura arenze $amount asigaye kuri avansi.';
+  }
+
+  @override
+  String hrPayRecoveryOverHalf(String amount) {
+    return 'Itegeko ryemera gukata ntarengwa $amount kuri uyu mushahara (kimwe cya kabiri nyuma y\'umusoro na RSSB).';
+  }
+
+  @override
+  String get hrPayNetNegative =>
+      'Ibikatwa birenze umushahara. Gabanya ibikatwa.';
+
+  @override
+  String get hrPayEnterAmount => 'Andika amafaranga.';
+
+  @override
+  String hrPayMoreThanNet(String amount) {
+    return 'Birenze $amount bigomba kwishyurwa.';
+  }
+
+  @override
+  String get hrPayEarnings => 'Ibyinjira';
+
+  @override
+  String get hrPayDeductions => 'Ibikatwa';
+
+  @override
+  String get hrPayDaysWorked => 'Iminsi yakozwe';
+
+  @override
+  String get hrPayHoursWorked => 'Amasaha yakozwe';
+
+  @override
+  String hrPayRateHelper(String rate) {
+    return 'Kuri $rate buri kimwe. Byavuye ku bwitabire.';
+  }
+
+  @override
+  String get hrPayBasePay => 'Umushahara fatizo';
+
+  @override
+  String get hrPayAllowances => 'Insimburamubyizi';
+
+  @override
+  String get hrPayBonus => 'Agahimbazamusyi cyangwa amasaha y\'inyongera';
+
+  @override
+  String get hrPayGross => 'Umushahara mbumbe';
+
+  @override
+  String get hrPayPaye => 'PAYE (umusoro ku mushahara)';
+
+  @override
+  String hrPayPension(String percent) {
+    return 'Pansiyo RSSB ($percent%)';
+  }
+
+  @override
+  String get hrPayPensionPlain => 'Pansiyo RSSB';
+
+  @override
+  String get hrPayMaternity => 'Ikiruhuko cyo kubyara';
+
+  @override
+  String get hrPayCbhi => 'Mituweli (CBHI)';
+
+  @override
+  String get hrPayOtherDeductions => 'Ibindi bikatwa';
+
+  @override
+  String get hrPayAdvancesToRecover => 'Avansi zo kugarura';
+
+  @override
+  String hrPayAdvanceOf(String amount, String date) {
+    return 'Avansi ya $amount yo ku wa $date';
+  }
+
+  @override
+  String hrPayStillOwed(String amount) {
+    return '$amount itarishyurwa';
+  }
+
+  @override
+  String hrPayRecoveryLimit(String amount) {
+    return 'Ntarengwa $amount ishobora kugarurwa kuri uyu mushahara.';
+  }
+
+  @override
+  String get hrPayNetPay => 'Umushahara usigaye';
+
+  @override
+  String hrPayEmployerCost(String amount) {
+    return 'Bitwara ubucuruzi $amount hamwe n\'imisanzu y\'umukoresha';
+  }
+
+  @override
+  String get hrPayPayment => 'Kwishyura';
+
+  @override
+  String get hrPayRecordPaymentNow => 'Ndishyura ubu';
+
+  @override
+  String get hrPayRecordPaymentHint => 'Hagarika ubike fishi wishyure nyuma.';
+
+  @override
+  String hrPaySendTo(String account) {
+    return 'Ohereza kuri $account';
+  }
+
+  @override
+  String get hrPayAmountPaidNow => 'Amafaranga yishyuwe ubu';
+
+  @override
+  String get hrPayPartialHint =>
+      'Ishyura igice ubu, ibisigaye nyuma niba bikenewe.';
+
+  @override
+  String get hrPayReference => 'Nimero y\'ubwishyu (si ngombwa)';
+
+  @override
+  String get hrPayReferenceHint => 'Nimero ya MoMo cyangwa ya banki';
+
+  @override
+  String get hrPayNote => 'Icyitonderwa (si ngombwa)';
+
+  @override
+  String hrPayRatesFootnote(String version) {
+    return 'Ibipimo by\'amategeko $version: PAYE (Itegeko 027/2022), pansiyo RSSB (Iteka 086/01 ryo mu 2024), ububyeyi, impanuka z\'akazi na mituweli.';
+  }
+
+  @override
+  String hrPayPaidToast(String name, String period) {
+    return '$name yishyuwe $period';
+  }
+
+  @override
+  String get hrPayRecordedToast => 'Ubwishyu bwanditswe';
+
+  @override
+  String hrPayslipFor(String period) {
+    return 'Fishi · $period';
+  }
+
+  @override
+  String get hrPayAdvanceRecovered => 'Avansi yagarujwe';
+
+  @override
+  String hrPayAdvanceRecoveredAmount(String amount) {
+    return '$amount ya avansi yagarujwe';
+  }
+
+  @override
+  String get hrPayEmployerContributions => 'Imisanzu y\'umukoresha';
+
+  @override
+  String get hrPayOccupationalHazards => 'Impanuka z\'akazi';
+
+  @override
+  String get hrPayPaymentsMade => 'Ubwishyu bwakozwe';
+
+  @override
+  String get hrPayNothingPaidYet => 'Nta kintu kirishyurwa kuri iyi fishi.';
+
+  @override
+  String hrPayStillToPay(String amount) {
+    return '$amount isigaye kwishyurwa';
+  }
+
+  @override
+  String hrPayVoidedBecause(String reason) {
+    return 'Byahagaritswe: $reason';
+  }
+
+  @override
+  String get hrPayVoidPayslipTitle => 'Guhagarika iyi fishi?';
+
+  @override
+  String get hrPayVoidPayslipMessage =>
+      'Igihe kiba kitarishyurwa kandi avansi yagarujwe yongera kuba ideni. Nta kintu gisibwa.';
+
+  @override
+  String get hrPayVoidPayslipWithPayments =>
+      'Ubwishyu bwanditswe kuri yo nabwo burahagarikwa. Igihe kiba kitarishyurwa kandi avansi yagarujwe yongera kuba ideni.';
+
+  @override
+  String get hrPayVoidPaymentTitle => 'Guhagarika ubu bwishyu?';
+
+  @override
+  String hrPayVoidPaymentMessage(String amount) {
+    return '$amount ntizizongera kubarwa nk\'izishyuwe. Nta kintu gisibwa.';
+  }
+
+  @override
+  String hrPayslipFooter(String version) {
+    return 'Byabazwe hakoreshejwe ibipimo by\'amategeko y\'u Rwanda $version. Byakozwe na Flipper HR.';
+  }
+
+  @override
+  String hrPayPaidKind(String kind) {
+    return 'Yishyuwe · $kind';
+  }
+
+  @override
+  String hrPayAdvanceGivenOn(String date) {
+    return 'Avansi yatanzwe $date';
+  }
+
+  @override
+  String get hrPayNoHistory =>
+      'Nta bwishyu buraba. Fishi, ubwishyu na avansi bizagaragara hano.';
+
+  @override
+  String get hrPayPersonNotFound => 'Uyu muntu ntari ku ishami ryatoranyijwe.';
+
+  @override
+  String get hrPayNoRecordTitle => 'Nta dosiye y\'umukozi';
+
+  @override
+  String get hrPayNoRecordBody =>
+      'Fishi zawe zizagaragara hano umukoresha wawe namara kukwandika muri Flipper HR.';
+
+  @override
+  String get hrPayNobodyYet => 'Nta muntu wo kwishyura';
+
+  @override
+  String get hrPayNobodyYetBody =>
+      'Andika abakozi bawe n\'imishahara yabo, iminsi yo kubishyura igaragare hano.';
+
+  @override
+  String get hrPayNoPayslips =>
+      'Nta fishi iraboneka. Ishyura umukozi, fishi ye igaragare hano.';
+
+  @override
+  String get hrPayNoAdvances =>
+      'Nta avansi. Amafaranga atanzwe mbere y\'umushahara akurikiranwa hano kugeza agarujwe.';
+
+  @override
+  String get hrPayNoRequests =>
+      'Nta busabe bwa avansi. Umukozi nasaba avansi muri porogaramu, bizagera hano.';
+
+  @override
+  String get hrPayNoPayslipsThisMonth => 'Nta fishi irangirira muri uku kwezi.';
+
+  @override
+  String hrPayReturnsDeadline(String date) {
+    return 'Menyekanisha kandi wishyure PAYE n\'imisanzu ya RSSB bitarenze $date.';
+  }
+
+  @override
+  String get hrPayReturnsRra => 'Kuri RRA';
+
+  @override
+  String get hrPayReturnsRssb => 'Kuri RSSB';
+
+  @override
+  String get hrPayPensionBothSides => 'Pansiyo (umukozi + umukoresha)';
+
+  @override
+  String get hrPayMaternityBothSides => 'Ububyeyi (umukozi + umukoresha)';
+
+  @override
+  String get hrPayRssbTotal => 'Igiteranyo kuri RSSB';
+
+  @override
+  String get hrPayTotalCost => 'Igiciro cyose ku bucuruzi';
+
+  @override
+  String get hrPayReturnsCopy => 'Koporora yo kumenyekanisha';
+
+  @override
+  String get hrPayReturnsCopied => 'Byakoporowe. Bishyire muri spreadsheet.';
+
+  @override
+  String get hrAdvanceGive => 'Tanga avansi';
+
+  @override
+  String get hrAdvanceRequest => 'Saba avansi';
+
+  @override
+  String hrAdvanceGiveTitle(String name) {
+    return 'Avansi ya $name';
+  }
+
+  @override
+  String get hrAdvanceGiveSubtitle =>
+      'Amafaranga atanzwe mbere y\'umushahara, agarurwa ku mafishi akurikira.';
+
+  @override
+  String get hrAdvanceRequestTitle => 'Saba avansi';
+
+  @override
+  String get hrAdvanceRequestSubtitle =>
+      'Umuyobozi wawe ni we ufata icyemezo, kandi igarurwa ku mushahara ukurikira.';
+
+  @override
+  String get hrAdvanceAmount => 'Amafaranga';
+
+  @override
+  String get hrAdvanceReason => 'Impamvu (si ngombwa)';
+
+  @override
+  String get hrAdvanceReasonHint => 'urugero: amafaranga y\'ishuri, ubukode';
+
+  @override
+  String get hrAdvanceRecovery => 'Kuyigarura';
+
+  @override
+  String get hrAdvanceRecoverNextPay => 'Yose ku mushahara ukurikira';
+
+  @override
+  String get hrAdvanceRecoverNextPayHint =>
+      'Ntibirenza kimwe cya kabiri cy\'uwo mushahara; igisigaye kijya ku gikurikira.';
+
+  @override
+  String get hrAdvanceRecoverInstallments => 'Mu byiciro';
+
+  @override
+  String get hrAdvancePerPayslip => 'Amafaranga kuri buri fishi';
+
+  @override
+  String hrAdvanceInstallmentCount(String count) {
+    return 'Hafi fishi $count';
+  }
+
+  @override
+  String hrAdvanceInstallmentOf(String amount) {
+    return '$amount kuri buri fishi';
+  }
+
+  @override
+  String get hrAdvanceEnterInstallment =>
+      'Andika amafaranga azagarurwa kuri buri fishi.';
+
+  @override
+  String hrAdvanceAlreadyOwed(String amount) {
+    return 'Asanzwe afitiwe $amount ku zindi avansi.';
+  }
+
+  @override
+  String hrAdvanceOverHalf(String amount) {
+    return 'Birenze ibyo fishi imwe ishobora kugarura: ntarengwa $amount kuri fishi, bizatwara imishahara myinshi.';
+  }
+
+  @override
+  String hrAdvanceGiveAmount(String amount) {
+    return 'Tanga $amount';
+  }
+
+  @override
+  String get hrAdvanceSendRequest => 'Ohereza ubusabe';
+
+  @override
+  String get hrAdvanceRecordedToast => 'Avansi yanditswe';
+
+  @override
+  String get hrAdvanceRequestedToast => 'Ubusabe bwoherejwe ku muyobozi wawe';
+
+  @override
+  String hrAdvanceRequestPending(String amount) {
+    return 'Ubusabe bwawe bwa $amount butegereje icyemezo.';
+  }
+
+  @override
+  String get hrAdvanceCancelRequest => 'Kuraho ubusabe';
+
+  @override
+  String get hrAdvanceApproveAndGive => 'Emeza utange';
+
+  @override
+  String get hrAdvanceDecline => 'Anga';
+
+  @override
+  String get hrAdvanceDeclineTitle => 'Kwanga ubu busabe?';
+
+  @override
+  String get hrAdvanceDeclineMessage => 'Vuga impamvu kugira ngo amenye.';
+
+  @override
+  String hrAdvanceApprovedToast(String amount, String name) {
+    return 'Watanze $amount kuri $name';
+  }
+
+  @override
+  String hrAdvanceProgress(String recovered, String owed) {
+    return '$recovered yagarujwe · $owed isigaye';
+  }
+
+  @override
+  String get hrAdvanceWriteOff => 'Soneza';
+
+  @override
+  String get hrAdvanceWriteOffTitle => 'Gusonera iyi avansi?';
+
+  @override
+  String hrAdvanceWriteOffMessage(String amount) {
+    return '$amount isigaye ntizagarurwa ku mushahara.';
+  }
+
+  @override
+  String get hrAdvanceVoidTitle => 'Guhagarika iyi avansi?';
+
+  @override
+  String get hrAdvanceVoidMessage =>
+      'Koresha ibi niba yanditswe ku makosa. Amafaranga yatanzwe nayo arahagarikwa.';
+
+  @override
+  String hrAllowancesWithCurrency(String currency) {
+    return 'Insimburamubyizi z\'ukwezi ($currency)';
+  }
+
+  @override
+  String get hrAllowancesHelper =>
+      'Ingendo, icumbi… bitangwa buri kwezi hejuru y\'umushahara fatizo. Bisoreshwa.';
+
+  @override
+  String get hrPayDayOfMonth => 'Umunsi w\'umushahara';
+
+  @override
+  String get hrPayDayHelper =>
+      'Umunsi w\'ukwezi (1–31). Ubusa: umunsi wa nyuma.';
+
+  @override
+  String get hrTaxCategory => 'Umusoro ku mushahara';
+
+  @override
+  String get hrTaxCategoryHelper => 'Uko PAYE ibarwa kuri uyu muntu.';
+
+  @override
+  String get hrRssbEnrolled => 'Yanditswe muri RSSB';
+
+  @override
+  String get hrRssbEnrolledHelper =>
+      'Kata pansiyo n\'ububyeyi wongereho umugabane w\'umukoresha.';
+
+  @override
+  String hrPayPeopleDue(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Ishyura abantu $count',
+    );
+    return '$_temp0';
+  }
 }

@@ -4,34 +4,46 @@ import 'package:flutter_test/flutter_test.dart';
 
 import '../helpers/fake_hr_session_repository.dart';
 
-List<String> _paths(HrSession session) =>
-    [for (final d in hrDestinationsFor(session)) d.path];
+List<String> _paths(HrSession session) => [
+  for (final d in hrDestinationsFor(session)) d.path,
+];
 
 void main() {
   group('hrDestinationsFor', () {
     test('an owner gets the dashboard, roster, board and approvals queue', () {
-      expect(
-        _paths(const HrSession(businessIds: ['biz-1'])),
-        ['/overview', '/people', '/attendance', '/approvals'],
-      );
+      expect(_paths(const HrSession(businessIds: ['biz-1'])), [
+        '/overview',
+        '/people',
+        '/pay',
+        '/attendance',
+        '/approvals',
+      ]);
     });
 
     test('an invited employee gets only their own time and leave', () {
       // The point of deriving this from the session: an employee cannot read the
       // roster, so a People tab would only ever fail for them. The branch board
       // is likewise absent — they may see their own hours, not the branch's.
-      expect(
-        _paths(const HrSession(employeeIds: ['e-1'])),
-        ['/my-time', '/leave'],
-      );
+      expect(_paths(const HrSession(employeeIds: ['e-1'])), [
+        '/my-time',
+        '/leave',
+        '/my-pay',
+      ]);
     });
 
     test('an owner on their own payroll gets both sets, management first', () {
       expect(
-        _paths(
-          const HrSession(businessIds: ['biz-1'], employeeIds: ['e-1']),
-        ),
-        ['/overview', '/people', '/attendance', '/approvals', '/my-time', '/leave'],
+        _paths(const HrSession(businessIds: ['biz-1'], employeeIds: ['e-1'])),
+        [
+          '/overview',
+          '/people',
+          '/pay',
+          '/attendance',
+          '/approvals',
+          '/my-time',
+          '/leave',
+          '/my-pay',
+        ],
       );
     });
 
@@ -39,19 +51,27 @@ void main() {
       // Migration 0006: a manager reaches the business through an accesses grant
       // instead of owning it, and hr_user_business_ids() returns both. Nothing in
       // the client distinguishes them, which is why this needs no new branch.
-      expect(
-        _paths(managerSession()),
-        ['/overview', '/people', '/attendance', '/approvals', '/my-time', '/leave'],
-      );
+      expect(_paths(managerSession()), [
+        '/overview',
+        '/people',
+        '/pay',
+        '/attendance',
+        '/approvals',
+        '/my-time',
+        '/leave',
+        '/my-pay',
+      ]);
     });
 
     test('a line manager gets the approvals queue but no roster', () {
       // Migration 0007: authority from the reporting line, not from ownership. A
       // People tab would only fail for them; the queue is the whole point.
-      expect(
-        _paths(lineManagerSession()),
-        ['/approvals', '/my-time', '/leave'],
-      );
+      expect(_paths(lineManagerSession()), [
+        '/approvals',
+        '/my-time',
+        '/leave',
+        '/my-pay',
+      ]);
     });
 
     test('an unresolved session still reaches People, which explains why', () {

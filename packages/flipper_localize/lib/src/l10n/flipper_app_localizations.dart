@@ -41272,6 +41272,1116 @@ abstract class FlipperAppLocalizations {
   /// In en, this message translates to:
   /// **'No purchases match “{query}”'**
   String purchaseSearchNoMatch(String query);
+
+  /// No description provided for @hrAndPayroll.
+  ///
+  /// In en, this message translates to:
+  /// **'HR & Payroll'**
+  String get hrAndPayroll;
+
+  /// No description provided for @hrBackToFlipper.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to Flipper'**
+  String get hrBackToFlipper;
+
+  /// No description provided for @hrNeedsInternet.
+  ///
+  /// In en, this message translates to:
+  /// **'HR needs an internet connection. Connect and try again.'**
+  String get hrNeedsInternet;
+
+  /// No description provided for @hrTaxPrimary.
+  ///
+  /// In en, this message translates to:
+  /// **'Main employment'**
+  String get hrTaxPrimary;
+
+  /// No description provided for @hrTaxSecondary.
+  ///
+  /// In en, this message translates to:
+  /// **'Second employer (30% flat)'**
+  String get hrTaxSecondary;
+
+  /// No description provided for @hrTaxCasual.
+  ///
+  /// In en, this message translates to:
+  /// **'Casual labourer (15%)'**
+  String get hrTaxCasual;
+
+  /// No description provided for @hrPayStatusUnpaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Unpaid'**
+  String get hrPayStatusUnpaid;
+
+  /// No description provided for @hrPayStatusPartlyPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Partly paid'**
+  String get hrPayStatusPartlyPaid;
+
+  /// No description provided for @hrPayStatusPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid'**
+  String get hrPayStatusPaid;
+
+  /// No description provided for @hrPayStatusVoid.
+  ///
+  /// In en, this message translates to:
+  /// **'Void'**
+  String get hrPayStatusVoid;
+
+  /// No description provided for @hrPayKindSalary.
+  ///
+  /// In en, this message translates to:
+  /// **'Salary'**
+  String get hrPayKindSalary;
+
+  /// No description provided for @hrPayKindAdvance.
+  ///
+  /// In en, this message translates to:
+  /// **'Advance'**
+  String get hrPayKindAdvance;
+
+  /// No description provided for @hrPayKindReimbursement.
+  ///
+  /// In en, this message translates to:
+  /// **'Reimbursement'**
+  String get hrPayKindReimbursement;
+
+  /// No description provided for @hrPayKindOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get hrPayKindOther;
+
+  /// No description provided for @hrAdvanceStatusOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Owed'**
+  String get hrAdvanceStatusOpen;
+
+  /// No description provided for @hrAdvanceStatusRecovered.
+  ///
+  /// In en, this message translates to:
+  /// **'Recovered'**
+  String get hrAdvanceStatusRecovered;
+
+  /// No description provided for @hrAdvanceStatusWrittenOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Written off'**
+  String get hrAdvanceStatusWrittenOff;
+
+  /// No description provided for @hrPayErrorLoad.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load pay records.'**
+  String get hrPayErrorLoad;
+
+  /// No description provided for @hrPayErrorSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save that pay record.'**
+  String get hrPayErrorSave;
+
+  /// No description provided for @hrPayroll.
+  ///
+  /// In en, this message translates to:
+  /// **'Payroll'**
+  String get hrPayroll;
+
+  /// No description provided for @hrMyPay.
+  ///
+  /// In en, this message translates to:
+  /// **'My pay'**
+  String get hrMyPay;
+
+  /// No description provided for @hrPayslip.
+  ///
+  /// In en, this message translates to:
+  /// **'Payslip'**
+  String get hrPayslip;
+
+  /// No description provided for @hrPayslips.
+  ///
+  /// In en, this message translates to:
+  /// **'Payslips'**
+  String get hrPayslips;
+
+  /// No description provided for @hrPayAdvances.
+  ///
+  /// In en, this message translates to:
+  /// **'Advances'**
+  String get hrPayAdvances;
+
+  /// No description provided for @hrPayRequests.
+  ///
+  /// In en, this message translates to:
+  /// **'Requests'**
+  String get hrPayRequests;
+
+  /// No description provided for @hrPayReturns.
+  ///
+  /// In en, this message translates to:
+  /// **'Returns'**
+  String get hrPayReturns;
+
+  /// No description provided for @hrPayHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'History'**
+  String get hrPayHistory;
+
+  /// No description provided for @hrPaySummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Summary'**
+  String get hrPaySummary;
+
+  /// No description provided for @hrPayEmployee.
+  ///
+  /// In en, this message translates to:
+  /// **'Employee'**
+  String get hrPayEmployee;
+
+  /// No description provided for @hrNationalId.
+  ///
+  /// In en, this message translates to:
+  /// **'National ID'**
+  String get hrNationalId;
+
+  /// No description provided for @hrRssbNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'RSSB number'**
+  String get hrRssbNumber;
+
+  /// No description provided for @hrPayPay.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay'**
+  String get hrPayPay;
+
+  /// No description provided for @hrPayPaySomeone.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay someone'**
+  String get hrPayPaySomeone;
+
+  /// No description provided for @hrPayPayFor.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay {period}'**
+  String hrPayPayFor(String period);
+
+  /// No description provided for @hrPayChoosePerson.
+  ///
+  /// In en, this message translates to:
+  /// **'Who are you paying?'**
+  String get hrPayChoosePerson;
+
+  /// No description provided for @hrPayRecord.
+  ///
+  /// In en, this message translates to:
+  /// **'Record payment'**
+  String get hrPayRecord;
+
+  /// No description provided for @hrPayVoid.
+  ///
+  /// In en, this message translates to:
+  /// **'Void'**
+  String get hrPayVoid;
+
+  /// No description provided for @hrPayShareSlip.
+  ///
+  /// In en, this message translates to:
+  /// **'Share payslip'**
+  String get hrPayShareSlip;
+
+  /// No description provided for @hrPayBackToPayroll.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to payroll'**
+  String get hrPayBackToPayroll;
+
+  /// No description provided for @hrPayReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason'**
+  String get hrPayReason;
+
+  /// No description provided for @hrPaySaveUnpaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Save payslip, pay later'**
+  String get hrPaySaveUnpaid;
+
+  /// No description provided for @hrPayConfirmAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay {amount}'**
+  String hrPayConfirmAmount(String amount);
+
+  /// No description provided for @hrPayRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay {amount} left'**
+  String hrPayRemaining(String amount);
+
+  /// No description provided for @hrPayRemainingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay what is left'**
+  String get hrPayRemainingTitle;
+
+  /// No description provided for @hrPayDueNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Due now'**
+  String get hrPayDueNow;
+
+  /// No description provided for @hrPayPeopleToPay.
+  ///
+  /// In en, this message translates to:
+  /// **'people to pay'**
+  String get hrPayPeopleToPay;
+
+  /// No description provided for @hrPayPaidThisMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid this month'**
+  String get hrPayPaidThisMonth;
+
+  /// No description provided for @hrPayUnpaidOnSlips.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} still on payslips'**
+  String hrPayUnpaidOnSlips(String amount);
+
+  /// No description provided for @hrPayAdvancesOwed.
+  ///
+  /// In en, this message translates to:
+  /// **'Advances owed'**
+  String get hrPayAdvancesOwed;
+
+  /// No description provided for @hrPayCostThisMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Payroll cost this month'**
+  String get hrPayCostThisMonth;
+
+  /// No description provided for @hrPayPayslipCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 payslip} other{{count} payslips}}'**
+  String hrPayPayslipCount(int count);
+
+  /// No description provided for @hrPayDueToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Due today'**
+  String get hrPayDueToday;
+
+  /// No description provided for @hrPayDueOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Due {date}'**
+  String hrPayDueOn(String date);
+
+  /// No description provided for @hrPayNextOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Next pay {date}'**
+  String hrPayNextOn(String date);
+
+  /// No description provided for @hrPayOverdueSince.
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue since {date}'**
+  String hrPayOverdueSince(String date);
+
+  /// No description provided for @hrPayDueFor.
+  ///
+  /// In en, this message translates to:
+  /// **'Due for {period}'**
+  String hrPayDueFor(String period);
+
+  /// No description provided for @hrPayOwesBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Owes {amount}'**
+  String hrPayOwesBack(String amount);
+
+  /// No description provided for @hrPayLastPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Last paid {amount} on {date}'**
+  String hrPayLastPaid(String amount, String date);
+
+  /// No description provided for @hrPayNextPayDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Next pay day'**
+  String get hrPayNextPayDay;
+
+  /// No description provided for @hrPayLastPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Last payment'**
+  String get hrPayLastPayment;
+
+  /// No description provided for @hrPayLatestNet.
+  ///
+  /// In en, this message translates to:
+  /// **'Latest net pay'**
+  String get hrPayLatestNet;
+
+  /// No description provided for @hrPayPersonTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay {name}'**
+  String hrPayPersonTitle(String name);
+
+  /// No description provided for @hrPayPeriodAlreadyPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'This period already has a payslip. Pick another period, or open the payslip to pay what is left.'**
+  String get hrPayPeriodAlreadyPaid;
+
+  /// No description provided for @hrPayPeriodHasPayslip.
+  ///
+  /// In en, this message translates to:
+  /// **'Already on a payslip ({status}, net {amount}).'**
+  String hrPayPeriodHasPayslip(String status, String amount);
+
+  /// No description provided for @hrPayAlreadyPaidThisPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'Already handed over in this period: {amount}'**
+  String hrPayAlreadyPaidThisPeriod(String amount);
+
+  /// No description provided for @hrPayNothingEarned.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing was earned in this period. Enter the days or hours worked, or a bonus.'**
+  String get hrPayNothingEarned;
+
+  /// No description provided for @hrPayRecoverMoreThanOwed.
+  ///
+  /// In en, this message translates to:
+  /// **'You cannot take back more than the {amount} still owed on an advance.'**
+  String hrPayRecoverMoreThanOwed(String amount);
+
+  /// No description provided for @hrPayRecoveryOverHalf.
+  ///
+  /// In en, this message translates to:
+  /// **'The law allows at most {amount} to be withheld from this pay (half of pay after tax and RSSB).'**
+  String hrPayRecoveryOverHalf(String amount);
+
+  /// No description provided for @hrPayNetNegative.
+  ///
+  /// In en, this message translates to:
+  /// **'Deductions are larger than pay. Lower the advance recovery or other deductions.'**
+  String get hrPayNetNegative;
+
+  /// No description provided for @hrPayEnterAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter an amount.'**
+  String get hrPayEnterAmount;
+
+  /// No description provided for @hrPayMoreThanNet.
+  ///
+  /// In en, this message translates to:
+  /// **'That is more than the {amount} due.'**
+  String hrPayMoreThanNet(String amount);
+
+  /// No description provided for @hrPayEarnings.
+  ///
+  /// In en, this message translates to:
+  /// **'Earnings'**
+  String get hrPayEarnings;
+
+  /// No description provided for @hrPayDeductions.
+  ///
+  /// In en, this message translates to:
+  /// **'Deductions'**
+  String get hrPayDeductions;
+
+  /// No description provided for @hrPayDaysWorked.
+  ///
+  /// In en, this message translates to:
+  /// **'Days worked'**
+  String get hrPayDaysWorked;
+
+  /// No description provided for @hrPayHoursWorked.
+  ///
+  /// In en, this message translates to:
+  /// **'Hours worked'**
+  String get hrPayHoursWorked;
+
+  /// No description provided for @hrPayRateHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'At {rate} each. Pre-filled from attendance.'**
+  String hrPayRateHelper(String rate);
+
+  /// No description provided for @hrPayBasePay.
+  ///
+  /// In en, this message translates to:
+  /// **'Base pay'**
+  String get hrPayBasePay;
+
+  /// No description provided for @hrPayAllowances.
+  ///
+  /// In en, this message translates to:
+  /// **'Allowances'**
+  String get hrPayAllowances;
+
+  /// No description provided for @hrPayBonus.
+  ///
+  /// In en, this message translates to:
+  /// **'Bonus or overtime'**
+  String get hrPayBonus;
+
+  /// No description provided for @hrPayGross.
+  ///
+  /// In en, this message translates to:
+  /// **'Gross pay'**
+  String get hrPayGross;
+
+  /// No description provided for @hrPayPaye.
+  ///
+  /// In en, this message translates to:
+  /// **'PAYE (income tax)'**
+  String get hrPayPaye;
+
+  /// No description provided for @hrPayPension.
+  ///
+  /// In en, this message translates to:
+  /// **'RSSB pension ({percent}%)'**
+  String hrPayPension(String percent);
+
+  /// No description provided for @hrPayPensionPlain.
+  ///
+  /// In en, this message translates to:
+  /// **'RSSB pension'**
+  String get hrPayPensionPlain;
+
+  /// No description provided for @hrPayMaternity.
+  ///
+  /// In en, this message translates to:
+  /// **'Maternity leave'**
+  String get hrPayMaternity;
+
+  /// No description provided for @hrPayCbhi.
+  ///
+  /// In en, this message translates to:
+  /// **'CBHI (Mutuelle)'**
+  String get hrPayCbhi;
+
+  /// No description provided for @hrPayOtherDeductions.
+  ///
+  /// In en, this message translates to:
+  /// **'Other deductions'**
+  String get hrPayOtherDeductions;
+
+  /// No description provided for @hrPayAdvancesToRecover.
+  ///
+  /// In en, this message translates to:
+  /// **'Advances to take back'**
+  String get hrPayAdvancesToRecover;
+
+  /// No description provided for @hrPayAdvanceOf.
+  ///
+  /// In en, this message translates to:
+  /// **'Advance of {amount} on {date}'**
+  String hrPayAdvanceOf(String amount, String date);
+
+  /// No description provided for @hrPayStillOwed.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} still owed'**
+  String hrPayStillOwed(String amount);
+
+  /// No description provided for @hrPayRecoveryLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'At most {amount} may be taken back from this pay.'**
+  String hrPayRecoveryLimit(String amount);
+
+  /// No description provided for @hrPayNetPay.
+  ///
+  /// In en, this message translates to:
+  /// **'Net pay'**
+  String get hrPayNetPay;
+
+  /// No description provided for @hrPayEmployerCost.
+  ///
+  /// In en, this message translates to:
+  /// **'Costs the business {amount} with employer contributions'**
+  String hrPayEmployerCost(String amount);
+
+  /// No description provided for @hrPayPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment'**
+  String get hrPayPayment;
+
+  /// No description provided for @hrPayRecordPaymentNow.
+  ///
+  /// In en, this message translates to:
+  /// **'I am paying now'**
+  String get hrPayRecordPaymentNow;
+
+  /// No description provided for @hrPayRecordPaymentHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn off to save the payslip and pay later.'**
+  String get hrPayRecordPaymentHint;
+
+  /// No description provided for @hrPaySendTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Send to {account}'**
+  String hrPaySendTo(String account);
+
+  /// No description provided for @hrPayAmountPaidNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount paid now'**
+  String get hrPayAmountPaidNow;
+
+  /// No description provided for @hrPayPartialHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay part now and the rest later if you need to.'**
+  String get hrPayPartialHint;
+
+  /// No description provided for @hrPayReference.
+  ///
+  /// In en, this message translates to:
+  /// **'Reference (optional)'**
+  String get hrPayReference;
+
+  /// No description provided for @hrPayReferenceHint.
+  ///
+  /// In en, this message translates to:
+  /// **'MoMo transaction ID or bank reference'**
+  String get hrPayReferenceHint;
+
+  /// No description provided for @hrPayNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Note (optional)'**
+  String get hrPayNote;
+
+  /// No description provided for @hrPayRatesFootnote.
+  ///
+  /// In en, this message translates to:
+  /// **'Statutory rates {version}: PAYE (Law 027/2022), RSSB pension (Order 086/01 of 2024), maternity, occupational hazards and CBHI.'**
+  String hrPayRatesFootnote(String version);
+
+  /// No description provided for @hrPayPaidToast.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid {name} for {period}'**
+  String hrPayPaidToast(String name, String period);
+
+  /// No description provided for @hrPayRecordedToast.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment recorded'**
+  String get hrPayRecordedToast;
+
+  /// No description provided for @hrPayslipFor.
+  ///
+  /// In en, this message translates to:
+  /// **'Payslip · {period}'**
+  String hrPayslipFor(String period);
+
+  /// No description provided for @hrPayAdvanceRecovered.
+  ///
+  /// In en, this message translates to:
+  /// **'Advance taken back'**
+  String get hrPayAdvanceRecovered;
+
+  /// No description provided for @hrPayAdvanceRecoveredAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} advance taken back'**
+  String hrPayAdvanceRecoveredAmount(String amount);
+
+  /// No description provided for @hrPayEmployerContributions.
+  ///
+  /// In en, this message translates to:
+  /// **'Employer contributions'**
+  String get hrPayEmployerContributions;
+
+  /// No description provided for @hrPayOccupationalHazards.
+  ///
+  /// In en, this message translates to:
+  /// **'Occupational hazards'**
+  String get hrPayOccupationalHazards;
+
+  /// No description provided for @hrPayPaymentsMade.
+  ///
+  /// In en, this message translates to:
+  /// **'Payments made'**
+  String get hrPayPaymentsMade;
+
+  /// No description provided for @hrPayNothingPaidYet.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing has been paid on this payslip yet.'**
+  String get hrPayNothingPaidYet;
+
+  /// No description provided for @hrPayStillToPay.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} still to pay'**
+  String hrPayStillToPay(String amount);
+
+  /// No description provided for @hrPayVoidedBecause.
+  ///
+  /// In en, this message translates to:
+  /// **'Voided: {reason}'**
+  String hrPayVoidedBecause(String reason);
+
+  /// No description provided for @hrPayVoidPayslipTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Void this payslip?'**
+  String get hrPayVoidPayslipTitle;
+
+  /// No description provided for @hrPayVoidPayslipMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'The period becomes unpaid again and any advance it took back is owed again. Nothing is deleted.'**
+  String get hrPayVoidPayslipMessage;
+
+  /// No description provided for @hrPayVoidPayslipWithPayments.
+  ///
+  /// In en, this message translates to:
+  /// **'The payments recorded against it are voided too. The period becomes unpaid again and any advance it took back is owed again.'**
+  String get hrPayVoidPayslipWithPayments;
+
+  /// No description provided for @hrPayVoidPaymentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Void this payment?'**
+  String get hrPayVoidPaymentTitle;
+
+  /// No description provided for @hrPayVoidPaymentMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'The {amount} will no longer count as paid. Nothing is deleted.'**
+  String hrPayVoidPaymentMessage(String amount);
+
+  /// No description provided for @hrPayslipFooter.
+  ///
+  /// In en, this message translates to:
+  /// **'Computed with Rwanda statutory rates {version}. Generated by Flipper HR.'**
+  String hrPayslipFooter(String version);
+
+  /// No description provided for @hrPayPaidKind.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid · {kind}'**
+  String hrPayPaidKind(String kind);
+
+  /// No description provided for @hrPayAdvanceGivenOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Advance given {date}'**
+  String hrPayAdvanceGivenOn(String date);
+
+  /// No description provided for @hrPayNoHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'No payments yet. Payslips, payments and advances will appear here.'**
+  String get hrPayNoHistory;
+
+  /// No description provided for @hrPayPersonNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'This person is not on the selected branch.'**
+  String get hrPayPersonNotFound;
+
+  /// No description provided for @hrPayNoRecordTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No employee record yet'**
+  String get hrPayNoRecordTitle;
+
+  /// No description provided for @hrPayNoRecordBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your payslips appear here once your employer adds you to their team in Flipper HR.'**
+  String get hrPayNoRecordBody;
+
+  /// No description provided for @hrPayNobodyYet.
+  ///
+  /// In en, this message translates to:
+  /// **'Nobody to pay yet'**
+  String get hrPayNobodyYet;
+
+  /// No description provided for @hrPayNobodyYetBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Add your team with their salary, and their pay days show up here.'**
+  String get hrPayNobodyYetBody;
+
+  /// No description provided for @hrPayNoPayslips.
+  ///
+  /// In en, this message translates to:
+  /// **'No payslips yet. Pay someone and their payslip appears here.'**
+  String get hrPayNoPayslips;
+
+  /// No description provided for @hrPayNoAdvances.
+  ///
+  /// In en, this message translates to:
+  /// **'No advances. Money given ahead of pay day is tracked here until it is taken back.'**
+  String get hrPayNoAdvances;
+
+  /// No description provided for @hrPayNoRequests.
+  ///
+  /// In en, this message translates to:
+  /// **'No advance requests. When someone asks for an advance in the app, it lands here.'**
+  String get hrPayNoRequests;
+
+  /// No description provided for @hrPayNoPayslipsThisMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'No payslips end in this month.'**
+  String get hrPayNoPayslipsThisMonth;
+
+  /// No description provided for @hrPayReturnsDeadline.
+  ///
+  /// In en, this message translates to:
+  /// **'Declare and pay PAYE and RSSB contributions by {date}.'**
+  String hrPayReturnsDeadline(String date);
+
+  /// No description provided for @hrPayReturnsRra.
+  ///
+  /// In en, this message translates to:
+  /// **'To RRA'**
+  String get hrPayReturnsRra;
+
+  /// No description provided for @hrPayReturnsRssb.
+  ///
+  /// In en, this message translates to:
+  /// **'To RSSB'**
+  String get hrPayReturnsRssb;
+
+  /// No description provided for @hrPayPensionBothSides.
+  ///
+  /// In en, this message translates to:
+  /// **'Pension (employee + employer)'**
+  String get hrPayPensionBothSides;
+
+  /// No description provided for @hrPayMaternityBothSides.
+  ///
+  /// In en, this message translates to:
+  /// **'Maternity (employee + employer)'**
+  String get hrPayMaternityBothSides;
+
+  /// No description provided for @hrPayRssbTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Total to RSSB'**
+  String get hrPayRssbTotal;
+
+  /// No description provided for @hrPayTotalCost.
+  ///
+  /// In en, this message translates to:
+  /// **'Total cost to the business'**
+  String get hrPayTotalCost;
+
+  /// No description provided for @hrPayReturnsCopy.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy for filing'**
+  String get hrPayReturnsCopy;
+
+  /// No description provided for @hrPayReturnsCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied. Paste it into a spreadsheet.'**
+  String get hrPayReturnsCopied;
+
+  /// No description provided for @hrAdvanceGive.
+  ///
+  /// In en, this message translates to:
+  /// **'Give advance'**
+  String get hrAdvanceGive;
+
+  /// No description provided for @hrAdvanceRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask for an advance'**
+  String get hrAdvanceRequest;
+
+  /// No description provided for @hrAdvanceGiveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Advance for {name}'**
+  String hrAdvanceGiveTitle(String name);
+
+  /// No description provided for @hrAdvanceGiveSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Money given before pay day. It is taken back from their next payslips.'**
+  String get hrAdvanceGiveSubtitle;
+
+  /// No description provided for @hrAdvanceRequestTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask for an advance'**
+  String get hrAdvanceRequestTitle;
+
+  /// No description provided for @hrAdvanceRequestSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your manager decides, and it is taken back from your next pay.'**
+  String get hrAdvanceRequestSubtitle;
+
+  /// No description provided for @hrAdvanceAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get hrAdvanceAmount;
+
+  /// No description provided for @hrAdvanceReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason (optional)'**
+  String get hrAdvanceReason;
+
+  /// No description provided for @hrAdvanceReasonHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. school fees, rent'**
+  String get hrAdvanceReasonHint;
+
+  /// No description provided for @hrAdvanceRecovery.
+  ///
+  /// In en, this message translates to:
+  /// **'Taking it back'**
+  String get hrAdvanceRecovery;
+
+  /// No description provided for @hrAdvanceRecoverNextPay.
+  ///
+  /// In en, this message translates to:
+  /// **'All of it from the next pay'**
+  String get hrAdvanceRecoverNextPay;
+
+  /// No description provided for @hrAdvanceRecoverNextPayHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Never more than half of that pay; anything left carries over.'**
+  String get hrAdvanceRecoverNextPayHint;
+
+  /// No description provided for @hrAdvanceRecoverInstallments.
+  ///
+  /// In en, this message translates to:
+  /// **'In instalments'**
+  String get hrAdvanceRecoverInstallments;
+
+  /// No description provided for @hrAdvancePerPayslip.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount per payslip'**
+  String get hrAdvancePerPayslip;
+
+  /// No description provided for @hrAdvanceInstallmentCount.
+  ///
+  /// In en, this message translates to:
+  /// **'About {count} payslips'**
+  String hrAdvanceInstallmentCount(String count);
+
+  /// No description provided for @hrAdvanceInstallmentOf.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} per payslip'**
+  String hrAdvanceInstallmentOf(String amount);
+
+  /// No description provided for @hrAdvanceEnterInstallment.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter how much to take back on each payslip.'**
+  String get hrAdvanceEnterInstallment;
+
+  /// No description provided for @hrAdvanceAlreadyOwed.
+  ///
+  /// In en, this message translates to:
+  /// **'Already owes {amount} from earlier advances.'**
+  String hrAdvanceAlreadyOwed(String amount);
+
+  /// No description provided for @hrAdvanceOverHalf.
+  ///
+  /// In en, this message translates to:
+  /// **'More than one payslip can take back: at most {amount} per payslip is allowed, so this will take several pay days to recover.'**
+  String hrAdvanceOverHalf(String amount);
+
+  /// No description provided for @hrAdvanceGiveAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Give {amount}'**
+  String hrAdvanceGiveAmount(String amount);
+
+  /// No description provided for @hrAdvanceSendRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'Send request'**
+  String get hrAdvanceSendRequest;
+
+  /// No description provided for @hrAdvanceRecordedToast.
+  ///
+  /// In en, this message translates to:
+  /// **'Advance recorded'**
+  String get hrAdvanceRecordedToast;
+
+  /// No description provided for @hrAdvanceRequestedToast.
+  ///
+  /// In en, this message translates to:
+  /// **'Request sent to your manager'**
+  String get hrAdvanceRequestedToast;
+
+  /// No description provided for @hrAdvanceRequestPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Your request for {amount} is waiting for a decision.'**
+  String hrAdvanceRequestPending(String amount);
+
+  /// No description provided for @hrAdvanceCancelRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel request'**
+  String get hrAdvanceCancelRequest;
+
+  /// No description provided for @hrAdvanceApproveAndGive.
+  ///
+  /// In en, this message translates to:
+  /// **'Approve and give'**
+  String get hrAdvanceApproveAndGive;
+
+  /// No description provided for @hrAdvanceDecline.
+  ///
+  /// In en, this message translates to:
+  /// **'Decline'**
+  String get hrAdvanceDecline;
+
+  /// No description provided for @hrAdvanceDeclineTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Decline this request?'**
+  String get hrAdvanceDeclineTitle;
+
+  /// No description provided for @hrAdvanceDeclineMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Say why, so they know.'**
+  String get hrAdvanceDeclineMessage;
+
+  /// No description provided for @hrAdvanceApprovedToast.
+  ///
+  /// In en, this message translates to:
+  /// **'Gave {amount} to {name}'**
+  String hrAdvanceApprovedToast(String amount, String name);
+
+  /// No description provided for @hrAdvanceProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'{recovered} taken back · {owed} to go'**
+  String hrAdvanceProgress(String recovered, String owed);
+
+  /// No description provided for @hrAdvanceWriteOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Write off'**
+  String get hrAdvanceWriteOff;
+
+  /// No description provided for @hrAdvanceWriteOffTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Write off this advance?'**
+  String get hrAdvanceWriteOffTitle;
+
+  /// No description provided for @hrAdvanceWriteOffMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'The {amount} still owed will not be taken back from pay.'**
+  String hrAdvanceWriteOffMessage(String amount);
+
+  /// No description provided for @hrAdvanceVoidTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Void this advance?'**
+  String get hrAdvanceVoidTitle;
+
+  /// No description provided for @hrAdvanceVoidMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Use this when it was recorded by mistake. The money handed over is voided too.'**
+  String get hrAdvanceVoidMessage;
+
+  /// No description provided for @hrAllowancesWithCurrency.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly allowances ({currency})'**
+  String hrAllowancesWithCurrency(String currency);
+
+  /// No description provided for @hrAllowancesHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Transport, housing… paid every month on top of base pay. Taxed.'**
+  String get hrAllowancesHelper;
+
+  /// No description provided for @hrPayDayOfMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay day'**
+  String get hrPayDayOfMonth;
+
+  /// No description provided for @hrPayDayHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Day of the month (1–31). Blank: last day.'**
+  String get hrPayDayHelper;
+
+  /// No description provided for @hrTaxCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Income tax'**
+  String get hrTaxCategory;
+
+  /// No description provided for @hrTaxCategoryHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'How PAYE is worked out for this person.'**
+  String get hrTaxCategoryHelper;
+
+  /// No description provided for @hrRssbEnrolled.
+  ///
+  /// In en, this message translates to:
+  /// **'Registered with RSSB'**
+  String get hrRssbEnrolled;
+
+  /// No description provided for @hrRssbEnrolledHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Deduct pension and maternity contributions and add the employer\'s share.'**
+  String get hrRssbEnrolledHelper;
+
+  /// No description provided for @hrPayPeopleDue.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Pay 1 person} other{Pay {count} people}}'**
+  String hrPayPeopleDue(int count);
 }
 
 class _FlipperAppLocalizationsDelegate

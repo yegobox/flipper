@@ -1276,6 +1276,13 @@ packages:
       relative: true
     source: path
     version: "0.1.0"
+  flipper_hr:
+    dependency: "direct main"
+    description:
+      path: "../flipper_hr"
+      relative: true
+    source: path
+    version: "1.0.20+21"
   flipper_infra:
     dependency: "direct overridden"
     description:

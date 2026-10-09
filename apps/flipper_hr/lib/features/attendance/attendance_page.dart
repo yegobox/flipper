@@ -1,3 +1,4 @@
+import 'package:flipper_hr/features/ui/hr_ui.dart';
 import 'package:flipper_hr/features/attendance/data/attendance_day.dart';
 import 'package:flipper_hr/features/attendance/data/attendance_format.dart';
 import 'package:flipper_hr/features/attendance/data/attendance_providers.dart';
@@ -118,7 +119,12 @@ class _AttendancePageState extends ConsumerState<AttendancePage> {
         child: CustomScrollView(
           slivers: [
             SliverPadding(
-              padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+              padding: EdgeInsets.fromLTRB(
+                hrGutter(context),
+                24,
+                hrGutter(context),
+                16,
+              ),
               sliver: SliverToBoxAdapter(
                 child: _Header(
                   branchName: widget.branchName,
@@ -208,26 +214,28 @@ class _AttendancePageState extends ConsumerState<AttendancePage> {
 
     return [
       SliverPadding(
-        padding: const EdgeInsets.symmetric(horizontal: 24),
+        padding: EdgeInsets.symmetric(horizontal: hrGutter(context)),
         sliver: SliverToBoxAdapter(
-          child: Wrap(
-            spacing: 12,
-            runSpacing: 12,
-            children: [
-              _Tile(
+          child: HrStatGrid(
+            tiles: [
+              (w) => _Tile(
+                width: w,
                 label: context.flipperL10n.hrOnRoster,
                 value: '${onRoster.length}',
               ),
-              _Tile(
+              (w) => _Tile(
+                width: w,
                 label: context.flipperL10n.hrAttendanceClockedIn,
                 value: '$present',
               ),
-              _Tile(
+              (w) => _Tile(
+                width: w,
                 label: context.flipperL10n.hrRecorded,
                 value:
                     '${days.values.where((d) => d.sessions.isNotEmpty).length}',
               ),
-              _Tile(
+              (w) => _Tile(
+                width: w,
                 label: context.flipperL10n.hrHours,
                 value: formatWorkedMinutes(worked),
               ),
@@ -236,7 +244,12 @@ class _AttendancePageState extends ConsumerState<AttendancePage> {
         ),
       ),
       SliverPadding(
-        padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+        padding: EdgeInsets.fromLTRB(
+          hrGutter(context),
+          20,
+          hrGutter(context),
+          24,
+        ),
         sliver: SliverList.separated(
           itemCount: onRoster.length,
           separatorBuilder: (_, __) => const SizedBox(height: 8),
@@ -275,37 +288,31 @@ class _Header extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                context.flipperL10n.hrAttendance,
-                style: theme.textTheme.headlineSmall,
-              ),
-              const SizedBox(height: 4),
-              Text(
-                branchName == null
-                    ? formatDayLabel(date)
-                    : '${formatDayLabel(date)} · $branchName',
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ],
+    return HrHeaderRow(
+      title: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            context.flipperL10n.hrAttendance,
+            style: theme.textTheme.headlineSmall,
           ),
-        ),
-        if (!isToday)
-          Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: TextButton(
-              key: const Key('attendance-today'),
-              onPressed: onToday,
-              child: Text(context.flipperL10n.hrToday),
+          const SizedBox(height: 4),
+          Text(
+            branchName == null
+                ? formatDayLabel(date)
+                : '${formatDayLabel(date)} · $branchName',
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
             ),
+          ),
+        ],
+      ),
+      actions: [
+        if (!isToday)
+          TextButton(
+            key: const Key('attendance-today'),
+            onPressed: onToday,
+            child: Text(context.flipperL10n.hrToday),
           ),
         OutlinedButton.icon(
           key: const Key('attendance-pick-date'),
@@ -339,6 +346,8 @@ class _BoardRow extends StatelessWidget {
     final theme = Theme.of(context);
     final state = day?.state ?? AttendanceState.absent;
     final open = day?.openSession;
+    // On a phone the state sits under the name, so the name keeps the width.
+    final narrow = MediaQuery.sizeOf(context).width < hrPhoneBreakpoint;
 
     return Card(
       margin: EdgeInsets.zero,
@@ -377,12 +386,18 @@ class _BoardRow extends StatelessWidget {
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
                   ),
+                  if (narrow) ...[
+                    const SizedBox(height: 6),
+                    AttendanceStateChip(state: state),
+                  ],
                 ],
               ),
             ),
             const SizedBox(width: 8),
-            AttendanceStateChip(state: state),
-            const SizedBox(width: 8),
+            if (!narrow) ...[
+              AttendanceStateChip(state: state),
+              const SizedBox(width: 8),
+            ],
             if (open != null)
               OutlinedButton(
                 key: Key('clock-out-${employee.id}'),
@@ -422,16 +437,17 @@ class _BoardRow extends StatelessWidget {
 }
 
 class _Tile extends StatelessWidget {
-  const _Tile({required this.label, required this.value});
+  const _Tile({required this.label, required this.value, this.width = 160});
 
   final String label;
   final String value;
+  final double width;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Container(
-      width: 160,
+      width: width,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerLow,

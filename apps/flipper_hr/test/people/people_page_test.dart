@@ -119,8 +119,10 @@ void main() {
         size: const Size(600, 1200),
       );
 
-      expect(find.byType(ListTile), findsOneWidget);
+      expect(find.byKey(const Key('employee-row-e-1')), findsOneWidget);
       expect(find.text('NAME'), findsNothing);
+      // The phone card keeps the name on a line of its own.
+      expect(find.text('Aline Uwase'), findsOneWidget);
     });
   });
 

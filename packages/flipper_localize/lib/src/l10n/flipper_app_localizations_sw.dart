@@ -24836,4 +24836,687 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   String purchaseSearchNoMatch(String query) {
     return 'Hakuna manunuzi yanayolingana na “$query”';
   }
+
+  @override
+  String get hrAndPayroll => 'Rasilimali watu na mishahara';
+
+  @override
+  String get hrBackToFlipper => 'Rudi kwenye Flipper';
+
+  @override
+  String get hrNeedsInternet =>
+      'HR inahitaji muunganisho wa intaneti. Unganisha kisha ujaribu tena.';
+
+  @override
+  String get hrTaxPrimary => 'Ajira kuu';
+
+  @override
+  String get hrTaxSecondary => 'Mwajiri wa pili (30% sawa)';
+
+  @override
+  String get hrTaxCasual => 'Kibarua (15%)';
+
+  @override
+  String get hrPayStatusUnpaid => 'Haijalipwa';
+
+  @override
+  String get hrPayStatusPartlyPaid => 'Imelipwa sehemu';
+
+  @override
+  String get hrPayStatusPaid => 'Imelipwa';
+
+  @override
+  String get hrPayStatusVoid => 'Imebatilishwa';
+
+  @override
+  String get hrPayKindSalary => 'Mshahara';
+
+  @override
+  String get hrPayKindAdvance => 'Malipo ya awali';
+
+  @override
+  String get hrPayKindReimbursement => 'Marejesho';
+
+  @override
+  String get hrPayKindOther => 'Nyingine';
+
+  @override
+  String get hrAdvanceStatusOpen => 'Inadaiwa';
+
+  @override
+  String get hrAdvanceStatusRecovered => 'Imerejeshwa';
+
+  @override
+  String get hrAdvanceStatusWrittenOff => 'Imesamehewa';
+
+  @override
+  String get hrPayErrorLoad => 'Imeshindwa kupakia kumbukumbu za malipo.';
+
+  @override
+  String get hrPayErrorSave =>
+      'Imeshindwa kuhifadhi kumbukumbu hiyo ya malipo.';
+
+  @override
+  String get hrPayroll => 'Mishahara';
+
+  @override
+  String get hrMyPay => 'Malipo yangu';
+
+  @override
+  String get hrPayslip => 'Hati ya malipo';
+
+  @override
+  String get hrPayslips => 'Hati za malipo';
+
+  @override
+  String get hrPayAdvances => 'Malipo ya awali';
+
+  @override
+  String get hrPayRequests => 'Maombi';
+
+  @override
+  String get hrPayReturns => 'Ritani';
+
+  @override
+  String get hrPayHistory => 'Historia';
+
+  @override
+  String get hrPaySummary => 'Muhtasari';
+
+  @override
+  String get hrPayEmployee => 'Mfanyakazi';
+
+  @override
+  String get hrNationalId => 'Kitambulisho cha taifa';
+
+  @override
+  String get hrRssbNumber => 'Namba ya RSSB';
+
+  @override
+  String get hrPayPay => 'Lipa';
+
+  @override
+  String get hrPayPaySomeone => 'Mlipe mtu';
+
+  @override
+  String hrPayPayFor(String period) {
+    return 'Lipa $period';
+  }
+
+  @override
+  String get hrPayChoosePerson => 'Unamlipa nani?';
+
+  @override
+  String get hrPayRecord => 'Rekodi malipo';
+
+  @override
+  String get hrPayVoid => 'Batilisha';
+
+  @override
+  String get hrPayShareSlip => 'Shiriki hati';
+
+  @override
+  String get hrPayBackToPayroll => 'Rudi kwa mishahara';
+
+  @override
+  String get hrPayReason => 'Sababu';
+
+  @override
+  String get hrPaySaveUnpaid => 'Hifadhi hati, lipa baadaye';
+
+  @override
+  String hrPayConfirmAmount(String amount) {
+    return 'Lipa $amount';
+  }
+
+  @override
+  String hrPayRemaining(String amount) {
+    return 'Lipa $amount iliyobaki';
+  }
+
+  @override
+  String get hrPayRemainingTitle => 'Lipa kilichobaki';
+
+  @override
+  String get hrPayDueNow => 'Inadaiwa sasa';
+
+  @override
+  String get hrPayPeopleToPay => 'watu wa kulipa';
+
+  @override
+  String get hrPayPaidThisMonth => 'Imelipwa mwezi huu';
+
+  @override
+  String hrPayUnpaidOnSlips(String amount) {
+    return '$amount bado kwenye hati';
+  }
+
+  @override
+  String get hrPayAdvancesOwed => 'Malipo ya awali yanayodaiwa';
+
+  @override
+  String get hrPayCostThisMonth => 'Gharama ya mishahara mwezi huu';
+
+  @override
+  String hrPayPayslipCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Hati $count',
+      one: 'Hati 1',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get hrPayDueToday => 'Inadaiwa leo';
+
+  @override
+  String hrPayDueOn(String date) {
+    return 'Inadaiwa $date';
+  }
+
+  @override
+  String hrPayNextOn(String date) {
+    return 'Malipo yajayo $date';
+  }
+
+  @override
+  String hrPayOverdueSince(String date) {
+    return 'Imechelewa tangu $date';
+  }
+
+  @override
+  String hrPayDueFor(String period) {
+    return 'Inadaiwa kwa $period';
+  }
+
+  @override
+  String hrPayOwesBack(String amount) {
+    return 'Anadaiwa $amount';
+  }
+
+  @override
+  String hrPayLastPaid(String amount, String date) {
+    return 'Alilipwa mwisho $amount tarehe $date';
+  }
+
+  @override
+  String get hrPayNextPayDay => 'Siku ya malipo ijayo';
+
+  @override
+  String get hrPayLastPayment => 'Malipo ya mwisho';
+
+  @override
+  String get hrPayLatestNet => 'Malipo halisi ya mwisho';
+
+  @override
+  String hrPayPersonTitle(String name) {
+    return 'Mlipe $name';
+  }
+
+  @override
+  String get hrPayPeriodAlreadyPaid =>
+      'Kipindi hiki tayari kina hati. Chagua kipindi kingine au fungua hati ulipe kilichobaki.';
+
+  @override
+  String hrPayPeriodHasPayslip(String status, String amount) {
+    return 'Tayari kwenye hati ($status, halisi $amount).';
+  }
+
+  @override
+  String hrPayAlreadyPaidThisPeriod(String amount) {
+    return 'Kilichokwisha tolewa kipindi hiki: $amount';
+  }
+
+  @override
+  String get hrPayNothingEarned =>
+      'Hakuna kilichopatikana kipindi hiki. Weka siku au saa zilizofanywa, au bonasi.';
+
+  @override
+  String hrPayRecoverMoreThanOwed(String amount) {
+    return 'Huwezi kurejesha zaidi ya $amount inayodaiwa kwenye malipo ya awali.';
+  }
+
+  @override
+  String hrPayRecoveryOverHalf(String amount) {
+    return 'Sheria inaruhusu kukata hadi $amount kwenye malipo haya (nusu ya mshahara baada ya kodi na RSSB).';
+  }
+
+  @override
+  String get hrPayNetNegative => 'Makato ni zaidi ya malipo. Punguza makato.';
+
+  @override
+  String get hrPayEnterAmount => 'Weka kiasi.';
+
+  @override
+  String hrPayMoreThanNet(String amount) {
+    return 'Hiyo ni zaidi ya $amount inayodaiwa.';
+  }
+
+  @override
+  String get hrPayEarnings => 'Mapato';
+
+  @override
+  String get hrPayDeductions => 'Makato';
+
+  @override
+  String get hrPayDaysWorked => 'Siku zilizofanywa';
+
+  @override
+  String get hrPayHoursWorked => 'Saa zilizofanywa';
+
+  @override
+  String hrPayRateHelper(String rate) {
+    return 'Kwa $rate kila moja. Imejazwa kutoka mahudhurio.';
+  }
+
+  @override
+  String get hrPayBasePay => 'Mshahara wa msingi';
+
+  @override
+  String get hrPayAllowances => 'Posho';
+
+  @override
+  String get hrPayBonus => 'Bonasi au saa za ziada';
+
+  @override
+  String get hrPayGross => 'Mshahara ghafi';
+
+  @override
+  String get hrPayPaye => 'PAYE (kodi ya mapato)';
+
+  @override
+  String hrPayPension(String percent) {
+    return 'Pensheni RSSB ($percent%)';
+  }
+
+  @override
+  String get hrPayPensionPlain => 'Pensheni RSSB';
+
+  @override
+  String get hrPayMaternity => 'Likizo ya uzazi';
+
+  @override
+  String get hrPayCbhi => 'CBHI (Mutuelle)';
+
+  @override
+  String get hrPayOtherDeductions => 'Makato mengine';
+
+  @override
+  String get hrPayAdvancesToRecover => 'Malipo ya awali ya kurejesha';
+
+  @override
+  String hrPayAdvanceOf(String amount, String date) {
+    return 'Malipo ya awali $amount ya $date';
+  }
+
+  @override
+  String hrPayStillOwed(String amount) {
+    return '$amount bado inadaiwa';
+  }
+
+  @override
+  String hrPayRecoveryLimit(String amount) {
+    return 'Hadi $amount inaweza kurejeshwa kutoka malipo haya.';
+  }
+
+  @override
+  String get hrPayNetPay => 'Malipo halisi';
+
+  @override
+  String hrPayEmployerCost(String amount) {
+    return 'Inagharimu biashara $amount pamoja na michango ya mwajiri';
+  }
+
+  @override
+  String get hrPayPayment => 'Malipo';
+
+  @override
+  String get hrPayRecordPaymentNow => 'Ninalipa sasa';
+
+  @override
+  String get hrPayRecordPaymentHint =>
+      'Zima ili kuhifadhi hati na kulipa baadaye.';
+
+  @override
+  String hrPaySendTo(String account) {
+    return 'Tuma kwa $account';
+  }
+
+  @override
+  String get hrPayAmountPaidNow => 'Kiasi kilicholipwa sasa';
+
+  @override
+  String get hrPayPartialHint =>
+      'Lipa sehemu sasa na iliyobaki baadaye ukihitaji.';
+
+  @override
+  String get hrPayReference => 'Kumbukumbu (hiari)';
+
+  @override
+  String get hrPayReferenceHint => 'Namba ya muamala wa MoMo au ya benki';
+
+  @override
+  String get hrPayNote => 'Maelezo (hiari)';
+
+  @override
+  String hrPayRatesFootnote(String version) {
+    return 'Viwango vya kisheria $version: PAYE (Sheria 027/2022), pensheni RSSB (Amri 086/01 ya 2024), uzazi, ajali kazini na CBHI.';
+  }
+
+  @override
+  String hrPayPaidToast(String name, String period) {
+    return '$name amelipwa kwa $period';
+  }
+
+  @override
+  String get hrPayRecordedToast => 'Malipo yamerekodiwa';
+
+  @override
+  String hrPayslipFor(String period) {
+    return 'Hati · $period';
+  }
+
+  @override
+  String get hrPayAdvanceRecovered => 'Malipo ya awali yaliyorejeshwa';
+
+  @override
+  String hrPayAdvanceRecoveredAmount(String amount) {
+    return '$amount ya malipo ya awali imerejeshwa';
+  }
+
+  @override
+  String get hrPayEmployerContributions => 'Michango ya mwajiri';
+
+  @override
+  String get hrPayOccupationalHazards => 'Ajali kazini';
+
+  @override
+  String get hrPayPaymentsMade => 'Malipo yaliyofanywa';
+
+  @override
+  String get hrPayNothingPaidYet => 'Hakuna kilicholipwa kwenye hati hii bado.';
+
+  @override
+  String hrPayStillToPay(String amount) {
+    return '$amount bado kulipwa';
+  }
+
+  @override
+  String hrPayVoidedBecause(String reason) {
+    return 'Imebatilishwa: $reason';
+  }
+
+  @override
+  String get hrPayVoidPayslipTitle => 'Batilisha hati hii?';
+
+  @override
+  String get hrPayVoidPayslipMessage =>
+      'Kipindi kinakuwa hakijalipwa na malipo ya awali yaliyorejeshwa yanadaiwa tena. Hakuna kinachofutwa.';
+
+  @override
+  String get hrPayVoidPayslipWithPayments =>
+      'Malipo yaliyorekodiwa nayo yanabatilishwa. Kipindi kinakuwa hakijalipwa na malipo ya awali yanadaiwa tena.';
+
+  @override
+  String get hrPayVoidPaymentTitle => 'Batilisha malipo haya?';
+
+  @override
+  String hrPayVoidPaymentMessage(String amount) {
+    return '$amount hazitahesabiwa kama zimelipwa. Hakuna kinachofutwa.';
+  }
+
+  @override
+  String hrPayslipFooter(String version) {
+    return 'Imehesabiwa kwa viwango vya kisheria vya Rwanda $version. Imetolewa na Flipper HR.';
+  }
+
+  @override
+  String hrPayPaidKind(String kind) {
+    return 'Imelipwa · $kind';
+  }
+
+  @override
+  String hrPayAdvanceGivenOn(String date) {
+    return 'Malipo ya awali yalitolewa $date';
+  }
+
+  @override
+  String get hrPayNoHistory =>
+      'Hakuna malipo bado. Hati, malipo na malipo ya awali yataonekana hapa.';
+
+  @override
+  String get hrPayPersonNotFound =>
+      'Mtu huyu hayupo kwenye tawi lililochaguliwa.';
+
+  @override
+  String get hrPayNoRecordTitle => 'Hakuna rekodi ya mfanyakazi bado';
+
+  @override
+  String get hrPayNoRecordBody =>
+      'Hati zako zitaonekana hapa mwajiri wako akikuongeza kwenye timu yake katika Flipper HR.';
+
+  @override
+  String get hrPayNobodyYet => 'Hakuna wa kulipa bado';
+
+  @override
+  String get hrPayNobodyYetBody =>
+      'Ongeza timu yako na mishahara yao, na siku zao za malipo zitaonekana hapa.';
+
+  @override
+  String get hrPayNoPayslips =>
+      'Hakuna hati bado. Mlipe mtu na hati yake itaonekana hapa.';
+
+  @override
+  String get hrPayNoAdvances =>
+      'Hakuna malipo ya awali. Pesa iliyotolewa kabla ya siku ya malipo inafuatiliwa hapa hadi irejeshwe.';
+
+  @override
+  String get hrPayNoRequests =>
+      'Hakuna maombi ya malipo ya awali. Mtu akiomba kwenye programu, yanafika hapa.';
+
+  @override
+  String get hrPayNoPayslipsThisMonth => 'Hakuna hati inayoishia mwezi huu.';
+
+  @override
+  String hrPayReturnsDeadline(String date) {
+    return 'Tangaza na ulipe PAYE na michango ya RSSB kabla ya $date.';
+  }
+
+  @override
+  String get hrPayReturnsRra => 'Kwa RRA';
+
+  @override
+  String get hrPayReturnsRssb => 'Kwa RSSB';
+
+  @override
+  String get hrPayPensionBothSides => 'Pensheni (mfanyakazi + mwajiri)';
+
+  @override
+  String get hrPayMaternityBothSides => 'Uzazi (mfanyakazi + mwajiri)';
+
+  @override
+  String get hrPayRssbTotal => 'Jumla kwa RSSB';
+
+  @override
+  String get hrPayTotalCost => 'Gharama yote kwa biashara';
+
+  @override
+  String get hrPayReturnsCopy => 'Nakili kwa ajili ya kutangaza';
+
+  @override
+  String get hrPayReturnsCopied => 'Imenakiliwa. Ibandike kwenye lahajedwali.';
+
+  @override
+  String get hrAdvanceGive => 'Toa malipo ya awali';
+
+  @override
+  String get hrAdvanceRequest => 'Omba malipo ya awali';
+
+  @override
+  String hrAdvanceGiveTitle(String name) {
+    return 'Malipo ya awali kwa $name';
+  }
+
+  @override
+  String get hrAdvanceGiveSubtitle =>
+      'Pesa iliyotolewa kabla ya siku ya malipo, inarejeshwa kwenye hati zijazo.';
+
+  @override
+  String get hrAdvanceRequestTitle => 'Omba malipo ya awali';
+
+  @override
+  String get hrAdvanceRequestSubtitle =>
+      'Meneja wako anaamua, na inarejeshwa kwenye malipo yako yajayo.';
+
+  @override
+  String get hrAdvanceAmount => 'Kiasi';
+
+  @override
+  String get hrAdvanceReason => 'Sababu (hiari)';
+
+  @override
+  String get hrAdvanceReasonHint => 'mfano: ada ya shule, kodi';
+
+  @override
+  String get hrAdvanceRecovery => 'Kuirejesha';
+
+  @override
+  String get hrAdvanceRecoverNextPay => 'Yote kutoka malipo yajayo';
+
+  @override
+  String get hrAdvanceRecoverNextPayHint =>
+      'Kamwe zaidi ya nusu ya malipo hayo; iliyobaki inahamia inayofuata.';
+
+  @override
+  String get hrAdvanceRecoverInstallments => 'Kwa awamu';
+
+  @override
+  String get hrAdvancePerPayslip => 'Kiasi kwa kila hati';
+
+  @override
+  String hrAdvanceInstallmentCount(String count) {
+    return 'Takriban hati $count';
+  }
+
+  @override
+  String hrAdvanceInstallmentOf(String amount) {
+    return '$amount kwa kila hati';
+  }
+
+  @override
+  String get hrAdvanceEnterInstallment =>
+      'Weka kiasi cha kurejesha kwa kila hati.';
+
+  @override
+  String hrAdvanceAlreadyOwed(String amount) {
+    return 'Tayari anadaiwa $amount kutoka malipo ya awali ya awali.';
+  }
+
+  @override
+  String hrAdvanceOverHalf(String amount) {
+    return 'Zaidi ya hati moja inavyoweza kurejesha: hadi $amount kwa kila hati, itachukua malipo kadhaa.';
+  }
+
+  @override
+  String hrAdvanceGiveAmount(String amount) {
+    return 'Toa $amount';
+  }
+
+  @override
+  String get hrAdvanceSendRequest => 'Tuma ombi';
+
+  @override
+  String get hrAdvanceRecordedToast => 'Malipo ya awali yamerekodiwa';
+
+  @override
+  String get hrAdvanceRequestedToast => 'Ombi limetumwa kwa meneja wako';
+
+  @override
+  String hrAdvanceRequestPending(String amount) {
+    return 'Ombi lako la $amount linasubiri uamuzi.';
+  }
+
+  @override
+  String get hrAdvanceCancelRequest => 'Ghairi ombi';
+
+  @override
+  String get hrAdvanceApproveAndGive => 'Idhinisha na utoe';
+
+  @override
+  String get hrAdvanceDecline => 'Kataa';
+
+  @override
+  String get hrAdvanceDeclineTitle => 'Kataa ombi hili?';
+
+  @override
+  String get hrAdvanceDeclineMessage => 'Sema kwa nini, ili ajue.';
+
+  @override
+  String hrAdvanceApprovedToast(String amount, String name) {
+    return 'Umetoa $amount kwa $name';
+  }
+
+  @override
+  String hrAdvanceProgress(String recovered, String owed) {
+    return '$recovered imerejeshwa · $owed imebaki';
+  }
+
+  @override
+  String get hrAdvanceWriteOff => 'Samehe';
+
+  @override
+  String get hrAdvanceWriteOffTitle => 'Samehe malipo haya ya awali?';
+
+  @override
+  String hrAdvanceWriteOffMessage(String amount) {
+    return '$amount inayodaiwa haitarejeshwa kutoka malipo.';
+  }
+
+  @override
+  String get hrAdvanceVoidTitle => 'Batilisha malipo haya ya awali?';
+
+  @override
+  String get hrAdvanceVoidMessage =>
+      'Tumia hii ikiwa ilirekodiwa kimakosa. Pesa iliyotolewa nayo inabatilishwa.';
+
+  @override
+  String hrAllowancesWithCurrency(String currency) {
+    return 'Posho za mwezi ($currency)';
+  }
+
+  @override
+  String get hrAllowancesHelper =>
+      'Usafiri, makazi… hulipwa kila mwezi juu ya mshahara wa msingi. Hutozwa kodi.';
+
+  @override
+  String get hrPayDayOfMonth => 'Siku ya malipo';
+
+  @override
+  String get hrPayDayHelper => 'Siku ya mwezi (1–31). Tupu: siku ya mwisho.';
+
+  @override
+  String get hrTaxCategory => 'Kodi ya mapato';
+
+  @override
+  String get hrTaxCategoryHelper => 'Jinsi PAYE inavyohesabiwa kwa mtu huyu.';
+
+  @override
+  String get hrRssbEnrolled => 'Amesajiliwa RSSB';
+
+  @override
+  String get hrRssbEnrolledHelper =>
+      'Kata pensheni na uzazi na ongeza sehemu ya mwajiri.';
+
+  @override
+  String hrPayPeopleDue(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Lipa watu $count',
+      one: 'Lipa mtu 1',
+    );
+    return '$_temp0';
+  }
 }

@@ -1,3 +1,4 @@
+import 'package:flipper_hr/features/ui/hr_ui.dart';
 import 'package:flipper_hr/features/attendance/data/attendance_day.dart';
 import 'package:flipper_hr/features/attendance/data/attendance_format.dart';
 import 'package:flipper_hr/features/attendance/data/attendance_providers.dart';
@@ -87,7 +88,12 @@ class _MyAttendancePageState extends ConsumerState<MyAttendancePage> {
         child: CustomScrollView(
           slivers: [
             SliverPadding(
-              padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+              padding: EdgeInsets.fromLTRB(
+                hrGutter(context),
+                24,
+                hrGutter(context),
+                16,
+              ),
               sliver: SliverToBoxAdapter(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -180,7 +186,7 @@ class _MyAttendancePageState extends ConsumerState<MyAttendancePage> {
 
     return [
       SliverPadding(
-        padding: const EdgeInsets.symmetric(horizontal: 24),
+        padding: EdgeInsets.symmetric(horizontal: hrGutter(context)),
         sliver: SliverToBoxAdapter(
           child: _ClockCard(
             day: todayDay,
@@ -194,7 +200,12 @@ class _MyAttendancePageState extends ConsumerState<MyAttendancePage> {
         ),
       ),
       SliverPadding(
-        padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
+        padding: EdgeInsets.fromLTRB(
+          hrGutter(context),
+          24,
+          hrGutter(context),
+          8,
+        ),
         sliver: SliverToBoxAdapter(
           child: Text(
             context.flipperL10n.hrRecentDays.toUpperCase(),
@@ -207,7 +218,12 @@ class _MyAttendancePageState extends ConsumerState<MyAttendancePage> {
         ),
       ),
       SliverPadding(
-        padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+        padding: EdgeInsets.fromLTRB(
+          hrGutter(context),
+          0,
+          hrGutter(context),
+          24,
+        ),
         sliver: SliverList.separated(
           itemCount: dates.length,
           separatorBuilder: (_, __) => const SizedBox(height: 8),

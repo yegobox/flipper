@@ -1,6 +1,9 @@
+import 'package:flipper_design_system/flipper_design_system.dart'
+    show CustomAppBar;
 import 'package:flipper_hr/features/billing/presentation/hr_billing_gate.dart';
 import 'package:flipper_hr/features/branding/hr_tokens.dart';
 import 'package:flipper_hr/features/home/hr_sidebar_state.dart';
+import 'package:flipper_hr/features/host/hr_host.dart';
 import 'package:flipper_hr/features/people/data/people_providers.dart';
 import 'package:flipper_hr/features/session/data/hr_identity.dart';
 import 'package:flipper_hr/features/session/data/hr_identity_providers.dart';
@@ -31,7 +34,7 @@ class _HrHomeShellState extends ConsumerState<HrHomeShell> {
   bool _isSigningOut = false;
 
   // Breakpoint below which the sidebar collapses to a drawer.
-  static const double _sidebarBreakpoint = 840.0;
+  static const double _sidebarBreakpoint = hrSidebarBreakpoint;
 
   /// Typing in the topbar puts the term into the roster's own filter and opens
   /// it — one search box, one result list, no second implementation to keep in
@@ -106,24 +109,39 @@ class _HrHomeShellState extends ConsumerState<HrHomeShell> {
     }
 
     // ── Narrow: drawer + bottom nav ──────────────────────────────────────────
+    final host = ref.watch(hrHostProvider);
+    // On a phone every back button is Flipper's CustomAppBar: always inside
+    // the mobile app, and on the web for a detail page, where there is a
+    // level to go back up to. A top-level web page keeps the brand bar.
+    final mobileHeader = host.isEmbedded || hrParentPath(location) != null;
     return Scaffold(
       backgroundColor: HrTokens.workspaceBg,
-      appBar: AppBar(
-        backgroundColor: HrTokens.surface,
-        surfaceTintColor: Colors.transparent,
-        foregroundColor: HrTokens.ink1,
-        elevation: 0,
-        titleSpacing: 8,
-        title: const _HrWordmark(),
-        actions: [
-          _AccountButton(isSigningOut: _isSigningOut, onSignOut: _signOut),
-          const SizedBox(width: 8),
-        ],
-        bottom: const PreferredSize(
-          preferredSize: Size.fromHeight(1),
-          child: Divider(height: 1, color: HrTokens.line),
-        ),
-      ),
+      appBar: mobileHeader
+          ? CustomAppBar(
+              key: const Key('hr-embedded-app-bar'),
+              title: hrTitleFor(destinations, location),
+              icon: Icons.arrow_back,
+              onPop: () => hrEmbeddedBack(context, host, location),
+            )
+          : AppBar(
+              backgroundColor: HrTokens.surface,
+              surfaceTintColor: Colors.transparent,
+              foregroundColor: HrTokens.ink1,
+              elevation: 0,
+              titleSpacing: 8,
+              title: const _HrWordmark(),
+              actions: [
+                _AccountButton(
+                  isSigningOut: _isSigningOut,
+                  onSignOut: _signOut,
+                ),
+                const SizedBox(width: 8),
+              ],
+              bottom: const PreferredSize(
+                preferredSize: Size.fromHeight(1),
+                child: Divider(height: 1, color: HrTokens.line),
+              ),
+            ),
       drawer: Drawer(
         backgroundColor: HrTokens.sidebarBg,
         child: _HrSidebar(
@@ -212,10 +230,14 @@ class _HrSidebar extends ConsumerWidget {
                   entityName: entityName,
                   subtitle: subtitle,
                   collapsed: collapsed,
-                  onTap: () {
-                    if (inDrawer) Navigator.of(context).pop();
-                    context.go('/business-selection');
-                  },
+                  // Embedded, the branch is the host's; picking another
+                  // happens there, so the card is a label, not a button.
+                  onTap: ref.watch(hrHostProvider).ownsAccount
+                      ? () {
+                          if (inDrawer) Navigator.of(context).pop();
+                          context.go('/business-selection');
+                        }
+                      : null,
                 ),
               ),
 
@@ -293,7 +315,7 @@ class _EntitySwitcher extends StatelessWidget {
   final String entityName;
   final String subtitle;
   final bool collapsed;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -673,7 +695,7 @@ class _IconAction extends StatelessWidget {
 
 /// The one account menu, shared by the topbar and the sidebar footer so the two
 /// never drift apart.
-class _AccountMenu extends StatelessWidget {
+class _AccountMenu extends ConsumerWidget {
   const _AccountMenu({
     required this.identity,
     required this.isSigningOut,
@@ -689,7 +711,8 @@ class _AccountMenu extends StatelessWidget {
   final Widget child;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final host = ref.watch(hrHostProvider);
     return PopupMenuButton<String>(
       tooltip: '',
       // Anchored over the child, as the accounting shell's menus are: the
@@ -703,6 +726,7 @@ class _AccountMenu extends StatelessWidget {
       onSelected: (value) {
         if (value == 'switch') context.go('/business-selection');
         if (value == 'signOut') onSignOut();
+        if (value == 'exit') host.exit();
       },
       itemBuilder: (_) => [
         PopupMenuItem<String>(
@@ -728,32 +752,50 @@ class _AccountMenu extends StatelessWidget {
           ),
         ),
         const PopupMenuDivider(),
-        PopupMenuItem(
-          value: 'switch',
-          child: ListTile(
-            dense: true,
-            contentPadding: EdgeInsets.zero,
-            leading: const Icon(
-              Icons.swap_horiz,
-              size: 18,
-              color: HrTokens.ink2,
-            ),
-            title: Text(context.flipperL10n.hrSwitchBusinessOrBranch),
-          ),
-        ),
-        PopupMenuItem(
-          value: 'signOut',
-          child: ListTile(
-            dense: true,
-            contentPadding: EdgeInsets.zero,
-            leading: const Icon(Icons.logout, size: 18, color: HrTokens.ink2),
-            title: Text(
-              isSigningOut
-                  ? context.flipperL10n.hrSigningOut
-                  : context.flipperL10n.signOut,
+        // Embedded, the account belongs to the host: signing out here would
+        // sign the whole app out of Supabase, and the branch is picked there.
+        if (!host.ownsAccount)
+          PopupMenuItem(
+            value: 'exit',
+            child: ListTile(
+              dense: true,
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(
+                Icons.arrow_back,
+                size: 18,
+                color: HrTokens.ink2,
+              ),
+              title: Text(context.flipperL10n.hrBackToFlipper),
             ),
           ),
-        ),
+        if (host.ownsAccount)
+          PopupMenuItem(
+            value: 'switch',
+            child: ListTile(
+              dense: true,
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(
+                Icons.swap_horiz,
+                size: 18,
+                color: HrTokens.ink2,
+              ),
+              title: Text(context.flipperL10n.hrSwitchBusinessOrBranch),
+            ),
+          ),
+        if (host.ownsAccount)
+          PopupMenuItem(
+            value: 'signOut',
+            child: ListTile(
+              dense: true,
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.logout, size: 18, color: HrTokens.ink2),
+              title: Text(
+                isSigningOut
+                    ? context.flipperL10n.hrSigningOut
+                    : context.flipperL10n.signOut,
+              ),
+            ),
+          ),
       ],
       child: Material(
         color: Colors.transparent,
@@ -808,23 +850,48 @@ class _HrBottomNav extends StatelessWidget {
   final List<HrDestination> destinations;
   final String location;
 
+  /// A phone's bottom bar holds five targets comfortably. Past that, the first
+  /// four stay and the fifth opens the drawer, which lists everything.
+  static const maxVisible = 5;
+
   @override
   Widget build(BuildContext context) {
-    final idx = _indexOf(destinations, location);
+    final overflow = destinations.length > maxVisible;
+    final visible = overflow
+        ? destinations.take(maxVisible - 1).toList()
+        : destinations;
+    final idx = _indexOf(visible, location);
+    final current = _indexOf(destinations, location);
+    // Somewhere only the drawer reaches: light up "More".
+    final onHidden = overflow && current >= visible.length;
     return NavigationBar(
       key: const Key('hr-module-nav'),
       backgroundColor: HrTokens.surface,
       surfaceTintColor: Colors.transparent,
       indicatorColor: HrTokens.accentTint,
-      selectedIndex: idx,
-      onDestinationSelected: (i) => context.go(destinations[i].path),
+      selectedIndex: onHidden ? visible.length : idx,
+      labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+      onDestinationSelected: (i) {
+        if (overflow && i == visible.length) {
+          Scaffold.of(context).openDrawer();
+          return;
+        }
+        context.go(visible[i].path);
+      },
       destinations: [
-        for (final d in destinations)
+        for (final d in visible)
           NavigationDestination(
             key: Key('hr-nav-${d.path.replaceAll('/', '')}'),
             icon: Icon(d.icon, color: HrTokens.ink3),
             selectedIcon: Icon(d.icon, color: HrTokens.accent),
             label: d.label,
+          ),
+        if (overflow)
+          NavigationDestination(
+            key: const Key('hr-nav-more'),
+            icon: const Icon(Icons.menu, color: HrTokens.ink3),
+            selectedIcon: const Icon(Icons.menu, color: HrTokens.accent),
+            label: context.flipperL10n.more,
           ),
       ],
     );
@@ -991,7 +1058,7 @@ class HrNavGroup {
 /// everything else is management. Someone with only one of the two groups gets
 /// one untitled run, because a lone heading labels nothing.
 List<HrNavGroup> hrNavGroups(List<HrDestination> destinations) {
-  const selfService = {'/my-time', '/leave'};
+  const selfService = {'/my-time', '/leave', '/my-pay'};
 
   final manage = [
     for (final d in destinations)
@@ -1011,6 +1078,38 @@ List<HrNavGroup> hrNavGroups(List<HrDestination> destinations) {
 }
 
 /// The modules this session may open, in nav order.
+/// Below this width the shell is a phone layout: no sidebar, a header bar.
+const double hrSidebarBreakpoint = 840;
+
+/// The name of the page at [location]: its destination's label, or the
+/// module's name where no destination matches.
+String hrTitleFor(List<HrDestination> destinations, String location) {
+  for (final d in destinations) {
+    if (location == d.path || location.startsWith('${d.path}/')) {
+      return d.label;
+    }
+  }
+  return FlipperL10n.current.hrAndPayroll;
+}
+
+/// Back, inside the mobile app: up one level from a detail page (one person's
+/// pay → Payroll), out to Flipper from a top-level one.
+void hrEmbeddedBack(BuildContext context, HrHost host, String location) {
+  final parent = hrParentPath(location);
+  if (parent != null) {
+    context.go(parent);
+  } else {
+    host.exit();
+  }
+}
+
+/// `/pay/e-1` → `/pay`; null for a top-level page.
+String? hrParentPath(String location) {
+  final segments = Uri.parse(location).pathSegments;
+  if (segments.length < 2) return null;
+  return '/${segments.sublist(0, segments.length - 1).join('/')}';
+}
+
 List<HrDestination> hrDestinationsFor(HrSession session) {
   final destinations = <HrDestination>[];
   final l10n = FlipperL10n.current;
@@ -1033,6 +1132,13 @@ List<HrDestination> hrDestinationsFor(HrSession session) {
     );
   }
   if (session.canManageRoster) {
+    destinations.add(
+      HrDestination(
+        path: '/pay',
+        label: l10n.hrPayroll,
+        icon: Icons.payments_outlined,
+      ),
+    );
     destinations.add(
       HrDestination(
         path: '/attendance',
@@ -1063,6 +1169,13 @@ List<HrDestination> hrDestinationsFor(HrSession session) {
         path: '/leave',
         label: l10n.hrMyLeave,
         icon: Icons.beach_access_outlined,
+      ),
+    );
+    destinations.add(
+      HrDestination(
+        path: '/my-pay',
+        label: l10n.hrMyPay,
+        icon: Icons.receipt_long_outlined,
       ),
     );
   }

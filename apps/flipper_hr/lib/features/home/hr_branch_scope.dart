@@ -1,8 +1,8 @@
+import 'package:flipper_hr/features/host/hr_host.dart';
 import 'package:flipper_web/features/business_selection/business_branch_selector.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 /// Resolves the shared business/branch selection and hands it to [builder] as
 /// plain ids.
@@ -29,7 +29,9 @@ class HrBranchScope extends ConsumerWidget {
     final branch = ref.watch(selectedBranchProvider);
 
     if (business == null || branch == null) {
-      return _NoBranchSelected(onPick: () => context.go('/business-selection'));
+      return _NoBranchSelected(
+        onPick: () => ref.read(hrHostProvider).toBusinessSelection(context),
+      );
     }
     return builder(
       context,

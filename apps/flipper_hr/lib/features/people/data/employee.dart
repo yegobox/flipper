@@ -131,6 +131,35 @@ enum PaymentMethod {
       _fromWire(values, (v) => v.wire, raw, PaymentMethod.mobileMoney);
 }
 
+/// How PAYE treats this person's pay (Income Tax Law 027/2022).
+enum TaxCategory {
+  /// Their main job: the banded PAYE scale.
+  primary('primary'),
+
+  /// A second employer: a flat rate on the whole payment.
+  secondary('secondary'),
+
+  /// A casual labourer: a flat rate above the monthly threshold.
+  casual('casual');
+
+  const TaxCategory(this.wire);
+
+  final String wire;
+
+  /// Display name in the current app language. Never persisted.
+  String get label {
+    final l10n = FlipperL10n.current;
+    return switch (this) {
+      TaxCategory.primary => l10n.hrTaxPrimary,
+      TaxCategory.secondary => l10n.hrTaxSecondary,
+      TaxCategory.casual => l10n.hrTaxCasual,
+    };
+  }
+
+  static TaxCategory fromWire(String? raw) =>
+      _fromWire(values, (v) => v.wire, raw, TaxCategory.primary);
+}
+
 /// One person on a branch's roster.
 ///
 /// [id] is empty for a record that has not been inserted yet — Postgres owns
@@ -163,6 +192,10 @@ class Employee {
     this.userId,
     this.managerId,
     this.annualLeaveDays,
+    this.payDay,
+    this.allowances = 0,
+    this.taxCategory = TaxCategory.primary,
+    this.rssbEnrolled = true,
     this.notes = '',
     this.createdAt,
     this.updatedAt,
@@ -230,6 +263,21 @@ class Employee {
   /// for the same reason: records that predate the column keep the legal minimum
   /// without a backfill.
   final double? annualLeaveDays;
+
+  /// Day of the month a monthly employee is paid, clamped to the month's last
+  /// day. Null means the last day of the month.
+  final int? payDay;
+
+  /// Fixed monthly taxable allowances (transport, housing, ...) on top of
+  /// [baseSalary].
+  final double allowances;
+
+  final TaxCategory taxCategory;
+
+  /// Whether RSSB pension, maternity and occupational-hazard contributions are
+  /// computed for this person.
+  final bool rssbEnrolled;
+
   final String notes;
   final DateTime? createdAt;
   final DateTime? updatedAt;
@@ -326,6 +374,11 @@ class Employee {
     bool clearManagerId = false,
     double? annualLeaveDays,
     bool clearAnnualLeaveDays = false,
+    int? payDay,
+    bool clearPayDay = false,
+    double? allowances,
+    TaxCategory? taxCategory,
+    bool? rssbEnrolled,
     String? notes,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -361,6 +414,10 @@ class Employee {
     annualLeaveDays: clearAnnualLeaveDays
         ? null
         : (annualLeaveDays ?? this.annualLeaveDays),
+    payDay: clearPayDay ? null : (payDay ?? this.payDay),
+    allowances: allowances ?? this.allowances,
+    taxCategory: taxCategory ?? this.taxCategory,
+    rssbEnrolled: rssbEnrolled ?? this.rssbEnrolled,
     notes: notes ?? this.notes,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
@@ -392,6 +449,10 @@ class Employee {
     userId,
     managerId,
     annualLeaveDays,
+    payDay,
+    allowances,
+    taxCategory,
+    rssbEnrolled,
     notes,
     createdAt,
     updatedAt,

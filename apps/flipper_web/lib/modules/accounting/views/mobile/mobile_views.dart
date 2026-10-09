@@ -1,4 +1,7 @@
+import 'package:flipper_design_system/flipper_design_system.dart'
+    show CustomAppBar;
 import 'package:flipper_web/features/business_selection/business_branch_selector.dart';
+import 'package:flipper_web/features/module_launcher/app_launcher_host.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_derive.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_models.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_providers.dart';
@@ -50,10 +53,34 @@ class AccountingSnapshotTab extends ConsumerWidget {
           crossAxisSpacing: 10,
           childAspectRatio: 1.5,
           children: [
-            _MiniKpi('Cash & bank', cashBank, Icons.account_balance_wallet_outlined, AccountingTokens.accent, currency: currency),
-            _MiniKpi('Stock value', stockValue, Icons.inventory_2_outlined, AccountingTokens.gain, currency: currency),
-            _MiniKpi('Receivable', ar, Icons.north_east, AccountingTokens.warnAmber, currency: currency),
-            _MiniKpi('Payable', ap, Icons.south_west, AccountingTokens.loss, currency: currency),
+            _MiniKpi(
+              'Cash & bank',
+              cashBank,
+              Icons.account_balance_wallet_outlined,
+              AccountingTokens.accent,
+              currency: currency,
+            ),
+            _MiniKpi(
+              'Stock value',
+              stockValue,
+              Icons.inventory_2_outlined,
+              AccountingTokens.gain,
+              currency: currency,
+            ),
+            _MiniKpi(
+              'Receivable',
+              ar,
+              Icons.north_east,
+              AccountingTokens.warnAmber,
+              currency: currency,
+            ),
+            _MiniKpi(
+              'Payable',
+              ap,
+              Icons.south_west,
+              AccountingTokens.loss,
+              currency: currency,
+            ),
           ],
         ),
         if (pending > 0) ...[
@@ -62,20 +89,38 @@ class AccountingSnapshotTab extends ConsumerWidget {
             color: AccountingTokens.warnTint,
             borderRadius: BorderRadius.circular(16),
             child: InkWell(
-              onTap: () => ref.read(accountingMobileTabProvider.notifier).state = AccountingMobileTab.approvals,
+              onTap: () =>
+                  ref.read(accountingMobileTabProvider.notifier).state =
+                      AccountingMobileTab.approvals,
               borderRadius: BorderRadius.circular(16),
               child: Padding(
                 padding: const EdgeInsets.all(14),
                 child: Row(
                   children: [
-                    const Icon(Icons.verified_user_outlined, color: AccountingTokens.warnAmber),
+                    const Icon(
+                      Icons.verified_user_outlined,
+                      color: AccountingTokens.warnAmber,
+                    ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('$pending entries need approval', style: AccountingTokens.sans(fontSize: 14, fontWeight: FontWeight.w700, color: AccountingTokens.warnAmber)),
-                          Text('Review & post before month-end close', style: AccountingTokens.sans(fontSize: 12, color: AccountingTokens.ink3)),
+                          Text(
+                            '$pending entries need approval',
+                            style: AccountingTokens.sans(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                              color: AccountingTokens.warnAmber,
+                            ),
+                          ),
+                          Text(
+                            'Review & post before month-end close',
+                            style: AccountingTokens.sans(
+                              fontSize: 12,
+                              color: AccountingTokens.ink3,
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -88,7 +133,11 @@ class AccountingSnapshotTab extends ConsumerWidget {
         ],
         const SizedBox(height: 12),
         Container(
-          decoration: BoxDecoration(color: AccountingTokens.surface, borderRadius: BorderRadius.circular(16), border: Border.all(color: AccountingTokens.line)),
+          decoration: BoxDecoration(
+            color: AccountingTokens.surface,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AccountingTokens.line),
+          ),
           child: Column(
             children: [
               Padding(
@@ -96,10 +145,19 @@ class AccountingSnapshotTab extends ConsumerWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Revenue vs expenses', style: AccountingTokens.sans(fontSize: 14, fontWeight: FontWeight.w700)),
+                    Text(
+                      'Revenue vs expenses',
+                      style: AccountingTokens.sans(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
                     Text(
                       trendMonths > 0 ? '$trendMonths mo' : '—',
-                      style: AccountingTokens.sans(fontSize: 12, color: AccountingTokens.accent),
+                      style: AccountingTokens.sans(
+                        fontSize: 12,
+                        color: AccountingTokens.accent,
+                      ),
                     ),
                   ],
                 ),
@@ -113,19 +171,38 @@ class AccountingSnapshotTab extends ConsumerWidget {
         ),
         const SizedBox(height: 12),
         Container(
-          decoration: BoxDecoration(color: AccountingTokens.surface, borderRadius: BorderRadius.circular(16), border: Border.all(color: AccountingTokens.line)),
+          decoration: BoxDecoration(
+            color: AccountingTokens.surface,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AccountingTokens.line),
+          ),
           child: Column(
             children: [
               Padding(
                 padding: const EdgeInsets.all(14),
-                child: Text('Recent entries', style: AccountingTokens.sans(fontSize: 14, fontWeight: FontWeight.w700)),
+                child: Text(
+                  'Recent entries',
+                  style: AccountingTokens.sans(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
               ),
               for (final e in journal.take(4))
                 ListTile(
                   leading: const Icon(Icons.receipt_long_outlined),
-                  title: Text(e.memo, style: AccountingTokens.sans(fontSize: 13.5)),
+                  title: Text(
+                    e.memo,
+                    style: AccountingTokens.sans(fontSize: 13.5),
+                  ),
                   subtitle: Text('${e.id} · ${e.date}'),
-                  trailing: Text(money(jeTotals(e).dr), style: AccountingTokens.mono(fontSize: 13, fontWeight: FontWeight.w700)),
+                  trailing: Text(
+                    money(jeTotals(e).dr),
+                    style: AccountingTokens.mono(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
                 ),
             ],
           ),
@@ -171,15 +248,24 @@ class _HeroCard extends StatelessWidget {
             children: [
               Text(
                 '${profitOrLossLabel(netIncome)} · $period',
-                style: AccountingTokens.sans(fontSize: 12.5, color: Colors.white70),
+                style: AccountingTokens.sans(
+                  fontSize: 12.5,
+                  color: Colors.white70,
+                ),
               ),
               const Spacer(),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(999)),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(999),
+                ),
                 child: Text(
                   '${(margin * 100).round()}% margin',
-                  style: AccountingTokens.mono(fontSize: 11, color: Colors.white),
+                  style: AccountingTokens.mono(
+                    fontSize: 11,
+                    color: Colors.white,
+                  ),
                 ),
               ),
             ],
@@ -187,9 +273,19 @@ class _HeroCard extends StatelessWidget {
           const SizedBox(height: 8),
           RichText(
             text: TextSpan(
-              style: AccountingTokens.mono(fontSize: 32, fontWeight: FontWeight.w700, color: Colors.white),
+              style: AccountingTokens.mono(
+                fontSize: 32,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+              ),
               children: [
-                TextSpan(text: '$currency ', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+                TextSpan(
+                  text: '$currency ',
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
                 TextSpan(text: money(netIncome)),
               ],
             ),
@@ -220,8 +316,18 @@ class _HeroCell extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: AccountingTokens.sans(fontSize: 11, color: Colors.white60)),
-          Text(value, style: AccountingTokens.mono(fontSize: 14, fontWeight: FontWeight.w700, color: Colors.white)),
+          Text(
+            label,
+            style: AccountingTokens.sans(fontSize: 11, color: Colors.white60),
+          ),
+          Text(
+            value,
+            style: AccountingTokens.mono(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
+            ),
+          ),
         ],
       ),
     );
@@ -229,7 +335,13 @@ class _HeroCell extends StatelessWidget {
 }
 
 class _MiniKpi extends StatelessWidget {
-  const _MiniKpi(this.label, this.value, this.icon, this.color, {required this.currency});
+  const _MiniKpi(
+    this.label,
+    this.value,
+    this.icon,
+    this.color, {
+    required this.currency,
+  });
 
   final String label;
   final int value;
@@ -251,8 +363,20 @@ class _MiniKpi extends StatelessWidget {
         children: [
           Icon(icon, size: 18, color: color),
           const Spacer(),
-          Text(label, style: AccountingTokens.sans(fontSize: 11.5, color: AccountingTokens.ink3)),
-          Text('$currency ${compact(value)}', style: AccountingTokens.mono(fontSize: 16, fontWeight: FontWeight.w700)),
+          Text(
+            label,
+            style: AccountingTokens.sans(
+              fontSize: 11.5,
+              color: AccountingTokens.ink3,
+            ),
+          ),
+          Text(
+            '$currency ${compact(value)}',
+            style: AccountingTokens.mono(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
         ],
       ),
     );
@@ -267,7 +391,8 @@ class AccountingApprovalsTab extends ConsumerStatefulWidget {
       _AccountingApprovalsTabState();
 }
 
-class _AccountingApprovalsTabState extends ConsumerState<AccountingApprovalsTab> {
+class _AccountingApprovalsTabState
+    extends ConsumerState<AccountingApprovalsTab> {
   String? _approvingEntryId;
 
   Future<void> _approveEntry(JournalEntry entry) async {
@@ -355,15 +480,15 @@ class _AccountingApprovalsTabState extends ConsumerState<AccountingApprovalsTab>
   }
 
   void _markApproved(JournalEntry entry, {required bool offline}) {
-    ref.read(approvalActionsProvider.notifier).update(
-          (m) => {...m, entry.id: ApprovalAction.approve},
-        );
+    ref
+        .read(approvalActionsProvider.notifier)
+        .update((m) => {...m, entry.id: ApprovalAction.approve});
     showAccountingToast(
       context,
       offline ? 'Approved offline' : 'Approved & posted',
       subtitle: offline
           ? '${entry.id} posted on this device. Reconnect to confirm — '
-              'another device may have approved while you were offline.'
+                'another device may have approved while you were offline.'
           : '${entry.id} is now on the ledger',
       icon: offline ? Icons.cloud_off : Icons.check,
       tone: offline ? AccountingToastTone.warn : AccountingToastTone.success,
@@ -386,8 +511,9 @@ class _AccountingApprovalsTabState extends ConsumerState<AccountingApprovalsTab>
     final journalAsync = ref.watch(journalEntriesStreamProvider);
     final actions = ref.watch(approvalActionsProvider);
     final journal = journalAsync.value ?? [];
-    final pending =
-        journal.where((e) => e.status == JournalStatus.pending).toList();
+    final pending = journal
+        .where((e) => e.status == JournalStatus.pending)
+        .toList();
     final accountMap = {
       for (final a in ref.watch(accountingAccountsProvider)) a.code: a,
     };
@@ -423,7 +549,10 @@ class _AccountingApprovalsTabState extends ConsumerState<AccountingApprovalsTab>
         const SizedBox(height: 3),
         Text(
           'Pending journal entries — tap approve to post to the ledger.',
-          style: AccountingTokens.sans(fontSize: 13, color: AccountingTokens.ink3),
+          style: AccountingTokens.sans(
+            fontSize: 13,
+            color: AccountingTokens.ink3,
+          ),
         ),
         const SizedBox(height: 14),
         for (final e in pending)
@@ -433,9 +562,9 @@ class _AccountingApprovalsTabState extends ConsumerState<AccountingApprovalsTab>
             accountMap: accountMap,
             isApproving: _approvingEntryId == e.id,
             onApprove: () => _approveEntry(e),
-            onReject: () => ref.read(approvalActionsProvider.notifier).update(
-                  (m) => {...m, e.id: ApprovalAction.reject},
-                ),
+            onReject: () => ref
+                .read(approvalActionsProvider.notifier)
+                .update((m) => {...m, e.id: ApprovalAction.reject}),
           ),
         if (pending.isEmpty)
           Padding(
@@ -445,9 +574,9 @@ class _AccountingApprovalsTabState extends ConsumerState<AccountingApprovalsTab>
                 journalAsync.isLoading
                     ? 'Loading journal entries…'
                     : journal.isEmpty
-                        ? 'Journal entries are still syncing from the cloud. '
-                            'Pull down to refresh in a moment.'
-                        : "Nothing waiting — you're all caught up.",
+                    ? 'Journal entries are still syncing from the cloud. '
+                          'Pull down to refresh in a moment.'
+                    : "Nothing waiting — you're all caught up.",
                 style: AccountingTokens.sans(color: AccountingTokens.ink3),
                 textAlign: TextAlign.center,
               ),
@@ -468,14 +597,29 @@ class AccountingReportsTab extends ConsumerWidget {
     final vat = ref.watch(accountingVatProvider);
 
     if (report != null) {
-      return AccountingStatementDetail(report: report, onBack: () => ref.read(mobileReportProvider.notifier).state = null);
+      return AccountingStatementDetail(
+        report: report,
+        onBack: () => ref.read(mobileReportProvider.notifier).state = null,
+      );
     }
 
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        Text('Reports', style: AccountingTokens.sans(fontSize: 22, fontWeight: FontWeight.w800)),
-        Text('Generated live from the ledger · ${ref.watch(selectedBusinessProvider)?.name ?? ''}', style: AccountingTokens.sans(fontSize: 13, color: AccountingTokens.ink3)),
+        Text(
+          'Reports',
+          style: AccountingTokens.sans(
+            fontSize: 22,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+        Text(
+          'Generated live from the ledger · ${ref.watch(selectedBusinessProvider)?.name ?? ''}',
+          style: AccountingTokens.sans(
+            fontSize: 13,
+            color: AccountingTokens.ink3,
+          ),
+        ),
         const SizedBox(height: 16),
         for (final r in _buildMobileReports(vat))
           ListTile(
@@ -490,15 +634,31 @@ class AccountingReportsTab extends ConsumerWidget {
   }
 }
 
-List<(String, String, IconData, MobileReportKey)> _buildMobileReports(VatInfo? vat) => [
+List<(String, String, IconData, MobileReportKey)> _buildMobileReports(
+  VatInfo? vat,
+) => [
   ('Income statement', 'Profit & loss', Icons.trending_up, MobileReportKey.pl),
-  ('Balance sheet', 'Financial position', Icons.layers_outlined, MobileReportKey.bs),
+  (
+    'Balance sheet',
+    'Financial position',
+    Icons.layers_outlined,
+    MobileReportKey.bs,
+  ),
   ('Trial balance', 'In balance', Icons.grid_view, MobileReportKey.tb),
-  ('Tax & VAT', vat != null ? 'Net due ${money(vat.netPayable)}' : 'No VAT data yet', Icons.verified_user_outlined, MobileReportKey.vat),
+  (
+    'Tax & VAT',
+    vat != null ? 'Net due ${money(vat.netPayable)}' : 'No VAT data yet',
+    Icons.verified_user_outlined,
+    MobileReportKey.vat,
+  ),
 ];
 
 class AccountingStatementDetail extends ConsumerWidget {
-  const AccountingStatementDetail({super.key, required this.report, required this.onBack});
+  const AccountingStatementDetail({
+    super.key,
+    required this.report,
+    required this.onBack,
+  });
 
   final MobileReportKey report;
   final VoidCallback onBack;
@@ -510,61 +670,79 @@ class AccountingStatementDetail extends ConsumerWidget {
     final bs = balanceSheet(accounts);
     final tb = trialBalance(accounts);
     final vat = ref.watch(accountingVatProvider);
-    final title = switch (report) {
-      MobileReportKey.pl => 'Income statement',
-      MobileReportKey.bs => 'Balance sheet',
-      MobileReportKey.tb => 'Trial balance',
-      MobileReportKey.vat => 'Tax & VAT',
-    };
+    final title = mobileReportTitle(report);
+    // Inside the Flipper app its header already says where you are and goes
+    // back; on its own, Books wears the same CustomAppBar for this screen.
+    final hostHeader =
+        AppLauncherHost.maybeOf(context)?.hostProvidesHeader ?? false;
 
     return Column(
       children: [
-        ListTile(
-          leading: IconButton(icon: const Icon(Icons.chevron_left), onPressed: onBack),
-          title: Text(title, style: AccountingTokens.sans(fontSize: 16, fontWeight: FontWeight.w700)),
-        ),
+        if (!hostHeader)
+          CustomAppBar(
+            key: const Key('books-report-app-bar'),
+            title: title,
+            icon: Icons.arrow_back,
+            onPop: onBack,
+          ),
         Expanded(
           child: ListView(
             padding: const EdgeInsets.all(16),
             children: switch (report) {
               MobileReportKey.pl => [
-                  _SRow('Net revenue', pl.netRevenue),
-                  _SRow('COGS', -pl.cogs),
-                  _SRow('Gross profit', pl.grossProfit),
-                  _SRow('Operating expenses', -pl.totalOpex),
-                  _SRow(profitOrLossLabel(pl.netIncome), pl.netIncome, bold: true),
-                ],
+                _SRow('Net revenue', pl.netRevenue),
+                _SRow('COGS', -pl.cogs),
+                _SRow('Gross profit', pl.grossProfit),
+                _SRow('Operating expenses', -pl.totalOpex),
+                _SRow(
+                  profitOrLossLabel(pl.netIncome),
+                  pl.netIncome,
+                  bold: true,
+                ),
+              ],
               MobileReportKey.bs => [
-                  _SRow('Total assets', bs.totalAssets),
-                  _SRow('Total liabilities', bs.totalLiab),
-                  _SRow('Total equity', bs.totalEquity),
-                  _SRow('Liabilities + equity', bs.totalLiabEquity, bold: true),
-                  if (bs.totalAssets == bs.totalLiabEquity)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 12),
-                      child: Text('Balanced with total assets', style: AccountingTokens.sans(color: AccountingTokens.gainInk, fontWeight: FontWeight.w600)),
-                    ),
-                ],
-              MobileReportKey.tb => [
-                  for (final r in tb.rows) _SRow('${r.account.code} ${r.account.name}', r.dr > 0 ? r.dr : r.cr),
-                  _SRow('Totals Dr/Cr', tb.totDr, bold: true),
-                ],
-              MobileReportKey.vat => [
-                  if (vat == null)
-                    Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Text(
-                        'No VAT data for this period.',
-                        style: AccountingTokens.sans(color: AccountingTokens.ink3),
+                _SRow('Total assets', bs.totalAssets),
+                _SRow('Total liabilities', bs.totalLiab),
+                _SRow('Total equity', bs.totalEquity),
+                _SRow('Liabilities + equity', bs.totalLiabEquity, bold: true),
+                if (bs.totalAssets == bs.totalLiabEquity)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 12),
+                    child: Text(
+                      'Balanced with total assets',
+                      style: AccountingTokens.sans(
+                        color: AccountingTokens.gainInk,
+                        fontWeight: FontWeight.w600,
                       ),
-                    )
-                  else ...[
-                    _SRow('Output VAT', vat.outputVat),
-                    _SRow('Input VAT', vat.inputVat),
-                    _SRow('Net payable', vat.netPayable, bold: true),
-                    _SRow('Due', 0, labelOverride: vat.dueDate),
-                  ],
+                    ),
+                  ),
+              ],
+              MobileReportKey.tb => [
+                for (final r in tb.rows)
+                  _SRow(
+                    '${r.account.code} ${r.account.name}',
+                    r.dr > 0 ? r.dr : r.cr,
+                  ),
+                _SRow('Totals Dr/Cr', tb.totDr, bold: true),
+              ],
+              MobileReportKey.vat => [
+                if (vat == null)
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Text(
+                      'No VAT data for this period.',
+                      style: AccountingTokens.sans(
+                        color: AccountingTokens.ink3,
+                      ),
+                    ),
+                  )
+                else ...[
+                  _SRow('Output VAT', vat.outputVat),
+                  _SRow('Input VAT', vat.inputVat),
+                  _SRow('Net payable', vat.netPayable, bold: true),
+                  _SRow('Due', 0, labelOverride: vat.dueDate),
                 ],
+              ],
             },
           ),
         ),
@@ -634,9 +812,9 @@ class _AccountingMoreTabState extends ConsumerState<AccountingMoreTab> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Refresh failed: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Refresh failed: $e')));
       }
     } finally {
       if (mounted) setState(() => _refreshing = false);
@@ -648,7 +826,13 @@ class _AccountingMoreTabState extends ConsumerState<AccountingMoreTab> {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        Text('More', style: AccountingTokens.sans(fontSize: 22, fontWeight: FontWeight.w800)),
+        Text(
+          'More',
+          style: AccountingTokens.sans(
+            fontSize: 22,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
         const SizedBox(height: 12),
         for (final group in accountingNavGroups)
           for (final item in group.items)
@@ -692,10 +876,17 @@ class _AccountingMoreTabState extends ConsumerState<AccountingMoreTab> {
         ),
         const SizedBox(height: 16),
         FilledButton(
-          style: FilledButton.styleFrom(backgroundColor: AccountingTokens.ink1, minimumSize: const Size.fromHeight(48)),
+          style: FilledButton.styleFrom(
+            backgroundColor: AccountingTokens.ink1,
+            minimumSize: const Size.fromHeight(48),
+          ),
           onPressed: () {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Use a wider screen for the full desktop workspace.')),
+              const SnackBar(
+                content: Text(
+                  'Use a wider screen for the full desktop workspace.',
+                ),
+              ),
             );
           },
           child: const Text('Open desktop workspace'),
@@ -704,4 +895,3 @@ class _AccountingMoreTabState extends ConsumerState<AccountingMoreTab> {
     );
   }
 }
-

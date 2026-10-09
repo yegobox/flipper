@@ -82,6 +82,12 @@ class _EmployeeFormState extends State<EmployeeForm> {
             ? ''
             : formatNumber(_draft.annualLeaveDays!),
       ),
+      'allowances': TextEditingController(
+        text: _draft.allowances == 0 ? '' : formatNumber(_draft.allowances),
+      ),
+      'payDay': TextEditingController(
+        text: _draft.payDay == null ? '' : '${_draft.payDay}',
+      ),
       'momoPhone': TextEditingController(text: _draft.momoPhone),
       'bankName': TextEditingController(text: _draft.bankName),
       'bankAccount': TextEditingController(text: _draft.bankAccount),
@@ -365,6 +371,65 @@ class _EmployeeFormState extends State<EmployeeForm> {
                             ? null
                             : _update((d) => d.copyWith(payFrequency: v)),
                       ),
+                    ),
+                    _pair(
+                      isNarrow,
+                      _text(
+                        fieldKey: 'allowances',
+                        label: l10n.hrAllowancesWithCurrency(_draft.currency),
+                        helper: l10n.hrAllowancesHelper,
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
+                        ],
+                        onChanged: (v) => _update(
+                          (d) => d.copyWith(allowances: _parseAmount(v)),
+                        ),
+                      ),
+                      _text(
+                        fieldKey: 'payDay',
+                        label: l10n.hrPayDayOfMonth,
+                        helper: l10n.hrPayDayHelper,
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                          LengthLimitingTextInputFormatter(2),
+                        ],
+                        onChanged: (v) {
+                          final day = int.tryParse(v.trim());
+                          _update(
+                            (d) => day == null || day < 1 || day > 31
+                                ? d.copyWith(clearPayDay: true)
+                                : d.copyWith(payDay: day),
+                          );
+                        },
+                      ),
+                    ),
+                    DropdownButtonFormField<TaxCategory>(
+                      key: const Key('employee-tax-category'),
+                      initialValue: _draft.taxCategory,
+                      isExpanded: true,
+                      decoration: InputDecoration(
+                        labelText: l10n.hrTaxCategory,
+                        helperText: l10n.hrTaxCategoryHelper,
+                        helperMaxLines: 2,
+                      ),
+                      items: [
+                        for (final t in TaxCategory.values)
+                          DropdownMenuItem(value: t, child: Text(t.label)),
+                      ],
+                      onChanged: (v) => v == null
+                          ? null
+                          : _update((d) => d.copyWith(taxCategory: v)),
+                    ),
+                    SwitchListTile.adaptive(
+                      key: const Key('employee-rssb-enrolled'),
+                      contentPadding: EdgeInsets.zero,
+                      value: _draft.rssbEnrolled,
+                      onChanged: (v) =>
+                          _update((d) => d.copyWith(rssbEnrolled: v)),
+                      title: Text(l10n.hrRssbEnrolled),
+                      subtitle: Text(l10n.hrRssbEnrolledHelper),
                     ),
                     _text(
                       fieldKey: 'annualLeaveDays',

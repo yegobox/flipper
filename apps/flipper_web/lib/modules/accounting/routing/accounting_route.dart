@@ -183,6 +183,15 @@ enum StatementsTab { income, balance, cashFlow }
 
 enum MobileReportKey { pl, bs, tb, vat }
 
+/// A mobile report's name — its detail screen's title, whichever header
+/// shows it (Books' own CustomAppBar, or the Flipper app's).
+String mobileReportTitle(MobileReportKey report) => switch (report) {
+  MobileReportKey.pl => 'Income statement',
+  MobileReportKey.bs => 'Balance sheet',
+  MobileReportKey.tb => 'Trial balance',
+  MobileReportKey.vat => 'Tax & VAT',
+};
+
 class AccountingNavItem {
   const AccountingNavItem({required this.view, required this.icon, this.badge});
 

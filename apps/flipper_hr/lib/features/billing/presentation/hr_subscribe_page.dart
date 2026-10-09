@@ -1,3 +1,4 @@
+import 'package:flipper_hr/features/host/hr_host.dart';
 import 'package:flipper_hr/features/billing/application/hr_billing_providers.dart';
 import 'package:flipper_hr/features/billing/application/hr_subscription_controller.dart';
 import 'package:flipper_hr/features/billing/data/hr_entitlement.dart';
@@ -44,7 +45,7 @@ class _HrSubscribePageState extends ConsumerState<HrSubscribePage> {
       return _Message(
         message: context.flipperL10n.hrSubscribePickBusiness,
         actionLabel: context.flipperL10n.hrChooseABusiness,
-        onAction: () => context.go('/business-selection'),
+        onAction: () => ref.read(hrHostProvider).toBusinessSelection(context),
       );
     }
 

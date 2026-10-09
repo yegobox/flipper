@@ -25080,4 +25080,693 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   String purchaseSearchNoMatch(String query) {
     return 'Aucun achat ne correspond à « $query »';
   }
+
+  @override
+  String get hrAndPayroll => 'RH et paie';
+
+  @override
+  String get hrBackToFlipper => 'Retour à Flipper';
+
+  @override
+  String get hrNeedsInternet =>
+      'Les RH nécessitent une connexion Internet. Connectez-vous et réessayez.';
+
+  @override
+  String get hrTaxPrimary => 'Emploi principal';
+
+  @override
+  String get hrTaxSecondary => 'Second employeur (30 % forfaitaire)';
+
+  @override
+  String get hrTaxCasual => 'Travailleur occasionnel (15 %)';
+
+  @override
+  String get hrPayStatusUnpaid => 'Non payé';
+
+  @override
+  String get hrPayStatusPartlyPaid => 'Partiellement payé';
+
+  @override
+  String get hrPayStatusPaid => 'Payé';
+
+  @override
+  String get hrPayStatusVoid => 'Annulé';
+
+  @override
+  String get hrPayKindSalary => 'Salaire';
+
+  @override
+  String get hrPayKindAdvance => 'Avance';
+
+  @override
+  String get hrPayKindReimbursement => 'Remboursement';
+
+  @override
+  String get hrPayKindOther => 'Autre';
+
+  @override
+  String get hrAdvanceStatusOpen => 'Dû';
+
+  @override
+  String get hrAdvanceStatusRecovered => 'Récupéré';
+
+  @override
+  String get hrAdvanceStatusWrittenOff => 'Abandonné';
+
+  @override
+  String get hrPayErrorLoad => 'Impossible de charger la paie.';
+
+  @override
+  String get hrPayErrorSave =>
+      'Impossible d\'enregistrer cette opération de paie.';
+
+  @override
+  String get hrPayroll => 'Paie';
+
+  @override
+  String get hrMyPay => 'Ma paie';
+
+  @override
+  String get hrPayslip => 'Bulletin de paie';
+
+  @override
+  String get hrPayslips => 'Bulletins';
+
+  @override
+  String get hrPayAdvances => 'Avances';
+
+  @override
+  String get hrPayRequests => 'Demandes';
+
+  @override
+  String get hrPayReturns => 'Déclarations';
+
+  @override
+  String get hrPayHistory => 'Historique';
+
+  @override
+  String get hrPaySummary => 'Résumé';
+
+  @override
+  String get hrPayEmployee => 'Employé';
+
+  @override
+  String get hrNationalId => 'Carte d\'identité';
+
+  @override
+  String get hrRssbNumber => 'Numéro RSSB';
+
+  @override
+  String get hrPayPay => 'Payer';
+
+  @override
+  String get hrPayPaySomeone => 'Payer quelqu\'un';
+
+  @override
+  String hrPayPayFor(String period) {
+    return 'Payer $period';
+  }
+
+  @override
+  String get hrPayChoosePerson => 'Qui payez-vous ?';
+
+  @override
+  String get hrPayRecord => 'Enregistrer le paiement';
+
+  @override
+  String get hrPayVoid => 'Annuler';
+
+  @override
+  String get hrPayShareSlip => 'Partager le bulletin';
+
+  @override
+  String get hrPayBackToPayroll => 'Retour à la paie';
+
+  @override
+  String get hrPayReason => 'Motif';
+
+  @override
+  String get hrPaySaveUnpaid => 'Enregistrer, payer plus tard';
+
+  @override
+  String hrPayConfirmAmount(String amount) {
+    return 'Payer $amount';
+  }
+
+  @override
+  String hrPayRemaining(String amount) {
+    return 'Payer le reste ($amount)';
+  }
+
+  @override
+  String get hrPayRemainingTitle => 'Payer le reste';
+
+  @override
+  String get hrPayDueNow => 'À payer';
+
+  @override
+  String get hrPayPeopleToPay => 'personnes à payer';
+
+  @override
+  String get hrPayPaidThisMonth => 'Payé ce mois';
+
+  @override
+  String hrPayUnpaidOnSlips(String amount) {
+    return '$amount restant sur les bulletins';
+  }
+
+  @override
+  String get hrPayAdvancesOwed => 'Avances dues';
+
+  @override
+  String get hrPayCostThisMonth => 'Coût de la paie ce mois';
+
+  @override
+  String hrPayPayslipCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count bulletins',
+      one: '1 bulletin',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get hrPayDueToday => 'À payer aujourd\'hui';
+
+  @override
+  String hrPayDueOn(String date) {
+    return 'Échéance $date';
+  }
+
+  @override
+  String hrPayNextOn(String date) {
+    return 'Prochaine paie $date';
+  }
+
+  @override
+  String hrPayOverdueSince(String date) {
+    return 'En retard depuis le $date';
+  }
+
+  @override
+  String hrPayDueFor(String period) {
+    return 'À payer pour $period';
+  }
+
+  @override
+  String hrPayOwesBack(String amount) {
+    return 'Doit $amount';
+  }
+
+  @override
+  String hrPayLastPaid(String amount, String date) {
+    return 'Dernier paiement $amount le $date';
+  }
+
+  @override
+  String get hrPayNextPayDay => 'Prochaine paie';
+
+  @override
+  String get hrPayLastPayment => 'Dernier paiement';
+
+  @override
+  String get hrPayLatestNet => 'Dernier net payé';
+
+  @override
+  String hrPayPersonTitle(String name) {
+    return 'Payer $name';
+  }
+
+  @override
+  String get hrPayPeriodAlreadyPaid =>
+      'Cette période a déjà un bulletin. Choisissez une autre période ou ouvrez le bulletin pour payer le reste.';
+
+  @override
+  String hrPayPeriodHasPayslip(String status, String amount) {
+    return 'Déjà sur un bulletin ($status, net $amount).';
+  }
+
+  @override
+  String hrPayAlreadyPaidThisPeriod(String amount) {
+    return 'Déjà versé sur cette période : $amount';
+  }
+
+  @override
+  String get hrPayNothingEarned =>
+      'Rien n\'a été gagné sur cette période. Saisissez les jours ou heures travaillés, ou une prime.';
+
+  @override
+  String hrPayRecoverMoreThanOwed(String amount) {
+    return 'Vous ne pouvez pas récupérer plus que les $amount encore dus sur une avance.';
+  }
+
+  @override
+  String hrPayRecoveryOverHalf(String amount) {
+    return 'La loi autorise au plus $amount de retenue sur cette paie (la moitié du salaire après impôt et RSSB).';
+  }
+
+  @override
+  String get hrPayNetNegative =>
+      'Les retenues dépassent la paie. Réduisez la récupération d\'avance ou les autres retenues.';
+
+  @override
+  String get hrPayEnterAmount => 'Saisissez un montant.';
+
+  @override
+  String hrPayMoreThanNet(String amount) {
+    return 'C\'est plus que les $amount dus.';
+  }
+
+  @override
+  String get hrPayEarnings => 'Gains';
+
+  @override
+  String get hrPayDeductions => 'Retenues';
+
+  @override
+  String get hrPayDaysWorked => 'Jours travaillés';
+
+  @override
+  String get hrPayHoursWorked => 'Heures travaillées';
+
+  @override
+  String hrPayRateHelper(String rate) {
+    return 'À $rate l\'unité. Prérempli depuis les présences.';
+  }
+
+  @override
+  String get hrPayBasePay => 'Salaire de base';
+
+  @override
+  String get hrPayAllowances => 'Indemnités';
+
+  @override
+  String get hrPayBonus => 'Prime ou heures supplémentaires';
+
+  @override
+  String get hrPayGross => 'Salaire brut';
+
+  @override
+  String get hrPayPaye => 'IPR (impôt sur le revenu)';
+
+  @override
+  String hrPayPension(String percent) {
+    return 'Pension RSSB ($percent %)';
+  }
+
+  @override
+  String get hrPayPensionPlain => 'Pension RSSB';
+
+  @override
+  String get hrPayMaternity => 'Congé de maternité';
+
+  @override
+  String get hrPayCbhi => 'CBHI (Mutuelle)';
+
+  @override
+  String get hrPayOtherDeductions => 'Autres retenues';
+
+  @override
+  String get hrPayAdvancesToRecover => 'Avances à récupérer';
+
+  @override
+  String hrPayAdvanceOf(String amount, String date) {
+    return 'Avance de $amount du $date';
+  }
+
+  @override
+  String hrPayStillOwed(String amount) {
+    return '$amount encore dû';
+  }
+
+  @override
+  String hrPayRecoveryLimit(String amount) {
+    return 'Au plus $amount peut être récupéré sur cette paie.';
+  }
+
+  @override
+  String get hrPayNetPay => 'Net à payer';
+
+  @override
+  String hrPayEmployerCost(String amount) {
+    return 'Coûte $amount à l\'entreprise avec les cotisations patronales';
+  }
+
+  @override
+  String get hrPayPayment => 'Paiement';
+
+  @override
+  String get hrPayRecordPaymentNow => 'Je paie maintenant';
+
+  @override
+  String get hrPayRecordPaymentHint =>
+      'Désactivez pour enregistrer le bulletin et payer plus tard.';
+
+  @override
+  String hrPaySendTo(String account) {
+    return 'Envoyer à $account';
+  }
+
+  @override
+  String get hrPayAmountPaidNow => 'Montant payé maintenant';
+
+  @override
+  String get hrPayPartialHint =>
+      'Payez une partie maintenant et le reste plus tard si besoin.';
+
+  @override
+  String get hrPayReference => 'Référence (facultatif)';
+
+  @override
+  String get hrPayReferenceHint =>
+      'ID de transaction MoMo ou référence bancaire';
+
+  @override
+  String get hrPayNote => 'Note (facultatif)';
+
+  @override
+  String hrPayRatesFootnote(String version) {
+    return 'Taux légaux $version : IPR (loi 027/2022), pension RSSB (arrêté 086/01 de 2024), maternité, risques professionnels et CBHI.';
+  }
+
+  @override
+  String hrPayPaidToast(String name, String period) {
+    return '$name payé pour $period';
+  }
+
+  @override
+  String get hrPayRecordedToast => 'Paiement enregistré';
+
+  @override
+  String hrPayslipFor(String period) {
+    return 'Bulletin · $period';
+  }
+
+  @override
+  String get hrPayAdvanceRecovered => 'Avance récupérée';
+
+  @override
+  String hrPayAdvanceRecoveredAmount(String amount) {
+    return '$amount d\'avance récupérée';
+  }
+
+  @override
+  String get hrPayEmployerContributions => 'Cotisations patronales';
+
+  @override
+  String get hrPayOccupationalHazards => 'Risques professionnels';
+
+  @override
+  String get hrPayPaymentsMade => 'Paiements effectués';
+
+  @override
+  String get hrPayNothingPaidYet =>
+      'Rien n\'a encore été payé sur ce bulletin.';
+
+  @override
+  String hrPayStillToPay(String amount) {
+    return '$amount restant à payer';
+  }
+
+  @override
+  String hrPayVoidedBecause(String reason) {
+    return 'Annulé : $reason';
+  }
+
+  @override
+  String get hrPayVoidPayslipTitle => 'Annuler ce bulletin ?';
+
+  @override
+  String get hrPayVoidPayslipMessage =>
+      'La période redevient impayée et toute avance récupérée redevient due. Rien n\'est supprimé.';
+
+  @override
+  String get hrPayVoidPayslipWithPayments =>
+      'Les paiements associés sont aussi annulés. La période redevient impayée et toute avance récupérée redevient due.';
+
+  @override
+  String get hrPayVoidPaymentTitle => 'Annuler ce paiement ?';
+
+  @override
+  String hrPayVoidPaymentMessage(String amount) {
+    return 'Les $amount ne compteront plus comme payés. Rien n\'est supprimé.';
+  }
+
+  @override
+  String hrPayslipFooter(String version) {
+    return 'Calculé avec les taux légaux du Rwanda $version. Généré par Flipper HR.';
+  }
+
+  @override
+  String hrPayPaidKind(String kind) {
+    return 'Payé · $kind';
+  }
+
+  @override
+  String hrPayAdvanceGivenOn(String date) {
+    return 'Avance versée le $date';
+  }
+
+  @override
+  String get hrPayNoHistory =>
+      'Aucun paiement pour l\'instant. Bulletins, paiements et avances apparaîtront ici.';
+
+  @override
+  String get hrPayPersonNotFound =>
+      'Cette personne n\'est pas sur la succursale choisie.';
+
+  @override
+  String get hrPayNoRecordTitle => 'Pas encore de fiche employé';
+
+  @override
+  String get hrPayNoRecordBody =>
+      'Vos bulletins apparaîtront ici dès que votre employeur vous ajoutera à son équipe dans Flipper HR.';
+
+  @override
+  String get hrPayNobodyYet => 'Personne à payer pour l\'instant';
+
+  @override
+  String get hrPayNobodyYetBody =>
+      'Ajoutez votre équipe avec leur salaire, et leurs jours de paie apparaîtront ici.';
+
+  @override
+  String get hrPayNoPayslips =>
+      'Aucun bulletin pour l\'instant. Payez quelqu\'un et son bulletin apparaîtra ici.';
+
+  @override
+  String get hrPayNoAdvances =>
+      'Aucune avance. L\'argent versé avant la paie est suivi ici jusqu\'à sa récupération.';
+
+  @override
+  String get hrPayNoRequests =>
+      'Aucune demande d\'avance. Quand quelqu\'un demande une avance dans l\'application, elle arrive ici.';
+
+  @override
+  String get hrPayNoPayslipsThisMonth =>
+      'Aucun bulletin ne se termine ce mois-ci.';
+
+  @override
+  String hrPayReturnsDeadline(String date) {
+    return 'Déclarez et payez l\'IPR et les cotisations RSSB avant le $date.';
+  }
+
+  @override
+  String get hrPayReturnsRra => 'À la RRA';
+
+  @override
+  String get hrPayReturnsRssb => 'À la RSSB';
+
+  @override
+  String get hrPayPensionBothSides => 'Pension (salarié + employeur)';
+
+  @override
+  String get hrPayMaternityBothSides => 'Maternité (salarié + employeur)';
+
+  @override
+  String get hrPayRssbTotal => 'Total à la RSSB';
+
+  @override
+  String get hrPayTotalCost => 'Coût total pour l\'entreprise';
+
+  @override
+  String get hrPayReturnsCopy => 'Copier pour la déclaration';
+
+  @override
+  String get hrPayReturnsCopied => 'Copié. Collez-le dans un tableur.';
+
+  @override
+  String get hrAdvanceGive => 'Verser une avance';
+
+  @override
+  String get hrAdvanceRequest => 'Demander une avance';
+
+  @override
+  String hrAdvanceGiveTitle(String name) {
+    return 'Avance pour $name';
+  }
+
+  @override
+  String get hrAdvanceGiveSubtitle =>
+      'Argent versé avant la paie, récupéré sur les prochains bulletins.';
+
+  @override
+  String get hrAdvanceRequestTitle => 'Demander une avance';
+
+  @override
+  String get hrAdvanceRequestSubtitle =>
+      'Votre responsable décide, et elle est récupérée sur votre prochaine paie.';
+
+  @override
+  String get hrAdvanceAmount => 'Montant';
+
+  @override
+  String get hrAdvanceReason => 'Motif (facultatif)';
+
+  @override
+  String get hrAdvanceReasonHint => 'ex. frais scolaires, loyer';
+
+  @override
+  String get hrAdvanceRecovery => 'Récupération';
+
+  @override
+  String get hrAdvanceRecoverNextPay => 'Tout sur la prochaine paie';
+
+  @override
+  String get hrAdvanceRecoverNextPayHint =>
+      'Jamais plus de la moitié de cette paie ; le reste est reporté.';
+
+  @override
+  String get hrAdvanceRecoverInstallments => 'En plusieurs fois';
+
+  @override
+  String get hrAdvancePerPayslip => 'Montant par bulletin';
+
+  @override
+  String hrAdvanceInstallmentCount(String count) {
+    return 'Environ $count bulletins';
+  }
+
+  @override
+  String hrAdvanceInstallmentOf(String amount) {
+    return '$amount par bulletin';
+  }
+
+  @override
+  String get hrAdvanceEnterInstallment =>
+      'Indiquez combien récupérer sur chaque bulletin.';
+
+  @override
+  String hrAdvanceAlreadyOwed(String amount) {
+    return 'Doit déjà $amount sur des avances précédentes.';
+  }
+
+  @override
+  String hrAdvanceOverHalf(String amount) {
+    return 'Plus qu\'un bulletin ne peut récupérer : au plus $amount par bulletin, la récupération prendra plusieurs paies.';
+  }
+
+  @override
+  String hrAdvanceGiveAmount(String amount) {
+    return 'Verser $amount';
+  }
+
+  @override
+  String get hrAdvanceSendRequest => 'Envoyer la demande';
+
+  @override
+  String get hrAdvanceRecordedToast => 'Avance enregistrée';
+
+  @override
+  String get hrAdvanceRequestedToast => 'Demande envoyée à votre responsable';
+
+  @override
+  String hrAdvanceRequestPending(String amount) {
+    return 'Votre demande de $amount attend une décision.';
+  }
+
+  @override
+  String get hrAdvanceCancelRequest => 'Annuler la demande';
+
+  @override
+  String get hrAdvanceApproveAndGive => 'Approuver et verser';
+
+  @override
+  String get hrAdvanceDecline => 'Refuser';
+
+  @override
+  String get hrAdvanceDeclineTitle => 'Refuser cette demande ?';
+
+  @override
+  String get hrAdvanceDeclineMessage =>
+      'Indiquez pourquoi, pour qu\'ils le sachent.';
+
+  @override
+  String hrAdvanceApprovedToast(String amount, String name) {
+    return '$amount versé à $name';
+  }
+
+  @override
+  String hrAdvanceProgress(String recovered, String owed) {
+    return '$recovered récupéré · $owed restant';
+  }
+
+  @override
+  String get hrAdvanceWriteOff => 'Abandonner la créance';
+
+  @override
+  String get hrAdvanceWriteOffTitle => 'Abandonner cette avance ?';
+
+  @override
+  String hrAdvanceWriteOffMessage(String amount) {
+    return 'Les $amount encore dus ne seront pas retenus sur la paie.';
+  }
+
+  @override
+  String get hrAdvanceVoidTitle => 'Annuler cette avance ?';
+
+  @override
+  String get hrAdvanceVoidMessage =>
+      'À utiliser en cas d\'erreur de saisie. Le versement associé est aussi annulé.';
+
+  @override
+  String hrAllowancesWithCurrency(String currency) {
+    return 'Indemnités mensuelles ($currency)';
+  }
+
+  @override
+  String get hrAllowancesHelper =>
+      'Transport, logement… versés chaque mois en plus du salaire de base. Imposables.';
+
+  @override
+  String get hrPayDayOfMonth => 'Jour de paie';
+
+  @override
+  String get hrPayDayHelper => 'Jour du mois (1–31). Vide : dernier jour.';
+
+  @override
+  String get hrTaxCategory => 'Impôt sur le revenu';
+
+  @override
+  String get hrTaxCategoryHelper =>
+      'Comment l\'IPR est calculé pour cette personne.';
+
+  @override
+  String get hrRssbEnrolled => 'Affilié à la RSSB';
+
+  @override
+  String get hrRssbEnrolledHelper =>
+      'Retenir pension et maternité et ajouter la part patronale.';
+
+  @override
+  String hrPayPeopleDue(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Payer $count personnes',
+      one: 'Payer 1 personne',
+    );
+    return '$_temp0';
+  }
 }

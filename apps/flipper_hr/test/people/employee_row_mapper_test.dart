@@ -127,7 +127,10 @@ void main() {
     });
 
     test('a blank currency falls back to RWF', () {
-      expect(EmployeeRowMapper.fromRow(row({'currency': null})).currency, 'RWF');
+      expect(
+        EmployeeRowMapper.fromRow(row({'currency': null})).currency,
+        'RWF',
+      );
       expect(EmployeeRowMapper.fromRow(row({'currency': ''})).currency, 'RWF');
     });
   });
@@ -155,12 +158,9 @@ void main() {
     });
 
     test('blank optional text is written as null, not an empty string', () {
-      final e = EmployeeRowMapper.fromRow(row()).copyWith(
-        email: '   ',
-        nationalId: '',
-        bankName: '',
-        notes: '',
-      );
+      final e = EmployeeRowMapper.fromRow(
+        row(),
+      ).copyWith(email: '   ', nationalId: '', bankName: '', notes: '');
       final update = EmployeeRowMapper.toUpdateRow(e);
 
       expect(update['email'], isNull);
@@ -229,16 +229,16 @@ void main() {
   group('formatDate', () {
     test('pads month and day', () {
       expect(EmployeeRowMapper.formatDate(DateTime(2026, 2, 9)), '2026-02-09');
-      expect(EmployeeRowMapper.formatDate(DateTime(2026, 12, 31)),
-          '2026-12-31');
+      expect(
+        EmployeeRowMapper.formatDate(DateTime(2026, 12, 31)),
+        '2026-12-31',
+      );
     });
   });
 
   group('annual leave entitlement round trip', () {
     test('null survives as null, since it means the statutory default', () {
-      final read = EmployeeRowMapper.fromRow(const {
-        'annual_leave_days': null,
-      });
+      final read = EmployeeRowMapper.fromRow(const {'annual_leave_days': null});
 
       expect(read.annualLeaveDays, isNull);
       expect(EmployeeRowMapper.toUpdateRow(read)['annual_leave_days'], isNull);
@@ -255,8 +255,7 @@ void main() {
     test('a numeric arrives as int, double or string', () {
       for (final raw in <Object>[25, 25.0, '25', '25.0']) {
         expect(
-          EmployeeRowMapper.fromRow({'annual_leave_days': raw})
-              .annualLeaveDays,
+          EmployeeRowMapper.fromRow({'annual_leave_days': raw}).annualLeaveDays,
           25,
           reason: 'annual_leave_days as ${raw.runtimeType}',
         );
@@ -265,18 +264,56 @@ void main() {
 
     test('a half day survives', () {
       expect(
-        EmployeeRowMapper.fromRow(const {'annual_leave_days': '18.5'})
-            .annualLeaveDays,
+        EmployeeRowMapper.fromRow(const {
+          'annual_leave_days': '18.5',
+        }).annualLeaveDays,
         18.5,
       );
     });
 
     test('an override is written back', () {
-      final row = EmployeeRowMapper.toUpdateRow(
-        employee(annualLeaveDays: 25),
-      );
+      final row = EmployeeRowMapper.toUpdateRow(employee(annualLeaveDays: 25));
 
       expect(row['annual_leave_days'], 25);
+    });
+  });
+
+  group('pay settings (migration 0011)', () {
+    test('round-trip through the row', () {
+      final e = Employee(
+        businessId: 'b',
+        branchId: 'br',
+        firstName: 'Aline',
+        lastName: 'Uwase',
+        hireDate: DateTime(2026, 1, 1),
+        payDay: 25,
+        allowances: 30000,
+        taxCategory: TaxCategory.casual,
+        rssbEnrolled: false,
+      );
+      final row = EmployeeRowMapper.toInsertRow(e);
+      expect(row['pay_day'], 25);
+      expect(row['allowances'], 30000);
+      expect(row['tax_category'], 'casual');
+      expect(row['rssb_enrolled'], false);
+
+      final back = EmployeeRowMapper.fromRow({...row, 'id': 'e-1'});
+      expect(back.payDay, 25);
+      expect(back.allowances, 30000);
+      expect(back.taxCategory, TaxCategory.casual);
+      expect(back.rssbEnrolled, isFalse);
+    });
+
+    test('a row from before 0011 reads with the column defaults', () {
+      final e = EmployeeRowMapper.fromRow({
+        'id': 'e-1',
+        'first_name': 'Aline',
+        'hire_date': '2026-01-01',
+      });
+      expect(e.payDay, isNull);
+      expect(e.allowances, 0);
+      expect(e.taxCategory, TaxCategory.primary);
+      expect(e.rssbEnrolled, isTrue);
     });
   });
 }
