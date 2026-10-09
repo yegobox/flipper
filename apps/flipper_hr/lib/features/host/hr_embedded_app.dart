@@ -1,4 +1,5 @@
 import 'package:flipper_design_system/flipper_design_system.dart';
+import 'package:flipper_hr/features/home/hr_home_shell.dart';
 import 'package:flipper_hr/features/host/hr_host.dart';
 import 'package:flipper_hr/features/ui/hr_theme.dart';
 import 'package:flipper_hr/router/hr_router.dart';
@@ -49,10 +50,19 @@ class _HrEmbeddedAppState extends State<HrEmbeddedApp> {
     super.dispose();
   }
 
+  /// System back, the same as the header's back button: up a level from a
+  /// detail page, out to the host from a top-level one.
   void _onBack(bool didPop, Object? _) {
     if (didPop) return;
     if (_router.canPop()) {
       _router.pop();
+      return;
+    }
+    final parent = hrParentPath(
+      _router.routerDelegate.currentConfiguration.uri.path,
+    );
+    if (parent != null) {
+      _router.go(parent);
     } else {
       widget.onExit();
     }

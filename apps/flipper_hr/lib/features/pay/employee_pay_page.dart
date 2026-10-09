@@ -1,3 +1,4 @@
+import 'package:flipper_hr/features/host/hr_host.dart';
 import 'package:flipper_hr/features/pay/data/pay_models.dart';
 import 'package:flipper_hr/features/pay/data/pay_period.dart';
 import 'package:flipper_hr/features/pay/data/pay_providers.dart';
@@ -68,7 +69,10 @@ class EmployeePayPage extends ConsumerWidget {
       account: account,
       requests: b.requests,
       canManage: true,
-      onBack: () => context.go('/pay'),
+      // Inside the mobile app the header's back button does this.
+      onBack: ref.watch(hrHostProvider).isEmbedded
+          ? null
+          : () => context.go('/pay'),
     );
   }
 }

@@ -1,3 +1,4 @@
+import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flipper_hr/features/billing/presentation/hr_billing_gate.dart';
 import 'package:flipper_hr/features/branding/hr_tokens.dart';
 import 'package:flipper_hr/features/home/hr_sidebar_state.dart';
@@ -107,36 +108,37 @@ class _HrHomeShellState extends ConsumerState<HrHomeShell> {
     }
 
     // ── Narrow: drawer + bottom nav ──────────────────────────────────────────
+    final host = ref.watch(hrHostProvider);
     return Scaffold(
       backgroundColor: HrTokens.workspaceBg,
-      appBar: AppBar(
-        backgroundColor: HrTokens.surface,
-        surfaceTintColor: Colors.transparent,
-        foregroundColor: HrTokens.ink1,
-        elevation: 0,
-        titleSpacing: 8,
-        title: const _HrWordmark(),
-        actions: [
-          _AccountButton(isSigningOut: _isSigningOut, onSignOut: _signOut),
-          // Embedded, HR is one screen of the host app: give it a way back
-          // that does not depend on the system back gesture.
-          if (ref.watch(hrHostProvider).isEmbedded)
-            Semantics(
-              button: true,
-              label: context.flipperL10n.hrBackToFlipper,
-              child: IconButton(
-                key: const Key('hr-exit-to-host'),
-                icon: const Icon(Icons.close),
-                onPressed: ref.read(hrHostProvider).exit,
+      // Inside the mobile app HR is one of Flipper's screens, so it wears
+      // Flipper's header: the round back button and the page's name.
+      appBar: host.isEmbedded
+          ? CustomAppBar(
+              key: const Key('hr-embedded-app-bar'),
+              title: hrTitleFor(destinations, location),
+              icon: Icons.arrow_back,
+              onPop: () => hrEmbeddedBack(context, host, location),
+            )
+          : AppBar(
+              backgroundColor: HrTokens.surface,
+              surfaceTintColor: Colors.transparent,
+              foregroundColor: HrTokens.ink1,
+              elevation: 0,
+              titleSpacing: 8,
+              title: const _HrWordmark(),
+              actions: [
+                _AccountButton(
+                  isSigningOut: _isSigningOut,
+                  onSignOut: _signOut,
+                ),
+                const SizedBox(width: 8),
+              ],
+              bottom: const PreferredSize(
+                preferredSize: Size.fromHeight(1),
+                child: Divider(height: 1, color: HrTokens.line),
               ),
             ),
-          const SizedBox(width: 8),
-        ],
-        bottom: const PreferredSize(
-          preferredSize: Size.fromHeight(1),
-          child: Divider(height: 1, color: HrTokens.line),
-        ),
-      ),
       drawer: Drawer(
         backgroundColor: HrTokens.sidebarBg,
         child: _HrSidebar(
@@ -1073,6 +1075,35 @@ List<HrNavGroup> hrNavGroups(List<HrDestination> destinations) {
 }
 
 /// The modules this session may open, in nav order.
+/// The name of the page at [location]: its destination's label, or the
+/// module's name where no destination matches.
+String hrTitleFor(List<HrDestination> destinations, String location) {
+  for (final d in destinations) {
+    if (location == d.path || location.startsWith('${d.path}/')) {
+      return d.label;
+    }
+  }
+  return FlipperL10n.current.hrAndPayroll;
+}
+
+/// Back, inside the mobile app: up one level from a detail page (one person's
+/// pay → Payroll), out to Flipper from a top-level one.
+void hrEmbeddedBack(BuildContext context, HrHost host, String location) {
+  final parent = hrParentPath(location);
+  if (parent != null) {
+    context.go(parent);
+  } else {
+    host.exit();
+  }
+}
+
+/// `/pay/e-1` → `/pay`; null for a top-level page.
+String? hrParentPath(String location) {
+  final segments = Uri.parse(location).pathSegments;
+  if (segments.length < 2) return null;
+  return '/${segments.sublist(0, segments.length - 1).join('/')}';
+}
+
 List<HrDestination> hrDestinationsFor(HrSession session) {
   final destinations = <HrDestination>[];
   final l10n = FlipperL10n.current;

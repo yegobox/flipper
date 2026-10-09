@@ -1,3 +1,4 @@
+import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flipper_dashboard/native_books_context_bridge.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_routing/app.locator.dart';
@@ -113,7 +114,11 @@ class _HrOffline extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.flipperL10n;
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.hrAndPayroll)),
+      appBar: CustomAppBar(
+        title: l10n.hrAndPayroll,
+        icon: Icons.arrow_back,
+        onPop: onBack,
+      ),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(24),
