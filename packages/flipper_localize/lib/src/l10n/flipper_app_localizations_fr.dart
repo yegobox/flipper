@@ -25927,4 +25927,18 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   String booksExportPageOf(String page, String total) {
     return 'Page $page sur $total';
   }
+
+  @override
+  String get hotelNoRoomChargeTitle => 'Aucun frais de chambre sur ce folio';
+
+  @override
+  String hotelNoRoomChargeBody(String nights, String rate, String amount) {
+    return 'Enregistrer $nights à $rate ($amount) avant le départ ? Sans cela, ce séjour n\'est pas enregistré comme une vente.';
+  }
+
+  @override
+  String get hotelPostAndContinue => 'Enregistrer et continuer';
+
+  @override
+  String get hotelCheckOutWithoutRoomCharge => 'Départ sans frais de chambre';
 }

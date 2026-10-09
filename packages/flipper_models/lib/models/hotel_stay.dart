@@ -1,5 +1,23 @@
 import 'package:uuid/uuid.dart';
 
+/// Nights between arrival and departure, counted on the calendar at the
+/// property (device local time), floor-clamped to 1.
+///
+/// Calendar days, not elapsed hours: a guest who arrives at 09:00 and leaves at
+/// 11:00 the next day stayed one night, not ceil(26h / 24) = 2. The daily
+/// report (data-connector `hotel_daily.rs`) counts nights the same way.
+int hotelCalendarNights(DateTime arrival, DateTime departure) {
+  final a = arrival.toLocal();
+  final d = departure.toLocal();
+  // UTC midnights so a DST shift cannot turn a day into 23 or 25 hours.
+  final nights = DateTime.utc(
+    d.year,
+    d.month,
+    d.day,
+  ).difference(DateTime.utc(a.year, a.month, a.day)).inDays;
+  return nights < 1 ? 1 : nights;
+}
+
 /// Lifecycle of a booking against a room.
 enum HotelStayStatus { reserved, inHouse, checkedOut, cancelled }
 
@@ -94,11 +112,7 @@ class HotelStay {
   int get guests => adults + children;
 
   /// Contracted nights, floor-clamped to 1 — a same-day stay still bills a night.
-  int get nights {
-    final diff = expectedCheckOutAt.difference(checkInAt).inHours;
-    final whole = (diff / 24).ceil();
-    return whole < 1 ? 1 : whole;
-  }
+  int get nights => hotelCalendarNights(checkInAt, expectedCheckOutAt);
 
   HotelStay copyWith({
     String? id,

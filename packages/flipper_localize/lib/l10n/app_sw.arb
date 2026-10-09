@@ -8738,5 +8738,9 @@
   "booksExportSheetJournal": "Jarida",
   "booksExportReady": "Usafirishaji uko tayari",
   "booksExportGeneratedAt": "Imetolewa {date}",
-  "booksExportPageOf": "Ukurasa {page} wa {total}"
+  "booksExportPageOf": "Ukurasa {page} wa {total}",
+  "hotelNoRoomChargeTitle": "Hakuna gharama ya chumba kwenye bili hii",
+  "hotelNoRoomChargeBody": "Weka {nights} kwa {rate} ({amount}) kabla ya kuondoka? Bila hivyo, ukaaji huu haurekodiwi kama mauzo.",
+  "hotelPostAndContinue": "Weka na uendelee",
+  "hotelCheckOutWithoutRoomCharge": "Ondoka bila gharama ya chumba"
 }

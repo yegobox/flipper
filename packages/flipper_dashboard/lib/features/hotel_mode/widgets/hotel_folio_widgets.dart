@@ -601,3 +601,153 @@ class _HotelCheckOutDialogState extends State<HotelCheckOutDialog> {
     );
   }
 }
+
+/// What the desk chose when a folio reached checkout with no room charge.
+enum HotelMissingRoomChargeChoice { post, skip }
+
+/// Shown before payment when the folio bills no room nights.
+///
+/// Settling it as is records the stay as no sale at all, which is how a sold
+/// room ends up missing from the reports. Skipping stays possible — a
+/// complimentary night, or an EBM branch whose room has no RRA item yet.
+class HotelMissingRoomChargeDialog extends StatelessWidget {
+  const HotelMissingRoomChargeDialog({super.key, required this.stay});
+
+  final HotelStay stay;
+
+  static Future<HotelMissingRoomChargeChoice?> show(
+    BuildContext context, {
+    required HotelStay stay,
+  }) {
+    return showDialog<HotelMissingRoomChargeChoice>(
+      context: context,
+      builder: (_) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 420),
+          child: HotelMissingRoomChargeDialog(stay: stay),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
+    final amount = stay.nightlyRate * stay.nights;
+    return Container(
+      padding: const EdgeInsets.fromLTRB(22, 20, 22, 22),
+      decoration: const BoxDecoration(
+        color: HotelTokens.surface,
+        borderRadius: BorderRadius.all(
+          Radius.circular(HotelTokens.mobileSheetRadius),
+        ),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            l10n.hotelNoRoomChargeTitle,
+            style: GoogleFonts.outfit(
+              fontSize: 19,
+              fontWeight: FontWeight.w800,
+              color: HotelTokens.ink1,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            l10n.hotelNoRoomChargeBody(
+              l10n.hotelNightsCount(stay.nights),
+              hotelMoney(stay.nightlyRate.round()),
+              hotelMoney(amount.round()),
+            ),
+            style: GoogleFonts.outfit(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: HotelTokens.ink2,
+            ),
+          ),
+          const SizedBox(height: 18),
+          DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: HotelTokens.gradBtn,
+              borderRadius: BorderRadius.circular(HotelTokens.radiusMd),
+            ),
+            child: TextButton(
+              key: const ValueKey('hotel-missing-room-charge-post'),
+              onPressed: () =>
+                  Navigator.of(context).pop(HotelMissingRoomChargeChoice.post),
+              style: TextButton.styleFrom(
+                minimumSize: const Size.fromHeight(
+                  HotelTokens.mobilePrimaryButtonHeight,
+                ),
+              ),
+              child: Text(
+                l10n.hotelPostAndContinue,
+                style: GoogleFonts.outfit(
+                  fontSize: 15.5,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(
+                child: TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  style: TextButton.styleFrom(
+                    minimumSize: const Size.fromHeight(
+                      HotelTokens.mobilePrimaryButtonHeight,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(HotelTokens.radiusMd),
+                      side: const BorderSide(
+                        color: HotelTokens.line,
+                        width: 1.5,
+                      ),
+                    ),
+                  ),
+                  child: Text(
+                    l10n.cancel,
+                    style: GoogleFonts.outfit(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: HotelTokens.ink2,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: TextButton(
+                  key: const ValueKey('hotel-missing-room-charge-skip'),
+                  onPressed: () => Navigator.of(
+                    context,
+                  ).pop(HotelMissingRoomChargeChoice.skip),
+                  style: TextButton.styleFrom(
+                    minimumSize: const Size.fromHeight(
+                      HotelTokens.mobilePrimaryButtonHeight,
+                    ),
+                  ),
+                  child: Text(
+                    l10n.hotelCheckOutWithoutRoomCharge,
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.outfit(
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w600,
+                      color: HotelTokens.ink3,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}

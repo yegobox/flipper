@@ -1,5 +1,6 @@
 import 'package:flipper_models/models/hotel_room.dart';
 import 'package:flipper_models/models/hotel_stay.dart';
+import 'package:flipper_models/sync/utils/ditto_transaction_line.dart';
 import 'package:flipper_models/sync/utils/hotel_mode_utils.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -102,6 +103,40 @@ void main() {
     });
   });
 
+  group('hotelFolioHasRoomCharge', () {
+    final stay = _stay();
+    lineNamed(String name) =>
+        transactionLineFromDitto({'_id': name, 'name': name, 'qty': 1})!;
+
+    test('a folio of extras only has no room charge', () {
+      expect(hotelFolioHasRoomCharge(stay, const []), isFalse);
+      expect(
+        hotelFolioHasRoomCharge(stay, [
+          lineNamed('Primus'),
+          lineNamed('Fanta'),
+        ]),
+        isFalse,
+      );
+    });
+
+    test('the posted room line is recognised whatever its night count', () {
+      for (final nights in [1, 3]) {
+        final line = lineNamed(
+          hotelRoomChargeName(roomName: stay.roomName, nights: nights),
+        );
+        expect(
+          hotelFolioHasRoomCharge(stay, [lineNamed('Primus'), line]),
+          isTrue,
+        );
+      }
+    });
+
+    test('another room\'s charge does not count', () {
+      final other = lineNamed(hotelRoomChargeName(roomName: '1012', nights: 1));
+      expect(hotelFolioHasRoomCharge(stay, [other]), isFalse);
+    });
+  });
+
   group('nights', () {
     test('a same-day stay still bills one night', () {
       final stay = _stay(
@@ -118,6 +153,34 @@ void main() {
           DateTime.utc(2026, 1, 12, 11),
         ),
         2,
+      );
+    });
+
+    test('an early walk-in for one night is billed one night', () {
+      // 09:00 to 11:00 the next day is 26 hours; it used to bill ceil(26/24) = 2.
+      final stay = _stay(
+        checkIn: DateTime(2026, 1, 10, 9),
+        checkOut: DateTime(2026, 1, 11, 11),
+      );
+      expect(stay.nights, 1);
+    });
+
+    test('a reservation guest arriving early keeps the booked nights', () {
+      // checkInReservation resets checkInAt to the real arrival time.
+      final stay = _stay(
+        checkIn: DateTime(2026, 1, 10, 7, 30),
+        checkOut: DateTime(2026, 1, 12, 11),
+      );
+      expect(stay.nights, 2);
+    });
+
+    test('a late departure past checkout hour adds no night', () {
+      expect(
+        hotelNightsBetween(
+          DateTime(2026, 1, 10, 20),
+          DateTime(2026, 1, 11, 15),
+        ),
+        1,
       );
     });
   });
@@ -143,29 +206,35 @@ void main() {
   });
 
   group('occupancy', () {
-    test('counts each room exactly once and excludes blocked from the rate', () {
-      final rooms = [
-        _room(id: 'r1', name: '101'),
-        _room(id: 'r2', name: '102'),
-        _room(id: 'r3', name: '103', housekeeping: HotelHousekeeping.dirty),
-        _room(
-          id: 'r4',
-          name: '104',
-          housekeeping: HotelHousekeeping.outOfOrder,
-        ),
-      ];
-      final stays = [_stay(roomId: 'r1')];
+    test(
+      'counts each room exactly once and excludes blocked from the rate',
+      () {
+        final rooms = [
+          _room(id: 'r1', name: '101'),
+          _room(id: 'r2', name: '102'),
+          _room(id: 'r3', name: '103', housekeeping: HotelHousekeeping.dirty),
+          _room(
+            id: 'r4',
+            name: '104',
+            housekeeping: HotelHousekeeping.outOfOrder,
+          ),
+        ];
+        final stays = [_stay(roomId: 'r1')];
 
-      final counts = hotelOccupancy(rooms: rooms, stays: stays);
-      expect(counts.total, 4);
-      expect(counts.occupied, 1);
-      expect(counts.vacant, 1);
-      expect(counts.dirty, 1);
-      expect(counts.blocked, 1);
+        final counts = hotelOccupancy(rooms: rooms, stays: stays);
+        expect(counts.total, 4);
+        expect(counts.occupied, 1);
+        expect(counts.vacant, 1);
+        expect(counts.dirty, 1);
+        expect(counts.blocked, 1);
 
-      // 1 occupied of 3 sellable rooms.
-      expect(hotelOccupancyRate(rooms: rooms, stays: stays), closeTo(1 / 3, 1e-9));
-    });
+        // 1 occupied of 3 sellable rooms.
+        expect(
+          hotelOccupancyRate(rooms: rooms, stays: stays),
+          closeTo(1 / 3, 1e-9),
+        );
+      },
+    );
 
     test('rate is zero when nothing is sellable', () {
       final rooms = [
@@ -252,10 +321,7 @@ void main() {
         ),
       ];
 
-      expect(
-        hotelChargeableStays(stays).map((s) => s.id),
-        ['s1'],
-      );
+      expect(hotelChargeableStays(stays).map((s) => s.id), ['s1']);
     });
 
     test('rooms are ordered the way the desk reads them', () {
@@ -265,10 +331,11 @@ void main() {
         _chargeable(id: 'c', roomName: '104'),
       ];
 
-      expect(
-        hotelChargeableStays(stays).map((s) => s.roomName),
-        ['9', '10', '104'],
-      );
+      expect(hotelChargeableStays(stays).map((s) => s.roomName), [
+        '9',
+        '10',
+        '104',
+      ]);
     });
   });
 

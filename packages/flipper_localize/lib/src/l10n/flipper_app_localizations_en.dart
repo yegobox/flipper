@@ -25509,4 +25509,18 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
   String booksExportPageOf(String page, String total) {
     return 'Page $page of $total';
   }
+
+  @override
+  String get hotelNoRoomChargeTitle => 'No room charge on this folio';
+
+  @override
+  String hotelNoRoomChargeBody(String nights, String rate, String amount) {
+    return 'Post $nights at $rate ($amount) before checking out? Without it, this stay is not recorded as a sale.';
+  }
+
+  @override
+  String get hotelPostAndContinue => 'Post & continue';
+
+  @override
+  String get hotelCheckOutWithoutRoomCharge => 'Check out without it';
 }

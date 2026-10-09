@@ -25678,4 +25678,19 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   String booksExportPageOf(String page, String total) {
     return 'Ukurasa $page wa $total';
   }
+
+  @override
+  String get hotelNoRoomChargeTitle =>
+      'Hakuna gharama ya chumba kwenye bili hii';
+
+  @override
+  String hotelNoRoomChargeBody(String nights, String rate, String amount) {
+    return 'Weka $nights kwa $rate ($amount) kabla ya kuondoka? Bila hivyo, ukaaji huu haurekodiwi kama mauzo.';
+  }
+
+  @override
+  String get hotelPostAndContinue => 'Weka na uendelee';
+
+  @override
+  String get hotelCheckOutWithoutRoomCharge => 'Ondoka bila gharama ya chumba';
 }

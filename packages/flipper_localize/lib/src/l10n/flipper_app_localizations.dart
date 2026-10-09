@@ -42646,6 +42646,30 @@ abstract class FlipperAppLocalizations {
   /// In en, this message translates to:
   /// **'Page {page} of {total}'**
   String booksExportPageOf(String page, String total);
+
+  /// No description provided for @hotelNoRoomChargeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No room charge on this folio'**
+  String get hotelNoRoomChargeTitle;
+
+  /// No description provided for @hotelNoRoomChargeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Post {nights} at {rate} ({amount}) before checking out? Without it, this stay is not recorded as a sale.'**
+  String hotelNoRoomChargeBody(String nights, String rate, String amount);
+
+  /// No description provided for @hotelPostAndContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Post & continue'**
+  String get hotelPostAndContinue;
+
+  /// No description provided for @hotelCheckOutWithoutRoomCharge.
+  ///
+  /// In en, this message translates to:
+  /// **'Check out without it'**
+  String get hotelCheckOutWithoutRoomCharge;
 }
 
 class _FlipperAppLocalizationsDelegate

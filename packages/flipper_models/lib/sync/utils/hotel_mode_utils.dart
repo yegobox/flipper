@@ -74,7 +74,8 @@ HotelStay? hotelStayForRoom(HotelRoom room, Iterable<HotelStay> stays) {
 }
 
 /// Σ price × qty across folio lines.
-double hotelFolioTotal(Iterable<TransactionItem> lines) => ticketLineTotal(lines);
+double hotelFolioTotal(Iterable<TransactionItem> lines) =>
+    ticketLineTotal(lines);
 
 /// Σ qty across folio lines.
 int hotelFolioItemCount(Iterable<TransactionItem> lines) =>
@@ -91,8 +92,7 @@ int hotelFolioItemCount(Iterable<TransactionItem> lines) =>
 /// tab needs it identically — so the logic lives in [ticketTaxBreakdown].
 ({double subtotal, double tax, double total}) hotelFolioTaxBreakdown(
   Iterable<TransactionItem> lines,
-) =>
-    ticketTaxBreakdown(lines);
+) => ticketTaxBreakdown(lines);
 
 /// Parses a Ditto `transaction_items` row for folios.
 TransactionItem? hotelFolioLineFromDitto(Map<String, dynamic> data) =>
@@ -101,14 +101,11 @@ TransactionItem? hotelFolioLineFromDitto(Map<String, dynamic> data) =>
 /// Fills RRA-required fields on folio lines before invoicing.
 Future<List<TransactionItem>> enrichHotelFolioLinesForRraReceipt(
   List<TransactionItem> lines,
-) =>
-    enrichLinesForRraReceipt(lines, context: 'folio invoice');
+) => enrichLinesForRraReceipt(lines, context: 'folio invoice');
 
 /// Billable nights between two instants, floor-clamped to 1.
-int hotelNightsBetween(DateTime checkIn, DateTime checkOut) {
-  final nights = (checkOut.difference(checkIn).inHours / 24).ceil();
-  return nights < 1 ? 1 : nights;
-}
+int hotelNightsBetween(DateTime checkIn, DateTime checkOut) =>
+    hotelCalendarNights(checkIn, checkOut);
 
 /// Departure defaulted to house checkout time [checkOutHour], [nights] later.
 DateTime hotelDefaultCheckOut({
@@ -130,6 +127,17 @@ DateTime hotelDefaultCheckOut({
 String hotelRoomChargeName({required String roomName, required int nights}) =>
     'Room $roomName · $nights night${nights == 1 ? '' : 's'}';
 
+/// Whether [lines] already bill [stay]'s room nights.
+///
+/// Checked before settling: a folio settled without one leaves the room
+/// unsold — a zero folio never reaches the sales report. Matched on the
+/// description [hotelRoomChargeName] gives every room-charge line, fiscalised
+/// or not, so a line whose qty the clerk edited still counts.
+bool hotelFolioHasRoomCharge(HotelStay stay, Iterable<TransactionItem> lines) {
+  final prefix = 'Room ${stay.roomName} · ';
+  return lines.any((line) => line.name.startsWith(prefix));
+}
+
 /// Whether a stay's departure has already passed (due out / overstay).
 bool hotelStayIsDue(HotelStay stay, {DateTime? now}) {
   final at = now ?? DateTime.now().toUtc();
@@ -148,7 +156,10 @@ hotelOccupancy({
 
   for (final room in rooms) {
     total++;
-    switch (hotelRoomState(room: room, stay: hotelStayForRoom(room, staysList))) {
+    switch (hotelRoomState(
+      room: room,
+      stay: hotelStayForRoom(room, staysList),
+    )) {
       case HotelRoomState.occupied:
         occupied++;
       case HotelRoomState.vacant:
@@ -340,10 +351,7 @@ bool hotelQuotationCanConvert(HotelQuotation quotation, {DateTime? now}) {
   }
 }
 
-String hotelQuotationStatusLabel(
-  HotelQuotation quotation, {
-  DateTime? now,
-}) {
+String hotelQuotationStatusLabel(HotelQuotation quotation, {DateTime? now}) {
   if (hotelQuotationIsExpired(quotation, now: now)) return 'Expired';
   switch (quotation.status) {
     case HotelQuotationStatus.draft:

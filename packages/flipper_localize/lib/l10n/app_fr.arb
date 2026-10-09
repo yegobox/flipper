@@ -7145,5 +7145,9 @@
     "booksExportSheetJournal": "Journal",
     "booksExportReady": "Export prêt",
     "booksExportGeneratedAt": "Généré le {date}",
-    "booksExportPageOf": "Page {page} sur {total}"
+    "booksExportPageOf": "Page {page} sur {total}",
+  "hotelNoRoomChargeTitle": "Aucun frais de chambre sur ce folio",
+  "hotelNoRoomChargeBody": "Enregistrer {nights} à {rate} ({amount}) avant le départ ? Sans cela, ce séjour n'est pas enregistré comme une vente.",
+  "hotelPostAndContinue": "Enregistrer et continuer",
+  "hotelCheckOutWithoutRoomCharge": "Départ sans frais de chambre"
 }

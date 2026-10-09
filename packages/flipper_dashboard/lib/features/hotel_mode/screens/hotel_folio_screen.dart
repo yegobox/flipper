@@ -344,8 +344,33 @@ class _HotelFolioBody extends ConsumerWidget {
       return;
     }
 
+    // A folio with no room nights settles as no sale at all: the room was
+    // sold but never shows in the reports. Offer to post them first.
+    var amountDue = total;
+    final lines = await HotelDeskActions.folioLines(stay);
+    if (!hotelFolioHasRoomCharge(stay, lines)) {
+      if (!context.mounted) return;
+      final choice = await HotelMissingRoomChargeDialog.show(
+        context,
+        stay: stay,
+      );
+      if (choice == null) return;
+      if (choice == HotelMissingRoomChargeChoice.post) {
+        if (clerk == null) return;
+        await HotelDeskActions.postRoomCharge(
+          ref: ref,
+          stay: stay,
+          clerk: clerk,
+        );
+        final posted = await HotelDeskActions.folioLines(stay);
+        // Posting failed and the desk was already told why (toast).
+        if (!hotelFolioHasRoomCharge(stay, posted)) return;
+        amountDue = hotelFolioTotal(posted);
+      }
+    }
+
     if (!context.mounted) return;
-    final result = await HotelCheckOutDialog.show(context, total: total);
+    final result = await HotelCheckOutDialog.show(context, total: amountDue);
     if (result == null) return;
 
     // Re-checked after the dialog: it is awaited, so another tap could have

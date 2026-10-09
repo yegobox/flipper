@@ -104,8 +104,10 @@ bool _isSameDay(DateTime a, DateTime b) =>
 
 /// Computes the manager dashboard in a single pass over the branch's data.
 ///
-/// [folios] are the open (PARKED) transactions behind in-house stays; pass an
-/// empty list and every money figure simply reads zero.
+/// [folios] are the branch's open (PARKED) transactions; only those an
+/// in-house stay points at (`HotelStay.transactionId`) count. Bar tabs and POS
+/// parked tickets are PARKED too, and are not front-desk money. Pass an empty
+/// list and every money figure simply reads zero.
 HotelDeskMetrics hotelDeskMetrics({
   required Iterable<HotelRoom> rooms,
   required Iterable<HotelStay> stays,
@@ -162,9 +164,15 @@ HotelDeskMetrics hotelDeskMetrics({
   final adr = inHouseCount == 0 ? 0.0 : rateSum / inHouseCount;
   final revPar = sellable <= 0 ? 0.0 : rateSum / sellable;
 
+  final stayFolioIds = <String>{
+    for (final stay in stayList)
+      if (stay.status == HotelStayStatus.inHouse && stay.hasFolio)
+        stay.transactionId,
+  };
   var openFolioValue = 0.0;
   var openFolioCount = 0;
   for (final folio in folios) {
+    if (!stayFolioIds.contains(folio.id)) continue;
     openFolioCount++;
     openFolioValue += (folio.subTotal ?? 0).toDouble();
   }

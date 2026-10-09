@@ -49,7 +49,8 @@ HotelStay _stay({
   status: status,
 );
 
-ITransaction _folio(double subTotal) => ITransaction(
+ITransaction _folio(double subTotal, {String? id}) => ITransaction(
+  id: id,
   branchId: 'b1',
   status: 'parked',
   transactionType: 'sale',
@@ -65,17 +66,14 @@ ITransaction _folio(double subTotal) => ITransaction(
 
 /// Built the way production reads them — straight off a Ditto document — so
 /// the helper cannot drift from the model's constructor.
-TransactionItem _line({
-  required num qty,
-  required num price,
-  num? taxAmt,
-}) => transactionLineFromDitto({
-  '_id': 'l${qty}_$price',
-  'name': 'line',
-  'qty': '$qty',
-  'price': '$price',
-  if (taxAmt != null) 'taxAmt': '$taxAmt',
-})!;
+TransactionItem _line({required num qty, required num price, num? taxAmt}) =>
+    transactionLineFromDitto({
+      '_id': 'l${qty}_$price',
+      'name': 'line',
+      'qty': '$qty',
+      'price': '$price',
+      if (taxAmt != null) 'taxAmt': '$taxAmt',
+    })!;
 
 void main() {
   group('folio tax', () {
@@ -123,7 +121,6 @@ void main() {
     });
   });
 
-
   group('room counts and occupancy', () {
     test('occupancy is measured against sellable rooms, not all rooms', () {
       // 4 rooms, one blocked. One guest in house => 1 of 3 sellable.
@@ -167,7 +164,10 @@ void main() {
   group('arrivals and departures', () {
     test('counts reservations arriving today', () {
       final m = hotelDeskMetrics(
-        rooms: [_room(id: 'r1'), _room(id: 'r2')],
+        rooms: [
+          _room(id: 'r1'),
+          _room(id: 'r2'),
+        ],
         stays: [
           _stay(
             id: 's1',
@@ -209,18 +209,13 @@ void main() {
 
     test('counts in-house stays leaving today', () {
       final m = hotelDeskMetrics(
-        rooms: [_room(id: 'r1'), _room(id: 'r2')],
+        rooms: [
+          _room(id: 'r1'),
+          _room(id: 'r2'),
+        ],
         stays: [
-          _stay(
-            id: 's1',
-            roomId: 'r1',
-            checkOut: DateTime(2026, 1, 10, 11),
-          ),
-          _stay(
-            id: 's2',
-            roomId: 'r2',
-            checkOut: DateTime(2026, 1, 14, 11),
-          ),
+          _stay(id: 's1', roomId: 'r1', checkOut: DateTime(2026, 1, 10, 11)),
+          _stay(id: 's2', roomId: 'r2', checkOut: DateTime(2026, 1, 14, 11)),
         ],
         now: _now,
       );
@@ -257,7 +252,12 @@ void main() {
   group('revenue', () {
     test('ADR averages in-house rates, RevPAR spreads over sellable rooms', () {
       final m = hotelDeskMetrics(
-        rooms: [_room(id: 'r1'), _room(id: 'r2'), _room(id: 'r3'), _room(id: 'r4')],
+        rooms: [
+          _room(id: 'r1'),
+          _room(id: 'r2'),
+          _room(id: 'r3'),
+          _room(id: 'r4'),
+        ],
         stays: [
           _stay(id: 's1', roomId: 'r1', rate: 60000),
           _stay(id: 's2', roomId: 'r2', rate: 40000),
@@ -289,20 +289,45 @@ void main() {
 
     test('open folios total into pending payments', () {
       final m = hotelDeskMetrics(
-        rooms: [_room(id: 'r1')],
-        stays: [_stay(id: 's1', roomId: 'r1')],
-        folios: [_folio(120000), _folio(45000)],
+        rooms: [
+          _room(id: 'r1'),
+          _room(id: 'r2'),
+        ],
+        stays: [
+          _stay(id: 's1', roomId: 'r1'),
+          _stay(id: 's2', roomId: 'r2'),
+        ],
+        folios: [
+          _folio(120000, id: 't_s1'),
+          _folio(45000, id: 't_s2'),
+        ],
         now: _now,
       );
       expect(m.openFolioCount, 2);
       expect(m.openFolioValue, 165000);
     });
 
+    test('parked tickets no stay points at are not front-desk money', () {
+      // A bar tab and a POS parked ticket are PARKED as well.
+      final m = hotelDeskMetrics(
+        rooms: [_room(id: 'r1')],
+        stays: [_stay(id: 's1', roomId: 'r1')],
+        folios: [
+          _folio(120000, id: 't_s1'),
+          _folio(2000, id: 'bar_tab'),
+          _folio(1500, id: 'pos_ticket'),
+        ],
+        now: _now,
+      );
+      expect(m.openFolioCount, 1);
+      expect(m.openFolioValue, 120000);
+    });
+
     test('a folio with no subtotal yet contributes nothing', () {
       final m = hotelDeskMetrics(
         rooms: [_room(id: 'r1')],
-        stays: const [],
-        folios: [_folio(0)],
+        stays: [_stay(id: 's1', roomId: 'r1')],
+        folios: [_folio(0, id: 't_s1')],
         now: _now,
       );
       expect(m.openFolioValue, 0);
@@ -313,7 +338,10 @@ void main() {
   group('guests', () {
     test('counts adults and children in house', () {
       final m = hotelDeskMetrics(
-        rooms: [_room(id: 'r1'), _room(id: 'r2')],
+        rooms: [
+          _room(id: 'r1'),
+          _room(id: 'r2'),
+        ],
         stays: [
           _stay(id: 's1', roomId: 'r1', adults: 2, children: 1),
           _stay(id: 's2', roomId: 'r2', adults: 1),
