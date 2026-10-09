@@ -3,11 +3,13 @@ import 'dart:async';
 import 'package:flipper_dashboard/export/export_import.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/export/export_purchase.dart';
+import 'package:flipper_dashboard/manual_purchase/manual_purchase_legacy_repair.dart';
 import 'package:flipper_dashboard/manual_purchase/manual_purchase_stock_in.dart';
 import 'package:flipper_models/ebm_helper.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/imports_purchases_client.dart';
 import 'package:flipper_models/imports_purchases_map.dart';
+import 'package:flipper_models/providers/outer_variant_provider.dart';
 import 'package:flipper_models/services/pos_purchase_journal_poster.dart';
 import 'package:flipper_models/services/purchase_approval_deps.dart';
 import 'package:flipper_models/services/purchase_expense_recorder.dart';
@@ -112,6 +114,8 @@ class ImportPurchaseViewModel extends StateNotifier<ImportPurchaseState> {
           purchaseStatusFilter,
         );
         if (!mounted) return;
+        await _repairLegacyLinesOnce(branchId);
+        if (!mounted) return;
         final manual = await ManualPurchaseDitto.listForBranch(
           branchId,
           statusFilter: purchaseStatusFilter,
@@ -123,6 +127,54 @@ class ImportPurchaseViewModel extends StateNotifier<ImportPurchaseState> {
     } catch (e, s) {
       talker.error('Failed to load import/purchase list', e, s);
       _patchState((s) => s.copyWith(isLoading: false, error: e.toString()));
+    }
+  }
+
+  /// Per branch: null while the legacy line repair runs, then the stock rows
+  /// its last complete run settled. A branch missing here is not checked yet.
+  static final _legacyLines = <String, List<String>?>{};
+
+  /// Old builds left approved manual purchase lines selling as products of
+  /// their own; fold them into the real products. The full repair runs once
+  /// per branch per session; later loads only re-read the stock rows it
+  /// settled, and run it again when a sync put one off zero (another device
+  /// moved the same line). A branch stays claimed while either runs, so a
+  /// second load skips it. Ditto not open yet, a throw or a line left to
+  /// retry releases it for the next load. Never blocks the list: a failure is
+  /// logged and the list still loads.
+  Future<void> _repairLegacyLinesOnce(String branchId) async {
+    final settled = _legacyLines[branchId];
+    if (_legacyLines.containsKey(branchId) && settled == null) return;
+    _legacyLines[branchId] = null;
+    List<String>? keep;
+    try {
+      if (settled != null && !await legacyLineBalancesDrifted(settled)) {
+        keep = settled;
+        return;
+      }
+      final result = await repairLegacyManualPurchaseLines(branchId: branchId);
+      if (result.complete) keep = result.settledStockIds;
+      if (result.changedCatalog) {
+        talker.info(
+          'Legacy purchase lines: ${result.merged} merged into products, '
+          '${result.rebalanced} rebalanced, ${result.retired} retired',
+        );
+        // The grids still hold the old lines; reload them from Ditto.
+        for (final catalog in [
+          outerVariantsProvider(branchId),
+          ...posStockFilteredCatalogs(branchId),
+        ]) {
+          _ref.invalidate(catalog);
+        }
+      }
+    } catch (e, s) {
+      talker.error('Legacy purchase line repair failed', e, s);
+    } finally {
+      if (keep == null) {
+        _legacyLines.remove(branchId);
+      } else {
+        _legacyLines[branchId] = keep;
+      }
     }
   }
 

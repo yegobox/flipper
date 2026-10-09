@@ -312,6 +312,215 @@ abstract final class ManualPurchaseDitto {
     await _upsertVariant(line, extra: {targetVariantIdField: targetVariantId});
   }
 
+  /// Set on a legacy line once the repair has handled it (see
+  /// [legacyLinesOnStore]). Later runs re-check these lines' stock, which is
+  /// what corrects a move two offline devices both made.
+  static const String legacyRepairedField = 'legacyRepaired';
+
+  /// The legacy-line DQL, public so a real-store test runs these exact
+  /// strings (see `manual_purchase_legacy_ditto_test.dart`).
+  static const manualPurchaseIdsDql =
+      'SELECT * FROM purchases WHERE branchId = :branchId AND regTyCd = :regTyCd';
+  // Bound as a bare array: `IN (:ids)` silently matches nothing in DQL.
+  static const legacyLinesDql =
+      'SELECT * FROM variants WHERE purchaseId IN :ids AND pchsSttsCd = :approved';
+  static const repairedLegacyLinesDql =
+      'SELECT * FROM variants WHERE purchaseId IN :ids '
+      'AND $legacyRepairedField = :repaired';
+  static const retireLegacyLineDql =
+      'UPDATE variants SET pchsSttsCd = :record, lastTouched = :now, '
+      '$legacyRepairedField = :repaired WHERE _id = :id';
+  static const mergeLegacyLineDql =
+      'UPDATE variants SET pchsSttsCd = :record, lastTouched = :now, '
+      '$legacyRepairedField = :repaired, $targetVariantIdField = :target '
+      'WHERE _id = :id';
+
+  static bool get isReady => _dittoService.dittoInstance != null;
+
+  /// Manual purchase lines approved before stock-in existed (#710): those
+  /// builds set every line to `'02'` and gave it its own stock, so the line
+  /// sells as a product of its own. RRA purchase lines also use `'02'`, so
+  /// only lines of `regTyCd 'M'` purchases count. Lines the repair already
+  /// handled come back too, flagged [LegacyPurchaseLine.repaired].
+  static Future<List<LegacyPurchaseLine>> legacyLines(String branchId) =>
+      legacyLinesOnStore(_dittoOrThrow().store, branchId);
+
+  static Future<List<LegacyPurchaseLine>> legacyLinesOnStore(
+    dynamic store,
+    String branchId,
+  ) async {
+    final purchases = await store.execute(
+      manualPurchaseIdsDql,
+      arguments: {'branchId': branchId, 'regTyCd': 'M'},
+    );
+    final ids = [
+      for (final item in purchases.items)
+        '${item.value['_id'] ?? item.value['id'] ?? ''}',
+    ].where((id) => id.isNotEmpty).toList();
+    if (ids.isEmpty) return [];
+
+    // Two queries rather than an OR: a line without the flag must not depend
+    // on how DQL folds a missing field into a boolean.
+    final approved = await store.execute(
+      legacyLinesDql,
+      arguments: {'ids': ids, 'approved': '02'},
+    );
+    final repaired = await store.execute(
+      repairedLegacyLinesDql,
+      arguments: {'ids': ids, 'repaired': true},
+    );
+    final byId = <String, LegacyPurchaseLine>{};
+    for (final (result, wasRepaired) in [(approved, false), (repaired, true)]) {
+      for (final item in result.items) {
+        final raw = Map<String, dynamic>.from(item.value);
+        final line = variantFromApiJson(raw);
+        final target = '${raw[targetVariantIdField] ?? ''}';
+        byId[line.id] = LegacyPurchaseLine(
+          line: line,
+          repaired: wasRepaired,
+          targetVariantId: target.isEmpty ? null : target,
+        );
+      }
+    }
+    return byId.values.toList();
+  }
+
+  /// On-hand of [stockId] (the COUNTER when it has one), or null when there
+  /// is no such stock row.
+  static Future<double?> stockOnHand(String stockId) =>
+      stockOnHandOnStore(_dittoOrThrow().store, stockId);
+
+  static Future<double?> stockOnHandOnStore(
+    dynamic store,
+    String stockId,
+  ) async {
+    final result = await store.execute(
+      stockSelectWithMilliDql(
+        whereClause: '_id = :stockId OR id = :stockId LIMIT 1',
+      ),
+      arguments: {'stockId': stockId},
+    );
+    if (result.items.isEmpty) return null;
+    final data = Map<String, dynamic>.from(result.items.first.value);
+    final milli = parseStockMilli(data[stockCurrentStockMilliField]);
+    if (milli != null) return fromMilli(milli);
+    final register = data['currentStock'];
+    return register is num ? register.toDouble() : 0;
+  }
+
+  /// Hides a legacy line that had no stock to move: a purchase record
+  /// (`'03'`). A field-level UPDATE, not an upsert: the line has been selling
+  /// as a product, and re-writing it from the parsed model would null every
+  /// field the purchase mapper does not read.
+  static Future<void> retireLegacyLine(String lineId) =>
+      retireLegacyLineOnStore(_dittoOrThrow().store, lineId);
+
+  static Future<void> retireLegacyLineOnStore(
+    dynamic store,
+    String lineId,
+  ) async {
+    await store.execute(
+      retireLegacyLineDql,
+      arguments: {
+        'record': '03',
+        'now': DateTime.now().toUtc().toIso8601String(),
+        'repaired': true,
+        'id': lineId,
+      },
+    );
+  }
+
+  /// Moves [qty] from a legacy line's stock to its catalog product's and
+  /// marks the line a purchase record pointing at [targetVariantId], with both
+  /// stock registers rewritten, in one local transaction: no crash can leave
+  /// the stock counted twice or lost.
+  ///
+  /// Both sides are COUNTER increments, which add up across devices. Two
+  /// offline devices moving the same line therefore leave it negative by the
+  /// extra amount, and the next run moves that back ([qty] may be negative).
+  static Future<void> moveLegacyLineStock({
+    required String lineId,
+    required String lineStockId,
+    required String targetVariantId,
+    required String targetStockId,
+    required double qty,
+  }) => moveLegacyLineStockOnStore(
+    _dittoOrThrow().store,
+    lineId: lineId,
+    lineStockId: lineStockId,
+    targetVariantId: targetVariantId,
+    targetStockId: targetStockId,
+    qty: qty,
+  );
+
+  static Future<void> moveLegacyLineStockOnStore(
+    dynamic store, {
+    required String lineId,
+    required String lineStockId,
+    required String targetVariantId,
+    required String targetStockId,
+    required double qty,
+  }) async {
+    for (final stockId in [lineStockId, targetStockId]) {
+      if (await stockOnHandOnStore(store, stockId) == null) {
+        throw StateError('Stock $stockId not found');
+      }
+      // Stocks written by old builds hold only the register: seed the
+      // counter from it, or the increment below would start from zero.
+      await seedStockMilliIfAbsentOnStore(store, stockId: stockId, qty: 0);
+    }
+    final delta = toMilli(qty);
+    await store.transaction((txn) async {
+      await txn.execute(
+        stockIncrementMilliDql(),
+        arguments: {'delta': -delta, 'stockId': lineStockId},
+      );
+      await txn.execute(
+        stockIncrementMilliDql(),
+        arguments: {'delta': delta, 'stockId': targetStockId},
+      );
+      await txn.execute(
+        mergeLegacyLineDql,
+        arguments: {
+          'record': '03',
+          'now': DateTime.now().toUtc().toIso8601String(),
+          'repaired': true,
+          'target': targetVariantId,
+          'id': lineId,
+        },
+      );
+      // Older builds read the register, not the counter. Written in the same
+      // transaction (which reads its own increments): a repaired line whose
+      // counter is settled is never moved again, so a register write that
+      // failed after the commit would stay stale.
+      for (final stockId in [lineStockId, targetStockId]) {
+        final onHand = await stockOnHandOnStore(txn, stockId) ?? 0;
+        await txn.execute(
+          stockDualWriteRegistersDql(),
+          arguments: {
+            'currentStock': onHand,
+            'rsdQty': onHand,
+            'stockId': stockId,
+          },
+        );
+      }
+    });
+  }
+
+  /// Every variant on [branchId], for matching a purchase line to the
+  /// catalog product it was bought for.
+  static Future<List<Variant>> branchVariants(String branchId) async {
+    final ditto = _dittoService.dittoInstance;
+    if (ditto == null) return [];
+    final result = await ditto.store.execute(
+      'SELECT * FROM variants WHERE branchId = :branchId',
+      arguments: {'branchId': branchId},
+    );
+    return result.items
+        .map((e) => variantFromApiJson(Map<String, dynamic>.from(e.value)))
+        .toList();
+  }
+
   /// Purchase header after every line was stocked in.
   static Future<void> markPurchaseApproved(Purchase purchase) async {
     purchase.hasUnApprovedVariant = false;
@@ -331,4 +540,21 @@ abstract final class ManualPurchaseDitto {
     purchase.hasUnApprovedVariant = pchsSttsCd == '01';
     await _upsertPurchase(purchase);
   }
+}
+
+/// A manual purchase line found by [ManualPurchaseDitto.legacyLines].
+class LegacyPurchaseLine {
+  const LegacyPurchaseLine({
+    required this.line,
+    required this.repaired,
+    this.targetVariantId,
+  });
+
+  final Variant line;
+
+  /// Already handled by an earlier repair run (now a `'03'` record).
+  final bool repaired;
+
+  /// The catalog variant an earlier run moved this line's stock to.
+  final String? targetVariantId;
 }
