@@ -4,6 +4,8 @@ import 'package:flipper_dashboard/widgets/dashboard_all_apps_sheet.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_web/features/login/signin_styles.dart';
 import 'package:flipper_web/features/module_launcher/app_launcher_host.dart';
+import 'package:flipper_web/modules/accounting/data/accounting_providers.dart';
+import 'package:flipper_web/modules/accounting/routing/accounting_route.dart';
 import 'package:flipper_web/modules/accounting/accounting_module.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -51,14 +53,35 @@ class _BooksModuleEntryState extends ConsumerState<BooksModuleEntry> {
           child: const AccountingModuleScreen(),
         );
         if (!mobile) return books;
-        return Scaffold(
-          appBar: CustomAppBar(
-            key: const Key('books-app-bar'),
-            title: context.flipperL10n.dashboardAppBooks,
-            icon: Icons.arrow_back,
-            onPop: () => Navigator.of(context).maybePop(),
+
+        // One header, following where you are: a report's name and "back to
+        // the list" inside a report, "Books" and "back to Flipper" elsewhere.
+        final tab = ref.watch(accountingMobileTabProvider);
+        final report = tab == AccountingMobileTab.reports
+            ? ref.watch(mobileReportProvider)
+            : null;
+        void closeReport() =>
+            ref.read(mobileReportProvider.notifier).state = null;
+
+        return PopScope(
+          // System back mirrors the header: out of a report first.
+          canPop: report == null,
+          onPopInvokedWithResult: (didPop, _) {
+            if (!didPop && report != null) closeReport();
+          },
+          child: Scaffold(
+            appBar: CustomAppBar(
+              key: const Key('books-app-bar'),
+              title: report == null
+                  ? context.flipperL10n.dashboardAppBooks
+                  : mobileReportTitle(report),
+              icon: Icons.arrow_back,
+              onPop: report == null
+                  ? () => Navigator.of(context).maybePop()
+                  : closeReport,
+            ),
+            body: books,
           ),
-          body: books,
         );
       },
     );

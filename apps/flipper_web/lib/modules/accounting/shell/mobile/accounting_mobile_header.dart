@@ -126,8 +126,14 @@ class AccountingMobileHeader extends ConsumerWidget {
                 Material(
                   color: Colors.transparent,
                   child: InkWell(
-                    onTap: () =>
-                        context.goNamed(AppRoute.businessSelection.name),
+                    // Inside the Flipper app there is no web router to send
+                    // this to, and the branch is chosen in Flipper itself —
+                    // so the card shows the business without offering a
+                    // switch, as HR does.
+                    onTap: hostHeader
+                        ? null
+                        : () =>
+                              context.goNamed(AppRoute.businessSelection.name),
                     borderRadius: BorderRadius.circular(10),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 2),
@@ -176,11 +182,12 @@ class AccountingMobileHeader extends ConsumerWidget {
                               ],
                             ),
                           ),
-                          const Icon(
-                            Icons.expand_more,
-                            color: AccountingTokens.ink4,
-                            size: 20,
-                          ),
+                          if (!hostHeader)
+                            const Icon(
+                              Icons.expand_more,
+                              color: AccountingTokens.ink4,
+                              size: 20,
+                            ),
                         ],
                       ),
                     ),

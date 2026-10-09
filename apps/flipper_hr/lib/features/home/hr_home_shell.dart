@@ -1,4 +1,5 @@
-import 'package:flipper_dashboard/customappbar.dart';
+import 'package:flipper_design_system/flipper_design_system.dart'
+    show CustomAppBar;
 import 'package:flipper_hr/features/billing/presentation/hr_billing_gate.dart';
 import 'package:flipper_hr/features/branding/hr_tokens.dart';
 import 'package:flipper_hr/features/home/hr_sidebar_state.dart';
@@ -33,7 +34,7 @@ class _HrHomeShellState extends ConsumerState<HrHomeShell> {
   bool _isSigningOut = false;
 
   // Breakpoint below which the sidebar collapses to a drawer.
-  static const double _sidebarBreakpoint = 840.0;
+  static const double _sidebarBreakpoint = hrSidebarBreakpoint;
 
   /// Typing in the topbar puts the term into the roster's own filter and opens
   /// it — one search box, one result list, no second implementation to keep in
@@ -109,11 +110,13 @@ class _HrHomeShellState extends ConsumerState<HrHomeShell> {
 
     // ── Narrow: drawer + bottom nav ──────────────────────────────────────────
     final host = ref.watch(hrHostProvider);
+    // On a phone every back button is Flipper's CustomAppBar: always inside
+    // the mobile app, and on the web for a detail page, where there is a
+    // level to go back up to. A top-level web page keeps the brand bar.
+    final mobileHeader = host.isEmbedded || hrParentPath(location) != null;
     return Scaffold(
       backgroundColor: HrTokens.workspaceBg,
-      // Inside the mobile app HR is one of Flipper's screens, so it wears
-      // Flipper's header: the round back button and the page's name.
-      appBar: host.isEmbedded
+      appBar: mobileHeader
           ? CustomAppBar(
               key: const Key('hr-embedded-app-bar'),
               title: hrTitleFor(destinations, location),
@@ -1075,6 +1078,9 @@ List<HrNavGroup> hrNavGroups(List<HrDestination> destinations) {
 }
 
 /// The modules this session may open, in nav order.
+/// Below this width the shell is a phone layout: no sidebar, a header bar.
+const double hrSidebarBreakpoint = 840;
+
 /// The name of the page at [location]: its destination's label, or the
 /// module's name where no destination matches.
 String hrTitleFor(List<HrDestination> destinations, String location) {

@@ -13,12 +13,17 @@ class AccountingMobileShell extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final AccountingMobileTab tab = ref.watch(accountingMobileTabProvider);
+    // A report's detail is its own screen: its CustomAppBar replaces the
+    // Books header rather than stacking under it.
+    final inReport =
+        tab == AccountingMobileTab.reports &&
+        ref.watch(mobileReportProvider) != null;
 
     return Scaffold(
       backgroundColor: AccountingTokens.workspaceBg,
       body: Column(
         children: [
-          const AccountingMobileHeader(),
+          if (!inReport) const AccountingMobileHeader(),
           Expanded(
             child: switch (tab) {
               AccountingMobileTab.snapshot => const AccountingSnapshotTab(),

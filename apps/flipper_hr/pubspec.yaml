@@ -18,8 +18,6 @@ dependencies:
   # business/branch selection so one account works in both apps.
   flipper_web: any
   flipper_analytics: any
-  # CustomAppBar: inside the mobile app HR's header is Flipper's own.
-  flipper_dashboard: any
   # The worldwide country/dial-code table the people form validates phone
   # numbers against (helperModels/signup_countries.dart).
   flipper_models: any

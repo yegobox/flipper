@@ -11,6 +11,8 @@ dependencies:
   flutter:
     sdk: flutter
   google_fonts: ^6.1.0
+  # CustomAppBar's default action label.
+  flipper_localize: ^1.0.0-dev
 
 dev_dependencies:
   flutter_test:

@@ -1,4 +1,4 @@
-import 'package:flipper_dashboard/customappbar.dart';
+import 'package:flipper_design_system/flipper_design_system.dart';
 import 'package:flipper_hr/features/billing/application/hr_billing_providers.dart';
 import 'package:flipper_hr/features/home/hr_home_shell.dart';
 import 'package:flipper_hr/features/leave/data/leave_providers.dart';

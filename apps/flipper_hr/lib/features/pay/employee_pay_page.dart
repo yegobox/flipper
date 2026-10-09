@@ -1,3 +1,4 @@
+import 'package:flipper_hr/features/home/hr_home_shell.dart';
 import 'package:flipper_hr/features/host/hr_host.dart';
 import 'package:flipper_hr/features/pay/data/pay_models.dart';
 import 'package:flipper_hr/features/pay/data/pay_period.dart';
@@ -69,8 +70,11 @@ class EmployeePayPage extends ConsumerWidget {
       account: account,
       requests: b.requests,
       canManage: true,
-      // Inside the mobile app the header's back button does this.
-      onBack: ref.watch(hrHostProvider).isEmbedded
+      // On a phone the CustomAppBar's back button does this; the link is for
+      // the desktop layout, which has no header back.
+      onBack:
+          ref.watch(hrHostProvider).isEmbedded ||
+              MediaQuery.sizeOf(context).width < hrSidebarBreakpoint
           ? null
           : () => context.go('/pay'),
     );
