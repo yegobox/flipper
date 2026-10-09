@@ -77,6 +77,32 @@ void main() {
     );
   });
 
+  testWidgets('dashboardAllAppsCatalog has no duplicate destinations', (
+    tester,
+  ) async {
+    late List<DashboardAllAppSection> catalog;
+
+    await tester.pumpWidget(
+      TestApp(
+        child: Builder(
+          builder: (context) {
+            catalog = dashboardAllAppsCatalog(context);
+            return const SizedBox.shrink();
+          },
+        ),
+      ),
+    );
+
+    final pages = [
+      for (final section in catalog)
+        for (final tile in section.apps) tile.page,
+    ];
+    expect(pages.toSet().length, pages.length);
+    // The bottom nav's New Sale / Inventory buttons already open checkout.
+    expect(pages, isNot(contains('POS')));
+    expect(pages, isNot(contains('Inventory')));
+  });
+
   testWidgets('BooksModuleEntry hosts AccountingModuleScreen', (tester) async {
     await _pumpBooks(tester, const Size(600, 900));
 

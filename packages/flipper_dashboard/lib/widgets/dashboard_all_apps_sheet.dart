@@ -5,7 +5,6 @@ import 'package:flipper_dashboard/widgets/dashboard_all_apps_catalog.dart';
 import 'package:flipper_dashboard/widgets/dashboard_app_access.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/providers/active_branch_provider.dart';
-import 'package:flipper_models/providers/stock_value_report_provider.dart';
 import 'package:flipper_dashboard/widgets/mpos/mpos_hit_area.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -56,11 +55,6 @@ class _DashboardAllAppsSheetBody extends ConsumerWidget {
     final subtitle = branchName != null && branchName.isNotEmpty
         ? branchName
         : context.flipperL10n.dashboardAllAppsYourBusiness;
-
-    final stockSummary = ref
-        .watch(stockValueSummaryProvider)
-        .maybeWhen(data: (s) => s, orElse: () => null);
-    final lowStockCount = stockSummary?.needsRestockCount ?? 0;
 
     final screenHeight = MediaQuery.sizeOf(context).height;
     final bottomInset = MediaQuery.paddingOf(context).bottom;
@@ -188,13 +182,9 @@ class _DashboardAllAppsSheetBody extends ConsumerWidget {
                       itemCount: sections[i].apps.length,
                       itemBuilder: (context, index) {
                         final tile = sections[i].apps[index];
-                        String? badge = tile.badge;
-                        if (tile.page == 'Inventory' && lowStockCount > 0) {
-                          badge = '$lowStockCount';
-                        }
                         return _AppTile(
                           tile: tile,
-                          badge: badge,
+                          badge: tile.badge,
                           onTap: () async {
                             final navigator = Navigator.of(
                               context,
