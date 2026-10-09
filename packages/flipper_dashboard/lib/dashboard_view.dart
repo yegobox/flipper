@@ -2,6 +2,7 @@ import 'package:flipper_design_system/flipper_design_system.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'dart:developer';
 
+import 'package:flipper_dashboard/features/daily_goal/daily_goal_card.dart';
 import 'package:flipper_dashboard/widgets/app_icons_grid.dart';
 import 'package:flipper_dashboard/widgets/dashboard_mobile_bottom_nav.dart';
 import 'package:flipper_dashboard/widgets/mpos/mpos_states.dart';
@@ -442,7 +443,7 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
                 const SizedBox(height: 12),
                 _buildRevenueExpenseRow(snapshot, previous, currency),
                 const SizedBox(height: 12),
-                _buildDailyGoalCard(ref),
+                const DailyGoalCard(),
               ],
             ),
           );
@@ -517,124 +518,6 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
           child: CircularProgressIndicator(),
         ),
       ),
-    );
-  }
-
-  Widget _buildDailyGoalCard(WidgetRef ref) {
-    const goalTarget = 10;
-    final todayAsync = ref.watch(dashboardGaugeSnapshotProvider('Today'));
-
-    return todayAsync.when(
-      data: (today) {
-        final count = today.transactionCount;
-        final progress = (count / goalTarget).clamp(0.0, 1.0);
-        final remaining = (goalTarget - count).clamp(0, goalTarget);
-
-        return Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Color(0xFFFFF8EB), Color(0xFFFFF3D6)],
-            ),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: const Color(0xFFFCE0BE)),
-          ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFFC24B).withValues(alpha: 0.25),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(
-                  Icons.card_giftcard_outlined,
-                  color: Color(0xFFB25A00),
-                  size: 20,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      count == 0
-                          ? context.flipperL10n.dashViewTodaysGoal(
-                              '0',
-                              '$goalTarget',
-                            )
-                          : context.flipperL10n.dashViewTodaysGoal(
-                              '$count',
-                              '$goalTarget',
-                            ),
-                      style: GoogleFonts.outfit(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: const Color(0xFF92400E),
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text.rich(
-                      TextSpan(
-                        style: GoogleFonts.outfit(
-                          fontSize: 13,
-                          color: const Color(0xFFB45309),
-                        ),
-                        children: [
-                          TextSpan(
-                            text: count == 0
-                                ? context.flipperL10n.dashViewLogFirstSale
-                                : remaining == 0
-                                ? context.flipperL10n.dashViewGoalReached
-                                : context.flipperL10n.dashViewJustMoreTo(
-                                    '$remaining',
-                                  ),
-                          ),
-                          if (count > 0 && remaining > 0)
-                            TextSpan(
-                              text: context.flipperL10n.dashViewPlusPoints,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(999),
-                      child: TweenAnimationBuilder<double>(
-                        tween: Tween(begin: 0, end: progress),
-                        duration: const Duration(milliseconds: 500),
-                        curve: Curves.easeOutCubic,
-                        builder: (context, value, _) {
-                          return LinearProgressIndicator(
-                            value: value,
-                            minHeight: 6,
-                            backgroundColor: const Color(0xFFFCE0BE),
-                            valueColor: const AlwaysStoppedAnimation<Color>(
-                              Color(0xFFFB9D00),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-      // Fixed-height placeholder so the cards above don't shift when the
-      // goal arrives; on error the goal is simply left out.
-      loading: () => const MposSkeletonCard(height: 104, lines: 2),
-      error: (_, __) => const SizedBox.shrink(),
     );
   }
 

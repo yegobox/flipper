@@ -42382,6 +42382,174 @@ abstract class FlipperAppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =1{Pay 1 person} other{Pay {count} people}}'**
   String hrPayPeopleDue(int count);
+
+  /// No description provided for @dailyGoalPlusPoints.
+  ///
+  /// In en, this message translates to:
+  /// **'+{points} pts'**
+  String dailyGoalPlusPoints(int points);
+
+  /// No description provided for @dailyGoalPoints.
+  ///
+  /// In en, this message translates to:
+  /// **'{points} pts'**
+  String dailyGoalPoints(int points);
+
+  /// No description provided for @dailyGoalStreakShort.
+  ///
+  /// In en, this message translates to:
+  /// **'{days, plural, =1{1-day streak} other{{days}-day streak}}'**
+  String dailyGoalStreakShort(int days);
+
+  /// No description provided for @dailyGoalBestStreak.
+  ///
+  /// In en, this message translates to:
+  /// **'Best: {days} days'**
+  String dailyGoalBestStreak(int days);
+
+  /// No description provided for @dailyGoalPointsToday.
+  ///
+  /// In en, this message translates to:
+  /// **'+{points} today'**
+  String dailyGoalPointsToday(int points);
+
+  /// No description provided for @dailyGoalChipSale.
+  ///
+  /// In en, this message translates to:
+  /// **'Sale'**
+  String get dailyGoalChipSale;
+
+  /// No description provided for @dailyGoalChipExpense.
+  ///
+  /// In en, this message translates to:
+  /// **'Expense'**
+  String get dailyGoalChipExpense;
+
+  /// No description provided for @dailyGoalChipStock.
+  ///
+  /// In en, this message translates to:
+  /// **'Stock'**
+  String get dailyGoalChipStock;
+
+  /// No description provided for @dailyGoalChipGoal.
+  ///
+  /// In en, this message translates to:
+  /// **'Goal'**
+  String get dailyGoalChipGoal;
+
+  /// No description provided for @dailyGoalMissionSale.
+  ///
+  /// In en, this message translates to:
+  /// **'Record a sale'**
+  String get dailyGoalMissionSale;
+
+  /// No description provided for @dailyGoalMissionExpense.
+  ///
+  /// In en, this message translates to:
+  /// **'Record an expense'**
+  String get dailyGoalMissionExpense;
+
+  /// No description provided for @dailyGoalMissionStock.
+  ///
+  /// In en, this message translates to:
+  /// **'Update your stock'**
+  String get dailyGoalMissionStock;
+
+  /// No description provided for @dailyGoalMissionGoal.
+  ///
+  /// In en, this message translates to:
+  /// **'Reach today\'s sales goal'**
+  String get dailyGoalMissionGoal;
+
+  /// No description provided for @dailyGoalSheetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s goal'**
+  String get dailyGoalSheetTitle;
+
+  /// No description provided for @dailyGoalMissionsHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s missions'**
+  String get dailyGoalMissionsHeading;
+
+  /// No description provided for @dailyGoalStreakRule.
+  ///
+  /// In en, this message translates to:
+  /// **'Reach the goal {days} days in a row for +{points} bonus points.'**
+  String dailyGoalStreakRule(int days, int points);
+
+  /// No description provided for @dailyGoalThisWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'This week'**
+  String get dailyGoalThisWeek;
+
+  /// No description provided for @dailyGoalWeekEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Your week shows here from tomorrow.'**
+  String get dailyGoalWeekEmpty;
+
+  /// No description provided for @dailyGoalSettingsHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'Goal settings'**
+  String get dailyGoalSettingsHeading;
+
+  /// No description provided for @dailyGoalTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily target: {count} sales'**
+  String dailyGoalTarget(int count);
+
+  /// No description provided for @dailyGoalTargetAuto.
+  ///
+  /// In en, this message translates to:
+  /// **'Adapts to your recent days'**
+  String get dailyGoalTargetAuto;
+
+  /// No description provided for @dailyGoalTargetCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Your own target'**
+  String get dailyGoalTargetCustom;
+
+  /// No description provided for @dailyGoalUseAutomatic.
+  ///
+  /// In en, this message translates to:
+  /// **'Use automatic'**
+  String get dailyGoalUseAutomatic;
+
+  /// No description provided for @dailyGoalReminders.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily reminders'**
+  String get dailyGoalReminders;
+
+  /// No description provided for @dailyGoalRemindersHint.
+  ///
+  /// In en, this message translates to:
+  /// **'A nudge if no sale is recorded by 10:00 and a recap in the evening. At most 2 a day.'**
+  String get dailyGoalRemindersHint;
+
+  /// No description provided for @dailyGoalOwnerOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Only the owner or an admin can change these.'**
+  String get dailyGoalOwnerOnly;
+
+  /// No description provided for @dailyGoalDoIt.
+  ///
+  /// In en, this message translates to:
+  /// **'Do it'**
+  String get dailyGoalDoIt;
+
+  /// No description provided for @dailyGoalDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get dailyGoalDone;
 }
 
 class _FlipperAppLocalizationsDelegate

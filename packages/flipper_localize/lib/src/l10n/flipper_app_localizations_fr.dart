@@ -25769,4 +25769,110 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String dailyGoalPlusPoints(int points) {
+    return '+$points pts';
+  }
+
+  @override
+  String dailyGoalPoints(int points) {
+    return '$points pts';
+  }
+
+  @override
+  String dailyGoalStreakShort(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'Série de $days jours',
+      one: 'Série d\'1 jour',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dailyGoalBestStreak(int days) {
+    return 'Record : $days jours';
+  }
+
+  @override
+  String dailyGoalPointsToday(int points) {
+    return '+$points aujourd\'hui';
+  }
+
+  @override
+  String get dailyGoalChipSale => 'Vente';
+
+  @override
+  String get dailyGoalChipExpense => 'Dépense';
+
+  @override
+  String get dailyGoalChipStock => 'Stock';
+
+  @override
+  String get dailyGoalChipGoal => 'Objectif';
+
+  @override
+  String get dailyGoalMissionSale => 'Enregistrer une vente';
+
+  @override
+  String get dailyGoalMissionExpense => 'Enregistrer une dépense';
+
+  @override
+  String get dailyGoalMissionStock => 'Mettre à jour le stock';
+
+  @override
+  String get dailyGoalMissionGoal => 'Atteindre l\'objectif de ventes du jour';
+
+  @override
+  String get dailyGoalSheetTitle => 'Objectif du jour';
+
+  @override
+  String get dailyGoalMissionsHeading => 'Missions du jour';
+
+  @override
+  String dailyGoalStreakRule(int days, int points) {
+    return 'Atteignez l\'objectif $days jours de suite pour +$points points bonus.';
+  }
+
+  @override
+  String get dailyGoalThisWeek => 'Cette semaine';
+
+  @override
+  String get dailyGoalWeekEmpty => 'Votre semaine s\'affichera ici dès demain.';
+
+  @override
+  String get dailyGoalSettingsHeading => 'Réglages de l\'objectif';
+
+  @override
+  String dailyGoalTarget(int count) {
+    return 'Objectif quotidien : $count ventes';
+  }
+
+  @override
+  String get dailyGoalTargetAuto => 'S\'adapte à vos derniers jours';
+
+  @override
+  String get dailyGoalTargetCustom => 'Votre propre objectif';
+
+  @override
+  String get dailyGoalUseAutomatic => 'Automatique';
+
+  @override
+  String get dailyGoalReminders => 'Rappels quotidiens';
+
+  @override
+  String get dailyGoalRemindersHint =>
+      'Un rappel si aucune vente n\'est enregistrée avant 10 h et un bilan le soir. Au plus 2 par jour.';
+
+  @override
+  String get dailyGoalOwnerOnly =>
+      'Seul le propriétaire ou un administrateur peut les modifier.';
+
+  @override
+  String get dailyGoalDoIt => 'Faire';
+
+  @override
+  String get dailyGoalDone => 'Fait';
 }
