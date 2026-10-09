@@ -91,9 +91,7 @@ class _MobileDashboardShellState extends ConsumerState<MobileDashboardShell> {
                   child: DashboardMobileBottomNav(
                     activeTab: _activeTab,
                     onTabSelected: (tab) {
-                      if (tab == DashboardMobileTab.home) {
-                        setState(() => _activeTab = DashboardMobileTab.home);
-                      }
+                      if (mounted) setState(() => _activeTab = tab);
                     },
                   ),
                 ),

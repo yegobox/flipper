@@ -2,6 +2,7 @@ import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/features/tenant/mixins/tenant_management_mixin.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/constants.dart';
+import 'package:flipper_dashboard/widgets/mpos/mpos_hit_area.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -162,20 +163,31 @@ class _CircleOutlineIconButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        customBorder: const CircleBorder(),
-        onTap: onPressed,
-        child: Container(
-          width: 40,
-          height: 40,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            border: Border.all(color: _UserManagementAppBar._outline),
+    // 40dp circle drawn, 48dp touch target.
+    return MposHitArea(
+      onTap: onPressed,
+      semanticLabel: icon == Icons.close
+          ? MaterialLocalizations.of(context).closeButtonLabel
+          : null,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          customBorder: const CircleBorder(),
+          onTap: onPressed,
+          child: Container(
+            width: 40,
+            height: 40,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: _UserManagementAppBar._outline),
+            ),
+            child: Icon(
+              icon,
+              size: 22,
+              color: _UserManagementAppBar._iconColor,
+            ),
           ),
-          child: Icon(icon, size: 22, color: _UserManagementAppBar._iconColor),
         ),
       ),
     );

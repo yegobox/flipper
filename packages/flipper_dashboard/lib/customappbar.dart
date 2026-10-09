@@ -5,6 +5,7 @@ library customappbar;
 import 'package:flutter/cupertino.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flipper_dashboard/widgets/mpos/mpos_hit_area.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -64,7 +65,8 @@ class AppBarRoundIconButton extends StatelessWidget {
     if (tip != null && tip.isNotEmpty) {
       target = Tooltip(message: tip, child: target);
     }
-    return target;
+    // 44dp circle drawn, 48dp touch target.
+    return MposHitArea(onTap: onPressed, child: target);
   }
 }
 

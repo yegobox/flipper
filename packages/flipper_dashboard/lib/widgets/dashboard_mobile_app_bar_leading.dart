@@ -1,3 +1,4 @@
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -10,7 +11,10 @@ class DashboardMobileAppBarLeading extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final child = Padding(
-      padding: const EdgeInsets.only(left: 16),
+      padding: EdgeInsets.only(
+        left: onOpenDrawer == null ? 16 : 0,
+        right: onOpenDrawer == null ? 0 : 8,
+      ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -20,7 +24,11 @@ class DashboardMobileAppBarLeading extends StatelessWidget {
             decoration: const BoxDecoration(
               shape: BoxShape.circle,
               gradient: LinearGradient(
-                colors: [Color(0xFF22D3EE), Color(0xFF2563EB), Color(0xFF4F46E5)],
+                colors: [
+                  Color(0xFF22D3EE),
+                  Color(0xFF2563EB),
+                  Color(0xFF4F46E5),
+                ],
               ),
             ),
             alignment: Alignment.center,
@@ -56,10 +64,35 @@ class DashboardMobileAppBarLeading extends StatelessWidget {
 
     if (onOpenDrawer == null) return child;
 
-    return InkWell(
-      onTap: onOpenDrawer,
-      borderRadius: BorderRadius.circular(12),
-      child: child,
+    // An explicit 48dp menu button: the logo alone gave no hint that it opens
+    // the drawer, and its hit area was only 30dp tall. The logo stays
+    // tappable too.
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 4),
+          // Semantics, not tooltip: a Tooltip is an OverlayPortal and asserts
+          // under DevicePreview's LayoutBuilder in debug.
+          child: Semantics(
+            button: true,
+            label: MaterialLocalizations.of(context).openAppDrawerTooltip,
+            child: IconButton(
+              onPressed: onOpenDrawer,
+              icon: const Icon(FluentIcons.navigation_24_regular),
+              color: Colors.black87,
+            ),
+          ),
+        ),
+        InkWell(
+          onTap: onOpenDrawer,
+          borderRadius: BorderRadius.circular(12),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 48),
+            child: Center(widthFactor: 1, child: child),
+          ),
+        ),
+      ],
     );
   }
 }

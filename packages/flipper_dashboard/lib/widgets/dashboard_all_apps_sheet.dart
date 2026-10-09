@@ -1,5 +1,4 @@
 import 'package:flipper_design_system/flipper_design_system.dart';
-import 'dart:ui';
 
 import 'package:flipper_dashboard/dashboard_quick_apps_navigation.dart';
 import 'package:flipper_dashboard/widgets/dashboard_all_apps_catalog.dart';
@@ -7,7 +6,9 @@ import 'package:flipper_dashboard/widgets/dashboard_app_access.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/providers/active_branch_provider.dart';
 import 'package:flipper_models/providers/stock_value_report_provider.dart';
+import 'package:flipper_dashboard/widgets/mpos/mpos_hit_area.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
@@ -17,60 +18,23 @@ class DashboardAllAppsSheet {
 
   static const _sheetDuration = Duration(milliseconds: 320);
 
+  /// A real modal bottom sheet, so the drag handle works (drag down to
+  /// dismiss) along with the system back gesture and barrier semantics.
   static Future<void> show(BuildContext context, WidgetRef ref) {
-    return showGeneralDialog<void>(
+    return showModalBottomSheet<void>(
       context: context,
-      barrierDismissible: true,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      barrierColor: const Color(0x6B0B1220),
       barrierLabel: context.flipperL10n.allApps,
-      barrierColor: Colors.transparent,
-      transitionDuration: _sheetDuration,
-      pageBuilder: (context, animation, secondaryAnimation) {
-        return const _DashboardAllAppsSheetBody();
-      },
-      transitionBuilder: (context, animation, secondaryAnimation, child) {
-        final reduceMotion = MediaQuery.disableAnimationsOf(context);
-        final scrimCurve = reduceMotion ? Curves.linear : Curves.ease;
-        final sheetCurve = reduceMotion ? Curves.linear : Curves.easeOutCubic;
-
-        return Stack(
-          fit: StackFit.expand,
-          children: [
-            FadeTransition(
-              opacity: Tween<double>(begin: 0, end: 1).animate(
-                CurvedAnimation(
-                  parent: animation,
-                  curve: Interval(0, 0.625, curve: scrimCurve),
-                  reverseCurve: Interval(0, 0.625, curve: scrimCurve),
-                ),
-              ),
-              child: GestureDetector(
-                onTap: () => Navigator.of(context).pop(),
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
-                  child: Container(color: const Color(0x6B0B1220)),
-                ),
-              ),
-            ),
-            Align(
-              alignment: Alignment.bottomCenter,
-              child: SlideTransition(
-                position:
-                    Tween<Offset>(
-                      begin: const Offset(0, 1),
-                      end: Offset.zero,
-                    ).animate(
-                      CurvedAnimation(
-                        parent: animation,
-                        curve: sheetCurve,
-                        reverseCurve: sheetCurve,
-                      ),
-                    ),
-                child: child,
-              ),
-            ),
-          ],
-        );
-      },
+      sheetAnimationStyle: AnimationStyle(
+        duration: _sheetDuration,
+        reverseDuration: _sheetDuration,
+        curve: Curves.easeOutCubic,
+      ),
+      builder: (_) => const _DashboardAllAppsSheetBody(),
     );
   }
 }
@@ -133,7 +97,7 @@ class _DashboardAllAppsSheetBody extends ConsumerWidget {
             ),
             const SizedBox(height: 4),
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 8, 20, 14),
+              padding: const EdgeInsets.fromLTRB(20, 4, 13, 10),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
@@ -164,16 +128,23 @@ class _DashboardAllAppsSheetBody extends ConsumerWidget {
                       ],
                     ),
                   ),
-                  Material(
-                    color: _surface2,
-                    shape: const CircleBorder(),
-                    child: InkWell(
-                      onTap: () => Navigator.of(context).pop(),
-                      customBorder: const CircleBorder(),
-                      child: const SizedBox(
-                        width: 34,
-                        height: 34,
-                        child: Icon(Icons.close, size: 17, color: _ink2),
+                  // 34dp circle, 48dp hit area.
+                  MposHitArea(
+                    onTap: () => Navigator.of(context).pop(),
+                    semanticLabel: MaterialLocalizations.of(
+                      context,
+                    ).closeButtonLabel,
+                    child: Material(
+                      color: _surface2,
+                      shape: const CircleBorder(),
+                      child: InkWell(
+                        onTap: () => Navigator.of(context).pop(),
+                        customBorder: const CircleBorder(),
+                        child: const SizedBox(
+                          width: 34,
+                          height: 34,
+                          child: Icon(Icons.close, size: 17, color: _ink2),
+                        ),
                       ),
                     ),
                   ),
@@ -274,7 +245,10 @@ class _AppTileState extends State<_AppTile> {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: widget.onTap,
+        onTap: () {
+          HapticFeedback.lightImpact();
+          widget.onTap();
+        },
         onHighlightChanged: (pressed) => setState(() => _pressed = pressed),
         borderRadius: BorderRadius.circular(14),
         child: AnimatedScale(

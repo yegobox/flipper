@@ -7,6 +7,7 @@ import 'package:flipper_models/providers/currency_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_models/providers/date_range_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
@@ -15,7 +16,7 @@ import 'package:stacked_services/stacked_services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:stacked/stacked.dart';
-import 'widgets/radio_buttons.dart';
+import 'package:flipper_dashboard/theme/pos_tokens.dart';
 
 DateTime? _transactionListInstant(ITransaction t) {
   return t.lastTouched ?? t.updatedAt ?? t.createdAt;
@@ -151,13 +152,39 @@ class TransactionsState extends ConsumerState<Transactions>
             ],
           ),
           const SizedBox(height: 12),
-          RadioButtons(
-            buttonLabels: transactionTypeOptions,
-            onChanged: (newPeriod) {
-              setState(() {
-                displayedTransactionType = newPeriod;
-              });
-            },
+          // ChoiceChip keeps the 48dp padded tap target and the ripple the
+          // old GestureDetector buttons lacked.
+          Wrap(
+            spacing: 8,
+            runSpacing: 4,
+            children: [
+              for (var i = 0; i < transactionTypeOptions.length; i++)
+                ChoiceChip(
+                  label: Text(transactionTypeOptions[i]),
+                  selected: displayedTransactionType == i,
+                  showCheckmark: false,
+                  backgroundColor: PosTokens.surface,
+                  selectedColor: PosTokens.blueTint,
+                  shape: const StadiumBorder(),
+                  side: BorderSide(
+                    color: displayedTransactionType == i
+                        ? PosTokens.blue
+                        : PosTokens.line,
+                  ),
+                  labelStyle: GoogleFonts.outfit(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: displayedTransactionType == i
+                        ? PosTokens.blue
+                        : PosTokens.ink2,
+                  ),
+                  onSelected: (_) {
+                    if (displayedTransactionType == i) return;
+                    HapticFeedback.selectionClick();
+                    setState(() => displayedTransactionType = i);
+                  },
+                ),
+            ],
           ),
         ],
       ),

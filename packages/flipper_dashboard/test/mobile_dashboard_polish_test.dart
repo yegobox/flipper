@@ -1,6 +1,9 @@
 import 'package:flipper_dashboard/theme/mpos_tokens.dart';
 import 'package:flipper_dashboard/widgets/analytics_gauge/flipper_analytic.dart';
+import 'package:flipper_dashboard/widgets/dashboard_mobile_app_bar_leading.dart';
 import 'package:flipper_dashboard/widgets/dashboard_mobile_bottom_nav.dart';
+import 'package:flipper_dashboard/widgets/mpos/mpos_hit_area.dart';
+import 'package:flipper_dashboard/widgets/mpos/mpos_press_button.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -114,6 +117,70 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
+      // Ink decorations are clipped to their Material's rectangle; the New
+      // sale glow drawn as Ink showed up as a pale box around the button.
+      expect(
+        find.descendant(
+          of: find.byType(DashboardMobileBottomNav),
+          matching: find.byType(Ink),
+        ),
+        findsNothing,
+      );
     });
   }
+
+  testWidgets('small icon controls get a 48dp touch target', (tester) async {
+    usePhone(tester);
+    var taps = 0;
+    final handle = tester.ensureSemantics();
+    await tester.pumpWidget(
+      host(
+        Row(
+          children: [
+            MposPressButton(
+              semanticLabel: 'Back',
+              onPressed: () => taps++,
+              child: const SizedBox(width: 40, height: 40),
+            ),
+            MposHitArea(
+              semanticLabel: 'Close',
+              onTap: () => taps++,
+              child: const SizedBox(width: 34, height: 34),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    expect(tester.getSize(find.byType(MposPressButton)), const Size(48, 48));
+    expect(tester.getSize(find.byType(MposHitArea)), const Size(48, 48));
+    await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
+
+    // A tap in the margin outside the drawn 34dp circle still lands.
+    final hit = tester.getTopLeft(find.byType(MposHitArea));
+    await tester.tapAt(hit + const Offset(2, 2));
+    await tester.tap(find.byType(MposPressButton));
+    expect(taps, 2);
+    handle.dispose();
+  });
+
+  testWidgets('header has a 48dp menu button that opens the drawer', (
+    tester,
+  ) async {
+    usePhone(tester);
+    var opened = 0;
+    final handle = tester.ensureSemantics();
+    await tester.pumpWidget(
+      host(
+        Align(
+          alignment: Alignment.topLeft,
+          child: DashboardMobileAppBarLeading(onOpenDrawer: () => opened++),
+        ),
+      ),
+    );
+    await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
+    await tester.tap(find.byType(IconButton));
+    expect(opened, 1);
+    handle.dispose();
+  });
 }

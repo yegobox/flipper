@@ -3,6 +3,7 @@ import 'package:flipper_dashboard/widgets/dashboard_all_apps_sheet.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
@@ -38,6 +39,22 @@ class DashboardMobileBottomNav extends ConsumerWidget {
   /// raised button overlap it — lay the nav over the content in a Stack.
   static double barExtent(BuildContext context) =>
       _barHeight + _barPad(context);
+
+  /// Highlights [tab] while its screen or sheet is open, then hands the
+  /// highlight back to Home — the other tabs open on top of the dashboard
+  /// rather than replacing it.
+  Future<void> _openTab(
+    DashboardMobileTab tab,
+    Future<void> Function() open,
+  ) async {
+    HapticFeedback.selectionClick();
+    onTabSelected(tab);
+    try {
+      await open();
+    } finally {
+      onTabSelected(DashboardMobileTab.home);
+    }
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -80,43 +97,48 @@ class DashboardMobileBottomNav extends ConsumerWidget {
                       icon: FluentIcons.home_24_regular,
                       label: context.flipperL10n.home,
                       selected: activeTab == DashboardMobileTab.home,
-                      onTap: () => onTabSelected(DashboardMobileTab.home),
+                      onTap: () {
+                        if (activeTab != DashboardMobileTab.home) {
+                          HapticFeedback.selectionClick();
+                        }
+                        onTabSelected(DashboardMobileTab.home);
+                      },
                     ),
                     _NavItem(
                       icon: FluentIcons.cart_24_regular,
                       label: context.flipperL10n.sales,
                       selected: activeTab == DashboardMobileTab.sales,
-                      onTap: () async {
-                        onTabSelected(DashboardMobileTab.sales);
-                        await navigateToDashboardAppPage(
+                      onTap: () => _openTab(
+                        DashboardMobileTab.sales,
+                        () => navigateToDashboardAppPage(
                           context: context,
                           isBigScreen: false,
                           page: 'Transactions',
-                        );
-                      },
+                        ),
+                      ),
                     ),
                     const SizedBox(width: 72),
                     _NavItem(
                       icon: FluentIcons.box_24_regular,
                       label: context.flipperL10n.inventory,
                       selected: activeTab == DashboardMobileTab.inventory,
-                      onTap: () async {
-                        onTabSelected(DashboardMobileTab.inventory);
-                        await navigateToDashboardAppPage(
+                      onTap: () => _openTab(
+                        DashboardMobileTab.inventory,
+                        () => navigateToDashboardAppPage(
                           context: context,
                           isBigScreen: false,
                           page: 'Inventory',
-                        );
-                      },
+                        ),
+                      ),
                     ),
                     _NavItem(
                       icon: FluentIcons.grid_24_regular,
                       label: context.flipperL10n.more,
                       selected: activeTab == DashboardMobileTab.more,
-                      onTap: () async {
-                        onTabSelected(DashboardMobileTab.more);
-                        await DashboardAllAppsSheet.show(context, ref);
-                      },
+                      onTap: () => _openTab(
+                        DashboardMobileTab.more,
+                        () => DashboardAllAppsSheet.show(context, ref),
+                      ),
                     ),
                   ],
                 ),
@@ -127,6 +149,7 @@ class DashboardMobileBottomNav extends ConsumerWidget {
             top: 0,
             child: _NewSaleFab(
               onTap: () async {
+                HapticFeedback.lightImpact();
                 await navigateToDashboardAppPage(
                   context: context,
                   isBigScreen: false,
@@ -196,21 +219,28 @@ class _NewSaleFab extends StatelessWidget {
 
   final VoidCallback onTap;
 
+  static final _radius = BorderRadius.circular(19);
+
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
+    final label = context.flipperL10n.mposNewSale;
+    // The gradient and glow are a plain DecoratedBox, not Ink: Ink paints on
+    // the enclosing Material and is clipped to its rectangle, which cut the
+    // blur off into a pale box around the button and its label. Only the
+    // ripple lives on a Material, and it is clipped to the rounded button.
+    return Semantics(
+      button: true,
+      label: label,
+      excludeSemantics: true,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
         onTap: onTap,
-        borderRadius: BorderRadius.circular(20),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Ink(
-              width: 58,
-              height: 58,
+            DecoratedBox(
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(19),
+                borderRadius: _radius,
                 gradient: const LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
@@ -229,11 +259,24 @@ class _NewSaleFab extends StatelessWidget {
                 ],
                 border: Border.all(color: const Color(0xFFF4F6FB), width: 4),
               ),
-              child: const Icon(Icons.add, color: Colors.white, size: 26),
+              child: Material(
+                type: MaterialType.transparency,
+                borderRadius: _radius,
+                clipBehavior: Clip.antiAlias,
+                child: InkWell(
+                  onTap: onTap,
+                  borderRadius: _radius,
+                  child: const SizedBox(
+                    width: 58,
+                    height: 58,
+                    child: Icon(Icons.add, color: Colors.white, size: 26),
+                  ),
+                ),
+              ),
             ),
             const SizedBox(height: 4),
             Text(
-              context.flipperL10n.mposNewSale,
+              label,
               style: GoogleFonts.outfit(
                 fontSize: 10,
                 fontWeight: FontWeight.w600,
