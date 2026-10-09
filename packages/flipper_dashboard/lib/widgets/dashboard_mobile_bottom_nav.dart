@@ -7,7 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-enum DashboardMobileTab { home, sales, inventory, more }
+enum DashboardMobileTab { home, flo, books, more }
 
 class DashboardMobileBottomNav extends ConsumerWidget {
   const DashboardMobileBottomNav({
@@ -104,30 +104,33 @@ class DashboardMobileBottomNav extends ConsumerWidget {
                         onTabSelected(DashboardMobileTab.home);
                       },
                     ),
+                    // Sales and Inventory both landed on the POS the "+" button
+                    // already opens; Flo and Books earn the slots instead.
                     _NavItem(
-                      icon: FluentIcons.cart_24_regular,
-                      label: context.flipperL10n.sales,
-                      selected: activeTab == DashboardMobileTab.sales,
+                      icon: FluentIcons.chat_sparkle_24_regular,
+                      label: context.flipperL10n.floAskFlo,
+                      selected: activeTab == DashboardMobileTab.flo,
                       onTap: () => _openTab(
-                        DashboardMobileTab.sales,
+                        DashboardMobileTab.flo,
                         () => navigateToDashboardAppPage(
                           context: context,
                           isBigScreen: false,
-                          page: 'Transactions',
+                          page: 'Chat',
                         ),
                       ),
                     ),
                     const SizedBox(width: 72),
                     _NavItem(
-                      icon: FluentIcons.box_24_regular,
-                      label: context.flipperL10n.inventory,
-                      selected: activeTab == DashboardMobileTab.inventory,
+                      icon: FluentIcons.book_24_regular,
+                      label: context.flipperL10n.dashboardAppBooks,
+                      selected: activeTab == DashboardMobileTab.books,
                       onTap: () => _openTab(
-                        DashboardMobileTab.inventory,
+                        DashboardMobileTab.books,
                         () => navigateToDashboardAppPage(
                           context: context,
                           isBigScreen: false,
-                          page: 'Inventory',
+                          page: 'Accounting',
+                          ref: ref,
                         ),
                       ),
                     ),

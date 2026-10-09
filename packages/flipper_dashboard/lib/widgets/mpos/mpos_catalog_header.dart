@@ -1,7 +1,7 @@
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/theme/mpos_tokens.dart';
 import 'package:flipper_dashboard/theme/pos_tokens.dart';
-import 'package:flipper_dashboard/widgets/mpos/mpos_status_pill.dart';
+import 'package:flipper_dashboard/widgets/mpos/mpos_app_bar.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 
@@ -35,42 +35,14 @@ class MposCatalogHeader extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 6, 16, 0),
-            child: Row(
-              children: [
-                _MposBackButton(onPressed: onBack),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        context.flipperL10n.mposNewSale,
-                        style: const TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: -0.01,
-                          color: PosTokens.ink1,
-                        ),
-                      ),
-                      const SizedBox(height: 1),
-                      Text(
-                        subtitle,
-                        style: const TextStyle(
-                          fontSize: 12.5,
-                          color: PosTokens.ink3,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                MposStatusPill(status: status),
-              ],
-            ),
+          MposAppBar(
+            title: context.flipperL10n.mposNewSale,
+            subtitle: subtitle,
+            status: status,
+            onBack: onBack,
           ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
+            padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
             child: Row(
               children: [
                 Expanded(child: searchField),
@@ -85,37 +57,6 @@ class MposCatalogHeader extends StatelessWidget {
           ),
           const Divider(height: 1, color: PosTokens.line),
         ],
-      ),
-    );
-  }
-}
-
-class _MposBackButton extends StatelessWidget {
-  const _MposBackButton({required this.onPressed});
-
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: PosTokens.surface2,
-      borderRadius: BorderRadius.circular(11),
-      child: InkWell(
-        onTap: onPressed,
-        borderRadius: BorderRadius.circular(11),
-        child: Container(
-          width: 38,
-          height: 38,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(11),
-            border: Border.all(color: PosTokens.line),
-          ),
-          child: const Icon(
-            Icons.chevron_left_rounded,
-            size: 22,
-            color: PosTokens.ink1,
-          ),
-        ),
       ),
     );
   }

@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flipper_design_system/flipper_design_system.dart'
+    show CustomAppBar;
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -533,6 +535,24 @@ class _AiScreenState extends ConsumerState<AiScreen>
   Widget build(BuildContext context) {
     final waState = ref.watch(whatsAppConnectionStateProvider);
     final waConnected = waState.value?.isConnected ?? false;
+    // Pushed on a phone (bottom bar, More): the header has nowhere to put a
+    // back button, so wear Flipper's mobile app bar on top of it.
+    final withAppBar = _isMobile && (ModalRoute.of(context)?.canPop ?? false);
+    final modelSelector = FloModelSelector(
+      localAvailable: _localAvailable,
+      useLocal: _useLocal,
+      onChanged: (useLocal) {
+        setState(() => _useLocal = useLocal);
+        _maybeIndexLocalRag();
+      },
+    );
+    void toggleMenu() {
+      if (_isMobile) {
+        _scaffoldKey.currentState?.openDrawer();
+      } else {
+        setState(() => _menuOpen = !_menuOpen);
+      }
+    }
 
     return Scaffold(
       key: _scaffoldKey,
@@ -579,6 +599,21 @@ class _AiScreenState extends ConsumerState<AiScreen>
           },
           child: Column(
             children: [
+              if (withAppBar)
+                CustomAppBar(
+                  key: const Key('flo-app-bar'),
+                  title: 'Flo',
+                  icon: Icons.arrow_back,
+                  onPop: () => Navigator.of(context).maybePop(),
+                  bottomSpacer: 64,
+                  isDividerVisible: false,
+                  barBackgroundColor: FloTheme.surface,
+                  customTrailingWidget: FloHeaderActions(
+                    modelSelector:
+                        _mode == FloPanelMode.askFlo ? modelSelector : null,
+                    onMenuToggle: toggleMenu,
+                  ),
+                ),
               FloHeader(
                 mode: _mode,
                 onModeChanged: (m) {
@@ -588,27 +623,15 @@ class _AiScreenState extends ConsumerState<AiScreen>
                   }
                 },
                 isMobile: _isMobile,
+                actionsInAppBar: withAppBar,
                 miniDataConnected: true,
                 whatsAppConnected: waConnected,
-                modelSelector: FloModelSelector(
-                  localAvailable: _localAvailable,
-                  useLocal: _useLocal,
-                  onChanged: (useLocal) {
-                    setState(() => _useLocal = useLocal);
-                    _maybeIndexLocalRag();
-                  },
-                ),
+                modelSelector: modelSelector,
                 onNewChat: _newChat,
                 onConnectWhatsApp: _openWhatsAppModal,
                 onManageSources: _openSources,
                 menuOpen: _menuOpen,
-                onMenuToggle: () {
-                  if (_isMobile) {
-                    _scaffoldKey.currentState?.openDrawer();
-                  } else {
-                    setState(() => _menuOpen = !_menuOpen);
-                  }
-                },
+                onMenuToggle: toggleMenu,
                 menuContent: _menuOpen && !_isMobile
                     ? FloMenuPopover(
                         onNewChat: () {

@@ -89,6 +89,16 @@ class FloHomeView extends StatelessWidget {
         l10n.floAskMeAnything(highlightToken).split(highlightToken);
     final askBefore = askParts.first;
     final askAfter = askParts.length > 1 ? askParts.sublist(1).join() : '';
+    final suggestionCards = [
+      for (final s in suggestionsFor(l10n))
+        _SuggestCard(
+          iconName: s['icon']!,
+          tone: s['tone']!,
+          title: s['t']!,
+          desc: s['d']!,
+          onTap: () => onSuggestionTap(s['q']!),
+        ),
+    ];
     return Padding(
       padding:
           EdgeInsets.fromLTRB(isMobile ? 16 : 28, 26, isMobile ? 16 : 28, 18),
@@ -178,24 +188,28 @@ class FloHomeView extends StatelessWidget {
             loading: briefingLoading,
           ),
           _SectionLabel(l10n.floTryAsking),
-          GridView.count(
-            crossAxisCount: isMobile ? 1 : 2,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            mainAxisSpacing: 10,
-            crossAxisSpacing: 10,
-            childAspectRatio: isMobile ? 3.8 : 3.2,
-            children: [
-              for (final s in suggestionsFor(l10n))
-                _SuggestCard(
-                  iconName: s['icon']!,
-                  tone: s['tone']!,
-                  title: s['t']!,
-                  desc: s['d']!,
-                  onTap: () => onSuggestionTap(s['q']!),
-                ),
-            ],
-          ),
+          // A one-column grid forces every card to the same fixed ratio and
+          // leaves a blank band under short text; stack them instead.
+          if (isMobile)
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                for (final (i, card) in suggestionCards.indexed) ...[
+                  if (i > 0) const SizedBox(height: 10),
+                  card,
+                ],
+              ],
+            )
+          else
+            GridView.count(
+              crossAxisCount: 2,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              mainAxisSpacing: 10,
+              crossAxisSpacing: 10,
+              childAspectRatio: 3.2,
+              children: suggestionCards,
+            ),
           _SectionLabel(l10n.floChannels),
           if (isMobile)
             Column(
@@ -340,18 +354,27 @@ class _DailyBriefingCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                const Spacer(),
-                if (loading)
-                  const SizedBox(
-                    width: 14,
-                    height: 14,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                else
-                  Text(
-                    l10n.floDateAuto(dateLabel),
-                    style: FloTheme.mono(12).copyWith(color: FloTheme.ink3),
+                const SizedBox(width: 10),
+                // Right-aligned, and gives way on narrow phones instead of
+                // overflowing the row.
+                Expanded(
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: loading
+                        ? const SizedBox(
+                            width: 14,
+                            height: 14,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : Text(
+                            l10n.floDateAuto(dateLabel),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: FloTheme.mono(12)
+                                .copyWith(color: FloTheme.ink3),
+                          ),
                   ),
+                ),
               ],
             ),
           ),
