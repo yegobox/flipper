@@ -27,6 +27,7 @@ EscPosReceipt _receipt(
   List<TransactionItem> items, {
   String type = 'NS',
   bool fiscal = true,
+  String? email = 'shop@example.com',
 }) => EscPosReceipt(
   items: items,
   receiptType: type,
@@ -39,7 +40,7 @@ EscPosReceipt _receipt(
   brandAddress: 'KN 3 Rd',
   brandTel: '788123456',
   brandTIN: '123456789',
-  brandEmail: 'shop@example.com',
+  brandEmail: email,
   customerName: 'Walk-in Customer',
   paymentTypeCode: '01',
   invoiceNum: 42,
@@ -191,6 +192,24 @@ void main() {
       expect(text, contains('1180.00x 1'));
       expect(text, contains('590.00x 2'));
       expect(text, contains('1,180.00(B)'));
+    });
+
+    test('prints the business email, and no EMAIL line without one', () {
+      final withEmail = _textLines(
+        _receipt([_item('Soap', price: 1180)]).build(),
+      );
+      expect(withEmail, contains('EMAIL: shop@example.com'));
+
+      for (final email in [null, '', '  ']) {
+        final lines = _textLines(
+          _receipt([_item('Soap', price: 1180)], email: email).build(),
+        );
+        expect(
+          lines.any((l) => l.startsWith('EMAIL')),
+          isFalse,
+          reason: '$lines',
+        );
+      }
     });
 
     test('QR is sent as a raster image by default', () {
