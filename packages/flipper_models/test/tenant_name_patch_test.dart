@@ -104,4 +104,34 @@ void main() {
       expect(usableBusinessTypeId(1.5), isNull);
     });
   });
+
+  group('usableBusinessEmail', () {
+    test('accepts an address, trimmed', () {
+      expect(usableBusinessEmail('shop@example.com'), 'shop@example.com');
+      expect(usableBusinessEmail(' shop@example.com '), 'shop@example.com');
+    });
+
+    test('rejects values that must not overwrite the local email', () {
+      expect(usableBusinessEmail(null), isNull);
+      expect(usableBusinessEmail(''), isNull);
+      expect(usableBusinessEmail('   '), isNull);
+      expect(usableBusinessEmail('not-an-email'), isNull);
+    });
+  });
+
+  group('usableTinNumber', () {
+    test('accepts ints and their string form', () {
+      expect(usableTinNumber(999909695), 999909695);
+      expect(usableTinNumber('999909695'), 999909695);
+      expect(usableTinNumber(' 999909695 '), 999909695);
+    });
+
+    test('rejects values that must not overwrite the local TIN', () {
+      expect(usableTinNumber(null), isNull);
+      expect(usableTinNumber(''), isNull);
+      expect(usableTinNumber('abc'), isNull);
+      expect(usableTinNumber(0), isNull);
+      expect(usableTinNumber(-1), isNull);
+    });
+  });
 }

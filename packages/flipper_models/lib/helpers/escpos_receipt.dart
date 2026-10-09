@@ -111,9 +111,12 @@ class EscPosReceipt {
     if (brandAddress.trim().isNotEmpty) {
       p.wrapped(brandAddress, align: EscPosAlign.center);
     }
+    p.wrapped('TEL: ${brandTel.normalizePhone()}');
+    final email = brandEmail?.trim() ?? '';
+    if (email.isNotEmpty) {
+      p.wrapped('EMAIL: $email');
+    }
     p
-      ..wrapped('TEL: ${brandTel.normalizePhone()}')
-      ..wrapped('EMAIL: ${brandEmail ?? ''}')
       ..wrapped('TIN: $brandTIN')
       ..text('WELCOME TO OUR SHOP', align: EscPosAlign.center)
       ..rule();

@@ -128,10 +128,10 @@ abstract final class HotelQuotationActions {
     final issuer = HotelQuotationIssuer(
       businessName: names?.businessName ?? business?.name,
       branchName: freshBranchName ?? branch?.name,
-      tin: business?.tinNumber?.toString(),
+      tin: (names?.tinNumber ?? business?.tinNumber)?.toString(),
       address: business?.adrs,
       phone: business?.phoneNumber,
-      email: business?.email,
+      email: names?.businessEmail ?? business?.email,
     );
     if (business != null) {
       _issuer = issuer;
