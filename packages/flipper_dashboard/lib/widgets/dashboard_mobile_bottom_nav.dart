@@ -25,6 +25,10 @@ class DashboardMobileBottomNav extends ConsumerWidget {
   /// How far the New sale button rises above the bar.
   static const double _fabRise = 28;
 
+  /// Extra bottom padding scrolling content needs so its last item can clear
+  /// the raised button.
+  static const double fabRise = _fabRise;
+
   static double _barPad(BuildContext context) {
     final bottomPad = MediaQuery.paddingOf(context).bottom;
     return bottomPad > 0 ? bottomPad : 8.0;
@@ -166,12 +170,18 @@ class _NavItem extends StatelessWidget {
           children: [
             Icon(icon, size: 22, color: color),
             const SizedBox(height: 2),
-            Text(
-              label,
-              style: GoogleFonts.outfit(
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                color: color,
+            // One line at any locale or text size, so every tab's icon stays
+            // on the same baseline (Kinyarwanda labels are long).
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                label,
+                maxLines: 1,
+                style: GoogleFonts.outfit(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: color,
+                ),
               ),
             ),
           ],

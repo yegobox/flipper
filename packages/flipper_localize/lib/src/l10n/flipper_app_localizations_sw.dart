@@ -5782,6 +5782,21 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   String get dashboardGaugeLastPeriod => 'kipindi kilichopita';
 
   @override
+  String get dashboardCompareYesterday => 'jana';
+
+  @override
+  String get dashboardCompareLastWeek => 'wiki iliyopita';
+
+  @override
+  String get dashboardCompareLastMonth => 'mwezi uliopita';
+
+  @override
+  String get dashboardCompareLastYear => 'mwaka uliopita';
+
+  @override
+  String get transactionTypeUnclassified => 'Haijaainishwa';
+
+  @override
   String get dashboardAppPointOfSale => 'Mahali pa mauzo';
 
   @override

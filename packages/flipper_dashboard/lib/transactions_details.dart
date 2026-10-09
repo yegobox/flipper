@@ -9,6 +9,7 @@ import 'package:flipper_dashboard/widgets/transaction_detail_svgs.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/access_provider.dart';
+import 'package:flipper_models/providers/currency_provider.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
@@ -142,7 +143,10 @@ class _TransactionDetailState extends ConsumerState<TransactionDetail> {
 
         return Scaffold(
           backgroundColor: _TxDetailColors.bg,
+          // The footer pads itself for the home indicator, so only the top
+          // inset belongs here (otherwise a grey band shows under it).
           body: SafeArea(
+            bottom: false,
             child: Column(
               children: [
                 _TxDetailHeader(
@@ -177,14 +181,20 @@ class _TransactionDetailState extends ConsumerState<TransactionDetail> {
                         iconTone: _SectionIconTone.green,
                         title: context.flipperL10n.txDetailTimeline,
                         subtitle: context.flipperL10n.txDetailEventCount(
-                          _buildTimeline(_transaction).length,
+                          _buildTimeline(
+                            _transaction,
+                            ref.watch(defaultCurrencyProvider),
+                          ).length,
                         ),
                         isOpen: _openTimeline,
                         reduceMotion: _reduceMotion,
                         onToggle: () =>
                             setState(() => _openTimeline = !_openTimeline),
                         child: _TimelineSectionBody(
-                          events: _buildTimeline(_transaction),
+                          events: _buildTimeline(
+                            _transaction,
+                            ref.watch(defaultCurrencyProvider),
+                          ),
                         ),
                       ),
                     ],
@@ -469,7 +479,7 @@ class _HeaderIconButton extends StatelessWidget {
   }
 }
 
-class _TxHeroCard extends StatelessWidget {
+class _TxHeroCard extends ConsumerWidget {
   const _TxHeroCard({
     required this.transaction,
     required this.direction,
@@ -481,9 +491,9 @@ class _TxHeroCard extends StatelessWidget {
   final _TxPalette palette;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final instant = _transactionInstant(transaction);
-    final currency = ProxyService.box.defaultCurrency();
+    final currency = ref.watch(defaultCurrencyProvider);
     final subTotal = transaction.subTotal ?? 0;
     final amount = NumberFormat('#,###').format(subTotal);
     final status = _statusPresentation(
@@ -712,14 +722,14 @@ class _TxHeroCard extends StatelessWidget {
   }
 }
 
-class _RefundBanner extends StatelessWidget {
+class _RefundBanner extends ConsumerWidget {
   const _RefundBanner({required this.transaction});
 
   final ITransaction transaction;
 
   @override
-  Widget build(BuildContext context) {
-    final currency = ProxyService.box.defaultCurrency();
+  Widget build(BuildContext context, WidgetRef ref) {
+    final currency = ref.watch(defaultCurrencyProvider);
     final amt = transaction.refundedAmount ?? transaction.subTotal ?? 0;
     final partial = isPartialRefund(amt, transaction.subTotal ?? 0);
     final method = transaction.refundMethod == 'momo'
@@ -1187,13 +1197,13 @@ class _TxExpandableSection extends StatelessWidget {
   }
 }
 
-class _ProductsSectionBody extends StatelessWidget {
+class _ProductsSectionBody extends ConsumerWidget {
   const _ProductsSectionBody({required this.items});
 
   final List<TransactionItem> items;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     if (items.isEmpty) {
       return Padding(
         padding: const EdgeInsets.only(bottom: 12),
@@ -1204,7 +1214,7 @@ class _ProductsSectionBody extends StatelessWidget {
       );
     }
 
-    final currency = ProxyService.box.defaultCurrency();
+    final currency = ref.watch(defaultCurrencyProvider);
     final subtotal = items.fold<double>(
       0,
       (sum, item) => sum + item.price * item.qty,
@@ -1631,8 +1641,7 @@ String _abbr(String name) {
       : name.toUpperCase();
 }
 
-List<_TimelineEvent> _buildTimeline(ITransaction transaction) {
-  final currency = ProxyService.box.defaultCurrency();
+List<_TimelineEvent> _buildTimeline(ITransaction transaction, String currency) {
   final amount = NumberFormat('#,###').format(transaction.subTotal ?? 0);
   final events = <_TimelineEvent>[];
   final status = (transaction.status ?? '').toLowerCase();

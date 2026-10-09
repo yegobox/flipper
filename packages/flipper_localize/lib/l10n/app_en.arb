@@ -4776,6 +4776,26 @@
     "@dashboardGaugeLastPeriod": {
         "description": "Default comparison period in the gauge chip"
     },
+    "dashboardCompareYesterday": "yesterday",
+    "@dashboardCompareYesterday": {
+        "description": "Comparison period in the gauge chip when Today is selected, e.g. '12% vs yesterday'"
+    },
+    "dashboardCompareLastWeek": "last week",
+    "@dashboardCompareLastWeek": {
+        "description": "Comparison period in the gauge chip when This Week is selected"
+    },
+    "dashboardCompareLastMonth": "last month",
+    "@dashboardCompareLastMonth": {
+        "description": "Comparison period in the gauge chip when This Month is selected"
+    },
+    "dashboardCompareLastYear": "last year",
+    "@dashboardCompareLastYear": {
+        "description": "Comparison period in the gauge chip when This Year is selected"
+    },
+    "transactionTypeUnclassified": "Unclassified",
+    "@transactionTypeUnclassified": {
+        "description": "Shown in the mobile transactions list for a transaction that has no type"
+    },
     "dashboardAppPointOfSale": "Point of Sale",
     "@dashboardAppPointOfSale": {
         "description": "Dashboard app tile: POS"

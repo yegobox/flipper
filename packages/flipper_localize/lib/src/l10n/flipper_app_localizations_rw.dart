@@ -5802,6 +5802,21 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   String get dashboardGaugeLastPeriod => 'igihe gishize';
 
   @override
+  String get dashboardCompareYesterday => 'ejo hashize';
+
+  @override
+  String get dashboardCompareLastWeek => 'icyumweru gishize';
+
+  @override
+  String get dashboardCompareLastMonth => 'ukwezi gushize';
+
+  @override
+  String get dashboardCompareLastYear => 'umwaka ushize';
+
+  @override
+  String get transactionTypeUnclassified => 'Bitashyizwe mu cyiciro';
+
+  @override
   String get dashboardAppPointOfSale => 'Aho kugurishiriza';
 
   @override

@@ -5839,6 +5839,21 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   String get dashboardGaugeLastPeriod => 'période précédente';
 
   @override
+  String get dashboardCompareYesterday => 'hier';
+
+  @override
+  String get dashboardCompareLastWeek => 'la semaine dernière';
+
+  @override
+  String get dashboardCompareLastMonth => 'le mois dernier';
+
+  @override
+  String get dashboardCompareLastYear => 'l\'année dernière';
+
+  @override
+  String get transactionTypeUnclassified => 'Non classé';
+
+  @override
   String get dashboardAppPointOfSale => 'Point de vente';
 
   @override

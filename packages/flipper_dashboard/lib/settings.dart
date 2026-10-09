@@ -16,20 +16,21 @@ class SettingPage extends StatelessWidget {
       viewModelBuilder: () => SettingViewModel(),
       onViewModelReady: (model) async => await model.createPin(),
       builder: (context, model, child) {
-        return SafeArea(
-          child: Scaffold(
-            appBar: CustomAppBar(
-              onPop: () async {
-                _routerService.pop();
-              },
-              title: context.flipperL10n.settings,
-              disableButton: false,
-              showActionButton: false,
-            ),
-            backgroundColor: Theme.of(context).canvasColor,
-            body: SafeArea(
-              child: SettingLayout(model: model, context: context),
-            ),
+        // CustomAppBar pads for the status bar itself; an outer SafeArea
+        // left that strip unpainted.
+        return Scaffold(
+          appBar: CustomAppBar(
+            onPop: () async {
+              _routerService.pop();
+            },
+            title: context.flipperL10n.settings,
+            disableButton: false,
+            showActionButton: false,
+          ),
+          backgroundColor: Theme.of(context).canvasColor,
+          body: SafeArea(
+            top: false,
+            child: SettingLayout(model: model, context: context),
           ),
         );
       },
