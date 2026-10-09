@@ -1,8 +1,11 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:excel/excel.dart';
 import 'package:flipper_localize/flipper_localize.dart';
+import 'package:flipper_web/core/flipper_web_host.dart';
 import 'package:flipper_web/modules/accounting/data/services/books_overview_export.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -22,6 +25,34 @@ void main() {
       booksExportFileName('', 'FY 2026', 'csv'),
       'books-overview-fy-2026.csv',
     );
+  });
+
+  // flutter test runs with flipper_web as the root package, like the web app.
+  setUp(() => flipperWebIsHostApp = true);
+  tearDown(() => flipperWebIsHostApp = false);
+
+  test('PDF fonts load from the package bundle when embedded in POS', () async {
+    flipperWebIsHostApp = false;
+    final requested = <String>[];
+    final messenger =
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+    messenger.setMockMessageHandler('flutter/assets', (message) async {
+      final key = utf8.decode(message!.buffer.asUint8List());
+      requested.add(key);
+      const prefix = 'packages/flipper_web/';
+      if (!key.startsWith(prefix)) return null;
+      final bytes = File(key.substring(prefix.length)).readAsBytesSync();
+      return ByteData.sublistView(bytes);
+    });
+    addTearDown(() => messenger.setMockMessageHandler('flutter/assets', null));
+
+    final bytes = await buildOverviewPdf(snapshot, l10n);
+
+    expect(ascii.decode(bytes.sublist(0, 5)), '%PDF-');
+    expect(requested, [
+      'packages/flipper_web/assets/fonts/Geist-400.ttf',
+      'packages/flipper_web/assets/fonts/Geist-700.ttf',
+    ]);
   });
 
   test('PDF is a real PDF document', () async {

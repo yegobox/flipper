@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:excel/excel.dart';
 import 'package:flipper_localize/flipper_localize.dart';
+import 'package:flipper_web/core/flipper_web_host.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_derive.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_models.dart';
 import 'package:flutter/services.dart' show rootBundle;
@@ -321,7 +322,7 @@ Future<Uint8List> buildOverviewPdf(
 }
 
 Future<pw.Font> _font(String asset) async =>
-    pw.Font.ttf(await rootBundle.load(asset));
+    pw.Font.ttf(await rootBundle.load(flipperWebAssetKey(asset)));
 
 // ---------------------------------------------------------------------------
 // Excel
