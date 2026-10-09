@@ -3,6 +3,8 @@ import 'package:flipper_web/features/business_selection/business_branch_selector
 import 'package:flipper_web/modules/accounting/data/accounting_derive.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_models.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_providers.dart';
+import 'package:flipper_web/modules/accounting/data/services/books_file_saver.dart';
+import 'package:flipper_web/modules/accounting/data/services/books_overview_export.dart';
 import 'package:flipper_web/modules/accounting/theme/accounting_tokens.dart';
 import 'package:flipper_web/modules/accounting/widgets/accounting_icon.dart';
 import 'package:flipper_web/modules/accounting/widgets/accounting_kpi_card.dart';
@@ -77,27 +79,7 @@ class AccountingDashboardView extends ConsumerWidget {
               PopupMenuButton<String>(
                 tooltip: l10n.booksExport,
                 offset: const Offset(0, 40),
-                onSelected: (value) {
-                  final subtitle = switch (value) {
-                    'excel' => 'Books · $period',
-                    'pdf' => l10n.booksFinancialOverview,
-                    _ => l10n.booksGeneralLedgerLines,
-                  };
-                  final title = switch (value) {
-                    'excel' => l10n.booksExportingExcel,
-                    'pdf' => l10n.booksGeneratingPdf,
-                    _ => l10n.booksExportingCsv,
-                  };
-                  showAccountingToast(
-                    context,
-                    title,
-                    subtitle: subtitle,
-                    icon: Icons.download_outlined,
-                    tone: value == 'excel' || value == 'pdf'
-                        ? AccountingToastTone.success
-                        : AccountingToastTone.info,
-                  );
-                },
+                onSelected: (value) => _exportOverview(context, ref, value),
                 itemBuilder: (context) => [
                   PopupMenuItem(
                     value: 'excel',
@@ -535,6 +517,72 @@ class _PlRow extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+Future<void> _exportOverview(
+  BuildContext context,
+  WidgetRef ref,
+  String format,
+) async {
+  final l10n = context.flipperL10n;
+  final snapshot = BooksOverviewSnapshot(
+    entityName: ref.read(selectedBusinessProvider)?.name ?? '',
+    period: ref.read(accountingPeriodLabelProvider),
+    currency: ref.read(accountingCurrencyProvider),
+    pl: ref.read(accountingIncomeStatementProvider),
+    cashBank: ref.read(accountingCashBankTotalProvider),
+    arTotal: ageTotals(ref.read(accountingArAgingProvider)).total,
+    apTotal: ageTotals(ref.read(accountingApAgingProvider)).total,
+    trend: ref.read(accountingTrendProvider),
+    journal: ref.read(accountingJournalProvider),
+    accounts: ref.read(accountingAccountsProvider),
+  );
+  final saver = ref.read(booksFileSaverProvider);
+  final ext = switch (format) {
+    'excel' => 'xlsx',
+    'pdf' => 'pdf',
+    _ => 'csv',
+  };
+  final fileName = booksExportFileName(
+    snapshot.entityName,
+    snapshot.period,
+    ext,
+  );
+
+  showAccountingToast(
+    context,
+    switch (format) {
+      'excel' => l10n.booksExportingExcel,
+      'pdf' => l10n.booksGeneratingPdf,
+      _ => l10n.booksExportingCsv,
+    },
+    subtitle: fileName,
+    icon: Icons.download_outlined,
+  );
+  try {
+    final bytes = switch (format) {
+      'excel' => buildOverviewXlsx(snapshot, l10n),
+      'pdf' => await buildOverviewPdf(snapshot, l10n),
+      _ => buildLedgerCsv(snapshot, l10n),
+    };
+    final saved = await saver.save(bytes, fileName, ext);
+    if (!saved || !context.mounted) return;
+    showAccountingToast(
+      context,
+      l10n.booksExportReady,
+      subtitle: fileName,
+      icon: Icons.download_done_outlined,
+      tone: AccountingToastTone.success,
+    );
+  } catch (e) {
+    if (!context.mounted) return;
+    showAccountingToast(
+      context,
+      l10n.booksActionFailed('$e'),
+      icon: Icons.error_outline,
+      tone: AccountingToastTone.warn,
     );
   }
 }

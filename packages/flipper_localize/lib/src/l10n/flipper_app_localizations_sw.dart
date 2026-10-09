@@ -25626,4 +25626,56 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
 
   @override
   String get dailyGoalDone => 'Imekamilika';
+
+  @override
+  String get booksExportColItem => 'Kipengele';
+
+  @override
+  String get booksExportColAmount => 'Kiasi';
+
+  @override
+  String get booksExportColDate => 'Tarehe';
+
+  @override
+  String get booksExportColEntry => 'Ingizo';
+
+  @override
+  String get booksExportColMemo => 'Maelezo';
+
+  @override
+  String get booksExportColSource => 'Chanzo';
+
+  @override
+  String get booksExportColDebit => 'Debiti';
+
+  @override
+  String get booksExportColCredit => 'Krediti';
+
+  @override
+  String get booksExportColMonth => 'Mwezi';
+
+  @override
+  String get booksExportColRevenue => 'Mapato';
+
+  @override
+  String get booksExportColNet => 'Halisi';
+
+  @override
+  String get booksExportSheetTrend => 'Mwenendo';
+
+  @override
+  String get booksExportSheetJournal => 'Jarida';
+
+  @override
+  String get booksExportReady => 'Usafirishaji uko tayari';
+
+  @override
+  String booksExportGeneratedAt(String date) {
+    return 'Imetolewa $date';
+  }
+
+  @override
+  String booksExportPageOf(String page, String total) {
+    return 'Ukurasa $page wa $total';
+  }
 }

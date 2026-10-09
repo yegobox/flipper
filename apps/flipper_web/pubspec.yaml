@@ -54,6 +54,10 @@ dependencies:
   flipper_payments: any
   fluentui_system_icons: ^1.1.273
   url_launcher: ^6.3.1
+  # Books dashboard exports (already in the graph via flipper_models).
+  pdf: ^3.13.0
+  excel:
+    path: ../../open-sources/excel
 dependency_overrides:
   xml: ^7.0.1
   smithy:

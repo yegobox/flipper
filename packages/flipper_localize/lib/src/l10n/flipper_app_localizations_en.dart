@@ -25457,4 +25457,56 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
 
   @override
   String get dailyGoalDone => 'Done';
+
+  @override
+  String get booksExportColItem => 'Item';
+
+  @override
+  String get booksExportColAmount => 'Amount';
+
+  @override
+  String get booksExportColDate => 'Date';
+
+  @override
+  String get booksExportColEntry => 'Entry';
+
+  @override
+  String get booksExportColMemo => 'Memo';
+
+  @override
+  String get booksExportColSource => 'Source';
+
+  @override
+  String get booksExportColDebit => 'Debit';
+
+  @override
+  String get booksExportColCredit => 'Credit';
+
+  @override
+  String get booksExportColMonth => 'Month';
+
+  @override
+  String get booksExportColRevenue => 'Revenue';
+
+  @override
+  String get booksExportColNet => 'Net';
+
+  @override
+  String get booksExportSheetTrend => 'Trend';
+
+  @override
+  String get booksExportSheetJournal => 'Journal';
+
+  @override
+  String get booksExportReady => 'Export ready';
+
+  @override
+  String booksExportGeneratedAt(String date) {
+    return 'Generated $date';
+  }
+
+  @override
+  String booksExportPageOf(String page, String total) {
+    return 'Page $page of $total';
+  }
 }

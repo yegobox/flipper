@@ -8722,5 +8722,21 @@
     "dailyGoalRemindersHint": "Kikumbusho ikiwa hakuna mauzo kufikia saa 4 asubuhi na muhtasari jioni. Si zaidi ya 2 kwa siku.",
     "dailyGoalOwnerOnly": "Mmiliki au msimamizi pekee ndiye anaweza kubadilisha haya.",
     "dailyGoalDoIt": "Fanya",
-    "dailyGoalDone": "Imekamilika"
+    "dailyGoalDone": "Imekamilika",
+  "booksExportColItem": "Kipengele",
+  "booksExportColAmount": "Kiasi",
+  "booksExportColDate": "Tarehe",
+  "booksExportColEntry": "Ingizo",
+  "booksExportColMemo": "Maelezo",
+  "booksExportColSource": "Chanzo",
+  "booksExportColDebit": "Debiti",
+  "booksExportColCredit": "Krediti",
+  "booksExportColMonth": "Mwezi",
+  "booksExportColRevenue": "Mapato",
+  "booksExportColNet": "Halisi",
+  "booksExportSheetTrend": "Mwenendo",
+  "booksExportSheetJournal": "Jarida",
+  "booksExportReady": "Usafirishaji uko tayari",
+  "booksExportGeneratedAt": "Imetolewa {date}",
+  "booksExportPageOf": "Ukurasa {page} wa {total}"
 }
