@@ -8,6 +8,21 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flutter/widgets.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
+/// The signed-in user's id, read fresh each time (a logout and login as
+/// someone else must not leave the previous id behind).
+String currentDashboardUserId() => ProxyService.box.getUserId() ?? '';
+
+/// Whether the signed-in user runs the business: the owner or an admin.
+/// autoDispose, so the user id is read again whenever it is next watched.
+final dashboardIsAdminProvider = Provider.autoDispose<bool>(
+  (ref) => ref.watch(
+    featureAccessLevelProvider(
+      userId: currentDashboardUserId(),
+      accessLevel: AccessLevel.ADMIN,
+    ),
+  ),
+);
+
 /// Whether a dashboard app tile should be visible for the signed-in user.
 bool dashboardAppTileVisible(WidgetRef ref, DashboardAllAppTile tile) {
   if (tile.page == 'DailyReports') {
@@ -29,7 +44,7 @@ bool dashboardAppTileVisible(WidgetRef ref, DashboardAllAppTile tile) {
     return ref.watch(showAgentCommissionNavProvider);
   }
 
-  final uid = ProxyService.box.getUserId() ?? '';
+  final uid = currentDashboardUserId();
   final feature = tile.feature;
   if (feature == null) return true;
 

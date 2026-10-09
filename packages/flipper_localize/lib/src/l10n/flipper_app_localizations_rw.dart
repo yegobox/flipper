@@ -25610,4 +25610,110 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String dailyGoalPlusPoints(int points) {
+    return '+$points amanota';
+  }
+
+  @override
+  String dailyGoalPoints(int points) {
+    return '$points amanota';
+  }
+
+  @override
+  String dailyGoalStreakShort(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'Iminsi $days ikurikiranye',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dailyGoalBestStreak(int days) {
+    return 'Ikirenga: iminsi $days';
+  }
+
+  @override
+  String dailyGoalPointsToday(int points) {
+    return '+$points uyu munsi';
+  }
+
+  @override
+  String get dailyGoalChipSale => 'Kugurisha';
+
+  @override
+  String get dailyGoalChipExpense => 'Ikoreshwa';
+
+  @override
+  String get dailyGoalChipStock => 'Ububiko';
+
+  @override
+  String get dailyGoalChipGoal => 'Intego';
+
+  @override
+  String get dailyGoalMissionSale => 'Andika igurisha';
+
+  @override
+  String get dailyGoalMissionExpense => 'Andika ikoreshwa';
+
+  @override
+  String get dailyGoalMissionStock => 'Vugurura ububiko';
+
+  @override
+  String get dailyGoalMissionGoal => 'Gera ku ntego y\'igurisha y\'uyu munsi';
+
+  @override
+  String get dailyGoalSheetTitle => 'Intego y\'uyu munsi';
+
+  @override
+  String get dailyGoalMissionsHeading => 'Imirimo y\'uyu munsi';
+
+  @override
+  String dailyGoalStreakRule(int days, int points) {
+    return 'Gera ku ntego iminsi $days ikurikiranye ubone amanota $points y\'inyongera.';
+  }
+
+  @override
+  String get dailyGoalThisWeek => 'Iki cyumweru';
+
+  @override
+  String get dailyGoalWeekEmpty =>
+      'Icyumweru cyawe kizagaragara hano guhera ejo.';
+
+  @override
+  String get dailyGoalSettingsHeading => 'Igenamiterere ry\'intego';
+
+  @override
+  String dailyGoalTarget(int count) {
+    return 'Intego ya buri munsi: kugurisha $count';
+  }
+
+  @override
+  String get dailyGoalTargetAuto => 'Ihinduka hakurikijwe iminsi iheruka';
+
+  @override
+  String get dailyGoalTargetCustom => 'Intego yawe bwite';
+
+  @override
+  String get dailyGoalUseAutomatic => 'Koresha byikora';
+
+  @override
+  String get dailyGoalReminders => 'Kwibutswa buri munsi';
+
+  @override
+  String get dailyGoalRemindersHint =>
+      'Kwibutswa niba nta gurisha ryanditswe saa yine, n\'incamake nimugoroba. Ntibirenga 2 ku munsi.';
+
+  @override
+  String get dailyGoalOwnerOnly =>
+      'Nyir\'ubucuruzi cyangwa umuyobozi ni bo bashobora kubihindura.';
+
+  @override
+  String get dailyGoalDoIt => 'Kora';
+
+  @override
+  String get dailyGoalDone => 'Byakozwe';
 }

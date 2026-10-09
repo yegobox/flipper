@@ -25519,4 +25519,111 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String dailyGoalPlusPoints(int points) {
+    return '+$points pointi';
+  }
+
+  @override
+  String dailyGoalPoints(int points) {
+    return '$points pointi';
+  }
+
+  @override
+  String dailyGoalStreakShort(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'Mfululizo wa siku $days',
+      one: 'Mfululizo wa siku 1',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dailyGoalBestStreak(int days) {
+    return 'Bora: siku $days';
+  }
+
+  @override
+  String dailyGoalPointsToday(int points) {
+    return '+$points leo';
+  }
+
+  @override
+  String get dailyGoalChipSale => 'Mauzo';
+
+  @override
+  String get dailyGoalChipExpense => 'Matumizi';
+
+  @override
+  String get dailyGoalChipStock => 'Hesabu';
+
+  @override
+  String get dailyGoalChipGoal => 'Lengo';
+
+  @override
+  String get dailyGoalMissionSale => 'Rekodi mauzo';
+
+  @override
+  String get dailyGoalMissionExpense => 'Rekodi matumizi';
+
+  @override
+  String get dailyGoalMissionStock => 'Sasisha hesabu ya bidhaa';
+
+  @override
+  String get dailyGoalMissionGoal => 'Fikia lengo la mauzo la leo';
+
+  @override
+  String get dailyGoalSheetTitle => 'Lengo la leo';
+
+  @override
+  String get dailyGoalMissionsHeading => 'Kazi za leo';
+
+  @override
+  String dailyGoalStreakRule(int days, int points) {
+    return 'Fikia lengo siku $days mfululizo upate pointi $points za ziada.';
+  }
+
+  @override
+  String get dailyGoalThisWeek => 'Wiki hii';
+
+  @override
+  String get dailyGoalWeekEmpty => 'Wiki yako itaonekana hapa kuanzia kesho.';
+
+  @override
+  String get dailyGoalSettingsHeading => 'Mipangilio ya lengo';
+
+  @override
+  String dailyGoalTarget(int count) {
+    return 'Lengo la kila siku: mauzo $count';
+  }
+
+  @override
+  String get dailyGoalTargetAuto =>
+      'Inabadilika kulingana na siku zako za karibuni';
+
+  @override
+  String get dailyGoalTargetCustom => 'Lengo lako mwenyewe';
+
+  @override
+  String get dailyGoalUseAutomatic => 'Tumia otomatiki';
+
+  @override
+  String get dailyGoalReminders => 'Vikumbusho vya kila siku';
+
+  @override
+  String get dailyGoalRemindersHint =>
+      'Kikumbusho ikiwa hakuna mauzo kufikia saa 4 asubuhi na muhtasari jioni. Si zaidi ya 2 kwa siku.';
+
+  @override
+  String get dailyGoalOwnerOnly =>
+      'Mmiliki au msimamizi pekee ndiye anaweza kubadilisha haya.';
+
+  @override
+  String get dailyGoalDoIt => 'Fanya';
+
+  @override
+  String get dailyGoalDone => 'Imekamilika';
 }

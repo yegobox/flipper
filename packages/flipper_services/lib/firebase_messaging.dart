@@ -6,6 +6,7 @@ import 'package:flipper_models/helpers/personal_goal_contribution_device_key.dar
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/constants.dart';
+import 'package:flipper_services/notifications/engagement_push.dart';
 import 'package:flipper_services/notifications/notification_manager.dart';
 import 'package:flipper_services/personal_goal_fcm_background.dart';
 import 'package:flipper_services/proxy.dart';
@@ -21,7 +22,7 @@ abstract class Messaging {
 class FirebaseMessagingDesktop implements Messaging {
   @override
   Future<void>
-      initializeFirebaseMessagingAndSubscribeToBusinessNotifications() async {}
+  initializeFirebaseMessagingAndSubscribeToBusinessNotifications() async {}
 
   @override
   Future<String> token() async {
@@ -50,7 +51,7 @@ class FirebaseMessagingService implements Messaging {
   final appService = loc.getIt<AppService>();
   @override
   Future<void>
-      initializeFirebaseMessagingAndSubscribeToBusinessNotifications() async {
+  initializeFirebaseMessagingAndSubscribeToBusinessNotifications() async {
     if (isMacOs) return;
 
     final businessId = ProxyService.box.getBusinessId()?.toString();
@@ -89,13 +90,42 @@ class FirebaseMessagingService implements Messaging {
     FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
       await _handleMessage(message: message, showLocalNotification: true);
     });
+    // A tap on a push while the app was in the background, or the push that
+    // launched it: route it the way a tap on the local notification is.
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) async {
+      await _handleMessage(message: message, isNotificationClicked: true);
+    });
+    final initial = await _firebaseMessaging.getInitialMessage();
+    if (initial != null) {
+      await _handleMessage(message: initial, isNotificationClicked: true);
+    }
   }
 
-  Future<void> _handleMessage(
-      {required RemoteMessage message,
-      bool isNotificationClicked = false,
-      bool showLocalNotification = false}) async {
+  Future<void> _handleMessage({
+    required RemoteMessage message,
+    bool isNotificationClicked = false,
+    bool showLocalNotification = false,
+  }) async {
     final type = message.data['type']?.toString();
+    if (type == kEngagementFcmType) {
+      final action = message.data['action']?.toString();
+      if (isNotificationClicked) {
+        openEngagementAction(action);
+        return;
+      }
+      final title = message.notification?.title;
+      final body = message.notification?.body;
+      if (showLocalNotification && body != null && body.isNotEmpty) {
+        try {
+          await NotificationManager.instance.showNotification(
+            title: title ?? '',
+            body: body,
+            payload: engagementNotificationPayload(action),
+          );
+        } catch (_) {}
+      }
+      return;
+    }
     if (type == kPersonalGoalContributionFcmType) {
       final sourceKey = message.data['sourceDeviceKey']?.toString();
       if (sourceKey != null && sourceKey.isNotEmpty) {
@@ -103,7 +133,8 @@ class FirebaseMessagingService implements Messaging {
         if (localKey.isNotEmpty && localKey == sourceKey) return;
       }
 
-      final body = message.notification?.body ??
+      final body =
+          message.notification?.body ??
           message.data['body']?.toString() ??
           message.data['message']?.toString();
       if (body != null &&

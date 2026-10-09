@@ -10,6 +10,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
+import 'engagement_push.dart';
 import 'notification_manager.dart';
 import 'utils/notification_utils.dart';
 
@@ -40,6 +41,8 @@ class NotificationHandler {
           _routerService.navigateTo(InventoryRequestMobileViewRoute());
         } else if (payload['type'] == 'delegation') {
           await _openDelegationsDashboard();
+        } else if (payload['type'] == kEngagementFcmType) {
+          openEngagementAction(payload['action']?.toString());
         }
       } catch (e) {
         // If parsing fails, just log the error and continue
@@ -110,10 +113,7 @@ class NotificationHandler {
         id: requestId.hashCode,
         title: title,
         body: body,
-        payload: jsonEncode({
-          'type': 'inventory_request',
-          'id': requestId,
-        }),
+        payload: jsonEncode({'type': 'inventory_request', 'id': requestId}),
       );
       talker.info('[transfer-notify] shown for $requestId');
     } catch (e, stackTrace) {
