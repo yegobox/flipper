@@ -90,7 +90,7 @@ class EngagementStore {
 
   /// What the branch has recorded since [since] (local midnight), counted the
   /// way the server counts a day: completed sales, expenses, and deliberate
-  /// stock movements (adjustments, purchases, imports).
+  /// stock movements (see [isStockMovement]).
   Stream<TodayActivity> today(String branchId, DateTime since) => _observe(
     name: 'engagementToday',
     collection: 'transactions',
@@ -103,13 +103,24 @@ class EngagementStore {
     map: countToday,
   );
 
+  /// A stock adjustment (adding or adjusting stock), or a recorded supplier
+  /// purchase.
+  ///
+  /// Decided by `receiptType` and the purchase recorder's own
+  /// `transactionType` only. A cash-out's `transactionType` is whatever
+  /// category the user picked (`cashMovementClassification`), so an expense
+  /// filed under "Purchase" must not count as stock; nor does paying a
+  /// supplier's bill ('Supplier payment', also receipt type 'Purchase').
+  /// Mirrored in the supabase `engagement_activity` function.
+  static bool isStockMovement(Map<String, dynamic> r) =>
+      r['receiptType'] == TransactionType.adjustment ||
+      (r['receiptType'] == 'Purchase' &&
+          r['transactionType'] == 'Supplier purchase');
+
   static TodayActivity countToday(List<Map<String, dynamic>> rows) {
     var sales = 0, expenses = 0, stock = 0;
     for (final r in rows) {
-      final isStock =
-          r['receiptType'] == TransactionType.adjustment ||
-          r['transactionType'] == TransactionType.purchase ||
-          r['transactionType'] == TransactionType.importation;
+      final isStock = isStockMovement(r);
       final isExpense = r['isExpense'] == true;
       if (isStock) {
         stock++;

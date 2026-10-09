@@ -43,11 +43,42 @@ void main() {
       {'status': 'completed', 'isExpense': false},
       {'status': 'pending', 'isExpense': false}, // a cart, not a sale
       {'status': 'completed', 'isExpense': true},
-      {'status': 'completed', 'receiptType': 'adjustment'},
-      {'status': 'completed', 'transactionType': 'Purchase'},
-      {'status': 'completed', 'transactionType': 'Import'},
+      // Adding a product with stock: an adjustment, flagged as an expense.
+      {
+        'status': 'completed',
+        'isExpense': true,
+        'receiptType': 'adjustment',
+        'transactionType': 'adjustment',
+      },
+      // A recorded supplier purchase.
+      {
+        'status': 'completed',
+        'isExpense': true,
+        'receiptType': 'Purchase',
+        'transactionType': 'Supplier purchase',
+      },
     ]);
-    expect(a, const TodayActivity(sales: 2, expenses: 1, stockUpdates: 3));
+    expect(a, const TodayActivity(sales: 2, expenses: 1, stockUpdates: 2));
+  });
+
+  test('an expense is not a stock update, whatever its category', () {
+    // A cash-out's transactionType is the category the user picked.
+    final a = EngagementStore.countToday([
+      {
+        'status': 'completed',
+        'isExpense': true,
+        'receiptType': 'Cash Out',
+        'transactionType': 'Purchase',
+      },
+      // Paying a supplier's bill: receipt type Purchase, but no stock moved.
+      {
+        'status': 'completed',
+        'isExpense': true,
+        'receiptType': 'Purchase',
+        'transactionType': 'Supplier payment',
+      },
+    ]);
+    expect(a, const TodayActivity(expenses: 2));
   });
 
   test('state reads the document data-connector writes', () {
