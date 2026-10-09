@@ -25768,4 +25768,20 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   String booksExportPageOf(String page, String total) {
     return 'Urupapuro $page kuri $total';
   }
+
+  @override
+  String get hotelNoRoomChargeTitle =>
+      'Nta giciro cy\'icyumba kiri kuri fagitire';
+
+  @override
+  String hotelNoRoomChargeBody(String nights, String rate, String amount) {
+    return 'Andika $nights kuri $rate ($amount) mbere yo gusezerera umushyitsi? Bitabaye ibyo, uku kuraramo ntikwandikwa nk\'igurisha.';
+  }
+
+  @override
+  String get hotelPostAndContinue => 'Andika ukomeze';
+
+  @override
+  String get hotelCheckOutWithoutRoomCharge =>
+      'Sezerera nta giciro cy\'icyumba';
 }

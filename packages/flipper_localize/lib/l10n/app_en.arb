@@ -19070,5 +19070,10 @@
     "booksExportGeneratedAt": "Generated {date}",
     "@booksExportGeneratedAt": {"placeholders": {"date": {"type": "String"}}},
     "booksExportPageOf": "Page {page} of {total}",
-    "@booksExportPageOf": {"placeholders": {"page": {"type": "String"}, "total": {"type": "String"}}}
+    "@booksExportPageOf": {"placeholders": {"page": {"type": "String"}, "total": {"type": "String"}}},
+    "hotelNoRoomChargeTitle": "No room charge on this folio",
+    "hotelNoRoomChargeBody": "Post {nights} at {rate} ({amount}) before checking out? Without it, this stay is not recorded as a sale.",
+    "@hotelNoRoomChargeBody": {"placeholders": {"nights": {"type": "String"}, "rate": {"type": "String"}, "amount": {"type": "String"}}},
+    "hotelPostAndContinue": "Post & continue",
+    "hotelCheckOutWithoutRoomCharge": "Check out without it"
 }

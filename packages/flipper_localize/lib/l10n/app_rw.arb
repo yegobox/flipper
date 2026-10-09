@@ -8730,5 +8730,9 @@
   "booksExportSheetJournal": "Ibitabo by'ibikorwa",
   "booksExportReady": "Byoherejwe neza",
   "booksExportGeneratedAt": "Byakozwe {date}",
-  "booksExportPageOf": "Urupapuro {page} kuri {total}"
+  "booksExportPageOf": "Urupapuro {page} kuri {total}",
+  "hotelNoRoomChargeTitle": "Nta giciro cy'icyumba kiri kuri fagitire",
+  "hotelNoRoomChargeBody": "Andika {nights} kuri {rate} ({amount}) mbere yo gusezerera umushyitsi? Bitabaye ibyo, uku kuraramo ntikwandikwa nk'igurisha.",
+  "hotelPostAndContinue": "Andika ukomeze",
+  "hotelCheckOutWithoutRoomCharge": "Sezerera nta giciro cy'icyumba"
 }

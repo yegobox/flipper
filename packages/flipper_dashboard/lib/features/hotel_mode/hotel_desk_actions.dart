@@ -472,6 +472,11 @@ abstract final class HotelDeskActions {
     }
   }
 
+  /// The folio's lines as stored now, not as last streamed to the screen —
+  /// used to re-total after posting a charge mid-checkout.
+  static Future<List<TransactionItem>> folioLines(HotelStay stay) =>
+      _sync.hotelFolioLines(transactionId: stay.transactionId);
+
   static Future<void> cancelStay({
     required WidgetRef ref,
     required HotelStay stay,

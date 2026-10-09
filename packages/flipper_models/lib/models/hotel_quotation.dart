@@ -1,7 +1,15 @@
+import 'package:flipper_models/models/hotel_stay.dart' show hotelCalendarNights;
 import 'package:uuid/uuid.dart';
 
 /// Lifecycle of a priced offer.
-enum HotelQuotationStatus { draft, sent, accepted, declined, expired, converted }
+enum HotelQuotationStatus {
+  draft,
+  sent,
+  accepted,
+  declined,
+  expired,
+  converted,
+}
 
 HotelQuotationStatus hotelQuotationStatusFromString(String? raw) {
   switch (raw?.trim()) {
@@ -98,10 +106,7 @@ class HotelQuotation {
   final DateTime? updatedAt;
 
   /// Contracted nights, floor-clamped to 1.
-  int get nights {
-    final whole = (checkOutAt.difference(checkInAt).inHours / 24).ceil();
-    return whole < 1 ? 1 : whole;
-  }
+  int get nights => hotelCalendarNights(checkInAt, checkOutAt);
 
   double get roomTotal => nightlyRate * nights;
 
