@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'package:flipper_dashboard/widgets/pos_shift_gate.dart';
 import 'package:flipper_models/providers/ebm_provider.dart';
 import 'package:flipper_localize/flipper_localize.dart';
@@ -96,9 +97,17 @@ class _DashboardDrawerState extends ConsumerState<DashboardDrawer>
     );
   }
 
+  // Created once, not in build: a FutureBuilder handed a new future on every
+  // rebuild (e.g. the branch-switch spinner's setState) refetches and flashes
+  // its loading state again.
+  late Future<({Tenant? tenant, Map<String, dynamic>? profileRow})>
+  _headerFuture;
+  Future<List<Business>>? _businessesFuture;
+
   @override
   void initState() {
     super.initState();
+    _headerFuture = _getHeaderData();
     userLoggingEnabled = ProxyService.box.getUserLoggingEnabled() ?? false;
     saleMode = currentSaleMode();
     backgroundSyncEnabled =
@@ -160,7 +169,7 @@ class _DashboardDrawerState extends ConsumerState<DashboardDrawer>
 
   Widget _buildModernHeader(BuildContext context) {
     return FutureBuilder<({Tenant? tenant, Map<String, dynamic>? profileRow})>(
-      future: _getHeaderData(),
+      future: _headerFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Container(
@@ -364,26 +373,20 @@ class _DashboardDrawerState extends ConsumerState<DashboardDrawer>
     }
 
     return FutureBuilder<List<Business>>(
-      future: () async {
-        final userAccess = await ProxyService.ditto.getUserAccess(userId);
-        if (userAccess != null && userAccess.containsKey('businesses')) {
-          final List<dynamic> businessesJson = userAccess['businesses'];
-          return businessesJson
-              .map((json) => Business.fromMap(Map<String, dynamic>.from(json)))
-              .toList();
-        }
-        return <Business>[];
-      }(),
+      future: _businessesFuture ??= _loadBusinesses(userId),
       builder: (context, businessSnapshot) {
         if (businessSnapshot.connectionState == ConnectionState.waiting) {
           return _buildLoadingState(context.flipperL10n.loadingBusinesses);
         }
 
         if (businessSnapshot.hasError) {
+          log(
+            'drawer businesses: ${businessSnapshot.error}',
+            stackTrace: businessSnapshot.stackTrace,
+          );
           return _buildErrorState(
             context.flipperL10n.errorLoadingBusinesses,
-            businessSnapshot.error.toString(),
-            () => (context as Element).markNeedsBuild(),
+            () => setState(() => _businessesFuture = _loadBusinesses(userId)),
           );
         }
 
@@ -835,7 +838,20 @@ class _DashboardDrawerState extends ConsumerState<DashboardDrawer>
     );
   }
 
-  Widget _buildErrorState(String title, String error, VoidCallback onRetry) {
+  Future<List<Business>> _loadBusinesses(String userId) async {
+    final userAccess = await ProxyService.ditto.getUserAccess(userId);
+    if (userAccess != null && userAccess.containsKey('businesses')) {
+      final List<dynamic> businessesJson = userAccess['businesses'];
+      return businessesJson
+          .map((json) => Business.fromMap(Map<String, dynamic>.from(json)))
+          .toList();
+    }
+    return <Business>[];
+  }
+
+  /// Plain-language error with a retry; the raw exception is logged by the
+  /// caller rather than shown.
+  Widget _buildErrorState(String title, VoidCallback onRetry) {
     return Padding(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -852,8 +868,8 @@ class _DashboardDrawerState extends ConsumerState<DashboardDrawer>
           ),
           const SizedBox(height: 4),
           Text(
-            error,
-            style: TextStyle(fontSize: 13, color: Colors.grey[500]),
+            context.flipperL10n.mposLoadFailedBody,
+            style: TextStyle(fontSize: 13, color: Colors.grey[600]),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 12),

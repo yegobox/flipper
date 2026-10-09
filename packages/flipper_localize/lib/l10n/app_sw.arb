@@ -3256,6 +3256,8 @@
   "dashboardGaugeNetProfitPeriod": "Faida halisi · {period}",
   "dashboardGaugeDeltaVs": "{percent}% dhidi ya {comparison}",
   "dashboardGaugeLastPeriod": "kipindi kilichopita",
+  "mposLoadFailedTitle": "Imeshindwa kupakia",
+  "mposLoadFailedBody": "Kagua muunganisho wako na ujaribu tena.",
   "dashboardCompareYesterday": "jana",
   "dashboardCompareLastWeek": "wiki iliyopita",
   "dashboardCompareLastMonth": "mwezi uliopita",

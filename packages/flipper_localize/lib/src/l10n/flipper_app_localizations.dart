@@ -9995,6 +9995,18 @@ abstract class FlipperAppLocalizations {
   /// **'Unclassified'**
   String get transactionTypeUnclassified;
 
+  /// Title of the error card shown on mobile screens when data fails to load
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load this'**
+  String get mposLoadFailedTitle;
+
+  /// Body of the error card shown on mobile screens when data fails to load; a Retry button follows
+  ///
+  /// In en, this message translates to:
+  /// **'Check your connection, then try again.'**
+  String get mposLoadFailedBody;
+
   /// Dashboard app tile: POS
   ///
   /// In en, this message translates to:

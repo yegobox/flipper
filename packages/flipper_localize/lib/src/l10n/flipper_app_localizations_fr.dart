@@ -5854,6 +5854,12 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   String get transactionTypeUnclassified => 'Non classé';
 
   @override
+  String get mposLoadFailedTitle => 'Impossible de charger';
+
+  @override
+  String get mposLoadFailedBody => 'Vérifiez votre connexion et réessayez.';
+
+  @override
   String get dashboardAppPointOfSale => 'Point de vente';
 
   @override

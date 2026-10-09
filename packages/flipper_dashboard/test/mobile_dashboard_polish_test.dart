@@ -4,6 +4,7 @@ import 'package:flipper_dashboard/widgets/dashboard_mobile_app_bar_leading.dart'
 import 'package:flipper_dashboard/widgets/dashboard_mobile_bottom_nav.dart';
 import 'package:flipper_dashboard/widgets/mpos/mpos_hit_area.dart';
 import 'package:flipper_dashboard/widgets/mpos/mpos_press_button.dart';
+import 'package:flipper_dashboard/widgets/mpos/mpos_states.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -182,5 +183,59 @@ void main() {
     await tester.tap(find.byType(IconButton));
     expect(opened, 1);
     handle.dispose();
+  });
+
+  testWidgets('error state offers a working retry, not the raw error', (
+    tester,
+  ) async {
+    usePhone(tester);
+    var retries = 0;
+    await tester.pumpWidget(
+      host(Center(child: MposErrorState(onRetry: () => retries++))),
+    );
+    expect(find.text("Couldn't load this"), findsOneWidget);
+    await tester.tap(find.text('Retry'));
+    expect(retries, 1);
+
+    await tester.pumpWidget(
+      host(MposErrorState(compact: true, onRetry: () => retries++)),
+    );
+    await tester.tap(find.text('Retry'));
+    expect(retries, 2);
+  });
+
+  testWidgets('skeletons lay out at phone width, with and without motion', (
+    tester,
+  ) async {
+    usePhone(tester);
+    for (final reduceMotion in [false, true]) {
+      await tester.pumpWidget(
+        host(
+          MediaQuery(
+            data: MediaQueryData(disableAnimations: reduceMotion),
+            child: const SingleChildScrollView(
+              child: Column(
+                children: [
+                  MposSkeletonCard(height: 290, lines: 4),
+                  MposSkeletonList(rows: 3),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+      // The shimmer loops forever, so pump a frame rather than settle.
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(tester.takeException(), isNull);
+      expect(
+        tester.getSize(find.byType(MposSkeletonCard)).height,
+        moreOrLessEquals(290),
+      );
+    }
+  });
+
+  test('refresh helper completes even when the reload fails', () async {
+    await mposAwaitRefresh(Future<Object?>.error(StateError('offline')));
+    await mposAwaitRefresh(Future<Object?>.value(1));
   });
 }

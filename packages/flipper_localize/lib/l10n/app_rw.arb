@@ -3248,6 +3248,8 @@
   "dashboardGaugeNetProfitPeriod": "Inyungu nyayo · {period}",
   "dashboardGaugeDeltaVs": "{percent}% ugereranyije na {comparison}",
   "dashboardGaugeLastPeriod": "igihe gishize",
+  "mposLoadFailedTitle": "Ntibyashobotse gufungura",
+  "mposLoadFailedBody": "Genzura murandasi yawe wongere ugerageze.",
   "dashboardCompareYesterday": "ejo hashize",
   "dashboardCompareLastWeek": "icyumweru gishize",
   "dashboardCompareLastMonth": "ukwezi gushize",

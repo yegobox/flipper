@@ -4,6 +4,7 @@ import 'dart:developer';
 
 import 'package:flipper_dashboard/widgets/app_icons_grid.dart';
 import 'package:flipper_dashboard/widgets/dashboard_mobile_bottom_nav.dart';
+import 'package:flipper_dashboard/widgets/mpos/mpos_states.dart';
 import 'package:flipper_dashboard/widgets/dashboard_quick_access_svgs.dart';
 import 'package:flipper_dashboard/features/stock_value/stock_value_report_screen.dart';
 import 'package:flipper_models/providers/currency_provider.dart';
@@ -111,10 +112,13 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
             child: RefreshIndicator(
               onRefresh: () async {
                 ref.invalidate(
-                  dashboardGaugeSnapshotProvider(transactionPeriod),
-                );
-                ref.invalidate(
                   dashboardPreviousGaugeSnapshotProvider(transactionPeriod),
+                );
+                ref.invalidate(stockValueSummaryProvider);
+                await mposAwaitRefresh(
+                  ref.refresh(
+                    dashboardGaugeSnapshotProvider(transactionPeriod).future,
+                  ),
                 );
               },
               child: SingleChildScrollView(
@@ -443,26 +447,37 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
             ),
           );
         },
+        // A failed load used to draw an empty gauge saying "No
+        // transactions yet", which looked like a quiet day.
         error: (err, stack) {
           log('error: $err stack: $stack');
           return Padding(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-            child: DashboardHomeGauge(
-              value: 0,
-              revenue: 0,
-              grossProfit: 0,
-              deductions: 0,
-              profitType: profitType,
-              periodLabel: _periodLabel(transactionPeriod),
-              currencyCode: currency,
-              isEmpty: true,
+            child: MposErrorState(
+              onRetry: () => ref.invalidate(
+                dashboardGaugeSnapshotProvider(transactionPeriod),
+              ),
             ),
           );
         },
-        loading: () => const Center(
-          child: Padding(
-            padding: EdgeInsets.all(24.0),
-            child: CircularProgressIndicator(),
+        // Same card stack as the loaded state, so nothing jumps on arrival.
+        loading: () => const Padding(
+          padding: EdgeInsets.fromLTRB(16, 12, 16, 0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              MposSkeletonCard(height: 290, lines: 4),
+              SizedBox(height: 12),
+              MposSkeletonCard(height: 136),
+              SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(child: MposSkeletonCard(height: 150)),
+                  SizedBox(width: 12),
+                  Expanded(child: MposSkeletonCard(height: 150)),
+                ],
+              ),
+            ],
           ),
         ),
       );
@@ -616,7 +631,9 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
           ),
         );
       },
-      loading: () => const SizedBox.shrink(),
+      // Fixed-height placeholder so the cards above don't shift when the
+      // goal arrives; on error the goal is simply left out.
+      loading: () => const MposSkeletonCard(height: 104, lines: 2),
       error: (_, __) => const SizedBox.shrink(),
     );
   }
@@ -782,13 +799,31 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
             ],
           );
         },
-        loading: () => const SizedBox(
+        loading: () => SizedBox(
           height: 88,
-          child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+          child: MposSkeleton(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    MposSkeleton.bar(width: 110, height: 14),
+                    const Spacer(),
+                    MposSkeleton.bar(width: 96, height: 22),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                MposSkeleton.bar(height: 6),
+                const SizedBox(height: 16),
+                MposSkeleton.bar(width: 150),
+              ],
+            ),
+          ),
         ),
-        error: (_, __) => Text(
-          context.flipperL10n.dashViewUnableToLoadStock,
-          style: GoogleFonts.outfit(fontSize: 14, color: Colors.black54),
+        error: (_, __) => MposErrorState(
+          compact: true,
+          title: context.flipperL10n.dashViewUnableToLoadStock,
+          onRetry: () => ref.invalidate(stockValueSummaryProvider),
         ),
       ),
     );

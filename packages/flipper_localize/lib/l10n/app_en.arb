@@ -4796,6 +4796,14 @@
     "@transactionTypeUnclassified": {
         "description": "Shown in the mobile transactions list for a transaction that has no type"
     },
+    "mposLoadFailedTitle": "Couldn't load this",
+    "@mposLoadFailedTitle": {
+        "description": "Title of the error card shown on mobile screens when data fails to load"
+    },
+    "mposLoadFailedBody": "Check your connection, then try again.",
+    "@mposLoadFailedBody": {
+        "description": "Body of the error card shown on mobile screens when data fails to load; a Retry button follows"
+    },
     "dashboardAppPointOfSale": "Point of Sale",
     "@dashboardAppPointOfSale": {
         "description": "Dashboard app tile: POS"

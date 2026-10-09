@@ -1,8 +1,11 @@
+import 'dart:developer';
+
 import 'package:flipper_design_system/flipper_design_system.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/services/transaction_receipt_actions_service.dart';
 import 'package:flipper_dashboard/services/transaction_refund_helpers.dart';
 import 'package:flipper_dashboard/widgets/mpos/mpos_press_button.dart';
+import 'package:flipper_dashboard/widgets/mpos/mpos_states.dart';
 import 'package:flipper_dashboard/widgets/transaction_detail_sheets.dart';
 import 'package:flipper_dashboard/cashbook_form_rules.dart';
 import 'package:flipper_dashboard/widgets/cashbook_svgs.dart';
@@ -78,6 +81,10 @@ class _TransactionDetailState extends ConsumerState<TransactionDetail> {
   bool _openTimeline = false;
   // Cached so Share/Download/Print can build a receipt copy without refetching.
   List<TransactionItem> _items = const [];
+
+  // Until the first fetch settles, "0 items" / "No line items" would be a lie.
+  bool _itemsLoading = true;
+  bool _itemsFailed = false;
 
   @override
   void initState() {
@@ -170,12 +177,24 @@ class _TransactionDetailState extends ConsumerState<TransactionDetail> {
                         iconSvg: TransactionDetailSvgs.cart(),
                         iconTone: _SectionIconTone.blue,
                         title: context.flipperL10n.txDetailProducts,
-                        subtitle: _itemCountLabel(items.length),
+                        subtitle: _itemsLoading || _itemsFailed
+                            ? '…'
+                            : _itemCountLabel(items.length),
                         isOpen: _openProducts,
                         reduceMotion: _reduceMotion,
                         onToggle: () =>
                             setState(() => _openProducts = !_openProducts),
-                        child: _ProductsSectionBody(items: items),
+                        child: _itemsLoading
+                            ? const _ProductsSkeleton()
+                            : _itemsFailed
+                            ? Padding(
+                                padding: const EdgeInsets.only(bottom: 8),
+                                child: MposErrorState(
+                                  compact: true,
+                                  onRetry: () => _loadItems(model),
+                                ),
+                              )
+                            : _ProductsSectionBody(items: items),
                       ),
                       _TxExpandableSection(
                         iconSvg: TransactionDetailSvgs.clock(),
@@ -218,17 +237,74 @@ class _TransactionDetailState extends ConsumerState<TransactionDetail> {
   }
 
   Future<void> _loadItems(CoreViewModel model) async {
-    final activeBranch = await ProxyService.strategy.activeBranch(
-      branchId: ProxyService.box.getBranchId()!,
+    if (mounted && !_itemsLoading) {
+      setState(() {
+        _itemsLoading = true;
+        _itemsFailed = false;
+      });
+    }
+    try {
+      final activeBranch = await ProxyService.strategy.activeBranch(
+        branchId: ProxyService.box.getBranchId()!,
+      );
+      final items = await ProxyService.getStrategy(Strategy.capella)
+          .transactionItems(
+            branchId: activeBranch.id,
+            transactionId: _transaction.id,
+            fetchRemote: true,
+          );
+      model.completedTransactionItemsList = items;
+      _items = items;
+      if (mounted) setState(() => _itemsLoading = false);
+    } catch (e, st) {
+      log('transaction detail items: $e', stackTrace: st);
+      if (mounted) {
+        setState(() {
+          _itemsLoading = false;
+          _itemsFailed = true;
+        });
+      }
+    }
+  }
+}
+
+/// Two placeholder line items while the products load.
+class _ProductsSkeleton extends StatelessWidget {
+  const _ProductsSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: MposSkeleton(
+        child: Column(
+          children: [
+            for (var i = 0; i < 2; i++)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Row(
+                  children: [
+                    MposSkeleton.bar(width: 36, height: 36, radius: 10),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          MposSkeleton.bar(height: 13),
+                          const SizedBox(height: 6),
+                          MposSkeleton.bar(width: 90, height: 10),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    MposSkeleton.bar(width: 64, height: 13),
+                  ],
+                ),
+              ),
+          ],
+        ),
+      ),
     );
-    final items = await ProxyService.getStrategy(Strategy.capella)
-        .transactionItems(
-          branchId: activeBranch.id,
-          transactionId: _transaction.id,
-          fetchRemote: true,
-        );
-    model.completedTransactionItemsList = items;
-    _items = items;
   }
 }
 

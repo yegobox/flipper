@@ -2,6 +2,7 @@ import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_design_system/flipper_design_system.dart';
 import 'dart:developer';
 
+import 'package:flipper_dashboard/widgets/mpos/mpos_states.dart';
 import 'package:flipper_models/providers/stock_value_report_provider.dart';
 import 'package:flipper_services/utils.dart';
 import 'package:flutter/foundation.dart';
@@ -63,11 +64,36 @@ class StockValueReportScreen extends ConsumerWidget {
         ],
       ),
       body: reportAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (_, __) => Center(
-          child: Text(
-            l10n.stockValueLoadError,
-            style: GoogleFonts.outfit(color: Colors.black54),
+        loading: () => const SingleChildScrollView(
+          physics: NeverScrollableScrollPhysics(),
+          padding: EdgeInsets.fromLTRB(16, 12, 16, 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              MposSkeletonCard(height: 150, lines: 4),
+              SizedBox(height: 12),
+              MposSkeletonCard(height: 96, lines: 2),
+              SizedBox(height: 12),
+              MposSkeletonCard(height: 220, lines: 6),
+            ],
+          ),
+        ),
+        error: (_, __) => RefreshIndicator(
+          onRefresh: () =>
+              mposAwaitRefresh(ref.refresh(stockValueReportProvider.future)),
+          child: LayoutBuilder(
+            builder: (context, constraints) => SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                child: Center(
+                  child: MposErrorState(
+                    title: l10n.stockValueLoadError,
+                    onRetry: () => ref.invalidate(stockValueReportProvider),
+                  ),
+                ),
+              ),
+            ),
           ),
         ),
         data: (report) {
@@ -154,10 +180,8 @@ class _StockValueReportBodyState extends ConsumerState<_StockValueReportBody> {
     final report = widget.report;
     final l10n = context.flipperL10n;
     return RefreshIndicator(
-      onRefresh: () async {
-        ref.invalidate(stockValueReportProvider);
-        await ref.read(stockValueReportProvider.future);
-      },
+      onRefresh: () =>
+          mposAwaitRefresh(ref.refresh(stockValueReportProvider.future)),
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
