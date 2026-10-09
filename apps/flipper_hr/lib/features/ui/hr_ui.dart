@@ -298,12 +298,70 @@ class HrStatGrid extends StatelessWidget {
         final fit = ((w + spacing) / (188 + spacing)).floor();
         final columns = (w < 600 ? 2 : fit).clamp(1, tiles.length);
         final tileWidth = (w - spacing * (columns - 1)) / columns;
+        // An odd tile out on a phone takes the whole last row rather than
+        // leaving half of it empty.
+        final oddLast = columns == 2 && tiles.length.isOdd;
         return Wrap(
           spacing: spacing,
           runSpacing: spacing,
-          children: [for (final t in tiles) t(tileWidth.floorToDouble())],
+          children: [
+            for (var i = 0; i < tiles.length; i++)
+              tiles[i](
+                oddLast && i == tiles.length - 1
+                    ? w.floorToDouble()
+                    : tileWidth.floorToDouble(),
+              ),
+          ],
         );
       },
+    );
+  }
+}
+
+/// Below this width a page is laid out for a phone.
+const double hrPhoneBreakpoint = 720;
+
+/// A page's side margin: 16 on a phone, 24 on anything wider.
+double hrGutter(BuildContext context) =>
+    MediaQuery.sizeOf(context).width < hrPhoneBreakpoint ? 16 : 24;
+
+/// A page heading with its actions: side by side on a desk, stacked on a
+/// phone with the actions full width — where a thumb reaches them and the
+/// subtitle keeps its line instead of wrapping into three.
+class HrHeaderRow extends StatelessWidget {
+  const HrHeaderRow({super.key, required this.title, required this.actions});
+
+  final Widget title;
+  final List<Widget> actions;
+
+  @override
+  Widget build(BuildContext context) {
+    if (MediaQuery.sizeOf(context).width >= hrPhoneBreakpoint) {
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(child: title),
+          const SizedBox(width: 12),
+          ...actions,
+        ],
+      );
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        title,
+        if (actions.isNotEmpty) ...[
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              for (var i = 0; i < actions.length; i++) ...[
+                if (i > 0) const SizedBox(width: 10),
+                Expanded(child: actions[i]),
+              ],
+            ],
+          ),
+        ],
+      ],
     );
   }
 }

@@ -76,7 +76,12 @@ class HrOverviewPage extends ConsumerWidget {
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 1200),
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
+          padding: EdgeInsets.fromLTRB(
+            hrGutter(context),
+            hrGutter(context),
+            hrGutter(context),
+            32,
+          ),
           children: [
             _Greeting(name: identity.name, branchName: branchName, asOf: now),
             const SizedBox(height: 20),
@@ -219,44 +224,56 @@ class _QuickActions extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.flipperL10n;
-    return Wrap(
-      spacing: 10,
-      runSpacing: 10,
-      children: [
-        FilledButton.icon(
-          key: const Key('hr-overview-add-person'),
-          onPressed: onAddPerson,
-          style: hrPrimaryButtonStyle(),
-          icon: const Icon(Icons.person_add_alt_1, size: 17),
-          label: Text(l10n.hrAddAPerson),
+    final buttons = <Widget>[
+      FilledButton.icon(
+        key: const Key('hr-overview-add-person'),
+        onPressed: onAddPerson,
+        style: hrPrimaryButtonStyle(),
+        icon: const Icon(Icons.person_add_alt_1, size: 17),
+        label: Text(l10n.hrAddAPerson),
+      ),
+      OutlinedButton.icon(
+        key: const Key('hr-overview-review'),
+        onPressed: onReview,
+        style: hrSecondaryButtonStyle(),
+        icon: const Icon(Icons.fact_check_outlined, size: 17),
+        label: Text(
+          pendingCount == 0
+              ? l10n.hrApprovals
+              : l10n.hrReviewRequests(pendingCount),
         ),
-        OutlinedButton.icon(
-          key: const Key('hr-overview-review'),
-          onPressed: onReview,
-          style: hrSecondaryButtonStyle(),
-          icon: const Icon(Icons.fact_check_outlined, size: 17),
-          label: Text(
-            pendingCount == 0
-                ? l10n.hrApprovals
-                : l10n.hrReviewRequests(pendingCount),
-          ),
+      ),
+      OutlinedButton.icon(
+        key: const Key('hr-overview-pay'),
+        onPressed: onPay,
+        style: hrSecondaryButtonStyle(),
+        icon: const Icon(Icons.payments_outlined, size: 17),
+        label: Text(
+          dueToPay == 0 ? l10n.hrPayroll : l10n.hrPayPeopleDue(dueToPay),
         ),
-        OutlinedButton.icon(
-          key: const Key('hr-overview-pay'),
-          onPressed: onPay,
-          style: hrSecondaryButtonStyle(),
-          icon: const Icon(Icons.payments_outlined, size: 17),
-          label: Text(
-            dueToPay == 0 ? l10n.hrPayroll : l10n.hrPayPeopleDue(dueToPay),
-          ),
-        ),
-        OutlinedButton.icon(
-          onPressed: onAttendance,
-          style: hrSecondaryButtonStyle(),
-          icon: const Icon(Icons.schedule_outlined, size: 17),
-          label: Text(l10n.hrAttendanceBoard),
-        ),
-      ],
+      ),
+      OutlinedButton.icon(
+        onPressed: onAttendance,
+        style: hrSecondaryButtonStyle(),
+        icon: const Icon(Icons.schedule_outlined, size: 17),
+        label: Text(l10n.hrAttendanceBoard),
+      ),
+    ];
+
+    // A phone gets a 2×2 grid of equal buttons; four full-width rows would
+    // push the day's numbers below the fold.
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth >= 600) {
+          return Wrap(spacing: 10, runSpacing: 10, children: buttons);
+        }
+        final half = (constraints.maxWidth - 10) / 2;
+        return Wrap(
+          spacing: 10,
+          runSpacing: 10,
+          children: [for (final b in buttons) SizedBox(width: half, child: b)],
+        );
+      },
     );
   }
 }

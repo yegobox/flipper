@@ -1,5 +1,6 @@
 import 'package:flipper_design_system/flipper_design_system.dart';
 import 'package:flipper_hr/features/host/hr_host.dart';
+import 'package:flipper_hr/features/ui/hr_theme.dart';
 import 'package:flipper_hr/router/hr_router.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -62,7 +63,7 @@ class _HrEmbeddedAppState extends State<HrEmbeddedApp> {
     return ProviderScope(
       overrides: [hrHostProvider.overrideWithValue(_host)],
       child: Theme(
-        data: FlipperTheme.light(),
+        data: hrTheme(FlipperTheme.light()),
         child: PopScope(
           canPop: false,
           onPopInvokedWithResult: _onBack,

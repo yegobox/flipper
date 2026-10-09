@@ -1,3 +1,4 @@
+import 'package:flipper_hr/features/ui/hr_theme.dart';
 import 'package:flipper_hr/features/invite/data/hr_invite.dart';
 import 'package:flipper_hr/features/invite/widgets/invite_dialogs.dart';
 import 'package:flipper_hr/features/people/data/access_diagnostics.dart';
@@ -74,7 +75,7 @@ class _PeoplePageState extends ConsumerState<PeoplePage> {
     );
 
     final isNarrow = MediaQuery.sizeOf(context).width < 720;
-    final saved = await showDialog<Employee>(
+    final saved = await showHrDialog<Employee>(
       context: context,
       barrierDismissible: false,
       builder: (dialogContext) {
@@ -192,7 +193,7 @@ class _PeoplePageState extends ConsumerState<PeoplePage> {
   }
 
   Future<bool?> _confirmTermination(Employee employee) {
-    return showDialog<bool>(
+    return showHrDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: Text(
@@ -222,7 +223,7 @@ class _PeoplePageState extends ConsumerState<PeoplePage> {
   Future<void> _showAccessDiagnostic() async {
     final future = ref.read(accessDiagnosticsProvider).load();
     if (!mounted) return;
-    await showDialog<void>(
+    await showHrDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
         title: Text(context.flipperL10n.hrAccessDiagnostic),
@@ -290,7 +291,12 @@ class _PeoplePageState extends ConsumerState<PeoplePage> {
         child: CustomScrollView(
           slivers: [
             SliverPadding(
-              padding: const EdgeInsets.fromLTRB(24, 24, 24, 20),
+              padding: EdgeInsets.fromLTRB(
+                hrGutter(context),
+                hrGutter(context),
+                hrGutter(context),
+                20,
+              ),
               sliver: SliverToBoxAdapter(
                 child: _Header(
                   branchName: widget.branchName,
@@ -344,13 +350,18 @@ class _PeoplePageState extends ConsumerState<PeoplePage> {
 
     return [
       SliverPadding(
-        padding: const EdgeInsets.symmetric(horizontal: 24),
+        padding: EdgeInsets.symmetric(horizontal: hrGutter(context)),
         sliver: SliverToBoxAdapter(
           child: _SummaryTiles(summary: PeopleSummary.from(people, asOf: now)),
         ),
       ),
       SliverPadding(
-        padding: const EdgeInsets.fromLTRB(24, 20, 24, 16),
+        padding: EdgeInsets.fromLTRB(
+          hrGutter(context),
+          20,
+          hrGutter(context),
+          16,
+        ),
         sliver: SliverToBoxAdapter(
           child: _Toolbar(
             searchController: _searchController,
@@ -371,7 +382,12 @@ class _PeoplePageState extends ConsumerState<PeoplePage> {
         )
       else ...[
         SliverPadding(
-          padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+          padding: EdgeInsets.fromLTRB(
+            hrGutter(context),
+            0,
+            hrGutter(context),
+            24,
+          ),
           // The table is one panel: header and rows share a border and a
           // corner radius, so a long roster reads as a single object rather
           // than a stack of loose rows. DecoratedSliver keeps the list lazy,
@@ -430,24 +446,21 @@ class _Header extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.flipperL10n;
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(l10n.hrPeople, style: HrType.display),
-              const SizedBox(height: 4),
-              Text(
-                branchName == null
-                    ? l10n.hrEveryoneOnThisBranch
-                    : l10n.hrEveryoneAtBranch(branchName!),
-                style: HrType.caption,
-              ),
-            ],
+    return HrHeaderRow(
+      title: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(l10n.hrPeople, style: HrType.display),
+          const SizedBox(height: 4),
+          Text(
+            branchName == null
+                ? l10n.hrEveryoneOnThisBranch
+                : l10n.hrEveryoneAtBranch(branchName!),
+            style: HrType.caption,
           ),
-        ),
+        ],
+      ),
+      actions: [
         FilledButton.icon(
           key: const Key('people-add'),
           onPressed: onAdd,
@@ -468,33 +481,36 @@ class _SummaryTiles extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.flipperL10n;
-    return Wrap(
-      spacing: 12,
-      runSpacing: 12,
-      children: [
-        HrStatTile(
+    return HrStatGrid(
+      tiles: [
+        (w) => HrStatTile(
+          width: w,
           label: l10n.hrHeadcount,
           value: '${summary.headcount}',
           icon: Icons.groups_outlined,
         ),
-        HrStatTile(
+        (w) => HrStatTile(
+          width: w,
           label: l10n.hrStatusActive,
           value: '${summary.active}',
           icon: Icons.check_circle_outline,
           tone: HrTone.positive,
         ),
-        HrStatTile(
+        (w) => HrStatTile(
+          width: w,
           label: l10n.hrOnLeave,
           value: '${summary.onLeave}',
           icon: Icons.beach_access_outlined,
           tone: summary.onLeave > 0 ? HrTone.warning : HrTone.neutral,
         ),
-        HrStatTile(
+        (w) => HrStatTile(
+          width: w,
           label: l10n.hrNewThisMonth,
           value: '${summary.newThisMonth}',
           icon: Icons.auto_awesome_outlined,
         ),
-        HrStatTile(
+        (w) => HrStatTile(
+          width: w,
           label: l10n.hrMonthlyPayroll,
           value: formatCompactMoney(summary.monthlyPayroll, summary.currency),
           icon: Icons.payments_outlined,
@@ -520,43 +536,88 @@ class _Toolbar extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final controller = ref.read(peopleQueryProvider.notifier);
     final l10n = context.flipperL10n;
+    final narrow = MediaQuery.sizeOf(context).width < hrPhoneBreakpoint;
+    final search = TextField(
+      key: const Key('people-search'),
+      controller: searchController,
+      onChanged: controller.setSearch,
+      style: const TextStyle(fontSize: 13.5, color: HrTokens.ink1),
+      decoration: _fieldDecoration(hintText: l10n.hrSearchPeopleHint).copyWith(
+        prefixIcon: const Icon(Icons.search, size: 18, color: HrTokens.ink3),
+        prefixIconConstraints: const BoxConstraints(minWidth: 36),
+        suffixIcon: query.search.isEmpty
+            ? null
+            : IconButton(
+                tooltip: l10n.clearSearch,
+                icon: const Icon(Icons.clear, size: 16, color: HrTokens.ink3),
+                onPressed: () {
+                  searchController.clear();
+                  controller.setSearch('');
+                },
+              ),
+      ),
+    );
+
+    // A phone gets the search on its own line and the filters as a row of
+    // chips that open menus — the shape every phone app filters a list with —
+    // instead of three desktop selects stacked down the screen.
+    if (narrow) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          search,
+          const SizedBox(height: 10),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                _FilterChip<EmploymentStatus?>(
+                  key: const Key('people-status-chip'),
+                  icon: Icons.filter_list,
+                  label: query.status?.label ?? l10n.hrEmployed,
+                  active: query.status != null,
+                  options: [
+                    (null, l10n.hrEmployed),
+                    for (final s in EmploymentStatus.values) (s, s.label),
+                  ],
+                  onSelected: controller.setStatus,
+                ),
+                if (departments.isNotEmpty) ...[
+                  const SizedBox(width: 8),
+                  _FilterChip<String?>(
+                    key: const Key('people-department-chip'),
+                    icon: Icons.apartment_outlined,
+                    label: query.department ?? l10n.hrAllDepartments,
+                    active: query.department != null,
+                    options: [
+                      (null, l10n.hrAllDepartments),
+                      for (final d in departments) (d, d),
+                    ],
+                    onSelected: controller.setDepartment,
+                  ),
+                ],
+                const SizedBox(width: 8),
+                _FilterChip<PeopleSort>(
+                  key: const Key('people-sort-chip'),
+                  icon: Icons.swap_vert,
+                  label: query.sort.label,
+                  active: false,
+                  options: [for (final s in PeopleSort.values) (s, s.label)],
+                  onSelected: controller.setSort,
+                ),
+              ],
+            ),
+          ),
+        ],
+      );
+    }
+
     return Wrap(
       spacing: 10,
       runSpacing: 10,
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
-        SizedBox(
-          width: 280,
-          child: TextField(
-            key: const Key('people-search'),
-            controller: searchController,
-            onChanged: controller.setSearch,
-            style: const TextStyle(fontSize: 13.5, color: HrTokens.ink1),
-            decoration: _fieldDecoration(hintText: l10n.hrSearchPeopleHint)
-                .copyWith(
-                  prefixIcon: const Icon(
-                    Icons.search,
-                    size: 18,
-                    color: HrTokens.ink3,
-                  ),
-                  prefixIconConstraints: const BoxConstraints(minWidth: 36),
-                  suffixIcon: query.search.isEmpty
-                      ? null
-                      : IconButton(
-                          tooltip: l10n.clearSearch,
-                          icon: const Icon(
-                            Icons.clear,
-                            size: 16,
-                            color: HrTokens.ink3,
-                          ),
-                          onPressed: () {
-                            searchController.clear();
-                            controller.setSearch('');
-                          },
-                        ),
-                ),
-          ),
-        ),
+        SizedBox(width: 280, child: search),
         SizedBox(
           width: 180,
           child: DropdownButtonFormField<EmploymentStatus?>(
@@ -611,6 +672,74 @@ class _Toolbar extends ConsumerWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// A phone filter: a pill showing the current choice, opening a menu of the
+/// others.
+class _FilterChip<T> extends StatelessWidget {
+  const _FilterChip({
+    super.key,
+    required this.icon,
+    required this.label,
+    required this.active,
+    required this.options,
+    required this.onSelected,
+  });
+
+  final IconData icon;
+  final String label;
+
+  /// Narrowing the list, rather than showing its default.
+  final bool active;
+  final List<(T, String)> options;
+  final ValueChanged<T> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return PopupMenuButton<int>(
+      tooltip: '',
+      position: PopupMenuPosition.under,
+      onSelected: (i) => onSelected(options[i].$1),
+      itemBuilder: (_) => [
+        for (var i = 0; i < options.length; i++)
+          PopupMenuItem(value: i, child: Text(options[i].$2)),
+      ],
+      child: Container(
+        height: 36,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        decoration: BoxDecoration(
+          color: active ? HrTokens.accentTint : HrTokens.surface,
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(color: active ? HrTokens.accent : HrTokens.border),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              size: 16,
+              color: active ? HrTokens.accent : HrTokens.ink2,
+            ),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: active ? HrTokens.accent : HrTokens.ink1,
+              ),
+            ),
+            const SizedBox(width: 2),
+            Icon(
+              Icons.arrow_drop_down,
+              size: 18,
+              color: active ? HrTokens.accent : HrTokens.ink3,
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -730,33 +859,64 @@ class _RosterRow extends StatelessWidget {
     final tenure = formatTenure(hireDate: employee.hireDate, asOf: asOf);
 
     if (!isTable) {
+      // A phone card: name on its own line, one line of what they do and earn,
+      // then status and line manager. Nothing wraps into a paragraph.
       return HrPanel(
-        padding: EdgeInsets.zero,
-        child: ListTile(
-          onTap: onEdit,
-          leading: _Avatar(employee: employee),
-          title: Text(employee.fullName),
-          subtitle: Text(
-            [
-              if (employee.jobTitle.isNotEmpty) employee.jobTitle,
-              if (manager case final manager?)
-                context.flipperL10n.hrReportsToName(manager.fullName),
-              if (employee.phone.isNotEmpty) employee.phone,
-              pay,
-            ].join(' · '),
-          ),
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              StatusChip(status: employee.status),
-              _RowMenu(
-                employee: employee,
-                onChangeStatus: onChangeStatus,
-                onInvite: onInvite,
-                isInviting: isInviting,
+        onTap: onEdit,
+        padding: const EdgeInsets.fromLTRB(14, 12, 4, 12),
+        child: Row(
+          children: [
+            _Avatar(employee: employee),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    employee.fullName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: HrType.bodyStrong,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    [
+                      if (employee.jobTitle.isNotEmpty) employee.jobTitle,
+                      pay,
+                    ].join(' · '),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: HrType.caption,
+                  ),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      StatusChip(status: employee.status),
+                      if (manager case final manager?) ...[
+                        const SizedBox(width: 8),
+                        Flexible(
+                          child: Text(
+                            context.flipperL10n.hrReportsToName(
+                              manager.fullName,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: HrType.caption,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+            _RowMenu(
+              employee: employee,
+              onChangeStatus: onChangeStatus,
+              onInvite: onInvite,
+              isInviting: isInviting,
+            ),
+          ],
         ),
       );
     }

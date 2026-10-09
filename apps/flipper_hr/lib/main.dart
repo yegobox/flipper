@@ -2,6 +2,7 @@ import 'package:flipper_analytics/flipper_analytics.dart';
 import 'package:flipper_design_system/flipper_design_system.dart';
 import 'package:flipper_hr/features/branding/hr_brand_panel.dart';
 import 'package:flipper_localize/flipper_localize.dart';
+import 'package:flipper_hr/features/ui/hr_theme.dart';
 import 'package:flipper_hr/router/hr_router.dart';
 import 'package:flipper_web/core/branding/brand_panel_builder.dart';
 import 'package:flipper_web/core/data_connector_web_auth.dart';
@@ -53,7 +54,7 @@ class FlipperHrApp extends ConsumerWidget {
     return MaterialApp.router(
       title: 'Flipper HR',
       debugShowCheckedModeBanner: false,
-      theme: FlipperTheme.light(allowRuntimeFontFetching: kIsWeb),
+      theme: hrTheme(FlipperTheme.light(allowRuntimeFontFetching: kIsWeb)),
       // Light only, deliberately. The signed-in chrome (sidebar, topbar, rail)
       // is a fixed light token set mirroring flipper_web's accounting shell, so
       // following the OS theme put dark Material pages inside white chrome —

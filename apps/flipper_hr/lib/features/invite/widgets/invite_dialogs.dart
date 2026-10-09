@@ -1,3 +1,4 @@
+import 'package:flipper_hr/features/ui/hr_theme.dart';
 import 'package:flipper_hr/features/invite/data/hr_invite.dart';
 import 'package:flipper_hr/features/people/data/employee.dart';
 import 'package:flipper_localize/flipper_localize.dart';
@@ -13,7 +14,7 @@ Future<HrRole?> showInviteRoleDialog(
   required Employee employee,
   int directReports = 0,
 }) {
-  return showDialog<HrRole>(
+  return showHrDialog<HrRole>(
     context: context,
     builder: (context) =>
         _InviteRoleDialog(employee: employee, directReports: directReports),
@@ -132,7 +133,7 @@ Future<void> showInvitePinDialog(
   required HrInvite invite,
   required String name,
 }) {
-  return showDialog<void>(
+  return showHrDialog<void>(
     context: context,
     barrierDismissible: false,
     builder: (context) {

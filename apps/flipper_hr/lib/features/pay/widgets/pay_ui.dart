@@ -3,6 +3,7 @@
 /// the breakdown rows a payslip is made of.
 library;
 
+import 'package:flipper_hr/features/ui/hr_theme.dart';
 import 'package:flipper_hr/features/branding/hr_tokens.dart';
 import 'package:flipper_hr/features/pay/data/pay_period.dart';
 import 'package:flipper_hr/features/people/data/employee.dart';
@@ -27,6 +28,9 @@ Future<T?> showHrSheet<T>(
   if (narrow) {
     return showModalBottomSheet<T>(
       context: context,
+      // Over the whole screen — the app bar and the bottom bar too — as a
+      // sheet is on every phone; hrOverlay carries HR's theme across.
+      useRootNavigator: true,
       isScrollControlled: true,
       useSafeArea: true,
       showDragHandle: true,
@@ -36,16 +40,19 @@ Future<T?> showHrSheet<T>(
           top: Radius.circular(HrTokens.radiusLg),
         ),
       ),
-      builder: (context) => Padding(
-        // Lifts the sheet above the keyboard.
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.viewInsetsOf(context).bottom,
+      builder: (sheetContext) => hrOverlay(
+        context,
+        Padding(
+          // Lifts the sheet above the keyboard.
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.viewInsetsOf(sheetContext).bottom,
+          ),
+          child: builder(sheetContext),
         ),
-        child: builder(context),
       ),
     );
   }
-  return showDialog<T>(
+  return showHrDialog<T>(
     context: context,
     builder: (context) => Dialog(
       backgroundColor: HrTokens.surface,
@@ -466,7 +473,7 @@ Future<String?> askReason(
   required String confirmLabel,
   bool destructive = true,
 }) {
-  return showDialog<String>(
+  return showHrDialog<String>(
     context: context,
     builder: (_) => _ReasonDialog(
       title: title,

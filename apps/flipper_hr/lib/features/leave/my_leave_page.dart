@@ -1,3 +1,5 @@
+import 'package:flipper_hr/features/ui/hr_ui.dart';
+import 'package:flipper_hr/features/ui/hr_theme.dart';
 import 'package:flipper_hr/features/leave/data/leave_balance.dart';
 import 'package:flipper_hr/features/leave/data/leave_providers.dart';
 import 'package:flipper_hr/features/leave/data/leave_request.dart';
@@ -35,7 +37,7 @@ class _MyLeavePageState extends ConsumerState<MyLeavePage> {
     final today = ref.read(hrClockProvider)();
     final isNarrow = MediaQuery.sizeOf(context).width < 720;
 
-    final sent = await showDialog<bool>(
+    final sent = await showHrDialog<bool>(
       context: context,
       barrierDismissible: false,
       builder: (dialogContext) {
@@ -86,7 +88,7 @@ class _MyLeavePageState extends ConsumerState<MyLeavePage> {
   }
 
   Future<void> _withdraw(LeaveRequest request) async {
-    final confirmed = await showDialog<bool>(
+    final confirmed = await showHrDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: Text(context.flipperL10n.hrWithdrawRequestTitle),
@@ -204,39 +206,38 @@ class _LeaveBody extends ConsumerWidget {
       data: (requests) => CustomScrollView(
         slivers: [
           SliverPadding(
-            padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
+            padding: EdgeInsets.fromLTRB(
+              hrGutter(context),
+              24,
+              hrGutter(context),
+              8,
+            ),
             sliver: SliverToBoxAdapter(
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          l10n.hrMyLeave,
-                          style: theme.textTheme.headlineSmall,
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          l10n.hrBalancesFor(employee.fullName, '$year'),
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                        if (approver != null) ...[
-                          const SizedBox(height: 2),
-                          Text(
-                            l10n.hrRequestsGoTo(approver),
-                            key: const Key('my-leave-approver'),
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                        ],
-                      ],
+              child: HrHeaderRow(
+                title: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(l10n.hrMyLeave, style: theme.textTheme.headlineSmall),
+                    const SizedBox(height: 4),
+                    Text(
+                      l10n.hrBalancesFor(employee.fullName, '$year'),
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
                     ),
-                  ),
+                    if (approver != null) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        l10n.hrRequestsGoTo(approver),
+                        key: const Key('my-leave-approver'),
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+                actions: [
                   FilledButton.icon(
                     key: const Key('request-leave-button'),
                     onPressed: employee.status.isEmployed
@@ -251,13 +252,18 @@ class _LeaveBody extends ConsumerWidget {
           ),
           if (!employee.status.isEmployed)
             SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
+              padding: EdgeInsets.symmetric(horizontal: hrGutter(context)),
               sliver: SliverToBoxAdapter(
                 child: _Notice(l10n.hrEmploymentEndedNotice),
               ),
             ),
           SliverPadding(
-            padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
+            padding: EdgeInsets.fromLTRB(
+              hrGutter(context),
+              16,
+              hrGutter(context),
+              8,
+            ),
             sliver: SliverToBoxAdapter(
               child: balancesAsync.when(
                 loading: () => const SizedBox(height: 8),
@@ -267,21 +273,36 @@ class _LeaveBody extends ConsumerWidget {
             ),
           ),
           SliverPadding(
-            padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
+            padding: EdgeInsets.fromLTRB(
+              hrGutter(context),
+              16,
+              hrGutter(context),
+              8,
+            ),
             sliver: SliverToBoxAdapter(
               child: Text(l10n.hrRequests, style: theme.textTheme.titleMedium),
             ),
           ),
           if (requests.isEmpty)
             SliverPadding(
-              padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
+              padding: EdgeInsets.fromLTRB(
+                hrGutter(context),
+                8,
+                hrGutter(context),
+                24,
+              ),
               sliver: SliverToBoxAdapter(
                 child: _Notice(l10n.hrNoLeaveBookedYet),
               ),
             )
           else
             SliverPadding(
-              padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+              padding: EdgeInsets.fromLTRB(
+                hrGutter(context),
+                0,
+                hrGutter(context),
+                24,
+              ),
               sliver: SliverList.separated(
                 itemCount: requests.length,
                 separatorBuilder: (_, __) => const SizedBox(height: 8),

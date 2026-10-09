@@ -1,3 +1,5 @@
+import 'package:flipper_hr/features/ui/hr_ui.dart';
+import 'package:flipper_hr/features/ui/hr_theme.dart';
 import 'package:flipper_hr/features/leave/data/leave_providers.dart';
 import 'package:flipper_hr/features/leave/data/leave_request.dart';
 import 'package:flipper_hr/features/leave/data/leave_working_days.dart';
@@ -98,7 +100,7 @@ class _LeaveApprovalsPageState extends ConsumerState<LeaveApprovalsPage> {
   /// `showDialog` returns kills it while the route is still animating out, and
   /// the dialog rebuilds against a disposed controller.
   Future<String?> _askForNote(LeaveRequest request, {required bool approve}) {
-    return showDialog<String>(
+    return showHrDialog<String>(
       context: context,
       builder: (context) => _DecisionDialog(request: request, approve: approve),
     );
@@ -186,7 +188,12 @@ class _LeaveApprovalsPageState extends ConsumerState<LeaveApprovalsPage> {
             return CustomScrollView(
               slivers: [
                 SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
+                  padding: EdgeInsets.fromLTRB(
+                    hrGutter(context),
+                    24,
+                    hrGutter(context),
+                    8,
+                  ),
                   sliver: SliverToBoxAdapter(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -227,7 +234,12 @@ class _LeaveApprovalsPageState extends ConsumerState<LeaveApprovalsPage> {
                   ),
                 if (split.decided.isNotEmpty) ...[
                   SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
+                    padding: EdgeInsets.fromLTRB(
+                      hrGutter(context),
+                      24,
+                      hrGutter(context),
+                      8,
+                    ),
                     sliver: SliverToBoxAdapter(
                       child: Text(
                         context.flipperL10n.hrDecided,
@@ -236,7 +248,12 @@ class _LeaveApprovalsPageState extends ConsumerState<LeaveApprovalsPage> {
                     ),
                   ),
                   SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+                    padding: EdgeInsets.fromLTRB(
+                      hrGutter(context),
+                      0,
+                      hrGutter(context),
+                      24,
+                    ),
                     sliver: SliverList.separated(
                       itemCount: split.decided.length,
                       separatorBuilder: (_, __) => const Divider(height: 1),
@@ -293,7 +310,12 @@ class _LeaveApprovalsPageState extends ConsumerState<LeaveApprovalsPage> {
     return [
       if (heading != null)
         SliverPadding(
-          padding: const EdgeInsets.fromLTRB(24, 20, 24, 4),
+          padding: EdgeInsets.fromLTRB(
+            hrGutter(context),
+            20,
+            hrGutter(context),
+            4,
+          ),
           sliver: SliverToBoxAdapter(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -313,7 +335,12 @@ class _LeaveApprovalsPageState extends ConsumerState<LeaveApprovalsPage> {
           ),
         ),
       SliverPadding(
-        padding: const EdgeInsets.fromLTRB(24, 12, 24, 8),
+        padding: EdgeInsets.fromLTRB(
+          hrGutter(context),
+          12,
+          hrGutter(context),
+          8,
+        ),
         sliver: SliverList.separated(
           itemCount: requests.length,
           separatorBuilder: (_, __) => const SizedBox(height: 8),
