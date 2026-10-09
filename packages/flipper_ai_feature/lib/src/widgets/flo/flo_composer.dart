@@ -180,68 +180,68 @@ class _FloComposerState extends State<FloComposer> {
                       border: Border.all(color: FloTheme.line, width: 1.5),
                       boxShadow: const [FloTheme.sh2],
                     ),
-                    padding: const EdgeInsets.fromLTRB(12, 8, 8, 8),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.end,
+                    padding: const EdgeInsets.fromLTRB(12, 10, 8, 8),
+                    // Source chip on its own line, flush with the "+" below it;
+                    // nested inside the text column it was indented past "+"
+                    // and left an empty corner above it.
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        _CompBtn(
-                          icon: FloIcons.plus(size: 19, color: FloTheme.ink2),
-                          onTap: widget.onAttach,
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Row(
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.fromLTRB(7, 3, 9, 3),
+                              decoration: BoxDecoration(
+                                color: FloTheme.surface2,
+                                borderRadius:
+                                    BorderRadius.circular(FloTheme.radiusPill),
+                                border: Border.all(color: FloTheme.line),
+                              ),
+                              child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Container(
-                                    margin: const EdgeInsets.only(
-                                        left: 4, bottom: 2),
-                                    padding:
-                                        const EdgeInsets.fromLTRB(7, 3, 9, 3),
-                                    decoration: BoxDecoration(
-                                      color: FloTheme.surface2,
-                                      borderRadius: BorderRadius.circular(
-                                          FloTheme.radiusPill),
-                                      border: Border.all(color: FloTheme.line),
-                                    ),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        const FloLiveDot(
-                                          color: FloTheme.gain,
-                                          glow: FloTheme.gainTint,
-                                        ),
-                                        const SizedBox(width: 6),
-                                        FloIcons.database(
-                                            size: 12, color: FloTheme.ink2),
-                                        const SizedBox(width: 4),
-                                        const Text(
-                                          'MiniData',
-                                          style: TextStyle(
-                                            fontSize: 11,
-                                            fontWeight: FontWeight.w700,
-                                            color: FloTheme.ink2,
-                                          ),
-                                        ),
-                                        FloIcons.chevDown(
-                                            size: 12, color: FloTheme.ink4),
-                                      ],
+                                  const FloLiveDot(
+                                    color: FloTheme.gain,
+                                    glow: FloTheme.gainTint,
+                                  ),
+                                  const SizedBox(width: 6),
+                                  FloIcons.database(
+                                      size: 12, color: FloTheme.ink2),
+                                  const SizedBox(width: 4),
+                                  const Text(
+                                    'MiniData',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w700,
+                                      color: FloTheme.ink2,
                                     ),
                                   ),
-                                  if (dictating)
-                                    Padding(
-                                      padding: const EdgeInsets.only(
-                                          left: 6, bottom: 2),
-                                      child: _ListeningPill(
-                                          busy: _dictation.isBusy),
-                                    ),
+                                  FloIcons.chevDown(
+                                      size: 12, color: FloTheme.ink4),
                                 ],
                               ),
-                              TextField(
+                            ),
+                            if (dictating)
+                              Padding(
+                                padding: const EdgeInsets.only(left: 6),
+                                child: _ListeningPill(busy: _dictation.isBusy),
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            _CompBtn(
+                              icon:
+                                  FloIcons.plus(size: 19, color: FloTheme.ink2),
+                              onTap: widget.onAttach,
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: TextField(
                                 controller: controller,
                                 enabled: enabled,
                                 maxLines: 4,
@@ -266,57 +266,59 @@ class _FloComposerState extends State<FloComposer> {
                                   if (canSend) _handleSend();
                                 },
                               ),
-                            ],
-                          ),
-                        ),
-                        // Semantics rather than Tooltip: Tooltip is an
-                        // OverlayPortal, which asserts when it first mounts
-                        // during a DevicePreview-driven rebuild.
-                        Semantics(
-                          button: true,
-                          label: dictating
-                              ? context.flipperL10n.floStopDictating
-                              : context.flipperL10n.floDictate,
-                          child: _CompBtn(
-                            icon: FloIcons.mic(
-                              size: 19,
-                              color: dictating ? FloTheme.loss : FloTheme.ink2,
                             ),
-                            background: dictating
-                                ? FloTheme.lossTint
-                                : FloTheme.surface2,
-                            borderColor:
-                                dictating ? FloTheme.loss : FloTheme.line,
-                            onTap: enabled ? _toggleDictation : null,
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        Material(
-                          color: Colors.transparent,
-                          child: InkWell(
-                            onTap: canSend ? _handleSend : null,
-                            borderRadius: BorderRadius.circular(12),
-                            child: Ink(
-                              width: 40,
-                              height: 40,
-                              decoration: BoxDecoration(
-                                gradient: canSend ? FloTheme.gradBtn : null,
-                                color: canSend
-                                    ? null
-                                    : FloTheme.ink4.withValues(alpha: 0.45),
-                                borderRadius: BorderRadius.circular(12),
-                                boxShadow:
-                                    canSend ? const [FloTheme.shBlue] : null,
-                              ),
-                              child: Center(
-                                child: FloIcons.send(
+                            // Semantics rather than Tooltip: Tooltip is an
+                            // OverlayPortal, which asserts when it first mounts
+                            // during a DevicePreview-driven rebuild.
+                            Semantics(
+                              button: true,
+                              label: dictating
+                                  ? context.flipperL10n.floStopDictating
+                                  : context.flipperL10n.floDictate,
+                              child: _CompBtn(
+                                icon: FloIcons.mic(
                                   size: 19,
-                                  color: Colors.white
-                                      .withValues(alpha: canSend ? 1 : 0.7),
+                                  color:
+                                      dictating ? FloTheme.loss : FloTheme.ink2,
+                                ),
+                                background: dictating
+                                    ? FloTheme.lossTint
+                                    : FloTheme.surface2,
+                                borderColor:
+                                    dictating ? FloTheme.loss : FloTheme.line,
+                                onTap: enabled ? _toggleDictation : null,
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                onTap: canSend ? _handleSend : null,
+                                borderRadius: BorderRadius.circular(12),
+                                child: Ink(
+                                  width: 40,
+                                  height: 40,
+                                  decoration: BoxDecoration(
+                                    gradient: canSend ? FloTheme.gradBtn : null,
+                                    color: canSend
+                                        ? null
+                                        : FloTheme.ink4.withValues(alpha: 0.45),
+                                    borderRadius: BorderRadius.circular(12),
+                                    boxShadow: canSend
+                                        ? const [FloTheme.shBlue]
+                                        : null,
+                                  ),
+                                  child: Center(
+                                    child: FloIcons.send(
+                                      size: 19,
+                                      color: Colors.white
+                                          .withValues(alpha: canSend ? 1 : 0.7),
+                                    ),
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
+                          ],
                         ),
                       ],
                     ),

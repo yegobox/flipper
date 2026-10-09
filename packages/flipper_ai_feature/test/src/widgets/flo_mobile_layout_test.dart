@@ -1,3 +1,4 @@
+import 'package:flipper_ai_feature/src/widgets/flo/flo_composer.dart';
 import 'package:flipper_ai_feature/src/widgets/flo/flo_header.dart';
 import 'package:flipper_ai_feature/src/widgets/flo/flo_home_view.dart';
 import 'package:flipper_localize/flipper_localize.dart';
@@ -66,5 +67,27 @@ void main() {
     )));
 
     expect(find.byType(GridView), findsOneWidget);
+  });
+
+  testWidgets('the source chip lines up with the "+" button below it', (
+    tester,
+  ) async {
+    _phoneSurface(tester);
+    final controller = TextEditingController();
+    addTearDown(controller.dispose);
+    await tester.pumpWidget(_app(Align(
+      alignment: Alignment.bottomCenter,
+      child: FloComposer(controller: controller, onSend: () {}, isMobile: true),
+    )));
+
+    final chip = find
+        .ancestor(of: find.text('MiniData'), matching: find.byType(Container))
+        .first;
+    // No quick prompts, so the composer's first ink well is "+".
+    final plus = find.byType(InkWell).first;
+
+    expect(tester.getTopLeft(chip).dx, tester.getTopLeft(plus).dx);
+    expect(tester.getBottomLeft(chip).dy,
+        lessThanOrEqualTo(tester.getTopLeft(plus).dy));
   });
 }
