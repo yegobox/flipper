@@ -118,4 +118,20 @@ void main() {
       expect(usableBusinessEmail('not-an-email'), isNull);
     });
   });
+
+  group('usableTinNumber', () {
+    test('accepts ints and their string form', () {
+      expect(usableTinNumber(999909695), 999909695);
+      expect(usableTinNumber('999909695'), 999909695);
+      expect(usableTinNumber(' 999909695 '), 999909695);
+    });
+
+    test('rejects values that must not overwrite the local TIN', () {
+      expect(usableTinNumber(null), isNull);
+      expect(usableTinNumber(''), isNull);
+      expect(usableTinNumber('abc'), isNull);
+      expect(usableTinNumber(0), isNull);
+      expect(usableTinNumber(-1), isNull);
+    });
+  });
 }

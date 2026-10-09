@@ -60,6 +60,14 @@ String? usableBusinessEmail(Object? raw) {
   return email.contains('@') ? email : null;
 }
 
+/// Normalises `businesses.tin_number` received from Supabase (an int, or its
+/// string form). Returns null for anything that must never overwrite the
+/// local TIN: missing, unparseable, zero or negative.
+int? usableTinNumber(Object? raw) {
+  final tin = raw is int ? raw : int.tryParse(raw?.toString().trim() ?? '');
+  return tin != null && tin > 0 ? tin : null;
+}
+
 /// Normalises `businesses.business_type_id` received from Supabase (an int,
 /// or its string form). Returns null for anything that must never overwrite
 /// the local value: missing, unparseable, zero or negative.

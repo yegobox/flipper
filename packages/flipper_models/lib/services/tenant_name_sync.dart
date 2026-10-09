@@ -11,16 +11,16 @@ import 'package:supabase_models/brick/models/business.model.dart';
 import 'package:supabase_models/brick/repository.dart';
 
 /// Brings business/branch names renamed in Supabase into this device, plus
-/// the business type (`business_type_id`) and email, which are server-owned
-/// too.
+/// the business type (`business_type_id`), email and TIN (`tin_number`), which
+/// are server-owned too.
 ///
 /// Names are read from three local copies, none of which refreshes on its own:
 /// Brick SQLite (`getBusiness`/`activeBusiness` are `localOnly`), the Ditto
 /// `businesses`/`branches` docs (`sendOnly`, so the server never writes them
 /// back), and the nested Ditto `user_access` doc (rewritten only at login).
 ///
-/// Only `name` (and, on the Brick business row, `businessTypeId` and `email`)
-/// is patched,
+/// Only `name` (and, on the Brick business row, `businessTypeId`, `email` and
+/// `tinNumber`) is patched,
 /// and only when it differs. Whole server rows are never upserted: that could
 /// overwrite device-owned fields such as `isDefault`, and `Business.copyWith`
 /// drops fields. Every step is best-effort; failures are logged, never thrown.
@@ -73,14 +73,27 @@ class TenantNameSync {
     });
   }
 
-  /// Applies a Realtime `businesses` row (name, type and email). Returns true
-  /// if any local copy changed.
+  /// Applies a server `tin_number` to business [id]'s Brick row. A missing or
+  /// zero server TIN never clears the local one.
+  static Future<bool> applyBusinessTin(String? id, Object? rawTin) async {
+    final tin = usableTinNumber(rawTin);
+    if (id == null || id.isEmpty || tin == null) return false;
+    return _patchBrickBusinessRow(id, 'TIN', (row) {
+      if (row.tinNumber == tin) return false;
+      row.tinNumber = tin;
+      return true;
+    });
+  }
+
+  /// Applies a Realtime `businesses` row (name, type, email and TIN). Returns
+  /// true if any local copy changed.
   static Future<bool> applyBusinessRow(Map<String, dynamic> record) async {
     final id = record['id']?.toString();
     final name = await applyBusinessName(id, record['name']);
     final type = await applyBusinessType(id, record['business_type_id']);
     final email = await applyBusinessEmail(id, record['email']);
-    return name || type || email;
+    final tin = await applyBusinessTin(id, record['tin_number']);
+    return name || type || email || tin;
   }
 
   /// Applies [name] to branch [id]. Returns true if any local copy changed.
@@ -132,7 +145,7 @@ class TenantNameSync {
     final (business, branches) = await (
       client
           .from('businesses')
-          .select('id, name, business_type_id, email')
+          .select('id, name, business_type_id, email, tin_number')
           .eq('id', businessId)
           .maybeSingle(),
       client.from('branches').select('id, name').eq('business_id', businessId),
@@ -149,6 +162,7 @@ class TenantNameSync {
       businessName: usableTenantName(business?['name']),
       businessTypeId: usableBusinessTypeId(business?['business_type_id']),
       businessEmail: usableBusinessEmail(business?['email']),
+      tinNumber: usableTinNumber(business?['tin_number']),
       branchNames: branchNames,
     );
   }
@@ -170,6 +184,10 @@ class TenantNameSync {
       changed =
           await applyBusinessEmail(names.businessId, names.businessEmail) ||
           changed;
+    }
+    if (names.tinNumber != null) {
+      changed =
+          await applyBusinessTin(names.businessId, names.tinNumber) || changed;
     }
     for (final entry in names.branchNames.entries) {
       changed = await applyBranchName(entry.key, entry.value) || changed;
@@ -320,6 +338,7 @@ class TenantNames {
     required this.businessName,
     this.businessTypeId,
     this.businessEmail,
+    this.tinNumber,
     required this.branchNames,
   });
 
@@ -331,6 +350,9 @@ class TenantNames {
 
   /// `email`, or null if Supabase had no usable address.
   final String? businessEmail;
+
+  /// `tin_number`, or null if Supabase had no usable TIN.
+  final int? tinNumber;
 
   /// Branch id → name.
   final Map<String, String> branchNames;
