@@ -104,4 +104,18 @@ void main() {
       expect(usableBusinessTypeId(1.5), isNull);
     });
   });
+
+  group('usableBusinessEmail', () {
+    test('accepts an address, trimmed', () {
+      expect(usableBusinessEmail('shop@example.com'), 'shop@example.com');
+      expect(usableBusinessEmail(' shop@example.com '), 'shop@example.com');
+    });
+
+    test('rejects values that must not overwrite the local email', () {
+      expect(usableBusinessEmail(null), isNull);
+      expect(usableBusinessEmail(''), isNull);
+      expect(usableBusinessEmail('   '), isNull);
+      expect(usableBusinessEmail('not-an-email'), isNull);
+    });
+  });
 }

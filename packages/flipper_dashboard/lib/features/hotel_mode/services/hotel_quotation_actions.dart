@@ -131,7 +131,7 @@ abstract final class HotelQuotationActions {
       tin: business?.tinNumber?.toString(),
       address: business?.adrs,
       phone: business?.phoneNumber,
-      email: business?.email,
+      email: names?.businessEmail ?? business?.email,
     );
     if (business != null) {
       _issuer = issuer;

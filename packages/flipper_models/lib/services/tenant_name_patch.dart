@@ -52,6 +52,14 @@ bool patchUserAccessNames(
   return changed;
 }
 
+/// Normalises `businesses.email` received from Supabase. Returns null for
+/// values that must never overwrite the local email: missing, blank, or not
+/// an address at all.
+String? usableBusinessEmail(Object? raw) {
+  final email = raw?.toString().trim() ?? '';
+  return email.contains('@') ? email : null;
+}
+
 /// Normalises `businesses.business_type_id` received from Supabase (an int,
 /// or its string form). Returns null for anything that must never overwrite
 /// the local value: missing, unparseable, zero or negative.
