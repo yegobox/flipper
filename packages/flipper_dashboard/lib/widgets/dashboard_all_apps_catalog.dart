@@ -51,34 +51,15 @@ List<DashboardAllAppSection> dashboardAllAppsCatalog(BuildContext context) => [
   ),
   DashboardAllAppSection(
     label: context.flipperL10n.sell,
+    // No POS (Quick Sell, Pricing, Inventory) or Invoices tiles: the bottom
+    // nav's New Sale, Inventory and Sales already open those same screens.
     apps: [
-      DashboardAllAppTile(
-        page: 'POS',
-        label: context.flipperL10n.quickSell,
-        icon: FluentIcons.cart_24_regular,
-        color: Color(0xFF2563EB),
-        feature: 'Sales',
-      ),
-      DashboardAllAppTile(
-        page: 'Transactions',
-        label: context.flipperL10n.invoices,
-        icon: FluentIcons.receipt_24_regular,
-        color: Color(0xFF7C3AED),
-        feature: 'Transactions',
-      ),
       DashboardAllAppTile(
         page: 'Tickets',
         label: context.flipperL10n.tickets,
         icon: FluentIcons.clipboard_text_edit_24_regular,
         color: Color(0xFF006AFE),
         feature: 'Tickets',
-      ),
-      DashboardAllAppTile(
-        page: 'POS',
-        label: context.flipperL10n.pricing,
-        icon: FluentIcons.tag_24_regular,
-        color: Color(0xFFE5484D),
-        feature: 'Sales',
       ),
       DashboardAllAppTile(
         page: 'Cashbook',
@@ -92,13 +73,6 @@ List<DashboardAllAppSection> dashboardAllAppsCatalog(BuildContext context) => [
   DashboardAllAppSection(
     label: context.flipperL10n.manage,
     apps: [
-      DashboardAllAppTile(
-        page: 'Inventory',
-        label: context.flipperL10n.inventory,
-        icon: FluentIcons.box_24_regular,
-        color: Color(0xFF10B981),
-        feature: 'Sales',
-      ),
       DashboardAllAppTile(
         page: 'StockRecount',
         label: context.flipperL10n.dashboardAppStockRecount,
