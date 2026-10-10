@@ -6248,8 +6248,7 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   String get mposWalkInCustomer => 'Client de passage';
 
   @override
-  String get mposAttachCustomerHint =>
-      'Touchez pour associer un client (facultatif)';
+  String get mposAttachCustomerHint => 'Touchez pour ajouter un client';
 
   @override
   String get mposRemoveCustomer => 'Retirer le client';
@@ -6275,6 +6274,35 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
 
   @override
   String get mposAddNewCustomer => 'Ajouter un nouveau client';
+
+  @override
+  String get mposCustomerPhoneHint => 'Numéro de téléphone';
+
+  @override
+  String get mposCustomerNameOptionalHint => 'Nom (facultatif)';
+
+  @override
+  String get mposRecentCustomers => 'Récents';
+
+  @override
+  String get mposMatchingCustomers => 'Correspondances';
+
+  @override
+  String get mposNoCustomerMatches =>
+      'Aucun résultat. Ajoutez-le avec le bouton ci-dessous.';
+
+  @override
+  String get mposEnterCustomerPhone => 'Saisissez un numéro de téléphone';
+
+  @override
+  String mposAddCustomerWithPhone(String phone) {
+    return 'Ajouter $phone';
+  }
+
+  @override
+  String mposUseExistingCustomer(String name) {
+    return 'Utiliser $name';
+  }
 
   @override
   String mposItemQtyAtPrice(String qty, String price) {

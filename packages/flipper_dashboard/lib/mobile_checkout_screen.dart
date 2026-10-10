@@ -31,6 +31,7 @@ import 'package:flipper_models/providers/pay_button_provider.dart';
 import 'package:flipper_models/providers/pos_cart_display_provider.dart';
 import 'package:flipper_models/providers/pos_payment_role_provider.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
+import 'package:flipper_dashboard/services/transaction_receipt_actions_service.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_models/services/park_transaction_service.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart'
@@ -77,6 +78,11 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
   ProviderContainer? _container;
   ChargeButtonState _chargeState = ChargeButtonState.initial;
   bool _isImmediateCompletion = false;
+
+  /// Payment as entered when Charge was tapped. Completion resets the payment
+  /// fields before the success screen opens, so reading them then shows
+  /// "Tendered RWF 0".
+  ({String methodLabel, double? tendered})? _chargedPayment;
   String? _lastTransactionId;
   final Map<String, double> _optimisticQtyByItemId = {};
   final Set<String> _optimisticallyDeletedItemIds = {};
@@ -489,6 +495,10 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
     );
   }
 
+  void _openCustomerSheet(ITransaction txn) {
+    MposCustomerSheet.show(context: context, ref: ref, transaction: txn);
+  }
+
   Future<void> _clearCustomer(ITransaction txn) async {
     if (_isClearingCustomer) return;
     HapticFeedback.lightImpact();
@@ -559,10 +569,7 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
       saleCustomerPhone,
       momoPayment: _isMomoPayment(payments),
     )) {
-      showErrorNotification(
-        context,
-        context.flipperL10n.mposAddCustomerBeforeCompleting,
-      );
+      _openCustomerSheet(txn);
       return;
     }
 
@@ -598,6 +605,13 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
         return;
       }
     }
+
+    final chargedCash =
+        payments.isNotEmpty && payments.first.method.toUpperCase() == 'CASH';
+    _chargedPayment = (
+      methodLabel: _methodLabel(payments),
+      tendered: chargedCash ? _cashTenderAmount(payments) : null,
+    );
 
     setState(() {
       _isImmediateCompletion = immediateCompletion;
@@ -674,16 +688,18 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
     final txn =
         ref.read(transactionByIdProvider(_transactionId)).value ??
         widget.transaction;
-    final payments = ref.read(oldProvider.paymentMethodsProvider);
     final itemCount = items
         .fold<double>(0, (s, i) => s + i.qty.toDouble())
         .round();
-    final isCash =
-        payments.isNotEmpty && payments.first.method.toUpperCase() == 'CASH';
-    final tender = isCash && payments.isNotEmpty
-        ? double.tryParse(payments.first.controller.text) ?? total
-        : total;
-    final change = (tender - total).clamp(0.0, double.infinity);
+    final charged = _chargedPayment;
+    final methodLabel =
+        charged?.methodLabel ??
+        _methodLabel(ref.read(oldProvider.paymentMethodsProvider));
+    // Exact cash (nothing typed) tenders the total, so change is zero.
+    final tendered = charged?.tendered == null
+        ? null
+        : (charged!.tendered! < total ? total : charged.tendered!);
+    final change = tendered == null ? null : tendered - total;
 
     final attached = ref.read(
       oldProvider.attachedCustomerProvider(txn.customerId),
@@ -706,26 +722,30 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
         clearPinnedPosCartTransactionWidget(ref);
         clearCachedPendingCartTransactionWidget(ref, isExpense: false);
       }
-      showSuccessNotification(
-        context,
-        context.flipperL10n.paymentCollectedTotal(
-          '${ProxyService.box.defaultCurrency()} ${mposMoneyLabel(total)}',
-        ),
-      );
     }
     await Navigator.of(context).pushReplacement(
       MaterialPageRoute(
         fullscreenDialog: true,
-        builder: (successContext) => MposSuccessScreen(
-          data: MposSaleCompleteSnapshot(
-            total: total,
-            itemCount: itemCount,
-            methodLabel: _methodLabel(payments),
-            customerName: customerName,
-            tendered: tender,
-            change: change,
-          ),
-          onNewSale: () => Navigator.of(successContext).pop(),
+        builder: (successContext) => Consumer(
+          builder: (context, ref, _) {
+            // Live row, so Print picks up the signed receipt once its upload
+            // lands instead of the copy built from local data.
+            final liveTxn =
+                ref.watch(transactionByIdProvider(txn.id)).asData?.value ?? txn;
+            return MposSuccessScreen(
+              data: MposSaleCompleteSnapshot(
+                total: total,
+                itemCount: itemCount,
+                methodLabel: methodLabel,
+                customerName: customerName,
+                tendered: tendered,
+                change: change,
+              ),
+              onNewSale: () => Navigator.of(successContext).pop(),
+              onPrintReceipt: () => TransactionReceiptActionsService()
+                  .printReceipt(context, liveTxn, items: items),
+            );
+          },
         ),
       ),
     );
@@ -1203,11 +1223,26 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
                         _chargeState == ChargeButtonState.initial)
                   : (items.isNotEmpty && !_sendToTillBusy && settling == null);
 
+              // The only thing between the cashier and Charge is a customer:
+              // the primary button opens the customer sheet instead of
+              // sitting disabled.
+              final needsCustomer =
+                  canCollect &&
+                  items.isNotEmpty &&
+                  _chargeState == ChargeButtonState.initial &&
+                  !_hasCustomerForCharge(
+                    txn,
+                    displaySaleCustomerPhone,
+                    momoPayment: isMomo,
+                  );
+
               final itemCount = items
                   .fold<double>(0, (s, i) => s + _displayQtyFor(i))
                   .round();
 
-              var footerPrimaryLabel = !canCollect
+              var footerPrimaryLabel = needsCustomer
+                  ? context.flipperL10n.addCustomer
+                  : !canCollect
                   ? context.flipperL10n.payableSendToTill
                   : digitalEnabled && items.isNotEmpty
                   ? (remaining > 0.01
@@ -1257,11 +1292,7 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
                               customerName: displayCustomerName,
                               customerPhone: displaySaleCustomerPhone,
                               isClearing: _isClearingCustomer,
-                              onAttach: () => MposCustomerSheet.show(
-                                context: context,
-                                ref: ref,
-                                transaction: txn,
-                              ),
+                              onAttach: () => _openCustomerSheet(txn),
                               onClear: () => _clearCustomer(txn),
                             ),
                             const SizedBox(height: 14),
@@ -1403,6 +1434,7 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
                           ? (_isImmediateCompletion && _shouldShowSpinner())
                           : _sendToTillBusy,
                       primaryLabel: footerPrimaryLabel,
+                      primaryNeedsInput: needsCustomer,
                       onSaveTicket: items.isEmpty || settling != null
                           ? null
                           : _showParkDialog,
@@ -1412,6 +1444,8 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
                                     settling != null
                                 ? null
                                 : () => unawaited(_sendCartToTill()))
+                          : needsCustomer
+                          ? () => _openCustomerSheet(txn)
                           : canCharge
                           ? () => _handleCharge(
                               total,
@@ -1421,7 +1455,10 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
                           : null,
                       // Digital MoMo: split Charge (wait) vs Complete Now (handoff deviation).
                       secondaryLabel:
-                          canCollect && digitalEnabled && items.isNotEmpty
+                          canCollect &&
+                              digitalEnabled &&
+                              items.isNotEmpty &&
+                              !needsCustomer
                           ? _primaryLabel(
                               items.isEmpty,
                               txn,

@@ -585,6 +585,10 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
 
     /// Preloaded attached customer (e.g. mobile checkout UI already resolved it).
     Customer? attachedCustomerHint,
+
+    /// False when the host confirms the sale itself (mobile success screen).
+    /// Loan and pending-review outcomes still show: that screen doesn't say so.
+    bool showSuccessSnackBar = true,
   }) async {
     // Store original stock quantities for potential rollback
     final Map<String, double> originalStockQuantities = {};
@@ -1160,7 +1164,9 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
             if (mounted) {
               await awaitNextFrameOrSkip();
             }
-            if (mounted && context.mounted) {
+            if (mounted &&
+                context.mounted &&
+                (showSuccessSnackBar || mark.wasLoan || mark.isPendingReview)) {
               showCustomSnackBarUtil(
                 context,
                 mark.wasLoan

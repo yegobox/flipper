@@ -572,6 +572,7 @@ class CheckOutState extends ConsumerState<CheckOut>
     Function? onPaymentConfirmed,
     Function(String)? onPaymentFailed,
     double overrideAlreadyPaid = 0.0,
+    bool showSuccessSnackBar = true,
   ]) async {
     final controller = CheckoutController(ref: ref, context: context);
 
@@ -596,6 +597,7 @@ class CheckOutState extends ConsumerState<CheckOut>
       afterCheckoutSaleCleanup: _resetCheckoutAfterSuccessfulSale,
       transactionItemsHint: transactionItemsHint,
       overrideAlreadyPaid: overrideAlreadyPaid,
+      showSuccessSnackBar: showSuccessSnackBar,
       onPaymentConfirmed: onPaymentConfirmed != null
           ? () {
               onPaymentConfirmed();
@@ -638,12 +640,15 @@ class CheckOutState extends ConsumerState<CheckOut>
                         onPaymentFailed,
                         double overrideAlreadyPaid = 0.0,
                       ]) async {
+                        // Only MobileCheckoutScreen completes through here,
+                        // and its success screen replaces the snackbar.
                         return await _handleCompleteTransaction(
                           transaction,
                           immediateCompletion,
                           onPaymentConfirmed,
                           onPaymentFailed,
                           overrideAlreadyPaid,
+                          false,
                         );
                       },
                 )

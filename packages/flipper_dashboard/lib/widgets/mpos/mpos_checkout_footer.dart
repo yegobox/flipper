@@ -17,6 +17,7 @@ class MposCheckoutFooter extends StatelessWidget {
     this.secondaryLabel,
     this.onSecondary,
     this.secondaryLoading = false,
+    this.primaryNeedsInput = false,
   });
 
   final double total;
@@ -28,6 +29,10 @@ class MposCheckoutFooter extends StatelessWidget {
   final String? secondaryLabel;
   final VoidCallback? onSecondary;
   final bool secondaryLoading;
+
+  /// The primary button collects something the sale still needs (a customer)
+  /// rather than charging: tappable while not [ready], blue, no check mark.
+  final bool primaryNeedsInput;
 
   @override
   Widget build(BuildContext context) {
@@ -111,6 +116,7 @@ class MposCheckoutFooter extends StatelessWidget {
                 isLoading: isLoading,
                 onPressed: onPrimary,
                 useGreen: ready,
+                needsInput: primaryNeedsInput,
               ),
             ),
         ],
@@ -128,6 +134,7 @@ class _PayButton extends StatelessWidget {
     required this.isLoading,
     required this.onPressed,
     required this.useGreen,
+    this.needsInput = false,
   });
 
   final String semanticId;
@@ -137,10 +144,11 @@ class _PayButton extends StatelessWidget {
   final bool isLoading;
   final VoidCallback? onPressed;
   final bool useGreen;
+  final bool needsInput;
 
   @override
   Widget build(BuildContext context) {
-    final enabled = ready && onPressed != null && !isLoading;
+    final enabled = (ready || needsInput) && onPressed != null && !isLoading;
     final gradient = useGreen && ready
         ? MposTokens.gradPayReady
         : MposTokens.gradBtn;
