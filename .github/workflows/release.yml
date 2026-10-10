@@ -64,7 +64,7 @@ jobs:
       - name: Force submodule update
         run: git submodule update --init --force --recursive
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v6
         with:
           distribution: "zulu"
           java-version: "17"
@@ -410,7 +410,7 @@ jobs:
           channel: stable
       - run: flutter doctor -v
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v6
         with:
           distribution: "zulu"
           java-version: "17"
@@ -1035,7 +1035,7 @@ jobs:
 
       - name: Force submodule update
         run: git submodule update --init --force --recursive
-      - uses: actions/setup-java@v4 #plugin for setting up the java
+      - uses: actions/setup-java@v6 #plugin for setting up the java
         with:
           distribution: "zulu"
           java-version: "17" #defines the java version
