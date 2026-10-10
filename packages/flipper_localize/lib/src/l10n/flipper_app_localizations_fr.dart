@@ -3957,6 +3957,24 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   String get noNetGoToLogin => 'Aller à la connexion';
 
   @override
+  String get noNetChecking => 'Vérification…';
+
+  @override
+  String get noNetStillOffline =>
+      'Toujours hors ligne. Vérifiez le Wi-Fi ou les données mobiles et réessayez.';
+
+  @override
+  String noNetLastOnline(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'il y a $days jours',
+      one: 'il y a 1 jour',
+    );
+    return 'Dernière connexion $_temp0';
+  }
+
+  @override
   String get notificationsTitle => 'Notifications';
 
   @override

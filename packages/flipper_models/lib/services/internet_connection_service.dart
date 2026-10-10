@@ -48,7 +48,8 @@ class InternetConnectionService {
     );
 
     talker.info(
-        'Internet connection check service started with interval of $intervalHours hours');
+      'Internet connection check service started with interval of $intervalHours hours',
+    );
   }
 
   /// Stops periodic internet connection check
@@ -84,11 +85,14 @@ class InternetConnectionService {
       final currentTime = DateTime.now().millisecondsSinceEpoch;
 
       // Calculate days since last connection
-      final daysSinceLastConnection =
-          _calculateDaysBetween(lastConnectionTimestamp, currentTime);
+      final daysSinceLastConnection = _calculateDaysBetween(
+        lastConnectionTimestamp,
+        currentTime,
+      );
 
       talker.info(
-          'Days since last internet connection: $daysSinceLastConnection');
+        'Days since last internet connection: $daysSinceLastConnection',
+      );
 
       // Check if internet connection is required
       if (daysSinceLastConnection >= _requiredConnectionIntervalDays) {
@@ -104,7 +108,8 @@ class InternetConnectionService {
           // If we were on a connection required screen, navigate back to the main app
           if (_isOnConnectionRequiredScreen) {
             talker.info(
-                'Returning to main app after successful internet connection');
+              'Returning to main app after successful internet connection',
+            );
             _clearConnectionRequiredScreenFlag();
             _routerService.navigateTo(FlipperAppRoute());
           }
@@ -145,7 +150,8 @@ class InternetConnectionService {
       return true;
     } else {
       talker.warning(
-          'Forced internet connection check failed - internet not available');
+        'Forced internet connection check failed - internet not available',
+      );
       return false;
     }
   }
@@ -176,7 +182,8 @@ class InternetConnectionService {
     final days = daysDifference.floor();
 
     talker.info(
-        'Calculated days difference: $days (from timestamps: $startTimestamp to $endTimestamp)');
+      'Calculated days difference: $days (from timestamps: $startTimestamp to $endTimestamp)',
+    );
     return days;
   }
 
@@ -196,8 +203,9 @@ class InternetConnectionService {
     // Try socket connection first (fastest method)
     try {
       talker.info('Attempting socket connection test');
-      final result = await InternetAddress.lookup('google.com')
-          .timeout(const Duration(seconds: 5));
+      final result = await InternetAddress.lookup(
+        'google.com',
+      ).timeout(const Duration(seconds: 5));
 
       if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
         talker.info('Socket connection test successful');
@@ -227,11 +235,13 @@ class InternetConnectionService {
 
         if (response.statusCode >= 200 && response.statusCode < 400) {
           talker.info(
-              'HTTP connection test successful for: $url (Status: ${response.statusCode})');
+            'HTTP connection test successful for: $url (Status: ${response.statusCode})',
+          );
           return true;
         } else {
           talker.warning(
-              'HTTP connection test failed for: $url (Status: ${response.statusCode})');
+            'HTTP connection test failed for: $url (Status: ${response.statusCode})',
+          );
         }
       } catch (e) {
         talker.warning('HTTP connection test error for $url: $e');
@@ -243,12 +253,25 @@ class InternetConnectionService {
     return false;
   }
 
+  /// Whole days since the last successful internet connection, or `null` when
+  /// this device has never recorded one.
+  int? daysSinceLastConnection() {
+    final lastConnectionTimestamp = _getLastConnectionTimestamp();
+    if (lastConnectionTimestamp == 0) return null;
+    return _calculateDaysBetween(
+      lastConnectionTimestamp,
+      DateTime.now().millisecondsSinceEpoch,
+    );
+  }
+
   /// Get the number of days remaining before internet connection is required
   int getDaysUntilConnectionRequired() {
     final lastConnectionTimestamp = _getLastConnectionTimestamp();
     final currentTime = DateTime.now().millisecondsSinceEpoch;
-    final daysSinceLastConnection =
-        _calculateDaysBetween(lastConnectionTimestamp, currentTime);
+    final daysSinceLastConnection = _calculateDaysBetween(
+      lastConnectionTimestamp,
+      currentTime,
+    );
 
     final daysRemaining =
         _requiredConnectionIntervalDays - daysSinceLastConnection;
@@ -276,8 +299,9 @@ class InternetConnectionService {
     }
 
     try {
-      final result = await InternetAddress.lookup('google.com')
-          .timeout(const Duration(seconds: 3));
+      final result = await InternetAddress.lookup(
+        'google.com',
+      ).timeout(const Duration(seconds: 3));
       return result.isNotEmpty && result[0].rawAddress.isNotEmpty;
     } catch (e) {
       talker.warning('Simple connectivity check failed: $e');

@@ -6845,6 +6845,24 @@ abstract class FlipperAppLocalizations {
   /// **'Go to Login'**
   String get noNetGoToLogin;
 
+  /// No description provided for @noNetChecking.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking…'**
+  String get noNetChecking;
+
+  /// No description provided for @noNetStillOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'Still offline. Check Wi-Fi or mobile data and try again.'**
+  String get noNetStillOffline;
+
+  /// Days since the device last reached the internet, on the offline check-in screen
+  ///
+  /// In en, this message translates to:
+  /// **'Last online {days, plural, =1{1 day ago} other{{days} days ago}}'**
+  String noNetLastOnline(int days);
+
   /// No description provided for @notificationsTitle.
   ///
   /// In en, this message translates to:
