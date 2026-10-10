@@ -6208,7 +6208,7 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   String get mposWalkInCustomer => 'Umukiriya w\'inzira';
 
   @override
-  String get mposAttachCustomerHint => 'Kanda wongereho umukiriya (si ngombwa)';
+  String get mposAttachCustomerHint => 'Kanda wongereho umukiriya';
 
   @override
   String get mposRemoveCustomer => 'Kuraho umukiriya';
@@ -6234,6 +6234,35 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
 
   @override
   String get mposAddNewCustomer => 'Ongeraho umukiriya mushya';
+
+  @override
+  String get mposCustomerPhoneHint => 'Nimero ya telefoni';
+
+  @override
+  String get mposCustomerNameOptionalHint => 'Izina (si ngombwa)';
+
+  @override
+  String get mposRecentCustomers => 'Abaheruka';
+
+  @override
+  String get mposMatchingCustomers => 'Abahuye n’ishakisha';
+
+  @override
+  String get mposNoCustomerMatches =>
+      'Nta wabonetse. Mwongereho ukoresheje buto iri hepfo.';
+
+  @override
+  String get mposEnterCustomerPhone => 'Andika nimero ya telefoni';
+
+  @override
+  String mposAddCustomerWithPhone(String phone) {
+    return 'Ongeraho $phone';
+  }
+
+  @override
+  String mposUseExistingCustomer(String name) {
+    return 'Koresha $name';
+  }
 
   @override
   String mposItemQtyAtPrice(String qty, String price) {

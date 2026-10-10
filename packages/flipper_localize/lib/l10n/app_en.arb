@@ -5272,7 +5272,7 @@
     "@mposWalkInCustomer": {
         "description": "Customer row when no customer is attached"
     },
-    "mposAttachCustomerHint": "Tap to attach a customer (optional)",
+    "mposAttachCustomerHint": "Tap to add a customer",
     "@mposAttachCustomerHint": {
         "description": "Hint under walk-in customer"
     },
@@ -5313,6 +5313,48 @@
     "mposAddNewCustomer": "Add new customer",
     "@mposAddNewCustomer": {
         "description": "Button creating a new customer"
+    },
+    "mposCustomerPhoneHint": "Phone number",
+    "@mposCustomerPhoneHint": {
+        "description": "Phone field in the mobile checkout customer sheet"
+    },
+    "mposCustomerNameOptionalHint": "Name (optional)",
+    "@mposCustomerNameOptionalHint": {
+        "description": "Optional name field in the mobile checkout customer sheet"
+    },
+    "mposRecentCustomers": "Recent",
+    "@mposRecentCustomers": {
+        "description": "Section label above recently updated customers"
+    },
+    "mposMatchingCustomers": "Matches",
+    "@mposMatchingCustomers": {
+        "description": "Section label above customers matching the typed phone or name"
+    },
+    "mposNoCustomerMatches": "No match. Add them with the button below.",
+    "@mposNoCustomerMatches": {
+        "description": "Shown when no customer matches the typed phone or name"
+    },
+    "mposEnterCustomerPhone": "Enter a phone number",
+    "@mposEnterCustomerPhone": {
+        "description": "Disabled add button label until a full phone number is typed"
+    },
+    "mposAddCustomerWithPhone": "Add {phone}",
+    "@mposAddCustomerWithPhone": {
+        "description": "Button that creates a customer from the typed phone and attaches it to the sale",
+        "placeholders": {
+            "phone": {
+                "type": "String"
+            }
+        }
+    },
+    "mposUseExistingCustomer": "Use {name}",
+    "@mposUseExistingCustomer": {
+        "description": "Button that attaches the existing customer whose phone was typed",
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
     },
     "mposItemQtyAtPrice": "{qty} at RWF {price}",
     "@mposItemQtyAtPrice": {

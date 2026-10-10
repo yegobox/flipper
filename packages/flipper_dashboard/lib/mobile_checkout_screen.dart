@@ -489,6 +489,10 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
     );
   }
 
+  void _openCustomerSheet(ITransaction txn) {
+    MposCustomerSheet.show(context: context, ref: ref, transaction: txn);
+  }
+
   Future<void> _clearCustomer(ITransaction txn) async {
     if (_isClearingCustomer) return;
     HapticFeedback.lightImpact();
@@ -559,10 +563,7 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
       saleCustomerPhone,
       momoPayment: _isMomoPayment(payments),
     )) {
-      showErrorNotification(
-        context,
-        context.flipperL10n.mposAddCustomerBeforeCompleting,
-      );
+      _openCustomerSheet(txn);
       return;
     }
 
@@ -706,12 +707,6 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
         clearPinnedPosCartTransactionWidget(ref);
         clearCachedPendingCartTransactionWidget(ref, isExpense: false);
       }
-      showSuccessNotification(
-        context,
-        context.flipperL10n.paymentCollectedTotal(
-          '${ProxyService.box.defaultCurrency()} ${mposMoneyLabel(total)}',
-        ),
-      );
     }
     await Navigator.of(context).pushReplacement(
       MaterialPageRoute(
@@ -1203,11 +1198,26 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
                         _chargeState == ChargeButtonState.initial)
                   : (items.isNotEmpty && !_sendToTillBusy && settling == null);
 
+              // The only thing between the cashier and Charge is a customer:
+              // the primary button opens the customer sheet instead of
+              // sitting disabled.
+              final needsCustomer =
+                  canCollect &&
+                  items.isNotEmpty &&
+                  _chargeState == ChargeButtonState.initial &&
+                  !_hasCustomerForCharge(
+                    txn,
+                    displaySaleCustomerPhone,
+                    momoPayment: isMomo,
+                  );
+
               final itemCount = items
                   .fold<double>(0, (s, i) => s + _displayQtyFor(i))
                   .round();
 
-              var footerPrimaryLabel = !canCollect
+              var footerPrimaryLabel = needsCustomer
+                  ? context.flipperL10n.addCustomer
+                  : !canCollect
                   ? context.flipperL10n.payableSendToTill
                   : digitalEnabled && items.isNotEmpty
                   ? (remaining > 0.01
@@ -1257,11 +1267,7 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
                               customerName: displayCustomerName,
                               customerPhone: displaySaleCustomerPhone,
                               isClearing: _isClearingCustomer,
-                              onAttach: () => MposCustomerSheet.show(
-                                context: context,
-                                ref: ref,
-                                transaction: txn,
-                              ),
+                              onAttach: () => _openCustomerSheet(txn),
                               onClear: () => _clearCustomer(txn),
                             ),
                             const SizedBox(height: 14),
@@ -1403,6 +1409,7 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
                           ? (_isImmediateCompletion && _shouldShowSpinner())
                           : _sendToTillBusy,
                       primaryLabel: footerPrimaryLabel,
+                      primaryNeedsInput: needsCustomer,
                       onSaveTicket: items.isEmpty || settling != null
                           ? null
                           : _showParkDialog,
@@ -1412,6 +1419,8 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
                                     settling != null
                                 ? null
                                 : () => unawaited(_sendCartToTill()))
+                          : needsCustomer
+                          ? () => _openCustomerSheet(txn)
                           : canCharge
                           ? () => _handleCharge(
                               total,
@@ -1421,7 +1430,10 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
                           : null,
                       // Digital MoMo: split Charge (wait) vs Complete Now (handoff deviation).
                       secondaryLabel:
-                          canCollect && digitalEnabled && items.isNotEmpty
+                          canCollect &&
+                              digitalEnabled &&
+                              items.isNotEmpty &&
+                              !needsCustomer
                           ? _primaryLabel(
                               items.isEmpty,
                               txn,
