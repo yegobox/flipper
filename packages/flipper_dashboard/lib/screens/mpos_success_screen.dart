@@ -1,27 +1,36 @@
 import 'package:flipper_localize/flipper_localize.dart';
-import 'dart:math' as math;
 
 import 'package:flipper_dashboard/theme/mpos_motion.dart';
+import 'package:flipper_dashboard/theme/mpos_tokens.dart';
+import 'package:flipper_dashboard/theme/pos_tokens.dart';
 import 'package:flipper_dashboard/utils/mpos_helpers.dart';
+import 'package:flipper_dashboard/widgets/mpos/mpos_card.dart';
 import 'package:flutter/material.dart';
 
 /// Sale complete screen ([design_handoff_mobile_pos] Success + ANIMATIONS.md §3).
+///
+/// Sits in the POS chrome (light surface, ink text, brand-blue action); green
+/// is kept to the check badge, where it means "done". No confetti: a till
+/// sees this screen hundreds of times a day.
 class MposSaleCompleteSnapshot {
   const MposSaleCompleteSnapshot({
     required this.total,
     required this.itemCount,
     required this.methodLabel,
     this.customerName,
-    required this.tendered,
-    required this.change,
+    this.tendered,
+    this.change,
   });
 
   final double total;
   final int itemCount;
   final String methodLabel;
   final String? customerName;
-  final double tendered;
-  final double change;
+
+  /// Cash handed over and change due — null for non-cash sales, which have
+  /// neither, so their rows are hidden.
+  final double? tendered;
+  final double? change;
 }
 
 class MposSuccessScreen extends StatefulWidget {
@@ -34,6 +43,8 @@ class MposSuccessScreen extends StatefulWidget {
 
   final MposSaleCompleteSnapshot data;
   final VoidCallback onNewSale;
+
+  /// Hidden when null rather than falling back to [onNewSale].
   final VoidCallback? onPrintReceipt;
 
   @override
@@ -44,7 +55,6 @@ class _MposSuccessScreenState extends State<MposSuccessScreen>
     with TickerProviderStateMixin {
   late final AnimationController _checkController;
   late final AnimationController _receiptController;
-  late final AnimationController _confettiController;
   late final Animation<double> _checkScale;
   late final Animation<double> _receiptOpacity;
   late final Animation<Offset> _receiptSlide;
@@ -72,14 +82,9 @@ class _MposSuccessScreenState extends State<MposSuccessScreen>
     );
     _receiptOpacity = Tween<double>(begin: 0, end: 1).animate(receiptCurve);
     _receiptSlide = Tween<Offset>(
-      begin: const Offset(0, 0.02),
+      begin: const Offset(0, 0.04),
       end: Offset.zero,
     ).animate(receiptCurve);
-
-    _confettiController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 3200),
-    );
   }
 
   @override
@@ -87,8 +92,7 @@ class _MposSuccessScreenState extends State<MposSuccessScreen>
     super.didChangeDependencies();
     if (_started) return;
     _started = true;
-    final reduced = MposMotion.reducedMotion(context);
-    if (reduced) {
+    if (MposMotion.reducedMotion(context)) {
       _checkController.value = 1;
       _receiptController.value = 1;
     } else {
@@ -96,7 +100,6 @@ class _MposSuccessScreenState extends State<MposSuccessScreen>
       Future<void>.delayed(MposMotion.receiptDelay, () {
         if (mounted) _receiptController.forward();
       });
-      _confettiController.forward();
     }
   }
 
@@ -104,7 +107,6 @@ class _MposSuccessScreenState extends State<MposSuccessScreen>
   void dispose() {
     _checkController.dispose();
     _receiptController.dispose();
-    _confettiController.dispose();
     super.dispose();
   }
 
@@ -113,124 +115,90 @@ class _MposSuccessScreenState extends State<MposSuccessScreen>
     final d = widget.data;
     final l10n = context.flipperL10n;
     final subline =
-        '${d.methodLabel.toUpperCase()} · '
+        '${d.methodLabel} · '
         '${l10n.cartItemCount(d.itemCount)} · '
         '${d.customerName ?? l10n.mposWalkIn}';
 
     return Scaffold(
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          const DecoratedBox(
-            decoration: BoxDecoration(
-              gradient: RadialGradient(
-                center: Alignment(0, -0.9),
-                radius: 1.3,
-                colors: [
-                  Color(0xFF1FB36B),
-                  Color(0xFF16A34A),
-                  Color(0xFF0F7A38),
-                ],
-                stops: [0, 0.44, 1],
-              ),
-            ),
-          ),
-          if (!MposMotion.reducedMotion(context))
-            AnimatedBuilder(
-              animation: _confettiController,
-              builder: (_, __) => CustomPaint(
-                painter: _ConfettiPainter(_confettiController.value),
-                size: Size.infinite,
-              ),
-            ),
-          SafeArea(
-            child: Column(
-              children: [
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(horizontal: 26),
-                    child: Column(
-                      children: [
-                        const SizedBox(height: 56),
-                        ScaleTransition(
-                          scale: _checkScale,
-                          child: Container(
-                            width: 104,
-                            height: 104,
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.16),
-                              borderRadius: BorderRadius.circular(32),
-                              border: Border.all(
-                                color: Colors.white.withValues(alpha: 0.28),
-                              ),
-                            ),
-                            child: const Icon(
-                              Icons.check_rounded,
-                              size: 52,
-                              color: Colors.white,
-                            ),
-                          ),
+      backgroundColor: PosTokens.posBg,
+      body: SafeArea(
+        child: Column(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 56),
+                    ScaleTransition(
+                      scale: _checkScale,
+                      child: Container(
+                        width: 84,
+                        height: 84,
+                        decoration: const BoxDecoration(
+                          color: MposTokens.gainTint,
+                          shape: BoxShape.circle,
                         ),
-                        const SizedBox(height: 24),
-                        Text(
-                          l10n.mposSaleComplete,
-                          style: const TextStyle(
-                            fontSize: 28,
-                            fontWeight: FontWeight.w800,
-                            color: Colors.white,
-                            letterSpacing: -0.02,
-                          ),
+                        child: const Icon(
+                          Icons.check_rounded,
+                          size: 44,
+                          color: MposTokens.gain,
                         ),
-                        const SizedBox(height: 6),
-                        Text(
-                          subline,
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            fontSize: 14.5,
-                            color: Color(0xFFDDF3E6),
-                          ),
-                        ),
-                        const SizedBox(height: 26),
-                        FadeTransition(
-                          opacity: _receiptOpacity,
-                          child: SlideTransition(
-                            position: _receiptSlide,
-                            child: _ReceiptCard(data: d),
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
-                  ),
-                ),
-                Padding(
-                  padding: EdgeInsets.fromLTRB(
-                    26,
-                    14,
-                    26,
-                    16 + MediaQuery.paddingOf(context).bottom,
-                  ),
-                  child: Column(
-                    children: [
-                      _DoneButton(
-                        solid: true,
-                        label: l10n.mposNewSale,
-                        icon: Icons.add_rounded,
-                        onTap: widget.onNewSale,
+                    const SizedBox(height: 20),
+                    Text(
+                      l10n.mposSaleComplete,
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w800,
+                        color: PosTokens.ink1,
+                        letterSpacing: -0.02,
                       ),
-                      const SizedBox(height: 10),
-                      _DoneButton(
-                        solid: false,
-                        label: l10n.mposPrintReceipt,
-                        icon: Icons.receipt_long_outlined,
-                        onTap: widget.onPrintReceipt ?? widget.onNewSale,
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      subline,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: PosTokens.ink3,
                       ),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(height: 24),
+                    FadeTransition(
+                      opacity: _receiptOpacity,
+                      child: SlideTransition(
+                        position: _receiptSlide,
+                        child: _ReceiptCard(data: d),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
-          ),
-        ],
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
+              child: Column(
+                children: [
+                  _PrimaryButton(
+                    label: l10n.mposNewSale,
+                    icon: Icons.add_rounded,
+                    onTap: widget.onNewSale,
+                  ),
+                  if (widget.onPrintReceipt != null) ...[
+                    const SizedBox(height: 10),
+                    _SecondaryButton(
+                      label: l10n.mposPrintReceipt,
+                      icon: Icons.receipt_long_outlined,
+                      onTap: widget.onPrintReceipt!,
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -244,49 +212,48 @@ class _ReceiptCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.flipperL10n;
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
-      ),
+    final tendered = data.tendered;
+    final change = data.change;
+    return MposCard(
+      padding: const EdgeInsets.fromLTRB(18, 14, 18, 14),
       child: Column(
         children: [
           _row(l10n.mposTotalPaid, data.total, big: true),
-          Container(
-            height: 1,
-            margin: const EdgeInsets.symmetric(vertical: 10),
-            color: Colors.white.withValues(alpha: 0.18),
-          ),
-          _row(l10n.mposTendered, data.tendered),
-          _row(l10n.mposChange, data.change),
+          if (tendered != null && change != null) ...[
+            const Divider(height: 20, color: PosTokens.line),
+            _row(l10n.mposTendered, tendered),
+            _row(l10n.mposChange, change, emphasise: change > 0),
+          ],
         ],
       ),
     );
   }
 
-  Widget _row(String k, double v, {bool big = false}) {
+  Widget _row(
+    String label,
+    double value, {
+    bool big = false,
+    bool emphasise = false,
+  }) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 5),
+      padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
-            k,
+            label,
             style: TextStyle(
-              fontSize: big ? 15 : 13,
-              fontWeight: big ? FontWeight.w700 : FontWeight.w400,
-              color: big ? Colors.white : const Color(0xFFDDF3E6),
+              fontSize: big ? 15 : 13.5,
+              fontWeight: big || emphasise ? FontWeight.w700 : FontWeight.w500,
+              color: big || emphasise ? PosTokens.ink1 : PosTokens.ink2,
             ),
           ),
           Text(
-            'RWF ${mposMoneyLabel(v)}',
+            'RWF ${mposMoneyLabel(value)}',
             style: TextStyle(
-              fontSize: big ? 22 : 14,
-              fontWeight: FontWeight.w700,
-              color: Colors.white,
+              fontSize: big ? 22 : (emphasise ? 17 : 14),
+              fontWeight: big || emphasise ? FontWeight.w800 : FontWeight.w600,
+              color: PosTokens.ink1,
               fontFeatures: const [FontFeature.tabularFigures()],
             ),
           ),
@@ -296,15 +263,13 @@ class _ReceiptCard extends StatelessWidget {
   }
 }
 
-class _DoneButton extends StatelessWidget {
-  const _DoneButton({
-    required this.solid,
+class _PrimaryButton extends StatelessWidget {
+  const _PrimaryButton({
     required this.label,
     required this.icon,
     required this.onTap,
   });
 
-  final bool solid;
   final String label;
   final IconData icon;
   final VoidCallback onTap;
@@ -312,35 +277,28 @@ class _DoneButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: solid ? Colors.white : Colors.white.withValues(alpha: 0.14),
-      borderRadius: BorderRadius.circular(15),
+      color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(15),
-        child: Container(
-          height: 54,
-          alignment: Alignment.center,
+        child: Ink(
+          height: MposTokens.checkoutPrimaryHeight,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(15),
-            border: solid
-                ? null
-                : Border.all(color: Colors.white.withValues(alpha: 0.3)),
+            gradient: MposTokens.gradBtn,
+            boxShadow: MposTokens.shadowBlue,
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                icon,
-                size: 18,
-                color: solid ? const Color(0xFF15803D) : Colors.white,
-              ),
+              Icon(icon, size: 19, color: Colors.white),
               const SizedBox(width: 8),
               Text(
                 label,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 15.5,
                   fontWeight: FontWeight.w700,
-                  color: solid ? const Color(0xFF15803D) : Colors.white,
+                  color: Colors.white,
                 ),
               ),
             ],
@@ -351,69 +309,48 @@ class _DoneButton extends StatelessWidget {
   }
 }
 
-class _ConfettiPainter extends CustomPainter {
-  _ConfettiPainter(this.progress);
-
-  final double progress;
-  static final _rng = math.Random(42);
-  static late final List<_Particle> _particles = List.generate(50, (_) {
-    return _Particle(
-      x: _rng.nextDouble(),
-      delay: _rng.nextDouble() * 0.5,
-      duration: 0.55 + _rng.nextDouble() * 0.45,
-      hue: _rng.nextInt(360),
-      size: 4 + _rng.nextDouble() * 6,
-      isCircle: _rng.nextBool(),
-    );
+class _SecondaryButton extends StatelessWidget {
+  const _SecondaryButton({
+    required this.label,
+    required this.icon,
+    required this.onTap,
   });
 
+  final String label;
+  final IconData icon;
+  final VoidCallback onTap;
+
   @override
-  void paint(Canvas canvas, Size size) {
-    for (final p in _particles) {
-      final t = ((progress - p.delay) / p.duration).clamp(0.0, 1.0);
-      if (t <= 0) continue;
-      final y = t * size.height * 1.1;
-      final x = p.x * size.width + math.sin(t * math.pi * 4) * 12;
-      final paint = Paint()
-        ..color = HSLColor.fromAHSL(1, p.hue.toDouble(), 0.75, 0.55).toColor();
-      if (p.isCircle) {
-        canvas.drawCircle(Offset(x, y), p.size / 2, paint);
-      } else {
-        canvas.save();
-        canvas.translate(x, y);
-        canvas.rotate(t * math.pi * 4);
-        canvas.drawRect(
-          Rect.fromCenter(
-            center: Offset.zero,
-            width: p.size,
-            height: p.size * 0.6,
+  Widget build(BuildContext context) {
+    return Material(
+      color: PosTokens.surface,
+      borderRadius: BorderRadius.circular(15),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(15),
+        child: Container(
+          height: 52,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(15),
+            border: Border.all(color: PosTokens.lineStrong, width: 1.5),
           ),
-          paint,
-        );
-        canvas.restore();
-      }
-    }
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 18, color: PosTokens.ink2),
+              const SizedBox(width: 8),
+              Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: PosTokens.ink1,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
-
-  @override
-  bool shouldRepaint(_ConfettiPainter oldDelegate) =>
-      oldDelegate.progress != progress;
-}
-
-class _Particle {
-  _Particle({
-    required this.x,
-    required this.delay,
-    required this.duration,
-    required this.hue,
-    required this.size,
-    required this.isCircle,
-  });
-
-  final double x;
-  final double delay;
-  final double duration;
-  final int hue;
-  final double size;
-  final bool isCircle;
 }
