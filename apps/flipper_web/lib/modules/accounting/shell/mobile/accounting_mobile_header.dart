@@ -38,6 +38,9 @@ class AccountingMobileHeader extends ConsumerWidget {
     final hostHeader =
         AppLauncherHost.maybeOf(context)?.hostProvidesHeader ?? false;
     final currency = ref.watch(accountingCurrencyProvider);
+    // The host's header and the bottom nav's Approvals badge already cover
+    // the brand row's bell and avatar, so off Snapshot there is nothing left.
+    if (hostHeader && !showEntity) return const SizedBox.shrink();
 
     return DecoratedBox(
       decoration: const BoxDecoration(
@@ -47,82 +50,82 @@ class AccountingMobileHeader extends ConsumerWidget {
       child: SafeArea(
         bottom: false,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 14),
+          padding: EdgeInsets.fromLTRB(16, hostHeader ? 14 : 8, 16, 14),
           child: Column(
             children: [
-              Row(
-                children: [
-                  if (!hostHeader)
+              if (!hostHeader)
+                Row(
+                  children: [
                     const BooksBrandRow(
                       logoSize: 32,
                       variant: BooksBrandVariant.mobile,
                     ),
-                  const Spacer(),
-                  _HeaderIconButton(
-                    onPressed: () {
-                      if (pending > 0) {
-                        ref.read(accountingMobileTabProvider.notifier).state =
-                            AccountingMobileTab.approvals;
-                      } else {
-                        showAccountingToast(
-                          context,
-                          context.flipperL10n.booksAllCaughtUp,
-                          subtitle: context.flipperL10n.booksNoPendingEntries,
-                          icon: Icons.check,
-                          tone: AccountingToastTone.success,
-                        );
-                      }
-                    },
-                    child: Stack(
-                      clipBehavior: Clip.none,
-                      children: [
-                        const Icon(
-                          Icons.notifications_outlined,
-                          size: 20,
-                          color: AccountingTokens.ink2,
-                        ),
-                        if (pending > 0)
-                          Positioned(
-                            right: -1,
-                            top: -1,
-                            child: Container(
-                              width: 7,
-                              height: 7,
-                              decoration: BoxDecoration(
-                                color: AccountingTokens.loss,
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: AccountingTokens.surface,
-                                  width: 1.5,
+                    const Spacer(),
+                    _HeaderIconButton(
+                      onPressed: () {
+                        if (pending > 0) {
+                          ref.read(accountingMobileTabProvider.notifier).state =
+                              AccountingMobileTab.approvals;
+                        } else {
+                          showAccountingToast(
+                            context,
+                            context.flipperL10n.booksAllCaughtUp,
+                            subtitle: context.flipperL10n.booksNoPendingEntries,
+                            icon: Icons.check,
+                            tone: AccountingToastTone.success,
+                          );
+                        }
+                      },
+                      child: Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          const Icon(
+                            Icons.notifications_outlined,
+                            size: 20,
+                            color: AccountingTokens.ink2,
+                          ),
+                          if (pending > 0)
+                            Positioned(
+                              right: -1,
+                              top: -1,
+                              child: Container(
+                                width: 7,
+                                height: 7,
+                                decoration: BoxDecoration(
+                                  color: AccountingTokens.loss,
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: AccountingTokens.surface,
+                                    width: 1.5,
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Container(
-                    width: 40,
-                    height: 40,
-                    alignment: Alignment.center,
-                    decoration: const BoxDecoration(
-                      gradient: AccountingTokens.brandGradient,
-                      borderRadius: BorderRadius.all(Radius.circular(12)),
-                    ),
-                    child: Text(
-                      initials,
-                      style: AccountingTokens.sans(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
+                        ],
                       ),
                     ),
-                  ),
-                ],
-              ),
+                    const SizedBox(width: 8),
+                    Container(
+                      width: 40,
+                      height: 40,
+                      alignment: Alignment.center,
+                      decoration: const BoxDecoration(
+                        gradient: AccountingTokens.brandGradient,
+                        borderRadius: BorderRadius.all(Radius.circular(12)),
+                      ),
+                      child: Text(
+                        initials,
+                        style: AccountingTokens.sans(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               if (showEntity) ...[
-                const SizedBox(height: 14),
+                if (!hostHeader) const SizedBox(height: 14),
                 Material(
                   color: Colors.transparent,
                   child: InkWell(
