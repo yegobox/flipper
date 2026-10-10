@@ -56,7 +56,7 @@ jobs:
       FLUTTER_TEST_CI: true
     # needs: [supabase-init] # Requires Supabase to be initialized
     steps:
-      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           submodules: recursive
           persist-credentials: false  # submodules are public; nothing after checkout needs a credential
@@ -131,7 +131,7 @@ jobs:
     # if: false
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7.0.1
         with:
           submodules: recursive
           persist-credentials: false  # submodules are public; nothing after checkout needs a credential
@@ -279,7 +279,7 @@ jobs:
       cancel-in-progress: true
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7.0.1
         with:
           submodules: recursive
           persist-credentials: false  # submodules are public; nothing after checkout needs a credential
@@ -396,7 +396,7 @@ jobs:
           fi
         shell: bash
       - run: git config --global core.autocrlf false
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7.0.1
         with:
           submodules: recursive
           persist-credentials: false  # submodules are public; nothing after checkout needs a credential
@@ -494,7 +494,7 @@ jobs:
     # needs: [unit-testing,build_web_deploy_firebase] # Requires Supabase to be initialized
     # 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7.0.1
         with:
           submodules: recursive
           persist-credentials: false  # submodules are public; nothing after checkout needs a credential
@@ -637,7 +637,7 @@ jobs:
     # For now intrested in unit testing as web deployment is broken we will re-add need to depend on integration-testing-windows,build_web_deploy_firebase later
     # needs: [unit-testing] # Requires Supabase to be initialized
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7.0.1
         with:
           submodules: recursive
           persist-credentials: false  # submodules are public; nothing after checkout needs a credential
@@ -809,7 +809,7 @@ jobs:
       group: windows-store-msix
       cancel-in-progress: false
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7.0.1
         with:
           submodules: recursive
           persist-credentials: false  # submodules are public; nothing after checkout needs a credential
@@ -1028,7 +1028,7 @@ jobs:
 
       # Checkout flipper code
       - name: Checkout flipper code
-        uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           submodules: recursive
           persist-credentials: false  # submodules are public; nothing after checkout needs a credential
@@ -1430,7 +1430,7 @@ jobs:
        needs.build-and-release-windows-prerelease.result == 'success')
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           submodules: recursive
           persist-credentials: false  # submodules are public; nothing after checkout needs a credential
