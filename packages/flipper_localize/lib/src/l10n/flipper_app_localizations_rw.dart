@@ -3939,6 +3939,24 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   String get noNetGoToLogin => 'Jya ku kwinjira';
 
   @override
+  String get noNetChecking => 'Turimo kugenzura…';
+
+  @override
+  String get noNetStillOffline =>
+      'Nta murandasi uraboneka. Reba Wi-Fi cyangwa data za telefoni, wongere ugerageze.';
+
+  @override
+  String noNetLastOnline(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'hashize iminsi $days',
+      one: 'hashize umunsi 1',
+    );
+    return 'Uheruka kuri interineti $_temp0';
+  }
+
+  @override
   String get notificationsTitle => 'Ubutumwa';
 
   @override

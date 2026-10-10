@@ -3924,6 +3924,24 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   String get noNetGoToLogin => 'Nenda kuingia';
 
   @override
+  String get noNetChecking => 'Inakagua…';
+
+  @override
+  String get noNetStillOffline =>
+      'Bado hakuna mtandao. Angalia Wi-Fi au data ya simu kisha ujaribu tena.';
+
+  @override
+  String noNetLastOnline(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'siku $days zilizopita',
+      one: 'siku 1 iliyopita',
+    );
+    return 'Mara ya mwisho mtandaoni $_temp0';
+  }
+
+  @override
   String get notificationsTitle => 'Arifa';
 
   @override

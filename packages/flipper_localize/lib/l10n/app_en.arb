@@ -3580,6 +3580,17 @@
     "noNetSubtitle": "Can't connect to the internet.\nPlease check your internet connection",
     "noNetCheckConnection": "Check Connection",
     "noNetGoToLogin": "Go to Login",
+    "noNetChecking": "Checking…",
+    "noNetStillOffline": "Still offline. Check Wi-Fi or mobile data and try again.",
+    "noNetLastOnline": "Last online {days, plural, =1{1 day ago} other{{days} days ago}}",
+    "@noNetLastOnline": {
+        "description": "Days since the device last reached the internet, on the offline check-in screen",
+        "placeholders": {
+            "days": {
+                "type": "int"
+            }
+        }
+    },
     "notificationsTitle": "Notifications",
     "notificationsWhatsNew": "What's new",
     "notificationsTakeFirstPayment": "Take your first payment",
