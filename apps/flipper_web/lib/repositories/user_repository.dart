@@ -17,6 +17,10 @@ class UserRepository {
   final DittoService _dittoService;
   final http.Client _httpClient;
 
+  /// Neither `http` nor the Supabase client times a request out on its own,
+  /// and a stalled profile fetch holds Books' business restore open.
+  static const _profileRequestTimeout = Duration(seconds: 15);
+
   /// Last `/v2/api/user` or RPC payload from [fetchAndSaveUserProfile].
   Map<String, dynamic>? _lastFetchedApiPayload;
 
@@ -30,17 +34,15 @@ class UserRepository {
         '${AppSecrets.publicUsername}:${AppSecrets.publicPassword}';
     return {
       'Content-Type': 'application/json',
-      'Authorization':
-          'Basic ${base64Encode(utf8.encode(credentials))}',
+      'Authorization': 'Basic ${base64Encode(utf8.encode(credentials))}',
     };
   }
 
   Future<Map<String, dynamic>?> _fetchUserWithNestedData(String userId) async {
     try {
-      final raw = await Supabase.instance.client.rpc(
-        'get_user_with_nested_data',
-        params: {'p_user_id': userId},
-      );
+      final raw = await Supabase.instance.client
+          .rpc('get_user_with_nested_data', params: {'p_user_id': userId})
+          .timeout(_profileRequestTimeout);
       if (raw is String && raw.isNotEmpty) {
         final decoded = jsonDecode(raw);
         if (decoded is Map) {
@@ -70,13 +72,15 @@ class UserRepository {
 
   Future<Map<String, dynamic>> _postApiUser(String loginKey) async {
     debugPrint('User login key for profile fetch: $loginKey');
-    final response = await _httpClient.post(
-      Uri.parse(
-        '${kDebugMode ? AppSecrets.apihubDevDomain : AppSecrets.apihubProdDomain}/v2/api/user',
-      ),
-      headers: _apiHubHeaders(),
-      body: jsonEncode({'phoneNumber': loginKey}),
-    );
+    final response = await _httpClient
+        .post(
+          Uri.parse(
+            '${kDebugMode ? AppSecrets.apihubDevDomain : AppSecrets.apihubProdDomain}/v2/api/user',
+          ),
+          headers: _apiHubHeaders(),
+          body: jsonEncode({'phoneNumber': loginKey}),
+        )
+        .timeout(_profileRequestTimeout);
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body) as Map<String, dynamic>;
@@ -255,7 +259,8 @@ class UserRepository {
         loginKey: loginKey,
         pinUserId: canonicalPinUserId,
       );
-      final skipPhonePost = resolvedLoginKey.isNotEmpty &&
+      final skipPhonePost =
+          resolvedLoginKey.isNotEmpty &&
           isFlipperDittoLoginKey(resolvedLoginKey) &&
           canonicalPinUserId != null &&
           canonicalPinUserId.isNotEmpty;
@@ -326,8 +331,8 @@ class UserRepository {
   }) async {
     try {
       final canonicalPinUserId = pinUserId?.trim();
-      final lookupId = canonicalPinUserId != null &&
-              canonicalPinUserId.isNotEmpty
+      final lookupId =
+          canonicalPinUserId != null && canonicalPinUserId.isNotEmpty
           ? canonicalPinUserId
           : session.user.id;
 
@@ -346,9 +351,7 @@ class UserRepository {
         pinUserId: canonicalPinUserId,
       );
       if (!profile.hasBusinesses) {
-        debugPrint(
-          'Profile loaded but has no businesses (id=${profile.id})',
-        );
+        debugPrint('Profile loaded but has no businesses (id=${profile.id})');
       }
       return profile;
     } catch (e) {

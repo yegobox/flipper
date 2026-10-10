@@ -3,6 +3,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_web/core/user_profile_cache.dart';
 import 'package:flipper_web/core/utils/ditto_singleton.dart';
 import 'package:flipper_web/features/business_selection/business_branch_selector.dart';
+import 'package:flipper_web/features/business_selection/selected_business_restore.dart';
 import 'package:flipper_web/features/business_selection/session_business_selection.dart';
 import 'package:flipper_web/models/user_profile.dart' as web;
 import 'package:flipper_web/modules/accounting/data/accounting_providers.dart';
@@ -35,47 +36,55 @@ Future<void> restoreNativeBooksContext(WidgetRef ref) async {
     return;
   }
 
+  models.Business? nativeBusiness;
+  models.Branch? nativeBranch;
   try {
-    final nativeBusiness = await ProxyService.strategy.getBusiness(
+    nativeBusiness = await ProxyService.strategy.getBusiness(
       businessId: businessId,
     );
-    if (nativeBusiness == null) {
-      debugPrint('[Books] native context — business $businessId not found locally');
-      return;
-    }
 
+    // No `active` filter: the box branch is the one the app is on, whatever
+    // its `active` flag says, and a doc without the flag never matches it.
+    // For the same reason there is no "first branch" fallback — an unmatched
+    // id seeds from the box below rather than switching to another branch.
     final branches = await ProxyService.strategy.branches(
       businessId: businessId,
-      active: true,
     );
-    models.Branch? nativeBranch;
     for (final branch in branches) {
       if (branch.id.toString() == branchId) {
         nativeBranch = branch;
         break;
       }
     }
-    nativeBranch ??= branches.isNotEmpty ? branches.first : null;
-    if (nativeBranch == null) {
-      debugPrint('[Books] native context — branch $branchId not found locally');
-      return;
-    }
-
-    ref.read(selectedBusinessProvider.notifier).set(
-          _mapBusiness(nativeBusiness),
-        );
-    ref.read(selectedBranchProvider.notifier).set(
-          _mapBranch(nativeBranch, businessId: businessId),
-        );
-    lockSessionBranchChoice(ref);
-    _markNativeDittoReady(ref);
-    debugPrint(
-      '[Books] native context restored '
-      'business=${nativeBusiness.name} branch=${nativeBranch.name}',
-    );
   } catch (e, st) {
-    debugPrint('[Books] native context restore failed: $e\n$st');
+    debugPrint('[Books] native context lookup failed: $e\n$st');
   }
+
+  // Seed even when the local rows are missing (a phone's first open): Books
+  // keys every stream on the ids, and an empty selection sends
+  // [selectedBusinessRestoreProvider] to the web profile fetch, which on a
+  // phone has nothing to restore and can leave Books on its spinner.
+  ref
+      .read(selectedBusinessProvider.notifier)
+      .set(
+        nativeBusiness != null
+            ? _mapBusiness(nativeBusiness)
+            : placeholderBusiness(businessId),
+      );
+  ref
+      .read(selectedBranchProvider.notifier)
+      .set(
+        nativeBranch != null
+            ? _mapBranch(nativeBranch, businessId: businessId)
+            : placeholderBranch(id: branchId, businessId: businessId),
+      );
+  lockSessionBranchChoice(ref);
+  _markNativeDittoReady(ref);
+  debugPrint(
+    '[Books] native context restored '
+    'business=${nativeBusiness?.name ?? '$businessId (box id only)'} '
+    'branch=${nativeBranch?.name ?? '$branchId (box id only)'}',
+  );
 }
 
 void _markNativeDittoReady(WidgetRef ref) {
@@ -125,10 +134,7 @@ web.Business _mapBusiness(models.Business business) {
   );
 }
 
-web.Branch _mapBranch(
-  models.Branch branch, {
-  required String businessId,
-}) {
+web.Branch _mapBranch(models.Branch branch, {required String businessId}) {
   return web.Branch(
     id: branch.id,
     description: branch.description ?? branch.location ?? '',
