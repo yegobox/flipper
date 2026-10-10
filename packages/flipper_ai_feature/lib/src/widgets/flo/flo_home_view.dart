@@ -65,8 +65,9 @@ class FloHomeView extends StatelessWidget {
         },
       ];
 
-  String _greeting(FlipperAppLocalizations l10n) {
-    final hour = DateTime.now().hour;
+  /// Takes the hour rather than reading the clock, so tests can cover every
+  /// branch whatever time CI runs.
+  static String greetingFor(FlipperAppLocalizations l10n, int hour) {
     if (hour < 12) return l10n.floGoodMorning;
     if (hour < 17) return l10n.floGoodAfternoon;
     return l10n.floGoodEvening;
@@ -125,7 +126,8 @@ class FloHomeView extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      l10n.floGreetingShop(_greeting(l10n), shopName),
+                      l10n.floGreetingShop(
+                          greetingFor(l10n, DateTime.now().hour), shopName),
                       style: TextStyle(
                         fontSize: isMobile ? 23 : 27,
                         fontWeight: FontWeight.w700,

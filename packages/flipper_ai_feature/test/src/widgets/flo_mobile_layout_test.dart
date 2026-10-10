@@ -69,6 +69,16 @@ void main() {
     expect(find.byType(GridView), findsOneWidget);
   });
 
+  test('greeting switches at noon and 5 pm', () {
+    final l10n = lookupFlipperAppLocalizations(const Locale('en'));
+    expect(FloHomeView.greetingFor(l10n, 0), l10n.floGoodMorning);
+    expect(FloHomeView.greetingFor(l10n, 11), l10n.floGoodMorning);
+    expect(FloHomeView.greetingFor(l10n, 12), l10n.floGoodAfternoon);
+    expect(FloHomeView.greetingFor(l10n, 16), l10n.floGoodAfternoon);
+    expect(FloHomeView.greetingFor(l10n, 17), l10n.floGoodEvening);
+    expect(FloHomeView.greetingFor(l10n, 23), l10n.floGoodEvening);
+  });
+
   testWidgets('the source chip lines up with the "+" button below it', (
     tester,
   ) async {
