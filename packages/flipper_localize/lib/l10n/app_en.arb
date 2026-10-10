@@ -18831,7 +18831,13 @@
     "hrPayPay": "Pay",
     "hrPayPaySomeone": "Pay someone",
     "hrPayPayFor": "Pay {period}",
-    "@hrPayPayFor": {"placeholders": {"period": {"type": "String"}}},
+    "@hrPayPayFor": {
+        "placeholders": {
+            "period": {
+                "type": "String"
+            }
+        }
+    },
     "hrPayChoosePerson": "Who are you paying?",
     "hrPayRecord": "Record payment",
     "hrPayVoid": "Void",
@@ -18840,118 +18846,328 @@
     "hrPayReason": "Reason",
     "hrPaySaveUnpaid": "Save payslip, pay later",
     "hrPayConfirmAmount": "Pay {amount}",
-    "@hrPayConfirmAmount": {"placeholders": {"amount": {"type": "String"}}},
+    "@hrPayConfirmAmount": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
     "hrPayRemaining": "Pay {amount} left",
-    "@hrPayRemaining": {"placeholders": {"amount": {"type": "String"}}},
+    "@hrPayRemaining": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
     "hrPayRemainingTitle": "Pay what is left",
     "hrPayDueNow": "Due now",
     "hrPayPeopleToPay": "people to pay",
     "hrPayPaidThisMonth": "Paid this month",
     "hrPayUnpaidOnSlips": "{amount} still on payslips",
-    "@hrPayUnpaidOnSlips": {"placeholders": {"amount": {"type": "String"}}},
+    "@hrPayUnpaidOnSlips": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
     "hrPayAdvancesOwed": "Advances owed",
     "hrPayCostThisMonth": "Payroll cost this month",
     "hrPayPayslipCount": "{count, plural, =1{1 payslip} other{{count} payslips}}",
-    "@hrPayPayslipCount": {"placeholders": {"count": {"type": "int"}}},
+    "@hrPayPayslipCount": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
     "hrPayDueToday": "Due today",
     "hrPayDueOn": "Due {date}",
-    "@hrPayDueOn": {"placeholders": {"date": {"type": "String"}}},
+    "@hrPayDueOn": {
+        "placeholders": {
+            "date": {
+                "type": "String"
+            }
+        }
+    },
     "hrPayNextOn": "Next pay {date}",
-    "@hrPayNextOn": {"placeholders": {"date": {"type": "String"}}},
+    "@hrPayNextOn": {
+        "placeholders": {
+            "date": {
+                "type": "String"
+            }
+        }
+    },
     "hrPayOverdueSince": "Overdue since {date}",
-    "@hrPayOverdueSince": {"placeholders": {"date": {"type": "String"}}},
+    "@hrPayOverdueSince": {
+        "placeholders": {
+            "date": {
+                "type": "String"
+            }
+        }
+    },
     "hrPayDueFor": "Due for {period}",
-    "@hrPayDueFor": {"placeholders": {"period": {"type": "String"}}},
+    "@hrPayDueFor": {
+        "placeholders": {
+            "period": {
+                "type": "String"
+            }
+        }
+    },
     "hrPayOwesBack": "Owes {amount}",
-    "@hrPayOwesBack": {"placeholders": {"amount": {"type": "String"}}},
+    "@hrPayOwesBack": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
     "hrPayLastPaid": "Last paid {amount} on {date}",
-    "@hrPayLastPaid": {"placeholders": {"amount": {"type": "String"}, "date": {"type": "String"}}},
+    "@hrPayLastPaid": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            },
+            "date": {
+                "type": "String"
+            }
+        }
+    },
     "hrPayNextPayDay": "Next pay day",
     "hrPayLastPayment": "Last payment",
     "hrPayLatestNet": "Latest net pay",
     "hrPayPersonTitle": "Pay {name}",
-    "@hrPayPersonTitle": {"placeholders": {"name": {"type": "String"}}},
+    "@hrPayPersonTitle": {
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
     "hrPayPeriodAlreadyPaid": "This period already has a payslip. Pick another period, or open the payslip to pay what is left.",
     "hrPayPeriodHasPayslip": "Already on a payslip ({status}, net {amount}).",
-    "@hrPayPeriodHasPayslip": {"placeholders": {"status": {"type": "String"}, "amount": {"type": "String"}}},
+    "@hrPayPeriodHasPayslip": {
+        "placeholders": {
+            "status": {
+                "type": "String"
+            },
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
     "hrPayAlreadyPaidThisPeriod": "Already handed over in this period: {amount}",
-    "@hrPayAlreadyPaidThisPeriod": {"placeholders": {"amount": {"type": "String"}}},
+    "@hrPayAlreadyPaidThisPeriod": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
     "hrPayNothingEarned": "Nothing was earned in this period. Enter the days or hours worked, or a bonus.",
     "hrPayRecoverMoreThanOwed": "You cannot take back more than the {amount} still owed on an advance.",
-    "@hrPayRecoverMoreThanOwed": {"placeholders": {"amount": {"type": "String"}}},
+    "@hrPayRecoverMoreThanOwed": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
     "hrPayRecoveryOverHalf": "The law allows at most {amount} to be withheld from this pay (half of pay after tax and RSSB).",
-    "@hrPayRecoveryOverHalf": {"placeholders": {"amount": {"type": "String"}}},
+    "@hrPayRecoveryOverHalf": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
     "hrPayNetNegative": "Deductions are larger than pay. Lower the advance recovery or other deductions.",
     "hrPayEnterAmount": "Enter an amount.",
     "hrPayMoreThanNet": "That is more than the {amount} due.",
-    "@hrPayMoreThanNet": {"placeholders": {"amount": {"type": "String"}}},
+    "@hrPayMoreThanNet": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
     "hrPayEarnings": "Earnings",
     "hrPayDeductions": "Deductions",
     "hrPayDaysWorked": "Days worked",
     "hrPayHoursWorked": "Hours worked",
     "hrPayRateHelper": "At {rate} each. Pre-filled from attendance.",
-    "@hrPayRateHelper": {"placeholders": {"rate": {"type": "String"}}},
+    "@hrPayRateHelper": {
+        "placeholders": {
+            "rate": {
+                "type": "String"
+            }
+        }
+    },
     "hrPayBasePay": "Base pay",
     "hrPayAllowances": "Allowances",
     "hrPayBonus": "Bonus or overtime",
     "hrPayGross": "Gross pay",
     "hrPayPaye": "PAYE (income tax)",
     "hrPayPension": "RSSB pension ({percent}%)",
-    "@hrPayPension": {"placeholders": {"percent": {"type": "String"}}},
+    "@hrPayPension": {
+        "placeholders": {
+            "percent": {
+                "type": "String"
+            }
+        }
+    },
     "hrPayPensionPlain": "RSSB pension",
     "hrPayMaternity": "Maternity leave",
     "hrPayCbhi": "CBHI (Mutuelle)",
     "hrPayOtherDeductions": "Other deductions",
     "hrPayAdvancesToRecover": "Advances to take back",
     "hrPayAdvanceOf": "Advance of {amount} on {date}",
-    "@hrPayAdvanceOf": {"placeholders": {"amount": {"type": "String"}, "date": {"type": "String"}}},
+    "@hrPayAdvanceOf": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            },
+            "date": {
+                "type": "String"
+            }
+        }
+    },
     "hrPayStillOwed": "{amount} still owed",
-    "@hrPayStillOwed": {"placeholders": {"amount": {"type": "String"}}},
+    "@hrPayStillOwed": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
     "hrPayRecoveryLimit": "At most {amount} may be taken back from this pay.",
-    "@hrPayRecoveryLimit": {"placeholders": {"amount": {"type": "String"}}},
+    "@hrPayRecoveryLimit": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
     "hrPayNetPay": "Net pay",
     "hrPayEmployerCost": "Costs the business {amount} with employer contributions",
-    "@hrPayEmployerCost": {"placeholders": {"amount": {"type": "String"}}},
+    "@hrPayEmployerCost": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
     "hrPayPayment": "Payment",
     "hrPayRecordPaymentNow": "I am paying now",
     "hrPayRecordPaymentHint": "Turn off to save the payslip and pay later.",
     "hrPaySendTo": "Send to {account}",
-    "@hrPaySendTo": {"placeholders": {"account": {"type": "String"}}},
+    "@hrPaySendTo": {
+        "placeholders": {
+            "account": {
+                "type": "String"
+            }
+        }
+    },
     "hrPayAmountPaidNow": "Amount paid now",
     "hrPayPartialHint": "Pay part now and the rest later if you need to.",
     "hrPayReference": "Reference (optional)",
     "hrPayReferenceHint": "MoMo transaction ID or bank reference",
     "hrPayNote": "Note (optional)",
     "hrPayRatesFootnote": "Statutory rates {version}: PAYE (Law 027/2022), RSSB pension (Order 086/01 of 2024), maternity, occupational hazards and CBHI.",
-    "@hrPayRatesFootnote": {"placeholders": {"version": {"type": "String"}}},
+    "@hrPayRatesFootnote": {
+        "placeholders": {
+            "version": {
+                "type": "String"
+            }
+        }
+    },
     "hrPayPaidToast": "Paid {name} for {period}",
-    "@hrPayPaidToast": {"placeholders": {"name": {"type": "String"}, "period": {"type": "String"}}},
+    "@hrPayPaidToast": {
+        "placeholders": {
+            "name": {
+                "type": "String"
+            },
+            "period": {
+                "type": "String"
+            }
+        }
+    },
     "hrPayRecordedToast": "Payment recorded",
     "hrPayslipFor": "Payslip · {period}",
-    "@hrPayslipFor": {"placeholders": {"period": {"type": "String"}}},
+    "@hrPayslipFor": {
+        "placeholders": {
+            "period": {
+                "type": "String"
+            }
+        }
+    },
     "hrPayAdvanceRecovered": "Advance taken back",
     "hrPayAdvanceRecoveredAmount": "{amount} advance taken back",
-    "@hrPayAdvanceRecoveredAmount": {"placeholders": {"amount": {"type": "String"}}},
+    "@hrPayAdvanceRecoveredAmount": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
     "hrPayEmployerContributions": "Employer contributions",
     "hrPayOccupationalHazards": "Occupational hazards",
     "hrPayPaymentsMade": "Payments made",
     "hrPayNothingPaidYet": "Nothing has been paid on this payslip yet.",
     "hrPayStillToPay": "{amount} still to pay",
-    "@hrPayStillToPay": {"placeholders": {"amount": {"type": "String"}}},
+    "@hrPayStillToPay": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
     "hrPayVoidedBecause": "Voided: {reason}",
-    "@hrPayVoidedBecause": {"placeholders": {"reason": {"type": "String"}}},
+    "@hrPayVoidedBecause": {
+        "placeholders": {
+            "reason": {
+                "type": "String"
+            }
+        }
+    },
     "hrPayVoidPayslipTitle": "Void this payslip?",
     "hrPayVoidPayslipMessage": "The period becomes unpaid again and any advance it took back is owed again. Nothing is deleted.",
     "hrPayVoidPayslipWithPayments": "The payments recorded against it are voided too. The period becomes unpaid again and any advance it took back is owed again.",
     "hrPayVoidPaymentTitle": "Void this payment?",
     "hrPayVoidPaymentMessage": "The {amount} will no longer count as paid. Nothing is deleted.",
-    "@hrPayVoidPaymentMessage": {"placeholders": {"amount": {"type": "String"}}},
+    "@hrPayVoidPaymentMessage": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
     "hrPayslipFooter": "Computed with Rwanda statutory rates {version}. Generated by Flipper HR.",
-    "@hrPayslipFooter": {"placeholders": {"version": {"type": "String"}}},
+    "@hrPayslipFooter": {
+        "placeholders": {
+            "version": {
+                "type": "String"
+            }
+        }
+    },
     "hrPayPaidKind": "Paid · {kind}",
-    "@hrPayPaidKind": {"placeholders": {"kind": {"type": "String"}}},
+    "@hrPayPaidKind": {
+        "placeholders": {
+            "kind": {
+                "type": "String"
+            }
+        }
+    },
     "hrPayAdvanceGivenOn": "Advance given {date}",
-    "@hrPayAdvanceGivenOn": {"placeholders": {"date": {"type": "String"}}},
+    "@hrPayAdvanceGivenOn": {
+        "placeholders": {
+            "date": {
+                "type": "String"
+            }
+        }
+    },
     "hrPayNoHistory": "No payments yet. Payslips, payments and advances will appear here.",
     "hrPayPersonNotFound": "This person is not on the selected branch.",
     "hrPayNoRecordTitle": "No employee record yet",
@@ -18963,7 +19179,13 @@
     "hrPayNoRequests": "No advance requests. When someone asks for an advance in the app, it lands here.",
     "hrPayNoPayslipsThisMonth": "No payslips end in this month.",
     "hrPayReturnsDeadline": "Declare and pay PAYE and RSSB contributions by {date}.",
-    "@hrPayReturnsDeadline": {"placeholders": {"date": {"type": "String"}}},
+    "@hrPayReturnsDeadline": {
+        "placeholders": {
+            "date": {
+                "type": "String"
+            }
+        }
+    },
     "hrPayReturnsRra": "To RRA",
     "hrPayReturnsRssb": "To RSSB",
     "hrPayPensionBothSides": "Pension (employee + employer)",
@@ -18975,7 +19197,13 @@
     "hrAdvanceGive": "Give advance",
     "hrAdvanceRequest": "Ask for an advance",
     "hrAdvanceGiveTitle": "Advance for {name}",
-    "@hrAdvanceGiveTitle": {"placeholders": {"name": {"type": "String"}}},
+    "@hrAdvanceGiveTitle": {
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
     "hrAdvanceGiveSubtitle": "Money given before pay day. It is taken back from their next payslips.",
     "hrAdvanceRequestTitle": "Ask for an advance",
     "hrAdvanceRequestSubtitle": "Your manager decides, and it is taken back from your next pay.",
@@ -18988,38 +19216,104 @@
     "hrAdvanceRecoverInstallments": "In instalments",
     "hrAdvancePerPayslip": "Amount per payslip",
     "hrAdvanceInstallmentCount": "About {count} payslips",
-    "@hrAdvanceInstallmentCount": {"placeholders": {"count": {"type": "String"}}},
+    "@hrAdvanceInstallmentCount": {
+        "placeholders": {
+            "count": {
+                "type": "String"
+            }
+        }
+    },
     "hrAdvanceInstallmentOf": "{amount} per payslip",
-    "@hrAdvanceInstallmentOf": {"placeholders": {"amount": {"type": "String"}}},
+    "@hrAdvanceInstallmentOf": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
     "hrAdvanceEnterInstallment": "Enter how much to take back on each payslip.",
     "hrAdvanceAlreadyOwed": "Already owes {amount} from earlier advances.",
-    "@hrAdvanceAlreadyOwed": {"placeholders": {"amount": {"type": "String"}}},
+    "@hrAdvanceAlreadyOwed": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
     "hrAdvanceOverHalf": "More than one payslip can take back: at most {amount} per payslip is allowed, so this will take several pay days to recover.",
-    "@hrAdvanceOverHalf": {"placeholders": {"amount": {"type": "String"}}},
+    "@hrAdvanceOverHalf": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
     "hrAdvanceGiveAmount": "Give {amount}",
-    "@hrAdvanceGiveAmount": {"placeholders": {"amount": {"type": "String"}}},
+    "@hrAdvanceGiveAmount": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
     "hrAdvanceSendRequest": "Send request",
     "hrAdvanceRecordedToast": "Advance recorded",
     "hrAdvanceRequestedToast": "Request sent to your manager",
     "hrAdvanceRequestPending": "Your request for {amount} is waiting for a decision.",
-    "@hrAdvanceRequestPending": {"placeholders": {"amount": {"type": "String"}}},
+    "@hrAdvanceRequestPending": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
     "hrAdvanceCancelRequest": "Cancel request",
     "hrAdvanceApproveAndGive": "Approve and give",
     "hrAdvanceDecline": "Decline",
     "hrAdvanceDeclineTitle": "Decline this request?",
     "hrAdvanceDeclineMessage": "Say why, so they know.",
     "hrAdvanceApprovedToast": "Gave {amount} to {name}",
-    "@hrAdvanceApprovedToast": {"placeholders": {"amount": {"type": "String"}, "name": {"type": "String"}}},
+    "@hrAdvanceApprovedToast": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            },
+            "name": {
+                "type": "String"
+            }
+        }
+    },
     "hrAdvanceProgress": "{recovered} taken back · {owed} to go",
-    "@hrAdvanceProgress": {"placeholders": {"recovered": {"type": "String"}, "owed": {"type": "String"}}},
+    "@hrAdvanceProgress": {
+        "placeholders": {
+            "recovered": {
+                "type": "String"
+            },
+            "owed": {
+                "type": "String"
+            }
+        }
+    },
     "hrAdvanceWriteOff": "Write off",
     "hrAdvanceWriteOffTitle": "Write off this advance?",
     "hrAdvanceWriteOffMessage": "The {amount} still owed will not be taken back from pay.",
-    "@hrAdvanceWriteOffMessage": {"placeholders": {"amount": {"type": "String"}}},
+    "@hrAdvanceWriteOffMessage": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
     "hrAdvanceVoidTitle": "Void this advance?",
     "hrAdvanceVoidMessage": "Use this when it was recorded by mistake. The money handed over is voided too.",
     "hrAllowancesWithCurrency": "Monthly allowances ({currency})",
-    "@hrAllowancesWithCurrency": {"placeholders": {"currency": {"type": "String"}}},
+    "@hrAllowancesWithCurrency": {
+        "placeholders": {
+            "currency": {
+                "type": "String"
+            }
+        }
+    },
     "hrAllowancesHelper": "Transport, housing… paid every month on top of base pay. Taxed.",
     "hrPayDayOfMonth": "Pay day",
     "hrPayDayHelper": "Day of the month (1–31). Blank: last day.",
@@ -19028,17 +19322,53 @@
     "hrRssbEnrolled": "Registered with RSSB",
     "hrRssbEnrolledHelper": "Deduct pension and maternity contributions and add the employer's share.",
     "hrPayPeopleDue": "{count, plural, =1{Pay 1 person} other{Pay {count} people}}",
-    "@hrPayPeopleDue": {"placeholders": {"count": {"type": "int"}}},
+    "@hrPayPeopleDue": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
     "dailyGoalPlusPoints": "+{points} pts",
-    "@dailyGoalPlusPoints": {"placeholders": {"points": {"type": "int"}}},
+    "@dailyGoalPlusPoints": {
+        "placeholders": {
+            "points": {
+                "type": "int"
+            }
+        }
+    },
     "dailyGoalPoints": "{points} pts",
-    "@dailyGoalPoints": {"placeholders": {"points": {"type": "int"}}},
+    "@dailyGoalPoints": {
+        "placeholders": {
+            "points": {
+                "type": "int"
+            }
+        }
+    },
     "dailyGoalStreakShort": "{days, plural, =1{1-day streak} other{{days}-day streak}}",
-    "@dailyGoalStreakShort": {"placeholders": {"days": {"type": "int"}}},
+    "@dailyGoalStreakShort": {
+        "placeholders": {
+            "days": {
+                "type": "int"
+            }
+        }
+    },
     "dailyGoalBestStreak": "Best: {days} days",
-    "@dailyGoalBestStreak": {"placeholders": {"days": {"type": "int"}}},
+    "@dailyGoalBestStreak": {
+        "placeholders": {
+            "days": {
+                "type": "int"
+            }
+        }
+    },
     "dailyGoalPointsToday": "+{points} today",
-    "@dailyGoalPointsToday": {"placeholders": {"points": {"type": "int"}}},
+    "@dailyGoalPointsToday": {
+        "placeholders": {
+            "points": {
+                "type": "int"
+            }
+        }
+    },
     "dailyGoalChipSale": "Sale",
     "dailyGoalChipExpense": "Expense",
     "dailyGoalChipStock": "Stock",
@@ -19050,12 +19380,27 @@
     "dailyGoalSheetTitle": "Today's goal",
     "dailyGoalMissionsHeading": "Today's missions",
     "dailyGoalStreakRule": "Reach the goal {days} days in a row for +{points} bonus points.",
-    "@dailyGoalStreakRule": {"placeholders": {"days": {"type": "int"}, "points": {"type": "int"}}},
+    "@dailyGoalStreakRule": {
+        "placeholders": {
+            "days": {
+                "type": "int"
+            },
+            "points": {
+                "type": "int"
+            }
+        }
+    },
     "dailyGoalThisWeek": "This week",
     "dailyGoalWeekEmpty": "Your week shows here from tomorrow.",
     "dailyGoalSettingsHeading": "Goal settings",
     "dailyGoalTarget": "Daily target: {count} sales",
-    "@dailyGoalTarget": {"placeholders": {"count": {"type": "int"}}},
+    "@dailyGoalTarget": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
     "dailyGoalTargetAuto": "Adapts to your recent days",
     "dailyGoalTargetCustom": "Your own target",
     "dailyGoalUseAutomatic": "Use automatic",
@@ -19079,12 +19424,39 @@
     "booksExportSheetJournal": "Journal",
     "booksExportReady": "Export ready",
     "booksExportGeneratedAt": "Generated {date}",
-    "@booksExportGeneratedAt": {"placeholders": {"date": {"type": "String"}}},
+    "@booksExportGeneratedAt": {
+        "placeholders": {
+            "date": {
+                "type": "String"
+            }
+        }
+    },
     "booksExportPageOf": "Page {page} of {total}",
-    "@booksExportPageOf": {"placeholders": {"page": {"type": "String"}, "total": {"type": "String"}}},
+    "@booksExportPageOf": {
+        "placeholders": {
+            "page": {
+                "type": "String"
+            },
+            "total": {
+                "type": "String"
+            }
+        }
+    },
     "hotelNoRoomChargeTitle": "No room charge on this folio",
     "hotelNoRoomChargeBody": "Post {nights} at {rate} ({amount}) before checking out? Without it, this stay is not recorded as a sale.",
-    "@hotelNoRoomChargeBody": {"placeholders": {"nights": {"type": "String"}, "rate": {"type": "String"}, "amount": {"type": "String"}}},
+    "@hotelNoRoomChargeBody": {
+        "placeholders": {
+            "nights": {
+                "type": "String"
+            },
+            "rate": {
+                "type": "String"
+            },
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
     "hotelPostAndContinue": "Post & continue",
     "hotelCheckOutWithoutRoomCharge": "Check out without it"
 }
