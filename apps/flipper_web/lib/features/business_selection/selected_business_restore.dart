@@ -38,11 +38,13 @@ final selectedBusinessRestoreProvider = FutureProvider<void>((ref) async {
       if (apiUserId != null) apiUserId,
     ]);
     if (persisted != null) {
-      ref.read(selectedBusinessProvider.notifier).set(
-            _placeholderBusiness(persisted.businessId),
-          );
-      ref.read(selectedBranchProvider.notifier).set(
-            _placeholderBranch(
+      ref
+          .read(selectedBusinessProvider.notifier)
+          .set(placeholderBusiness(persisted.businessId));
+      ref
+          .read(selectedBranchProvider.notifier)
+          .set(
+            placeholderBranch(
               id: persisted.branchId,
               businessId: persisted.businessId,
             ),
@@ -61,7 +63,18 @@ final selectedBusinessRestoreProvider = FutureProvider<void>((ref) async {
     return;
   }
 
-  final profile = await ref.read(currentUserProfileProvider.future);
+  // Bounded: the profile fetch goes to the network, and this provider is kept
+  // for the whole session, so a stalled request would leave Books on its
+  // spinner until the app restarts.
+  final profile = await ref
+      .read(currentUserProfileProvider.future)
+      .timeout(
+        const Duration(seconds: 20),
+        onTimeout: () {
+          debugPrint('[Business] profile restore timed out');
+          return null;
+        },
+      );
   if (profile != null && profile.hasBusinesses) {
     await restoreSelectedBusinessFromProfile(ref, profile);
   }
@@ -113,8 +126,9 @@ Future<void> restoreSelectedBusinessFromProfile(
     if (persisted != null) {
       business ??= _findBusiness(businesses, persisted.businessId);
       if (business != null) {
-        final branches =
-            tenant.branches.where((b) => b.businessId == business!.id).toList();
+        final branches = tenant.branches
+            .where((b) => b.businessId == business!.id)
+            .toList();
         branch ??= _findBranch(branches, persisted.branchId);
       }
     }
@@ -193,32 +207,30 @@ Branch? _findBranch(List<Branch> branches, String id) {
   return null;
 }
 
-/// Minimal business/branch for instant reload before profile/API returns.
-Business _placeholderBusiness(String id) => Business(
-      id: id,
-      name: '',
-      country: '',
-      currency: '',
-      latitude: '',
-      longitude: '',
-      active: true,
-      userId: '',
-      phoneNumber: '',
-      lastSeen: 0,
-      backUpEnabled: false,
-      fullName: '',
-      tinNumber: 0,
-      taxEnabled: false,
-      businessTypeId: 0,
-      serverId: 0,
-      isDefault: false,
-      lastSubscriptionPaymentSucceeded: false,
-    );
+/// Minimal business/branch for instant reload before profile/API returns, and
+/// for the native shell when only the ids are known (Books keys on ids).
+Business placeholderBusiness(String id) => Business(
+  id: id,
+  name: '',
+  country: '',
+  currency: '',
+  latitude: '',
+  longitude: '',
+  active: true,
+  userId: '',
+  phoneNumber: '',
+  lastSeen: 0,
+  backUpEnabled: false,
+  fullName: '',
+  tinNumber: 0,
+  taxEnabled: false,
+  businessTypeId: 0,
+  serverId: 0,
+  isDefault: false,
+  lastSubscriptionPaymentSucceeded: false,
+);
 
-Branch _placeholderBranch({
-  required String id,
-  required String businessId,
-}) =>
+Branch placeholderBranch({required String id, required String businessId}) =>
     Branch(
       id: id,
       description: '',
