@@ -43,7 +43,7 @@ void main() {
 
     expect(opened, 1);
     // The web sheet must not open on top of the host's.
-    expect(find.text('Quick Sell'), findsNothing);
+    expect(find.text('POS'), findsNothing);
   });
 
   testWidgets('on the web the Apps button opens the apps sheet with POS', (
@@ -54,6 +54,6 @@ void main() {
     await tester.tap(find.byKey(const Key('books-topbar-apps')));
     await tester.pumpAndSettle();
 
-    expect(find.text('Quick Sell'), findsOneWidget);
+    expect(find.text('POS'), findsOneWidget);
   });
 }

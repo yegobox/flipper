@@ -165,7 +165,7 @@ class _PosWebEntryState extends ConsumerState<PosWebEntry> {
                 if (!ref.watch(dittoReadyProvider)) {
                   return const Center(child: CircularProgressIndicator());
                 }
-                return const _PosWebApp();
+                return const PosWebApp();
               },
             ),
           ),
@@ -175,14 +175,24 @@ class _PosWebEntryState extends ConsumerState<PosWebEntry> {
   }
 }
 
-class _PosWebApp extends ConsumerStatefulWidget {
-  const _PosWebApp();
+/// The POS itself: [CheckOut] on the native app's Stacked router.
+///
+/// Public so a web boot probe can mount it without Books' session gates.
+class PosWebApp extends ConsumerStatefulWidget {
+  const PosWebApp({super.key});
 
   @override
-  ConsumerState<_PosWebApp> createState() => _PosWebAppState();
+  ConsumerState<PosWebApp> createState() => _PosWebAppState();
 }
 
-class _PosWebAppState extends ConsumerState<_PosWebApp> {
+class _PosWebAppState extends ConsumerState<PosWebApp> {
+  // The Stacked delegate pushes its initial routes only from
+  // setInitialRoutePath, which the Router calls only when it has a route
+  // information provider. Without one the POS navigator stays empty.
+  final _routeInformation = _SilentRouteInformationProvider(
+    RouteInformation(uri: Uri.parse('/check-out')),
+  );
+
   @override
   void initState() {
     super.initState();
@@ -192,6 +202,12 @@ class _PosWebAppState extends ConsumerState<_PosWebApp> {
         .read(branchServicesProvider)
         .app
         .ensureBranchDittoSubscriptionsForCurrentBranch();
+  }
+
+  @override
+  void dispose() {
+    _routeInformation.dispose();
+    super.dispose();
   }
 
   @override
@@ -206,6 +222,8 @@ class _PosWebAppState extends ConsumerState<_PosWebApp> {
       locale: Localizations.maybeLocaleOf(context),
       localizationsDelegates: FlipperLocalizationDelegates.delegates,
       supportedLocales: FlipperLocalizationDelegates.supportedLocales,
+      routeInformationProvider: _routeInformation,
+      routeInformationParser: stackedRouter.defaultRouteParser(),
       // Built once per page load (RootStackRouter caches it), so leaving and
       // reopening the POS keeps the cart screen where it was.
       routerDelegate: stackedRouter.delegate(
@@ -213,6 +231,22 @@ class _PosWebAppState extends ConsumerState<_PosWebApp> {
       ),
     );
   }
+}
+
+/// Gives the nested POS router its first location and never reports
+/// navigation back: the browser URL belongs to flipper_web's GoRouter.
+class _SilentRouteInformationProvider extends RouteInformationProvider
+    with ChangeNotifier {
+  _SilentRouteInformationProvider(this.value);
+
+  @override
+  final RouteInformation value;
+
+  @override
+  void routerReportsNewRouteInformation(
+    RouteInformation routeInformation, {
+    RouteInformationReportingType type = RouteInformationReportingType.none,
+  }) {}
 }
 
 class _PosWebTopBar extends StatelessWidget {
@@ -240,8 +274,8 @@ class _PosWebTopBar extends StatelessWidget {
             style: TextButton.styleFrom(foregroundColor: PosTokens.ink2),
           ),
           const SizedBox(width: 8),
-          Text(
-            l10n.quickSell,
+          const Text(
+            'POS',
             style: const TextStyle(
               color: PosTokens.ink1,
               fontWeight: FontWeight.w600,

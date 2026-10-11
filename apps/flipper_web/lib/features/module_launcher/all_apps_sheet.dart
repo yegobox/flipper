@@ -183,20 +183,7 @@ class _AllAppsSheetBody extends StatelessWidget {
                           tile: tile,
                           onTap: () {
                             Navigator.of(context).pop();
-                            final route = webAppRouteFor(tile.page);
-                            if (route != null) {
-                              context.go(route);
-                              return;
-                            }
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  context.flipperL10n.webAppsComingSoon(
-                                    tile.label,
-                                  ),
-                                ),
-                              ),
-                            );
+                            context.go(tile.route);
                           },
                         );
                       },

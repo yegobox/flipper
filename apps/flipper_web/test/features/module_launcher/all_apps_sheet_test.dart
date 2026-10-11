@@ -38,10 +38,10 @@ Future<void> _pumpRouter(WidgetTester tester) async {
 }
 
 void main() {
-  test('launcher tiles that exist on the web map to their routes', () {
-    expect(webAppRouteFor('Accounting'), '/accounting');
-    expect(webAppRouteFor('POS'), '/pos');
-    expect(webAppRouteFor('Inventory'), isNull);
+  test('the web launcher lists only Books and POS', () {
+    final tiles = [for (final section in webAllAppsCatalog()) ...section.apps];
+    expect([for (final t in tiles) t.label], ['Books', 'POS']);
+    expect([for (final t in tiles) t.route], ['/accounting', '/pos']);
   });
 
   testWidgets('the POS tile opens /pos', (tester) async {
@@ -49,22 +49,10 @@ void main() {
 
     await tester.tap(find.text('open launcher'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Quick Sell'));
+    await tester.tap(find.text('POS'));
     await tester.pumpAndSettle();
 
     expect(find.text('POS page'), findsOneWidget);
-  });
-
-  testWidgets('apps not on the web yet still say coming soon', (tester) async {
-    await _pumpRouter(tester);
-
-    await tester.tap(find.text('open launcher'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Inventory'));
-    await tester.pump();
-
-    expect(find.text('POS page'), findsNothing);
-    expect(find.textContaining('coming soon'), findsOneWidget);
   });
 
   testWidgets('inside the native app the host launcher opens instead', (
@@ -86,6 +74,6 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(hostOpened, 1);
-    expect(find.text('Quick Sell'), findsNothing);
+    expect(find.text('POS'), findsNothing);
   });
 }
