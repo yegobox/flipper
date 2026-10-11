@@ -10634,7 +10634,7 @@ abstract class FlipperAppLocalizations {
   /// Hint under walk-in customer
   ///
   /// In en, this message translates to:
-  /// **'Tap to attach a customer (optional)'**
+  /// **'Tap to add a customer'**
   String get mposAttachCustomerHint;
 
   /// Accessibility label of the remove-customer button
@@ -10678,6 +10678,54 @@ abstract class FlipperAppLocalizations {
   /// In en, this message translates to:
   /// **'Add new customer'**
   String get mposAddNewCustomer;
+
+  /// Phone field in the mobile checkout customer sheet
+  ///
+  /// In en, this message translates to:
+  /// **'Phone number'**
+  String get mposCustomerPhoneHint;
+
+  /// Optional name field in the mobile checkout customer sheet
+  ///
+  /// In en, this message translates to:
+  /// **'Name (optional)'**
+  String get mposCustomerNameOptionalHint;
+
+  /// Section label above recently updated customers
+  ///
+  /// In en, this message translates to:
+  /// **'Recent'**
+  String get mposRecentCustomers;
+
+  /// Section label above customers matching the typed phone or name
+  ///
+  /// In en, this message translates to:
+  /// **'Matches'**
+  String get mposMatchingCustomers;
+
+  /// Shown when no customer matches the typed phone or name
+  ///
+  /// In en, this message translates to:
+  /// **'No match. Add them with the button below.'**
+  String get mposNoCustomerMatches;
+
+  /// Disabled add button label until a full phone number is typed
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a phone number'**
+  String get mposEnterCustomerPhone;
+
+  /// Button that creates a customer from the typed phone and attaches it to the sale
+  ///
+  /// In en, this message translates to:
+  /// **'Add {phone}'**
+  String mposAddCustomerWithPhone(String phone);
+
+  /// Button that attaches the existing customer whose phone was typed
+  ///
+  /// In en, this message translates to:
+  /// **'Use {name}'**
+  String mposUseExistingCustomer(String name);
 
   /// Accessibility value of a cart line
   ///

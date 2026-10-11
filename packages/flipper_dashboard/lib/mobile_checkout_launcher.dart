@@ -52,7 +52,11 @@ class _MobileCheckoutLauncherHost extends ConsumerStatefulWidget {
 
 class _MobileCheckoutLauncherHostState
     extends ConsumerState<_MobileCheckoutLauncherHost>
-    with TextEditingControllersMixin, TransactionMixinOld, PreviewCartMixin, Refresh {
+    with
+        TextEditingControllersMixin,
+        TransactionMixinOld,
+        PreviewCartMixin,
+        Refresh {
   @override
   void initState() {
     super.initState();
@@ -117,6 +121,8 @@ class _MobileCheckoutLauncherHostState
       onPaymentConfirmed: onPaymentConfirmed,
       onPaymentFailed: onPaymentFailed,
       overrideAlreadyPaid: overrideAlreadyPaid,
+      // MobileCheckoutScreen confirms the sale with its success screen.
+      showSuccessSnackBar: false,
     );
   }
 

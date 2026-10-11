@@ -1,7 +1,8 @@
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_analytics/flipper_analytics.dart';
 import 'package:flipper_models/providers/pay_button_provider.dart';
-import 'package:flipper_models/view_models/mixins/riverpod_states.dart' as oldImplementationOfRiverpod;
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart'
+    as oldImplementationOfRiverpod;
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -24,11 +25,14 @@ class CheckoutController with AnalyticsTrackingMixin {
     required Function refreshTransactionItems,
     required TextEditingController discountController,
     required Future<void> Function(ITransaction transaction)
-        afterCheckoutSaleCleanup,
+    afterCheckoutSaleCleanup,
     Function? onPaymentConfirmed,
     Function(String)? onPaymentFailed,
     List<TransactionItem>? transactionItemsHint,
     double overrideAlreadyPaid = 0.0,
+
+    /// False when the host shows its own success screen (mobile checkout).
+    bool showSuccessSnackBar = true,
   }) async {
     final startTime = transaction.createdAt!;
 
@@ -64,6 +68,7 @@ class CheckoutController with AnalyticsTrackingMixin {
         onPaymentFailed: onPaymentFailed,
         attachedCustomerHint: attachedCustomerHint,
         overrideAlreadyPaid: overrideAlreadyPaid,
+        showSuccessSnackBar: showSuccessSnackBar,
         completeTransaction: () async {
           ref.read(payButtonStateProvider.notifier).stopLoading();
 
@@ -79,7 +84,9 @@ class CheckoutController with AnalyticsTrackingMixin {
 
           _handleTransactionCompletion(transaction, startTime);
         },
-        paymentMethods: ref.watch(oldImplementationOfRiverpod.paymentMethodsProvider),
+        paymentMethods: ref.watch(
+          oldImplementationOfRiverpod.paymentMethodsProvider,
+        ),
       );
 
       // Only a pending digital payment keeps the completion lock held. The flow
@@ -101,13 +108,16 @@ class CheckoutController with AnalyticsTrackingMixin {
     }
   }
 
-  void _handleTransactionCompletion(ITransaction transaction, DateTime startTime) {
+  void _handleTransactionCompletion(
+    ITransaction transaction,
+    DateTime startTime,
+  ) {
     final endTime = DateTime.now().toUtc();
     final duration = endTime.difference(startTime).inSeconds;
 
     ProxyService.box.writeBool(key: 'transactionInProgress', value: false);
     ProxyService.box.writeBool(key: 'transactionCompleting', value: false);
-    
+
     trackTransactionCompleted(
       transactionId: transaction.id,
       branchId: transaction.branchId,
