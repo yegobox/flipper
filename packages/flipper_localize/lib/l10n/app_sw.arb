@@ -8753,5 +8753,14 @@
   "hotelNoRoomChargeTitle": "Hakuna gharama ya chumba kwenye bili hii",
   "hotelNoRoomChargeBody": "Weka {nights} kwa {rate} ({amount}) kabla ya kuondoka? Bila hivyo, ukaaji huu haurekodiwi kama mauzo.",
   "hotelPostAndContinue": "Weka na uendelee",
-  "hotelCheckOutWithoutRoomCharge": "Ondoka bila gharama ya chumba"
+  "hotelCheckOutWithoutRoomCharge": "Ondoka bila gharama ya chumba",
+  "webHomeSuiteTitleLead": "Programu tatu. Leja moja.",
+  "webHomeSuiteTitleAccent": "Hakuna kuingiza mara mbili.",
+  "webHomeCapTitleLead": "Kila anachofanya mhasibu —",
+  "webHomeCapTitleAccent": "kimejengwa ndani.",
+  "webHomePricingTitleLead": "Bei rahisi.",
+  "webHomePricingTitleAccent": "Bila mshangao.",
+  "webHomeCtaKicker": "Bure kuanza · Hakuna kadi inayohitajika",
+  "webHomeCtaLead": "Anza",
+  "webHomeCtaAccent": "kuhesabu."
 }

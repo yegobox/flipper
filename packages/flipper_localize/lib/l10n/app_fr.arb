@@ -7160,5 +7160,14 @@
   "hotelNoRoomChargeTitle": "Aucun frais de chambre sur ce folio",
   "hotelNoRoomChargeBody": "Enregistrer {nights} à {rate} ({amount}) avant le départ ? Sans cela, ce séjour n'est pas enregistré comme une vente.",
   "hotelPostAndContinue": "Enregistrer et continuer",
-  "hotelCheckOutWithoutRoomCharge": "Départ sans frais de chambre"
+  "hotelCheckOutWithoutRoomCharge": "Départ sans frais de chambre",
+    "webHomeSuiteTitleLead": "Trois applications. Un grand livre.",
+    "webHomeSuiteTitleAccent": "Zéro double saisie.",
+    "webHomeCapTitleLead": "Tout ce que fait un comptable —",
+    "webHomeCapTitleAccent": "intégré.",
+    "webHomePricingTitleLead": "Une tarification simple.",
+    "webHomePricingTitleAccent": "Sans surprises.",
+    "webHomeCtaKicker": "Gratuit pour commencer · Sans carte bancaire",
+    "webHomeCtaLead": "Commencez à",
+    "webHomeCtaAccent": "compter."
 }

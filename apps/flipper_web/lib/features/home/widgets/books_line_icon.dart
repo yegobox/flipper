@@ -51,7 +51,7 @@ class BooksLineIcon extends StatelessWidget {
       icon.assetPath,
       width: size,
       height: size,
-      colorFilter: ColorFilter.mode(color ?? AppColors.ink2, BlendMode.srcIn),
+      colorFilter: ColorFilter.mode(color ?? AppColors.muted, BlendMode.srcIn),
       excludeFromSemantics: true,
     );
   }

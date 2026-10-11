@@ -42736,6 +42736,60 @@ abstract class FlipperAppLocalizations {
   /// In en, this message translates to:
   /// **'Check out without it'**
   String get hotelCheckOutWithoutRoomCharge;
+
+  /// Landing page platform headline, first (upright) part
+  ///
+  /// In en, this message translates to:
+  /// **'Three apps. One ledger.'**
+  String get webHomeSuiteTitleLead;
+
+  /// Landing page platform headline, italic accent part
+  ///
+  /// In en, this message translates to:
+  /// **'Zero double-entry.'**
+  String get webHomeSuiteTitleAccent;
+
+  /// Landing page capabilities headline, first part
+  ///
+  /// In en, this message translates to:
+  /// **'Everything an accountant does —'**
+  String get webHomeCapTitleLead;
+
+  /// Landing page capabilities headline, italic accent part
+  ///
+  /// In en, this message translates to:
+  /// **'built in.'**
+  String get webHomeCapTitleAccent;
+
+  /// Landing page pricing headline, first part
+  ///
+  /// In en, this message translates to:
+  /// **'Simple pricing.'**
+  String get webHomePricingTitleLead;
+
+  /// Landing page pricing headline, italic accent part
+  ///
+  /// In en, this message translates to:
+  /// **'No surprises.'**
+  String get webHomePricingTitleAccent;
+
+  /// Small label above the closing call to action
+  ///
+  /// In en, this message translates to:
+  /// **'Free to start · No card required'**
+  String get webHomeCtaKicker;
+
+  /// Closing call-to-action headline, first word
+  ///
+  /// In en, this message translates to:
+  /// **'Start'**
+  String get webHomeCtaLead;
+
+  /// Closing call-to-action headline, italic accent
+  ///
+  /// In en, this message translates to:
+  /// **'counting.'**
+  String get webHomeCtaAccent;
 }
 
 class _FlipperAppLocalizationsDelegate

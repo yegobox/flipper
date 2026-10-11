@@ -25987,4 +25987,31 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
 
   @override
   String get hotelCheckOutWithoutRoomCharge => 'Départ sans frais de chambre';
+
+  @override
+  String get webHomeSuiteTitleLead => 'Trois applications. Un grand livre.';
+
+  @override
+  String get webHomeSuiteTitleAccent => 'Zéro double saisie.';
+
+  @override
+  String get webHomeCapTitleLead => 'Tout ce que fait un comptable —';
+
+  @override
+  String get webHomeCapTitleAccent => 'intégré.';
+
+  @override
+  String get webHomePricingTitleLead => 'Une tarification simple.';
+
+  @override
+  String get webHomePricingTitleAccent => 'Sans surprises.';
+
+  @override
+  String get webHomeCtaKicker => 'Gratuit pour commencer · Sans carte bancaire';
+
+  @override
+  String get webHomeCtaLead => 'Commencez à';
+
+  @override
+  String get webHomeCtaAccent => 'compter.';
 }

@@ -19128,5 +19128,41 @@
     "hotelNoRoomChargeBody": "Post {nights} at {rate} ({amount}) before checking out? Without it, this stay is not recorded as a sale.",
     "@hotelNoRoomChargeBody": {"placeholders": {"nights": {"type": "String"}, "rate": {"type": "String"}, "amount": {"type": "String"}}},
     "hotelPostAndContinue": "Post & continue",
-    "hotelCheckOutWithoutRoomCharge": "Check out without it"
+    "hotelCheckOutWithoutRoomCharge": "Check out without it",
+    "webHomeSuiteTitleLead": "Three apps. One ledger.",
+    "@webHomeSuiteTitleLead": {
+        "description": "Landing page platform headline, first (upright) part"
+    },
+    "webHomeSuiteTitleAccent": "Zero double-entry.",
+    "@webHomeSuiteTitleAccent": {
+        "description": "Landing page platform headline, italic accent part"
+    },
+    "webHomeCapTitleLead": "Everything an accountant does —",
+    "@webHomeCapTitleLead": {
+        "description": "Landing page capabilities headline, first part"
+    },
+    "webHomeCapTitleAccent": "built in.",
+    "@webHomeCapTitleAccent": {
+        "description": "Landing page capabilities headline, italic accent part"
+    },
+    "webHomePricingTitleLead": "Simple pricing.",
+    "@webHomePricingTitleLead": {
+        "description": "Landing page pricing headline, first part"
+    },
+    "webHomePricingTitleAccent": "No surprises.",
+    "@webHomePricingTitleAccent": {
+        "description": "Landing page pricing headline, italic accent part"
+    },
+    "webHomeCtaKicker": "Free to start · No card required",
+    "@webHomeCtaKicker": {
+        "description": "Small label above the closing call to action"
+    },
+    "webHomeCtaLead": "Start",
+    "@webHomeCtaLead": {
+        "description": "Closing call-to-action headline, first word"
+    },
+    "webHomeCtaAccent": "counting.",
+    "@webHomeCtaAccent": {
+        "description": "Closing call-to-action headline, italic accent"
+    }
 }

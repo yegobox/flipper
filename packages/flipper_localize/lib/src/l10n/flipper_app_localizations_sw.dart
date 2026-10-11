@@ -25740,4 +25740,31 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
 
   @override
   String get hotelCheckOutWithoutRoomCharge => 'Ondoka bila gharama ya chumba';
+
+  @override
+  String get webHomeSuiteTitleLead => 'Programu tatu. Leja moja.';
+
+  @override
+  String get webHomeSuiteTitleAccent => 'Hakuna kuingiza mara mbili.';
+
+  @override
+  String get webHomeCapTitleLead => 'Kila anachofanya mhasibu —';
+
+  @override
+  String get webHomeCapTitleAccent => 'kimejengwa ndani.';
+
+  @override
+  String get webHomePricingTitleLead => 'Bei rahisi.';
+
+  @override
+  String get webHomePricingTitleAccent => 'Bila mshangao.';
+
+  @override
+  String get webHomeCtaKicker => 'Bure kuanza · Hakuna kadi inayohitajika';
+
+  @override
+  String get webHomeCtaLead => 'Anza';
+
+  @override
+  String get webHomeCtaAccent => 'kuhesabu.';
 }

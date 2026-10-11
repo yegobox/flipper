@@ -9,7 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 /// It drives the app-wide [themeProvider] (light by default), so the choice
 /// carries through to sign-in and the workspace behind it.
 class BooksThemeToggle extends ConsumerWidget {
-  const BooksThemeToggle({super.key, this.size = 38});
+  const BooksThemeToggle({super.key, this.size = AppText.buttonHeightNav});
 
   final double size;
 
@@ -31,14 +31,12 @@ class BooksThemeToggle extends ConsumerWidget {
           width: size,
           height: size,
           decoration: BoxDecoration(
-            color: AppColors.wash(0.03),
-            shape: BoxShape.circle,
-            border: Border.all(color: AppColors.line2),
+            border: Border.all(color: AppColors.lineStrong),
           ),
           child: Icon(
             isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
-            size: size * 0.48,
-            color: AppColors.ink2,
+            size: size * 0.42,
+            color: AppColors.ink,
           ),
         ),
       ),
@@ -69,13 +67,14 @@ class BooksThemeToggleTile extends ConsumerWidget {
       leading: Icon(
         isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
         size: 20,
-        color: AppColors.ink2,
+        color: AppColors.muted,
       ),
       title: Text(
-        isDark
-            ? booksHomeL10n(context).webHomeLightMode
-            : booksHomeL10n(context).webHomeDarkMode,
-        style: AppText.body.copyWith(color: AppColors.ink1),
+        (isDark
+                ? booksHomeL10n(context).webHomeLightMode
+                : booksHomeL10n(context).webHomeDarkMode)
+            .toUpperCase(),
+        style: AppText.label(size: 12.5, c: AppColors.ink),
       ),
       onTap: () {
         ref.read(themeProvider.notifier).toggle();

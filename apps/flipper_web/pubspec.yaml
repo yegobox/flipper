@@ -4,7 +4,7 @@ description: "A new Flutter project."
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
-version: 1.0.818+1734
+version: 1.0.819+1735
 
 
 environment:
@@ -122,6 +122,24 @@ flutter:
           weight: 600
         - asset: assets/fonts/GeistMono-700.ttf
           weight: 700
+    # Landing page display type. Archivo is cut to static weights from the
+    # Google Fonts variable file (wdth=100); both families are OFL, licences
+    # alongside in assets/fonts/.
+    - family: Archivo
+      fonts:
+        - asset: assets/fonts/Archivo-600.ttf
+          weight: 600
+        - asset: assets/fonts/Archivo-700.ttf
+          weight: 700
+        - asset: assets/fonts/Archivo-800.ttf
+          weight: 800
+    - family: Instrument Serif
+      fonts:
+        - asset: assets/fonts/InstrumentSerif-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/InstrumentSerif-Italic.ttf
+          weight: 400
+          style: italic
 
 # Icons (favicon, web/icons/, Android mipmap, iOS AppIcon):
 #   dart run flutter_launcher_icons -f flutter_launcher_icons.yaml

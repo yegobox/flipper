@@ -8745,5 +8745,14 @@
   "hotelNoRoomChargeTitle": "Nta giciro cy'icyumba kiri kuri fagitire",
   "hotelNoRoomChargeBody": "Andika {nights} kuri {rate} ({amount}) mbere yo gusezerera umushyitsi? Bitabaye ibyo, uku kuraramo ntikwandikwa nk'igurisha.",
   "hotelPostAndContinue": "Andika ukomeze",
-  "hotelCheckOutWithoutRoomCharge": "Sezerera nta giciro cy'icyumba"
+  "hotelCheckOutWithoutRoomCharge": "Sezerera nta giciro cy'icyumba",
+  "webHomeSuiteTitleLead": "Porogaramu eshatu. Igitabo kimwe.",
+  "webHomeSuiteTitleAccent": "Nta kwandika kabiri.",
+  "webHomeCapTitleLead": "Ibyo umucungamari akora byose —",
+  "webHomeCapTitleAccent": "byubatswemo.",
+  "webHomePricingTitleLead": "Ibiciro byoroshye.",
+  "webHomePricingTitleAccent": "Nta gutungurwa.",
+  "webHomeCtaKicker": "Gutangira ni ubuntu · Nta karita isabwa",
+  "webHomeCtaLead": "Tangira",
+  "webHomeCtaAccent": "kubara."
 }

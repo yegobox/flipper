@@ -8,17 +8,12 @@ import 'package:flipper_web/features/home/widgets/books_home_widgets.dart';
 
 void main() {
   group('HomeScreen', () {
-    tearDown(() {
-      booksHomeShowDeviceMocks = true;
-    });
-
     Future<void> pumpHomeScreen(
       WidgetTester tester, {
       ThemeMode themeMode = ThemeMode.light,
     }) async {
       tester.view.physicalSize = const Size(1920, 4000);
       tester.view.devicePixelRatio = 1.0;
-      booksHomeShowDeviceMocks = false;
 
       await tester.pumpWidget(
         ProviderScope(
@@ -43,34 +38,33 @@ void main() {
 
       expect(find.text('Flipper'), findsWidgets);
       expect(find.text('BOOKS'), findsWidgets);
-      expect(find.text('Start free'), findsWidgets);
-      expect(find.text('does itself.'), findsOneWidget);
-      expect(find.text('Accounting'), findsOneWidget);
-      expect(find.text('that '), findsOneWidget);
-      expect(find.text('See how it works'), findsOneWidget);
-      expect(find.text('RRA / EBM-ready'), findsOneWidget);
+      expect(find.text('START FREE'), findsWidgets);
+      expect(find.text('SEE HOW IT WORKS'), findsOneWidget);
+      expect(find.text('RRA / EBM-READY'), findsOneWidget);
+      // Headlines are one rich text with a serif-italic accent span.
+      expect(find.textContaining('does itself.'), findsOneWidget);
+      expect(find.textContaining('Accounting'), findsWidgets);
 
-      expect(
-        find.textContaining('Built for businesses everywhere'),
-        findsOneWidget,
-      );
-      expect(find.textContaining('Real-time'), findsWidgets);
+      // The marquee repeats its run so it can loop.
+      expect(find.textContaining('Real-time ledger'), findsWidgets);
       expect(find.textContaining('12,400+'), findsWidgets);
 
-      expect(find.text('Three apps. One ledger. Zero double-entry.'), findsOneWidget);
+      expect(find.text('01'), findsWidgets);
+      expect(find.textContaining('Zero double-entry.'), findsOneWidget);
       expect(find.text('MEET FLOW AI'), findsOneWidget);
       expect(find.text('INSIDE BOOKS'), findsOneWidget);
 
-      expect(find.text('Simple, transparent pricing'), findsOneWidget);
-      expect(find.text('Mobile'), findsOneWidget);
-      expect(find.text('Mobile + Desktop'), findsOneWidget);
-      expect(find.text('Enterprise'), findsOneWidget);
+      expect(find.textContaining('No surprises.'), findsOneWidget);
+      expect(find.text('MOBILE'), findsOneWidget);
+      expect(find.text('MOBILE + DESKTOP'), findsOneWidget);
+      expect(find.text('ENTERPRISE'), findsOneWidget);
       expect(find.text('5,000'), findsOneWidget);
       expect(find.text('120,000'), findsOneWidget);
       expect(find.text('1.5M+'), findsOneWidget);
-      expect(find.text('Most Popular'), findsOneWidget);
+      expect(find.text('★ MOST POPULAR'), findsOneWidget);
 
-      expect(find.text('12,400+'), findsWidgets);
+      expect(find.textContaining('counting.'), findsOneWidget);
+      expect(find.text('12,400+'), findsOneWidget);
       expect(find.text('RWF 1.2B'), findsOneWidget);
       expect(find.text('99.9%'), findsOneWidget);
     });
@@ -80,6 +74,7 @@ void main() {
 
       expect(AppColors.palette, BooksPalette.light);
       expect(AppColors.bg, BooksPalette.light.bg);
+      expect(BooksPalette.light.bg, const Color(0xFFF2F1EE));
 
       final scaffold = tester.widget<Scaffold>(
         find.descendant(
@@ -106,6 +101,43 @@ void main() {
       expect(scaffold.backgroundColor, BooksPalette.dark.bg);
     });
 
+    testWidgets('holds the marquee still under reduced motion', (
+      WidgetTester tester,
+    ) async {
+      await pumpHomeScreen(tester);
+
+      // A running ticker would never let the page settle.
+      await tester.pumpAndSettle();
+      expect(find.byType(MarqueeTicker), findsOneWidget);
+    });
+
+    testWidgets('lays out on a phone without overflowing', (
+      WidgetTester tester,
+    ) async {
+      tester.view.physicalSize = const Size(390, 9000);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      await tester.pumpWidget(
+        const ProviderScope(
+          child: MaterialApp(
+            home: MediaQuery(
+              data: MediaQueryData(
+                size: Size(390, 9000),
+                disableAnimations: true,
+              ),
+              child: HomeScreen(),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      expect(tester.takeException(), isNull);
+      expect(find.byIcon(Icons.menu_rounded), findsOneWidget);
+      expect(find.text('99.9%'), findsOneWidget);
+    });
+
     testWidgets('the nav sheet closes when the theme is switched from it', (
       WidgetTester tester,
     ) async {
@@ -113,10 +145,7 @@ void main() {
       // other rows watch nothing, so they keep the colours they were built
       // with. Leaving it open would show this row alone in the new palette.
       //
-      // The header is pumped on its own rather than the whole page: the
-      // pricing section puts Flexible children in a vertical Flex under
-      // unbounded height, so rendering the page below 860px throws before the
-      // menu can be opened. That is a separate, pre-existing bug.
+      // The header is pumped on its own so the sheet is the only overlay.
       tester.view.physicalSize = const Size(700, 1400);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.reset);
@@ -139,12 +168,12 @@ void main() {
 
       await tester.tap(find.byIcon(Icons.menu_rounded));
       await tester.pumpAndSettle();
-      expect(find.text('Dark mode'), findsOneWidget);
+      expect(find.text('DARK MODE'), findsOneWidget);
 
-      await tester.tap(find.text('Dark mode'));
+      await tester.tap(find.text('DARK MODE'));
       await tester.pumpAndSettle();
       expect(
-        find.text('Dark mode'),
+        find.text('DARK MODE'),
         findsNothing,
         reason: 'the sheet dismisses instead of half-repainting',
       );
@@ -152,7 +181,7 @@ void main() {
       // Reopening proves the toggle took effect rather than being swallowed.
       await tester.tap(find.byIcon(Icons.menu_rounded));
       await tester.pumpAndSettle();
-      expect(find.text('Light mode'), findsOneWidget);
+      expect(find.text('LIGHT MODE'), findsOneWidget);
     });
   });
 }

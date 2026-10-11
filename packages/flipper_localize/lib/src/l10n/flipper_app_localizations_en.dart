@@ -25570,4 +25570,31 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
 
   @override
   String get hotelCheckOutWithoutRoomCharge => 'Check out without it';
+
+  @override
+  String get webHomeSuiteTitleLead => 'Three apps. One ledger.';
+
+  @override
+  String get webHomeSuiteTitleAccent => 'Zero double-entry.';
+
+  @override
+  String get webHomeCapTitleLead => 'Everything an accountant does —';
+
+  @override
+  String get webHomeCapTitleAccent => 'built in.';
+
+  @override
+  String get webHomePricingTitleLead => 'Simple pricing.';
+
+  @override
+  String get webHomePricingTitleAccent => 'No surprises.';
+
+  @override
+  String get webHomeCtaKicker => 'Free to start · No card required';
+
+  @override
+  String get webHomeCtaLead => 'Start';
+
+  @override
+  String get webHomeCtaAccent => 'counting.';
 }

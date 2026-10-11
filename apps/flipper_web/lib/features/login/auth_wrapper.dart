@@ -81,7 +81,7 @@ class AuthWrapper extends ConsumerWidget {
         child: Scaffold(
           backgroundColor: AppColors.bg,
           body: Center(
-            child: CircularProgressIndicator(color: AppColors.violet),
+            child: CircularProgressIndicator(color: AppColors.accent),
           ),
         ),
       ),

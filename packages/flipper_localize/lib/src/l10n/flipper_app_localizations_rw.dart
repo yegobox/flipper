@@ -25831,4 +25831,31 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   @override
   String get hotelCheckOutWithoutRoomCharge =>
       'Sezerera nta giciro cy\'icyumba';
+
+  @override
+  String get webHomeSuiteTitleLead => 'Porogaramu eshatu. Igitabo kimwe.';
+
+  @override
+  String get webHomeSuiteTitleAccent => 'Nta kwandika kabiri.';
+
+  @override
+  String get webHomeCapTitleLead => 'Ibyo umucungamari akora byose —';
+
+  @override
+  String get webHomeCapTitleAccent => 'byubatswemo.';
+
+  @override
+  String get webHomePricingTitleLead => 'Ibiciro byoroshye.';
+
+  @override
+  String get webHomePricingTitleAccent => 'Nta gutungurwa.';
+
+  @override
+  String get webHomeCtaKicker => 'Gutangira ni ubuntu · Nta karita isabwa';
+
+  @override
+  String get webHomeCtaLead => 'Tangira';
+
+  @override
+  String get webHomeCtaAccent => 'kubara.';
 }

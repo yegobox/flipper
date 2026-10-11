@@ -6,7 +6,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
-/// Flipper Books marketing home page (handoff v1).
+/// Flipper Books marketing home page: an editorial layout of paper, ink and
+/// hairlines (after getartcraft.com).
 class BooksHomePage extends ConsumerStatefulWidget {
   const BooksHomePage({super.key});
 
@@ -124,7 +125,7 @@ class _BooksHomePageState extends ConsumerState<BooksHomePage> {
                           onStartFree: () => booksHomeGoSignup(context),
                           onSecondary: () => _scrollTo(_suiteKey),
                         ),
-                        const BooksHomeTrustStrip(),
+                        const BooksHomeMarquee(),
                         KeyedSubtree(
                           key: _suiteKey,
                           child: const BooksHomeSuiteSection(),
@@ -142,9 +143,9 @@ class _BooksHomePageState extends ConsumerState<BooksHomePage> {
                           onStartFree: () => booksHomeGoSignup(context),
                           l10n: l10n,
                         ),
-                        BooksHomeBrandBand(
+                        BooksHomeCta(
                           onStartFree: () => booksHomeGoSignup(context),
-                          onSignIn: () => booksHomeGoLogin(context),
+                          onTalkToSales: () => booksHomeGoLogin(context),
                         ),
                         const BooksHomeFooter(),
                       ],
