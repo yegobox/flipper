@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flipper_dashboard/features/branch_location/branch_services.dart';
-import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
+import 'package:flipper_dashboard/logout/dashboard_sign_out.dart';
 import 'package:flipper_dashboard/theme/pos_tokens.dart';
 import 'package:flipper_design_system/flipper_design_system.dart';
 import 'package:flipper_localize/flipper_localize.dart';
@@ -128,6 +128,8 @@ class _PosWebEntryState extends ConsumerState<PosWebEntry> {
 
   Future<bool> _prepare() async {
     await bootstrapPosForWeb(databaseFactory: widget.databaseFactory);
+    // Books owns the session: signing out of the POS goes back to Books.
+    dashboardSignOutHostExit = () async => widget.onExit();
     if (!mounted) return false;
     return seedPosContextFromWeb(ref);
   }
@@ -175,7 +177,7 @@ class _PosWebEntryState extends ConsumerState<PosWebEntry> {
   }
 }
 
-/// The POS itself: [CheckOut] on the native app's Stacked router.
+/// The POS itself: the desktop dashboard on the native app's Stacked router.
 ///
 /// Public so a web boot probe can mount it without Books' session gates.
 class PosWebApp extends ConsumerStatefulWidget {
@@ -190,7 +192,7 @@ class _PosWebAppState extends ConsumerState<PosWebApp> {
   // setInitialRoutePath, which the Router calls only when it has a route
   // information provider. Without one the POS navigator stays empty.
   final _routeInformation = _SilentRouteInformationProvider(
-    RouteInformation(uri: Uri.parse('/check-out')),
+    RouteInformation(uri: Uri.parse('/flipper-app')),
   );
 
   @override
@@ -212,9 +214,6 @@ class _PosWebAppState extends ConsumerState<PosWebApp> {
 
   @override
   Widget build(BuildContext context) {
-    final bigScreen =
-        MediaQuery.sizeOf(context).width >=
-        PosLayoutBreakpoints.mobileLayoutMaxWidth;
     return MaterialApp.router(
       debugShowCheckedModeBanner: false,
       title: 'Flipper POS',
@@ -224,10 +223,11 @@ class _PosWebAppState extends ConsumerState<PosWebApp> {
       supportedLocales: FlipperLocalizationDelegates.supportedLocales,
       routeInformationProvider: _routeInformation,
       routeInformationParser: stackedRouter.defaultRouteParser(),
-      // Built once per page load (RootStackRouter caches it), so leaving and
-      // reopening the POS keeps the cart screen where it was.
+      // The desktop app's own shell (top bar, rail, catalog + cart), so the
+      // web sells exactly like the computer. Built once per page load
+      // (RootStackRouter caches it): reopening the POS keeps its state.
       routerDelegate: stackedRouter.delegate(
-        initialRoutes: [CheckOutRoute(isBigScreen: bigScreen)],
+        initialRoutes: [FlipperAppRoute()],
       ),
     );
   }
