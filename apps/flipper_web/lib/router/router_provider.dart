@@ -36,7 +36,12 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       // Root shows AuthWrapper which will choose appropriate screen
       GoRoute(path: '/', builder: (context, state) => const AuthWrapper()),
       // Public routes
-      GoRoute(path: '/login', builder: (context, state) => const PinScreen()),
+      // Named: sign-out paths navigate with goNamed(AppRoute.login.name).
+      GoRoute(
+        path: '/login',
+        name: 'login',
+        builder: (context, state) => const PinScreen(),
+      ),
       GoRoute(path: '/signup', builder: (context, state) => const SignupView()),
       // Business selection screen after authentication
       GoRoute(
