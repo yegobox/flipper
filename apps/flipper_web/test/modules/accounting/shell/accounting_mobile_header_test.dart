@@ -48,6 +48,8 @@ void main() {
     expect(find.text('FY 2026 · RWF'), findsOneWidget);
     expect(find.byIcon(Icons.notifications_outlined), findsNothing);
     expect(find.byType(BooksBrandRow), findsNothing);
+    // The host's own header owns app switching there.
+    expect(find.byKey(const Key('books-mobile-apps')), findsNothing);
   });
 
   testWidgets('inside the Flipper app other tabs draw no header at all', (
@@ -71,5 +73,7 @@ void main() {
     expect(find.byType(BooksBrandRow), findsOneWidget);
     expect(find.byIcon(Icons.notifications_outlined), findsOneWidget);
     expect(find.text('FY 2026 · RWF'), findsOneWidget);
+    // On the web this is the way into the POS.
+    expect(find.byKey(const Key('books-mobile-apps')), findsOneWidget);
   });
 }

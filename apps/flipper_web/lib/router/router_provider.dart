@@ -12,6 +12,7 @@ import 'package:flipper_web/features/login/pin_screen.dart';
 import 'package:flipper_web/features/login/signup_view.dart';
 import 'package:flipper_web/features/business_selection/business_selection_wrapper.dart';
 import 'package:flipper_web/features/custom_payment/presentation/custom_payment_page.dart';
+import 'package:flipper_web/features/pos/pos_route_page.dart';
 
 final goRouterProvider = Provider<GoRouter>((ref) {
   final authRefresh = ValueNotifier<int>(0);
@@ -57,6 +58,17 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) =>
             const BooksBillingGate(child: AccountingModuleScreen()),
       ),
+      // The POS, opened from Books' app launcher. Same subscription rule as
+      // Books (and the native app): a paid business, or the paywall.
+      GoRoute(
+        path: '/pos',
+        name: 'pos',
+        pageBuilder: (context, state) => const NoTransitionPage(
+          // NoTransitionPage: the POS mounts the Stacked navigator, whose
+          // global key must never be in the tree twice mid-transition.
+          child: BooksBillingGate(child: PosRoutePage()),
+        ),
+      ),
       // The paywall itself — auth-protected, never billing-gated. `planId` is
       // set when Dodo redirects back after a card checkout.
       GoRoute(
@@ -91,6 +103,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       final goingToLogin = state.uri.path == '/login';
       final goingToDashboard = state.uri.path == '/dashboard';
       final goingToAccounting = state.uri.path == '/accounting';
+      final goingToPos = state.uri.path == '/pos';
       final goingToBusinessSelection = state.uri.path == '/business-selection';
       final goingToSubscribe = state.uri.path == '/subscribe';
       final goingToCustomPayment = state.uri.path == '/custom-payment';
@@ -119,6 +132,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         if (goingToBusinessSelection ||
             goingToDashboard ||
             goingToAccounting ||
+            goingToPos ||
             goingToSubscribe ||
             goingToCustomPayment) {
           return '/login';

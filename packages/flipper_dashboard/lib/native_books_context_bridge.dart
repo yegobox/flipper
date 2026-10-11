@@ -1,5 +1,5 @@
 import 'package:flipper_models/db_model_export.dart' as models;
-import 'package:flipper_services/proxy.dart';
+import 'package:flipper_dashboard/features/branch_location/branch_services.dart';
 import 'package:flipper_web/core/user_profile_cache.dart';
 import 'package:flipper_web/core/utils/ditto_singleton.dart';
 import 'package:flipper_web/features/business_selection/business_branch_selector.dart';
@@ -14,8 +14,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 /// Seeds Books (accounting) providers from the native Flipper session
 /// ([ProxyService.box]) when the module is opened from the mobile app shell.
 Future<void> restoreNativeBooksContext(WidgetRef ref) async {
-  final businessId = ProxyService.box.getBusinessId()?.trim();
-  final branchId = ProxyService.box.getBranchId()?.trim();
+  final services = ref.read(branchServicesProvider);
+  final businessId = services.box.getBusinessId()?.trim();
+  final branchId = services.box.getBranchId()?.trim();
   if (businessId == null ||
       businessId.isEmpty ||
       branchId == null ||
@@ -24,7 +25,7 @@ Future<void> restoreNativeBooksContext(WidgetRef ref) async {
     return;
   }
 
-  final userId = ProxyService.box.getUserId()?.trim();
+  final userId = services.box.getUserId()?.trim();
   if (userId != null && userId.isNotEmpty) {
     ref.read(sessionApiUserIdProvider.notifier).state = userId;
   }
@@ -39,7 +40,7 @@ Future<void> restoreNativeBooksContext(WidgetRef ref) async {
   models.Business? nativeBusiness;
   models.Branch? nativeBranch;
   try {
-    nativeBusiness = await ProxyService.strategy.getBusiness(
+    nativeBusiness = await services.strategy.getBusiness(
       businessId: businessId,
     );
 
@@ -47,9 +48,7 @@ Future<void> restoreNativeBooksContext(WidgetRef ref) async {
     // its `active` flag says, and a doc without the flag never matches it.
     // For the same reason there is no "first branch" fallback — an unmatched
     // id seeds from the box below rather than switching to another branch.
-    final branches = await ProxyService.strategy.branches(
-      businessId: businessId,
-    );
+    final branches = await services.strategy.branches(businessId: businessId);
     for (final branch in branches) {
       if (branch.id.toString() == branchId) {
         nativeBranch = branch;

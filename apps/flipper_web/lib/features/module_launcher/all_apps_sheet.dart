@@ -3,12 +3,24 @@ import 'dart:ui';
 
 import 'package:flipper_web/features/login/signin_styles.dart';
 import 'package:flipper_web/features/module_launcher/all_apps_catalog.dart';
+import 'package:flipper_web/features/module_launcher/app_launcher_host.dart';
 import 'package:flipper_web/modules/accounting/theme/accounting_tokens.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 class AllAppsSheet {
   AllAppsSheet._();
+
+  /// Opens the host's launcher when Books is embedded in the native app, and
+  /// this sheet on the web.
+  static void open(BuildContext context) {
+    final host = AppLauncherHost.maybeOf(context);
+    if (host != null) {
+      host.onOpenLauncher();
+      return;
+    }
+    show(context);
+  }
 
   static Future<void> show(BuildContext context) {
     final isDesktop =
@@ -171,8 +183,9 @@ class _AllAppsSheetBody extends StatelessWidget {
                           tile: tile,
                           onTap: () {
                             Navigator.of(context).pop();
-                            if (tile.page == 'Accounting') {
-                              context.go('/accounting');
+                            final route = webAppRouteFor(tile.page);
+                            if (route != null) {
+                              context.go(route);
                               return;
                             }
                             ScaffoldMessenger.of(context).showSnackBar(

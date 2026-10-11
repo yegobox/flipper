@@ -26,6 +26,14 @@ class AllAppSection {
   final List<AllAppTile> apps;
 }
 
+/// The flipper_web route a launcher tile opens, or null while that app is
+/// not on the web yet.
+String? webAppRouteFor(String page) => switch (page) {
+  'Accounting' => '/accounting',
+  'POS' => '/pos',
+  _ => null,
+};
+
 List<AllAppSection> webAllAppsCatalog([FlipperAppLocalizations? l10n]) {
   final t = l10n ?? FlipperL10n.current;
   return [

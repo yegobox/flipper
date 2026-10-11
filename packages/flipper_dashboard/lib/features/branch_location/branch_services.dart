@@ -2,6 +2,7 @@ import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:flipper_models/DatabaseSyncInterface.dart';
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_services/abstractions/location.dart';
+import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/constants.dart' as platform;
 import 'package:flipper_services/place_search.dart';
 import 'package:flipper_services/proxy.dart';
@@ -11,7 +12,8 @@ import 'package:supabase_models/brick/repository.dart';
 import 'package:supabase_models/brick/repository/storage.dart';
 
 /// What the branch screens (Add Branch, the location picker and the Android
-/// location prompt) need from the app. Getters resolve on every call because
+/// location prompt) and the cross-app session bridges (Books in the native
+/// app, the POS on the web) need from the app. Getters resolve on every call because
 /// the active strategy can change at runtime; tests override
 /// [branchServicesProvider] with a subclass.
 class BranchServices {
@@ -25,6 +27,7 @@ class BranchServices {
   DatabaseSyncInterface get strategy => ProxyService.strategy;
   FlipperLocation get location => ProxyService.location;
   HttpClientInterface get http => ProxyService.http;
+  AppService get app => ProxyService.app;
   bool get isAndroid => platform.isAndroid;
   PlaceSearch get placeSearch => _places;
 

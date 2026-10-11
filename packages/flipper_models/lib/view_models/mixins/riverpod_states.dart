@@ -15,6 +15,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart';
 import 'package:riverpod/riverpod.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/legacy.dart'
     show ChangeNotifierProvider, StateProvider;
@@ -654,7 +655,7 @@ final tenantProvider = FutureProvider<Tenant?>((ref) async {
   final userId = ProxyService.box.getUserId();
   return await ProxyService.strategy.tenant(
     userId: userId,
-    fetchRemote: !Platform.isWindows,
+    fetchRemote: kIsWeb || !Platform.isWindows,
   );
 });
 
