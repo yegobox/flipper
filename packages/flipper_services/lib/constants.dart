@@ -99,17 +99,21 @@ class AppFeature {
   static const String Leads = "Leads";
   static const String AddProduct = "Add Product";
   static const String Orders = "Orders";
+
   /// Read-only transaction history view (grantable at `read` for view-only
   /// staff). Its one mutation — refund — is gated on write/admin.
   static const String Transactions = "Transactions";
   static const String CustomAmount = "Custom Amount";
   static const String Driver = "Driver";
   static const String Stock = "Stock";
+
   /// Agent commission-only login; not shown in User Management permission matrix.
   static const String Commission = "Commission";
+
   /// Ticket Review + Handover workflow: confirm declared payment landed in the
   /// right channel before a paid ticket can proceed to handover.
   static const String TicketReview = "TicketReview";
+
   /// Ticket Review + Handover workflow: confirm an item physically left stock.
   static const String StockHandover = "StockHandover";
 
@@ -173,14 +177,18 @@ const List<String> paymentTypes = [
   'MOBILE MONEY',
   'MTN MOMO',
   'AIRTEL MONEY',
-  'OTHER'
+  'OTHER',
 ];
 
 List<String> accessLevels = ['No Access', 'read', 'write', 'admin'];
 
 // Functions
-void showSnackBar(BuildContext context, String message,
-    {required Color textColor, required Color backgroundColor}) {
+void showSnackBar(
+  BuildContext context,
+  String message, {
+  required Color textColor,
+  required Color backgroundColor,
+}) {
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(
       width: 400,
@@ -280,96 +288,99 @@ String? pickTaxServerUrl(
 // Styles
 ButtonStyle primaryButtonStyle = ButtonStyle(
   shape: WidgetStateProperty.resolveWith<OutlinedBorder>(
-    (states) => RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(10.0),
-    ),
+    (states) =>
+        RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
   ),
   backgroundColor: WidgetStateProperty.all<Color>(Color(0xff006AFE)),
-  overlayColor: WidgetStateProperty.resolveWith<Color?>(
-    (Set<WidgetState> states) {
-      if (states.contains(WidgetState.hovered)) {
-        return Color(0xff006AFE);
-      }
-      if (states.contains(WidgetState.focused) ||
-          states.contains(WidgetState.pressed)) {
-        return Color(0xff006AFE);
-      }
-      return null;
-    },
-  ),
+  overlayColor: WidgetStateProperty.resolveWith<Color?>((
+    Set<WidgetState> states,
+  ) {
+    if (states.contains(WidgetState.hovered)) {
+      return Color(0xff006AFE);
+    }
+    if (states.contains(WidgetState.focused) ||
+        states.contains(WidgetState.pressed)) {
+      return Color(0xff006AFE);
+    }
+    return null;
+  }),
 );
 
 ButtonStyle secondaryButtonStyle = ButtonStyle(
   shape: WidgetStateProperty.resolveWith<OutlinedBorder>(
-    (states) => RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(10.0),
-    ),
+    (states) =>
+        RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
   ),
   backgroundColor: WidgetStateProperty.all<Color>(const Color(0xffF2F2F2)),
-  overlayColor: WidgetStateProperty.resolveWith<Color?>(
-    (Set<WidgetState> states) {
-      if (states.contains(WidgetState.hovered)) {
-        return Colors.blue.withValues(alpha: 0.04);
-      }
-      if (states.contains(WidgetState.focused) ||
-          states.contains(WidgetState.pressed)) {
-        return Colors.blue.withValues(alpha: 0.12);
-      }
-      return null; // Defer to the widget's default.
-    },
-  ),
+  overlayColor: WidgetStateProperty.resolveWith<Color?>((
+    Set<WidgetState> states,
+  ) {
+    if (states.contains(WidgetState.hovered)) {
+      return Colors.blue.withValues(alpha: 0.04);
+    }
+    if (states.contains(WidgetState.focused) ||
+        states.contains(WidgetState.pressed)) {
+      return Colors.blue.withValues(alpha: 0.12);
+    }
+    return null; // Defer to the widget's default.
+  }),
 );
 
 ButtonStyle primary2ButtonStyle = ButtonStyle(
-  shape: WidgetStateProperty.resolveWith<OutlinedBorder>((states) =>
-      RoundedRectangleBorder(borderRadius: BorderRadius.circular(0))),
-  side: WidgetStateProperty.resolveWith<BorderSide>((states) => BorderSide(
-        color: Color(0xFF98C3FE).withValues(alpha: 0.8),
-      )),
-  backgroundColor: WidgetStateProperty.all<Color>(
-      const Color(0xFF98C3FE).withValues(alpha: 0.8)),
-  overlayColor: WidgetStateProperty.resolveWith<Color?>(
-    (Set<WidgetState> states) {
-      if (states.contains(WidgetState.hovered)) {
-        return Color(0xFF98C3FE).withValues(alpha: 0.8);
-      }
-      if (states.contains(WidgetState.focused) ||
-          states.contains(WidgetState.pressed)) {
-        return Color(0xFF98C3FE).withValues(alpha: 0.8);
-      }
-      return null;
-    },
+  shape: WidgetStateProperty.resolveWith<OutlinedBorder>(
+    (states) => RoundedRectangleBorder(borderRadius: BorderRadius.circular(0)),
   ),
+  side: WidgetStateProperty.resolveWith<BorderSide>(
+    (states) => BorderSide(color: Color(0xFF98C3FE).withValues(alpha: 0.8)),
+  ),
+  backgroundColor: WidgetStateProperty.all<Color>(
+    const Color(0xFF98C3FE).withValues(alpha: 0.8),
+  ),
+  overlayColor: WidgetStateProperty.resolveWith<Color?>((
+    Set<WidgetState> states,
+  ) {
+    if (states.contains(WidgetState.hovered)) {
+      return Color(0xFF98C3FE).withValues(alpha: 0.8);
+    }
+    if (states.contains(WidgetState.focused) ||
+        states.contains(WidgetState.pressed)) {
+      return Color(0xFF98C3FE).withValues(alpha: 0.8);
+    }
+    return null;
+  }),
 );
 
 ButtonStyle primary3ButtonStyle = ButtonStyle(
-  shape: WidgetStateProperty.resolveWith<OutlinedBorder>((states) =>
-      RoundedRectangleBorder(borderRadius: BorderRadius.circular(0))),
-  side: WidgetStateProperty.resolveWith<BorderSide>((states) => BorderSide(
-        color: Color(0xFF98C3FE).withValues(alpha: 0.8),
-      )),
+  shape: WidgetStateProperty.resolveWith<OutlinedBorder>(
+    (states) => RoundedRectangleBorder(borderRadius: BorderRadius.circular(0)),
+  ),
+  side: WidgetStateProperty.resolveWith<BorderSide>(
+    (states) => BorderSide(color: Color(0xFF98C3FE).withValues(alpha: 0.8)),
+  ),
 );
 
 ButtonStyle primary4ButtonStyle = ButtonStyle(
-  shape: WidgetStateProperty.resolveWith<OutlinedBorder>((states) =>
-      RoundedRectangleBorder(borderRadius: BorderRadius.circular(0))),
-  side: WidgetStateProperty.resolveWith<BorderSide>((states) => BorderSide(
-        color: Color(0xFF00FE38).withValues(alpha: 0.8),
-      )),
-  backgroundColor: WidgetStateProperty.all<Color>(
-      const Color(0xFF00FE38).withValues(alpha: 0.8)),
-  overlayColor: WidgetStateProperty.resolveWith<Color?>(
-    (Set<WidgetState> states) {
-      if (states.contains(WidgetState.hovered)) {
-        return Color(0xFF00FE38).withValues(alpha: 0.8);
-      }
-      if (states.contains(WidgetState.focused) ||
-          states.contains(WidgetState.pressed)) {
-        return Color(0xFF00FE38).withValues(alpha: 0.8);
-      }
-      return null;
-    },
+  shape: WidgetStateProperty.resolveWith<OutlinedBorder>(
+    (states) => RoundedRectangleBorder(borderRadius: BorderRadius.circular(0)),
   ),
+  side: WidgetStateProperty.resolveWith<BorderSide>(
+    (states) => BorderSide(color: Color(0xFF00FE38).withValues(alpha: 0.8)),
+  ),
+  backgroundColor: WidgetStateProperty.all<Color>(
+    const Color(0xFF00FE38).withValues(alpha: 0.8),
+  ),
+  overlayColor: WidgetStateProperty.resolveWith<Color?>((
+    Set<WidgetState> states,
+  ) {
+    if (states.contains(WidgetState.hovered)) {
+      return Color(0xFF00FE38).withValues(alpha: 0.8);
+    }
+    if (states.contains(WidgetState.focused) ||
+        states.contains(WidgetState.pressed)) {
+      return Color(0xFF00FE38).withValues(alpha: 0.8);
+    }
+    return null;
+  }),
 );
 
 TextStyle primaryTextStyle = GoogleFonts.poppins(
