@@ -4,6 +4,7 @@ import 'package:flipper_web/features/billing/data/books_return_url.dart';
 import 'package:flipper_web/features/billing/presentation/books_billing_gate.dart';
 import 'package:flipper_web/features/business_selection/business_branch_selector.dart';
 import 'package:flipper_web/features/business_selection/selected_business_restore.dart';
+import 'package:flipper_web/services/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -15,15 +16,30 @@ import '../helpers/fake_books_plan_repository.dart';
 
 const _child = Text('BOOKS CONTENT', key: Key('books-content'));
 const _subscribeStub = Text('SUBSCRIBE PAGE', key: Key('subscribe-stub'));
+const _loginStub = Text('LOGIN PAGE', key: Key('login-stub'));
+
+/// Implements rather than extends: the real constructor reaches for
+/// `Supabase.instance`, which tests never initialise.
+class _FakeAuthService implements AuthService {
+  int signOuts = 0;
+
+  @override
+  Future<void> signOut() async => signOuts++;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
 
 Future<ProviderContainer> _pumpGate(
   WidgetTester tester, {
   required FakeBooksPlanRepository repo,
   int businessTypeId = 1,
   bool isDefault = false,
+  AuthService? auth,
 }) async {
   final container = ProviderContainer(
     overrides: [
+      if (auth != null) authServiceProvider.overrideWithValue(auth),
       booksPlanRepositoryProvider.overrideWithValue(repo),
       booksPaymentRailsProvider.overrideWithValue(FakeBooksPaymentRails()),
       // The real restore reads SharedPreferences and the profile; the gate
@@ -48,6 +64,11 @@ Future<ProviderContainer> _pumpGate(
       GoRoute(
         path: '/business-selection',
         builder: (_, __) => const Text('SELECT'),
+      ),
+      GoRoute(
+        path: '/login',
+        name: AppRoute.login.name,
+        builder: (_, __) => _loginStub,
       ),
     ],
   );
@@ -128,6 +149,36 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byKey(const Key('subscribe-stub')), findsOneWidget);
+    });
+
+    testWidgets('the lock can sign the user out', (tester) async {
+      final auth = _FakeAuthService();
+      await _pumpGate(tester, repo: FakeBooksPlanRepository(), auth: auth);
+
+      await tester.tap(find.byKey(const Key('books-paywall-sign-out')));
+      await tester.pumpAndSettle();
+      expect(find.text('Sign out?'), findsOneWidget);
+
+      await tester.tap(find.widgetWithText(FilledButton, 'Sign Out'));
+      await tester.pumpAndSettle();
+
+      expect(auth.signOuts, 1);
+      expect(find.byKey(const Key('login-stub')), findsOneWidget);
+    });
+
+    testWidgets('cancelling sign-out keeps the session and the lock', (
+      tester,
+    ) async {
+      final auth = _FakeAuthService();
+      await _pumpGate(tester, repo: FakeBooksPlanRepository(), auth: auth);
+
+      await tester.tap(find.byKey(const Key('books-paywall-sign-out')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(TextButton, 'Cancel'));
+      await tester.pumpAndSettle();
+
+      expect(auth.signOuts, 0);
+      expect(find.byKey(const Key('books-paywall-panel')), findsOneWidget);
     });
 
     testWidgets('a payment settled elsewhere unlocks the open tab', (

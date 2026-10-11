@@ -4,6 +4,7 @@ import 'package:flipper_web/features/billing/application/books_billing_providers
 import 'package:flipper_web/features/billing/data/books_entitlement.dart';
 import 'package:flipper_web/features/business_selection/business_branch_selector.dart';
 import 'package:flipper_web/features/business_selection/selected_business_restore.dart';
+import 'package:flipper_web/modules/accounting/data/accounting_session_actions.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -13,8 +14,9 @@ import 'package:go_router/go_router.dart';
 ///
 /// Wrapped around the `/accounting` route. A business whose shared `plans`
 /// row is paid and current sees [child]; anything else sees the lock, with
-/// the one way out — pay. There is deliberately no "skip": the phone and the
-/// desktop app read the same row and would not honour a web-only pass.
+/// the way through — pay. There is deliberately no "skip": the phone and the
+/// desktop app read the same row and would not honour a web-only pass. Switching
+/// business and signing out stay available, so the lock never traps a session.
 ///
 /// Fails open on an error: a paying customer whose network blinked gets Books,
 /// not a paywall. The lock is for businesses that have not paid, never for
@@ -68,14 +70,14 @@ class _GateLoading extends StatelessWidget {
 
 /// The lock itself, split out so it can be laid out and tested without an
 /// entitlement state behind it.
-class BooksPaywallPanel extends StatelessWidget {
+class BooksPaywallPanel extends ConsumerWidget {
   const BooksPaywallPanel({super.key, required this.access, this.businessId});
 
   final BooksAccessState access;
   final String? businessId;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final lapsed = access.hasLapsed;
 
     return Scaffold(
@@ -151,6 +153,18 @@ class BooksPaywallPanel extends StatelessWidget {
                       PaymentSecondaryButton(
                         label: context.flipperL10n.webBillingSwitchBusiness,
                         onPressed: () => context.go('/business-selection'),
+                      ),
+                      const SizedBox(height: 4),
+                      Center(
+                        child: TextButton.icon(
+                          key: const Key('books-paywall-sign-out'),
+                          onPressed: () => signOutFromBooks(context, ref),
+                          icon: const Icon(Icons.logout, size: 18),
+                          label: Text(context.flipperL10n.signOut),
+                          style: TextButton.styleFrom(
+                            foregroundColor: PaymentTokens.ink2,
+                          ),
+                        ),
                       ),
                     ],
                   ),
