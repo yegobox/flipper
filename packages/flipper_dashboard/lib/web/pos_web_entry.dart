@@ -106,6 +106,9 @@ Future<bool> seedPosContextFromWeb(WidgetRef ref) async {
       : tenantName;
   if (userName.isNotEmpty) {
     await box.writeString(key: 'userName', value: userName);
+  } else {
+    // Never leave the previous person's name on a new session.
+    await box.remove(key: 'userName');
   }
   await box.writeString(key: 'businessId', value: business.id);
   await box.writeString(key: 'branchId', value: branch.id);
@@ -137,6 +140,7 @@ class PosWebEntry extends ConsumerStatefulWidget {
 
 class _PosWebEntryState extends ConsumerState<PosWebEntry> {
   late Future<bool> _ready;
+  VoidCallback? _uninstallSignOutExit;
 
   @override
   void initState() {
@@ -147,10 +151,20 @@ class _PosWebEntryState extends ConsumerState<PosWebEntry> {
 
   Future<bool> _prepare() async {
     await bootstrapPosForWeb(databaseFactory: widget.databaseFactory);
-    // Books owns the session: signing out of the POS goes back to Books.
-    dashboardSignOutHostExit = () async => widget.onExit();
     if (!mounted) return false;
+    // Books owns the session: signing out of the POS goes back to Books.
+    // Cleared again on dispose, so a later native sign-out logs out natively.
+    _uninstallSignOutExit?.call();
+    _uninstallSignOutExit = installDashboardSignOutHostExit(
+      () async => widget.onExit(),
+    );
     return seedPosContextFromWeb(ref);
+  }
+
+  @override
+  void dispose() {
+    _uninstallSignOutExit?.call();
+    super.dispose();
   }
 
   void _retry() => setState(() => _ready = Future<bool>(_prepare));
@@ -169,7 +183,7 @@ class _PosWebEntryState extends ConsumerState<PosWebEntry> {
                 if (snapshot.hasError) {
                   debugPrint('[POS web] bootstrap failed: ${snapshot.error}');
                   return _PosWebMessage(
-                    message: snapshot.error.toString(),
+                    message: context.flipperL10n.checkoutRecoveryLoadFailedBody,
                     onRetry: _retry,
                   );
                 }

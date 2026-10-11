@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/web/pos_web_entry.dart' deferred as pos;
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart'
@@ -32,10 +33,11 @@ class _PosRoutePageState extends State<PosRoutePage> {
         future: _loaded,
         builder: (context, snapshot) {
           if (snapshot.hasError) {
+            debugPrint('[POS web] loading the POS failed: ${snapshot.error}');
             return Center(
               child: FilledButton(
                 onPressed: () => setState(() => _loaded = _load()),
-                child: Text('${snapshot.error}'),
+                child: Text(context.flipperL10n.retry),
               ),
             );
           }

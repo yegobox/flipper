@@ -968,7 +968,11 @@ class TaxController<OBJ> {
       if (vsdcIsRemote &&
           (enableTransactionDelegation == null ||
               !enableTransactionDelegation)) {
-        serverUrl = ebm?.remoteServerUrl ?? serverUrl;
+        serverUrl = pickTaxServerUrl(
+          serverUrl,
+          ebm?.remoteServerUrl,
+          useRemote: true,
+        );
       }
 
       if (serverUrl == null || serverUrl.trim().isEmpty) {

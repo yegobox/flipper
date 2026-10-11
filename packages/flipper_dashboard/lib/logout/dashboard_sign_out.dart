@@ -53,6 +53,18 @@ void _hideSigningOutLoader(BuildContext context) {
 /// out natively, which would tear down the Ditto session the host shares.
 Future<void> Function()? dashboardSignOutHostExit;
 
+/// Installs [exit] as [dashboardSignOutHostExit] and returns the matching
+/// uninstall, which clears it only if [exit] is still the one installed — a
+/// newer host keeps its own.
+VoidCallback installDashboardSignOutHostExit(Future<void> Function() exit) {
+  dashboardSignOutHostExit = exit;
+  return () {
+    if (identical(dashboardSignOutHostExit, exit)) {
+      dashboardSignOutHostExit = null;
+    }
+  };
+}
+
 Future<bool> completeDashboardSignOut({
   required BuildContext context,
   required DialogService dialogService,

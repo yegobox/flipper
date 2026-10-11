@@ -207,37 +207,44 @@ class _AppTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
+    // One node per tile for screen readers: a button named after the app.
+    return Semantics(
+      button: true,
+      label: tile.label,
       onTap: onTap,
-      borderRadius: BorderRadius.circular(14),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: Column(
-          children: [
-            Container(
-              width: 54,
-              height: 54,
-              decoration: BoxDecoration(
-                color: Color.alphaBlend(
-                  tile.color.withValues(alpha: 0.13),
-                  Colors.white,
+      excludeSemantics: true,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(14),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Column(
+            children: [
+              Container(
+                width: 54,
+                height: 54,
+                decoration: BoxDecoration(
+                  color: Color.alphaBlend(
+                    tile.color.withValues(alpha: 0.13),
+                    Colors.white,
+                  ),
+                  borderRadius: BorderRadius.circular(17),
                 ),
-                borderRadius: BorderRadius.circular(17),
+                child: Icon(tile.icon, color: tile.color, size: 24),
               ),
-              child: Icon(tile.icon, color: tile.color, size: 24),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              tile.label,
-              textAlign: TextAlign.center,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: AccountingTokens.sans(
-                fontSize: 11.5,
-                fontWeight: FontWeight.w600,
+              const SizedBox(height: 8),
+              Text(
+                tile.label,
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: AccountingTokens.sans(
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

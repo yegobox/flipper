@@ -986,6 +986,11 @@ mixin TransactionMixinOld {
   /// saved one is no longer attached — in which case the caller must say so
   /// rather than treat the receipt as delivered.
   Future<bool> _printOnSavedDefaultPrinter(Uint8List bytes) async {
+    // A browser cannot enumerate printers; its print dialog needs no context.
+    if (kIsWeb) {
+      await Printing.layoutPdf(onLayout: (_) async => bytes);
+      return true;
+    }
     if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) return false;
     if (await _printOnBuiltinPrinter(bytes, probeSerial: false)) return true;
     final savedPrinterName = ProxyService.box.readString(key: 'defaultPrinter');

@@ -76,4 +76,16 @@ void main() {
     // On the web this is the way into the POS.
     expect(find.byKey(const Key('books-mobile-apps')), findsOneWidget);
   });
+
+  testWidgets('standalone Books opens the apps sheet from the header', (
+    tester,
+  ) async {
+    await _pump(tester, inFlipperApp: false);
+
+    await tester.tap(find.byKey(const Key('books-mobile-apps')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('POS'), findsOneWidget);
+    expect(find.text('Books'), findsWidgets);
+  });
 }

@@ -49,7 +49,13 @@ void main() {
   testWidgets('on the web the Apps button opens the apps sheet with POS', (
     tester,
   ) async {
+    final semantics = tester.ensureSemantics();
     await _pump(tester);
+    expect(
+      tester.getSemantics(find.bySemanticsLabel('All apps')),
+      containsSemantics(label: 'All apps', isButton: true),
+    );
+    semantics.dispose();
 
     await tester.tap(find.byKey(const Key('books-topbar-apps')));
     await tester.pumpAndSettle();

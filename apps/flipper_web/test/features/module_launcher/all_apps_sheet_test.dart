@@ -45,10 +45,17 @@ void main() {
   });
 
   testWidgets('the POS tile opens /pos', (tester) async {
+    final semantics = tester.ensureSemantics();
     await _pumpRouter(tester);
 
     await tester.tap(find.text('open launcher'));
     await tester.pumpAndSettle();
+    // Screen readers get one tappable button named after the app.
+    expect(
+      tester.getSemantics(find.bySemanticsLabel('POS')),
+      containsSemantics(label: 'POS', isButton: true, hasTapAction: true),
+    );
+    semantics.dispose();
     await tester.tap(find.text('POS'));
     await tester.pumpAndSettle();
 
