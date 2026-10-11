@@ -241,7 +241,12 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     if (ebm == null) {
       throw Exception("Ebm not found for branch $branchId");
     }
-    final taxUrl = ebm.taxServerUrl;
+    // Phones keep the local URL here (as before); the web cannot reach it.
+    final taxUrl = pickTaxServerUrl(
+      ebm.taxServerUrl,
+      ebm.remoteServerUrl,
+      useRemote: isWeb,
+    );
     if (taxUrl == null || taxUrl.isEmpty) {
       throw Exception("Ebm tax server URL not configured for branch $branchId");
     }
@@ -783,7 +788,11 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     var capRra = false;
 
     try {
-      final taxUrl = ebm.taxServerUrl;
+      final taxUrl = pickTaxServerUrl(
+        ebm.taxServerUrl,
+        ebm.remoteServerUrl,
+        useRemote: isWeb,
+      );
       if (taxUrl == null || taxUrl.isEmpty) {
         talker.warning(
           'Skipping RRA stock IO: EBM tax server URL not configured',
@@ -1036,9 +1045,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     double totalTaxable = items.fold(0.0, (sum, item) {
       final dcRt = item.dcRt?.toDouble() ?? 0;
       final discountedPrice = dcRt != 0
-          ? item.price.toDouble() *
-                item.qty.toDouble() *
-                (1 - (dcRt / 100))
+          ? item.price.toDouble() * item.qty.toDouble() * (1 - (dcRt / 100))
           : item.price.toDouble() * item.qty.toDouble();
       return sum + discountedPrice;
     });

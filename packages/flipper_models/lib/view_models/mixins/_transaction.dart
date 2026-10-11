@@ -591,6 +591,16 @@ mixin TransactionMixinOld {
     String? pdfFilename,
   }) async {
     final resolvedPdfFilename = pdfFilename ?? receiptPdfFilename(transaction);
+    // A browser cannot list printers, so the picker below would only ever
+    // offer "Save as PDF". The browser's own print dialog does both.
+    if (kIsWeb) {
+      if (bytes == null) return;
+      await Printing.layoutPdf(
+        onLayout: (_) async => bytes,
+        name: resolvedPdfFilename,
+      );
+      return;
+    }
     if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
       talker.info(
         '[receipt_presentation] no printer UI on iOS/Android — receipt not '

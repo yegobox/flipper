@@ -965,7 +965,7 @@ class TaxController<OBJ> {
         key: 'enableTransactionDelegation',
       );
 
-      if (isMobileDevice &&
+      if (vsdcIsRemote &&
           (enableTransactionDelegation == null ||
               !enableTransactionDelegation)) {
         serverUrl = ebm?.remoteServerUrl ?? serverUrl;

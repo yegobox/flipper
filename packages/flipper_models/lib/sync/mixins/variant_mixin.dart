@@ -461,7 +461,7 @@ mixin VariantMixin implements VariantInterface {
 
           String serverUrl = taxUrl;
 
-          if (isMobileDevice) {
+          if (vsdcIsRemote) {
             serverUrl = ebm.remoteServerUrl ?? serverUrl;
           }
 

@@ -262,6 +262,21 @@ bool isWindows = UniversalPlatform.isWindows;
 bool isLinux = UniversalPlatform.isLinux;
 bool isDesktopOrWeb = UniversalPlatform.isDesktopOrWeb;
 
+/// No VSDC runs on this device, so RRA calls go to the branch's remote VSDC
+/// (`Ebm.remoteServerUrl`) where one is set: phones, and the web POS — a
+/// browser cannot reach a till's local VSDC either.
+bool get vsdcIsRemote => isWeb || isAndroid || isIos;
+
+/// [remoteServerUrl] when [useRemote] and it is set, else [taxServerUrl].
+String? pickTaxServerUrl(
+  String? taxServerUrl,
+  String? remoteServerUrl, {
+  required bool useRemote,
+}) {
+  final remote = remoteServerUrl?.trim() ?? '';
+  return useRemote && remote.isNotEmpty ? remote : taxServerUrl;
+}
+
 // Styles
 ButtonStyle primaryButtonStyle = ButtonStyle(
   shape: WidgetStateProperty.resolveWith<OutlinedBorder>(

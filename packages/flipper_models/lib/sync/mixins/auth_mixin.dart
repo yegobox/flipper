@@ -18,6 +18,7 @@ import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart' as foundation;
 import 'package:supabase_models/brick/repository.dart';
@@ -32,6 +33,11 @@ import 'package:supabase_models/sync/ditto_sync_coordinator.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 mixin AuthMixin implements AuthInterface {
+  /// Null when the host never initialized Firebase (flipper_web's POS):
+  /// `FirebaseAuth.instance` would throw `[core/no-app]` there.
+  FirebaseAuth? get _firebaseAuth =>
+      Firebase.apps.isEmpty ? null : FirebaseAuth.instance;
+
   String get apihub;
   Repository get repository;
   bool get offlineLogin;
@@ -42,7 +48,7 @@ mixin AuthMixin implements AuthInterface {
   Future<void> completeLogin(Pin thePin) async {
     try {
       // Get the current Firebase user's UID
-      final currentUser = FirebaseAuth.instance.currentUser;
+      final currentUser = _firebaseAuth?.currentUser;
       final uid = currentUser?.uid;
 
       // If we have a valid UID from Firebase but the PIN doesn't have it,
@@ -183,8 +189,10 @@ mixin AuthMixin implements AuthInterface {
     try {
       token ??= pinLocal?.tokenUid;
 
+      final auth = _firebaseAuth;
+      if (auth == null) return false;
       if (token != null) {
-        await FirebaseAuth.instance.signInWithCustomToken(token);
+        await auth.signInWithCustomToken(token);
 
         // If we have a successful login, make sure to update the tokenUid in the PIN
         // This ensures we keep the PIN record updated with the latest token
@@ -199,7 +207,7 @@ mixin AuthMixin implements AuthInterface {
 
         return true;
       }
-      return FirebaseAuth.instance.currentUser != null;
+      return auth.currentUser != null;
     } catch (e) {
       talker.error("Firebase login error: $e");
 
@@ -448,8 +456,9 @@ mixin AuthMixin implements AuthInterface {
 
     await _persistApiUserId(user.id);
 
-    final currentUser = FirebaseAuth.instance.currentUser;
-    if (currentUser == null || currentUser.uid != user.uid) {
+    final auth = _firebaseAuth;
+    final currentUser = auth?.currentUser;
+    if (auth != null && (currentUser == null || currentUser.uid != user.uid)) {
       await firebaseLogin(token: user.uid);
     }
 
@@ -979,7 +988,7 @@ mixin AuthMixin implements AuthInterface {
     String? pinLookupPhone,
     bool refreshUserAccessOnly = false,
   }) async {
-    uid = uid ?? FirebaseAuth.instance.currentUser?.uid;
+    uid = uid ?? _firebaseAuth?.currentUser?.uid;
 
     var lookupPhone = phoneNumber.trim();
     if (pinLookupPhone != null && pinLookupPhone.trim().isNotEmpty) {
@@ -1198,8 +1207,7 @@ mixin AuthMixin implements AuthInterface {
       Uri.parse(apihub + '/v2/api/pin/${pin}'),
       body: jsonEncode(<String, String?>{
         'ownerName': ownerName,
-        if (FirebaseAuth.instance.currentUser != null)
-          'uid': FirebaseAuth.instance.currentUser!.uid,
+        if (_firebaseAuth?.currentUser case final user?) 'uid': user.uid,
       }),
     );
   }

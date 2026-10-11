@@ -88,6 +88,25 @@ Future<bool> seedPosContextFromWeb(WidgetRef ref) async {
   if (phone.isNotEmpty) {
     await box.writeString(key: 'userPhone', value: phone);
   }
+  // The POS header shows `userName`, falling back to the raw user id. Native
+  // login writes it from the user API's `name`; Books keeps that payload, and
+  // the profile's tenants carry the same name when the payload was not
+  // re-fetched (cached profile after a reload).
+  final apiName = ref
+      .read(userProfileApiPayloadCacheProvider)?['name']
+      ?.toString()
+      .trim();
+  final tenants = profile?.tenants ?? const [];
+  final tenantName = [
+    ...tenants.where((t) => t.businesses.any((b) => b.id == business.id)),
+    ...tenants,
+  ].map((t) => t.name.trim()).firstWhere((n) => n.isNotEmpty, orElse: () => '');
+  final userName = (apiName != null && apiName.isNotEmpty)
+      ? apiName
+      : tenantName;
+  if (userName.isNotEmpty) {
+    await box.writeString(key: 'userName', value: userName);
+  }
   await box.writeString(key: 'businessId', value: business.id);
   await box.writeString(key: 'branchId', value: branch.id);
   await box.writeString(key: 'branchIdString', value: branch.id);
