@@ -3706,7 +3706,6 @@
     "shiftSummary": "Shift Summary",
     "shiftOpeningBalance": "Opening Balance",
     "shiftCashSales": "Cash Sales",
-    "shiftNonCashSales": "Paid by MoMo, card, bank or credit",
     "shiftExpectedCash": "Expected Cash",
     "shiftCashReconciliation": "Cash Reconciliation",
     "shiftCountCashHint": "Count the physical cash in the drawer and enter the\nclosing balance below.",
@@ -5445,14 +5444,6 @@
     "mposCreditExplanation": "This sale is recorded on the customer's credit balance. Attach a customer before completing.",
     "@mposCreditExplanation": {
         "description": "Explanation for credit payments"
-    },
-    "mposBankExplanation": "Bank transfer for the full amount. Confirm the money has arrived before completing.",
-    "@mposBankExplanation": {
-        "description": "Explanation for bank transfer payments on mobile checkout"
-    },
-    "mposCardExplanation": "Card payment for the full amount. Run the card on your POS terminal, then complete the sale.",
-    "@mposCardExplanation": {
-        "description": "Explanation for card (POS terminal) payments on mobile checkout"
     },
     "mposPaymentLinesSplitHint": "{count} payment lines · use split in desktop mode",
     "@mposPaymentLinesSplitHint": {
@@ -19237,5 +19228,21 @@
     "webHomeHeroPayrollAccent": "pays on time.",
     "@webHomeHeroPayrollAccent": {
         "description": "Rotating landing headline (Payroll): italic accent; reads as one sentence with its pair"
-    }
+    },
+    "ticketRemoveCustomer": "Remove customer",
+    "ticketsSelectedCount": "{count} selected",
+    "@ticketsSelectedCount": {"placeholders": {"count": {"type": "String"}}},
+    "ticketPaidOfTotal": "Paid {paid} of {total}",
+    "@ticketPaidOfTotal": {"placeholders": {"paid": {"type": "String"}, "total": {"type": "String"}}},
+    "ticketSelect": "Select",
+    "ticketSort": "Sort",
+    "mposBankExplanation": "Bank transfer for the full amount. Confirm the money has arrived before completing.",
+    "@mposBankExplanation": {
+        "description": "Explanation for bank transfer payments on mobile checkout"
+    },
+    "mposCardExplanation": "Card payment for the full amount. Run the card on your POS terminal, then complete the sale.",
+    "@mposCardExplanation": {
+        "description": "Explanation for card (POS terminal) payments on mobile checkout"
+    },
+    "shiftNonCashSales": "Paid by MoMo, card, bank or credit"
 }

@@ -1206,7 +1206,6 @@
     "shiftSummary": "Résumé du service",
     "shiftOpeningBalance": "Solde d'ouverture",
     "shiftCashSales": "Ventes en espèces",
-    "shiftNonCashSales": "Payé par MoMo, carte, banque ou crédit",
     "shiftExpectedCash": "Espèces attendues",
     "shiftCashReconciliation": "Rapprochement de caisse",
     "shiftCountCashHint": "Comptez les espèces dans le tiroir et saisissez le\nsolde de clôture ci-dessous.",
@@ -1805,8 +1804,6 @@
     "mposCashReceivedAmount": "Montant en espèces reçu",
     "mposCreditAmount": "Montant à crédit · {amount}",
     "mposCreditExplanation": "Cette vente est enregistrée sur le solde de crédit du client. Associez un client avant de terminer.",
-    "mposBankExplanation": "Virement bancaire du montant total. Vérifiez que l'argent est arrivé avant de terminer.",
-    "mposCardExplanation": "Paiement par carte du montant total. Passez la carte sur votre terminal de paiement, puis terminez la vente.",
     "mposPaymentLinesSplitHint": "{count} lignes de paiement · utilisez le fractionnement en mode bureau",
     "mposTax": "Taxe",
     "mposTotal": "Total",
@@ -7188,5 +7185,13 @@
     "webHomeHeroKitchenLead": "L'écran cuisine qui",
     "webHomeHeroKitchenAccent": "annonce chaque commande.",
     "webHomeHeroPayrollLead": "La paie qui",
-    "webHomeHeroPayrollAccent": "tombe à l'heure."
+    "webHomeHeroPayrollAccent": "tombe à l'heure.",
+  "ticketRemoveCustomer": "Retirer le client",
+  "ticketsSelectedCount": "{count} sélectionné(s)",
+  "ticketPaidOfTotal": "Payé {paid} sur {total}",
+  "ticketSelect": "Sélectionner",
+  "ticketSort": "Trier",
+  "mposBankExplanation": "Virement bancaire du montant total. Vérifiez que l'argent est arrivé avant de terminer.",
+  "mposCardExplanation": "Paiement par carte du montant total. Passez la carte sur votre terminal de paiement, puis terminez la vente.",
+  "shiftNonCashSales": "Payé par MoMo, carte, banque ou crédit"
 }

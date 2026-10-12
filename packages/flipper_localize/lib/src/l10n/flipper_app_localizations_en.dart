@@ -4122,9 +4122,6 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
   String get shiftCashSales => 'Cash Sales';
 
   @override
-  String get shiftNonCashSales => 'Paid by MoMo, card, bank or credit';
-
-  @override
   String get shiftExpectedCash => 'Expected Cash';
 
   @override
@@ -6266,14 +6263,6 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
   @override
   String get mposCreditExplanation =>
       'This sale is recorded on the customer\'s credit balance. Attach a customer before completing.';
-
-  @override
-  String get mposBankExplanation =>
-      'Bank transfer for the full amount. Confirm the money has arrived before completing.';
-
-  @override
-  String get mposCardExplanation =>
-      'Card payment for the full amount. Run the card on your POS terminal, then complete the sale.';
 
   @override
   String mposPaymentLinesSplitHint(int count) {
@@ -25657,4 +25646,34 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
 
   @override
   String get webHomeHeroPayrollAccent => 'pays on time.';
+
+  @override
+  String get ticketRemoveCustomer => 'Remove customer';
+
+  @override
+  String ticketsSelectedCount(String count) {
+    return '$count selected';
+  }
+
+  @override
+  String ticketPaidOfTotal(String paid, String total) {
+    return 'Paid $paid of $total';
+  }
+
+  @override
+  String get ticketSelect => 'Select';
+
+  @override
+  String get ticketSort => 'Sort';
+
+  @override
+  String get mposBankExplanation =>
+      'Bank transfer for the full amount. Confirm the money has arrived before completing.';
+
+  @override
+  String get mposCardExplanation =>
+      'Card payment for the full amount. Run the card on your POS terminal, then complete the sale.';
+
+  @override
+  String get shiftNonCashSales => 'Paid by MoMo, card, bank or credit';
 }

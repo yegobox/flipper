@@ -2799,7 +2799,6 @@
   "shiftSummary": "Muhtasari wa zamu",
   "shiftOpeningBalance": "Salio la kuanzia",
   "shiftCashSales": "Mauzo ya fedha taslimu",
-  "shiftNonCashSales": "Imelipwa kwa MoMo, kadi, benki au mkopo",
   "shiftExpectedCash": "Fedha zinazotarajiwa",
   "shiftCashReconciliation": "Ulinganisho wa fedha",
   "shiftCountCashHint": "Hesabu fedha zilizo kwenye droo kisha weka\nsalio la kufunga hapa chini.",
@@ -3398,8 +3397,6 @@
   "mposCashReceivedAmount": "Kiasi cha pesa taslimu kilichopokelewa",
   "mposCreditAmount": "Kiasi cha mkopo · {amount}",
   "mposCreditExplanation": "Mauzo haya yanarekodiwa kwenye salio la mkopo la mteja. Ambatisha mteja kabla ya kukamilisha.",
-  "mposBankExplanation": "Uhamisho wa benki kwa kiasi chote. Thibitisha pesa zimefika kabla ya kukamilisha.",
-  "mposCardExplanation": "Malipo ya kadi kwa kiasi chote. Pitisha kadi kwenye mashine yako ya POS, kisha ukamilishe mauzo.",
   "mposPaymentLinesSplitHint": "Mistari {count} ya malipo · tumia kugawanya katika hali ya kompyuta",
   "mposTax": "Kodi",
   "mposTotal": "Jumla",
@@ -8781,5 +8778,13 @@
   "webHomeHeroKitchenLead": "Skrini ya jikoni",
   "webHomeHeroKitchenAccent": "inayotangaza kila oda.",
   "webHomeHeroPayrollLead": "Mishahara",
-  "webHomeHeroPayrollAccent": "inayolipwa kwa wakati."
+  "webHomeHeroPayrollAccent": "inayolipwa kwa wakati.",
+  "ticketRemoveCustomer": "Ondoa mteja",
+  "ticketsSelectedCount": "{count} zimechaguliwa",
+  "ticketPaidOfTotal": "Imelipwa {paid} kati ya {total}",
+  "ticketSelect": "Chagua",
+  "ticketSort": "Panga",
+  "mposBankExplanation": "Uhamisho wa benki kwa kiasi chote. Thibitisha pesa zimefika kabla ya kukamilisha.",
+  "mposCardExplanation": "Malipo ya kadi kwa kiasi chote. Pitisha kadi kwenye mashine yako ya POS, kisha ukamilishe mauzo.",
+  "shiftNonCashSales": "Imelipwa kwa MoMo, kadi, benki au mkopo"
 }

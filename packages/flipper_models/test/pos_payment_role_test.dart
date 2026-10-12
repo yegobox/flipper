@@ -36,6 +36,20 @@ void main() {
     });
   });
 
+  group('tenantTypeIsAdminOrOwner', () {
+    test('Admin and Owner may trim a resumed ticket', () {
+      expect(tenantTypeIsAdminOrOwner('Admin'), isTrue);
+      expect(tenantTypeIsAdminOrOwner('owner'), isTrue);
+    });
+
+    test('Manager, Cashier, null and empty may not', () {
+      expect(tenantTypeIsAdminOrOwner('Manager'), isFalse);
+      expect(tenantTypeIsAdminOrOwner('Cashier'), isFalse);
+      expect(tenantTypeIsAdminOrOwner(null), isFalse);
+      expect(tenantTypeIsAdminOrOwner(''), isFalse);
+    });
+  });
+
   group('userOwnsBusinessForPosPayment', () {
     test('matching ids → owner', () {
       expect(

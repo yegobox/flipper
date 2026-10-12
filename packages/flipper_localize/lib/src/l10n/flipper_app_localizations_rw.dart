@@ -4163,10 +4163,6 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   String get shiftCashSales => 'Ibyagurishijwe mu mafaranga';
 
   @override
-  String get shiftNonCashSales =>
-      'Byishyuwe na MoMo, ikarita, banki cyangwa inguzanyo';
-
-  @override
   String get shiftExpectedCash => 'Amafaranga ateganyijwe';
 
   @override
@@ -6322,14 +6318,6 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   @override
   String get mposCreditExplanation =>
       'Iri gurisha ryandikwa ku mwenda w\'umukiriya. Ongeraho umukiriya mbere yo kurangiza.';
-
-  @override
-  String get mposBankExplanation =>
-      'Kwishyura binyuze kuri banki amafaranga yose. Banza wemeze ko amafaranga yageze mbere yo kurangiza.';
-
-  @override
-  String get mposCardExplanation =>
-      'Kwishyura ukoresheje ikarita amafaranga yose. Banza ukoreshe ikarita kuri POS yawe, hanyuma urangize igurisha.';
 
   @override
   String mposPaymentLinesSplitHint(int count) {
@@ -25919,4 +25907,35 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
 
   @override
   String get webHomeHeroPayrollAccent => 'yishyurwa ku gihe.';
+
+  @override
+  String get ticketRemoveCustomer => 'Kuraho umukiriya';
+
+  @override
+  String ticketsSelectedCount(String count) {
+    return '$count byatoranyijwe';
+  }
+
+  @override
+  String ticketPaidOfTotal(String paid, String total) {
+    return 'Hishyuwe $paid kuri $total';
+  }
+
+  @override
+  String get ticketSelect => 'Hitamo';
+
+  @override
+  String get ticketSort => 'Tondeka';
+
+  @override
+  String get mposBankExplanation =>
+      'Kwishyura binyuze kuri banki amafaranga yose. Banza wemeze ko amafaranga yageze mbere yo kurangiza.';
+
+  @override
+  String get mposCardExplanation =>
+      'Kwishyura ukoresheje ikarita amafaranga yose. Banza ukoreshe ikarita kuri POS yawe, hanyuma urangize igurisha.';
+
+  @override
+  String get shiftNonCashSales =>
+      'Byishyuwe na MoMo, ikarita, banki cyangwa inguzanyo';
 }

@@ -12,6 +12,7 @@ import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
+import 'package:flipper_ui/dialogs/SharedTicketDialog.dart' show CustomerPick;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -35,18 +36,35 @@ class MposCustomerSheet {
       ),
     );
   }
+
+  /// Pick-only mode for the park-ticket form: returns the chosen customer
+  /// (or [CustomerPick] with null for "remove") and writes nothing to a sale.
+  /// A quick-added customer is saved, since the ticket needs its id.
+  static Future<CustomerPick?> pick(BuildContext context, {Customer? current}) {
+    return showMposAnimatedSheet<CustomerPick>(
+      context: context,
+      builder: (ctx) => MposCustomerSheetBody(current: current),
+    );
+  }
 }
 
 @visibleForTesting
 class MposCustomerSheetBody extends ConsumerStatefulWidget {
   const MposCustomerSheetBody({
     super.key,
-    required this.transaction,
+    this.transaction,
     this.onAttached,
+    this.current,
   });
 
-  final ITransaction transaction;
+  /// Sale to attach to. Null puts the sheet in pick mode: it pops with a
+  /// [CustomerPick] instead of writing.
+  final ITransaction? transaction;
   final VoidCallback? onAttached;
+
+  /// Pick mode: the customer already chosen, marked in the list and offered
+  /// a "Remove customer" action.
+  final Customer? current;
 
   @override
   ConsumerState<MposCustomerSheetBody> createState() =>
@@ -68,16 +86,18 @@ class _MposCustomerSheetBodyState extends ConsumerState<MposCustomerSheetBody> {
     super.dispose();
   }
 
+  bool get _pickMode => widget.transaction == null;
+
   Future<void> _attach(Customer customer) async {
     if (_saving) return;
+    final transaction = widget.transaction;
+    if (transaction == null) return _pick(customer);
     setState(() {
       _saving = true;
       _error = null;
     });
     try {
-      await ref
-          .read(mposCustomerActionsProvider)
-          .attach(customer, widget.transaction);
+      await ref.read(mposCustomerActionsProvider).attach(customer, transaction);
       _done(customer);
     } catch (e) {
       _fail(e);
@@ -96,13 +116,22 @@ class _MposCustomerSheetBodyState extends ConsumerState<MposCustomerSheetBody> {
       _error = null;
     });
     try {
-      final saved = await ref
-          .read(mposCustomerActionsProvider)
-          .quickAdd(
-            phone: phone,
-            name: _nameController.text,
-            transaction: widget.transaction,
-          );
+      final actions = ref.read(mposCustomerActionsProvider);
+      final transaction = widget.transaction;
+      if (transaction == null) {
+        final saved = await actions.create(
+          phone: phone,
+          name: _nameController.text,
+        );
+        ref.invalidate(customersProvider);
+        _pick(saved);
+        return;
+      }
+      final saved = await actions.quickAdd(
+        phone: phone,
+        name: _nameController.text,
+        transaction: transaction,
+      );
       _done(saved);
     } catch (e) {
       _fail(e);
@@ -115,10 +144,16 @@ class _MposCustomerSheetBodyState extends ConsumerState<MposCustomerSheetBody> {
     HapticFeedback.selectionClick();
     ref.read(customerPhoneNumberProvider.notifier).state = customer.telNo;
     ref.invalidate(attachedCustomerProvider(customer.id));
-    ref.invalidate(transactionByIdProvider(widget.transaction.id));
+    ref.invalidate(transactionByIdProvider(widget.transaction!.id));
     ref.invalidate(pendingTransactionStreamProvider(isExpense: false));
     Navigator.of(context).pop();
     widget.onAttached?.call();
+  }
+
+  void _pick(Customer? customer) {
+    if (!mounted) return;
+    HapticFeedback.selectionClick();
+    Navigator.of(context).pop(CustomerPick(customer));
   }
 
   void _fail(Object e) {
@@ -144,7 +179,12 @@ class _MposCustomerSheetBodyState extends ConsumerState<MposCustomerSheetBody> {
     final phone = _phoneController.text;
     final name = _nameController.text;
     final typing = phone.trim().isNotEmpty || name.trim().isNotEmpty;
-    final matches = mposCustomerMatches(all, phone: phone, name: name);
+    var matches = mposCustomerMatches(all, phone: phone, name: name);
+    final current = widget.current;
+    if (current != null && !typing) {
+      // The attached customer leads, so changing your mind is one tap away.
+      matches = [current, ...matches.where((c) => c.id != current.id)];
+    }
     final existing = mposExactPhoneMatch(all, phone);
     final phoneComplete =
         mposPhoneDigits(phone).length >= mposMinCustomerPhoneDigits;
@@ -186,7 +226,9 @@ class _MposCustomerSheetBodyState extends ConsumerState<MposCustomerSheetBody> {
                 children: [
                   Expanded(
                     child: Text(
-                      l10n.addCustomer,
+                      _pickMode
+                          ? l10n.uiTicketAttachCustomer
+                          : l10n.addCustomer,
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
@@ -222,7 +264,9 @@ class _MposCustomerSheetBodyState extends ConsumerState<MposCustomerSheetBody> {
                       icon: Icons.phone_outlined,
                       controller: _phoneController,
                       hint: l10n.mposCustomerPhoneHint,
-                      autofocus: true,
+                      // Picking for a ticket is mostly a tap on a recent
+                      // customer; the keyboard would cover that list.
+                      autofocus: !_pickMode,
                       keyboardType: TextInputType.phone,
                       textInputAction: TextInputAction.next,
                       inputFormatters: [
@@ -265,6 +309,7 @@ class _MposCustomerSheetBodyState extends ConsumerState<MposCustomerSheetBody> {
                       _CustomerRow(
                         customer: c,
                         fallbackName: l10n.customer,
+                        selected: c.id == current?.id,
                         onTap: _saving ? null : () => _attach(c),
                       ),
                   ] else if (typing)
@@ -276,6 +321,23 @@ class _MposCustomerSheetBodyState extends ConsumerState<MposCustomerSheetBody> {
                           fontSize: 13,
                           color: PosTokens.ink3,
                         ),
+                      ),
+                    ),
+                  if (_pickMode && current != null)
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: TextButton.icon(
+                        key: const ValueKey('mposCustomerRemove'),
+                        onPressed: _saving ? null : () => _pick(null),
+                        style: TextButton.styleFrom(
+                          foregroundColor: PosTokens.lossInk,
+                          minimumSize: const Size(0, 44),
+                        ),
+                        icon: const Icon(
+                          Icons.person_remove_outlined,
+                          size: 18,
+                        ),
+                        label: Text(l10n.ticketRemoveCustomer),
                       ),
                     ),
                 ],
@@ -389,11 +451,13 @@ class _CustomerRow extends StatelessWidget {
     required this.customer,
     required this.fallbackName,
     required this.onTap,
+    this.selected = false,
   });
 
   final Customer customer;
   final String fallbackName;
   final VoidCallback? onTap;
+  final bool selected;
 
   @override
   Widget build(BuildContext context) {
@@ -403,8 +467,15 @@ class _CustomerRow extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(MposTokens.radiusMd),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 10),
+      child: Ink(
+        decoration: BoxDecoration(
+          color: selected ? PosTokens.blueTint : null,
+          borderRadius: BorderRadius.circular(MposTokens.radiusMd),
+        ),
+        padding: EdgeInsets.symmetric(
+          vertical: 10,
+          horizontal: selected ? 8 : 0,
+        ),
         child: Row(
           children: [
             Container(
@@ -449,7 +520,16 @@ class _CustomerRow extends StatelessWidget {
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right_rounded, color: PosTokens.ink4),
+            selected
+                ? const Icon(
+                    Icons.check_circle_rounded,
+                    key: ValueKey('mposCustomerSelected'),
+                    color: PosTokens.blue,
+                  )
+                : const Icon(
+                    Icons.chevron_right_rounded,
+                    color: PosTokens.ink4,
+                  ),
           ],
         ),
       ),

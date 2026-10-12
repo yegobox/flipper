@@ -11,6 +11,7 @@ import 'package:flipper_dashboard/theme/pos_tokens.dart';
 import 'package:flipper_design_system/flipper_design_system.dart'
     show TouchInputMode;
 import 'package:flipper_dashboard/widgets/destructive_confirm_dialog.dart';
+import 'package:flipper_dashboard/widgets/mpos/mpos_customer_sheet.dart';
 import 'package:flipper_dashboard/SearchCustomer.dart';
 import 'package:flipper_dashboard/TextEditingControllersMixin.dart';
 import 'package:flipper_dashboard/TransactionItemTable.dart';
@@ -2867,6 +2868,9 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     final isSettling = settling != null;
     // View-only staff get a read-only cart table (no price/qty/delete controls).
     final readOnlyCart = isSettling || !ref.watch(canSellProvider);
+    // Admins may still take lines off a resumed ticket (delete / lower qty).
+    final reduceOnlyCart =
+        isSettling && ref.watch(canReduceSettlingTicketProvider);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -2894,6 +2898,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                   pinGrandTotal: true,
                   cartLines: lines,
                   readOnly: readOnlyCart,
+                  reduceOnly: reduceOnlyCart,
                   alreadyPaid: alreadyPaid,
                 ),
               ),
@@ -2909,6 +2914,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                 pinGrandTotal: false,
                 cartLines: lines,
                 readOnly: readOnlyCart,
+                reduceOnly: reduceOnlyCart,
                 alreadyPaid: alreadyPaid,
               ),
             ),
@@ -3918,6 +3924,13 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       transaction: txn,
       displayAmount: totalAfterDiscountAndShipping,
       onParked: () => parked = true,
+      // Phones get the mobile checkout's customer sheet; wider screens keep
+      // the form's built-in list.
+      customerPicker:
+          MediaQuery.sizeOf(context).width <
+              PosLayoutBreakpoints.mobileLayoutMaxWidth
+          ? MposCustomerSheet.pick
+          : null,
     );
     if (!parked || !mounted) return;
 

@@ -258,6 +258,7 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
       transaction: txn,
       displayAmount: total,
       onParked: () => parked = true,
+      customerPicker: MposCustomerSheet.pick,
     );
     if (!parked || !mounted) return;
 
@@ -1077,6 +1078,7 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
 
     final transactionAsync = ref.watch(transactionByIdProvider(_transactionId));
     final settling = ref.watch(effectiveSettlingTillTicketProvider);
+    final canReduceSettling = ref.watch(canReduceSettlingTicketProvider);
     final customerPhone = ref.watch(customerPhoneNumberProvider);
     final digitalEnabled =
         ref.watch(isDigitalPaymentEnabledProvider).asData?.value ?? false;
@@ -1333,6 +1335,11 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
                                       qty: _displayQtyFor(items[i]),
                                       canEdit:
                                           settling == null &&
+                                          _canModifyItems(txn),
+                                      // Admins may still trim a resumed ticket.
+                                      canReduce:
+                                          settling != null &&
+                                          canReduceSettling &&
                                           _canModifyItems(txn),
                                       onDecrement: () => _updateQuantity(
                                         items[i],

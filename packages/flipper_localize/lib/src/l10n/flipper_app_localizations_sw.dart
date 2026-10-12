@@ -4146,9 +4146,6 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   String get shiftCashSales => 'Mauzo ya fedha taslimu';
 
   @override
-  String get shiftNonCashSales => 'Imelipwa kwa MoMo, kadi, benki au mkopo';
-
-  @override
   String get shiftExpectedCash => 'Fedha zinazotarajiwa';
 
   @override
@@ -6298,14 +6295,6 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   @override
   String get mposCreditExplanation =>
       'Mauzo haya yanarekodiwa kwenye salio la mkopo la mteja. Ambatisha mteja kabla ya kukamilisha.';
-
-  @override
-  String get mposBankExplanation =>
-      'Uhamisho wa benki kwa kiasi chote. Thibitisha pesa zimefika kabla ya kukamilisha.';
-
-  @override
-  String get mposCardExplanation =>
-      'Malipo ya kadi kwa kiasi chote. Pitisha kadi kwenye mashine yako ya POS, kisha ukamilishe mauzo.';
 
   @override
   String mposPaymentLinesSplitHint(int count) {
@@ -25827,4 +25816,34 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
 
   @override
   String get webHomeHeroPayrollAccent => 'inayolipwa kwa wakati.';
+
+  @override
+  String get ticketRemoveCustomer => 'Ondoa mteja';
+
+  @override
+  String ticketsSelectedCount(String count) {
+    return '$count zimechaguliwa';
+  }
+
+  @override
+  String ticketPaidOfTotal(String paid, String total) {
+    return 'Imelipwa $paid kati ya $total';
+  }
+
+  @override
+  String get ticketSelect => 'Chagua';
+
+  @override
+  String get ticketSort => 'Panga';
+
+  @override
+  String get mposBankExplanation =>
+      'Uhamisho wa benki kwa kiasi chote. Thibitisha pesa zimefika kabla ya kukamilisha.';
+
+  @override
+  String get mposCardExplanation =>
+      'Malipo ya kadi kwa kiasi chote. Pitisha kadi kwenye mashine yako ya POS, kisha ukamilishe mauzo.';
+
+  @override
+  String get shiftNonCashSales => 'Imelipwa kwa MoMo, kadi, benki au mkopo';
 }

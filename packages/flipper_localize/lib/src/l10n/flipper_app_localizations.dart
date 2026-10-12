@@ -7223,12 +7223,6 @@ abstract class FlipperAppLocalizations {
   /// **'Cash Sales'**
   String get shiftCashSales;
 
-  /// No description provided for @shiftNonCashSales.
-  ///
-  /// In en, this message translates to:
-  /// **'Paid by MoMo, card, bank or credit'**
-  String get shiftNonCashSales;
-
   /// No description provided for @shiftExpectedCash.
   ///
   /// In en, this message translates to:
@@ -10816,18 +10810,6 @@ abstract class FlipperAppLocalizations {
   /// In en, this message translates to:
   /// **'This sale is recorded on the customer\'s credit balance. Attach a customer before completing.'**
   String get mposCreditExplanation;
-
-  /// Explanation for bank transfer payments on mobile checkout
-  ///
-  /// In en, this message translates to:
-  /// **'Bank transfer for the full amount. Confirm the money has arrived before completing.'**
-  String get mposBankExplanation;
-
-  /// Explanation for card (POS terminal) payments on mobile checkout
-  ///
-  /// In en, this message translates to:
-  /// **'Card payment for the full amount. Run the card on your POS terminal, then complete the sale.'**
-  String get mposCardExplanation;
 
   /// Hint when several payment lines exist on mobile
   ///
@@ -42904,6 +42886,54 @@ abstract class FlipperAppLocalizations {
   /// In en, this message translates to:
   /// **'pays on time.'**
   String get webHomeHeroPayrollAccent;
+
+  /// No description provided for @ticketRemoveCustomer.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove customer'**
+  String get ticketRemoveCustomer;
+
+  /// No description provided for @ticketsSelectedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} selected'**
+  String ticketsSelectedCount(String count);
+
+  /// No description provided for @ticketPaidOfTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid {paid} of {total}'**
+  String ticketPaidOfTotal(String paid, String total);
+
+  /// No description provided for @ticketSelect.
+  ///
+  /// In en, this message translates to:
+  /// **'Select'**
+  String get ticketSelect;
+
+  /// No description provided for @ticketSort.
+  ///
+  /// In en, this message translates to:
+  /// **'Sort'**
+  String get ticketSort;
+
+  /// Explanation for bank transfer payments on mobile checkout
+  ///
+  /// In en, this message translates to:
+  /// **'Bank transfer for the full amount. Confirm the money has arrived before completing.'**
+  String get mposBankExplanation;
+
+  /// Explanation for card (POS terminal) payments on mobile checkout
+  ///
+  /// In en, this message translates to:
+  /// **'Card payment for the full amount. Run the card on your POS terminal, then complete the sale.'**
+  String get mposCardExplanation;
+
+  /// No description provided for @shiftNonCashSales.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid by MoMo, card, bank or credit'**
+  String get shiftNonCashSales;
 }
 
 class _FlipperAppLocalizationsDelegate

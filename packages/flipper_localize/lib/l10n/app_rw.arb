@@ -2791,7 +2791,6 @@
   "shiftSummary": "Incamake y'igihe cy'akazi",
   "shiftOpeningBalance": "Amafaranga yo gutangiza",
   "shiftCashSales": "Ibyagurishijwe mu mafaranga",
-  "shiftNonCashSales": "Byishyuwe na MoMo, ikarita, banki cyangwa inguzanyo",
   "shiftExpectedCash": "Amafaranga ateganyijwe",
   "shiftCashReconciliation": "Kugenzura amafaranga",
   "shiftCountCashHint": "Bara amafaranga ari mu gasanduku hanyuma wandike\namafaranga yo gusoza hasi.",
@@ -3390,8 +3389,6 @@
   "mposCashReceivedAmount": "Amafaranga yakiriwe mu ntoki",
   "mposCreditAmount": "Amafaranga y'inguzanyo · {amount}",
   "mposCreditExplanation": "Iri gurisha ryandikwa ku mwenda w'umukiriya. Ongeraho umukiriya mbere yo kurangiza.",
-  "mposBankExplanation": "Kwishyura binyuze kuri banki amafaranga yose. Banza wemeze ko amafaranga yageze mbere yo kurangiza.",
-  "mposCardExplanation": "Kwishyura ukoresheje ikarita amafaranga yose. Banza ukoreshe ikarita kuri POS yawe, hanyuma urangize igurisha.",
   "mposPaymentLinesSplitHint": "Imirongo y'ubwishyu {count} · koresha kugabanya muri mudasobwa",
   "mposTax": "Umusoro",
   "mposTotal": "Igiteranyo",
@@ -8773,5 +8770,13 @@
   "webHomeHeroKitchenLead": "Ekrani y'igikoni",
   "webHomeHeroKitchenAccent": "yerekana ibyatumijwe byose.",
   "webHomeHeroPayrollLead": "Imishahara",
-  "webHomeHeroPayrollAccent": "yishyurwa ku gihe."
+  "webHomeHeroPayrollAccent": "yishyurwa ku gihe.",
+  "ticketRemoveCustomer": "Kuraho umukiriya",
+  "ticketsSelectedCount": "{count} byatoranyijwe",
+  "ticketPaidOfTotal": "Hishyuwe {paid} kuri {total}",
+  "ticketSelect": "Hitamo",
+  "ticketSort": "Tondeka",
+  "mposBankExplanation": "Kwishyura binyuze kuri banki amafaranga yose. Banza wemeze ko amafaranga yageze mbere yo kurangiza.",
+  "mposCardExplanation": "Kwishyura ukoresheje ikarita amafaranga yose. Banza ukoreshe ikarita kuri POS yawe, hanyuma urangize igurisha.",
+  "shiftNonCashSales": "Byishyuwe na MoMo, ikarita, banki cyangwa inguzanyo"
 }

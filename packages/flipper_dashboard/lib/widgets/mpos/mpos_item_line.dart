@@ -20,6 +20,7 @@ class MposItemLine extends StatefulWidget {
     required this.onDelete,
     required this.onPriceChanged,
     required this.onPriceReset,
+    this.canReduce = false,
     this.semanticId,
   });
 
@@ -28,6 +29,10 @@ class MposItemLine extends StatefulWidget {
   final double baseUnitPrice;
   final double qty;
   final bool canEdit;
+
+  /// Delete and lower qty even when [canEdit] is false (Admin on a resumed
+  /// ticket). Raising qty and repricing still follow [canEdit].
+  final bool canReduce;
   final VoidCallback onDecrement;
   final VoidCallback onIncrement;
   final VoidCallback onDelete;
@@ -169,6 +174,7 @@ class _MposItemLineState extends State<MposItemLine> {
                   semanticId: '$lineSemanticId.quantity',
                   qty: widget.qty,
                   enabled: widget.canEdit,
+                  decrementEnabled: widget.canEdit || widget.canReduce,
                   onDecrement: widget.onDecrement,
                   onIncrement: widget.onIncrement,
                 ),
@@ -208,9 +214,11 @@ class _MposItemLineState extends State<MposItemLine> {
                       id: '$lineSemanticId.delete',
                       label: l10n.mposDeleteItem(widget.name),
                       button: true,
-                      enabled: widget.canEdit,
+                      enabled: widget.canEdit || widget.canReduce,
                       child: IconButton(
-                        onPressed: widget.canEdit ? widget.onDelete : null,
+                        onPressed: widget.canEdit || widget.canReduce
+                            ? widget.onDelete
+                            : null,
                         icon: const Icon(
                           Icons.delete_outline_rounded,
                           size: 18,
@@ -349,6 +357,7 @@ class _Stepper extends StatelessWidget {
     required this.semanticId,
     required this.qty,
     required this.enabled,
+    required this.decrementEnabled,
     required this.onDecrement,
     required this.onIncrement,
   });
@@ -356,6 +365,7 @@ class _Stepper extends StatelessWidget {
   final String semanticId;
   final double qty;
   final bool enabled;
+  final bool decrementEnabled;
   final VoidCallback onDecrement;
   final VoidCallback onIncrement;
 
@@ -379,7 +389,7 @@ class _Stepper extends StatelessWidget {
             semanticId: '$semanticId.decrement',
             label: context.flipperL10n.mposDecreaseQuantity,
             icon: Icons.remove_rounded,
-            onTap: enabled && qty > 1 ? onDecrement : null,
+            onTap: decrementEnabled && qty > 1 ? onDecrement : null,
           ),
           Container(
             width: 30,
