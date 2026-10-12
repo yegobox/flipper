@@ -37,7 +37,8 @@ final canCollectPosPaymentProvider = Provider<bool>((ref) {
     businessOwnerUserId: businessOwnerUserId,
   );
   final hasTicketsGrant = _hasActiveTillCollectGrant(
-    ref.watch(userAccessesProvider(userId, featureName: AppFeature.Tickets))
+    ref
+        .watch(userAccessesProvider(userId, featureName: AppFeature.Tickets))
         .asData
         ?.value,
   );
@@ -95,6 +96,23 @@ final canSellProvider = Provider<bool>((ref) {
       ref.watch(canCollectPosPaymentProvider);
 });
 
+/// True when the signed-in user may delete lines or lower quantities on a
+/// resumed ticket. The settling cart is otherwise read-only, so the till cannot
+/// quietly change what the ticket's creator sent; Admins (User Management user
+/// type or [Tenant.type]) and the business owner may still trim it. Adding
+/// lines, raising qty and repricing stay locked for everyone.
+final canReduceSettlingTicketProvider = Provider<bool>((ref) {
+  final userId = ProxyService.box.getUserId() ?? '';
+  if (userId.isEmpty) return false;
+  if (isBusinessAdminUserType(ref, userId)) return true;
+  final tenant = ref.watch(tenantProvider(userId)).asData?.value;
+  if (tenantTypeIsAdminOrOwner(tenant?.type)) return true;
+  return userOwnsBusinessForPosPayment(
+    userId: userId,
+    businessOwnerUserId: ref.watch(_businessOwnerUserIdProvider).asData?.value,
+  );
+});
+
 /// True when [accesses] contains an active, non-expired Write/Admin grant on the
 /// Tickets feature. Deliberately does NOT use [featureAccessProvider] — that
 /// short-circuits to true in debug builds, which would make every user a
@@ -104,7 +122,8 @@ bool _hasActiveTillCollectGrant(List<Access>? accesses) {
   final now = DateTime.now();
   return accesses.any((a) {
     final level = (a.accessLevel ?? '').toLowerCase();
-    final isWriteOrAdmin = level == 'write' ||
+    final isWriteOrAdmin =
+        level == 'write' ||
         level == 'admin' ||
         level == 'read_write' ||
         level == 'readwrite';
@@ -255,5 +274,6 @@ ITransaction? settlingRecoveryCartRow({
 }
 
 /// Non-null while a Manager/Admin is settling a queued till ticket in the cart.
-final settlingTillTicketProvider =
-    StateProvider<SettlingTillTicket?>((ref) => null);
+final settlingTillTicketProvider = StateProvider<SettlingTillTicket?>(
+  (ref) => null,
+);
