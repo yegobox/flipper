@@ -9,9 +9,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 /// It drives the app-wide [themeProvider] (light by default), so the choice
 /// carries through to sign-in and the workspace behind it.
 class BooksThemeToggle extends ConsumerWidget {
-  const BooksThemeToggle({super.key, this.size = AppText.buttonHeightNav});
+  const BooksThemeToggle({
+    super.key,
+    this.size = AppText.buttonHeightNav,
+    this.bordered = true,
+  });
 
   final double size;
+
+  /// Off when the toggle sits in a cell that already draws the rules.
+  final bool bordered;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -31,7 +38,7 @@ class BooksThemeToggle extends ConsumerWidget {
           width: size,
           height: size,
           decoration: BoxDecoration(
-            border: Border.all(color: AppColors.lineStrong),
+            border: bordered ? Border.all(color: AppColors.lineStrong) : null,
           ),
           child: Icon(
             isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,

@@ -38,8 +38,8 @@ void main() {
 
       expect(find.text('Flipper'), findsWidgets);
       expect(find.text('BOOKS'), findsWidgets);
-      expect(find.text('START FREE'), findsWidgets);
-      expect(find.text('SEE HOW IT WORKS'), findsOneWidget);
+      expect(find.text('Start free'), findsWidgets);
+      expect(find.text('See how it works'), findsOneWidget);
       expect(find.text('RRA / EBM-READY'), findsOneWidget);
       // Headlines are one rich text with a serif-italic accent span.
       expect(find.textContaining('does itself.'), findsOneWidget);
@@ -74,7 +74,7 @@ void main() {
 
       expect(AppColors.palette, BooksPalette.light);
       expect(AppColors.bg, BooksPalette.light.bg);
-      expect(BooksPalette.light.bg, const Color(0xFFF2F1EE));
+      expect(BooksPalette.light.bg, const Color(0xFFFFFFFF));
 
       final scaffold = tester.widget<Scaffold>(
         find.descendant(
@@ -155,7 +155,6 @@ void main() {
           child: MaterialApp(
             home: Scaffold(
               body: BooksHomeHeader(
-                scrolled: false,
                 onStartFree: () {},
                 onSignIn: () {},
                 onNavTap: (_) {},

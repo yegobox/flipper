@@ -6,75 +6,99 @@ import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-const _navLinks = ['Platform', 'Flow AI', 'Features', 'Pricing'];
+/// Header nav ids, in page order. `Books` is the top of the page.
+const booksHomeNavIds = ['Books', 'Platform', 'Flow AI', 'Features', 'Pricing'];
 
+/// Height of the pinned header.
+const booksHomeHeaderHeight = 64.0;
+
+/// The pinned header: a logo cell, the nav with the section in view set as an
+/// inverted block, and the actions in ruled cells on the right.
 class BooksHomeHeader extends StatelessWidget {
   const BooksHomeHeader({
     super.key,
-    required this.scrolled,
     required this.onStartFree,
     required this.onNavTap,
     required this.onSignIn,
+    this.active = 'Books',
   });
 
-  final bool scrolled;
   final VoidCallback onStartFree;
   final ValueChanged<String> onNavTap;
   final VoidCallback onSignIn;
+
+  /// The nav id of the section in view.
+  final String active;
 
   @override
   Widget build(BuildContext context) {
     final l10n = booksHomeL10n(context);
     return LayoutBuilder(
       builder: (context, constraints) {
-        final w = constraints.maxWidth;
-        final compact = w <= 1040;
-        final gutter = booksHomeGutter(w);
+        final compact = constraints.maxWidth <= 1040;
+        final rule = BorderSide(color: AppColors.lineStrong);
 
-        return StickyHeaderShell(
-          scrolled: scrolled,
-          child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: gutter, vertical: 14),
-            child: compact
-                ? Row(
-                    children: [
-                      const BooksWordmark(),
-                      const Spacer(),
-                      const BooksThemeToggle(),
-                      const SizedBox(width: 8),
-                      _MenuButton(
-                        onTap: () => _showMobileMenu(
-                          context,
-                          onNavTap,
-                          onSignIn,
-                          onStartFree,
-                        ),
+        return Container(
+          height: booksHomeHeaderHeight,
+          decoration: BoxDecoration(
+            color: AppColors.bg,
+            border: Border(bottom: rule),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _HeaderCell(
+                width: booksHomeHeaderHeight,
+                rightRule: true,
+                onTap: () => onNavTap('Books'),
+                child: const Center(child: FlipperMark(size: 30)),
+              ),
+              if (compact)
+                const Spacer()
+              else
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: Row(
+                        children: [
+                          for (final id in booksHomeNavIds)
+                            _NavPill(
+                              label: booksHomeNavLabel(id, l10n),
+                              active: id == active,
+                              onTap: () => onNavTap(id),
+                            ),
+                        ],
                       ),
-                    ],
-                  )
-                : Row(
+                    ),
+                  ),
+                ),
+              _HeaderCell(
+                width: booksHomeHeaderHeight,
+                leftRule: true,
+                child: const Center(child: BooksThemeToggle(bordered: false)),
+              ),
+              if (compact)
+                _HeaderCell(
+                  width: booksHomeHeaderHeight,
+                  leftRule: true,
+                  onTap: () =>
+                      _showMobileMenu(context, onNavTap, onSignIn, onStartFree),
+                  child: Center(
+                    child: Icon(
+                      Icons.menu_rounded,
+                      size: 20,
+                      color: AppColors.ink,
+                    ),
+                  ),
+                )
+              else
+                _HeaderCell(
+                  leftRule: true,
+                  child: Row(
                     children: [
-                      const BooksWordmark(),
-                      const SizedBox(width: 48),
-                      Expanded(
-                        child: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          alignment: Alignment.centerLeft,
-                          child: Row(
-                            children: [
-                              for (final (i, link) in _navLinks.indexed) ...[
-                                if (i > 0) const SizedBox(width: 30),
-                                NavTextLink(
-                                  label: booksHomeNavLabel(link, l10n),
-                                  onTap: () => onNavTap(link),
-                                ),
-                              ],
-                            ],
-                          ),
-                        ),
-                      ),
-                      const BooksThemeToggle(),
-                      const SizedBox(width: 10),
                       LineButton(
                         label: l10n.webHomeLogIn,
                         onTap: onSignIn,
@@ -85,9 +109,12 @@ class BooksHomeHeader extends StatelessWidget {
                         label: l10n.webHomeStartFree,
                         onTap: onStartFree,
                         height: AppText.buttonHeightNav,
+                        arrow: true,
                       ),
                     ],
                   ),
+                ),
+            ],
           ),
         );
       },
@@ -111,17 +138,17 @@ class BooksHomeHeader extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            for (final link in _navLinks)
+            for (final id in booksHomeNavIds)
               ListTile(
                 contentPadding: EdgeInsets.zero,
                 shape: Border(bottom: BorderSide(color: AppColors.line)),
                 title: Text(
-                  booksHomeNavLabel(link, l10n).toUpperCase(),
+                  booksHomeNavLabel(id, l10n).toUpperCase(),
                   style: AppText.label(size: 12.5, c: AppColors.ink),
                 ),
                 onTap: () {
                   Navigator.pop(ctx);
-                  onNavTap(link);
+                  onNavTap(id);
                 },
               ),
             BooksThemeToggleTile(onToggled: () => Navigator.pop(ctx)),
@@ -149,27 +176,96 @@ class BooksHomeHeader extends StatelessWidget {
   }
 }
 
-class _MenuButton extends StatelessWidget {
-  const _MenuButton({required this.onTap});
+/// A full-height header cell, ruled on the side it meets its neighbour.
+class _HeaderCell extends StatelessWidget {
+  const _HeaderCell({
+    required this.child,
+    this.onTap,
+    this.width,
+    this.leftRule = false,
+    this.rightRule = false,
+  });
 
+  final Widget child;
+  final VoidCallback? onTap;
+  final double? width;
+  final bool leftRule;
+  final bool rightRule;
+
+  @override
+  Widget build(BuildContext context) {
+    final rule = BorderSide(color: AppColors.lineStrong);
+    Widget cell(bool hover) => AnimatedContainer(
+      duration: const Duration(milliseconds: 150),
+      width: width,
+      padding: width == null
+          ? const EdgeInsets.symmetric(horizontal: 22)
+          : EdgeInsets.zero,
+      decoration: BoxDecoration(
+        color: hover
+            ? AppColors.ink.withValues(alpha: 0.05)
+            : AppColors.ink.withAlpha(0),
+        border: Border(
+          left: leftRule ? rule : BorderSide.none,
+          right: rightRule ? rule : BorderSide.none,
+        ),
+      ),
+      child: child,
+    );
+
+    final onTap = this.onTap;
+    if (onTap == null) return cell(false);
+    return PressScale(
+      onTap: onTap,
+      child: HoverBuilder(builder: (context, hover) => cell(hover)),
+    );
+  }
+}
+
+/// A nav link; the section in view is set in Flipper blue.
+class _NavPill extends StatelessWidget {
+  const _NavPill({
+    required this.label,
+    required this.active,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool active;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     return PressScale(
       onTap: onTap,
-      child: Container(
-        width: AppText.buttonHeightNav,
-        height: AppText.buttonHeightNav,
-        decoration: BoxDecoration(
-          border: Border.all(color: AppColors.lineStrong),
+      child: HoverBuilder(
+        builder: (context, hover) => AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          margin: const EdgeInsets.symmetric(horizontal: 4),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: active ? AppColors.accent : AppColors.accent.withAlpha(0),
+            borderRadius: BorderRadius.circular(AppSpace.rPill),
+          ),
+          child: Text(
+            label.toUpperCase(),
+            style: AppText.label(
+              size: 12,
+              c: active
+                  ? AppGrad.onPanel
+                  : hover
+                  ? AppColors.ink
+                  : AppColors.muted,
+            ),
+          ),
         ),
-        child: Icon(Icons.menu_rounded, size: 18, color: AppColors.ink),
       ),
     );
   }
 }
 
+/// The hero: the wordmark unfolding out of the logo, the promise under it,
+/// and the two ways in. Fills the first screen down to the marquee.
 class BooksHomeHero extends StatelessWidget {
   const BooksHomeHero({
     super.key,
@@ -180,6 +276,9 @@ class BooksHomeHero extends StatelessWidget {
   final VoidCallback onStartFree;
   final VoidCallback onSecondary;
 
+  /// Height of the marquee the hero sits on.
+  static const _marqueeHeight = 68.0;
+
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
@@ -187,131 +286,105 @@ class BooksHomeHero extends StatelessWidget {
         final l10n = booksHomeL10n(context);
         final w = constraints.maxWidth;
         final gutter = booksHomeGutter(w);
-        final wide = w > 960;
-
-        final buttons = [
-          InkButton(
-            label: l10n.webHomeStartFree,
-            onTap: onStartFree,
-            arrow: true,
-          ),
-          LineButton(label: l10n.webHomeSeeHowItWorks, onTap: onSecondary),
-        ];
-        final body = ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 500),
-          child: Text(l10n.webHomeHeroBody, style: AppText.lead),
+        final screenH = MediaQuery.sizeOf(context).height;
+        final minH = (screenH - booksHomeHeaderHeight - _marqueeHeight).clamp(
+          0.0,
+          1000.0,
         );
 
         return ScanlineBackground(
-          child: Stack(
-            children: [
-              // The product name, poster-size and barely there, behind the
-              // headline.
-              Positioned(
-                top: 18,
-                left: gutter,
-                right: gutter,
-                child: IgnorePointer(
-                  child: GiantWord(
-                    'FLIPPER',
-                    color: AppColors.ink.withValues(alpha: 0.045),
-                  ),
-                ),
-              ),
-              Padding(
-                padding: EdgeInsets.fromLTRB(gutter, wide ? 96 : 64, gutter, 0),
-                child: Center(
-                  // Same text column as [BooksHomeSection], which insets the
-                  // gutter inside the max width rather than outside it.
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      maxWidth: AppSpace.maxW - gutter * 2,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Reveal(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                '${l10n.webHomePoweredBy} Flow AI'
-                                    .toUpperCase(),
-                                style: AppText.label(),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: minH),
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(gutter, 56, gutter, 64),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 1120),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        '${l10n.webHomePoweredBy} Flow AI'.toUpperCase(),
+                        style: AppText.label(),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 28),
+                      const UnfoldingWordmark(),
+                      const SizedBox(height: 48),
+                      Reveal(
+                        delay: const Duration(milliseconds: 900),
+                        child: Column(
+                          children: [
+                            EditorialHeadline(
+                              lead:
+                                  '${l10n.webHomeHeroLine1} '
+                                  '${l10n.webHomeHeroLine2Lead}',
+                              accent: l10n.webHomeHeroLine2Accent,
+                              size: booksHomeH2Size(w),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 22),
+                            ConstrainedBox(
+                              constraints: const BoxConstraints(maxWidth: 560),
+                              child: Text(
+                                l10n.webHomeHeroBody,
+                                style: AppText.lead,
+                                textAlign: TextAlign.center,
                               ),
-                              const SizedBox(height: 28),
-                              EditorialHeadline(
-                                lead:
-                                    '${l10n.webHomeHeroLine1}\n'
-                                    '${l10n.webHomeHeroLine2Lead}',
-                                accent: l10n.webHomeHeroLine2Accent,
-                                size: booksHomeDisplaySize(w),
-                              ),
-                              const SizedBox(height: 44),
-                              if (wide)
-                                Row(
-                                  crossAxisAlignment: CrossAxisAlignment.end,
-                                  children: [
-                                    Expanded(
-                                      child: Align(
-                                        alignment: Alignment.centerLeft,
-                                        child: body,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 40),
-                                    buttons[0],
-                                    const SizedBox(width: 10),
-                                    buttons[1],
-                                  ],
-                                )
-                              else ...[
-                                body,
-                                const SizedBox(height: 28),
-                                Wrap(
-                                  spacing: 10,
-                                  runSpacing: 10,
-                                  children: buttons,
+                            ),
+                            const SizedBox(height: 32),
+                            Wrap(
+                              alignment: WrapAlignment.center,
+                              spacing: 10,
+                              runSpacing: 10,
+                              children: [
+                                InkButton(
+                                  label: l10n.webHomeStartFree,
+                                  onTap: onStartFree,
+                                  arrow: true,
+                                ),
+                                LineButton(
+                                  label: l10n.webHomeSeeHowItWorks,
+                                  onTap: onSecondary,
                                 ),
                               ],
-                              const SizedBox(height: 36),
-                              Wrap(
-                                spacing: 22,
-                                runSpacing: 10,
-                                children: [
-                                  for (final item in [
-                                    l10n.webHomeCheckEbmReady,
-                                    l10n.webHomeCheckOffline,
-                                    l10n.webHomeCheckRwf,
-                                  ])
-                                    Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Container(
-                                          width: 6,
-                                          height: 6,
-                                          color: AppColors.accent,
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Text(
-                                          item.toUpperCase(),
-                                          style: AppText.label(
-                                            c: AppColors.ink,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                ],
-                              ),
-                            ],
-                          ),
+                            ),
+                            const SizedBox(height: 28),
+                            Wrap(
+                              alignment: WrapAlignment.center,
+                              spacing: 22,
+                              runSpacing: 10,
+                              children: [
+                                for (final item in [
+                                  l10n.webHomeCheckEbmReady,
+                                  l10n.webHomeCheckOffline,
+                                  l10n.webHomeCheckRwf,
+                                ])
+                                  Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Container(
+                                        width: 6,
+                                        height: 6,
+                                        color: AppColors.accent,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        item.toUpperCase(),
+                                        style: AppText.label(c: AppColors.ink),
+                                      ),
+                                    ],
+                                  ),
+                              ],
+                            ),
+                          ],
                         ),
-                        SizedBox(height: wide ? 140 : 88),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
               ),
-            ],
+            ),
           ),
         );
       },
@@ -961,20 +1034,18 @@ class _PricingColumn extends StatelessWidget {
   final String period;
   final List<String> features;
 
-  /// The popular plan is set as an inverted block.
+  /// The popular plan sits on the sign-in screens' blue brand panel.
   final bool popular;
   final VoidCallback onStart;
   final String cta;
 
   @override
   Widget build(BuildContext context) {
-    final fg = popular ? AppColors.invertFg : AppColors.ink;
-    final soft = popular
-        ? AppColors.invertFg.withValues(alpha: 0.68)
-        : AppColors.muted;
+    final fg = popular ? AppGrad.onPanel : AppColors.ink;
+    final soft = popular ? AppGrad.onPanelSoft : AppColors.muted;
 
     return Container(
-      color: popular ? AppColors.invertBg : null,
+      decoration: BoxDecoration(gradient: popular ? AppGrad.panel : null),
       padding: const EdgeInsets.fromLTRB(26, 24, 26, 26),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1004,9 +1075,7 @@ class _PricingColumn extends StatelessWidget {
           const SizedBox(height: 26),
           Container(
             height: 1,
-            color: popular
-                ? AppColors.invertFg.withValues(alpha: 0.2)
-                : AppColors.line,
+            color: popular ? AppGrad.onPanelLine : AppColors.line,
           ),
           const SizedBox(height: 20),
           for (final feature in features)
@@ -1021,7 +1090,7 @@ class _PricingColumn extends StatelessWidget {
                     color: feature.startsWith('+')
                         ? soft
                         : popular
-                        ? AppColors.invertFg
+                        ? AppGrad.onPanel
                         : AppColors.accentInk,
                   ),
                   const SizedBox(width: 11),
@@ -1043,15 +1112,15 @@ class _PricingColumn extends StatelessWidget {
           if (popular)
             InkButton(label: cta, onTap: onStart, arrow: true, onInverse: true)
           else
-            LineButton(label: cta, onTap: onStart),
+            InkButton(label: cta, onTap: onStart),
         ],
       ),
     );
   }
 }
 
-/// The closing call to action: a poster-size "Start *counting.*" and the
-/// numbers under it.
+/// The closing call to action on the sign-in screens' blue brand panel: a
+/// poster-size "Start *counting.*" and the numbers under it.
 class BooksHomeCta extends StatelessWidget {
   const BooksHomeCta({
     super.key,
@@ -1065,63 +1134,89 @@ class BooksHomeCta extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = booksHomeL10n(context);
-    return BooksHomeSection(
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final w = constraints.maxWidth;
-          return Reveal(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                SectionIndex(number: '05', label: l10n.webHomeCtaKicker),
-                const SizedBox(height: 88),
-                EditorialHeadline(
-                  lead: l10n.webHomeCtaLead,
-                  accent: l10n.webHomeCtaAccent,
-                  size: booksHomeDisplaySize(MediaQuery.sizeOf(context).width),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 32),
-                Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 560),
+    const ink = AppGrad.onPanel;
+    const soft = AppGrad.onPanelSoft;
+    return DecoratedBox(
+      decoration: const BoxDecoration(gradient: AppGrad.panel),
+      child: BooksHomeSection(
+        padding: EdgeInsets.symmetric(
+          horizontal: booksHomeGutter(MediaQuery.sizeOf(context).width),
+          vertical: AppSpace.sectionY * 0.8,
+        ),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final w = constraints.maxWidth;
+            return Reveal(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.only(top: 14),
+                    decoration: const BoxDecoration(
+                      border: Border(
+                        top: BorderSide(color: AppGrad.onPanelLine),
+                      ),
+                    ),
                     child: Text(
-                      l10n.webHomeBandBody,
-                      style: AppText.lead,
-                      textAlign: TextAlign.center,
+                      '05  /  ${l10n.webHomeCtaKicker.toUpperCase()}',
+                      style: AppText.label(c: soft),
                     ),
                   ),
-                ),
-                const SizedBox(height: 36),
-                Wrap(
-                  alignment: WrapAlignment.center,
-                  spacing: 10,
-                  runSpacing: 10,
-                  children: [
-                    InkButton(
-                      label: l10n.webHomeStartFree,
-                      onTap: onStartFree,
-                      arrow: true,
+                  const SizedBox(height: 72),
+                  EditorialHeadline(
+                    lead: l10n.webHomeCtaLead,
+                    accent: l10n.webHomeCtaAccent,
+                    size: booksHomeDisplaySize(
+                      MediaQuery.sizeOf(context).width,
                     ),
-                    LineButton(
-                      label: l10n.webHomeTalkToSales,
-                      onTap: onTalkToSales,
+                    textAlign: TextAlign.center,
+                    color: ink,
+                  ),
+                  const SizedBox(height: 28),
+                  Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 560),
+                      child: Text(
+                        l10n.webHomeBandBody,
+                        style: AppText.lead.copyWith(color: soft),
+                        textAlign: TextAlign.center,
+                      ),
                     ),
-                  ],
-                ),
-                const SizedBox(height: 88),
-                RuledGrid(
-                  columns: w > 560 ? 3 : 1,
-                  children: [
-                    _Stat('12,400+', l10n.webHomeTrustBusinesses),
-                    _Stat('RWF 1.2B', l10n.webHomeStatProcessedMonthly),
-                    _Stat('99.9%', l10n.webHomeStatUptime),
-                  ],
-                ),
-              ],
-            ),
-          );
-        },
+                  ),
+                  const SizedBox(height: 36),
+                  Wrap(
+                    alignment: WrapAlignment.center,
+                    spacing: 10,
+                    runSpacing: 10,
+                    children: [
+                      InkButton(
+                        label: l10n.webHomeStartFree,
+                        onTap: onStartFree,
+                        arrow: true,
+                        onInverse: true,
+                      ),
+                      LineButton(
+                        label: l10n.webHomeTalkToSales,
+                        onTap: onTalkToSales,
+                        onInverse: true,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 72),
+                  RuledGrid(
+                    columns: w > 560 ? 3 : 1,
+                    color: AppGrad.onPanelLine,
+                    children: [
+                      _Stat('12,400+', l10n.webHomeTrustBusinesses),
+                      _Stat('RWF 1.2B', l10n.webHomeStatProcessedMonthly),
+                      _Stat('99.9%', l10n.webHomeStatUptime),
+                    ],
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
       ),
     );
   }
@@ -1143,10 +1238,13 @@ class _Stat extends StatelessWidget {
           FittedBox(
             fit: BoxFit.scaleDown,
             alignment: Alignment.centerLeft,
-            child: Text(value, style: AppText.display(48)),
+            child: Text(value, style: AppText.display(48, c: AppGrad.onPanel)),
           ),
           const SizedBox(height: 10),
-          Text(label.toUpperCase(), style: AppText.label()),
+          Text(
+            label.toUpperCase(),
+            style: AppText.label(c: AppGrad.onPanelSoft),
+          ),
         ],
       ),
     );

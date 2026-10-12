@@ -3,6 +3,7 @@ import 'package:flipper_web/features/home/theme/books_home_theme.dart';
 import 'package:flipper_web/features/home/widgets/books_line_icon.dart';
 import 'package:flipper_web/widgets/flipper_logo.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
 class BooksHomeSection extends StatelessWidget {
@@ -35,15 +36,185 @@ class BooksHomeSection extends StatelessWidget {
   }
 }
 
-class FlipperMarkLogo extends StatelessWidget {
-  const FlipperMarkLogo({super.key, this.size = 30});
+/// Flipper's arc mark — the logo at the top of the mobile app — in its blue
+/// gradient, or flat in [color] when one is given.
+class FlipperMark extends StatelessWidget {
+  const FlipperMark({super.key, this.size = 28, this.color});
+
+  static const assetPath = 'assets/svg/flipper_arcs.svg';
 
   final double size;
+  final Color? color;
 
   @override
   Widget build(BuildContext context) {
-    return FlipperLogo(size: size);
+    final glyph = SvgPicture.asset(
+      assetPath,
+      package: FlipperLogo.package,
+      width: size,
+      height: size,
+      colorFilter: ColorFilter.mode(color ?? AppGrad.onPanel, BlendMode.srcIn),
+      excludeFromSemantics: true,
+    );
+    if (color != null) return glyph;
+    // Untinted, it wears its own blue gradient, as in the mobile app.
+    return ShaderMask(
+      blendMode: BlendMode.srcIn,
+      shaderCallback: AppGrad.mark.createShader,
+      child: glyph,
+    );
   }
+}
+
+/// The product name as a poster, with Flipper's mark as its first glyph.
+///
+/// On first paint the mark fades in alone at the centre, then the letters
+/// slide out from behind it while it moves to the left: the word unfolds out
+/// of the logo. Under reduced motion it starts in its final state.
+class UnfoldingWordmark extends StatefulWidget {
+  const UnfoldingWordmark({
+    super.key,
+    this.text = 'FLIPPER',
+    this.color,
+    this.duration = const Duration(milliseconds: 1700),
+  });
+
+  final String text;
+  final Color? color;
+  final Duration duration;
+
+  @override
+  State<UnfoldingWordmark> createState() => _UnfoldingWordmarkState();
+}
+
+class _UnfoldingWordmarkState extends State<UnfoldingWordmark>
+    with SingleTickerProviderStateMixin {
+  // Laid out at this size, then scaled to the available width.
+  static const _fontSize = 200.0;
+
+  // Archivo's cap height, as a share of the font size.
+  static const _capHeight = 0.71;
+
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: widget.duration,
+  );
+  bool _started = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_started) return;
+    _started = true;
+    if (MediaQuery.disableAnimationsOf(context)) {
+      _controller.value = 1;
+    } else {
+      _controller.forward();
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final color = widget.color ?? AppColors.ink;
+    final style = AppText.display(
+      _fontSize,
+      c: color,
+    ).copyWith(height: 1, letterSpacing: -0.03 * _fontSize);
+    final word = TextPainter(
+      text: TextSpan(text: widget.text, style: style),
+      textDirection: TextDirection.ltr,
+      textScaler: TextScaler.noScaling,
+    )..layout();
+    final baseline = word.computeDistanceToActualBaseline(
+      TextBaseline.alphabetic,
+    );
+    final cap = _capHeight * _fontSize;
+    final markSize = cap * 1.08;
+    final markTop = baseline - cap - (markSize - cap) / 2;
+    final gap = _fontSize * 0.1;
+    final width = markSize + gap + word.width;
+    final height = word.height;
+
+    return Semantics(
+      label: widget.text,
+      child: ExcludeSemantics(
+        child: FittedBox(
+          fit: BoxFit.fitWidth,
+          child: SizedBox(
+            width: width,
+            height: height,
+            child: AnimatedBuilder(
+              animation: _controller,
+              builder: (context, _) {
+                final t = _controller.value;
+                final appear = Curves.easeOut.transform((t / 0.3).clamp(0, 1));
+                final unfold = Curves.easeInOutCubic.transform(
+                  ((t - 0.3) / 0.7).clamp(0, 1),
+                );
+                final markX = (width - markSize) / 2 * (1 - unfold);
+                // Letters start tucked under the mark, their right edge on
+                // its right edge, and are only drawn to the right of it.
+                final start = markX + markSize - word.width;
+                final lettersX = start + (markSize + gap - start) * unfold;
+                final edge = markX + markSize + gap / 2;
+                return Stack(
+                  children: [
+                    Positioned.fill(
+                      child: ClipRect(
+                        clipper: _RightOf(edge),
+                        child: Stack(
+                          children: [
+                            Positioned(
+                              left: lettersX,
+                              top: 0,
+                              child: Text(
+                                widget.text,
+                                style: style,
+                                maxLines: 1,
+                                softWrap: false,
+                                textScaler: TextScaler.noScaling,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      left: markX,
+                      top: markTop,
+                      child: Opacity(
+                        opacity: appear,
+                        child: FlipperMark(size: markSize, color: widget.color),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _RightOf extends CustomClipper<Rect> {
+  const _RightOf(this.left);
+
+  final double left;
+
+  @override
+  Rect getClip(Size size) =>
+      Rect.fromLTRB(left.clamp(0, size.width), 0, size.width, size.height);
+
+  @override
+  bool shouldReclip(_RightOf oldClipper) => oldClipper.left != left;
 }
 
 class BooksWordmark extends StatelessWidget {
@@ -60,7 +231,7 @@ class BooksWordmark extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          FlipperMarkLogo(size: logoSize),
+          FlipperMark(size: logoSize),
           const SizedBox(width: 10),
           Text(
             'Flipper',
@@ -496,21 +667,22 @@ class _ButtonLabel extends StatelessWidget {
       children: [
         Flexible(
           child: Text(
-            label.toUpperCase(),
-            style: AppText.label(size: 11.5, c: color),
+            label,
+            style: AppText.button(c: color),
             overflow: TextOverflow.ellipsis,
           ),
         ),
         if (arrow) ...[
-          const SizedBox(width: 10),
-          Text('→', style: AppText.label(size: 14, c: color)),
+          const SizedBox(width: 8),
+          Icon(Icons.arrow_outward_rounded, size: 18, color: color),
         ],
       ],
     );
   }
 }
 
-/// Filled, square, mono-caps button in the inverted colour. Dims on hover.
+/// The primary button, as on the sign-in screens: the violet gradient, rounded,
+/// with its soft shadow. Lifts a little on hover.
 class InkButton extends StatelessWidget {
   const InkButton({
     super.key,
@@ -522,41 +694,57 @@ class InkButton extends StatelessWidget {
   });
 
   final String label;
-  final VoidCallback onTap;
+
+  /// Null disables the button: it greys out and ignores taps.
+  final VoidCallback? onTap;
   final double height;
   final bool arrow;
 
-  /// Set when the button sits on an [AppColors.invertBg] block.
+  /// Set when the button sits on a brand panel: a white button, blue label.
   final bool onInverse;
 
   @override
   Widget build(BuildContext context) {
-    final fill = onInverse ? AppColors.bg : AppColors.invertBg;
-    final fg = onInverse ? AppColors.ink : AppColors.invertFg;
-    return PressScale(
-      onTap: onTap,
-      child: HoverBuilder(
-        builder: (context, hover) => AnimatedOpacity(
-          opacity: hover ? 0.82 : 1,
-          duration: const Duration(milliseconds: 150),
-          child: Container(
-            height: height,
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            color: fill,
-            // Sized to the label unless the parent forces a width.
-            child: Center(
-              widthFactor: 1,
-              child: _ButtonLabel(label, color: fg, arrow: arrow),
-            ),
-          ),
+    final radius = BorderRadius.circular(AppSpace.rButton);
+    final fg = onInverse ? AppColors.accentInk : AppGrad.onPanel;
+    final onTap = this.onTap;
+
+    Widget body(bool hover) => AnimatedContainer(
+      duration: const Duration(milliseconds: 150),
+      height: height,
+      padding: const EdgeInsets.symmetric(horizontal: 22),
+      transform: Matrix4.translationValues(0, hover ? -1 : 0, 0),
+      decoration: BoxDecoration(
+        gradient: onTap == null || onInverse ? null : AppGrad.button,
+        color: onTap == null
+            ? AppColors.lineStrong
+            : onInverse
+            ? AppGrad.onPanel
+            : null,
+        borderRadius: radius,
+        boxShadow: onTap == null || onInverse ? null : AppGrad.buttonShadow,
+      ),
+      // Sized to the label unless the parent forces a width.
+      child: Center(
+        widthFactor: 1,
+        child: _ButtonLabel(
+          label,
+          color: onTap == null ? AppColors.faint : fg,
+          arrow: arrow,
         ),
       ),
+    );
+
+    if (onTap == null) return body(false);
+    return PressScale(
+      onTap: onTap,
+      child: HoverBuilder(builder: (context, hover) => body(hover)),
     );
   }
 }
 
-/// Hairline, square, mono-caps button that fills with the inverted colour on
-/// hover.
+/// The secondary button: hairline and rounded on the page, white-ruled on a
+/// brand panel. Fills faintly on hover.
 class LineButton extends StatelessWidget {
   const LineButton({
     super.key,
@@ -572,35 +760,31 @@ class LineButton extends StatelessWidget {
   final double height;
   final bool arrow;
 
-  /// Set when the button sits on an [AppColors.invertBg] block.
+  /// Set when the button sits on a brand panel.
   final bool onInverse;
 
   @override
   Widget build(BuildContext context) {
-    final rest = onInverse
-        ? AppColors.invertFg.withValues(alpha: 0.4)
-        : AppColors.lineStrong;
-    final fill = onInverse ? AppColors.invertFg : AppColors.invertBg;
-    final fg = onInverse ? AppColors.invertFg : AppColors.ink;
-    final fgHover = onInverse ? AppColors.invertBg : AppColors.invertFg;
+    final fg = onInverse ? AppGrad.onPanel : AppColors.ink;
+    final rest = onInverse ? AppGrad.onPanelLine : AppColors.lineStrong;
+    final fill = onInverse
+        ? AppGrad.onPanel.withValues(alpha: 0.12)
+        : AppColors.bgRaised;
     return PressScale(
       onTap: onTap,
       child: HoverBuilder(
         builder: (context, hover) => AnimatedContainer(
           duration: const Duration(milliseconds: 150),
           height: height,
-          padding: const EdgeInsets.symmetric(horizontal: 24),
+          padding: const EdgeInsets.symmetric(horizontal: 22),
           decoration: BoxDecoration(
             color: hover ? fill : fill.withAlpha(0),
-            border: Border.all(color: hover ? fill : rest),
+            borderRadius: BorderRadius.circular(AppSpace.rButton),
+            border: Border.all(color: hover && !onInverse ? fg : rest),
           ),
           child: Center(
             widthFactor: 1,
-            child: _ButtonLabel(
-              label,
-              color: hover ? fgHover : fg,
-              arrow: arrow,
-            ),
+            child: _ButtonLabel(label, color: fg, arrow: arrow),
           ),
         ),
       ),
@@ -614,11 +798,14 @@ class MostPopularTag extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      color: AppColors.accent,
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+      decoration: BoxDecoration(
+        color: AppGrad.onPanel,
+        borderRadius: BorderRadius.circular(AppSpace.rPill),
+      ),
       child: Text(
         '★ ${booksHomeL10n(context).webHomeMostPopular.toUpperCase()}',
-        style: AppText.label(size: 10, c: AppColors.onAccent),
+        style: AppText.label(size: 10, c: AppColors.accentInk),
       ),
     );
   }
@@ -805,36 +992,6 @@ class _PressScaleState extends State<PressScale> {
           ),
         ),
       ),
-    );
-  }
-}
-
-/// The pinned header's surface: solid paper, with a rule once the page has
-/// scrolled under it.
-class StickyHeaderShell extends StatelessWidget {
-  const StickyHeaderShell({
-    super.key,
-    required this.scrolled,
-    required this.child,
-  });
-
-  final bool scrolled;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 220),
-      curve: Curves.ease,
-      decoration: BoxDecoration(
-        color: AppColors.bg,
-        border: Border(
-          bottom: BorderSide(
-            color: scrolled ? AppColors.lineStrong : AppColors.bg,
-          ),
-        ),
-      ),
-      child: child,
     );
   }
 }

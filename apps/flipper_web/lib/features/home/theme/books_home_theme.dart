@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 
 /// One resolved colour set for the Flipper Books marketing page.
 ///
-/// The page is editorial: warm paper and ink, hairline rules, one blue accent,
-/// and no gradients, glows or shadows. [light] is the default so the page
-/// matches the rest of flipper_web (sign-in and the workspace are light).
+/// The layout is editorial (hairline rules, numbered sections, one accent);
+/// the colours are the sign-in screens'. [light] is the default so the page
+/// matches the rest of flipper_web.
 ///
 /// The names mirror the reference's CSS variables (`--bg`, `--ink`,
 /// `--muted`, `--line`…) so a value can be checked against it one to one.
@@ -66,45 +66,83 @@ class BooksPalette {
 
   bool get isDark => brightness == Brightness.dark;
 
+  /// The sign-in screens' colours (`SITokens`): white surface, navy ink,
+  /// Flipper blue, and their hairline greys — so the page and the screens it
+  /// sends you to read as one product.
   static const light = BooksPalette(
     brightness: Brightness.light,
-    bg: Color(0xFFF2F1EE),
-    bgRaised: Color(0xFFFAF9F7),
-    bgSunken: Color(0xFFE9E8E4),
-    ink: Color(0xFF101014),
+    bg: Color(0xFFFFFFFF),
+    bgRaised: Color(0xFFF7F9FE),
+    bgSunken: Color(0xFFEEF3FB),
+    ink: Color(0xFF0B1220),
     inkStrong: Color(0xFF000000),
-    muted: Color(0x9E101014),
-    faint: Color(0x6B101014),
-    line: Color(0x29101014),
-    lineStrong: Color(0x66101014),
-    accent: Color(0xFF2D81FF),
-    accentInk: Color(0xFF1659C4),
-    invertBg: Color(0xFF101014),
-    invertFg: Color(0xFFF2F1EE),
-    danger: Color(0xFFB3261E),
-    gain: Color(0xFF1B7A4B),
-    scanline: Color(0x08101014),
+    muted: Color(0xFF4A5567),
+    faint: Color(0xFF7E8AA0),
+    line: Color(0xFFE6ECF5),
+    lineStrong: Color(0xFFD6DEEA),
+    accent: Color(0xFF2563EB),
+    accentInk: Color(0xFF1D4ED8),
+    invertBg: Color(0xFF0B1220),
+    invertFg: Color(0xFFFFFFFF),
+    danger: Color(0xFFC0392B),
+    gain: Color(0xFF0E9F6E),
+    scanline: Color(0x070B1220),
   );
 
+  /// [light] on the navy of the sign-in ink.
   static const dark = BooksPalette(
     brightness: Brightness.dark,
-    bg: Color(0xFF121316),
-    bgRaised: Color(0xFF101014),
-    bgSunken: Color(0xFF060607),
-    ink: Color(0xFFF2F1EE),
+    bg: Color(0xFF0B1220),
+    bgRaised: Color(0xFF111A2E),
+    bgSunken: Color(0xFF070C17),
+    ink: Color(0xFFF2F5FA),
     inkStrong: Color(0xFFFFFFFF),
-    muted: Color(0x99F2F1EE),
-    faint: Color(0x61F2F1EE),
-    line: Color(0x26F2F1EE),
-    lineStrong: Color(0x66F2F1EE),
-    accent: Color(0xFF2D81FF),
-    accentInk: Color(0xFF74AAFF),
+    muted: Color(0xFFAAB4C4),
+    faint: Color(0xFF7D8798),
+    line: Color(0x1FFFFFFF),
+    lineStrong: Color(0x38FFFFFF),
+    accent: Color(0xFF3F7BFF),
+    accentInk: Color(0xFF7FA6FF),
     invertBg: Color(0xFFFFFFFF),
-    invertFg: Color(0xFF0B0B0C),
-    danger: Color(0xFFFF6259),
-    gain: Color(0xFF5BD69A),
-    scanline: Color(0x06FFFFFF),
+    invertFg: Color(0xFF0B1220),
+    danger: Color(0xFFFF6B5E),
+    gain: Color(0xFF2FE0A0),
+    scanline: Color(0x07FFFFFF),
   );
+}
+
+/// The sign-in screens' brand fills, the same in both modes.
+abstract final class AppGrad {
+  /// The primary button (`FlipperGradientButton`).
+  static const button = LinearGradient(
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: [Color(0xFF6555F4), Color(0xFF4338CA)],
+  );
+
+  static const buttonShadow = [
+    BoxShadow(color: Color(0x574F46E5), blurRadius: 22, offset: Offset(0, 10)),
+  ];
+
+  /// The sign-in screens' brand panel (`SITokens.brandPanelGradient`).
+  static const panel = LinearGradient(
+    begin: Alignment(0.7, -0.9),
+    end: Alignment(-0.2, 1.2),
+    colors: [Color(0xFF2C6BF0), Color(0xFF1D4ED8), Color(0xFF1E3A9E)],
+    stops: [0.0, 0.46, 1.0],
+  );
+
+  /// The arc mark's own gradient (apps/flipper/assets/logo.svg).
+  static const mark = LinearGradient(
+    begin: Alignment.bottomLeft,
+    end: Alignment.topRight,
+    colors: [Color(0xFF0071FF), Color(0xFF00BFE1)],
+  );
+
+  /// Ink and rules on [panel].
+  static const onPanel = Color(0xFFFFFFFF);
+  static const onPanelSoft = Color(0xFFD6E2FF);
+  static const onPanelLine = Color(0x40FFFFFF);
 }
 
 /// Design tokens for the Flipper Books marketing home page.
@@ -141,8 +179,9 @@ abstract final class AppColors {
 }
 
 abstract final class AppSpace {
-  /// The phone mock is the one rounded thing on the page: it is a device.
-  static const rDevice = 18.0;
+  /// Buttons and pills round like the sign-in screens'; rules stay square.
+  static const rButton = 12.0;
+  static const rPill = 8.0;
   static const maxW = 1280.0;
   static const gutter = 28.0;
   static const gutterMobile = 18.0;
@@ -239,6 +278,16 @@ abstract final class AppText {
     height: 1.3,
     letterSpacing: 0.12 * size,
     color: c ?? AppColors.muted,
+  );
+
+  /// Button labels, sentence case like the sign-in screens'.
+  static TextStyle button({double size = 15, Color? c}) => TextStyle(
+    fontFamily: _sans,
+    fontFamilyFallback: _fallback,
+    fontSize: size,
+    fontWeight: FontWeight.w700,
+    letterSpacing: -0.01 * size,
+    color: c ?? AppColors.ink,
   );
 
   static TextStyle mono({

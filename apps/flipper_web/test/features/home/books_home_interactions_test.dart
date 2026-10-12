@@ -67,7 +67,7 @@ void main() {
       expect(colorOf(tester, 'Ledger'), AppColors.ink);
     });
 
-    testWidgets('a line button fills on hover, on paper and on ink', (
+    testWidgets('a line button fills on hover, on the page and on a panel', (
       tester,
     ) async {
       await tester.pumpWidget(
@@ -75,26 +75,43 @@ void main() {
           Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              LineButton(label: 'Paper', onTap: () {}),
-              LineButton(label: 'Ink', onTap: () {}, onInverse: true),
-              InkButton(label: 'Solid', onTap: () {}, onInverse: true),
+              LineButton(label: 'Page', onTap: () {}),
+              LineButton(label: 'Panel', onTap: () {}, onInverse: true),
+              InkButton(label: 'White', onTap: () {}, onInverse: true),
+              InkButton(label: 'Off', onTap: null),
             ],
           ),
         ),
       );
-      expect(colorOf(tester, 'PAPER'), AppColors.ink);
-      expect(colorOf(tester, 'INK'), AppColors.invertFg);
-      expect(colorOf(tester, 'SOLID'), AppColors.ink);
+      Color? fill(String label) =>
+          (tester
+                      .widget<AnimatedContainer>(
+                        find
+                            .ancestor(
+                              of: find.text(label),
+                              matching: find.byType(AnimatedContainer),
+                            )
+                            .first,
+                      )
+                      .decoration
+                  as BoxDecoration?)
+              ?.color;
+
+      expect(colorOf(tester, 'Page'), AppColors.ink);
+      expect(colorOf(tester, 'Panel'), AppGrad.onPanel);
+      expect(colorOf(tester, 'White'), AppColors.accentInk);
+      expect(colorOf(tester, 'Off'), AppColors.faint);
+      expect(fill('Page')!.a, 0);
 
       final pointer = await mouse(tester);
-      await pointer.moveTo(tester.getCenter(find.text('PAPER')));
+      await pointer.moveTo(tester.getCenter(find.text('Page')));
       await tester.pumpAndSettle();
-      expect(colorOf(tester, 'PAPER'), AppColors.invertFg);
+      expect(fill('Page'), AppColors.bgRaised);
 
-      await pointer.moveTo(tester.getCenter(find.text('INK')));
+      await pointer.moveTo(tester.getCenter(find.text('Panel')));
       await tester.pumpAndSettle();
-      expect(colorOf(tester, 'INK'), AppColors.invertBg);
-      expect(colorOf(tester, 'PAPER'), AppColors.ink);
+      expect(fill('Page')!.a, 0);
+      expect(fill('Panel')!.a, greaterThan(0));
     });
 
     testWidgets('a nav link brightens on hover', (tester) async {
@@ -126,16 +143,43 @@ void main() {
       ),
     );
 
-    final press = await tester.startGesture(tester.getCenter(find.text('GO')));
+    final press = await tester.startGesture(tester.getCenter(find.text('Go')));
     await tester.pump();
     await press.moveBy(const Offset(0, 300));
     await press.up();
     await tester.pumpAndSettle();
     expect(taps, 0);
 
-    await tester.tap(find.text('GO'));
+    await tester.tap(find.text('Go'));
     await tester.pumpAndSettle();
     expect(taps, 1);
+  });
+
+  group('wordmark', () {
+    double markOpacity(WidgetTester tester) => tester
+        .widget<Opacity>(
+          find.ancestor(
+            of: find.byType(FlipperMark),
+            matching: find.byType(Opacity),
+          ),
+        )
+        .opacity;
+
+    testWidgets('unfolds out of the mark once, then rests', (tester) async {
+      await tester.pumpWidget(app(const UnfoldingWordmark()));
+      expect(markOpacity(tester), 0);
+      expect(tester.hasRunningAnimations, isTrue);
+
+      await tester.pumpAndSettle();
+      expect(markOpacity(tester), 1);
+      expect(tester.hasRunningAnimations, isFalse);
+    });
+
+    testWidgets('starts unfolded under reduced motion', (tester) async {
+      await tester.pumpWidget(app(const UnfoldingWordmark(), still: true));
+      expect(markOpacity(tester), 1);
+      expect(tester.hasRunningAnimations, isFalse);
+    });
   });
 
   group('marquee', () {
@@ -290,7 +334,6 @@ void main() {
         child: MaterialApp(
           home: Scaffold(
             body: BooksHomeHeader(
-              scrolled: true,
               onStartFree: () => starts++,
               onSignIn: () => signIns++,
               onNavTap: navTaps.add,
@@ -309,9 +352,9 @@ void main() {
 
     await openMenuAndTap('PRICING');
     expect(navTaps, ['Pricing']);
-    await openMenuAndTap('LOG IN');
+    await openMenuAndTap('Log in');
     expect(signIns, 1);
-    await openMenuAndTap('START FREE');
+    await openMenuAndTap('Start free');
     expect(starts, 1);
   });
 
@@ -364,16 +407,33 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
+    testWidgets('the nav marks the section in view', (tester) async {
+      await pumpPage(tester);
+      Color? navColor(String label) =>
+          tester.widget<Text>(header(label)).style?.color;
+      expect(navColor('BOOKS'), AppColors.invertFg);
+      expect(navColor('PRICING'), isNot(AppColors.invertFg));
+
+      await tester.tap(header('PRICING'));
+      await tester.pumpAndSettle();
+      expect(navColor('PRICING'), AppColors.invertFg);
+      expect(navColor('BOOKS'), isNot(AppColors.invertFg));
+
+      await tester.tap(find.byType(FlipperMark).first);
+      await tester.pumpAndSettle();
+      expect(navColor('BOOKS'), AppColors.invertFg);
+    });
+
     testWidgets('start free goes to sign-up', (tester) async {
       await pumpPage(tester);
-      await tester.tap(header('START FREE'));
+      await tester.tap(header('Start free'));
       await tester.pumpAndSettle();
       expect(find.text('signup'), findsOneWidget);
     });
 
     testWidgets('log in goes to sign-in', (tester) async {
       await pumpPage(tester);
-      await tester.tap(header('LOG IN'));
+      await tester.tap(header('Log in'));
       await tester.pumpAndSettle();
       expect(find.text('login'), findsOneWidget);
     });
@@ -391,13 +451,13 @@ void main() {
 
     testWidgets('explore flow stays on the page', (tester) async {
       await pumpPage(tester);
-      await tapInBody(tester, 'EXPLORE FLOW AI');
+      await tapInBody(tester, 'Explore Flow AI');
       expect(find.byType(HomeScreen), findsOneWidget);
     });
 
     testWidgets('the closing call to action routes', (tester) async {
       await pumpPage(tester);
-      await tapInBody(tester, 'TALK TO SALES');
+      await tapInBody(tester, 'Talk to sales');
       expect(find.text('login'), findsOneWidget);
     });
 
@@ -405,7 +465,7 @@ void main() {
       await pumpPage(tester);
       final hero = find.byType(BooksHomeHero);
       await tester.tap(
-        find.descendant(of: hero, matching: find.text('SEE HOW IT WORKS')),
+        find.descendant(of: hero, matching: find.text('See how it works')),
       );
       await tester.pumpAndSettle();
       expect(
@@ -416,7 +476,7 @@ void main() {
       await tester.drag(find.byType(CustomScrollView), const Offset(0, 3000));
       await tester.pumpAndSettle();
       await tester.tap(
-        find.descendant(of: hero, matching: find.text('START FREE')),
+        find.descendant(of: hero, matching: find.text('Start free')),
       );
       await tester.pumpAndSettle();
       expect(find.text('signup'), findsOneWidget);
