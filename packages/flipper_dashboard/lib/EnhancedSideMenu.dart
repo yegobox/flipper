@@ -144,15 +144,16 @@ class _EnhancedSideMenuState extends ConsumerState<EnhancedSideMenu>
         },
         tooltip: context.flipperL10n.sideMenuOverview,
       ),
-      _SideMenuItem(
-        iconBuilder: (c) => _coloredSideMenuSvg(_SideMenuSvgs.aiChat, c),
-        isSelected: selectedItem == 1,
-        onTap: () {
-          ref.read(selectedMenuItemProvider.notifier).state = 1;
-          ref.read(selectedPageProvider.notifier).state = DashboardPage.ai;
-        },
-        tooltip: context.flipperL10n.menuChat,
-      ),
+      if (!ref.watch(isLocalModeProvider))
+        _SideMenuItem(
+          iconBuilder: (c) => _coloredSideMenuSvg(_SideMenuSvgs.aiChat, c),
+          isSelected: selectedItem == 1,
+          onTap: () {
+            ref.read(selectedMenuItemProvider.notifier).state = 1;
+            ref.read(selectedPageProvider.notifier).state = DashboardPage.ai;
+          },
+          tooltip: context.flipperL10n.menuChat,
+        ),
     ];
 
     final operationsGroup = <Widget>[

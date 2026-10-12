@@ -9293,5 +9293,18 @@
   "cashResetFailed": "Imeshindwa kufuta rekodi za daftari la fedha: {error}",
   "cashResetNotEnabled": "Kufuta rekodi za daftari la fedha hakujawashwa kwa biashara hii. Omba msaada wa Flipper uwashe mara moja.",
   "cashResetSignInFailed": "Kifaa hiki hakikuweza kuingia kwenye seva ya Flipper. Angalia muunganisho wa intaneti kisha ujaribu tena. Tatizo likiendelea, toka kisha uingie tena.",
-  "branchTransferCartStillSaving": "Baadhi ya bidhaa bado zinahifadhiwa. Subiri kidogo, kisha uhamishe tena."
+  "branchTransferCartStillSaving": "Baadhi ya bidhaa bado zinahifadhiwa. Subiri kidogo, kisha uhamishe tena.",
+  "signupDataChoice": "Mahali data yako inapohifadhiwa",
+  "signupDataCloud": "Sawazisha na wingu",
+  "signupDataCloudHint": "Imehifadhiwa na ipo kwenye vifaa vyako vyote, pamoja na EBM na Flo. Mpango wa kulipia.",
+  "signupDataLocal": "Nje ya mtandao kwenye kifaa hiki — bure milele",
+  "signupDataLocalHint": "Data inabaki kwenye kifaa hiki pekee, bila nakala rudufu: kuondoa programu au kupoteza kifaa kunaifuta. Hakuna EBM, hakuna Flo. Unaweza kuwasha usawazishaji wa wingu baadaye.",
+  "localModeFloUnavailable": "Flo inahitaji usawazishaji wa wingu. Washa usawazishaji wa wingu ili kuzungumza na Flo.",
+  "localModeTurnOnSync": "Washa usawazishaji wa wingu",
+  "localModeTurnOnSyncHint": "Hifadhi nakala ya kifaa hiki na uchague mpango",
+  "localModeOptInTitle": "Washa usawazishaji wa wingu?",
+  "localModeOptInBody": "Kila kitu kwenye kifaa hiki kitapakiwa kwenye wingu na utachagua mpango wa kulipia. EBM na Flo zitapatikana. Huwezi kurudi kwenye hali ya nje ya mtandao. Utaingia tena ili kumaliza.",
+  "localModeOptInConfirm": "Washa usawazishaji",
+  "localModeOptInOffline": "Unganisha kwenye intaneti ili kuwasha usawazishaji wa wingu.",
+  "localModeBadge": "Hali ya nje ya mtandao"
 }

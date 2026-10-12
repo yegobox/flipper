@@ -9285,5 +9285,18 @@
   "cashResetFailed": "Ntibyashobotse gusiba ibyanditswe mu gitabo cy'amafaranga: {error}",
   "cashResetNotEnabled": "Gusiba ibyanditswe mu gitabo cy'amafaranga ntibyemerewe iki kigo. Saba ubufasha bwa Flipper kubyemera rimwe.",
   "cashResetSignInFailed": "Iki gikoresho nticyashoboye kwinjira kuri seriveri ya Flipper. Reba ko murandasi ikora hanyuma wongere ugerageze. Nibikomeza, sohoka hanyuma wongere winjire.",
-  "branchTransferCartStillSaving": "Hari ibicuruzwa bikibikwa. Tegereza akanya gato, hanyuma wongere wohereze."
+  "branchTransferCartStillSaving": "Hari ibicuruzwa bikibikwa. Tegereza akanya gato, hanyuma wongere wohereze.",
+  "signupDataChoice": "Aho amakuru yawe abikwa",
+  "signupDataCloud": "Guhuza n'ikoranabuhanga rya cloud",
+  "signupDataCloudHint": "Abikwa neza kandi aboneka ku bikoresho byawe byose, hamwe na EBM na Flo. Ifatabuguzi ryishyurwa.",
+  "signupDataLocal": "Nta murandasi kuri iki gikoresho — ni ubuntu iteka",
+  "signupDataLocalHint": "Amakuru aguma kuri iki gikoresho gusa, nta bubiko bw'inyongera: gusiba porogaramu cyangwa gutakaza igikoresho birayasiba. Nta EBM, nta Flo. Ushobora gufungura guhuza na cloud nyuma.",
+  "localModeFloUnavailable": "Flo ikenera guhuza na cloud. Fungura guhuza na cloud kugira ngo uganire na Flo.",
+  "localModeTurnOnSync": "Fungura guhuza na cloud",
+  "localModeTurnOnSyncHint": "Bika amakuru y'iki gikoresho kandi uhitemo ifatabuguzi",
+  "localModeOptInTitle": "Gufungura guhuza na cloud?",
+  "localModeOptInBody": "Ibiri kuri iki gikoresho byose bizoherezwa kuri cloud kandi uzahitamo ifatabuguzi ryishyurwa. EBM na Flo bizaboneka. Ntushobora gusubira ku buryo butagira murandasi. Uzongera kwinjira kugira ngo urangize.",
+  "localModeOptInConfirm": "Fungura guhuza",
+  "localModeOptInOffline": "Huza na murandasi kugira ngo ufungure guhuza na cloud.",
+  "localModeBadge": "Uburyo butagira murandasi"
 }

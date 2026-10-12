@@ -5,6 +5,7 @@ import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/supabase_realtime_utils.dart';
+import 'package:flipper_web/core/local_mode/local_mode.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Represents the different states of payment verification
@@ -84,6 +85,8 @@ class PaymentVerificationService {
   /// [intervalMinutes] defines how often to check (defaults to 30 minutes)
   void startPeriodicVerification({int intervalMinutes = 30}) {
     stopPeriodicVerification();
+    // Local mode is free forever: nothing to re-check, and no Supabase calls.
+    if (LocalMode.isOn) return;
 
     _verificationTimer = Timer.periodic(Duration(minutes: intervalMinutes), (
       _,
@@ -117,6 +120,7 @@ class PaymentVerificationService {
   ///
   /// Safe to call repeatedly; re-subscribing for the same business is a no-op.
   Future<void> startRealtimeVerification({String? businessId}) async {
+    if (LocalMode.isOn) return;
     final id = businessId ?? await _activeBusinessId();
     if (id == null || id.isEmpty) {
       talker.warning(
@@ -178,7 +182,9 @@ class PaymentVerificationService {
   /// navigator conflicting verdicts.
   Future<void> _verifyAndNotify({required String reason}) async {
     if (_verifying) {
-      talker.info('Payment verification ($reason) skipped: one already running');
+      talker.info(
+        'Payment verification ($reason) skipped: one already running',
+      );
       return;
     }
     _verifying = true;
@@ -214,6 +220,14 @@ class PaymentVerificationService {
   /// Returns a detailed response that callers can use to decide what action to take
   Future<PaymentVerificationResponse> verifyPaymentStatus() async {
     debugPrint('🚀 [PaymentVerificationService] Verifying payment status...');
+
+    // Local mode is free forever. Every paywall decision (startup, periodic,
+    // realtime, "check subscription") goes through here.
+    if (LocalMode.isOn) {
+      return const PaymentVerificationResponse(
+        result: PaymentVerificationResult.active,
+      );
+    }
 
     try {
       final business = await ProxyService.strategy.activeBusiness().timeout(

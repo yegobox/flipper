@@ -27653,4 +27653,50 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   @override
   String get branchTransferCartStillSaving =>
       'Baadhi ya bidhaa bado zinahifadhiwa. Subiri kidogo, kisha uhamishe tena.';
+
+  @override
+  String get signupDataChoice => 'Mahali data yako inapohifadhiwa';
+
+  @override
+  String get signupDataCloud => 'Sawazisha na wingu';
+
+  @override
+  String get signupDataCloudHint =>
+      'Imehifadhiwa na ipo kwenye vifaa vyako vyote, pamoja na EBM na Flo. Mpango wa kulipia.';
+
+  @override
+  String get signupDataLocal =>
+      'Nje ya mtandao kwenye kifaa hiki — bure milele';
+
+  @override
+  String get signupDataLocalHint =>
+      'Data inabaki kwenye kifaa hiki pekee, bila nakala rudufu: kuondoa programu au kupoteza kifaa kunaifuta. Hakuna EBM, hakuna Flo. Unaweza kuwasha usawazishaji wa wingu baadaye.';
+
+  @override
+  String get localModeFloUnavailable =>
+      'Flo inahitaji usawazishaji wa wingu. Washa usawazishaji wa wingu ili kuzungumza na Flo.';
+
+  @override
+  String get localModeTurnOnSync => 'Washa usawazishaji wa wingu';
+
+  @override
+  String get localModeTurnOnSyncHint =>
+      'Hifadhi nakala ya kifaa hiki na uchague mpango';
+
+  @override
+  String get localModeOptInTitle => 'Washa usawazishaji wa wingu?';
+
+  @override
+  String get localModeOptInBody =>
+      'Kila kitu kwenye kifaa hiki kitapakiwa kwenye wingu na utachagua mpango wa kulipia. EBM na Flo zitapatikana. Huwezi kurudi kwenye hali ya nje ya mtandao. Utaingia tena ili kumaliza.';
+
+  @override
+  String get localModeOptInConfirm => 'Washa usawazishaji';
+
+  @override
+  String get localModeOptInOffline =>
+      'Unganisha kwenye intaneti ili kuwasha usawazishaji wa wingu.';
+
+  @override
+  String get localModeBadge => 'Hali ya nje ya mtandao';
 }

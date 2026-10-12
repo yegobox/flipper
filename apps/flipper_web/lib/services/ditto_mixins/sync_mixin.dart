@@ -2,6 +2,7 @@ import 'package:flipper_models/sync/utils/local_store_indexes.dart';
 import 'dart:async';
 
 import 'package:ditto_live/ditto_live.dart';
+import 'package:flipper_web/core/local_mode/local_mode.dart';
 import 'package:flipper_web/models/user_profile.dart';
 import 'package:flutter/foundation.dart' hide Category;
 import 'package:permission_handler/permission_handler.dart';
@@ -184,6 +185,12 @@ mixin SyncMixin on DittoCore {
 
   /// Starts Ditto sync if Ditto is initialized
   void startSync() {
+    // Local mode never syncs, and must not prompt for Bluetooth/nearby
+    // permissions either. Every startSync() caller funnels through here.
+    if (LocalMode.isOn) {
+      debugPrint('Ditto sync skipped: local mode');
+      return;
+    }
     if (dittoInstance != null) {
       final platform = Ditto.currentPlatform;
       if (platform == SupportedPlatform.android) {
@@ -240,6 +247,7 @@ mixin SyncMixin on DittoCore {
 
   /// Internal method to start sync
   void _startSync({bool fallback = false}) {
+    if (LocalMode.isOn) return;
     try {
       dittoInstance!.sync.start();
       debugPrint(

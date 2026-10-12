@@ -1,3 +1,5 @@
+import 'package:flipper_dashboard/local_mode/turn_on_cloud_sync.dart';
+import 'package:flipper_web/core/local_mode/local_mode.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'dart:async';
 
@@ -37,7 +39,16 @@ Widget SettingLayout({
         _routerService.navigateTo(TenantManagementRoute());
       },
     ),
-    if (isDesktopOrWeb)
+    // Local mode is free forever: it offers opting in to sync instead.
+    if (LocalMode.isOn)
+      _SettingsItem(
+        icon: FluentIcons.cloud_sync_24_regular,
+        iconColor: Colors.white,
+        iconBgColor: const Color(0xFF007AFF),
+        title: l10n.localModeTurnOnSync,
+        onTap: () => confirmAndTurnOnCloudSync(context),
+      )
+    else if (isDesktopOrWeb)
       _SettingsItem(
         icon: FluentIcons.payment_24_regular,
         iconColor: Colors.white,

@@ -7700,5 +7700,18 @@
   "cashResetFailed": "Impossible de vider le livre de caisse : {error}",
   "cashResetNotEnabled": "Le vidage du livre de caisse n'est pas activé pour cette entreprise. Demandez au support Flipper de l'activer pour une seule fois.",
   "cashResetSignInFailed": "Cet appareil n'a pas pu se connecter au serveur Flipper. Vérifiez la connexion internet et réessayez. Si le problème persiste, déconnectez-vous puis reconnectez-vous.",
-  "branchTransferCartStillSaving": "Certains articles sont encore en cours d'enregistrement. Patientez un instant, puis relancez le transfert."
+  "branchTransferCartStillSaving": "Certains articles sont encore en cours d'enregistrement. Patientez un instant, puis relancez le transfert.",
+    "signupDataChoice": "Où vos données sont conservées",
+    "signupDataCloud": "Synchroniser avec le cloud",
+    "signupDataCloudHint": "Sauvegardé et sur tous vos appareils, avec EBM et Flo. Abonnement payant.",
+    "signupDataLocal": "Hors ligne sur cet appareil — gratuit pour toujours",
+    "signupDataLocalHint": "Les données restent uniquement sur cet appareil, sans sauvegarde : désinstaller l'application ou perdre l'appareil les supprime. Pas d'EBM, pas de Flo. Vous pourrez activer la synchronisation plus tard.",
+    "localModeFloUnavailable": "Flo a besoin de la synchronisation cloud. Activez-la pour discuter avec Flo.",
+    "localModeTurnOnSync": "Activer la synchronisation cloud",
+    "localModeTurnOnSyncHint": "Sauvegarder cet appareil et choisir un abonnement",
+    "localModeOptInTitle": "Activer la synchronisation cloud ?",
+    "localModeOptInBody": "Tout ce qui se trouve sur cet appareil sera envoyé vers le cloud et vous choisirez un abonnement payant. EBM et Flo deviennent disponibles. Vous ne pourrez pas revenir au mode hors ligne. Vous vous reconnecterez pour terminer.",
+    "localModeOptInConfirm": "Activer la synchronisation",
+    "localModeOptInOffline": "Connectez-vous à Internet pour activer la synchronisation cloud.",
+    "localModeBadge": "Mode hors ligne"
 }

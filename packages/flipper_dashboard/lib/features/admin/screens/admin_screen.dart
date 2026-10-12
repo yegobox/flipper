@@ -1,3 +1,4 @@
+import 'package:flipper_web/core/local_mode/local_mode.dart';
 import 'package:flipper_dashboard/ReinitializeEbm.dart';
 import 'package:flipper_dashboard/TaxSettingsModal.dart';
 import 'package:flipper_dashboard/TenantManagement.dart';
@@ -195,19 +196,22 @@ class _AdminScreenContent extends StatelessWidget {
           },
           color: Colors.purple,
         ),
-        const SizedBox(height: 16),
-        SettingsCard(
-          title: context.flipperL10n.ebmSettings,
-          subtitle: context.flipperL10n.electronicBillingMachineSettings,
-          icon: Icons.receipt,
-          onTap: () {
-            showDialog(
-              context: context,
-              builder: (context) => ReInitializeEbmDialog(),
-            );
-          },
-          color: Colors.orange,
-        ),
+        // EBM is unavailable in local mode.
+        if (!LocalMode.isOn) ...[
+          const SizedBox(height: 16),
+          SettingsCard(
+            title: context.flipperL10n.ebmSettings,
+            subtitle: context.flipperL10n.electronicBillingMachineSettings,
+            icon: Icons.receipt,
+            onTap: () {
+              showDialog(
+                context: context,
+                builder: (context) => ReInitializeEbmDialog(),
+              );
+            },
+            color: Colors.orange,
+          ),
+        ],
       ],
     );
   }

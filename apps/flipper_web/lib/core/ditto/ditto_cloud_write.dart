@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:ditto_live/ditto_live.dart';
+import 'package:flipper_web/core/local_mode/local_mode.dart';
 import 'package:flipper_web/core/utils/ditto_singleton.dart';
 import 'package:flutter/foundation.dart';
 
@@ -9,6 +10,9 @@ import 'package:flutter/foundation.dart';
 /// On web the local store is in-memory; without auth + active sync, upserts
 /// vanish on reload and never reach the big peer.
 Future<void> ensureDittoCloudWriteReady(Ditto ditto) async {
+  // Local mode (native only) keeps every write on the device by design, and the
+  // native store is durable — nothing would be lost.
+  if (LocalMode.isOn) return;
   if (!DittoSingleton.isAuthenticated(ditto)) {
     throw StateError(
       'Ditto not authenticated — cloud write blocked '
@@ -21,9 +25,7 @@ Future<void> ensureDittoCloudWriteReady(Ditto ditto) async {
     await Future<void>.delayed(const Duration(milliseconds: 100));
   }
   if (!ditto.sync.isActive) {
-    throw StateError(
-      'Ditto sync inactive — cloud write would stay local-only',
-    );
+    throw StateError('Ditto sync inactive — cloud write would stay local-only');
   }
 }
 

@@ -27488,4 +27488,48 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
   @override
   String get branchTransferCartStillSaving =>
       'Some items are still being saved. Wait a moment, then transfer again.';
+
+  @override
+  String get signupDataChoice => 'Where your data is kept';
+
+  @override
+  String get signupDataCloud => 'Sync to the cloud';
+
+  @override
+  String get signupDataCloudHint =>
+      'Backed up and on all your devices, with EBM and Flo. Paid plan.';
+
+  @override
+  String get signupDataLocal => 'Offline on this device — free forever';
+
+  @override
+  String get signupDataLocalHint =>
+      'Data stays only on this device, with no backup: uninstalling the app or losing the device deletes it. No EBM, no Flo. You can turn on cloud sync later.';
+
+  @override
+  String get localModeFloUnavailable =>
+      'Flo needs cloud sync. Turn on cloud sync to chat with Flo.';
+
+  @override
+  String get localModeTurnOnSync => 'Turn on cloud sync';
+
+  @override
+  String get localModeTurnOnSyncHint => 'Back up this device and choose a plan';
+
+  @override
+  String get localModeOptInTitle => 'Turn on cloud sync?';
+
+  @override
+  String get localModeOptInBody =>
+      'Everything on this device will be uploaded to the cloud and you will choose a paid plan. EBM and Flo become available. You can\'t go back to offline mode. You\'ll sign in again to finish.';
+
+  @override
+  String get localModeOptInConfirm => 'Turn on sync';
+
+  @override
+  String get localModeOptInOffline =>
+      'Connect to the internet to turn on cloud sync.';
+
+  @override
+  String get localModeBadge => 'Offline mode';
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flipper_analytics/flipper_analytics.dart';
+import 'package:flipper_models/local_mode_tax_guard.dart';
 import 'package:flipper_models/CoreSync.dart';
 import 'package:flipper_models/DatabaseSyncInterface.dart';
 import 'package:flipper_models/Supabase.dart';
@@ -363,7 +364,8 @@ abstract class ServicesModule {
   TaxApi get taxApiService {
     late TaxApi taxApiService;
 
-    taxApiService = RWTax();
+    // Guarded so local mode (no EBM) never reaches the tax server.
+    taxApiService = LocalModeTaxGuard(RWTax());
     return taxApiService;
   }
 

@@ -14,6 +14,7 @@ import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:stacked/stacked.dart' show PageRouteInfo;
+import 'package:flipper_web/core/local_mode/local_mode.dart';
 import 'package:stacked_services/stacked_services.dart';
 
 /// Routes the user based on [PaymentVerificationResponse] (startup, periodic, manual).
@@ -196,6 +197,14 @@ class PaymentVerificationNavigator {
         );
         return;
       }
+    }
+
+    // Local mode is free forever: never a paywall, whatever the plan says.
+    if (response.result != PaymentVerificationResult.active &&
+        LocalMode.isOn) {
+      talker.info('Local mode: no plan needed');
+      await _handleActiveSubscription(mayEnterHome: mayEnterHome);
+      return;
     }
 
     // Personal mode is free: never a paywall, whatever the plan says. Asked

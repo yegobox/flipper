@@ -7,6 +7,7 @@ import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/sync/mixins/auth_mixin.dart';
 import 'package:flipper_models/sync/branch_catalog_cloud_sync.dart';
 import 'package:flipper_web/core/utils/ditto_singleton.dart';
+import 'package:flipper_web/core/local_mode/local_mode.dart';
 import 'package:stacked/stacked.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:stacked_services/stacked_services.dart';
@@ -328,7 +329,7 @@ class AppService with ListenableServiceMixin {
 
     await persistBusinessBranchSelectionToSqlite();
 
-    if (businessId != null) {
+    if (businessId != null && !LocalMode.isOn) {
       unawaited(
         ProxyService.strategy.getPaymentPlan(
           businessId: businessId,
@@ -886,6 +887,17 @@ class AppService with ListenableServiceMixin {
     }
   }
 
+  /// Branch capabilities for a local-mode device. flipper-turbo writes the
+  /// `business_features` doc into Ditto Cloud, which a local device never
+  /// receives, so without this every capability-gated app would disappear.
+  /// PRINTING_DELEGATION (needs a second device) and KDS (an add-on) stay off.
+  static const kLocalModeFeatures = [
+    'POS',
+    'INVENTORY',
+    'ORDERING',
+    'MANUFACTURING',
+  ];
+
   final _features = ReactiveValue<List<String>>([]);
   List<String> get features => _features.value;
 
@@ -898,7 +910,10 @@ class AppService with ListenableServiceMixin {
         featureStream: (businessId) => ProxyService.ditto
             .businessFeatureStream(businessId: businessId)
             .map((feature) => feature?.features),
-        onFeatures: (features) => _features.value = List.of(features),
+        onFeatures: (features) =>
+            _features.value = LocalMode.isOn && features.isEmpty
+            ? List.of(kLocalModeFeatures)
+            : List.of(features),
         isUsableDitto: (ditto) => !_isLoginDitto(ditto),
       );
 

@@ -45976,6 +45976,84 @@ abstract class FlipperAppLocalizations {
   /// In en, this message translates to:
   /// **'Some items are still being saved. Wait a moment, then transfer again.'**
   String get branchTransferCartStillSaving;
+
+  /// Signup: heading above the cloud-sync / offline-only choice
+  ///
+  /// In en, this message translates to:
+  /// **'Where your data is kept'**
+  String get signupDataChoice;
+
+  /// Signup option: normal cloud sync
+  ///
+  /// In en, this message translates to:
+  /// **'Sync to the cloud'**
+  String get signupDataCloud;
+
+  /// Signup option hint for cloud sync
+  ///
+  /// In en, this message translates to:
+  /// **'Backed up and on all your devices, with EBM and Flo. Paid plan.'**
+  String get signupDataCloudHint;
+
+  /// Signup option: local-only mode, no subscription
+  ///
+  /// In en, this message translates to:
+  /// **'Offline on this device — free forever'**
+  String get signupDataLocal;
+
+  /// Signup option hint for local-only mode; must warn about data loss
+  ///
+  /// In en, this message translates to:
+  /// **'Data stays only on this device, with no backup: uninstalling the app or losing the device deletes it. No EBM, no Flo. You can turn on cloud sync later.'**
+  String get signupDataLocalHint;
+
+  /// Shown instead of Flo chat in offline (local) mode
+  ///
+  /// In en, this message translates to:
+  /// **'Flo needs cloud sync. Turn on cloud sync to chat with Flo.'**
+  String get localModeFloUnavailable;
+
+  /// Menu entry in offline mode to opt in to cloud sync
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on cloud sync'**
+  String get localModeTurnOnSync;
+
+  /// Subtitle of the turn-on-cloud-sync entry
+  ///
+  /// In en, this message translates to:
+  /// **'Back up this device and choose a plan'**
+  String get localModeTurnOnSyncHint;
+
+  /// Confirm dialog title for leaving offline mode
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on cloud sync?'**
+  String get localModeOptInTitle;
+
+  /// Confirm dialog body for leaving offline mode
+  ///
+  /// In en, this message translates to:
+  /// **'Everything on this device will be uploaded to the cloud and you will choose a paid plan. EBM and Flo become available. You can\'t go back to offline mode. You\'ll sign in again to finish.'**
+  String get localModeOptInBody;
+
+  /// Confirm button for leaving offline mode
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on sync'**
+  String get localModeOptInConfirm;
+
+  /// Error when opting in to sync without internet
+  ///
+  /// In en, this message translates to:
+  /// **'Connect to the internet to turn on cloud sync.'**
+  String get localModeOptInOffline;
+
+  /// Short label showing the device runs offline-only
+  ///
+  /// In en, this message translates to:
+  /// **'Offline mode'**
+  String get localModeBadge;
 }
 
 class _FlipperAppLocalizationsDelegate

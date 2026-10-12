@@ -27923,4 +27923,50 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   @override
   String get branchTransferCartStillSaving =>
       'Certains articles sont encore en cours d\'enregistrement. Patientez un instant, puis relancez le transfert.';
+
+  @override
+  String get signupDataChoice => 'Où vos données sont conservées';
+
+  @override
+  String get signupDataCloud => 'Synchroniser avec le cloud';
+
+  @override
+  String get signupDataCloudHint =>
+      'Sauvegardé et sur tous vos appareils, avec EBM et Flo. Abonnement payant.';
+
+  @override
+  String get signupDataLocal =>
+      'Hors ligne sur cet appareil — gratuit pour toujours';
+
+  @override
+  String get signupDataLocalHint =>
+      'Les données restent uniquement sur cet appareil, sans sauvegarde : désinstaller l\'application ou perdre l\'appareil les supprime. Pas d\'EBM, pas de Flo. Vous pourrez activer la synchronisation plus tard.';
+
+  @override
+  String get localModeFloUnavailable =>
+      'Flo a besoin de la synchronisation cloud. Activez-la pour discuter avec Flo.';
+
+  @override
+  String get localModeTurnOnSync => 'Activer la synchronisation cloud';
+
+  @override
+  String get localModeTurnOnSyncHint =>
+      'Sauvegarder cet appareil et choisir un abonnement';
+
+  @override
+  String get localModeOptInTitle => 'Activer la synchronisation cloud ?';
+
+  @override
+  String get localModeOptInBody =>
+      'Tout ce qui se trouve sur cet appareil sera envoyé vers le cloud et vous choisirez un abonnement payant. EBM et Flo deviennent disponibles. Vous ne pourrez pas revenir au mode hors ligne. Vous vous reconnecterez pour terminer.';
+
+  @override
+  String get localModeOptInConfirm => 'Activer la synchronisation';
+
+  @override
+  String get localModeOptInOffline =>
+      'Connectez-vous à Internet pour activer la synchronisation cloud.';
+
+  @override
+  String get localModeBadge => 'Mode hors ligne';
 }

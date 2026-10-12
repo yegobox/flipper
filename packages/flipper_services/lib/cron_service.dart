@@ -13,6 +13,7 @@ import 'package:flipper_models/mixins/TaxController.dart';
 import 'package:flipper_services/drive_service.dart';
 import 'package:flipper_services/log_service.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_web/core/local_mode/local_mode.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flipper_services/constants.dart';
@@ -65,8 +66,9 @@ class CronService {
   }) async {
     final rawSnapshots = additionalData['itemSnapshots'];
     if (rawSnapshots is List && rawSnapshots.isNotEmpty) {
-      final snapshotItems =
-          capella.transactionItemsFromDelegationSnapshots(rawSnapshots);
+      final snapshotItems = capella.transactionItemsFromDelegationSnapshots(
+        rawSnapshots,
+      );
       if (snapshotItems.isNotEmpty) {
         talker.info(
           'Resolved ${snapshotItems.length} delegation item(s) from embedded '
@@ -135,9 +137,7 @@ class CronService {
       }
 
       return await repository.get<TransactionItem>(
-        query: Query(
-          where: [Where('transactionId').isExactly(transactionId)],
-        ),
+        query: Query(where: [Where('transactionId').isExactly(transactionId)]),
         policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
       );
     } catch (e, stackTrace) {
@@ -156,9 +156,7 @@ class CronService {
     required String transactionId,
     required Map<String, dynamic> additionalData,
   }) async {
-    final transactions = await capella.transactions(
-      id: transactionId,
-    );
+    final transactions = await capella.transactions(id: transactionId);
     if (transactions.isNotEmpty) {
       return transactions.first;
     }
@@ -168,9 +166,8 @@ class CronService {
       return null;
     }
 
-    final transaction = await ITransactionDittoAdapter.instance.fromDittoDocument(
-      Map<String, dynamic>.from(rawSnapshot),
-    );
+    final transaction = await ITransactionDittoAdapter.instance
+        .fromDittoDocument(Map<String, dynamic>.from(rawSnapshot));
     if (transaction != null) {
       talker.info(
         'Resolved delegation transaction from embedded snapshot for '
@@ -185,7 +182,8 @@ class CronService {
     required TransactionDelegation delegation,
     required Map<String, dynamic> additionalData,
   }) {
-    if (delegation.customerName != null && delegation.customerName!.isNotEmpty) {
+    if (delegation.customerName != null &&
+        delegation.customerName!.isNotEmpty) {
       transaction.customerName = delegation.customerName;
     }
     if (delegation.customerTin != null) {
@@ -203,7 +201,8 @@ class CronService {
     final rawSnapshot = additionalData['transactionSnapshot'];
     if (rawSnapshot is Map) {
       final snap = Map<String, dynamic>.from(rawSnapshot);
-      final phone = snap['customerPhone'] ?? snap['currentSaleCustomerPhoneNumber'];
+      final phone =
+          snap['customerPhone'] ?? snap['currentSaleCustomerPhoneNumber'];
       if (phone != null && phone.toString().isNotEmpty) {
         transaction.customerPhone = phone.toString();
       }
@@ -302,16 +301,12 @@ class CronService {
 
     final branchId = ProxyService.box.getBranchId();
     if (branchId == null) {
-      talker.warning(
-        'Skipping delegation monitoring: Branch ID is null.',
-      );
+      talker.warning('Skipping delegation monitoring: Branch ID is null.');
       return;
     }
 
     if (!ProxyService.ditto.isReady()) {
-      talker.warning(
-        'Skipping delegation monitoring: Ditto is not ready yet.',
-      );
+      talker.warning('Skipping delegation monitoring: Ditto is not ready yet.');
       return;
     }
 
@@ -424,9 +419,7 @@ class CronService {
         );
 
         if (transaction == null) {
-          talker.error(
-            "Transaction not found for delegation: $delegationId",
-          );
+          talker.error("Transaction not found for delegation: $delegationId");
           await capella.updateDelegationStatus(
             transactionId: delegationId,
             status: 'failed',
@@ -434,8 +427,7 @@ class CronService {
           );
           continue;
         }
-        final salesSttsCd =
-            additionalData['salesSttsCd'] as String? ?? '02';
+        final salesSttsCd = additionalData['salesSttsCd'] as String? ?? '02';
         final purchaseCode = additionalData['purchaseCode'] as String?;
         final counters = await capella.getCounters(
           branchId: branchId,
@@ -458,9 +450,7 @@ class CronService {
               'Missing line items in delegation payload. '
               'Re-send the sale from the POS device (delegation '
               'must include item snapshots).';
-          talker.error(
-            'Delegation $delegationId failed: $errorMessage',
-          );
+          talker.error('Delegation $delegationId failed: $errorMessage');
           await capella.updateDelegationStatus(
             transactionId: delegationId,
             status: 'failed',
@@ -470,9 +460,7 @@ class CronService {
             status: 'failed',
             updatedAt: DateTime.now().toUtc(),
           );
-          await repository.upsert<TransactionDelegation>(
-            failedDelegation,
-          );
+          await repository.upsert<TransactionDelegation>(failedDelegation);
           continue;
         }
 
@@ -482,9 +470,7 @@ class CronService {
           additionalData: additionalData,
         );
 
-        final taxController = TaxController<ITransaction>(
-          object: transaction,
-        );
+        final taxController = TaxController<ITransaction>(object: transaction);
 
         talker.info(
           "🖨️  Processing receipt for delegation: ${delegation.receiptType}",
@@ -537,9 +523,7 @@ class CronService {
             status: 'completed',
             updatedAt: DateTime.now().toUtc(),
           );
-          await repository.upsert<TransactionDelegation>(
-            updatedDelegation,
-          );
+          await repository.upsert<TransactionDelegation>(updatedDelegation);
         } else {
           talker.error(
             "❌ Receipt printing failed: ${result.response.resultMsg}",
@@ -555,9 +539,7 @@ class CronService {
             status: 'failed',
             updatedAt: DateTime.now().toUtc(),
           );
-          await repository.upsert<TransactionDelegation>(
-            updatedDelegation,
-          );
+          await repository.upsert<TransactionDelegation>(updatedDelegation);
         }
       } catch (e, stackTrace) {
         talker.error(
@@ -575,13 +557,9 @@ class CronService {
             status: 'failed',
             updatedAt: DateTime.now().toUtc(),
           );
-          await repository.upsert<TransactionDelegation>(
-            updatedDelegation,
-          );
+          await repository.upsert<TransactionDelegation>(updatedDelegation);
         } catch (updateError) {
-          talker.error(
-            "Failed to update delegation status: $updateError",
-          );
+          talker.error("Failed to update delegation status: $updateError");
         }
       } finally {
         _processingDelegationIds.remove(delegationId);
@@ -687,7 +665,9 @@ class CronService {
         }
       }
       final uri = await ProxyService.box.getServerUrl();
-      if (uri != null && uri.isNotEmpty) {
+      if (LocalMode.isOn) {
+        talker.info('Skipping getUniversalProducts: no EBM in local mode');
+      } else if (uri != null && uri.isNotEmpty) {
         await ProxyService.http.getUniversalProducts(
           Uri.parse('${uri}itemClass/selectItemsClass'),
           headers: {"Content-Type": "application/json"},
@@ -750,9 +730,7 @@ class CronService {
           // localhost URI. Force-unwrapping `uri` here crashed hydration when
           // the server URL was not yet configured.
           if (uri == null || uri.isEmpty) {
-            talker.info(
-              "Skipping fetchNotices: server URL is not configured",
-            );
+            talker.info("Skipping fetchNotices: server URL is not configured");
           } else if (isMobileDevice && uri.contains('localhost')) {
             talker.info(
               "Skipping fetchNotices on mobile device with localhost URI",
@@ -815,8 +793,12 @@ class CronService {
       ProxyService.strategy.whoAmI();
 
       // Get payment plan
+      // Local mode has no plan. Offline this read throws, and the rethrow below
+      // would abort the rest of [schedule].
       final businessId = ProxyService.box.getBusinessId();
-      if (businessId != null) {
+      if (LocalMode.isOn) {
+        talker.info('Skipping payment plan fetch: local mode');
+      } else if (businessId != null) {
         await ProxyService.strategy.getPaymentPlan(businessId: businessId);
       } else {
         talker.warning("Skipping payment plan fetch: Business ID is null");
@@ -902,9 +884,10 @@ class CronService {
             business.deviceToken = token;
             final businessId = business.id;
             if (businessId.isNotEmpty) {
-              await Supabase.instance.client.from('businesses').update({
-                'device_token': token,
-              }).eq('id', businessId);
+              await Supabase.instance.client
+                  .from('businesses')
+                  .update({'device_token': token})
+                  .eq('id', businessId);
             }
             talker.info('Firebase messaging token registered');
           } else {
@@ -968,12 +951,12 @@ class CronService {
 
     final momoTransactions = await ProxyService.getStrategy(Strategy.capella)
         .transactions(
-      branchId: branchId,
-      status: WAITING_MOMO_COMPLETE,
-      isExpense: null,
-      skipOriginalTransactionCheck: true,
-      includeZeroSubTotal: true,
-    );
+          branchId: branchId,
+          status: WAITING_MOMO_COMPLETE,
+          isExpense: null,
+          skipOriginalTransactionCheck: true,
+          includeZeroSubTotal: true,
+        );
 
     if (momoTransactions.isEmpty) {
       talker.debug("No MoMo transactions waiting for completion");

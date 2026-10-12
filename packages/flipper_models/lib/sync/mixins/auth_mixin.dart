@@ -29,6 +29,7 @@ import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:flipper_web/core/secrets.dart';
+import 'package:flipper_web/core/local_mode/local_mode.dart';
 import 'package:flipper_web/core/utils/ditto_singleton.dart';
 import 'package:supabase_models/sync/ditto_sync_coordinator.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -247,6 +248,8 @@ mixin AuthMixin implements AuthInterface {
     required HttpClientInterface flipperHttpClient,
     required bool fetchRemote,
   }) async {
+    // Local mode is free forever — never a paywall, never a plan lookup.
+    if (LocalMode.isOn) return true;
     // if (isTestEnvironment()) return true;
     // Plan reads are Ditto-first (see CoreSync / CapellaSync); [preferFresh] is
     // ignored there but kept for API compatibility.

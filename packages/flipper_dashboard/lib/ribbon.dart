@@ -3,6 +3,7 @@
 import 'dart:async';
 import 'dart:math' as math;
 
+import 'package:flipper_web/core/local_mode/local_mode.dart';
 import 'package:badges/badges.dart' as badges;
 import 'package:flipper_dashboard/BranchPerformance.dart';
 import 'package:flipper_dashboard/dashboard_shell.dart';
@@ -183,18 +184,24 @@ class IconRowState extends ConsumerState<IconRow> with CoreMiscellaneous {
                 caption: context.flipperL10n.ribbonItemsCaption,
               ),
             ),
-            const PopupMenuDivider(height: 8),
-            PopupMenuItem(
-              value: 'taxSettings',
-              key: const Key('more_tax_settings'),
-              height: 44,
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
-              child: _MoreMenuRow(
-                icon: Icons.receipt_long_outlined,
-                label: context.flipperL10n.taxSettings,
-                caption: context.flipperL10n.ribbonTaxSettingsCaption,
+            // No EBM in local mode, so nothing to configure.
+            if (!LocalMode.isOn) ...[
+              const PopupMenuDivider(height: 8),
+              PopupMenuItem(
+                value: 'taxSettings',
+                key: const Key('more_tax_settings'),
+                height: 44,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 2,
+                ),
+                child: _MoreMenuRow(
+                  icon: Icons.receipt_long_outlined,
+                  label: context.flipperL10n.taxSettings,
+                  caption: context.flipperL10n.ribbonTaxSettingsCaption,
+                ),
               ),
-            ),
+            ],
           ],
         ),
       ],

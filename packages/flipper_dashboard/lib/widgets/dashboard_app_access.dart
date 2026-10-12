@@ -25,6 +25,7 @@ final dashboardIsAdminProvider = Provider.autoDispose<bool>(
 
 /// Whether a dashboard app tile should be visible for the signed-in user.
 bool dashboardAppTileVisible(WidgetRef ref, DashboardAllAppTile tile) {
+  if (hiddenInLocalMode(ref, tile.page)) return false;
   if (tile.page == 'DailyReports') {
     return ref.watch(sideMenuShowDailyReportFilesProvider);
   }

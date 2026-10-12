@@ -4,6 +4,7 @@ import 'package:flipper_dashboard/providers/agent_commission_access_provider.dar
 import 'package:flipper_models/providers/access_provider.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_web/core/local_mode/local_mode.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 
@@ -14,6 +15,25 @@ final selectedMenuItemProvider = StateProvider<int>(
 ); // -1 represents the Apps screen
 final defaultAppProvider = StateProvider<String?>((ref) => null);
 final isDefaultAppLoadedProvider = StateProvider<bool>((ref) => false);
+
+/// Whether this device runs in local mode ([LocalMode]): no sync, no paywall,
+/// no EBM, no Flo. Rebuilds when the user signs up local or opts in to sync.
+final isLocalModeProvider = Provider<bool>((ref) {
+  void listener() => ref.invalidateSelf();
+  LocalMode.changes.addListener(listener);
+  ref.onDispose(() => LocalMode.changes.removeListener(listener));
+  return LocalMode.isOn;
+});
+
+/// Dashboard pages local mode never offers: Flo (EBM-hosted cloud AI), HR
+/// (Supabase-only, with its own paywall) and Credits (an online MoMo top-up).
+const kLocalModeHiddenPages = {'Chat', 'HR', 'Credits'};
+
+/// Whether [page] is hidden because this device runs in local mode.
+bool hiddenInLocalMode(WidgetRef ref, String? page) =>
+    page != null &&
+    kLocalModeHiddenPages.contains(page) &&
+    ref.watch(isLocalModeProvider);
 
 final featuresProvider = StreamProvider<List<String>>((ref) {
   final controller = StreamController<List<String>>();
@@ -71,14 +91,12 @@ final sideMenuShowStockRecountProvider = Provider<bool>((ref) {
 
 /// Local desktop toggle (Admin → Print Delegation). Kept in sync when the switch changes.
 final transactionDelegationEnabledProvider = StateProvider<bool>((ref) {
-  return ProxyService.box.readBool(key: 'enableTransactionDelegation') ??
-      false;
+  return ProxyService.box.readBool(key: 'enableTransactionDelegation') ?? false;
 });
 
 final sideMenuShowDelegationsProvider = Provider<bool>((ref) {
   final enabledLocally = ref.watch(transactionDelegationEnabledProvider);
-  final hasBranchFeature =
-      ref.watch(hasFeatureProvider('PRINTING_DELEGATION'));
+  final hasBranchFeature = ref.watch(hasFeatureProvider('PRINTING_DELEGATION'));
   if (!enabledLocally && !hasBranchFeature) return false;
   // Receiver was turned on in settings on this device — show queue without waiting for Ditto feature sync.
   if (enabledLocally) return true;
@@ -87,7 +105,8 @@ final sideMenuShowDelegationsProvider = Provider<bool>((ref) {
 });
 
 final sideMenuShowIncomingOrdersProvider = Provider<bool>((ref) {
-  final branchOk = ref.watch(hasFeatureProvider('ORDERING')) ||
+  final branchOk =
+      ref.watch(hasFeatureProvider('ORDERING')) ||
       ref.watch(hasFeatureProvider('INVENTORY'));
   if (!branchOk) return false;
   return userHasFeatureWriteAccess(ref, AppFeature.Orders) ||
@@ -168,8 +187,5 @@ final sideMenuShowShiftHistoryProvider = Provider<bool>((ref) {
   final adminAsync = ref.watch(
     isAdminProvider(uid, featureName: AppFeature.ShiftHistory),
   );
-  return adminAsync.maybeWhen(
-    data: (v) => v == true,
-    orElse: () => false,
-  );
+  return adminAsync.maybeWhen(data: (v) => v == true, orElse: () => false);
 });

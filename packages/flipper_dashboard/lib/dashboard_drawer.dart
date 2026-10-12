@@ -15,6 +15,8 @@ import 'dart:async';
 import 'package:flipper_web/core/utils/ditto_singleton.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_routing/app.dialogs.dart';
+import 'package:flipper_dashboard/local_mode/turn_on_cloud_sync.dart';
+import 'package:flipper_web/core/local_mode/local_mode.dart';
 // import 'package:flipper_nfc/flipper_nfc.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -601,56 +603,62 @@ class _DashboardDrawerState extends ConsumerState<DashboardDrawer>
             },
           ),
           const SizedBox(height: 12),
-          _ModernSwitchRow(
-            iconSvg:
-                DashboardQuickAccessSvgs.drawerBackgroundSyncGridPlusIcon(),
-            title: context.flipperL10n.backgroundSync,
-            subtitle: context.flipperL10n.syncDataInBackground,
-            value: backgroundSyncEnabled,
-            onChanged: (value) async {
-              await ProxyService.box.writeBool(
-                key: 'background_sync_enabled',
-                value: value,
-              );
-              setState(() {
-                backgroundSyncEnabled = value;
-              });
-              if (value) {
-                final appID = kDebugMode
-                    ? AppSecrets.appIdDebug
-                    : AppSecrets.appId;
+          // Local mode never syncs; its only way out is opting in below.
+          if (!LocalMode.isOn)
+            _ModernSwitchRow(
+              iconSvg:
+                  DashboardQuickAccessSvgs.drawerBackgroundSyncGridPlusIcon(),
+              title: context.flipperL10n.backgroundSync,
+              subtitle: context.flipperL10n.syncDataInBackground,
+              value: backgroundSyncEnabled,
+              onChanged: (value) async {
+                await ProxyService.box.writeBool(
+                  key: 'background_sync_enabled',
+                  value: value,
+                );
+                setState(() {
+                  backgroundSyncEnabled = value;
+                });
+                if (value) {
+                  final appID = kDebugMode
+                      ? AppSecrets.appIdDebug
+                      : AppSecrets.appId;
 
-                final userId = ProxyService.box.getUserId();
-                if (userId != null && appID.isNotEmpty) {
-                  await DittoSingleton.instance.initialize(
-                    appId: appID,
-                    userId: userId,
-                  );
-                  DittoSyncCoordinator.instance.setDitto(
-                    DittoSingleton.instance.ditto,
-                    skipInitialFetch:
-                        true, // Skip initial fetch to prevent upserting all models on startup
-                  );
-                  final prefsBox = ProxyService.box;
-                  if (prefsBox is SharedPreferenceStorage) {
-                    await prefsBox.attachDittoPersistence();
+                  final userId = ProxyService.box.getUserId();
+                  if (userId != null && appID.isNotEmpty) {
+                    await DittoSingleton.instance.initialize(
+                      appId: appID,
+                      userId: userId,
+                    );
+                    DittoSyncCoordinator.instance.setDitto(
+                      DittoSingleton.instance.ditto,
+                      skipInitialFetch:
+                          true, // Skip initial fetch to prevent upserting all models on startup
+                    );
+                    final prefsBox = ProxyService.box;
+                    if (prefsBox is SharedPreferenceStorage) {
+                      await prefsBox.attachDittoPersistence();
+                    }
+                    await ProxyService.notification.sendLocalNotification(
+                      body: FlipperL10n.current.drawerMenuBackgroundSyncEnabled,
+                    );
                   }
+                } else {
+                  // Stop Ditto sync and cleanup when disabling
+                  await DittoSyncCoordinator.instance.setDitto(null);
+                  await DittoSingleton.instance.dispose();
                   await ProxyService.notification.sendLocalNotification(
-                    body: FlipperL10n.current.drawerMenuBackgroundSyncEnabled,
+                    body: FlipperL10n.current.drawerMenuBackgroundSyncDisabled,
                   );
                 }
-              } else {
-                // Stop Ditto sync and cleanup when disabling
-                await DittoSyncCoordinator.instance.setDitto(null);
-                await DittoSingleton.instance.dispose();
-                await ProxyService.notification.sendLocalNotification(
-                  body: FlipperL10n.current.drawerMenuBackgroundSyncDisabled,
-                );
-              }
-            },
-          ),
+              },
+            ),
           const SizedBox(height: 12),
-          const _CheckSubscriptionDrawerRow(),
+          // Local mode is free forever: no subscription to check.
+          if (LocalMode.isOn)
+            const _TurnOnCloudSyncDrawerRow()
+          else
+            const _CheckSubscriptionDrawerRow(),
           const SizedBox(height: 12),
           // EBM Status Indicator
           Consumer(
@@ -1158,6 +1166,24 @@ class _ModernShiftTileState extends State<ModernShiftTile> {
 }
 
 /// Drawer row: verify subscription online and navigate (sales / post-signup).
+class _TurnOnCloudSyncDrawerRow extends StatelessWidget {
+  const _TurnOnCloudSyncDrawerRow();
+
+  @override
+  Widget build(BuildContext context) {
+    return _ModernMenuRow(
+      iconSvg: DashboardQuickAccessSvgs.drawerBackgroundSyncGridPlusIcon(),
+      title: context.flipperL10n.localModeTurnOnSync,
+      subtitle: context.flipperL10n.localModeTurnOnSyncHint,
+      onTap: () {
+        final rootContext = Navigator.of(context, rootNavigator: true).context;
+        Navigator.pop(context);
+        confirmAndTurnOnCloudSync(rootContext);
+      },
+    );
+  }
+}
+
 class _CheckSubscriptionDrawerRow extends ConsumerWidget {
   const _CheckSubscriptionDrawerRow();
 

@@ -85,6 +85,7 @@ import 'package:flipper_services/ai_strategy_impl.dart';
 
 import 'package:uuid/uuid.dart';
 import 'package:flipper_web/services/ditto_service.dart';
+import 'package:flipper_web/core/local_mode/local_mode.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// A cloud sync that uses different sync provider such as powersync+ superbase, firesore and can easy add
@@ -2854,6 +2855,8 @@ class CoreSync extends AiStrategyImpl
     required String businessId,
     required String branchId,
   }) async {
+    // No EBM in local mode (same rule as CapellaSync.isTaxEnabled).
+    if (LocalMode.isOn) return false;
     try {
       final ditto = dittoService.dittoInstance;
       if (ditto == null) {

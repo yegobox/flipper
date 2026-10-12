@@ -9,6 +9,7 @@ import 'package:brick_sqlite/brick_sqlite.dart';
 import 'package:brick_sqlite/memory_cache_provider.dart';
 import 'package:brick_supabase/brick_supabase.dart' hide Supabase;
 import 'package:flipper_services/constants.dart';
+import 'package:flipper_web/core/local_mode/local_mode.dart';
 import 'package:flipper_services/event_bus.dart';
 import 'package:flipper_services/supabase_session_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -99,8 +100,9 @@ class Repository extends OfflineFirstWithSupabaseRepository {
   ///   - false: Force no increment on all platforms
   static void setVersionIncrementOverride(bool? incrementOverride) {
     _overrideVersionIncrement = incrementOverride;
-    _logger
-        .info('Database version increment override set to: $incrementOverride');
+    _logger.info(
+      'Database version increment override set to: $incrementOverride',
+    );
     _logger.info('Using database filename: $_generatedDefaultDbFileName');
     _logger.info('Using queue filename: $_generatedDefaultQueueFileName');
   }
@@ -183,8 +185,9 @@ class Repository extends OfflineFirstWithSupabaseRepository {
 
   static bool get isReady => _singleton != null && !_isDisposed;
 
-  static Future<void> waitUntilReady(
-      {Duration timeout = const Duration(seconds: 15)}) async {
+  static Future<void> waitUntilReady({
+    Duration timeout = const Duration(seconds: 15),
+  }) async {
     if (isReady) {
       if (!_readyCompleter.isCompleted) {
         _readyCompleter.complete();
@@ -193,14 +196,16 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     }
 
     _logger.info(
-        'Waiting for Repository to be ready (timeout: ${timeout.inSeconds}s)...');
+      'Waiting for Repository to be ready (timeout: ${timeout.inSeconds}s)...',
+    );
 
     try {
       await _readyCompleter.future.timeout(
         timeout,
         onTimeout: () {
           _logger.warning(
-              'Repository.waitUntilReady() timed out after ${timeout.inSeconds}s');
+            'Repository.waitUntilReady() timed out after ${timeout.inSeconds}s',
+          );
           throw TimeoutException(
             'Repository initialization timed out',
             timeout,
@@ -228,11 +233,13 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     if (_singleton == null || _isDisposed) {
       if (kIsWeb) {
         _logger.warning(
-            'Repository not initialized on web or disposed, returning dummy repository');
+          'Repository not initialized on web or disposed, returning dummy repository',
+        );
         return _createDummyRepository();
       } else {
         throw StateError(
-            'Repository not initialized or already disposed. Call initializeSupabaseAndConfigure first.');
+          'Repository not initialized or already disposed. Call initializeSupabaseAndConfigure first.',
+        );
       }
     }
     return _singleton!;
@@ -249,7 +256,8 @@ class Repository extends OfflineFirstWithSupabaseRepository {
       // The database does not read preferences; losing them must not stop
       // the till from opening.
       _logger.warning(
-          'SharedPreferenceStorage unavailable; continuing without it');
+        'SharedPreferenceStorage unavailable; continuing without it',
+      );
     } else {
       print('✅ [Repository] SharedPreferenceStorage acquired');
     }
@@ -352,8 +360,11 @@ class Repository extends OfflineFirstWithSupabaseRepository {
       debugPrint('Using mocked Supabase client in test environment');
       // Use the mocked client in a test environment
       await mock.setUp();
-      supabaseClient = SupabaseClient(mock.serverUrl, mock.apiKey,
-          httpClient: stampingClient);
+      supabaseClient = SupabaseClient(
+        mock.serverUrl,
+        mock.apiKey,
+        httpClient: stampingClient,
+      );
     } else {
       debugPrint('Using real Supabase client in non-test environment');
       // Initialize the real Supabase client in a non-test environment
@@ -404,10 +415,12 @@ class Repository extends OfflineFirstWithSupabaseRepository {
         directory != null) {
       // Reclaim the space held by the Turso-era file phones no longer open.
       final retired = join(directory, _retiredTursoDbFileName);
-      unawaited(deleteDatabaseFilesQuietly(
-        retired,
-        sidecars: TursoReplicaPaths.syncSidecarPaths(retired),
-      ));
+      unawaited(
+        deleteDatabaseFilesQuietly(
+          retired,
+          sidecars: TursoReplicaPaths.syncSidecarPaths(retired),
+        ),
+      );
     }
 
     // Clear jobs that have already exhausted their reattempts. Queues in the
@@ -471,11 +484,13 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     if (PlatformHelpers.usesTursoMainDatabase) {
       // Desktop only: the OS/FFI SQLite on a separate file when Turso itself
       // cannot run.
-      tiers.add(LocalDbTier(
-        name: 'sqflite-fallback',
-        path: join(directory, '${_dbFileBaseName}_fallback.sqlite'),
-        factory: PlatformHelpers.getQueueDatabaseFactory,
-      ));
+      tiers.add(
+        LocalDbTier(
+          name: 'sqflite-fallback',
+          path: join(directory, '${_dbFileBaseName}_fallback.sqlite'),
+          factory: PlatformHelpers.getQueueDatabaseFactory,
+        ),
+      );
     }
     tiers.add(memory);
     return tiers;
@@ -487,11 +502,13 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     LocalDbTier tier,
     Repository Function(SqliteProvider sqliteProvider) build,
   ) async {
-    final candidate = build(SqliteProvider(
-      tier.path,
-      databaseFactory: tier.factory(),
-      modelDictionary: sqliteModelDictionary,
-    ));
+    final candidate = build(
+      SqliteProvider(
+        tier.path,
+        databaseFactory: tier.factory(),
+        modelDictionary: sqliteModelDictionary,
+      ),
+    );
     try {
       await candidate._ensurePendingAnalyticsEventTable();
       await candidate._migrateMainDb();
@@ -506,8 +523,7 @@ class Repository extends OfflineFirstWithSupabaseRepository {
   /// working main DB (the queue has its own fallback).
   Future<void> _migrateMainDb() async {
     final lastVersion = await sqliteProvider.lastMigrationVersion();
-    await sqliteProvider
-        .migrate(migrationManager.migrationsSince(lastVersion));
+    await sqliteProvider.migrate(migrationManager.migrationsSince(lastVersion));
   }
 
   /// Closes the connection only. Not [SqliteProvider.resetDb], which deletes
@@ -525,16 +541,18 @@ class Repository extends OfflineFirstWithSupabaseRepository {
   /// caller then runs on in-memory databases.
   static Future<String?> _resolveDatabaseDirectory() async {
     try {
-      final directory = await DatabasePath.getDatabaseDirectory()
-          .timeout(const Duration(seconds: 10));
+      final directory = await DatabasePath.getDatabaseDirectory().timeout(
+        const Duration(seconds: 10),
+      );
       await _ensureDirectoryExists(directory);
       return directory;
     } catch (e) {
       _logger.severe('Database directory unavailable: $e');
     }
     try {
-      final support = await getApplicationSupportDirectory()
-          .timeout(const Duration(seconds: 10));
+      final support = await getApplicationSupportDirectory().timeout(
+        const Duration(seconds: 10),
+      );
       final directory = join(support.path, 'db');
       await _ensureDirectoryExists(directory);
       return directory;
@@ -549,7 +567,8 @@ class Repository extends OfflineFirstWithSupabaseRepository {
   /// for recovery) and recreated; failing that, the queue runs in memory for
   /// this session so Supabase still initializes.
   static Future<String> _initializeQueueDatabaseWithFallback(
-      String queuePath) async {
+    String queuePath,
+  ) async {
     final inMemoryPath = PlatformHelpers.getInMemoryDatabasePath();
     if (queuePath == inMemoryPath) {
       _queueDbTier = 'memory';
@@ -564,8 +583,9 @@ class Repository extends OfflineFirstWithSupabaseRepository {
           }
           await quarantineDatabaseFiles(queuePath);
         }
-        await _ensureQueueDatabaseInitialized(queuePath)
-            .timeout(const Duration(seconds: 15));
+        await _ensureQueueDatabaseInitialized(
+          queuePath,
+        ).timeout(const Duration(seconds: 15));
         _queueDbTier = fresh ? 'sqflite-fresh' : 'sqflite';
         return queuePath;
       } catch (e) {
@@ -659,20 +679,23 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     final inFlight = _initializationInFlight;
     if (inFlight != null) {
       _logger.info(
-          'Repository initialization already in progress, awaiting it.');
+        'Repository initialization already in progress, awaiting it.',
+      );
       return inFlight;
     }
 
     // If already initialized and not disposed, skip re-initialization
     if (_singleton != null && !_isDisposed) {
       _logger.info(
-          'Repository already initialized and not disposed. Skipping re-initialization.');
+        'Repository already initialized and not disposed. Skipping re-initialization.',
+      );
       _markReady();
       return;
     }
 
     _logger.info(
-        'Starting Repository initialization (first time or after disposal).');
+      'Starting Repository initialization (first time or after disposal).',
+    );
 
     final attempt = _initialize(
       supabaseUrl: supabaseUrl,
@@ -715,7 +738,8 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     // Check if the repository is disposed before proceeding
     if (_isDisposed) {
       _logger.warning(
-          'Attempted to call availableQueue on a disposed Repository.');
+        'Attempted to call availableQueue on a disposed Repository.',
+      );
       return 0;
     }
     try {
@@ -734,7 +758,8 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     }
     if (_isDisposed) {
       _logger.warning(
-          'Attempted to call getQueueStatus on a disposed Repository.');
+        'Attempted to call getQueueStatus on a disposed Repository.',
+      );
       return {'locked': 0, 'unlocked': 0, 'total': 0};
     }
     try {
@@ -753,7 +778,8 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     }
     if (_isDisposed) {
       _logger.warning(
-          'Attempted to call purgeExhaustedQueue on a disposed Repository.');
+        'Attempted to call purgeExhaustedQueue on a disposed Repository.',
+      );
       return 0;
     }
     try {
@@ -788,9 +814,29 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     } else {
       await migrate();
     }
+    // Local mode: nothing leaves the device. Queued Supabase writes stay on
+    // disk and flush when the user opts in to sync ([resumeCloudSync]).
+    if (LocalMode.isOn) {
+      print('⏭️ [Repository] Local mode — offline queue and Turso push paused');
+      return;
+    }
     offlineRequestQueue.start();
     unawaited(_backgroundTursoSync());
     print('✅ [Repository] initialize() completed (Turso sync in background)');
+  }
+
+  /// Stops pushing queued writes to Supabase. Signup into local mode calls
+  /// this because the queue already started at boot.
+  static void pauseCloudSync() {
+    _singleton?.offlineRequestQueue.stop();
+  }
+
+  /// Starts the Supabase queue again and pushes to Turso Cloud (opt-in to sync).
+  static void resumeCloudSync() {
+    final repo = _singleton;
+    if (repo == null) return;
+    repo.offlineRequestQueue.start();
+    unawaited(repo._backgroundTursoSync());
   }
 
   static const _backgroundTursoSyncTimeout = Duration(seconds: 45);
@@ -865,7 +911,8 @@ class Repository extends OfflineFirstWithSupabaseRepository {
   }) async {
     if (_isDisposed) {
       _logger.warning(
-          'Attempted to call upsert on a disposed Repository. Operation aborted.');
+        'Attempted to call upsert on a disposed Repository. Operation aborted.',
+      );
       throw StateError('Repository is disposed');
     }
     try {
@@ -885,12 +932,12 @@ class Repository extends OfflineFirstWithSupabaseRepository {
           debugPrint('We got item to save: ${instance.toString()}');
         }
         try {
-          unawaited(
-            DittoSyncCoordinator.instance.notifyLocalUpsert(instance),
-          );
+          unawaited(DittoSyncCoordinator.instance.notifyLocalUpsert(instance));
         } catch (e, stackTrace) {
           _logger.warning(
-              'Error notifying Ditto of local change: $e', stackTrace);
+            'Error notifying Ditto of local change: $e',
+            stackTrace,
+          );
         }
       }
 
@@ -935,17 +982,16 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     await _ensurePendingAnalyticsEventTable();
     final db = await sqliteProvider.getDb();
     await db.insert(
-      'PendingAnalyticsEvents',
-      {
-        'id': event.id,
-        'event_name': event.eventName,
-        'properties_json': event.propertiesJson,
-        'event_type': event.eventType,
-        'created_at': event.createdAt.toUtc().toIso8601String(),
-        'attempt_count': event.attemptCount,
-      },
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
+        'PendingAnalyticsEvents',
+        {
+          'id': event.id,
+          'event_name': event.eventName,
+          'properties_json': event.propertiesJson,
+          'event_type': event.eventType,
+          'created_at': event.createdAt.toUtc().toIso8601String(),
+          'attempt_count': event.attemptCount,
+        },
+        conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   Future<List<PendingAnalyticsEventRecord>> getPendingAnalyticsEvents({
@@ -1027,7 +1073,8 @@ class Repository extends OfflineFirstWithSupabaseRepository {
   }) async {
     if (_isDisposed) {
       _logger.warning(
-          'Attempted to call upsertFromDitto on a disposed Repository. Operation aborted.');
+        'Attempted to call upsertFromDitto on a disposed Repository. Operation aborted.',
+      );
       throw StateError('Repository is disposed');
     }
     try {
@@ -1100,8 +1147,9 @@ class Repository extends OfflineFirstWithSupabaseRepository {
       try {
         await db?.close();
       } catch (e) {
-        _logger
-            .warning('Error closing queue database during initialization: $e');
+        _logger.warning(
+          'Error closing queue database during initialization: $e',
+        );
       }
     }
   }
@@ -1109,7 +1157,8 @@ class Repository extends OfflineFirstWithSupabaseRepository {
   /// A more direct approach to initialize the queue database
   /// Used as a fallback when the standard approach fails
   static Future<void> _directQueueDatabaseInitialization(
-      String queuePath) async {
+    String queuePath,
+  ) async {
     _logger.info('Attempting direct queue database initialization');
     Database? db;
 
@@ -1146,8 +1195,9 @@ class Repository extends OfflineFirstWithSupabaseRepository {
       try {
         await db?.close();
       } catch (e) {
-        _logger
-            .warning('Error closing database during direct initialization: $e');
+        _logger.warning(
+          'Error closing database during direct initialization: $e',
+        );
       }
     }
   }
@@ -1177,14 +1227,16 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     }
     if (_isDisposed) {
       _logger.warning(
-          'Attempted to call initializeQueueWithScript on a disposed Repository.');
+        'Attempted to call initializeQueueWithScript on a disposed Repository.',
+      );
       return false;
     }
 
     // Thread-safe migration operation
     if (_migrationCompleter != null && !_migrationCompleter!.isCompleted) {
       _logger.info(
-          'Another migration is already in progress, waiting for completion');
+        'Another migration is already in progress, waiting for completion',
+      );
       await _migrationCompleter!.future;
       return false;
     }
@@ -1233,8 +1285,9 @@ class Repository extends OfflineFirstWithSupabaseRepository {
       try {
         await db?.close();
       } catch (e) {
-        _logger
-            .warning('Error closing database during script initialization: $e');
+        _logger.warning(
+          'Error closing database during script initialization: $e',
+        );
       }
     }
   }

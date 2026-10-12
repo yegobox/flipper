@@ -4,6 +4,7 @@ import 'dart:async';
 import 'dart:developer';
 import 'package:flipper_models/helperModels/business_type.dart';
 import 'package:flipper_localize/flipper_localize.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_form_bloc/flutter_form_bloc.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/secrets.dart';
@@ -79,6 +80,10 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
     FieldBlocValidators.required,
   ]);
 
+  /// Work offline on this device, free forever. Native only: Ditto on the web
+  /// is cloud-only, so the view never offers it there.
+  final localMode = BooleanFieldBloc<Object>(initialValue: false);
+
   AsyncFieldValidationFormBloc(
       {required this.signupViewModel, required String country}) {
     countryName.updateInitialValue(country);
@@ -114,6 +119,7 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
       countryName,
       tinNumber,
       businessTypes,
+      localMode,
       _phoneVerificationField // Add phone verification field
     ]);
 
@@ -141,18 +147,9 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
     username.stream.listen((_) => updatePhoneNumberEnabled());
     fullName.stream.listen((_) => updatePhoneNumberEnabled());
 
-    // Listen to business type changes to update tinNumber validation
-    businessTypes.stream.listen((state) {
-      if (state.value?.id == BusinessTypeEnum.INDIVIDUAL.id) {
-        // Individual - no TIN required
-        tinNumber.updateValidators([]);
-      } else {
-        // Other business types - TIN required
-        tinNumber.updateValidators(
-            [FieldBlocValidators.required, _validateTinStatus]);
-      }
-      tinNumber.validate();
-    });
+    // Business type and local mode both decide whether a TIN is required.
+    businessTypes.stream.listen((_) => _updateTinRequirement());
+    localMode.stream.listen((_) => _updateTinRequirement());
 
     // Listen to TIN changes to reset verification if it was verified but value changed
     tinNumber.stream.listen((state) {
@@ -504,10 +501,12 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
       );
       signupViewModel.setCountry(country: countryName.value ?? 'Rwanda');
       signupViewModel.tin = (tinNumber.value.isEmpty ||
+              localMode.value ||
               businessTypes.value?.id == BusinessTypeEnum.INDIVIDUAL.id)
           ? "999909695"
           : tinNumber.value;
       signupViewModel.businessType = businessTypes.value!;
+      signupViewModel.localMode = localMode.value && !kIsWeb;
 
       // Perform signup
       await signupViewModel.signup();
@@ -538,10 +537,23 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
     }
   }
 
+  /// A TIN is for EBM: Individuals and local mode (no EBM) don't need one.
+  void _updateTinRequirement() {
+    if (businessTypes.value?.id == BusinessTypeEnum.INDIVIDUAL.id ||
+        localMode.value) {
+      tinNumber.updateValidators([]);
+    } else {
+      tinNumber
+          .updateValidators([FieldBlocValidators.required, _validateTinStatus]);
+    }
+    tinNumber.validate();
+  }
+
   String? _validateTinStatus(String? tin) {
     if (businessTypes.value?.id == BusinessTypeEnum.INDIVIDUAL.id) {
       return null; // Individual
     }
+    if (localMode.value) return null; // no EBM in local mode
     if (_isTinValidationRelaxed) return null;
     if (_isTinVerified) return null;
     return FlipperL10n.current.signupValidateTin;
@@ -558,7 +570,8 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
     _isTinValidationRelaxed = false; // specific verification overrides relaxed
     _verifiedTinNumber = verified ? tinNumber.value : null;
 
-    if (businessTypes.value?.id != BusinessTypeEnum.INDIVIDUAL.id) {
+    if (businessTypes.value?.id != BusinessTypeEnum.INDIVIDUAL.id &&
+        !localMode.value) {
       if (verified) {
         // The TIN is verified, so we no longer need the status validator.
         tinNumber.updateValidators([FieldBlocValidators.required]);
@@ -582,7 +595,8 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
     // if relaxed, we don't strictly require verification, so we don't change _isTinVerified
     _verifiedTinNumber = relaxed ? tinNumber.value : null;
 
-    if (businessTypes.value?.id != BusinessTypeEnum.INDIVIDUAL.id) {
+    if (businessTypes.value?.id != BusinessTypeEnum.INDIVIDUAL.id &&
+        !localMode.value) {
       if (relaxed) {
         // Validation is relaxed, so we no longer need the status validator.
         tinNumber.updateValidators([FieldBlocValidators.required]);

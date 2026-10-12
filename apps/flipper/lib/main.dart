@@ -19,6 +19,7 @@ import 'package:flipper_dashboard/hr_module_entry.dart';
 import 'package:flipper_hr/flipper_hr.dart';
 // ignore: depend_on_referenced_packages
 import 'package:flipper_ai_feature/flipper_ai_feature.dart' show initLocalAi;
+import 'package:flipper_web/core/local_mode/local_mode.dart';
 import 'package:flipper_dashboard/features/delegations/delegation_notification_listener.dart';
 import 'package:flipper_dashboard/features/personal_goals/personal_goal_remote_contribution_listener.dart';
 import 'package:flipper_models/services/personal_goal_notification_service.dart';
@@ -103,6 +104,9 @@ Future<void> _initializeFirebase() async {
 // Function to initialize Supabase.
 Future<void> _initializeSupabase() async {
   try {
+    // Before the repository starts: local mode must keep the Supabase queue
+    // and Turso push off from the very first write.
+    await LocalMode.load();
     await loadSupabase();
     _reportLocalDbFallback();
 
@@ -476,7 +480,8 @@ List<_InitStep> _buildInitSteps() => <_InitStep>[
         run: () async {
           unawaited(PersonalGoalNotificationService.instance.initialize());
           // Register the on-device AI engine (no-op on Android/web → cloud only).
-          initLocalAi();
+          // Flo is unavailable in local mode.
+          if (!LocalMode.isOn) initLocalAi();
         },
       ),
     ];
