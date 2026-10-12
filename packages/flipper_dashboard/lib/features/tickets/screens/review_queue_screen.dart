@@ -193,6 +193,7 @@ class _ReviewQueueScreenState extends ConsumerState<ReviewQueueScreen> {
                   showMarkReviewed: true,
                   markReviewedLabel: context.flipperL10n.ticketReviewDetails,
                   canManage: false,
+                  compact: !isWide,
                   onTap: () => _openReviewDetails(ticket, canReview: canReview),
                   onMarkReviewed: () =>
                       _openReviewDetails(ticket, canReview: canReview),

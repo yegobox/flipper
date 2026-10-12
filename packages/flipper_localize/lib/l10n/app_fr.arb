@@ -7185,5 +7185,10 @@
     "webHomeHeroKitchenLead": "L'écran cuisine qui",
     "webHomeHeroKitchenAccent": "annonce chaque commande.",
     "webHomeHeroPayrollLead": "La paie qui",
-    "webHomeHeroPayrollAccent": "tombe à l'heure."
+    "webHomeHeroPayrollAccent": "tombe à l'heure.",
+  "ticketRemoveCustomer": "Retirer le client",
+  "ticketsSelectedCount": "{count} sélectionné(s)",
+  "ticketPaidOfTotal": "Payé {paid} sur {total}",
+  "ticketSelect": "Sélectionner",
+  "ticketSort": "Trier"
 }

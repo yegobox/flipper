@@ -344,7 +344,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     return ViewModelBuilder.nonReactive(
       viewModelBuilder: () => CoreViewModel(),
       builder: (context, model, child) {
-        final column = Column(
+        Widget column(bool compact) => Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             if (_isDeleting)
@@ -354,41 +354,106 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
                 value: _totalCount > 0 ? _deletedCount / _totalCount : null,
               ),
             Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 16.0,
+              padding: EdgeInsets.symmetric(
+                horizontal: compact ? 12.0 : 16.0,
                 vertical: 8.0,
               ),
-              child: TicketSearchBar(
-                hintText: context.flipperL10n.ticketSearchHint,
-                onChanged: (value) => setState(() => _searchQuery = value),
-              ),
+              child: compact
+                  ? Row(
+                      children: [
+                        Expanded(
+                          child: TicketSearchBar(
+                            hintText: context.flipperL10n.ticketSearchHint,
+                            onChanged: (value) =>
+                                setState(() => _searchQuery = value),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        _buildSortButton(context),
+                      ],
+                    )
+                  : TicketSearchBar(
+                      hintText: context.flipperL10n.ticketSearchHint,
+                      onChanged: (value) =>
+                          setState(() => _searchQuery = value),
+                    ),
             ),
             if (filterChips != null)
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                padding: EdgeInsets.fromLTRB(
+                  compact ? 12 : 16,
+                  0,
+                  compact ? 12 : 16,
+                  8,
+                ),
                 child: filterChips,
               ),
-            Expanded(child: _buildTicketsPaneWithWhatsAppPicker(context)),
+            Expanded(
+              child: _buildTicketsPaneWithWhatsAppPicker(
+                context,
+                compact: compact,
+              ),
+            ),
           ],
         );
         return LayoutBuilder(
           builder: (context, constraints) {
+            final compact =
+                constraints.maxWidth <
+                PosLayoutBreakpoints.mobileLayoutMaxWidth;
             if (constraints.hasBoundedHeight) {
-              return column;
+              return column(compact);
             }
             final mq = MediaQuery.sizeOf(context);
             final h = (mq.height > 0 ? mq.height : 640.0) * 0.82;
             final w = constraints.hasBoundedWidth
                 ? constraints.maxWidth
                 : (mq.width > 0 ? mq.width : 360.0);
-            return SizedBox(width: w, height: h, child: column);
+            return SizedBox(width: w, height: h, child: column(compact));
           },
         );
       },
     );
   }
 
-  Widget _buildTicketsPaneWithWhatsAppPicker(BuildContext context) {
+  /// Phones sort from an icon next to search instead of the section dropdown.
+  Widget _buildSortButton(BuildContext context) {
+    final l10n = context.flipperL10n;
+    return PopupMenuButton<bool>(
+      key: const ValueKey('tickets_sort_button'),
+      tooltip: l10n.ticketSort,
+      initialValue: _sortNewestFirst,
+      onSelected: (v) => setState(() => _sortNewestFirst = v),
+      itemBuilder: (context) => [
+        CheckedPopupMenuItem(
+          value: true,
+          checked: _sortNewestFirst,
+          child: Text(l10n.ticketSortNewest),
+        ),
+        CheckedPopupMenuItem(
+          value: false,
+          checked: !_sortNewestFirst,
+          child: Text(l10n.ticketSortOldest),
+        ),
+      ],
+      child: Container(
+        width: 48,
+        height: 48,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.grey[300]!),
+        ),
+        child: const Icon(Icons.swap_vert_rounded, color: PosTokens.ink2),
+      ),
+    );
+  }
+
+  Widget _buildTicketsPaneWithWhatsAppPicker(
+    BuildContext context, {
+    bool compact = false,
+  }) {
     return Consumer(
       builder: (context, ref, _) {
         final ticketsAsync = ref.watch(visibleTicketsProvider);
@@ -404,6 +469,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
             context,
             tickets,
             paymentSumsByTxnId: paymentSums,
+            compact: compact,
           );
         } else {
           ticketPane = ticketsAsync.when(
@@ -411,6 +477,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
               context,
               data,
               paymentSumsByTxnId: paymentSums,
+              compact: compact,
             ),
             loading: () => _buildLoadingState(context),
             error: (error, stack) => _buildErrorState(error.toString()),
@@ -554,9 +621,10 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     required String title,
     required Color accentColor,
     required int count,
+    bool compact = false,
   }) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 4, 12, 10),
+      padding: EdgeInsets.fromLTRB(compact ? 4 : 12, 4, 12, 10),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -595,39 +663,40 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
             ),
           ),
           const Spacer(),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey[300]!),
-              borderRadius: BorderRadius.circular(8),
-              color: Colors.white,
-            ),
-            child: DropdownButtonHideUnderline(
-              child: DropdownButton<bool>(
-                value: _sortNewestFirst,
-                isDense: true,
-                style: GoogleFonts.outfit(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.black87,
+          if (!compact)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey[300]!),
+                borderRadius: BorderRadius.circular(8),
+                color: Colors.white,
+              ),
+              child: DropdownButtonHideUnderline(
+                child: DropdownButton<bool>(
+                  value: _sortNewestFirst,
+                  isDense: true,
+                  style: GoogleFonts.outfit(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.black87,
+                  ),
+                  items: [
+                    DropdownMenuItem(
+                      value: true,
+                      child: Text(context.flipperL10n.ticketSortNewest),
+                    ),
+                    DropdownMenuItem(
+                      value: false,
+                      child: Text(context.flipperL10n.ticketSortOldest),
+                    ),
+                  ],
+                  onChanged: (v) {
+                    if (v == null) return;
+                    setState(() => _sortNewestFirst = v);
+                  },
                 ),
-                items: [
-                  DropdownMenuItem(
-                    value: true,
-                    child: Text(context.flipperL10n.ticketSortNewest),
-                  ),
-                  DropdownMenuItem(
-                    value: false,
-                    child: Text(context.flipperL10n.ticketSortOldest),
-                  ),
-                ],
-                onChanged: (v) {
-                  if (v == null) return;
-                  setState(() => _sortNewestFirst = v);
-                },
               ),
             ),
-          ),
         ],
       ),
     );
@@ -706,6 +775,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     BuildContext context,
     List<ITransaction> tickets, {
     required Map<String, double> paymentSumsByTxnId,
+    bool compact = false,
   }) {
     final searchFiltered = tickets
         .where((t) => _matchesSearch(t, _searchQuery))
@@ -738,7 +808,10 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           ),
         Expanded(
           child: ListView.builder(
-            padding: EdgeInsets.zero,
+            // Phones: room under the last card for the Create ticket FAB.
+            padding: compact
+                ? const EdgeInsets.only(bottom: 96)
+                : EdgeInsets.zero,
             itemCount: entries.length,
             itemBuilder: (context, index) {
               final entry = entries[index];
@@ -747,13 +820,14 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
                   title: entry.sectionTitle!,
                   accentColor: entry.accentColor!,
                   count: entry.sectionCount!,
+                  compact: compact,
                 );
               }
               final ticket = entry.ticket!;
               return Padding(
-                padding: const EdgeInsets.symmetric(
+                padding: EdgeInsets.symmetric(
                   horizontal: 12.0,
-                  vertical: 5,
+                  vertical: compact ? 6 : 5,
                 ),
                 child: Consumer(
                   builder: (context, ref, _) {
@@ -763,6 +837,17 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
                       ),
                     );
                     final canCollect = ref.watch(canCollectPosPaymentProvider);
+                    // Compact cards have no checkbox: once anything is
+                    // selected, a tap toggles instead of opening the ticket.
+                    final selecting =
+                        compact &&
+                        canCollect &&
+                        ref.watch(
+                          ticketSelectionProvider.select((s) => s.isNotEmpty),
+                        );
+                    void toggleSelected() => ref
+                        .read(ticketSelectionProvider.notifier)
+                        .toggleSelection(ticket.id);
                     final canRecordHandover = ref.watch(
                       featureAccessProvider(
                         userId: ProxyService.box.getUserId() ?? '',
@@ -829,7 +914,13 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
                           ),
                       orderFormWhatsAppSent: _sentOrderFormWhatsAppTicketIds
                           .contains(ticket.id),
-                      onTap: () => _handleTicketTap(ticket),
+                      compact: compact,
+                      onLongPress: compact && canCollect
+                          ? toggleSelected
+                          : null,
+                      onTap: selecting
+                          ? toggleSelected
+                          : () => _handleTicketTap(ticket),
                       onCollect: () => unawaited(_collectTillTicket(ticket)),
                       onComplete: () =>
                           unawaited(_completeTicket(context, ticket)),
@@ -840,11 +931,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
                       onSendOrderFormWhatsApp: () =>
                           _openWhatsAppPicker(ticket),
                       onDelete: () => _deleteTicket(ticket),
-                      onSelectionChanged: (selected) {
-                        ref
-                            .read(ticketSelectionProvider.notifier)
-                            .toggleSelection(ticket.id);
-                      },
+                      onSelectionChanged: (_) => toggleSelected(),
                     );
                   },
                 ),
@@ -2198,6 +2285,14 @@ class TicketCard extends StatelessWidget {
   /// Shows "Send to kitchen" (or "Send again" once served) when non-null.
   final VoidCallback? onSendToKitchen;
   final bool isSendingToKitchen;
+
+  /// Phone layout: amount-first header, wrapping pills, one full-width
+  /// primary action and a "more" sheet in place of the checkbox and the
+  /// small corner buttons. Wider screens keep the original card.
+  final bool compact;
+
+  /// Compact cards select on long-press (there is no checkbox).
+  final VoidCallback? onLongPress;
   const TicketCard({
     super.key,
     required this.ticket,
@@ -2227,6 +2322,8 @@ class TicketCard extends StatelessWidget {
     this.kitchenStage,
     this.onSendToKitchen,
     this.isSendingToKitchen = false,
+    this.compact = false,
+    this.onLongPress,
   });
 
   Widget _kitchenRow(BuildContext context) {
@@ -2354,7 +2451,7 @@ class TicketCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final statusExt = TicketStatusExtension.fromString(ticket.status ?? PARKED);
+    if (compact) return _buildCompact(context);
     final phone =
         (ticket.customerPhone ?? ticket.currentSaleCustomerPhoneNumber ?? '')
             .trim();
@@ -2368,24 +2465,12 @@ class TicketCard extends StatelessWidget {
     final paid = paidAmount;
     final remaining = (total - paid);
     final remClamped = remaining < 0 ? 0.0 : remaining;
-    final partial = paid > 0 && remClamped > 0;
 
-    final String statusLabel;
-    final Color statusFg;
-    final Color statusBg;
-    if (partial) {
-      statusLabel = context.flipperL10n.ticketStatusPartial;
-      statusFg = const Color(0xFFC62828);
-      statusBg = const Color(0xFFFFEBEE);
-    } else if ((ticket.status ?? '').toLowerCase() == PARKED) {
-      statusLabel = context.flipperL10n.ticketStatusAwaitingPayment;
-      statusFg = _kAwaitingFg;
-      statusBg = _kAwaitingBg;
-    } else {
-      statusLabel = statusExt.displayName;
-      statusFg = statusExt.color;
-      statusBg = statusExt.color.withValues(alpha: 0.15);
-    }
+    final (statusLabel, statusFg, statusBg) = _statusStyle(
+      context,
+      paid: paid,
+      remaining: remClamped,
+    );
 
     final progress = total <= 0 ? 0.0 : (paid / total).clamp(0.0, 1.0);
     final fullyPaid = total > 0 && (remClamped <= 0 || progress >= 1.0 - 1e-9);
@@ -2869,6 +2954,449 @@ class TicketCard extends StatelessWidget {
     );
   }
 
+  /// The one action a compact card leads with — same precedence as the
+  /// button chain on the wide card.
+  _TicketPrimaryAction? _primaryAction(BuildContext context) {
+    final l10n = context.flipperL10n;
+    final status = ticket.status ?? '';
+    if (status == PENDING_REVIEW &&
+        showMarkReviewed &&
+        onMarkReviewed != null) {
+      return _TicketPrimaryAction(
+        label: markReviewedLabel ?? l10n.ticketMarkAsReviewed,
+        color: const Color(0xFF7C3AED),
+        onPressed: onMarkReviewed,
+      );
+    }
+    if (status == AWAITING_HANDOVER &&
+        showRecordHandover &&
+        onRecordHandover != null) {
+      return _TicketPrimaryAction(
+        label: l10n.ticketRecordHandover,
+        color: const Color(0xFF0D9488),
+        onPressed: onRecordHandover,
+      );
+    }
+    if (showCollect && onCollect != null) {
+      return _TicketPrimaryAction(
+        label: isCollecting ? l10n.ticketCollecting : l10n.ticketCollect,
+        color: _kCollectBlue,
+        onPressed: isCollecting ? null : onCollect,
+        busy: isCollecting,
+      );
+    }
+    if (showComplete && onComplete != null) {
+      return _TicketPrimaryAction(
+        label: isCollecting ? l10n.ticketCompleting : l10n.ticketComplete,
+        color: _kRegularGreen,
+        onPressed: isCollecting ? null : onComplete,
+        busy: isCollecting,
+      );
+    }
+    if (showResume) {
+      return _TicketPrimaryAction(
+        label: l10n.ticketResumeOrder,
+        color: _kAccentBlue,
+        onPressed: onTap,
+        icon: Icons.play_arrow_rounded,
+      );
+    }
+    return null;
+  }
+
+  Future<void> _showMoreSheet(BuildContext context, {required bool canDelete}) {
+    final l10n = context.flipperL10n;
+    return showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      backgroundColor: PosTokens.surface,
+      builder: (sheetContext) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              key: ValueKey('ticket_more_select_${ticket.id}'),
+              leading: Icon(
+                isSelected
+                    ? Icons.check_box_rounded
+                    : Icons.check_box_outline_blank_rounded,
+                color: PosTokens.blue,
+              ),
+              title: Text(l10n.ticketSelect),
+              onTap: () {
+                Navigator.pop(sheetContext);
+                onSelectionChanged(!isSelected);
+              },
+            ),
+            if (canDelete)
+              ListTile(
+                key: ValueKey('ticket_more_delete_${ticket.id}'),
+                leading: const Icon(
+                  Icons.delete_outline_rounded,
+                  color: PosTokens.lossInk,
+                ),
+                title: Text(
+                  l10n.ticketDeleteTitle,
+                  style: const TextStyle(color: PosTokens.lossInk),
+                ),
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  onDelete();
+                },
+              ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _pill(String label, {required Color fg, required Color bg}) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        label,
+        style: GoogleFonts.outfit(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: fg,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCompact(BuildContext context) {
+    final l10n = context.flipperL10n;
+    final phone =
+        (ticket.customerPhone ?? ticket.currentSaleCustomerPhoneNumber ?? '')
+            .trim();
+    final displayName =
+        (ticket.customerName ?? ticket.ticketName ?? l10n.ticketWalkIn).trim();
+    final status = ticket.status ?? '';
+    final total = ticket.subTotal ?? 0.0;
+    final paid = paidAmount;
+    final remaining = math.max(0.0, total - paid);
+    final fullyPaid = total > 0 && remaining <= 0;
+    final progress = total <= 0 ? 0.0 : (paid / total).clamp(0.0, 1.0);
+    final (statusLabel, statusFg, statusBg) = _statusStyle(
+      context,
+      paid: paid,
+      remaining: remaining,
+    );
+    final primary = _primaryAction(context);
+    final canDelete =
+        canManage && !isTicketDeleteBlockedByReviewWorkflow(ticket.status);
+    final accent = _leftAccent();
+    final subtitle = [
+      l10n.ticketNumberRef(_ticketDisplayRef(ticket)),
+      _formatDate(ticket.createdAt),
+    ].join(' · ');
+    final ticketName = ticket.ticketName?.trim() ?? '';
+    final showTicketName =
+        ticketName.isNotEmpty &&
+        ticket.customerName != null &&
+        ticketName != ticket.customerName!.trim();
+    final note = ticket.note?.trim() ?? '';
+
+    final cardBg = isWhatsAppPickerActive
+        ? const Color(0xFFF0FDF4)
+        : isSelected
+        ? PosTokens.blueTint
+        : PosTokens.surface;
+    final cardBorder = isWhatsAppPickerActive
+        ? PosTokens.gain
+        : isSelected
+        ? PosTokens.blue
+        : PosTokens.line;
+
+    return Material(
+      color: cardBg,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(
+          color: cardBorder,
+          width: isSelected || isWhatsAppPickerActive ? 1.5 : 1,
+        ),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        onLongPress: onLongPress,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(14, 14, 14, 12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CircleAvatar(
+                    radius: 21,
+                    backgroundColor: isSelected ? PosTokens.blue : accent,
+                    child: isSelected
+                        ? const Icon(
+                            Icons.check_rounded,
+                            color: Colors.white,
+                            size: 22,
+                          )
+                        : Text(
+                            _customerInitials(ticket),
+                            style: GoogleFonts.outfit(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 13,
+                            ),
+                          ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          displayName,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.outfit(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: PosTokens.ink1,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        if (phone.isNotEmpty)
+                          Text(
+                            phone,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.outfit(
+                              fontSize: 13,
+                              color: PosTokens.ink2,
+                            ),
+                          ),
+                        Text(
+                          subtitle,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.outfit(
+                            fontSize: 12,
+                            color: PosTokens.ink3,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        (fullyPaid ? total : remaining).toCurrencyFormatted(),
+                        style: GoogleFonts.outfit(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                          color: fullyPaid ? PosTokens.gainInk : PosTokens.ink1,
+                        ),
+                      ),
+                      Text(
+                        fullyPaid
+                            ? l10n.ticketStatusPaid
+                            : l10n.ticketRemaining,
+                        style: GoogleFonts.outfit(
+                          fontSize: 12,
+                          color: fullyPaid ? PosTokens.gainInk : PosTokens.ink3,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              if (showTicketName || note.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                Text(
+                  [
+                    if (showTicketName) ticketName,
+                    if (note.isNotEmpty) note,
+                  ].join(' · '),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.outfit(
+                    fontSize: 13,
+                    color: PosTokens.ink2,
+                    height: 1.35,
+                  ),
+                ),
+              ],
+              const SizedBox(height: 10),
+              Wrap(
+                spacing: 6,
+                runSpacing: 6,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  if (status != AWAITING_HANDOVER)
+                    _pill(statusLabel, fg: statusFg, bg: statusBg),
+                  if (ticket.isLoan == true) _typePill(context),
+                  if (kitchenStage != null || onSendToKitchen != null)
+                    _kitchenRow(context),
+                ],
+              ),
+              if (status == AWAITING_HANDOVER) ...[
+                const SizedBox(height: 10),
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: _ReviewToOrderFormStepper(
+                    onPrintOrderForm: onPrintOrderForm,
+                    isPrinting: isPrintingOrderForm,
+                    onSendWhatsApp: onSendOrderFormWhatsApp,
+                    isSendingWhatsApp: isSendingOrderFormWhatsApp,
+                    whatsAppSent: orderFormWhatsAppSent,
+                  ),
+                ),
+              ],
+              if (paid > 0 || ticket.isLoan == true) ...[
+                const SizedBox(height: 12),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: LinearProgressIndicator(
+                    value: progress.isNaN ? 0 : progress,
+                    minHeight: 6,
+                    backgroundColor: PosTokens.line,
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      fullyPaid ? _kRegularGreen : _kProgressOrange,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  l10n.ticketPaidOfTotal(
+                    paid.toCurrencyFormatted(),
+                    total.toCurrencyFormatted(),
+                  ),
+                  style: GoogleFonts.outfit(
+                    fontSize: 12,
+                    color: PosTokens.ink2,
+                  ),
+                ),
+              ],
+              if (primary != null || canManage) ...[
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    if (primary != null)
+                      Expanded(
+                        child: FilledButton(
+                          key: ValueKey('ticket_primary_${ticket.id}'),
+                          onPressed: primary.onPressed,
+                          style: FilledButton.styleFrom(
+                            backgroundColor: primary.color,
+                            foregroundColor: Colors.white,
+                            disabledBackgroundColor: primary.color.withValues(
+                              alpha: 0.7,
+                            ),
+                            disabledForegroundColor: Colors.white,
+                            minimumSize: const Size.fromHeight(48),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (primary.busy) ...[
+                                const SizedBox(
+                                  width: 16,
+                                  height: 16,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                              ] else if (primary.icon != null) ...[
+                                Icon(primary.icon, size: 20),
+                                const SizedBox(width: 6),
+                              ],
+                              Flexible(
+                                child: Text(
+                                  primary.label,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
+                    else
+                      const Spacer(),
+                    if (canManage) ...[
+                      const SizedBox(width: 8),
+                      IconButton(
+                        key: ValueKey('ticket_more_${ticket.id}'),
+                        onPressed: () =>
+                            _showMoreSheet(context, canDelete: canDelete),
+                        tooltip: MaterialLocalizations.of(
+                          context,
+                        ).moreButtonTooltip,
+                        style: IconButton.styleFrom(
+                          backgroundColor: PosTokens.surface2,
+                          fixedSize: const Size(48, 48),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            side: const BorderSide(color: PosTokens.line),
+                          ),
+                        ),
+                        icon: const Icon(
+                          Icons.more_horiz_rounded,
+                          color: PosTokens.ink2,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  (String, Color, Color) _statusStyle(
+    BuildContext context, {
+    required double paid,
+    required double remaining,
+  }) {
+    if (paid > 0 && remaining > 0) {
+      return (
+        context.flipperL10n.ticketStatusPartial,
+        const Color(0xFFC62828),
+        const Color(0xFFFFEBEE),
+      );
+    }
+    if ((ticket.status ?? '').toLowerCase() == PARKED) {
+      return (
+        context.flipperL10n.ticketStatusAwaitingPayment,
+        _kAwaitingFg,
+        _kAwaitingBg,
+      );
+    }
+    final statusExt = TicketStatusExtension.fromString(ticket.status ?? PARKED);
+    return (
+      statusExt.displayName,
+      statusExt.color,
+      statusExt.color.withValues(alpha: 0.15),
+    );
+  }
+
   Widget _moneyCol(
     String label,
     String value, {
@@ -3068,4 +3596,20 @@ class _ReviewToOrderFormStepper extends StatelessWidget {
       ),
     );
   }
+}
+
+class _TicketPrimaryAction {
+  const _TicketPrimaryAction({
+    required this.label,
+    required this.color,
+    required this.onPressed,
+    this.busy = false,
+    this.icon,
+  });
+
+  final String label;
+  final Color color;
+  final VoidCallback? onPressed;
+  final bool busy;
+  final IconData? icon;
 }

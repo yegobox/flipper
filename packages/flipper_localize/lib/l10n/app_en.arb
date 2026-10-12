@@ -19228,5 +19228,12 @@
     "webHomeHeroPayrollAccent": "pays on time.",
     "@webHomeHeroPayrollAccent": {
         "description": "Rotating landing headline (Payroll): italic accent; reads as one sentence with its pair"
-    }
+    },
+    "ticketRemoveCustomer": "Remove customer",
+    "ticketsSelectedCount": "{count} selected",
+    "@ticketsSelectedCount": {"placeholders": {"count": {"type": "String"}}},
+    "ticketPaidOfTotal": "Paid {paid} of {total}",
+    "@ticketPaidOfTotal": {"placeholders": {"paid": {"type": "String"}, "total": {"type": "String"}}},
+    "ticketSelect": "Select",
+    "ticketSort": "Sort"
 }

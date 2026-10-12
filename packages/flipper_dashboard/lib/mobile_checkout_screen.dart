@@ -258,6 +258,7 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
       transaction: txn,
       displayAmount: total,
       onParked: () => parked = true,
+      customerPicker: MposCustomerSheet.pick,
     );
     if (!parked || !mounted) return;
 

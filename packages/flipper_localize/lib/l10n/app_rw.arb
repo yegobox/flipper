@@ -8770,5 +8770,10 @@
   "webHomeHeroKitchenLead": "Ekrani y'igikoni",
   "webHomeHeroKitchenAccent": "yerekana ibyatumijwe byose.",
   "webHomeHeroPayrollLead": "Imishahara",
-  "webHomeHeroPayrollAccent": "yishyurwa ku gihe."
+  "webHomeHeroPayrollAccent": "yishyurwa ku gihe.",
+  "ticketRemoveCustomer": "Kuraho umukiriya",
+  "ticketsSelectedCount": "{count} byatoranyijwe",
+  "ticketPaidOfTotal": "Hishyuwe {paid} kuri {total}",
+  "ticketSelect": "Hitamo",
+  "ticketSort": "Tondeka"
 }
