@@ -514,17 +514,17 @@ void main() {
       await pumpPage(tester);
       Color? navColor(String label) =>
           tester.widget<Text>(header(label)).style?.color;
-      expect(navColor('BOOKS'), AppColors.invertFg);
+      expect(navColor('OS'), AppColors.invertFg);
       expect(navColor('PRICING'), isNot(AppColors.invertFg));
 
       await tester.tap(header('PRICING'));
       await tester.pumpAndSettle();
       expect(navColor('PRICING'), AppColors.invertFg);
-      expect(navColor('BOOKS'), isNot(AppColors.invertFg));
+      expect(navColor('OS'), isNot(AppColors.invertFg));
 
       await tester.tap(find.byType(FlipperMark).first);
       await tester.pumpAndSettle();
-      expect(navColor('BOOKS'), AppColors.invertFg);
+      expect(navColor('OS'), AppColors.invertFg);
     });
 
     testWidgets('start free goes to sign-up', (tester) async {

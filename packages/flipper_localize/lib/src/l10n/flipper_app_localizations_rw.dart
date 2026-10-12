@@ -23443,7 +23443,7 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
 
   @override
   String get webHomeHeroBody =>
-      'Flipper Books ni ibaruramari rigezweho ry\'ubucuruzi buri gukura. Buri igurisha rivuye kuri Flipper POS rihita ryandikwa mu gitabo cyawe — kandi Flow AI igashyira mu byiciro, igahuza, ikanamenyekanisha ibisigaye. Wowe ucunga ubucuruzi bwawe gusa.';
+      'Flipper OS icunga ubucuruzi bwose — kugurisha, ibaruramari, hoteli, akabari, igikoni n\'imishahara — mu gitabo kimwe. Buri igurisha rihita rijya muri Books, kandi Flow AI igashyira mu byiciro, igahuza konti kandi igatanga imenyekanisha. Wowe ucunga ubucuruzi bwawe gusa.';
 
   @override
   String get webHomeSeeHowItWorks => 'Reba uko bikora';
@@ -23723,7 +23723,7 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   String get webHomeCommunity => 'Umuryango';
 
   @override
-  String get webHomePoweredBy => 'Flipper Books · ikoresha';
+  String get webHomePoweredBy => 'Flipper OS · ikoresha';
 
   @override
   String get webHomeMostPopular => 'Ikunzwe cyane';

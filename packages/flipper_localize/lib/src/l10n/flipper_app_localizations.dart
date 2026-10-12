@@ -38744,7 +38744,7 @@ abstract class FlipperAppLocalizations {
   /// No description provided for @webHomeHeroBody.
   ///
   /// In en, this message translates to:
-  /// **'Flipper Books is modern accounting for growing businesses. Every sale from Flipper POS posts straight to your ledger — and Flow AI categorizes, reconciles, and files the rest. You just run your business.'**
+  /// **'Flipper OS runs the whole business — point of sale, accounting, hotel, bar, kitchen and payroll — on one ledger. Every sale posts straight to Books, and Flow AI categorizes, reconciles and files the rest. You just run your business.'**
   String get webHomeHeroBody;
 
   /// No description provided for @webHomeSeeHowItWorks.
@@ -39236,7 +39236,7 @@ abstract class FlipperAppLocalizations {
   /// No description provided for @webHomePoweredBy.
   ///
   /// In en, this message translates to:
-  /// **'Flipper Books · powered by'**
+  /// **'Flipper OS · powered by'**
   String get webHomePoweredBy;
 
   /// No description provided for @webHomeMostPopular.

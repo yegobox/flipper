@@ -398,7 +398,7 @@ class BooksWordmark extends StatelessWidget {
                 border: Border.all(color: AppColors.lineStrong),
               ),
               child: Text(
-                'BOOKS',
+                'OS',
                 style: AppText.label(size: 10, c: AppColors.ink),
               ),
             ),

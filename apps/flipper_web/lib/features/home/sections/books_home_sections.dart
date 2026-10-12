@@ -6,8 +6,9 @@ import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-/// Header nav ids, in page order. `Books` is the top of the page.
-const booksHomeNavIds = ['Books', 'Platform', 'Flow AI', 'Features', 'Pricing'];
+/// Header nav ids, in page order. `OS` is the top of the page: Flipper OS,
+/// of which Books (accounting) is one app.
+const booksHomeNavIds = ['OS', 'Platform', 'Flow AI', 'Features', 'Pricing'];
 
 /// Height of the pinned header.
 const booksHomeHeaderHeight = 64.0;
@@ -20,7 +21,7 @@ class BooksHomeHeader extends StatelessWidget {
     required this.onStartFree,
     required this.onNavTap,
     required this.onSignIn,
-    this.active = 'Books',
+    this.active = 'OS',
   });
 
   final VoidCallback onStartFree;
@@ -50,7 +51,7 @@ class BooksHomeHeader extends StatelessWidget {
               _HeaderCell(
                 width: booksHomeHeaderHeight,
                 rightRule: true,
-                onTap: () => onNavTap('Books'),
+                onTap: () => onNavTap('OS'),
                 child: const Center(child: FlipperMark(size: 30)),
               ),
               if (compact)
@@ -1523,7 +1524,7 @@ class BooksHomeFooter extends StatelessWidget {
                   ),
                   const SizedBox(height: 40),
                   IgnorePointer(
-                    child: GiantWord('FLIPPER BOOKS', color: AppColors.ink),
+                    child: GiantWord('FLIPPER OS', color: AppColors.ink),
                   ),
                   SizedBox(height: gutter),
                 ],

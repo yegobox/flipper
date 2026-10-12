@@ -22,7 +22,7 @@ class _BooksHomePageState extends ConsumerState<BooksHomePage> {
   final GlobalKey _suiteKey = GlobalKey();
   final GlobalKey _flowKey = GlobalKey();
   final GlobalKey _capabilitiesKey = GlobalKey();
-  String _active = 'Books';
+  String _active = 'OS';
 
   late final Map<String, GlobalKey> _sections = {
     'Platform': _suiteKey,
@@ -46,7 +46,7 @@ class _BooksHomePageState extends ConsumerState<BooksHomePage> {
 
   /// The last section whose top has passed just under the header.
   String _sectionInView() {
-    var active = 'Books';
+    var active = 'OS';
     for (final MapEntry(:key, :value) in _sections.entries) {
       final box = value.currentContext?.findRenderObject() as RenderBox?;
       if (box == null || !box.attached) continue;

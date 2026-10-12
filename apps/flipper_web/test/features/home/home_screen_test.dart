@@ -37,7 +37,11 @@ void main() {
       await pumpHomeScreen(tester);
 
       expect(find.text('Flipper'), findsWidgets);
-      expect(find.text('BOOKS'), findsWidgets);
+      // Flipper OS is the product; Books is its accounting app.
+      expect(find.text('OS'), findsWidgets);
+      expect(find.text('FLIPPER OS · POWERED BY FLOW AI'), findsOneWidget);
+      expect(find.text('FLIPPER OS'), findsOneWidget);
+      expect(find.text('Flipper Books'), findsWidgets);
       expect(find.text('Start free'), findsWidgets);
       expect(find.text('See how it works'), findsOneWidget);
       expect(find.text('RRA / EBM-READY'), findsOneWidget);

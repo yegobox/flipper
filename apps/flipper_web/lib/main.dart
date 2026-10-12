@@ -85,7 +85,7 @@ class MyApp extends ConsumerWidget {
 
     return MaterialApp.router(
       debugShowCheckedModeBanner: false,
-      title: 'Flipper',
+      title: 'Flipper OS',
       theme: FlipperTheme.light(),
       darkTheme: FlipperTheme.dark(),
       themeMode: themeMode,

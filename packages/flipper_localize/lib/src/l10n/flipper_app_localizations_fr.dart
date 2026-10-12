@@ -23578,7 +23578,7 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
 
   @override
   String get webHomeHeroBody =>
-      'Flipper Books est la comptabilité moderne des entreprises en croissance. Chaque vente de Flipper POS arrive directement dans votre grand livre — et Flow AI classe, rapproche et déclare le reste. Vous, vous gérez votre entreprise.';
+      'Flipper OS fait tourner toute l\'entreprise — point de vente, comptabilité, hôtel, bar, cuisine et paie — sur un seul grand livre. Chaque vente arrive directement dans Books, et Flow AI catégorise, rapproche et déclare le reste. Vous, vous gérez votre affaire.';
 
   @override
   String get webHomeSeeHowItWorks => 'Voir comment ça marche';
@@ -23859,7 +23859,7 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   String get webHomeCommunity => 'Communauté';
 
   @override
-  String get webHomePoweredBy => 'Flipper Books · propulsé par';
+  String get webHomePoweredBy => 'Flipper OS · propulsé par';
 
   @override
   String get webHomeMostPopular => 'Le plus populaire';

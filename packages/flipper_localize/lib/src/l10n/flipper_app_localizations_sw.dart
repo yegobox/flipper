@@ -23350,7 +23350,7 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
 
   @override
   String get webHomeHeroBody =>
-      'Flipper Books ni uhasibu wa kisasa kwa biashara zinazokua. Kila mauzo kutoka Flipper POS yanaingia moja kwa moja kwenye leja yako — na Flow AI hupanga, kusuluhisha na kuwasilisha yaliyobaki. Wewe unaendesha biashara yako tu.';
+      'Flipper OS inaendesha biashara nzima — mauzo, uhasibu, hoteli, baa, jikoni na mishahara — kwenye leja moja. Kila mauzo yanaingia moja kwa moja kwenye Books, na Flow AI inapanga, inasawazisha na kuwasilisha mengine. Wewe endesha biashara yako tu.';
 
   @override
   String get webHomeSeeHowItWorks => 'Tazama jinsi inavyofanya kazi';
@@ -23631,7 +23631,7 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   String get webHomeCommunity => 'Jumuiya';
 
   @override
-  String get webHomePoweredBy => 'Flipper Books · inaendeshwa na';
+  String get webHomePoweredBy => 'Flipper OS · inaendeshwa na';
 
   @override
   String get webHomeMostPopular => 'Maarufu zaidi';
