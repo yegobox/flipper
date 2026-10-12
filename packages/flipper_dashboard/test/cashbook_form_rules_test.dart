@@ -265,11 +265,15 @@ void main() {
     expect(cashbookCategoryLabel(null), 'No category');
   });
 
-  test('cashbookMethodBadge marks only mobile money', () {
+  test('cashbookMethodBadge marks non-cash methods by their own name', () {
     expect(cashbookMethodBadge('CASH'), isNull);
     expect(cashbookMethodBadge(null), isNull);
+    expect(cashbookMethodBadge('CREDIT'), isNull);
     expect(cashbookMethodBadge('MTN MOMO'), 'MoMo');
+    expect(cashbookMethodBadge('MOBILE MONEY'), 'MoMo');
     expect(cashbookMethodBadge('AIRTEL MONEY'), 'Airtel');
+    expect(cashbookMethodBadge('BANK CHECK'), 'Bank');
+    expect(cashbookMethodBadge('DEBIT&CREDIT CARD'), 'Card');
   });
 
   group('cashbookDayLabel', () {

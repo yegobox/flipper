@@ -381,22 +381,35 @@ class _DashboardArcPainter extends CustomPainter {
       ..strokeWidth = _strokeWidth
       ..strokeCap = StrokeCap.round;
 
-    canvas.drawArc(trackRect, math.pi, math.pi, false, trackPaint);
-
-    if (!isEmpty && fillFraction > 0.001) {
-      final sweep = math.pi * fillFraction;
-      final fillPaint = Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = _strokeWidth
-        ..strokeCap = StrokeCap.round
-        ..shader = const SweepGradient(
-          startAngle: math.pi,
-          endAngle: 2 * math.pi,
-          colors: [Color(0xFF10B981), Color(0xFF22D3EE), Color(0xFF2563EB)],
-          stops: [0.0, 0.6, 1.0],
-        ).createShader(trackRect);
-
-      canvas.drawArc(trackRect, math.pi, sweep, false, fillPaint);
+    if (isEmpty) {
+      canvas.drawArc(trackRect, math.pi, math.pi, false, trackPaint);
+    } else {
+      // Red is the whole arc and green is laid over it from the left, so the
+      // two always meet wherever the green stops — no grey gap between them.
+      canvas.drawArc(
+        trackRect,
+        math.pi,
+        math.pi,
+        false,
+        Paint()
+          ..color = _loss
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = _strokeWidth
+          ..strokeCap = StrokeCap.round,
+      );
+      if (fillFraction > 0.001) {
+        canvas.drawArc(
+          trackRect,
+          math.pi,
+          math.pi * fillFraction,
+          false,
+          Paint()
+            ..color = _gain
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = _strokeWidth
+            ..strokeCap = StrokeCap.round,
+        );
+      }
     }
 
     final startX = center.dx + radius * math.cos(math.pi);
