@@ -3,7 +3,7 @@
     "short_name": "Flipper",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#06080D",
+    "background_color": "#FFFFFF",
     "theme_color": "#2563EB",
     "description": "Offline-first point of sale, inventory, accounting and HR for small businesses. One account, every device.",
     "orientation": "portrait-primary",
