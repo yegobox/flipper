@@ -390,6 +390,10 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     List<TransactionItem>? cartLines,
     bool readOnly = false,
 
+    /// With [readOnly], still allow deleting lines and lowering qty (Admin on a
+    /// resumed ticket). Raising qty, repricing and Delete All stay locked.
+    bool reduceOnly = false,
+
     /// Prior non-credit payments on a resumed / partially paid ticket.
     /// When > 0 and less than [grandTotal], a subtraction line is shown under
     /// Grand Total so the remaining tender amount is explainable.
@@ -457,10 +461,16 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
                 isOrdering,
                 scrollable: true,
                 readOnly: readOnly,
+                reduceOnly: reduceOnly,
               ),
             )
           else
-            _buildItemsList(isOrdering, scrollable: false, readOnly: readOnly),
+            _buildItemsList(
+              isOrdering,
+              scrollable: false,
+              readOnly: readOnly,
+              reduceOnly: reduceOnly,
+            ),
           ValueListenableBuilder<int>(
             valueListenable: _cartTotalsTick,
             builder: (_, __, ___) =>
@@ -543,6 +553,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     bool isOrdering, {
     required bool scrollable,
     bool readOnly = false,
+    bool reduceOnly = false,
   }) {
     final visibleItems = _visibleTransactionItems;
     final listView = ListView.separated(
@@ -582,6 +593,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
               isOrdering,
               ref: ref,
               readOnly: readOnly,
+              reduceOnly: reduceOnly,
             ),
           ),
         );
@@ -644,8 +656,10 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     bool isOrdering, {
     WidgetRef? ref,
     bool readOnly = false,
+    bool reduceOnly = false,
   }) {
     final isExpanded = _expandedItemId == item.id;
+    final canReduce = !readOnly || reduceOnly;
     final isSaving = _isItemSaving[item.id] ?? false;
     final hasError = _itemErrors.containsKey(item.id);
     final hasChanged = _hasItemChanged[item.id] ?? false;
@@ -663,11 +677,12 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
         hasError: hasError,
         lineRef: ref ?? this.ref,
         readOnly: readOnly,
+        canReduce: canReduce,
       );
     }
 
     return IgnorePointer(
-      ignoring: readOnly,
+      ignoring: !canReduce,
       child: Container(
         padding: EdgeInsets.zero,
         decoration: BoxDecoration(
@@ -682,7 +697,13 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
         ),
         child: Column(
           children: [
-            _buildItemHeader(item, isOrdering, isSaving, hasError),
+            _buildItemHeader(
+              item,
+              isOrdering,
+              isSaving,
+              hasError,
+              readOnly: readOnly,
+            ),
             if (isExpanded && !readOnly) ...[
               const SizedBox(height: 16),
               _buildExpandedControls(item, isOrdering),
@@ -701,6 +722,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     required bool hasError,
     required WidgetRef lineRef,
     bool readOnly = false,
+    bool canReduce = true,
   }) {
     _ensureController(item);
     // A ghost row (`optimistic:` id) has not reached Ditto yet. `+` is always
@@ -714,7 +736,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
         lineRef
             .watch(optimisticCartProvider)
             .hasCancellableAdd(item.variantId ?? '');
-    final qtyLocked = (isGhost && !ghostDecrementable) || readOnly;
+    final qtyLocked = (isGhost && !ghostDecrementable) || !canReduce;
     return ValueListenableBuilder<double>(
       valueListenable: _lineQtyListenable(item),
       builder: (context, displayQty, _) {
@@ -751,16 +773,16 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
           onToggleExpand: readOnly
               ? () {}
               : () => _toggleExpandedItem(item.id, isSaving: isSaving),
-          onDelete: readOnly
-              ? () {}
-              : () => _showDeleteConfirmation(item, isOrdering),
-          onDecrement: readOnly
-              ? () {}
-              : () => _decrementQuantity(item, isOrdering),
+          onDelete: canReduce
+              ? () => _showDeleteConfirmation(item, isOrdering)
+              : () {},
+          onDecrement: canReduce
+              ? () => _decrementQuantity(item, isOrdering)
+              : () {},
           onIncrement: readOnly
               ? () {}
               : () => _incrementQuantity(item, isOrdering),
-          decrementEnabled: !readOnly && displayQty > 0 && !qtyLocked,
+          decrementEnabled: displayQty > 0 && !qtyLocked,
           incrementEnabled: !readOnly,
           expandedQuantityStepper: isExpanded
               ? PosCartExpandedQtyStepper(
@@ -820,8 +842,9 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     TransactionItem item,
     bool isOrdering,
     bool isSaving,
-    bool hasError,
-  ) {
+    bool hasError, {
+    bool readOnly = false,
+  }) {
     final plu = _lineItemInventoryLabel(item);
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -883,7 +906,14 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
             ],
           ),
         ),
-        Expanded(flex: 2, child: _buildQuickQuantityControls(item, isOrdering)),
+        Expanded(
+          flex: 2,
+          child: _buildQuickQuantityControls(
+            item,
+            isOrdering,
+            incrementEnabled: !readOnly,
+          ),
+        ),
         Expanded(
           child: Align(
             alignment: Alignment.center,
@@ -915,7 +945,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              _buildItemActions(item, isOrdering, isSaving),
+              if (!readOnly) _buildItemActions(item, isOrdering, isSaving),
             ],
           ),
         ),
@@ -924,7 +954,11 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
   }
 
   // === -INSPIRED QUICK CONTROLS ===
-  Widget _buildQuickQuantityControls(TransactionItem item, bool isOrdering) {
+  Widget _buildQuickQuantityControls(
+    TransactionItem item,
+    bool isOrdering, {
+    bool incrementEnabled = true,
+  }) {
     final isGhost = OptimisticCartIds.isOptimistic(item.id);
     final qtyLocked =
         isGhost &&
@@ -961,7 +995,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
               _buildCircularQtyButton(
                 icon: Icons.add,
                 onTap: () => _incrementQuantity(item, isOrdering),
-                enabled: true,
+                enabled: incrementEnabled,
                 id: '${item.id}-add',
               ),
             ],

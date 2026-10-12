@@ -11,6 +11,13 @@ bool tenantTypeCanCollectPosPayment(String? type) {
       normalized.contains('manager');
 }
 
+/// Whether a tenant type string is Admin or Owner — the roles that may take
+/// lines off a resumed ticket (delete or lower qty) while settling it.
+bool tenantTypeIsAdminOrOwner(String? type) {
+  final normalized = type?.toLowerCase() ?? '';
+  return normalized.contains('admin') || normalized.contains('owner');
+}
+
 /// Whether a tenant type string is the Cashier role.
 ///
 /// Only Cashiers are required to open a POS shift before selling — Admins,

@@ -2868,6 +2868,9 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     final isSettling = settling != null;
     // View-only staff get a read-only cart table (no price/qty/delete controls).
     final readOnlyCart = isSettling || !ref.watch(canSellProvider);
+    // Admins may still take lines off a resumed ticket (delete / lower qty).
+    final reduceOnlyCart =
+        isSettling && ref.watch(canReduceSettlingTicketProvider);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -2895,6 +2898,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                   pinGrandTotal: true,
                   cartLines: lines,
                   readOnly: readOnlyCart,
+                  reduceOnly: reduceOnlyCart,
                   alreadyPaid: alreadyPaid,
                 ),
               ),
@@ -2910,6 +2914,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                 pinGrandTotal: false,
                 cartLines: lines,
                 readOnly: readOnlyCart,
+                reduceOnly: reduceOnlyCart,
                 alreadyPaid: alreadyPaid,
               ),
             ),

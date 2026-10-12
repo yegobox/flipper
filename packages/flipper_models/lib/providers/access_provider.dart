@@ -55,6 +55,10 @@ bool _isBusinessAdminUserType(Ref ref, String userId) {
   );
 }
 
+/// Public form of [_isBusinessAdminUserType] for non-generated providers.
+bool isBusinessAdminUserType(Ref ref, String userId) =>
+    _isBusinessAdminUserType(ref, userId);
+
 @riverpod
 Future<Tenant?> tenant(Ref ref, String userId) async {
   return await ProxyService.strategy.tenant(userId: userId, fetchRemote: false);
