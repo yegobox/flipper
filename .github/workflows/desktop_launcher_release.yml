@@ -6,6 +6,9 @@ name: Flipper - Desktop release (Yegobox Launcher)
 # Launcher (yegobox/flipper-launcher) reads that apps.json to install Flipper
 # and keep it up to date. Store builds in release.yml are unaffected.
 #
+# Runs by itself on every push to main that touches Flipper (→ stable). Run it
+# by hand on any branch for a beta build (or to pick platforms).
+#
 # Secrets:
 #   TAURI_SIGNING_PRIVATE_KEY, TAURI_SIGNING_PRIVATE_KEY_PASSWORD  (required;
 #     `tauri signer generate`, public half is embedded in the launcher)
@@ -17,6 +20,15 @@ name: Flipper - Desktop release (Yegobox Launcher)
 #     SmartScreen shows "unknown publisher")
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/flipper/**"
+      - "packages/**"
+      - "open-sources/**"
+      - "pubspec.yaml"
+      - "scripts/ci/update_launcher_manifest.py"
+      - ".github/workflows/desktop_launcher_release.yml"
   workflow_dispatch:
     inputs:
       channel:
@@ -34,9 +46,19 @@ on:
 permissions:
   contents: write
 
+# One release at a time. A merge that lands while one runs waits; if several
+# land, only the newest waits (GitHub drops older pending runs), which is right
+# here: users only need the latest main, not every merge in between.
+concurrency:
+  group: desktop-launcher-release-${{ github.ref }}
+  cancel-in-progress: false
+
 env:
   FLUTTER_VERSION: "3.44.6" # keep in step with release.yml
   MANIFEST_TAG: launcher-manifest
+  # A push has no inputs: stable, every platform.
+  CHANNEL: ${{ inputs.channel || 'stable' }}
+  PLATFORMS: ${{ inputs.platforms || 'windows,macos,linux' }}
 
 jobs:
   version:
@@ -45,32 +67,54 @@ jobs:
     outputs:
       version: ${{ steps.v.outputs.version }}
       tag: ${{ steps.v.outputs.tag }}
-      windows: ${{ contains(inputs.platforms, 'windows') }}
-      macos: ${{ contains(inputs.platforms, 'macos') }}
-      linux: ${{ contains(inputs.platforms, 'linux') }}
+      windows: ${{ contains(env.PLATFORMS, 'windows') }}
+      macos: ${{ steps.mac.outputs.build }}
+      linux: ${{ contains(env.PLATFORMS, 'linux') }}
     steps:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
+      - id: mac
+        # A macOS build must be Developer ID signed and notarized or Gatekeeper
+        # refuses it, so skip macOS (and keep the last macOS release in the
+        # catalog) until the signing secrets exist.
+        env:
+          P12: ${{ secrets.MACOS_CERTIFICATE_P12 }}
+          PROFILE: ${{ secrets.MACOS_PROVISION_PROFILE }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          TEAM: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          if [[ "$PLATFORMS" != *macos* ]]; then echo "build=false" >> "$GITHUB_OUTPUT"; exit 0; fi
+          for v in P12 PROFILE APPLE_ID TEAM; do
+            if [[ -z "${!v}" ]]; then
+              echo "::warning::Skipping macOS: Developer ID signing secrets are not set (see the header of this workflow)."
+              echo "build=false" >> "$GITHUB_OUTPUT"; exit 0
+            fi
+          done
+          echo "build=true" >> "$GITHUB_OUTPUT"
       - id: v
         env:
           GH_TOKEN: ${{ github.token }}
-          CHANNEL: ${{ inputs.channel }}
         run: |
           if [[ "$CHANNEL" == stable && "$GITHUB_REF" != refs/heads/main ]]; then
             echo "::error::stable releases only run from main (got $GITHUB_REF)"; exit 1
           fi
-          # The version name Flipper reports through package_info (no build number).
+          # MAJOR.MINOR from the version Flipper reports (package_info); PATCH is
+          # this workflow's run number. Plenty of merges land without a version
+          # bump (stacked PRs skip it), and each must still ship as a newer
+          # version, so PATCH can't come from pubspec. The run number only
+          # grows, so every run sorts above the last. Beta adds -beta, which
+          # sorts below the stable build of a later run.
           BASE="$(awk '/^version:/ { sub(/\+.*/, "", $2); print $2; exit }' apps/flipper/pubspec.yaml)"
-          if [[ ! "$BASE" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+          if [[ ! "$BASE" =~ ^([0-9]+)\.([0-9]+)\.[0-9]+$ ]]; then
             echo "::error::unusable version '$BASE' in apps/flipper/pubspec.yaml"; exit 1
           fi
-          # Beta sorts below the stable it leads to (1.505.0-beta.12 < 1.505.0) and
-          # never collides; a stable version is published once.
-          if [[ "$CHANNEL" == beta ]]; then VERSION="$BASE-beta.$GITHUB_RUN_NUMBER"; else VERSION="$BASE"; fi
+          VERSION="${BASH_REMATCH[1]}.${BASH_REMATCH[2]}.$GITHUB_RUN_NUMBER"
+          [[ "$CHANNEL" == beta ]] && VERSION="$VERSION-beta"
           TAG="desktop-v$VERSION"
           if gh release view "$TAG" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            echo "::error::$TAG already exists; bump version: in apps/flipper/pubspec.yaml"; exit 1
+            # Only a re-run of an already published run gets here.
+            echo "::error::$TAG is already published; start a new run instead of re-running this one"; exit 1
           fi
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
@@ -179,20 +223,6 @@ jobs:
     runs-on: macos-14
     timeout-minutes: 90
     steps:
-      - name: Check signing secrets
-        env:
-          P12: ${{ secrets.MACOS_CERTIFICATE_P12 }}
-          PROFILE: ${{ secrets.MACOS_PROVISION_PROFILE }}
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          TEAM: ${{ secrets.APPLE_TEAM_ID }}
-        run: |
-          # The launcher installs outside the App Store, so the app must be
-          # Developer ID signed and notarized or Gatekeeper refuses it.
-          for v in P12 PROFILE APPLE_ID TEAM; do
-            if [[ -z "${!v}" ]]; then
-              echo "::error::macOS needs Developer ID signing secrets (see header of this workflow); drop macos from 'platforms' until they are set"; exit 1
-            fi
-          done
       - uses: actions/checkout@v4
         with:
           submodules: recursive
@@ -390,7 +420,6 @@ jobs:
       GH_TOKEN: ${{ github.token }}
       VERSION: ${{ needs.version.outputs.version }}
       TAG: ${{ needs.version.outputs.tag }}
-      CHANNEL: ${{ inputs.channel }}
     steps:
       - uses: actions/checkout@v4
         with:
