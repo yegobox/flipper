@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flipper_localize/flipper_localize.dart';
@@ -489,6 +490,129 @@ class EditorialHeadline extends StatelessWidget {
         ],
       ),
       textAlign: textAlign,
+    );
+  }
+}
+
+/// An [EditorialHeadline] that flips through [lines] — everything the
+/// business OS runs — like a split-flap board: each line tips up and out as
+/// the next tips in from below. It reserves the tallest line's height, so
+/// nothing under it moves. Holds the first line under reduced motion.
+class RotatingHeadline extends StatefulWidget {
+  const RotatingHeadline({
+    super.key,
+    required this.lines,
+    required this.size,
+    this.textAlign = TextAlign.center,
+    this.hold = const Duration(milliseconds: 2600),
+  });
+
+  /// (lead, accent) pairs, each read as one sentence.
+  final List<(String, String)> lines;
+  final double size;
+  final TextAlign textAlign;
+
+  /// How long each line stays before the next flips in.
+  final Duration hold;
+
+  @override
+  State<RotatingHeadline> createState() => _RotatingHeadlineState();
+}
+
+class _RotatingHeadlineState extends State<RotatingHeadline> {
+  int _index = 0;
+  Timer? _timer;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (MediaQuery.disableAnimationsOf(context) || widget.lines.length < 2) {
+      _timer?.cancel();
+      _timer = null;
+      _index = 0;
+    } else {
+      _timer ??= Timer.periodic(widget.hold, (_) {
+        if (mounted) {
+          setState(() => _index = (_index + 1) % widget.lines.length);
+        }
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  Widget _line(int i) => EditorialHeadline(
+    lead: widget.lines[i].$1,
+    accent: widget.lines[i].$2,
+    size: widget.size,
+    textAlign: widget.textAlign,
+  );
+
+  Widget _flip(Widget child, Animation<double> animation) {
+    return AnimatedBuilder(
+      animation: animation,
+      child: child,
+      builder: (context, child) {
+        // In: forward from below. Out: AnimatedSwitcher reverses it, and we
+        // send it up instead of back down.
+        final out = animation.status == AnimationStatus.reverse;
+        final rest = 1 - animation.value;
+        final direction = out ? -1.0 : 1.0;
+        return Opacity(
+          opacity: animation.value.clamp(0.0, 1.0),
+          child: FractionalTranslation(
+            translation: Offset(0, 0.4 * rest * direction),
+            child: Transform(
+              alignment: Alignment.center,
+              transform: Matrix4.identity()
+                ..setEntry(3, 2, 0.0015)
+                ..rotateX(-direction * rest * math.pi / 2.2),
+              child: child,
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        // Every line, invisible, so the box is always the tallest one.
+        for (var i = 0; i < widget.lines.length; i++)
+          ExcludeSemantics(
+            child: Visibility(
+              visible: false,
+              maintainSize: true,
+              maintainAnimation: true,
+              maintainState: true,
+              child: _line(i),
+            ),
+          ),
+        Positioned.fill(
+          child: ClipRect(
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 700),
+              // Split-flap order: the old line is gone by 60% (the out curve
+              // runs in reverse), the new one lands from 30%.
+              switchInCurve: const Interval(0.3, 1, curve: Curves.easeOutCubic),
+              switchOutCurve: const Interval(0.4, 1, curve: Curves.easeInCubic),
+              transitionBuilder: _flip,
+              layoutBuilder: (current, previous) => Stack(
+                alignment: Alignment.center,
+                children: [...previous, ?current],
+              ),
+              child: KeyedSubtree(key: ValueKey(_index), child: _line(_index)),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

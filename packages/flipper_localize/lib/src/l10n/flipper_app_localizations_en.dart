@@ -25616,4 +25616,34 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
 
   @override
   String get webHomeNativeWindows => 'Get it from Microsoft';
+
+  @override
+  String get webHomeHeroPosLead => 'Point of sale that';
+
+  @override
+  String get webHomeHeroPosAccent => 'never stops.';
+
+  @override
+  String get webHomeHeroHotelLead => 'Hotel management that';
+
+  @override
+  String get webHomeHeroHotelAccent => 'runs itself.';
+
+  @override
+  String get webHomeHeroBarLead => 'Bar management that';
+
+  @override
+  String get webHomeHeroBarAccent => 'keeps every tab.';
+
+  @override
+  String get webHomeHeroKitchenLead => 'Kitchen display that';
+
+  @override
+  String get webHomeHeroKitchenAccent => 'calls every order.';
+
+  @override
+  String get webHomeHeroPayrollLead => 'Payroll that';
+
+  @override
+  String get webHomeHeroPayrollAccent => 'pays on time.';
 }

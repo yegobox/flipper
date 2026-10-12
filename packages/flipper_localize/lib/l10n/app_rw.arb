@@ -8760,5 +8760,15 @@
   "webHomeNativeAccent": "Koresha porogaramu.",
   "webHomeNativeBody": "Urubuga ni rwiza mu kureba uko ibintu bimeze aho uri hose. Ku iduka, shyira Flipper kuri Android cyangwa Windows: irihuta cyane, ikomeza kugurisha nta murandasi, kandi ihuza amakuru ukimara kongera kubona murandasi.",
   "webHomeNativePlay": "Yikure kuri Google Play",
-  "webHomeNativeWindows": "Yikure kuri Microsoft Store"
+  "webHomeNativeWindows": "Yikure kuri Microsoft Store",
+  "webHomeHeroPosLead": "Uburyo bwo kugurisha",
+  "webHomeHeroPosAccent": "budahagarara.",
+  "webHomeHeroHotelLead": "Gucunga hoteli",
+  "webHomeHeroHotelAccent": "byikora.",
+  "webHomeHeroBarLead": "Gucunga akabari",
+  "webHomeHeroBarAccent": "bikurikirana buri konti.",
+  "webHomeHeroKitchenLead": "Ekrani y'igikoni",
+  "webHomeHeroKitchenAccent": "yerekana ibyatumijwe byose.",
+  "webHomeHeroPayrollLead": "Imishahara",
+  "webHomeHeroPayrollAccent": "yishyurwa ku gihe."
 }

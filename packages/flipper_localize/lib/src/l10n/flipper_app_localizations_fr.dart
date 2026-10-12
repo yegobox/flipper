@@ -26033,4 +26033,34 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
 
   @override
   String get webHomeNativeWindows => 'Obtenir sur Microsoft Store';
+
+  @override
+  String get webHomeHeroPosLead => 'Un point de vente qui';
+
+  @override
+  String get webHomeHeroPosAccent => 'ne s\'arrête jamais.';
+
+  @override
+  String get webHomeHeroHotelLead => 'La gestion hôtelière qui';
+
+  @override
+  String get webHomeHeroHotelAccent => 'tourne toute seule.';
+
+  @override
+  String get webHomeHeroBarLead => 'La gestion de bar qui';
+
+  @override
+  String get webHomeHeroBarAccent => 'suit chaque addition.';
+
+  @override
+  String get webHomeHeroKitchenLead => 'L\'écran cuisine qui';
+
+  @override
+  String get webHomeHeroKitchenAccent => 'annonce chaque commande.';
+
+  @override
+  String get webHomeHeroPayrollLead => 'La paie qui';
+
+  @override
+  String get webHomeHeroPayrollAccent => 'tombe à l\'heure.';
 }

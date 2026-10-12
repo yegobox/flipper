@@ -7175,5 +7175,15 @@
     "webHomeNativeAccent": "Passez au natif.",
     "webHomeNativeBody": "Le web est parfait pour garder un œil sur tout, où que vous soyez. Au comptoir, installez Flipper sur Android ou Windows : il tourne à pleine vitesse, continue de vendre sans internet et se synchronise dès que vous êtes de nouveau en ligne.",
     "webHomeNativePlay": "Disponible sur Google Play",
-    "webHomeNativeWindows": "Obtenir sur Microsoft Store"
+    "webHomeNativeWindows": "Obtenir sur Microsoft Store",
+    "webHomeHeroPosLead": "Un point de vente qui",
+    "webHomeHeroPosAccent": "ne s'arrête jamais.",
+    "webHomeHeroHotelLead": "La gestion hôtelière qui",
+    "webHomeHeroHotelAccent": "tourne toute seule.",
+    "webHomeHeroBarLead": "La gestion de bar qui",
+    "webHomeHeroBarAccent": "suit chaque addition.",
+    "webHomeHeroKitchenLead": "L'écran cuisine qui",
+    "webHomeHeroKitchenAccent": "annonce chaque commande.",
+    "webHomeHeroPayrollLead": "La paie qui",
+    "webHomeHeroPayrollAccent": "tombe à l'heure."
 }

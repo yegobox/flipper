@@ -42826,6 +42826,66 @@ abstract class FlipperAppLocalizations {
   /// In en, this message translates to:
   /// **'Get it from Microsoft'**
   String get webHomeNativeWindows;
+
+  /// Rotating landing headline (Pos): upright lead; reads as one sentence with its pair
+  ///
+  /// In en, this message translates to:
+  /// **'Point of sale that'**
+  String get webHomeHeroPosLead;
+
+  /// Rotating landing headline (Pos): italic accent; reads as one sentence with its pair
+  ///
+  /// In en, this message translates to:
+  /// **'never stops.'**
+  String get webHomeHeroPosAccent;
+
+  /// Rotating landing headline (Hotel): upright lead; reads as one sentence with its pair
+  ///
+  /// In en, this message translates to:
+  /// **'Hotel management that'**
+  String get webHomeHeroHotelLead;
+
+  /// Rotating landing headline (Hotel): italic accent; reads as one sentence with its pair
+  ///
+  /// In en, this message translates to:
+  /// **'runs itself.'**
+  String get webHomeHeroHotelAccent;
+
+  /// Rotating landing headline (Bar): upright lead; reads as one sentence with its pair
+  ///
+  /// In en, this message translates to:
+  /// **'Bar management that'**
+  String get webHomeHeroBarLead;
+
+  /// Rotating landing headline (Bar): italic accent; reads as one sentence with its pair
+  ///
+  /// In en, this message translates to:
+  /// **'keeps every tab.'**
+  String get webHomeHeroBarAccent;
+
+  /// Rotating landing headline (Kitchen): upright lead; reads as one sentence with its pair
+  ///
+  /// In en, this message translates to:
+  /// **'Kitchen display that'**
+  String get webHomeHeroKitchenLead;
+
+  /// Rotating landing headline (Kitchen): italic accent; reads as one sentence with its pair
+  ///
+  /// In en, this message translates to:
+  /// **'calls every order.'**
+  String get webHomeHeroKitchenAccent;
+
+  /// Rotating landing headline (Payroll): upright lead; reads as one sentence with its pair
+  ///
+  /// In en, this message translates to:
+  /// **'Payroll that'**
+  String get webHomeHeroPayrollLead;
+
+  /// Rotating landing headline (Payroll): italic accent; reads as one sentence with its pair
+  ///
+  /// In en, this message translates to:
+  /// **'pays on time.'**
+  String get webHomeHeroPayrollAccent;
 }
 
 class _FlipperAppLocalizationsDelegate

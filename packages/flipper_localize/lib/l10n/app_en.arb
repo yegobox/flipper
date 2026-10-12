@@ -19188,5 +19188,45 @@
     "webHomeNativeWindows": "Get it from Microsoft",
     "@webHomeNativeWindows": {
         "description": "Button to the Microsoft Store listing"
+    },
+    "webHomeHeroPosLead": "Point of sale that",
+    "@webHomeHeroPosLead": {
+        "description": "Rotating landing headline (Pos): upright lead; reads as one sentence with its pair"
+    },
+    "webHomeHeroPosAccent": "never stops.",
+    "@webHomeHeroPosAccent": {
+        "description": "Rotating landing headline (Pos): italic accent; reads as one sentence with its pair"
+    },
+    "webHomeHeroHotelLead": "Hotel management that",
+    "@webHomeHeroHotelLead": {
+        "description": "Rotating landing headline (Hotel): upright lead; reads as one sentence with its pair"
+    },
+    "webHomeHeroHotelAccent": "runs itself.",
+    "@webHomeHeroHotelAccent": {
+        "description": "Rotating landing headline (Hotel): italic accent; reads as one sentence with its pair"
+    },
+    "webHomeHeroBarLead": "Bar management that",
+    "@webHomeHeroBarLead": {
+        "description": "Rotating landing headline (Bar): upright lead; reads as one sentence with its pair"
+    },
+    "webHomeHeroBarAccent": "keeps every tab.",
+    "@webHomeHeroBarAccent": {
+        "description": "Rotating landing headline (Bar): italic accent; reads as one sentence with its pair"
+    },
+    "webHomeHeroKitchenLead": "Kitchen display that",
+    "@webHomeHeroKitchenLead": {
+        "description": "Rotating landing headline (Kitchen): upright lead; reads as one sentence with its pair"
+    },
+    "webHomeHeroKitchenAccent": "calls every order.",
+    "@webHomeHeroKitchenAccent": {
+        "description": "Rotating landing headline (Kitchen): italic accent; reads as one sentence with its pair"
+    },
+    "webHomeHeroPayrollLead": "Payroll that",
+    "@webHomeHeroPayrollLead": {
+        "description": "Rotating landing headline (Payroll): upright lead; reads as one sentence with its pair"
+    },
+    "webHomeHeroPayrollAccent": "pays on time.",
+    "@webHomeHeroPayrollAccent": {
+        "description": "Rotating landing headline (Payroll): italic accent; reads as one sentence with its pair"
     }
 }

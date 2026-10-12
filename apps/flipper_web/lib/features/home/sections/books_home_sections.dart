@@ -315,13 +315,36 @@ class BooksHomeHero extends StatelessWidget {
                         delay: const Duration(milliseconds: 900),
                         child: Column(
                           children: [
-                            EditorialHeadline(
-                              lead:
-                                  '${l10n.webHomeHeroLine1} '
-                                  '${l10n.webHomeHeroLine2Lead}',
-                              accent: l10n.webHomeHeroLine2Accent,
+                            // Everything the business OS runs, in turn.
+                            RotatingHeadline(
                               size: booksHomeH2Size(w),
-                              textAlign: TextAlign.center,
+                              lines: [
+                                (
+                                  '${l10n.webHomeHeroLine1} '
+                                      '${l10n.webHomeHeroLine2Lead}',
+                                  l10n.webHomeHeroLine2Accent,
+                                ),
+                                (
+                                  l10n.webHomeHeroPosLead,
+                                  l10n.webHomeHeroPosAccent,
+                                ),
+                                (
+                                  l10n.webHomeHeroHotelLead,
+                                  l10n.webHomeHeroHotelAccent,
+                                ),
+                                (
+                                  l10n.webHomeHeroBarLead,
+                                  l10n.webHomeHeroBarAccent,
+                                ),
+                                (
+                                  l10n.webHomeHeroKitchenLead,
+                                  l10n.webHomeHeroKitchenAccent,
+                                ),
+                                (
+                                  l10n.webHomeHeroPayrollLead,
+                                  l10n.webHomeHeroPayrollAccent,
+                                ),
+                              ],
                             ),
                             const SizedBox(height: 22),
                             ConstrainedBox(

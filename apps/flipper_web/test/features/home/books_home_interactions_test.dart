@@ -199,6 +199,64 @@ void main() {
     });
   });
 
+  group('rotating headline', () {
+    const lines = [('One', 'first.'), ('Two', 'second.'), ('Three', 'third.')];
+    Finder showing(int i) => find.byKey(ValueKey(i));
+
+    testWidgets('flips through every line and back', (tester) async {
+      await tester.pumpWidget(
+        app(const RotatingHeadline(lines: lines, size: 40)),
+      );
+      expect(showing(0), findsOneWidget);
+
+      await tester.pump(const Duration(milliseconds: 2600));
+      await tester.pump(const Duration(milliseconds: 700));
+      expect(showing(1), findsOneWidget);
+      expect(showing(0), findsNothing);
+
+      await tester.pump(const Duration(milliseconds: 2600));
+      await tester.pump(const Duration(milliseconds: 2600));
+      await tester.pump(const Duration(milliseconds: 700));
+      expect(showing(0), findsOneWidget);
+
+      // Disposing stops the clock (no pending timer).
+      await tester.pumpWidget(const SizedBox());
+    });
+
+    testWidgets('holds the first line under reduced motion', (tester) async {
+      await tester.pumpWidget(
+        app(const RotatingHeadline(lines: lines, size: 40), still: true),
+      );
+      await tester.pump(const Duration(seconds: 10));
+      expect(showing(0), findsOneWidget);
+      expect(showing(1), findsNothing);
+    });
+
+    testWidgets('keeps the height of the tallest line', (tester) async {
+      await tester.pumpWidget(
+        app(
+          const Center(
+            child: SizedBox(
+              width: 300,
+              child: RotatingHeadline(
+                lines: [
+                  ('Short', 'one.'),
+                  ('A much longer line that', 'has to wrap onto more lines.'),
+                ],
+                size: 30,
+              ),
+            ),
+          ),
+        ),
+      );
+      final first = tester.getSize(find.byType(RotatingHeadline));
+      await tester.pump(const Duration(milliseconds: 2600));
+      await tester.pump(const Duration(milliseconds: 700));
+      expect(tester.getSize(find.byType(RotatingHeadline)), first);
+      await tester.pumpWidget(const SizedBox());
+    });
+  });
+
   group('marquee', () {
     Widget ticker({required bool still, List<String> items = const ['A']}) =>
         app(MarqueeTicker(items: items), still: still);

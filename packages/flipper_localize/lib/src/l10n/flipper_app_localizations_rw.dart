@@ -25877,4 +25877,34 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
 
   @override
   String get webHomeNativeWindows => 'Yikure kuri Microsoft Store';
+
+  @override
+  String get webHomeHeroPosLead => 'Uburyo bwo kugurisha';
+
+  @override
+  String get webHomeHeroPosAccent => 'budahagarara.';
+
+  @override
+  String get webHomeHeroHotelLead => 'Gucunga hoteli';
+
+  @override
+  String get webHomeHeroHotelAccent => 'byikora.';
+
+  @override
+  String get webHomeHeroBarLead => 'Gucunga akabari';
+
+  @override
+  String get webHomeHeroBarAccent => 'bikurikirana buri konti.';
+
+  @override
+  String get webHomeHeroKitchenLead => 'Ekrani y\'igikoni';
+
+  @override
+  String get webHomeHeroKitchenAccent => 'yerekana ibyatumijwe byose.';
+
+  @override
+  String get webHomeHeroPayrollLead => 'Imishahara';
+
+  @override
+  String get webHomeHeroPayrollAccent => 'yishyurwa ku gihe.';
 }

@@ -42,7 +42,9 @@ void main() {
       expect(find.text('See how it works'), findsOneWidget);
       expect(find.text('RRA / EBM-READY'), findsOneWidget);
       // Headlines are one rich text with a serif-italic accent span.
-      expect(find.textContaining('does itself.'), findsOneWidget);
+      // The rotating headline also lays out every line, hidden, for its height.
+      expect(find.textContaining('does itself.'), findsWidgets);
+      expect(find.textContaining('Point of sale that'), findsWidgets);
       expect(find.textContaining('Accounting'), findsWidgets);
 
       // The marquee repeats its run so it can loop.

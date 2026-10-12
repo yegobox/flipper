@@ -25786,4 +25786,34 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
 
   @override
   String get webHomeNativeWindows => 'Ipate kwenye Microsoft Store';
+
+  @override
+  String get webHomeHeroPosLead => 'Mfumo wa mauzo';
+
+  @override
+  String get webHomeHeroPosAccent => 'usiosimama.';
+
+  @override
+  String get webHomeHeroHotelLead => 'Usimamizi wa hoteli';
+
+  @override
+  String get webHomeHeroHotelAccent => 'unaojiendesha.';
+
+  @override
+  String get webHomeHeroBarLead => 'Usimamizi wa baa';
+
+  @override
+  String get webHomeHeroBarAccent => 'unaofuatilia kila bili.';
+
+  @override
+  String get webHomeHeroKitchenLead => 'Skrini ya jikoni';
+
+  @override
+  String get webHomeHeroKitchenAccent => 'inayotangaza kila oda.';
+
+  @override
+  String get webHomeHeroPayrollLead => 'Mishahara';
+
+  @override
+  String get webHomeHeroPayrollAccent => 'inayolipwa kwa wakati.';
 }

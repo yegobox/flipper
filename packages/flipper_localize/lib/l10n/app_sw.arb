@@ -8768,5 +8768,15 @@
   "webHomeNativeAccent": "Tumia programu.",
   "webHomeNativeBody": "Wavuti ni nzuri kwa kufuatilia ukiwa popote. Kwenye kaunta, sakinisha Flipper kwenye Android au Windows: inafanya kazi kwa kasi kamili, inaendelea kuuza bila intaneti, na inasawazisha mara tu unaporudi mtandaoni.",
   "webHomeNativePlay": "Ipate kwenye Google Play",
-  "webHomeNativeWindows": "Ipate kwenye Microsoft Store"
+  "webHomeNativeWindows": "Ipate kwenye Microsoft Store",
+  "webHomeHeroPosLead": "Mfumo wa mauzo",
+  "webHomeHeroPosAccent": "usiosimama.",
+  "webHomeHeroHotelLead": "Usimamizi wa hoteli",
+  "webHomeHeroHotelAccent": "unaojiendesha.",
+  "webHomeHeroBarLead": "Usimamizi wa baa",
+  "webHomeHeroBarAccent": "unaofuatilia kila bili.",
+  "webHomeHeroKitchenLead": "Skrini ya jikoni",
+  "webHomeHeroKitchenAccent": "inayotangaza kila oda.",
+  "webHomeHeroPayrollLead": "Mishahara",
+  "webHomeHeroPayrollAccent": "inayolipwa kwa wakati."
 }
