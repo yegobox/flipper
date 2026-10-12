@@ -7713,5 +7713,13 @@
     "localModeOptInBody": "Tout ce qui se trouve sur cet appareil sera envoyé vers le cloud et vous choisirez un abonnement payant. EBM et Flo deviennent disponibles. Vous ne pourrez pas revenir au mode hors ligne. Vous vous reconnecterez pour terminer.",
     "localModeOptInConfirm": "Activer la synchronisation",
     "localModeOptInOffline": "Connectez-vous à Internet pour activer la synchronisation cloud.",
-    "localModeBadge": "Mode hors ligne"
+    "localModeBadge": "Mode hors ligne",
+    "localModeElsewhereTitle": "Cette entreprise fonctionne hors ligne sur un autre appareil",
+    "localModeElsewhereBody": "Ses données sont stockées uniquement sur {device}, elles ne peuvent donc pas être ouvertes ici. Pour utiliser Flipper sur cet appareil, activez la synchronisation cloud sur {device}.\n\nSi cet appareil a été perdu ou réinitialisé, vous pouvez activer la synchronisation cloud ici, mais les données qu'il contenait ne peuvent pas être récupérées.",
+    "localModeElsewhereUnknownDevice": "l'appareil sur lequel elle a été configurée",
+    "localModeElsewhereUseHere": "Activer la synchronisation cloud ici",
+    "localModeDeviceHeldTitle": "Cet appareil est utilisé hors ligne par une autre entreprise",
+    "localModeDeviceHeldBody": "Cette entreprise conserve ses données uniquement sur cet appareil : vous ne pouvez donc pas vous connecter ici à une autre entreprise tant qu'elle n'a pas activé la synchronisation cloud.",
+    "localModeSyncOnElsewhereTitle": "La synchronisation cloud a été activée",
+    "localModeSyncOnElsewhereBody": "La synchronisation cloud a été activée pour cette entreprise depuis un autre appareil. Reconnectez-vous pour envoyer les données de cet appareil et terminer."
 }

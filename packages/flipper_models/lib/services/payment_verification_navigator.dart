@@ -23,6 +23,22 @@ class PaymentVerificationNavigator {
 
   static final _routerService = locator<RouterService>();
 
+  /// Set by the app: refuses entry to a business whose data is not on this
+  /// device (local mode — offline on another device, or this device held by
+  /// another business). Returns true when it took over navigation.
+  static Future<bool> Function(String? businessId)? entryGate;
+
+  static Future<bool> entryRefused() async {
+    final gate = entryGate;
+    if (gate == null) return false;
+    try {
+      return await gate(ProxyService.box.getBusinessId());
+    } catch (e, s) {
+      talker.error('Local mode entry gate failed: $e', s);
+      return false;
+    }
+  }
+
   /// The lockout screens.
   ///
   /// Being on one of these is the *only* reason a background check that comes
@@ -198,6 +214,11 @@ class PaymentVerificationNavigator {
         return;
       }
     }
+
+    // Before the paywall or home: a local-mode business may not be reachable
+    // from this device. Background ticks never get this far into a session
+    // that could change, so only entry points ask.
+    if ((userInitiated || isInitialStartup) && await entryRefused()) return;
 
     // Local mode is free forever: never a paywall, whatever the plan says.
     if (response.result != PaymentVerificationResult.active &&
@@ -463,6 +484,7 @@ class PaymentVerificationNavigator {
     // with no session. Checked again at each navigation below, since the work
     // in between awaits.
     if (_refuseWhenSignedOut('authenticated home')) return;
+    if (await entryRefused()) return;
 
     // Personal money management: the personal shell, which [FlipperAppRoute]
     // shows for a personal account. No gamified app, commission screen or

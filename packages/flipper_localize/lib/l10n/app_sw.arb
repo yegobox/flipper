@@ -9306,5 +9306,13 @@
   "localModeOptInBody": "Kila kitu kwenye kifaa hiki kitapakiwa kwenye wingu na utachagua mpango wa kulipia. EBM na Flo zitapatikana. Huwezi kurudi kwenye hali ya nje ya mtandao. Utaingia tena ili kumaliza.",
   "localModeOptInConfirm": "Washa usawazishaji",
   "localModeOptInOffline": "Unganisha kwenye intaneti ili kuwasha usawazishaji wa wingu.",
-  "localModeBadge": "Hali ya nje ya mtandao"
+  "localModeBadge": "Hali ya nje ya mtandao",
+  "localModeElsewhereTitle": "Biashara hii inafanya kazi nje ya mtandao kwenye kifaa kingine",
+  "localModeElsewhereBody": "Data yake imehifadhiwa kwenye {device} pekee, kwa hiyo haiwezi kufunguliwa hapa. Ili kutumia Flipper kwenye kifaa hiki, washa usawazishaji wa wingu kwenye {device}.\n\nIkiwa kifaa hicho kilipotea au kiliwekwa upya, unaweza kuwasha usawazishaji wa wingu hapa badala yake, lakini data iliyokuwa juu yake haiwezi kurejeshwa.",
+  "localModeElsewhereUnknownDevice": "kifaa ambacho iliwekwa",
+  "localModeElsewhereUseHere": "Washa usawazishaji wa wingu hapa",
+  "localModeDeviceHeldTitle": "Kifaa hiki kinatumiwa nje ya mtandao na biashara nyingine",
+  "localModeDeviceHeldBody": "Biashara hiyo inahifadhi data yake kwenye kifaa hiki pekee, kwa hiyo huwezi kuingia kwenye biashara nyingine hapa hadi iwashe usawazishaji wa wingu.",
+  "localModeSyncOnElsewhereTitle": "Usawazishaji wa wingu umewashwa",
+  "localModeSyncOnElsewhereBody": "Usawazishaji wa wingu umewashwa kwa biashara hii kutoka kifaa kingine. Ingia tena ili kupakia data ya kifaa hiki na kumaliza."
 }

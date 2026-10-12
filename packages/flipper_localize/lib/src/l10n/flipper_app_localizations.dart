@@ -46054,6 +46054,54 @@ abstract class FlipperAppLocalizations {
   /// In en, this message translates to:
   /// **'Offline mode'**
   String get localModeBadge;
+
+  /// Login on a second device for an offline-only (local mode) business
+  ///
+  /// In en, this message translates to:
+  /// **'This business works offline on another device'**
+  String get localModeElsewhereTitle;
+
+  /// Body explaining the data lives on another device; {device} is that device's name
+  ///
+  /// In en, this message translates to:
+  /// **'Its data is stored only on {device}, so it can\'t be opened here. To use Flipper on this device, turn on cloud sync on {device}.\n\nIf that device was lost or reset, you can turn on cloud sync here instead, but the data that was on it can\'t be recovered.'**
+  String localModeElsewhereBody(String device);
+
+  /// Fallback for {device} when the device name is unknown
+  ///
+  /// In en, this message translates to:
+  /// **'the device where it was set up'**
+  String get localModeElsewhereUnknownDevice;
+
+  /// Button: give up the other device's data and turn on cloud sync from this device
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on cloud sync here'**
+  String get localModeElsewhereUseHere;
+
+  /// Signing in to another business on a device held by an offline-only business
+  ///
+  /// In en, this message translates to:
+  /// **'This device is used offline by another business'**
+  String get localModeDeviceHeldTitle;
+
+  /// Body for the device-held-by-another-business dialog
+  ///
+  /// In en, this message translates to:
+  /// **'That business keeps its data only on this device, so you can\'t sign in to a different business here until it turns on cloud sync.'**
+  String get localModeDeviceHeldBody;
+
+  /// Offline device learns sync was turned on from another device
+  ///
+  /// In en, this message translates to:
+  /// **'Cloud sync was turned on'**
+  String get localModeSyncOnElsewhereTitle;
+
+  /// Body: sign in again to finish switching this device to cloud sync
+  ///
+  /// In en, this message translates to:
+  /// **'Cloud sync was turned on for this business from another device. Sign in again to upload this device\'s data and finish.'**
+  String get localModeSyncOnElsewhereBody;
 }
 
 class _FlipperAppLocalizationsDelegate

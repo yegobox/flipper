@@ -27969,4 +27969,37 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
 
   @override
   String get localModeBadge => 'Mode hors ligne';
+
+  @override
+  String get localModeElsewhereTitle =>
+      'Cette entreprise fonctionne hors ligne sur un autre appareil';
+
+  @override
+  String localModeElsewhereBody(String device) {
+    return 'Ses données sont stockées uniquement sur $device, elles ne peuvent donc pas être ouvertes ici. Pour utiliser Flipper sur cet appareil, activez la synchronisation cloud sur $device.\n\nSi cet appareil a été perdu ou réinitialisé, vous pouvez activer la synchronisation cloud ici, mais les données qu\'il contenait ne peuvent pas être récupérées.';
+  }
+
+  @override
+  String get localModeElsewhereUnknownDevice =>
+      'l\'appareil sur lequel elle a été configurée';
+
+  @override
+  String get localModeElsewhereUseHere =>
+      'Activer la synchronisation cloud ici';
+
+  @override
+  String get localModeDeviceHeldTitle =>
+      'Cet appareil est utilisé hors ligne par une autre entreprise';
+
+  @override
+  String get localModeDeviceHeldBody =>
+      'Cette entreprise conserve ses données uniquement sur cet appareil : vous ne pouvez donc pas vous connecter ici à une autre entreprise tant qu\'elle n\'a pas activé la synchronisation cloud.';
+
+  @override
+  String get localModeSyncOnElsewhereTitle =>
+      'La synchronisation cloud a été activée';
+
+  @override
+  String get localModeSyncOnElsewhereBody =>
+      'La synchronisation cloud a été activée pour cette entreprise depuis un autre appareil. Reconnectez-vous pour envoyer les données de cet appareil et terminer.';
 }

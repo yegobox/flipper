@@ -9298,5 +9298,13 @@
   "localModeOptInBody": "Ibiri kuri iki gikoresho byose bizoherezwa kuri cloud kandi uzahitamo ifatabuguzi ryishyurwa. EBM na Flo bizaboneka. Ntushobora gusubira ku buryo butagira murandasi. Uzongera kwinjira kugira ngo urangize.",
   "localModeOptInConfirm": "Fungura guhuza",
   "localModeOptInOffline": "Huza na murandasi kugira ngo ufungure guhuza na cloud.",
-  "localModeBadge": "Uburyo butagira murandasi"
+  "localModeBadge": "Uburyo butagira murandasi",
+  "localModeElsewhereTitle": "Ubu bucuruzi bukorera ku kindi gikoresho nta murandasi",
+  "localModeElsewhereBody": "Amakuru yabwo abitswe kuri {device} gusa, bityo ntashobora gufungurwa hano. Kugira ngo ukoreshe Flipper kuri iki gikoresho, fungura guhuza na cloud kuri {device}.\n\nNiba icyo gikoresho cyatakaye cyangwa cyasubijwe ku ntangiriro, ushobora gufungura guhuza na cloud hano, ariko amakuru yari kuri cyo ntashobora kugarurwa.",
+  "localModeElsewhereUnknownDevice": "igikoresho bwashyiriweho",
+  "localModeElsewhereUseHere": "Fungura guhuza na cloud hano",
+  "localModeDeviceHeldTitle": "Iki gikoresho gikoreshwa nta murandasi n'ubundi bucuruzi",
+  "localModeDeviceHeldBody": "Ubwo bucuruzi bubika amakuru yabwo kuri iki gikoresho gusa, bityo ntushobora kwinjira hano mu bundi bucuruzi kugeza bufunguye guhuza na cloud.",
+  "localModeSyncOnElsewhereTitle": "Guhuza na cloud byafunguwe",
+  "localModeSyncOnElsewhereBody": "Guhuza na cloud byafunguwe kuri ubu bucuruzi bivuye ku kindi gikoresho. Ongera winjire kugira ngo wohereze amakuru y'iki gikoresho urangize."
 }

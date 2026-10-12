@@ -27699,4 +27699,34 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
 
   @override
   String get localModeBadge => 'Hali ya nje ya mtandao';
+
+  @override
+  String get localModeElsewhereTitle =>
+      'Biashara hii inafanya kazi nje ya mtandao kwenye kifaa kingine';
+
+  @override
+  String localModeElsewhereBody(String device) {
+    return 'Data yake imehifadhiwa kwenye $device pekee, kwa hiyo haiwezi kufunguliwa hapa. Ili kutumia Flipper kwenye kifaa hiki, washa usawazishaji wa wingu kwenye $device.\n\nIkiwa kifaa hicho kilipotea au kiliwekwa upya, unaweza kuwasha usawazishaji wa wingu hapa badala yake, lakini data iliyokuwa juu yake haiwezi kurejeshwa.';
+  }
+
+  @override
+  String get localModeElsewhereUnknownDevice => 'kifaa ambacho iliwekwa';
+
+  @override
+  String get localModeElsewhereUseHere => 'Washa usawazishaji wa wingu hapa';
+
+  @override
+  String get localModeDeviceHeldTitle =>
+      'Kifaa hiki kinatumiwa nje ya mtandao na biashara nyingine';
+
+  @override
+  String get localModeDeviceHeldBody =>
+      'Biashara hiyo inahifadhi data yake kwenye kifaa hiki pekee, kwa hiyo huwezi kuingia kwenye biashara nyingine hapa hadi iwashe usawazishaji wa wingu.';
+
+  @override
+  String get localModeSyncOnElsewhereTitle => 'Usawazishaji wa wingu umewashwa';
+
+  @override
+  String get localModeSyncOnElsewhereBody =>
+      'Usawazishaji wa wingu umewashwa kwa biashara hii kutoka kifaa kingine. Ingia tena ili kupakia data ya kifaa hiki na kumaliza.';
 }

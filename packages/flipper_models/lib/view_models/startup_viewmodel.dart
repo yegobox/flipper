@@ -409,6 +409,13 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
       // back to the login screen here, which left desktop with no way in.
       _routerService.navigateTo(SignUpViewRoute(countryNm: "Rwanda"));
       return;
+    } else if ((e is SubscriptionError ||
+            e is FailedPaymentException ||
+            e is NoPaymentPlanFound) &&
+        await PaymentVerificationNavigator.entryRefused()) {
+      // A local-mode business whose data is on another device: the gate has
+      // explained and signed out instead of showing a paywall.
+      return;
     } else if (LocalMode.isOn &&
         (e is SubscriptionError ||
             e is FailedPaymentException ||

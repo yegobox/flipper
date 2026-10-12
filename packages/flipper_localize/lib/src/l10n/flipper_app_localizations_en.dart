@@ -27532,4 +27532,35 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
 
   @override
   String get localModeBadge => 'Offline mode';
+
+  @override
+  String get localModeElsewhereTitle =>
+      'This business works offline on another device';
+
+  @override
+  String localModeElsewhereBody(String device) {
+    return 'Its data is stored only on $device, so it can\'t be opened here. To use Flipper on this device, turn on cloud sync on $device.\n\nIf that device was lost or reset, you can turn on cloud sync here instead, but the data that was on it can\'t be recovered.';
+  }
+
+  @override
+  String get localModeElsewhereUnknownDevice =>
+      'the device where it was set up';
+
+  @override
+  String get localModeElsewhereUseHere => 'Turn on cloud sync here';
+
+  @override
+  String get localModeDeviceHeldTitle =>
+      'This device is used offline by another business';
+
+  @override
+  String get localModeDeviceHeldBody =>
+      'That business keeps its data only on this device, so you can\'t sign in to a different business here until it turns on cloud sync.';
+
+  @override
+  String get localModeSyncOnElsewhereTitle => 'Cloud sync was turned on';
+
+  @override
+  String get localModeSyncOnElsewhereBody =>
+      'Cloud sync was turned on for this business from another device. Sign in again to upload this device\'s data and finish.';
 }

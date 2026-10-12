@@ -27793,4 +27793,34 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
 
   @override
   String get localModeBadge => 'Uburyo butagira murandasi';
+
+  @override
+  String get localModeElsewhereTitle =>
+      'Ubu bucuruzi bukorera ku kindi gikoresho nta murandasi';
+
+  @override
+  String localModeElsewhereBody(String device) {
+    return 'Amakuru yabwo abitswe kuri $device gusa, bityo ntashobora gufungurwa hano. Kugira ngo ukoreshe Flipper kuri iki gikoresho, fungura guhuza na cloud kuri $device.\n\nNiba icyo gikoresho cyatakaye cyangwa cyasubijwe ku ntangiriro, ushobora gufungura guhuza na cloud hano, ariko amakuru yari kuri cyo ntashobora kugarurwa.';
+  }
+
+  @override
+  String get localModeElsewhereUnknownDevice => 'igikoresho bwashyiriweho';
+
+  @override
+  String get localModeElsewhereUseHere => 'Fungura guhuza na cloud hano';
+
+  @override
+  String get localModeDeviceHeldTitle =>
+      'Iki gikoresho gikoreshwa nta murandasi n\'ubundi bucuruzi';
+
+  @override
+  String get localModeDeviceHeldBody =>
+      'Ubwo bucuruzi bubika amakuru yabwo kuri iki gikoresho gusa, bityo ntushobora kwinjira hano mu bundi bucuruzi kugeza bufunguye guhuza na cloud.';
+
+  @override
+  String get localModeSyncOnElsewhereTitle => 'Guhuza na cloud byafunguwe';
+
+  @override
+  String get localModeSyncOnElsewhereBody =>
+      'Guhuza na cloud byafunguwe kuri ubu bucuruzi bivuye ku kindi gikoresho. Ongera winjire kugira ngo wohereze amakuru y\'iki gikoresho urangize.';
 }

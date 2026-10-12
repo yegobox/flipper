@@ -16,6 +16,8 @@ import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/dashboard_quick_apps_navigation.dart';
 import 'package:flipper_dashboard/providers/locale_provider.dart';
 import 'package:flipper_dashboard/hr_module_entry.dart';
+import 'package:flipper_models/services/payment_verification_navigator.dart';
+import 'package:flipper_dashboard/local_mode/local_mode_access_gate.dart';
 import 'package:flipper_hr/flipper_hr.dart';
 // ignore: depend_on_referenced_packages
 import 'package:flipper_ai_feature/flipper_ai_feature.dart' show initLocalAi;
@@ -451,6 +453,10 @@ List<_InitStep> _buildInitSteps() => <_InitStep>[
           // Same reason and the same ordering constraint: the data-connector
           // token source reads the preference box, so it needs the locator.
           registerDataConnectorAuthHost();
+          // Before any login: a local-mode business whose data is on another
+          // device is explained instead of paywalled.
+          PaymentVerificationNavigator.entryGate =
+              LocalModeAccessGate.blocksEntry;
         },
       ),
       const _InitStep(

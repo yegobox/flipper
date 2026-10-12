@@ -59,10 +59,29 @@ class LocalMode {
     _set(false);
   }
 
-  /// The business that chose local mode at signup, if any.
-  static Future<String?> businessId() async {
+  /// The marker's contents (`businessId`, `enabledAt`, `serverChangedAt`),
+  /// or null when this device is not in local mode.
+  static Future<Map<String, dynamic>?> marker() async {
     if (kIsWeb) return null;
-    return (await readLocalModeMarker())?['businessId'] as String?;
+    return readLocalModeMarker();
+  }
+
+  /// Records which business owns this device's data and, once the server has
+  /// confirmed the business is local, when it did. A device that saw the server
+  /// confirm local mode and later finds it full knows sync was turned on from
+  /// another device.
+  static Future<void> recordServerState({
+    required String businessId,
+    DateTime? serverChangedAt,
+  }) async {
+    if (kIsWeb || !_on) return;
+    final current = await readLocalModeMarker() ?? const {};
+    await writeLocalModeMarker({
+      ...current,
+      'businessId': businessId,
+      if (serverChangedAt != null)
+        'serverChangedAt': serverChangedAt.toUtc().toIso8601String(),
+    });
   }
 
   static void _set(bool on) {

@@ -15,6 +15,7 @@ import 'package:flipper_models/secrets.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:supabase_models/brick/models/user.model.dart';
 import 'dart:async';
+import 'package:flipper_models/services/payment_verification_navigator.dart';
 
 import 'package:talker_flutter/talker_flutter.dart';
 import 'package:stacked/stacked.dart';
@@ -327,7 +328,11 @@ class LoginViewModel extends FlipperBaseModel
       return;
     } else if (e is NoPaymentPlanFound) {
       talker.error('NoPaymentPlanFound');
-      _navigateWithTransition(PaymentPlanUIRoute());
+      // A local-mode business on another device is explained, not paywalled.
+      unawaited(() async {
+        if (await PaymentVerificationNavigator.entryRefused()) return;
+        _navigateWithTransition(PaymentPlanUIRoute());
+      }());
       return;
     }
     throw e;
