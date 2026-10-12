@@ -419,6 +419,22 @@ abstract final class HotelRoomRraService {
     final vatEnabled = business?.tinNumber != null && ebm.tinNumber != 0;
     final taxTyCd = vatEnabled ? 'B' : 'D';
 
+    // Checked before anything is minted. This throw skips the rollback below,
+    // so checking after left an orphan product and variant on every attempt:
+    // one branch collected 144 copies of the same room.
+    final serverUrl = await _rraServerUrl(ebm);
+    if (serverUrl.isEmpty) {
+      // Surfaced as a toast at the desk, so it says what to do rather than
+      // naming a branch id nobody there can act on.
+      talker.error(
+        'hotel: branch $branchId has no taxServerUrl on its EBM row and none '
+        'in the box, so room ${room.name} cannot be registered.',
+      );
+      throw StateError(
+        'No RRA tax server URL for this branch — set it in Tax configuration.',
+      );
+    }
+
     final repository = Repository();
 
     // Only what this attempt mints is ours to undo.
@@ -476,19 +492,6 @@ abstract final class HotelRoomRraService {
         tourismTaxEnabled: tourismTax,
       );
       await repository.upsert<Variant>(variant);
-    }
-
-    final serverUrl = await _rraServerUrl(ebm);
-    if (serverUrl.isEmpty) {
-      // Surfaced as a toast at the desk, so it says what to do rather than
-      // naming a branch id nobody there can act on.
-      talker.error(
-        'hotel: branch $branchId has no taxServerUrl on its EBM row and none '
-        'in the box, so room ${room.name} cannot be registered.',
-      );
-      throw StateError(
-        'No RRA tax server URL for this branch — set it in Tax configuration.',
-      );
     }
 
     try {
