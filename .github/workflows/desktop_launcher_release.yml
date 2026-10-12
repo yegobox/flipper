@@ -466,6 +466,9 @@ jobs:
           python3 -I scripts/ci/update_launcher_manifest.py --manifest apps.json \
             --app flipper --name "Flipper POS" \
             --icon "https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/main/apps/flipper/macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_256.png" \
+            --description "Point of sale, stock and EBM receipts" \
+            --website "https://yegobox.com" \
+            --accent "#00C2E8" \
             --channel "$CHANNEL" --version "$VERSION" \
             --notes-file apps/flipper/distribution/whatsnew/whatsnew-en-US \
             --base-url "https://github.com/${GITHUB_REPOSITORY}/releases/download/$TAG" \

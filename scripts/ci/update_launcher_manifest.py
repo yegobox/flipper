@@ -89,6 +89,9 @@ def main(argv: list[str]) -> int:
     ap.add_argument("--app", required=True, help="stable app id, e.g. flipper")
     ap.add_argument("--name", required=True)
     ap.add_argument("--icon", default="")
+    ap.add_argument("--description", default="", help="one line under the name in the launcher")
+    ap.add_argument("--website", default="", help="https link shown on the app's card")
+    ap.add_argument("--accent", default="", help="card accent colour, #rrggbb")
     ap.add_argument("--channel", required=True, choices=["stable", "beta"])
     ap.add_argument("--version", required=True)
     ap.add_argument("--min-launcher", default="0.1.0")
@@ -122,8 +125,13 @@ def main(argv: list[str]) -> int:
         app = {"id": args.app, "channels": {}}
         manifest["apps"].append(app)
     app["name"] = args.name
-    if args.icon:
-        app["icon"] = args.icon
+    if args.accent and not re.match(r"^#[0-9a-fA-F]{6}$", args.accent):
+        raise SystemExit(f"--accent must be #rrggbb, got {args.accent!r}")
+    if args.website and not args.website.startswith("https://"):
+        raise SystemExit(f"--website must be an https URL, got {args.website!r}")
+    for key in ("icon", "description", "website", "accent"):
+        if getattr(args, key):
+            app[key] = getattr(args, key)
     channel = app.setdefault("channels", {}).setdefault(args.channel, {})
     merged = {**channel.get("platforms", {}), **platforms}
     channel["platforms"] = dict(sorted(merged.items()))
