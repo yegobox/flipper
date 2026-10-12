@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_web/features/home/theme/books_home_theme.dart';
 import 'package:flipper_web/features/home/widgets/books_line_icon.dart';
@@ -34,15 +36,18 @@ class BooksHomeSection extends StatelessWidget {
   }
 }
 
-/// Flipper's ring mark — the logo at the top of the mobile app
-/// (`assets/icons/flipper-logo.svg`) — painted from the same geometry so it
-/// can draw itself in: [progress] runs each ring from its top end around.
+/// Flipper's ring mark — the two rings of the mobile app's logo
+/// (`assets/icons/flipper-logo.svg`) — redrawn to sit with the wordmark:
+/// flat-cut ends like the letters' terminals, an outer ring as heavy as a
+/// letter stem, a clear channel to the inner ring, both open 60° (outer at
+/// the top left, inner at the top right) and coloured along their length.
+/// [progress] draws each ring in from its top end.
 class FlipperMark extends StatelessWidget {
   const FlipperMark({super.key, this.size = 28, this.color, this.progress = 1});
 
   final double size;
 
-  /// Flat colour instead of the logo's gradient.
+  /// Flat colour instead of the gradient.
   final Color? color;
 
   /// 0 draws nothing, 1 the whole mark.
@@ -63,30 +68,27 @@ class _FlipperMarkPainter extends CustomPainter {
   final double progress;
   final Color? color;
 
-  // flipper-logo.svg, in its 48-unit box: an outer ring open at the top left
-  // and a fainter inner ring open at the top right, both with round caps.
+  // In a 48-unit box; angles in radians, clockwise from three o'clock.
   static const _box = 48.0;
   static const _centre = Offset(24, 24);
-  static const _outerR = 16.5;
-  static const _outerStroke = 8.16;
-  static const _outerSweep = 5.5021; // top, clockwise, to (12.4, 12.3)
-  static const _innerR = 7.5;
-  static const _innerStroke = 6.36;
-  static const _innerSweep = -5.4978; // top, anticlockwise, to (29.3, 18.7)
-  static const _innerOpacity = 0.55;
-  static const _gradient = [
-    Color(0xFF22D3EE),
-    Color(0xFF2563EB),
-    Color(0xFF4F46E5),
-  ];
+  static const _top = -math.pi / 2;
+  static const _opening = math.pi / 3;
 
-  /// The visible ring, outer stroke edge to edge, as a share of the box.
+  static const _outerR = 17.75;
+  static const _outerStroke = 8.5;
+  static const _innerR = 7.25;
+  static const _innerStroke = 6.0;
+
+  static const _cyan = Color(0xFF22D3EE);
+  static const _blue = Color(0xFF2563EB);
+  static const _indigo = Color(0xFF4F46E5);
+
+  /// The visible ring, outer edge to outer edge, as a share of the box.
   static const visibleShare = 2 * (_outerR + _outerStroke / 2) / _box;
 
   @override
   void paint(Canvas canvas, Size size) {
-    final scale = size.width / _box;
-    canvas.scale(scale);
+    canvas.scale(size.width / _box);
 
     final outer = Curves.easeInOutCubic.transform(
       (progress / 0.8).clamp(0.0, 1.0),
@@ -94,40 +96,58 @@ class _FlipperMarkPainter extends CustomPainter {
     final inner = Curves.easeInOutCubic.transform(
       ((progress - 0.3) / 0.7).clamp(0.0, 1.0),
     );
+    const sweep = 2 * math.pi - _opening;
 
-    Paint stroke(double width, double opacity) {
-      final paint = Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = width
-        ..strokeCap = StrokeCap.round;
-      if (color != null) {
-        paint.color = color!.withValues(alpha: color!.a * opacity);
-      } else {
-        paint
-          ..color = Color.fromRGBO(0, 0, 0, opacity)
-          ..shader = LinearGradient(colors: _gradient, stops: const [0, 0.5, 1])
-              .createShader(
-                Rect.fromPoints(const Offset(6, 8), const Offset(42, 40)),
-              );
-      }
-      return paint;
+    // Outer ring: from the top, clockwise, cyan into indigo. The gradient's
+    // seam sits in the ring's own opening, so the colour never jumps.
+    _ring(
+      canvas,
+      radius: _outerR,
+      stroke: _outerStroke,
+      sweep: sweep,
+      t: outer,
+      gradient: SweepGradient(
+        colors: const [_cyan, _blue, _indigo],
+        transform: GradientRotation(_top - _opening / 2),
+      ),
+    );
+    // Inner ring: from the top, anticlockwise, the same colours run the
+    // other way so it too starts cyan.
+    _ring(
+      canvas,
+      radius: _innerR,
+      stroke: _innerStroke,
+      sweep: -sweep,
+      t: inner,
+      gradient: SweepGradient(
+        colors: const [_indigo, _blue, _cyan],
+        transform: GradientRotation(_top + _opening / 2),
+      ),
+    );
+  }
+
+  void _ring(
+    Canvas canvas, {
+    required double radius,
+    required double stroke,
+    required double sweep,
+    required double t,
+    required Gradient gradient,
+  }) {
+    if (t <= 0) return;
+    final bounds = Rect.fromCircle(center: _centre, radius: radius);
+    final paint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = stroke
+      ..strokeCap = StrokeCap.butt;
+    if (color != null) {
+      paint.color = color!;
+    } else {
+      paint.shader = gradient.createShader(
+        Rect.fromCircle(center: _centre, radius: _box / 2),
+      );
     }
-
-    void ring(double r, double sweep, double t, Paint paint) {
-      if (t <= 0) return;
-      final path = Path()
-        ..addArc(Rect.fromCircle(center: _centre, radius: r), -1.5708, sweep);
-      if (t >= 1) {
-        canvas.drawPath(path, paint);
-        return;
-      }
-      for (final metric in path.computeMetrics()) {
-        canvas.drawPath(metric.extractPath(0, metric.length * t), paint);
-      }
-    }
-
-    ring(_innerR, _innerSweep, inner, stroke(_innerStroke, _innerOpacity));
-    ring(_outerR, _outerSweep, outer, stroke(_outerStroke, 1));
+    canvas.drawArc(bounds, _top, sweep * t, false, paint);
   }
 
   @override
