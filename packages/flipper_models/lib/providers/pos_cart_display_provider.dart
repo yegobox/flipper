@@ -80,14 +80,54 @@ final saleDeviceIdProvider = FutureProvider<String>(
 /// `deviceId`. This till's pin still points at the ticket, though, so without
 /// this it would keep showing it and append new lines to a sale another till
 /// is now ringing up. Only observes the row while a pin is held.
+///
+/// Detects a *move*, not a mismatch: this install's sale device id is not
+/// stable (Ditto init re-stamps `deviceName` and resets it), so a cart minted
+/// minutes ago can carry an older id of this very till. See
+/// [pinnedCartMovedAway].
 final pinnedCartTakenOverIdProvider = Provider<String?>((ref) {
   final pinnedId = ref.watch(pinnedPosCartTransactionIdProvider);
   if (pinnedId == null || pinnedId.isEmpty) return null;
   final deviceId = ref.watch(saleDeviceIdProvider).value;
   if (deviceId == null || deviceId.isEmpty) return null;
   final row = ref.watch(transactionByIdProvider(pinnedId)).asData?.value;
-  return isTakenOverPendingRow(row, deviceId: deviceId) ? pinnedId : null;
+  if (row == null) return null;
+  if (_pinnedHolder.id != pinnedId) {
+    _pinnedHolder = (id: pinnedId, device: null);
+  }
+  final (:movedAway, :holder) = pinnedCartMovedAway(
+    status: row.status,
+    rowDevice: row.deviceId,
+    holderDevice: _pinnedHolder.device,
+    thisDevice: deviceId,
+  );
+  _pinnedHolder = (id: pinnedId, device: holder);
+  return movedAway ? pinnedId : null;
 });
+
+/// Device the pinned row carried when this till first saw it under the pin.
+({String? id, String? device}) _pinnedHolder = (id: null, device: null);
+
+/// Whether a pinned row has moved from [holderDevice] (where it was when this
+/// till pinned it) to a device that is not [thisDevice], plus the holder to
+/// remember for the next emission.
+///
+/// The first sighting, or any sighting on [thisDevice], (re)sets the holder.
+/// Only a later change to some *other* device counts — that is a take-over.
+({bool movedAway, String? holder}) pinnedCartMovedAway({
+  required String? status,
+  required String? rowDevice,
+  required String? holderDevice,
+  required String thisDevice,
+}) {
+  final device = rowDevice?.trim() ?? '';
+  if (device.isEmpty) return (movedAway: false, holder: holderDevice);
+  if (device == thisDevice || holderDevice == null) {
+    return (movedAway: false, holder: device);
+  }
+  final pending = (status ?? '').toLowerCase() == PENDING.toLowerCase();
+  return (movedAway: pending && device != holderDevice, holder: holderDevice);
+}
 
 /// True when [row] is PENDING under a sale device id other than [deviceId].
 bool isTakenOverPendingRow(ITransaction? row, {required String deviceId}) {

@@ -79,4 +79,47 @@ void main() {
       expect(isTakenOverPendingRow(null, deviceId: 'dev-u9'), isFalse);
     });
   });
+
+  group('pinnedCartMovedAway', () {
+    ({bool movedAway, String? holder}) step(
+      String? rowDevice,
+      String? holder, {
+      String status = PENDING,
+    }) => pinnedCartMovedAway(
+      status: status,
+      rowDevice: rowDevice,
+      holderDevice: holder,
+      thisDevice: 'dev-now',
+    );
+
+    test('a new cart carrying an older id of this till is not a take-over', () {
+      // Ditto init re-stamped deviceName after the cart was minted.
+      final first = step('dev-earlier', null);
+      expect(first.movedAway, isFalse);
+      final again = step('dev-earlier', first.holder);
+      expect(again.movedAway, isFalse);
+    });
+
+    test('moving to another till after pinning is a take-over', () {
+      final pinned = step('dev-now', null);
+      expect(pinned.holder, 'dev-now');
+      expect(step('dev-other', pinned.holder).movedAway, isTrue);
+    });
+
+    test('a stale-id cart taken over is still caught', () {
+      final pinned = step('dev-earlier', null);
+      expect(step('dev-other', pinned.holder).movedAway, isTrue);
+    });
+
+    test('coming back to this till resets the holder', () {
+      final back = step('dev-now', 'dev-other');
+      expect(back.movedAway, isFalse);
+      expect(back.holder, 'dev-now');
+    });
+
+    test('completed or device-less rows never count', () {
+      expect(step('dev-other', 'dev-now', status: COMPLETE).movedAway, isFalse);
+      expect(step(null, 'dev-now').movedAway, isFalse);
+    });
+  });
 }

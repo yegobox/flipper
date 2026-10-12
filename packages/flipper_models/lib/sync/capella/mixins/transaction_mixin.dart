@@ -2928,18 +2928,29 @@ mixin CapellaTransactionMixin implements TransactionInterface {
 
   /// True when [id] is PENDING under a sale device id other than [deviceId]
   /// (default: this one) — resumed on another till or by another user.
+  ///
+  /// [otherUserOnly] also requires the row's `agentId` to be someone else.
+  /// The sale device id is not stable on one install (Ditto init re-stamps
+  /// `deviceName`), so an own cart can carry an older id of this till; only
+  /// a different agent proves another till took it.
   Future<bool> _ticketHeldByAnotherDevice(
     dynamic ditto,
-    String id, [
+    String id, {
     String? deviceId,
-  ]) async {
+    bool otherUserOnly = false,
+  }) async {
     final result = await ditto.store.execute(
-      'SELECT status, deviceId FROM transactions '
+      'SELECT status, deviceId, agentId FROM transactions '
       'WHERE _id = :id OR id = :id LIMIT 1',
       arguments: {'id': id},
     );
     if (result.items.isEmpty) return false;
     final row = Map<String, dynamic>.from(result.items.first.value);
+    if (otherUserOnly) {
+      final rowAgent = (row['agentId'] as String?)?.trim() ?? '';
+      final me = ProxyService.box.getUserId();
+      if (rowAgent.isEmpty || me == null || rowAgent == me) return false;
+    }
     return ticketOpenOnAnotherDevice(
       status: row['status'] as String?,
       ticketDeviceId: row['deviceId'] as String?,
@@ -2973,7 +2984,13 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     // till. The re-park-on-exit paths (Back to new sale, leaving mobile
     // checkout, collecting a different ticket) would otherwise pull it back
     // out from under the till now ringing it up. Treat it as already gone.
-    if (await _ticketHeldByAnotherDevice(ditto, targetId)) {
+    // Another *user* only: parking your own cart must never no-op because the
+    // cart carries an older sale device id of this same till.
+    if (await _ticketHeldByAnotherDevice(
+      ditto,
+      targetId,
+      otherUserOnly: true,
+    )) {
       talker.warning(
         'parkSaleTicketFast: $targetId is open on another till; not re-parking',
       );
@@ -3248,7 +3265,11 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     // the row itself. [takeOver] is the explicit, confirmed exception: the
     // Tickets list's "Take over" on a ticket shown open on another till.
     if (!takeOver &&
-        await _ticketHeldByAnotherDevice(ditto, ticket.id, deviceId)) {
+        await _ticketHeldByAnotherDevice(
+          ditto,
+          ticket.id,
+          deviceId: deviceId,
+        )) {
       talker.warning(
         'resumeSaleTicketFast: ${ticket.id} is already PENDING on another '
         'device; refusing resume on $deviceId',
