@@ -336,13 +336,18 @@ class _HotelFolioBody extends ConsumerWidget {
       return;
     }
 
-    final ITransaction? folio =
-        ref.read(hotelModeProvider).activeFolio ??
-        await ref.read(hotelFolioForStayProvider(stay.transactionId).future);
+    // The bound folio only if it is this stay's; otherwise ask the store again.
+    // A stay older than the history window can be opened before its folio has
+    // synced down, so a miss at open time is not a miss now.
+    final bound = ref.read(hotelModeProvider).activeFolio;
+    final ITransaction? folio = bound?.id == stay.transactionId
+        ? bound
+        : await HotelDeskActions.folio(stay);
     if (folio == null) {
       notifier.showToast(FlipperL10n.current.hotelFolioNotFound);
       return;
     }
+    if (!identical(folio, bound)) notifier.bindFolio(folio);
 
     // A folio with no room nights settles as no sale at all: the room was
     // sold but never shows in the reports. Offer to post them first.

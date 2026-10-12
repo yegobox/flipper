@@ -477,6 +477,14 @@ abstract final class HotelDeskActions {
   static Future<List<TransactionItem>> folioLines(HotelStay stay) =>
       _sync.hotelFolioLines(transactionId: stay.transactionId);
 
+  /// The folio [stay] bills to, read from the store now.
+  ///
+  /// Not cached on purpose: a folio older than the local history window can
+  /// still be syncing down when its room is opened, and a remembered miss
+  /// kept the desk from ever checking that guest out.
+  static Future<ITransaction?> folio(HotelStay stay) =>
+      _sync.hotelFolio(transactionId: stay.transactionId);
+
   static Future<void> cancelStay({
     required WidgetRef ref,
     required HotelStay stay,
