@@ -31,12 +31,6 @@ abstract final class MposTokens {
     colors: [Color(0xFF2C6BF0), Color(0xFF1D4ED8)],
   );
 
-  static const LinearGradient gradPayReady = LinearGradient(
-    begin: Alignment.topCenter,
-    end: Alignment.bottomCenter,
-    colors: [Color(0xFF1FB36B), Color(0xFF16A34A)],
-  );
-
   static const List<BoxShadow> shadowBlue = [
     BoxShadow(
       color: Color(0x732563EB),
@@ -45,15 +39,6 @@ abstract final class MposTokens {
       spreadRadius: -8,
     ),
     BoxShadow(color: Color(0x402563EB), offset: Offset(0, 3), blurRadius: 8),
-  ];
-
-  static const List<BoxShadow> shadowPayReady = [
-    BoxShadow(
-      color: Color(0x7316A34A),
-      offset: Offset(0, 12),
-      blurRadius: 28,
-      spreadRadius: -8,
-    ),
   ];
 
   static const Duration sheetSlide = Duration(milliseconds: 320);

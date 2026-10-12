@@ -91,7 +91,9 @@ class MposCheckoutFooter extends StatelessWidget {
                 ready: ready,
                 isLoading: secondaryLoading,
                 onPressed: onSecondary,
-                useGreen: false,
+                // Two actions side by side: the secondary is outlined so the
+                // pair reads apart without leaving the brand blue.
+                outlined: true,
               ),
             ),
             const SizedBox(width: 8),
@@ -103,7 +105,6 @@ class MposCheckoutFooter extends StatelessWidget {
                 ready: ready,
                 isLoading: isLoading,
                 onPressed: onPrimary,
-                useGreen: true,
               ),
             ),
           ] else
@@ -115,7 +116,6 @@ class MposCheckoutFooter extends StatelessWidget {
                 ready: ready,
                 isLoading: isLoading,
                 onPressed: onPrimary,
-                useGreen: ready,
                 needsInput: primaryNeedsInput,
               ),
             ),
@@ -133,7 +133,7 @@ class _PayButton extends StatelessWidget {
     required this.ready,
     required this.isLoading,
     required this.onPressed,
-    required this.useGreen,
+    this.outlined = false,
     this.needsInput = false,
   });
 
@@ -143,18 +143,16 @@ class _PayButton extends StatelessWidget {
   final bool ready;
   final bool isLoading;
   final VoidCallback? onPressed;
-  final bool useGreen;
+
+  /// Brand-blue outline on a blue tint instead of the filled gradient.
+  final bool outlined;
   final bool needsInput;
 
   @override
   Widget build(BuildContext context) {
     final enabled = (ready || needsInput) && onPressed != null && !isLoading;
-    final gradient = useGreen && ready
-        ? MposTokens.gradPayReady
-        : MposTokens.gradBtn;
-    final shadows = useGreen && ready
-        ? MposTokens.shadowPayReady
-        : MposTokens.shadowBlue;
+    // Brand blue only — the POS has no green action colour.
+    final ink = outlined ? PosTokens.blue : Colors.white;
 
     return MaestroSemantics(
       id: semanticId,
@@ -171,29 +169,32 @@ class _PayButton extends StatelessWidget {
             height: MposTokens.checkoutPrimaryHeight,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(15),
-              gradient: enabled ? gradient : null,
-              color: enabled ? null : PosTokens.ink4.withValues(alpha: 0.35),
-              boxShadow: enabled ? shadows : null,
+              gradient: enabled && !outlined ? MposTokens.gradBtn : null,
+              color: !enabled
+                  ? PosTokens.ink4.withValues(alpha: 0.35)
+                  : outlined
+                  ? PosTokens.blueTint
+                  : null,
+              border: enabled && outlined
+                  ? Border.all(color: PosTokens.blue, width: 1.5)
+                  : null,
+              boxShadow: enabled && !outlined ? MposTokens.shadowBlue : null,
             ),
             child: Center(
               child: isLoading
-                  ? const SizedBox(
+                  ? SizedBox(
                       width: 22,
                       height: 22,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
-                        color: Colors.white,
+                        color: ink,
                       ),
                     )
                   : Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         if (ready) ...[
-                          const Icon(
-                            Icons.check_rounded,
-                            size: 19,
-                            color: Colors.white,
-                          ),
+                          Icon(Icons.check_rounded, size: 19, color: ink),
                           const SizedBox(width: 6),
                         ],
                         Flexible(
@@ -201,10 +202,10 @@ class _PayButton extends StatelessWidget {
                             label.contains('RWF')
                                 ? label
                                 : '$label · RWF ${mposMoneyLabel(total)}',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.w700,
-                              color: Colors.white,
+                              color: ink,
                             ),
                             overflow: TextOverflow.ellipsis,
                           ),
