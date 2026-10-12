@@ -28,16 +28,31 @@ Future<List<Access>> userAccesses(
   String userId, {
   required String featureName,
 }) async {
-  return await ProxyService.strategy.access(
-    userId: userId,
-    featureName: featureName,
-    fetchRemote: false,
-  );
+  // Same rows strategy.access returns (allAccess filtered by feature), but
+  // derived from [allAccessesProvider] so one lookup serves every feature and
+  // invalidating allAccesses refreshes these too.
+  final accesses = await ref.watch(allAccessesProvider(userId).future);
+  return accesses.where((a) => a.featureName == featureName).toList();
 }
 
 @riverpod
 Future<List<Access>> allAccesses(Ref ref, String userId) async {
   return await ProxyService.strategy.allAccess(userId: userId);
+}
+
+/// Whether [userId] is an Admin (User Management user type) of the business
+/// the session is signed into. Admins run the business, so [featureAccess] and
+/// [featureViewAccess] grant them every module whatever the permission matrix
+/// says — create_agent leaves modules at "No Access" when an owner only picks
+/// the Admin type, which hid Payments and blocked ticket review/handover.
+bool _isBusinessAdminUserType(Ref ref, String userId) {
+  final accesses = ref.watch(allAccessesProvider(userId)).value ?? [];
+  if (accesses.isEmpty) return false;
+  return isAdminUserType(
+    accesses,
+    businessId: ProxyService.box.getBusinessId(),
+    now: DateTime.now(),
+  );
 }
 
 @riverpod
@@ -62,6 +77,7 @@ bool featureAccess(
     if (isCommissionOnlySession()) {
       return featureName == AppFeature.Commission;
     }
+    if (_isBusinessAdminUserType(ref, userId)) return true;
     // TEMP (local QA only): disabled so real Access grants are enforced in
     // debug builds while testing the Ticket Review + Handover permission
     // gating. Restore this bypass before committing — other debug-mode
@@ -126,6 +142,7 @@ bool featureViewAccess(
     if (isCommissionOnlySession()) {
       return featureName == AppFeature.Commission;
     }
+    if (_isBusinessAdminUserType(ref, userId)) return true;
 
     // Any active, non-expired grant for this feature counts as at least read.
     return accesses.any(
@@ -157,6 +174,26 @@ bool hasAccessLevel(List<Access> accesses, String accessLevel, DateTime now) {
         (access.accessLevel?.toLowerCase() == level ||
             (isAdminCheck &&
                 access.userType?.toLowerCase() == AccessLevel.ADMIN)),
+  );
+}
+
+/// True when [accesses] holds an active, non-expired row for [businessId]
+/// whose userType is Admin. Keyed on the user type only: a cashier given the
+/// admin level on one module is not an Admin. Rows from the user's other
+/// businesses never count, and with no [businessId] nothing does.
+@visibleForTesting
+bool isAdminUserType(
+  List<Access> accesses, {
+  required String? businessId,
+  required DateTime now,
+}) {
+  if (businessId == null || businessId.isEmpty) return false;
+  return accesses.any(
+    (access) =>
+        access.businessId == businessId &&
+        access.status == 'active' &&
+        (access.expiresAt == null || access.expiresAt!.isAfter(now)) &&
+        access.userType?.toLowerCase() == AccessLevel.ADMIN,
   );
 }
 
