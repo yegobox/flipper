@@ -7169,5 +7169,11 @@
     "webHomePricingTitleAccent": "Sans surprises.",
     "webHomeCtaKicker": "Gratuit pour commencer · Sans carte bancaire",
     "webHomeCtaLead": "Commencez à",
-    "webHomeCtaAccent": "compter."
+    "webHomeCtaAccent": "compter.",
+    "webHomeNativeKicker": "Passez au natif",
+    "webHomeNativeLead": "Pleine vitesse. Entièrement hors ligne.",
+    "webHomeNativeAccent": "Passez au natif.",
+    "webHomeNativeBody": "Le web est parfait pour garder un œil sur tout, où que vous soyez. Au comptoir, installez Flipper sur Android ou Windows : il tourne à pleine vitesse, continue de vendre sans internet et se synchronise dès que vous êtes de nouveau en ligne.",
+    "webHomeNativePlay": "Disponible sur Google Play",
+    "webHomeNativeWindows": "Obtenir sur Microsoft Store"
 }

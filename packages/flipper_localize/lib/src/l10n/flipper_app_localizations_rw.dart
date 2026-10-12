@@ -25858,4 +25858,23 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
 
   @override
   String get webHomeCtaAccent => 'kubara.';
+
+  @override
+  String get webHomeNativeKicker => 'Koresha porogaramu';
+
+  @override
+  String get webHomeNativeLead => 'Byihuta cyane. Nta murandasi.';
+
+  @override
+  String get webHomeNativeAccent => 'Koresha porogaramu.';
+
+  @override
+  String get webHomeNativeBody =>
+      'Urubuga ni rwiza mu kureba uko ibintu bimeze aho uri hose. Ku iduka, shyira Flipper kuri Android cyangwa Windows: irihuta cyane, ikomeza kugurisha nta murandasi, kandi ihuza amakuru ukimara kongera kubona murandasi.';
+
+  @override
+  String get webHomeNativePlay => 'Yikure kuri Google Play';
+
+  @override
+  String get webHomeNativeWindows => 'Yikure kuri Microsoft Store';
 }

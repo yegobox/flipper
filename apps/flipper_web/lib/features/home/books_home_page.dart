@@ -4,6 +4,7 @@ import 'package:flipper_web/features/home/theme/books_home_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
 /// Flipper Books marketing home page: an editorial layout of paper, ink and
@@ -155,6 +156,12 @@ class _BooksHomePageState extends ConsumerState<BooksHomePage> {
                           sectionKey: _pricingKey,
                           onStartFree: () => booksHomeGoSignup(context),
                           l10n: l10n,
+                        ),
+                        BooksHomeNativeSection(
+                          onOpenStore: (uri) => launchUrl(
+                            uri,
+                            mode: LaunchMode.externalApplication,
+                          ),
                         ),
                         BooksHomeCta(
                           onStartFree: () => booksHomeGoSignup(context),

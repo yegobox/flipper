@@ -8754,5 +8754,11 @@
   "webHomePricingTitleAccent": "Nta gutungurwa.",
   "webHomeCtaKicker": "Gutangira ni ubuntu · Nta karita isabwa",
   "webHomeCtaLead": "Tangira",
-  "webHomeCtaAccent": "kubara."
+  "webHomeCtaAccent": "kubara.",
+  "webHomeNativeKicker": "Koresha porogaramu",
+  "webHomeNativeLead": "Byihuta cyane. Nta murandasi.",
+  "webHomeNativeAccent": "Koresha porogaramu.",
+  "webHomeNativeBody": "Urubuga ni rwiza mu kureba uko ibintu bimeze aho uri hose. Ku iduka, shyira Flipper kuri Android cyangwa Windows: irihuta cyane, ikomeza kugurisha nta murandasi, kandi ihuza amakuru ukimara kongera kubona murandasi.",
+  "webHomeNativePlay": "Yikure kuri Google Play",
+  "webHomeNativeWindows": "Yikure kuri Microsoft Store"
 }

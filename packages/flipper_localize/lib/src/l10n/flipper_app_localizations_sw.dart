@@ -25767,4 +25767,23 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
 
   @override
   String get webHomeCtaAccent => 'kuhesabu.';
+
+  @override
+  String get webHomeNativeKicker => 'Tumia programu';
+
+  @override
+  String get webHomeNativeLead => 'Kasi kamili. Bila mtandao kabisa.';
+
+  @override
+  String get webHomeNativeAccent => 'Tumia programu.';
+
+  @override
+  String get webHomeNativeBody =>
+      'Wavuti ni nzuri kwa kufuatilia ukiwa popote. Kwenye kaunta, sakinisha Flipper kwenye Android au Windows: inafanya kazi kwa kasi kamili, inaendelea kuuza bila intaneti, na inasawazisha mara tu unaporudi mtandaoni.';
+
+  @override
+  String get webHomeNativePlay => 'Ipate kwenye Google Play';
+
+  @override
+  String get webHomeNativeWindows => 'Ipate kwenye Microsoft Store';
 }

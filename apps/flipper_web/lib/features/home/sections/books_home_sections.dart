@@ -1119,6 +1119,149 @@ class _PricingColumn extends StatelessWidget {
   }
 }
 
+/// Flipper on Google Play.
+const booksHomePlayStoreUrl =
+    'https://play.google.com/store/apps/details?id=rw.flipper';
+
+/// Flipper on the Microsoft Store.
+const booksHomeMicrosoftStoreUrl =
+    'https://apps.microsoft.com/detail/9pg12jb1wrgz';
+
+/// Points people who run a counter on the web to the native apps: the web is
+/// for checking in, the apps are for full speed and selling offline.
+class BooksHomeNativeSection extends StatelessWidget {
+  const BooksHomeNativeSection({super.key, required this.onOpenStore});
+
+  /// Opens a store listing (outside the page).
+  final ValueChanged<Uri> onOpenStore;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = booksHomeL10n(context);
+    return BooksHomeSection(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final wide = constraints.maxWidth > 860;
+          final stores = RuledGrid(
+            columns: constraints.maxWidth > 560 ? 2 : 1,
+            children: [
+              _StoreCell(
+                platform: 'Android',
+                label: l10n.webHomeNativePlay,
+                icon: Icons.android_rounded,
+                onTap: () => onOpenStore(Uri.parse(booksHomePlayStoreUrl)),
+              ),
+              _StoreCell(
+                platform: 'Windows',
+                label: l10n.webHomeNativeWindows,
+                icon: Icons.window_rounded,
+                onTap: () => onOpenStore(Uri.parse(booksHomeMicrosoftStoreUrl)),
+              ),
+            ],
+          );
+          final copy = Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              EditorialHeadline(
+                lead: l10n.webHomeNativeLead,
+                accent: l10n.webHomeNativeAccent,
+                size: booksHomeH2SizeOf(context),
+                accentOnNewLine: true,
+              ),
+              const SizedBox(height: 22),
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 520),
+                child: Text(
+                  l10n.webHomeNativeBody,
+                  style: AppText.lead.copyWith(fontSize: 17),
+                ),
+              ),
+            ],
+          );
+
+          return Reveal(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                SectionIndex(
+                  number: '05',
+                  label: l10n.webHomeNativeKicker,
+                  trailing: 'Android · Windows',
+                ),
+                const SizedBox(height: 56),
+                if (wide)
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Expanded(child: copy),
+                      const SizedBox(width: 56),
+                      Expanded(child: stores),
+                    ],
+                  )
+                else ...[
+                  copy,
+                  const SizedBox(height: 40),
+                  stores,
+                ],
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+/// One store in [BooksHomeNativeSection]: the platform, the store, and an
+/// arrow out. Fills with Flipper blue on hover.
+class _StoreCell extends StatelessWidget {
+  const _StoreCell({
+    required this.platform,
+    required this.label,
+    required this.icon,
+    required this.onTap,
+  });
+
+  final String platform;
+  final String label;
+  final IconData icon;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return PressScale(
+      onTap: onTap,
+      child: HoverBuilder(
+        builder: (context, hover) {
+          final fg = hover ? AppGrad.onPanel : AppColors.ink;
+          final soft = hover ? AppGrad.onPanelSoft : AppColors.muted;
+          return AnimatedContainer(
+            duration: const Duration(milliseconds: 160),
+            padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+            decoration: BoxDecoration(gradient: hover ? AppGrad.panel : null),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(icon, size: 22, color: fg),
+                    const SizedBox(width: 10),
+                    Text(platform.toUpperCase(), style: AppText.label(c: soft)),
+                    const Spacer(),
+                    Icon(Icons.arrow_outward_rounded, size: 20, color: fg),
+                  ],
+                ),
+                const SizedBox(height: 40),
+                Text(label, style: AppText.title(22, c: fg)),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
 /// The closing call to action on the sign-in screens' blue brand panel: a
 /// poster-size "Start *counting.*" and the numbers under it.
 class BooksHomeCta extends StatelessWidget {
@@ -1158,7 +1301,7 @@ class BooksHomeCta extends StatelessWidget {
                       ),
                     ),
                     child: Text(
-                      '05  /  ${l10n.webHomeCtaKicker.toUpperCase()}',
+                      '06  /  ${l10n.webHomeCtaKicker.toUpperCase()}',
                       style: AppText.label(c: soft),
                     ),
                   ),

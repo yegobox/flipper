@@ -19164,5 +19164,29 @@
     "webHomeCtaAccent": "counting.",
     "@webHomeCtaAccent": {
         "description": "Closing call-to-action headline, italic accent"
+    },
+    "webHomeNativeKicker": "Go native",
+    "@webHomeNativeKicker": {
+        "description": "Label of the landing page section that points to the native apps"
+    },
+    "webHomeNativeLead": "Full speed. Fully offline.",
+    "@webHomeNativeLead": {
+        "description": "Native apps headline, first (upright) part"
+    },
+    "webHomeNativeAccent": "Go native.",
+    "@webHomeNativeAccent": {
+        "description": "Native apps headline, italic accent part"
+    },
+    "webHomeNativeBody": "The web is perfect for checking in from anywhere. At the counter, install Flipper on Android or Windows: it runs at full speed, keeps selling with no internet, and syncs the moment you are back online.",
+    "@webHomeNativeBody": {
+        "description": "Why install the native app instead of using the web"
+    },
+    "webHomeNativePlay": "Get it on Google Play",
+    "@webHomeNativePlay": {
+        "description": "Button to the Google Play listing"
+    },
+    "webHomeNativeWindows": "Get it from Microsoft",
+    "@webHomeNativeWindows": {
+        "description": "Button to the Microsoft Store listing"
     }
 }

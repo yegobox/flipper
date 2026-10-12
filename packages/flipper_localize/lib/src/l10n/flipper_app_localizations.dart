@@ -42790,6 +42790,42 @@ abstract class FlipperAppLocalizations {
   /// In en, this message translates to:
   /// **'counting.'**
   String get webHomeCtaAccent;
+
+  /// Label of the landing page section that points to the native apps
+  ///
+  /// In en, this message translates to:
+  /// **'Go native'**
+  String get webHomeNativeKicker;
+
+  /// Native apps headline, first (upright) part
+  ///
+  /// In en, this message translates to:
+  /// **'Full speed. Fully offline.'**
+  String get webHomeNativeLead;
+
+  /// Native apps headline, italic accent part
+  ///
+  /// In en, this message translates to:
+  /// **'Go native.'**
+  String get webHomeNativeAccent;
+
+  /// Why install the native app instead of using the web
+  ///
+  /// In en, this message translates to:
+  /// **'The web is perfect for checking in from anywhere. At the counter, install Flipper on Android or Windows: it runs at full speed, keeps selling with no internet, and syncs the moment you are back online.'**
+  String get webHomeNativeBody;
+
+  /// Button to the Google Play listing
+  ///
+  /// In en, this message translates to:
+  /// **'Get it on Google Play'**
+  String get webHomeNativePlay;
+
+  /// Button to the Microsoft Store listing
+  ///
+  /// In en, this message translates to:
+  /// **'Get it from Microsoft'**
+  String get webHomeNativeWindows;
 }
 
 class _FlipperAppLocalizationsDelegate

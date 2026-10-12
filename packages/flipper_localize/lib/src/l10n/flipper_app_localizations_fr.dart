@@ -26014,4 +26014,23 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
 
   @override
   String get webHomeCtaAccent => 'compter.';
+
+  @override
+  String get webHomeNativeKicker => 'Passez au natif';
+
+  @override
+  String get webHomeNativeLead => 'Pleine vitesse. Entièrement hors ligne.';
+
+  @override
+  String get webHomeNativeAccent => 'Passez au natif.';
+
+  @override
+  String get webHomeNativeBody =>
+      'Le web est parfait pour garder un œil sur tout, où que vous soyez. Au comptoir, installez Flipper sur Android ou Windows : il tourne à pleine vitesse, continue de vendre sans internet et se synchronise dès que vous êtes de nouveau en ligne.';
+
+  @override
+  String get webHomeNativePlay => 'Disponible sur Google Play';
+
+  @override
+  String get webHomeNativeWindows => 'Obtenir sur Microsoft Store';
 }

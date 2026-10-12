@@ -322,6 +322,29 @@ void main() {
     expect(AppColors.inkStrong, BooksPalette.dark.inkStrong);
   });
 
+  testWidgets('the native section opens each store', (tester) async {
+    tester.view.physicalSize = const Size(1200, 1400);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    final opened = <Uri>[];
+    await tester.pumpWidget(
+      app(
+        SingleChildScrollView(
+          child: BooksHomeNativeSection(onOpenStore: opened.add),
+        ),
+        still: true,
+      ),
+    );
+
+    await tester.tap(find.text('Get it on Google Play'));
+    await tester.tap(find.text('Get it from Microsoft'));
+    await tester.pumpAndSettle();
+    expect(opened, [
+      Uri.parse(booksHomePlayStoreUrl),
+      Uri.parse(booksHomeMicrosoftStoreUrl),
+    ]);
+  });
+
   testWidgets('the theme toggle flips the app theme', (tester) async {
     final container = ProviderContainer();
     addTearDown(container.dispose);

@@ -25597,4 +25597,23 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
 
   @override
   String get webHomeCtaAccent => 'counting.';
+
+  @override
+  String get webHomeNativeKicker => 'Go native';
+
+  @override
+  String get webHomeNativeLead => 'Full speed. Fully offline.';
+
+  @override
+  String get webHomeNativeAccent => 'Go native.';
+
+  @override
+  String get webHomeNativeBody =>
+      'The web is perfect for checking in from anywhere. At the counter, install Flipper on Android or Windows: it runs at full speed, keeps selling with no internet, and syncs the moment you are back online.';
+
+  @override
+  String get webHomeNativePlay => 'Get it on Google Play';
+
+  @override
+  String get webHomeNativeWindows => 'Get it from Microsoft';
 }

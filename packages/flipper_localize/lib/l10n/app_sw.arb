@@ -8762,5 +8762,11 @@
   "webHomePricingTitleAccent": "Bila mshangao.",
   "webHomeCtaKicker": "Bure kuanza · Hakuna kadi inayohitajika",
   "webHomeCtaLead": "Anza",
-  "webHomeCtaAccent": "kuhesabu."
+  "webHomeCtaAccent": "kuhesabu.",
+  "webHomeNativeKicker": "Tumia programu",
+  "webHomeNativeLead": "Kasi kamili. Bila mtandao kabisa.",
+  "webHomeNativeAccent": "Tumia programu.",
+  "webHomeNativeBody": "Wavuti ni nzuri kwa kufuatilia ukiwa popote. Kwenye kaunta, sakinisha Flipper kwenye Android au Windows: inafanya kazi kwa kasi kamili, inaendelea kuuza bila intaneti, na inasawazisha mara tu unaporudi mtandaoni.",
+  "webHomeNativePlay": "Ipate kwenye Google Play",
+  "webHomeNativeWindows": "Ipate kwenye Microsoft Store"
 }
