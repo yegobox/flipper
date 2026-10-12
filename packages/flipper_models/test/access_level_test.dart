@@ -11,8 +11,10 @@ Access _row({
   String featureName = 'general',
   String status = 'active',
   DateTime? expiresAt,
+  String? businessId,
 }) => Access(
   userId: 'u1',
+  businessId: businessId,
   featureName: featureName,
   userType: userType,
   accessLevel: accessLevel,
@@ -88,6 +90,70 @@ void main() {
           reason: type,
         );
       }
+    });
+  });
+
+  group('isAdminUserType', () {
+    const biz = 'b1';
+
+    test('Admin user type of this business passes with no module grants', () {
+      final rows = [
+        _row(userType: 'Admin', accessLevel: 'read_write', businessId: biz),
+      ];
+      expect(isAdminUserType(rows, businessId: biz, now: _now), isTrue);
+    });
+
+    test('Admin of another business does not count', () {
+      final rows = [
+        _row(userType: 'Admin', accessLevel: 'read_write', businessId: 'b2'),
+        _row(userType: 'Cashier', accessLevel: 'write', businessId: biz),
+      ];
+      expect(isAdminUserType(rows, businessId: biz, now: _now), isFalse);
+    });
+
+    test('no signed-in business means no override', () {
+      final rows = [
+        _row(userType: 'Admin', accessLevel: 'read_write', businessId: biz),
+      ];
+      expect(isAdminUserType(rows, businessId: null, now: _now), isFalse);
+      expect(isAdminUserType(rows, businessId: '', now: _now), isFalse);
+    });
+
+    test('a module at the admin level does not make a cashier an Admin', () {
+      final rows = [
+        _row(
+          userType: 'Cashier',
+          accessLevel: 'admin',
+          featureName: 'Add Product',
+          businessId: biz,
+        ),
+      ];
+      expect(isAdminUserType(rows, businessId: biz, now: _now), isFalse);
+    });
+
+    test('inactive or expired Admin rows do not count', () {
+      final rows = [
+        _row(
+          userType: 'Admin',
+          accessLevel: 'write',
+          status: 'inactive',
+          businessId: biz,
+        ),
+        _row(
+          userType: 'Admin',
+          accessLevel: 'write',
+          expiresAt: _now.subtract(const Duration(days: 1)),
+          businessId: biz,
+        ),
+      ];
+      expect(isAdminUserType(rows, businessId: biz, now: _now), isFalse);
+    });
+
+    test('user type match is case-insensitive', () {
+      final rows = [
+        _row(userType: 'ADMIN', accessLevel: 'read', businessId: biz),
+      ];
+      expect(isAdminUserType(rows, businessId: biz, now: _now), isTrue);
     });
   });
 }
