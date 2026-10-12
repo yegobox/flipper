@@ -317,6 +317,24 @@ double sumCreditTenderFromPaymentMethods(List<Payment> paymentMethods) {
   return sum > _tenderEpsilon ? sum : 0.0;
 }
 
+/// The method this sale is recorded under: the first tender line that carries
+/// money, else the first line. Null when there are no lines.
+///
+/// The `paymentType` box key is sticky across sales — the payment rows reset to
+/// CASH for each new cart but the key keeps the last method picked — so it
+/// must be re-aligned with the rows before completion reads it.
+String? primaryPaymentMethodForSaleCompletion(List<Payment> paymentMethods) {
+  final lines = paymentLinesForSaleCompletion(paymentMethods);
+  if (lines.isEmpty) return null;
+  for (final line in lines) {
+    if (line.amount > _tenderEpsilon && line.method.trim().isNotEmpty) {
+      return line.method;
+    }
+  }
+  final first = lines.first.method.trim();
+  return first.isEmpty ? null : first;
+}
+
 double sumTenderFromPaymentMethods(List<Payment> paymentMethods) {
   final sum = paymentLinesForSaleCompletion(
     paymentMethods,
@@ -1044,8 +1062,21 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       );
       final discount = double.tryParse(discountController.text) ?? 0;
 
-      final String branchId = ProxyService.box.getBranchId()!;
-      final paymentType = ProxyService.box.paymentType() ?? "Cash";
+      final box = ProxyService.box;
+      final String branchId = box.getBranchId()!;
+      // Downstream (collectPayment, RRA pmtTyCd) reads the box, so align it
+      // with the rows being charged rather than the last method ever picked.
+      final chargedMethod = primaryPaymentMethodForSaleCompletion(
+        paymentMethods,
+      );
+      if (chargedMethod != null) {
+        box.writeString(key: 'paymentType', value: chargedMethod);
+        box.writeString(
+          key: 'pmtTyCd',
+          value: box.paymentMethodCode(chargedMethod),
+        );
+      }
+      final paymentType = box.paymentType() ?? "Cash";
 
       if (!isValid) return false;
 

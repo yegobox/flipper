@@ -223,6 +223,9 @@ String? cashbookMethodBadge(String? paymentType) {
   if (p.isEmpty || p == cashbookMethodCash) return null;
   if (p.contains('AIRTEL')) return 'Airtel';
   if (p.contains('MOMO') || p.contains('MOBILE MONEY')) return 'MoMo';
+  // Before any CREDIT check: "DEBIT&CREDIT CARD" is a card, not credit.
+  if (p.contains('CARD')) return 'Card';
+  if (p.contains('BANK')) return 'Bank';
   return null;
 }
 
