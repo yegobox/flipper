@@ -4,6 +4,8 @@ import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/providers/access_provider.dart';
 import 'package:flipper_models/providers/active_branch_provider.dart';
+import 'package:flipper_models/providers/pos_cart_display_provider.dart'
+    show saleDeviceIdProvider;
 import 'package:flipper_models/providers/pos_payment_role_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_models/sync/ditto_observer_utils.dart';
@@ -24,11 +26,7 @@ List<ITransaction> _sortOpenTickets(List<ITransaction> tickets) {
   }).toList();
 
   marked.sort((a, b) {
-    final priority = <String, int>{
-      WAITING: 3,
-      PARKED: 2,
-      IN_PROGRESS: 1,
-    };
+    final priority = <String, int>{WAITING: 3, PARKED: 2, IN_PROGRESS: 1};
     final aPrio = priority[(a.status ?? '').toLowerCase()] ?? 0;
     final bPrio = priority[(b.status ?? '').toLowerCase()] ?? 0;
     if (aPrio != bPrio) return bPrio.compareTo(aPrio);
@@ -48,6 +46,38 @@ List<ITransaction> _filterTicketsForRole(
 }) {
   if (canViewAll || agentId == null || agentId.isEmpty) return tickets;
   return tickets.where((t) => (t.agentId ?? '') == agentId).toList();
+}
+
+/// Where a ticket in the list currently is.
+enum ResumedTicketPlace {
+  /// Not resumed — parked / waiting / in progress in the queue.
+  queued,
+
+  /// Resumed into this till's cart by the signed-in user.
+  thisTill,
+
+  /// Resumed on another till (or by another user on this one).
+  otherTill,
+}
+
+/// Classifies [ticket] for the Tickets list. Resume stamps the collector's
+/// `deviceId` and `agentId` on the PENDING row, so those say who has it open.
+/// [deviceId] is [saleDeviceIdProvider].
+ResumedTicketPlace resumedTicketPlace(
+  ITransaction ticket, {
+  required String? deviceId,
+  required String? userId,
+}) {
+  if ((ticket.status ?? '').toLowerCase() != PENDING.toLowerCase()) {
+    return ResumedTicketPlace.queued;
+  }
+  final sameDevice =
+      deviceId != null && deviceId.isNotEmpty && ticket.deviceId == deviceId;
+  final sameUser =
+      ticket.agentId == null || userId == null || ticket.agentId == userId;
+  return sameDevice && sameUser
+      ? ResumedTicketPlace.thisTill
+      : ResumedTicketPlace.otherTill;
 }
 
 /// Wait until session box has a branch (startup / login race), matching
@@ -165,6 +195,9 @@ Stream<List<ITransaction>> ticketsStream(Ref ref) async* {
         forceRealData: true,
         skipOriginalTransactionCheck: false,
         restrictToCurrentAgent: false,
+        // A resumed ticket is PENDING; without this it vanished from the list
+        // the moment it was resumed, and was lost if that till never paid it.
+        includeResumed: true,
       )
       .map(_sortOpenTickets)
       .handleError((e, st) {
@@ -185,7 +218,8 @@ final visibleTicketsProvider = Provider<AsyncValue<List<ITransaction>>>((ref) {
   // Till roles see the full branch queue; so do reviewers (TicketReview access)
   // for oversight — read-only, since collecting still requires canCollect.
   // Regular staff continue to see only their own tickets.
-  final canViewAll = canCollect ||
+  final canViewAll =
+      canCollect ||
       ref.watch(
         featureViewAccessProvider(
           userId: agentId ?? '',
@@ -208,9 +242,7 @@ final visibleTicketsProvider = Provider<AsyncValue<List<ITransaction>>>((ref) {
 /// previous count instead of flashing to 0.
 final pendingTillTicketsCountProvider = Provider<int>((ref) {
   final tickets = ref.watch(visibleTicketsProvider).value ?? const [];
-  return tickets
-      .where((t) => (t.status ?? '').toLowerCase() == PARKED)
-      .length;
+  return tickets.where((t) => (t.status ?? '').toLowerCase() == PARKED).length;
 });
 
 /// Ticket Review + Handover workflow: branch-wide tickets awaiting reviewer

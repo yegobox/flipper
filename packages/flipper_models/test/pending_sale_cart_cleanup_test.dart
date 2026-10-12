@@ -21,11 +21,7 @@ void main() {
 
     test('cart with line items is not deletable', () {
       expect(
-        isEmptyPendingSaleCart(
-          subTotal: 0,
-          ticketName: null,
-          hasItems: true,
-        ),
+        isEmptyPendingSaleCart(subTotal: 0, ticketName: null, hasItems: true),
         isFalse,
       );
       expect(
@@ -97,21 +93,44 @@ void main() {
     });
   });
 
-  group('classifyPendingSaleCarts', () {
-    test('deleteNonEmpty wipes every candidate', () {
-      final plan = classifyPendingSaleCarts(
-        candidates: [
-          {'id': 'a', 'subTotal': 0},
-          {'id': 'b', 'subTotal': 50, 'ticketName': 'Jean'},
-        ],
-        idsWithItems: {},
-        deleteNonEmpty: true,
+  group('isResumedPendingTicketRow', () {
+    test('needs both a ticket name and a subtotal', () {
+      expect(
+        isResumedPendingTicketRow({'ticketName': 'T4', 'subTotal': 900}),
+        isTrue,
       );
-      expect(plan.deleteIds, ['a', 'b']);
-      expect(plan.reparkRows, isEmpty);
+      expect(
+        isResumedPendingTicketRow({'ticketName': ' ', 'subTotal': 900}),
+        isFalse,
+      );
+      expect(
+        isResumedPendingTicketRow({'ticketName': 'T4', 'subTotal': 0}),
+        isFalse,
+      );
+      expect(isResumedPendingTicketRow({'subTotal': 900}), isFalse);
     });
+  });
 
-    test('re-parks only carts with line items; deletes stale ghosts', () {
+  group('classifyPendingSaleCarts', () {
+    test(
+      'user switch deletes empties, re-parks resumed tickets, keeps carts',
+      () {
+        final plan = classifyPendingSaleCarts(
+          candidates: [
+            {'id': 'a', 'subTotal': 0},
+            {'id': 'resumed', 'subTotal': 50, 'ticketName': 'Jean'},
+            {'id': 'cart', 'subTotal': 70},
+            {'id': 'resumed-syncing', 'subTotal': 80, 'ticketName': 'Ama'},
+          ],
+          idsWithItems: {'resumed', 'cart'},
+          deleteNonEmpty: true,
+        );
+        expect(plan.deleteIds, ['a']);
+        expect(plan.reparkRows.map((r) => r['id']), ['resumed']);
+      },
+    );
+
+    test('re-parks carts with lines; deletes stale ghosts', () {
       final plan = classifyPendingSaleCarts(
         candidates: [
           {'id': 'empty', 'subTotal': 0},
@@ -124,14 +143,38 @@ void main() {
         idsWithItems: {'has-lines', 'has-lines-named'},
         deleteNonEmpty: false,
       );
-      expect(
-        plan.deleteIds,
-        ['empty', 'named-ghost', 'valued-ghost', 'customer-ghost'],
-      );
-      expect(
-        plan.reparkRows.map((r) => r['id']),
-        ['has-lines', 'has-lines-named'],
-      );
+      expect(plan.deleteIds, [
+        'empty',
+        'named-ghost',
+        'valued-ghost',
+        'customer-ghost',
+      ]);
+      expect(plan.reparkRows.map((r) => r['id']), [
+        'has-lines',
+        'has-lines-named',
+      ]);
+    });
+
+    test('never deletes a resumed ticket whose lines have not synced yet', () {
+      for (final deleteNonEmpty in [false, true]) {
+        final plan = classifyPendingSaleCarts(
+          candidates: [
+            {'id': 'resumed', 'subTotal': 1200, 'ticketName': 'Table 4'},
+          ],
+          idsWithItems: {},
+          deleteNonEmpty: deleteNonEmpty,
+        );
+        expect(
+          plan.deleteIds,
+          isEmpty,
+          reason: 'deleteNonEmpty=$deleteNonEmpty',
+        );
+        expect(
+          plan.reparkRows,
+          isEmpty,
+          reason: 'deleteNonEmpty=$deleteNonEmpty',
+        );
+      }
     });
   });
 }

@@ -9813,6 +9813,33 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   String get ticketComplete => 'Rangiza →';
 
   @override
+  String get ticketStatusInYourCart => 'Biri mu gatebo kawe';
+
+  @override
+  String get ticketStatusOpenOnAnotherTill => 'Ifunguye ku yindi kasi';
+
+  @override
+  String get ticketGoToCart => 'Jya ku gatebo →';
+
+  @override
+  String get ticketTakeOver => 'Yifate →';
+
+  @override
+  String get ticketTakeOverTitle => 'Ufata iyi tike?';
+
+  @override
+  String ticketTakeOverBody(String name, int minutes) {
+    return '$name afite iyi tike ifunguye ku yindi kasi (igikorwa giheruka hashize iminota $minutes). Kuyifata biyimurira kuri iyi kasi bikayikura ku yabo.';
+  }
+
+  @override
+  String get ticketNoLongerOpen =>
+      'Iyi tike yamaze kwishyurwa cyangwa yasubijwe ku rutonde.';
+
+  @override
+  String get ticketTakenOverByAnotherTill => 'Iyi tike yafashwe n’indi kasi.';
+
+  @override
   String get ticketResumeOrder => 'Subukura itumizwa';
 
   @override

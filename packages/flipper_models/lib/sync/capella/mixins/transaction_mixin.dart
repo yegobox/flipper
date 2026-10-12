@@ -85,6 +85,10 @@ String? _dittoDocumentId(Map<String, dynamic> data) {
 /// `ORDER BY lastTouched DESC` and orphans the lines already on the old id.
 const int _pendingCartEmptySettleMs = 750;
 
+/// `branchId|agentId` scopes whose resumed tickets were already swept back to
+/// PARKED in this process — see [CapellaTransactionMixin.reparkOrphanedResumedTickets].
+final Set<String> _resumedTicketSweepDone = <String>{};
+
 /// Per-cart `itemSeq` high-water marks, so adding a line is O(1) instead of
 /// asking the store how many lines the cart already has.
 final CartLineSeqCache _cartLineSeqCache = CartLineSeqCache();
@@ -431,6 +435,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     required bool forceRealData,
     required bool skipOriginalTransactionCheck,
     bool restrictToCurrentAgent = true,
+    bool includeResumed = false,
   }) {
     if (!forceRealData) {
       return Stream.value(
@@ -470,9 +475,16 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         arguments['agentId'] = agentId;
       }
 
+      // A resumed ticket is PENDING (see [resumeSaleTicketFast]); its ticket
+      // name is what tells it apart from a plain cart. An empty name is dropped
+      // in [convertItems] — DQL treats a missing field as neither null nor ''.
       whereClauses.add(
-        '(status = :waiting OR status = :parked OR status = :inProgress OR status = :awaitingHandover)',
+        includeResumed
+            ? '(status = :waiting OR status = :parked OR status = :inProgress '
+                  'OR status = :awaitingHandover OR status = :pending)'
+            : '(status = :waiting OR status = :parked OR status = :inProgress OR status = :awaitingHandover)',
       );
+      if (includeResumed) arguments['pending'] = PENDING;
       arguments['waiting'] = WAITING;
       arguments['parked'] = PARKED;
       arguments['inProgress'] = IN_PROGRESS;
@@ -514,6 +526,10 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         for (final item in queryResult.items) {
           try {
             final transactionData = Map<String, dynamic>.from(item.value);
+            if (_dittoRowStatusIsPending(transactionData) &&
+                !isResumedPendingTicketRow(transactionData)) {
+              continue;
+            }
             transactions.add(_convertFromDittoDocument(transactionData));
           } catch (e) {
             talker.error('Error converting open ticket transaction: $e');
@@ -2663,20 +2679,17 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     }
   }
 
-  static const _pendingSaleCartWhere =
-      'branchId = :branchId AND status = :status AND agentId = :agentId '
-      'AND (isExpense = :isExpense OR isExpense IS NULL) '
-      'AND isOriginalTransaction = :isOriginal AND id != :excludeId';
-
   Map<String, dynamic> _pendingSaleCartArgs({
     required String branchId,
     required String agentId,
+    required String deviceId,
     required String excludeTransactionId,
   }) {
     return {
       'branchId': branchId,
       'status': PENDING,
       'agentId': agentId,
+      'deviceId': deviceId,
       'isExpense': false,
       'isOriginal': true,
       'excludeId': excludeTransactionId,
@@ -2704,8 +2717,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
           : candidateIds.length;
       final chunk = candidateIds.sublist(i, end);
       final result = await ditto.store.execute(
-        'SELECT transactionId FROM transaction_items '
-        'WHERE transactionId IN (:ids)',
+        cartIdsWithLinesDql,
         arguments: {'ids': chunk},
       );
       for (final item in result.items) {
@@ -2740,17 +2752,11 @@ mixin CapellaTransactionMixin implements TransactionInterface {
           : deleteIds.length;
       final chunk = deleteIds.sublist(i, end);
       await ditto.store.transaction((txn) async {
-        await txn.execute(
-          'DELETE FROM transaction_items WHERE transactionId IN (:ids)',
-          arguments: {'ids': chunk},
-        );
+        await txn.execute(deleteCartLinesDql, arguments: {'ids': chunk});
         for (final id in chunk) {
           cartLineDocCache.forget(id.toString());
         }
-        await txn.execute(
-          'DELETE FROM transactions WHERE id IN (:ids)',
-          arguments: {'ids': chunk},
-        );
+        await txn.execute(deleteCartsDql, arguments: {'ids': chunk});
       });
     }
 
@@ -2818,6 +2824,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       final args = _pendingSaleCartArgs(
         branchId: branchId,
         agentId: agentId,
+        deviceId: await resolveSaleDeviceId(),
         excludeTransactionId: excludeTransactionId,
       );
 
@@ -2826,7 +2833,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       // with ~100 orphan empty carts that held the Ditto write lock for
       // 50s+ and blocked resume.
       final selected = await ditto.store.execute(
-        'SELECT * FROM transactions WHERE $_pendingSaleCartWhere',
+        pendingSaleCartSiblingsDql,
         arguments: args,
       );
       final candidates = <Map<String, dynamic>>[];
@@ -2844,16 +2851,13 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         return;
       }
 
-      Set<String> idsWithItems = {};
-      if (!deleteNonEmpty) {
-        // Always check line items for every sibling. Stale subTotal / customer
-        // name alone used to skip this lookup and get re-parked as mystery
-        // tickets on the till list.
-        final candidateIds = <String>[
-          for (final row in candidates) row['id'] as String,
-        ];
-        idsWithItems = await _transactionIdsWithItems(candidateIds);
-      }
+      // Always check line items for every sibling, [deleteNonEmpty] included:
+      // a resumed ticket with lines is re-parked even on user switch. Stale
+      // subTotal / customer name alone used to skip this lookup and get
+      // re-parked as mystery tickets on the till list.
+      final idsWithItems = await _transactionIdsWithItems(<String>[
+        for (final row in candidates) row['id'] as String,
+      ]);
 
       final classified = classifyPendingSaleCarts(
         candidates: candidates,
@@ -2922,6 +2926,27 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     return _dittoDocumentId(data);
   }
 
+  /// True when [id] is PENDING under a sale device id other than [deviceId]
+  /// (default: this one) — resumed on another till or by another user.
+  Future<bool> _ticketHeldByAnotherDevice(
+    dynamic ditto,
+    String id, [
+    String? deviceId,
+  ]) async {
+    final result = await ditto.store.execute(
+      'SELECT status, deviceId FROM transactions '
+      'WHERE _id = :id OR id = :id LIMIT 1',
+      arguments: {'id': id},
+    );
+    if (result.items.isEmpty) return false;
+    final row = Map<String, dynamic>.from(result.items.first.value);
+    return ticketOpenOnAnotherDevice(
+      status: row['status'] as String?,
+      ticketDeviceId: row['deviceId'] as String?,
+      deviceId: deviceId ?? await resolveSaleDeviceId(),
+    );
+  }
+
   @override
   Future<void> parkSaleTicketFast({
     required ITransaction transaction,
@@ -2943,6 +2968,17 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     // Report windows compare local wall-clock strings — see the createdAt note
     // on [setClauses] below.
     final nowLocalIso = now.toIso8601String();
+
+    // A resumed ticket another till has taken over is still PENDING — on that
+    // till. The re-park-on-exit paths (Back to new sale, leaving mobile
+    // checkout, collecting a different ticket) would otherwise pull it back
+    // out from under the till now ringing it up. Treat it as already gone.
+    if (await _ticketHeldByAnotherDevice(ditto, targetId)) {
+      talker.warning(
+        'parkSaleTicketFast: $targetId is open on another till; not re-parking',
+      );
+      return;
+    }
 
     // Ensure peers subscribed to this branch can pull the PARKED update.
     // Pending-cart sync alone is deviceId+PENDING and does not match parks.
@@ -3119,12 +3155,87 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     }
   }
 
+  /// Puts this device's resumed tickets back in the Tickets list.
+  ///
+  /// Resume flips a ticket to PENDING, and only the in-memory pin keeps it as
+  /// the cart. After a restart (or a user switch) nothing points at it any
+  /// more: the pending observer emits whichever cart was touched last, and the
+  /// Tickets list only shows PARKED rows, so the ticket was effectively lost.
+  /// Runs once per process per `branch|agent`, before the pending observer
+  /// first emits, so it never re-parks the ticket a live session is ringing up.
+  ///
+  /// Scoped by [deviceId] only, not agent — though the sale device id embeds
+  /// the user, so in practice this is "this user on this install". Another
+  /// user's resumed ticket shows in the Tickets list as open on another till
+  /// (`includeResumed`) and can be taken over from there.
+  /// Only rows with local lines are re-parked —
+  /// a line-less row is left for its lines to replicate, never made into an
+  /// empty "mystery" ticket.
+  Future<void> reparkOrphanedResumedTickets({
+    required String branchId,
+    required String deviceId,
+    required String? agentId,
+  }) async {
+    if (!_resumedTicketSweepDone.add('$branchId|${agentId ?? ''}')) return;
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) return;
+
+    try {
+      final selected = await ditto.store.execute(
+        resumedTicketSweepDql,
+        arguments: {
+          'branchId': branchId,
+          'status': PENDING,
+          'deviceId': deviceId,
+          'isExpense': false,
+          'isOriginal': true,
+        },
+      );
+      final resumed = <Map<String, dynamic>>[];
+      for (final item in selected.items) {
+        final data = Map<String, dynamic>.from(item.value);
+        final id = _dittoDocumentId(data);
+        if (id == null || id.isEmpty) continue;
+        if (!_isPosCartTransactionType(data['transactionType'] as String?)) {
+          continue;
+        }
+        data['id'] = id;
+        if (isResumedPendingTicketRow(data)) resumed.add(data);
+      }
+      if (resumed.isEmpty) return;
+
+      final idsWithItems = await _transactionIdsWithItems(<String>[
+        for (final row in resumed) row['id'] as String,
+      ]);
+      final reparkRows = [
+        for (final row in resumed)
+          if (idsWithItems.contains(row['id'])) row,
+      ];
+      if (reparkRows.isEmpty) return;
+
+      await _applyPendingSaleCartMutations(
+        deleteIds: const [],
+        reparkRows: reparkRows,
+      );
+      talker.info(
+        'reparkOrphanedResumedTickets: re-parked ${reparkRows.length} resumed '
+        'ticket(s) on branch=$branchId '
+        '(${reparkRows.map((r) => r['id']).join(', ')})',
+      );
+    } catch (e, s) {
+      // Let a later subscription retry rather than skip the sweep for good.
+      _resumedTicketSweepDone.remove('$branchId|${agentId ?? ''}');
+      talker.error('reparkOrphanedResumedTickets: $e', s);
+    }
+  }
+
   @override
   Future<void> resumeSaleTicketFast({
     required ITransaction ticket,
     required String agentId,
     required String deviceId,
     required String branchId,
+    bool takeOver = false,
   }) async {
     final ditto = dittoService.dittoInstance;
     if (ditto == null) {
@@ -3134,26 +3245,21 @@ mixin CapellaTransactionMixin implements TransactionInterface {
 
     // Refuse a ticket another till already resumed. The list that offered it
     // can be stale (that device's write had not synced here yet), so check
-    // the row itself.
-    final current = await ditto.store.execute(
-      'SELECT status, deviceId FROM transactions '
-      'WHERE _id = :id OR id = :id LIMIT 1',
-      arguments: {'id': ticket.id},
-    );
-    if (current.items.isNotEmpty) {
-      final row = Map<String, dynamic>.from(current.items.first.value);
-      if (ticketOpenOnAnotherDevice(
-        status: row['status'] as String?,
-        ticketDeviceId: row['deviceId'] as String?,
-        deviceId: deviceId,
-      )) {
-        talker.warning(
-          'resumeSaleTicketFast: ${ticket.id} is already PENDING on device '
-          '${row['deviceId']}; refusing resume on $deviceId',
-        );
-        throw TicketOpenElsewhereException(ticket.id);
-      }
+    // the row itself. [takeOver] is the explicit, confirmed exception: the
+    // Tickets list's "Take over" on a ticket shown open on another till.
+    if (!takeOver &&
+        await _ticketHeldByAnotherDevice(ditto, ticket.id, deviceId)) {
+      talker.warning(
+        'resumeSaleTicketFast: ${ticket.id} is already PENDING on another '
+        'device; refusing resume on $deviceId',
+      );
+      throw TicketOpenElsewhereException(ticket.id);
     }
+
+    // This session now owns a resumed ticket, so the startup sweep must never
+    // re-park it — even when the POS pending observer subscribes only after
+    // this resume. Older resumed siblings are re-parked by the cleanup below.
+    _resumedTicketSweepDone.add('$branchId|$agentId');
 
     final nowIso = DateTime.now().toUtc().toIso8601String();
     // Do NOT touch createdAt here: resume is not a settlement. The row keeps
@@ -4094,6 +4200,20 @@ mixin CapellaTransactionMixin implements TransactionInterface {
           }
 
           query += " ORDER BY lastTouched DESC";
+
+          // Before the observer registers, so a resumed ticket left PENDING by
+          // a closed session goes back to the Tickets list instead of
+          // competing (and losing) to be "the cart".
+          if (!isExpense &&
+              branchId != null &&
+              branchId.isNotEmpty &&
+              _isPosCartTransactionType(transactionType)) {
+            await reparkOrphanedResumedTickets(
+              branchId: branchId,
+              deviceId: saleDeviceId,
+              agentId: agentId,
+            );
+          }
 
           final preparedPending = prepareDqlSyncSubscription(query, arguments);
           activeDitto.sync.registerSubscription(

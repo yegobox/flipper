@@ -8943,6 +8943,24 @@
     "ticketCollect": "Collect →",
     "ticketCompleting": "Completing…",
     "ticketComplete": "Complete →",
+    "ticketStatusInYourCart": "In your cart",
+    "ticketStatusOpenOnAnotherTill": "Open on another till",
+    "ticketGoToCart": "Go to cart →",
+    "ticketTakeOver": "Take over →",
+    "ticketTakeOverTitle": "Take over this ticket?",
+    "ticketTakeOverBody": "{name} has this ticket open on another till (last activity {minutes} min ago). Taking it over moves it to this till and removes it from theirs.",
+    "ticketNoLongerOpen": "This ticket was already paid or returned to the list.",
+    "ticketTakenOverByAnotherTill": "This ticket was taken over by another till.",
+    "@ticketTakeOverBody": {
+        "placeholders": {
+            "name": {
+                "type": "String"
+            },
+            "minutes": {
+                "type": "int"
+            }
+        }
+    },
     "ticketResumeOrder": "Resume Order",
     "ticketPrint": "Print",
     "ticketSent": "Sent",

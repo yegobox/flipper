@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:flipper_models/SyncStrategy.dart';
+import 'package:flipper_models/helperModels/sale_device_id.dart';
+import 'package:flipper_models/helpers/ticket_resume_guard.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/cached_pending_cart_transaction_provider.dart';
@@ -62,6 +64,55 @@ final posCartDisplayEpochProvider = StateProvider<int>((ref) => 0);
 final pinnedPosCartTransactionIdProvider = StateProvider<String?>(
   (ref) => null,
 );
+
+/// This install's sale device id — what resume stamps on a ticket's row and
+/// what the pending-cart observer scopes by. Cached for the session; it embeds
+/// the user, so re-check with [resolveSaleDeviceId] before acting on a
+/// mismatch after a user switch.
+final saleDeviceIdProvider = FutureProvider<String>(
+  (ref) => resolveSaleDeviceId(),
+);
+
+/// The pinned cart's id once another till (or another user) has taken that
+/// resumed ticket over, else null.
+///
+/// Take-over is an ordinary resume on the other till: it re-stamps the row's
+/// `deviceId`. This till's pin still points at the ticket, though, so without
+/// this it would keep showing it and append new lines to a sale another till
+/// is now ringing up. Only observes the row while a pin is held.
+final pinnedCartTakenOverIdProvider = Provider<String?>((ref) {
+  final pinnedId = ref.watch(pinnedPosCartTransactionIdProvider);
+  if (pinnedId == null || pinnedId.isEmpty) return null;
+  final deviceId = ref.watch(saleDeviceIdProvider).value;
+  if (deviceId == null || deviceId.isEmpty) return null;
+  final row = ref.watch(transactionByIdProvider(pinnedId)).asData?.value;
+  return isTakenOverPendingRow(row, deviceId: deviceId) ? pinnedId : null;
+});
+
+/// True when [row] is PENDING under a sale device id other than [deviceId].
+bool isTakenOverPendingRow(ITransaction? row, {required String deviceId}) {
+  return row != null &&
+      ticketOpenOnAnotherDevice(
+        status: row.status,
+        ticketDeviceId: row.deviceId,
+        deviceId: deviceId,
+      );
+}
+
+/// Confirms a [pinnedCartTakenOverIdProvider] hit against a freshly resolved
+/// device id (the cached one can be stale after a user switch) before a
+/// screen drops the ticket from its cart.
+Future<bool> confirmPinnedCartTakenOver(
+  WidgetRef ref,
+  String transactionId,
+) async {
+  final fresh = await resolveSaleDeviceId();
+  if (ref.read(saleDeviceIdProvider).value != fresh) {
+    ref.invalidate(saleDeviceIdProvider);
+  }
+  final row = ref.read(transactionByIdProvider(transactionId)).value;
+  return isTakenOverPendingRow(row, deviceId: fresh);
+}
 
 /// Transaction id of the sale that just completed. While set, the cart shows
 /// empty for that id across every consumer (list, totals, badges) in the same

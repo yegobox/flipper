@@ -849,15 +849,25 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
                     void toggleSelected() => ref
                         .read(ticketSelectionProvider.notifier)
                         .toggleSelection(ticket.id);
+                    final userId = ProxyService.box.getUserId();
                     final canRecordHandover = ref.watch(
                       featureAccessProvider(
-                        userId: ProxyService.box.getUserId() ?? '',
+                        userId: userId ?? '',
                         featureName: AppFeature.StockHandover,
                       ),
                     );
                     final reviewWorkflowOn = _ticketReviewWorkflowEnabled;
                     final isParked =
                         (ticket.status ?? '').toLowerCase() == PARKED;
+                    // A resumed ticket (PENDING) stays listed so it can never
+                    // be lost: open it again here, or take it over from a till
+                    // that went away.
+                    final resumedPlace = resumedTicketPlace(
+                      ticket,
+                      deviceId: ref.watch(saleDeviceIdProvider).value,
+                      userId: userId,
+                    );
+                    final isResumed = resumedPlace != ResumedTicketPlace.queued;
                     final isAwaitingHandover =
                         (ticket.status ?? '') == AWAITING_HANDOVER;
                     // One branch-wide observer; each card selects its own
@@ -881,11 +891,20 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
                         ticket,
                         paymentSumsByTxnId,
                       ),
-                      showCollect: canCollect && isParked,
+                      showCollect: canCollect && (isParked || isResumed),
+                      resumedPlace: resumedPlace,
+                      collectLabel: switch (resumedPlace) {
+                        ResumedTicketPlace.thisTill =>
+                          context.flipperL10n.ticketGoToCart,
+                        ResumedTicketPlace.otherTill =>
+                          context.flipperL10n.ticketTakeOver,
+                        ResumedTicketPlace.queued => null,
+                      },
                       showComplete:
                           reviewWorkflowOn &&
                           canCollect &&
                           !isParked &&
+                          !isResumed &&
                           !(isAwaitingHandover && canRecordHandover),
                       // Resume only for parked tickets — WAITING / handover rows
                       // must not be yanked into the till cart.
@@ -921,8 +940,16 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
                           : null,
                       onTap: selecting
                           ? toggleSelected
+                          : isResumed
+                          ? () => unawaited(
+                              _openResumedTicket(ticket, resumedPlace),
+                            )
                           : () => _handleTicketTap(ticket),
-                      onCollect: () => unawaited(_collectTillTicket(ticket)),
+                      onCollect: isResumed
+                          ? () => unawaited(
+                              _openResumedTicket(ticket, resumedPlace),
+                            )
+                          : () => unawaited(_collectTillTicket(ticket)),
                       onComplete: () =>
                           unawaited(_completeTicket(context, ticket)),
                       onRecordHandover: () =>
@@ -970,15 +997,113 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   }
 
   /// Resume a parked ticket into settling mode for till payment collection.
-  Future<void> _collectTillTicket(ITransaction ticket) async {
+  /// [takeOver]: see [ResumeTransactionService.resume].
+  Future<void> _collectTillTicket(
+    ITransaction ticket, {
+    bool takeOver = false,
+  }) async {
     // Ignore re-taps while this ticket is already being collected.
     if (_collectingTicketId != null) return;
     setState(() => _collectingTicketId = ticket.id);
     try {
-      final ok = await _handOffTicketToCheckout(ticket, asSettling: true);
+      final ok = await _handOffTicketToCheckout(
+        ticket,
+        asSettling: true,
+        takeOver: takeOver,
+      );
       if (!ok || !mounted) return;
     } finally {
       if (mounted) setState(() => _collectingTicketId = null);
+    }
+  }
+
+  /// Opens a resumed (PENDING) ticket: straight back into this till's cart
+  /// when it is ours, otherwise a confirmed take-over from the till that has it
+  /// — typically one that was closed before the ticket was paid or re-parked.
+  ///
+  /// Take-over re-reads the row first: the other till may have paid or
+  /// re-parked it since the list rendered. Then it is an ordinary Collect —
+  /// resume re-stamps this device and user, and the other till's
+  /// ownership guard drops it from its cart.
+  Future<void> _openResumedTicket(
+    ITransaction ticket,
+    ResumedTicketPlace place,
+  ) async {
+    if (_collectingTicketId != null) return;
+    if (!ref.read(canCollectPosPaymentProvider)) return;
+    if (place != ResumedTicketPlace.otherTill) {
+      await _collectTillTicket(ticket);
+      return;
+    }
+
+    final holder = await _agentDisplayName(ticket.agentId);
+    if (!mounted) return;
+    final l10n = context.flipperL10n;
+    final lastActivity = ticket.lastTouched ?? ticket.updatedAt;
+    final minutes = lastActivity == null
+        ? null
+        : DateTime.now().difference(lastActivity.toLocal()).inMinutes;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.ticketTakeOverTitle),
+        content: Text(
+          l10n.ticketTakeOverBody(
+            holder ?? l10n.ticketStaffFallback,
+            minutes == null || minutes < 0 ? 0 : minutes,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(l10n.cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(l10n.ticketTakeOver),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    final fresh = await _readTicketRow(ticket.id, ticket.branchId ?? '');
+    if (!mounted) return;
+    if (fresh == null ||
+        (fresh.status ?? '').toLowerCase() != PENDING.toLowerCase()) {
+      showCustomSnackBarUtil(
+        context,
+        l10n.ticketNoLongerOpen,
+        backgroundColor: Colors.orange,
+      );
+      return;
+    }
+    await _collectTillTicket(fresh, takeOver: true);
+  }
+
+  /// Ticket row from the local store, optionally asking the server once.
+  Future<ITransaction?> _readTicketRow(
+    String id,
+    String branchId, {
+    bool awaitRemote = false,
+  }) {
+    return ProxyService.getStrategy(
+      Strategy.capella,
+    ).getTransaction(id: id, branchId: branchId, awaitRemote: awaitRemote);
+  }
+
+  /// Display name for [agentId], or null when it does not resolve locally.
+  Future<String?> _agentDisplayName(String? agentId) async {
+    if (agentId == null || agentId.isEmpty) return null;
+    try {
+      final tenant = await ProxyService.strategy.tenant(
+        userId: agentId,
+        fetchRemote: false,
+      );
+      final name = tenant?.name?.trim();
+      return (name == null || name.isEmpty) ? null : name;
+    } catch (_) {
+      return null;
     }
   }
 
@@ -1046,6 +1171,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   Future<bool> _handOffTicketToCheckout(
     ITransaction ticket, {
     required bool asSettling,
+    bool takeOver = false,
   }) async {
     // Every exit from this method is logged with the same `[collect-handoff]`
     // tag: "Collect did not close the tickets page" has several possible causes
@@ -1089,7 +1215,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
 
     final parkedAt = ticket.lastTouched ?? ticket.createdAt ?? DateTime.now();
 
-    final ok = await _resumeOrder(ticket);
+    final ok = await _resumeOrder(ticket, takeOver: takeOver);
     // Resume awaits clearPendingSaleCartsExcept, which sweeps every orphan
     // pending cart on this branch; with a large backlog that is seconds of Ditto
     // write work before the close below can run.
@@ -1114,18 +1240,9 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       return true;
     }
 
-    final originalAgentId = ticket.agentId;
-    var creatorName = context.flipperL10n.ticketStaffFallback;
-    if (originalAgentId != null && originalAgentId.isNotEmpty) {
-      try {
-        final tenant = await ProxyService.strategy.tenant(
-          userId: originalAgentId,
-          fetchRemote: false,
-        );
-        final name = tenant?.name?.trim();
-        if (name != null && name.isNotEmpty) creatorName = name;
-      } catch (_) {}
-    }
+    final staffFallback = context.flipperL10n.ticketStaffFallback;
+    final creatorName =
+        await _agentDisplayName(ticket.agentId) ?? staffFallback;
 
     final settlingBranchId = ticket.branchId ?? ProxyService.box.getBranchId();
 
@@ -1229,16 +1346,14 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       // from, so re-read before parking on it.
       var txn =
           (settling.recovered ? null : settling.ticketSnapshot) ??
-          await ProxyService.getStrategy(
-            Strategy.capella,
-          ).getTransaction(id: settling.transactionId, branchId: branchId);
+          await _readTicketRow(settling.transactionId, branchId);
       // Nothing locally: ask the server once before concluding anything. A
       // ticket collected on another device may not have replicated here yet,
       // and this hand-off now refuses to proceed on an unresolved row — so
       // reading "not synced" as "not there" would block Collect outright.
-      txn ??= await ProxyService.getStrategy(Strategy.capella).getTransaction(
-        id: settling.transactionId,
-        branchId: branchId,
+      txn ??= await _readTicketRow(
+        settling.transactionId,
+        branchId,
         awaitRemote: true,
       );
       if (txn == null) {
@@ -1317,7 +1432,10 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   }
 
   /// Resume a parked ticket (target: under 3s before UI handoff).
-  Future<bool> _resumeOrder(ITransaction ticket) async {
+  Future<bool> _resumeOrder(
+    ITransaction ticket, {
+    bool takeOver = false,
+  }) async {
     try {
       final branchId = ProxyService.box.getBranchId() ?? ticket.branchId ?? '';
       final agentId = ProxyService.box.getUserId();
@@ -1329,6 +1447,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         ticket: ticket,
         branchId: branchId,
         agentId: agentId,
+        takeOver: takeOver,
       );
 
       // Seed box/providers from the ticket's denormalized customer fields so
@@ -2351,6 +2470,14 @@ class TicketCard extends StatelessWidget {
 
   /// Compact cards select on long-press (there is no checkbox).
   final VoidCallback? onLongPress;
+
+  /// Whether this row is a resumed ticket open in a cart, and whose. A
+  /// resumed ticket is PENDING, so without this it reads as a generic status.
+  final ResumedTicketPlace resumedPlace;
+
+  /// Replaces "Collect" on the collect button — "Go to cart" / "Take over" for
+  /// a resumed ticket. The busy label stays "Collecting…".
+  final String? collectLabel;
   const TicketCard({
     super.key,
     required this.ticket,
@@ -2382,6 +2509,8 @@ class TicketCard extends StatelessWidget {
     this.isSendingToKitchen = false,
     this.compact = false,
     this.onLongPress,
+    this.resumedPlace = ResumedTicketPlace.queued,
+    this.collectLabel,
   });
 
   Widget _kitchenRow(BuildContext context) {
@@ -2911,7 +3040,8 @@ class TicketCard extends StatelessWidget {
                                           ],
                                         )
                                       : Text(
-                                          context.flipperL10n.ticketCollect,
+                                          collectLabel ??
+                                              context.flipperL10n.ticketCollect,
                                           style: GoogleFonts.outfit(
                                             fontSize: 12,
                                             fontWeight: FontWeight.w700,
@@ -3037,7 +3167,9 @@ class TicketCard extends StatelessWidget {
     }
     if (showCollect && onCollect != null) {
       return _TicketPrimaryAction(
-        label: isCollecting ? l10n.ticketCollecting : l10n.ticketCollect,
+        label: isCollecting
+            ? l10n.ticketCollecting
+            : (collectLabel ?? l10n.ticketCollect),
         color: _kCollectBlue,
         onPressed: isCollecting ? null : onCollect,
         busy: isCollecting,
@@ -3439,6 +3571,22 @@ class TicketCard extends StatelessWidget {
         const Color(0xFFC62828),
         const Color(0xFFFFEBEE),
       );
+    }
+    switch (resumedPlace) {
+      case ResumedTicketPlace.thisTill:
+        return (
+          context.flipperL10n.ticketStatusInYourCart,
+          _kCollectBlue,
+          _kCollectBlue.withValues(alpha: 0.12),
+        );
+      case ResumedTicketPlace.otherTill:
+        return (
+          context.flipperL10n.ticketStatusOpenOnAnotherTill,
+          const Color(0xFFB45309),
+          const Color(0xFFFFF7ED),
+        );
+      case ResumedTicketPlace.queued:
+        break;
     }
     if ((ticket.status ?? '').toLowerCase() == PARKED) {
       return (

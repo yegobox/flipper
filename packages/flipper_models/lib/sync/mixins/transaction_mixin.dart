@@ -1293,6 +1293,7 @@ mixin TransactionMixin implements TransactionInterface {
     required bool forceRealData,
     required bool skipOriginalTransactionCheck,
     bool restrictToCurrentAgent = true,
+    bool includeResumed = false,
   }) {
     return ProxyService.getStrategy(
       Strategy.capella,
@@ -1302,6 +1303,7 @@ mixin TransactionMixin implements TransactionInterface {
       forceRealData: forceRealData,
       skipOriginalTransactionCheck: skipOriginalTransactionCheck,
       restrictToCurrentAgent: restrictToCurrentAgent,
+      includeResumed: includeResumed,
     );
   }
 
@@ -1362,12 +1364,14 @@ mixin TransactionMixin implements TransactionInterface {
     required String agentId,
     required String deviceId,
     required String branchId,
+    bool takeOver = false,
   }) async {
     await ProxyService.getStrategy(Strategy.capella).resumeSaleTicketFast(
       ticket: ticket,
       agentId: agentId,
       deviceId: deviceId,
       branchId: branchId,
+      takeOver: takeOver,
     );
   }
 

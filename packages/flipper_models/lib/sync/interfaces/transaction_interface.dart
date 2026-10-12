@@ -82,12 +82,17 @@ abstract class TransactionInterface {
   /// When [restrictToCurrentAgent] is true (default), only the signed-in
   /// agent's tickets are returned. Till roles pass false to see the full
   /// branch queue.
+  ///
+  /// [includeResumed] also returns tickets someone resumed (PENDING with a
+  /// ticket name) — open in a cart on this or another till — so a resumed
+  /// ticket never drops out of the Tickets list.
   Stream<List<ITransaction>> openPosTicketsTransactionsStream({
     String? branchId,
     required bool removeAdjustmentTransactions,
     required bool forceRealData,
     required bool skipOriginalTransactionCheck,
     bool restrictToCurrentAgent = true,
+    bool includeResumed = false,
   });
 
   /// Ticket Review + Handover workflow: tickets awaiting reviewer sign-off
@@ -278,13 +283,15 @@ abstract class TransactionInterface {
   FutureOr<void> deletePaymentRecords({required String transactionId});
 
   /// Fast Ditto path for resume: drop other pending sale carts for [agentId]
-  /// without registering broad transaction sync subscriptions.
+  /// on **this device** without registering broad transaction sync
+  /// subscriptions.
   ///
-  /// By default only **empty** carts are deleted. Non-empty pending carts
-  /// (items and/or subTotal > 0) are re-parked so resuming ticket B cannot
-  /// hard-delete ticket A that was already resumed on this device.
-  /// Pass [deleteNonEmpty] `true` for shift/user-switch cleanup that must wipe
-  /// every other pending cart.
+  /// Carts without lines are deleted; carts with lines are re-parked, so
+  /// resuming ticket B cannot hard-delete ticket A that was already resumed on
+  /// this device. See `classifyPendingSaleCarts` for the exact rules.
+  /// Pass [deleteNonEmpty] `true` for shift/user-switch cleanup: a resumed
+  /// ticket is still re-parked (never deleted), and a plain cart with lines is
+  /// left for its owner to come back to.
   Future<void> clearPendingSaleCartsExcept({
     required String branchId,
     required String agentId,
@@ -305,11 +312,16 @@ abstract class TransactionInterface {
   });
 
   /// Clear other pending carts + minimal Ditto UPDATE to resume on this device.
+  ///
+  /// Throws `TicketOpenElsewhereException` when the ticket is already PENDING
+  /// on another device, unless [takeOver] is true (a confirmed take-over from
+  /// the Tickets list).
   Future<void> resumeSaleTicketFast({
     required ITransaction ticket,
     required String agentId,
     required String deviceId,
     required String branchId,
+    bool takeOver = false,
   });
 
   /// Kitchen display column moves — status/timestamps only, no POS cart side effects.
