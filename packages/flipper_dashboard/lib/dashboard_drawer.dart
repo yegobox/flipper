@@ -1128,6 +1128,10 @@ class _ModernShiftTileState extends State<ModernShiftTile> {
           shiftId: shift.id,
           closingBalance: closingBalance,
           note: notes,
+          expectedCash:
+              ((dialogResponse?.data as Map<dynamic, dynamic>)['expectedCash']
+                      as num?)
+                  ?.toDouble(),
         );
         locator<RouterService>().replaceWith(LoginRoute());
       }

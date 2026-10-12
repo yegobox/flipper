@@ -20,6 +20,8 @@ abstract final class MaestroIds {
 
   static const mposPaymentCash = 'flipper.mpos.payment.cash';
   static const mposPaymentMomo = 'flipper.mpos.payment.momo';
+  static const mposPaymentBank = 'flipper.mpos.payment.bank';
+  static const mposPaymentCard = 'flipper.mpos.payment.card';
   static const mposPaymentCredit = 'flipper.mpos.payment.credit';
   static const mposPaymentCashAmount = 'flipper.mpos.payment.cashAmount';
   static const mposPaymentMomoPhone = 'flipper.mpos.payment.momoPhone';

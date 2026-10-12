@@ -7190,5 +7190,8 @@
   "ticketsSelectedCount": "{count} sélectionné(s)",
   "ticketPaidOfTotal": "Payé {paid} sur {total}",
   "ticketSelect": "Sélectionner",
-  "ticketSort": "Trier"
+  "ticketSort": "Trier",
+  "mposBankExplanation": "Virement bancaire du montant total. Vérifiez que l'argent est arrivé avant de terminer.",
+  "mposCardExplanation": "Paiement par carte du montant total. Passez la carte sur votre terminal de paiement, puis terminez la vente.",
+  "shiftNonCashSales": "Payé par MoMo, carte, banque ou crédit"
 }

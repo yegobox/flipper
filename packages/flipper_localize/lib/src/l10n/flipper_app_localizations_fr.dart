@@ -26082,4 +26082,15 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
 
   @override
   String get ticketSort => 'Trier';
+
+  @override
+  String get mposBankExplanation =>
+      'Virement bancaire du montant total. Vérifiez que l\'argent est arrivé avant de terminer.';
+
+  @override
+  String get mposCardExplanation =>
+      'Paiement par carte du montant total. Passez la carte sur votre terminal de paiement, puis terminez la vente.';
+
+  @override
+  String get shiftNonCashSales => 'Payé par MoMo, carte, banque ou crédit';
 }

@@ -97,15 +97,17 @@ int accountingCollectedAmount(Map<String, dynamic> txn) {
 
 /// Liquid account code for the collected portion (1010/1020/1030).
 String accountingLiquidAccountCode(Map<String, dynamic> txn) {
-  final payType =
-      (txn['payment_type'] ?? txn['paymentType'] ?? 'CASH').toString();
+  final payType = (txn['payment_type'] ?? txn['paymentType'] ?? 'CASH')
+      .toString();
   final p = payType.toLowerCase();
-  // CREDIT tender does not map to a liquid account — caller uses AR instead.
-  if (p.contains('credit') || p.contains('loan')) return '1010';
   if (p.contains('momo') || p.contains('mobile')) return '1030';
+  // Before the credit check: `DEBIT&CREDIT CARD` contains "credit" but is
+  // settled into the bank, not a receivable.
   if (p.contains('bank') || p.contains('card') || p.contains('transfer')) {
     return '1020';
   }
+  // CREDIT tender does not map to a liquid account — caller uses AR instead.
+  if (p.contains('credit') || p.contains('loan')) return '1010';
   return '1010';
 }
 

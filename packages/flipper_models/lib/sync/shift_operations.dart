@@ -61,12 +61,9 @@ class ShiftOperations {
       'SELECT * FROM $collection',
       null,
     );
-    _ensureSyncSubscription(
-      ditto,
-      'shifts|$businessId',
-      _byBusinessSql,
-      {'businessId': businessId},
-    );
+    _ensureSyncSubscription(ditto, 'shifts|$businessId', _byBusinessSql, {
+      'businessId': businessId,
+    });
   }
 
   Future<void> _upsertDoc(models.Shift shift) async {
@@ -128,6 +125,11 @@ class ShiftOperations {
     required String shiftId,
     required double closingBalance,
     String? note,
+
+    /// Drawer cash the close-shift count was checked against. The running
+    /// [models.Shift.expectedCash] adds every sale whatever the tender, so the
+    /// dialog passes it net of MoMo/card/bank/credit; null keeps the stored one.
+    double? expectedCash,
   }) async {
     final ditto = _ditto;
     final result = await ditto.store.execute(
@@ -139,14 +141,15 @@ class ShiftOperations {
       throw StateError('Shift $shiftId not found in Ditto');
     }
     final shift = rows.first;
+    final drawerExpected = expectedCash ?? shift.expectedCash ?? 0.0;
 
     final updatedShift = shift.copyWith(
       endAt: DateTime.now().toUtc(),
       closingBalance: closingBalance,
       status: models.ShiftStatus.Closed,
       cashSales: shift.cashSales,
-      expectedCash: shift.expectedCash,
-      cashDifference: closingBalance - (shift.expectedCash ?? 0.0),
+      expectedCash: drawerExpected,
+      cashDifference: closingBalance - drawerExpected,
       note: note,
     );
     await _upsertDoc(updatedShift);

@@ -8775,5 +8775,8 @@
   "ticketsSelectedCount": "{count} byatoranyijwe",
   "ticketPaidOfTotal": "Hishyuwe {paid} kuri {total}",
   "ticketSelect": "Hitamo",
-  "ticketSort": "Tondeka"
+  "ticketSort": "Tondeka",
+  "mposBankExplanation": "Kwishyura binyuze kuri banki amafaranga yose. Banza wemeze ko amafaranga yageze mbere yo kurangiza.",
+  "mposCardExplanation": "Kwishyura ukoresheje ikarita amafaranga yose. Banza ukoreshe ikarita kuri POS yawe, hanyuma urangize igurisha.",
+  "shiftNonCashSales": "Byishyuwe na MoMo, ikarita, banki cyangwa inguzanyo"
 }

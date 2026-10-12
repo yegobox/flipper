@@ -3,56 +3,74 @@ import 'package:supabase_models/brick/models/all_models.dart' as models;
 import 'package:flutter/material.dart';
 
 abstract class ShiftApi {
-  Future<models.Shift> startShift(
-      {required String userId, required double openingBalance, String? note});
-  Future<models.Shift> endShift(
-      {required String shiftId, required double closingBalance, String? note});
+  Future<models.Shift> startShift({
+    required String userId,
+    required double openingBalance,
+    String? note,
+  });
+
+  /// [expectedCash] overrides the stored figure when the caller has netted
+  /// out non-cash tender (MoMo, card, bank, credit) the shift totals include.
+  Future<models.Shift> endShift({
+    required String shiftId,
+    required double closingBalance,
+    String? note,
+    double? expectedCash,
+  });
   Future<models.Shift?> getCurrentShift({required String userId});
-  Stream<List<models.Shift>> getShifts(
-      {required String businessId, DateTimeRange? dateRange});
-  Future<models.Shift> updateShiftTotals(
-      {required double transactionAmount, required bool isRefund});
+  Stream<List<models.Shift>> getShifts({
+    required String businessId,
+    DateTimeRange? dateRange,
+  });
+  Future<models.Shift> updateShiftTotals({
+    required double transactionAmount,
+    required bool isRefund,
+  });
 }
 
 mixin ShiftMixin implements ShiftApi {
   ShiftOperations get _shiftOps => ShiftOperations();
 
   @override
-  Future<models.Shift> startShift(
-          {required String userId,
-          required double openingBalance,
-          String? note}) =>
-      _shiftOps.startShift(
-        userId: userId,
-        openingBalance: openingBalance,
-        note: note,
-      );
+  Future<models.Shift> startShift({
+    required String userId,
+    required double openingBalance,
+    String? note,
+  }) => _shiftOps.startShift(
+    userId: userId,
+    openingBalance: openingBalance,
+    note: note,
+  );
 
   @override
-  Future<models.Shift> endShift(
-          {required String shiftId,
-          required double closingBalance,
-          String? note}) =>
-      _shiftOps.endShift(
-        shiftId: shiftId,
-        closingBalance: closingBalance,
-        note: note,
-      );
+  Future<models.Shift> endShift({
+    required String shiftId,
+    required double closingBalance,
+    String? note,
+    double? expectedCash,
+  }) => _shiftOps.endShift(
+    shiftId: shiftId,
+    closingBalance: closingBalance,
+    note: note,
+    expectedCash: expectedCash,
+  );
 
   @override
-  Future<models.Shift> updateShiftTotals(
-          {required double transactionAmount, required bool isRefund}) =>
-      _shiftOps.updateShiftTotals(
-        transactionAmount: transactionAmount,
-        isRefund: isRefund,
-      );
+  Future<models.Shift> updateShiftTotals({
+    required double transactionAmount,
+    required bool isRefund,
+  }) => _shiftOps.updateShiftTotals(
+    transactionAmount: transactionAmount,
+    isRefund: isRefund,
+  );
 
   @override
   Future<models.Shift?> getCurrentShift({required String userId}) =>
       _shiftOps.getCurrentShift(userId: userId);
 
   @override
-  Stream<List<models.Shift>> getShifts(
-          {required String businessId, DateTimeRange? dateRange}) =>
-      _shiftOps.getShifts(businessId: businessId, dateRange: dateRange);
+  Stream<List<models.Shift>> getShifts({
+    required String businessId,
+    DateTimeRange? dateRange,
+  }) => _shiftOps.getShifts(businessId: businessId, dateRange: dateRange);
 }

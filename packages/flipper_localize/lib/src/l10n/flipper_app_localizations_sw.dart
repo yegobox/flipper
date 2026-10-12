@@ -25835,4 +25835,15 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
 
   @override
   String get ticketSort => 'Panga';
+
+  @override
+  String get mposBankExplanation =>
+      'Uhamisho wa benki kwa kiasi chote. Thibitisha pesa zimefika kabla ya kukamilisha.';
+
+  @override
+  String get mposCardExplanation =>
+      'Malipo ya kadi kwa kiasi chote. Pitisha kadi kwenye mashine yako ya POS, kisha ukamilishe mauzo.';
+
+  @override
+  String get shiftNonCashSales => 'Imelipwa kwa MoMo, kadi, benki au mkopo';
 }

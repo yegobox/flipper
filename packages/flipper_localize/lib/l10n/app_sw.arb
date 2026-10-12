@@ -8783,5 +8783,8 @@
   "ticketsSelectedCount": "{count} zimechaguliwa",
   "ticketPaidOfTotal": "Imelipwa {paid} kati ya {total}",
   "ticketSelect": "Chagua",
-  "ticketSort": "Panga"
+  "ticketSort": "Panga",
+  "mposBankExplanation": "Uhamisho wa benki kwa kiasi chote. Thibitisha pesa zimefika kabla ya kukamilisha.",
+  "mposCardExplanation": "Malipo ya kadi kwa kiasi chote. Pitisha kadi kwenye mashine yako ya POS, kisha ukamilishe mauzo.",
+  "shiftNonCashSales": "Imelipwa kwa MoMo, kadi, benki au mkopo"
 }

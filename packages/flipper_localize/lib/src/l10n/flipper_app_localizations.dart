@@ -42916,6 +42916,24 @@ abstract class FlipperAppLocalizations {
   /// In en, this message translates to:
   /// **'Sort'**
   String get ticketSort;
+
+  /// Explanation for bank transfer payments on mobile checkout
+  ///
+  /// In en, this message translates to:
+  /// **'Bank transfer for the full amount. Confirm the money has arrived before completing.'**
+  String get mposBankExplanation;
+
+  /// Explanation for card (POS terminal) payments on mobile checkout
+  ///
+  /// In en, this message translates to:
+  /// **'Card payment for the full amount. Run the card on your POS terminal, then complete the sale.'**
+  String get mposCardExplanation;
+
+  /// No description provided for @shiftNonCashSales.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid by MoMo, card, bank or credit'**
+  String get shiftNonCashSales;
 }
 
 class _FlipperAppLocalizationsDelegate

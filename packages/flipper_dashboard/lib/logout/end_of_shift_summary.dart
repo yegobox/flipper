@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:flipper_dashboard/export/export_report_transactions.dart';
 import 'package:flipper_localize/flipper_localize.dart';
@@ -9,6 +11,7 @@ import 'package:flipper_models/sync/capella/capella_sync.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_models/sync/shift_sync.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flutter/foundation.dart';
 import 'package:supabase_models/brick/repository.dart';
 
 /// Snapshot shown in the end-of-shift dialog for the signed-in agent only.
@@ -63,6 +66,191 @@ String formatAgentShortName(String? fullName) {
   final first = parts.first;
   final lastInitial = parts.last[0].toUpperCase();
   return '$first $lastInitial.';
+}
+
+/// Tender that lands in the drawer. A blank method is the default (cash), and
+/// the legacy combined `CASH/CREDIT` label stays cash as it always has.
+bool _isDrawerCashMethod(String? method) {
+  final m = (method ?? '').trim().toUpperCase();
+  return m.isEmpty || m == 'CASH' || m == 'CASH/CREDIT';
+}
+
+/// Splits a shift's payment rows into the two kinds of money that are *not*
+/// in the drawer: mobile money, and everything else non-cash (card, bank,
+/// credit, …). Cash rows are ignored.
+@visibleForTesting
+({double mobile, double other}) splitNonCashTender(
+  Iterable<({String? method, double amount})> rows,
+) {
+  var mobile = 0.0;
+  var other = 0.0;
+  for (final row in rows) {
+    if (row.amount <= 0 || _isDrawerCashMethod(row.method)) continue;
+    if (_isMobileMoneyMethod(row.method)) {
+      mobile += row.amount;
+    } else {
+      other += row.amount;
+    }
+  }
+  return (mobile: mobile, other: other);
+}
+
+const _paymentRecordChunkSize = 800;
+
+/// Payment rows for a shift's sales: every recorded payment row, plus one row
+/// at the headline payment type for each sale that has no payment record yet,
+/// so an unrecorded card or bank sale is never counted as drawer cash.
+@visibleForTesting
+List<({String? method, double amount})> tenderRowsWithHeadlineFallback({
+  required List<({String transactionId, String? method, double amount})>
+  recordRows,
+  required List<({String id, String? paymentType, double amount})> sales,
+}) {
+  final recorded = {for (final row in recordRows) row.transactionId};
+  return [
+    for (final row in recordRows) (method: row.method, amount: row.amount),
+    for (final sale in sales)
+      if (!recorded.contains(sale.id))
+        (method: sale.paymentType, amount: sale.amount),
+  ];
+}
+
+Future<({double mobile, double other})> _sumNonCashTender({
+  required List<ITransaction> sales,
+  required String branchId,
+}) async {
+  if (sales.isEmpty) return (mobile: 0.0, other: 0.0);
+
+  final saleIds = sales.map((t) => t.id.toString()).toList();
+
+  if (ProxyService.ditto.isReady()) {
+    try {
+      final capella = ProxyService.getStrategy(Strategy.capella) as CapellaSync;
+      final ditto = capella.dittoService.dittoInstance;
+      if (ditto != null) {
+        final recordRows =
+            <({String transactionId, String? method, double amount})>[];
+        // Chunked like getPaymentSumsByTransactionIdsChunked, so a long shift
+        // never binds thousands of placeholders in one query.
+        for (var i = 0; i < saleIds.length; i += _paymentRecordChunkSize) {
+          final chunk = saleIds.sublist(
+            i,
+            math.min(i + _paymentRecordChunkSize, saleIds.length),
+          );
+          final placeholders = [
+            for (var j = 0; j < chunk.length; j++) ':t$j',
+          ].join(', ');
+          final result = await ditto.store.execute(
+            'SELECT * FROM transaction_payment_records '
+            'WHERE transactionId IN ($placeholders)',
+            arguments: {for (var j = 0; j < chunk.length; j++) 't$j': chunk[j]},
+          );
+          for (final item in result.items) {
+            final data = Map<String, dynamic>.from(item.value);
+            recordRows.add((
+              transactionId: data['transactionId']?.toString() ?? '',
+              method: data['paymentMethod'] as String?,
+              amount: parsePaymentAmount(data['amount']),
+            ));
+          }
+        }
+        return splitNonCashTender(
+          tenderRowsWithHeadlineFallback(
+            recordRows: recordRows,
+            sales: [
+              for (final tx in sales)
+                (
+                  id: tx.id.toString(),
+                  paymentType: tx.paymentType,
+                  amount: (tx.cashReceived ?? tx.subTotal ?? 0.0).toDouble(),
+                ),
+            ],
+          ),
+        );
+      }
+    } catch (_) {
+      // Fall through to per-txn fallback.
+    }
+  }
+
+  // No per-row methods: attribute each sale to its headline payment type,
+  // except the CREDIT rows the sums already separate out.
+  final sums = await getPaymentSumsByTransactionIdsChunked(
+    saleIds,
+    branchId: branchId,
+  );
+  return splitNonCashTender([
+    for (final tx in sales)
+      ...() {
+        final sumsForTx = sums[tx.id.toString()];
+        if (sumsForTx != null && sumsForTx.hasAnyRecord) {
+          return [
+            (method: tx.paymentType, amount: sumsForTx.byHand),
+            (method: 'CREDIT', amount: sumsForTx.credit),
+          ];
+        }
+        return [
+          (
+            method: tx.paymentType,
+            amount: (tx.cashReceived ?? tx.subTotal ?? 0.0).toDouble(),
+          ),
+        ];
+      }(),
+  ]);
+}
+
+/// Money totals from the open [Shift] row (same source as close-shift dialog).
+///
+/// The shift's running totals add every sale whatever the tender, so drawer
+/// cash is that total minus mobile money and other non-cash tender.
+Future<({double cash, double mobile, double total})> _loadPaymentBreakdown({
+  required Shift shift,
+  required List<ITransaction> sales,
+  required String branchId,
+}) async {
+  final opening = shift.openingBalance.toDouble();
+  final shiftSales = (shift.cashSales ?? 0).toDouble();
+  final totalFromShift =
+      ((shift.expectedCash ?? (opening + shiftSales)) - opening).clamp(
+        0.0,
+        double.infinity,
+      );
+
+  final nonCash = await _sumNonCashTender(sales: sales, branchId: branchId);
+  final cashDrawer = (totalFromShift - nonCash.mobile - nonCash.other).clamp(
+    0.0,
+    double.infinity,
+  );
+
+  return (
+    cash: cashDrawer,
+    mobile: nonCash.mobile,
+    total: totalFromShift > 0 ? totalFromShift : shiftSales,
+  );
+}
+
+/// Signed-in agent and branch the end-of-shift figures are scoped to.
+({String? userId, String? branchId}) _signedInScope() => (
+  userId: ProxyService.box.getUserId(),
+  branchId: ProxyService.box.getBranchId(),
+);
+
+/// Sales on the signed-in agent's open shift paid by MoMo, card, bank or
+/// credit — tender that never reaches the drawer but that
+/// [Shift.expectedCash] still counts. The close-shift dialog subtracts it
+/// before comparing against the count. 0 when no shift is open.
+Future<double> loadOpenShiftNonCashTender() async {
+  final (:userId, :branchId) = _signedInScope();
+  if (userId == null || branchId == null) return 0;
+  final shift = await shiftSync.getCurrentShift(userId: userId);
+  if (shift == null || shift.userId != userId) return 0;
+  final sales = await _loadShiftSales(
+    shift: shift,
+    userId: userId,
+    branchId: branchId,
+  );
+  final nonCash = await _sumNonCashTender(sales: sales, branchId: branchId);
+  return nonCash.mobile + nonCash.other;
 }
 
 bool _isMobileMoneyMethod(String? method) {
@@ -166,103 +354,8 @@ Future<int> _countItemsSold(List<ITransaction> sales) async {
   return total;
 }
 
-Future<double> _sumMobilePayments({
-  required List<ITransaction> sales,
-  required String branchId,
-}) async {
-  if (sales.isEmpty) return 0;
-
-  final saleIds = sales.map((t) => t.id.toString()).toList();
-  final sums = await getPaymentSumsByTransactionIdsChunked(
-    saleIds,
-    branchId: branchId,
-  );
-
-  double mobileMoney = 0;
-
-  if (ProxyService.ditto.isReady()) {
-    try {
-      final capella = ProxyService.getStrategy(Strategy.capella) as CapellaSync;
-      final ditto = capella.dittoService.dittoInstance;
-      if (ditto != null && saleIds.isNotEmpty) {
-        final placeholders = saleIds
-            .asMap()
-            .entries
-            .map((e) => ':t${e.key}')
-            .join(', ');
-        final arguments = <String, dynamic>{
-          for (var i = 0; i < saleIds.length; i++) 't$i': saleIds[i],
-        };
-        final result = await ditto.store.execute(
-          'SELECT * FROM transaction_payment_records '
-          'WHERE transactionId IN ($placeholders)',
-          arguments: arguments,
-        );
-        for (final item in result.items) {
-          final data = Map<String, dynamic>.from(item.value);
-          final method = data['paymentMethod'] as String?;
-          if (paymentMethodIsCredit(method)) continue;
-          final amt = parsePaymentAmount(data['amount']);
-          if (_isMobileMoneyMethod(method)) {
-            mobileMoney += amt;
-          }
-        }
-        return mobileMoney;
-      }
-    } catch (_) {
-      // Fall through to per-txn fallback.
-    }
-  }
-
-  for (final tx in sales) {
-    final tid = tx.id.toString();
-    final sumsForTx = sums[tid];
-    double paid = 0;
-    if (sumsForTx != null && sumsForTx.hasAnyRecord) {
-      paid = sumsForTx.byHand;
-    } else {
-      paid = tx.cashReceived ?? tx.subTotal ?? 0.0;
-    }
-    if (paid <= 0) continue;
-    final pt = (tx.paymentType ?? 'CASH').toUpperCase();
-    if (_isMobileMoneyMethod(pt)) {
-      mobileMoney += paid;
-    }
-  }
-
-  return mobileMoney;
-}
-
-/// Money totals from the open [Shift] row (same source as close-shift dialog).
-Future<({double cash, double mobile, double total})> _loadPaymentBreakdown({
-  required Shift shift,
-  required List<ITransaction> sales,
-  required String branchId,
-}) async {
-  final opening = shift.openingBalance.toDouble();
-  final shiftSales = (shift.cashSales ?? 0).toDouble();
-  final totalFromShift =
-      ((shift.expectedCash ?? (opening + shiftSales)) - opening).clamp(
-        0.0,
-        double.infinity,
-      );
-
-  final mobileMoney = await _sumMobilePayments(
-    sales: sales,
-    branchId: branchId,
-  );
-  final cashDrawer = (totalFromShift - mobileMoney).clamp(0.0, double.infinity);
-
-  return (
-    cash: cashDrawer,
-    mobile: mobileMoney,
-    total: totalFromShift > 0 ? totalFromShift : shiftSales,
-  );
-}
-
 Future<EndOfShiftSummary> loadEndOfShiftSummary({String? branchName}) async {
-  final userId = ProxyService.box.getUserId();
-  final branchId = ProxyService.box.getBranchId();
+  final (:userId, :branchId) = _signedInScope();
   final agentLabel = formatAgentShortName(ProxyService.box.getUserName());
   final resolvedBranch = branchName?.trim();
   final branchLabel = (resolvedBranch != null && resolvedBranch.isNotEmpty)

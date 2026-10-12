@@ -25926,4 +25926,16 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
 
   @override
   String get ticketSort => 'Tondeka';
+
+  @override
+  String get mposBankExplanation =>
+      'Kwishyura binyuze kuri banki amafaranga yose. Banza wemeze ko amafaranga yageze mbere yo kurangiza.';
+
+  @override
+  String get mposCardExplanation =>
+      'Kwishyura ukoresheje ikarita amafaranga yose. Banza ukoreshe ikarita kuri POS yawe, hanyuma urangize igurisha.';
+
+  @override
+  String get shiftNonCashSales =>
+      'Byishyuwe na MoMo, ikarita, banki cyangwa inguzanyo';
 }

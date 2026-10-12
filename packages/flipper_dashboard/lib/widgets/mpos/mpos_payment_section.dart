@@ -14,7 +14,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-enum MposPayChip { cash, momo, credit }
+enum MposPayChip {
+  cash,
+  momo,
+  bank,
+  card,
+  credit;
+
+  /// Settled for the exact total: no tender, no change.
+  bool get isFullAmount => this == credit || this == bank || this == card;
+}
 
 /// Payment chips + cash tender UI; drives [paymentMethodsProvider].
 class MposPaymentSection extends ConsumerStatefulWidget {
@@ -41,12 +50,14 @@ class _MposPaymentSectionState extends ConsumerState<MposPaymentSection>
   static const _chipMethods = {
     MposPayChip.cash: 'CASH',
     MposPayChip.momo: 'MOBILE MONEY',
+    MposPayChip.bank: 'BANK CHECK',
+    MposPayChip.card: 'DEBIT&CREDIT CARD',
     MposPayChip.credit: 'CREDIT',
   };
 
   void _syncAmountsFromTotal() {
-    if (_chip == MposPayChip.credit) {
-      _setCreditAmount();
+    if (_chip.isFullAmount) {
+      _setFullAmount();
       return;
     }
 
@@ -123,15 +134,21 @@ class _MposPaymentSectionState extends ConsumerState<MposPaymentSection>
     } else if (m.contains('MOMO') || m.contains('MOBILE')) {
       setState(() => _chip = MposPayChip.momo);
     } else if (m.contains('CARD')) {
-      // Legacy card rows on a resumed sale → credit chip in mobile POS.
-      setState(() => _chip = MposPayChip.credit);
+      setState(() => _chip = MposPayChip.card);
+    } else if (m.contains('BANK') ||
+        m.contains('CHEQUE') ||
+        m.contains('TRANSFER')) {
+      setState(() => _chip = MposPayChip.bank);
     } else {
       setState(() => _chip = MposPayChip.cash);
     }
   }
 
-  void _setCreditAmount() {
+  /// Locks the single payment line to the full total under the current chip's
+  /// method (credit, bank or card).
+  void _setFullAmount() {
     if (widget.totalPayable <= 0) return;
+    final method = _chipMethods[_chip]!;
     final payments = ref.read(paymentMethodsProvider);
     if (payments.isEmpty) {
       ref
@@ -139,7 +156,7 @@ class _MposPaymentSectionState extends ConsumerState<MposPaymentSection>
           .addPaymentMethod(
             Payment(
               amount: widget.totalPayable,
-              method: _chipMethods[MposPayChip.credit]!,
+              method: method,
               controller: TextEditingController(
                 text: widget.totalPayable.round().toString(),
               ),
@@ -158,7 +175,7 @@ class _MposPaymentSectionState extends ConsumerState<MposPaymentSection>
           0,
           Payment(
             amount: widget.totalPayable,
-            method: _chipMethods[MposPayChip.credit]!,
+            method: method,
             id: p.id,
             controller: p.controller,
           ),
@@ -170,7 +187,7 @@ class _MposPaymentSectionState extends ConsumerState<MposPaymentSection>
     setState(() => _chip = chip);
     if (chip == MposPayChip.cash) {
       _userEditedCashAmount = false;
-    } else if (chip == MposPayChip.credit) {
+    } else if (chip.isFullAmount) {
       _userEditedCashAmount = false;
     }
     final method = _chipMethods[chip]!;
@@ -197,8 +214,8 @@ class _MposPaymentSectionState extends ConsumerState<MposPaymentSection>
           );
     }
     ProxyService.box.writeString(key: 'paymentType', value: method);
-    if (chip == MposPayChip.credit) {
-      _setCreditAmount();
+    if (chip.isFullAmount) {
+      _setFullAmount();
     } else {
       _syncAmountsFromTotal();
     }
@@ -248,6 +265,25 @@ class _MposPaymentSectionState extends ConsumerState<MposPaymentSection>
         );
   }
 
+  String _fullAmountTitle(BuildContext context) {
+    final l10n = context.flipperL10n;
+    final amount = mposMoneyLabel(widget.totalPayable);
+    return switch (_chip) {
+      MposPayChip.bank => '${l10n.paymentsTypeBank} · $amount',
+      MposPayChip.card => '${l10n.paymentsTypeCard} · $amount',
+      _ => l10n.mposCreditAmount(amount),
+    };
+  }
+
+  String _fullAmountExplanation(BuildContext context) {
+    final l10n = context.flipperL10n;
+    return switch (_chip) {
+      MposPayChip.bank => l10n.mposBankExplanation,
+      MposPayChip.card => l10n.mposCardExplanation,
+      _ => l10n.mposCreditExplanation,
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
     final payments = ref.watch(paymentMethodsProvider);
@@ -273,7 +309,7 @@ class _MposPaymentSectionState extends ConsumerState<MposPaymentSection>
                   selected: _chip == MposPayChip.cash,
                   onTap: () => _selectChip(MposPayChip.cash),
                 ),
-                const SizedBox(width: 9),
+                const SizedBox(width: 6),
                 _PayChip(
                   semanticId: MaestroIds.mposPaymentMomo,
                   label: 'MoMo',
@@ -281,7 +317,23 @@ class _MposPaymentSectionState extends ConsumerState<MposPaymentSection>
                   selected: _chip == MposPayChip.momo,
                   onTap: () => _selectChip(MposPayChip.momo),
                 ),
-                const SizedBox(width: 9),
+                const SizedBox(width: 6),
+                _PayChip(
+                  semanticId: MaestroIds.mposPaymentBank,
+                  label: context.flipperL10n.paymentsTypeBank,
+                  icon: Icons.account_balance_outlined,
+                  selected: _chip == MposPayChip.bank,
+                  onTap: () => _selectChip(MposPayChip.bank),
+                ),
+                const SizedBox(width: 6),
+                _PayChip(
+                  semanticId: MaestroIds.mposPaymentCard,
+                  label: context.flipperL10n.paymentsTypeCard,
+                  icon: Icons.credit_card_rounded,
+                  selected: _chip == MposPayChip.card,
+                  onTap: () => _selectChip(MposPayChip.card),
+                ),
+                const SizedBox(width: 6),
                 _PayChip(
                   semanticId: MaestroIds.mposPaymentCredit,
                   label: context.flipperL10n.credit,
@@ -463,16 +515,14 @@ class _MposPaymentSectionState extends ConsumerState<MposPaymentSection>
                 ],
               ),
             ),
-          ] else if (_chip == MposPayChip.credit) ...[
+          ] else if (_chip.isFullAmount) ...[
             Padding(
               padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    context.flipperL10n.mposCreditAmount(
-                      mposMoneyLabel(widget.totalPayable),
-                    ),
+                    _fullAmountTitle(context),
                     style: mposMonoStyle(
                       Theme.of(context).textTheme,
                       fontSize: 16,
@@ -481,7 +531,7 @@ class _MposPaymentSectionState extends ConsumerState<MposPaymentSection>
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    context.flipperL10n.mposCreditExplanation,
+                    _fullAmountExplanation(context),
                     style: const TextStyle(fontSize: 12, color: PosTokens.ink3),
                   ),
                 ],
@@ -550,12 +600,21 @@ class _PayChip extends StatelessWidget {
                     color: selected ? PosTokens.blue : PosTokens.ink2,
                   ),
                   const SizedBox(height: 6),
-                  Text(
-                    label,
-                    style: TextStyle(
-                      fontSize: 12.5,
-                      fontWeight: FontWeight.w700,
-                      color: selected ? PosTokens.blue : PosTokens.ink2,
+                  // Five chips share a phone-width row: shrink long
+                  // translations (sw "Fedha taslimu") instead of wrapping.
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        label,
+                        maxLines: 1,
+                        style: TextStyle(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w700,
+                          color: selected ? PosTokens.blue : PosTokens.ink2,
+                        ),
+                      ),
                     ),
                   ),
                 ],

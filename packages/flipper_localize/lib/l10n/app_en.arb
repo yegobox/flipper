@@ -19235,5 +19235,14 @@
     "ticketPaidOfTotal": "Paid {paid} of {total}",
     "@ticketPaidOfTotal": {"placeholders": {"paid": {"type": "String"}, "total": {"type": "String"}}},
     "ticketSelect": "Select",
-    "ticketSort": "Sort"
+    "ticketSort": "Sort",
+    "mposBankExplanation": "Bank transfer for the full amount. Confirm the money has arrived before completing.",
+    "@mposBankExplanation": {
+        "description": "Explanation for bank transfer payments on mobile checkout"
+    },
+    "mposCardExplanation": "Card payment for the full amount. Run the card on your POS terminal, then complete the sale.",
+    "@mposCardExplanation": {
+        "description": "Explanation for card (POS terminal) payments on mobile checkout"
+    },
+    "shiftNonCashSales": "Paid by MoMo, card, bank or credit"
 }

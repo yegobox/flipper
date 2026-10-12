@@ -25665,4 +25665,15 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
 
   @override
   String get ticketSort => 'Sort';
+
+  @override
+  String get mposBankExplanation =>
+      'Bank transfer for the full amount. Confirm the money has arrived before completing.';
+
+  @override
+  String get mposCardExplanation =>
+      'Card payment for the full amount. Run the card on your POS terminal, then complete the sale.';
+
+  @override
+  String get shiftNonCashSales => 'Paid by MoMo, card, bank or credit';
 }
