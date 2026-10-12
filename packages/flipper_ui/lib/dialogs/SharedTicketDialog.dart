@@ -34,8 +34,8 @@ class CustomerPick {
 /// Replaces the built-in customer list in [SharedTicketForm]. Returns null
 /// when dismissed without a choice. Lets the phone flow reuse the mobile
 /// checkout customer sheet, which lives in a package this one can't import.
-typedef CustomerPicker =
-    Future<CustomerPick?> Function(BuildContext context, {Customer? current});
+typedef CustomerPicker = Future<CustomerPick?> Function(BuildContext context,
+    {Customer? current});
 
 String _defaultTicketName(ITransaction txn, {Customer? customer}) {
   final existing = txn.ticketName?.trim();
@@ -648,9 +648,8 @@ class SharedTicketFormState extends ConsumerState<SharedTicketForm> {
                           }
                           final c = filtered[index - 1];
                           final name = (c.custNm ?? '').trim();
-                          final initial = name.isEmpty
-                              ? '?'
-                              : name[0].toUpperCase();
+                          final initial =
+                              name.isEmpty ? '?' : name[0].toUpperCase();
                           final selected = c.id == _selectedCustomer?.id;
                           return ListTile(
                             contentPadding: EdgeInsets.zero,
@@ -1207,9 +1206,8 @@ class SharedTicketFormState extends ConsumerState<SharedTicketForm> {
       minHeight: minHeight,
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
       child: Row(
-        crossAxisAlignment: maxLines > 1
-            ? CrossAxisAlignment.start
-            : CrossAxisAlignment.center,
+        crossAxisAlignment:
+            maxLines > 1 ? CrossAxisAlignment.start : CrossAxisAlignment.center,
         children: [
           Padding(
             padding: EdgeInsets.only(top: maxLines > 1 ? 16 : 0),
