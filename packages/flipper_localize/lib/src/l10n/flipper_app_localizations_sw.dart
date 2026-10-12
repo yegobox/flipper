@@ -9776,6 +9776,35 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   String get ticketComplete => 'Kamilisha →';
 
   @override
+  String get ticketStatusInYourCart => 'Kwenye kikapu chako';
+
+  @override
+  String get ticketStatusOpenOnAnotherTill =>
+      'Imefunguliwa kwenye kaunta nyingine';
+
+  @override
+  String get ticketGoToCart => 'Nenda kwenye kikapu →';
+
+  @override
+  String get ticketTakeOver => 'Ichukue →';
+
+  @override
+  String get ticketTakeOverTitle => 'Uchukue tiketi hii?';
+
+  @override
+  String ticketTakeOverBody(String name, int minutes) {
+    return '$name ana tiketi hii wazi kwenye kaunta nyingine (shughuli ya mwisho dakika $minutes zilizopita). Kuichukua kunaihamishia kaunta hii na kuiondoa kwao.';
+  }
+
+  @override
+  String get ticketNoLongerOpen =>
+      'Tiketi hii tayari imelipwa au imerudishwa kwenye orodha.';
+
+  @override
+  String get ticketTakenOverByAnotherTill =>
+      'Tiketi hii imechukuliwa na kaunta nyingine.';
+
+  @override
   String get ticketResumeOrder => 'Endeleza oda';
 
   @override

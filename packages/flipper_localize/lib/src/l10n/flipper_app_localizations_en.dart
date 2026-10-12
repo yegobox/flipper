@@ -9715,6 +9715,34 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
   String get ticketComplete => 'Complete →';
 
   @override
+  String get ticketStatusInYourCart => 'In your cart';
+
+  @override
+  String get ticketStatusOpenOnAnotherTill => 'Open on another till';
+
+  @override
+  String get ticketGoToCart => 'Go to cart →';
+
+  @override
+  String get ticketTakeOver => 'Take over →';
+
+  @override
+  String get ticketTakeOverTitle => 'Take over this ticket?';
+
+  @override
+  String ticketTakeOverBody(String name, int minutes) {
+    return '$name has this ticket open on another till (last activity $minutes min ago). Taking it over moves it to this till and removes it from theirs.';
+  }
+
+  @override
+  String get ticketNoLongerOpen =>
+      'This ticket was already paid or returned to the list.';
+
+  @override
+  String get ticketTakenOverByAnotherTill =>
+      'This ticket was taken over by another till.';
+
+  @override
   String get ticketResumeOrder => 'Resume Order';
 
   @override

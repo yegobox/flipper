@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:flipper_models/SyncStrategy.dart';
+import 'package:flipper_models/helperModels/sale_device_id.dart';
+import 'package:flipper_models/helpers/ticket_resume_guard.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/cached_pending_cart_transaction_provider.dart';
@@ -62,6 +64,112 @@ final posCartDisplayEpochProvider = StateProvider<int>((ref) => 0);
 final pinnedPosCartTransactionIdProvider = StateProvider<String?>(
   (ref) => null,
 );
+
+/// This install's sale device id — what resume stamps on a ticket's row and
+/// what the pending-cart observer scopes by. Cached for the session; it embeds
+/// the user, so re-check with [resolveSaleDeviceId] before acting on a
+/// mismatch after a user switch.
+final saleDeviceIdProvider = FutureProvider<String>(
+  (ref) => resolveSaleDeviceId(),
+);
+
+/// The pinned cart's id once another till (or another user) has taken that
+/// resumed ticket over, else null.
+///
+/// Take-over is an ordinary resume on the other till: it re-stamps the row's
+/// `deviceId`. This till's pin still points at the ticket, though, so without
+/// this it would keep showing it and append new lines to a sale another till
+/// is now ringing up. Only observes the row while a pin is held.
+///
+/// Detects a *move*, not a mismatch: this install's sale device id is not
+/// stable (Ditto init re-stamps `deviceName` and resets it), so a cart minted
+/// minutes ago can carry an older id of this very till. See
+/// [pinnedCartMovedAway].
+final pinnedCartTakenOverIdProvider = Provider<String?>((ref) {
+  final pinnedId = ref.watch(pinnedPosCartTransactionIdProvider);
+  if (pinnedId == null || pinnedId.isEmpty) return null;
+  final deviceId = ref.watch(saleDeviceIdProvider).value;
+  if (deviceId == null || deviceId.isEmpty) return null;
+  final row = ref.watch(transactionByIdProvider(pinnedId)).asData?.value;
+  if (row == null) return null;
+  if (_pinnedHolder.id != pinnedId) {
+    _pinnedHolder = (id: pinnedId, device: null);
+  }
+  final holderBefore = _pinnedHolder.device;
+  final (:movedAway, :holder) = pinnedCartMovedAway(
+    status: row.status,
+    rowDevice: row.deviceId,
+    holderDevice: holderBefore,
+    thisDevice: deviceId,
+    rowDeviceIsOwn: isOwnSaleDeviceId(row.deviceId),
+    isResumedTicket: (row.ticketName?.trim() ?? '').isNotEmpty,
+  );
+  _pinnedHolder = (id: pinnedId, device: holder);
+  if (!movedAway) return null;
+  talker.warning(
+    'pinnedCartTakenOver: $pinnedId moved $holderBefore -> ${row.deviceId} '
+    '(this device $deviceId, agent ${row.agentId})',
+  );
+  return pinnedId;
+});
+
+/// Device the pinned row carried when this till first saw it under the pin.
+({String? id, String? device}) _pinnedHolder = (id: null, device: null);
+
+/// Whether a pinned row has moved from [holderDevice] (where it was when this
+/// till pinned it) to a device that is not this till's, plus the holder to
+/// remember for the next emission.
+///
+/// The first sighting, or any sighting on one of this till's ids
+/// ([thisDevice], or [rowDeviceIsOwn] for an earlier id of this session),
+/// (re)sets the holder. Only a later change to some *other* device counts,
+/// and only for a resumed ticket ([isResumedTicket]): Take over is offered on
+/// tickets only, so a plain cart is never taken over.
+({bool movedAway, String? holder}) pinnedCartMovedAway({
+  required String? status,
+  required String? rowDevice,
+  required String? holderDevice,
+  required String thisDevice,
+  bool rowDeviceIsOwn = false,
+  bool isResumedTicket = true,
+}) {
+  final device = rowDevice?.trim() ?? '';
+  if (device.isEmpty) return (movedAway: false, holder: holderDevice);
+  if (device == thisDevice || rowDeviceIsOwn || holderDevice == null) {
+    return (movedAway: false, holder: device);
+  }
+  if (!isResumedTicket) return (movedAway: false, holder: holderDevice);
+  final pending = (status ?? '').toLowerCase() == PENDING.toLowerCase();
+  return (movedAway: pending && device != holderDevice, holder: holderDevice);
+}
+
+/// True when [row] is PENDING under a sale device id other than [deviceId].
+bool isTakenOverPendingRow(ITransaction? row, {required String deviceId}) {
+  return row != null &&
+      ticketOpenOnAnotherDevice(
+        status: row.status,
+        ticketDeviceId: row.deviceId,
+        deviceId: deviceId,
+      );
+}
+
+/// Confirms a [pinnedCartTakenOverIdProvider] hit against a freshly resolved
+/// device id (the cached one can be stale after a user switch) before a
+/// screen drops the ticket from its cart.
+Future<bool> confirmPinnedCartTakenOver(
+  WidgetRef ref,
+  String transactionId,
+) async {
+  final fresh = await resolveSaleDeviceId();
+  if (ref.read(saleDeviceIdProvider).value != fresh) {
+    ref.invalidate(saleDeviceIdProvider);
+  }
+  final row = ref.read(transactionByIdProvider(transactionId)).value;
+  return row != null &&
+      (row.ticketName?.trim() ?? '').isNotEmpty &&
+      !isOwnSaleDeviceId(row.deviceId) &&
+      isTakenOverPendingRow(row, deviceId: fresh);
+}
 
 /// Transaction id of the sale that just completed. While set, the cart shows
 /// empty for that id across every consumer (list, totals, badges) in the same

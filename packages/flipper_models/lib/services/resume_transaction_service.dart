@@ -6,11 +6,15 @@ import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 
 /// Resumes a parked POS sale on Capella (Ditto) with a minimal write path.
+///
+/// [takeOver] resumes a ticket another till has open (PENDING there) — only
+/// after the operator confirmed it in the Tickets list.
 class ResumeTransactionService {
   static Future<void> resume({
     required ITransaction ticket,
     required String branchId,
     required String agentId,
+    bool takeOver = false,
   }) async {
     talker.info('resume (Capella fast) txn=${ticket.id}');
 
@@ -24,6 +28,7 @@ class ResumeTransactionService {
       agentId: agentId,
       deviceId: saleDeviceId,
       branchId: branchId,
+      takeOver: takeOver,
     );
   }
 }

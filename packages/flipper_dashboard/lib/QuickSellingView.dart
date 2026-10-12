@@ -1515,6 +1515,13 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       }());
     });
 
+    // Another till took over the resumed ticket this cart is pinned to: stop
+    // showing it, and stop appending lines to a sale that is no longer ours.
+    ref.listen<String?>(pinnedCartTakenOverIdProvider, (previous, next) {
+      if (next == null || next == previous) return;
+      unawaited(_dropTakenOverTicket(next));
+    });
+
     // Payment totals track cart line totals (optimistic taps included).
     // Prefer [posCartPaymentRefreshSignalProvider] over list identity — item-row
     // qty bumps can yield list == equality while the sale total still changes.
@@ -3967,6 +3974,28 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   /// optimistic ghosts all still point at [transaction] after the park lands in
   /// Ditto, so without this the cart keeps rendering the handed-off lines (and
   /// the next sale inherits its customer and tender fields).
+  /// The pinned ticket was taken over on another till. Same local clear as a
+  /// hand-off, minus the re-park: the other till owns it now.
+  Future<void> _dropTakenOverTicket(String transactionId) async {
+    if (!await confirmPinnedCartTakenOver(ref, transactionId) || !mounted) {
+      return;
+    }
+    if (ref.read(pinnedPosCartTransactionIdProvider) != transactionId) return;
+    final row = ref.read(transactionByIdProvider(transactionId)).value;
+    if (row == null) return;
+    if (ref.read(settlingTillTicketProvider)?.transactionId == transactionId) {
+      ref.read(settlingTillTicketProvider.notifier).state = null;
+    }
+    _clearCartAfterTicketHandoff(row);
+    // Mobile checkout, when it is on top, tells the operator itself.
+    if (ModalRoute.of(context)?.isCurrent ?? true) {
+      showErrorNotification(
+        context,
+        context.flipperL10n.ticketTakenOverByAnotherTill,
+      );
+    }
+  }
+
   void _clearCartAfterTicketHandoff(ITransaction transaction) {
     // Ordering mode keeps its pending cart under the purchase key, so a
     // hardcoded `isExpense: false` cleared/invalidated the sale side and left

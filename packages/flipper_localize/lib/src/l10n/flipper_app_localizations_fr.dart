@@ -9865,6 +9865,34 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   String get ticketComplete => 'Terminer →';
 
   @override
+  String get ticketStatusInYourCart => 'Dans votre panier';
+
+  @override
+  String get ticketStatusOpenOnAnotherTill => 'Ouvert sur une autre caisse';
+
+  @override
+  String get ticketGoToCart => 'Aller au panier →';
+
+  @override
+  String get ticketTakeOver => 'Reprendre →';
+
+  @override
+  String get ticketTakeOverTitle => 'Reprendre ce ticket ?';
+
+  @override
+  String ticketTakeOverBody(String name, int minutes) {
+    return '$name a ce ticket ouvert sur une autre caisse (dernière activité il y a $minutes min). Le reprendre le déplace vers cette caisse et le retire de la sienne.';
+  }
+
+  @override
+  String get ticketNoLongerOpen =>
+      'Ce ticket a déjà été payé ou remis dans la liste.';
+
+  @override
+  String get ticketTakenOverByAnotherTill =>
+      'Ce ticket a été repris par une autre caisse.';
+
+  @override
   String get ticketResumeOrder => 'Reprendre la commande';
 
   @override

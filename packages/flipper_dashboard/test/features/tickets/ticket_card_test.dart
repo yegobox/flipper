@@ -1,6 +1,7 @@
 import 'package:flipper_dashboard/features/tickets/widgets/tickets_list.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/providers/tickets_provider.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -40,6 +41,8 @@ Future<_Calls> _pumpCard(
   required bool compact,
   ITransaction? ticket,
   double paid = 0,
+  ResumedTicketPlace resumedPlace = ResumedTicketPlace.queued,
+  String? collectLabel,
 }) async {
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1.0;
@@ -66,6 +69,8 @@ Future<_Calls> _pumpCard(
               onDelete: () => calls.delete++,
               onSelectionChanged: calls.selections.add,
               onSendToKitchen: () {},
+              resumedPlace: resumedPlace,
+              collectLabel: collectLabel,
             ),
           ],
         ),
@@ -174,5 +179,44 @@ void main() {
     expect(find.text('PAID'), findsOneWidget);
     expect(find.text('REMAINING'), findsOneWidget);
     expect(find.byKey(const ValueKey('ticket_primary_ticket-9')), findsNothing);
+  });
+
+  group('resumed ticket (PENDING) stays listed', () {
+    for (final compact in [true, false]) {
+      final layout = compact ? 'compact' : 'wide';
+
+      testWidgets('$layout: open on another till offers Take over', (
+        tester,
+      ) async {
+        final calls = await _pumpCard(
+          tester,
+          size: compact ? const Size(360, 800) : const Size(1280, 800),
+          compact: compact,
+          ticket: _ticket(status: PENDING),
+          resumedPlace: ResumedTicketPlace.otherTill,
+          collectLabel: 'Take over →',
+        );
+
+        expect(find.text('Open on another till'), findsOneWidget);
+        expect(find.text('Collect →'), findsNothing);
+        await tester.tap(find.text('Take over →'));
+        expect(calls.collect, 1);
+      });
+
+      testWidgets('$layout: resumed here reads "In your cart"', (tester) async {
+        final calls = await _pumpCard(
+          tester,
+          size: compact ? const Size(360, 800) : const Size(1280, 800),
+          compact: compact,
+          ticket: _ticket(status: PENDING),
+          resumedPlace: ResumedTicketPlace.thisTill,
+          collectLabel: 'Go to cart →',
+        );
+
+        expect(find.text('In your cart'), findsOneWidget);
+        await tester.tap(find.text('Go to cart →'));
+        expect(calls.collect, 1);
+      });
+    }
   });
 }

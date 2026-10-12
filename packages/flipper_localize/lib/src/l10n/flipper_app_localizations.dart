@@ -16293,6 +16293,54 @@ abstract class FlipperAppLocalizations {
   /// **'Complete →'**
   String get ticketComplete;
 
+  /// No description provided for @ticketStatusInYourCart.
+  ///
+  /// In en, this message translates to:
+  /// **'In your cart'**
+  String get ticketStatusInYourCart;
+
+  /// No description provided for @ticketStatusOpenOnAnotherTill.
+  ///
+  /// In en, this message translates to:
+  /// **'Open on another till'**
+  String get ticketStatusOpenOnAnotherTill;
+
+  /// No description provided for @ticketGoToCart.
+  ///
+  /// In en, this message translates to:
+  /// **'Go to cart →'**
+  String get ticketGoToCart;
+
+  /// No description provided for @ticketTakeOver.
+  ///
+  /// In en, this message translates to:
+  /// **'Take over →'**
+  String get ticketTakeOver;
+
+  /// No description provided for @ticketTakeOverTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Take over this ticket?'**
+  String get ticketTakeOverTitle;
+
+  /// No description provided for @ticketTakeOverBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} has this ticket open on another till (last activity {minutes} min ago). Taking it over moves it to this till and removes it from theirs.'**
+  String ticketTakeOverBody(String name, int minutes);
+
+  /// No description provided for @ticketNoLongerOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'This ticket was already paid or returned to the list.'**
+  String get ticketNoLongerOpen;
+
+  /// No description provided for @ticketTakenOverByAnotherTill.
+  ///
+  /// In en, this message translates to:
+  /// **'This ticket was taken over by another till.'**
+  String get ticketTakenOverByAnotherTill;
+
   /// No description provided for @ticketResumeOrder.
   ///
   /// In en, this message translates to:

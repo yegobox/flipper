@@ -43,6 +43,7 @@ import 'package:flipper_services/setting_service.dart';
 import 'package:flipper_ui/dialogs/SharedTicketDialog.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
+import 'package:flipper_dashboard/utils/taken_over_ticket_exit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -1004,6 +1005,7 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
   @override
   Widget build(BuildContext context) {
     ref.listen(posCartStreamReconciliationProvider, (_, __) {});
+    listenForTakenOverTicket(ref, context, () => _settlingLeaveHandled = true);
 
     ref.listen(payButtonStateProvider, (previous, next) {
       final wasLoading = previous?[ButtonType.pay] == true;
