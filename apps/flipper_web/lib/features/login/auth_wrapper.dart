@@ -4,6 +4,7 @@ import 'package:flipper_web/features/business_selection/business_selection_provi
 import 'package:flipper_web/features/business_selection/selected_business_restore.dart';
 import 'package:flipper_web/features/home/home_screen.dart';
 import 'package:flipper_web/features/home/theme/books_home_theme.dart';
+import 'package:flipper_web/features/home/widgets/books_home_widgets.dart';
 import 'package:flipper_web/features/login/auth_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -81,7 +82,9 @@ class AuthWrapper extends ConsumerWidget {
         child: Scaffold(
           backgroundColor: AppColors.bg,
           body: Center(
-            child: CircularProgressIndicator(color: AppColors.accent),
+            // The splash's mark, still drawing, so loading reads as one
+            // continuous intro into the landing page.
+            child: FlipperMarkLoader(size: 96),
           ),
         ),
       ),

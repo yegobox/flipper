@@ -156,29 +156,46 @@ void main() {
   });
 
   group('wordmark', () {
-    double markOpacity(WidgetTester tester) => tester
-        .widget<Opacity>(
-          find.ancestor(
-            of: find.byType(FlipperMark),
-            matching: find.byType(Opacity),
-          ),
-        )
-        .opacity;
+    FlipperMark mark(WidgetTester tester) => tester.widget<FlipperMark>(
+      find.descendant(
+        of: find.byType(UnfoldingWordmark),
+        matching: find.byType(FlipperMark),
+      ),
+    );
+    double markLeft(WidgetTester tester) =>
+        tester.getTopLeft(find.byType(FlipperMark)).dx;
 
-    testWidgets('unfolds out of the mark once, then rests', (tester) async {
+    testWidgets('draws the ring, then unfolds the word out of it', (
+      tester,
+    ) async {
       await tester.pumpWidget(app(const UnfoldingWordmark()));
-      expect(markOpacity(tester), 0);
-      expect(tester.hasRunningAnimations, isTrue);
+      expect(mark(tester).progress, 0);
+      final centred = markLeft(tester);
+
+      // Mid-draw, still centred: the word has not started.
+      await tester.pump(const Duration(milliseconds: 200));
+      expect(mark(tester).progress, inInclusiveRange(0.2, 0.9));
+      expect(markLeft(tester), centred);
 
       await tester.pumpAndSettle();
-      expect(markOpacity(tester), 1);
+      expect(mark(tester).progress, 1);
+      expect(markLeft(tester), lessThan(centred));
       expect(tester.hasRunningAnimations, isFalse);
     });
 
-    testWidgets('starts unfolded under reduced motion', (tester) async {
+    testWidgets('starts formed under reduced motion', (tester) async {
       await tester.pumpWidget(app(const UnfoldingWordmark(), still: true));
-      expect(markOpacity(tester), 1);
+      expect(mark(tester).progress, 1);
       expect(tester.hasRunningAnimations, isFalse);
+    });
+
+    testWidgets('the loader keeps drawing the mark', (tester) async {
+      await tester.pumpWidget(app(const Center(child: FlipperMarkLoader())));
+      await tester.pump(const Duration(milliseconds: 400));
+      final early = tester.widget<FlipperMark>(find.byType(FlipperMark));
+      expect(early.progress, inExclusiveRange(0, 1));
+      expect(tester.hasRunningAnimations, isTrue);
+      await tester.pumpWidget(const SizedBox());
     });
   });
 

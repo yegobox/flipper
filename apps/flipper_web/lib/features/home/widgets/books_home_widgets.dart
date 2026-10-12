@@ -1,9 +1,7 @@
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_web/features/home/theme/books_home_theme.dart';
 import 'package:flipper_web/features/home/widgets/books_line_icon.dart';
-import 'package:flipper_web/widgets/flipper_logo.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
 class BooksHomeSection extends StatelessWidget {
@@ -36,52 +34,167 @@ class BooksHomeSection extends StatelessWidget {
   }
 }
 
-/// Flipper's arc mark — the logo at the top of the mobile app — in its blue
-/// gradient, or flat in [color] when one is given.
+/// Flipper's ring mark — the logo at the top of the mobile app
+/// (`assets/icons/flipper-logo.svg`) — painted from the same geometry so it
+/// can draw itself in: [progress] runs each ring from its top end around.
 class FlipperMark extends StatelessWidget {
-  const FlipperMark({super.key, this.size = 28, this.color});
-
-  static const assetPath = 'assets/svg/flipper_arcs.svg';
+  const FlipperMark({super.key, this.size = 28, this.color, this.progress = 1});
 
   final double size;
+
+  /// Flat colour instead of the logo's gradient.
   final Color? color;
+
+  /// 0 draws nothing, 1 the whole mark.
+  final double progress;
 
   @override
   Widget build(BuildContext context) {
-    final glyph = SvgPicture.asset(
-      assetPath,
-      package: FlipperLogo.package,
-      width: size,
-      height: size,
-      colorFilter: ColorFilter.mode(color ?? AppGrad.onPanel, BlendMode.srcIn),
-      excludeFromSemantics: true,
-    );
-    if (color != null) return glyph;
-    // Untinted, it wears its own blue gradient, as in the mobile app.
-    return ShaderMask(
-      blendMode: BlendMode.srcIn,
-      shaderCallback: AppGrad.mark.createShader,
-      child: glyph,
+    return CustomPaint(
+      size: Size.square(size),
+      painter: _FlipperMarkPainter(progress: progress, color: color),
     );
   }
 }
 
-/// The product name as a poster, with Flipper's mark as its first glyph.
+class _FlipperMarkPainter extends CustomPainter {
+  _FlipperMarkPainter({required this.progress, this.color});
+
+  final double progress;
+  final Color? color;
+
+  // flipper-logo.svg, in its 48-unit box: an outer ring open at the top left
+  // and a fainter inner ring open at the top right, both with round caps.
+  static const _box = 48.0;
+  static const _centre = Offset(24, 24);
+  static const _outerR = 16.5;
+  static const _outerStroke = 8.16;
+  static const _outerSweep = 5.5021; // top, clockwise, to (12.4, 12.3)
+  static const _innerR = 7.5;
+  static const _innerStroke = 6.36;
+  static const _innerSweep = -5.4978; // top, anticlockwise, to (29.3, 18.7)
+  static const _innerOpacity = 0.55;
+  static const _gradient = [
+    Color(0xFF22D3EE),
+    Color(0xFF2563EB),
+    Color(0xFF4F46E5),
+  ];
+
+  /// The visible ring, outer stroke edge to edge, as a share of the box.
+  static const visibleShare = 2 * (_outerR + _outerStroke / 2) / _box;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final scale = size.width / _box;
+    canvas.scale(scale);
+
+    final outer = Curves.easeInOutCubic.transform(
+      (progress / 0.8).clamp(0.0, 1.0),
+    );
+    final inner = Curves.easeInOutCubic.transform(
+      ((progress - 0.3) / 0.7).clamp(0.0, 1.0),
+    );
+
+    Paint stroke(double width, double opacity) {
+      final paint = Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = width
+        ..strokeCap = StrokeCap.round;
+      if (color != null) {
+        paint.color = color!.withValues(alpha: color!.a * opacity);
+      } else {
+        paint
+          ..color = Color.fromRGBO(0, 0, 0, opacity)
+          ..shader = LinearGradient(colors: _gradient, stops: const [0, 0.5, 1])
+              .createShader(
+                Rect.fromPoints(const Offset(6, 8), const Offset(42, 40)),
+              );
+      }
+      return paint;
+    }
+
+    void ring(double r, double sweep, double t, Paint paint) {
+      if (t <= 0) return;
+      final path = Path()
+        ..addArc(Rect.fromCircle(center: _centre, radius: r), -1.5708, sweep);
+      if (t >= 1) {
+        canvas.drawPath(path, paint);
+        return;
+      }
+      for (final metric in path.computeMetrics()) {
+        canvas.drawPath(metric.extractPath(0, metric.length * t), paint);
+      }
+    }
+
+    ring(_innerR, _innerSweep, inner, stroke(_innerStroke, _innerOpacity));
+    ring(_outerR, _outerSweep, outer, stroke(_outerStroke, 1));
+  }
+
+  @override
+  bool shouldRepaint(_FlipperMarkPainter old) =>
+      old.progress != progress || old.color != color;
+}
+
+/// The mark drawing itself in, over and over: the loading state.
+class FlipperMarkLoader extends StatefulWidget {
+  const FlipperMarkLoader({super.key, this.size = 56});
+
+  final double size;
+
+  @override
+  State<FlipperMarkLoader> createState() => _FlipperMarkLoaderState();
+}
+
+class _FlipperMarkLoaderState extends State<FlipperMarkLoader>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1600),
+  );
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (MediaQuery.disableAnimationsOf(context)) {
+      _controller.value = 1;
+    } else if (!_controller.isAnimating) {
+      _controller.repeat();
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      // Draw in over the first 70%, hold, start again.
+      builder: (context, _) => FlipperMark(
+        size: widget.size,
+        progress: (_controller.value / 0.7).clamp(0.0, 1.0),
+      ),
+    );
+  }
+}
+
+/// The product name as a poster, with Flipper's mark as its first glyph —
+/// getartcraft.com's wordmark intro, on its timings.
 ///
-/// On first paint the mark fades in alone at the centre, then the letters
-/// slide out from behind it while it moves to the left: the word unfolds out
-/// of the logo. Under reduced motion it starts in its final state.
+/// The ring draws itself in alone at the centre. From 0.4s, over 0.85s, it
+/// glides to its slot (ease in-out) while the letters shoot out from behind
+/// it (ease out), clipped at its right edge so they never show beside it.
+/// Under reduced motion it starts formed.
 class UnfoldingWordmark extends StatefulWidget {
-  const UnfoldingWordmark({
-    super.key,
-    this.text = 'FLIPPER',
-    this.color,
-    this.duration = const Duration(milliseconds: 1700),
-  });
+  const UnfoldingWordmark({super.key, this.text = 'FLIPPER', this.color});
 
   final String text;
+
+  /// Letter colour; the ring keeps its gradient.
   final Color? color;
-  final Duration duration;
 
   @override
   State<UnfoldingWordmark> createState() => _UnfoldingWordmarkState();
@@ -92,12 +205,21 @@ class _UnfoldingWordmarkState extends State<UnfoldingWordmark>
   // Laid out at this size, then scaled to the available width.
   static const _fontSize = 200.0;
 
-  // Archivo's cap height, as a share of the font size.
-  static const _capHeight = 0.71;
+  // As Artcraft tunes theirs, in ems: cap height the ring matches, the gap
+  // after it, and how far the word starts tucked behind it.
+  static const _cap = 0.7;
+  static const _pad = 0.05;
+  static const _tuck = 0.12;
+
+  // Seconds.
+  static const _drawFor = 0.45;
+  static const _wordAt = 0.4;
+  static const _wordFor = 0.85;
+  static const _total = _wordAt + _wordFor;
 
   late final AnimationController _controller = AnimationController(
     vsync: this,
-    duration: widget.duration,
+    duration: const Duration(milliseconds: 1250),
   );
   bool _started = false;
 
@@ -121,11 +243,15 @@ class _UnfoldingWordmarkState extends State<UnfoldingWordmark>
 
   @override
   Widget build(BuildContext context) {
-    final color = widget.color ?? AppColors.ink;
-    final style = AppText.display(
-      _fontSize,
-      c: color,
-    ).copyWith(height: 1, letterSpacing: -0.03 * _fontSize);
+    final style = TextStyle(
+      fontFamily: 'Archivo Expanded',
+      fontFamilyFallback: const ['Archivo', 'Inter', 'sans-serif'],
+      fontSize: _fontSize,
+      fontWeight: FontWeight.w700,
+      height: 1,
+      letterSpacing: -0.01 * _fontSize,
+      color: widget.color ?? AppColors.ink,
+    );
     final word = TextPainter(
       text: TextSpan(text: widget.text, style: style),
       textDirection: TextDirection.ltr,
@@ -134,12 +260,17 @@ class _UnfoldingWordmarkState extends State<UnfoldingWordmark>
     final baseline = word.computeDistanceToActualBaseline(
       TextBaseline.alphabetic,
     );
-    final cap = _capHeight * _fontSize;
-    final markSize = cap * 1.08;
-    final markTop = baseline - cap - (markSize - cap) / 2;
-    final gap = _fontSize * 0.1;
-    final width = markSize + gap + word.width;
+
+    // The ring's box is bigger than the ring: size it so the visible ring is
+    // cap-high, and measure gaps from the visible edge.
+    final ring = _cap * _fontSize;
+    final box = ring / _FlipperMarkPainter.visibleShare;
+    final inset = (box - ring) / 2;
+    final markTop = baseline - ring / 2 - _cap * _fontSize / 2 - inset;
+    final lettersAt = box - inset + _pad * _fontSize;
+    final width = lettersAt + word.width;
     final height = word.height;
+    final homeX = (width - box) / 2;
 
     return Semantics(
       label: widget.text,
@@ -152,17 +283,19 @@ class _UnfoldingWordmarkState extends State<UnfoldingWordmark>
             child: AnimatedBuilder(
               animation: _controller,
               builder: (context, _) {
-                final t = _controller.value;
-                final appear = Curves.easeOut.transform((t / 0.3).clamp(0, 1));
-                final unfold = Curves.easeInOutCubic.transform(
-                  ((t - 0.3) / 0.7).clamp(0, 1),
-                );
-                final markX = (width - markSize) / 2 * (1 - unfold);
-                // Letters start tucked under the mark, their right edge on
-                // its right edge, and are only drawn to the right of it.
-                final start = markX + markSize - word.width;
-                final lettersX = start + (markSize + gap - start) * unfold;
-                final edge = markX + markSize + gap / 2;
+                final s = _controller.value * _total;
+                final draw = (s / _drawFor).clamp(0.0, 1.0);
+                final w = ((s - _wordAt) / _wordFor).clamp(0.0, 1.0);
+                final glide = Curves.easeInOutCubic.transform(w);
+                final out = Curves.easeOutCubic.transform(w);
+
+                final markX = homeX * (1 - glide);
+                // Start with the word's right end on the ring's (final)
+                // right edge, tucked a little further in.
+                final from =
+                    -(word.width + _pad * _fontSize + _tuck * _fontSize);
+                final lettersX = lettersAt + from * (1 - out);
+                final edge = markX + box - inset;
                 return Stack(
                   children: [
                     Positioned.fill(
@@ -188,10 +321,7 @@ class _UnfoldingWordmarkState extends State<UnfoldingWordmark>
                     Positioned(
                       left: markX,
                       top: markTop,
-                      child: Opacity(
-                        opacity: appear,
-                        child: FlipperMark(size: markSize, color: widget.color),
-                      ),
+                      child: FlipperMark(size: box, progress: draw),
                     ),
                   ],
                 );

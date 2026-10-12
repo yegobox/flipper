@@ -90,6 +90,10 @@
   
   <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport">
   <style id="splash-screen-style">
+    /* Hand-written: flutter_native_splash is set to web: false so it cannot
+       overwrite this. The landing page's ring mark (assets/icons/
+       flipper-logo.svg) draws itself in on the page's white, then Flutter's
+       hero carries on with the same mark. */
     html {
       height: 100%;
     }
@@ -97,7 +101,7 @@
     body {
       margin: 0;
       min-height: 100%;
-      background-color: #06080d;
+      background-color: #ffffff;
     }
 
     #splash {
@@ -108,73 +112,53 @@
       align-items: center;
       justify-content: center;
       margin: 0;
-      background-color: #06080d;
+      background-color: #ffffff;
     }
 
-    #splash img {
-      display: block;
-      width: 128px;
-      height: 128px;
-      max-width: min(128px, 36vw);
-      max-height: min(128px, 36vh);
-      object-fit: contain;
+    #splash svg {
+      width: 96px;
+      height: 96px;
+      max-width: 28vw;
+      max-height: 28vh;
     }
 
-    .center {
-      margin: 0;
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      -ms-transform: translate(-50%, -50%);
-      transform: translate(-50%, -50%);
+    #splash path {
+      fill: none;
+      stroke: url(#splash-ring);
+      stroke-linecap: round;
+      stroke-dasharray: 1;
+      stroke-dashoffset: 1;
+      opacity: 0;
+      animation: splash-draw 0.7s cubic-bezier(0.65, 0, 0.35, 1) forwards;
     }
 
-    .contain {
-      display: block;
-      width: 128px;
-      height: 128px;
-      max-width: min(128px, 36vw);
-      max-height: min(128px, 36vh);
-      object-fit: contain;
+    #splash .inner {
+      animation-delay: 0.25s;
     }
 
-    .stretch {
-      display: block;
-      width: 128px;
-      height: 128px;
-      object-fit: contain;
+    /* --o: the inner ring's resting opacity. */
+    @keyframes splash-draw {
+      1% {
+        opacity: var(--o, 1);
+      }
+      to {
+        opacity: var(--o, 1);
+        stroke-dashoffset: 0;
+      }
     }
 
-    .cover {
-      display: block;
-      width: 128px;
-      height: 128px;
-      object-fit: contain;
-    }
-
-    .bottom {
-      position: absolute;
-      bottom: 0;
-      left: 50%;
-      -ms-transform: translate(-50%, 0);
-      transform: translate(-50%, 0);
-    }
-
-    .bottomLeft {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-    }
-
-    .bottomRight {
-      position: absolute;
-      bottom: 0;
-      right: 0;
+    @media (prefers-reduced-motion: reduce) {
+      #splash path {
+        animation: none;
+        opacity: var(--o, 1);
+        stroke-dashoffset: 0;
+      }
     }
 
     @media (prefers-color-scheme: dark) {
-      body {
-        background-color: #06080d;
+      body,
+      #splash {
+        background-color: #0b1220;
       }
     }
   </style>
@@ -182,16 +166,24 @@
     function removeSplashFromWeb() {
       document.getElementById("splash")?.remove();
       document.getElementById("splash-branding")?.remove();
-      document.body.style.background = "#06080d";
+      document.body.style.background = "";
     }
   </script>
 </head>
 <body>
-  <picture id="splash">
-      <source srcset="splash/img/light-1x.png 1x, splash/img/light-2x.png 2x, splash/img/light-3x.png 3x, splash/img/light-4x.png 4x" media="(prefers-color-scheme: light)">
-      <source srcset="splash/img/dark-1x.png 1x, splash/img/dark-2x.png 2x, splash/img/dark-3x.png 3x, splash/img/dark-4x.png 4x" media="(prefers-color-scheme: dark)">
-      <img class="contain" aria-hidden="true" src="splash/img/light-1x.png" alt="">
-  </picture>
+  <div id="splash" aria-hidden="true">
+    <svg viewBox="0 0 48 48">
+      <defs>
+        <linearGradient id="splash-ring" x1="6" y1="8" x2="42" y2="40" gradientUnits="userSpaceOnUse">
+          <stop stop-color="#22D3EE"></stop>
+          <stop offset="0.5" stop-color="#2563EB"></stop>
+          <stop offset="1" stop-color="#4F46E5"></stop>
+        </linearGradient>
+      </defs>
+      <path class="inner" d="M24 16.5a7.5 7.5 0 1 0 5.3 2.2" stroke-width="6.36" pathLength="1" style="--o: 0.55"></path>
+      <path class="outer" d="M24 7.5a16.5 16.5 0 1 1-11.6 4.8" stroke-width="8.16" pathLength="1"></path>
+    </svg>
+  </div>
   
   <!-- Readable fallback for crawlers and browsers without JavaScript. -->
   <noscript>

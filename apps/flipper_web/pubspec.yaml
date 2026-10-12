@@ -4,7 +4,7 @@ description: "A new Flutter project."
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
-version: 1.0.821+1737
+version: 1.0.822+1738
 
 
 environment:
@@ -133,6 +133,12 @@ flutter:
           weight: 700
         - asset: assets/fonts/Archivo-800.ttf
           weight: 800
+    # The hero wordmark: Archivo at weight 750, 125% width (getartcraft.com's
+    # wordmark setting), cut from the same variable file.
+    - family: Archivo Expanded
+      fonts:
+        - asset: assets/fonts/ArchivoExpanded-750.ttf
+          weight: 700
     - family: Instrument Serif
       fonts:
         - asset: assets/fonts/InstrumentSerif-Regular.ttf
@@ -146,7 +152,8 @@ flutter:
 #
 # Splash (web/splash/img/, launch screens — also rewrites index.html splash CSS):
 #   dart run flutter_native_splash:create
-#   Then re-check web/index.html: centered 128px logo styles are hand-maintained.
+#   Native splashes only: the web splash in web/index.html is hand-written (the
+#   landing page's ring mark drawing itself in), so `web: false` below.
 
 flutter_native_splash:
   color: "#06080D"
@@ -158,7 +165,7 @@ flutter_native_splash:
     image: assets/accounting_logo_transparent.png
   android: true
   ios: true
-  web: true
+  web: false
   ios_content_mode: center
   android_gravity: center
   web_image_mode: contain

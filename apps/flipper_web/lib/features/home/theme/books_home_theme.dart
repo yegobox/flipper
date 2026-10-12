@@ -132,13 +132,6 @@ abstract final class AppGrad {
     stops: [0.0, 0.46, 1.0],
   );
 
-  /// The arc mark's own gradient (apps/flipper/assets/logo.svg).
-  static const mark = LinearGradient(
-    begin: Alignment.bottomLeft,
-    end: Alignment.topRight,
-    colors: [Color(0xFF0071FF), Color(0xFF00BFE1)],
-  );
-
   /// Ink and rules on [panel].
   static const onPanel = Color(0xFFFFFFFF);
   static const onPanelSoft = Color(0xFFD6E2FF);
