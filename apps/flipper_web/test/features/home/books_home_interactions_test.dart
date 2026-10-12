@@ -209,14 +209,19 @@ void main() {
       );
       expect(showing(0), findsOneWidget);
 
-      await tester.pump(const Duration(milliseconds: 2600));
-      await tester.pump(const Duration(milliseconds: 700));
+      // Each flip: the hold elapses, then the switch animates to rest
+      // (well inside the next hold, so settling stops there).
+      Future<void> nextLine() async {
+        await tester.pump(const Duration(milliseconds: 2600));
+        await tester.pumpAndSettle();
+      }
+
+      await nextLine();
       expect(showing(1), findsOneWidget);
       expect(showing(0), findsNothing);
 
-      await tester.pump(const Duration(milliseconds: 2600));
-      await tester.pump(const Duration(milliseconds: 2600));
-      await tester.pump(const Duration(milliseconds: 700));
+      await nextLine();
+      await nextLine();
       expect(showing(0), findsOneWidget);
 
       // Disposing stops the clock (no pending timer).
@@ -251,7 +256,7 @@ void main() {
       );
       final first = tester.getSize(find.byType(RotatingHeadline));
       await tester.pump(const Duration(milliseconds: 2600));
-      await tester.pump(const Duration(milliseconds: 700));
+      await tester.pumpAndSettle();
       expect(tester.getSize(find.byType(RotatingHeadline)), first);
       await tester.pumpWidget(const SizedBox());
     });
