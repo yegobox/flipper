@@ -998,6 +998,13 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     // Ignore re-taps while a handoff is already in flight (double-resume hung
     // Ditto write locks in production logs).
     if (_collectingTicketId != null) return;
+    // Phones go straight to checkout: the summary sheet only repeated what
+    // checkout shows, and its pop after the hand-off removed the checkout
+    // route that had just been pushed on top of it.
+    if (MediaQuery.sizeOf(context).width < 600) {
+      await _collectTillTicket(ticket);
+      return;
+    }
     setState(() => _collectingTicketId = ticket.id);
     var resumeSucceeded = false;
     try {
