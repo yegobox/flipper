@@ -24,6 +24,7 @@ import 'package:flipper_models/providers/kitchen_orders_provider.dart';
 import 'package:flipper_dashboard/features/kitchen_display/kitchen_stage.dart';
 import 'package:flipper_models/helpers/ticket_review_actions.dart';
 import 'package:flipper_models/helpers/pending_sale_cart_cleanup.dart';
+import 'package:flipper_models/helpers/ticket_resume_guard.dart';
 import 'package:flipper_models/order_form_whatsapp_client.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_routing/app.locator.dart';
@@ -1139,10 +1140,23 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     } catch (e, st) {
       talker.warning('Collect: seed items prefetch failed: $e', st);
     }
+    // A parked ticket always has a positive subTotal, so no lines here means
+    // the ticket row synced before its lines did: they are still on the device
+    // that created it. Give them a moment to arrive rather than open an empty
+    // cart; the checkout keeps waiting (and says so) if they don't.
+    final awaitingLines = seedItems.isEmpty && (ticket.subTotal ?? 0) > 0;
+    final seedWatch = Stopwatch()..start();
+    if (awaitingLines) {
+      seedItems = await _awaitTicketLines(
+        transactionId: ticket.id,
+        branchId: settlingBranchId,
+      );
+    }
     talker.info(
       '[collect-seed] txn=${ticket.id} branch=$settlingBranchId '
       'ticketBranch=${ticket.branchId} boxBranch=${ProxyService.box.getBranchId()} '
-      'seedCount=${seedItems.length}',
+      'seedCount=${seedItems.length} awaitingLines=$awaitingLines'
+      '${awaitingLines ? ' waitedMs=${seedWatch.elapsedMilliseconds}' : ''}',
     );
     if (!mounted) {
       logHandoff('unmounted-after-seed');
@@ -1171,6 +1185,38 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       locator<RouterService>().back();
     }
     return true;
+  }
+
+  /// Active lines of [transactionId] as soon as this device has any, or none
+  /// after [timeout].
+  ///
+  /// Listens to the same stream the settling cart watches, so its sync
+  /// subscription pulls the lines from whichever peer holds them, and the cart
+  /// opens on a warm stream.
+  Future<List<TransactionItem>> _awaitTicketLines({
+    required String transactionId,
+    required String? branchId,
+    Duration timeout = const Duration(seconds: 5),
+  }) {
+    final arrived = Completer<List<TransactionItem>>();
+    final sub = ref.listenManual(
+      transactionItemsStreamProvider(
+        transactionId: transactionId,
+        branchId: branchId,
+      ),
+      (_, next) {
+        final lines = next.asData?.value
+            .where((i) => i.active != false)
+            .toList();
+        if (lines != null && lines.isNotEmpty && !arrived.isCompleted) {
+          arrived.complete(lines);
+        }
+      },
+      fireImmediately: true,
+    );
+    return arrived.future
+        .timeout(timeout, onTimeout: () => const <TransactionItem>[])
+        .whenComplete(sub.close);
   }
 
   /// Returns true when the prior settling ticket was re-parked (or already gone).
@@ -1319,7 +1365,12 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           context: context,
           builder: (ctx) => AlertDialog(
             title: Text(ctx.flipperL10n.ticketActionFailed),
-            content: Text(e.toString(), style: const TextStyle(fontSize: 14)),
+            content: Text(
+              e is TicketOpenElsewhereException
+                  ? ctx.flipperL10n.ticketOpenOnAnotherDevice
+                  : e.toString(),
+              style: const TextStyle(fontSize: 14),
+            ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(ctx).pop(),

@@ -8870,6 +8870,9 @@
         "description": "Shown as the ticket creator when their name is unknown"
     },
     "ticketReturnToTillFailed": "Could not return the current ticket to the till. Try again.",
+    "ticketLinesSyncingTitle": "Waiting for this ticket's items",
+    "ticketLinesSyncing": "The items are still on the device that created this ticket. Keep Flipper open and online there and they will appear here.",
+    "ticketOpenOnAnotherDevice": "This ticket is already open on another till.",
     "ticketActionFailed": "Action Failed",
     "ticketSentToKitchen": "Sent to kitchen",
     "ticketSendToKitchenFailed": "Could not send to kitchen. Try again.",

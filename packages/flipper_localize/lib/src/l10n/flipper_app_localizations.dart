@@ -16047,6 +16047,24 @@ abstract class FlipperAppLocalizations {
   /// **'Could not return the current ticket to the till. Try again.'**
   String get ticketReturnToTillFailed;
 
+  /// No description provided for @ticketLinesSyncingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for this ticket\'s items'**
+  String get ticketLinesSyncingTitle;
+
+  /// No description provided for @ticketLinesSyncing.
+  ///
+  /// In en, this message translates to:
+  /// **'The items are still on the device that created this ticket. Keep Flipper open and online there and they will appear here.'**
+  String get ticketLinesSyncing;
+
+  /// No description provided for @ticketOpenOnAnotherDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'This ticket is already open on another till.'**
+  String get ticketOpenOnAnotherDevice;
+
   /// No description provided for @ticketActionFailed.
   ///
   /// In en, this message translates to:

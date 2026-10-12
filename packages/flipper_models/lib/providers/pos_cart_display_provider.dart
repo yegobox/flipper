@@ -534,6 +534,51 @@ final posCartDisplayItemsProvider = Provider<List<TransactionItem>>((ref) {
   );
 });
 
+/// Whether a ticket being collected is on screen without its lines.
+///
+/// Pure so the rule can be tested without Ditto. A ticket can only be parked
+/// with a positive subTotal, so a settling cart with no lines and a positive
+/// [ticketSubTotal] means the ticket row reached this device before its
+/// `transaction_items` did — they are still on the device that created it
+/// (asleep or offline). Removing lines lowers the row's subTotal through
+/// `dittoAdjustTransactionSubtotalByDelta`, so a ticket the operator emptied
+/// reads 0 here and is not mistaken for a missing one.
+bool settlingTicketLinesMissing({
+  required SettlingTillTicket? settling,
+  required bool hasActiveLines,
+  required double? ticketSubTotal,
+}) {
+  if (settling == null || settling.transactionId.isEmpty) return false;
+  if (hasActiveLines) return false;
+  return (ticketSubTotal ?? 0) > 0;
+}
+
+/// True while the ticket being collected waits for its lines to sync here.
+///
+/// Drives the "waiting for this ticket's items" cart state in place of a
+/// silent empty cart; it clears on its own when the item stream delivers.
+final settlingTicketAwaitingLinesProvider = Provider<bool>((ref) {
+  final settling = ref.watch(effectiveSettlingTillTicketProvider);
+  if (settling == null || settling.transactionId.isEmpty) return false;
+  final hasActiveLines = ref.watch(
+    posCartDisplayItemsProvider.select(
+      (items) => items.any((i) => i.active != false),
+    ),
+  );
+  if (hasActiveLines) return false;
+  // The live row first: its subTotal follows line removals. The snapshot
+  // stands in while it loads, or when the ticket is on another branch.
+  final live = ref
+      .watch(transactionByIdProvider(settling.transactionId))
+      .asData
+      ?.value;
+  return settlingTicketLinesMissing(
+    settling: settling,
+    hasActiveLines: false,
+    ticketSubTotal: (live ?? settling.ticketSnapshot)?.subTotal,
+  );
+});
+
 /// Lightweight cart metrics for catalog chrome (avoids rebuilding the product grid).
 class PosCartSummary {
   const PosCartSummary({

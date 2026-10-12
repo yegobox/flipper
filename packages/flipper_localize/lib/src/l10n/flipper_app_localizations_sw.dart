@@ -9632,6 +9632,17 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
       'Imeshindwa kurudisha tiketi ya sasa kwenye kaunta. Jaribu tena.';
 
   @override
+  String get ticketLinesSyncingTitle => 'Inasubiri bidhaa za tiketi hii';
+
+  @override
+  String get ticketLinesSyncing =>
+      'Bidhaa bado ziko kwenye kifaa kilichounda tiketi hii. Weka Flipper wazi na mtandaoni kwenye kifaa hicho na zitaonekana hapa.';
+
+  @override
+  String get ticketOpenOnAnotherDevice =>
+      'Tiketi hii tayari imefunguliwa kwenye kaunta nyingine.';
+
+  @override
   String get ticketActionFailed => 'Kitendo kimeshindwa';
 
   @override

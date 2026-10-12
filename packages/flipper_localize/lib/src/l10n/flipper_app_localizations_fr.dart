@@ -9721,6 +9721,17 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
       'Impossible de renvoyer le ticket en cours à la caisse. Réessayez.';
 
   @override
+  String get ticketLinesSyncingTitle => 'En attente des articles de ce ticket';
+
+  @override
+  String get ticketLinesSyncing =>
+      'Les articles sont encore sur l\'appareil qui a créé ce ticket. Gardez Flipper ouvert et en ligne sur cet appareil et ils apparaîtront ici.';
+
+  @override
+  String get ticketOpenOnAnotherDevice =>
+      'Ce ticket est déjà ouvert sur une autre caisse.';
+
+  @override
   String get ticketActionFailed => 'Échec de l\'action';
 
   @override
