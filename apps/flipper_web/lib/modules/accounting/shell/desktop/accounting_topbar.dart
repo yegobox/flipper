@@ -1,4 +1,5 @@
 import 'package:flipper_localize/flipper_localize.dart';
+import 'package:flipper_web/features/module_launcher/all_apps_sheet.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_providers.dart';
 import 'package:flipper_web/modules/accounting/routing/accounting_route.dart';
 import 'package:flipper_web/modules/accounting/theme/accounting_tokens.dart';
@@ -66,6 +67,8 @@ class AccountingTopbar extends ConsumerWidget {
                       JournalFilter.pending;
                 },
               ),
+              const SizedBox(width: 4),
+              const _AppsButton(),
             ],
           );
         },
@@ -296,6 +299,42 @@ class _PeriodButton extends ConsumerWidget {
                     color: AccountingTokens.ink3,
                   ),
                 ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Opens the app launcher: Books → POS on the web, the dashboard's All apps
+/// sheet when Books runs inside the native app.
+class _AppsButton extends StatelessWidget {
+  const _AppsButton();
+
+  @override
+  Widget build(BuildContext context) {
+    final label = context.flipperL10n.allApps;
+    return Tooltip(
+      message: label,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          key: const Key('books-topbar-apps'),
+          borderRadius: BorderRadius.circular(10),
+          hoverColor: AccountingTokens.surface2,
+          onTap: () => AllAppsSheet.open(context),
+          child: Semantics(
+            button: true,
+            label: label,
+            child: const SizedBox(
+              width: 40,
+              height: 40,
+              child: Icon(
+                Icons.apps_rounded,
+                size: 20,
+                color: AccountingTokens.ink2,
               ),
             ),
           ),

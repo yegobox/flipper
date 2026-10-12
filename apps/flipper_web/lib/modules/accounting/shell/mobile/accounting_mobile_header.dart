@@ -1,5 +1,6 @@
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_web/features/business_selection/business_branch_selector.dart';
+import 'package:flipper_web/features/module_launcher/all_apps_sheet.dart';
 import 'package:flipper_web/features/module_launcher/app_launcher_host.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_providers.dart';
 import 'package:flipper_web/modules/accounting/routing/accounting_route.dart';
@@ -61,6 +62,16 @@ class AccountingMobileHeader extends ConsumerWidget {
                       variant: BooksBrandVariant.mobile,
                     ),
                     const Spacer(),
+                    _HeaderIconButton(
+                      key: const Key('books-mobile-apps'),
+                      onPressed: () => AllAppsSheet.open(context),
+                      child: const Icon(
+                        Icons.apps_rounded,
+                        size: 20,
+                        color: AccountingTokens.ink2,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
                     _HeaderIconButton(
                       onPressed: () {
                         if (pending > 0) {
@@ -206,7 +217,11 @@ class AccountingMobileHeader extends ConsumerWidget {
 }
 
 class _HeaderIconButton extends StatelessWidget {
-  const _HeaderIconButton({required this.onPressed, required this.child});
+  const _HeaderIconButton({
+    super.key,
+    required this.onPressed,
+    required this.child,
+  });
 
   final VoidCallback onPressed;
   final Widget child;

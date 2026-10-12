@@ -18,7 +18,7 @@ import 'locator.dart';
 import 'proxy.dart';
 import 'setting_service.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:flutter/foundation.dart' show kDebugMode;
+import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
 import 'package:flipper_web/core/secrets.dart';
 import 'package:flipper_models/ebm_helper.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -344,7 +344,7 @@ class AppService with ListenableServiceMixin {
   }
 
   Future<void> _saveDesktopDeviceRecordIfNeeded() async {
-    if (Platform.isAndroid || Platform.isIOS) return;
+    if (kIsWeb || Platform.isAndroid || Platform.isIOS) return;
 
     try {
       final userId = ProxyService.box.getUserId();
@@ -382,7 +382,7 @@ class AppService with ListenableServiceMixin {
         defaultApp: defaultApp ?? 'POS',
         phone: phone ?? '',
         userId: userId,
-        deviceName: Platform.operatingSystem,
+        deviceName: kIsWeb ? 'web' : Platform.operatingSystem,
         deviceVersion: deviceVersion,
         friendlyName: existingFriendlyName,
       );
@@ -618,7 +618,7 @@ class AppService with ListenableServiceMixin {
 
   void _schedulePostDittoSetup({required bool dittoAvailable}) {
     unawaited(_attachLocalStorageDittoIfReady());
-    if (dittoAvailable && !Platform.isAndroid && !Platform.isIOS) {
+    if (dittoAvailable && !kIsWeb && !Platform.isAndroid && !Platform.isIOS) {
       unawaited(_saveDesktopDeviceRecordIfNeeded());
       unawaited(ProxyService.cron.setupDelegationMonitoringIfNeeded());
     }

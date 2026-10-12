@@ -3,12 +3,24 @@ import 'dart:ui';
 
 import 'package:flipper_web/features/login/signin_styles.dart';
 import 'package:flipper_web/features/module_launcher/all_apps_catalog.dart';
+import 'package:flipper_web/features/module_launcher/app_launcher_host.dart';
 import 'package:flipper_web/modules/accounting/theme/accounting_tokens.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 class AllAppsSheet {
   AllAppsSheet._();
+
+  /// Opens the host's launcher when Books is embedded in the native app, and
+  /// this sheet on the web.
+  static void open(BuildContext context) {
+    final host = AppLauncherHost.maybeOf(context);
+    if (host != null) {
+      host.onOpenLauncher();
+      return;
+    }
+    show(context);
+  }
 
   static Future<void> show(BuildContext context) {
     final isDesktop =
@@ -171,19 +183,7 @@ class _AllAppsSheetBody extends StatelessWidget {
                           tile: tile,
                           onTap: () {
                             Navigator.of(context).pop();
-                            if (tile.page == 'Accounting') {
-                              context.go('/accounting');
-                              return;
-                            }
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  context.flipperL10n.webAppsComingSoon(
-                                    tile.label,
-                                  ),
-                                ),
-                              ),
-                            );
+                            context.go(tile.route);
                           },
                         );
                       },
@@ -207,37 +207,44 @@ class _AppTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
+    // One node per tile for screen readers: a button named after the app.
+    return Semantics(
+      button: true,
+      label: tile.label,
       onTap: onTap,
-      borderRadius: BorderRadius.circular(14),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: Column(
-          children: [
-            Container(
-              width: 54,
-              height: 54,
-              decoration: BoxDecoration(
-                color: Color.alphaBlend(
-                  tile.color.withValues(alpha: 0.13),
-                  Colors.white,
+      excludeSemantics: true,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(14),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Column(
+            children: [
+              Container(
+                width: 54,
+                height: 54,
+                decoration: BoxDecoration(
+                  color: Color.alphaBlend(
+                    tile.color.withValues(alpha: 0.13),
+                    Colors.white,
+                  ),
+                  borderRadius: BorderRadius.circular(17),
                 ),
-                borderRadius: BorderRadius.circular(17),
+                child: Icon(tile.icon, color: tile.color, size: 24),
               ),
-              child: Icon(tile.icon, color: tile.color, size: 24),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              tile.label,
-              textAlign: TextAlign.center,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: AccountingTokens.sans(
-                fontSize: 11.5,
-                fontWeight: FontWeight.w600,
+              const SizedBox(height: 8),
+              Text(
+                tile.label,
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: AccountingTokens.sans(
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

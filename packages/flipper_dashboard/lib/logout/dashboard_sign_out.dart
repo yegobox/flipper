@@ -48,6 +48,23 @@ void _hideSigningOutLoader(BuildContext context) {
 
 /// Closes the signed-in agent's shift when needed, signs out, and navigates to
 /// login with a cleared stack.
+/// Set by a host that owns the session itself (flipper_web's POS): sign-out
+/// still settles the shift, then hands back to the host instead of logging
+/// out natively, which would tear down the Ditto session the host shares.
+Future<void> Function()? dashboardSignOutHostExit;
+
+/// Installs [exit] as [dashboardSignOutHostExit] and returns the matching
+/// uninstall, which clears it only if [exit] is still the one installed — a
+/// newer host keeps its own.
+VoidCallback installDashboardSignOutHostExit(Future<void> Function() exit) {
+  dashboardSignOutHostExit = exit;
+  return () {
+    if (identical(dashboardSignOutHostExit, exit)) {
+      dashboardSignOutHostExit = null;
+    }
+  };
+}
+
 Future<bool> completeDashboardSignOut({
   required BuildContext context,
   required DialogService dialogService,
@@ -61,6 +78,12 @@ Future<bool> completeDashboardSignOut({
     loaderUseRootNavigator: loaderUseRootNavigator,
   );
   if (!proceed || !context.mounted) return false;
+
+  final hostExit = dashboardSignOutHostExit;
+  if (hostExit != null) {
+    await hostExit();
+    return true;
+  }
 
   _presentSigningOutLoader(context);
   try {

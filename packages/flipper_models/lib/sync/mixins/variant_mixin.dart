@@ -459,11 +459,12 @@ mixin VariantMixin implements VariantInterface {
             return;
           }
 
-          String serverUrl = taxUrl;
-
-          if (isMobileDevice) {
-            serverUrl = ebm.remoteServerUrl ?? serverUrl;
-          }
+          // A blank remote URL must not replace the configured one.
+          final String serverUrl = pickTaxServerUrl(
+            taxUrl,
+            ebm.remoteServerUrl,
+            useRemote: vsdcIsRemote,
+          )!;
 
           await registerVariantWithRraForAdd(
             repository: repository,

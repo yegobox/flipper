@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flipper_analytics/flipper_analytics.dart';
 import 'package:flipper_models/CoreSync.dart';
@@ -121,7 +122,11 @@ abstract class ServicesModule {
   @singleton
   FirebaseCrashlytics get crashlytics {
     const testEnv = const bool.fromEnvironment('FLUTTER_TEST_ENV') == true;
-    if (testEnv) {
+    // Crashlytics has no web implementation, and a web host (flipper_web's
+    // POS) may not initialize Firebase at all: `.instance` would throw from
+    // Firebase.app(). Nothing reads this on web — [crash] picks the
+    // unsupported observer there.
+    if (testEnv || kIsWeb) {
       // Return a mock instance during tests
       return MockFirebaseCrashlytics();
     } else {

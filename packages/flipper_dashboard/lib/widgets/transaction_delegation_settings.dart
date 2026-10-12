@@ -1,5 +1,5 @@
 import 'package:flipper_localize/flipper_localize.dart';
-import 'package:flutter/foundation.dart' show kDebugMode;
+import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -264,11 +264,12 @@ class _TransactionDelegationSettingsState
   }
 
   bool _isDesktopPlatform() {
-    return Platform.isWindows || Platform.isMacOS || Platform.isLinux;
+    return !kIsWeb &&
+        (Platform.isWindows || Platform.isMacOS || Platform.isLinux);
   }
 
   bool _isMobilePlatform() {
-    return Platform.isAndroid || Platform.isIOS;
+    return !kIsWeb && (Platform.isAndroid || Platform.isIOS);
   }
 
   bool _showDebugDeviceActions() {

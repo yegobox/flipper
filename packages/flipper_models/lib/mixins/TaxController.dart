@@ -331,7 +331,7 @@ class TaxController<OBJ> {
 
   /// Check if the current device is mobile
   bool get isMobileDevice {
-    return Platform.isAndroid || Platform.isIOS;
+    return !kIsWeb && (Platform.isAndroid || Platform.isIOS);
   }
 
   /**
@@ -932,7 +932,7 @@ class TaxController<OBJ> {
             branchId: ProxyService.box.getBranchId()!,
             fetchRemote: deferPostSignReceiptPersist
                 ? false
-                : !Platform.isWindows,
+                : kIsWeb || !Platform.isWindows,
           );
       // Determine the highest invoice number across all counters and use that
       // when assigning invoiceNumber. We still pass the specific `counter`
@@ -965,10 +965,14 @@ class TaxController<OBJ> {
         key: 'enableTransactionDelegation',
       );
 
-      if (isMobileDevice &&
+      if (vsdcIsRemote &&
           (enableTransactionDelegation == null ||
               !enableTransactionDelegation)) {
-        serverUrl = ebm?.remoteServerUrl ?? serverUrl;
+        serverUrl = pickTaxServerUrl(
+          serverUrl,
+          ebm?.remoteServerUrl,
+          useRemote: true,
+        );
       }
 
       if (serverUrl == null || serverUrl.trim().isEmpty) {

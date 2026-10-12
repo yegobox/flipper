@@ -120,7 +120,9 @@ abstract final class HotelRoomRraService {
     } catch (e, st) {
       // Never surfaced: this is background work, and a property must be able
       // to open its front desk whether or not RRA is reachable.
-      talker.warning('hotel: room registration sweep failed on $branchId: $e\n$st');
+      talker.warning(
+        'hotel: room registration sweep failed on $branchId: $e\n$st',
+      );
       return 0;
     } finally {
       _sweepsInFlight.remove(branchId);
@@ -146,11 +148,13 @@ abstract final class HotelRoomRraService {
     List<HotelRoom> rooms,
     Map<String, Variant?> variantsById,
   ) {
-    return rooms.where((room) {
-      // No variant named at all: never started.
-      if (!room.isRegisteredWithRra) return true;
-      return !isHotelRoomVariantRegistered(variantsById[room.variantId]);
-    }).toList(growable: false);
+    return rooms
+        .where((room) {
+          // No variant named at all: never started.
+          if (!room.isRegisteredWithRra) return true;
+          return !isHotelRoomVariantRegistered(variantsById[room.variantId]);
+        })
+        .toList(growable: false);
   }
 
   /// Loads the variants named by [rooms], so the filter above can judge them.
@@ -408,8 +412,7 @@ abstract final class HotelRoomRraService {
     // taxpayer for tourism tax; the room registers as a plain service then.
     final tourismTax = hotelBranchSupportsTourismTax(branchEbm);
 
-    final business = await _sync.getBusiness(businessId: businessId)
-       ;
+    final business = await _sync.getBusiness(businessId: businessId);
 
     // Rooms are exempt-or-VAT coded the same way AddRoomDialog codes them;
     // the 3% tourism tax rides on ttCatCd, not on taxTyCd.
@@ -583,11 +586,11 @@ abstract final class HotelRoomRraService {
   /// Seeds the box on the way through, the way bar mode's settle does, so the
   /// rest of the tax stack sees the same endpoint.
   ///
-  /// On a phone the VSDC is not on this device, so [Ebm.remoteServerUrl] wins
+  /// On a phone or the web the VSDC is not on this device, so [Ebm.remoteServerUrl] wins
   /// where it is set — matching what `addVariant` does for every other product.
   static Future<String> _rraServerUrl(Ebm ebm) async {
     var fromEbm = ebm.taxServerUrl?.trim() ?? '';
-    if (isAndroid || isIos) {
+    if (vsdcIsRemote) {
       final remote = ebm.remoteServerUrl?.trim() ?? '';
       if (remote.isNotEmpty) fromEbm = remote;
     }

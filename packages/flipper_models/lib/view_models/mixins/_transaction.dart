@@ -591,7 +591,17 @@ mixin TransactionMixinOld {
     String? pdfFilename,
   }) async {
     final resolvedPdfFilename = pdfFilename ?? receiptPdfFilename(transaction);
-    if (Platform.isAndroid || Platform.isIOS) {
+    // A browser cannot list printers, so the picker below would only ever
+    // offer "Save as PDF". The browser's own print dialog does both.
+    if (kIsWeb) {
+      if (bytes == null) return;
+      await Printing.layoutPdf(
+        onLayout: (_) async => bytes,
+        name: resolvedPdfFilename,
+      );
+      return;
+    }
+    if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
       talker.info(
         '[receipt_presentation] no printer UI on iOS/Android — receipt not '
         'printed from this device',
@@ -976,7 +986,12 @@ mixin TransactionMixinOld {
   /// saved one is no longer attached — in which case the caller must say so
   /// rather than treat the receipt as delivered.
   Future<bool> _printOnSavedDefaultPrinter(Uint8List bytes) async {
-    if (Platform.isAndroid || Platform.isIOS) return false;
+    // A browser cannot enumerate printers; its print dialog needs no context.
+    if (kIsWeb) {
+      await Printing.layoutPdf(onLayout: (_) async => bytes);
+      return true;
+    }
+    if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) return false;
     if (await _printOnBuiltinPrinter(bytes, probeSerial: false)) return true;
     final savedPrinterName = ProxyService.box.readString(key: 'defaultPrinter');
     try {

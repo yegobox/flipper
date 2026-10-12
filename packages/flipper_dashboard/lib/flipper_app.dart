@@ -189,7 +189,8 @@ class FlipperApp extends HookConsumerWidget {
   }
 
   void _requestPermissions() {
-    if (!isWindows && !isMacOs && !isIos) {
+    // The browser has no storage permission to grant; web runs the POS too.
+    if (!kIsWeb && !isWindows && !isMacOs && !isIos) {
       [
         permission.Permission.storage,
         permission.Permission.notification,

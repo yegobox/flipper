@@ -1,6 +1,7 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/internet_probe.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_services/proxy.dart';
@@ -115,7 +116,12 @@ class StatusAppBarForWindowsAndWeb
       );
       vatEnabled = ebm?.vatEnabled == true;
       await ProxyService.box.writeBool(key: 'vatEnabled', value: vatEnabled);
-      final ebmUrl = ebm?.taxServerUrl;
+      // Probe the server this device actually signs against.
+      final ebmUrl = pickTaxServerUrl(
+        ebm?.taxServerUrl,
+        ebm?.remoteServerUrl,
+        useRemote: isWeb,
+      );
       if (ebmUrl != null && ebmUrl.isNotEmpty) {
         taxServerUrl = ebmUrl;
       }

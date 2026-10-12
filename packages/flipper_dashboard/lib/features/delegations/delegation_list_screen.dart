@@ -8,6 +8,7 @@ import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/isolateHandelr.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_models/brick/models/transaction_delegation.model.dart';
@@ -37,7 +38,8 @@ final delegationsProvider = StreamProvider.autoDispose<List<TransactionDelegatio
   }
 
   var deviceId = ProxyService.box.getThisDeviceId();
-  if (deviceId == null && !Platform.isAndroid && !Platform.isIOS) {
+  // The web never registers a desktop device record (no id to wait for).
+  if (deviceId == null && !kIsWeb && !Platform.isAndroid && !Platform.isIOS) {
     deviceId = await _waitForThisDeviceId();
     if (deviceId != null) {
       unawaited(ProxyService.cron.setupDelegationMonitoringIfNeeded());
