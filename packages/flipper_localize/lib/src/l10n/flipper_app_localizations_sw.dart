@@ -4146,6 +4146,9 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   String get shiftCashSales => 'Mauzo ya fedha taslimu';
 
   @override
+  String get shiftNonCashSales => 'Imelipwa kwa MoMo, kadi, benki au mkopo';
+
+  @override
   String get shiftExpectedCash => 'Fedha zinazotarajiwa';
 
   @override

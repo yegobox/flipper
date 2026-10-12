@@ -2799,6 +2799,7 @@
   "shiftSummary": "Muhtasari wa zamu",
   "shiftOpeningBalance": "Salio la kuanzia",
   "shiftCashSales": "Mauzo ya fedha taslimu",
+  "shiftNonCashSales": "Imelipwa kwa MoMo, kadi, benki au mkopo",
   "shiftExpectedCash": "Fedha zinazotarajiwa",
   "shiftCashReconciliation": "Ulinganisho wa fedha",
   "shiftCountCashHint": "Hesabu fedha zilizo kwenye droo kisha weka\nsalio la kufunga hapa chini.",

@@ -3706,6 +3706,7 @@
     "shiftSummary": "Shift Summary",
     "shiftOpeningBalance": "Opening Balance",
     "shiftCashSales": "Cash Sales",
+    "shiftNonCashSales": "Paid by MoMo, card, bank or credit",
     "shiftExpectedCash": "Expected Cash",
     "shiftCashReconciliation": "Cash Reconciliation",
     "shiftCountCashHint": "Count the physical cash in the drawer and enter the\nclosing balance below.",

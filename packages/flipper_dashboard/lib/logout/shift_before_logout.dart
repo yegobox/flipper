@@ -213,6 +213,7 @@ Future<bool> prepareSessionExitAfterShiftHandling({
           shiftId: currentShift.id,
           closingBalance: closingBalance,
           note: notes,
+          expectedCash: (map['expectedCash'] as num?)?.toDouble(),
         );
       } catch (e) {
         if (!context.mounted) return false;

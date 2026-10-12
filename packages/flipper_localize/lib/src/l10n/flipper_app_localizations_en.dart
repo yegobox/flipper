@@ -4122,6 +4122,9 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
   String get shiftCashSales => 'Cash Sales';
 
   @override
+  String get shiftNonCashSales => 'Paid by MoMo, card, bank or credit';
+
+  @override
   String get shiftExpectedCash => 'Expected Cash';
 
   @override

@@ -4163,6 +4163,10 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   String get shiftCashSales => 'Ibyagurishijwe mu mafaranga';
 
   @override
+  String get shiftNonCashSales =>
+      'Byishyuwe na MoMo, ikarita, banki cyangwa inguzanyo';
+
+  @override
   String get shiftExpectedCash => 'Amafaranga ateganyijwe';
 
   @override

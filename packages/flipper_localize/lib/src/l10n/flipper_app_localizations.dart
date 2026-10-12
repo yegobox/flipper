@@ -7223,6 +7223,12 @@ abstract class FlipperAppLocalizations {
   /// **'Cash Sales'**
   String get shiftCashSales;
 
+  /// No description provided for @shiftNonCashSales.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid by MoMo, card, bank or credit'**
+  String get shiftNonCashSales;
+
   /// No description provided for @shiftExpectedCash.
   ///
   /// In en, this message translates to:

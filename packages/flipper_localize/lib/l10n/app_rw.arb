@@ -2791,6 +2791,7 @@
   "shiftSummary": "Incamake y'igihe cy'akazi",
   "shiftOpeningBalance": "Amafaranga yo gutangiza",
   "shiftCashSales": "Ibyagurishijwe mu mafaranga",
+  "shiftNonCashSales": "Byishyuwe na MoMo, ikarita, banki cyangwa inguzanyo",
   "shiftExpectedCash": "Amafaranga ateganyijwe",
   "shiftCashReconciliation": "Kugenzura amafaranga",
   "shiftCountCashHint": "Bara amafaranga ari mu gasanduku hanyuma wandike\namafaranga yo gusoza hasi.",

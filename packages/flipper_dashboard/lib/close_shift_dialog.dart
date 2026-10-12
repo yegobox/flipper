@@ -6,7 +6,13 @@ import 'package:stacked_services/stacked_services.dart';
 import 'package:intl/intl.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_models/providers/shift_data_provider.dart';
+import 'package:flipper_dashboard/logout/end_of_shift_summary.dart';
 import 'package:flipper_services/proxy.dart';
+
+/// MoMo, card, bank and credit sales on the signed-in agent's open shift.
+final _openShiftNonCashTenderProvider = FutureProvider.autoDispose<double>(
+  (ref) => loadOpenShiftNonCashTender(),
+);
 
 class CloseShiftDialog extends StatefulHookConsumerWidget {
   final DialogRequest request;
@@ -32,6 +38,7 @@ class _CloseShiftDialogState extends ConsumerState<CloseShiftDialog>
   num _cashDifference = 0.0;
   num _openingBalance = 0;
   num _cashSales = 0;
+  num _nonCashSales = 0;
   num _expectedCash = 0;
   bool _isLoading = false;
   bool _hasError = false;
@@ -120,6 +127,7 @@ class _CloseShiftDialogState extends ConsumerState<CloseShiftDialog>
     final isSmallScreen = MediaQuery.of(context).size.width < 400;
 
     final shiftDataAsyncValue = ref.watch(shiftDataProvider);
+    final nonCashAsync = ref.watch(_openShiftNonCashTenderProvider);
 
     return FadeTransition(
       opacity: _fadeAnimation,
@@ -141,10 +149,16 @@ class _CloseShiftDialogState extends ConsumerState<CloseShiftDialog>
               key: _formKey,
               child: shiftDataAsyncValue.when(
                 data: (shiftData) {
-                  // Update state variables when data is available
+                  if (!nonCashAsync.hasValue && !nonCashAsync.hasError) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  // The shift's running totals count every sale; only cash
+                  // reaches the drawer. On a lookup error fall back to the
+                  // stored figures rather than block closing the shift.
+                  _nonCashSales = nonCashAsync.asData?.value ?? 0;
                   _openingBalance = shiftData.openingBalance;
-                  _cashSales = shiftData.cashSales;
-                  _expectedCash = shiftData.expectedCash;
+                  _cashSales = shiftData.cashSales - _nonCashSales;
+                  _expectedCash = shiftData.expectedCash - _nonCashSales;
                   _calculateCashDifference();
 
                   return Column(
@@ -369,6 +383,27 @@ class _CloseShiftDialogState extends ConsumerState<CloseShiftDialog>
                   isHighlighted: true,
                 ),
               ),
+              if (_nonCashSales > 0) ...[
+                Divider(
+                  height: 1,
+                  thickness: 1,
+                  color: colorScheme.outline.withValues(alpha: 0.10),
+                ),
+                Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: isSmallScreen ? 12 : 16,
+                    vertical: isSmallScreen ? 12 : 14,
+                  ),
+                  child: _buildSummaryRow(
+                    context,
+                    label: context.flipperL10n.shiftNonCashSales,
+                    value:
+                        '$currencySymbol  ${_formatCurrency(_nonCashSales, symbol: '')}',
+                    isSmallScreen: isSmallScreen,
+                    valueColor: colorScheme.onSurface.withValues(alpha: 0.7),
+                  ),
+                ),
+              ],
               Divider(
                 height: 1,
                 thickness: 1,
