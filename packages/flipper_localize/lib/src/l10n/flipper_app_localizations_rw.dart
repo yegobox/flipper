@@ -6320,6 +6320,14 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
       'Iri gurisha ryandikwa ku mwenda w\'umukiriya. Ongeraho umukiriya mbere yo kurangiza.';
 
   @override
+  String get mposBankExplanation =>
+      'Kwishyura binyuze kuri banki amafaranga yose. Banza wemeze ko amafaranga yageze mbere yo kurangiza.';
+
+  @override
+  String get mposCardExplanation =>
+      'Kwishyura ukoresheje ikarita amafaranga yose. Banza ukoreshe ikarita kuri POS yawe, hanyuma urangize igurisha.';
+
+  @override
   String mposPaymentLinesSplitHint(int count) {
     return 'Imirongo y\'ubwishyu $count · koresha kugabanya muri mudasobwa';
   }

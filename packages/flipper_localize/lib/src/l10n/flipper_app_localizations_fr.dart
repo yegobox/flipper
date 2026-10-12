@@ -6360,6 +6360,14 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
       'Cette vente est enregistrée sur le solde de crédit du client. Associez un client avant de terminer.';
 
   @override
+  String get mposBankExplanation =>
+      'Virement bancaire du montant total. Vérifiez que l\'argent est arrivé avant de terminer.';
+
+  @override
+  String get mposCardExplanation =>
+      'Paiement par carte du montant total. Passez la carte sur votre terminal de paiement, puis terminez la vente.';
+
+  @override
   String mposPaymentLinesSplitHint(int count) {
     return '$count lignes de paiement · utilisez le fractionnement en mode bureau';
   }

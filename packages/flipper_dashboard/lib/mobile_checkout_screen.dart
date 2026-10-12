@@ -673,6 +673,7 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
     final m = payments.first.method.toUpperCase();
     if (m.contains('MOMO') || m.contains('MOBILE')) return 'MoMo';
     if (m.contains('CARD')) return context.flipperL10n.paymentsTypeCard;
+    if (m.contains('BANK')) return context.flipperL10n.paymentsTypeBank;
     return context.flipperL10n.cash;
   }
 

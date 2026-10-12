@@ -6297,6 +6297,14 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
       'Mauzo haya yanarekodiwa kwenye salio la mkopo la mteja. Ambatisha mteja kabla ya kukamilisha.';
 
   @override
+  String get mposBankExplanation =>
+      'Uhamisho wa benki kwa kiasi chote. Thibitisha pesa zimefika kabla ya kukamilisha.';
+
+  @override
+  String get mposCardExplanation =>
+      'Malipo ya kadi kwa kiasi chote. Pitisha kadi kwenye mashine yako ya POS, kisha ukamilishe mauzo.';
+
+  @override
   String mposPaymentLinesSplitHint(int count) {
     return 'Mistari $count ya malipo · tumia kugawanya katika hali ya kompyuta';
   }

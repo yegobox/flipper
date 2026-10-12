@@ -6265,6 +6265,14 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
       'This sale is recorded on the customer\'s credit balance. Attach a customer before completing.';
 
   @override
+  String get mposBankExplanation =>
+      'Bank transfer for the full amount. Confirm the money has arrived before completing.';
+
+  @override
+  String get mposCardExplanation =>
+      'Card payment for the full amount. Run the card on your POS terminal, then complete the sale.';
+
+  @override
   String mposPaymentLinesSplitHint(int count) {
     return '$count payment lines · use split in desktop mode';
   }

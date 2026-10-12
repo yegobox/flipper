@@ -10811,6 +10811,18 @@ abstract class FlipperAppLocalizations {
   /// **'This sale is recorded on the customer\'s credit balance. Attach a customer before completing.'**
   String get mposCreditExplanation;
 
+  /// Explanation for bank transfer payments on mobile checkout
+  ///
+  /// In en, this message translates to:
+  /// **'Bank transfer for the full amount. Confirm the money has arrived before completing.'**
+  String get mposBankExplanation;
+
+  /// Explanation for card (POS terminal) payments on mobile checkout
+  ///
+  /// In en, this message translates to:
+  /// **'Card payment for the full amount. Run the card on your POS terminal, then complete the sale.'**
+  String get mposCardExplanation;
+
   /// Hint when several payment lines exist on mobile
   ///
   /// In en, this message translates to:

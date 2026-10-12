@@ -3389,6 +3389,8 @@
   "mposCashReceivedAmount": "Amafaranga yakiriwe mu ntoki",
   "mposCreditAmount": "Amafaranga y'inguzanyo · {amount}",
   "mposCreditExplanation": "Iri gurisha ryandikwa ku mwenda w'umukiriya. Ongeraho umukiriya mbere yo kurangiza.",
+  "mposBankExplanation": "Kwishyura binyuze kuri banki amafaranga yose. Banza wemeze ko amafaranga yageze mbere yo kurangiza.",
+  "mposCardExplanation": "Kwishyura ukoresheje ikarita amafaranga yose. Banza ukoreshe ikarita kuri POS yawe, hanyuma urangize igurisha.",
   "mposPaymentLinesSplitHint": "Imirongo y'ubwishyu {count} · koresha kugabanya muri mudasobwa",
   "mposTax": "Umusoro",
   "mposTotal": "Igiteranyo",

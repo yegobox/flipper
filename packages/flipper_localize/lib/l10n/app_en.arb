@@ -5445,6 +5445,14 @@
     "@mposCreditExplanation": {
         "description": "Explanation for credit payments"
     },
+    "mposBankExplanation": "Bank transfer for the full amount. Confirm the money has arrived before completing.",
+    "@mposBankExplanation": {
+        "description": "Explanation for bank transfer payments on mobile checkout"
+    },
+    "mposCardExplanation": "Card payment for the full amount. Run the card on your POS terminal, then complete the sale.",
+    "@mposCardExplanation": {
+        "description": "Explanation for card (POS terminal) payments on mobile checkout"
+    },
     "mposPaymentLinesSplitHint": "{count} payment lines · use split in desktop mode",
     "@mposPaymentLinesSplitHint": {
         "description": "Hint when several payment lines exist on mobile",
