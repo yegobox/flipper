@@ -23443,7 +23443,7 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
 
   @override
   String get webHomeHeroBody =>
-      'Flipper Books ni ibaruramari rigezweho ry\'ubucuruzi buri gukura. Buri igurisha rivuye kuri Flipper POS rihita ryandikwa mu gitabo cyawe — kandi Flow AI igashyira mu byiciro, igahuza, ikanamenyekanisha ibisigaye. Wowe ucunga ubucuruzi bwawe gusa.';
+      'Flipper OS icunga ubucuruzi bwose — kugurisha, ibaruramari, hoteli, akabari, igikoni n\'imishahara — mu gitabo kimwe. Buri igurisha rihita rijya muri Books, kandi Flow AI igashyira mu byiciro, igahuza konti kandi igatanga imenyekanisha. Wowe ucunga ubucuruzi bwawe gusa.';
 
   @override
   String get webHomeSeeHowItWorks => 'Reba uko bikora';
@@ -23723,7 +23723,7 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   String get webHomeCommunity => 'Umuryango';
 
   @override
-  String get webHomePoweredBy => 'Flipper Books · ikoresha';
+  String get webHomePoweredBy => 'Flipper OS · ikoresha';
 
   @override
   String get webHomeMostPopular => 'Ikunzwe cyane';
@@ -25831,4 +25831,80 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   @override
   String get hotelCheckOutWithoutRoomCharge =>
       'Sezerera nta giciro cy\'icyumba';
+
+  @override
+  String get webHomeSuiteTitleLead => 'Porogaramu eshatu. Igitabo kimwe.';
+
+  @override
+  String get webHomeSuiteTitleAccent => 'Nta kwandika kabiri.';
+
+  @override
+  String get webHomeCapTitleLead => 'Ibyo umucungamari akora byose —';
+
+  @override
+  String get webHomeCapTitleAccent => 'byubatswemo.';
+
+  @override
+  String get webHomePricingTitleLead => 'Ibiciro byoroshye.';
+
+  @override
+  String get webHomePricingTitleAccent => 'Nta gutungurwa.';
+
+  @override
+  String get webHomeCtaKicker => 'Gutangira ni ubuntu · Nta karita isabwa';
+
+  @override
+  String get webHomeCtaLead => 'Tangira';
+
+  @override
+  String get webHomeCtaAccent => 'kubara.';
+
+  @override
+  String get webHomeNativeKicker => 'Koresha porogaramu';
+
+  @override
+  String get webHomeNativeLead => 'Byihuta cyane. Nta murandasi.';
+
+  @override
+  String get webHomeNativeAccent => 'Koresha porogaramu.';
+
+  @override
+  String get webHomeNativeBody =>
+      'Urubuga ni rwiza mu kureba uko ibintu bimeze aho uri hose. Ku iduka, shyira Flipper kuri Android cyangwa Windows: irihuta cyane, ikomeza kugurisha nta murandasi, kandi ihuza amakuru ukimara kongera kubona murandasi.';
+
+  @override
+  String get webHomeNativePlay => 'Yikure kuri Google Play';
+
+  @override
+  String get webHomeNativeWindows => 'Yikure kuri Microsoft Store';
+
+  @override
+  String get webHomeHeroPosLead => 'Uburyo bwo kugurisha';
+
+  @override
+  String get webHomeHeroPosAccent => 'budahagarara.';
+
+  @override
+  String get webHomeHeroHotelLead => 'Gucunga hoteli';
+
+  @override
+  String get webHomeHeroHotelAccent => 'byikora.';
+
+  @override
+  String get webHomeHeroBarLead => 'Gucunga akabari';
+
+  @override
+  String get webHomeHeroBarAccent => 'bikurikirana buri konti.';
+
+  @override
+  String get webHomeHeroKitchenLead => 'Ekrani y\'igikoni';
+
+  @override
+  String get webHomeHeroKitchenAccent => 'yerekana ibyatumijwe byose.';
+
+  @override
+  String get webHomeHeroPayrollLead => 'Imishahara';
+
+  @override
+  String get webHomeHeroPayrollAccent => 'yishyurwa ku gihe.';
 }

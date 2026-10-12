@@ -4,9 +4,11 @@ import 'package:flipper_web/features/home/theme/books_home_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
-/// Flipper Books marketing home page (handoff v1).
+/// Flipper Books marketing home page: an editorial layout of paper, ink and
+/// hairlines (after getartcraft.com).
 class BooksHomePage extends ConsumerStatefulWidget {
   const BooksHomePage({super.key});
 
@@ -20,7 +22,14 @@ class _BooksHomePageState extends ConsumerState<BooksHomePage> {
   final GlobalKey _suiteKey = GlobalKey();
   final GlobalKey _flowKey = GlobalKey();
   final GlobalKey _capabilitiesKey = GlobalKey();
-  bool _headerScrolled = false;
+  String _active = 'OS';
+
+  late final Map<String, GlobalKey> _sections = {
+    'Platform': _suiteKey,
+    'Flow AI': _flowKey,
+    'Features': _capabilitiesKey,
+    'Pricing': _pricingKey,
+  };
 
   @override
   void initState() {
@@ -29,12 +38,22 @@ class _BooksHomePageState extends ConsumerState<BooksHomePage> {
   }
 
   void _onScroll() {
-    final scrolled = _scrollController.offset > 8;
-    if (scrolled != _headerScrolled) {
-      setState(() => _headerScrolled = scrolled);
-    }
+    final active = _sectionInView();
+    if (active != _active) setState(() => _active = active);
     // VisibilityDetector does not always re-fire inside CustomScrollView on web.
     VisibilityDetectorController.instance.notifyNow();
+  }
+
+  /// The last section whose top has passed just under the header.
+  String _sectionInView() {
+    var active = 'OS';
+    for (final MapEntry(:key, :value) in _sections.entries) {
+      final box = value.currentContext?.findRenderObject() as RenderBox?;
+      if (box == null || !box.attached) continue;
+      final top = box.localToGlobal(Offset.zero).dy;
+      if (top <= booksHomeHeaderHeight + 120) active = key;
+    }
+    return active;
   }
 
   @override
@@ -56,19 +75,15 @@ class _BooksHomePageState extends ConsumerState<BooksHomePage> {
   }
 
   void _onNavTap(String link) {
-    switch (link) {
-      case 'Pricing':
-        _scrollTo(_pricingKey);
-      case 'Platform':
-      case 'Suite':
-        _scrollTo(_suiteKey);
-      case 'Flow AI':
-      case 'Flow':
-        _scrollTo(_flowKey);
-      case 'Features':
-        _scrollTo(_capabilitiesKey);
-      default:
-        break;
+    final key = _sections[link];
+    if (key != null) {
+      _scrollTo(key);
+    } else {
+      _scrollController.animateTo(
+        0,
+        duration: const Duration(milliseconds: 700),
+        curve: AppCurves.reveal,
+      );
     }
   }
 
@@ -108,10 +123,10 @@ class _BooksHomePageState extends ConsumerState<BooksHomePage> {
                     surfaceTintColor: Colors.transparent,
                     shadowColor: Colors.transparent,
                     forceMaterialTransparency: true,
-                    toolbarHeight: 76,
+                    toolbarHeight: booksHomeHeaderHeight,
                     automaticallyImplyLeading: false,
                     flexibleSpace: BooksHomeHeader(
-                      scrolled: _headerScrolled,
+                      active: _active,
                       onStartFree: () => booksHomeGoSignup(context),
                       onSignIn: () => booksHomeGoLogin(context),
                       onNavTap: _onNavTap,
@@ -124,7 +139,7 @@ class _BooksHomePageState extends ConsumerState<BooksHomePage> {
                           onStartFree: () => booksHomeGoSignup(context),
                           onSecondary: () => _scrollTo(_suiteKey),
                         ),
-                        const BooksHomeTrustStrip(),
+                        const BooksHomeMarquee(),
                         KeyedSubtree(
                           key: _suiteKey,
                           child: const BooksHomeSuiteSection(),
@@ -142,9 +157,15 @@ class _BooksHomePageState extends ConsumerState<BooksHomePage> {
                           onStartFree: () => booksHomeGoSignup(context),
                           l10n: l10n,
                         ),
-                        BooksHomeBrandBand(
+                        BooksHomeNativeSection(
+                          onOpenStore: (uri) => launchUrl(
+                            uri,
+                            mode: LaunchMode.externalApplication,
+                          ),
+                        ),
+                        BooksHomeCta(
                           onStartFree: () => booksHomeGoSignup(context),
-                          onSignIn: () => booksHomeGoLogin(context),
+                          onTalkToSales: () => booksHomeGoLogin(context),
                         ),
                         const BooksHomeFooter(),
                       ],

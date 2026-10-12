@@ -23350,7 +23350,7 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
 
   @override
   String get webHomeHeroBody =>
-      'Flipper Books ni uhasibu wa kisasa kwa biashara zinazokua. Kila mauzo kutoka Flipper POS yanaingia moja kwa moja kwenye leja yako — na Flow AI hupanga, kusuluhisha na kuwasilisha yaliyobaki. Wewe unaendesha biashara yako tu.';
+      'Flipper OS inaendesha biashara nzima — mauzo, uhasibu, hoteli, baa, jikoni na mishahara — kwenye leja moja. Kila mauzo yanaingia moja kwa moja kwenye Books, na Flow AI inapanga, inasawazisha na kuwasilisha mengine. Wewe endesha biashara yako tu.';
 
   @override
   String get webHomeSeeHowItWorks => 'Tazama jinsi inavyofanya kazi';
@@ -23631,7 +23631,7 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   String get webHomeCommunity => 'Jumuiya';
 
   @override
-  String get webHomePoweredBy => 'Flipper Books · inaendeshwa na';
+  String get webHomePoweredBy => 'Flipper OS · inaendeshwa na';
 
   @override
   String get webHomeMostPopular => 'Maarufu zaidi';
@@ -25740,4 +25740,80 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
 
   @override
   String get hotelCheckOutWithoutRoomCharge => 'Ondoka bila gharama ya chumba';
+
+  @override
+  String get webHomeSuiteTitleLead => 'Programu tatu. Leja moja.';
+
+  @override
+  String get webHomeSuiteTitleAccent => 'Hakuna kuingiza mara mbili.';
+
+  @override
+  String get webHomeCapTitleLead => 'Kila anachofanya mhasibu —';
+
+  @override
+  String get webHomeCapTitleAccent => 'kimejengwa ndani.';
+
+  @override
+  String get webHomePricingTitleLead => 'Bei rahisi.';
+
+  @override
+  String get webHomePricingTitleAccent => 'Bila mshangao.';
+
+  @override
+  String get webHomeCtaKicker => 'Bure kuanza · Hakuna kadi inayohitajika';
+
+  @override
+  String get webHomeCtaLead => 'Anza';
+
+  @override
+  String get webHomeCtaAccent => 'kuhesabu.';
+
+  @override
+  String get webHomeNativeKicker => 'Tumia programu';
+
+  @override
+  String get webHomeNativeLead => 'Kasi kamili. Bila mtandao kabisa.';
+
+  @override
+  String get webHomeNativeAccent => 'Tumia programu.';
+
+  @override
+  String get webHomeNativeBody =>
+      'Wavuti ni nzuri kwa kufuatilia ukiwa popote. Kwenye kaunta, sakinisha Flipper kwenye Android au Windows: inafanya kazi kwa kasi kamili, inaendelea kuuza bila intaneti, na inasawazisha mara tu unaporudi mtandaoni.';
+
+  @override
+  String get webHomeNativePlay => 'Ipate kwenye Google Play';
+
+  @override
+  String get webHomeNativeWindows => 'Ipate kwenye Microsoft Store';
+
+  @override
+  String get webHomeHeroPosLead => 'Mfumo wa mauzo';
+
+  @override
+  String get webHomeHeroPosAccent => 'usiosimama.';
+
+  @override
+  String get webHomeHeroHotelLead => 'Usimamizi wa hoteli';
+
+  @override
+  String get webHomeHeroHotelAccent => 'unaojiendesha.';
+
+  @override
+  String get webHomeHeroBarLead => 'Usimamizi wa baa';
+
+  @override
+  String get webHomeHeroBarAccent => 'unaofuatilia kila bili.';
+
+  @override
+  String get webHomeHeroKitchenLead => 'Skrini ya jikoni';
+
+  @override
+  String get webHomeHeroKitchenAccent => 'inayotangaza kila oda.';
+
+  @override
+  String get webHomeHeroPayrollLead => 'Mishahara';
+
+  @override
+  String get webHomeHeroPayrollAccent => 'inayolipwa kwa wakati.';
 }

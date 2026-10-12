@@ -1,15 +1,11 @@
+import 'dart:async';
 import 'dart:math' as math;
-import 'dart:ui';
 
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_web/features/home/theme/books_home_theme.dart';
 import 'package:flipper_web/features/home/widgets/books_line_icon.dart';
-import 'package:flipper_web/widgets/flipper_logo.dart';
 import 'package:flutter/material.dart';
 import 'package:visibility_detector/visibility_detector.dart';
-
-/// Gates hero floats / band visuals (handoff `showDeviceMocks`, default true).
-bool booksHomeShowDeviceMocks = true;
 
 class BooksHomeSection extends StatelessWidget {
   const BooksHomeSection({super.key, required this.child, this.padding});
@@ -30,7 +26,7 @@ class BooksHomeSection extends StatelessWidget {
                   padding ??
                   EdgeInsets.symmetric(
                     horizontal: gutter,
-                    vertical: AppSpace.sectionY,
+                    vertical: AppSpace.sectionY / 2,
                   ),
               child: child,
             ),
@@ -41,158 +37,397 @@ class BooksHomeSection extends StatelessWidget {
   }
 }
 
-class FlipperMarkLogo extends StatelessWidget {
-  const FlipperMarkLogo({super.key, this.size = 30});
+/// Flipper's ring mark — the two rings of the mobile app's logo
+/// (`assets/icons/flipper-logo.svg`) — redrawn to sit with the wordmark:
+/// flat-cut ends like the letters' terminals, an outer ring as heavy as a
+/// letter stem, a clear channel to the inner ring, both open 60° (outer at
+/// the top left, inner at the top right) and coloured along their length.
+/// [progress] draws each ring in from its top end.
+class FlipperMark extends StatelessWidget {
+  const FlipperMark({super.key, this.size = 28, this.color, this.progress = 1});
+
+  final double size;
+
+  /// Flat colour instead of the gradient.
+  final Color? color;
+
+  /// 0 draws nothing, 1 the whole mark.
+  final double progress;
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomPaint(
+      size: Size.square(size),
+      painter: _FlipperMarkPainter(progress: progress, color: color),
+    );
+  }
+}
+
+class _FlipperMarkPainter extends CustomPainter {
+  _FlipperMarkPainter({required this.progress, this.color});
+
+  final double progress;
+  final Color? color;
+
+  // In a 48-unit box; angles in radians, clockwise from three o'clock.
+  static const _box = 48.0;
+  static const _centre = Offset(24, 24);
+  static const _top = -math.pi / 2;
+  static const _opening = math.pi / 3;
+
+  static const _outerR = 17.75;
+  static const _outerStroke = 8.5;
+  static const _innerR = 7.25;
+  static const _innerStroke = 6.0;
+
+  static const _cyan = Color(0xFF22D3EE);
+  static const _blue = Color(0xFF2563EB);
+  static const _indigo = Color(0xFF4F46E5);
+
+  /// The visible ring, outer edge to outer edge, as a share of the box.
+  static const visibleShare = 2 * (_outerR + _outerStroke / 2) / _box;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    canvas.scale(size.width / _box);
+
+    final outer = Curves.easeInOutCubic.transform(
+      (progress / 0.8).clamp(0.0, 1.0),
+    );
+    final inner = Curves.easeInOutCubic.transform(
+      ((progress - 0.3) / 0.7).clamp(0.0, 1.0),
+    );
+    const sweep = 2 * math.pi - _opening;
+
+    // Outer ring: from the top, clockwise, cyan into indigo. The gradient's
+    // seam sits in the ring's own opening, so the colour never jumps.
+    _ring(
+      canvas,
+      radius: _outerR,
+      stroke: _outerStroke,
+      sweep: sweep,
+      t: outer,
+      gradient: SweepGradient(
+        colors: const [_cyan, _blue, _indigo],
+        transform: GradientRotation(_top - _opening / 2),
+      ),
+    );
+    // Inner ring: from the top, anticlockwise, the same colours run the
+    // other way so it too starts cyan.
+    _ring(
+      canvas,
+      radius: _innerR,
+      stroke: _innerStroke,
+      sweep: -sweep,
+      t: inner,
+      gradient: SweepGradient(
+        colors: const [_indigo, _blue, _cyan],
+        transform: GradientRotation(_top + _opening / 2),
+      ),
+    );
+  }
+
+  void _ring(
+    Canvas canvas, {
+    required double radius,
+    required double stroke,
+    required double sweep,
+    required double t,
+    required Gradient gradient,
+  }) {
+    if (t <= 0) return;
+    final bounds = Rect.fromCircle(center: _centre, radius: radius);
+    final paint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = stroke
+      ..strokeCap = StrokeCap.butt;
+    if (color != null) {
+      paint.color = color!;
+    } else {
+      paint.shader = gradient.createShader(
+        Rect.fromCircle(center: _centre, radius: _box / 2),
+      );
+    }
+    canvas.drawArc(bounds, _top, sweep * t, false, paint);
+  }
+
+  @override
+  bool shouldRepaint(_FlipperMarkPainter old) =>
+      old.progress != progress || old.color != color;
+}
+
+/// The mark drawing itself in, over and over: the loading state.
+class FlipperMarkLoader extends StatefulWidget {
+  const FlipperMarkLoader({super.key, this.size = 56});
 
   final double size;
 
   @override
-  Widget build(BuildContext context) {
-    return FlipperLogo(size: size);
-  }
+  State<FlipperMarkLoader> createState() => _FlipperMarkLoaderState();
 }
 
-class BooksTag extends StatelessWidget {
-  const BooksTag({super.key});
+class _FlipperMarkLoaderState extends State<FlipperMarkLoader>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1600),
+  );
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (MediaQuery.disableAnimationsOf(context)) {
+      _controller.value = 1;
+    } else if (!_controller.isAnimating) {
+      _controller.repeat();
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(
-        color: AppColors.cyan.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(7),
-        border: Border.all(color: AppColors.cyan.withValues(alpha: 0.25)),
+    return AnimatedBuilder(
+      animation: _controller,
+      // Draw in over the first 70%, hold, start again.
+      builder: (context, _) => FlipperMark(
+        size: widget.size,
+        progress: (_controller.value / 0.7).clamp(0.0, 1.0),
       ),
-      child: Text(
-        'BOOKS',
-        style: AppText.small.copyWith(
-          fontSize: 11,
-          fontWeight: FontWeight.w700,
-          color: AppColors.cyan,
-          letterSpacing: 1.32,
+    );
+  }
+}
+
+/// The product name as a poster, with Flipper's mark as its first glyph —
+/// getartcraft.com's wordmark intro, on its timings.
+///
+/// The ring draws itself in alone at the centre. From 0.4s, over 0.85s, it
+/// glides to its slot (ease in-out) while the letters shoot out from behind
+/// it (ease out), clipped at its right edge so they never show beside it.
+/// Under reduced motion it starts formed.
+class UnfoldingWordmark extends StatefulWidget {
+  const UnfoldingWordmark({super.key, this.text = 'FLIPPER', this.color});
+
+  final String text;
+
+  /// Letter colour; the ring keeps its gradient.
+  final Color? color;
+
+  @override
+  State<UnfoldingWordmark> createState() => _UnfoldingWordmarkState();
+}
+
+class _UnfoldingWordmarkState extends State<UnfoldingWordmark>
+    with SingleTickerProviderStateMixin {
+  // Laid out at this size, then scaled to the available width.
+  static const _fontSize = 200.0;
+
+  // As Artcraft tunes theirs, in ems: cap height the ring matches, the gap
+  // after it, and how far the word starts tucked behind it.
+  static const _cap = 0.7;
+  static const _pad = 0.05;
+  static const _tuck = 0.12;
+
+  // Seconds.
+  static const _drawFor = 0.45;
+  static const _wordAt = 0.4;
+  static const _wordFor = 0.85;
+  static const _total = _wordAt + _wordFor;
+
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1250),
+  );
+  bool _started = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_started) return;
+    _started = true;
+    if (MediaQuery.disableAnimationsOf(context)) {
+      _controller.value = 1;
+    } else {
+      _controller.forward();
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final style = TextStyle(
+      fontFamily: 'Archivo Expanded',
+      fontFamilyFallback: const ['Archivo', 'Inter', 'sans-serif'],
+      fontSize: _fontSize,
+      fontWeight: FontWeight.w700,
+      height: 1,
+      letterSpacing: -0.01 * _fontSize,
+      color: widget.color ?? AppColors.ink,
+    );
+    final word = TextPainter(
+      text: TextSpan(text: widget.text, style: style),
+      textDirection: TextDirection.ltr,
+      textScaler: TextScaler.noScaling,
+    )..layout();
+    final baseline = word.computeDistanceToActualBaseline(
+      TextBaseline.alphabetic,
+    );
+
+    // The ring's box is bigger than the ring: size it so the visible ring is
+    // cap-high, and measure gaps from the visible edge.
+    final ring = _cap * _fontSize;
+    final box = ring / _FlipperMarkPainter.visibleShare;
+    final inset = (box - ring) / 2;
+    final markTop = baseline - ring / 2 - _cap * _fontSize / 2 - inset;
+    final lettersAt = box - inset + _pad * _fontSize;
+    final width = lettersAt + word.width;
+    final height = word.height;
+    final homeX = (width - box) / 2;
+
+    return Semantics(
+      label: widget.text,
+      child: ExcludeSemantics(
+        child: FittedBox(
+          fit: BoxFit.fitWidth,
+          child: SizedBox(
+            width: width,
+            height: height,
+            child: AnimatedBuilder(
+              animation: _controller,
+              builder: (context, _) {
+                final s = _controller.value * _total;
+                final draw = (s / _drawFor).clamp(0.0, 1.0);
+                final w = ((s - _wordAt) / _wordFor).clamp(0.0, 1.0);
+                final glide = Curves.easeInOutCubic.transform(w);
+                final out = Curves.easeOutCubic.transform(w);
+
+                final markX = homeX * (1 - glide);
+                // Start with the word's right end on the ring's (final)
+                // right edge, tucked a little further in.
+                final from =
+                    -(word.width + _pad * _fontSize + _tuck * _fontSize);
+                final lettersX = lettersAt + from * (1 - out);
+                final edge = markX + box - inset;
+                return Stack(
+                  children: [
+                    Positioned.fill(
+                      child: ClipRect(
+                        clipper: _RightOf(edge),
+                        child: Stack(
+                          children: [
+                            Positioned(
+                              left: lettersX,
+                              top: 0,
+                              child: Text(
+                                widget.text,
+                                style: style,
+                                maxLines: 1,
+                                softWrap: false,
+                                textScaler: TextScaler.noScaling,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      left: markX,
+                      top: markTop,
+                      child: FlipperMark(size: box, progress: draw),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
         ),
       ),
     );
   }
 }
 
+class _RightOf extends CustomClipper<Rect> {
+  const _RightOf(this.left);
+
+  final double left;
+
+  @override
+  Rect getClip(Size size) =>
+      Rect.fromLTRB(left.clamp(0, size.width), 0, size.width, size.height);
+
+  @override
+  bool shouldReclip(_RightOf oldClipper) => oldClipper.left != left;
+}
+
 class BooksWordmark extends StatelessWidget {
-  const BooksWordmark({super.key, this.logoSize = 30, this.compact = false});
+  const BooksWordmark({super.key, this.logoSize = 28, this.compact = false});
 
   final double logoSize;
   final bool compact;
 
   @override
   Widget build(BuildContext context) {
-    final labelRow = Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          'Flipper',
-          style: AppText.h3.copyWith(fontSize: 21, letterSpacing: -0.42),
-        ),
-        if (!compact) ...[const SizedBox(width: 8), const BooksTag()],
-      ],
-    );
-
     return FittedBox(
       fit: BoxFit.scaleDown,
       alignment: Alignment.centerLeft,
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          FlipperMarkLogo(size: logoSize),
-          const SizedBox(width: 11),
-          labelRow,
-        ],
-      ),
-    );
-  }
-}
-
-class HeroTopBadge extends StatelessWidget {
-  const HeroTopBadge({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(10, 6, 13, 6),
-      decoration: BoxDecoration(
-        color: AppColors.wash(0.03),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: AppColors.line2),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 7,
-            height: 7,
-            decoration: const BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: AppGrad.brand,
-            ),
+          FlipperMark(size: logoSize),
+          const SizedBox(width: 10),
+          Text(
+            'Flipper',
+            style: AppText.title(
+              21,
+            ).copyWith(fontWeight: FontWeight.w800, letterSpacing: -0.7),
           ),
-          const SizedBox(width: 8),
-          Text.rich(
-            TextSpan(
-              style: AppText.small.copyWith(
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-                color: AppColors.ink2,
+          if (!compact) ...[
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                border: Border.all(color: AppColors.lineStrong),
               ),
-              children: [
-                TextSpan(text: '${booksHomeL10n(context).webHomePoweredBy} '),
-                TextSpan(
-                  text: 'Flow AI',
-                  style: TextStyle(
-                    color: AppColors.ink0,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
+              child: Text(
+                'OS',
+                style: AppText.label(size: 10, c: AppColors.ink),
+              ),
             ),
-          ),
+          ],
         ],
       ),
     );
   }
 }
 
-class HeroCheckItem extends StatelessWidget {
-  const HeroCheckItem(this.label, {super.key});
+/// Rebuilds [builder] with whether a mouse is over it.
+class HoverBuilder extends StatefulWidget {
+  const HoverBuilder({super.key, required this.builder});
 
-  final String label;
+  final Widget Function(BuildContext context, bool hover) builder;
 
   @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        BooksLineIcon(BooksIcon.check, size: 15, color: AppColors.green),
-        const SizedBox(width: 7),
-        Text(
-          label,
-          style: AppText.small.copyWith(fontSize: 13, color: AppColors.ink3),
-        ),
-      ],
-    );
-  }
+  State<HoverBuilder> createState() => _HoverBuilderState();
 }
 
-class GradientText extends StatelessWidget {
-  const GradientText(this.text, {super.key, required this.style});
-
-  final String text;
-  final TextStyle style;
+class _HoverBuilderState extends State<HoverBuilder> {
+  bool _hover = false;
 
   @override
   Widget build(BuildContext context) {
-    return ShaderMask(
-      shaderCallback: (r) => AppGrad.brand.createShader(r),
-      blendMode: BlendMode.srcIn,
-      child: Text(text, style: style),
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hover = true),
+      onExit: (_) => setState(() => _hover = false),
+      child: widget.builder(context, _hover),
     );
   }
 }
@@ -207,13 +442,709 @@ class NavTextLink extends StatelessWidget {
   Widget build(BuildContext context) {
     return PressScale(
       onTap: onTap,
-      child: Text(
-        label,
-        style: AppText.small.copyWith(
-          fontSize: 14.5,
-          fontWeight: FontWeight.w500,
-          color: AppColors.ink2,
+      child: HoverBuilder(
+        builder: (context, hover) => Text(
+          label.toUpperCase(),
+          style: AppText.label(
+            size: 11.5,
+            c: hover ? AppColors.ink : AppColors.muted,
+          ),
         ),
+      ),
+    );
+  }
+}
+
+/// A headline in heavy sans with one serif-italic phrase:
+/// "Three apps. One ledger. *Zero double-entry.*"
+class EditorialHeadline extends StatelessWidget {
+  const EditorialHeadline({
+    super.key,
+    required this.lead,
+    required this.accent,
+    required this.size,
+    this.accentOnNewLine = false,
+    this.textAlign = TextAlign.start,
+    this.color,
+  });
+
+  final String lead;
+  final String accent;
+  final double size;
+  final bool accentOnNewLine;
+  final TextAlign textAlign;
+  final Color? color;
+
+  @override
+  Widget build(BuildContext context) {
+    final display = AppText.display(size, c: color);
+    return Text.rich(
+      TextSpan(
+        children: [
+          TextSpan(text: lead, style: display),
+          TextSpan(text: accentOnNewLine ? '\n' : ' ', style: display),
+          TextSpan(
+            text: accent,
+            style: AppText.accent(size, c: color),
+          ),
+        ],
+      ),
+      textAlign: textAlign,
+    );
+  }
+}
+
+/// An [EditorialHeadline] that flips through [lines] — everything the
+/// business OS runs — like a split-flap board: each line tips up and out as
+/// the next tips in from below. It reserves the tallest line's height, so
+/// nothing under it moves. Holds the first line under reduced motion.
+class RotatingHeadline extends StatefulWidget {
+  const RotatingHeadline({
+    super.key,
+    required this.lines,
+    required this.size,
+    this.textAlign = TextAlign.center,
+    this.hold = const Duration(milliseconds: 2600),
+  });
+
+  /// (lead, accent) pairs, each read as one sentence.
+  final List<(String, String)> lines;
+  final double size;
+  final TextAlign textAlign;
+
+  /// How long each line stays before the next flips in.
+  final Duration hold;
+
+  @override
+  State<RotatingHeadline> createState() => _RotatingHeadlineState();
+}
+
+class _RotatingHeadlineState extends State<RotatingHeadline> {
+  int _index = 0;
+  Timer? _timer;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (MediaQuery.disableAnimationsOf(context) || widget.lines.length < 2) {
+      _timer?.cancel();
+      _timer = null;
+      _index = 0;
+    } else {
+      _timer ??= Timer.periodic(widget.hold, (_) {
+        if (mounted) {
+          setState(() => _index = (_index + 1) % widget.lines.length);
+        }
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  Widget _line(int i) => EditorialHeadline(
+    lead: widget.lines[i].$1,
+    accent: widget.lines[i].$2,
+    size: widget.size,
+    textAlign: widget.textAlign,
+  );
+
+  Widget _flip(Widget child, Animation<double> animation) {
+    return AnimatedBuilder(
+      animation: animation,
+      child: child,
+      builder: (context, child) {
+        // In: forward from below. Out: AnimatedSwitcher reverses it, and we
+        // send it up instead of back down.
+        final out = animation.status == AnimationStatus.reverse;
+        final rest = 1 - animation.value;
+        final direction = out ? -1.0 : 1.0;
+        return Opacity(
+          opacity: animation.value.clamp(0.0, 1.0),
+          child: FractionalTranslation(
+            translation: Offset(0, 0.4 * rest * direction),
+            child: Transform(
+              alignment: Alignment.center,
+              transform: Matrix4.identity()
+                ..setEntry(3, 2, 0.0015)
+                ..rotateX(-direction * rest * math.pi / 2.2),
+              child: child,
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        // Every line, invisible, so the box is always the tallest one.
+        for (var i = 0; i < widget.lines.length; i++)
+          ExcludeSemantics(
+            child: Visibility(
+              visible: false,
+              maintainSize: true,
+              maintainAnimation: true,
+              maintainState: true,
+              child: _line(i),
+            ),
+          ),
+        Positioned.fill(
+          child: ClipRect(
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 700),
+              // Split-flap order: the old line is gone by 60% (the out curve
+              // runs in reverse), the new one lands from 30%.
+              switchInCurve: const Interval(0.3, 1, curve: Curves.easeOutCubic),
+              switchOutCurve: const Interval(0.4, 1, curve: Curves.easeInCubic),
+              transitionBuilder: _flip,
+              layoutBuilder: (current, previous) => Stack(
+                alignment: Alignment.center,
+                children: [...previous, ?current],
+              ),
+              child: KeyedSubtree(key: ValueKey(_index), child: _line(_index)),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// `01 / PLATFORM` over a full-width rule — the head of every section.
+class SectionIndex extends StatelessWidget {
+  const SectionIndex({
+    super.key,
+    required this.number,
+    required this.label,
+    this.trailing,
+  });
+
+  final String number;
+  final String label;
+  final String? trailing;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.only(top: 14),
+      decoration: BoxDecoration(
+        border: Border(top: BorderSide(color: AppColors.lineStrong)),
+      ),
+      child: Row(
+        children: [
+          Text(number, style: AppText.label(c: AppColors.ink)),
+          Text('  /  ', style: AppText.label(c: AppColors.faint)),
+          Expanded(
+            child: Text(
+              label.toUpperCase(),
+              style: AppText.label(),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          // Both halves expand so the trailing label sits on the right edge.
+          if (trailing != null)
+            Expanded(
+              child: Text(
+                trailing!.toUpperCase(),
+                style: AppText.label(c: AppColors.faint),
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.end,
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+/// A full-bleed `▪ item ▪ item` band that scrolls sideways forever.
+///
+/// It holds still when the platform asks for reduced motion, and only ticks
+/// while on screen.
+class MarqueeTicker extends StatefulWidget {
+  const MarqueeTicker({
+    super.key,
+    required this.items,
+    this.height = 68,
+    this.loop = const Duration(seconds: 40),
+  });
+
+  final List<String> items;
+  final double height;
+
+  /// Time for one full copy of [items] to pass.
+  final Duration loop;
+
+  @override
+  State<MarqueeTicker> createState() => _MarqueeTickerState();
+}
+
+class _MarqueeTickerState extends State<MarqueeTicker>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: widget.loop,
+  );
+  late final Key _detectorKey = UniqueKey();
+  bool _visible = false;
+  bool _still = true;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _still = MediaQuery.disableAnimationsOf(context);
+    _sync();
+  }
+
+  void _sync() {
+    final run = _visible && !_still;
+    if (run && !_controller.isAnimating) {
+      _controller.repeat();
+    } else if (!run && _controller.isAnimating) {
+      _controller.stop();
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  Widget _copy() => Row(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      for (final item in widget.items) ...[
+        Container(width: 8, height: 8, color: AppColors.accent),
+        const SizedBox(width: 18),
+        Text(
+          item,
+          style: AppText.title(22).copyWith(fontWeight: FontWeight.w600),
+          maxLines: 1,
+          softWrap: false,
+        ),
+        const SizedBox(width: 44),
+      ],
+    ],
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    // Three copies so a single copy narrower than the viewport still fills it
+    // while the first one slides out.
+    final runs = Flow(
+      delegate: _MarqueeDelegate(_controller),
+      children: [_copy(), _copy(), _copy()],
+    );
+
+    return Container(
+      height: widget.height,
+      decoration: BoxDecoration(
+        border: Border.symmetric(
+          horizontal: BorderSide(color: AppColors.lineStrong),
+        ),
+      ),
+      child: ClipRect(
+        child: _still
+            ? runs
+            : VisibilityDetector(
+                key: _detectorKey,
+                onVisibilityChanged: (info) {
+                  if (!mounted) return;
+                  _visible = info.visibleFraction > 0;
+                  _sync();
+                },
+                child: RepaintBoundary(child: runs),
+              ),
+      ),
+    );
+  }
+}
+
+class _MarqueeDelegate extends FlowDelegate {
+  _MarqueeDelegate(this.progress) : super(repaint: progress);
+
+  final Animation<double> progress;
+
+  @override
+  BoxConstraints getConstraintsForChild(int i, BoxConstraints constraints) =>
+      BoxConstraints(maxHeight: constraints.maxHeight);
+
+  @override
+  void paintChildren(FlowPaintingContext context) {
+    final width = context.getChildSize(0)?.width ?? 0;
+    if (width == 0) return;
+    final dx = -progress.value * width;
+    for (var i = 0; i < context.childCount; i++) {
+      final h = context.getChildSize(i)!.height;
+      context.paintChild(
+        i,
+        transform: Matrix4.translationValues(
+          dx + i * width,
+          (context.size.height - h) / 2,
+          0,
+        ),
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(_MarqueeDelegate oldDelegate) =>
+      oldDelegate.progress != progress;
+}
+
+/// Cells laid out in rows of [columns] that share their hairlines: the grid
+/// draws the outer top and left edge, each cell its own right and bottom, so
+/// no rule is ever doubled. Every cell in a row takes the tallest one's height.
+class RuledGrid extends StatelessWidget {
+  const RuledGrid({
+    super.key,
+    required this.columns,
+    required this.children,
+    this.color,
+  });
+
+  final int columns;
+  final List<Widget> children;
+  final Color? color;
+
+  @override
+  Widget build(BuildContext context) {
+    final side = BorderSide(color: color ?? AppColors.lineStrong);
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        border: Border(top: side, left: side),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          for (var start = 0; start < children.length; start += columns)
+            IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  for (var i = start; i < start + columns; i++)
+                    Expanded(
+                      child: DecoratedBox(
+                        // Foreground, so a filled cell cannot paint over it.
+                        position: DecorationPosition.foreground,
+                        decoration: BoxDecoration(
+                          border: Border(right: side, bottom: side),
+                        ),
+                        child: i < children.length
+                            ? children[i]
+                            : const SizedBox.shrink(),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+/// One numbered cell of a [RuledGrid]: a tag or icon top-left, its number
+/// top-right, then a title and body. Inverts on hover.
+class IndexCell extends StatelessWidget {
+  const IndexCell({
+    super.key,
+    required this.number,
+    required this.title,
+    required this.body,
+    this.tag,
+    this.icon,
+    this.subtitle,
+  });
+
+  final String number;
+  final String title;
+  final String body;
+  final String? tag;
+  final BooksIcon? icon;
+
+  /// A serif-italic line under [title].
+  final String? subtitle;
+
+  @override
+  Widget build(BuildContext context) {
+    return HoverBuilder(
+      builder: (context, hover) {
+        final fg = hover ? AppColors.invertFg : AppColors.ink;
+        final soft = hover
+            ? AppColors.invertFg.withValues(alpha: 0.7)
+            : AppColors.muted;
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 160),
+          color: hover ? AppColors.invertBg : AppColors.invertBg.withAlpha(0),
+          padding: const EdgeInsets.fromLTRB(26, 22, 26, 30),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  if (icon != null)
+                    BooksLineIcon(icon!, size: 18, color: soft)
+                  else if (tag != null)
+                    Flexible(
+                      child: Text(
+                        tag!.toUpperCase(),
+                        style: AppText.label(c: soft),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  const Spacer(),
+                  Text(number, style: AppText.label(c: soft)),
+                ],
+              ),
+              const SizedBox(height: 44),
+              Text(title, style: AppText.title(26, c: fg)),
+              if (subtitle != null) ...[
+                const SizedBox(height: 4),
+                Text(
+                  subtitle!,
+                  style: AppText.accent(20, c: soft).copyWith(height: 1.25),
+                ),
+              ],
+              const SizedBox(height: 14),
+              Text(
+                body,
+                style: AppText.body.copyWith(fontSize: 14.5, color: soft),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _ButtonLabel extends StatelessWidget {
+  const _ButtonLabel(this.label, {required this.color, required this.arrow});
+
+  final String label;
+  final Color color;
+  final bool arrow;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Flexible(
+          child: Text(
+            label,
+            style: AppText.button(c: color),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+        if (arrow) ...[
+          const SizedBox(width: 8),
+          Icon(Icons.arrow_outward_rounded, size: 18, color: color),
+        ],
+      ],
+    );
+  }
+}
+
+/// The primary button, as on the sign-in screens: the violet gradient, rounded,
+/// with its soft shadow. Lifts a little on hover.
+class InkButton extends StatelessWidget {
+  const InkButton({
+    super.key,
+    required this.label,
+    required this.onTap,
+    this.height = AppText.buttonHeight,
+    this.arrow = false,
+    this.onInverse = false,
+  });
+
+  final String label;
+
+  /// Null disables the button: it greys out and ignores taps.
+  final VoidCallback? onTap;
+  final double height;
+  final bool arrow;
+
+  /// Set when the button sits on a brand panel: a white button, blue label.
+  final bool onInverse;
+
+  @override
+  Widget build(BuildContext context) {
+    final radius = BorderRadius.circular(AppSpace.rButton);
+    final fg = onInverse ? AppColors.accentInk : AppGrad.onPanel;
+    final onTap = this.onTap;
+
+    Widget body(bool hover) => AnimatedContainer(
+      duration: const Duration(milliseconds: 150),
+      height: height,
+      padding: const EdgeInsets.symmetric(horizontal: 22),
+      transform: Matrix4.translationValues(0, hover ? -1 : 0, 0),
+      decoration: BoxDecoration(
+        gradient: onTap == null || onInverse ? null : AppGrad.button,
+        color: onTap == null
+            ? AppColors.lineStrong
+            : onInverse
+            ? AppGrad.onPanel
+            : null,
+        borderRadius: radius,
+        boxShadow: onTap == null || onInverse ? null : AppGrad.buttonShadow,
+      ),
+      // Sized to the label unless the parent forces a width.
+      child: Center(
+        widthFactor: 1,
+        child: _ButtonLabel(
+          label,
+          color: onTap == null ? AppColors.faint : fg,
+          arrow: arrow,
+        ),
+      ),
+    );
+
+    if (onTap == null) return body(false);
+    return PressScale(
+      onTap: onTap,
+      child: HoverBuilder(builder: (context, hover) => body(hover)),
+    );
+  }
+}
+
+/// The secondary button: hairline and rounded on the page, white-ruled on a
+/// brand panel. Fills faintly on hover.
+class LineButton extends StatelessWidget {
+  const LineButton({
+    super.key,
+    required this.label,
+    required this.onTap,
+    this.height = AppText.buttonHeight,
+    this.arrow = false,
+    this.onInverse = false,
+  });
+
+  final String label;
+  final VoidCallback onTap;
+  final double height;
+  final bool arrow;
+
+  /// Set when the button sits on a brand panel.
+  final bool onInverse;
+
+  @override
+  Widget build(BuildContext context) {
+    final fg = onInverse ? AppGrad.onPanel : AppColors.ink;
+    final rest = onInverse ? AppGrad.onPanelLine : AppColors.lineStrong;
+    final fill = onInverse
+        ? AppGrad.onPanel.withValues(alpha: 0.12)
+        : AppColors.bgRaised;
+    return PressScale(
+      onTap: onTap,
+      child: HoverBuilder(
+        builder: (context, hover) => AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          height: height,
+          padding: const EdgeInsets.symmetric(horizontal: 22),
+          decoration: BoxDecoration(
+            color: hover ? fill : fill.withAlpha(0),
+            borderRadius: BorderRadius.circular(AppSpace.rButton),
+            border: Border.all(color: hover && !onInverse ? fg : rest),
+          ),
+          child: Center(
+            widthFactor: 1,
+            child: _ButtonLabel(label, color: fg, arrow: arrow),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class MostPopularTag extends StatelessWidget {
+  const MostPopularTag({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+      decoration: BoxDecoration(
+        color: AppGrad.onPanel,
+        borderRadius: BorderRadius.circular(AppSpace.rPill),
+      ),
+      child: Text(
+        '★ ${booksHomeL10n(context).webHomeMostPopular.toUpperCase()}',
+        style: AppText.label(size: 10, c: AppColors.accentInk),
+      ),
+    );
+  }
+}
+
+/// 1px rules every 3px behind [child], like an old monitor.
+class ScanlineBackground extends StatelessWidget {
+  const ScanlineBackground({super.key, required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        Positioned.fill(
+          child: IgnorePointer(
+            child: RepaintBoundary(
+              child: CustomPaint(
+                painter: _ScanlinePainter(color: AppColors.scanline),
+              ),
+            ),
+          ),
+        ),
+        child,
+      ],
+    );
+  }
+}
+
+class _ScanlinePainter extends CustomPainter {
+  _ScanlinePainter({required this.color});
+
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()..color = color;
+    for (var y = 0.0; y < size.height; y += 3) {
+      canvas.drawRect(Rect.fromLTWH(0, y, size.width, 1), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _ScanlinePainter oldDelegate) =>
+      oldDelegate.color != color;
+}
+
+/// A word set as wide as its parent allows, for the hero backdrop and the
+/// footer.
+class GiantWord extends StatelessWidget {
+  const GiantWord(this.text, {super.key, this.color});
+
+  final String text;
+  final Color? color;
+
+  @override
+  Widget build(BuildContext context) {
+    return FittedBox(
+      fit: BoxFit.fitWidth,
+      child: Text(
+        text,
+        maxLines: 1,
+        softWrap: false,
+        style: AppText.display(200, c: color).copyWith(height: 0.82),
       ),
     );
   }
@@ -249,7 +1180,8 @@ class _RevealState extends State<Reveal> {
   }
 
   void _checkInitialVisibility() {
-    if (_shown || !mounted) return;
+    // Under reduced motion the child is shown as-is; nothing to schedule.
+    if (_shown || !mounted || MediaQuery.disableAnimationsOf(context)) return;
     final box = context.findRenderObject() as RenderBox?;
     if (box == null || !box.hasSize || box.size.height <= 0) return;
 
@@ -273,6 +1205,8 @@ class _RevealState extends State<Reveal> {
   Widget build(BuildContext context) {
     if (MediaQuery.disableAnimationsOf(context)) return widget.child;
 
+    // A fixed 14px rise, not a fraction of the child: a tall section would
+    // otherwise travel a long way.
     return VisibilityDetector(
       key: _detectorKey,
       onVisibilityChanged: (info) {
@@ -280,88 +1214,16 @@ class _RevealState extends State<Reveal> {
           _scheduleShow();
         }
       },
-      child: AnimatedSlide(
-        duration: const Duration(milliseconds: 700),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 600),
         curve: AppCurves.reveal,
-        offset: _shown ? Offset.zero : const Offset(0, 0.14),
+        transform: Matrix4.translationValues(0, _shown ? 0 : 14, 0),
         child: AnimatedOpacity(
-          duration: const Duration(milliseconds: 700),
+          duration: const Duration(milliseconds: 600),
           curve: AppCurves.reveal,
           opacity: _shown ? 1 : 0,
           child: widget.child,
         ),
-      ),
-    );
-  }
-}
-
-class Floaty extends StatefulWidget {
-  const Floaty({
-    super.key,
-    required this.child,
-    this.amplitude = 12,
-    this.period = const Duration(seconds: 5),
-    this.phase = 0,
-  });
-
-  final Widget child;
-  final double amplitude;
-  final Duration period;
-  final double phase;
-
-  @override
-  State<Floaty> createState() => _FloatyState();
-}
-
-class _FloatyState extends State<Floaty> with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-  bool _visible = false;
-  bool _disposed = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(vsync: this, duration: widget.period);
-  }
-
-  void _setVisible(bool visible) {
-    if (_disposed || !mounted) return;
-    if (_visible == visible) return;
-    _visible = visible;
-    if (visible) {
-      _controller.repeat(reverse: true);
-    } else {
-      _controller.stop();
-      _controller.value = 0;
-    }
-  }
-
-  @override
-  void dispose() {
-    _disposed = true;
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (MediaQuery.disableAnimationsOf(context)) return widget.child;
-
-    return VisibilityDetector(
-      key: Key('floaty_${widget.key ?? widget.child.runtimeType}'),
-      onVisibilityChanged: (info) => _setVisible(info.visibleFraction > 0.04),
-      child: AnimatedBuilder(
-        animation: _controller,
-        builder: (_, child) {
-          final t = Curves.easeInOut.transform(
-            (_controller.value + widget.phase) % 1.0,
-          );
-          return Transform.translate(
-            offset: Offset(0, -widget.amplitude * math.sin(t * math.pi)),
-            child: child,
-          );
-        },
-        child: widget.child,
       ),
     );
   }
@@ -403,676 +1265,6 @@ class _PressScaleState extends State<PressScale> {
             child: widget.child,
           ),
         ),
-      ),
-    );
-  }
-}
-
-class HoverLiftCard extends StatefulWidget {
-  const HoverLiftCard({
-    super.key,
-    required this.child,
-    this.padding = const EdgeInsets.all(26),
-    this.radius = AppSpace.rMd,
-    this.baseBorder,
-  });
-
-  final Widget child;
-  final EdgeInsetsGeometry padding;
-  final double radius;
-  final Color? baseBorder;
-
-  @override
-  State<HoverLiftCard> createState() => _HoverLiftCardState();
-}
-
-class _HoverLiftCardState extends State<HoverLiftCard> {
-  bool _hover = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return MouseRegion(
-      onEnter: (_) => setState(() => _hover = true),
-      onExit: (_) => setState(() => _hover = false),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        curve: Curves.ease,
-        transform: Matrix4.translationValues(0, _hover ? -3 : 0, 0),
-        padding: widget.padding,
-        decoration: BoxDecoration(
-          gradient: AppGrad.pricingCardFill,
-          borderRadius: BorderRadius.circular(widget.radius),
-          border: Border.all(
-            color: _hover
-                ? AppColors.line2
-                : (widget.baseBorder ?? AppColors.line),
-          ),
-          boxShadow: _hover ? AppShadow.card : null,
-        ),
-        child: widget.child,
-      ),
-    );
-  }
-}
-
-class GlassCard extends StatelessWidget {
-  const GlassCard({
-    super.key,
-    required this.child,
-    this.padding = const EdgeInsets.all(24),
-    this.width,
-    this.height,
-  });
-
-  final Widget child;
-  final EdgeInsetsGeometry padding;
-  final double? width;
-  final double? height;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: width,
-      height: height,
-      padding: padding,
-      decoration: BoxDecoration(
-        gradient: AppGrad.glassCard,
-        border: Border.all(color: AppColors.line2),
-        borderRadius: BorderRadius.circular(AppSpace.rLg),
-        boxShadow: AppShadow.card,
-      ),
-      child: child,
-    );
-  }
-}
-
-class PrimaryButton extends StatelessWidget {
-  const PrimaryButton({
-    super.key,
-    required this.label,
-    required this.onTap,
-    this.height = AppText.buttonHeightHero,
-    this.compact = false,
-    this.showArrow = false,
-  });
-
-  final String label;
-  final VoidCallback onTap;
-  final double height;
-  final bool compact;
-  final bool showArrow;
-
-  @override
-  Widget build(BuildContext context) {
-    final padX = compact ? AppText.buttonPadXSm : AppText.buttonPadX;
-    final fontSize = compact ? 14.5 : 15.5;
-
-    return PressScale(
-      onTap: onTap,
-      child: Container(
-        height: height,
-        padding: EdgeInsets.symmetric(horizontal: padX),
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          gradient: AppGrad.button,
-          borderRadius: BorderRadius.circular(999),
-          boxShadow: AppShadow.violetGlow,
-        ),
-        // CSS .btn-primary uses an inset top highlight (rgba(255,255,255,.28)),
-        // not a full outline. Flutter has no inset shadow, so approximate the
-        // 1px top sheen with a faint top-fading overlay.
-        foregroundDecoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(999),
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Colors.white.withValues(alpha: 0.28),
-              Colors.white.withValues(alpha: 0.0),
-            ],
-            stops: const [0.0, 0.06],
-          ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              label,
-              style: AppText.buttonLabel.copyWith(
-                fontSize: fontSize,
-                color: AppColors.onBrand,
-              ),
-            ),
-            if (showArrow) ...[
-              const SizedBox(width: 9),
-              BooksLineIcon(
-                BooksIcon.arrowRight,
-                size: compact ? 16 : 18,
-                color: AppColors.onBrand,
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class GhostButton extends StatelessWidget {
-  const GhostButton({
-    super.key,
-    required this.label,
-    required this.onTap,
-    this.height = AppText.buttonHeightHero,
-    this.compact = false,
-    this.showArrow = false,
-  });
-
-  final String label;
-  final VoidCallback onTap;
-  final double height;
-  final bool compact;
-  final bool showArrow;
-
-  @override
-  Widget build(BuildContext context) {
-    final padX = compact ? AppText.buttonPadXSm : AppText.buttonPadX;
-    final fontSize = compact ? 14.5 : 15.5;
-
-    return PressScale(
-      onTap: onTap,
-      child: Container(
-        height: height,
-        padding: EdgeInsets.symmetric(horizontal: padX),
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: AppColors.wash(0.02),
-          borderRadius: BorderRadius.circular(999),
-          border: Border.all(color: AppColors.line2),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              label,
-              style: AppText.buttonLabel.copyWith(
-                fontSize: fontSize,
-                color: AppColors.ink1,
-              ),
-            ),
-            if (showArrow) ...[
-              const SizedBox(width: 9),
-              BooksLineIcon(
-                BooksIcon.arrowRight,
-                size: compact ? 16 : 18,
-                color: AppColors.ink1,
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class WhiteButton extends StatelessWidget {
-  const WhiteButton({
-    super.key,
-    required this.label,
-    required this.onTap,
-    this.showArrow = false,
-  });
-
-  final String label;
-  final VoidCallback onTap;
-  final bool showArrow;
-
-  @override
-  Widget build(BuildContext context) {
-    return PressScale(
-      onTap: onTap,
-      child: Container(
-        height: AppText.buttonHeightHero,
-        padding: const EdgeInsets.symmetric(horizontal: AppText.buttonPadX),
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: AppColors.cardOnBrand,
-          borderRadius: BorderRadius.circular(999),
-          boxShadow: AppShadow.whiteCard,
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              label,
-              style: AppText.buttonLabel.copyWith(
-                fontSize: 15.5,
-                color: AppColors.whiteButtonText,
-              ),
-            ),
-            if (showArrow) ...[
-              const SizedBox(width: 9),
-              const BooksLineIcon(
-                BooksIcon.arrowRight,
-                size: 18,
-                color: AppColors.whiteButtonText,
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class OutlineWhiteButton extends StatelessWidget {
-  const OutlineWhiteButton({
-    super.key,
-    required this.label,
-    required this.onTap,
-  });
-
-  final String label;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return PressScale(
-      onTap: onTap,
-      child: Container(
-        height: AppText.buttonHeightHero,
-        padding: const EdgeInsets.symmetric(horizontal: AppText.buttonPadX),
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.04),
-          borderRadius: BorderRadius.circular(999),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.5)),
-        ),
-        child: Text(
-          label,
-          style: AppText.buttonLabel.copyWith(
-            fontSize: 15.5,
-            color: AppColors.onBrand,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class TrustChip extends StatelessWidget {
-  const TrustChip({
-    super.key,
-    required this.icon,
-    this.bold,
-    required this.label,
-  });
-
-  final BooksIcon icon;
-  final String? bold;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 11),
-      decoration: BoxDecoration(
-        color: AppColors.wash(0.02),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: AppColors.line),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          BooksLineIcon(icon, size: 17, color: AppColors.cyan),
-          const SizedBox(width: 9),
-          Text.rich(
-            TextSpan(
-              style: AppText.small.copyWith(
-                fontSize: 13.5,
-                color: AppColors.ink2,
-              ),
-              children: [
-                if (bold != null && bold!.isNotEmpty) ...[
-                  TextSpan(
-                    text: bold,
-                    style: TextStyle(
-                      color: AppColors.ink0,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const TextSpan(text: ' '),
-                ],
-                TextSpan(text: label),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class MostPopularTag extends StatelessWidget {
-  const MostPopularTag({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-      decoration: BoxDecoration(
-        color: AppColors.green,
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            '★',
-            style: TextStyle(fontSize: 11.5, color: AppColors.popularTagInk),
-          ),
-          const SizedBox(width: 4),
-          Text(
-            booksHomeL10n(context).webHomeMostPopular,
-            style: AppText.small.copyWith(
-              fontSize: 11.5,
-              fontWeight: FontWeight.w700,
-              color: AppColors.popularTagInk,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Centered section header — mirrors `.sec-head` from the handoff CSS:
-/// the whole block is capped at 680px (so the H2 wraps to balanced lines),
-/// the eyebrow→H2 gap is 16, the H2→body gap is 18, the body is 17px capped
-/// at 560px, and 56px of space follows before the section content.
-class SectionHead extends StatelessWidget {
-  const SectionHead({
-    super.key,
-    required this.eyebrow,
-    required this.title,
-    required this.body,
-  });
-
-  final String eyebrow;
-  final String title;
-  final String body;
-
-  @override
-  Widget build(BuildContext context) {
-    return ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 680),
-      child: Column(
-        children: [
-          EyebrowLabel(eyebrow),
-          const SizedBox(height: 16),
-          Text(
-            title,
-            style: AppText.h2(booksHomeH2SizeOf(context)),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 18),
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 560),
-            child: Text(
-              body,
-              style: AppText.lead.copyWith(fontSize: 17),
-              textAlign: TextAlign.center,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class EyebrowLabel extends StatelessWidget {
-  const EyebrowLabel(this.text, {super.key});
-
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: 6,
-          height: 6,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            gradient: AppGrad.brand,
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.blue.withValues(alpha: 0.8),
-                blurRadius: 12,
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(width: 9),
-        Text(
-          text.toUpperCase(),
-          style: AppText.eyebrow.copyWith(fontWeight: FontWeight.w600),
-        ),
-      ],
-    );
-  }
-}
-
-/// Hero section backdrop — 64px grid + three radial glows (handoff `.hero-bg`).
-class HeroBackground extends StatelessWidget {
-  const HeroBackground({super.key, required this.child});
-
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      clipBehavior: Clip.hardEdge,
-      children: [
-        Positioned(
-          top: -240,
-          left: 0,
-          right: 0,
-          child: Center(
-            child: IgnorePointer(
-              child: ImageFiltered(
-                imageFilter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-                child: Container(
-                  width: 1100,
-                  height: 700,
-                  decoration: BoxDecoration(
-                    gradient: RadialGradient(
-                      colors: [
-                        AppColors.glow(AppColors.blue, 0.30),
-                        Colors.transparent,
-                      ],
-                      stops: const [0, 0.7],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-        Positioned(
-          top: 60,
-          right: -180,
-          child: IgnorePointer(
-            child: Container(
-              width: 620,
-              height: 620,
-              decoration: BoxDecoration(
-                gradient: RadialGradient(
-                  colors: [
-                    AppColors.glow(AppColors.cyan, 0.20),
-                    Colors.transparent,
-                  ],
-                  stops: const [0, 0.7],
-                ),
-              ),
-            ),
-          ),
-        ),
-        Positioned(
-          bottom: -200,
-          left: -160,
-          child: IgnorePointer(
-            child: Container(
-              width: 560,
-              height: 560,
-              decoration: BoxDecoration(
-                gradient: RadialGradient(
-                  colors: [
-                    AppColors.glow(AppColors.violet, 0.18),
-                    Colors.transparent,
-                  ],
-                  stops: const [0, 0.7],
-                ),
-              ),
-            ),
-          ),
-        ),
-        Positioned.fill(
-          child: IgnorePointer(
-            child: ShaderMask(
-              shaderCallback: (rect) => RadialGradient(
-                center: const Alignment(0, -0.4),
-                radius: 0.85,
-                colors: const [Colors.black, Colors.transparent],
-                stops: const [0, 0.75],
-              ).createShader(rect),
-              blendMode: BlendMode.dstIn,
-              child: CustomPaint(
-                painter: _HeroGridPainter(color: AppColors.wash(0.035)),
-              ),
-            ),
-          ),
-        ),
-        child,
-      ],
-    );
-  }
-}
-
-class _HeroGridPainter extends CustomPainter {
-  _HeroGridPainter({required this.color});
-
-  final Color color;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..strokeWidth = 1;
-    for (var x = 0.0; x <= size.width; x += 64) {
-      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
-    }
-    for (var y = 0.0; y <= size.height; y += 64) {
-      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _HeroGridPainter oldDelegate) =>
-      oldDelegate.color != color;
-}
-
-class DashedOutlineContainer extends StatelessWidget {
-  const DashedOutlineContainer({
-    super.key,
-    required this.child,
-    this.radius = 999,
-    this.color,
-    this.padding,
-  });
-
-  final Widget child;
-  final double radius;
-  final Color? color;
-  final EdgeInsetsGeometry? padding;
-
-  @override
-  Widget build(BuildContext context) {
-    return CustomPaint(
-      painter: _DashedRRectPainter(
-        radius: radius,
-        color: color ?? AppColors.line2,
-      ),
-      child: Padding(padding: padding ?? EdgeInsets.zero, child: child),
-    );
-  }
-}
-
-class _DashedRRectPainter extends CustomPainter {
-  _DashedRRectPainter({required this.radius, required this.color});
-
-  final double radius;
-  final Color color;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1;
-    final rrect = RRect.fromRectAndRadius(
-      Offset.zero & size,
-      Radius.circular(radius),
-    );
-    final path = Path()..addRRect(rrect);
-    for (final metric in path.computeMetrics()) {
-      var distance = 0.0;
-      while (distance < metric.length) {
-        final end = (distance + 6).clamp(0.0, metric.length);
-        canvas.drawPath(metric.extractPath(distance, end), paint);
-        distance += 10;
-      }
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _DashedRRectPainter oldDelegate) =>
-      oldDelegate.color != color || oldDelegate.radius != radius;
-}
-
-class StickyHeaderShell extends StatelessWidget {
-  const StickyHeaderShell({
-    super.key,
-    required this.scrolled,
-    required this.child,
-  });
-
-  final bool scrolled;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return ClipRect(
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 220),
-        curve: Curves.ease,
-        decoration: BoxDecoration(
-          color: scrolled
-              ? AppColors.bg.withValues(alpha: 0.72)
-              : Colors.transparent,
-          border: Border(
-            bottom: BorderSide(
-              color: scrolled ? AppColors.line : Colors.transparent,
-            ),
-          ),
-        ),
-        child: scrolled
-            ? BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-                child: child,
-              )
-            : child,
       ),
     );
   }

@@ -12,10 +12,12 @@ flutter_launcher_icons:
   remove_alpha_channel_ios: true
   remove_alpha_ios: true
 
+  # Web uses the ring mark (favicon.svg / favicon.png / web/icons are also
+  # hand-checked: the maskable icons are the mark on white in the safe zone).
   web:
     generate: true
-    image_path: assets/accounting_logo_transparent.png
-    background_color: "#06080D"
+    image_path: assets/flipper_mark_1024.png
+    background_color: "#FFFFFF"
     theme_color: "#2563EB"
 
   macos:

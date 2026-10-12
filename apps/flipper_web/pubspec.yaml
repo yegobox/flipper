@@ -4,7 +4,7 @@ description: "A new Flutter project."
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
-version: 1.0.818+1734
+version: 1.0.828+1744
 
 
 environment:
@@ -122,13 +122,38 @@ flutter:
           weight: 600
         - asset: assets/fonts/GeistMono-700.ttf
           weight: 700
+    # Landing page display type. Archivo is cut to static weights from the
+    # Google Fonts variable file (wdth=100); both families are OFL, licences
+    # alongside in assets/fonts/.
+    - family: Archivo
+      fonts:
+        - asset: assets/fonts/Archivo-600.ttf
+          weight: 600
+        - asset: assets/fonts/Archivo-700.ttf
+          weight: 700
+        - asset: assets/fonts/Archivo-800.ttf
+          weight: 800
+    # The hero wordmark: Archivo at weight 750, 125% width (getartcraft.com's
+    # wordmark setting), cut from the same variable file.
+    - family: Archivo Expanded
+      fonts:
+        - asset: assets/fonts/ArchivoExpanded-750.ttf
+          weight: 700
+    - family: Instrument Serif
+      fonts:
+        - asset: assets/fonts/InstrumentSerif-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/InstrumentSerif-Italic.ttf
+          weight: 400
+          style: italic
 
 # Icons (favicon, web/icons/, Android mipmap, iOS AppIcon):
 #   dart run flutter_launcher_icons -f flutter_launcher_icons.yaml
 #
 # Splash (web/splash/img/, launch screens — also rewrites index.html splash CSS):
 #   dart run flutter_native_splash:create
-#   Then re-check web/index.html: centered 128px logo styles are hand-maintained.
+#   Native splashes only: the web splash in web/index.html is hand-written (the
+#   landing page's ring mark drawing itself in), so `web: false` below.
 
 flutter_native_splash:
   color: "#06080D"
@@ -140,7 +165,7 @@ flutter_native_splash:
     image: assets/accounting_logo_transparent.png
   android: true
   ios: true
-  web: true
+  web: false
   ios_content_mode: center
   android_gravity: center
   web_image_mode: contain

@@ -23191,7 +23191,7 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
 
   @override
   String get webHomeHeroBody =>
-      'Flipper Books is modern accounting for growing businesses. Every sale from Flipper POS posts straight to your ledger — and Flow AI categorizes, reconciles, and files the rest. You just run your business.';
+      'Flipper OS runs the whole business — point of sale, accounting, hotel, bar, kitchen and payroll — on one ledger. Every sale posts straight to Books, and Flow AI categorizes, reconciles and files the rest. You just run your business.';
 
   @override
   String get webHomeSeeHowItWorks => 'See how it works';
@@ -23470,7 +23470,7 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
   String get webHomeCommunity => 'Community';
 
   @override
-  String get webHomePoweredBy => 'Flipper Books · powered by';
+  String get webHomePoweredBy => 'Flipper OS · powered by';
 
   @override
   String get webHomeMostPopular => 'Most Popular';
@@ -25570,4 +25570,80 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
 
   @override
   String get hotelCheckOutWithoutRoomCharge => 'Check out without it';
+
+  @override
+  String get webHomeSuiteTitleLead => 'Three apps. One ledger.';
+
+  @override
+  String get webHomeSuiteTitleAccent => 'Zero double-entry.';
+
+  @override
+  String get webHomeCapTitleLead => 'Everything an accountant does —';
+
+  @override
+  String get webHomeCapTitleAccent => 'built in.';
+
+  @override
+  String get webHomePricingTitleLead => 'Simple pricing.';
+
+  @override
+  String get webHomePricingTitleAccent => 'No surprises.';
+
+  @override
+  String get webHomeCtaKicker => 'Free to start · No card required';
+
+  @override
+  String get webHomeCtaLead => 'Start';
+
+  @override
+  String get webHomeCtaAccent => 'counting.';
+
+  @override
+  String get webHomeNativeKicker => 'Go native';
+
+  @override
+  String get webHomeNativeLead => 'Full speed. Fully offline.';
+
+  @override
+  String get webHomeNativeAccent => 'Go native.';
+
+  @override
+  String get webHomeNativeBody =>
+      'The web is perfect for checking in from anywhere. At the counter, install Flipper on Android or Windows: it runs at full speed, keeps selling with no internet, and syncs the moment you are back online.';
+
+  @override
+  String get webHomeNativePlay => 'Get it on Google Play';
+
+  @override
+  String get webHomeNativeWindows => 'Get it from Microsoft';
+
+  @override
+  String get webHomeHeroPosLead => 'Point of sale that';
+
+  @override
+  String get webHomeHeroPosAccent => 'never stops.';
+
+  @override
+  String get webHomeHeroHotelLead => 'Hotel management that';
+
+  @override
+  String get webHomeHeroHotelAccent => 'runs itself.';
+
+  @override
+  String get webHomeHeroBarLead => 'Bar management that';
+
+  @override
+  String get webHomeHeroBarAccent => 'keeps every tab.';
+
+  @override
+  String get webHomeHeroKitchenLead => 'Kitchen display that';
+
+  @override
+  String get webHomeHeroKitchenAccent => 'calls every order.';
+
+  @override
+  String get webHomeHeroPayrollLead => 'Payroll that';
+
+  @override
+  String get webHomeHeroPayrollAccent => 'pays on time.';
 }

@@ -38744,7 +38744,7 @@ abstract class FlipperAppLocalizations {
   /// No description provided for @webHomeHeroBody.
   ///
   /// In en, this message translates to:
-  /// **'Flipper Books is modern accounting for growing businesses. Every sale from Flipper POS posts straight to your ledger — and Flow AI categorizes, reconciles, and files the rest. You just run your business.'**
+  /// **'Flipper OS runs the whole business — point of sale, accounting, hotel, bar, kitchen and payroll — on one ledger. Every sale posts straight to Books, and Flow AI categorizes, reconciles and files the rest. You just run your business.'**
   String get webHomeHeroBody;
 
   /// No description provided for @webHomeSeeHowItWorks.
@@ -39236,7 +39236,7 @@ abstract class FlipperAppLocalizations {
   /// No description provided for @webHomePoweredBy.
   ///
   /// In en, this message translates to:
-  /// **'Flipper Books · powered by'**
+  /// **'Flipper OS · powered by'**
   String get webHomePoweredBy;
 
   /// No description provided for @webHomeMostPopular.
@@ -42736,6 +42736,156 @@ abstract class FlipperAppLocalizations {
   /// In en, this message translates to:
   /// **'Check out without it'**
   String get hotelCheckOutWithoutRoomCharge;
+
+  /// Landing page platform headline, first (upright) part
+  ///
+  /// In en, this message translates to:
+  /// **'Three apps. One ledger.'**
+  String get webHomeSuiteTitleLead;
+
+  /// Landing page platform headline, italic accent part
+  ///
+  /// In en, this message translates to:
+  /// **'Zero double-entry.'**
+  String get webHomeSuiteTitleAccent;
+
+  /// Landing page capabilities headline, first part
+  ///
+  /// In en, this message translates to:
+  /// **'Everything an accountant does —'**
+  String get webHomeCapTitleLead;
+
+  /// Landing page capabilities headline, italic accent part
+  ///
+  /// In en, this message translates to:
+  /// **'built in.'**
+  String get webHomeCapTitleAccent;
+
+  /// Landing page pricing headline, first part
+  ///
+  /// In en, this message translates to:
+  /// **'Simple pricing.'**
+  String get webHomePricingTitleLead;
+
+  /// Landing page pricing headline, italic accent part
+  ///
+  /// In en, this message translates to:
+  /// **'No surprises.'**
+  String get webHomePricingTitleAccent;
+
+  /// Small label above the closing call to action
+  ///
+  /// In en, this message translates to:
+  /// **'Free to start · No card required'**
+  String get webHomeCtaKicker;
+
+  /// Closing call-to-action headline, first word
+  ///
+  /// In en, this message translates to:
+  /// **'Start'**
+  String get webHomeCtaLead;
+
+  /// Closing call-to-action headline, italic accent
+  ///
+  /// In en, this message translates to:
+  /// **'counting.'**
+  String get webHomeCtaAccent;
+
+  /// Label of the landing page section that points to the native apps
+  ///
+  /// In en, this message translates to:
+  /// **'Go native'**
+  String get webHomeNativeKicker;
+
+  /// Native apps headline, first (upright) part
+  ///
+  /// In en, this message translates to:
+  /// **'Full speed. Fully offline.'**
+  String get webHomeNativeLead;
+
+  /// Native apps headline, italic accent part
+  ///
+  /// In en, this message translates to:
+  /// **'Go native.'**
+  String get webHomeNativeAccent;
+
+  /// Why install the native app instead of using the web
+  ///
+  /// In en, this message translates to:
+  /// **'The web is perfect for checking in from anywhere. At the counter, install Flipper on Android or Windows: it runs at full speed, keeps selling with no internet, and syncs the moment you are back online.'**
+  String get webHomeNativeBody;
+
+  /// Button to the Google Play listing
+  ///
+  /// In en, this message translates to:
+  /// **'Get it on Google Play'**
+  String get webHomeNativePlay;
+
+  /// Button to the Microsoft Store listing
+  ///
+  /// In en, this message translates to:
+  /// **'Get it from Microsoft'**
+  String get webHomeNativeWindows;
+
+  /// Rotating landing headline (Pos): upright lead; reads as one sentence with its pair
+  ///
+  /// In en, this message translates to:
+  /// **'Point of sale that'**
+  String get webHomeHeroPosLead;
+
+  /// Rotating landing headline (Pos): italic accent; reads as one sentence with its pair
+  ///
+  /// In en, this message translates to:
+  /// **'never stops.'**
+  String get webHomeHeroPosAccent;
+
+  /// Rotating landing headline (Hotel): upright lead; reads as one sentence with its pair
+  ///
+  /// In en, this message translates to:
+  /// **'Hotel management that'**
+  String get webHomeHeroHotelLead;
+
+  /// Rotating landing headline (Hotel): italic accent; reads as one sentence with its pair
+  ///
+  /// In en, this message translates to:
+  /// **'runs itself.'**
+  String get webHomeHeroHotelAccent;
+
+  /// Rotating landing headline (Bar): upright lead; reads as one sentence with its pair
+  ///
+  /// In en, this message translates to:
+  /// **'Bar management that'**
+  String get webHomeHeroBarLead;
+
+  /// Rotating landing headline (Bar): italic accent; reads as one sentence with its pair
+  ///
+  /// In en, this message translates to:
+  /// **'keeps every tab.'**
+  String get webHomeHeroBarAccent;
+
+  /// Rotating landing headline (Kitchen): upright lead; reads as one sentence with its pair
+  ///
+  /// In en, this message translates to:
+  /// **'Kitchen display that'**
+  String get webHomeHeroKitchenLead;
+
+  /// Rotating landing headline (Kitchen): italic accent; reads as one sentence with its pair
+  ///
+  /// In en, this message translates to:
+  /// **'calls every order.'**
+  String get webHomeHeroKitchenAccent;
+
+  /// Rotating landing headline (Payroll): upright lead; reads as one sentence with its pair
+  ///
+  /// In en, this message translates to:
+  /// **'Payroll that'**
+  String get webHomeHeroPayrollLead;
+
+  /// Rotating landing headline (Payroll): italic accent; reads as one sentence with its pair
+  ///
+  /// In en, this message translates to:
+  /// **'pays on time.'**
+  String get webHomeHeroPayrollAccent;
 }
 
 class _FlipperAppLocalizationsDelegate

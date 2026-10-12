@@ -25,7 +25,7 @@
     the only things search engines and AI crawlers can read. Keep them in sync
     with the marketing copy on yegobox.com (yegobox.company/src/lib/site.ts).
   -->
-  <title>Flipper — sign up for Flipper POS, Books and HR | Yegobox</title>
+  <title>Flipper OS — the business OS: POS, Books, hotel, bar and HR | Yegobox</title>
   <meta name="description" content="Create your Flipper account: offline-first point of sale with inventory, accounting (Flipper Books) and HR, sharing one login on iOS, Android, Windows, macOS, Linux and the web. Tax-compliant receipts, mobile money and card payments. From RWF 5,000 a month.">
   <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large">
   <link rel="canonical" href="https://useflipper.com/">
@@ -34,11 +34,11 @@
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Flipper by Yegobox">
   <meta property="og:url" content="https://useflipper.com/">
-  <meta property="og:title" content="Flipper — sign up for Flipper POS, Books and HR">
+  <meta property="og:title" content="Flipper OS — the business OS: POS, Books, hotel, bar and HR">
   <meta property="og:description" content="Offline-first point of sale, inventory, accounting and HR in one account, on every device.">
   <meta property="og:image" content="https://yegobox.com/opengraph-image">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Flipper — sign up for Flipper POS, Books and HR">
+  <meta name="twitter:title" content="Flipper OS — the business OS: POS, Books, hotel, bar and HR">
   <meta name="twitter:description" content="Offline-first point of sale, inventory, accounting and HR in one account, on every device.">
 
   <script type="application/ld+json">
@@ -59,10 +59,12 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="apple-mobile-web-app-title" content="Flipper">
-  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+  <!-- iOS fills transparency with black: use the white-backed icon. -->
+  <link rel="apple-touch-icon" href="icons/Icon-maskable-192.png">
 
   <!-- Favicon -->
-  <link rel="icon" type="image/png" href="favicon.png">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon.png">
 
   <link rel="manifest" href="manifest.json">
 
@@ -90,6 +92,10 @@
   
   <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport">
   <style id="splash-screen-style">
+    /* Hand-written: flutter_native_splash is set to web: false so it cannot
+       overwrite this. The landing page's ring mark (assets/icons/
+       flipper-logo.svg, redrawn as FlipperMark paints it) draws itself in on
+       the page's white, then Flutter's hero carries on with the same mark. */
     html {
       height: 100%;
     }
@@ -97,7 +103,7 @@
     body {
       margin: 0;
       min-height: 100%;
-      background-color: #06080d;
+      background-color: #ffffff;
     }
 
     #splash {
@@ -108,73 +114,52 @@
       align-items: center;
       justify-content: center;
       margin: 0;
-      background-color: #06080d;
+      background-color: #ffffff;
     }
 
-    #splash img {
-      display: block;
-      width: 128px;
-      height: 128px;
-      max-width: min(128px, 36vw);
-      max-height: min(128px, 36vh);
-      object-fit: contain;
+    #splash svg {
+      width: 96px;
+      height: 96px;
+      max-width: 28vw;
+      max-height: 28vh;
     }
 
-    .center {
-      margin: 0;
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      -ms-transform: translate(-50%, -50%);
-      transform: translate(-50%, -50%);
+    #splash path {
+      fill: none;
+      stroke: url(#splash-ring);
+      stroke-linecap: butt;
+      stroke-dasharray: 1;
+      stroke-dashoffset: 1;
+      opacity: 0;
+      animation: splash-draw 0.7s cubic-bezier(0.65, 0, 0.35, 1) forwards;
     }
 
-    .contain {
-      display: block;
-      width: 128px;
-      height: 128px;
-      max-width: min(128px, 36vw);
-      max-height: min(128px, 36vh);
-      object-fit: contain;
+    #splash .inner {
+      animation-delay: 0.25s;
     }
 
-    .stretch {
-      display: block;
-      width: 128px;
-      height: 128px;
-      object-fit: contain;
+    @keyframes splash-draw {
+      1% {
+        opacity: 1;
+      }
+      to {
+        opacity: 1;
+        stroke-dashoffset: 0;
+      }
     }
 
-    .cover {
-      display: block;
-      width: 128px;
-      height: 128px;
-      object-fit: contain;
-    }
-
-    .bottom {
-      position: absolute;
-      bottom: 0;
-      left: 50%;
-      -ms-transform: translate(-50%, 0);
-      transform: translate(-50%, 0);
-    }
-
-    .bottomLeft {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-    }
-
-    .bottomRight {
-      position: absolute;
-      bottom: 0;
-      right: 0;
+    @media (prefers-reduced-motion: reduce) {
+      #splash path {
+        animation: none;
+        opacity: 1;
+        stroke-dashoffset: 0;
+      }
     }
 
     @media (prefers-color-scheme: dark) {
-      body {
-        background-color: #06080d;
+      body,
+      #splash {
+        background-color: #0b1220;
       }
     }
   </style>
@@ -182,16 +167,24 @@
     function removeSplashFromWeb() {
       document.getElementById("splash")?.remove();
       document.getElementById("splash-branding")?.remove();
-      document.body.style.background = "#06080d";
+      document.body.style.background = "";
     }
   </script>
 </head>
 <body>
-  <picture id="splash">
-      <source srcset="splash/img/light-1x.png 1x, splash/img/light-2x.png 2x, splash/img/light-3x.png 3x, splash/img/light-4x.png 4x" media="(prefers-color-scheme: light)">
-      <source srcset="splash/img/dark-1x.png 1x, splash/img/dark-2x.png 2x, splash/img/dark-3x.png 3x, splash/img/dark-4x.png 4x" media="(prefers-color-scheme: dark)">
-      <img class="contain" aria-hidden="true" src="splash/img/light-1x.png" alt="">
-  </picture>
+  <div id="splash" aria-hidden="true">
+    <svg viewBox="0 0 48 48">
+      <defs>
+        <linearGradient id="splash-ring" x1="6" y1="8" x2="42" y2="40" gradientUnits="userSpaceOnUse">
+          <stop stop-color="#22D3EE"></stop>
+          <stop offset="0.5" stop-color="#2563EB"></stop>
+          <stop offset="1" stop-color="#4F46E5"></stop>
+        </linearGradient>
+      </defs>
+      <path class="inner" d="M24 16.75A7.25 7.25 0 1 0 30.279 20.375" stroke-width="6" pathLength="1"></path>
+      <path class="outer" d="M24 6.25A17.75 17.75 0 1 1 8.628 15.125" stroke-width="8.5" pathLength="1"></path>
+    </svg>
+  </div>
   
   <!-- Readable fallback for crawlers and browsers without JavaScript. -->
   <noscript>

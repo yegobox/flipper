@@ -18025,7 +18025,7 @@
     "webHomeHeroLine1": "Accounting",
     "webHomeHeroLine2Lead": "that",
     "webHomeHeroLine2Accent": "does itself.",
-    "webHomeHeroBody": "Flipper Books is modern accounting for growing businesses. Every sale from Flipper POS posts straight to your ledger — and Flow AI categorizes, reconciles, and files the rest. You just run your business.",
+    "webHomeHeroBody": "Flipper OS runs the whole business — point of sale, accounting, hotel, bar, kitchen and payroll — on one ledger. Every sale posts straight to Books, and Flow AI categorizes, reconciles and files the rest. You just run your business.",
     "webHomeSeeHowItWorks": "See how it works",
     "webHomeCheckEbmReady": "RRA / EBM-ready",
     "webHomeCheckOffline": "Works offline",
@@ -18114,7 +18114,7 @@
     "webHomeDownload": "Download",
     "webHomeStatus": "Status",
     "webHomeCommunity": "Community",
-    "webHomePoweredBy": "Flipper Books · powered by",
+    "webHomePoweredBy": "Flipper OS · powered by",
     "webHomeMostPopular": "Most Popular",
     "webHomeSwitchToLight": "Switch to light mode",
     "webHomeSwitchToDark": "Switch to dark mode",
@@ -19128,5 +19128,105 @@
     "hotelNoRoomChargeBody": "Post {nights} at {rate} ({amount}) before checking out? Without it, this stay is not recorded as a sale.",
     "@hotelNoRoomChargeBody": {"placeholders": {"nights": {"type": "String"}, "rate": {"type": "String"}, "amount": {"type": "String"}}},
     "hotelPostAndContinue": "Post & continue",
-    "hotelCheckOutWithoutRoomCharge": "Check out without it"
+    "hotelCheckOutWithoutRoomCharge": "Check out without it",
+    "webHomeSuiteTitleLead": "Three apps. One ledger.",
+    "@webHomeSuiteTitleLead": {
+        "description": "Landing page platform headline, first (upright) part"
+    },
+    "webHomeSuiteTitleAccent": "Zero double-entry.",
+    "@webHomeSuiteTitleAccent": {
+        "description": "Landing page platform headline, italic accent part"
+    },
+    "webHomeCapTitleLead": "Everything an accountant does —",
+    "@webHomeCapTitleLead": {
+        "description": "Landing page capabilities headline, first part"
+    },
+    "webHomeCapTitleAccent": "built in.",
+    "@webHomeCapTitleAccent": {
+        "description": "Landing page capabilities headline, italic accent part"
+    },
+    "webHomePricingTitleLead": "Simple pricing.",
+    "@webHomePricingTitleLead": {
+        "description": "Landing page pricing headline, first part"
+    },
+    "webHomePricingTitleAccent": "No surprises.",
+    "@webHomePricingTitleAccent": {
+        "description": "Landing page pricing headline, italic accent part"
+    },
+    "webHomeCtaKicker": "Free to start · No card required",
+    "@webHomeCtaKicker": {
+        "description": "Small label above the closing call to action"
+    },
+    "webHomeCtaLead": "Start",
+    "@webHomeCtaLead": {
+        "description": "Closing call-to-action headline, first word"
+    },
+    "webHomeCtaAccent": "counting.",
+    "@webHomeCtaAccent": {
+        "description": "Closing call-to-action headline, italic accent"
+    },
+    "webHomeNativeKicker": "Go native",
+    "@webHomeNativeKicker": {
+        "description": "Label of the landing page section that points to the native apps"
+    },
+    "webHomeNativeLead": "Full speed. Fully offline.",
+    "@webHomeNativeLead": {
+        "description": "Native apps headline, first (upright) part"
+    },
+    "webHomeNativeAccent": "Go native.",
+    "@webHomeNativeAccent": {
+        "description": "Native apps headline, italic accent part"
+    },
+    "webHomeNativeBody": "The web is perfect for checking in from anywhere. At the counter, install Flipper on Android or Windows: it runs at full speed, keeps selling with no internet, and syncs the moment you are back online.",
+    "@webHomeNativeBody": {
+        "description": "Why install the native app instead of using the web"
+    },
+    "webHomeNativePlay": "Get it on Google Play",
+    "@webHomeNativePlay": {
+        "description": "Button to the Google Play listing"
+    },
+    "webHomeNativeWindows": "Get it from Microsoft",
+    "@webHomeNativeWindows": {
+        "description": "Button to the Microsoft Store listing"
+    },
+    "webHomeHeroPosLead": "Point of sale that",
+    "@webHomeHeroPosLead": {
+        "description": "Rotating landing headline (Pos): upright lead; reads as one sentence with its pair"
+    },
+    "webHomeHeroPosAccent": "never stops.",
+    "@webHomeHeroPosAccent": {
+        "description": "Rotating landing headline (Pos): italic accent; reads as one sentence with its pair"
+    },
+    "webHomeHeroHotelLead": "Hotel management that",
+    "@webHomeHeroHotelLead": {
+        "description": "Rotating landing headline (Hotel): upright lead; reads as one sentence with its pair"
+    },
+    "webHomeHeroHotelAccent": "runs itself.",
+    "@webHomeHeroHotelAccent": {
+        "description": "Rotating landing headline (Hotel): italic accent; reads as one sentence with its pair"
+    },
+    "webHomeHeroBarLead": "Bar management that",
+    "@webHomeHeroBarLead": {
+        "description": "Rotating landing headline (Bar): upright lead; reads as one sentence with its pair"
+    },
+    "webHomeHeroBarAccent": "keeps every tab.",
+    "@webHomeHeroBarAccent": {
+        "description": "Rotating landing headline (Bar): italic accent; reads as one sentence with its pair"
+    },
+    "webHomeHeroKitchenLead": "Kitchen display that",
+    "@webHomeHeroKitchenLead": {
+        "description": "Rotating landing headline (Kitchen): upright lead; reads as one sentence with its pair"
+    },
+    "webHomeHeroKitchenAccent": "calls every order.",
+    "@webHomeHeroKitchenAccent": {
+        "description": "Rotating landing headline (Kitchen): italic accent; reads as one sentence with its pair"
+    },
+    "webHomeHeroPayrollLead": "Payroll that",
+    "@webHomeHeroPayrollLead": {
+        "description": "Rotating landing headline (Payroll): upright lead; reads as one sentence with its pair"
+    },
+    "webHomeHeroPayrollAccent": "pays on time.",
+    "@webHomeHeroPayrollAccent": {
+        "description": "Rotating landing headline (Payroll): italic accent; reads as one sentence with its pair"
+    }
 }
