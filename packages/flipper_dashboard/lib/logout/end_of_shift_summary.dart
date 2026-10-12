@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:flipper_dashboard/export/export_report_transactions.dart';
 import 'package:flipper_localize/flipper_localize.dart';
@@ -93,6 +95,26 @@ bool _isDrawerCashMethod(String? method) {
   return (mobile: mobile, other: other);
 }
 
+const _paymentRecordChunkSize = 800;
+
+/// Payment rows for a shift's sales: every recorded payment row, plus one row
+/// at the headline payment type for each sale that has no payment record yet,
+/// so an unrecorded card or bank sale is never counted as drawer cash.
+@visibleForTesting
+List<({String? method, double amount})> tenderRowsWithHeadlineFallback({
+  required List<({String transactionId, String? method, double amount})>
+  recordRows,
+  required List<({String id, String? paymentType, double amount})> sales,
+}) {
+  final recorded = {for (final row in recordRows) row.transactionId};
+  return [
+    for (final row in recordRows) (method: row.method, amount: row.amount),
+    for (final sale in sales)
+      if (!recorded.contains(sale.id))
+        (method: sale.paymentType, amount: sale.amount),
+  ];
+}
+
 Future<({double mobile, double other})> _sumNonCashTender({
   required List<ITransaction> sales,
   required String branchId,
@@ -106,27 +128,44 @@ Future<({double mobile, double other})> _sumNonCashTender({
       final capella = ProxyService.getStrategy(Strategy.capella) as CapellaSync;
       final ditto = capella.dittoService.dittoInstance;
       if (ditto != null) {
-        final placeholders = saleIds
-            .asMap()
-            .entries
-            .map((e) => ':t${e.key}')
-            .join(', ');
-        final arguments = <String, dynamic>{
-          for (var i = 0; i < saleIds.length; i++) 't$i': saleIds[i],
-        };
-        final result = await ditto.store.execute(
-          'SELECT * FROM transaction_payment_records '
-          'WHERE transactionId IN ($placeholders)',
-          arguments: arguments,
-        );
-        return splitNonCashTender(
-          result.items.map((item) {
+        final recordRows =
+            <({String transactionId, String? method, double amount})>[];
+        // Chunked like getPaymentSumsByTransactionIdsChunked, so a long shift
+        // never binds thousands of placeholders in one query.
+        for (var i = 0; i < saleIds.length; i += _paymentRecordChunkSize) {
+          final chunk = saleIds.sublist(
+            i,
+            math.min(i + _paymentRecordChunkSize, saleIds.length),
+          );
+          final placeholders = [
+            for (var j = 0; j < chunk.length; j++) ':t$j',
+          ].join(', ');
+          final result = await ditto.store.execute(
+            'SELECT * FROM transaction_payment_records '
+            'WHERE transactionId IN ($placeholders)',
+            arguments: {for (var j = 0; j < chunk.length; j++) 't$j': chunk[j]},
+          );
+          for (final item in result.items) {
             final data = Map<String, dynamic>.from(item.value);
-            return (
+            recordRows.add((
+              transactionId: data['transactionId']?.toString() ?? '',
               method: data['paymentMethod'] as String?,
               amount: parsePaymentAmount(data['amount']),
-            );
-          }),
+            ));
+          }
+        }
+        return splitNonCashTender(
+          tenderRowsWithHeadlineFallback(
+            recordRows: recordRows,
+            sales: [
+              for (final tx in sales)
+                (
+                  id: tx.id.toString(),
+                  paymentType: tx.paymentType,
+                  amount: (tx.cashReceived ?? tx.subTotal ?? 0.0).toDouble(),
+                ),
+            ],
+          ),
         );
       }
     } catch (_) {

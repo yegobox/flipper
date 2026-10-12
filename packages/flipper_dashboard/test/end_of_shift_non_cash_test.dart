@@ -37,4 +37,34 @@ void main() {
       expect(split.other, 0);
     });
   });
+
+  group('tenderRowsWithHeadlineFallback', () {
+    test('a sale with no payment record falls back to its headline type', () {
+      final rows = tenderRowsWithHeadlineFallback(
+        recordRows: [(transactionId: 'a', method: 'CASH', amount: 5000)],
+        sales: [
+          (id: 'a', paymentType: 'CASH', amount: 5000),
+          (id: 'b', paymentType: 'DEBIT&CREDIT CARD', amount: 20000),
+        ],
+      );
+
+      final split = splitNonCashTender(rows);
+      expect(split.mobile, 0);
+      expect(split.other, 20000);
+    });
+
+    test('recorded sales use their rows, not the headline type', () {
+      final rows = tenderRowsWithHeadlineFallback(
+        recordRows: [
+          (transactionId: 'a', method: 'MOBILE MONEY', amount: 3000),
+          (transactionId: 'a', method: 'CASH', amount: 2000),
+        ],
+        sales: [(id: 'a', paymentType: 'BANK CHECK', amount: 5000)],
+      );
+
+      final split = splitNonCashTender(rows);
+      expect(split.mobile, 3000);
+      expect(split.other, 0);
+    });
+  });
 }
