@@ -2946,6 +2946,8 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     );
     if (result.items.isEmpty) return false;
     final row = Map<String, dynamic>.from(result.items.first.value);
+    // An earlier sale device id of this same till is not "another device".
+    if (isOwnSaleDeviceId(row['deviceId'] as String?)) return false;
     if (otherUserOnly) {
       final rowAgent = (row['agentId'] as String?)?.trim() ?? '';
       final me = ProxyService.box.getUserId();

@@ -95,36 +95,50 @@ final pinnedCartTakenOverIdProvider = Provider<String?>((ref) {
   if (_pinnedHolder.id != pinnedId) {
     _pinnedHolder = (id: pinnedId, device: null);
   }
+  final holderBefore = _pinnedHolder.device;
   final (:movedAway, :holder) = pinnedCartMovedAway(
     status: row.status,
     rowDevice: row.deviceId,
-    holderDevice: _pinnedHolder.device,
+    holderDevice: holderBefore,
     thisDevice: deviceId,
+    rowDeviceIsOwn: isOwnSaleDeviceId(row.deviceId),
+    isResumedTicket: (row.ticketName?.trim() ?? '').isNotEmpty,
   );
   _pinnedHolder = (id: pinnedId, device: holder);
-  return movedAway ? pinnedId : null;
+  if (!movedAway) return null;
+  talker.warning(
+    'pinnedCartTakenOver: $pinnedId moved $holderBefore -> ${row.deviceId} '
+    '(this device $deviceId, agent ${row.agentId})',
+  );
+  return pinnedId;
 });
 
 /// Device the pinned row carried when this till first saw it under the pin.
 ({String? id, String? device}) _pinnedHolder = (id: null, device: null);
 
 /// Whether a pinned row has moved from [holderDevice] (where it was when this
-/// till pinned it) to a device that is not [thisDevice], plus the holder to
+/// till pinned it) to a device that is not this till's, plus the holder to
 /// remember for the next emission.
 ///
-/// The first sighting, or any sighting on [thisDevice], (re)sets the holder.
-/// Only a later change to some *other* device counts — that is a take-over.
+/// The first sighting, or any sighting on one of this till's ids
+/// ([thisDevice], or [rowDeviceIsOwn] for an earlier id of this session),
+/// (re)sets the holder. Only a later change to some *other* device counts,
+/// and only for a resumed ticket ([isResumedTicket]): Take over is offered on
+/// tickets only, so a plain cart is never taken over.
 ({bool movedAway, String? holder}) pinnedCartMovedAway({
   required String? status,
   required String? rowDevice,
   required String? holderDevice,
   required String thisDevice,
+  bool rowDeviceIsOwn = false,
+  bool isResumedTicket = true,
 }) {
   final device = rowDevice?.trim() ?? '';
   if (device.isEmpty) return (movedAway: false, holder: holderDevice);
-  if (device == thisDevice || holderDevice == null) {
+  if (device == thisDevice || rowDeviceIsOwn || holderDevice == null) {
     return (movedAway: false, holder: device);
   }
+  if (!isResumedTicket) return (movedAway: false, holder: holderDevice);
   final pending = (status ?? '').toLowerCase() == PENDING.toLowerCase();
   return (movedAway: pending && device != holderDevice, holder: holderDevice);
 }
@@ -151,7 +165,10 @@ Future<bool> confirmPinnedCartTakenOver(
     ref.invalidate(saleDeviceIdProvider);
   }
   final row = ref.read(transactionByIdProvider(transactionId)).value;
-  return isTakenOverPendingRow(row, deviceId: fresh);
+  return row != null &&
+      (row.ticketName?.trim() ?? '').isNotEmpty &&
+      !isOwnSaleDeviceId(row.deviceId) &&
+      isTakenOverPendingRow(row, deviceId: fresh);
 }
 
 /// Transaction id of the sale that just completed. While set, the cart shows

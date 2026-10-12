@@ -20,6 +20,23 @@ const kDittoInstallSuffixStorageKey = 'ditto_install_suffix';
 /// action; avoid repeated async storage writes on the hot path.
 String? _resolvedSaleDeviceIdMemory;
 
+/// Every sale device id this process has resolved.
+///
+/// The id is not stable for the life of a session: Ditto init re-stamps
+/// `deviceName` and calls [resetSaleDeviceIdCache], so a cart minted before
+/// that carries an *older* id of this same till. Code that asks "is this row
+/// on another till?" must accept any of these, not just the current one.
+final Set<String> _ownSaleDeviceIds = <String>{};
+
+/// True when [id] is a sale device id this process has used — the current
+/// one or any earlier one this session.
+bool isOwnSaleDeviceId(String? id) {
+  final value = id?.trim();
+  if (value == null || value.isEmpty) return false;
+  return value == _resolvedSaleDeviceIdMemory ||
+      _ownSaleDeviceIds.contains(value);
+}
+
 bool _proxyBoxReady() {
   try {
     return getIt.isRegistered<LocalStorage>();
@@ -83,8 +100,8 @@ Future<String> resolveDittoInstallSuffix() async {
   final cached = flipperWebIsHostApp
       ? await _readStoredString(kDittoInstallSuffixStorageKey)
       : (_proxyBoxReady()
-          ? ProxyService.box.readString(key: kDittoInstallSuffixStorageKey)
-          : null);
+            ? ProxyService.box.readString(key: kDittoInstallSuffixStorageKey)
+            : null);
   if (cached != null && cached.isNotEmpty) return cached;
 
   final suffix = DateTime.now().microsecondsSinceEpoch.toRadixString(36);
@@ -109,7 +126,14 @@ bool _saleDeviceIdMatchesUser(String deviceId, String? userId) {
 ///
 /// Order: Ditto [identity] (sync configuration for this open instance), then
 /// cached value, then [DeviceIdService], then a persisted random UUID.
+/// Every id returned is remembered for [isOwnSaleDeviceId].
 Future<String> resolveSaleDeviceId() async {
+  final id = await _resolveSaleDeviceIdUncached();
+  _ownSaleDeviceIds.add(id);
+  return id;
+}
+
+Future<String> _resolveSaleDeviceIdUncached() async {
   final boxUserId = await _userIdForDeviceMatch();
 
   final mem = _resolvedSaleDeviceIdMemory;

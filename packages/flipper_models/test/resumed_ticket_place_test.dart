@@ -117,6 +117,36 @@ void main() {
       expect(back.holder, 'dev-now');
     });
 
+    test('a plain cart (no ticket name) is never taken over', () {
+      final pinned = pinnedCartMovedAway(
+        status: PENDING,
+        rowDevice: 'dev-now',
+        holderDevice: null,
+        thisDevice: 'dev-now',
+        isResumedTicket: false,
+      );
+      final later = pinnedCartMovedAway(
+        status: PENDING,
+        rowDevice: 'dev-other',
+        holderDevice: pinned.holder,
+        thisDevice: 'dev-now',
+        isResumedTicket: false,
+      );
+      expect(later.movedAway, isFalse);
+    });
+
+    test('moving to an earlier id of this till is not a take-over', () {
+      final moved = pinnedCartMovedAway(
+        status: PENDING,
+        rowDevice: 'dev-earlier',
+        holderDevice: 'dev-now',
+        thisDevice: 'dev-now',
+        rowDeviceIsOwn: true,
+      );
+      expect(moved.movedAway, isFalse);
+      expect(moved.holder, 'dev-earlier');
+    });
+
     test('completed or device-less rows never count', () {
       expect(step('dev-other', 'dev-now', status: COMPLETE).movedAway, isFalse);
       expect(step(null, 'dev-now').movedAway, isFalse);

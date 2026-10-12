@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/helperModels/sale_device_id.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/providers/access_provider.dart';
 import 'package:flipper_models/providers/active_branch_provider.dart';
@@ -71,8 +72,13 @@ ResumedTicketPlace resumedTicketPlace(
   if ((ticket.status ?? '').toLowerCase() != PENDING.toLowerCase()) {
     return ResumedTicketPlace.queued;
   }
+  // Any sale device id this till used this session counts — the id changes
+  // when Ditto re-initialises (see [isOwnSaleDeviceId]).
   final sameDevice =
-      deviceId != null && deviceId.isNotEmpty && ticket.deviceId == deviceId;
+      (deviceId != null &&
+          deviceId.isNotEmpty &&
+          ticket.deviceId == deviceId) ||
+      isOwnSaleDeviceId(ticket.deviceId);
   final sameUser =
       ticket.agentId == null || userId == null || ticket.agentId == userId;
   return sameDevice && sameUser
