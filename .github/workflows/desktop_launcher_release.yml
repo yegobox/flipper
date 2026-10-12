@@ -1,0 +1,446 @@
+name: Flipper - Desktop release (Yegobox Launcher)
+
+# Builds Flipper POS for Windows, macOS and Linux as plain archives, signs each
+# with the launcher's ed25519 key, publishes them on release desktop-v<ver>,
+# and patches apps.json on the fixed `launcher-manifest` release. The Yegobox
+# Launcher (yegobox/flipper-launcher) reads that apps.json to install Flipper
+# and keep it up to date. Store builds in release.yml are unaffected.
+#
+# Secrets:
+#   TAURI_SIGNING_PRIVATE_KEY, TAURI_SIGNING_PRIVATE_KEY_PASSWORD  (required;
+#     `tauri signer generate`, public half is embedded in the launcher)
+#   MACOS_CERTIFICATE_P12, MACOS_CERTIFICATE_PASSWORD, MACOS_PROVISION_PROFILE
+#     (base64 Developer ID Application cert + Developer ID profile for rw.flipper;
+#     the profile is needed because Release.entitlements uses keychain-access-groups)
+#   APPLE_ID, APPLE_TEAM_ID, APPLE_APP_PASSWORD  (notarization)
+#   WINDOWS_CERT_PFX, WINDOWS_CERT_PASSWORD  (optional Authenticode; without it
+#     SmartScreen shows "unknown publisher")
+
+on:
+  workflow_dispatch:
+    inputs:
+      channel:
+        description: "Launcher channel (stable only from main)"
+        required: true
+        default: beta
+        type: choice
+        options: [beta, stable]
+      platforms:
+        description: "Comma list of windows, macos, linux"
+        required: true
+        default: "windows,macos,linux"
+        type: string
+
+permissions:
+  contents: write
+
+env:
+  FLUTTER_VERSION: "3.44.6" # keep in step with release.yml
+  MANIFEST_TAG: launcher-manifest
+
+jobs:
+  version:
+    name: "Resolve version"
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.v.outputs.version }}
+      tag: ${{ steps.v.outputs.tag }}
+      windows: ${{ contains(inputs.platforms, 'windows') }}
+      macos: ${{ contains(inputs.platforms, 'macos') }}
+      linux: ${{ contains(inputs.platforms, 'linux') }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - id: v
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CHANNEL: ${{ inputs.channel }}
+        run: |
+          if [[ "$CHANNEL" == stable && "$GITHUB_REF" != refs/heads/main ]]; then
+            echo "::error::stable releases only run from main (got $GITHUB_REF)"; exit 1
+          fi
+          # The version name Flipper reports through package_info (no build number).
+          BASE="$(awk '/^version:/ { sub(/\+.*/, "", $2); print $2; exit }' apps/flipper/pubspec.yaml)"
+          if [[ ! "$BASE" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::unusable version '$BASE' in apps/flipper/pubspec.yaml"; exit 1
+          fi
+          # Beta sorts below the stable it leads to (1.505.0-beta.12 < 1.505.0) and
+          # never collides; a stable version is published once.
+          if [[ "$CHANNEL" == beta ]]; then VERSION="$BASE-beta.$GITHUB_RUN_NUMBER"; else VERSION="$BASE"; fi
+          TAG="desktop-v$VERSION"
+          if gh release view "$TAG" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "::error::$TAG already exists; bump version: in apps/flipper/pubspec.yaml"; exit 1
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "Publishing $TAG to $CHANNEL"
+
+  windows:
+    name: "Build Windows"
+    needs: version
+    if: needs.version.outputs.windows == 'true'
+    runs-on: windows-latest
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          persist-credentials: false
+      - run: git submodule update --init --force --recursive
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+      - name: Pin PUB_CACHE
+        run: echo "PUB_CACHE=${RUNNER_TEMP}/pub-cache" >> "$GITHUB_ENV"
+        shell: bash
+      - uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/pub-cache
+          key: pub-cache-windows-${{ hashFiles('**/pubspec.yaml', 'apps/flipper/pubspec.lock') }}
+          restore-keys: pub-cache-windows-
+      - run: dart pub global activate melos 7.3.0
+      - run: Add-Content -Path $env:GITHUB_PATH -Value "$env:PUB_CACHE/bin"
+        shell: pwsh
+      - name: Get Dependencies
+        timeout-minutes: 25
+        shell: bash
+        run: |
+          for attempt in 1 2 3; do
+            dart run melos bootstrap && exit 0
+            echo "::warning::melos bootstrap failed (attempt $attempt/3)"; sleep $((attempt * 30))
+          done
+          exit 1
+      - name: Configure Missing files
+        shell: bash
+        run: |
+          echo "$INDEX" >> apps/flipper/web/index.html
+          echo "$CONFIGDART" >> packages/flipper_login/lib/config.dart
+          echo "$SECRETS" >> packages/flipper_models/lib/secrets.dart
+          echo "$SECRETS" >> apps/flipper_web/lib/core/secrets.dart
+          echo "$FIREBASEOPTIONS" >> apps/flipper/lib/firebase_options.dart
+          echo "$FIREBASEOPTIONS" >> packages/flipper_models/lib/firebase_options.dart
+          echo "$AMPLIFY_CONFIG" >> apps/flipper/lib/amplifyconfiguration.dart
+          echo "$AMPLIFY_TEAM_PROVIDER" >> apps/flipper/amplify/team-provider-info.json
+        env:
+          INDEX: ${{ secrets.INDEX }}
+          CONFIGDART: ${{ secrets.CONFIGDART }}
+          SECRETS: ${{ secrets.SECRETS }}
+          FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
+          AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }}
+          AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
+      - uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/pdfium
+          key: pdfium-chromium-5200-win-x64-${{ hashFiles('apps/flipper/pubspec.lock', 'pubspec.lock') }}
+          restore-keys: pdfium-chromium-5200-win-x64-
+      - name: Build
+        shell: pwsh
+        run: |
+          ./scripts/ci/prefetch-pdfium.ps1
+          ./scripts/ci/patch-windows-plugins.ps1
+          Set-Location apps/flipper
+          flutter build windows --release -v
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Set-Location ../..
+          ./scripts/ci/bundle-native-assets.ps1
+      - name: Authenticode sign
+        if: env.WINDOWS_CERT_PFX != ''
+        shell: pwsh
+        env:
+          WINDOWS_CERT_PFX: ${{ secrets.WINDOWS_CERT_PFX }}
+          WINDOWS_CERT_PASSWORD: ${{ secrets.WINDOWS_CERT_PASSWORD }}
+        run: |
+          $pfx = Join-Path $env:RUNNER_TEMP cert.pfx
+          [IO.File]::WriteAllBytes($pfx, [Convert]::FromBase64String($env:WINDOWS_CERT_PFX))
+          $signtool = Get-ChildItem "${env:ProgramFiles(x86)}\Windows Kits\10\bin\*\x64\signtool.exe" | Sort-Object FullName | Select-Object -Last 1
+          & $signtool.FullName sign /f $pfx /p $env:WINDOWS_CERT_PASSWORD /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 apps/flipper/build/windows/x64/runner/Release/flipper.exe
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Remove-Item $pfx
+      - name: Archive
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force dist | Out-Null
+          $release = "apps/flipper/build/windows/x64/runner/Release"
+          if (-not (Test-Path "$release/flipper.exe")) { Write-Error "flipper.exe missing from $release"; exit 1 }
+          7z a -tzip dist/flipper-windows-x86_64.zip "./$release/*" "-x!*.msix"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: desktop-windows
+          path: dist/
+          retention-days: 7
+
+  macos:
+    name: "Build macOS"
+    needs: version
+    if: needs.version.outputs.macos == 'true'
+    runs-on: macos-14
+    timeout-minutes: 90
+    steps:
+      - name: Check signing secrets
+        env:
+          P12: ${{ secrets.MACOS_CERTIFICATE_P12 }}
+          PROFILE: ${{ secrets.MACOS_PROVISION_PROFILE }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          TEAM: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          # The launcher installs outside the App Store, so the app must be
+          # Developer ID signed and notarized or Gatekeeper refuses it.
+          for v in P12 PROFILE APPLE_ID TEAM; do
+            if [[ -z "${!v}" ]]; then
+              echo "::error::macOS needs Developer ID signing secrets (see header of this workflow); drop macos from 'platforms' until they are set"; exit 1
+            fi
+          done
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          persist-credentials: false
+      - run: git submodule update --init --force --recursive
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+      - run: |
+          dart pub global activate melos 7.3.0
+          echo "$HOME/.pub-cache/bin" >> "$GITHUB_PATH"
+      - name: Get Dependencies
+        timeout-minutes: 25
+        run: |
+          for attempt in 1 2 3; do
+            dart run melos bootstrap && exit 0
+            echo "::warning::melos bootstrap failed (attempt $attempt/3)"; sleep $((attempt * 30))
+          done
+          exit 1
+      - name: Configure Missing files
+        run: |
+          echo "$CONFIGDART" >> packages/flipper_login/lib/config.dart
+          echo "$SECRETS" >> packages/flipper_models/lib/secrets.dart
+          echo "$SECRETS" >> apps/flipper_web/lib/core/secrets.dart
+          echo "$FIREBASEOPTIONS" >> apps/flipper/lib/firebase_options.dart
+          echo "$FIREBASEOPTIONS" >> packages/flipper_models/lib/firebase_options.dart
+          echo "$AMPLIFY_CONFIG" >> apps/flipper/lib/amplifyconfiguration.dart
+          echo "$AMPLIFY_TEAM_PROVIDER" >> apps/flipper/amplify/team-provider-info.json
+        env:
+          CONFIGDART: ${{ secrets.CONFIGDART }}
+          SECRETS: ${{ secrets.SECRETS }}
+          FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
+          AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }}
+          AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
+      - name: Import Developer ID certificate
+        env:
+          P12: ${{ secrets.MACOS_CERTIFICATE_P12 }}
+          P12_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+          PROFILE: ${{ secrets.MACOS_PROVISION_PROFILE }}
+        run: |
+          KC="$RUNNER_TEMP/signing.keychain-db"; KC_PW="$(uuidgen)"
+          security create-keychain -p "$KC_PW" "$KC"
+          security set-keychain-settings -lut 3600 "$KC"
+          security unlock-keychain -p "$KC_PW" "$KC"
+          echo "$P12" | base64 --decode > "$RUNNER_TEMP/cert.p12"
+          security import "$RUNNER_TEMP/cert.p12" -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k "$KC"
+          security set-key-partition-list -S apple-tool:,apple: -k "$KC_PW" "$KC"
+          # Prepend the signing keychain; the existing list is meant to split.
+          # shellcheck disable=SC2046
+          security list-keychains -d user -s "$KC" $(security list-keychains -d user | tr -d '"')
+          rm "$RUNNER_TEMP/cert.p12"
+          echo "$PROFILE" | base64 --decode > "$RUNNER_TEMP/embedded.provisionprofile"
+          IDENTITY="$(security find-identity -v -p codesigning "$KC" | awk -F'"' '/Developer ID Application/ { print $2; exit }')"
+          if [[ -z "$IDENTITY" ]]; then echo "::error::no Developer ID Application identity in MACOS_CERTIFICATE_P12"; exit 1; fi
+          echo "SIGN_IDENTITY=$IDENTITY" >> "$GITHUB_ENV"
+      - name: Build (unsigned)
+        working-directory: apps/flipper
+        env:
+          # FLUTTER_XCODE_* become xcodebuild settings; the project's Automatic
+          # "Apple Development" signing cannot run on CI, so build unsigned and
+          # sign the finished bundle with Developer ID below.
+          FLUTTER_XCODE_CODE_SIGN_IDENTITY: "-"
+          FLUTTER_XCODE_CODE_SIGN_STYLE: Manual
+          FLUTTER_XCODE_CODE_SIGNING_REQUIRED: "NO"
+          FLUTTER_XCODE_CODE_SIGNING_ALLOWED: "NO"
+        run: flutter build macos --release -v
+      - name: Sign, notarize, staple
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
+        run: |
+          APP="apps/flipper/build/macos/Build/Products/Release/flipper.app"
+          [[ -d "$APP" ]] || { echo "::error::$APP not built"; exit 1; }
+          cp "$RUNNER_TEMP/embedded.provisionprofile" "$APP/Contents/embedded.provisionprofile"
+          # Xcode would expand $(AppIdentifierPrefix) and add the identifier
+          # entitlements the keychain group is checked against; do the same.
+          ENT="$RUNNER_TEMP/flipper.entitlements"
+          sed "s/\$(AppIdentifierPrefix)/$APPLE_TEAM_ID./g" apps/flipper/macos/Runner/Release.entitlements > "$ENT"
+          /usr/libexec/PlistBuddy -c "Add :com.apple.application-identifier string $APPLE_TEAM_ID.rw.flipper" "$ENT"
+          /usr/libexec/PlistBuddy -c "Add :com.apple.developer.team-identifier string $APPLE_TEAM_ID" "$ENT"
+          sign() { codesign --force --timestamp --options runtime --sign "$SIGN_IDENTITY" "$@"; }
+          # Inside-out: loose dylibs, then frameworks, then the app itself.
+          while IFS= read -r -d '' f; do sign "$f"; done < <(find "$APP/Contents" -type f \( -name '*.dylib' -o -name '*.so' \) -print0)
+          while IFS= read -r -d '' f; do sign "$f"; done < <(find "$APP/Contents/Frameworks" -maxdepth 1 -name '*.framework' -print0)
+          sign --entitlements "$ENT" "$APP"
+          codesign --verify --deep --strict --verbose=2 "$APP"
+          ditto -c -k --keepParent "$APP" "$RUNNER_TEMP/notarize.zip"
+          xcrun notarytool submit "$RUNNER_TEMP/notarize.zip" --apple-id "$APPLE_ID" --team-id "$APPLE_TEAM_ID" --password "$APPLE_APP_PASSWORD" --wait
+          xcrun stapler staple "$APP"
+          spctl --assess --type execute --verbose "$APP"
+      - name: Archive
+        run: |
+          APP_DIR="apps/flipper/build/macos/Build/Products/Release"
+          ARCHS="$(lipo -archs "$APP_DIR/flipper.app/Contents/MacOS/flipper")"
+          echo "flipper.app architectures: $ARCHS"
+          KEYS=""
+          [[ " $ARCHS " == *" arm64 "* ]] && KEYS="darwin-aarch64"
+          [[ " $ARCHS " == *" x86_64 "* ]] && KEYS="${KEYS:+$KEYS,}darwin-x86_64"
+          mkdir -p dist
+          # tar, not zip: a .app is full of framework symlinks.
+          tar -C "$APP_DIR" -czf dist/flipper-darwin.tar.gz flipper.app
+          echo "$KEYS" > dist/flipper-darwin.keys
+      - uses: actions/upload-artifact@v4
+        with:
+          name: desktop-macos
+          path: dist/
+          retention-days: 7
+      - name: Remove keychain
+        if: always()
+        run: security delete-keychain "$RUNNER_TEMP/signing.keychain-db" || true
+
+  linux:
+    name: "Build Linux"
+    needs: version
+    if: needs.version.outputs.linux == 'true'
+    runs-on: ubuntu-22.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          persist-credentials: false
+      - run: git submodule update --init --force --recursive
+      - name: System dependencies
+        run: |
+          sudo apt-get update
+          # GTK toolchain plus what the Linux plugins link against
+          # (tray_manager, sentry_flutter, amplify_db_common).
+          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev \
+            libstdc++-12-dev libayatana-appindicator3-dev libsecret-1-dev libjsoncpp-dev \
+            libcurl4-openssl-dev libsqlite3-dev
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+      - run: |
+          dart pub global activate melos 7.3.0
+          echo "$HOME/.pub-cache/bin" >> "$GITHUB_PATH"
+      - name: Get Dependencies
+        timeout-minutes: 25
+        run: |
+          for attempt in 1 2 3; do
+            dart run melos bootstrap && exit 0
+            echo "::warning::melos bootstrap failed (attempt $attempt/3)"; sleep $((attempt * 30))
+          done
+          exit 1
+      - name: Configure Missing files
+        run: |
+          echo "$CONFIGDART" >> packages/flipper_login/lib/config.dart
+          echo "$SECRETS" >> packages/flipper_models/lib/secrets.dart
+          echo "$SECRETS" >> apps/flipper_web/lib/core/secrets.dart
+          echo "$FIREBASEOPTIONS" >> apps/flipper/lib/firebase_options.dart
+          echo "$FIREBASEOPTIONS" >> packages/flipper_models/lib/firebase_options.dart
+          echo "$AMPLIFY_CONFIG" >> apps/flipper/lib/amplifyconfiguration.dart
+          echo "$AMPLIFY_TEAM_PROVIDER" >> apps/flipper/amplify/team-provider-info.json
+        env:
+          CONFIGDART: ${{ secrets.CONFIGDART }}
+          SECRETS: ${{ secrets.SECRETS }}
+          FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
+          AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }}
+          AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
+      - name: Build
+        working-directory: apps/flipper
+        run: flutter build linux --release -v
+      - name: Archive
+        run: |
+          BUNDLE="apps/flipper/build/linux/x64/release/bundle"
+          [[ -x "$BUNDLE/flipper" ]] || { echo "::error::$BUNDLE/flipper missing"; exit 1; }
+          mkdir -p dist
+          tar -C "$BUNDLE" -czf dist/flipper-linux-x86_64.tar.gz .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: desktop-linux
+          path: dist/
+          retention-days: 7
+
+  publish:
+    name: "Publish release + launcher manifest"
+    needs: [version, windows, macos, linux]
+    # Publish whatever built: a platform that failed or was not selected keeps
+    # its previous manifest entry (update_launcher_manifest.py merges per platform).
+    if: >-
+      always() && needs.version.result == 'success' &&
+      (needs.windows.result == 'success' || needs.macos.result == 'success' || needs.linux.result == 'success')
+    runs-on: ubuntu-latest
+    # apps.json is read-modify-write; two publishes at once would drop one.
+    concurrency:
+      group: launcher-manifest
+      cancel-in-progress: false
+    env:
+      GH_TOKEN: ${{ github.token }}
+      VERSION: ${{ needs.version.outputs.version }}
+      TAG: ${{ needs.version.outputs.tag }}
+      CHANNEL: ${{ inputs.channel }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: desktop-*
+          path: dist
+          merge-multiple: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Sign archives
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        run: |
+          [[ -n "$TAURI_SIGNING_PRIVATE_KEY" ]] || { echo "::error::TAURI_SIGNING_PRIVATE_KEY is not set"; exit 1; }
+          shopt -s nullglob
+          for f in dist/*.zip dist/*.tar.gz; do
+            npx --yes @tauri-apps/cli@2 signer sign "$f"
+          done
+          ls -la dist
+      - name: Create release
+        run: |
+          PRE=""; [[ "$CHANNEL" == beta ]] && PRE="--prerelease"
+          gh release create "$TAG" -R "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" $PRE --latest=false \
+            --title "Flipper desktop $VERSION ($CHANNEL)" \
+            --notes-file apps/flipper/distribution/whatsnew/whatsnew-en-US
+          shopt -s nullglob
+          gh release upload "$TAG" -R "$GITHUB_REPOSITORY" dist/*.zip dist/*.tar.gz dist/*.sig
+      - name: Update launcher manifest
+        run: |
+          if ! gh release view "$MANIFEST_TAG" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release create "$MANIFEST_TAG" -R "$GITHUB_REPOSITORY" --latest=false \
+              --title "Yegobox Launcher manifest" \
+              --notes "apps.json read by the Yegobox Launcher. Rewritten by desktop_launcher_release.yml; do not delete."
+          fi
+          gh release download "$MANIFEST_TAG" -R "$GITHUB_REPOSITORY" -p apps.json -D . || true
+          ARGS=()
+          [[ -f dist/flipper-windows-x86_64.zip ]] && ARGS+=(--platform "windows-x86_64=dist/flipper-windows-x86_64.zip:flipper.exe")
+          [[ -f dist/flipper-darwin.tar.gz ]] && ARGS+=(--platform "$(cat dist/flipper-darwin.keys)=dist/flipper-darwin.tar.gz:flipper.app")
+          [[ -f dist/flipper-linux-x86_64.tar.gz ]] && ARGS+=(--platform "linux-x86_64=dist/flipper-linux-x86_64.tar.gz:flipper")
+          python3 -I scripts/ci/update_launcher_manifest.py --manifest apps.json \
+            --app flipper --name "Flipper POS" \
+            --icon "https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/main/apps/flipper/macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_256.png" \
+            --channel "$CHANNEL" --version "$VERSION" \
+            --notes-file apps/flipper/distribution/whatsnew/whatsnew-en-US \
+            --base-url "https://github.com/${GITHUB_REPOSITORY}/releases/download/$TAG" \
+            "${ARGS[@]}"
+          gh release upload "$MANIFEST_TAG" -R "$GITHUB_REPOSITORY" apps.json --clobber
+          echo "### $TAG → $CHANNEL" >> "$GITHUB_STEP_SUMMARY"
+          echo "Manifest: https://github.com/${GITHUB_REPOSITORY}/releases/download/$MANIFEST_TAG/apps.json" >> "$GITHUB_STEP_SUMMARY"
