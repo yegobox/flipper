@@ -202,9 +202,17 @@ bool isHotelRoomPlaceholderVariant({
 /// TIN and branch code every call carries. Registering its rooms is not a
 /// failure to report — there is nothing to report to, so the room is simply
 /// sold without a tourism-tax item.
+///
+/// `vatEnabled` is the same switch `isTaxEnabled` reads, so the desk agrees
+/// with checkout, which files a folio only when it is on. A row with a TIN
+/// but the switch off is a branch that does not fiscalise: treating it as EBM
+/// sent every room charge through a registration that could never finish, and
+/// its guests checked out on folios that billed no nights.
 bool hotelBranchSupportsRra(Ebm? ebm) {
   if (ebm == null) return false;
-  return ebm.tinNumber != 0 && ebm.bhfId.trim().isNotEmpty;
+  return ebm.vatEnabled == true &&
+      ebm.tinNumber != 0 &&
+      ebm.bhfId.trim().isNotEmpty;
 }
 
 /// Whether this branch may send tourism-tax coding on item registration.

@@ -234,6 +234,8 @@ class HotelModeNotifier extends Notifier<HotelModeState> {
       activeRoom: room,
       activeStay: stay,
       activeFolio: folio,
+      // A miss must not leave the previous room's folio bound to this stay.
+      clearFolio: folio == null,
       screen: HotelScreen.folio,
     );
   }
@@ -347,17 +349,6 @@ final hotelFolioLinesProvider =
         Strategy.capella,
       ).hotelFolioLinesStream(transactionId: transactionId);
     });
-
-/// Fallback folio lookup when the transaction was not carried in state
-/// (a rebuild after the desk resumed a stay opened on another device).
-final hotelFolioForStayProvider = FutureProvider.family<ITransaction?, String>((
-  ref,
-  transactionId,
-) async {
-  return await ProxyService.getStrategy(
-    Strategy.capella,
-  ).hotelFolio(transactionId: transactionId);
-});
 
 final hotelQuotationsProvider = StreamProvider<List<HotelQuotation>>((ref) {
   final branchId = ProxyService.box.getBranchId();

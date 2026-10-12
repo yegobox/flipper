@@ -141,6 +141,31 @@ void main() {
       expect(read().activeFolio, folio);
     });
 
+    test('a folio not found yet never leaves the previous one bound', () {
+      // Checkout settles activeFolio when it is set, so carrying room A's
+      // folio onto room B would bill A's charges to B's guest.
+      notifier().login(clerk);
+      final previous = ITransaction(
+        branchId: 'b1',
+        status: 'parked',
+        transactionType: 'sale',
+        paymentType: 'Cash',
+        cashReceived: 0,
+        customerChangeDue: 0,
+        updatedAt: DateTime.utc(2026, 1, 10),
+        isIncome: true,
+        isExpense: false,
+        agentId: 'c1',
+      );
+      notifier().openFolio(room: _room(), stay: _stay(), folio: previous);
+      notifier().openFolio(room: _room(), stay: _stay());
+
+      expect(read().activeFolio, isNull);
+
+      notifier().bindFolio(previous);
+      expect(read().activeFolio, previous);
+    });
+
     test('backToRooms clears the stay but keeps the clerk on the register', () {
       notifier().login(clerk);
       notifier().openFolio(room: _room(), stay: _stay());
@@ -234,20 +259,22 @@ void main() {
       expect(read().toastMessage, 'Room 101 checked out');
     });
 
-    test('autoLogout hands the desk back but still shows the receipt toast',
-        () {
-      notifier().login(clerk);
-      notifier().openFolio(room: _room(), stay: _stay());
-      notifier().afterCheckOut(
-        message: 'Room 101 checked out',
-        autoLogout: true,
-      );
+    test(
+      'autoLogout hands the desk back but still shows the receipt toast',
+      () {
+        notifier().login(clerk);
+        notifier().openFolio(room: _room(), stay: _stay());
+        notifier().afterCheckOut(
+          message: 'Room 101 checked out',
+          autoLogout: true,
+        );
 
-      expect(read().screen, HotelScreen.lock);
-      expect(read().activeClerk, isNull);
-      expect(read().activeStay, isNull);
-      expect(read().toastMessage, 'Room 101 checked out');
-    });
+        expect(read().screen, HotelScreen.lock);
+        expect(read().activeClerk, isNull);
+        expect(read().activeStay, isNull);
+        expect(read().toastMessage, 'Room 101 checked out');
+      },
+    );
   });
 
   group('desk navigation', () {

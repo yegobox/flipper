@@ -86,29 +86,31 @@ void main() {
       expect(variant.roomTypeCd, isNull);
     });
 
-    test('turning TT off clears coding a previous registration left behind',
-        () {
-      final variant = Variant(
-        branchId: 'b1',
-        name: '204',
-        itemTyCd: '3',
-        ttCatCd: 'TT',
-        propertyTyCd: '01',
-        roomTypeCd: '02',
-      );
+    test(
+      'turning TT off clears coding a previous registration left behind',
+      () {
+        final variant = Variant(
+          branchId: 'b1',
+          name: '204',
+          itemTyCd: '3',
+          ttCatCd: 'TT',
+          propertyTyCd: '01',
+          roomTypeCd: '02',
+        );
 
-      applyHotelRoomRraFields(
-        variant: variant,
-        room: room(),
-        tourismTaxEnabled: false,
-      );
+        applyHotelRoomRraFields(
+          variant: variant,
+          room: room(),
+          tourismTaxEnabled: false,
+        );
 
-      // Leaving a stale ttCatCd on the row would send it on the next
-      // saveItems and reproduce the 603.
-      expect(variant.ttCatCd, isNull);
-      expect(variant.propertyTyCd, isNull);
-      expect(variant.roomTypeCd, isNull);
-    });
+        // Leaving a stale ttCatCd on the row would send it on the next
+        // saveItems and reproduce the 603.
+        expect(variant.ttCatCd, isNull);
+        expect(variant.propertyTyCd, isNull);
+        expect(variant.roomTypeCd, isNull);
+      },
+    );
 
     test('bills tourism tax at 3%, not VAT', () {
       final variant = applyHotelRoomRraFields(
@@ -149,7 +151,10 @@ void main() {
         ttCatCd: 'TT',
       );
 
-      applyHotelRoomRraFields(variant: variant, room: room(name: '205'));
+      applyHotelRoomRraFields(
+        variant: variant,
+        room: room(name: '205'),
+      );
 
       expect(variant.name, '205');
       // The registration itself survives; only the details move.
@@ -229,6 +234,7 @@ void main() {
       businessId: 'biz1',
       branchId: 'b1',
       mrc: 'mrc',
+      vatEnabled: true,
     );
 
     test('a branch with no EBM row does not file with RRA', () {
@@ -243,17 +249,16 @@ void main() {
       expect(hotelBranchSupportsRra(ebm(bhfId: '   ')), isFalse);
     });
 
-    test('a configured branch files, VAT-registered or not', () {
-      final configured = ebm();
-      expect(hotelBranchSupportsRra(configured), isTrue);
+    test('a configured branch with tax on files', () {
+      expect(hotelBranchSupportsRra(ebm()), isTrue);
+    });
 
-      // A TT-only property registers rooms without being on VAT.
-      configured.vatEnabled = false;
-      expect(
-        hotelBranchSupportsRra(configured),
-        isTrue,
-        reason: 'tourism tax rides on ttCatCd, not on VAT registration',
-      );
+    test('a TIN with tax switched off does not file', () {
+      // Same switch as isTaxEnabled: checkout never files such a folio, so
+      // registering its rooms only stood between the desk and billing.
+      final taxOff = ebm()..vatEnabled = false;
+      expect(hotelBranchSupportsRra(taxOff), isFalse);
+      expect(hotelBranchSupportsRra(ebm()..vatEnabled = null), isFalse);
     });
   });
 
@@ -262,16 +267,16 @@ void main() {
       int tinNumber = 999909695,
       String bhfId = '00',
       bool? tourismTaxEnabled,
-    }) =>
-        Ebm(
-          bhfId: bhfId,
-          tinNumber: tinNumber,
-          dvcSrlNo: 'dvc',
-          businessId: 'biz1',
-          branchId: 'b1',
-          mrc: 'mrc',
-          tourismTaxEnabled: tourismTaxEnabled,
-        );
+    }) => Ebm(
+      bhfId: bhfId,
+      tinNumber: tinNumber,
+      dvcSrlNo: 'dvc',
+      businessId: 'biz1',
+      branchId: 'b1',
+      mrc: 'mrc',
+      vatEnabled: true,
+      tourismTaxEnabled: tourismTaxEnabled,
+    );
 
     test('a branch RRA registered for tourism tax may send ttCatCd', () {
       expect(
@@ -410,8 +415,7 @@ void main() {
       );
     });
 
-    test('a room whose variant never finished registering is picked back up',
-        () {
+    test('a room whose variant never finished registering is picked back up', () {
       // _recoverFailedRegistration points the room at the variant on purpose
       // so the next run can resume it. Judging the room by its variantId alone
       // skipped exactly those, and they went on billing against a variant with

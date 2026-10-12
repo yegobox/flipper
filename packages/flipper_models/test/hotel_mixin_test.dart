@@ -485,6 +485,7 @@ void main() {
           businessId: 'biz1',
           branchId: _branch,
           mrc: 'mrc',
+          vatEnabled: true,
         ),
       );
       getIt.registerSingleton<SyncStrategy>(
@@ -555,6 +556,60 @@ void main() {
 
         final folio = await sync.hotelFolio(transactionId: stay.transactionId);
         expect(folio?.subTotal, 170000);
+      },
+    );
+
+    test(
+      'a TIN on a branch with tax switched off still bills the nights',
+      () async {
+        // The row a non-fiscalising property ends up with: TIN and branch code
+        // filled in, tax off. Checkout never files it, so neither must the desk;
+        // treating it as EBM settled every stay on a folio of zero.
+        await getIt.reset();
+        getIt.registerSingleton<LocalStorage>(_FakeBox());
+        final taxOff = _FakeStrategy(
+          {'v-room': roomNight},
+          branchEbm: Ebm(
+            bhfId: '00',
+            tinNumber: 123456789,
+            dvcSrlNo: 'dvc',
+            businessId: 'biz1',
+            branchId: _branch,
+            mrc: '',
+            vatEnabled: false,
+          ),
+        );
+        getIt.registerSingleton<SyncStrategy>(
+          SyncStrategy(capella: taxOff, cloudSync: taxOff),
+          instanceName: 'strategy',
+        );
+
+        final room = await savedRoom();
+        final stay = await sync.checkInGuest(
+          branchId: _branch,
+          room: room,
+          guestName: 'Aline Uwase',
+          checkInAt: DateTime.utc(2026, 1, 10, 14),
+          expectedCheckOutAt: DateTime.utc(2026, 1, 12, 11),
+          nightlyRate: 35000,
+          clerkTenantId: 'c1',
+          clerkName: 'Richie',
+        );
+
+        await sync.postRoomCharge(
+          stay: stay,
+          clerkTenantId: 'c1',
+          clerkName: 'Richie',
+        );
+
+        final lines = await sync.hotelFolioLines(
+          transactionId: stay.transactionId,
+        );
+        expect(lines, hasLength(1));
+        expect(lines.single.itemCd, isNull);
+
+        final folio = await sync.hotelFolio(transactionId: stay.transactionId);
+        expect(folio?.subTotal, 70000);
       },
     );
 
