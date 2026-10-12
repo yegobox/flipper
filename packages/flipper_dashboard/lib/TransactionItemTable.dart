@@ -501,6 +501,10 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
   /// deliberately compact so an empty cart never reads as a blank wall.
   Widget _buildEmptyState({bool compact = false}) {
     final iconBox = compact ? 40.0 : 48.0;
+    // A collected ticket whose lines have not synced here yet is not an empty
+    // cart: say so, instead of inviting the operator to start a new sale.
+    final awaitingLines = ref.watch(settlingTicketAwaitingLinesProvider);
+    final l10n = context.flipperL10n;
 
     return Container(
       padding: EdgeInsets.symmetric(
@@ -519,15 +523,24 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
               borderRadius: BorderRadius.circular(PosTokens.radiusMd),
               border: Border.all(color: PosTokens.line),
             ),
-            child: Icon(
-              Icons.shopping_cart_outlined,
-              size: compact ? 20 : 24,
-              color: PosTokens.ink3,
-            ),
+            child: awaitingLines
+                ? Padding(
+                    padding: EdgeInsets.all(compact ? 11 : 13),
+                    child: const CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: PosTokens.ink3,
+                    ),
+                  )
+                : Icon(
+                    Icons.shopping_cart_outlined,
+                    size: compact ? 20 : 24,
+                    color: PosTokens.ink3,
+                  ),
           ),
           const SizedBox(height: 10),
           Text(
-            context.flipperL10n.noItemsYet,
+            awaitingLines ? l10n.ticketLinesSyncingTitle : l10n.noItemsYet,
+            textAlign: TextAlign.center,
             style: const TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
@@ -536,7 +549,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
           ),
           const SizedBox(height: 4),
           Text(
-            context.flipperL10n.cartEmptyHint,
+            awaitingLines ? l10n.ticketLinesSyncing : l10n.cartEmptyHint,
             textAlign: TextAlign.center,
             style: const TextStyle(
               fontSize: 12.5,

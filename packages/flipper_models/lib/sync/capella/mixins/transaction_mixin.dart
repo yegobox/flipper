@@ -6,6 +6,7 @@ import 'package:flipper_models/sync/utils/local_store_indexes.dart';
 import 'package:flipper_models/sync/utils/pending_subtotal_deltas.dart';
 import 'package:flipper_models/helpers/default_sale_receipt_type.dart';
 import 'package:flipper_models/helpers/pending_sale_cart_cleanup.dart';
+import 'package:flipper_models/helpers/ticket_resume_guard.dart';
 import 'package:flipper_models/sync/interfaces/transaction_interface.dart';
 import 'package:flipper_models/sync/utils/cart_line_seq_cache.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -3129,6 +3130,29 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     if (ditto == null) {
       talker.error('Ditto not initialized for resumeSaleTicketFast');
       throw StateError('Ditto not initialized for resumeSaleTicketFast');
+    }
+
+    // Refuse a ticket another till already resumed. The list that offered it
+    // can be stale (that device's write had not synced here yet), so check
+    // the row itself.
+    final current = await ditto.store.execute(
+      'SELECT status, deviceId FROM transactions '
+      'WHERE _id = :id OR id = :id LIMIT 1',
+      arguments: {'id': ticket.id},
+    );
+    if (current.items.isNotEmpty) {
+      final row = Map<String, dynamic>.from(current.items.first.value);
+      if (ticketOpenOnAnotherDevice(
+        status: row['status'] as String?,
+        ticketDeviceId: row['deviceId'] as String?,
+        deviceId: deviceId,
+      )) {
+        talker.warning(
+          'resumeSaleTicketFast: ${ticket.id} is already PENDING on device '
+          '${row['deviceId']}; refusing resume on $deviceId',
+        );
+        throw TicketOpenElsewhereException(ticket.id);
+      }
     }
 
     final nowIso = DateTime.now().toUtc().toIso8601String();

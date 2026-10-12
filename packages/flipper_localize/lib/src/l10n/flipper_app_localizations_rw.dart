@@ -9668,6 +9668,17 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
       'Ntibyakunze gusubiza itike iriho ku kasi. Ongera ugerageze.';
 
   @override
+  String get ticketLinesSyncingTitle => 'Dutegereje ibicuruzwa by\'iyi tike';
+
+  @override
+  String get ticketLinesSyncing =>
+      'Ibicuruzwa biracyari ku gikoresho cyakoze iyi tike. Fungura Flipper kuri icyo gikoresho kandi ufite interineti, birahita bigaragara hano.';
+
+  @override
+  String get ticketOpenOnAnotherDevice =>
+      'Iyi tike isanzwe ifunguye ku yindi kasi.';
+
+  @override
   String get ticketActionFailed => 'Igikorwa nticyakunze';
 
   @override

@@ -781,6 +781,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       final bool isSettlingThisTicket =
           settling != null && settling.transactionId == transactionId;
       final List<TransactionItem>? persistedCart;
+      var settlingLinesMissing = false;
       if (isSettlingThisTicket) {
         // Read with the exact branch the settling display used (captured at
         // collect time) so the fetch resolves the same rows shown on screen.
@@ -817,12 +818,38 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
         // null = a line the collector added never saved; block like a normal
         // cart rather than charge for less than the customer is taking.
         persistedCart = addsSettled && items.isNotEmpty ? items : null;
+        settlingLinesMissing = settlingTicketLinesMissing(
+          settling: settling,
+          hasActiveLines: items.isNotEmpty,
+          ticketSubTotal: transaction.subTotal,
+        );
       } else {
         persistedCart = await _settlePersistedCartForCompletion(
           ref: ref,
           transaction: transaction,
           transactionId: transactionId,
         );
+      }
+      if (persistedCart == null &&
+          settlingLinesMissing &&
+          _unsavedCartLines(ref).isEmpty) {
+        // The ticket row synced here but its lines are still on the device
+        // that created it. Nothing on this till is unsaved, so say what is
+        // actually missing.
+        talker.warning(
+          'Sale completion blocked: settling ticket has no lines on this '
+          'device txn=$transactionId subTotal=${transaction.subTotal}',
+        );
+        if (mounted && context.mounted) {
+          showCustomSnackBarUtil(
+            context,
+            FlipperL10n.current.ticketLinesSyncing,
+            backgroundColor: Colors.orange,
+            showCloseButton: true,
+          );
+        }
+        ref.read(payButtonStateProvider.notifier).stopLoading();
+        return false;
       }
       if (persistedCart == null) {
         // `null` now means one thing only: a write this session queued never

@@ -9572,6 +9572,17 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
       'Could not return the current ticket to the till. Try again.';
 
   @override
+  String get ticketLinesSyncingTitle => 'Waiting for this ticket\'s items';
+
+  @override
+  String get ticketLinesSyncing =>
+      'The items are still on the device that created this ticket. Keep Flipper open and online there and they will appear here.';
+
+  @override
+  String get ticketOpenOnAnotherDevice =>
+      'This ticket is already open on another till.';
+
+  @override
   String get ticketActionFailed => 'Action Failed';
 
   @override

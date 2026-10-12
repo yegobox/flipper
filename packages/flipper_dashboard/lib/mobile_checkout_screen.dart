@@ -12,6 +12,7 @@ import 'package:flipper_dashboard/theme/mpos_tokens.dart';
 import 'package:flipper_dashboard/utils/mpos_helpers.dart';
 import 'package:flipper_dashboard/utils/resume_transaction_helper.dart';
 import 'package:flipper_dashboard/widgets/mpos/mpos_card.dart';
+import 'package:flipper_dashboard/widgets/mpos/mpos_empty_items_card.dart';
 import 'package:flipper_dashboard/widgets/mpos/mpos_checkout_footer.dart';
 import 'package:flipper_dashboard/widgets/mpos/mpos_checkout_header.dart';
 import 'package:flipper_dashboard/widgets/mpos/mpos_customer_section.dart';
@@ -1303,15 +1304,7 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
                           MposSectionLabel(context.flipperL10n.items),
                           const SizedBox(height: 8),
                           if (items.isEmpty)
-                            MposCard(
-                              padding: const EdgeInsets.all(32),
-                              child: Center(
-                                child: Text(
-                                  context.flipperL10n.mposNoItemsInCart,
-                                  style: const TextStyle(color: PosTokens.ink3),
-                                ),
-                              ),
-                            )
+                            const MposEmptyItemsCard()
                           else
                             MposCard(
                               clipBehavior: Clip.antiAlias,
