@@ -13,6 +13,8 @@ String mposPhoneDigits(String? raw) =>
 /// With nothing typed, the most recently updated customers come first, so a
 /// regular is one tap away. Otherwise [phone] (normalised digits) and [name]
 /// (case-insensitive) narrow the list, and an exact phone match leads.
+/// Rows with the same name and phone are one person saved twice, so only the
+/// most recently updated copy is listed.
 List<Customer> mposCustomerMatches(
   List<Customer> all, {
   String phone = '',
@@ -44,7 +46,19 @@ List<Customer> mposCustomerMatches(
     return (b.updatedAt ?? epoch).compareTo(a.updatedAt ?? epoch);
   });
 
-  return matches.length > limit ? matches.sublist(0, limit) : matches;
+  final seen = <String>{};
+  final unique = <Customer>[];
+  for (final c in matches) {
+    final digits = normalizePartyPhone(c.telNo);
+    // Without a phone there is nothing to prove two rows are one person.
+    final key = digits.isEmpty
+        ? c.id
+        : '$digits|${(c.custNm ?? '').trim().toLowerCase()}';
+    if (!seen.add(key)) continue;
+    unique.add(c);
+    if (unique.length == limit) break;
+  }
+  return unique;
 }
 
 /// The existing customer whose phone is [phone], so a full number attaches

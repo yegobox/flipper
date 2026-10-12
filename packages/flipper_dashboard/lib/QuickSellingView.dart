@@ -11,6 +11,7 @@ import 'package:flipper_dashboard/theme/pos_tokens.dart';
 import 'package:flipper_design_system/flipper_design_system.dart'
     show TouchInputMode;
 import 'package:flipper_dashboard/widgets/destructive_confirm_dialog.dart';
+import 'package:flipper_dashboard/widgets/mpos/mpos_customer_sheet.dart';
 import 'package:flipper_dashboard/SearchCustomer.dart';
 import 'package:flipper_dashboard/TextEditingControllersMixin.dart';
 import 'package:flipper_dashboard/TransactionItemTable.dart';
@@ -3918,6 +3919,13 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       transaction: txn,
       displayAmount: totalAfterDiscountAndShipping,
       onParked: () => parked = true,
+      // Phones get the mobile checkout's customer sheet; wider screens keep
+      // the form's built-in list.
+      customerPicker:
+          MediaQuery.sizeOf(context).width <
+              PosLayoutBreakpoints.mobileLayoutMaxWidth
+          ? MposCustomerSheet.pick
+          : null,
     );
     if (!parked || !mounted) return;
 

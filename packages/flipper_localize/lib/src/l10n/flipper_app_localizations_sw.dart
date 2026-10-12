@@ -25816,4 +25816,23 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
 
   @override
   String get webHomeHeroPayrollAccent => 'inayolipwa kwa wakati.';
+
+  @override
+  String get ticketRemoveCustomer => 'Ondoa mteja';
+
+  @override
+  String ticketsSelectedCount(String count) {
+    return '$count zimechaguliwa';
+  }
+
+  @override
+  String ticketPaidOfTotal(String paid, String total) {
+    return 'Imelipwa $paid kati ya $total';
+  }
+
+  @override
+  String get ticketSelect => 'Chagua';
+
+  @override
+  String get ticketSort => 'Panga';
 }

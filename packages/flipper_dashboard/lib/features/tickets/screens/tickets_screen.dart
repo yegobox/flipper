@@ -150,7 +150,39 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen>
     );
   }
 
-  Widget _buildTicketFilterChips() {
+  void _onCreateTicket(BuildContext context, int itemCount) {
+    if (itemCount > 0) {
+      showDialog(
+        context: context,
+        builder: (context) {
+          return NewTicket(transaction: widget.transaction!, onClose: () {});
+        },
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(context.flipperL10n.ticketAddItemsFirst),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
+  /// Items on the cart a new ticket would park, or null when the screen was
+  /// opened for an already-named (resumed) ticket and Create doesn't apply.
+  int? _createTicketItemCount(WidgetRef ref) {
+    final transaction = widget.transaction;
+    final isResumedTicket =
+        transaction?.ticketName != null && transaction!.ticketName!.isNotEmpty;
+    if (isResumedTicket) return null;
+    return transaction != null
+        ? ref
+              .watch(transactionItemsProvider(transactionId: transaction.id))
+              .maybeWhen(data: (items) => items.length, orElse: () => 0)
+        : 0;
+  }
+
+  Widget _buildTicketFilterChips({bool compact = false}) {
     final l10n = context.flipperL10n;
     Widget dot(Color c) => Container(
       margin: const EdgeInsets.only(right: 6),
@@ -174,14 +206,18 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen>
         _ => const Color(0xFFE8F1FF),
       };
       return Padding(
-        padding: const EdgeInsets.only(right: 8),
+        padding: EdgeInsets.only(right: compact ? 6 : 8),
         child: Material(
           color: Colors.transparent,
           child: InkWell(
+            key: ValueKey('ticket_filter_$id'),
             onTap: () => updateTicketKindFilter(id),
             borderRadius: BorderRadius.circular(24),
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              // Phones: 40dp tall, no radio circle, so all four fit at 360dp.
+              padding: compact
+                  ? const EdgeInsets.symmetric(horizontal: 12, vertical: 10)
+                  : const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
                 color: selected ? selectedBg : Colors.white,
                 borderRadius: BorderRadius.circular(24),
@@ -202,30 +238,31 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen>
                       color: selected ? selectedAccent : Colors.black87,
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  Container(
-                    width: 16,
-                    height: 16,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: selected ? selectedAccent : Colors.grey[400]!,
-                        width: 1.5,
+                  if (!compact) const SizedBox(width: 8),
+                  if (!compact)
+                    Container(
+                      width: 16,
+                      height: 16,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: selected ? selectedAccent : Colors.grey[400]!,
+                          width: 1.5,
+                        ),
+                        color: selected ? selectedAccent : Colors.transparent,
                       ),
-                      color: selected ? selectedAccent : Colors.transparent,
+                      alignment: Alignment.center,
+                      child: selected
+                          ? Container(
+                              width: 6,
+                              height: 6,
+                              decoration: const BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.white,
+                              ),
+                            )
+                          : null,
                     ),
-                    alignment: Alignment.center,
-                    child: selected
-                        ? Container(
-                            width: 6,
-                            height: 6,
-                            decoration: const BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Colors.white,
-                            ),
-                          )
-                        : null,
-                  ),
                 ],
               ),
             ),
@@ -279,113 +316,80 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen>
         Widget content = Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Consumer(
-              builder: (context, ref, _) {
-                final transaction = widget.transaction;
-                final isResumedTicket =
-                    transaction?.ticketName != null &&
-                    transaction!.ticketName!.isNotEmpty;
+            // Phones get the Create ticket FAB instead of this strip.
+            if (!isMobile)
+              Consumer(
+                builder: (context, ref, _) {
+                  final itemCount = _createTicketItemCount(ref);
+                  if (itemCount == null) {
+                    return const SizedBox.shrink();
+                  }
 
-                if (isResumedTicket) {
-                  return const SizedBox.shrink();
-                }
-
-                final itemCount = transaction != null
-                    ? ref
-                          .watch(
-                            transactionItemsProvider(
-                              transactionId: transaction.id,
+                  return ColoredBox(
+                    color: _ticketHeaderStripBg,
+                    child: Padding(
+                      padding: EdgeInsets.fromLTRB(
+                        horizontalPadding,
+                        12,
+                        horizontalPadding,
+                        12,
+                      ),
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            elevation: 0,
+                            shadowColor: Colors.transparent,
+                            backgroundColor: _ticketFilterBlue,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 14,
                             ),
-                          )
-                          .maybeWhen(
-                            data: (items) => items.length,
-                            orElse: () => 0,
-                          )
-                    : 0;
-
-                return ColoredBox(
-                  color: _ticketHeaderStripBg,
-                  child: Padding(
-                    padding: EdgeInsets.fromLTRB(
-                      horizontalPadding,
-                      12,
-                      horizontalPadding,
-                      12,
-                    ),
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          elevation: 0,
-                          shadowColor: Colors.transparent,
-                          backgroundColor: _ticketFilterBlue,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 20,
-                            vertical: 14,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        ),
-                        onPressed: () {
-                          if (itemCount > 0) {
-                            showDialog(
-                              context: context,
-                              builder: (context) {
-                                return NewTicket(
-                                  transaction: transaction!,
-                                  onClose: () {},
-                                );
-                              },
-                            );
-                          } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  context.flipperL10n.ticketAddItemsFirst,
-                                ),
-                                duration: const Duration(seconds: 2),
-                              ),
-                            );
-                          }
-                        },
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            const Icon(
-                              Icons.add,
-                              size: 20,
-                              color: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
                             ),
-                            const SizedBox(width: 8),
-                            Text(
-                              context.flipperL10n.ticketCreate,
-                              style: GoogleFonts.outfit(
-                                fontWeight: FontWeight.w600,
-                                fontSize: buttonFontSize,
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                          onPressed: () => _onCreateTicket(context, itemCount),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              const Icon(
+                                Icons.add,
+                                size: 20,
                                 color: Colors.white,
                               ),
-                            ),
-                          ],
-                        ),
-                      ).eligibleToSeeIfYouAre(ref, [AccessLevel.ADMIN]),
+                              const SizedBox(width: 8),
+                              Text(
+                                context.flipperL10n.ticketCreate,
+                                style: GoogleFonts.outfit(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: buttonFontSize,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ).eligibleToSeeIfYouAre(ref, [AccessLevel.ADMIN]),
+                      ),
                     ),
-                  ),
-                );
-              },
-            ),
-            SizedBox(
-              height: isMobile ? 12 : 16,
-            ).eligibleToSeeIfYouAre(ref, [UserType.ADMIN]),
+                  );
+                },
+              ),
+            if (isMobile)
+              const SizedBox(height: 4)
+            else
+              const SizedBox(
+                height: 16,
+              ).eligibleToSeeIfYouAre(ref, [UserType.ADMIN]),
             Expanded(
               child: Padding(
                 padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
                 child: buildTicketSection(
                   context,
-                  filterChips: _buildTicketFilterChips(),
+                  filterChips: _buildTicketFilterChips(compact: isMobile),
                 ),
               ),
             ),
@@ -429,6 +433,23 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen>
                       final canCollect = ref.watch(
                         canCollectPosPaymentProvider,
                       );
+                      final selectedCount = isMobile
+                          ? ref.watch(
+                              ticketSelectionProvider.select((s) => s.length),
+                            )
+                          : 0;
+                      if (selectedCount > 0) {
+                        return Text(
+                          context.flipperL10n.ticketsSelectedCount(
+                            '$selectedCount',
+                          ),
+                          style: GoogleFonts.outfit(
+                            fontWeight: FontWeight.w700,
+                            fontSize: titleFontSize,
+                            color: Colors.black,
+                          ),
+                        );
+                      }
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisSize: MainAxisSize.min,
@@ -605,6 +626,26 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen>
                       },
                     ),
                   ],
+                )
+              : null,
+          floatingActionButton: isMobile
+              ? Consumer(
+                  builder: (context, ref, _) {
+                    final itemCount = _createTicketItemCount(ref);
+                    if (itemCount == null) return const SizedBox.shrink();
+                    return FloatingActionButton.extended(
+                      key: const ValueKey('tickets_create_fab'),
+                      heroTag: null,
+                      backgroundColor: _ticketFilterBlue,
+                      foregroundColor: Colors.white,
+                      onPressed: () => _onCreateTicket(context, itemCount),
+                      icon: const Icon(Icons.add),
+                      label: Text(
+                        context.flipperL10n.ticketCreate,
+                        style: GoogleFonts.outfit(fontWeight: FontWeight.w600),
+                      ),
+                    ).eligibleToSeeIfYouAre(ref, [AccessLevel.ADMIN]);
+                  },
                 )
               : null,
           body: content,

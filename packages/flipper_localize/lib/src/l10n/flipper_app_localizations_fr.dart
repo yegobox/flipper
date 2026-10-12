@@ -26063,4 +26063,23 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
 
   @override
   String get webHomeHeroPayrollAccent => 'tombe à l\'heure.';
+
+  @override
+  String get ticketRemoveCustomer => 'Retirer le client';
+
+  @override
+  String ticketsSelectedCount(String count) {
+    return '$count sélectionné(s)';
+  }
+
+  @override
+  String ticketPaidOfTotal(String paid, String total) {
+    return 'Payé $paid sur $total';
+  }
+
+  @override
+  String get ticketSelect => 'Sélectionner';
+
+  @override
+  String get ticketSort => 'Trier';
 }

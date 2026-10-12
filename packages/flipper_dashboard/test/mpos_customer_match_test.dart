@@ -20,6 +20,30 @@ void main() {
       expect(mposCustomerMatches(all), [aline, jean, eric]);
     });
 
+    test('lists one person saved twice only once, newest copy', () {
+      final older = _c('Mura', '0783054874', 90);
+      final newer = _c('mura ', '+250783054874', 1);
+      final namesake = _c('Mura', '0788000111', 20);
+      expect(mposCustomerMatches([older, newer, namesake, ...all]), [
+        newer,
+        aline,
+        namesake,
+        jean,
+        eric,
+      ]);
+    });
+
+    test('never merges customers that have no phone', () {
+      final a = Customer(custNm: 'Walk-in', branchId: 'b1');
+      final b = Customer(custNm: 'Walk-in', branchId: 'b1');
+      expect(mposCustomerMatches([a, b]), hasLength(2));
+    });
+
+    test('dedupes before applying the limit', () {
+      final dup = _c('Aline Keza', '0722555010', 6);
+      expect(mposCustomerMatches([dup, ...all], limit: 2), [aline, jean]);
+    });
+
     test('caps the list at the limit', () {
       expect(mposCustomerMatches(all, limit: 2), [aline, jean]);
     });

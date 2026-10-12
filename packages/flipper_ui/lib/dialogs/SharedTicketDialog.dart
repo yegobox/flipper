@@ -25,6 +25,18 @@ const double _kFieldRadius = 14;
 
 enum _DuePreset { oneWeek, twoWeeks, oneMonth, custom }
 
+/// What a [CustomerPicker] chose. A null [customer] means "no customer".
+class CustomerPick {
+  const CustomerPick(this.customer);
+  final Customer? customer;
+}
+
+/// Replaces the built-in customer list in [SharedTicketForm]. Returns null
+/// when dismissed without a choice. Lets the phone flow reuse the mobile
+/// checkout customer sheet, which lives in a package this one can't import.
+typedef CustomerPicker = Future<CustomerPick?> Function(BuildContext context,
+    {Customer? current});
+
 String _defaultTicketName(ITransaction txn, {Customer? customer}) {
   final existing = txn.ticketName?.trim();
   if (existing != null && existing.isNotEmpty) return existing;
@@ -86,6 +98,7 @@ Future<void> showSharedTicketDialog({
   required ITransaction transaction,
   double? displayAmount,
   VoidCallback? onParked,
+  CustomerPicker? customerPicker,
 }) {
   final formKey = GlobalKey<SharedTicketFormState>();
   final isSaving = ValueNotifier(false);
@@ -112,6 +125,7 @@ Future<void> showSharedTicketDialog({
           onParked: onParked,
           useBottomSheet: useBottomSheet,
           displayAmount: displayAmount,
+          customerPicker: customerPicker,
         ),
       ];
     },
@@ -136,6 +150,7 @@ SliverWoltModalSheetPage _buildSharedTicketPage(
   VoidCallback? onParked,
   required bool useBottomSheet,
   double? displayAmount,
+  CustomerPicker? customerPicker,
 }) {
   return SliverWoltModalSheetPage(
     backgroundColor: Colors.white,
@@ -155,6 +170,7 @@ SliverWoltModalSheetPage _buildSharedTicketPage(
             scrollBottomInset: _parkTicketScrollBottomInset(context),
             displayAmount: displayAmount,
             hasCustomerNotifier: hasCustomer,
+            customerPicker: customerPicker,
           ),
         ),
       ),
@@ -357,6 +373,7 @@ class SharedTicketForm extends ConsumerStatefulWidget {
     this.isSavingNotifier,
     this.scrollBottomInset = 120,
     this.displayAmount,
+    this.customerPicker,
   });
 
   final ITransaction transaction;
@@ -373,6 +390,9 @@ class SharedTicketForm extends ConsumerStatefulWidget {
   /// Kept in sync with whether a customer is currently attached, so the park
   /// footer button can gray out until one is selected.
   final ValueNotifier<bool> hasCustomerNotifier;
+
+  /// Opens instead of the built-in customer list when set.
+  final CustomerPicker? customerPicker;
 
   @override
   SharedTicketFormState createState() => SharedTicketFormState();
@@ -426,10 +446,9 @@ class SharedTicketFormState extends ConsumerState<SharedTicketForm> {
       return;
     }
     try {
-      final found = await ProxyService.getStrategy(Strategy.capella).customers(
-        branchId: ProxyService.box.getBranchId() ?? '00',
-        id: id,
-      );
+      final found = await ProxyService.getStrategy(
+        Strategy.capella,
+      ).customers(branchId: ProxyService.box.getBranchId() ?? '00', id: id);
       if (!mounted || found.isEmpty) return;
       setState(() {
         _selectedCustomer = found.first;
@@ -447,8 +466,9 @@ class SharedTicketFormState extends ConsumerState<SharedTicketForm> {
 
   Future<void> _loadCustomers() async {
     try {
-      final customers = await ProxyService.getStrategy(Strategy.capella)
-          .customers(branchId: ProxyService.box.getBranchId() ?? '00');
+      final customers = await ProxyService.getStrategy(
+        Strategy.capella,
+      ).customers(branchId: ProxyService.box.getBranchId() ?? '00');
       if (!mounted) return;
       setState(() {
         _customers = customers;
@@ -533,6 +553,14 @@ class SharedTicketFormState extends ConsumerState<SharedTicketForm> {
   }
 
   Future<void> _pickCustomer() async {
+    final picker = widget.customerPicker;
+    if (picker != null) {
+      if (_isSaving) return;
+      final pick = await picker(context, current: _selectedCustomer);
+      if (!mounted || pick == null) return;
+      _applyPickedCustomer(pick.customer);
+      return;
+    }
     if (_isSaving || _loadingCustomers) return;
 
     final picked = await showModalBottomSheet<Object?>(
@@ -540,8 +568,9 @@ class SharedTicketFormState extends ConsumerState<SharedTicketForm> {
       isScrollControlled: true,
       backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
-        borderRadius:
-            BorderRadius.vertical(top: Radius.circular(_kSheetRadius)),
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(_kSheetRadius),
+        ),
       ),
       builder: (sheetContext) {
         var query = '';
@@ -618,11 +647,19 @@ class SharedTicketFormState extends ConsumerState<SharedTicketForm> {
                             );
                           }
                           final c = filtered[index - 1];
+                          final name = (c.custNm ?? '').trim();
                           final initial =
-                              (c.custNm ?? '?').trim()[0].toUpperCase();
+                              name.isEmpty ? '?' : name[0].toUpperCase();
+                          final selected = c.id == _selectedCustomer?.id;
                           return ListTile(
                             contentPadding: EdgeInsets.zero,
                             leading: _customerAvatar(initial, size: 40),
+                            trailing: selected
+                                ? const Icon(
+                                    Icons.check_circle,
+                                    color: _kPrimary,
+                                  )
+                                : null,
                             title: Text(
                               c.custNm ?? context.flipperL10n.uiTicketUnknown,
                               style: GoogleFonts.poppins(
@@ -652,21 +689,29 @@ class SharedTicketFormState extends ConsumerState<SharedTicketForm> {
 
     if (!mounted) return;
     if (picked == false) {
+      _applyPickedCustomer(null);
+    } else if (picked is Customer) {
+      _applyPickedCustomer(picked);
+    }
+  }
+
+  void _applyPickedCustomer(Customer? picked) {
+    if (picked == null) {
       setState(() => _selectedCustomer = null);
       widget.hasCustomerNotifier.value = false;
-    } else if (picked is Customer) {
-      final previous = _selectedCustomer;
-      setState(() {
-        _selectedCustomer = picked;
-        _syncTicketNameWithCustomer(
-          _ticketNameController,
-          customer: picked,
-          previousCustomer: previous,
-          txn: widget.transaction,
-        );
-      });
-      widget.hasCustomerNotifier.value = true;
+      return;
     }
+    final previous = _selectedCustomer;
+    setState(() {
+      _selectedCustomer = picked;
+      _syncTicketNameWithCustomer(
+        _ticketNameController,
+        customer: picked,
+        previousCustomer: previous,
+        txn: widget.transaction,
+      );
+    });
+    widget.hasCustomerNotifier.value = true;
   }
 
   Future<void> _pickDueDate() async {
@@ -678,9 +723,9 @@ class SharedTicketFormState extends ConsumerState<SharedTicketForm> {
       lastDate: DateTime.now().add(const Duration(days: 365)),
       builder: (context, child) {
         return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(primary: _kPrimary),
-          ),
+          data: Theme.of(
+            context,
+          ).copyWith(colorScheme: const ColorScheme.light(primary: _kPrimary)),
           child: child!,
         );
       },
@@ -889,8 +934,11 @@ class SharedTicketFormState extends ConsumerState<SharedTicketForm> {
               if (initial != null)
                 _customerAvatar(initial, size: 40)
               else
-                Icon(Icons.person_add_alt_1_outlined,
-                    size: 22, color: Colors.grey.shade400),
+                Icon(
+                  Icons.person_add_alt_1_outlined,
+                  size: 22,
+                  color: Colors.grey.shade400,
+                ),
               const SizedBox(width: 12),
               Expanded(
                 child: hasCustomer
@@ -930,8 +978,11 @@ class SharedTicketFormState extends ConsumerState<SharedTicketForm> {
                         ),
                       ),
               ),
-              Icon(Icons.keyboard_arrow_down_rounded,
-                  color: Colors.grey.shade500, size: 24),
+              Icon(
+                Icons.keyboard_arrow_down_rounded,
+                color: Colors.grey.shade500,
+                size: 24,
+              ),
             ],
           ),
         ),
@@ -1015,20 +1066,26 @@ class SharedTicketFormState extends ConsumerState<SharedTicketForm> {
       children: [
         Expanded(
           child: _presetChip(
-              context.flipperL10n.uiTicketOneWeek, _DuePreset.oneWeek,
-              isSaving: isSaving),
+            context.flipperL10n.uiTicketOneWeek,
+            _DuePreset.oneWeek,
+            isSaving: isSaving,
+          ),
         ),
         const SizedBox(width: 8),
         Expanded(
           child: _presetChip(
-              context.flipperL10n.uiTicketTwoWeeks, _DuePreset.twoWeeks,
-              isSaving: isSaving),
+            context.flipperL10n.uiTicketTwoWeeks,
+            _DuePreset.twoWeeks,
+            isSaving: isSaving,
+          ),
         ),
         const SizedBox(width: 8),
         Expanded(
           child: _presetChip(
-              context.flipperL10n.uiTicketOneMonth, _DuePreset.oneMonth,
-              isSaving: isSaving),
+            context.flipperL10n.uiTicketOneMonth,
+            _DuePreset.oneMonth,
+            isSaving: isSaving,
+          ),
         ),
       ],
     );
@@ -1091,9 +1148,7 @@ class SharedTicketFormState extends ConsumerState<SharedTicketForm> {
                 decoration: BoxDecoration(
                   color: const Color(0xFFEEF4FF),
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(
-                    color: _kPrimary.withValues(alpha: 0.25),
-                  ),
+                  border: Border.all(color: _kPrimary.withValues(alpha: 0.25)),
                 ),
                 child: const Icon(
                   Icons.calendar_today_outlined,
@@ -1126,8 +1181,11 @@ class SharedTicketFormState extends ConsumerState<SharedTicketForm> {
                   ],
                 ),
               ),
-              Icon(Icons.chevron_right_rounded,
-                  color: Colors.grey.shade500, size: 22),
+              Icon(
+                Icons.chevron_right_rounded,
+                color: Colors.grey.shade500,
+                size: 22,
+              ),
             ],
           ),
         ),
@@ -1193,8 +1251,10 @@ class SharedTicketFormState extends ConsumerState<SharedTicketForm> {
   Widget _surfaceBox({
     required Widget child,
     double minHeight = 52,
-    EdgeInsetsGeometry padding =
-        const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+    EdgeInsetsGeometry padding = const EdgeInsets.symmetric(
+      horizontal: 14,
+      vertical: 4,
+    ),
   }) {
     return Container(
       constraints: BoxConstraints(minHeight: minHeight),

@@ -25646,4 +25646,23 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
 
   @override
   String get webHomeHeroPayrollAccent => 'pays on time.';
+
+  @override
+  String get ticketRemoveCustomer => 'Remove customer';
+
+  @override
+  String ticketsSelectedCount(String count) {
+    return '$count selected';
+  }
+
+  @override
+  String ticketPaidOfTotal(String paid, String total) {
+    return 'Paid $paid of $total';
+  }
+
+  @override
+  String get ticketSelect => 'Select';
+
+  @override
+  String get ticketSort => 'Sort';
 }

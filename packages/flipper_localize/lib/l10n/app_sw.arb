@@ -8778,5 +8778,10 @@
   "webHomeHeroKitchenLead": "Skrini ya jikoni",
   "webHomeHeroKitchenAccent": "inayotangaza kila oda.",
   "webHomeHeroPayrollLead": "Mishahara",
-  "webHomeHeroPayrollAccent": "inayolipwa kwa wakati."
+  "webHomeHeroPayrollAccent": "inayolipwa kwa wakati.",
+  "ticketRemoveCustomer": "Ondoa mteja",
+  "ticketsSelectedCount": "{count} zimechaguliwa",
+  "ticketPaidOfTotal": "Imelipwa {paid} kati ya {total}",
+  "ticketSelect": "Chagua",
+  "ticketSort": "Panga"
 }

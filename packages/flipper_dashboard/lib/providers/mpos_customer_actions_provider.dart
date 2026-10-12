@@ -40,6 +40,25 @@ class MposCustomerActions {
     required String name,
     required ITransaction transaction,
   }) async {
+    final saved = await _save(
+      phone: phone,
+      name: name,
+      transactionId: transaction.id,
+    );
+    await _writeSaleSession(saved);
+    return saved;
+  }
+
+  /// Saves a new customer without touching any sale — the ticket form keeps
+  /// the pick and attaches it when the ticket is parked.
+  Future<Customer> create({required String phone, required String name}) =>
+      _save(phone: phone, name: name);
+
+  Future<Customer> _save({
+    required String phone,
+    required String name,
+    String? transactionId,
+  }) async {
     final branchId = box.getBranchId();
     if (branchId == null || branchId.isEmpty) {
       throw StateError('No active branch');
@@ -61,12 +80,11 @@ class MposCustomerActions {
     final customer = customerFromDraft(draft);
     final saved = await capella.addCustomer(
       customer: customer,
-      transactionId: transaction.id,
+      transactionId: transactionId,
     );
     if (saved == null) {
       throw StateError('Customer could not be saved');
     }
-    await _writeSaleSession(saved);
     return saved;
   }
 
