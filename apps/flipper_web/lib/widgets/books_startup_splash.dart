@@ -15,11 +15,7 @@ class BooksStartupSplash extends StatelessWidget {
       home: Scaffold(
         backgroundColor: Colors.white,
         body: Center(
-          child: SvgPicture(
-            SvgAssetLoader(_logoPath),
-            width: 96,
-            height: 96,
-          ),
+          child: SvgPicture(SvgAssetLoader(_logoPath), width: 96, height: 96),
         ),
       ),
     );
