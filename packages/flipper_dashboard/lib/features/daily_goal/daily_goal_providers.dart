@@ -1,3 +1,4 @@
+import 'package:ditto_live/ditto_live.dart';
 import 'package:flipper_models/helpers/daily_goal_rules.dart';
 import 'package:flipper_models/models/engagement.dart';
 import 'package:flipper_models/providers/active_branch_provider.dart';
@@ -24,8 +25,19 @@ final dailyGoalBranchProvider =
     });
 
 /// Ditto access for the goal; null until Ditto is up.
+///
+/// Rebuilt whenever Ditto swaps instance (login, user switch, local-mode
+/// signup reopening the store): a store holding the closed instance throws
+/// "This ditto instance is closed" on every listen.
 final engagementStoreProvider = Provider<EngagementStore?>((ref) {
-  final ditto = DittoService.instance.dittoInstance;
+  final service = DittoService.instance;
+  final ditto = service.dittoInstance;
+  void onDittoChanged(Ditto? next) {
+    if (!identical(next, ditto)) ref.invalidateSelf();
+  }
+
+  service.addDittoListener(onDittoChanged);
+  ref.onDispose(() => service.removeDittoListener(onDittoChanged));
   return ditto == null ? null : EngagementStore(ditto);
 });
 
