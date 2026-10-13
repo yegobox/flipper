@@ -26044,4 +26044,8 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
 
   @override
   String get webHomeNativeDesktop => 'Uko kwenye kompyuta? Pakua Atlas';
+
+  @override
+  String get cashResetNotEnabled =>
+      'Kufuta daftari la fedha hakujawashwa kwa biashara hii. Omba msaada wa Flipper uwashe mara moja.';
 }

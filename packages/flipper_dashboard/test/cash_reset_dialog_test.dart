@@ -12,6 +12,7 @@ class _FakeClient extends CashMovementResetClient {
   final previews = <Set<CashMovementKind>>[];
   final resets = <(Set<CashMovementKind>, String)>[];
   int transactions = 3;
+  Object? previewError;
 
   CashResetSummary _summary({required bool deleted}) => CashResetSummary(
     businessName: 'Kigali Shop',
@@ -29,6 +30,8 @@ class _FakeClient extends CashMovementResetClient {
   @override
   Future<CashResetSummary> preview(Set<CashMovementKind> kinds) async {
     previews.add(kinds);
+    final error = previewError;
+    if (error != null) throw error;
     return _summary(deleted: false);
   }
 
@@ -141,5 +144,33 @@ void main() {
     expect(find.text('There is nothing to delete.'), findsOneWidget);
     expect(find.byKey(const ValueKey('cash-reset-delete')), findsNothing);
     expect(find.text('Close'), findsOneWidget);
+  });
+
+  testWidgets('a business without a staff grant is told to ask support', (
+    tester,
+  ) async {
+    final fake = _FakeClient()
+      ..previewError = const CashResetException('not enabled', statusCode: 403);
+    await tester.pumpWidget(host(fake));
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('cash-reset-preview')));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('Ask Flipper support'), findsOneWidget);
+    expect(find.textContaining('Could not clear'), findsNothing);
+    expect(fake.resets, isEmpty);
+  });
+
+  testWidgets('other failures keep the server message', (tester) async {
+    final fake = _FakeClient()
+      ..previewError = const CashResetException('boom', statusCode: 500);
+    await tester.pumpWidget(host(fake));
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('cash-reset-preview')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Could not clear the Cash Book: boom'), findsOneWidget);
   });
 }

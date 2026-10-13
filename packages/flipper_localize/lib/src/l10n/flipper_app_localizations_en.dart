@@ -25873,4 +25873,8 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
 
   @override
   String get webHomeNativeDesktop => 'On a computer? Download Atlas';
+
+  @override
+  String get cashResetNotEnabled =>
+      'Clearing the Cash Book is not enabled for this business. Ask Flipper support to enable it for one reset.';
 }

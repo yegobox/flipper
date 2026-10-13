@@ -19485,5 +19485,9 @@
     "webHomeNativeDesktop": "On a computer? Download Atlas",
     "@webHomeNativeDesktop": {
         "description": "Landing link from the native section to the apps page"
+    },
+    "cashResetNotEnabled": "Clearing the Cash Book is not enabled for this business. Ask Flipper support to enable it for one reset.",
+    "@cashResetNotEnabled": {
+        "description": "Clear Cash Book refused because Flipper staff have not enabled a reset for this business"
     }
 }
