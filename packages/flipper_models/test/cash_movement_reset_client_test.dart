@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flipper_models/cash_movement_reset_client.dart';
@@ -88,5 +89,42 @@ void main() {
     final c = client(200, preview);
     await expectLater(c.preview({}), throwsA(isA<CashResetException>()));
     expect(sent, isEmpty);
+  });
+
+  group('a server that never answers', () {
+    CashMovementResetClient hanging() => CashMovementResetClient(
+      baseUrl: () async => 'https://connector.test',
+      httpClient: MockClient((_) => Completer<http.Response>().future),
+      timeout: const Duration(milliseconds: 20),
+    );
+
+    test('a preview timeout says nothing was deleted', () async {
+      await expectLater(
+        hanging().preview({CashMovementKind.cashIn}),
+        throwsA(
+          isA<CashResetException>().having(
+            (e) => e.message,
+            'message',
+            contains('nothing was deleted'),
+          ),
+        ),
+      );
+    });
+
+    test('a reset timeout says the outcome is unknown', () async {
+      await expectLater(
+        hanging().reset({CashMovementKind.cashIn}, confirm: 'Kigali Shop'),
+        throwsA(
+          isA<CashResetException>().having(
+            (e) => e.message,
+            'message',
+            allOf(
+              contains('may still have completed'),
+              isNot(contains('nothing')),
+            ),
+          ),
+        ),
+      );
+    });
   });
 }

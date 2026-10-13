@@ -93,15 +93,19 @@ class CashMovementResetClient {
   CashMovementResetClient({
     required Future<String> Function() baseUrl,
     http.Client? httpClient,
+    Duration timeout = defaultTimeout,
   }) : _baseUrl = baseUrl,
-       _http = httpClient;
+       _http = httpClient,
+       _timeout = timeout;
 
   final Future<String> Function() _baseUrl;
   final http.Client? _http;
 
+  final Duration _timeout;
+
   /// The connector first pulls old movements back from the mesh (up to ~30s
   /// per step), so allow more than a normal request.
-  static const Duration _timeout = Duration(seconds: 120);
+  static const Duration defaultTimeout = Duration(seconds: 120);
 
   /// Counts what [reset] would delete. Deletes nothing.
   Future<CashResetSummary> preview(Set<CashMovementKind> kinds) =>
@@ -139,8 +143,13 @@ class CashMovementResetClient {
           )
           .timeout(_timeout);
     } on TimeoutException {
-      throw const CashResetException(
-        'The server took too long to answer. Try again; nothing is lost.',
+      // A timeout only stops this client waiting; the connector may still
+      // finish a real reset (and use up its single-use grant).
+      throw CashResetException(
+        dryRun
+            ? 'The server took too long to answer. Try again; nothing was deleted.'
+            : 'The server took too long to answer. The reset may still have '
+                  'completed; check the Cash Book before trying again.',
       );
     } finally {
       // Closes only what the wrapper opened; an injected client stays open.

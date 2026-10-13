@@ -43244,7 +43244,7 @@ abstract class FlipperAppLocalizations {
   /// Admin Control danger zone: clear all Cash In / Cash Out for the business
   ///
   /// In en, this message translates to:
-  /// **'{count} records will be permanently deleted from every branch, together with their ledger entries. This cannot be undone.'**
+  /// **'{count, plural, =1{1 record will be permanently deleted from every branch, together with its ledger entries. This cannot be undone.} other{{count} records will be permanently deleted from every branch, together with their ledger entries. This cannot be undone.}}'**
   String cashResetSummary(int count);
 
   /// Admin Control danger zone: clear all Cash In / Cash Out for the business
@@ -43268,7 +43268,7 @@ abstract class FlipperAppLocalizations {
   /// Admin Control danger zone: clear all Cash In / Cash Out for the business
   ///
   /// In en, this message translates to:
-  /// **'Deleted {count} records.'**
+  /// **'{count, plural, =1{Deleted 1 record.} other{Deleted {count} records.}}'**
   String cashResetDone(int count);
 
   /// Admin Control danger zone: clear all Cash In / Cash Out for the business
