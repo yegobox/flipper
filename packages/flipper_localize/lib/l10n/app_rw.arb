@@ -8824,7 +8824,7 @@
   "webAppsOpenWeb": "Fungura muri mushakisha",
   "webHomeNativeDesktop": "Uri kuri mudasobwa? Kuramo Atlas",
   "cashResetSectionTitle": "Igice cyo kwitonda",
-  "cashResetTitle": "Siba igitabo cy'amafaranga",
+  "cashResetTitle": "Siba ibyanditswe mu gitabo cy'amafaranga",
   "cashResetSubtitle": "Siba burundu amafaranga yinjiye n'ayasohotse mu mashami yose y'iki kigo",
   "cashResetOpen": "Suzuma hanyuma usibe",
   "cashResetPickKinds": "Ni ibihe byandikwa bisibwa?",
@@ -8835,6 +8835,6 @@
   "cashResetTypeToConfirm": "Andika {name} kugira ngo wemeze",
   "cashResetDelete": "Siba burundu",
   "cashResetDone": "Ibyandikwa {count} byasibwe.",
-  "cashResetFailed": "Ntibyashobotse gusiba igitabo cy'amafaranga: {error}",
-  "cashResetNotEnabled": "Gusiba igitabo cy'amafaranga ntibyemerewe iki kigo. Saba ubufasha bwa Flipper kubyemera rimwe."
+  "cashResetFailed": "Ntibyashobotse gusiba ibyanditswe mu gitabo cy'amafaranga: {error}",
+  "cashResetNotEnabled": "Gusiba ibyanditswe mu gitabo cy'amafaranga ntibyemerewe iki kigo. Saba ubufasha bwa Flipper kubyemera rimwe."
 }

@@ -26090,7 +26090,7 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   String get cashResetSectionTitle => 'Igice cyo kwitonda';
 
   @override
-  String get cashResetTitle => 'Siba igitabo cy\'amafaranga';
+  String get cashResetTitle => 'Siba ibyanditswe mu gitabo cy\'amafaranga';
 
   @override
   String get cashResetSubtitle =>
@@ -26133,10 +26133,10 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
 
   @override
   String cashResetFailed(String error) {
-    return 'Ntibyashobotse gusiba igitabo cy\'amafaranga: $error';
+    return 'Ntibyashobotse gusiba ibyanditswe mu gitabo cy\'amafaranga: $error';
   }
 
   @override
   String get cashResetNotEnabled =>
-      'Gusiba igitabo cy\'amafaranga ntibyemerewe iki kigo. Saba ubufasha bwa Flipper kubyemera rimwe.';
+      'Gusiba ibyanditswe mu gitabo cy\'amafaranga ntibyemerewe iki kigo. Saba ubufasha bwa Flipper kubyemera rimwe.';
 }

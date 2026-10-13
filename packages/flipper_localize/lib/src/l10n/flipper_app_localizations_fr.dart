@@ -26267,7 +26267,15 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
 
   @override
   String cashResetSummary(int count) {
-    return '$count enregistrements seront définitivement supprimés de toutes les succursales, avec leurs écritures comptables. Cette action est irréversible.';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count enregistrements seront définitivement supprimés de toutes les succursales, avec leurs écritures comptables. Cette action est irréversible.',
+      one:
+          '1 enregistrement sera définitivement supprimé de toutes les succursales, avec ses écritures comptables. Cette action est irréversible.',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -26285,7 +26293,13 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
 
   @override
   String cashResetDone(int count) {
-    return '$count enregistrements supprimés.';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count enregistrements supprimés.',
+      one: '1 enregistrement supprimé.',
+    );
+    return '$_temp0';
   }
 
   @override

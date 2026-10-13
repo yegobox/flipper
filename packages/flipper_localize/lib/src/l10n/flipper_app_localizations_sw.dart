@@ -25999,7 +25999,7 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   String get cashResetSectionTitle => 'Eneo la hatari';
 
   @override
-  String get cashResetTitle => 'Futa daftari la fedha';
+  String get cashResetTitle => 'Futa rekodi za daftari la fedha';
 
   @override
   String get cashResetSubtitle =>
@@ -26042,10 +26042,10 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
 
   @override
   String cashResetFailed(String error) {
-    return 'Imeshindwa kufuta daftari la fedha: $error';
+    return 'Imeshindwa kufuta rekodi za daftari la fedha: $error';
   }
 
   @override
   String get cashResetNotEnabled =>
-      'Kufuta daftari la fedha hakujawashwa kwa biashara hii. Omba msaada wa Flipper uwashe mara moja.';
+      'Kufuta rekodi za daftari la fedha hakujawashwa kwa biashara hii. Omba msaada wa Flipper uwashe mara moja.';
 }

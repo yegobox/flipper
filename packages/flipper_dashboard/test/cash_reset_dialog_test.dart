@@ -173,4 +173,19 @@ void main() {
 
     expect(find.text('Could not clear the Cash Book: boom'), findsOneWidget);
   });
+
+  testWidgets('a single record reads in the singular', (tester) async {
+    final fake = _FakeClient()..transactions = 1;
+    await tester.pumpWidget(host(fake));
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('cash-reset-preview')));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.textContaining('1 record will be permanently deleted'),
+      findsOneWidget,
+    );
+    expect(find.textContaining('records will be'), findsNothing);
+  });
 }

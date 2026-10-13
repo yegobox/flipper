@@ -8832,7 +8832,7 @@
   "webAppsOpenWeb": "Fungua kwenye kivinjari",
   "webHomeNativeDesktop": "Uko kwenye kompyuta? Pakua Atlas",
   "cashResetSectionTitle": "Eneo la hatari",
-  "cashResetTitle": "Futa daftari la fedha",
+  "cashResetTitle": "Futa rekodi za daftari la fedha",
   "cashResetSubtitle": "Futa kabisa rekodi za pesa iliyoingia na iliyotoka katika matawi yote ya biashara hii",
   "cashResetOpen": "Kagua na ufute",
   "cashResetPickKinds": "Ni rekodi zipi zifutwe?",
@@ -8843,6 +8843,6 @@
   "cashResetTypeToConfirm": "Andika {name} ili kuthibitisha",
   "cashResetDelete": "Futa kabisa",
   "cashResetDone": "Rekodi {count} zimefutwa.",
-  "cashResetFailed": "Imeshindwa kufuta daftari la fedha: {error}",
-  "cashResetNotEnabled": "Kufuta daftari la fedha hakujawashwa kwa biashara hii. Omba msaada wa Flipper uwashe mara moja."
+  "cashResetFailed": "Imeshindwa kufuta rekodi za daftari la fedha: {error}",
+  "cashResetNotEnabled": "Kufuta rekodi za daftari la fedha hakujawashwa kwa biashara hii. Omba msaada wa Flipper uwashe mara moja."
 }

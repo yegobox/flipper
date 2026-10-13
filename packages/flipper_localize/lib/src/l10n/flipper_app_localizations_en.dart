@@ -25848,7 +25848,15 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
 
   @override
   String cashResetSummary(int count) {
-    return '$count records will be permanently deleted from every branch, together with their ledger entries. This cannot be undone.';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count records will be permanently deleted from every branch, together with their ledger entries. This cannot be undone.',
+      one:
+          '1 record will be permanently deleted from every branch, together with its ledger entries. This cannot be undone.',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -25866,7 +25874,13 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
 
   @override
   String cashResetDone(int count) {
-    return 'Deleted $count records.';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Deleted $count records.',
+      one: 'Deleted 1 record.',
+    );
+    return '$_temp0';
   }
 
   @override
