@@ -458,7 +458,19 @@ abstract final class HotelRoomRraService {
     }
 
     final withItem = room.copyWith(variantId: variant.id);
-    await _sync.saveHotelRoom(withItem);
+    try {
+      await _sync.saveHotelRoom(withItem);
+    } catch (_) {
+      // The room never learned its variantId, so the next charge would mint
+      // another product and variant: drop this pair rather than orphan it.
+      try {
+        await repository.delete<Variant>(variant);
+        await repository.delete<Product>(product);
+      } catch (e) {
+        talker.error('hotel: could not drop item for room ${room.name}: $e');
+      }
+      rethrow;
+    }
     talker.info(
       'hotel: room ${room.name} on non-EBM branch $branchId now bills as item '
       '${variant.id} (not sent to RRA)',
