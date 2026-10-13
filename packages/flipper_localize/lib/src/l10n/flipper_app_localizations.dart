@@ -5117,84 +5117,6 @@ abstract class FlipperAppLocalizations {
   /// **'Cash out'**
   String get cashbookCashOut;
 
-  /// Admin Control danger zone: clear all Cash In / Cash Out for the business
-  ///
-  /// In en, this message translates to:
-  /// **'Danger zone'**
-  String get cashResetSectionTitle;
-
-  /// Admin Control danger zone: clear all Cash In / Cash Out for the business
-  ///
-  /// In en, this message translates to:
-  /// **'Clear Cash Book'**
-  String get cashResetTitle;
-
-  /// Admin Control danger zone: clear all Cash In / Cash Out for the business
-  ///
-  /// In en, this message translates to:
-  /// **'Permanently delete Cash In and Cash Out records in every branch of this business'**
-  String get cashResetSubtitle;
-
-  /// Admin Control danger zone: clear all Cash In / Cash Out for the business
-  ///
-  /// In en, this message translates to:
-  /// **'Review and clear'**
-  String get cashResetOpen;
-
-  /// Admin Control danger zone: clear all Cash In / Cash Out for the business
-  ///
-  /// In en, this message translates to:
-  /// **'Which records should be deleted?'**
-  String get cashResetPickKinds;
-
-  /// Admin Control danger zone: clear all Cash In / Cash Out for the business
-  ///
-  /// In en, this message translates to:
-  /// **'Preview'**
-  String get cashResetPreview;
-
-  /// Admin Control danger zone: clear all Cash In / Cash Out for the business
-  ///
-  /// In en, this message translates to:
-  /// **'There is nothing to delete.'**
-  String get cashResetNothing;
-
-  /// Admin Control danger zone: clear all Cash In / Cash Out for the business
-  ///
-  /// In en, this message translates to:
-  /// **'{count} records will be permanently deleted from every branch, together with their ledger entries. This cannot be undone.'**
-  String cashResetSummary(int count);
-
-  /// Admin Control danger zone: clear all Cash In / Cash Out for the business
-  ///
-  /// In en, this message translates to:
-  /// **'{kind}: {count} · {amount}'**
-  String cashResetKindLine(String kind, int count, String amount);
-
-  /// Admin Control danger zone: clear all Cash In / Cash Out for the business
-  ///
-  /// In en, this message translates to:
-  /// **'Type {name} to confirm'**
-  String cashResetTypeToConfirm(String name);
-
-  /// Admin Control danger zone: clear all Cash In / Cash Out for the business
-  ///
-  /// In en, this message translates to:
-  /// **'Delete permanently'**
-  String get cashResetDelete;
-
-  /// Admin Control danger zone: clear all Cash In / Cash Out for the business
-  ///
-  /// In en, this message translates to:
-  /// **'Deleted {count} records.'**
-  String cashResetDone(int count);
-
-  /// Admin Control danger zone: clear all Cash In / Cash Out for the business
-  ///
-  /// In en, this message translates to:
-  /// **'Could not clear the Cash Book: {error}'**
-  String cashResetFailed(String error);
-
   /// No description provided for @cashbookTotalOut.
   ///
   /// In en, this message translates to:
@@ -43276,6 +43198,84 @@ abstract class FlipperAppLocalizations {
   /// In en, this message translates to:
   /// **'On a computer? Download Atlas'**
   String get webHomeNativeDesktop;
+
+  /// Admin Control danger zone: clear all Cash In / Cash Out for the business
+  ///
+  /// In en, this message translates to:
+  /// **'Danger zone'**
+  String get cashResetSectionTitle;
+
+  /// Admin Control danger zone: clear all Cash In / Cash Out for the business
+  ///
+  /// In en, this message translates to:
+  /// **'Clear Cash Book'**
+  String get cashResetTitle;
+
+  /// Admin Control danger zone: clear all Cash In / Cash Out for the business
+  ///
+  /// In en, this message translates to:
+  /// **'Permanently delete Cash In and Cash Out records in every branch of this business'**
+  String get cashResetSubtitle;
+
+  /// Admin Control danger zone: clear all Cash In / Cash Out for the business
+  ///
+  /// In en, this message translates to:
+  /// **'Review and clear'**
+  String get cashResetOpen;
+
+  /// Admin Control danger zone: clear all Cash In / Cash Out for the business
+  ///
+  /// In en, this message translates to:
+  /// **'Which records should be deleted?'**
+  String get cashResetPickKinds;
+
+  /// Admin Control danger zone: clear all Cash In / Cash Out for the business
+  ///
+  /// In en, this message translates to:
+  /// **'Preview'**
+  String get cashResetPreview;
+
+  /// Admin Control danger zone: clear all Cash In / Cash Out for the business
+  ///
+  /// In en, this message translates to:
+  /// **'There is nothing to delete.'**
+  String get cashResetNothing;
+
+  /// Admin Control danger zone: clear all Cash In / Cash Out for the business
+  ///
+  /// In en, this message translates to:
+  /// **'{count} records will be permanently deleted from every branch, together with their ledger entries. This cannot be undone.'**
+  String cashResetSummary(int count);
+
+  /// Admin Control danger zone: clear all Cash In / Cash Out for the business
+  ///
+  /// In en, this message translates to:
+  /// **'{kind}: {count} · {amount}'**
+  String cashResetKindLine(String kind, int count, String amount);
+
+  /// Admin Control danger zone: clear all Cash In / Cash Out for the business
+  ///
+  /// In en, this message translates to:
+  /// **'Type {name} to confirm'**
+  String cashResetTypeToConfirm(String name);
+
+  /// Admin Control danger zone: clear all Cash In / Cash Out for the business
+  ///
+  /// In en, this message translates to:
+  /// **'Delete permanently'**
+  String get cashResetDelete;
+
+  /// Admin Control danger zone: clear all Cash In / Cash Out for the business
+  ///
+  /// In en, this message translates to:
+  /// **'Deleted {count} records.'**
+  String cashResetDone(int count);
+
+  /// Admin Control danger zone: clear all Cash In / Cash Out for the business
+  ///
+  /// In en, this message translates to:
+  /// **'Could not clear the Cash Book: {error}'**
+  String cashResetFailed(String error);
 
   /// Clear Cash Book refused because Flipper staff have not enabled a reset for this business
   ///
