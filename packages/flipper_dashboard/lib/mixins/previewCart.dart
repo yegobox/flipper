@@ -327,9 +327,8 @@ String? primaryPaymentMethodForSaleCompletion(List<Payment> paymentMethods) {
   final lines = paymentLinesForSaleCompletion(paymentMethods);
   if (lines.isEmpty) return null;
   for (final line in lines) {
-    if (line.amount > _tenderEpsilon && line.method.trim().isNotEmpty) {
-      return line.method;
-    }
+    final method = line.method.trim();
+    if (line.amount > _tenderEpsilon && method.isNotEmpty) return method;
   }
   final first = lines.first.method.trim();
   return first.isEmpty ? null : first;

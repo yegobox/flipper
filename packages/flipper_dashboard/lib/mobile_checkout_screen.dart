@@ -331,25 +331,7 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
 
       if (!mounted) return;
 
-      // Clear every local representation before returning to the catalog so
-      // the ticket that was just sent cannot flash as the next sale's cart.
-      ref.read(suppressedCartTransactionIdProvider.notifier).state = txn.id;
-      ref.read(optimisticCartProvider.notifier).clearForTransaction(txn.id);
-      clearCachedPendingCartTransactionWidget(ref, isExpense: false);
-      ref.invalidate(
-        transactionItemsStreamProvider(
-          transactionId: txn.id,
-          branchId: _branchId,
-        ),
-      );
-      ref.invalidate(pendingTransactionStreamProvider(isExpense: false));
-      ref.read(customerPhoneNumberProvider.notifier).state = null;
-      ref.read(mposMomoPhoneProvider.notifier).state = null;
-      await ProxyService.box.writeString(key: 'customerName', value: '');
-      await ProxyService.box.writeString(
-        key: 'currentSaleCustomerPhoneNumber',
-        value: '',
-      );
+      await clearLocalCartForTicket(ref, txn.id, branchId: _branchId);
 
       if (!mounted) return;
       showSuccessNotification(
@@ -1005,7 +987,12 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
   @override
   Widget build(BuildContext context) {
     ref.listen(posCartStreamReconciliationProvider, (_, __) {});
-    listenForTakenOverTicket(ref, context, () => _settlingLeaveHandled = true);
+    listenForTakenOverTicket(
+      ref,
+      context,
+      branchId: _branchId,
+      onLeaving: () => _settlingLeaveHandled = true,
+    );
 
     ref.listen(payButtonStateProvider, (previous, next) {
       final wasLoading = previous?[ButtonType.pay] == true;
