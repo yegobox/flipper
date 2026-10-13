@@ -31,52 +31,62 @@ Future<List<Printer>?> enumerateNativePrinters() async {
 
 /// Same flags, level and fields as the plugin's `PrintJob::listPrinters`, so
 /// [Printer.url] is still the name `directPrintPdf` expects.
+///
+/// A failed call throws [WindowsException] rather than returning no printers:
+/// the directory caches an empty list for a minute, and a transient spooler
+/// error must not hide the receipt printer that long.
 List<Printer> _enumerateWindowsPrinters() {
   const flags = PRINTER_ENUM_LOCAL | PRINTER_ENUM_CONNECTIONS;
   final needed = calloc<Uint32>();
   final returned = calloc<Uint32>();
   try {
-    EnumPrinters(flags, nullptr, 2, nullptr, 0, needed, returned);
-    if (needed.value == 0) return const [];
-    final buffer = calloc<Uint8>(needed.value);
-    try {
-      final ok = EnumPrinters(
-        flags,
-        nullptr,
-        2,
-        buffer,
-        needed.value,
-        needed,
-        returned,
-      );
-      if (ok == 0) return const [];
-      final defaultName = _defaultPrinterName();
-      final infos = buffer.cast<PRINTER_INFO_2>();
-      final printers = <Printer>[];
-      for (var i = 0; i < returned.value; i++) {
-        final info = (infos + i).ref;
-        final name = _string(info.pPrinterName);
-        if (name == null) continue;
-        printers.add(
-          Printer(
-            url: name,
-            name: name,
-            model: _string(info.pDriverName),
-            location: _string(info.pLocation),
-            comment: _string(info.pComment),
-            isDefault: name == defaultName,
-            isAvailable: (info.Status & _kPrinterUnavailableMask) == 0,
-          ),
-        );
-      }
-      return printers;
-    } finally {
-      free(buffer);
+    // Succeeding with no buffer means there are no printers at all.
+    if (EnumPrinters(flags, nullptr, 2, nullptr, 0, needed, returned) != 0) {
+      return const [];
     }
+    var error = GetLastError();
+    // A printer added between the two calls grows the size; ask again then.
+    for (var attempt = 0; attempt < 3; attempt++) {
+      if (error != ERROR_INSUFFICIENT_BUFFER) break;
+      final size = needed.value;
+      final buffer = calloc<Uint8>(size);
+      try {
+        if (EnumPrinters(flags, nullptr, 2, buffer, size, needed, returned) !=
+            0) {
+          return _readPrinters(buffer.cast<PRINTER_INFO_2>(), returned.value);
+        }
+        error = GetLastError();
+      } finally {
+        free(buffer);
+      }
+    }
+    throw WindowsException(HRESULT_FROM_WIN32(error));
   } finally {
     free(needed);
     free(returned);
   }
+}
+
+List<Printer> _readPrinters(Pointer<PRINTER_INFO_2> infos, int count) {
+  final defaultName = _defaultPrinterName();
+  final printers = <Printer>[];
+  for (var i = 0; i < count; i++) {
+    final info = (infos + i).ref;
+    final name = _string(info.pPrinterName);
+    if (name == null) continue;
+    printers.add(
+      Printer(
+        url: name,
+        name: name,
+        model: _string(info.pDriverName),
+        location: _string(info.pLocation),
+        comment: _string(info.pComment),
+        isDefault: name == defaultName,
+        isAvailable: (info.Status & _kPrinterUnavailableMask) == 0,
+      ),
+    );
+  }
+  return printers;
 }
 
 String? _defaultPrinterName() {

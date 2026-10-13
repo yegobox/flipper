@@ -42,6 +42,29 @@ void main() {
     expect(lookups, 2);
   });
 
+  testWidgets('a caller that times out does not start a second lookup', (
+    tester,
+  ) async {
+    // Made inside the test's fake-async zone: one from setUp never resumes.
+    pending = Completer<List<Printer>>();
+    Object? error;
+    unawaited(
+      listPrintersSafely().then((_) {}, onError: (Object e) => error = e),
+    );
+    await tester.pump(printerListTimeout + const Duration(seconds: 1));
+    expect(error, isA<TimeoutException>());
+
+    // The native call is still running: the next caller joins it.
+    List<Printer>? joined;
+    unawaited(listPrintersSafely().then((p) => joined = p));
+    expect(lookups, 1);
+
+    pending.complete(const [receipt]);
+    await tester.pump();
+    expect(joined, [receipt]);
+    expect(lookups, 1);
+  });
+
   test('a failed lookup is not cached', () async {
     pending.completeError(StateError('spooler down'));
     await expectLater(listPrintersSafely(), throwsStateError);

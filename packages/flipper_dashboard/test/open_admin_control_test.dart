@@ -40,7 +40,8 @@ void main() {
       () => router.navigateTo(any()),
     ).thenAnswer((_) => Future<void>.error(StateError('no router')));
 
-    await expectLater(openAdminControl(router: router), throwsStateError);
+    // Logged, not rethrown: tap handlers fire this without awaiting it.
+    await expectLater(openAdminControl(router: router), completes);
 
     when(() => router.navigateTo(any())).thenAnswer((_) async {});
     await openAdminControl(router: router);

@@ -34,6 +34,10 @@ void debugResetPrinterDirectory() {
 /// reused for a minute. Pass [refresh] where a printer added moments ago must
 /// show up. Throws [TimeoutException] after [printerListTimeout]; failures are
 /// not cached.
+///
+/// The timeout bounds each caller's wait, not the lookup: a timeout cannot
+/// cancel the native call, so the lookup stays shared until it really ends and
+/// later callers join it instead of starting another blocked enumeration.
 Future<List<Printer>> listPrintersSafely({bool refresh = false}) {
   final cached = _cached;
   final cachedAt = _cachedAt;
@@ -43,13 +47,12 @@ Future<List<Printer>> listPrintersSafely({bool refresh = false}) {
       DateTime.now().difference(cachedAt) < _cacheFor) {
     return Future.value(cached);
   }
-  return _inFlight ??= _lookup().whenComplete(() => _inFlight = null);
+  final lookup = _inFlight ??= _lookup().whenComplete(() => _inFlight = null);
+  return lookup.timeout(printerListTimeout);
 }
 
 Future<List<Printer>> _lookup() async {
-  final printers = await (debugPrinterLister ?? _osPrinters)().timeout(
-    printerListTimeout,
-  );
+  final printers = await (debugPrinterLister ?? _osPrinters)();
   _cached = printers;
   _cachedAt = DateTime.now();
   return printers;
