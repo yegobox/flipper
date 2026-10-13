@@ -43000,6 +43000,204 @@ abstract class FlipperAppLocalizations {
   /// In en, this message translates to:
   /// **'Paid by MoMo, card, bank or credit'**
   String get shiftNonCashSales;
+
+  /// Header nav link to the apps/download page
+  ///
+  /// In en, this message translates to:
+  /// **'Apps'**
+  String get webAppsNav;
+
+  /// Section label at the top of the apps page
+  ///
+  /// In en, this message translates to:
+  /// **'Flipper apps'**
+  String get webAppsKicker;
+
+  /// Apps page headline, upright part
+  ///
+  /// In en, this message translates to:
+  /// **'Seven apps.'**
+  String get webAppsLead;
+
+  /// Apps page headline, italic accent
+  ///
+  /// In en, this message translates to:
+  /// **'One OS.'**
+  String get webAppsAccent;
+
+  /// Apps page intro
+  ///
+  /// In en, this message translates to:
+  /// **'Point of sale, accounting, an AI bookkeeper, hotel front desk, bar tabs, kitchen display and HR — one Flipper OS on one ledger. Install it on your computer with Atlas, our launcher.'**
+  String get webAppsBody;
+
+  /// Label above the launcher download card
+  ///
+  /// In en, this message translates to:
+  /// **'Recommended'**
+  String get webAppsRecommended;
+
+  /// What the Atlas launcher does
+  ///
+  /// In en, this message translates to:
+  /// **'Atlas installs Flipper on your computer and keeps every app — and itself — up to date.'**
+  String get webAppsAtlasPitch;
+
+  /// Primary download button; platform is Windows, macOS or Linux
+  ///
+  /// In en, this message translates to:
+  /// **'Download Atlas for {platform}'**
+  String webAppsDownloadFor(String platform);
+
+  /// Lead-in to the other platforms' download links
+  ///
+  /// In en, this message translates to:
+  /// **'Also for'**
+  String get webAppsAlsoFor;
+
+  /// Link to the launcher's GitHub releases
+  ///
+  /// In en, this message translates to:
+  /// **'All releases on GitHub'**
+  String get webAppsAllReleases;
+
+  /// Install step 1
+  ///
+  /// In en, this message translates to:
+  /// **'Download and run the Atlas installer.'**
+  String get webAppsStep1;
+
+  /// Install step 2
+  ///
+  /// In en, this message translates to:
+  /// **'Open Atlas and click Install on Flipper POS.'**
+  String get webAppsStep2;
+
+  /// Install step 3
+  ///
+  /// In en, this message translates to:
+  /// **'That\'s it. Atlas keeps Flipper and itself up to date.'**
+  String get webAppsStep3;
+
+  /// Shown instead of the launcher on phones
+  ///
+  /// In en, this message translates to:
+  /// **'On a phone? Get Flipper from the store.'**
+  String get webAppsOnPhone;
+
+  /// Section label for the apps grid
+  ///
+  /// In en, this message translates to:
+  /// **'The lineup'**
+  String get webAppsLineupKicker;
+
+  /// Apps grid headline, upright part
+  ///
+  /// In en, this message translates to:
+  /// **'Everything your business runs,'**
+  String get webAppsLineupLead;
+
+  /// Apps grid headline, italic accent
+  ///
+  /// In en, this message translates to:
+  /// **'in one place.'**
+  String get webAppsLineupAccent;
+
+  /// Says every app below comes with Flipper OS
+  ///
+  /// In en, this message translates to:
+  /// **'Included in Flipper OS'**
+  String get webAppsIncluded;
+
+  /// App title
+  ///
+  /// In en, this message translates to:
+  /// **'Point of sale'**
+  String get webAppsPosTitle;
+
+  /// App title (Books)
+  ///
+  /// In en, this message translates to:
+  /// **'Accounting'**
+  String get webAppsBooksTitle;
+
+  /// App title
+  ///
+  /// In en, this message translates to:
+  /// **'Hotel'**
+  String get webAppsHotelTitle;
+
+  /// Hotel app description
+  ///
+  /// In en, this message translates to:
+  /// **'Rooms, stays and folios at the front desk, posted to the same books.'**
+  String get webAppsHotelBody;
+
+  /// App title
+  ///
+  /// In en, this message translates to:
+  /// **'Bar'**
+  String get webAppsBarTitle;
+
+  /// Bar app description
+  ///
+  /// In en, this message translates to:
+  /// **'Open tabs per table or guest and settle at the till. No round goes missing.'**
+  String get webAppsBarBody;
+
+  /// App title
+  ///
+  /// In en, this message translates to:
+  /// **'Kitchen display'**
+  String get webAppsKitchenTitle;
+
+  /// Kitchen display description
+  ///
+  /// In en, this message translates to:
+  /// **'Orders flow from the till to the kitchen screen, stage by stage, until they\'re served.'**
+  String get webAppsKitchenBody;
+
+  /// App title
+  ///
+  /// In en, this message translates to:
+  /// **'HR & payroll'**
+  String get webAppsHrTitle;
+
+  /// HR app description
+  ///
+  /// In en, this message translates to:
+  /// **'Your people, their leave and their pay, on the same Flipper account.'**
+  String get webAppsHrBody;
+
+  /// Section label for platform availability
+  ///
+  /// In en, this message translates to:
+  /// **'Where it runs'**
+  String get webAppsWhereKicker;
+
+  /// Availability: desktop via Atlas
+  ///
+  /// In en, this message translates to:
+  /// **'With the Atlas launcher'**
+  String get webAppsViaAtlas;
+
+  /// Availability: web
+  ///
+  /// In en, this message translates to:
+  /// **'In any browser'**
+  String get webAppsInBrowser;
+
+  /// Link that opens the web app
+  ///
+  /// In en, this message translates to:
+  /// **'Open in browser'**
+  String get webAppsOpenWeb;
+
+  /// Landing link from the native section to the apps page
+  ///
+  /// In en, this message translates to:
+  /// **'On a computer? Download Atlas'**
+  String get webHomeNativeDesktop;
 }
 
 class _FlipperAppLocalizationsDelegate

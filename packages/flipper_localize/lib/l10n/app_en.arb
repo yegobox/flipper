@@ -19265,5 +19265,142 @@
     "@mposCardExplanation": {
         "description": "Explanation for card (POS terminal) payments on mobile checkout"
     },
-    "shiftNonCashSales": "Paid by MoMo, card, bank or credit"
+    "shiftNonCashSales": "Paid by MoMo, card, bank or credit",
+    "webAppsNav": "Apps",
+    "@webAppsNav": {
+        "description": "Header nav link to the apps/download page"
+    },
+    "webAppsKicker": "Flipper apps",
+    "@webAppsKicker": {
+        "description": "Section label at the top of the apps page"
+    },
+    "webAppsLead": "Seven apps.",
+    "@webAppsLead": {
+        "description": "Apps page headline, upright part"
+    },
+    "webAppsAccent": "One OS.",
+    "@webAppsAccent": {
+        "description": "Apps page headline, italic accent"
+    },
+    "webAppsBody": "Point of sale, accounting, an AI bookkeeper, hotel front desk, bar tabs, kitchen display and HR — one Flipper OS on one ledger. Install it on your computer with Atlas, our launcher.",
+    "@webAppsBody": {
+        "description": "Apps page intro"
+    },
+    "webAppsRecommended": "Recommended",
+    "@webAppsRecommended": {
+        "description": "Label above the launcher download card"
+    },
+    "webAppsAtlasPitch": "Atlas installs Flipper on your computer and keeps every app — and itself — up to date.",
+    "@webAppsAtlasPitch": {
+        "description": "What the Atlas launcher does"
+    },
+    "webAppsDownloadFor": "Download Atlas for {platform}",
+    "@webAppsDownloadFor": {
+        "description": "Primary download button; platform is Windows, macOS or Linux",
+        "placeholders": {
+            "platform": {
+                "type": "String"
+            }
+        }
+    },
+    "webAppsAlsoFor": "Also for",
+    "@webAppsAlsoFor": {
+        "description": "Lead-in to the other platforms' download links"
+    },
+    "webAppsAllReleases": "All releases on GitHub",
+    "@webAppsAllReleases": {
+        "description": "Link to the launcher's GitHub releases"
+    },
+    "webAppsStep1": "Download and run the Atlas installer.",
+    "@webAppsStep1": {
+        "description": "Install step 1"
+    },
+    "webAppsStep2": "Open Atlas and click Install on Flipper POS.",
+    "@webAppsStep2": {
+        "description": "Install step 2"
+    },
+    "webAppsStep3": "That's it. Atlas keeps Flipper and itself up to date.",
+    "@webAppsStep3": {
+        "description": "Install step 3"
+    },
+    "webAppsOnPhone": "On a phone? Get Flipper from the store.",
+    "@webAppsOnPhone": {
+        "description": "Shown instead of the launcher on phones"
+    },
+    "webAppsLineupKicker": "The lineup",
+    "@webAppsLineupKicker": {
+        "description": "Section label for the apps grid"
+    },
+    "webAppsLineupLead": "Everything your business runs,",
+    "@webAppsLineupLead": {
+        "description": "Apps grid headline, upright part"
+    },
+    "webAppsLineupAccent": "in one place.",
+    "@webAppsLineupAccent": {
+        "description": "Apps grid headline, italic accent"
+    },
+    "webAppsIncluded": "Included in Flipper OS",
+    "@webAppsIncluded": {
+        "description": "Says every app below comes with Flipper OS"
+    },
+    "webAppsPosTitle": "Point of sale",
+    "@webAppsPosTitle": {
+        "description": "App title"
+    },
+    "webAppsBooksTitle": "Accounting",
+    "@webAppsBooksTitle": {
+        "description": "App title (Books)"
+    },
+    "webAppsHotelTitle": "Hotel",
+    "@webAppsHotelTitle": {
+        "description": "App title"
+    },
+    "webAppsHotelBody": "Rooms, stays and folios at the front desk, posted to the same books.",
+    "@webAppsHotelBody": {
+        "description": "Hotel app description"
+    },
+    "webAppsBarTitle": "Bar",
+    "@webAppsBarTitle": {
+        "description": "App title"
+    },
+    "webAppsBarBody": "Open tabs per table or guest and settle at the till. No round goes missing.",
+    "@webAppsBarBody": {
+        "description": "Bar app description"
+    },
+    "webAppsKitchenTitle": "Kitchen display",
+    "@webAppsKitchenTitle": {
+        "description": "App title"
+    },
+    "webAppsKitchenBody": "Orders flow from the till to the kitchen screen, stage by stage, until they're served.",
+    "@webAppsKitchenBody": {
+        "description": "Kitchen display description"
+    },
+    "webAppsHrTitle": "HR & payroll",
+    "@webAppsHrTitle": {
+        "description": "App title"
+    },
+    "webAppsHrBody": "Your people, their leave and their pay, on the same Flipper account.",
+    "@webAppsHrBody": {
+        "description": "HR app description"
+    },
+    "webAppsWhereKicker": "Where it runs",
+    "@webAppsWhereKicker": {
+        "description": "Section label for platform availability"
+    },
+    "webAppsViaAtlas": "With the Atlas launcher",
+    "@webAppsViaAtlas": {
+        "description": "Availability: desktop via Atlas"
+    },
+    "webAppsInBrowser": "In any browser",
+    "@webAppsInBrowser": {
+        "description": "Availability: web"
+    },
+    "webAppsOpenWeb": "Open in browser",
+    "@webAppsOpenWeb": {
+        "description": "Link that opens the web app"
+    },
+    "webHomeNativeDesktop": "On a computer? Download Atlas",
+    "@webHomeNativeDesktop": {
+        "description": "Landing link from the native section to the apps page"
+    }
 }

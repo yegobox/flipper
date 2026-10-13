@@ -1066,6 +1066,48 @@ class LineButton extends StatelessWidget {
   }
 }
 
+/// A mono-caps link with an arrow out, underlined on hover.
+class BooksHomeTextLink extends StatelessWidget {
+  const BooksHomeTextLink({
+    super.key,
+    required this.label,
+    required this.onTap,
+  });
+
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return PressScale(
+      onTap: onTap,
+      child: HoverBuilder(
+        builder: (context, hover) => Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Flexible(
+              child: Text(
+                label.toUpperCase(),
+                style: AppText.label(size: 11.5, c: AppColors.accentInk)
+                    .copyWith(
+                      decoration: hover ? TextDecoration.underline : null,
+                      decorationColor: AppColors.accentInk,
+                    ),
+              ),
+            ),
+            const SizedBox(width: 6),
+            Icon(
+              Icons.arrow_forward_rounded,
+              size: 15,
+              color: AppColors.accentInk,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class MostPopularTag extends StatelessWidget {
   const MostPopularTag({super.key});
 
