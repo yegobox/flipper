@@ -26292,4 +26292,8 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
 
   @override
   String get webHomeNativeDesktop => 'Sur un ordinateur ? Téléchargez Atlas';
+
+  @override
+  String get cashResetNotEnabled =>
+      'Le vidage du livre de caisse n\'est pas activé pour cette entreprise. Demandez au support Flipper de l\'activer pour une seule fois.';
 }

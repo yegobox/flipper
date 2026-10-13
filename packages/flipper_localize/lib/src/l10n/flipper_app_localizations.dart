@@ -43276,6 +43276,12 @@ abstract class FlipperAppLocalizations {
   /// In en, this message translates to:
   /// **'On a computer? Download Atlas'**
   String get webHomeNativeDesktop;
+
+  /// Clear Cash Book refused because Flipper staff have not enabled a reset for this business
+  ///
+  /// In en, this message translates to:
+  /// **'Clearing the Cash Book is not enabled for this business. Ask Flipper support to enable it for one reset.'**
+  String get cashResetNotEnabled;
 }
 
 class _FlipperAppLocalizationsDelegate

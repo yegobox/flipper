@@ -75,6 +75,16 @@ class _CashResetDialogState extends ConsumerState<CashResetDialog> {
         _confirm.text.trim().toLowerCase() == expected;
   }
 
+  /// A 403 means staff have not enabled a reset for this business (it is
+  /// granted per request in Supabase); anything else is a real failure.
+  String _errorText(Object e) {
+    final l10n = context.flipperL10n;
+    if (e is CashResetException && e.statusCode == 403) {
+      return l10n.cashResetNotEnabled;
+    }
+    return l10n.cashResetFailed('$e');
+  }
+
   Future<void> _runPreview() async {
     setState(() {
       _step = _Step.loading;
@@ -92,7 +102,7 @@ class _CashResetDialogState extends ConsumerState<CashResetDialog> {
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _error = context.flipperL10n.cashResetFailed('$e');
+        _error = _errorText(e);
         _step = _Step.pick;
       });
     }
@@ -121,7 +131,7 @@ class _CashResetDialogState extends ConsumerState<CashResetDialog> {
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _error = context.flipperL10n.cashResetFailed('$e');
+        _error = _errorText(e);
         _step = _Step.confirm;
       });
     }

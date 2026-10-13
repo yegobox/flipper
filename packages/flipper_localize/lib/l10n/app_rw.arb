@@ -8835,5 +8835,6 @@
   "webAppsViaAtlas": "Ukoresheje Atlas",
   "webAppsInBrowser": "Muri mushakisha iyo ari yo yose",
   "webAppsOpenWeb": "Fungura muri mushakisha",
-  "webHomeNativeDesktop": "Uri kuri mudasobwa? Kuramo Atlas"
+  "webHomeNativeDesktop": "Uri kuri mudasobwa? Kuramo Atlas",
+  "cashResetNotEnabled": "Gusiba igitabo cy'amafaranga ntibyemerewe iki kigo. Saba ubufasha bwa Flipper kubyemera rimwe."
 }

@@ -7250,5 +7250,6 @@
     "webAppsViaAtlas": "Avec le lanceur Atlas",
     "webAppsInBrowser": "Dans n'importe quel navigateur",
     "webAppsOpenWeb": "Ouvrir dans le navigateur",
-    "webHomeNativeDesktop": "Sur un ordinateur ? Téléchargez Atlas"
+    "webHomeNativeDesktop": "Sur un ordinateur ? Téléchargez Atlas",
+  "cashResetNotEnabled": "Le vidage du livre de caisse n'est pas activé pour cette entreprise. Demandez au support Flipper de l'activer pour une seule fois."
 }

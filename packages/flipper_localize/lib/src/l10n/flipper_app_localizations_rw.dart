@@ -26135,4 +26135,8 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
 
   @override
   String get webHomeNativeDesktop => 'Uri kuri mudasobwa? Kuramo Atlas';
+
+  @override
+  String get cashResetNotEnabled =>
+      'Gusiba igitabo cy\'amafaranga ntibyemerewe iki kigo. Saba ubufasha bwa Flipper kubyemera rimwe.';
 }
