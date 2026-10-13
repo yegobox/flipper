@@ -7,6 +7,7 @@ import 'package:flipper_models/helpers/receipt_printer_autoselect.dart';
 import 'package:flipper_services/builtin_printer/builtin_printer_service.dart';
 import 'package:flipper_services/builtin_printer/escpos.dart';
 import 'package:flipper_services/customer_display/customer_display_service.dart';
+import 'package:flipper_services/printers/printer_directory.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:flutter/foundation.dart';
@@ -66,9 +67,7 @@ class _TillHardwareSectionState extends State<TillHardwareSection> {
   Future<void> _loadPrinters() async {
     List<Printer> printers;
     try {
-      printers = await Printing.listPrinters().timeout(
-        const Duration(seconds: 10),
-      );
+      printers = await listPrintersSafely(refresh: true);
     } catch (_) {
       printers = const [];
     }

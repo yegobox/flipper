@@ -7,11 +7,9 @@ import 'package:flipper_dashboard/features/bar_mode/widgets/bar_table_cards.dart
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/models/bar_table.dart';
 import 'package:flipper_models/sync/utils/bar_mode_utils.dart';
-import 'package:flipper_routing/app.locator.dart';
-import 'package:flipper_routing/app.router.dart';
+import 'package:flipper_dashboard/AdminControl.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:stacked_services/stacked_services.dart';
 import 'package:supabase_models/brick/models/tenant.model.dart';
 import 'package:supabase_models/brick/models/transaction.model.dart';
 
@@ -161,7 +159,7 @@ class BarFloorDesktopScreen extends ConsumerWidget {
       color: BarTokens.surface,
       borderRadius: BorderRadius.circular(BarTokens.radiusMd),
       child: InkWell(
-        onTap: () => locator<RouterService>().navigateTo(AdminControlRoute()),
+        onTap: () => openAdminControl(),
         borderRadius: BorderRadius.circular(BarTokens.radiusMd),
         child: Container(
           height: 46,

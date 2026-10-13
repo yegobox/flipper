@@ -9,11 +9,9 @@ import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/models/hotel_room.dart';
 import 'package:flipper_models/models/hotel_stay.dart';
 import 'package:flipper_models/sync/utils/hotel_mode_utils.dart';
-import 'package:flipper_routing/app.locator.dart';
-import 'package:flipper_routing/app.router.dart';
+import 'package:flipper_dashboard/AdminControl.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:stacked_services/stacked_services.dart';
 
 /// Desktop room board.
 ///
@@ -146,8 +144,7 @@ class _DesktopHeader extends ConsumerWidget {
                 _outlineButton(
                   icon: Icons.settings_outlined,
                   label: l10n.hotelSettings,
-                  onTap: () =>
-                      locator<RouterService>().navigateTo(AdminControlRoute()),
+                  onTap: () => openAdminControl(),
                 ),
               ],
               const SizedBox(width: 12),

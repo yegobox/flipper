@@ -16,6 +16,7 @@ import 'package:flipper_dashboard/TaxSettingsModal.dart';
 import 'package:flipper_dashboard/TenantManagement.dart';
 import 'package:flipper_dashboard/widgets/transaction_delegation_settings.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/secrets.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
@@ -138,6 +139,28 @@ Widget _adminLeadingSvg(String svg, Color backgroundTint) {
     ),
     child: AdminDashboardSvgs.picture(svg, size: 24),
   );
+}
+
+bool _adminControlOpen = false;
+
+/// Opens [AdminControl] unless it is already open.
+///
+/// Every entry point (POS rail gear, bar floor, hotel rooms) goes through here.
+/// A plain `navigateTo` per tap stacked one Admin screen per click, and each
+/// one re-ran the printer scan in [TillHardwareSection], which froze the till.
+/// `navigateTo` completes when the route pops, so the latch clears on close.
+/// Callers fire this from tap handlers without awaiting it, so a navigation
+/// failure is logged here rather than surfacing as an unhandled async error.
+Future<void> openAdminControl({RouterService? router}) async {
+  if (_adminControlOpen) return;
+  _adminControlOpen = true;
+  try {
+    await (router ?? locator<RouterService>()).navigateTo(AdminControlRoute());
+  } catch (e, s) {
+    talker.error('openAdminControl: navigation failed', e, s);
+  } finally {
+    _adminControlOpen = false;
+  }
 }
 
 class AdminControl extends ConsumerStatefulWidget {
