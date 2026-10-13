@@ -85,9 +85,18 @@ String? _dittoDocumentId(Map<String, dynamic> data) {
 /// `ORDER BY lastTouched DESC` and orphans the lines already on the old id.
 const int _pendingCartEmptySettleMs = 750;
 
-/// `branchId|agentId` scopes whose resumed tickets were already swept back to
-/// PARKED in this process — see [CapellaTransactionMixin.reparkOrphanedResumedTickets].
+/// Scopes whose resumed tickets were already swept back to PARKED in this
+/// process — see [CapellaTransactionMixin.reparkOrphanedResumedTickets]. Keyed
+/// by [_resumedTicketSweepKey].
 final Set<String> _resumedTicketSweepDone = <String>{};
+
+/// One key for the sweep and the resume marker. The sweep only touches rows
+/// on [deviceId] (the sale device id, which embeds the user), and both paths
+/// resolve it the same way; the agent id does not work as a key, because the
+/// sweep reads it off the box (null early in a session) while resume gets it
+/// from its caller, so a resume could fail to suppress the sweep.
+String _resumedTicketSweepKey(String branchId, String deviceId) =>
+    '$branchId|$deviceId';
 
 /// Per-cart `itemSeq` high-water marks, so adding a line is O(1) instead of
 /// asking the store how many lines the cart already has.
@@ -3193,9 +3202,9 @@ mixin CapellaTransactionMixin implements TransactionInterface {
   Future<void> reparkOrphanedResumedTickets({
     required String branchId,
     required String deviceId,
-    required String? agentId,
   }) async {
-    if (!_resumedTicketSweepDone.add('$branchId|${agentId ?? ''}')) return;
+    final sweepKey = _resumedTicketSweepKey(branchId, deviceId);
+    if (!_resumedTicketSweepDone.add(sweepKey)) return;
     final ditto = dittoService.dittoInstance;
     if (ditto == null) return;
 
@@ -3243,7 +3252,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       );
     } catch (e, s) {
       // Let a later subscription retry rather than skip the sweep for good.
-      _resumedTicketSweepDone.remove('$branchId|${agentId ?? ''}');
+      _resumedTicketSweepDone.remove(sweepKey);
       talker.error('reparkOrphanedResumedTickets: $e', s);
     }
   }
@@ -3282,7 +3291,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     // This session now owns a resumed ticket, so the startup sweep must never
     // re-park it — even when the POS pending observer subscribes only after
     // this resume. Older resumed siblings are re-parked by the cleanup below.
-    _resumedTicketSweepDone.add('$branchId|$agentId');
+    _resumedTicketSweepDone.add(_resumedTicketSweepKey(branchId, deviceId));
 
     final nowIso = DateTime.now().toUtc().toIso8601String();
     // Do NOT touch createdAt here: resume is not a settlement. The row keeps
@@ -4234,7 +4243,6 @@ mixin CapellaTransactionMixin implements TransactionInterface {
             await reparkOrphanedResumedTickets(
               branchId: branchId,
               deviceId: saleDeviceId,
-              agentId: agentId,
             );
           }
 

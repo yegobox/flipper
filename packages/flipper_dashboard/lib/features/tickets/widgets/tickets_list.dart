@@ -1078,6 +1078,17 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       );
       return;
     }
+    // The operator confirmed a take-over from the holder the dialog named. If
+    // another till or user has picked the ticket up since, that confirmation
+    // does not cover them, and `takeOver` would skip the server-side guard.
+    if (fresh.deviceId != ticket.deviceId || fresh.agentId != ticket.agentId) {
+      showCustomSnackBarUtil(
+        context,
+        l10n.ticketOpenOnAnotherDevice,
+        backgroundColor: Colors.orange,
+      );
+      return;
+    }
     await _collectTillTicket(fresh, takeOver: true);
   }
 

@@ -41,6 +41,15 @@ void main() {
       );
     });
 
+    test('a padded method is trimmed so it maps to its RRA code', () {
+      expect(
+        primaryPaymentMethodForSaleCompletion([
+          Payment(amount: 5000, method: ' CASH '),
+        ]),
+        'CASH',
+      );
+    });
+
     test('a split takes the first line that carries money', () {
       expect(
         primaryPaymentMethodForSaleCompletion([

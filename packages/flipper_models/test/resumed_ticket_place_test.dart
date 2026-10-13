@@ -1,8 +1,10 @@
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/pos_cart_display_provider.dart';
 import 'package:flipper_models/providers/tickets_provider.dart';
+import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 ITransaction _ticket({
   String status = PENDING,
@@ -150,6 +152,44 @@ void main() {
     test('completed or device-less rows never count', () {
       expect(step('dev-other', 'dev-now', status: COMPLETE).movedAway, isFalse);
       expect(step(null, 'dev-now').movedAway, isFalse);
+    });
+  });
+
+  group('pinnedCartTakenOverIdProvider', () {
+    test('re-pinning the same ticket starts from a fresh holder', () async {
+      var row = _ticket(deviceId: 'dev-me');
+      final container = ProviderContainer(
+        overrides: [
+          saleDeviceIdProvider.overrideWith((ref) async => 'dev-me'),
+          transactionByIdProvider.overrideWith((ref, id) => Stream.value(row)),
+        ],
+      );
+      addTearDown(container.dispose);
+      container.listen(pinnedCartTakenOverIdProvider, (_, __) {});
+      final pin = container.read(pinnedPosCartTransactionIdProvider.notifier);
+
+      // Pinned while the ticket is on this till: holder is this till.
+      pin.state = 't1';
+      await container.read(saleDeviceIdProvider.future);
+      await container.read(transactionByIdProvider('t1').future);
+      expect(container.read(pinnedCartTakenOverIdProvider), isNull);
+
+      // Unpinned, and the ticket moves on to another till in the meantime.
+      pin.state = null;
+      expect(container.read(pinnedCartTakenOverIdProvider), isNull);
+      row = _ticket(deviceId: 'dev-other', agentId: 'u2');
+      container.invalidate(transactionByIdProvider('t1'));
+      final rowSub = container.listen(
+        transactionByIdProvider('t1'),
+        (_, __) {},
+      );
+      addTearDown(rowSub.close);
+      await container.read(transactionByIdProvider('t1').future);
+
+      // Pinning it again is a first sighting, not a take-over from this till.
+      pin.state = 't1';
+      await container.read(transactionByIdProvider('t1').future);
+      expect(container.read(pinnedCartTakenOverIdProvider), isNull);
     });
   });
 }

@@ -87,7 +87,11 @@ final saleDeviceIdProvider = FutureProvider<String>(
 /// [pinnedCartMovedAway].
 final pinnedCartTakenOverIdProvider = Provider<String?>((ref) {
   final pinnedId = ref.watch(pinnedPosCartTransactionIdProvider);
-  if (pinnedId == null || pinnedId.isEmpty) return null;
+  if (pinnedId == null || pinnedId.isEmpty) {
+    // Unpinned: the next pin, even of the same ticket, is a first sighting.
+    _pinnedHolder = (id: null, device: null);
+    return null;
+  }
   final deviceId = ref.watch(saleDeviceIdProvider).value;
   if (deviceId == null || deviceId.isEmpty) return null;
   final row = ref.watch(transactionByIdProvider(pinnedId)).asData?.value;
