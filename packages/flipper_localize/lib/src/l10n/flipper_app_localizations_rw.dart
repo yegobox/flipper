@@ -26105,14 +26105,14 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
 
   @override
   String get webAppsBarBody =>
-      'Fungura konti kuri buri meza cyangwa umukiriya, wishyurire kuri kaisi. Nta cyo kunywa kibura.';
+      'Fungura konti kuri buri meza cyangwa umukiriya, wishyurire kuri kasi. Nta cyo kunywa kibura.';
 
   @override
   String get webAppsKitchenTitle => 'Ekrani y\'igikoni';
 
   @override
   String get webAppsKitchenBody =>
-      'Ibyatumijwe biva kuri kaisi bikajya kuri ekrani y\'igikoni, intambwe ku yindi, kugeza bitanzwe.';
+      'Ibyatumijwe biva kuri kasi bikajya kuri ekrani y\'igikoni, intambwe ku yindi, kugeza bitanzwe.';
 
   @override
   String get webAppsHrTitle => 'Abakozi n\'imishahara';
