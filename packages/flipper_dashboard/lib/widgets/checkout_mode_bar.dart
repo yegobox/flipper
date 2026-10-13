@@ -8,8 +8,17 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 ///
 /// [inline] renders only the segmented control (no "MODE" strip) so the
 /// desktop checkout header can host it next to the invoice / txn meta.
+///
+/// Pass [onModeChanged] (with [mode]) to drive it from local state instead of
+/// [checkoutCartModeProvider] — mobile checkout keeps its mode per route.
 class CheckoutModeBar extends ConsumerWidget {
-  const CheckoutModeBar({super.key, this.enabled = true, this.inline = false});
+  const CheckoutModeBar({
+    super.key,
+    this.enabled = true,
+    this.inline = false,
+    this.mode,
+    this.onModeChanged,
+  });
 
   /// When false (e.g. warehouse ordering), hide transfer switching.
   final bool enabled;
@@ -17,11 +26,27 @@ class CheckoutModeBar extends ConsumerWidget {
   /// Bare segmented control, for embedding in a header row.
   final bool inline;
 
+  /// Selected mode when controlled by [onModeChanged].
+  final CheckoutCartMode? mode;
+
+  /// When set, taps report here and [checkoutCartModeProvider] is untouched.
+  final ValueChanged<CheckoutCartMode>? onModeChanged;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     if (!enabled) return const SizedBox.shrink();
 
-    final mode = ref.watch(checkoutCartModeProvider);
+    final onChanged = onModeChanged;
+    final mode = onChanged == null
+        ? ref.watch(checkoutCartModeProvider)
+        : (this.mode ?? CheckoutCartMode.sale);
+    void select(CheckoutCartMode next) {
+      if (onChanged != null) {
+        onChanged(next);
+      } else {
+        ref.read(checkoutCartModeProvider.notifier).state = next;
+      }
+    }
 
     final segmented = Container(
       padding: const EdgeInsets.all(2),
@@ -36,18 +61,12 @@ class CheckoutModeBar extends ConsumerWidget {
           _ModePill(
             label: context.flipperL10n.sale,
             selected: mode == CheckoutCartMode.sale,
-            onTap: () {
-              ref.read(checkoutCartModeProvider.notifier).state =
-                  CheckoutCartMode.sale;
-            },
+            onTap: () => select(CheckoutCartMode.sale),
           ),
           _ModePill(
             label: context.flipperL10n.transfer,
             selected: mode == CheckoutCartMode.transfer,
-            onTap: () {
-              ref.read(checkoutCartModeProvider.notifier).state =
-                  CheckoutCartMode.transfer;
-            },
+            onTap: () => select(CheckoutCartMode.transfer),
           ),
         ],
       ),

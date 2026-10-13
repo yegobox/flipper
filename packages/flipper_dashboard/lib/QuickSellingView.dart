@@ -1337,9 +1337,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     final txn = transactionAsyncValue.asData?.value;
     if (txn == null) return;
     try {
-      await ProxyService.getStrategy(
-        Strategy.capella,
-      ).deleteAllTransactionItems(transactionId: txn.id);
+      await BranchTransferService().clearCart(transactionId: txn.id);
       clearCartLinesOptimistically();
       ref.read(optimisticCartProvider.notifier).clearForTransaction(txn.id);
       ref.invalidate(

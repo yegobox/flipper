@@ -75,6 +75,43 @@ void main() {
     expect(find.text('mode:transfer'), findsOneWidget);
   });
 
+  testWidgets('CheckoutModeBar with onModeChanged leaves the provider alone', (
+    tester,
+  ) async {
+    CheckoutCartMode? reported;
+    await tester.pumpWidget(
+      ProviderScope(
+        child: MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates:
+              FlipperAppLocalizations.localizationsDelegates,
+          supportedLocales: FlipperAppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: Consumer(
+              builder: (context, ref, _) {
+                final mode = ref.watch(checkoutCartModeProvider);
+                return Column(
+                  children: [
+                    Text('mode:${mode.name}'),
+                    CheckoutModeBar(
+                      mode: CheckoutCartMode.sale,
+                      onModeChanged: (m) => reported = m,
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Transfer'));
+    await tester.pump();
+    expect(reported, CheckoutCartMode.transfer);
+    expect(find.text('mode:sale'), findsOneWidget);
+  });
+
   testWidgets('CheckoutModeBar renders nothing when disabled', (tester) async {
     await tester.pumpWidget(
       ProviderScope(
