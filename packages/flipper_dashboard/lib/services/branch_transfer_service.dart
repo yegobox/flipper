@@ -184,6 +184,13 @@ class BranchTransferService with StockRequestApprovalLogic {
     }
   }
 
+  /// Drops every line from the transfer cart (Clear in transfer mode).
+  Future<void> clearCart({required String transactionId}) {
+    return ProxyService.getStrategy(
+      Strategy.capella,
+    ).deleteAllTransactionItems(transactionId: transactionId);
+  }
+
   /// Marks the sale cart transaction as ordering/completed so a fresh pending
   /// sale cart is created (mirrors warehouse [placeFinalOrder] cleanup).
   Future<void> finalizeCartAfterTransfer({
