@@ -5,13 +5,11 @@ import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/access_provider.dart';
 import 'package:flipper_models/providers/active_branch_provider.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
-import 'package:flipper_routing/app.locator.dart';
-import 'package:flipper_routing/app.router.dart';
+import 'package:flipper_dashboard/AdminControl.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stacked_services/stacked_services.dart';
 
 class CircleAvatarWidget extends StatelessWidget {
   final String text;
@@ -132,8 +130,7 @@ class _AdminButton extends ConsumerWidget {
                 color: Colors.white,
                 size: isCompact ? 16 : 20,
               ),
-              onPressed: () =>
-                  locator<RouterService>().navigateTo(AdminControlRoute()),
+              onPressed: () => openAdminControl(),
               style: IconButton.styleFrom(
                 shape: CircleBorder(
                   side: BorderSide(

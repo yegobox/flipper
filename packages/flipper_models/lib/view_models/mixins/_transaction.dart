@@ -26,6 +26,7 @@ import 'package:flipper_models/helpers/desktop_pdf_open.dart';
 import 'package:flipper_models/helpers/receipt_pdf_filename.dart';
 import 'package:flipper_models/helpers/receipt_printer_autoselect.dart';
 import 'package:flipper_services/builtin_printer/builtin_printer_service.dart';
+import 'package:flipper_services/printers/printer_directory.dart';
 import 'package:flipper_models/widgets/printer_picker_dialog.dart';
 import 'package:universal_platform/universal_platform.dart';
 
@@ -34,9 +35,8 @@ import 'package:universal_platform/universal_platform.dart';
 /// The OS print spooler can block indefinitely on an offline or wedged printer,
 /// and on the purchase-code path `printing()` is awaited *before* the sale is
 /// completed — so a stuck printer froze the till with a full cart and a
-/// spinning Pay button. These bound it; a receipt is reprintable, a stuck till
-/// is not.
-const Duration _printerEnumerateTimeout = Duration(seconds: 10);
+/// spinning Pay button. This bounds it (listing printers is bounded by
+/// [printerListTimeout]); a receipt is reprintable, a stuck till is not.
 const Duration _printerSubmitTimeout = Duration(seconds: 30);
 
 mixin TransactionMixinOld {
@@ -613,13 +613,11 @@ mixin TransactionMixinOld {
       }
       List<Printer> printers;
       try {
-        printers = await Printing.listPrinters().timeout(
-          _printerEnumerateTimeout,
-        );
+        printers = await listPrintersSafely(refresh: alwaysShowPicker);
       } catch (e) {
         talker.warning(
           '[receipt_presentation] listing printers failed or timed out '
-          '(${_printerEnumerateTimeout.inSeconds}s): $e — continuing with none',
+          '(${printerListTimeout.inSeconds}s): $e — continuing with none',
         );
         printers = const <Printer>[];
       }
@@ -995,9 +993,7 @@ mixin TransactionMixinOld {
     if (await _printOnBuiltinPrinter(bytes, probeSerial: false)) return true;
     final savedPrinterName = ProxyService.box.readString(key: 'defaultPrinter');
     try {
-      final printers = await Printing.listPrinters().timeout(
-        _printerEnumerateTimeout,
-      );
+      final printers = await listPrintersSafely();
       Printer? match;
       for (final printer in printers) {
         if (printer.name == savedPrinterName) {

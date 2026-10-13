@@ -140,6 +140,24 @@ Widget _adminLeadingSvg(String svg, Color backgroundTint) {
   );
 }
 
+bool _adminControlOpen = false;
+
+/// Opens [AdminControl] unless it is already open.
+///
+/// Every entry point (POS rail gear, bar floor, hotel rooms) goes through here.
+/// A plain `navigateTo` per tap stacked one Admin screen per click, and each
+/// one re-ran the printer scan in [TillHardwareSection], which froze the till.
+/// `navigateTo` completes when the route pops, so the latch clears on close.
+Future<void> openAdminControl({RouterService? router}) async {
+  if (_adminControlOpen) return;
+  _adminControlOpen = true;
+  try {
+    await (router ?? locator<RouterService>()).navigateTo(AdminControlRoute());
+  } finally {
+    _adminControlOpen = false;
+  }
+}
+
 class AdminControl extends ConsumerStatefulWidget {
   const AdminControl({super.key});
 
