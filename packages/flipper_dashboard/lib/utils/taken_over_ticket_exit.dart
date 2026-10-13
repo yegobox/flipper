@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flipper_dashboard/providers/customer_phone_provider.dart';
 import 'package:flipper_dashboard/providers/mpos_momo_phone_provider.dart';
 import 'package:flipper_localize/flipper_localize.dart';
+import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/providers/cached_pending_cart_transaction_provider.dart';
 import 'package:flipper_models/providers/optimistic_cart_provider.dart';
 import 'package:flipper_models/providers/pos_cart_display_provider.dart';
@@ -42,7 +43,13 @@ void listenForTakenOverTicket(
         ref.read(settlingTillTicketProvider.notifier).state = null;
       }
       clearPinnedPosCartTransactionIfWidget(ref, transactionId: next);
-      await clearLocalCartForTicket(ref, next, branchId: branchId);
+      try {
+        await clearLocalCartForTicket(ref, next, branchId: branchId);
+      } catch (e, s) {
+        // The ticket belongs to another till now: a failed field write must
+        // not keep checkout open on it.
+        talker.error('listenForTakenOverTicket: clearing $next failed', e, s);
+      }
       if (!context.mounted) return;
       onLeaving();
       showErrorNotification(
