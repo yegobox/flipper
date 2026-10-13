@@ -25886,4 +25886,112 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
 
   @override
   String get shiftNonCashSales => 'Imelipwa kwa MoMo, kadi, benki au mkopo';
+
+  @override
+  String get webAppsNav => 'Programu';
+
+  @override
+  String get webAppsKicker => 'Programu za Flipper';
+
+  @override
+  String get webAppsLead => 'Programu saba.';
+
+  @override
+  String get webAppsAccent => 'OS moja.';
+
+  @override
+  String get webAppsBody =>
+      'Mauzo, uhasibu, mhasibu wa AI, mapokezi ya hoteli, bili za baa, skrini ya jikoni na rasilimali watu — Flipper OS moja kwenye leja moja. Isakinishe kwenye kompyuta yako kwa Atlas, kizindua chetu.';
+
+  @override
+  String get webAppsRecommended => 'Inapendekezwa';
+
+  @override
+  String get webAppsAtlasPitch =>
+      'Atlas inasakinisha Flipper kwenye kompyuta yako na kusasisha kila programu — pamoja na yenyewe.';
+
+  @override
+  String webAppsDownloadFor(String platform) {
+    return 'Pakua Atlas kwa $platform';
+  }
+
+  @override
+  String get webAppsAlsoFor => 'Pia kwa';
+
+  @override
+  String get webAppsAllReleases => 'Matoleo yote kwenye GitHub';
+
+  @override
+  String get webAppsStep1 => 'Pakua na uendeshe kisakinishi cha Atlas.';
+
+  @override
+  String get webAppsStep2 =>
+      'Fungua Atlas na ubofye Sakinisha kwenye Flipper POS.';
+
+  @override
+  String get webAppsStep3 => 'Ndiyo hiyo. Atlas inasasisha Flipper na yenyewe.';
+
+  @override
+  String get webAppsOnPhone => 'Uko kwenye simu? Pata Flipper kutoka dukani.';
+
+  @override
+  String get webAppsLineupKicker => 'Orodha';
+
+  @override
+  String get webAppsLineupLead => 'Kila kitu biashara yako inaendesha,';
+
+  @override
+  String get webAppsLineupAccent => 'mahali pamoja.';
+
+  @override
+  String get webAppsIncluded => 'Imejumuishwa katika Flipper OS';
+
+  @override
+  String get webAppsPosTitle => 'Mauzo';
+
+  @override
+  String get webAppsBooksTitle => 'Uhasibu';
+
+  @override
+  String get webAppsHotelTitle => 'Hoteli';
+
+  @override
+  String get webAppsHotelBody =>
+      'Vyumba, makazi na folio kwenye mapokezi, vinaingizwa kwenye hesabu zile zile.';
+
+  @override
+  String get webAppsBarTitle => 'Baa';
+
+  @override
+  String get webAppsBarBody =>
+      'Fungua bili kwa kila meza au mgeni na ulipe kwenye kaunta. Hakuna kinywaji kinachopotea.';
+
+  @override
+  String get webAppsKitchenTitle => 'Skrini ya jikoni';
+
+  @override
+  String get webAppsKitchenBody =>
+      'Oda zinatoka kaunta hadi skrini ya jikoni, hatua kwa hatua, hadi zinapohudumiwa.';
+
+  @override
+  String get webAppsHrTitle => 'Rasilimali watu na mishahara';
+
+  @override
+  String get webAppsHrBody =>
+      'Watu wako, likizo zao na mishahara yao, kwenye akaunti moja ya Flipper.';
+
+  @override
+  String get webAppsWhereKicker => 'Inapofanya kazi';
+
+  @override
+  String get webAppsViaAtlas => 'Kwa kizindua cha Atlas';
+
+  @override
+  String get webAppsInBrowser => 'Kwenye kivinjari chochote';
+
+  @override
+  String get webAppsOpenWeb => 'Fungua kwenye kivinjari';
+
+  @override
+  String get webHomeNativeDesktop => 'Uko kwenye kompyuta? Pakua Atlas';
 }
