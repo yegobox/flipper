@@ -2848,6 +2848,56 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   String get cashbookCashOut => 'Amafaranga yasohotse';
 
   @override
+  String get cashResetSectionTitle => 'Igice cyo kwitonda';
+
+  @override
+  String get cashResetTitle => 'Siba igitabo cy\'amafaranga';
+
+  @override
+  String get cashResetSubtitle =>
+      'Siba burundu amafaranga yinjiye n\'ayasohotse mu mashami yose y\'iki kigo';
+
+  @override
+  String get cashResetOpen => 'Suzuma hanyuma usibe';
+
+  @override
+  String get cashResetPickKinds => 'Ni ibihe byandikwa bisibwa?';
+
+  @override
+  String get cashResetPreview => 'Reba mbere';
+
+  @override
+  String get cashResetNothing => 'Nta kintu cyo gusiba gihari.';
+
+  @override
+  String cashResetSummary(int count) {
+    return 'Ibyandikwa $count bizasibwa burundu mu mashami yose, hamwe n\'ibyanditswe mu ibaruramari. Ntibishobora gusubizwaho.';
+  }
+
+  @override
+  String cashResetKindLine(String kind, int count, String amount) {
+    return '$kind: $count · $amount';
+  }
+
+  @override
+  String cashResetTypeToConfirm(String name) {
+    return 'Andika $name kugira ngo wemeze';
+  }
+
+  @override
+  String get cashResetDelete => 'Siba burundu';
+
+  @override
+  String cashResetDone(int count) {
+    return 'Ibyandikwa $count byasibwe.';
+  }
+
+  @override
+  String cashResetFailed(String error) {
+    return 'Ntibyashobotse gusiba igitabo cy\'amafaranga: $error';
+  }
+
+  @override
   String get cashbookTotalOut => 'Ayasohotse yose';
 
   @override

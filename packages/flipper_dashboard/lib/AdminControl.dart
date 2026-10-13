@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flipper_dashboard/features/admin/widgets/cash_reset_dialog.dart';
 import 'package:flipper_dashboard/features/admin/widgets/language_settings_card.dart';
 import 'package:flipper_dashboard/providers/digital_receipt_provider.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -2051,6 +2052,53 @@ class _AdminControlState extends ConsumerState<AdminControl> {
         _buildTransactionDelegationSection(context),
         const SizedBox(height: 28),
         _buildReceiptBrandingSection(context),
+        const SizedBox(height: 28),
+        _buildDangerZoneSection(context),
+      ],
+    );
+  }
+
+  Widget _buildDangerZoneSection(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _adminSectionHeader(
+          context,
+          context.flipperL10n.cashResetSectionTitle,
+          _kAdminBarRed,
+        ),
+        SettingsCard(
+          title: context.flipperL10n.cashResetTitle,
+          subtitle: context.flipperL10n.cashResetSubtitle,
+          leading: Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: _kAdminBarRed.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: const Icon(
+              Icons.delete_sweep_outlined,
+              color: _kAdminBarRed,
+            ),
+          ),
+          onTap: () => showCashResetDialog(
+            context,
+            verifyAdmin: (dialogContext) async {
+              final setting = await settingsService.settings();
+              final pin = setting?.adminPin;
+              if (!settingsService.isAdminPinEnabled || pin == null) {
+                return true;
+              }
+              if (!dialogContext.mounted) return false;
+              final ok = await showAdminPinDialog(
+                context: dialogContext,
+                mode: AdminPinMode.verify,
+                expectedPin: pin,
+              );
+              return ok == true;
+            },
+          ),
+        ),
       ],
     );
   }

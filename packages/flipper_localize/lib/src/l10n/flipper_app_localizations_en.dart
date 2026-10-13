@@ -2814,6 +2814,56 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
   String get cashbookCashOut => 'Cash out';
 
   @override
+  String get cashResetSectionTitle => 'Danger zone';
+
+  @override
+  String get cashResetTitle => 'Clear Cash Book';
+
+  @override
+  String get cashResetSubtitle =>
+      'Permanently delete Cash In and Cash Out records in every branch of this business';
+
+  @override
+  String get cashResetOpen => 'Review and clear';
+
+  @override
+  String get cashResetPickKinds => 'Which records should be deleted?';
+
+  @override
+  String get cashResetPreview => 'Preview';
+
+  @override
+  String get cashResetNothing => 'There is nothing to delete.';
+
+  @override
+  String cashResetSummary(int count) {
+    return '$count records will be permanently deleted from every branch, together with their ledger entries. This cannot be undone.';
+  }
+
+  @override
+  String cashResetKindLine(String kind, int count, String amount) {
+    return '$kind: $count · $amount';
+  }
+
+  @override
+  String cashResetTypeToConfirm(String name) {
+    return 'Type $name to confirm';
+  }
+
+  @override
+  String get cashResetDelete => 'Delete permanently';
+
+  @override
+  String cashResetDone(int count) {
+    return 'Deleted $count records.';
+  }
+
+  @override
+  String cashResetFailed(String error) {
+    return 'Could not clear the Cash Book: $error';
+  }
+
+  @override
   String get cashbookTotalOut => 'Total out';
 
   @override
