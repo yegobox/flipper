@@ -2846,89 +2846,6 @@
     "cashbookFilterAll": "All",
     "cashbookCashIn": "Cash in",
     "cashbookCashOut": "Cash out",
-    "cashResetSectionTitle": "Danger zone",
-    "@cashResetSectionTitle": {
-        "description": "Admin Control danger zone: clear all Cash In / Cash Out for the business"
-    },
-    "cashResetTitle": "Clear Cash Book",
-    "@cashResetTitle": {
-        "description": "Admin Control danger zone: clear all Cash In / Cash Out for the business"
-    },
-    "cashResetSubtitle": "Permanently delete Cash In and Cash Out records in every branch of this business",
-    "@cashResetSubtitle": {
-        "description": "Admin Control danger zone: clear all Cash In / Cash Out for the business"
-    },
-    "cashResetOpen": "Review and clear",
-    "@cashResetOpen": {
-        "description": "Admin Control danger zone: clear all Cash In / Cash Out for the business"
-    },
-    "cashResetPickKinds": "Which records should be deleted?",
-    "@cashResetPickKinds": {
-        "description": "Admin Control danger zone: clear all Cash In / Cash Out for the business"
-    },
-    "cashResetPreview": "Preview",
-    "@cashResetPreview": {
-        "description": "Admin Control danger zone: clear all Cash In / Cash Out for the business"
-    },
-    "cashResetNothing": "There is nothing to delete.",
-    "@cashResetNothing": {
-        "description": "Admin Control danger zone: clear all Cash In / Cash Out for the business"
-    },
-    "cashResetSummary": "{count} records will be permanently deleted from every branch, together with their ledger entries. This cannot be undone.",
-    "@cashResetSummary": {
-        "description": "Admin Control danger zone: clear all Cash In / Cash Out for the business",
-        "placeholders": {
-            "count": {
-                "type": "int"
-            }
-        }
-    },
-    "cashResetKindLine": "{kind}: {count} · {amount}",
-    "@cashResetKindLine": {
-        "description": "Admin Control danger zone: clear all Cash In / Cash Out for the business",
-        "placeholders": {
-            "kind": {
-                "type": "String"
-            },
-            "count": {
-                "type": "int"
-            },
-            "amount": {
-                "type": "String"
-            }
-        }
-    },
-    "cashResetTypeToConfirm": "Type {name} to confirm",
-    "@cashResetTypeToConfirm": {
-        "description": "Admin Control danger zone: clear all Cash In / Cash Out for the business",
-        "placeholders": {
-            "name": {
-                "type": "String"
-            }
-        }
-    },
-    "cashResetDelete": "Delete permanently",
-    "@cashResetDelete": {
-        "description": "Admin Control danger zone: clear all Cash In / Cash Out for the business"
-    },
-    "cashResetDone": "Deleted {count} records.",
-    "@cashResetDone": {
-        "description": "Admin Control danger zone: clear all Cash In / Cash Out for the business",
-        "placeholders": {
-            "count": {
-                "type": "int"
-            }
-        }
-    },
-    "cashResetFailed": "Could not clear the Cash Book: {error}",
-    "@cashResetFailed": {
-        "description": "Admin Control danger zone: clear all Cash In / Cash Out for the business",
-        "placeholders": {
-            "error": {
-                "type": "String"
-            }
-        }
-    },
     "cashbookTotalOut": "Total out",
     "cashbookMomoNet": "MoMo net",
     "cashbookTotalIn": "Total in",
@@ -19485,6 +19402,89 @@
     "webHomeNativeDesktop": "On a computer? Download Atlas",
     "@webHomeNativeDesktop": {
         "description": "Landing link from the native section to the apps page"
+    },
+    "cashResetSectionTitle": "Danger zone",
+    "@cashResetSectionTitle": {
+        "description": "Admin Control danger zone: clear all Cash In / Cash Out for the business"
+    },
+    "cashResetTitle": "Clear Cash Book",
+    "@cashResetTitle": {
+        "description": "Admin Control danger zone: clear all Cash In / Cash Out for the business"
+    },
+    "cashResetSubtitle": "Permanently delete Cash In and Cash Out records in every branch of this business",
+    "@cashResetSubtitle": {
+        "description": "Admin Control danger zone: clear all Cash In / Cash Out for the business"
+    },
+    "cashResetOpen": "Review and clear",
+    "@cashResetOpen": {
+        "description": "Admin Control danger zone: clear all Cash In / Cash Out for the business"
+    },
+    "cashResetPickKinds": "Which records should be deleted?",
+    "@cashResetPickKinds": {
+        "description": "Admin Control danger zone: clear all Cash In / Cash Out for the business"
+    },
+    "cashResetPreview": "Preview",
+    "@cashResetPreview": {
+        "description": "Admin Control danger zone: clear all Cash In / Cash Out for the business"
+    },
+    "cashResetNothing": "There is nothing to delete.",
+    "@cashResetNothing": {
+        "description": "Admin Control danger zone: clear all Cash In / Cash Out for the business"
+    },
+    "cashResetSummary": "{count} records will be permanently deleted from every branch, together with their ledger entries. This cannot be undone.",
+    "@cashResetSummary": {
+        "description": "Admin Control danger zone: clear all Cash In / Cash Out for the business",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "cashResetKindLine": "{kind}: {count} · {amount}",
+    "@cashResetKindLine": {
+        "description": "Admin Control danger zone: clear all Cash In / Cash Out for the business",
+        "placeholders": {
+            "kind": {
+                "type": "String"
+            },
+            "count": {
+                "type": "int"
+            },
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
+    "cashResetTypeToConfirm": "Type {name} to confirm",
+    "@cashResetTypeToConfirm": {
+        "description": "Admin Control danger zone: clear all Cash In / Cash Out for the business",
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "cashResetDelete": "Delete permanently",
+    "@cashResetDelete": {
+        "description": "Admin Control danger zone: clear all Cash In / Cash Out for the business"
+    },
+    "cashResetDone": "Deleted {count} records.",
+    "@cashResetDone": {
+        "description": "Admin Control danger zone: clear all Cash In / Cash Out for the business",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "cashResetFailed": "Could not clear the Cash Book: {error}",
+    "@cashResetFailed": {
+        "description": "Admin Control danger zone: clear all Cash In / Cash Out for the business",
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
     },
     "cashResetNotEnabled": "Clearing the Cash Book is not enabled for this business. Ask Flipper support to enable it for one reset.",
     "@cashResetNotEnabled": {

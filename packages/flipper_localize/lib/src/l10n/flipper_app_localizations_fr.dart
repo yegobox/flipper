@@ -2861,56 +2861,6 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   String get cashbookCashOut => 'Sortie';
 
   @override
-  String get cashResetSectionTitle => 'Zone dangereuse';
-
-  @override
-  String get cashResetTitle => 'Vider le livre de caisse';
-
-  @override
-  String get cashResetSubtitle =>
-      'Supprimer définitivement les entrées et sorties de caisse dans toutes les succursales de cette entreprise';
-
-  @override
-  String get cashResetOpen => 'Vérifier et vider';
-
-  @override
-  String get cashResetPickKinds => 'Quels enregistrements supprimer ?';
-
-  @override
-  String get cashResetPreview => 'Aperçu';
-
-  @override
-  String get cashResetNothing => 'Il n\'y a rien à supprimer.';
-
-  @override
-  String cashResetSummary(int count) {
-    return '$count enregistrements seront définitivement supprimés de toutes les succursales, avec leurs écritures comptables. Cette action est irréversible.';
-  }
-
-  @override
-  String cashResetKindLine(String kind, int count, String amount) {
-    return '$kind : $count · $amount';
-  }
-
-  @override
-  String cashResetTypeToConfirm(String name) {
-    return 'Saisissez $name pour confirmer';
-  }
-
-  @override
-  String get cashResetDelete => 'Supprimer définitivement';
-
-  @override
-  String cashResetDone(int count) {
-    return '$count enregistrements supprimés.';
-  }
-
-  @override
-  String cashResetFailed(String error) {
-    return 'Impossible de vider le livre de caisse : $error';
-  }
-
-  @override
   String get cashbookTotalOut => 'Total des sorties';
 
   @override
@@ -26292,6 +26242,56 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
 
   @override
   String get webHomeNativeDesktop => 'Sur un ordinateur ? Téléchargez Atlas';
+
+  @override
+  String get cashResetSectionTitle => 'Zone dangereuse';
+
+  @override
+  String get cashResetTitle => 'Vider le livre de caisse';
+
+  @override
+  String get cashResetSubtitle =>
+      'Supprimer définitivement les entrées et sorties de caisse dans toutes les succursales de cette entreprise';
+
+  @override
+  String get cashResetOpen => 'Vérifier et vider';
+
+  @override
+  String get cashResetPickKinds => 'Quels enregistrements supprimer ?';
+
+  @override
+  String get cashResetPreview => 'Aperçu';
+
+  @override
+  String get cashResetNothing => 'Il n\'y a rien à supprimer.';
+
+  @override
+  String cashResetSummary(int count) {
+    return '$count enregistrements seront définitivement supprimés de toutes les succursales, avec leurs écritures comptables. Cette action est irréversible.';
+  }
+
+  @override
+  String cashResetKindLine(String kind, int count, String amount) {
+    return '$kind : $count · $amount';
+  }
+
+  @override
+  String cashResetTypeToConfirm(String name) {
+    return 'Saisissez $name pour confirmer';
+  }
+
+  @override
+  String get cashResetDelete => 'Supprimer définitivement';
+
+  @override
+  String cashResetDone(int count) {
+    return '$count enregistrements supprimés.';
+  }
+
+  @override
+  String cashResetFailed(String error) {
+    return 'Impossible de vider le livre de caisse : $error';
+  }
 
   @override
   String get cashResetNotEnabled =>
