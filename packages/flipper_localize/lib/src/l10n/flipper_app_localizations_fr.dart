@@ -26132,4 +26132,114 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
 
   @override
   String get shiftNonCashSales => 'Payé par MoMo, carte, banque ou crédit';
+
+  @override
+  String get webAppsNav => 'Applis';
+
+  @override
+  String get webAppsKicker => 'Applis Flipper';
+
+  @override
+  String get webAppsLead => 'Sept applis.';
+
+  @override
+  String get webAppsAccent => 'Un seul OS.';
+
+  @override
+  String get webAppsBody =>
+      'Point de vente, comptabilité, un comptable IA, réception d\'hôtel, additions de bar, écran cuisine et RH — un seul Flipper OS sur un seul grand livre. Installez-le sur votre ordinateur avec Atlas, notre lanceur.';
+
+  @override
+  String get webAppsRecommended => 'Recommandé';
+
+  @override
+  String get webAppsAtlasPitch =>
+      'Atlas installe Flipper sur votre ordinateur et garde chaque appli — et lui-même — à jour.';
+
+  @override
+  String webAppsDownloadFor(String platform) {
+    return 'Télécharger Atlas pour $platform';
+  }
+
+  @override
+  String get webAppsAlsoFor => 'Aussi pour';
+
+  @override
+  String get webAppsAllReleases => 'Toutes les versions sur GitHub';
+
+  @override
+  String get webAppsStep1 => 'Téléchargez et lancez l\'installateur Atlas.';
+
+  @override
+  String get webAppsStep2 =>
+      'Ouvrez Atlas et cliquez sur Installer pour Flipper POS.';
+
+  @override
+  String get webAppsStep3 =>
+      'C\'est tout. Atlas garde Flipper et lui-même à jour.';
+
+  @override
+  String get webAppsOnPhone =>
+      'Sur un téléphone ? Installez Flipper depuis la boutique.';
+
+  @override
+  String get webAppsLineupKicker => 'La gamme';
+
+  @override
+  String get webAppsLineupLead => 'Tout ce que votre entreprise fait tourner,';
+
+  @override
+  String get webAppsLineupAccent => 'au même endroit.';
+
+  @override
+  String get webAppsIncluded => 'Inclus dans Flipper OS';
+
+  @override
+  String get webAppsPosTitle => 'Point de vente';
+
+  @override
+  String get webAppsBooksTitle => 'Comptabilité';
+
+  @override
+  String get webAppsHotelTitle => 'Hôtel';
+
+  @override
+  String get webAppsHotelBody =>
+      'Chambres, séjours et folios à la réception, enregistrés dans la même comptabilité.';
+
+  @override
+  String get webAppsBarTitle => 'Bar';
+
+  @override
+  String get webAppsBarBody =>
+      'Ouvrez une addition par table ou par client et réglez en caisse. Aucune tournée ne se perd.';
+
+  @override
+  String get webAppsKitchenTitle => 'Écran cuisine';
+
+  @override
+  String get webAppsKitchenBody =>
+      'Les commandes passent de la caisse à l\'écran cuisine, étape par étape, jusqu\'au service.';
+
+  @override
+  String get webAppsHrTitle => 'RH et paie';
+
+  @override
+  String get webAppsHrBody =>
+      'Votre équipe, ses congés et sa paie, sur le même compte Flipper.';
+
+  @override
+  String get webAppsWhereKicker => 'Où ça tourne';
+
+  @override
+  String get webAppsViaAtlas => 'Avec le lanceur Atlas';
+
+  @override
+  String get webAppsInBrowser => 'Dans n\'importe quel navigateur';
+
+  @override
+  String get webAppsOpenWeb => 'Ouvrir dans le navigateur';
+
+  @override
+  String get webHomeNativeDesktop => 'Sur un ordinateur ? Téléchargez Atlas';
 }

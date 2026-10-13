@@ -8,7 +8,14 @@ import 'package:go_router/go_router.dart';
 
 /// Header nav ids, in page order. `OS` is the top of the page: Flipper OS,
 /// of which Books (accounting) is one app.
-const booksHomeNavIds = ['OS', 'Platform', 'Flow AI', 'Features', 'Pricing'];
+const booksHomeNavIds = [
+  'OS',
+  'Platform',
+  'Flow AI',
+  'Features',
+  'Pricing',
+  'Apps',
+];
 
 /// Height of the pinned header.
 const booksHomeHeaderHeight = 64.0;
@@ -1154,10 +1161,17 @@ const booksHomeMicrosoftStoreUrl =
 /// Points people who run a counter on the web to the native apps: the web is
 /// for checking in, the apps are for full speed and selling offline.
 class BooksHomeNativeSection extends StatelessWidget {
-  const BooksHomeNativeSection({super.key, required this.onOpenStore});
+  const BooksHomeNativeSection({
+    super.key,
+    required this.onOpenStore,
+    this.onDesktop,
+  });
 
   /// Opens a store listing (outside the page).
   final ValueChanged<Uri> onOpenStore;
+
+  /// Goes to the apps page, where computers get the Atlas launcher.
+  final VoidCallback? onDesktop;
 
   @override
   Widget build(BuildContext context) {
@@ -1169,13 +1183,13 @@ class BooksHomeNativeSection extends StatelessWidget {
           final stores = RuledGrid(
             columns: constraints.maxWidth > 560 ? 2 : 1,
             children: [
-              _StoreCell(
+              BooksHomeStoreCell(
                 platform: 'Android',
                 label: l10n.webHomeNativePlay,
                 icon: Icons.android_rounded,
                 onTap: () => onOpenStore(Uri.parse(booksHomePlayStoreUrl)),
               ),
-              _StoreCell(
+              BooksHomeStoreCell(
                 platform: 'Windows',
                 label: l10n.webHomeNativeWindows,
                 icon: Icons.window_rounded,
@@ -1227,6 +1241,16 @@ class BooksHomeNativeSection extends StatelessWidget {
                   const SizedBox(height: 40),
                   stores,
                 ],
+                if (onDesktop != null) ...[
+                  const SizedBox(height: 20),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: BooksHomeTextLink(
+                      label: l10n.webHomeNativeDesktop,
+                      onTap: onDesktop!,
+                    ),
+                  ),
+                ],
               ],
             ),
           );
@@ -1236,10 +1260,11 @@ class BooksHomeNativeSection extends StatelessWidget {
   }
 }
 
-/// One store in [BooksHomeNativeSection]: the platform, the store, and an
+/// One store (or download) in a ruled grid: the platform, the store, and an
 /// arrow out. Fills with Flipper blue on hover.
-class _StoreCell extends StatelessWidget {
-  const _StoreCell({
+class BooksHomeStoreCell extends StatelessWidget {
+  const BooksHomeStoreCell({
+    super.key,
     required this.platform,
     required this.label,
     required this.icon,
@@ -1270,8 +1295,14 @@ class _StoreCell extends StatelessWidget {
                   children: [
                     Icon(icon, size: 22, color: fg),
                     const SizedBox(width: 10),
-                    Text(platform.toUpperCase(), style: AppText.label(c: soft)),
-                    const Spacer(),
+                    // Wraps rather than overflowing a narrow cell.
+                    Expanded(
+                      child: Text(
+                        platform.toUpperCase(),
+                        style: AppText.label(c: soft),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
                     Icon(Icons.arrow_outward_rounded, size: 20, color: fg),
                   ],
                 ),
@@ -1538,10 +1569,17 @@ class BooksHomeFooter extends StatelessWidget {
 }
 
 class _FooterColumn extends StatelessWidget {
-  const _FooterColumn({required this.title, required this.links});
+  const _FooterColumn({
+    required this.title,
+    required this.links,
+    this.routes = const {},
+  });
 
   final String title;
   final List<String> links;
+
+  /// Links that go somewhere, by label.
+  final Map<String, String> routes;
 
   static List<_FooterColumn> columnsFor(FlipperAppLocalizations l10n) => [
     _FooterColumn(
@@ -1574,6 +1612,7 @@ class _FooterColumn extends StatelessWidget {
         l10n.webHomeStatus,
         l10n.webHomeCommunity,
       ],
+      routes: {l10n.webHomeDownload: '/apps'},
     ),
   ];
 
@@ -1587,13 +1626,26 @@ class _FooterColumn extends StatelessWidget {
         for (final link in links)
           Padding(
             padding: const EdgeInsets.only(bottom: 11),
-            child: Text(
-              link,
-              style: AppText.small.copyWith(
-                fontSize: 14,
-                color: AppColors.muted,
-              ),
-            ),
+            child: routes[link] == null
+                ? Text(
+                    link,
+                    style: AppText.small.copyWith(
+                      fontSize: 14,
+                      color: AppColors.muted,
+                    ),
+                  )
+                : PressScale(
+                    onTap: () => context.go(routes[link]!),
+                    child: Text(
+                      link,
+                      style: AppText.small.copyWith(
+                        fontSize: 14,
+                        color: AppColors.ink,
+                        decoration: TextDecoration.underline,
+                        decorationColor: AppColors.lineStrong,
+                      ),
+                    ),
+                  ),
           ),
       ],
     );
@@ -1616,6 +1668,7 @@ String booksHomeNavLabel(String id, FlipperAppLocalizations l10n) =>
       'Platform' => l10n.webHomeNavPlatform,
       'Features' => l10n.webHomeNavFeatures,
       'Pricing' => l10n.pricing,
+      'Apps' => l10n.webAppsNav,
       _ => id,
     };
 
