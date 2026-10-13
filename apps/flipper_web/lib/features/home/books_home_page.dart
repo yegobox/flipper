@@ -4,6 +4,7 @@ import 'package:flipper_web/features/home/theme/books_home_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
@@ -75,6 +76,10 @@ class _BooksHomePageState extends ConsumerState<BooksHomePage> {
   }
 
   void _onNavTap(String link) {
+    if (link == 'Apps') {
+      context.go('/apps');
+      return;
+    }
     final key = _sections[link];
     if (key != null) {
       _scrollTo(key);
@@ -158,6 +163,7 @@ class _BooksHomePageState extends ConsumerState<BooksHomePage> {
                           l10n: l10n,
                         ),
                         BooksHomeNativeSection(
+                          onDesktop: () => context.go('/apps'),
                           onOpenStore: (uri) => launchUrl(
                             uri,
                             mode: LaunchMode.externalApplication,

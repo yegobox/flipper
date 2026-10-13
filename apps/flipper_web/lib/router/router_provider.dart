@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flipper_web/core/routing/app_entry_route.dart';
+import 'package:flipper_web/features/apps/apps_screen.dart';
 import 'package:flipper_web/features/login/auth_providers.dart' as login_auth;
 import 'package:flipper_web/features/login/auth_wrapper.dart';
 import 'package:flipper_web/features/billing/presentation/books_billing_gate.dart';
@@ -44,6 +45,8 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const PinScreen(),
       ),
       GoRoute(path: '/signup', builder: (context, state) => const SignupView()),
+      // Public: the apps and the Atlas launcher download, signed in or out.
+      GoRoute(path: '/apps', builder: (context, state) => const AppsScreen()),
       // Business selection screen after authentication
       GoRoute(
         path: '/business-selection',

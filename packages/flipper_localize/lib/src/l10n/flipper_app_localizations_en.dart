@@ -25715,4 +25715,112 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
 
   @override
   String get shiftNonCashSales => 'Paid by MoMo, card, bank or credit';
+
+  @override
+  String get webAppsNav => 'Apps';
+
+  @override
+  String get webAppsKicker => 'Flipper apps';
+
+  @override
+  String get webAppsLead => 'Seven apps.';
+
+  @override
+  String get webAppsAccent => 'One OS.';
+
+  @override
+  String get webAppsBody =>
+      'Point of sale, accounting, an AI bookkeeper, hotel front desk, bar tabs, kitchen display and HR — one Flipper OS on one ledger. Install it on your computer with Atlas, our launcher.';
+
+  @override
+  String get webAppsRecommended => 'Recommended';
+
+  @override
+  String get webAppsAtlasPitch =>
+      'Atlas installs Flipper on your computer and keeps every app — and itself — up to date.';
+
+  @override
+  String webAppsDownloadFor(String platform) {
+    return 'Download Atlas for $platform';
+  }
+
+  @override
+  String get webAppsAlsoFor => 'Also for';
+
+  @override
+  String get webAppsAllReleases => 'All releases on GitHub';
+
+  @override
+  String get webAppsStep1 => 'Download and run the Atlas installer.';
+
+  @override
+  String get webAppsStep2 => 'Open Atlas and click Install on Flipper POS.';
+
+  @override
+  String get webAppsStep3 =>
+      'That\'s it. Atlas keeps Flipper and itself up to date.';
+
+  @override
+  String get webAppsOnPhone => 'On a phone? Get Flipper from the store.';
+
+  @override
+  String get webAppsLineupKicker => 'The lineup';
+
+  @override
+  String get webAppsLineupLead => 'Everything your business runs,';
+
+  @override
+  String get webAppsLineupAccent => 'in one place.';
+
+  @override
+  String get webAppsIncluded => 'Included in Flipper OS';
+
+  @override
+  String get webAppsPosTitle => 'Point of sale';
+
+  @override
+  String get webAppsBooksTitle => 'Accounting';
+
+  @override
+  String get webAppsHotelTitle => 'Hotel';
+
+  @override
+  String get webAppsHotelBody =>
+      'Rooms, stays and folios at the front desk, posted to the same books.';
+
+  @override
+  String get webAppsBarTitle => 'Bar';
+
+  @override
+  String get webAppsBarBody =>
+      'Open tabs per table or guest and settle at the till. No round goes missing.';
+
+  @override
+  String get webAppsKitchenTitle => 'Kitchen display';
+
+  @override
+  String get webAppsKitchenBody =>
+      'Orders flow from the till to the kitchen screen, stage by stage, until they\'re served.';
+
+  @override
+  String get webAppsHrTitle => 'HR & payroll';
+
+  @override
+  String get webAppsHrBody =>
+      'Your people, their leave and their pay, on the same Flipper account.';
+
+  @override
+  String get webAppsWhereKicker => 'Where it runs';
+
+  @override
+  String get webAppsViaAtlas => 'With the Atlas launcher';
+
+  @override
+  String get webAppsInBrowser => 'In any browser';
+
+  @override
+  String get webAppsOpenWeb => 'Open in browser';
+
+  @override
+  String get webHomeNativeDesktop => 'On a computer? Download Atlas';
 }

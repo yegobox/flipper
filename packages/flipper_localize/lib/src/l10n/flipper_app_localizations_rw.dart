@@ -25976,4 +25976,113 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   @override
   String get shiftNonCashSales =>
       'Byishyuwe na MoMo, ikarita, banki cyangwa inguzanyo';
+
+  @override
+  String get webAppsNav => 'Porogaramu';
+
+  @override
+  String get webAppsKicker => 'Porogaramu za Flipper';
+
+  @override
+  String get webAppsLead => 'Porogaramu zirindwi.';
+
+  @override
+  String get webAppsAccent => 'OS imwe.';
+
+  @override
+  String get webAppsBody =>
+      'Kugurisha, ibaruramari, umucungamari wa AI, kwakira abashyitsi muri hoteli, konti z\'akabari, ekrani y\'igikoni n\'abakozi — Flipper OS imwe mu gitabo kimwe. Yishyire kuri mudasobwa yawe ukoresheje Atlas, porogaramu yacu yo kuyishyiramo.';
+
+  @override
+  String get webAppsRecommended => 'Byasabwe';
+
+  @override
+  String get webAppsAtlasPitch =>
+      'Atlas ishyira Flipper kuri mudasobwa yawe kandi ikavugurura porogaramu zose — ndetse na yo ubwayo.';
+
+  @override
+  String webAppsDownloadFor(String platform) {
+    return 'Kuramo Atlas ya $platform';
+  }
+
+  @override
+  String get webAppsAlsoFor => 'Iboneka no kuri';
+
+  @override
+  String get webAppsAllReleases => 'Verisiyo zose kuri GitHub';
+
+  @override
+  String get webAppsStep1 =>
+      'Kuramo kandi ufungure porogaramu yo gushyiraho Atlas.';
+
+  @override
+  String get webAppsStep2 => 'Fungura Atlas ukande Shyiraho kuri Flipper POS.';
+
+  @override
+  String get webAppsStep3 =>
+      'Birarangiye. Atlas ivugurura Flipper ndetse na yo ubwayo.';
+
+  @override
+  String get webAppsOnPhone => 'Uri kuri telefoni? Kura Flipper mu iduka.';
+
+  @override
+  String get webAppsLineupKicker => 'Porogaramu zose';
+
+  @override
+  String get webAppsLineupLead => 'Ibyo ubucuruzi bwawe bukora byose,';
+
+  @override
+  String get webAppsLineupAccent => 'ahantu hamwe.';
+
+  @override
+  String get webAppsIncluded => 'Biri muri Flipper OS';
+
+  @override
+  String get webAppsPosTitle => 'Kugurisha';
+
+  @override
+  String get webAppsBooksTitle => 'Ibaruramari';
+
+  @override
+  String get webAppsHotelTitle => 'Hoteli';
+
+  @override
+  String get webAppsHotelBody =>
+      'Ibyumba, igihe abashyitsi bamara na fagitire byo kwakira abashyitsi, byandikwa mu gitabo kimwe.';
+
+  @override
+  String get webAppsBarTitle => 'Akabari';
+
+  @override
+  String get webAppsBarBody =>
+      'Fungura konti kuri buri meza cyangwa umukiriya, wishyurire kuri kaisi. Nta cyo kunywa kibura.';
+
+  @override
+  String get webAppsKitchenTitle => 'Ekrani y\'igikoni';
+
+  @override
+  String get webAppsKitchenBody =>
+      'Ibyatumijwe biva kuri kaisi bikajya kuri ekrani y\'igikoni, intambwe ku yindi, kugeza bitanzwe.';
+
+  @override
+  String get webAppsHrTitle => 'Abakozi n\'imishahara';
+
+  @override
+  String get webAppsHrBody =>
+      'Abakozi bawe, ibiruhuko byabo n\'imishahara yabo, kuri konti imwe ya Flipper.';
+
+  @override
+  String get webAppsWhereKicker => 'Aho ikora';
+
+  @override
+  String get webAppsViaAtlas => 'Ukoresheje Atlas';
+
+  @override
+  String get webAppsInBrowser => 'Muri mushakisha iyo ari yo yose';
+
+  @override
+  String get webAppsOpenWeb => 'Fungura muri mushakisha';
+
+  @override
+  String get webHomeNativeDesktop => 'Uri kuri mudasobwa? Kuramo Atlas';
 }
