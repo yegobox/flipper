@@ -3,6 +3,7 @@ import 'package:flipper_models/models/hotel_branch_settings.dart';
 import 'package:flipper_models/models/hotel_quotation.dart';
 import 'package:flipper_models/models/hotel_room.dart';
 import 'package:flipper_models/models/hotel_stay.dart';
+import 'package:flipper_models/services/hotel_room_rra_service.dart';
 import 'package:flipper_models/services/hotel_rra_capability.dart';
 import 'package:flipper_models/sync/capella/mixins/hotel_mixin.dart';
 import 'package:ditto_live/ditto_live.dart';
@@ -235,6 +236,7 @@ void main() {
     tearDown(() async {
       ITransactionDittoAdapter.instance.resetOverrides();
       HotelRraCapability.invalidate();
+      HotelRoomRraService.localRoomItemOverride = null;
       await getIt.reset();
     });
 
@@ -244,6 +246,15 @@ void main() {
       final r = _room();
       await sync.saveHotelRoom(r);
       return r;
+    }
+
+    /// Stands in for creating the room's local item, which needs Brick.
+    void giveRoomsTheirOwnItem() {
+      HotelRoomRraService.localRoomItemOverride = (room) async {
+        final withItem = room.copyWith(variantId: 'v-room');
+        await sync.saveHotelRoom(withItem);
+        return withItem;
+      };
     }
 
     test('survives checkInGuest, the Ditto write, and the read back', () async {
@@ -522,11 +533,13 @@ void main() {
     });
 
     test(
-      'a branch not on EBM still bills the nights, without RRA fields',
+      'a branch not on EBM bills the nights against the room\'s own item',
       () async {
-        // A property that is not registered for EBM still runs a hotel. Refusing
-        // to record the charge leaves a folio that can never total anything,
-        // which is worse than one that is simply not fiscalised.
+        // A property that is not registered for EBM still runs a hotel, and its
+        // lines must carry a variant: Supabase requires one, so a line without
+        // it never left Ditto and the nights were missing from every report
+        // that reads there.
+        giveRoomsTheirOwnItem();
         final room = await savedRoom();
         final stay = await sync.checkInGuest(
           branchId: _branch,
@@ -549,15 +562,49 @@ void main() {
           transactionId: stay.transactionId,
         );
         expect(lines, hasLength(1));
+        expect(lines.single.variantId, 'v-room');
         expect(lines.single.qty, 2);
         expect(lines.single.price, 85000);
-        // No fabricated fiscal identity on an unregistered line.
-        expect(lines.single.itemCd, isNull);
+
+        final rooms = await sync.hotelRooms(branchId: _branch);
+        expect(rooms.single.variantId, 'v-room', reason: 'made once, reused');
 
         final folio = await sync.hotelFolio(transactionId: stay.transactionId);
         expect(folio?.subTotal, 170000);
       },
     );
+
+    test('if the room item cannot be made, the nights still bill', () async {
+      // The desk takes the guest's money whether or not the catalog write
+      // worked; the plain line is the fallback, not a refusal.
+      HotelRoomRraService.localRoomItemOverride = (_) async =>
+          throw StateError('no business');
+      final room = await savedRoom();
+      final stay = await sync.checkInGuest(
+        branchId: _branch,
+        room: room,
+        guestName: 'Aline Uwase',
+        checkInAt: DateTime.utc(2026, 1, 10, 14),
+        expectedCheckOutAt: DateTime.utc(2026, 1, 12, 11),
+        nightlyRate: 85000,
+        clerkTenantId: 'c1',
+        clerkName: 'Richie',
+      );
+
+      await sync.postRoomCharge(
+        stay: stay,
+        clerkTenantId: 'c1',
+        clerkName: 'Richie',
+      );
+
+      final lines = await sync.hotelFolioLines(
+        transactionId: stay.transactionId,
+      );
+      expect(lines, hasLength(1));
+      expect(lines.single.itemCd, isNull);
+      final folio = await sync.hotelFolio(transactionId: stay.transactionId);
+      expect(folio?.subTotal, 170000);
+    });
 
     test(
       'a TIN on a branch with tax switched off still bills the nights',
@@ -583,6 +630,7 @@ void main() {
           SyncStrategy(capella: taxOff, cloudSync: taxOff),
           instanceName: 'strategy',
         );
+        giveRoomsTheirOwnItem();
 
         final room = await savedRoom();
         final stay = await sync.checkInGuest(
@@ -606,7 +654,7 @@ void main() {
           transactionId: stay.transactionId,
         );
         expect(lines, hasLength(1));
-        expect(lines.single.itemCd, isNull);
+        expect(lines.single.variantId, 'v-room');
 
         final folio = await sync.hotelFolio(transactionId: stay.transactionId);
         expect(folio?.subTotal, 70000);

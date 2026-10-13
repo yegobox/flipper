@@ -368,6 +368,104 @@ abstract final class HotelRoomRraService {
     return run;
   }
 
+  /// Gives [room] its own item on a branch that does not file with RRA.
+  ///
+  /// Its nights then bill through the same line path as a fiscal room, so each
+  /// line carries a variant. A line without one never leaves Ditto: Supabase
+  /// requires `variant_id`, so the room nights were missing from everything
+  /// that reads there. Nothing is sent to RRA.
+  ///
+  /// The variant is built as registration builds it, minus the tourism-tax
+  /// coding, so [isHotelRoomVariantRegistered] stays false and a branch that
+  /// later goes on EBM resumes this item in [registerRoom] instead of minting
+  /// a second one for the same room.
+  static Future<HotelRoom> ensureLocalRoomItem(HotelRoom room) {
+    if (room.isRegisteredWithRra) return Future.value(room);
+    final existing = _registrationsInFlight[room.id];
+    if (existing != null) return existing;
+
+    final create = localRoomItemOverride ?? _ensureLocalRoomItem;
+    final run = create(room).whenComplete(() {
+      _registrationsInFlight.remove(room.id);
+    });
+    _registrationsInFlight[room.id] = run;
+    return run;
+  }
+
+  /// Replaces item creation in tests, which have no Brick repository.
+  @visibleForTesting
+  static Future<HotelRoom> Function(HotelRoom room)? localRoomItemOverride;
+
+  static Future<HotelRoom> _ensureLocalRoomItem(HotelRoom room) async {
+    final branchId = room.branchId;
+    final businessId = ProxyService.box.getBusinessId();
+    if (businessId == null) {
+      throw StateError('No active business; cannot create room ${room.name}');
+    }
+
+    // No EBM read: the branch does not file, so the product carries no fiscal
+    // identity, and the desk already paid for that lookup once
+    // ([HotelRraCapability]) — asking again per charge is the cost it removed.
+    final business = await _sync.getBusiness(businessId: businessId);
+
+    final product = await _sync.createProduct(
+      product: Product(
+        id: const Uuid().v4(),
+        name: room.name,
+        lastTouched: DateTime.now().toUtc(),
+        branchId: branchId,
+        businessId: businessId,
+        createdAt: DateTime.now().toUtc(),
+        spplrNm: room.name,
+        color: '#2C6BF0',
+      ),
+      businessId: businessId,
+      branchId: branchId,
+      tinNumber: 0,
+      bhFId: '00',
+      createItemCode: false,
+      skipRRaCall: true,
+      // See _registerRoom: without it a price-0 "Regular" tile lands on the
+      // POS grid beside the room.
+      skipRegularVariant: true,
+    );
+    if (product == null) {
+      throw StateError('Could not create a product for room ${room.name}');
+    }
+
+    // 'D': a branch that does not fiscalise charges no VAT, so the line must
+    // not split one out of the nightly rate.
+    final variant = await buildHotelRoomVariant(
+      product: product,
+      room: room,
+      branchId: branchId,
+      taxTyCd: 'D',
+      sku: DateTime.now().millisecondsSinceEpoch % 100000,
+      business: business,
+      tourismTaxEnabled: false,
+    );
+
+    final repository = Repository();
+    try {
+      await repository.upsert<Variant>(variant);
+    } catch (_) {
+      try {
+        await repository.delete<Product>(product);
+      } catch (e) {
+        talker.error('hotel: could not drop product for room ${room.name}: $e');
+      }
+      rethrow;
+    }
+
+    final withItem = room.copyWith(variantId: variant.id);
+    await _sync.saveHotelRoom(withItem);
+    talker.info(
+      'hotel: room ${room.name} on non-EBM branch $branchId now bills as item '
+      '${variant.id} (not sent to RRA)',
+    );
+    return withItem;
+  }
+
   static Future<HotelRoom> _registerRoom(HotelRoom room) async {
     // A half-finished attempt to resume, if there is one. Registration is
     // several persisted steps, and a room whose variant exists but never

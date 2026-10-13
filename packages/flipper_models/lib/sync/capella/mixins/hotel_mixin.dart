@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/models/branch_document_settings.dart';
 import 'package:flipper_models/models/hotel_branch_settings.dart';
+import 'package:flipper_models/services/hotel_room_rra_service.dart';
 import 'package:flipper_models/services/hotel_rra_capability.dart';
 import 'package:flipper_models/models/hotel_quotation.dart';
 import 'package:flipper_models/models/hotel_room.dart';
@@ -11,7 +12,6 @@ import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:flipper_models/sync/interfaces/hotel_interface.dart';
 import 'package:flipper_models/sync/utils/cart_line_doc_cache.dart';
 import 'package:flipper_models/sync/utils/hotel_mode_utils.dart';
-import 'package:flipper_models/sync/utils/hotel_room_rra.dart';
 import 'package:flipper_models/sync/utils/sale_accounting_fields.dart';
 import 'package:flipper_models/sync/utils/service_mode_sale_date.dart';
 import 'package:flipper_models/helpers/default_sale_receipt_type.dart';
@@ -1168,10 +1168,12 @@ mixin CapellaHotelMixin implements HotelInterface {
     // as an ordinary good at VAT. The branch fallback only exists for rooms
     // created before rooms carried their own registration.
     final rooms = await hotelRooms(branchId: stay.branchId);
+    HotelRoom? stayRoom;
     String? variantId;
     for (final room in rooms) {
-      if (room.id == stay.roomId && room.isRegisteredWithRra) {
-        variantId = room.variantId;
+      if (room.id == stay.roomId) {
+        stayRoom = room;
+        if (room.isRegisteredWithRra) variantId = room.variantId;
         break;
       }
     }
@@ -1195,20 +1197,26 @@ mixin CapellaHotelMixin implements HotelInterface {
       // even `fetchRemote: false` falls through to Supabase. Asking per charge
       // made the properties that never fiscalise pay the most.
       if (!await HotelRraCapability.supports(stay.branchId)) {
-        await _postUnfiscalisedRoomCharge(
-          stay: stay,
-          clerkTenantId: clerkTenantId,
-          clerkName: clerkName,
+        // The room gets its own (unregistered) item so the line carries a
+        // variant like any other sale. The plain line is the fallback only:
+        // it bills, but never reaches Supabase.
+        variantId = await _localRoomItemId(stayRoom);
+        if (variantId == null) {
+          await _postUnfiscalisedRoomCharge(
+            stay: stay,
+            clerkTenantId: clerkTenantId,
+            clerkName: clerkName,
+          );
+          return;
+        }
+      } else {
+        // On an EBM branch a missing item is a real problem, so say so loudly.
+        throw StateError(
+          'Room ${stay.roomName} has no RRA item to bill its nights against. '
+          'Register the room under Settings → Hotel Mode → Rooms & floors, or '
+          'set a room-charge product for the branch.',
         );
-        return;
       }
-
-      // On an EBM branch a missing item is a real problem, so say so loudly.
-      throw StateError(
-        'Room ${stay.roomName} has no RRA item to bill its nights against. '
-        'Register the room under Settings → Hotel Mode → Rooms & floors, or '
-        'set a room-charge product for the branch.',
-      );
     }
 
     final nights = stay.nights;
@@ -1227,7 +1235,26 @@ mixin CapellaHotelMixin implements HotelInterface {
     );
   }
 
+  /// The item [room] bills against on a branch not on EBM, creating it once.
+  ///
+  /// Null when it cannot be made; the caller still bills, so a failure here
+  /// never stands between the desk and the guest's payment.
+  Future<String?> _localRoomItemId(HotelRoom? room) async {
+    if (room == null) return null;
+    try {
+      final withItem = await HotelRoomRraService.ensureLocalRoomItem(room);
+      final id = withItem.variantId?.trim();
+      return id == null || id.isEmpty ? null : id;
+    } catch (e, st) {
+      talker.warning('hotel: no item for room ${room.name}: $e\n$st');
+      return null;
+    }
+  }
+
   /// Bills the nights on a branch that is not registered for EBM.
+  ///
+  /// Fallback only, for when the room's own item cannot be created
+  /// ([_localRoomItemId]); such a line has no variant, so it stays in Ditto.
   ///
   /// No `itemCd`, no tax codes — there is no registered item to carry them and
   /// inventing one would put a fabricated code on a fiscal document. The line
