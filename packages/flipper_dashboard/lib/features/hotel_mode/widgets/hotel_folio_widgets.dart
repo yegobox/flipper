@@ -5,6 +5,7 @@ import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_shared_widge
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/models/hotel_stay.dart';
 import 'package:flipper_models/sync/utils/hotel_mode_utils.dart';
+import 'package:flipper_services/payment_methods.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:supabase_models/brick/models/transactionItem.model.dart';
@@ -366,13 +367,15 @@ class HotelCheckOutDialog extends StatefulWidget {
 class _HotelCheckOutDialogState extends State<HotelCheckOutDialog> {
   /// Wire values: [_paymentType] is handed to the checkout as-is, so only the
   /// label in [_paymentLabel] is localized.
-  static const _paymentTypes = ['Cash', 'Momo', 'Card'];
+  static const _paymentTypes = ['Cash', kMobileMoney, 'DEBIT&CREDIT CARD'];
 
   String _paymentLabel(FlipperAppLocalizations l10n, String type) {
     switch (type) {
       case 'Cash':
         return l10n.cash;
-      case 'Card':
+      case kMobileMoney:
+        return l10n.paymentMobileMoney;
+      case 'DEBIT&CREDIT CARD':
         return l10n.hotelPaymentCard;
       default:
         return type;

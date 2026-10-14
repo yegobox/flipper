@@ -9,6 +9,7 @@ import 'package:flipper_design_system/flipper_design_system.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/constants.dart';
+import 'package:flipper_services/payment_methods.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_dashboard/widgets/transaction_detail_svgs.dart';
 import 'package:flutter/material.dart';
@@ -1043,7 +1044,9 @@ String _subtitleFor(FlipperAppLocalizations l10n, ITransaction? tx) {
 String _paymentLabel(FlipperAppLocalizations l10n, String? paymentType) {
   if (paymentType == null || paymentType.trim().isEmpty) return l10n.cash;
   final upper = paymentType.toUpperCase();
-  if (upper.contains('MOMO') || upper.contains('MOBILE')) return 'MoMo';
+  final method = canonicalPaymentMethod(upper);
+  if (method == kAirtelMoney) return 'Airtel Money';
+  if (method == kMobileMoney) return 'MoMo';
   if (upper.contains('CARD')) return l10n.refundPaymentCard;
   if (upper.contains('CASH')) return l10n.cash;
   return paymentType;

@@ -5,12 +5,13 @@ library;
 
 import 'package:intl/intl.dart';
 import 'package:flipper_localize/flipper_localize.dart';
+import 'package:flipper_services/payment_methods.dart';
 
 /// Payment methods offered on the form, stored as `transaction.paymentType`.
 /// Values match `paymentTypes` in flipper_services constants.
 const String cashbookMethodCash = 'CASH';
-const String cashbookMethodMtn = 'MTN MOMO';
-const String cashbookMethodAirtel = 'AIRTEL MONEY';
+const String cashbookMethodMtn = kMobileMoney;
+const String cashbookMethodAirtel = kAirtelMoney;
 
 List<({String value, String label})> get cashbookPaymentMethods => [
   (value: cashbookMethodCash, label: FlipperL10n.current.cash),
@@ -26,10 +27,12 @@ const String cashbookLastPaymentMethodKey = 'cashbookLastPaymentMethod';
 String cashbookLastCategoryKey({required bool isIncome}) =>
     isIncome ? cashbookLastCategoryInKey : cashbookLastCategoryOutKey;
 
-/// Method preselected on a new entry: the last one used, else cash.
+/// Method preselected on a new entry: the last one used, else cash. A default
+/// saved under an old spelling (`MTN MOMO`) maps to its current value.
 String initialCashbookPaymentMethod(String? lastUsed) {
+  final canonical = canonicalPaymentMethod(lastUsed);
   for (final m in cashbookPaymentMethods) {
-    if (m.value == lastUsed) return m.value;
+    if (m.value == canonical) return m.value;
   }
   return cashbookMethodCash;
 }
@@ -221,8 +224,9 @@ String cashbookCategoryLabel(String? transactionType) =>
 String? cashbookMethodBadge(String? paymentType) {
   final p = paymentType?.trim().toUpperCase() ?? '';
   if (p.isEmpty || p == cashbookMethodCash) return null;
-  if (p.contains('AIRTEL')) return 'Airtel';
-  if (p.contains('MOMO') || p.contains('MOBILE MONEY')) return 'MoMo';
+  final canonical = canonicalPaymentMethod(p);
+  if (canonical == kAirtelMoney) return 'Airtel';
+  if (canonical == kMobileMoney) return 'MoMo';
   // Before any CREDIT check: "DEBIT&CREDIT CARD" is a card, not credit.
   if (p.contains('CARD')) return 'Card';
   if (p.contains('BANK')) return 'Bank';

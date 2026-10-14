@@ -39,6 +39,7 @@ import 'package:flipper_models/services/park_transaction_service.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart'
     as oldProvider;
 import 'package:flipper_services/constants.dart';
+import 'package:flipper_services/payment_methods.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/setting_service.dart';
 import 'package:flipper_ui/dialogs/SharedTicketDialog.dart';
@@ -650,14 +651,13 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
 
   bool _isMomoPayment(List<oldProvider.Payment> payments) {
     if (payments.isEmpty) return false;
-    final m = payments.first.method.toUpperCase();
-    return m.contains('MOMO') || m.contains('MOBILE');
+    return canonicalPaymentMethod(payments.first.method) == kMobileMoney;
   }
 
   String _methodLabel(List<oldProvider.Payment> payments) {
     if (payments.isEmpty) return context.flipperL10n.cash;
     final m = payments.first.method.toUpperCase();
-    if (m.contains('MOMO') || m.contains('MOBILE')) return 'MoMo';
+    if (canonicalPaymentMethod(m) == kMobileMoney) return 'MoMo';
     if (m.contains('CARD')) return context.flipperL10n.paymentsTypeCard;
     if (m.contains('BANK')) return context.flipperL10n.paymentsTypeBank;
     return context.flipperL10n.cash;

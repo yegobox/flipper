@@ -15,6 +15,7 @@ import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/models/hotel_stay.dart';
 import 'package:flipper_models/sync/utils/bar_mode_utils.dart';
 import 'package:flipper_models/sync/utils/hotel_mode_utils.dart';
+import 'package:flipper_services/payment_methods.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -106,7 +107,7 @@ class _BarSettleMobileScreenState extends ConsumerState<BarSettleMobileScreen> {
   /// Display label for [_method]; the raw value is what gets persisted.
   String _methodLabel(FlipperAppLocalizations l10n) => switch (_method) {
     'Cash' => l10n.cash,
-    'Mobile Money' => l10n.barMobileMoney,
+    kMobileMoney => l10n.barMobileMoney,
     _ => _method,
   };
 
@@ -148,7 +149,7 @@ class _BarSettleMobileScreenState extends ConsumerState<BarSettleMobileScreen> {
         (isRoomCharge
             ? _roomStay != null
             : _receiptPhoneIsValid() &&
-                  (_method == 'Mobile Money' || _tender >= total - 0.01));
+                  (_method == kMobileMoney || _tender >= total - 0.01));
     final buttonLooksEnabled = canConfirm || _settling;
     final openedAt = tab.createdAt ?? DateTime.now();
     final openedTime = MaterialLocalizations.of(
@@ -207,8 +208,8 @@ class _BarSettleMobileScreenState extends ConsumerState<BarSettleMobileScreen> {
                 _PaymentMethodCard(
                   label: l10n.barMobileMoney,
                   icon: Icons.smartphone_outlined,
-                  selected: _method == 'Mobile Money',
-                  onTap: () => setState(() => _method = 'Mobile Money'),
+                  selected: _method == kMobileMoney,
+                  onTap: () => setState(() => _method = kMobileMoney),
                 ),
               ],
             ),
