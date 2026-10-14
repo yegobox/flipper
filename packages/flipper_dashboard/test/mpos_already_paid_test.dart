@@ -16,6 +16,7 @@ ITransaction _ticket({bool loan = false, double cashReceived = 0}) =>
       isIncome: true,
       isExpense: false,
       isLoan: loan,
+      agentId: 'agent-test',
       subTotal: 1000,
     );
 
