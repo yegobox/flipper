@@ -1,9 +1,12 @@
 import 'dart:async';
-import 'dart:convert';
 
+import 'package:flipper_dashboard/features/admin/sections/admin_actions.dart';
+import 'package:flipper_dashboard/features/admin/sections/admin_profile_card.dart';
+import 'package:flipper_dashboard/features/admin/sections/admin_style.dart';
+import 'package:flipper_dashboard/features/admin/sections/receipt_logo_card.dart';
+import 'package:flipper_dashboard/features/admin/sections/sms_notifications_card.dart';
 import 'package:flipper_dashboard/features/admin/widgets/cash_reset_dialog.dart';
 import 'package:flipper_dashboard/features/admin/widgets/language_settings_card.dart';
-import 'package:flipper_dashboard/providers/digital_receipt_provider.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_mode_admin_section.dart';
 import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_mode_admin_section.dart';
@@ -16,131 +19,19 @@ import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/TaxSettingsModal.dart';
 import 'package:flipper_dashboard/TenantManagement.dart';
 import 'package:flipper_dashboard/widgets/transaction_delegation_settings.dart';
-import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/talker.dart';
-import 'package:flipper_models/secrets.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flipper_services/sms/sms_notification_service.dart';
-import 'package:flipper_dashboard/utils/pick_image_base64.dart';
-import 'package:flipper_ui/dialogs/AdminPinDialog.dart';
 import 'package:flipper_services/setting_service.dart';
-import 'package:flipper_services/user_profile_name_service.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flutter/foundation.dart' hide Category;
-import 'package:supabase_flutter/supabase_flutter.dart' hide User;
-import 'package:supabase_models/brick/models/branch_sms_config.model.dart';
-import 'package:supabase_models/brick/models/user.model.dart';
-import 'package:supabase_models/sync/ditto_sync_coordinator.dart';
 import 'modals/_isBranchEnableForPayment.dart';
-import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
 import 'package:flipper_dashboard/widgets/admin_dashboard_svgs.dart';
-import 'package:flipper_dashboard/features/daily_report_recipients/daily_report_recipients_settings.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
-
-const Color _kAdminCardBorder = Color(0xFFE5E7EB);
-
-/// Matches [TicketsScreen] scaffold / app bar chrome.
-const Color _kAdminScaffoldBg = Color(0xFFF2F4F7);
-const Color _kAdminAppBarIconCircleBorder = Color(0xFFE0E4EB);
-
-ButtonStyle _adminAppBarCircleIconStyle() {
-  return IconButton.styleFrom(
-    backgroundColor: Colors.white,
-    foregroundColor: Colors.black87,
-    shape: const CircleBorder(),
-    side: const BorderSide(color: _kAdminAppBarIconCircleBorder, width: 1),
-    padding: const EdgeInsets.all(10),
-    minimumSize: const Size(40, 40),
-    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-  );
-}
-
-const Color _kAdminBarBlue = Color(0xFF2563EB);
-const Color _kAdminBarOrange = Color(0xFFD97706);
-const Color _kAdminBarTeal = Color(0xFF0D9488);
-const Color _kAdminBarRed = Color(0xFFDC2626);
-const Color _kAdminBarSlate = Color(0xFF64748B);
-const Color _kAdminBarPurple = Color(0xFF7C3AED);
-const Color _kAdminBarReceipt = Color(0xFFEA580C);
-const Color _kAdminTitleText = Color(0xFF111827);
-const Color _kAdminSubtitleText = Color(0xFF6B7280);
-
-BoxDecoration _adminCardDecoration() {
-  return BoxDecoration(
-    color: Colors.white,
-    borderRadius: BorderRadius.circular(12),
-    border: Border.all(color: _kAdminCardBorder),
-  );
-}
-
-Widget _adminSectionHeader(BuildContext context, String title, Color barColor) {
-  return Padding(
-    padding: const EdgeInsets.only(left: 2, bottom: 12),
-    child: Row(
-      children: [
-        Container(
-          width: 4,
-          height: 18,
-          decoration: BoxDecoration(
-            color: barColor,
-            borderRadius: BorderRadius.circular(2),
-          ),
-        ),
-        const SizedBox(width: 10),
-        Text(
-          title.toUpperCase(),
-          style: GoogleFonts.outfit(
-            fontSize: 13,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 0.8,
-            color: _kAdminTitleText,
-          ),
-        ),
-      ],
-    ),
-  );
-}
-
-Widget _adminSubSectionHeader(String title, Color barColor) {
-  return Row(
-    children: [
-      Container(
-        width: 3,
-        height: 14,
-        decoration: BoxDecoration(
-          color: barColor,
-          borderRadius: BorderRadius.circular(2),
-        ),
-      ),
-      const SizedBox(width: 8),
-      Text(
-        title.toUpperCase(),
-        style: GoogleFonts.outfit(
-          fontSize: 11,
-          fontWeight: FontWeight.w700,
-          letterSpacing: 0.6,
-          color: _kAdminTitleText,
-        ),
-      ),
-    ],
-  );
-}
-
-Widget _adminLeadingSvg(String svg, Color backgroundTint) {
-  return Container(
-    padding: const EdgeInsets.all(10),
-    decoration: BoxDecoration(
-      color: backgroundTint,
-      borderRadius: BorderRadius.circular(10),
-    ),
-    child: AdminDashboardSvgs.picture(svg, size: 24),
-  );
-}
 
 bool _adminControlOpen = false;
 
@@ -180,18 +71,7 @@ class _AdminControlState extends ConsumerState<AdminControl> {
   bool forceUPSERT = false;
   bool stopTaxService = false;
   bool switchToCloudSync = false;
-  String? smsPhoneNumber;
-  bool enableSmsNotification = false;
-  bool enableWhatsappNotification = false;
-  int whatsappProvider = WhatsAppChannel.openwa;
   bool enableAutoAddSearch = false;
-  late final TextEditingController phoneController;
-  late final FocusNode _smsPhoneFocusNode;
-  Timer? _smsPhoneDebounce;
-  String? phoneError;
-  Uint8List? receiptLogoBytes;
-  bool isUpdatingReceiptLogo = false;
-  bool isRemovingReceiptLogo = false;
   bool userLoggingEnabled = false;
   final settingsService = locator<SettingsService>();
 
@@ -200,787 +80,29 @@ class _AdminControlState extends ConsumerState<AdminControl> {
   /// terminal onto that mode's own screen.
   late final int _serviceModeRevisionAtOpen;
 
-  /// Loaded from Supabase `users` via [ProxyService.box.getUserId] (set at login).
-  User? _profileUser;
-
-  /// `users.email` from PostgREST (Brick [User] has no email field).
-  String? _profileAccountEmail;
-
-  /// From last Supabase row: non-empty `email` column (edit email only while empty).
-  bool _serverHasEmail = false;
-
-  /// From last Supabase row: non-empty `phone_number` column (set phone only while empty).
-  bool _serverHasPhone = false;
-  bool _profileUserLoading = true;
-
-  bool _inlineEditingEmail = false;
-  bool _savingProfileEmail = false;
-  late final TextEditingController _profileEmailEditController;
-
-  bool _inlineEditingName = false;
-  bool _savingProfileName = false;
-  late final TextEditingController _profileNameEditController;
-
-  bool _inlineEditingPhone = false;
-  bool _savingProfilePhone = false;
-  late final TextEditingController _profilePhoneEditController;
-
-  bool _isValidPhoneNumber(String phone) {
-    // Remove any spaces or special characters
-    final cleanPhone = phone.replaceAll(RegExp(r'[\s\-\(\)]'), '');
-
-    // Check if it starts with + and has 10-15 digits
-    if (cleanPhone.startsWith('+')) {
-      return RegExp(r'^\+\d{10,15}$').hasMatch(cleanPhone);
-    }
-
-    // If no +, check if it has a valid length for international numbers (including country code)
-    return RegExp(r'^\d{10,15}$').hasMatch(cleanPhone);
-  }
-
-  String _formatPhoneNumber(String phone) {
-    // Remove any spaces or special characters
-    final cleanPhone = phone.replaceAll(RegExp(r'[\s\-\(\)]'), '');
-
-    // If it doesn't start with +, add it
-    if (!cleanPhone.startsWith('+')) {
-      return '+$cleanPhone';
-    }
-    return cleanPhone;
-  }
-
-  Future<void> _updateSmsConfig({
-    String? phone,
-    bool? enableSms,
-    bool? enableWhatsapp,
-    int? whatsappProvider,
-  }) async {
-    if (phone != null && phone.isNotEmpty) {
-      if (!_isValidPhoneNumber(phone)) {
-        setState(() {
-          phoneError = context.flipperL10n.adminPhoneWithCountryCode;
-        });
-        return;
-      }
-      phone = _formatPhoneNumber(phone);
-    }
-
-    try {
-      await SmsNotificationService.updateBranchSmsConfig(
-        branchId: ProxyService.box.getBranchId()!,
-        smsPhoneNumber: phone,
-        enableSms: enableSms,
-        enableWhatsapp: enableWhatsapp,
-        whatsappProvider: whatsappProvider,
-      );
-
-      if (!mounted) return;
-
-      // branchSmsNotificationsEnabledProvider caches for the life of the app,
-      // and it gates the POS digital-receipt toggle. Without this the checkout
-      // screen keeps the stale value until a full restart.
-      ref.invalidate(branchSmsNotificationsEnabledProvider);
-
-      setState(() {
-        if (phone != null) smsPhoneNumber = phone;
-        if (enableSms != null) enableSmsNotification = enableSms;
-        if (enableWhatsapp != null) {
-          enableWhatsappNotification = enableWhatsapp;
-        }
-        if (whatsappProvider != null) {
-          this.whatsappProvider = whatsappProvider;
-        }
-        phoneError = null;
-      });
-    } catch (e) {
-      print('Error updating SMS config: $e');
-      setState(() {
-        phoneError = context.flipperL10n.adminSmsConfigFailed;
-      });
-    }
-  }
-
-  /// When enabling WhatsApp, prompt for OpenWA (1) vs Meta (2).
-  Future<void> _onWhatsappEnabledChanged(bool enabled) async {
-    if (!enabled) {
-      await _updateSmsConfig(enableWhatsapp: false);
-      return;
-    }
-    final channel = await _promptWhatsAppChannel(initial: whatsappProvider);
-    if (!mounted || channel == null) return;
-    await _updateSmsConfig(enableWhatsapp: true, whatsappProvider: channel);
-  }
-
-  Future<int?> _promptWhatsAppChannel({required int initial}) {
-    var selected = initial == WhatsAppChannel.meta
-        ? WhatsAppChannel.meta
-        : WhatsAppChannel.openwa;
-    return showDialog<int>(
-      context: context,
-      builder: (ctx) {
-        return StatefulBuilder(
-          builder: (ctx, setDialogState) {
-            return AlertDialog(
-              title: Text(
-                context.flipperL10n.adminWhatsappChannel,
-                style: GoogleFonts.outfit(fontWeight: FontWeight.w700),
-              ),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    context.flipperL10n.adminWhatsappChannelHint,
-                    style: GoogleFonts.outfit(
-                      fontSize: 14,
-                      color: const Color(0xFF6B7280),
-                      height: 1.35,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  RadioListTile<int>(
-                    contentPadding: EdgeInsets.zero,
-                    title: Text(
-                      'OpenWA',
-                      style: GoogleFonts.outfit(fontWeight: FontWeight.w600),
-                    ),
-                    subtitle: Text(
-                      context.flipperL10n.adminOpenWaSubtitle,
-                      style: GoogleFonts.outfit(fontSize: 12),
-                    ),
-                    value: WhatsAppChannel.openwa,
-                    groupValue: selected,
-                    onChanged: (v) {
-                      if (v == null) return;
-                      setDialogState(() => selected = v);
-                    },
-                  ),
-                  RadioListTile<int>(
-                    contentPadding: EdgeInsets.zero,
-                    title: Text(
-                      'Meta Cloud API',
-                      style: GoogleFonts.outfit(fontWeight: FontWeight.w600),
-                    ),
-                    subtitle: Text(
-                      context.flipperL10n.adminMetaSubtitle,
-                      style: GoogleFonts.outfit(fontSize: 12),
-                    ),
-                    value: WhatsAppChannel.meta,
-                    groupValue: selected,
-                    onChanged: (v) {
-                      if (v == null) return;
-                      setDialogState(() => selected = v);
-                    },
-                  ),
-                ],
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(ctx).pop(),
-                  child: Text(context.flipperL10n.cancel),
-                ),
-                FilledButton(
-                  onPressed: () => Navigator.of(ctx).pop(selected),
-                  child: Text(context.flipperL10n.save),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
-
-  String? _normalizedSmsPhoneFromController() {
-    final raw = phoneController.text.trim();
-    return raw.isEmpty ? null : raw;
-  }
-
-  void _scheduleSmsPhoneSave(String? phone) {
-    _smsPhoneDebounce?.cancel();
-    _smsPhoneDebounce = Timer(const Duration(milliseconds: 650), () {
-      if (!mounted) return;
-      _updateSmsConfig(phone: phone);
-    });
-  }
-
+  final _profileCardKey = GlobalKey<AdminProfileCardState>();
   @override
   void initState() {
     super.initState();
     _serviceModeRevisionAtOpen = serviceModeRevision.value;
-    isPosDefault = ProxyService.box.readBool(key: 'isPosDefault') ?? false;
+    final defaults = AdminActions.defaultApps();
+    isPosDefault = defaults.pos;
     enableDebug = ProxyService.box.readBool(key: 'enableDebug') ?? false;
-    isOrdersDefault = ProxyService.box.readBool(key: 'isOrdersDefault') ?? true;
+    isOrdersDefault = defaults.orders;
     filesDownloaded =
         ProxyService.box.readBool(key: 'doneDownloadingAsset') ?? true;
     forceUPSERT = ProxyService.box.forceUPSERT();
     stopTaxService = ProxyService.box.stopTaxService() ?? false;
     switchToCloudSync = ProxyService.box.switchToCloudSync() ?? false;
-    enableAutoAddSearch =
-        ProxyService.box.readBool(key: 'enableAutoAddSearch') ?? false;
+    enableAutoAddSearch = AdminActions.autoAddSearch();
     userLoggingEnabled = ProxyService.box.getUserLoggingEnabled() ?? false;
-    phoneController = TextEditingController();
-    _smsPhoneFocusNode = FocusNode();
-    _smsPhoneFocusNode.addListener(() {
-      if (!_smsPhoneFocusNode.hasFocus) {
-        final phone = _normalizedSmsPhoneFromController();
-        _scheduleSmsPhoneSave(phone);
-      }
-    });
-    _profileEmailEditController = TextEditingController();
-    _profileNameEditController = TextEditingController();
-    _profilePhoneEditController = TextEditingController();
-    final logoBase64 = ProxyService.box.receiptLogoBase64();
-    if (logoBase64 != null && logoBase64.isNotEmpty) {
-      try {
-        receiptLogoBytes = base64Decode(logoBase64);
-      } catch (_) {
-        receiptLogoBytes = null;
-      }
-    }
     settingsService.getAdminPinToggleState();
     settingsService.getPriceQuantityAdjustmentToggleState();
     settingsService.getCurrencyDecimalToggleState();
-    _loadSmsConfig();
-    _loadProfileUserFromSupabase();
-  }
-
-  /// Reads the signed-in row from Supabase `users` using `userId` from local box.
-  Future<void> _loadProfileUserFromSupabase() async {
-    final userId = ProxyService.box.getUserId()?.trim();
-    if (!mounted) return;
-    if (userId == null || userId.isEmpty) {
-      setState(() {
-        _profileUser = null;
-        _profileAccountEmail = null;
-        _serverHasEmail = false;
-        _serverHasPhone = false;
-        _profileUserLoading = false;
-      });
-      return;
-    }
-    setState(() => _profileUserLoading = true);
-    try {
-      final row = await Supabase.instance.client
-          .from('users')
-          .select()
-          .eq('id', userId)
-          .maybeSingle();
-      if (!mounted) return;
-      if (row == null) {
-        setState(() {
-          _profileUser = null;
-          _profileAccountEmail = null;
-          _serverHasEmail = false;
-          _serverHasPhone = false;
-          _profileUserLoading = false;
-        });
-        return;
-      }
-      final map = Map<String, dynamic>.from(row);
-      final u = _parseUserFromSupabaseRow(map);
-      final rawEmail = map['email'];
-      final parsedEmail = rawEmail is String ? rawEmail.trim() : null;
-      final rawPhone = map['phone_number'];
-      final parsedPhone = rawPhone is String ? rawPhone.trim() : null;
-      final keyStr = map['key'] is String ? (map['key'] as String).trim() : '';
-      final hasLegacyEmailInKey = keyStr.contains('@');
-      setState(() {
-        _profileUser = u;
-        _profileAccountEmail = (parsedEmail != null && parsedEmail.isNotEmpty)
-            ? parsedEmail
-            : null;
-        _serverHasEmail =
-            (parsedEmail != null && parsedEmail.isNotEmpty) ||
-            hasLegacyEmailInKey;
-        _serverHasPhone = parsedPhone != null && parsedPhone.isNotEmpty;
-        _profileUserLoading = false;
-      });
-    } catch (_) {
-      if (!mounted) return;
-      setState(() {
-        _profileUser = null;
-        _profileAccountEmail = null;
-        _serverHasEmail = false;
-        _serverHasPhone = false;
-        _profileUserLoading = false;
-      });
-    }
-  }
-
-  /// Maps a PostgREST row to [User] (same fields as generated `_$UserFromSupabase`).
-  User? _parseUserFromSupabaseRow(Map<String, dynamic> data) {
-    try {
-      final id = data['id'] as String?;
-      if (id == null || id.isEmpty) return null;
-      return User(
-        id: id,
-        name: data['name'] as String?,
-        key: data['key'] as String?,
-        pin: data['pin'] as int?,
-        editId: data['edit_id'] as bool?,
-        isExternal: data['is_external'] as bool?,
-        ownership: data['ownership'] as String?,
-        groupId: data['group_id'] as int?,
-        external: data['external'] as bool?,
-        updatedAt: data['updated_at'] == null
-            ? null
-            : DateTime.tryParse(data['updated_at'] as String),
-        deletedAt: data['deleted_at'] == null
-            ? null
-            : DateTime.tryParse(data['deleted_at'] as String),
-        phoneNumber: data['phone_number'] as String?,
-      );
-    } catch (_) {
-      return null;
-    }
-  }
-
-  String? _resolvedProfileName(User? u) {
-    final name = u?.name?.trim();
-    if (name != null && name.isNotEmpty && !_looksLikeUuid(name)) {
-      return name;
-    }
-    return null;
-  }
-
-  String _profileDisplayName(User? u) {
-    final resolved = _resolvedProfileName(u);
-    if (resolved != null) return resolved;
-    if (u != null) {
-      final key = u.key?.trim() ?? '';
-      if (key.contains('@')) {
-        final local = key.split('@').first;
-        if (local.isNotEmpty) {
-          return local.replaceAll('.', ' ').replaceAll('_', ' ');
-        }
-      } else if (key.isNotEmpty && !_looksLikeUuid(key)) {
-        return key;
-      }
-    }
-    final email = _profileEmailFromUser(u)?.trim();
-    if (email != null && email.isNotEmpty) {
-      final local = email.split('@').first;
-      if (local.isNotEmpty) {
-        return local.replaceAll('.', ' ').replaceAll('_', ' ');
-      }
-    }
-    return context.flipperL10n.adminUserFallback;
-  }
-
-  bool _looksLikeUuid(String value) {
-    return RegExp(
-      r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$',
-      caseSensitive: false,
-    ).hasMatch(value.trim());
-  }
-
-  String? _profileEmailFromUser(User? u) {
-    final direct = _profileAccountEmail?.trim();
-    if (direct != null && direct.isNotEmpty) return direct;
-    if (u == null) return null;
-    final k = u.key?.trim() ?? '';
-    if (k.contains('@')) return k;
-    return null;
-  }
-
-  String _profileInitials(String displayName) {
-    final parts = displayName
-        .trim()
-        .split(RegExp(r'\s+'))
-        .where((e) => e.isNotEmpty)
-        .toList();
-    if (parts.length >= 2) {
-      return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
-    }
-    if (parts.isNotEmpty) {
-      final s = parts[0];
-      if (s.length >= 2) return s.substring(0, 2).toUpperCase();
-      return s[0].toUpperCase();
-    }
-    return 'U';
-  }
-
-  String _formatPhoneSpaces(String raw) {
-    if (raw.replaceAll(RegExp(r'[^\d]'), '').length < 9) return raw;
-    if (raw.trim().startsWith('+')) {
-      final d = raw.replaceAll(RegExp(r'[^\d+]'), '');
-      if (d.startsWith('+') && d.length > 4) {
-        final rest = d.substring(1);
-        final buf = StringBuffer(
-          '+${rest.substring(0, rest.length >= 3 ? 3 : rest.length)}',
-        );
-        var i = 3;
-        while (i < rest.length) {
-          buf.write(' ');
-          buf.write(rest.substring(i, (i + 3).clamp(0, rest.length)));
-          i += 3;
-        }
-        return buf.toString();
-      }
-    }
-    return raw;
-  }
-
-  bool _isValidProfileEmail(String value) {
-    return RegExp(r'^[\w.+\-]+@[\w\-]+(\.[\w\-]+)+$').hasMatch(value.trim());
-  }
-
-  /// Only `name`, `email`, and `phone_number` may be written — never `user_id`, `id`, etc.
-  static const Set<String> _kUsersTableProfilePatchKeys = {
-    'name',
-    'email',
-    'phone_number',
-  };
-
-  void _clearOtherProfileEditors({
-    bool keepEmail = false,
-    bool keepName = false,
-    bool keepPhone = false,
-  }) {
-    if (!keepEmail && _inlineEditingEmail) {
-      _inlineEditingEmail = false;
-      _profileEmailEditController.clear();
-    }
-    if (!keepName && _inlineEditingName) {
-      _inlineEditingName = false;
-      _profileNameEditController.clear();
-    }
-    if (!keepPhone && _inlineEditingPhone) {
-      _inlineEditingPhone = false;
-      _profilePhoneEditController.clear();
-    }
-  }
-
-  /// Persists profile fields. Name uses Supabase RPC (login-key check) first, then
-  /// flipper-turbo PATCH. Direct client UPDATE often affects 0 rows under RLS.
-  Future<void> _patchUsersTableProfileFields(Map<String, dynamic> patch) async {
-    final userId = ProxyService.box.getUserId()?.trim();
-    if (userId == null || userId.isEmpty) {
-      throw StateError('Not signed in');
-    }
-    final loginKey =
-        ProxyService.box.getUserPhone()?.trim() ??
-        _profileEmailFromUser(_profileUser)?.trim();
-    if (loginKey == null || loginKey.isEmpty) {
-      throw StateError('Missing login key for profile update');
-    }
-
-    final filteredPatch = <String, dynamic>{};
-    for (final e in patch.entries) {
-      if (_kUsersTableProfilePatchKeys.contains(e.key)) {
-        filteredPatch[e.key] = e.value;
-      }
-    }
-    if (filteredPatch.isEmpty) return;
-
-    final name = filteredPatch['name'];
-    if (name is String && name.trim().isNotEmpty) {
-      final savedViaRpc = await _trySaveProfileNameViaRpc(
-        userId: userId,
-        loginKey: loginKey,
-        name: name.trim(),
-      );
-      if (savedViaRpc) {
-        filteredPatch.remove('name');
-      }
-    }
-
-    if (filteredPatch.isEmpty) return;
-
-    final body = <String, dynamic>{
-      'id': userId,
-      'user_id': userId,
-      ...filteredPatch,
-    };
-
-    final response = await ProxyService.http.patch(
-      Uri.parse('${AppSecrets.apihubProd}/v2/api/user'),
-      headers: const {'Content-Type': 'application/json'},
-      body: jsonEncode(body),
-    );
-    if (response.statusCode != 200) {
-      throw Exception(
-        'Profile update failed (${response.statusCode}): ${response.body}',
-      );
-    }
-  }
-
-  /// Shared with signup (`UserProfileNameService`) so a name saved here and a
-  /// name saved at signup land through exactly the same write path.
-  Future<bool> _trySaveProfileNameViaRpc({
-    required String userId,
-    required String loginKey,
-    required String name,
-  }) {
-    return UserProfileNameService.saveViaRpc(
-      userId: userId,
-      name: name,
-      loginKeys: [
-        loginKey,
-        _profileEmailFromUser(_profileUser),
-        _profileUser?.phoneNumber,
-      ],
-    );
-  }
-
-  Future<void> _trySaveProfileNameViaUserPost({
-    required String loginKey,
-    required String name,
-  }) {
-    return UserProfileNameService.saveViaUserPost(
-      loginKey: loginKey,
-      name: name,
-    );
-  }
-
-  Future<void> _verifyProfileNameSaved(String expectedName) async {
-    await _loadProfileUserFromSupabase();
-    final actual = _resolvedProfileName(_profileUser);
-    if (actual != expectedName.trim()) {
-      throw Exception(
-        'Name did not persist (still showing ${actual ?? 'empty'}). '
-        'Apply the latest Supabase migration and redeploy flipper-turbo.',
-      );
-    }
-  }
-
-  Future<void> _refreshDittoUserAccessAfterProfileChange() async {
-    final loginKey =
-        ProxyService.box.getUserPhone()?.trim() ??
-        ProxyService.box.getUserId()?.trim();
-    if (loginKey == null || loginKey.isEmpty) return;
-    try {
-      await ProxyService.strategy.sendLoginRequest(
-        loginKey,
-        ProxyService.http,
-        AppSecrets.apihubProd,
-        expectedPinUserId: ProxyService.box.getUserId(),
-        refreshUserAccessOnly: true,
-      );
-    } catch (_) {
-      // Best-effort; Admin profile reloads from Supabase regardless.
-    }
-  }
-
-  void _startInlineEmailEdit({String? initial}) {
-    if (_serverHasEmail) return;
-    setState(() {
-      _clearOtherProfileEditors(keepEmail: true);
-      _inlineEditingEmail = true;
-      _profileEmailEditController.text = (initial ?? '').trim();
-    });
-  }
-
-  void _cancelInlineEmailEdit() {
-    setState(() {
-      _inlineEditingEmail = false;
-      _profileEmailEditController.clear();
-    });
-  }
-
-  void _startInlineNameEdit({String? initial}) {
-    setState(() {
-      _clearOtherProfileEditors(keepName: true);
-      _inlineEditingName = true;
-      final resolved = _resolvedProfileName(_profileUser);
-      _profileNameEditController.text = (initial ?? resolved ?? '').trim();
-    });
-  }
-
-  void _cancelInlineNameEdit() {
-    setState(() {
-      _inlineEditingName = false;
-      _profileNameEditController.clear();
-    });
-  }
-
-  void _startInlinePhoneEdit({String? initial}) {
-    if (_serverHasPhone) return;
-    setState(() {
-      _clearOtherProfileEditors(keepPhone: true);
-      _inlineEditingPhone = true;
-      _profilePhoneEditController.text = (initial ?? '').trim();
-    });
-  }
-
-  void _cancelInlinePhoneEdit() {
-    setState(() {
-      _inlineEditingPhone = false;
-      _profilePhoneEditController.clear();
-    });
-  }
-
-  Future<void> _saveInlineName() async {
-    final name = _profileNameEditController.text.trim();
-    if (name.isEmpty) {
-      showErrorNotification(context, context.flipperL10n.adminEnterDisplayName);
-      return;
-    }
-    final userId = ProxyService.box.getUserId()?.trim();
-    if (userId == null || userId.isEmpty) {
-      showErrorNotification(context, context.flipperL10n.adminNotSignedIn);
-      return;
-    }
-    final loginKey =
-        ProxyService.box.getUserPhone()?.trim() ??
-        _profileEmailFromUser(_profileUser)?.trim();
-    if (loginKey == null || loginKey.isEmpty) {
-      showErrorNotification(context, context.flipperL10n.adminMissingLoginKey);
-      return;
-    }
-    setState(() => _savingProfileName = true);
-    try {
-      var saved = await _trySaveProfileNameViaRpc(
-        userId: userId,
-        loginKey: loginKey,
-        name: name,
-      );
-      if (!saved) {
-        await _patchUsersTableProfileFields({'name': name});
-      }
-      if (!mounted) return;
-      setState(() {
-        _savingProfileName = false;
-        _inlineEditingName = false;
-        _profileNameEditController.clear();
-        _profileUser = _profileUser?.copyWith(name: name);
-      });
-      await _verifyProfileNameSaved(name);
-      await _refreshDittoUserAccessAfterProfileChange();
-      if (mounted) {
-        showSuccessNotification(context, context.flipperL10n.adminNameUpdated);
-      }
-    } catch (e) {
-      try {
-        await _trySaveProfileNameViaUserPost(loginKey: loginKey, name: name);
-        if (!mounted) return;
-        setState(() {
-          _savingProfileName = false;
-          _inlineEditingName = false;
-          _profileNameEditController.clear();
-          _profileUser = _profileUser?.copyWith(name: name);
-        });
-        await _verifyProfileNameSaved(name);
-        await _refreshDittoUserAccessAfterProfileChange();
-        if (mounted) {
-          showSuccessNotification(
-            context,
-            context.flipperL10n.adminNameUpdated,
-          );
-        }
-        return;
-      } catch (_) {
-        // Fall through to primary error.
-      }
-      if (!mounted) return;
-      setState(() => _savingProfileName = false);
-      showErrorNotification(
-        context,
-        context.flipperL10n.adminSaveNameFailed('$e'),
-      );
-    }
-  }
-
-  Future<void> _saveInlinePhone() async {
-    var raw = _profilePhoneEditController.text.trim();
-    if (!_isValidPhoneNumber(raw)) {
-      showErrorNotification(
-        context,
-        context.flipperL10n.adminPhoneWithCountryCode,
-      );
-      return;
-    }
-    raw = _formatPhoneNumber(raw);
-    final userId = ProxyService.box.getUserId()?.trim();
-    if (userId == null || userId.isEmpty) {
-      showErrorNotification(context, context.flipperL10n.adminNotSignedIn);
-      return;
-    }
-    if (_serverHasPhone) {
-      showErrorNotification(context, context.flipperL10n.adminPhoneSetOnce);
-      return;
-    }
-    setState(() => _savingProfilePhone = true);
-    try {
-      await _patchUsersTableProfileFields({'phone_number': raw});
-      if (!mounted) return;
-      setState(() {
-        _savingProfilePhone = false;
-        _inlineEditingPhone = false;
-        _profilePhoneEditController.clear();
-      });
-      await _loadProfileUserFromSupabase();
-      await _refreshDittoUserAccessAfterProfileChange();
-      if (mounted) {
-        showSuccessNotification(context, context.flipperL10n.adminPhoneSaved);
-      }
-    } catch (e) {
-      if (!mounted) return;
-      setState(() => _savingProfilePhone = false);
-      showErrorNotification(
-        context,
-        context.flipperL10n.adminSavePhoneFailed('$e'),
-      );
-    }
-  }
-
-  Future<void> _saveInlineEmail() async {
-    if (_serverHasEmail) {
-      showErrorNotification(context, context.flipperL10n.adminEmailAlreadySet);
-      return;
-    }
-    final email = _profileEmailEditController.text.trim();
-    if (!_isValidProfileEmail(email)) {
-      showErrorNotification(context, context.flipperL10n.adminInvalidEmail);
-      return;
-    }
-    final userId = ProxyService.box.getUserId()?.trim();
-    if (userId == null || userId.isEmpty) {
-      showErrorNotification(context, context.flipperL10n.adminNotSignedIn);
-      return;
-    }
-    setState(() => _savingProfileEmail = true);
-    try {
-      await _patchUsersTableProfileFields({'email': email});
-      final syncedSettings = await settingsService.updateSettings(
-        map: {'email': email},
-      );
-      if (!mounted) return;
-      if (!syncedSettings) {
-        showWarningNotification(
-          context,
-          context.flipperL10n.adminEmailSavedBusinessFailed,
-        );
-      }
-      setState(() {
-        _savingProfileEmail = false;
-        _inlineEditingEmail = false;
-        _profileEmailEditController.clear();
-      });
-      await _loadProfileUserFromSupabase();
-      await _refreshDittoUserAccessAfterProfileChange();
-      if (mounted) {
-        showSuccessNotification(context, context.flipperL10n.adminEmailUpdated);
-      }
-    } catch (e) {
-      if (!mounted) return;
-      setState(() => _savingProfileEmail = false);
-      showErrorNotification(
-        context,
-        context.flipperL10n.adminSaveEmailFailed('$e'),
-      );
-    }
   }
 
   @override
   void dispose() {
-    _smsPhoneDebounce?.cancel();
-    phoneController.dispose();
-    _smsPhoneFocusNode.dispose();
-    _profileEmailEditController.dispose();
-    _profileNameEditController.dispose();
-    _profilePhoneEditController.dispose();
     if (serviceModeRevision.value != _serviceModeRevisionAtOpen) {
       // After the frame, once this route is off the stack, so the sync sees
       // the shell underneath rather than Settings.
@@ -989,98 +111,6 @@ class _AdminControlState extends ConsumerState<AdminControl> {
       );
     }
     super.dispose();
-  }
-
-  Future<void> _loadSmsConfig() async {
-    try {
-      final config = await SmsNotificationService.getBranchSmsConfig(
-        ProxyService.box.getBranchId()!,
-      );
-      if (config != null) {
-        setState(() {
-          smsPhoneNumber = config.smsPhoneNumber;
-          enableSmsNotification = config.enableSms;
-          enableWhatsappNotification = config.enableWhatsapp;
-          whatsappProvider = config.whatsappProvider;
-          phoneController.text = config.smsPhoneNumber ?? '';
-        });
-      }
-    } catch (e) {
-      print('Error loading SMS config: $e');
-    }
-  }
-
-  Future<void> _pickReceiptLogo() async {
-    try {
-      setState(() {
-        isUpdatingReceiptLogo = true;
-      });
-
-      final picked = await pickImageAsBase64(
-        maxSizeBytes: 295 * 1024, // plenty for a thermal receipt logo
-      );
-
-      if (!mounted) return;
-
-      if (picked.image == null) {
-        setState(() {
-          isUpdatingReceiptLogo = false;
-        });
-        // Dismissing the picker is not a failure worth a red banner.
-        if (!picked.cancelled) {
-          showErrorNotification(context, picked.message!);
-        }
-        return;
-      }
-
-      await ProxyService.box.setReceiptLogoBase64(picked.image!.base64);
-
-      if (!mounted) return;
-
-      setState(() {
-        receiptLogoBytes = picked.image!.bytes;
-        isUpdatingReceiptLogo = false;
-      });
-
-      showSuccessNotification(context, context.flipperL10n.adminLogoUpdated);
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        isUpdatingReceiptLogo = false;
-      });
-      showErrorNotification(
-        context,
-        context.flipperL10n.adminLogoUpdateFailed('$e'),
-      );
-    }
-  }
-
-  Future<void> _removeReceiptLogo() async {
-    try {
-      setState(() {
-        isRemovingReceiptLogo = true;
-      });
-
-      await ProxyService.box.clearReceiptLogo();
-
-      if (!mounted) return;
-
-      setState(() {
-        receiptLogoBytes = null;
-        isRemovingReceiptLogo = false;
-      });
-
-      showSuccessNotification(context, context.flipperL10n.adminLogoRemoved);
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        isRemovingReceiptLogo = false;
-      });
-      showErrorNotification(
-        context,
-        context.flipperL10n.adminLogoRemoveFailed('$e'),
-      );
-    }
   }
 
   Future<void> toggleDownload(bool value) async {
@@ -1133,22 +163,16 @@ class _AdminControlState extends ConsumerState<AdminControl> {
   void togglePos(bool value) {
     setState(() {
       isPosDefault = value;
-      if (value) {
-        isOrdersDefault = false;
-        ProxyService.box.writeBool(key: 'isOrdersDefault', value: false);
-      }
-      ProxyService.box.writeBool(key: 'isPosDefault', value: value);
+      if (value) isOrdersDefault = false;
+      AdminActions.setPosDefault(value);
     });
   }
 
   void toggleOrders(bool value) {
     setState(() {
       isOrdersDefault = value;
-      if (value) {
-        isPosDefault = false;
-        ProxyService.box.writeBool(key: 'isPosDefault', value: false);
-      }
-      ProxyService.box.writeBool(key: 'isOrdersDefault', value: value);
+      if (value) isPosDefault = false;
+      AdminActions.setOrdersDefault(value);
     });
   }
 
@@ -1169,8 +193,7 @@ class _AdminControlState extends ConsumerState<AdminControl> {
   }
 
   void toggleAutoAddSearch(bool value) async {
-    await DittoSyncCoordinator.instance.hydrate<Stock>();
-    await ProxyService.box.writeBool(key: 'enableAutoAddSearch', value: value);
+    await AdminActions.setAutoAddSearch(value);
     setState(() {
       enableAutoAddSearch = value;
     });
@@ -1183,26 +206,14 @@ class _AdminControlState extends ConsumerState<AdminControl> {
     });
   }
 
-  void togglePriceQuantityAdjustment(bool value) async {
-    await settingsService.togglePriceQuantityAdjustment(
-      enabled: value,
-      businessId: ProxyService.box.getBusinessId()!,
-    );
-  }
+  void togglePriceQuantityAdjustment(bool value) =>
+      AdminActions.setPriceQuantityAdjustment(value);
 
-  void toggleCurrencyDecimal(bool value) async {
-    await settingsService.toggleCurrencyDecimal(
-      enabled: value,
-      businessId: ProxyService.box.getBusinessId()!,
-    );
-  }
+  void toggleCurrencyDecimal(bool value) =>
+      AdminActions.setCurrencyDecimal(value);
 
-  void toggleTicketReviewWorkflow(bool value) async {
-    await settingsService.toggleTicketReviewWorkflow(
-      enabled: value,
-      businessId: ProxyService.box.getBusinessId()!,
-    );
-  }
+  void toggleTicketReviewWorkflow(bool value) =>
+      AdminActions.setTicketReviewWorkflow(value);
 
   @override
   Widget build(BuildContext context) {
@@ -1214,7 +225,7 @@ class _AdminControlState extends ConsumerState<AdminControl> {
         final horizontalPadding = isDesktop ? 24.0 : 12.0;
 
         return Scaffold(
-          backgroundColor: _kAdminScaffoldBg,
+          backgroundColor: kAdminScaffoldBg,
           appBar: AppBar(
             backgroundColor: Colors.white,
             surfaceTintColor: Colors.transparent,
@@ -1232,7 +243,7 @@ class _AdminControlState extends ConsumerState<AdminControl> {
               ),
             ),
             leading: IconButton(
-              style: _adminAppBarCircleIconStyle(),
+              style: adminAppBarCircleIconStyle(),
               // Go back to wherever Admin was opened from (POS, bar floor…).
               // Pushing a fresh FlipperAppRoute here stacked a second
               // dashboard and dropped bar-floor users out of bar mode.
@@ -1270,7 +281,7 @@ class _AdminControlState extends ConsumerState<AdminControl> {
                   splashRadius: 22,
                   onSelected: (value) {
                     if (value == 'refresh') {
-                      _loadProfileUserFromSupabase();
+                      _profileCardKey.currentState?.reload();
                     }
                   },
                   itemBuilder: (context) => [
@@ -1292,7 +303,7 @@ class _AdminControlState extends ConsumerState<AdminControl> {
                     decoration: BoxDecoration(
                       color: Colors.white,
                       shape: BoxShape.circle,
-                      border: Border.all(color: _kAdminAppBarIconCircleBorder),
+                      border: Border.all(color: kAdminAppBarIconCircleBorder),
                     ),
                     child: Icon(
                       Icons.more_vert,
@@ -1339,556 +350,17 @@ class _AdminControlState extends ConsumerState<AdminControl> {
     );
   }
 
-  Widget _buildInlineEmailEditor(BuildContext context, bool narrow) {
-    final borderGrey = Colors.grey.shade300;
-
-    final field = TextField(
-      controller: _profileEmailEditController,
-      enabled: !_savingProfileEmail,
-      autofocus: true,
-      keyboardType: TextInputType.emailAddress,
-      decoration: InputDecoration(
-        hintText: context.flipperL10n.adminEmailHint,
-        hintStyle: GoogleFonts.outfit(fontSize: 14, color: _kAdminSubtitleText),
-        filled: true,
-        fillColor: const Color(0xFFF8FAFC),
-        isDense: true,
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 12,
-          vertical: 12,
-        ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: borderGrey),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: borderGrey),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: _kAdminBarBlue, width: 1.4),
-        ),
-      ),
-      style: GoogleFonts.outfit(fontSize: 14, color: _kAdminTitleText),
-    );
-
-    final saveBtn = OutlinedButton(
-      onPressed: _savingProfileEmail ? null : _saveInlineEmail,
-      style: OutlinedButton.styleFrom(
-        foregroundColor: Colors.black,
-        side: BorderSide(color: borderGrey),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-      child: _savingProfileEmail
-          ? SizedBox(
-              width: 18,
-              height: 18,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                color: _kAdminBarBlue,
-              ),
-            )
-          : Text(
-              context.flipperL10n.save,
-              style: GoogleFonts.outfit(
-                fontWeight: FontWeight.w700,
-                fontSize: 14,
-              ),
-            ),
-    );
-
-    final cancelBtn = OutlinedButton(
-      onPressed: _savingProfileEmail ? null : _cancelInlineEmailEdit,
-      style: OutlinedButton.styleFrom(
-        foregroundColor: Colors.black87,
-        side: BorderSide(color: borderGrey),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-      child: Text(
-        context.flipperL10n.cancel,
-        style: GoogleFonts.outfit(fontWeight: FontWeight.w400, fontSize: 14),
-      ),
-    );
-
-    if (narrow) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          field,
-          const SizedBox(height: 10),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [saveBtn, const SizedBox(width: 8), cancelBtn],
-          ),
-        ],
-      );
-    }
-
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Expanded(child: field),
-        const SizedBox(width: 10),
-        saveBtn,
-        const SizedBox(width: 8),
-        cancelBtn,
-      ],
-    );
-  }
-
-  Widget _buildInlineNameEditor(BuildContext context, bool narrow) {
-    final borderGrey = Colors.grey.shade300;
-    final field = TextField(
-      controller: _profileNameEditController,
-      enabled: !_savingProfileName,
-      autofocus: true,
-      textCapitalization: TextCapitalization.words,
-      decoration: InputDecoration(
-        hintText: context.flipperL10n.displayName,
-        hintStyle: GoogleFonts.outfit(fontSize: 14, color: _kAdminSubtitleText),
-        filled: true,
-        fillColor: const Color(0xFFF8FAFC),
-        isDense: true,
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 12,
-          vertical: 12,
-        ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: borderGrey),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: borderGrey),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: _kAdminBarBlue, width: 1.4),
-        ),
-      ),
-      style: GoogleFonts.outfit(fontSize: 14, color: _kAdminTitleText),
-    );
-
-    final saveBtn = OutlinedButton(
-      onPressed: _savingProfileName ? null : _saveInlineName,
-      style: OutlinedButton.styleFrom(
-        foregroundColor: Colors.black,
-        side: BorderSide(color: borderGrey),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-      child: _savingProfileName
-          ? SizedBox(
-              width: 18,
-              height: 18,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                color: _kAdminBarBlue,
-              ),
-            )
-          : Text(
-              context.flipperL10n.save,
-              style: GoogleFonts.outfit(
-                fontWeight: FontWeight.w700,
-                fontSize: 14,
-              ),
-            ),
-    );
-
-    final cancelBtn = OutlinedButton(
-      onPressed: _savingProfileName ? null : _cancelInlineNameEdit,
-      style: OutlinedButton.styleFrom(
-        foregroundColor: Colors.black87,
-        side: BorderSide(color: borderGrey),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-      child: Text(
-        context.flipperL10n.cancel,
-        style: GoogleFonts.outfit(fontWeight: FontWeight.w400, fontSize: 14),
-      ),
-    );
-
-    if (narrow) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          field,
-          const SizedBox(height: 10),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [saveBtn, const SizedBox(width: 8), cancelBtn],
-          ),
-        ],
-      );
-    }
-
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Expanded(child: field),
-        const SizedBox(width: 10),
-        saveBtn,
-        const SizedBox(width: 8),
-        cancelBtn,
-      ],
-    );
-  }
-
-  Widget _buildInlinePhoneEditor(BuildContext context, bool narrow) {
-    final borderGrey = Colors.grey.shade300;
-    final field = TextField(
-      controller: _profilePhoneEditController,
-      enabled: !_savingProfilePhone,
-      autofocus: true,
-      keyboardType: TextInputType.phone,
-      decoration: InputDecoration(
-        hintText: context.flipperL10n.adminPhoneExampleHint,
-        hintStyle: GoogleFonts.outfit(fontSize: 14, color: _kAdminSubtitleText),
-        filled: true,
-        fillColor: const Color(0xFFF8FAFC),
-        isDense: true,
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 12,
-          vertical: 12,
-        ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: borderGrey),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: borderGrey),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: _kAdminBarTeal, width: 1.4),
-        ),
-      ),
-      style: GoogleFonts.outfit(fontSize: 14, color: _kAdminTitleText),
-    );
-
-    final saveBtn = OutlinedButton(
-      onPressed: _savingProfilePhone ? null : _saveInlinePhone,
-      style: OutlinedButton.styleFrom(
-        foregroundColor: Colors.black,
-        side: BorderSide(color: borderGrey),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-      child: _savingProfilePhone
-          ? SizedBox(
-              width: 18,
-              height: 18,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                color: _kAdminBarTeal,
-              ),
-            )
-          : Text(
-              context.flipperL10n.save,
-              style: GoogleFonts.outfit(
-                fontWeight: FontWeight.w700,
-                fontSize: 14,
-              ),
-            ),
-    );
-
-    final cancelBtn = OutlinedButton(
-      onPressed: _savingProfilePhone ? null : _cancelInlinePhoneEdit,
-      style: OutlinedButton.styleFrom(
-        foregroundColor: Colors.black87,
-        side: BorderSide(color: borderGrey),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-      child: Text(
-        context.flipperL10n.cancel,
-        style: GoogleFonts.outfit(fontWeight: FontWeight.w400, fontSize: 14),
-      ),
-    );
-
-    if (narrow) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          field,
-          const SizedBox(height: 10),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [saveBtn, const SizedBox(width: 8), cancelBtn],
-          ),
-        ],
-      );
-    }
-
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Expanded(child: field),
-        const SizedBox(width: 10),
-        saveBtn,
-        const SizedBox(width: 8),
-        cancelBtn,
-      ],
-    );
-  }
-
   Widget _buildAdminProfileSection(BuildContext context) {
-    final narrow = MediaQuery.sizeOf(context).width < 520;
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _adminSectionHeader(
+        adminSectionHeader(
           context,
           context.flipperL10n.adminProfile,
-          _kAdminBarBlue,
+          kAdminBarBlue,
         ),
         const SizedBox(height: 4),
-        Container(
-          decoration: _adminCardDecoration(),
-          padding: const EdgeInsets.all(20),
-          child: _profileUserLoading
-              ? const SizedBox(
-                  height: 96,
-                  child: Center(child: CircularProgressIndicator()),
-                )
-              : _buildAdminProfileCardBody(context, narrow),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildAdminProfileCardBody(BuildContext context, bool narrow) {
-    final u = _profileUser;
-    final displayName = _profileDisplayName(u);
-    final initials = _profileInitials(displayName);
-    final emailRaw = _profileEmailFromUser(u)?.trim() ?? '';
-    final hasEmail = emailRaw.isNotEmpty;
-    final phoneOnAccount = u?.phoneNumber?.trim();
-    final hasPhoneOnAccount =
-        phoneOnAccount != null && phoneOnAccount.isNotEmpty;
-
-    final centerBlock = Column(
-      crossAxisAlignment: narrow
-          ? CrossAxisAlignment.center
-          : CrossAxisAlignment.start,
-      children: [
-        if (_inlineEditingName)
-          _buildInlineNameEditor(context, narrow)
-        else
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Text(
-                  displayName,
-                  textAlign: narrow ? TextAlign.center : TextAlign.start,
-                  style: GoogleFonts.outfit(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.black,
-                  ),
-                ),
-              ),
-              IconButton(
-                tooltip: context.flipperL10n.editName,
-                onPressed: () => _startInlineNameEdit(),
-                icon: Icon(
-                  Icons.edit_outlined,
-                  size: 20,
-                  color: Colors.grey.shade700,
-                ),
-                style: IconButton.styleFrom(
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  visualDensity: VisualDensity.compact,
-                ),
-              ),
-            ],
-          ),
-        const SizedBox(height: 8),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-          decoration: BoxDecoration(
-            color: const Color(0xFFEFF6FF),
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.shield_outlined, size: 14, color: _kAdminBarBlue),
-              const SizedBox(width: 4),
-              Text(
-                context.flipperL10n.adminBadge,
-                style: GoogleFonts.outfit(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 0.6,
-                  color: _kAdminBarBlue,
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 14),
-        _adminProfileInfoRow(
-          iconBg: const Color(0xFFCCFBF1),
-          icon: Icons.phone_outlined,
-          iconColor: _kAdminBarTeal,
-          child: _inlineEditingPhone
-              ? _buildInlinePhoneEditor(context, narrow)
-              : Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        hasPhoneOnAccount
-                            ? _formatPhoneSpaces(phoneOnAccount)
-                            : context.flipperL10n.adminNoPhoneOnAccount,
-                        style: GoogleFonts.outfit(
-                          fontSize: 14,
-                          color: hasPhoneOnAccount
-                              ? _kAdminTitleText
-                              : _kAdminSubtitleText,
-                          fontStyle: hasPhoneOnAccount
-                              ? FontStyle.normal
-                              : FontStyle.italic,
-                        ),
-                      ),
-                    ),
-                    if (!_serverHasPhone)
-                      TextButton.icon(
-                        onPressed: () => _startInlinePhoneEdit(),
-                        icon: Icon(Icons.add, size: 18, color: _kAdminBarTeal),
-                        label: Text(
-                          context.flipperL10n.adminAddPhone,
-                          style: GoogleFonts.outfit(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 13,
-                            color: _kAdminBarTeal,
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-        ),
-        const SizedBox(height: 10),
-        _adminProfileInfoRow(
-          iconBg: const Color(0xFFEFF6FF),
-          icon: Icons.mail_outline_rounded,
-          iconColor: _kAdminBarBlue,
-          child: _inlineEditingEmail
-              ? _buildInlineEmailEditor(context, narrow)
-              : Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        hasEmail
-                            ? emailRaw
-                            : context.flipperL10n.adminNoEmailSet,
-                        style: GoogleFonts.outfit(
-                          fontSize: 14,
-                          color: hasEmail
-                              ? _kAdminTitleText
-                              : _kAdminSubtitleText,
-                          fontStyle: hasEmail
-                              ? FontStyle.normal
-                              : FontStyle.italic,
-                        ),
-                      ),
-                    ),
-                    if (!_serverHasEmail)
-                      TextButton.icon(
-                        onPressed: () => _startInlineEmailEdit(),
-                        icon: Icon(Icons.add, size: 18, color: _kAdminBarBlue),
-                        label: Text(
-                          context.flipperL10n.adminAddEmail,
-                          style: GoogleFonts.outfit(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 13,
-                            color: _kAdminBarBlue,
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-        ),
-        const SizedBox(height: 20),
-        const Divider(height: 1, color: _kAdminCardBorder),
-        const SizedBox(height: 16),
-        const DailyReportRecipientsSettings(),
-      ],
-    );
-
-    final avatar = Container(
-      width: 72,
-      height: 72,
-      alignment: Alignment.center,
-      decoration: const BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: LinearGradient(
-          colors: [Color(0xFF2563EB), Color(0xFF7C3AED)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-      ),
-      child: Text(
-        initials,
-        style: GoogleFonts.outfit(
-          fontSize: 24,
-          fontWeight: FontWeight.w700,
-          color: Colors.white,
-          letterSpacing: 0.5,
-        ),
-      ),
-    );
-
-    if (narrow) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          avatar,
-          const SizedBox(height: 16),
-          SizedBox(width: double.infinity, child: centerBlock),
-        ],
-      );
-    }
-
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        avatar,
-        const SizedBox(width: 20),
-        Expanded(child: centerBlock),
-      ],
-    );
-  }
-
-  Widget _adminProfileInfoRow({
-    required Color iconBg,
-    required IconData icon,
-    required Color iconColor,
-    required Widget child,
-  }) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          width: 34,
-          height: 34,
-          decoration: BoxDecoration(
-            color: iconBg,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Icon(icon, size: 18, color: iconColor),
-        ),
-        const SizedBox(width: 12),
-        Expanded(child: child),
+        AdminProfileCard(key: _profileCardKey),
       ],
     );
   }
@@ -1897,10 +369,10 @@ class _AdminControlState extends ConsumerState<AdminControl> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _adminSectionHeader(
+        adminSectionHeader(
           context,
           context.flipperL10n.quickActions,
-          _kAdminBarBlue,
+          kAdminBarBlue,
         ),
         Row(
           children: [
@@ -1908,9 +380,9 @@ class _AdminControlState extends ConsumerState<AdminControl> {
               child: SwitchSettingsCard(
                 title: context.flipperL10n.posDefault,
                 subtitle: context.flipperL10n.setPosAsDefaultApp,
-                leading: _adminLeadingSvg(
+                leading: adminLeadingSvg(
                   AdminDashboardSvgs.posDefault,
-                  _kAdminBarBlue.withValues(alpha: 0.1),
+                  kAdminBarBlue.withValues(alpha: 0.1),
                 ),
                 value: isPosDefault,
                 onChanged: togglePos,
@@ -1921,7 +393,7 @@ class _AdminControlState extends ConsumerState<AdminControl> {
               child: SwitchSettingsCard(
                 title: context.flipperL10n.ordersDefault,
                 subtitle: context.flipperL10n.setOrdersAsDefaultApp,
-                leading: _adminLeadingSvg(
+                leading: adminLeadingSvg(
                   AdminDashboardSvgs.ordersDefault,
                   const Color(0xFF16A34A).withValues(alpha: 0.1),
                 ),
@@ -1939,10 +411,10 @@ class _AdminControlState extends ConsumerState<AdminControl> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _adminSectionHeader(
+        adminSectionHeader(
           context,
           context.flipperL10n.preferences,
-          _kAdminBarPurple,
+          kAdminBarPurple,
         ),
         const LanguageSettingsCard(),
       ],
@@ -1955,10 +427,10 @@ class _AdminControlState extends ConsumerState<AdminControl> {
       children: [
         _buildPreferencesSection(context),
         const SizedBox(height: 28),
-        _adminSectionHeader(
+        adminSectionHeader(
           context,
           context.flipperL10n.accountAndFinancial,
-          _kAdminBarBlue,
+          kAdminBarBlue,
         ),
         const SizedBox(height: 4),
         Row(
@@ -1968,14 +440,14 @@ class _AdminControlState extends ConsumerState<AdminControl> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // _adminSubSectionHeader('Account management', _kAdminBarBlue),
+                  // adminSubSectionHeader('Account management', kAdminBarBlue),
                   const SizedBox(height: 16),
                   SettingsCard(
                     title: context.flipperL10n.userManagement,
                     subtitle: context.flipperL10n.manageUsersAndPermissions,
-                    leading: _adminLeadingSvg(
+                    leading: adminLeadingSvg(
                       AdminDashboardSvgs.userManagement,
-                      _kAdminBarBlue.withValues(alpha: 0.1),
+                      kAdminBarBlue.withValues(alpha: 0.1),
                     ),
                     onTap: () {
                       showDialog(
@@ -1988,9 +460,9 @@ class _AdminControlState extends ConsumerState<AdminControl> {
                   SettingsCard(
                     title: context.flipperL10n.branchManagement,
                     subtitle: context.flipperL10n.manageBranchLocations,
-                    leading: _adminLeadingSvg(
+                    leading: adminLeadingSvg(
                       AdminDashboardSvgs.branchManagement,
-                      _kAdminBarTeal.withValues(alpha: 0.1),
+                      kAdminBarTeal.withValues(alpha: 0.1),
                     ),
                     onTap: () {
                       locator<RouterService>().navigateTo(AddBranchRoute());
@@ -2004,17 +476,17 @@ class _AdminControlState extends ConsumerState<AdminControl> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _adminSubSectionHeader(
+                  adminSubSectionHeader(
                     context.flipperL10n.financialControls,
-                    _kAdminBarOrange,
+                    kAdminBarOrange,
                   ),
                   const SizedBox(height: 16),
                   SettingsCard(
                     title: context.flipperL10n.taxSettings,
                     subtitle: context.flipperL10n.configureTaxRulesAndRates,
-                    leading: _adminLeadingSvg(
+                    leading: adminLeadingSvg(
                       AdminDashboardSvgs.taxSettings,
-                      _kAdminBarOrange.withValues(alpha: 0.12),
+                      kAdminBarOrange.withValues(alpha: 0.12),
                     ),
                     onTap: () {
                       showDialog(
@@ -2029,9 +501,9 @@ class _AdminControlState extends ConsumerState<AdminControl> {
                   SettingsCard(
                     title: context.flipperL10n.paymentMethods,
                     subtitle: context.flipperL10n.managePaymentOptions,
-                    leading: _adminLeadingSvg(
+                    leading: adminLeadingSvg(
                       AdminDashboardSvgs.paymentMethods,
-                      _kAdminBarPurple.withValues(alpha: 0.1),
+                      kAdminBarPurple.withValues(alpha: 0.1),
                     ),
                     onTap: () {
                       showPaymentSettingsModal(context);
@@ -2062,10 +534,10 @@ class _AdminControlState extends ConsumerState<AdminControl> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _adminSectionHeader(
+        adminSectionHeader(
           context,
           context.flipperL10n.cashResetSectionTitle,
-          _kAdminBarRed,
+          kAdminBarRed,
         ),
         SettingsCard(
           title: context.flipperL10n.cashResetTitle,
@@ -2073,30 +545,14 @@ class _AdminControlState extends ConsumerState<AdminControl> {
           leading: Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: _kAdminBarRed.withValues(alpha: 0.1),
+              color: kAdminBarRed.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: const Icon(
-              Icons.delete_sweep_outlined,
-              color: _kAdminBarRed,
-            ),
+            child: const Icon(Icons.delete_sweep_outlined, color: kAdminBarRed),
           ),
           onTap: () => showCashResetDialog(
             context,
-            verifyAdmin: (dialogContext) async {
-              final setting = await settingsService.settings();
-              final pin = setting?.adminPin;
-              if (!settingsService.isAdminPinEnabled || pin == null) {
-                return true;
-              }
-              if (!dialogContext.mounted) return false;
-              final ok = await showAdminPinDialog(
-                context: dialogContext,
-                mode: AdminPinMode.verify,
-                expectedPin: pin,
-              );
-              return ok == true;
-            },
+            verifyAdmin: AdminActions.verifyAdminPinIfEnabled,
           ),
         ),
       ],
@@ -2107,192 +563,12 @@ class _AdminControlState extends ConsumerState<AdminControl> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _adminSectionHeader(
+        adminSectionHeader(
           context,
           context.flipperL10n.smsNotifications,
-          _kAdminBarTeal,
+          kAdminBarTeal,
         ),
-        Container(
-          decoration: _adminCardDecoration(),
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _adminLeadingSvg(
-                      AdminDashboardSvgs.smsPhone,
-                      _kAdminBarTeal.withValues(alpha: 0.1),
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            context.flipperL10n.adminSmsPhoneNumber,
-                            style: GoogleFonts.outfit(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 16,
-                              color: _kAdminTitleText,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            context.flipperL10n.adminSmsPhoneHint,
-                            style: GoogleFonts.outfit(
-                              fontSize: 13,
-                              color: _kAdminSubtitleText,
-                              height: 1.35,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    SizedBox(
-                      width: 200,
-                      child: TextField(
-                        controller: phoneController,
-                        focusNode: _smsPhoneFocusNode,
-                        style: GoogleFonts.outfit(fontSize: 14),
-                        decoration: InputDecoration(
-                          hintText: context.flipperL10n.enterPhoneNumber,
-                          hintStyle: GoogleFonts.outfit(
-                            fontSize: 14,
-                            color: Colors.grey[600],
-                          ),
-                          filled: true,
-                          fillColor: const Color(0xFFFAFAFA),
-                          errorText: phoneError,
-                          errorMaxLines: 2,
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 10,
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: BorderSide(color: Colors.grey[300]!),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: BorderSide(color: Colors.grey[300]!),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: const BorderSide(
-                              color: _kAdminBarBlue,
-                              width: 1.2,
-                            ),
-                          ),
-                        ),
-                        onChanged: (value) {
-                          setState(() {
-                            smsPhoneNumber = value.isEmpty ? null : value;
-                            phoneError = null;
-                          });
-                          _scheduleSmsPhoneSave(
-                            value.trim().isEmpty ? null : value.trim(),
-                          );
-                        },
-                        onSubmitted: (value) {
-                          final phone = value.isEmpty ? null : value;
-                          _updateSmsConfig(phone: phone);
-                        },
-                        onEditingComplete: () {
-                          final phone = _normalizedSmsPhoneFromController();
-                          _updateSmsConfig(phone: phone);
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Divider(height: 1, thickness: 1, color: _kAdminCardBorder),
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: _AdminSwitchRow(
-                  title: context.flipperL10n.enableSmsNotifications,
-                  subtitle:
-                      context.flipperL10n.receiveSmsNotificationsForOrders,
-                  leading: _adminLeadingSvg(
-                    AdminDashboardSvgs.enableNotifications,
-                    const Color(0xFF16A34A).withValues(alpha: 0.1),
-                  ),
-                  value: enableSmsNotification,
-                  onChanged: (value) => _updateSmsConfig(enableSms: value),
-                ),
-              ),
-              Divider(height: 1, thickness: 1, color: _kAdminCardBorder),
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: _AdminSwitchRow(
-                  title: context.flipperL10n.enableWhatsappNotifications,
-                  subtitle:
-                      context.flipperL10n.receiveWhatsappNotificationsForOrders,
-                  leading: _adminLeadingSvg(
-                    AdminDashboardSvgs.enableNotifications,
-                    const Color(0xFF25D366).withValues(alpha: 0.12),
-                  ),
-                  value: enableWhatsappNotification,
-                  onChanged: _onWhatsappEnabledChanged,
-                ),
-              ),
-              if (enableWhatsappNotification) ...[
-                Divider(height: 1, thickness: 1, color: _kAdminCardBorder),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        context.flipperL10n.adminDefaultWhatsappChannel,
-                        style: GoogleFonts.outfit(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 15,
-                          color: _kAdminTitleText,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '1 = OpenWA · 2 = Meta Cloud API',
-                        style: GoogleFonts.outfit(
-                          fontSize: 12,
-                          color: _kAdminSubtitleText,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      SegmentedButton<int>(
-                        segments: const [
-                          ButtonSegment<int>(
-                            value: WhatsAppChannel.openwa,
-                            label: Text('OpenWA'),
-                            icon: Icon(Icons.smartphone_outlined, size: 16),
-                          ),
-                          ButtonSegment<int>(
-                            value: WhatsAppChannel.meta,
-                            label: Text('Meta'),
-                            icon: Icon(Icons.cloud_outlined, size: 16),
-                          ),
-                        ],
-                        selected: {
-                          whatsappProvider == WhatsAppChannel.meta
-                              ? WhatsAppChannel.meta
-                              : WhatsAppChannel.openwa,
-                        },
-                        onSelectionChanged: (set) {
-                          final v = set.first;
-                          _updateSmsConfig(whatsappProvider: v);
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ],
-          ),
-        ),
+        const SmsNotificationsCard(),
       ],
     );
   }
@@ -2320,7 +596,7 @@ class _AdminControlState extends ConsumerState<AdminControl> {
             title: l10n.priceQtyAdjustment,
             subtitle: l10n.autoAdjustQtyOnPriceChange,
             svg: AdminDashboardSvgs.priceQtyAdjustment,
-            tint: _kAdminBarRed,
+            tint: kAdminBarRed,
             value: settingsService.enablePriceQuantityAdjustment,
             onChanged: togglePriceQuantityAdjustment,
           ),
@@ -2336,13 +612,13 @@ class _AdminControlState extends ConsumerState<AdminControl> {
       ),
       _SettingsGroup(
         title: l10n.adminGroupWorkflow,
-        color: _kAdminBarPurple,
+        color: kAdminBarPurple,
         items: [
           _SettingItem(
             title: l10n.ticketReviewAndHandover,
             subtitle: l10n.adminTicketReviewSubtitle,
             svg: AdminDashboardSvgs.leadsCheckmark,
-            tint: _kAdminBarPurple,
+            tint: kAdminBarPurple,
             value: settingsService.enableTicketReviewWorkflow,
             onChanged: toggleTicketReviewWorkflow,
           ),
@@ -2350,13 +626,13 @@ class _AdminControlState extends ConsumerState<AdminControl> {
       ),
       _SettingsGroup(
         title: l10n.adminGroupTaxCompliance,
-        color: _kAdminBarTeal,
+        color: kAdminBarTeal,
         items: [
           _SettingItem(
             title: l10n.ebm,
             subtitle: l10n.reinitializeEbm,
             svg: AdminDashboardSvgs.ebm,
-            tint: _kAdminBarTeal,
+            tint: kAdminBarTeal,
             value: switchToCloudSync,
             onChanged: (_) => showReInitializeEbmDialog(context),
           ),
@@ -2364,7 +640,7 @@ class _AdminControlState extends ConsumerState<AdminControl> {
             title: l10n.taxService,
             subtitle: l10n.manageTaxServiceStatus,
             svg: AdminDashboardSvgs.taxService,
-            tint: _kAdminBarPurple,
+            tint: kAdminBarPurple,
             value: stopTaxService,
             onChanged: toggleTaxService,
           ),
@@ -2372,13 +648,13 @@ class _AdminControlState extends ConsumerState<AdminControl> {
       ),
       _SettingsGroup(
         title: l10n.adminGroupDataSync,
-        color: _kAdminBarBlue,
+        color: kAdminBarBlue,
         items: [
           _SettingItem(
             title: l10n.hydrateData,
             subtitle: l10n.refreshAllLocalData,
             svg: AdminDashboardSvgs.hydrateData,
-            tint: _kAdminBarRed,
+            tint: kAdminBarRed,
             value: forceUPSERT,
             onChanged: toggleForceUPSERT,
           ),
@@ -2386,7 +662,7 @@ class _AdminControlState extends ConsumerState<AdminControl> {
             title: l10n.assetDownload,
             subtitle: l10n.manageImageDownloads,
             svg: AdminDashboardSvgs.assetDownload,
-            tint: _kAdminBarBlue,
+            tint: kAdminBarBlue,
             value: filesDownloaded,
             onChanged: toggleDownload,
           ),
@@ -2394,7 +670,7 @@ class _AdminControlState extends ConsumerState<AdminControl> {
       ),
       _SettingsGroup(
         title: l10n.adminGroupDiagnostics,
-        color: _kAdminBarOrange,
+        color: kAdminBarOrange,
         items: [
           _SettingItem(
             title: l10n.userLogging,
@@ -2409,7 +685,7 @@ class _AdminControlState extends ConsumerState<AdminControl> {
               title: l10n.debugMode,
               subtitle: l10n.enableDebuggingFeatures,
               svg: AdminDashboardSvgs.debugMode,
-              tint: _kAdminBarOrange,
+              tint: kAdminBarOrange,
               value: enableDebug,
               onChanged: enableDebugFunc,
             ),
@@ -2434,10 +710,10 @@ class _AdminControlState extends ConsumerState<AdminControl> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _adminSectionHeader(
+        adminSectionHeader(
           context,
           context.flipperL10n.adminCrossDeviceFeatures,
-          _kAdminBarPurple,
+          kAdminBarPurple,
         ),
         const TransactionDelegationSettings(),
       ],
@@ -2445,158 +721,15 @@ class _AdminControlState extends ConsumerState<AdminControl> {
   }
 
   Widget _buildReceiptBrandingSection(BuildContext context) {
-    final theme = Theme.of(context);
-    final primary = theme.colorScheme.primary;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _adminSectionHeader(
+        adminSectionHeader(
           context,
           context.flipperL10n.adminReceiptBranding,
-          _kAdminBarReceipt,
+          kAdminBarReceipt,
         ),
-        Container(
-          decoration: _adminCardDecoration(),
-          padding: const EdgeInsets.all(18),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                context.flipperL10n.adminReceiptLogo,
-                style: GoogleFonts.outfit(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 16,
-                  color: _kAdminTitleText,
-                ),
-              ),
-              const SizedBox(height: 12),
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFAFAFA),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: _kAdminCardBorder),
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    CustomPaint(
-                      foregroundPainter: _ReceiptLogoDashedBorderPainter(
-                        color: Colors.grey.shade400,
-                      ),
-                      child: Container(
-                        width: 88,
-                        height: 88,
-                        alignment: Alignment.center,
-                        padding: const EdgeInsets.all(4),
-                        child: receiptLogoBytes != null
-                            ? ClipRRect(
-                                borderRadius: BorderRadius.circular(8),
-                                child: Image.memory(
-                                  receiptLogoBytes!,
-                                  fit: BoxFit.contain,
-                                ),
-                              )
-                            : AdminDashboardSvgs.picture(
-                                AdminDashboardSvgs.receiptLogoPlaceholder,
-                                size: 36,
-                              ),
-                      ),
-                    ),
-                    const SizedBox(width: 18),
-                    Expanded(
-                      child: Text(
-                        context.flipperL10n.adminReceiptLogoHint,
-                        style: GoogleFonts.outfit(
-                          fontSize: 13,
-                          color: _kAdminSubtitleText,
-                          height: 1.45,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        ElevatedButton(
-                          onPressed: isUpdatingReceiptLogo
-                              ? null
-                              : _pickReceiptLogo,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: primary,
-                            foregroundColor: Colors.white,
-                            elevation: 0,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 12,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              if (isUpdatingReceiptLogo)
-                                const SizedBox(
-                                  width: 16,
-                                  height: 16,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    valueColor: AlwaysStoppedAnimation<Color>(
-                                      Colors.white,
-                                    ),
-                                  ),
-                                )
-                              else
-                                SvgPicture.string(
-                                  AdminDashboardSvgs.uploadIconWhite,
-                                  width: 16,
-                                  height: 16,
-                                ),
-                              const SizedBox(width: 8),
-                              Text(
-                                isUpdatingReceiptLogo
-                                    ? context.flipperL10n.adminUploading
-                                    : context.flipperL10n.adminUploadLogo,
-                                style: GoogleFonts.outfit(
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 14,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        TextButton(
-                          onPressed:
-                              receiptLogoBytes != null && !isRemovingReceiptLogo
-                              ? _removeReceiptLogo
-                              : null,
-                          child: isRemovingReceiptLogo
-                              ? const SizedBox(
-                                  width: 16,
-                                  height: 16,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                  ),
-                                )
-                              : Text(
-                                  context.flipperL10n.adminRemoveLogo,
-                                  style: GoogleFonts.outfit(
-                                    fontSize: 13,
-                                    color: _kAdminSubtitleText,
-                                  ),
-                                ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
+        const ReceiptLogoCard(),
       ],
     );
   }
@@ -2608,88 +741,41 @@ class _AdminControlState extends ConsumerState<AdminControl> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _adminSectionHeader(
+            adminSectionHeader(
               context,
               context.flipperL10n.security,
-              _kAdminBarRed,
+              kAdminBarRed,
             ),
             Container(
-              decoration: _adminCardDecoration(),
+              decoration: adminCardDecoration(),
               child: Column(
                 children: [
                   Padding(
                     padding: const EdgeInsets.all(16),
-                    child: _AdminSwitchRow(
+                    child: AdminSwitchRow(
                       title: context.flipperL10n.administratorPin,
                       subtitle: context.flipperL10n.adminPinSubtitle,
-                      leading: _adminLeadingSvg(
+                      leading: adminLeadingSvg(
                         AdminDashboardSvgs.administratorPin,
-                        _kAdminBarBlue.withValues(alpha: 0.1),
+                        kAdminBarBlue.withValues(alpha: 0.1),
                       ),
                       value: settingsService.isAdminPinEnabled,
-                      onChanged: (value) async {
-                        if (value) {
-                          final setting = await settingsService.settings();
-                          if (setting?.adminPin == null) {
-                            await showAdminPinDialog(
-                              context: context,
-                              mode: AdminPinMode.set,
-                            );
-                          } else {
-                            await settingsService.toggleAdminPin(
-                              enabled: true,
-                              businessId: ProxyService.box.getBusinessId()!,
-                            );
-                          }
-                        } else {
-                          final setting = await settingsService.settings();
-                          if (setting?.adminPin != null) {
-                            final confirmed = await showAdminPinDialog(
-                              context: context,
-                              mode: AdminPinMode.verify,
-                              expectedPin: setting!.adminPin,
-                            );
-                            if (confirmed == true) {
-                              await settingsService.toggleAdminPin(
-                                enabled: false,
-                                businessId: ProxyService.box.getBusinessId()!,
-                              );
-                            }
-                          } else {
-                            await settingsService.toggleAdminPin(
-                              enabled: false,
-                              businessId: ProxyService.box.getBusinessId()!,
-                            );
-                          }
-                        }
-                      },
+                      onChanged: (value) =>
+                          AdminActions.setAdminPinEnabled(context, value),
                     ),
                   ),
                   if (settingsService.isAdminPinEnabled) ...[
-                    Divider(height: 1, thickness: 1, color: _kAdminCardBorder),
+                    Divider(height: 1, thickness: 1, color: kAdminCardBorder),
                     Material(
                       color: Colors.transparent,
                       child: InkWell(
-                        onTap: () async {
-                          final setting = await settingsService.settings();
-                          final confirmed = await showAdminPinDialog(
-                            context: context,
-                            mode: AdminPinMode.verify,
-                            expectedPin: setting?.adminPin,
-                          );
-                          if (confirmed == true) {
-                            await showAdminPinDialog(
-                              context: context,
-                              mode: AdminPinMode.set,
-                            );
-                          }
-                        },
+                        onTap: () => AdminActions.resetAdminPin(context),
                         child: Padding(
                           padding: const EdgeInsets.all(16),
-                          child: _AdminNavRow(
-                            leading: _adminLeadingSvg(
+                          child: AdminNavRow(
+                            leading: adminLeadingSvg(
                               AdminDashboardSvgs.resetAdministratorPin,
-                              _kAdminBarBlue.withValues(alpha: 0.1),
+                              kAdminBarBlue.withValues(alpha: 0.1),
                             ),
                             title: context.flipperL10n.resetAdministratorPin,
                             subtitle: context.flipperL10n.updateHighSecurityPin,
@@ -2704,150 +790,6 @@ class _AdminControlState extends ConsumerState<AdminControl> {
           ],
         );
       },
-    );
-  }
-}
-
-/// Light dashed border for receipt logo drop zone (matches reference UI).
-class _ReceiptLogoDashedBorderPainter extends CustomPainter {
-  _ReceiptLogoDashedBorderPainter({required this.color});
-
-  final Color color;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final rrect = RRect.fromRectAndRadius(
-      Rect.fromLTWH(0, 0, size.width, size.height),
-      const Radius.circular(10),
-    );
-    final path = Path()..addRRect(rrect);
-    final paint = Paint()
-      ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.2;
-    for (final metric in path.computeMetrics()) {
-      double d = 0;
-      while (d < metric.length) {
-        final extract = metric.extractPath(d, d + 5);
-        canvas.drawPath(extract, paint);
-        d += 8;
-      }
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _ReceiptLogoDashedBorderPainter oldDelegate) {
-    return oldDelegate.color != color;
-  }
-}
-
-class _AdminSwitchRow extends StatelessWidget {
-  final String title;
-  final String subtitle;
-  final Widget leading;
-  final bool value;
-  final ValueChanged<bool>? onChanged;
-
-  const _AdminSwitchRow({
-    required this.title,
-    required this.subtitle,
-    required this.leading,
-    required this.value,
-    required this.onChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        leading,
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: GoogleFonts.outfit(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 16,
-                  color: _kAdminTitleText,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                subtitle,
-                style: GoogleFonts.outfit(
-                  fontSize: 13,
-                  color: _kAdminSubtitleText,
-                  height: 1.35,
-                ),
-              ),
-            ],
-          ),
-        ),
-        Switch(
-          value: value,
-          onChanged: onChanged,
-          activeTrackColor: PosLayoutBreakpoints.posAccentBlue,
-          inactiveTrackColor: const Color(0xFFE5E7EB),
-          inactiveThumbColor: Colors.white,
-          activeThumbColor: Colors.white,
-        ),
-      ],
-    );
-  }
-}
-
-class _AdminNavRow extends StatelessWidget {
-  final Widget leading;
-  final String title;
-  final String subtitle;
-
-  const _AdminNavRow({
-    required this.leading,
-    required this.title,
-    required this.subtitle,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        leading,
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: GoogleFonts.outfit(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 16,
-                  color: _kAdminTitleText,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                subtitle,
-                style: GoogleFonts.outfit(
-                  fontSize: 13,
-                  color: _kAdminSubtitleText,
-                  height: 1.35,
-                ),
-              ),
-            ],
-          ),
-        ),
-        SvgPicture.string(
-          AdminDashboardSvgs.chevronRight,
-          width: 14,
-          height: 14,
-        ),
-      ],
     );
   }
 }
@@ -2871,7 +813,7 @@ class SettingsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: _adminCardDecoration(),
+      decoration: adminCardDecoration(),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
@@ -2893,7 +835,7 @@ class SettingsCard extends StatelessWidget {
                         style: GoogleFonts.outfit(
                           fontWeight: FontWeight.w600,
                           fontSize: 16,
-                          color: _kAdminTitleText,
+                          color: kAdminTitleText,
                         ),
                       ),
                       const SizedBox(height: 4),
@@ -2901,7 +843,7 @@ class SettingsCard extends StatelessWidget {
                         subtitle,
                         style: GoogleFonts.outfit(
                           fontSize: 13,
-                          color: _kAdminSubtitleText,
+                          color: kAdminSubtitleText,
                           height: 1.35,
                         ),
                       ),
@@ -3032,7 +974,7 @@ class _SystemSettingsPanelState extends State<_SystemSettingsPanel> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (constraints.maxWidth < 560) ...[
-              _adminSectionHeader(context, widget.title, _kAdminBarSlate),
+              adminSectionHeader(context, widget.title, kAdminBarSlate),
               SizedBox(
                 width: double.infinity,
                 child: _SettingsSearchField(
@@ -3048,10 +990,10 @@ class _SystemSettingsPanelState extends State<_SystemSettingsPanel> {
               Row(
                 children: [
                   Expanded(
-                    child: _adminSectionHeader(
+                    child: adminSectionHeader(
                       context,
                       widget.title,
-                      _kAdminBarSlate,
+                      kAdminBarSlate,
                     ),
                   ),
                   _SettingsSearchField(
@@ -3067,7 +1009,7 @@ class _SystemSettingsPanelState extends State<_SystemSettingsPanel> {
             if (groups.isEmpty)
               Container(
                 width: double.infinity,
-                decoration: _adminCardDecoration(),
+                decoration: adminCardDecoration(),
                 padding: const EdgeInsets.symmetric(vertical: 28),
                 alignment: Alignment.center,
                 child: Text(
@@ -3076,7 +1018,7 @@ class _SystemSettingsPanelState extends State<_SystemSettingsPanel> {
                   ),
                   style: GoogleFonts.outfit(
                     fontSize: 13,
-                    color: _kAdminSubtitleText,
+                    color: kAdminSubtitleText,
                   ),
                 ),
               )
@@ -3136,7 +1078,7 @@ class _SettingsSearchField extends StatelessWidget {
       child: TextField(
         controller: controller,
         onChanged: onChanged,
-        style: GoogleFonts.outfit(fontSize: 13, color: _kAdminTitleText),
+        style: GoogleFonts.outfit(fontSize: 13, color: kAdminTitleText),
         decoration: InputDecoration(
           isDense: true,
           filled: true,
@@ -3144,19 +1086,19 @@ class _SettingsSearchField extends StatelessWidget {
           hintText: hintText,
           hintStyle: GoogleFonts.outfit(
             fontSize: 13,
-            color: _kAdminSubtitleText,
+            color: kAdminSubtitleText,
           ),
           prefixIcon: const Icon(
             Icons.search,
             size: 16,
-            color: _kAdminSubtitleText,
+            color: kAdminSubtitleText,
           ),
           prefixIconConstraints: const BoxConstraints(minWidth: 34),
           suffixIcon: controller.text.isEmpty
               ? null
               : IconButton(
                   icon: const Icon(Icons.close, size: 14),
-                  color: _kAdminSubtitleText,
+                  color: kAdminSubtitleText,
                   splashRadius: 14,
                   onPressed: () {
                     controller.clear();
@@ -3166,11 +1108,11 @@ class _SettingsSearchField extends StatelessWidget {
           contentPadding: const EdgeInsets.symmetric(vertical: 8),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(9),
-            borderSide: const BorderSide(color: _kAdminCardBorder),
+            borderSide: const BorderSide(color: kAdminCardBorder),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(9),
-            borderSide: const BorderSide(color: _kAdminCardBorder),
+            borderSide: const BorderSide(color: kAdminCardBorder),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(9),
@@ -3192,7 +1134,7 @@ class _SettingsGroupCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: _adminCardDecoration(),
+      decoration: adminCardDecoration(),
       clipBehavior: Clip.antiAlias,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -3218,13 +1160,13 @@ class _SettingsGroupCard extends StatelessWidget {
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
                     letterSpacing: 0.6,
-                    color: _kAdminSubtitleText,
+                    color: kAdminSubtitleText,
                   ),
                 ),
               ],
             ),
           ),
-          Divider(height: 1, thickness: 1, color: _kAdminCardBorder),
+          Divider(height: 1, thickness: 1, color: kAdminCardBorder),
           for (var i = 0; i < group.items.length; i++) ...[
             if (i > 0)
               Padding(
@@ -3232,7 +1174,7 @@ class _SettingsGroupCard extends StatelessWidget {
                 child: Divider(
                   height: 1,
                   thickness: 1,
-                  color: _kAdminCardBorder,
+                  color: kAdminCardBorder,
                 ),
               ),
             _SettingRow(item: group.items[i]),
@@ -3280,7 +1222,7 @@ class _SettingRow extends StatelessWidget {
                       style: GoogleFonts.outfit(
                         fontWeight: FontWeight.w600,
                         fontSize: 14,
-                        color: _kAdminTitleText,
+                        color: kAdminTitleText,
                       ),
                     ),
                     const SizedBox(height: 1),
@@ -3290,7 +1232,7 @@ class _SettingRow extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.outfit(
                         fontSize: 12,
-                        color: _kAdminSubtitleText,
+                        color: kAdminSubtitleText,
                         height: 1.3,
                       ),
                     ),
@@ -3337,9 +1279,9 @@ class SwitchSettingsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: _adminCardDecoration(),
+      decoration: adminCardDecoration(),
       padding: const EdgeInsets.all(16),
-      child: _AdminSwitchRow(
+      child: AdminSwitchRow(
         title: title,
         subtitle: subtitle,
         leading: leading,
