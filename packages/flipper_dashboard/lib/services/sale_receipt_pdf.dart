@@ -1,6 +1,7 @@
 import 'package:flipper_dashboard/services/pdf_assets.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_services/payment_methods.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
@@ -501,7 +502,9 @@ class SaleReceiptPdf {
   static String _paymentLabel(String? paymentType) {
     if (paymentType == null || paymentType.trim().isEmpty) return '—';
     final upper = paymentType.toUpperCase();
-    if (upper.contains('MOMO') || upper.contains('MOBILE')) return 'MoMo';
+    final method = canonicalPaymentMethod(upper);
+    if (method == kAirtelMoney) return 'Airtel Money';
+    if (method == kMobileMoney) return 'MoMo';
     if (upper.contains('CARD')) return FlipperL10n.current.saleReceiptCard;
     if (upper.contains('CASH')) return FlipperL10n.current.cash;
     return paymentType;

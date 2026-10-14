@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flipper_services/DeviceType.dart';
+import 'package:flipper_services/payment_methods.dart';
 
 import 'package:flipper_models/providers/all_providers.dart';
 import 'package:flipper_services/proxy.dart';
@@ -343,7 +344,7 @@ extension ViewAccessControlWidget on Widget {
 /// and when given bannk to return B-PAY
 extension PaymentTypeExtension on String {
   String toPaymentType() {
-    if (this.contains("MTN")) {
+    if (isMobileMoneyTender(this)) {
       return "MOMO";
     } else if (this.contains("Card")) {
       return "CARD";
@@ -541,7 +542,9 @@ extension TransactionDeletion on ITransaction {
         // Default to CloudSync/SQLite
         talker.debug('Deleting transaction $id from CloudSync (SQLite)');
         try {
-          await ProxyService.legacyStrategy.deleteTransaction(transaction: this);
+          await ProxyService.legacyStrategy.deleteTransaction(
+            transaction: this,
+          );
           talker.info('Successfully deleted $id from CloudSync (SQLite)');
           return true;
         } catch (sqliteError) {
@@ -570,7 +573,9 @@ extension TransactionDeletion on ITransaction {
       if (dataSource == Strategy.capella) {
         // Try CloudSync as fallback
         try {
-          await ProxyService.legacyStrategy.deleteTransaction(transaction: this);
+          await ProxyService.legacyStrategy.deleteTransaction(
+            transaction: this,
+          );
           talker.info('Successfully deleted $id from CloudSync as fallback');
           return true;
         } catch (e) {

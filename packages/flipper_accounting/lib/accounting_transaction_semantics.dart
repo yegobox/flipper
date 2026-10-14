@@ -5,6 +5,8 @@
 /// values. Books must accept both legacy uppercase fixtures and live data.
 library;
 
+import 'package:flipper_services/payment_methods.dart';
+
 /// Status after a finalized sale (fully paid or parked as loan/credit).
 const accountingSaleStatusCompleted = 'completed';
 const accountingSaleStatusParked = 'parked';
@@ -99,8 +101,8 @@ int accountingCollectedAmount(Map<String, dynamic> txn) {
 String accountingLiquidAccountCode(Map<String, dynamic> txn) {
   final payType = (txn['payment_type'] ?? txn['paymentType'] ?? 'CASH')
       .toString();
+  if (isMobileMoneyTender(payType)) return '1030';
   final p = payType.toLowerCase();
-  if (p.contains('momo') || p.contains('mobile')) return '1030';
   // Before the credit check: `DEBIT&CREDIT CARD` contains "credit" but is
   // settled into the bank, not a receivable.
   if (p.contains('bank') || p.contains('card') || p.contains('transfer')) {

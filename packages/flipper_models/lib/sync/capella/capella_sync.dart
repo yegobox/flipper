@@ -77,6 +77,7 @@ import 'package:flutter/foundation.dart'
 import 'package:flipper_models/SyncStrategy.dart';
 
 import 'package:flipper_services/constants.dart';
+import 'package:flipper_services/payment_methods.dart';
 
 String? _nonEmptyCustomerField(String? value) {
   final trimmed = value?.trim();
@@ -2103,7 +2104,9 @@ class CapellaSync extends AiStrategyImpl
         '_id': r.id,
         'transactionId': r.transactionId,
         'amount': r.amount,
-        'paymentMethod': r.paymentMethod,
+        'paymentMethod': r.paymentMethod == null
+            ? null
+            : canonicalPaymentMethod(r.paymentMethod),
         'payerName': r.payerName,
         'createdAt': r.createdAt?.toUtc().toIso8601String(),
       };

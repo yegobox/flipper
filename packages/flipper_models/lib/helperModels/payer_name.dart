@@ -7,15 +7,16 @@
 /// overwriting the transaction's own customer.
 library;
 
+import 'package:flipper_services/payment_methods.dart';
+
 /// Payment methods for which the payer-name field is offered.
 ///
 /// Deliberately limited to the tenders that arrive through a named third-party
 /// account. Cash and credit have no payer to disambiguate, so they keep the
 /// payment row exactly as it was before this field existed.
 const Set<String> payerNameCapablePaymentMethods = {
-  'MOBILE MONEY',
-  'MTN MOMO',
-  'AIRTEL MONEY',
+  kMobileMoney,
+  kAirtelMoney,
   'BANK CHECK',
   'DEBIT&CREDIT CARD',
 };
@@ -24,7 +25,7 @@ const Set<String> payerNameCapablePaymentMethods = {
 bool paymentMethodSupportsPayerName(String? paymentMethod) {
   if (paymentMethod == null) return false;
   return payerNameCapablePaymentMethods.contains(
-    paymentMethod.trim().toUpperCase(),
+    canonicalPaymentMethod(paymentMethod).toUpperCase(),
   );
 }
 
