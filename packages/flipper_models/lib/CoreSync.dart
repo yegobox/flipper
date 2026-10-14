@@ -2566,6 +2566,9 @@ class CoreSync extends AiStrategyImpl
     String? categoryId,
     String? note,
     bool skipPersonalGoalAutoSweep = false,
+
+    /// Ignored by the legacy path; see [DatabaseSyncInterface.completeCashMovement].
+    DateTime? occurredAt,
   }) async {
     final pending = await manageTransaction(
       branchId: branchId,

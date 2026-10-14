@@ -7,6 +7,7 @@ import 'package:flipper_dashboard/DateCoreWidget.dart';
 import 'package:flipper_dashboard/cashbook_form_rules.dart';
 import 'package:flipper_dashboard/widgets/cashbook_list_view.dart';
 import 'package:flipper_dashboard/widgets/cashbook_new_category_sheet.dart';
+import 'package:flipper_dashboard/widgets/sms_review/sms_review_section.dart';
 import 'package:flipper_dashboard/widgets/dashboard_quick_access_svgs.dart';
 import 'package:flipper_dashboard/widgets/transaction_detail_svgs.dart';
 import 'package:flipper_dashboard/features/personal_goals/personal_goals_providers.dart';
@@ -292,6 +293,8 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        // Bank/MoMo SMS from a paired SMS Bridge phone; hidden when empty.
+        const SmsReviewBanner(),
         Expanded(
           child: transactionData.when(
             data: (all) => _buildList(all, dateRange),

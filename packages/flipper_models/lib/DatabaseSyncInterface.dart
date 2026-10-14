@@ -228,18 +228,24 @@ abstract class DatabaseSyncInterface extends AiStrategy
     String? customerPhone,
     required String countryCode,
     String? note,
+
     /// When set (e.g. [COMPLETE]), written in the same transaction update as payment fields.
     String? completionStatus,
+
     /// Status to use for personal-goal/shift financial-sweep eligibility when
     /// it must differ from the persisted [completionStatus] (Ticket Review +
     /// Handover workflow). Defaults to [completionStatus] when omitted.
     String? financialCompletionStatus,
+
     /// When set, skip loading line items from the local DB (faster for cash book after a fresh insert).
     List<TransactionItem>? preloadedLineItems,
+
     /// Set by [completeCashMovement] so auto-allocation uses cash amount, not SKU margin.
     bool isUtilityCashbookMovement = false,
+
     /// When true, skips auto-allocation (e.g. manual goal cash-in intent on the same save).
     bool skipPersonalGoalAutoSweep = false,
+
     /// When true, mutates [transaction] in memory (shift totals, cash fields) but does not
     /// persist the transaction row; caller must persist (e.g. one [updateTransaction] on completion).
     bool skipTransactionPersist = false,
@@ -270,6 +276,10 @@ abstract class DatabaseSyncInterface extends AiStrategy
     String? categoryId,
     String? note,
     bool skipPersonalGoalAutoSweep = false,
+
+    /// When the money actually moved, for a movement recorded after the fact
+    /// (a bank SMS confirmed from the Cash Book review queue). Null means now.
+    DateTime? occurredAt,
   });
 
   Future<Setting?> getSetting({required String businessId});
@@ -474,6 +484,7 @@ abstract class DatabaseSyncInterface extends AiStrategy
     String? planTemplateId,
     required int additionalDevices,
     required bool isYearlyPlan,
+
     /// `daily` | `monthly` | `yearly`. Null keeps the older
     /// monthly-or-yearly behaviour, which cannot express a daily plan.
     String? rule,
