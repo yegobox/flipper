@@ -16,13 +16,21 @@ const String kAirtelMoney = 'AIRTEL MONEY';
 /// [raw] with every legacy mobile-money spelling folded into [kMobileMoney] or
 /// [kAirtelMoney]. Any other tender comes back trimmed but otherwise as given,
 /// so callers that compare `'Cash'` or `'CASH'` keep working.
+///
+/// Matches whole words, never substrings: `MOBILE BANK TRANSFER` is a bank
+/// transfer, so only the word `MOMO`/`MTN`/`AIRTEL` or the phrase
+/// `MOBILE MONEY` counts.
 String canonicalPaymentMethod(String? raw) {
   final value = raw?.trim() ?? '';
-  final upper = value.toUpperCase().replaceAll('_', ' ');
-  if (upper.contains('AIRTEL')) return kAirtelMoney;
-  if (upper.contains('MOMO') ||
-      upper.contains('MTN') ||
-      upper.contains('MOBILE')) {
+  final words = value
+      .toUpperCase()
+      .split(RegExp('[^A-Z0-9]+'))
+      .where((w) => w.isNotEmpty)
+      .toList();
+  if (words.contains('AIRTEL')) return kAirtelMoney;
+  if (words.contains('MOMO') ||
+      words.contains('MTN') ||
+      ' ${words.join(' ')} '.contains(' MOBILE MONEY ')) {
     return kMobileMoney;
   }
   return value;

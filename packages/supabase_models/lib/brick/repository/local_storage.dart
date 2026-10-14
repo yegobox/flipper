@@ -313,9 +313,10 @@ class SharedPreferenceStorage implements LocalStorage {
       try {
         await _writeDittoPayload();
       } catch (e) {
+        // dart format off
         print(
-          'SharedPreferenceStorage: Ditto session clear failed, JSON cleared: $e',
-        );
+            'SharedPreferenceStorage: Ditto session clear failed, JSON cleared: $e');
+        // dart format on
       }
     }
     _emitModeResets();
@@ -438,9 +439,14 @@ class SharedPreferenceStorage implements LocalStorage {
     });
     await store.execute(
       'INSERT INTO $_kDittoPrefsCollection DOCUMENTS (:data) ON ID CONFLICT DO UPDATE',
+      // dart format off
       arguments: {
-        'data': {'_id': _kDittoPrefsDocId, 'payload': payload},
+        'data': {
+          '_id': _kDittoPrefsDocId,
+          'payload': payload,
+        },
       },
+      // dart format on
     );
   }
 
@@ -483,9 +489,10 @@ class SharedPreferenceStorage implements LocalStorage {
         try {
           await _writeDittoPayload();
         } catch (e) {
+          // dart format off
           print(
-            'SharedPreferenceStorage: Ditto write failed, using JSON only: $e',
-          );
+              'SharedPreferenceStorage: Ditto write failed, using JSON only: $e');
+          // dart format on
         }
       }
     } finally {
@@ -506,7 +513,11 @@ class SharedPreferenceStorage implements LocalStorage {
           // Initialize version if not present
           _cache['_preferencesVersion'] ??= _kPreferencesVersion;
         } else {
-          _cache = {'_preferencesVersion': _kPreferencesVersion};
+          // dart format off
+          _cache = {
+            '_preferencesVersion': _kPreferencesVersion,
+          };
+          // dart format on
           await _webPrefs!.setString(_kPreferencesKey, jsonEncode(_cache));
         }
       } catch (e) {
@@ -569,10 +580,10 @@ class SharedPreferenceStorage implements LocalStorage {
         try {
           final tempDir = Directory.systemTemp;
           _filePath = path.join(tempDir.path, '${_kPreferencesKey}_test.json');
-          _backupFilePath = path.join(
-            tempDir.path,
-            '${_kPreferencesBackupKey}_test.json',
-          );
+          // dart format off
+          _backupFilePath =
+              path.join(tempDir.path, '${_kPreferencesBackupKey}_test.json');
+          // dart format on
         } catch (pathError) {
           // Fallback to hardcoded paths if even temp directory fails
           _filePath = '${_kPreferencesKey}_test.json';
