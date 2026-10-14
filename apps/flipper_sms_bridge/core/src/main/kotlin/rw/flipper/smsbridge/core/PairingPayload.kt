@@ -43,6 +43,40 @@ data class PairingPayload(val connectorUrl: String, val code: String) {
         const val CODE_LENGTH = 10
 
         /**
+         * How a code is shown and typed: normalised, capped at [CODE_LENGTH],
+         * and split in two halves (`7K3QM-Z9TXA`) the way Flipper prints it.
+         * Partial input stays partial, so it can format a field as you type.
+         */
+        fun formatCode(raw: String): String {
+            val code = normalizeCode(raw).take(CODE_LENGTH)
+            val half = CODE_LENGTH / 2
+            return if (code.length <= half) code else code.take(half) + "-" + code.drop(half)
+        }
+
+        /**
+         * Flipper's own servers. A pairing that points anywhere else (a deep
+         * link from another app, a doctored QR) gets a warning before the
+         * phone starts sending bank SMS there.
+         */
+        fun isFlipperServer(connectorUrl: String): Boolean {
+            val host = try {
+                URI(connectorUrl).host
+            } catch (_: Exception) {
+                null
+            } ?: return false
+            val h = host.lowercase()
+            return h == "yegobox.com" || h.endsWith(".yegobox.com")
+        }
+
+        /** The host alone, for "Sending to prod.api.yegobox.com". */
+        fun hostOf(connectorUrl: String): String =
+            try {
+                URI(connectorUrl).host
+            } catch (_: Exception) {
+                null
+            } ?: connectorUrl
+
+        /**
          * Same rule as the connector's `normalize_code`: uppercase, drop
          * separators, read O as 0 and I/L as 1.
          */

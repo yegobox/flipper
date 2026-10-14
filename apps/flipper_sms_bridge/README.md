@@ -28,11 +28,14 @@ SMS arrives → SmsReceiver (allowlist) → SQLite queue → UploadWorker
   → data-connector parses → Ditto sms_transactions + bank_statement_lines
 ```
 
-- **Pairing:** in Flipper go to Settings → SMS Bridge → Pair a phone. Scan the
-  QR code (`flipper-sms-bridge://pair?url=…&code=…`) or type the code. The
-  code works once and expires after 10 minutes. The phone gets its own
-  credentials, limited to forwarding SMS for that one branch. Revoke it from
-  the same settings page.
+- **Pairing:** in Flipper open **SMS Bridge → Pair a phone**: on a phone it is
+  More → Settings → SMS Bridge, on a computer Admin Control → SMS Bridge. Scan
+  the QR code (`flipper-sms-bridge://pair?url=…&code=…`) or type the code.
+  When Flipper runs on the same phone as the bridge, its *Open SMS Bridge on
+  this phone* button opens that link directly; the bridge shows the server and
+  asks before pairing, so another app can't pair it silently. The code works
+  once and expires after 10 minutes. The phone gets its own credentials,
+  limited to forwarding SMS for that one branch. Revoke it from the same page.
 - **Offline-safe:** messages are queued the moment they arrive and uploaded by
   WorkManager when there is a network. Re-sending is harmless because the
   connector dedupes by the bank's own reference.
@@ -44,7 +47,10 @@ SMS arrives → SmsReceiver (allowlist) → SQLite queue → UploadWorker
 
 ## Installing on a phone
 
-1. Download the APK from the latest `sms-bridge-v*` release.
+1. Download the APK from
+   <https://github.com/yegobox/flipper/releases/download/sms-bridge-latest/flipper-sms-bridge.apk>
+   (Flipper's SMS Bridge page shows the same link as a QR code). Versioned
+   builds stay on the `sms-bridge-v*` releases.
 2. Allow "Install unknown apps" for the browser or file manager when prompted.
 3. Open the app and allow SMS access. **Android 13+ may grey out the SMS
    permission** for apps installed from a browser ("restricted setting"). If it
@@ -67,7 +73,16 @@ gradle -PcoreOnly :core:test
 
 # The app (needs the Android SDK; ANDROID_HOME or local.properties sdk.dir):
 gradle :app:assembleDebug
+
+# UI tests on the JVM (Robolectric). Add -Proborazzi.test.record=true to also
+# write a PNG of every screen state to app/build/outputs/roborazzi/:
+gradle :app:testDebugUnitTest
 ```
+
+The UI is Jetpack Compose + Material 3 (`app/.../ui/`). Screens are pure
+functions of `BridgeUi`, so a new state gets a screenshot test, not an
+emulator session. Colours mirror Flipper's `PosTokens`: brand blue is the only
+action colour; green/amber/red only mark status.
 
 Gradle 8.14.3, JDK 17, AGP 8.12.1, Kotlin 2.2.20, the same toolchain as
 `apps/flipper/android`. CI: `.github/workflows/sms_bridge.yml`.
@@ -86,7 +101,9 @@ adb emu sms send BK "TRANSFER - EKASH Beneficiary: Jane DOE Credited account: 07
 
 Push a tag `sms-bridge-vX.Y.Z`. CI builds a release APK signed with the key in
 the `SMS_BRIDGE_KEYSTORE_BASE64` / `_PASSWORD` / `SMS_BRIDGE_KEY_ALIAS` /
-`SMS_BRIDGE_KEY_PASSWORD` secrets and attaches it to the tag's release.
+`SMS_BRIDGE_KEY_PASSWORD` secrets, attaches it to the tag's release, and
+replaces `flipper-sms-bridge.apk` on the fixed `sms-bridge-latest` release
+(the link Flipper shows).
 **Never change or lose that key.** Android refuses an update signed with a
 different key, and every installed phone would have to uninstall and pair
 again.
