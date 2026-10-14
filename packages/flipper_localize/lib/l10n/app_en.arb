@@ -19489,5 +19489,9 @@
     "cashResetNotEnabled": "Clearing the Cash Book is not enabled for this business. Ask Flipper support to enable it for one reset.",
     "@cashResetNotEnabled": {
         "description": "Clear Cash Book refused because Flipper staff have not enabled a reset for this business"
+    },
+    "branchTransferCartStillSaving": "Some items are still being saved. Wait a moment, then transfer again.",
+    "@branchTransferCartStillSaving": {
+        "description": "Branch transfer refused because some cart lines are not saved yet"
     }
 }

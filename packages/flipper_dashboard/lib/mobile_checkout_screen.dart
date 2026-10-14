@@ -91,6 +91,11 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
   final Set<String> _optimisticallyDeletedItemIds = {};
   bool _isClearingCustomer = false;
   double? _cachedNonCreditPaid;
+
+  /// The cart whose payments were last read successfully. Transfer is only
+  /// offered for that cart: before the read lands, or when it failed, a paid
+  /// cart could otherwise look unpaid.
+  String? _paidReadTxnId;
   bool _sendToTillBusy = false;
   bool _backToNewSaleBusy = false;
   CheckoutCartMode _mode = CheckoutCartMode.sale;
@@ -1076,9 +1081,12 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
         ref.watch(isDigitalPaymentEnabledProvider).asData?.value ?? false;
 
     final txn = transactionAsync.value ?? widget.transaction;
-    // Sale → Transfer: >1 branch, no till ticket, nothing paid yet.
+    // Sale → Transfer: >1 branch, no till ticket, and this cart's payments
+    // read back as nothing paid yet.
     final canTransfer =
-        ref.watch(canOfferBranchTransferProvider) && _canModifyItems(txn);
+        ref.watch(canOfferBranchTransferProvider) &&
+        _paidReadTxnId == txn.id &&
+        _canModifyItems(txn);
     final isTransfer = canTransfer && _mode == CheckoutCartMode.transfer;
 
     final pendingOptimistic = ref
@@ -1158,9 +1166,12 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
                 _lastTransactionId = currentId;
                 WidgetsBinding.instance.addPostFrameCallback((_) async {
                   if (!mounted) return;
-                  final nonCreditPaid = await fetchNonCreditPaid(txn.id);
+                  final nonCreditPaid = await tryFetchNonCreditPaid(txn.id);
                   if (!mounted) return;
-                  setState(() => _cachedNonCreditPaid = nonCreditPaid);
+                  setState(() {
+                    _cachedNonCreditPaid = nonCreditPaid ?? 0.0;
+                    _paidReadTxnId = nonCreditPaid == null ? null : txn.id;
+                  });
                   standardizedPaymentInitialization(
                     ref: ref,
                     transaction: txn,

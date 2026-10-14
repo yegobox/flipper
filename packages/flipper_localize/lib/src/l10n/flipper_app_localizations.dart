@@ -43282,6 +43282,12 @@ abstract class FlipperAppLocalizations {
   /// In en, this message translates to:
   /// **'Clearing the Cash Book is not enabled for this business. Ask Flipper support to enable it for one reset.'**
   String get cashResetNotEnabled;
+
+  /// Branch transfer refused because some cart lines are not saved yet
+  ///
+  /// In en, this message translates to:
+  /// **'Some items are still being saved. Wait a moment, then transfer again.'**
+  String get branchTransferCartStillSaving;
 }
 
 class _FlipperAppLocalizationsDelegate

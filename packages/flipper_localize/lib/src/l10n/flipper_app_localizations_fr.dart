@@ -26310,4 +26310,8 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   @override
   String get cashResetNotEnabled =>
       'Le vidage du livre de caisse n\'est pas activé pour cette entreprise. Demandez au support Flipper de l\'activer pour une seule fois.';
+
+  @override
+  String get branchTransferCartStillSaving =>
+      'Certains articles sont encore en cours d\'enregistrement. Patientez un instant, puis relancez le transfert.';
 }

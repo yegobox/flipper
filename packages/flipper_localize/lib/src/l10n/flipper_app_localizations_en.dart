@@ -25891,4 +25891,8 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
   @override
   String get cashResetNotEnabled =>
       'Clearing the Cash Book is not enabled for this business. Ask Flipper support to enable it for one reset.';
+
+  @override
+  String get branchTransferCartStillSaving =>
+      'Some items are still being saved. Wait a moment, then transfer again.';
 }

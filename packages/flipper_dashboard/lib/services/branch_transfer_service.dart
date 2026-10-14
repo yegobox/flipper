@@ -4,6 +4,7 @@ import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/talker.dart';
+import 'package:flipper_models/providers/optimistic_cart_provider.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/sms/sms_notification_service.dart';
@@ -33,6 +34,11 @@ class BranchTransferService with StockRequestApprovalLogic {
     }
     if (destinationBranchId.isEmpty || destinationBranchId == sourceBranchId) {
       throw StateError(l10n.branchTransferSelectDifferentBranch);
+    }
+    // A line tapped moments ago may exist only on screen; finalizing the cart
+    // would then write to an item id the store has never seen.
+    if (items.any((i) => OptimisticCartIds.isOptimistic(i.id))) {
+      throw StateError(l10n.branchTransferCartStillSaving);
     }
 
     final variantIds = items
