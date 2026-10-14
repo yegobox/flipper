@@ -3164,6 +3164,18 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   String get adminGroupDiagnostics => 'Isuzuma';
 
   @override
+  String get settingsGroupMoney => 'Amafaranga';
+
+  @override
+  String get settingsGroupNotifications => 'Imenyesha';
+
+  @override
+  String get settingsGroupDevices => 'Ibikoresho';
+
+  @override
+  String get settingsGroupReceipts => 'Inyemezabwishyu';
+
+  @override
   String get adminCrossDeviceFeatures => 'Ibikorwa bihuza ibikoresho';
 
   @override

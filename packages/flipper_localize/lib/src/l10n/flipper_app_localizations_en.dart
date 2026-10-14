@@ -3126,6 +3126,18 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
   String get adminGroupDiagnostics => 'Diagnostics';
 
   @override
+  String get settingsGroupMoney => 'Money';
+
+  @override
+  String get settingsGroupNotifications => 'Notifications';
+
+  @override
+  String get settingsGroupDevices => 'Devices';
+
+  @override
+  String get settingsGroupReceipts => 'Receipts';
+
+  @override
   String get adminCrossDeviceFeatures => 'Cross-device features';
 
   @override

@@ -5657,6 +5657,30 @@ abstract class FlipperAppLocalizations {
   /// **'Diagnostics'**
   String get adminGroupDiagnostics;
 
+  /// Group label in the phone Settings list
+  ///
+  /// In en, this message translates to:
+  /// **'Money'**
+  String get settingsGroupMoney;
+
+  /// Group label in the phone Settings list
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get settingsGroupNotifications;
+
+  /// Group label in the phone Settings list
+  ///
+  /// In en, this message translates to:
+  /// **'Devices'**
+  String get settingsGroupDevices;
+
+  /// Group label in the phone Settings list
+  ///
+  /// In en, this message translates to:
+  /// **'Receipts'**
+  String get settingsGroupReceipts;
+
   /// No description provided for @adminCrossDeviceFeatures.
   ///
   /// In en, this message translates to:

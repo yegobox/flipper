@@ -8,6 +8,9 @@ import 'package:flipper_models/providers/currency_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart'
     show cashbookRecentTransactionsProvider;
 import 'package:flipper_services/data_connector_url.dart';
+import 'package:flipper_dashboard/theme/mpos_tokens.dart';
+import 'package:flipper_dashboard/theme/pos_tokens.dart';
+import 'package:flipper_dashboard/widgets/mpos/mpos_animated_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
@@ -39,12 +42,27 @@ Future<void> showCashResetDialog(
   );
 }
 
+/// The same flow as a bottom sheet, for phones.
+Future<void> showCashResetSheet(
+  BuildContext context, {
+  CashResetAdminCheck? verifyAdmin,
+}) {
+  return showMposAnimatedSheet<void>(
+    context: context,
+    isDismissible: false,
+    builder: (_) => CashResetDialog(verifyAdmin: verifyAdmin, asSheet: true),
+  );
+}
+
 enum _Step { pick, loading, confirm, deleting }
 
 class CashResetDialog extends ConsumerStatefulWidget {
-  const CashResetDialog({super.key, this.verifyAdmin});
+  const CashResetDialog({super.key, this.verifyAdmin, this.asSheet = false});
 
   final CashResetAdminCheck? verifyAdmin;
+
+  /// Render as a phone bottom sheet (full-width buttons) instead of a dialog.
+  final bool asSheet;
 
   @override
   ConsumerState<CashResetDialog> createState() => _CashResetDialogState();
@@ -160,19 +178,78 @@ class _CashResetDialogState extends ConsumerState<CashResetDialog> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.flipperL10n;
+    final title = Row(
+      children: [
+        const Icon(Icons.warning_amber_rounded, color: _kDanger),
+        const SizedBox(width: 8),
+        Expanded(child: Text(l10n.cashResetTitle)),
+      ],
+    );
+    if (widget.asSheet) return _sheet(context, title);
     return AlertDialog(
-      title: Row(
-        children: [
-          const Icon(Icons.warning_amber_rounded, color: _kDanger),
-          const SizedBox(width: 8),
-          Expanded(child: Text(l10n.cashResetTitle)),
-        ],
-      ),
+      title: title,
       content: SizedBox(
         width: 440,
         child: SingleChildScrollView(child: _body(context)),
       ),
       actions: _actions(context),
+    );
+  }
+
+  Widget _sheet(BuildContext context, Widget title) {
+    final actions = _actions(context);
+    return SizedBox(
+      width: double.infinity,
+      child: Material(
+        color: Colors.white,
+        borderRadius: const BorderRadius.vertical(
+          top: Radius.circular(MposTokens.sheetRadius),
+        ),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.sizeOf(context).height * 0.9,
+          ),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 10, 20, 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Center(
+                  child: Container(
+                    width: 36,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: PosTokens.line,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                DefaultTextStyle.merge(
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: PosTokens.ink1,
+                  ),
+                  child: title,
+                ),
+                const SizedBox(height: 12),
+                Flexible(child: SingleChildScrollView(child: _body(context))),
+                const SizedBox(height: 20),
+                Row(
+                  children: [
+                    for (var i = 0; i < actions.length; i++) ...[
+                      if (i > 0) const SizedBox(width: 12),
+                      Expanded(child: SizedBox(height: 48, child: actions[i])),
+                    ],
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 
