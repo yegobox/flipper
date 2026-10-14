@@ -3,6 +3,7 @@ import 'package:flipper_dashboard/theme/pos_tokens.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
+import 'package:flipper_services/payment_methods.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_dashboard/payment_method_labels.dart';
 import 'package:flipper_localize/flipper_localize.dart';
@@ -369,7 +370,7 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
   /// [paymentTypes] gets its own colour so a split payment is scannable at a
   /// glance instead of a column of identical grey rows.
   ({IconData icon, Color color}) _methodVisual(String paymentMethod) {
-    switch (paymentMethod.toUpperCase()) {
+    switch (canonicalPaymentMethod(paymentMethod).toUpperCase()) {
       case 'CASH':
         return (icon: Icons.payments_rounded, color: const Color(0xFF16A34A));
       case 'CREDIT':
@@ -392,8 +393,6 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
           icon: Icons.phone_android_rounded,
           color: const Color(0xFF2563EB),
         );
-      case 'MTN MOMO':
-        return (icon: Icons.smartphone_rounded, color: const Color(0xFFCA8A04));
       case 'AIRTEL MONEY':
         return (icon: Icons.smartphone_rounded, color: const Color(0xFFDC2626));
       default:

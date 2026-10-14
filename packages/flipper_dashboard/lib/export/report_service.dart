@@ -7,6 +7,7 @@ import 'package:flipper_dashboard/export/transaction_report_full_export_loader.d
 import 'package:flipper_dashboard/export/utils/report_theme.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/constants.dart';
+import 'package:flipper_services/payment_methods.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:syncfusion_flutter_pdf/pdf.dart';
@@ -89,10 +90,16 @@ class ReportService {
     final numRefundReceipts = refundTransactions.length;
     final netSalesReceipts = numSalesReceipts - numRefundReceipts;
 
-    // Dynamically calculate payment method breakdowns
+    // Dynamically calculate payment method breakdowns. Old mobile-money
+    // spellings (`MTN MOMO`, `Momo`) share the Mobile Money row.
+    String methodKey(ITransaction t) {
+      final method = canonicalPaymentMethod(t.paymentType);
+      return method.isEmpty ? 'unknown' : method.toLowerCase();
+    }
+
     final Map<String, double> salesByPaymentMethod = {};
     for (var t in salesTransactions) {
-      final paymentType = t.transaction.paymentType?.toLowerCase() ?? 'unknown';
+      final paymentType = methodKey(t.transaction);
       salesByPaymentMethod[paymentType] =
           (salesByPaymentMethod[paymentType] ?? 0) +
           (t.transaction.subTotal ?? 0.0);
@@ -100,34 +107,34 @@ class ReportService {
 
     final Map<String, double> refundsByPaymentMethod = {};
     for (var t in refundTransactions) {
-      final paymentType = t.transaction.paymentType?.toLowerCase() ?? 'unknown';
+      final paymentType = methodKey(t.transaction);
       refundsByPaymentMethod[paymentType] =
           (refundsByPaymentMethod[paymentType] ?? 0) +
           (t.transaction.subTotal ?? 0.0);
     }
     final Map<String, double> tsByMethod = {};
     for (var t in tsTransactions) {
-      final paymentType = t.transaction.paymentType?.toLowerCase() ?? 'unknown';
+      final paymentType = methodKey(t.transaction);
       tsByMethod[paymentType] =
           (tsByMethod[paymentType] ?? 0) + (t.transaction.subTotal ?? 0.0);
     }
     final Map<String, double> psByMethod = {};
     for (var t in psTransactions) {
-      final paymentType = t.transaction.paymentType?.toLowerCase() ?? 'unknown';
+      final paymentType = methodKey(t.transaction);
       psByMethod[paymentType] =
           (psByMethod[paymentType] ?? 0) + (t.transaction.subTotal ?? 0.0);
     }
     // final Map<String, double> crByMethod = {};
     final Map<String, double> trByMethod = {};
     for (var t in trTransactions) {
-      final paymentType = t.transaction.paymentType?.toLowerCase() ?? 'unknown';
+      final paymentType = methodKey(t.transaction);
       trByMethod[paymentType] =
           (trByMethod[paymentType] ?? 0) + (t.transaction.subTotal ?? 0.0);
     }
     // final Map<String, double> crByMethod = {};
     final Map<String, double> crByMethod = {};
     for (var t in crTransactions) {
-      final paymentType = t.transaction.paymentType?.toLowerCase() ?? 'unknown';
+      final paymentType = methodKey(t.transaction);
       crByMethod[paymentType] =
           (crByMethod[paymentType] ?? 0) + (t.transaction.subTotal ?? 0.0);
     }

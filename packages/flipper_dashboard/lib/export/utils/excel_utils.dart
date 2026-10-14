@@ -3,6 +3,7 @@ import 'package:flipper_models/ebm_helper.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_localize/flipper_localize.dart';
+import 'package:flipper_services/payment_methods.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:syncfusion_flutter_xlsio/xlsio.dart' as excel;
 import '../models/export_config.dart';
@@ -243,10 +244,10 @@ class ExcelUtils {
     }
   }
 
-  /// Normalizes payment method string
+  /// Normalizes payment method string, folding old mobile-money spellings
+  /// (`MTN MOMO`, `Momo`) into one row.
   static String normalizePaymentMethod(String method) {
-    // Convert to uppercase and trim any leading/trailing whitespace
-    return method.trim().toUpperCase();
+    return canonicalPaymentMethod(method).toUpperCase();
   }
 
   /// Adds a payment method sheet to the Excel workbook

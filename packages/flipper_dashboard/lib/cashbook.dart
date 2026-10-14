@@ -17,6 +17,7 @@ import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/constants.dart';
+import 'package:flipper_services/payment_methods.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
@@ -410,12 +411,7 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
   }
 
   bool _isMomoTransaction(ITransaction t) {
-    final p = (t.paymentType ?? '').toUpperCase();
-    if (p.contains('MOMO') ||
-        p.contains('MOBILE MONEY') ||
-        p.contains('AIRTEL')) {
-      return true;
-    }
+    if (isMobileMoneyTender(t.paymentType)) return true;
     return t.status == WAITING_MOMO_COMPLETE;
   }
 
