@@ -16,6 +16,7 @@ void main() {
         'MTN',
         'MTN Mobile Money',
         ' mobile money ',
+        'mobile',
       ]) {
         expect(canonicalPaymentMethod(raw), kMobileMoney, reason: raw);
       }
@@ -34,6 +35,13 @@ void main() {
       expect(canonicalPaymentMethod('CREDIT'), 'CREDIT');
       expect(canonicalPaymentMethod('BANK CHECK'), 'BANK CHECK');
       expect(canonicalPaymentMethod(' OTHER '), 'OTHER');
+      // Whole words only: these merely contain MOBILE / MONEY / MTN letters.
+      expect(
+        canonicalPaymentMethod('MOBILE BANK TRANSFER'),
+        'MOBILE BANK TRANSFER',
+      );
+      expect(canonicalPaymentMethod('Mobile Banking'), 'Mobile Banking');
+      expect(canonicalPaymentMethod('MONEY ORDER'), 'MONEY ORDER');
     });
 
     test('null and blank stay blank', () {
@@ -52,6 +60,7 @@ void main() {
     expect(rraPaymentTypeCode('BANK CHECK'), '04');
     expect(rraPaymentTypeCode('DEBIT&CREDIT CARD'), '05');
     expect(rraPaymentTypeCode('OTHER'), '07');
+    expect(rraPaymentTypeCode('MOBILE BANK TRANSFER'), '07');
     expect(rraPaymentTypeCode(null), '07');
   });
 

@@ -15,7 +15,8 @@ Usage
       --platform windows-x86_64=dist/flipper-windows-x86_64.zip:flipper.exe \
       --platform darwin-aarch64,darwin-x86_64=dist/flipper-darwin-universal.tar.gz:flipper.app
 
-Each --platform is KEYS=ARCHIVE:ENTRY. KEYS is a comma list of launcher
+Each --platform is KEYS=ARCHIVE:ENTRY (for android: android=APP.apk:PACKAGE,
+with --android-package and --version-code). KEYS is a comma list of launcher
 platform keys ({os}-{arch}, as Tauri names them) served by the same archive.
 ENTRY is the path of the executable inside the archive. ARCHIVE.sig must sit
 next to the archive (`tauri signer sign` writes it there). A missing manifest
@@ -32,7 +33,9 @@ import re
 import sys
 
 SCHEMA = 1
-PLATFORM_KEYS = {"windows-x86_64", "darwin-aarch64", "darwin-x86_64", "linux-x86_64"}
+# "android" is one universal APK; ENTRY is then the APK's package name.
+PLATFORM_KEYS = {"windows-x86_64", "darwin-aarch64", "darwin-x86_64", "linux-x86_64", "android"}
+ANDROID_PACKAGE = re.compile(r"^[A-Za-z][A-Za-z0-9_]*(\.[A-Za-z][A-Za-z0-9_]*)+$")
 # MAJOR.MINOR.PATCH with an optional pre-release (1.505.0-beta.12), as the launcher compares them.
 SEMVER = re.compile(r"^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$")
 
@@ -98,6 +101,9 @@ def main(argv: list[str]) -> int:
     ap.add_argument("--notes-file", help="release notes shown in the launcher")
     ap.add_argument("--base-url", required=True, help="release download URL prefix for the archives")
     ap.add_argument("--platform", action="append", required=True)
+    ap.add_argument("--play-package", default="", help="Android package of the Play-store build; Android Atlas links to Play")
+    ap.add_argument("--android-package", default="", help="applicationId of the APK (android platform only)")
+    ap.add_argument("--version-code", type=int, help="versionCode of the APK (android platform only)")
     args = ap.parse_args(argv)
 
     for label, value in (("--version", args.version), ("--min-launcher", args.min_launcher)):
@@ -119,6 +125,21 @@ def main(argv: list[str]) -> int:
     for spec in args.platform:
         platforms.update(parse_platform(spec, args.base_url, release))
 
+    # Android orders installs by versionCode and identifies the app by its
+    # package, so an android entry carries both, and its entry is the package.
+    if "android" in platforms:
+        if not ANDROID_PACKAGE.match(args.android_package):
+            raise SystemExit(f"--android-package must be an Android package name, got {args.android_package!r}")
+        if not args.version_code or args.version_code < 1:
+            raise SystemExit("--version-code (a positive integer) is required for the android platform")
+        if platforms["android"]["entry"] != args.android_package:
+            raise SystemExit(f"android ENTRY must be the package {args.android_package!r}, got {platforms['android']['entry']!r}")
+        platforms["android"] = {**platforms["android"], "package": args.android_package, "version_code": args.version_code}
+    elif args.android_package or args.version_code:
+        raise SystemExit("--android-package/--version-code only apply to the android platform")
+    if args.play_package and not ANDROID_PACKAGE.match(args.play_package):
+        raise SystemExit(f"--play-package must be an Android package name, got {args.play_package!r}")
+
     manifest = load(args.manifest)
     app = next((a for a in manifest["apps"] if a.get("id") == args.app), None)
     if app is None:
@@ -129,7 +150,7 @@ def main(argv: list[str]) -> int:
         raise SystemExit(f"--accent must be #rrggbb, got {args.accent!r}")
     if args.website and not args.website.startswith("https://"):
         raise SystemExit(f"--website must be an https URL, got {args.website!r}")
-    for key in ("icon", "description", "website", "accent"):
+    for key in ("icon", "description", "website", "accent", "play_package"):
         if getattr(args, key):
             app[key] = getattr(args, key)
     channel = app.setdefault("channels", {}).setdefault(args.channel, {})

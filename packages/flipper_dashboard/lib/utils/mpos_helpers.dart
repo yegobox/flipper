@@ -89,3 +89,22 @@ double mposAlreadyPaid(ITransaction transaction, double? fetchedNonCreditPaid) {
   if (fetchedNonCreditPaid == null) return loanFloor;
   return fetchedNonCreditPaid > loanFloor ? fetchedNonCreditPaid : loanFloor;
 }
+
+/// Which cart has a payment read that mobile checkout may trust for Transfer.
+///
+/// Every read takes a ticket from [start]; only the newest ticket may set
+/// [txnId]. [invalidate] (a charge starting) clears [txnId] and voids every
+/// read still in flight, so a pre-charge "nothing paid" can never land late.
+class MposPaidRead {
+  String? txnId;
+  int _generation = 0;
+
+  int start() => ++_generation;
+
+  bool isCurrent(int ticket) => ticket == _generation;
+
+  void invalidate() {
+    txnId = null;
+    _generation++;
+  }
+}
