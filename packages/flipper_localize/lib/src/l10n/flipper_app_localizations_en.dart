@@ -25823,4 +25823,72 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
 
   @override
   String get webHomeNativeDesktop => 'On a computer? Download Atlas';
+
+  @override
+  String get cashResetSectionTitle => 'Danger zone';
+
+  @override
+  String get cashResetTitle => 'Clear Cash Book';
+
+  @override
+  String get cashResetSubtitle =>
+      'Permanently delete Cash In and Cash Out records in every branch of this business';
+
+  @override
+  String get cashResetOpen => 'Review and clear';
+
+  @override
+  String get cashResetPickKinds => 'Which records should be deleted?';
+
+  @override
+  String get cashResetPreview => 'Preview';
+
+  @override
+  String get cashResetNothing => 'There is nothing to delete.';
+
+  @override
+  String cashResetSummary(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count records will be permanently deleted from every branch, together with their ledger entries. This cannot be undone.',
+      one:
+          '1 record will be permanently deleted from every branch, together with its ledger entries. This cannot be undone.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String cashResetKindLine(String kind, int count, String amount) {
+    return '$kind: $count · $amount';
+  }
+
+  @override
+  String cashResetTypeToConfirm(String name) {
+    return 'Type $name to confirm';
+  }
+
+  @override
+  String get cashResetDelete => 'Delete permanently';
+
+  @override
+  String cashResetDone(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Deleted $count records.',
+      one: 'Deleted 1 record.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String cashResetFailed(String error) {
+    return 'Could not clear the Cash Book: $error';
+  }
+
+  @override
+  String get cashResetNotEnabled =>
+      'Clearing the Cash Book is not enabled for this business. Ask Flipper support to enable it for one reset.';
 }

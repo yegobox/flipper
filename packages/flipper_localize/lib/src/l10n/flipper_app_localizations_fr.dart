@@ -26242,4 +26242,72 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
 
   @override
   String get webHomeNativeDesktop => 'Sur un ordinateur ? Téléchargez Atlas';
+
+  @override
+  String get cashResetSectionTitle => 'Zone dangereuse';
+
+  @override
+  String get cashResetTitle => 'Vider le livre de caisse';
+
+  @override
+  String get cashResetSubtitle =>
+      'Supprimer définitivement les entrées et sorties de caisse dans toutes les succursales de cette entreprise';
+
+  @override
+  String get cashResetOpen => 'Vérifier et vider';
+
+  @override
+  String get cashResetPickKinds => 'Quels enregistrements supprimer ?';
+
+  @override
+  String get cashResetPreview => 'Aperçu';
+
+  @override
+  String get cashResetNothing => 'Il n\'y a rien à supprimer.';
+
+  @override
+  String cashResetSummary(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count enregistrements seront définitivement supprimés de toutes les succursales, avec leurs écritures comptables. Cette action est irréversible.',
+      one:
+          '1 enregistrement sera définitivement supprimé de toutes les succursales, avec ses écritures comptables. Cette action est irréversible.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String cashResetKindLine(String kind, int count, String amount) {
+    return '$kind : $count · $amount';
+  }
+
+  @override
+  String cashResetTypeToConfirm(String name) {
+    return 'Saisissez $name pour confirmer';
+  }
+
+  @override
+  String get cashResetDelete => 'Supprimer définitivement';
+
+  @override
+  String cashResetDone(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count enregistrements supprimés.',
+      one: '1 enregistrement supprimé.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String cashResetFailed(String error) {
+    return 'Impossible de vider le livre de caisse : $error';
+  }
+
+  @override
+  String get cashResetNotEnabled =>
+      'Le vidage du livre de caisse n\'est pas activé pour cette entreprise. Demandez au support Flipper de l\'activer pour une seule fois.';
 }

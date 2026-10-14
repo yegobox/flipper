@@ -26055,14 +26055,14 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
 
   @override
   String get webAppsBarBody =>
-      'Fungura konti kuri buri meza cyangwa umukiriya, wishyurire kuri kaisi. Nta cyo kunywa kibura.';
+      'Fungura konti kuri buri meza cyangwa umukiriya, wishyurire kuri kasi. Nta cyo kunywa kibura.';
 
   @override
   String get webAppsKitchenTitle => 'Ekrani y\'igikoni';
 
   @override
   String get webAppsKitchenBody =>
-      'Ibyatumijwe biva kuri kaisi bikajya kuri ekrani y\'igikoni, intambwe ku yindi, kugeza bitanzwe.';
+      'Ibyatumijwe biva kuri kasi bikajya kuri ekrani y\'igikoni, intambwe ku yindi, kugeza bitanzwe.';
 
   @override
   String get webAppsHrTitle => 'Abakozi n\'imishahara';
@@ -26085,4 +26085,58 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
 
   @override
   String get webHomeNativeDesktop => 'Uri kuri mudasobwa? Kuramo Atlas';
+
+  @override
+  String get cashResetSectionTitle => 'Igice cyo kwitonda';
+
+  @override
+  String get cashResetTitle => 'Siba ibyanditswe mu gitabo cy\'amafaranga';
+
+  @override
+  String get cashResetSubtitle =>
+      'Siba burundu amafaranga yinjiye n\'ayasohotse mu mashami yose y\'iki kigo';
+
+  @override
+  String get cashResetOpen => 'Suzuma hanyuma usibe';
+
+  @override
+  String get cashResetPickKinds => 'Ni ibihe byandikwa bisibwa?';
+
+  @override
+  String get cashResetPreview => 'Reba mbere';
+
+  @override
+  String get cashResetNothing => 'Nta kintu cyo gusiba gihari.';
+
+  @override
+  String cashResetSummary(int count) {
+    return 'Ibyandikwa $count bizasibwa burundu mu mashami yose, hamwe n\'ibyanditswe mu ibaruramari. Ntibishobora gusubizwaho.';
+  }
+
+  @override
+  String cashResetKindLine(String kind, int count, String amount) {
+    return '$kind: $count · $amount';
+  }
+
+  @override
+  String cashResetTypeToConfirm(String name) {
+    return 'Andika $name kugira ngo wemeze';
+  }
+
+  @override
+  String get cashResetDelete => 'Siba burundu';
+
+  @override
+  String cashResetDone(int count) {
+    return 'Ibyandikwa $count byasibwe.';
+  }
+
+  @override
+  String cashResetFailed(String error) {
+    return 'Ntibyashobotse gusiba ibyanditswe mu gitabo cy\'amafaranga: $error';
+  }
+
+  @override
+  String get cashResetNotEnabled =>
+      'Gusiba ibyanditswe mu gitabo cy\'amafaranga ntibyemerewe iki kigo. Saba ubufasha bwa Flipper kubyemera rimwe.';
 }

@@ -25994,4 +25994,58 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
 
   @override
   String get webHomeNativeDesktop => 'Uko kwenye kompyuta? Pakua Atlas';
+
+  @override
+  String get cashResetSectionTitle => 'Eneo la hatari';
+
+  @override
+  String get cashResetTitle => 'Futa rekodi za daftari la fedha';
+
+  @override
+  String get cashResetSubtitle =>
+      'Futa kabisa rekodi za pesa iliyoingia na iliyotoka katika matawi yote ya biashara hii';
+
+  @override
+  String get cashResetOpen => 'Kagua na ufute';
+
+  @override
+  String get cashResetPickKinds => 'Ni rekodi zipi zifutwe?';
+
+  @override
+  String get cashResetPreview => 'Hakiki';
+
+  @override
+  String get cashResetNothing => 'Hakuna cha kufuta.';
+
+  @override
+  String cashResetSummary(int count) {
+    return 'Rekodi $count zitafutwa kabisa kutoka matawi yote, pamoja na maingizo yake ya hesabu. Hatua hii haiwezi kutenduliwa.';
+  }
+
+  @override
+  String cashResetKindLine(String kind, int count, String amount) {
+    return '$kind: $count · $amount';
+  }
+
+  @override
+  String cashResetTypeToConfirm(String name) {
+    return 'Andika $name ili kuthibitisha';
+  }
+
+  @override
+  String get cashResetDelete => 'Futa kabisa';
+
+  @override
+  String cashResetDone(int count) {
+    return 'Rekodi $count zimefutwa.';
+  }
+
+  @override
+  String cashResetFailed(String error) {
+    return 'Imeshindwa kufuta rekodi za daftari la fedha: $error';
+  }
+
+  @override
+  String get cashResetNotEnabled =>
+      'Kufuta rekodi za daftari la fedha hakujawashwa kwa biashara hii. Omba msaada wa Flipper uwashe mara moja.';
 }
