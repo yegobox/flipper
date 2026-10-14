@@ -1064,10 +1064,13 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
         ref.watch(isDigitalPaymentEnabledProvider).asData?.value ?? false;
 
     final txn = transactionAsync.value ?? widget.transaction;
-    // Sale → Transfer: >1 branch, no till ticket, and this cart's payments
+    // Sale → Transfer: >1 branch, no till ticket, no charge under way (the
+    // transfer footer replaces the charge one), and this cart's payments
     // read back as nothing paid yet.
     final canTransfer =
         ref.watch(canOfferBranchTransferProvider) &&
+        _chargeState != ChargeButtonState.waitingForPayment &&
+        _chargeState != ChargeButtonState.printingReceipt &&
         _paidReadTxnId == txn.id &&
         _canModifyItems(txn);
     final isTransfer = canTransfer && _mode == CheckoutCartMode.transfer;
