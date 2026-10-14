@@ -60,6 +60,7 @@ jobs:
         env:
           # The Bridge release key's certificate SHA-256 (repo variable), once known.
           PIN: ${{ vars.SMS_BRIDGE_CERT_SHA256 }}
+          EVENT: ${{ github.event_name }}
         run: |
           set -euo pipefail
           BT="$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)"
@@ -79,7 +80,14 @@ jobs:
           if [[ -n "$PIN" && "$CERT" != "$PIN" ]]; then
             echo "::error::APK signer $CERT is not the SMS Bridge release key"; exit 1
           fi
-          [[ -n "$PIN" ]] || echo "::warning::repo variable SMS_BRIDGE_CERT_SHA256 is not set; set it to $CERT to pin the signer"
+          # Unpinned, nothing proves this is the release key: automatic runs
+          # refuse to publish, and only a manual run may bootstrap the pin.
+          if [[ -z "$PIN" ]]; then
+            if [[ "$EVENT" == "workflow_run" ]]; then
+              echo "::error::SMS_BRIDGE_CERT_SHA256 is not set; set it to $CERT to publish"; exit 1
+            fi
+            echo "::warning::repo variable SMS_BRIDGE_CERT_SHA256 is not set; set it to $CERT to pin the signer"
+          fi
           {
             echo "apk=$APK"
             echo "code=$CODE"
