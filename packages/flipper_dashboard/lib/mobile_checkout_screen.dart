@@ -92,10 +92,18 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
   bool _isClearingCustomer = false;
   double? _cachedNonCreditPaid;
 
-  /// The cart whose payments were last read successfully. Transfer is only
-  /// offered for that cart: before the read lands, or when it failed, a paid
-  /// cart could otherwise look unpaid.
+  /// Cart with a good payment read; cleared on charge, re-read on failure.
   String? _paidReadTxnId;
+
+  Future<void> _readPaid(String txnId) async {
+    final paid = await tryFetchNonCreditPaid(txnId);
+    if (!mounted) return;
+    setState(() {
+      _cachedNonCreditPaid = paid ?? 0.0;
+      _paidReadTxnId = paid == null ? null : txnId;
+    });
+  }
+
   bool _sendToTillBusy = false;
   bool _backToNewSaleBusy = false;
   CheckoutCartMode _mode = CheckoutCartMode.sale;
@@ -590,6 +598,7 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
 
     setState(() {
       _isImmediateCompletion = immediateCompletion;
+      _paidReadTxnId = null;
       _chargeState = immediateCompletion
           ? ChargeButtonState.printingReceipt
           : ChargeButtonState.waitingForPayment;
@@ -607,6 +616,7 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
         if (mounted) {
           setState(() => _chargeState = ChargeButtonState.failed);
           ref.read(oldProvider.loadingProvider.notifier).stopLoading();
+          unawaited(_readPaid(_transactionId));
           showErrorNotification(context, error);
         }
       }
@@ -632,6 +642,7 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
       if (mounted) {
         setState(() => _chargeState = ChargeButtonState.failed);
         ref.read(oldProvider.loadingProvider.notifier).stopLoading();
+        unawaited(_readPaid(_transactionId));
         showErrorNotification(context, context.flipperL10n.mposErrorOccurred);
       }
     }
@@ -1064,13 +1075,10 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
         ref.watch(isDigitalPaymentEnabledProvider).asData?.value ?? false;
 
     final txn = transactionAsync.value ?? widget.transaction;
-    // Sale → Transfer: >1 branch, no till ticket, no charge under way (the
-    // transfer footer replaces the charge one), and this cart's payments
-    // read back as nothing paid yet.
+    // Sale → Transfer: >1 branch, no till ticket, and a payment read since the
+    // last charge started (see [_paidReadTxnId]) found nothing paid.
     final canTransfer =
         ref.watch(canOfferBranchTransferProvider) &&
-        _chargeState != ChargeButtonState.waitingForPayment &&
-        _chargeState != ChargeButtonState.printingReceipt &&
         _paidReadTxnId == txn.id &&
         _canModifyItems(txn);
     final isTransfer = canTransfer && _mode == CheckoutCartMode.transfer;
@@ -1152,12 +1160,8 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
                 _lastTransactionId = currentId;
                 WidgetsBinding.instance.addPostFrameCallback((_) async {
                   if (!mounted) return;
-                  final nonCreditPaid = await tryFetchNonCreditPaid(txn.id);
+                  await _readPaid(txn.id);
                   if (!mounted) return;
-                  setState(() {
-                    _cachedNonCreditPaid = nonCreditPaid ?? 0.0;
-                    _paidReadTxnId = nonCreditPaid == null ? null : txn.id;
-                  });
                   standardizedPaymentInitialization(
                     ref: ref,
                     transaction: txn,
