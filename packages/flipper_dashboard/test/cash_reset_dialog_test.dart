@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flipper_dashboard/features/admin/widgets/cash_reset_dialog.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/cash_movement_reset_client.dart';
@@ -112,6 +114,76 @@ void main() {
     expect(fake.resets.single.$2, 'kigali shop');
     expect(find.byType(CashResetDialog), findsNothing);
     expect(find.text('Deleted 3 records.'), findsOneWidget);
+  });
+
+  testWidgets('a second tap while the admin check is open deletes once', (
+    tester,
+  ) async {
+    final fake = _FakeClient();
+    final gate = Completer<bool>();
+    var checks = 0;
+    await tester.pumpWidget(
+      host(
+        fake,
+        verifyAdmin: (_) {
+          checks++;
+          return gate.future;
+        },
+      ),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('cash-reset-preview')));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const ValueKey('cash-reset-confirm')),
+      'Kigali Shop',
+    );
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('cash-reset-delete')));
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('cash-reset-delete')));
+    await tester.pump();
+    expect(checks, 1);
+
+    gate.complete(true);
+    await tester.pumpAndSettle();
+    expect(fake.resets, hasLength(1));
+  });
+
+  testWidgets('a failing admin check frees the Delete button again', (
+    tester,
+  ) async {
+    final fake = _FakeClient();
+    var checks = 0;
+    await tester.pumpWidget(
+      host(
+        fake,
+        verifyAdmin: (_) async {
+          checks++;
+          if (checks == 1) throw StateError('pin pad crashed');
+          return true;
+        },
+      ),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('cash-reset-preview')));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const ValueKey('cash-reset-confirm')),
+      'Kigali Shop',
+    );
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('cash-reset-delete')));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('pin pad crashed'), findsOneWidget);
+    expect(fake.resets, isEmpty);
+
+    await tester.tap(find.byKey(const ValueKey('cash-reset-delete')));
+    await tester.pumpAndSettle();
+    expect(checks, 2);
+    expect(fake.resets, hasLength(1));
   });
 
   testWidgets('a refused admin PIN deletes nothing', (tester) async {
