@@ -2819,6 +2819,55 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   }
 
   @override
+  String smsReviewBanner(int count) {
+    return 'SMS za benki na MoMo za kukagua: $count';
+  }
+
+  @override
+  String get smsReviewTitle => 'SMS za benki na MoMo';
+
+  @override
+  String get smsReviewSubtitle =>
+      'Thibitisha kila moja kuiongeza kwenye daftari la fedha. Books huioanisha na mstari wa benki yenyewe.';
+
+  @override
+  String get smsReviewMoneyIn => 'Pesa zilizoingia';
+
+  @override
+  String get smsReviewMoneyOut => 'Pesa zilizotoka';
+
+  @override
+  String get smsReviewCharge => 'Gharama ya benki';
+
+  @override
+  String get smsReviewLowConfidence =>
+      'Hakiki kiasi: ujumbe huu ulisomwa kwa makadirio.';
+
+  @override
+  String get smsReviewCategory => 'Kundi (si lazima)';
+
+  @override
+  String get smsReviewConfirm => 'Ongeza kwenye daftari la fedha';
+
+  @override
+  String get smsReviewTransfer => 'Uhamisho kati ya akaunti zangu';
+
+  @override
+  String get smsReviewIgnore => 'Puuza';
+
+  @override
+  String get smsReviewConfirmed => 'Imeongezwa kwenye daftari la fedha';
+
+  @override
+  String get smsReviewTakenElsewhere =>
+      'Tayari imeshughulikiwa kwenye kifaa kingine';
+
+  @override
+  String smsReviewFailed(String error) {
+    return 'Imeshindwa kuhifadhi: $error';
+  }
+
+  @override
   String get cashbookTitle => 'Daftari la fedha';
 
   @override
@@ -21692,6 +21741,12 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   String get booksBankCatOtherIncomeHint => 'Chochote kingine kilichopokelewa';
 
   @override
+  String get booksBankRecAccountBank => 'Benki (1020)';
+
+  @override
+  String get booksBankRecAccountMomo => 'Pesa kwa simu (1030)';
+
+  @override
   String get booksBankCatBankFee => 'Ada / gharama ya benki';
 
   @override
@@ -25994,6 +26049,59 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
 
   @override
   String get webHomeNativeDesktop => 'Uko kwenye kompyuta? Pakua Atlas';
+
+  @override
+  String get smsBridgeTitle => 'Daraja la SMS';
+
+  @override
+  String get smsBridgeSubtitle =>
+      'Soma SMS za benki na MoMo kutoka simu hadi daftari la fedha';
+
+  @override
+  String get smsBridgeIntro =>
+      'Sakinisha programu ya Flipper SMS Bridge kwenye simu inayopokea ujumbe wa benki na MoMo, kisha uchanganue msimbo huu nayo.';
+
+  @override
+  String get smsBridgePairPhone => 'Unganisha simu';
+
+  @override
+  String smsBridgeCodeExpires(String time) {
+    return 'Msimbo unaisha saa $time';
+  }
+
+  @override
+  String get smsBridgeTypeCode => 'Au andika msimbo huu kwenye programu:';
+
+  @override
+  String get smsBridgeDevices => 'Simu zilizounganishwa';
+
+  @override
+  String get smsBridgeNoDevices => 'Bado hakuna simu iliyounganishwa';
+
+  @override
+  String smsBridgeLastSeen(String when) {
+    return 'Ilitumika mara ya mwisho $when';
+  }
+
+  @override
+  String get smsBridgeNeverSeen => 'Bado haijatumika';
+
+  @override
+  String get smsBridgeRevoke => 'Tenganisha';
+
+  @override
+  String get smsBridgeRevokeConfirm =>
+      'Tenganisha simu hii? Itaacha kutuma SMS kwa Flipper mara moja.';
+
+  @override
+  String smsBridgeDownload(String url) {
+    return 'Pata programu: $url';
+  }
+
+  @override
+  String smsBridgeError(String error) {
+    return 'Imeshindwa kufikia Flipper: $error';
+  }
 
   @override
   String get cashResetSectionTitle => 'Eneo la hatari';

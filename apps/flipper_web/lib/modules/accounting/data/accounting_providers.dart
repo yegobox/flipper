@@ -63,28 +63,32 @@ final mobileReportProvider = StateProvider<MobileReportKey?>((ref) => null);
 
 enum ApprovalAction { approve, reject }
 
-final approvalActionsProvider =
-    StateProvider<Map<String, ApprovalAction>>((ref) => {});
+final approvalActionsProvider = StateProvider<Map<String, ApprovalAction>>(
+  (ref) => {},
+);
 
 /// Local bank-rec lines (design handoff seed or user edits). Falls back to ledger stream.
 final bankRecLocalLinesProvider = StateProvider<List<BankLine>?>((ref) => null);
 
 final bankRecFinishedProvider = StateProvider<bool>((ref) => false);
 
+/// The ledger account bank reconciliation works on: Bank (1020), or Mobile
+/// money (1030), where SMS Bridge MoMo and Airtel Money lines land.
+final bankRecAccountCodeProvider = StateProvider<String>((ref) => '1020');
+
 /// Metadata (bank name, closing balance, period) from the most recently
 /// imported statement — drives the statement-balance KPI card.
-final bankStatementMetaProvider = StateProvider<ParsedStatement?>((ref) => null);
+final bankStatementMetaProvider = StateProvider<ParsedStatement?>(
+  (ref) => null,
+);
 
 final bankStatementServiceProvider = Provider<BankStatementService>(
-  (ref) => BankStatementService(
-    analytics: ref.watch(productAnalyticsProvider),
-  ),
+  (ref) => BankStatementService(analytics: ref.watch(productAnalyticsProvider)),
 );
 
 final journalApprovalServiceProvider = Provider<JournalApprovalService>(
-  (ref) => JournalApprovalService(
-    analytics: ref.watch(productAnalyticsProvider),
-  ),
+  (ref) =>
+      JournalApprovalService(analytics: ref.watch(productAnalyticsProvider)),
 );
 
 final accountingBootstrapServiceProvider = Provider<AccountingBootstrapService>(
@@ -136,8 +140,7 @@ final accountingBusinessIdProvider = Provider<String>((ref) {
   return business?.id ?? '';
 });
 
-final accountingDateRangeProvider =
-    StateProvider<(DateTime, DateTime)>((ref) {
+final accountingDateRangeProvider = StateProvider<(DateTime, DateTime)>((ref) {
   final now = DateTime.now();
   // End at the LAST day of the current month, not `now`. `now` is captured once
   // at provider init, so on a long-running session it goes stale and silently
@@ -160,16 +163,17 @@ final accountingRepositoryProvider = Provider<AccountingRepository>((ref) {
   return SupabaseAccountingRepository(ref.watch(supabaseProvider));
 });
 
-final accountingLedgerRepositoryProvider =
-    Provider<AccountingLedgerRepository>((ref) {
-  final strategy = ref.watch(accountingBackendStrategyProvider);
-  if (strategy == AccountingBackendStrategy.ditto) {
-    debugPrint('[Accounting] ledger repository → ditto');
-    return DittoAccountingLedgerRepository(ref.watch(dittoServiceProvider));
-  }
-  debugPrint('[Accounting] ledger repository → supabase');
-  return SupabaseAccountingLedgerRepository(ref.watch(supabaseProvider));
-});
+final accountingLedgerRepositoryProvider = Provider<AccountingLedgerRepository>(
+  (ref) {
+    final strategy = ref.watch(accountingBackendStrategyProvider);
+    if (strategy == AccountingBackendStrategy.ditto) {
+      debugPrint('[Accounting] ledger repository → ditto');
+      return DittoAccountingLedgerRepository(ref.watch(dittoServiceProvider));
+    }
+    debugPrint('[Accounting] ledger repository → supabase');
+    return SupabaseAccountingLedgerRepository(ref.watch(supabaseProvider));
+  },
+);
 
 Completer<void>? _accountingBootstrapInFlight;
 String _accountingBootstrapScopeKey = '';
@@ -258,15 +262,13 @@ void kickoffAccountingServerBootstrap(
             'alreadyReady=${r.alreadyReady}',
           ),
         )
-        .catchError(
-          (Object e) {
-            debugPrint(
-              '[Accounting] server bootstrap kickoff failed '
-              '(continuing with Ditto poll): $e',
-            );
-            onOffline?.call();
-          },
-        ),
+        .catchError((Object e) {
+          debugPrint(
+            '[Accounting] server bootstrap kickoff failed '
+            '(continuing with Ditto poll): $e',
+          );
+          onOffline?.call();
+        }),
   );
 }
 
@@ -284,11 +286,10 @@ Future<void> coaFallbackSeedInContainer(
   if (businessId.isEmpty) return;
 
   try {
-    await SupabaseAccountingLedgerRepository(container.read(supabaseProvider))
-        .ensureSeeded(businessId: businessId);
-    debugPrint(
-      '[Accounting] Supabase COA fallback OK businessId=$businessId',
-    );
+    await SupabaseAccountingLedgerRepository(
+      container.read(supabaseProvider),
+    ).ensureSeeded(businessId: businessId);
+    debugPrint('[Accounting] Supabase COA fallback OK businessId=$businessId');
   } catch (e) {
     debugPrint('[Accounting] Supabase COA fallback failed: $e');
   }
@@ -437,9 +438,9 @@ final accountingCoaBootstrapProvider = FutureProvider<void>((ref) async {
     }
   } else {
     try {
-      await ref.read(accountingLedgerRepositoryProvider).ensureSeeded(
-            businessId: businessId,
-          );
+      await ref
+          .read(accountingLedgerRepositoryProvider)
+          .ensureSeeded(businessId: businessId);
       debugPrint(
         '[Accounting] ensureSeeded OK (businessId=$businessId via supabase)',
       );
@@ -474,9 +475,7 @@ final accountingJournalReplicationProvider = FutureProvider<void>((ref) async {
   final journalReady = await waitForJournalEntriesInDitto(
     ditto: instance,
     businessId: businessId,
-    timeout: kIsWeb
-        ? const Duration(seconds: 15)
-        : const Duration(seconds: 45),
+    timeout: kIsWeb ? const Duration(seconds: 15) : const Duration(seconds: 45),
   );
   if (!journalReady) {
     debugPrint(
@@ -501,25 +500,27 @@ final accountingDittoSyncProvider = Provider<void>((ref) {
 
 Stream<List<T>> _accountingEmptyStream<T>() => Stream.value(<T>[]);
 
-final rawTransactionStreamProvider =
-    StreamProvider<List<Map<String, dynamic>>>((ref) {
-  if (ref.watch(accountingBackendStrategyProvider) ==
-          AccountingBackendStrategy.ditto &&
-      !ref.watch(dittoReadyProvider)) {
-    return _accountingEmptyStream<Map<String, dynamic>>();
-  }
-  final repo = ref.watch(accountingRepositoryProvider);
-  final branchId = ref.watch(accountingBranchIdProvider);
-  final (start, end) = ref.watch(accountingDateRangeProvider);
-  return repo.watchTransactions(
-    branchId: branchId,
-    startDate: start,
-    endDate: end,
-  );
-});
+final rawTransactionStreamProvider = StreamProvider<List<Map<String, dynamic>>>(
+  (ref) {
+    if (ref.watch(accountingBackendStrategyProvider) ==
+            AccountingBackendStrategy.ditto &&
+        !ref.watch(dittoReadyProvider)) {
+      return _accountingEmptyStream<Map<String, dynamic>>();
+    }
+    final repo = ref.watch(accountingRepositoryProvider);
+    final branchId = ref.watch(accountingBranchIdProvider);
+    final (start, end) = ref.watch(accountingDateRangeProvider);
+    return repo.watchTransactions(
+      branchId: branchId,
+      startDate: start,
+      endDate: end,
+    );
+  },
+);
 
-final rawTransactionItemsProvider =
-    FutureProvider<List<Map<String, dynamic>>>((ref) async {
+final rawTransactionItemsProvider = FutureProvider<List<Map<String, dynamic>>>((
+  ref,
+) async {
   final txns = ref.watch(rawTransactionStreamProvider).value ?? [];
   final ids = txns
       .map((t) => (t['id'] ?? t['_id'] ?? '').toString())
@@ -527,9 +528,9 @@ final rawTransactionItemsProvider =
       .toSet()
       .toList();
   if (ids.isEmpty) return [];
-  return ref.watch(accountingRepositoryProvider).fetchTransactionItems(
-        transactionIds: ids,
-      );
+  return ref
+      .watch(accountingRepositoryProvider)
+      .fetchTransactionItems(transactionIds: ids);
 });
 
 // ─── Ledger streams ──────────────────────────────────────────────────────────
@@ -556,7 +557,9 @@ final journalEntriesStreamProvider = StreamProvider<List<JournalEntry>>((ref) {
   final businessId = ref.watch(accountingBusinessIdProvider);
   if (businessId.isEmpty) return _accountingEmptyStream<JournalEntry>();
   final (start, end) = ref.watch(accountingDateRangeProvider);
-  return ref.watch(accountingLedgerRepositoryProvider).watchJournalEntries(
+  return ref
+      .watch(accountingLedgerRepositoryProvider)
+      .watchJournalEntries(
         businessId: businessId,
         startDate: start,
         endDate: end,
@@ -566,8 +569,11 @@ final journalEntriesStreamProvider = StreamProvider<List<JournalEntry>>((ref) {
 final bankLinesStreamProvider = StreamProvider<List<BankLine>>((ref) {
   final businessId = ref.watch(accountingBusinessIdProvider);
   if (businessId.isEmpty) return _accountingEmptyStream<BankLine>();
-  return ref.watch(accountingLedgerRepositoryProvider).watchBankLines(
+  return ref
+      .watch(accountingLedgerRepositoryProvider)
+      .watchBankLines(
         businessId: businessId,
+        bankAccountCode: ref.watch(bankRecAccountCodeProvider),
       );
 });
 
@@ -620,9 +626,9 @@ final accountingInventoryValueProvider = FutureProvider<int>((ref) async {
   }
   final branchId = ref.watch(accountingBranchIdProvider);
   if (branchId.isEmpty) return 0;
-  return ref.watch(accountingLedgerRepositoryProvider).fetchInventoryValue(
-        branchId: branchId,
-      );
+  return ref
+      .watch(accountingLedgerRepositoryProvider)
+      .fetchInventoryValue(branchId: branchId);
 });
 
 /// Open receivables/payables are balances, not period flows: a loan from a
@@ -630,15 +636,15 @@ final accountingInventoryValueProvider = FutureProvider<int>((ref) async {
 /// transactions for the branch, ignoring the selected accounting period.
 final rawAllTransactionsStreamProvider =
     StreamProvider<List<Map<String, dynamic>>>((ref) {
-  if (ref.watch(accountingBackendStrategyProvider) ==
-          AccountingBackendStrategy.ditto &&
-      !ref.watch(dittoReadyProvider)) {
-    return const Stream.empty();
-  }
-  final repo = ref.watch(accountingRepositoryProvider);
-  final branchId = ref.watch(accountingBranchIdProvider);
-  return repo.watchTransactions(branchId: branchId);
-});
+      if (ref.watch(accountingBackendStrategyProvider) ==
+              AccountingBackendStrategy.ditto &&
+          !ref.watch(dittoReadyProvider)) {
+        return const Stream.empty();
+      }
+      final repo = ref.watch(accountingRepositoryProvider);
+      final branchId = ref.watch(accountingBranchIdProvider);
+      return repo.watchTransactions(branchId: branchId);
+    });
 
 final accountingArAgingProvider = Provider<List<AgingRow>>((ref) {
   final txns = ref.watch(rawAllTransactionsStreamProvider).value ?? [];
@@ -677,7 +683,8 @@ final accountingVatProvider = Provider<VatInfo?>((ref) {
   if (outputVat == 0 && inputVat == 0) return null;
 
   final (_, end) = ref.watch(accountingDateRangeProvider);
-  final dueDay = _rawInt(settings?['vat_due_day'] ?? settings?['vatDueDay']) == 0
+  final dueDay =
+      _rawInt(settings?['vat_due_day'] ?? settings?['vatDueDay']) == 0
       ? 15
       : _rawInt(settings?['vat_due_day'] ?? settings?['vatDueDay']);
   final dueMonth = DateTime(end.year, end.month + 1, dueDay);
@@ -698,8 +705,9 @@ final accountingBankLinesProvider = Provider<List<BankLine>>((ref) {
   return ref.watch(bankLinesStreamProvider).value ?? [];
 });
 
-final accountingSettingsProvider =
-    FutureProvider<Map<String, dynamic>?>((ref) async {
+final accountingSettingsProvider = FutureProvider<Map<String, dynamic>?>((
+  ref,
+) async {
   if (ref.watch(accountingBackendStrategyProvider) ==
           AccountingBackendStrategy.ditto &&
       !ref.watch(dittoReadyProvider)) {
@@ -707,9 +715,9 @@ final accountingSettingsProvider =
   }
   final businessId = ref.watch(accountingBusinessIdProvider);
   if (businessId.isEmpty) return null;
-  return ref.watch(accountingLedgerRepositoryProvider).fetchSettings(
-        businessId: businessId,
-      );
+  return ref
+      .watch(accountingLedgerRepositoryProvider)
+      .fetchSettings(businessId: businessId);
 });
 
 // ─── Context metadata ────────────────────────────────────────────────────────
@@ -832,13 +840,11 @@ Future<void> logAccountingStartupDiagnostics(Ref ref) async {
       final journalRows = await ditto.queryCollection(
         'journal_entries',
         'SELECT status FROM journal_entries '
-        'WHERE businessId = :businessId OR business_id = :businessId',
+            'WHERE businessId = :businessId OR business_id = :businessId',
         {'businessId': businessId},
       );
-      final pending =
-          journalRows.where((r) => r['status'] == 'pending').length;
-      final posted =
-          journalRows.where((r) => r['status'] == 'posted').length;
+      final pending = journalRows.where((r) => r['status'] == 'pending').length;
+      final posted = journalRows.where((r) => r['status'] == 'posted').length;
       debugPrint(
         '[Accounting] journal_entries: ${journalRows.length} total '
         '($posted posted, $pending pending)',
@@ -849,12 +855,10 @@ Future<void> logAccountingStartupDiagnostics(Ref ref) async {
         final txRows = await ditto.queryCollection(
           'transactions',
           'SELECT _id FROM transactions '
-          'WHERE branchId = :branchId OR branch_id = :branchId',
+              'WHERE branchId = :branchId OR branch_id = :branchId',
           {'branchId': branchId},
         );
-        debugPrint(
-          '[Accounting] transactions (branch): ${txRows.length} rows',
-        );
+        debugPrint('[Accounting] transactions (branch): ${txRows.length} rows');
       }
     }
   } catch (e) {

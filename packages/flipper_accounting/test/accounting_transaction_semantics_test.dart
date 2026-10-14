@@ -69,6 +69,8 @@ void main() {
     test('mobile money and cash keep their accounts', () {
       expect(code('MOBILE MONEY'), '1030');
       expect(code('MTN MOMO'), '1030');
+      expect(code('AIRTEL MONEY'), '1030');
+      expect(code('MTN MOMO'), '1030');
       expect(code('CASH'), '1010');
     });
 

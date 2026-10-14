@@ -5087,6 +5087,90 @@ abstract class FlipperAppLocalizations {
   /// **'Personal goal: {goal}'**
   String cashbookPersonalGoalNote(String goal);
 
+  /// No description provided for @smsReviewBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'Bank & MoMo SMS to review: {count}'**
+  String smsReviewBanner(int count);
+
+  /// No description provided for @smsReviewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Bank & MoMo SMS'**
+  String get smsReviewTitle;
+
+  /// No description provided for @smsReviewSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm each one to add it to the Cash Book. Books matches it to the bank line automatically.'**
+  String get smsReviewSubtitle;
+
+  /// No description provided for @smsReviewMoneyIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Money in'**
+  String get smsReviewMoneyIn;
+
+  /// No description provided for @smsReviewMoneyOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Money out'**
+  String get smsReviewMoneyOut;
+
+  /// No description provided for @smsReviewCharge.
+  ///
+  /// In en, this message translates to:
+  /// **'Bank charge'**
+  String get smsReviewCharge;
+
+  /// No description provided for @smsReviewLowConfidence.
+  ///
+  /// In en, this message translates to:
+  /// **'Check the amount: this message was read loosely.'**
+  String get smsReviewLowConfidence;
+
+  /// No description provided for @smsReviewCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Category (optional)'**
+  String get smsReviewCategory;
+
+  /// No description provided for @smsReviewConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to Cash Book'**
+  String get smsReviewConfirm;
+
+  /// No description provided for @smsReviewTransfer.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer between my accounts'**
+  String get smsReviewTransfer;
+
+  /// No description provided for @smsReviewIgnore.
+  ///
+  /// In en, this message translates to:
+  /// **'Ignore'**
+  String get smsReviewIgnore;
+
+  /// No description provided for @smsReviewConfirmed.
+  ///
+  /// In en, this message translates to:
+  /// **'Added to the Cash Book'**
+  String get smsReviewConfirmed;
+
+  /// No description provided for @smsReviewTakenElsewhere.
+  ///
+  /// In en, this message translates to:
+  /// **'Already handled on another device'**
+  String get smsReviewTakenElsewhere;
+
+  /// No description provided for @smsReviewFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save: {error}'**
+  String smsReviewFailed(String error);
+
   /// No description provided for @cashbookTitle.
   ///
   /// In en, this message translates to:
@@ -35893,6 +35977,18 @@ abstract class FlipperAppLocalizations {
   /// **'Anything else received'**
   String get booksBankCatOtherIncomeHint;
 
+  /// No description provided for @booksBankRecAccountBank.
+  ///
+  /// In en, this message translates to:
+  /// **'Bank (1020)'**
+  String get booksBankRecAccountBank;
+
+  /// No description provided for @booksBankRecAccountMomo.
+  ///
+  /// In en, this message translates to:
+  /// **'Mobile money (1030)'**
+  String get booksBankRecAccountMomo;
+
   /// No description provided for @booksBankCatBankFee.
   ///
   /// In en, this message translates to:
@@ -43198,6 +43294,90 @@ abstract class FlipperAppLocalizations {
   /// In en, this message translates to:
   /// **'On a computer? Download Atlas'**
   String get webHomeNativeDesktop;
+
+  /// No description provided for @smsBridgeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'SMS Bridge'**
+  String get smsBridgeTitle;
+
+  /// No description provided for @smsBridgeSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Read bank and MoMo SMS from a phone into the Cash Book'**
+  String get smsBridgeSubtitle;
+
+  /// No description provided for @smsBridgeIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Install the Flipper SMS Bridge app on the phone that receives your bank and MoMo messages, then scan this code with it.'**
+  String get smsBridgeIntro;
+
+  /// No description provided for @smsBridgePairPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Pair a phone'**
+  String get smsBridgePairPhone;
+
+  /// No description provided for @smsBridgeCodeExpires.
+  ///
+  /// In en, this message translates to:
+  /// **'Code expires at {time}'**
+  String smsBridgeCodeExpires(String time);
+
+  /// No description provided for @smsBridgeTypeCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Or type this code in the app:'**
+  String get smsBridgeTypeCode;
+
+  /// No description provided for @smsBridgeDevices.
+  ///
+  /// In en, this message translates to:
+  /// **'Paired phones'**
+  String get smsBridgeDevices;
+
+  /// No description provided for @smsBridgeNoDevices.
+  ///
+  /// In en, this message translates to:
+  /// **'No phone paired yet'**
+  String get smsBridgeNoDevices;
+
+  /// No description provided for @smsBridgeLastSeen.
+  ///
+  /// In en, this message translates to:
+  /// **'Last active {when}'**
+  String smsBridgeLastSeen(String when);
+
+  /// No description provided for @smsBridgeNeverSeen.
+  ///
+  /// In en, this message translates to:
+  /// **'Not active yet'**
+  String get smsBridgeNeverSeen;
+
+  /// No description provided for @smsBridgeRevoke.
+  ///
+  /// In en, this message translates to:
+  /// **'Unpair'**
+  String get smsBridgeRevoke;
+
+  /// No description provided for @smsBridgeRevokeConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Unpair this phone? It stops sending SMS to Flipper at once.'**
+  String get smsBridgeRevokeConfirm;
+
+  /// No description provided for @smsBridgeDownload.
+  ///
+  /// In en, this message translates to:
+  /// **'Get the app: {url}'**
+  String smsBridgeDownload(String url);
+
+  /// No description provided for @smsBridgeError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not reach Flipper: {error}'**
+  String smsBridgeError(String error);
 
   /// Admin Control danger zone: clear all Cash In / Cash Out for the business
   ///

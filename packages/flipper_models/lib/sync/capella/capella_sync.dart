@@ -889,6 +889,7 @@ class CapellaSync extends AiStrategyImpl
     String? categoryId,
     String? note,
     bool skipPersonalGoalAutoSweep = false,
+    DateTime? occurredAt,
   }) async {
     // Resolve the variant before minting the pending row: failing after
     // [manageTransaction] left an orphan PENDING movement that the next one
@@ -982,7 +983,13 @@ class CapellaSync extends AiStrategyImpl
       paymentType: txn.paymentType,
       receiptType: movementReceipt,
     );
-    await _persistCashMovementClassification(txn.id, classification);
+    // Back-dated movement (e.g. a bank SMS confirmed days later): stamp the
+    // day the money moved, so the Cash Book and the journal entry land on it.
+    await _persistCashMovementClassification(txn.id, {
+      ...classification,
+      if (occurredAt != null) 'createdAt': occurredAt.toIso8601String(),
+    });
+    if (occurredAt != null) txn.createdAt = occurredAt;
     await updateTransaction(
       transaction: txn,
       receiptType: movementReceipt,

@@ -2799,6 +2799,54 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
   }
 
   @override
+  String smsReviewBanner(int count) {
+    return 'Bank & MoMo SMS to review: $count';
+  }
+
+  @override
+  String get smsReviewTitle => 'Bank & MoMo SMS';
+
+  @override
+  String get smsReviewSubtitle =>
+      'Confirm each one to add it to the Cash Book. Books matches it to the bank line automatically.';
+
+  @override
+  String get smsReviewMoneyIn => 'Money in';
+
+  @override
+  String get smsReviewMoneyOut => 'Money out';
+
+  @override
+  String get smsReviewCharge => 'Bank charge';
+
+  @override
+  String get smsReviewLowConfidence =>
+      'Check the amount: this message was read loosely.';
+
+  @override
+  String get smsReviewCategory => 'Category (optional)';
+
+  @override
+  String get smsReviewConfirm => 'Add to Cash Book';
+
+  @override
+  String get smsReviewTransfer => 'Transfer between my accounts';
+
+  @override
+  String get smsReviewIgnore => 'Ignore';
+
+  @override
+  String get smsReviewConfirmed => 'Added to the Cash Book';
+
+  @override
+  String get smsReviewTakenElsewhere => 'Already handled on another device';
+
+  @override
+  String smsReviewFailed(String error) {
+    return 'Could not save: $error';
+  }
+
+  @override
   String get cashbookTitle => 'Cash Book';
 
   @override
@@ -21541,6 +21589,12 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
   String get booksBankCatOtherIncomeHint => 'Anything else received';
 
   @override
+  String get booksBankRecAccountBank => 'Bank (1020)';
+
+  @override
+  String get booksBankRecAccountMomo => 'Mobile money (1030)';
+
+  @override
   String get booksBankCatBankFee => 'Bank fee / charge';
 
   @override
@@ -25823,6 +25877,59 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
 
   @override
   String get webHomeNativeDesktop => 'On a computer? Download Atlas';
+
+  @override
+  String get smsBridgeTitle => 'SMS Bridge';
+
+  @override
+  String get smsBridgeSubtitle =>
+      'Read bank and MoMo SMS from a phone into the Cash Book';
+
+  @override
+  String get smsBridgeIntro =>
+      'Install the Flipper SMS Bridge app on the phone that receives your bank and MoMo messages, then scan this code with it.';
+
+  @override
+  String get smsBridgePairPhone => 'Pair a phone';
+
+  @override
+  String smsBridgeCodeExpires(String time) {
+    return 'Code expires at $time';
+  }
+
+  @override
+  String get smsBridgeTypeCode => 'Or type this code in the app:';
+
+  @override
+  String get smsBridgeDevices => 'Paired phones';
+
+  @override
+  String get smsBridgeNoDevices => 'No phone paired yet';
+
+  @override
+  String smsBridgeLastSeen(String when) {
+    return 'Last active $when';
+  }
+
+  @override
+  String get smsBridgeNeverSeen => 'Not active yet';
+
+  @override
+  String get smsBridgeRevoke => 'Unpair';
+
+  @override
+  String get smsBridgeRevokeConfirm =>
+      'Unpair this phone? It stops sending SMS to Flipper at once.';
+
+  @override
+  String smsBridgeDownload(String url) {
+    return 'Get the app: $url';
+  }
+
+  @override
+  String smsBridgeError(String error) {
+    return 'Could not reach Flipper: $error';
+  }
 
   @override
   String get cashResetSectionTitle => 'Danger zone';

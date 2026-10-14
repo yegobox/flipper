@@ -2833,6 +2833,54 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   }
 
   @override
+  String smsReviewBanner(int count) {
+    return 'SMS za banki na MoMo zo kugenzura: $count';
+  }
+
+  @override
+  String get smsReviewTitle => 'SMS za banki na MoMo';
+
+  @override
+  String get smsReviewSubtitle =>
+      'Emeza buri imwe kugira ngo yongerwe mu gitabo cy\'amafaranga. Books iyihuza n\'umurongo wa banki ubwayo.';
+
+  @override
+  String get smsReviewMoneyIn => 'Amafaranga yinjiye';
+
+  @override
+  String get smsReviewMoneyOut => 'Amafaranga yasohotse';
+
+  @override
+  String get smsReviewCharge => 'Amafaranga ya serivisi ya banki';
+
+  @override
+  String get smsReviewLowConfidence =>
+      'Genzura amafaranga: ubu butumwa bwasomwe hagenderewe ku kigereranyo.';
+
+  @override
+  String get smsReviewCategory => 'Icyiciro (si ngombwa)';
+
+  @override
+  String get smsReviewConfirm => 'Ongera mu gitabo cy\'amafaranga';
+
+  @override
+  String get smsReviewTransfer => 'Kwimura hagati ya konti zanjye';
+
+  @override
+  String get smsReviewIgnore => 'Birengagize';
+
+  @override
+  String get smsReviewConfirmed => 'Byongewe mu gitabo cy\'amafaranga';
+
+  @override
+  String get smsReviewTakenElsewhere => 'Byamaze gukorwa ku kindi gikoresho';
+
+  @override
+  String smsReviewFailed(String error) {
+    return 'Ntibyashobotse kubika: $error';
+  }
+
+  @override
   String get cashbookTitle => 'Igitabo cy\'amafaranga';
 
   @override
@@ -21776,6 +21824,12 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   String get booksBankCatOtherIncomeHint => 'Ibindi byose byakiriwe';
 
   @override
+  String get booksBankRecAccountBank => 'Banki (1020)';
+
+  @override
+  String get booksBankRecAccountMomo => 'Amafaranga kuri telefoni (1030)';
+
+  @override
   String get booksBankCatBankFee => 'Amafaranga ya serivisi ya banki';
 
   @override
@@ -26085,6 +26139,59 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
 
   @override
   String get webHomeNativeDesktop => 'Uri kuri mudasobwa? Kuramo Atlas';
+
+  @override
+  String get smsBridgeTitle => 'Ikiraro cya SMS';
+
+  @override
+  String get smsBridgeSubtitle =>
+      'Soma SMS za banki na MoMo zivuye kuri telefoni zijye mu gitabo cy\'amafaranga';
+
+  @override
+  String get smsBridgeIntro =>
+      'Shyira porogaramu ya Flipper SMS Bridge kuri telefoni yakira ubutumwa bwa banki na MoMo, hanyuma uyikoreshe usikane iyi kode.';
+
+  @override
+  String get smsBridgePairPhone => 'Huza telefoni';
+
+  @override
+  String smsBridgeCodeExpires(String time) {
+    return 'Kode irarangira saa $time';
+  }
+
+  @override
+  String get smsBridgeTypeCode => 'Cyangwa andika iyi kode muri porogaramu:';
+
+  @override
+  String get smsBridgeDevices => 'Telefoni zahujwe';
+
+  @override
+  String get smsBridgeNoDevices => 'Nta telefoni irahuzwa';
+
+  @override
+  String smsBridgeLastSeen(String when) {
+    return 'Iheruka gukora $when';
+  }
+
+  @override
+  String get smsBridgeNeverSeen => 'Ntirakora';
+
+  @override
+  String get smsBridgeRevoke => 'Kuraho ihuzwa';
+
+  @override
+  String get smsBridgeRevokeConfirm =>
+      'Kuraho ihuzwa ry\'iyi telefoni? Ihita ireka kohereza SMS kuri Flipper.';
+
+  @override
+  String smsBridgeDownload(String url) {
+    return 'Bona porogaramu: $url';
+  }
+
+  @override
+  String smsBridgeError(String error) {
+    return 'Ntibyashobotse kugera kuri Flipper: $error';
+  }
 
   @override
   String get cashResetSectionTitle => 'Igice cyo kwitonda';

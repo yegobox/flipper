@@ -100,7 +100,10 @@ String accountingLiquidAccountCode(Map<String, dynamic> txn) {
   final payType = (txn['payment_type'] ?? txn['paymentType'] ?? 'CASH')
       .toString();
   final p = payType.toLowerCase();
-  if (p.contains('momo') || p.contains('mobile')) return '1030';
+  // `AIRTEL MONEY` (a Cash Book payment method) has neither word.
+  if (p.contains('momo') || p.contains('mobile') || p.contains('airtel')) {
+    return '1030';
+  }
   // Before the credit check: `DEBIT&CREDIT CARD` contains "credit" but is
   // settled into the bank, not a receivable.
   if (p.contains('bank') || p.contains('card') || p.contains('transfer')) {
