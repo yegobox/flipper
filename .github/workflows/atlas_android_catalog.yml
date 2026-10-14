@@ -1,0 +1,113 @@
+name: Atlas - publish SMS Bridge to the Android catalog
+
+# When the SMS Bridge release workflow finishes for a `sms-bridge-v*` tag, add
+# that APK to the Atlas catalog (apps.json on the `launcher-manifest` release),
+# so Android Atlas installs it and updates phones that already have it.
+#
+# The APK is not rebuilt or re-signed (Android needs the Bridge's own release
+# key for updates). This only reads its package/versionCode, checks the
+# signing certificate, signs the file with the Atlas catalog key
+# (TAURI_SIGNING_*) so Atlas can verify the download, and patches apps.json.
+#
+# workflow_run fires only once this file is on main. Run it by hand with a
+# tag to (re)publish a release that already exists.
+
+on:
+  workflow_run:
+    workflows: ["SMS Bridge"]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing SMS Bridge release tag, e.g. sms-bridge-v1.2.0"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+env:
+  MANIFEST_TAG: launcher-manifest
+  PACKAGE: rw.flipper.smsbridge
+
+jobs:
+  publish:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       startsWith(github.event.workflow_run.head_branch, 'sms-bridge-v'))
+    runs-on: ubuntu-latest
+    # apps.json is read-modify-write; share the desktop release's queue so two
+    # publishes never drop each other's entry.
+    concurrency:
+      group: launcher-manifest
+      cancel-in-progress: false
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TAG: ${{ inputs.tag || github.event.workflow_run.head_branch }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Download the release APK
+        run: |
+          [[ "$TAG" == sms-bridge-v* ]] || { echo "::error::not an SMS Bridge tag: $TAG"; exit 1; }
+          mkdir -p dist
+          gh release download "$TAG" -R "$GITHUB_REPOSITORY" -p 'flipper-sms-bridge-*.apk' -D dist
+          ls -la dist
+      - name: Read package, version and signer
+        id: apk
+        env:
+          # The Bridge release key's certificate SHA-256 (repo variable), once known.
+          PIN: ${{ vars.SMS_BRIDGE_CERT_SHA256 }}
+        run: |
+          set -euo pipefail
+          BT="$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)"
+          APK="$(find dist -name 'flipper-sms-bridge-*.apk' | head -1)"
+          BADGING="$("$BT/aapt2" dump badging "$APK" | head -1)"
+          echo "$BADGING"
+          # Anchored: badging also has platformBuildVersionName='…', which a
+          # loose .*name=' would match instead of the package.
+          PKG="$(sed -nE "s/^package: name='([^']+)'.*/\1/p" <<<"$BADGING")"
+          CODE="$(sed -nE "s/.* versionCode='([0-9]+)'.*/\1/p" <<<"$BADGING")"
+          NAME="$(sed -nE "s/.* versionName='([^']+)'.*/\1/p" <<<"$BADGING")"
+          [[ "$PKG" == "$PACKAGE" ]] || { echo "::error::APK package is $PKG, expected $PACKAGE"; exit 1; }
+          # Android refuses an update signed with a different key, so a release
+          # signed by anything but the Bridge's key must never reach phones.
+          CERT="$("$BT/apksigner" verify --print-certs "$APK" | sed -nE 's/^Signer #1 certificate SHA-256 digest: //p')"
+          echo "signer SHA-256: $CERT"
+          if [[ -n "$PIN" && "$CERT" != "$PIN" ]]; then
+            echo "::error::APK signer $CERT is not the SMS Bridge release key"; exit 1
+          fi
+          [[ -n "$PIN" ]] || echo "::warning::repo variable SMS_BRIDGE_CERT_SHA256 is not set; set it to $CERT to pin the signer"
+          {
+            echo "apk=$APK"
+            echo "code=$CODE"
+            echo "name=$NAME"
+          } >> "$GITHUB_OUTPUT"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Sign for Atlas
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          APK: ${{ steps.apk.outputs.apk }}
+        run: npx --yes @tauri-apps/cli@2 signer sign "$APK"
+      - name: Update the catalog
+        env:
+          APK: ${{ steps.apk.outputs.apk }}
+          CODE: ${{ steps.apk.outputs.code }}
+          VNAME: ${{ steps.apk.outputs.name }}
+        run: |
+          gh release download "$MANIFEST_TAG" -R "$GITHUB_REPOSITORY" -p apps.json -D . || true
+          python3 -I scripts/ci/update_launcher_manifest.py --manifest apps.json \
+            --app sms-bridge --name "SMS Bridge" \
+            --description "Forwards bank and mobile-money SMS to Flipper" \
+            --website "https://yegobox.com" --accent "#14b8a6" \
+            --channel stable --version "$VNAME" --min-launcher 0.3.0 \
+            --android-package "$PACKAGE" --version-code "$CODE" \
+            --base-url "https://github.com/${GITHUB_REPOSITORY}/releases/download/$TAG" \
+            --platform "android=$APK:$PACKAGE"
+          gh release upload "$MANIFEST_TAG" -R "$GITHUB_REPOSITORY" apps.json --clobber
+          echo "### SMS Bridge $VNAME (versionCode $CODE) → Atlas catalog" >> "$GITHUB_STEP_SUMMARY"
