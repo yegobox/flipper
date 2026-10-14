@@ -118,6 +118,18 @@ class CashMovementResetClient {
     required String confirm,
   }) => _post(kinds, dryRun: false, confirm: confirm);
 
+  /// No answer from the connector: a timeout or a dropped connection only
+  /// stops this client waiting, and the connector may still finish a real
+  /// reset (and use up its single-use grant), so that path never says
+  /// nothing happened.
+  static CashResetException _noAnswer({required bool dryRun}) =>
+      CashResetException(
+        dryRun
+            ? 'The server did not answer. Try again; nothing was deleted.'
+            : 'The server did not answer. The reset may still have '
+                  'completed; check the Cash Book before trying again.',
+      );
+
   Future<CashResetSummary> _post(
     Set<CashMovementKind> kinds, {
     required bool dryRun,
@@ -143,14 +155,10 @@ class CashMovementResetClient {
           )
           .timeout(_timeout);
     } on TimeoutException {
-      // A timeout only stops this client waiting; the connector may still
-      // finish a real reset (and use up its single-use grant).
-      throw CashResetException(
-        dryRun
-            ? 'The server took too long to answer. Try again; nothing was deleted.'
-            : 'The server took too long to answer. The reset may still have '
-                  'completed; check the Cash Book before trying again.',
-      );
+      throw _noAnswer(dryRun: dryRun);
+    } on http.ClientException {
+      // A dropped connection is no proof either way, exactly like a timeout.
+      throw _noAnswer(dryRun: dryRun);
     } finally {
       // Closes only what the wrapper opened; an injected client stays open.
       client.close();

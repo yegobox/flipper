@@ -127,4 +127,39 @@ void main() {
       );
     });
   });
+
+  group('a dropped connection', () {
+    CashMovementResetClient dropping() => CashMovementResetClient(
+      baseUrl: () async => 'https://connector.test',
+      httpClient: MockClient(
+        (_) async => throw http.ClientException('Connection reset'),
+      ),
+    );
+
+    test('during a preview says nothing was deleted', () async {
+      await expectLater(
+        dropping().preview({CashMovementKind.cashOut}),
+        throwsA(
+          isA<CashResetException>().having(
+            (e) => e.message,
+            'message',
+            contains('nothing was deleted'),
+          ),
+        ),
+      );
+    });
+
+    test('during a reset says the outcome is unknown', () async {
+      await expectLater(
+        dropping().reset({CashMovementKind.cashOut}, confirm: 'Kigali Shop'),
+        throwsA(
+          isA<CashResetException>().having(
+            (e) => e.message,
+            'message',
+            contains('may still have completed'),
+          ),
+        ),
+      );
+    });
+  });
 }

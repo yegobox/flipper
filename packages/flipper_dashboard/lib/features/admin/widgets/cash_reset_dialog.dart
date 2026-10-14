@@ -56,6 +56,7 @@ class _CashResetDialogState extends ConsumerState<CashResetDialog> {
   _Step _step = _Step.pick;
   CashResetSummary? _preview;
   String? _error;
+  bool _verifyingAdmin = false;
 
   @override
   void initState() {
@@ -109,8 +110,22 @@ class _CashResetDialogState extends ConsumerState<CashResetDialog> {
   }
 
   Future<void> _runDelete() async {
+    // Two taps while the admin check is still open would otherwise each go
+    // on to delete; the flag clears even if the check throws, and that
+    // failure is shown like any other.
+    if (_verifyingAdmin) return;
     final verify = widget.verifyAdmin;
-    if (verify != null && !await verify(context)) return;
+    if (verify != null) {
+      _verifyingAdmin = true;
+      try {
+        if (!await verify(context)) return;
+      } catch (e) {
+        if (mounted) setState(() => _error = _errorText(e));
+        return;
+      } finally {
+        _verifyingAdmin = false;
+      }
+    }
     if (!mounted) return;
     setState(() {
       _step = _Step.deleting;
