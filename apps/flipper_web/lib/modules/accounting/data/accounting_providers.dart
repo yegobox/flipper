@@ -286,10 +286,13 @@ Future<void> coaFallbackSeedInContainer(
   if (businessId.isEmpty) return;
 
   try {
-    await SupabaseAccountingLedgerRepository(
-      container.read(supabaseProvider),
-    ).ensureSeeded(businessId: businessId);
-    debugPrint('[Accounting] Supabase COA fallback OK businessId=$businessId');
+    // dart format off
+    await SupabaseAccountingLedgerRepository(container.read(supabaseProvider))
+        .ensureSeeded(businessId: businessId);
+    debugPrint(
+      '[Accounting] Supabase COA fallback OK businessId=$businessId',
+    );
+    // dart format on
   } catch (e) {
     debugPrint('[Accounting] Supabase COA fallback failed: $e');
   }
@@ -438,9 +441,11 @@ final accountingCoaBootstrapProvider = FutureProvider<void>((ref) async {
     }
   } else {
     try {
-      await ref
-          .read(accountingLedgerRepositoryProvider)
-          .ensureSeeded(businessId: businessId);
+      // dart format off
+      await ref.read(accountingLedgerRepositoryProvider).ensureSeeded(
+            businessId: businessId,
+          );
+      // dart format on
       debugPrint(
         '[Accounting] ensureSeeded OK (businessId=$businessId via supabase)',
       );
@@ -837,14 +842,17 @@ Future<void> logAccountingStartupDiagnostics(Ref ref) async {
         debugPrint('[Accounting]   sample codes: $codes');
       }
 
+      // dart format off
       final journalRows = await ditto.queryCollection(
         'journal_entries',
         'SELECT status FROM journal_entries '
-            'WHERE businessId = :businessId OR business_id = :businessId',
+        'WHERE businessId = :businessId OR business_id = :businessId',
         {'businessId': businessId},
       );
-      final pending = journalRows.where((r) => r['status'] == 'pending').length;
-      final posted = journalRows.where((r) => r['status'] == 'posted').length;
+      final pending =
+          journalRows.where((r) => r['status'] == 'pending').length;
+      final posted =
+          journalRows.where((r) => r['status'] == 'posted').length;
       debugPrint(
         '[Accounting] journal_entries: ${journalRows.length} total '
         '($posted posted, $pending pending)',
@@ -855,10 +863,13 @@ Future<void> logAccountingStartupDiagnostics(Ref ref) async {
         final txRows = await ditto.queryCollection(
           'transactions',
           'SELECT _id FROM transactions '
-              'WHERE branchId = :branchId OR branch_id = :branchId',
+          'WHERE branchId = :branchId OR branch_id = :branchId',
           {'branchId': branchId},
         );
-        debugPrint('[Accounting] transactions (branch): ${txRows.length} rows');
+        debugPrint(
+          '[Accounting] transactions (branch): ${txRows.length} rows',
+        );
+      // dart format on
       }
     }
   } catch (e) {

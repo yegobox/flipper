@@ -233,11 +233,15 @@ class _SmsReviewDetailState extends ConsumerState<SmsReviewDetail> {
     final l10n = context.flipperL10n;
     final messenger = ScaffoldMessenger.of(context);
     final navigator = Navigator.of(context);
+    // Captured before the await: the sheet may be dismissed meanwhile, and
+    // the Cash Book list must still refresh.
+    final container = ProviderScope.containerOf(context, listen: false);
     setState(() => _busy = true);
     try {
       final message = await action();
-      ref.invalidate(cashbookRecentTransactionsProvider);
-      navigator.pop();
+      container.invalidate(cashbookRecentTransactionsProvider);
+      // Once the sheet is gone, popping would close the screen beneath it.
+      if (mounted) navigator.pop();
       if (message != null) {
         messenger.showSnackBar(SnackBar(content: Text(message)));
       }

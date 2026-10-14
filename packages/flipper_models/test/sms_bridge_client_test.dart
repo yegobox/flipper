@@ -83,6 +83,25 @@ void main() {
     );
   });
 
+  test('an unreachable server is reported without transport details', () async {
+    final offline = SmsBridgeClient(
+      baseUrl: () async => 'https://connector.test',
+      httpClient: MockClient(
+        (_) async => throw http.ClientException('Failed host lookup: x.y'),
+      ),
+    );
+    await expectLater(
+      offline.listDevices(),
+      throwsA(
+        isA<SmsBridgeException>().having(
+          (e) => e.message,
+          'message',
+          'Could not reach the server. Check the connection and try again.',
+        ),
+      ),
+    );
+  });
+
   test('the QR payload always carries a trailing slash on the url', () {
     expect(
       smsBridgeQrPayload(baseUrl: 'https://a.b', code: 'X'),

@@ -74,8 +74,6 @@ import 'package:flipper_web/services/ditto_service.dart';
 import 'package:flutter/foundation.dart'
     show kIsWeb, defaultTargetPlatform, TargetPlatform;
 
-import 'package:flipper_models/SyncStrategy.dart';
-
 import 'package:flipper_services/constants.dart';
 
 String? _nonEmptyCustomerField(String? value) {
@@ -990,12 +988,23 @@ class CapellaSync extends AiStrategyImpl
       if (occurredAt != null) 'createdAt': occurredAt.toIso8601String(),
     });
     if (occurredAt != null) txn.createdAt = occurredAt;
-    await updateTransaction(
-      transaction: txn,
-      receiptType: movementReceipt,
-      updatedAt: DateTime.now(),
-      lastTouched: DateTime.now(),
-    );
+    try {
+      await updateTransaction(
+        transaction: txn,
+        receiptType: movementReceipt,
+        updatedAt: DateTime.now(),
+        lastTouched: DateTime.now(),
+      );
+    } catch (e, s) {
+      // collectPayment already stored the movement as COMPLETE and the
+      // classification above holds its receipt type. Throwing here would let
+      // a caller (the SMS review queue) retry and record the money twice.
+      talker.error(
+        'Updating completed cash movement failed for ${txn.id}',
+        e,
+        s,
+      );
+    }
     txn.receiptType = movementReceipt;
     txn.transactionType = classification['transactionType'] as String?;
     txn.categoryId = classification['categoryId'] as String?;

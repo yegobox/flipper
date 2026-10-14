@@ -1,8 +1,13 @@
+import 'dart:async';
+
 import 'package:flipper_dashboard/features/admin/widgets/sms_bridge_page.dart';
 import 'package:flipper_dashboard/widgets/sms_review/sms_review_section.dart';
 import 'package:flipper_localize/flipper_localize.dart';
-import 'package:flipper_models/db_model_export.dart' show Category;
+import 'package:flipper_models/db_model_export.dart'
+    show Category, ITransaction;
 import 'package:flipper_models/providers/category_provider.dart';
+import 'package:flipper_models/providers/transactions_provider.dart'
+    show cashbookRecentTransactionsProvider;
 import 'package:flipper_models/sms_bridge_client.dart';
 import 'package:flipper_models/sms_review/sms_review_item.dart';
 import 'package:flipper_models/sms_review/sms_review_providers.dart';
@@ -62,6 +67,9 @@ class _FakeBridge extends SmsBridgeClient {
   int pairings = 0;
   final revoked = <String>[];
 
+  /// When set, the next revoke throws it.
+  Object? revokeError;
+
   @override
   Future<SmsBridgePairing> createPairing({String? label}) async {
     pairings++;
@@ -82,7 +90,12 @@ class _FakeBridge extends SmsBridgeClient {
   ];
 
   @override
-  Future<void> revoke(String deviceId) async => revoked.add(deviceId);
+  Future<void> revoke(String deviceId) async {
+    final error = revokeError;
+    revokeError = null;
+    if (error != null) throw error;
+    revoked.add(deviceId);
+  }
 }
 
 Widget _app(Widget child, List<Override> overrides) => ProviderScope(
@@ -233,5 +246,115 @@ void main() {
     await tester.tap(find.widgetWithText(FilledButton, 'Unpair'));
     await tester.pumpAndSettle();
     expect(fake.revoked, ['d1']);
+  });
+  testWidgets('a sheet closed mid-confirm leaves the screen beneath open', (
+    tester,
+  ) async {
+    final done = Completer<void>();
+    var cashBookBuilds = 0;
+    final container = ProviderContainer(
+      overrides: [
+        categoryProvider.overrideWith(
+          (ref) => Stream.value(const <Category>[]),
+        ),
+        cashbookRecentTransactionsProvider.overrideWith((ref) {
+          cashBookBuilds++;
+          return Stream.value(const <ITransaction>[]);
+        }),
+        smsReviewServiceProvider.overrideWithValue(
+          SmsReviewService(
+            store: _Store(),
+            journalEntryId: (b, t) => 'je_$t',
+            recordMovement:
+                ({
+                  required item,
+                  required categoryId,
+                  required categoryName,
+                }) async {
+                  await done.future;
+                  return 'txn-1';
+                },
+          ),
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+    // Stands in for the Cash Book list, which stays subscribed underneath.
+    container.listen(cashbookRecentTransactionsProvider, (_, _) {});
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates:
+              FlipperAppLocalizations.localizationsDelegates,
+          supportedLocales: FlipperAppLocalizations.supportedLocales,
+          home: const Scaffold(body: Text('home')),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final navigator = tester.state<NavigatorState>(find.byType(Navigator));
+    navigator.push(
+      MaterialPageRoute<void>(
+        builder: (_) => const Scaffold(body: Text('cash book')),
+      ),
+    );
+    await tester.pumpAndSettle();
+    navigator.push(
+      MaterialPageRoute<void>(
+        builder: (_) => Scaffold(body: SmsReviewDetail(item: _item())),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(cashBookBuilds, 1);
+
+    await tester.tap(find.byKey(const Key('sms_review_confirm')));
+    await tester.pump();
+    // The user swipes the sheet away while the movement is being recorded.
+    navigator.pop();
+    await tester.pumpAndSettle();
+    done.complete();
+    await tester.pumpAndSettle();
+
+    expect(find.text('cash book'), findsOneWidget);
+    expect(find.text('Added to the Cash Book'), findsOneWidget);
+    // The Cash Book list still refreshed.
+    expect(cashBookBuilds, 2);
+  });
+
+  testWidgets('a failed unpair shows why, and the next one clears it', (
+    tester,
+  ) async {
+    final fake = _FakeBridge()
+      ..revokeError = const SmsBridgeException('connector down');
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [smsBridgeClientProvider.overrideWithValue(fake)],
+        child: MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates:
+              FlipperAppLocalizations.localizationsDelegates,
+          supportedLocales: FlipperAppLocalizations.supportedLocales,
+          home: const SmsBridgePage(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    Future<void> unpair() async {
+      await tester.tap(find.text('Unpair').first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'Unpair'));
+      await tester.pumpAndSettle();
+    }
+
+    await unpair();
+    expect(fake.revoked, isEmpty);
+    expect(find.textContaining('connector down'), findsOneWidget);
+
+    await unpair();
+    expect(fake.revoked, ['d1']);
+    expect(find.textContaining('connector down'), findsNothing);
   });
 }

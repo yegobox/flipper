@@ -157,6 +157,12 @@ class SmsBridgeClient {
       throw const SmsBridgeException(
         'The server took too long to answer. Check the connection and try again.',
       );
+    } on http.ClientException {
+      // Socket and DNS failures: show an actionable message, not the
+      // transport's internals.
+      throw const SmsBridgeException(
+        'Could not reach the server. Check the connection and try again.',
+      );
     } finally {
       client.close();
     }

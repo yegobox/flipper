@@ -81,13 +81,14 @@ class _SmsBridgePageState extends ConsumerState<SmsBridgePage> {
       ),
     );
     if (ok != true || !mounted) return;
+    setState(() => _error = null);
     try {
       await ref.read(smsBridgeClientProvider).revoke(device.deviceId);
     } catch (e) {
       if (!mounted) return;
       setState(() => _error = l10n.smsBridgeError(e.toString()));
     }
-    ref.invalidate(smsBridgeDevicesProvider);
+    if (mounted) ref.invalidate(smsBridgeDevicesProvider);
   }
 
   @override

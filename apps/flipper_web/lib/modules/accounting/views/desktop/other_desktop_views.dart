@@ -280,8 +280,11 @@ Future<void> _importBankStatement(BuildContext context, WidgetRef ref) async {
 
     // Lines the SMS Bridge already added for the same day and amount stand
     // in for the statement's copy, so the money is not on the feed twice.
+    // Awaited: right after an account switch the cached value still holds
+    // the previous account's lines.
+    final accountLines = await ref.read(bankLinesStreamProvider.future);
     final smsLines = <String, List<BankLine>>{};
-    for (final l in ref.read(bankLinesStreamProvider).value ?? const []) {
+    for (final l in accountLines) {
       if (l.isFromSms && l.isoDate != null) {
         smsLines.putIfAbsent('${l.isoDate}|${l.amt}', () => []).add(l);
       }
@@ -379,9 +382,9 @@ Future<void> _matchBankLine(
     line: line,
     primaryAccountCode: bankAccountCode,
   );
+  if (!context.mounted) return;
 
   if (matchCandidates.isEmpty) {
-    if (!context.mounted) return;
     // No existing journal moves this amount (bank fees, transfers, owner
     // draws, un-rung income, …). Instead of a dead end, let the user pick a
     // plain-language category; we post the balanced entry for them and match.
