@@ -31,4 +31,22 @@ void main() {
     expect(mposAlreadyPaid(loan, 250), 400);
     expect(mposAlreadyPaid(loan, 600), 600);
   });
+
+  group('MposPaidRead', () {
+    test('a read that started before a charge cannot land after it', () {
+      final read = MposPaidRead();
+      final preCharge = read.start();
+      read.invalidate(); // the charge starts while that read is in flight
+      expect(read.isCurrent(preCharge), isFalse);
+      expect(read.txnId, isNull);
+    });
+
+    test('only the newest read may set the cart', () {
+      final read = MposPaidRead();
+      final first = read.start();
+      final second = read.start();
+      expect(read.isCurrent(first), isFalse);
+      expect(read.isCurrent(second), isTrue);
+    });
+  });
 }
