@@ -16,6 +16,7 @@ void main() {
         'MTN',
         'MTN Mobile Money',
         ' mobile money ',
+        'mobile',
       ]) {
         expect(canonicalPaymentMethod(raw), kMobileMoney, reason: raw);
       }

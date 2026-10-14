@@ -18,8 +18,8 @@ const String kAirtelMoney = 'AIRTEL MONEY';
 /// so callers that compare `'Cash'` or `'CASH'` keep working.
 ///
 /// Matches whole words, never substrings: `MOBILE BANK TRANSFER` is a bank
-/// transfer, so only the word `MOMO`/`MTN`/`AIRTEL` or the phrase
-/// `MOBILE MONEY` counts.
+/// transfer, so only the word `MOMO`/`MTN`/`AIRTEL`, the phrase
+/// `MOBILE MONEY`, or `MOBILE` on its own counts.
 String canonicalPaymentMethod(String? raw) {
   final value = raw?.trim() ?? '';
   final words = value
@@ -30,7 +30,8 @@ String canonicalPaymentMethod(String? raw) {
   if (words.contains('AIRTEL')) return kAirtelMoney;
   if (words.contains('MOMO') ||
       words.contains('MTN') ||
-      ' ${words.join(' ')} '.contains(' MOBILE MONEY ')) {
+      ' ${words.join(' ')} '.contains(' MOBILE MONEY ') ||
+      (words.length == 1 && words.first == 'MOBILE')) {
     return kMobileMoney;
   }
   return value;
