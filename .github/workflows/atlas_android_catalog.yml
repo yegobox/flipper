@@ -75,7 +75,9 @@ jobs:
           [[ "$PKG" == "$PACKAGE" ]] || { echo "::error::APK package is $PKG, expected $PACKAGE"; exit 1; }
           # Android refuses an update signed with a different key, so a release
           # signed by anything but the Bridge's key must never reach phones.
-          CERT="$("$BT/apksigner" verify --print-certs "$APK" | sed -nE 's/^Signer #1 certificate SHA-256 digest: //p')"
+          # Build-tools 36 prints `Signer #1 certificate SHA-256 digest: …`,
+          # 37 prints `V2 Signer: certificate SHA-256 digest: …`; take the first.
+          CERT="$("$BT/apksigner" verify --print-certs "$APK" | awk -F'certificate SHA-256 digest: ' 'NF > 1 && !seen { print $2; seen = 1 }')"
           echo "signer SHA-256: $CERT"
           if [[ -n "$PIN" && "$CERT" != "$PIN" ]]; then
             echo "::error::APK signer $CERT is not the SMS Bridge release key"; exit 1
