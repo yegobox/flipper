@@ -3016,6 +3016,22 @@
     "adminGroupTaxCompliance": "Tax & compliance",
     "adminGroupDataSync": "Data & sync",
     "adminGroupDiagnostics": "Diagnostics",
+    "settingsGroupMoney": "Money",
+    "@settingsGroupMoney": {
+        "description": "Group label in the phone Settings list"
+    },
+    "settingsGroupNotifications": "Notifications",
+    "@settingsGroupNotifications": {
+        "description": "Group label in the phone Settings list"
+    },
+    "settingsGroupDevices": "Devices",
+    "@settingsGroupDevices": {
+        "description": "Group label in the phone Settings list"
+    },
+    "settingsGroupReceipts": "Receipts",
+    "@settingsGroupReceipts": {
+        "description": "Group label in the phone Settings list"
+    },
     "adminCrossDeviceFeatures": "Cross-device features",
     "adminReceiptBranding": "Receipt branding",
     "adminReceiptLogo": "Receipt Logo",

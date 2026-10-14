@@ -3100,6 +3100,18 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   String get adminGroupDiagnostics => 'Uchunguzi';
 
   @override
+  String get settingsGroupMoney => 'Fedha';
+
+  @override
+  String get settingsGroupNotifications => 'Arifa';
+
+  @override
+  String get settingsGroupDevices => 'Vifaa';
+
+  @override
+  String get settingsGroupReceipts => 'Risiti';
+
+  @override
   String get adminCrossDeviceFeatures => 'Vipengele vya vifaa vingi';
 
   @override
