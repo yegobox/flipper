@@ -8844,5 +8844,6 @@
   "cashResetDelete": "Futa kabisa",
   "cashResetDone": "Rekodi {count} zimefutwa.",
   "cashResetFailed": "Imeshindwa kufuta rekodi za daftari la fedha: {error}",
-  "cashResetNotEnabled": "Kufuta rekodi za daftari la fedha hakujawashwa kwa biashara hii. Omba msaada wa Flipper uwashe mara moja."
+  "cashResetNotEnabled": "Kufuta rekodi za daftari la fedha hakujawashwa kwa biashara hii. Omba msaada wa Flipper uwashe mara moja.",
+  "branchTransferCartStillSaving": "Baadhi ya bidhaa bado zinahifadhiwa. Subiri kidogo, kisha uhamishe tena."
 }

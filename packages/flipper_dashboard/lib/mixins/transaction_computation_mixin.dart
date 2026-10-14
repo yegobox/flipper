@@ -143,14 +143,13 @@ mixin TransactionComputationMixin {
     // equals the total (cashReceived mirror) must not keep the field at 0.
     var fillAmount = displayRemainder;
     if (fieldIsEmptyOrZero && total > 0.01) {
-      final realPartial =
-          alreadyPaid > 0.01 && alreadyPaid < total - 0.01;
+      final realPartial = alreadyPaid > 0.01 && alreadyPaid < total - 0.01;
       fillAmount = realPartial ? displayRemainder : total;
     }
 
     // Still on the last auto-filled amount (qty +/- or catalog tap) — follow total.
-    final onAutoFillTrack = !fieldIsEmptyOrZero &&
-        (fieldAmount - lastAutoSetAmount).abs() <= 0.01;
+    final onAutoFillTrack =
+        !fieldIsEmptyOrZero && (fieldAmount - lastAutoSetAmount).abs() <= 0.01;
     if (onAutoFillTrack && (total - lastAutoSetAmount).abs() > 0.01) {
       final realPartialRemainder =
           alreadyPaid > 0.01 &&
@@ -164,13 +163,13 @@ mixin TransactionComputationMixin {
 
     final payments = ref.read(paymentMethodsProvider);
     final paymentsTotal = payments.fold<double>(0, (sum, p) => sum + p.amount);
-    final stalePayments = !fieldIsEmptyOrZero &&
+    final stalePayments =
+        !fieldIsEmptyOrZero &&
         (fieldAmount - fillAmount).abs() <= 0.01 &&
         (paymentsTotal - fillAmount).abs() > 0.01;
 
     if (remainderChanged || needsFillFromZero || stalePayments) {
-      final paymentsMatchBefore =
-          (paymentsTotal - fillAmount).abs() <= 0.01;
+      final paymentsMatchBefore = (paymentsTotal - fillAmount).abs() <= 0.01;
       final fieldMatchesBefore =
           receivedAmountController != null &&
           tenderAmountsMatch(receivedAmountController.text, fillAmount);
@@ -221,9 +220,15 @@ mixin TransactionComputationMixin {
 
   /// Fetches the actual cash paid for a transaction from payment records,
   /// excluding CREDIT entries so only real money received is counted.
-  Future<double> fetchNonCreditPaid(String transactionId) async {
+  Future<double> fetchNonCreditPaid(String transactionId) async =>
+      await tryFetchNonCreditPaid(transactionId) ?? 0.0;
+
+  /// Like [fetchNonCreditPaid], but null when the payments could not be read
+  /// (no branch context, or the store failed) instead of 0.0. Use it where
+  /// "unpaid" unlocks something, such as moving the cart to another branch.
+  Future<double?> tryFetchNonCreditPaid(String transactionId) async {
     final branchId = ProxyService.box.getBranchId();
-    if (branchId == null) return 0.0;
+    if (branchId == null) return null;
 
     try {
       final paid = await ProxyService.getStrategy(Strategy.capella)
@@ -232,11 +237,11 @@ mixin TransactionComputationMixin {
             branchId: branchId,
             excludePaymentMethod: 'CREDIT',
           );
-      if (paid != null && paid > 0) return paid;
+      return paid != null && paid > 0 ? paid : 0.0;
     } catch (_) {
       // Capella/Ditto is the POS cart source of truth.
+      return null;
     }
-    return 0.0;
   }
 
   void standardizedPaymentInitialization({

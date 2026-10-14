@@ -11,6 +11,7 @@ import 'package:flipper_dashboard/screens/mpos_success_screen.dart';
 import 'package:flipper_dashboard/theme/mpos_tokens.dart';
 import 'package:flipper_dashboard/utils/mpos_helpers.dart';
 import 'package:flipper_dashboard/utils/resume_transaction_helper.dart';
+import 'package:flipper_dashboard/widgets/mpos/mpos_branch_transfer.dart';
 import 'package:flipper_dashboard/widgets/mpos/mpos_card.dart';
 import 'package:flipper_dashboard/widgets/mpos/mpos_empty_items_card.dart';
 import 'package:flipper_dashboard/widgets/mpos/mpos_checkout_footer.dart';
@@ -90,8 +91,22 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
   final Set<String> _optimisticallyDeletedItemIds = {};
   bool _isClearingCustomer = false;
   double? _cachedNonCreditPaid;
+
+  final _paidRead = MposPaidRead(); // Transfer's trusted payment read.
+
+  Future<void> _readPaid(String txnId) async {
+    final ticket = _paidRead.start();
+    final paid = await tryFetchNonCreditPaid(txnId);
+    if (!mounted || !_paidRead.isCurrent(ticket)) return;
+    setState(() {
+      _cachedNonCreditPaid = paid ?? 0.0;
+      _paidRead.txnId = paid == null ? null : txnId;
+    });
+  }
+
   bool _sendToTillBusy = false;
   bool _backToNewSaleBusy = false;
+  CheckoutCartMode _mode = CheckoutCartMode.sale;
 
   /// Set when settling was cleared after a successful re-park or payment so
   /// [dispose] does not try to re-park again.
@@ -105,26 +120,9 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
     return ProxyService.box.getBranchId() ?? '0';
   }
 
-  /// Prior non-credit payments already collected for this ticket.
-  ///
-  /// Mirrors [QuickSellingView._effectiveAlreadyPaid]. [ITransaction.cashReceived]
-  /// is written synchronously as part of sale completion, while the
-  /// payment-records fetch behind [_cachedNonCreditPaid] ([fetchNonCreditPaid])
-  /// is persisted in a deferred/fire-and-forget write and can resolve to a
-  /// stale/low value shortly after a prior installment (or still be in flight).
-  /// Floor the fetched value with cashReceived on a resumed loan/layaway so a
-  /// lagging fetch never auto-fills the full sale total instead of the true
-  /// remaining balance, or makes `deriveSaleCompletionState` think an
-  /// already-fully-paid ticket is underpaid and re-park it. Never used for
-  /// non-loan sales, where cashReceived may just mirror the in-progress tender.
-  double _effectiveAlreadyPaid(ITransaction transaction) {
-    final loanFloor = transaction.isLoan == true
-        ? (transaction.cashReceived ?? 0.0)
-        : 0.0;
-    final cached = _cachedNonCreditPaid;
-    if (cached == null) return loanFloor;
-    return cached > loanFloor ? cached : loanFloor;
-  }
+  /// Prior non-credit payments already collected; see [mposAlreadyPaid].
+  double _effectiveAlreadyPaid(ITransaction transaction) =>
+      mposAlreadyPaid(transaction, _cachedNonCreditPaid);
 
   @override
   void dispose() {
@@ -600,6 +598,7 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
 
     setState(() {
       _isImmediateCompletion = immediateCompletion;
+      _paidRead.invalidate();
       _chargeState = immediateCompletion
           ? ChargeButtonState.printingReceipt
           : ChargeButtonState.waitingForPayment;
@@ -617,6 +616,7 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
         if (mounted) {
           setState(() => _chargeState = ChargeButtonState.failed);
           ref.read(oldProvider.loadingProvider.notifier).stopLoading();
+          unawaited(_readPaid(_transactionId));
           showErrorNotification(context, error);
         }
       }
@@ -642,6 +642,7 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
       if (mounted) {
         setState(() => _chargeState = ChargeButtonState.failed);
         ref.read(oldProvider.loadingProvider.notifier).stopLoading();
+        unawaited(_readPaid(_transactionId));
         showErrorNotification(context, context.flipperL10n.mposErrorOccurred);
       }
     }
@@ -1074,6 +1075,13 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
         ref.watch(isDigitalPaymentEnabledProvider).asData?.value ?? false;
 
     final txn = transactionAsync.value ?? widget.transaction;
+    // Sale → Transfer: >1 branch, no till ticket, and a payment read since the
+    // last charge started (see [_paidRead]) found nothing paid.
+    final canTransfer =
+        ref.watch(canOfferBranchTransferProvider) &&
+        _paidRead.txnId == txn.id &&
+        _canModifyItems(txn);
+    final isTransfer = canTransfer && _mode == CheckoutCartMode.transfer;
 
     final pendingOptimistic = ref
         .read(optimisticCartProvider.notifier)
@@ -1152,9 +1160,8 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
                 _lastTransactionId = currentId;
                 WidgetsBinding.instance.addPostFrameCallback((_) async {
                   if (!mounted) return;
-                  final nonCreditPaid = await fetchNonCreditPaid(txn.id);
+                  await _readPaid(txn.id);
                   if (!mounted) return;
-                  setState(() => _cachedNonCreditPaid = nonCreditPaid);
                   standardizedPaymentInitialization(
                     ref: ref,
                     transaction: txn,
@@ -1274,11 +1281,16 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
                       },
                     ),
                     if (settling != null) _buildSettlingBanner(settling),
+                    if (canTransfer)
+                      MposTransferModeBar(
+                        mode: _mode,
+                        onModeChanged: (m) => setState(() => _mode = m),
+                      ),
                     Expanded(
                       child: ListView(
                         padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
                         children: [
-                          if (settling == null) ...[
+                          if (settling == null && !isTransfer) ...[
                             MposSectionLabel(context.flipperL10n.customer),
                             const SizedBox(height: 8),
                             MposCustomerSection(
@@ -1375,99 +1387,106 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
                             ),
                           ],
                           const SizedBox(height: 14),
-                          if (canCollect) ...[
-                            MposSectionLabel(
-                              context.flipperL10n.mposPaymentMethod,
-                            ),
-                            const SizedBox(height: 8),
-                            MposPaymentSection(
-                              transactionId: _transactionId,
-                              totalPayable: saleOutstanding > 0
-                                  ? saleOutstanding
-                                  : total,
-                            ),
-                            const SizedBox(height: 14),
-                          ] else ...[
-                            Padding(
-                              padding: const EdgeInsets.only(bottom: 14),
-                              child: Text(
-                                context.flipperL10n.paymentsCollectedAtTill,
-                                style: const TextStyle(
-                                  fontSize: 12.5,
-                                  color: PosTokens.ink3,
-                                  height: 1.35,
+                          if (!isTransfer) ...[
+                            if (canCollect) ...[
+                              MposSectionLabel(
+                                context.flipperL10n.mposPaymentMethod,
+                              ),
+                              const SizedBox(height: 8),
+                              MposPaymentSection(
+                                transactionId: _transactionId,
+                                totalPayable: saleOutstanding > 0
+                                    ? saleOutstanding
+                                    : total,
+                              ),
+                              const SizedBox(height: 14),
+                            ] else ...[
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 14),
+                                child: Text(
+                                  context.flipperL10n.paymentsCollectedAtTill,
+                                  style: const TextStyle(
+                                    fontSize: 12.5,
+                                    color: PosTokens.ink3,
+                                    height: 1.35,
+                                  ),
                                 ),
                               ),
+                            ],
+                            MposSectionLabel(context.flipperL10n.mposTotals),
+                            const SizedBox(height: 8),
+                            MposTotalsCard(
+                              subtotal: subtotal,
+                              tax: tax,
+                              total: total,
+                              alreadyPaid: alreadyPaid,
+                              pendingPayment: pendingPayment,
+                              remainingBalance: remaining,
+                              change: change != null && change > 0
+                                  ? change
+                                  : null,
+                              balanceDue: due != null && due > 0 ? due : null,
                             ),
                           ],
-                          MposSectionLabel(context.flipperL10n.mposTotals),
-                          const SizedBox(height: 8),
-                          MposTotalsCard(
-                            subtotal: subtotal,
-                            tax: tax,
-                            total: total,
-                            alreadyPaid: alreadyPaid,
-                            pendingPayment: pendingPayment,
-                            remainingBalance: remaining,
-                            change: change != null && change > 0
-                                ? change
-                                : null,
-                            balanceDue: due != null && due > 0 ? due : null,
-                          ),
                         ],
                       ),
                     ),
-                    MposCheckoutFooter(
-                      total: total,
-                      ready: ready,
-                      isLoading: canCollect
-                          ? (_isImmediateCompletion && _shouldShowSpinner())
-                          : _sendToTillBusy,
-                      primaryLabel: footerPrimaryLabel,
-                      primaryNeedsInput: needsCustomer,
-                      onSaveTicket: items.isEmpty || settling != null
-                          ? null
-                          : _showParkDialog,
-                      onPrimary: !canCollect
-                          ? (items.isEmpty ||
-                                    _sendToTillBusy ||
-                                    settling != null
-                                ? null
-                                : () => unawaited(_sendCartToTill()))
-                          : needsCustomer
-                          ? () => _openCustomerSheet(txn)
-                          : canCharge
-                          ? () => _handleCharge(
-                              total,
-                              immediateCompletion:
-                                  !digitalEnabled || remaining <= 0.01,
-                            )
-                          : null,
-                      // Digital MoMo: split Charge (wait) vs Complete Now (handoff deviation).
-                      secondaryLabel:
-                          canCollect &&
-                              digitalEnabled &&
-                              items.isNotEmpty &&
-                              !needsCustomer
-                          ? _primaryLabel(
-                              items.isEmpty,
-                              txn,
-                              displaySaleCustomerPhone,
-                              isMomo,
-                              remaining,
-                            )
-                          : null,
-                      onSecondary:
-                          canCollect &&
-                              digitalEnabled &&
-                              items.isNotEmpty &&
-                              canCharge
-                          ? () =>
-                                _handleCharge(total, immediateCompletion: false)
-                          : null,
-                      secondaryLoading:
-                          !_isImmediateCompletion && _shouldShowSpinner(),
-                    ),
+                    if (isTransfer)
+                      MposBranchTransferFooter(txn, _branchId, items.length)
+                    else
+                      MposCheckoutFooter(
+                        total: total,
+                        ready: ready,
+                        isLoading: canCollect
+                            ? (_isImmediateCompletion && _shouldShowSpinner())
+                            : _sendToTillBusy,
+                        primaryLabel: footerPrimaryLabel,
+                        primaryNeedsInput: needsCustomer,
+                        onSaveTicket: items.isEmpty || settling != null
+                            ? null
+                            : _showParkDialog,
+                        onPrimary: !canCollect
+                            ? (items.isEmpty ||
+                                      _sendToTillBusy ||
+                                      settling != null
+                                  ? null
+                                  : () => unawaited(_sendCartToTill()))
+                            : needsCustomer
+                            ? () => _openCustomerSheet(txn)
+                            : canCharge
+                            ? () => _handleCharge(
+                                total,
+                                immediateCompletion:
+                                    !digitalEnabled || remaining <= 0.01,
+                              )
+                            : null,
+                        // Digital MoMo: split Charge (wait) vs Complete Now (handoff deviation).
+                        secondaryLabel:
+                            canCollect &&
+                                digitalEnabled &&
+                                items.isNotEmpty &&
+                                !needsCustomer
+                            ? _primaryLabel(
+                                items.isEmpty,
+                                txn,
+                                displaySaleCustomerPhone,
+                                isMomo,
+                                remaining,
+                              )
+                            : null,
+                        onSecondary:
+                            canCollect &&
+                                digitalEnabled &&
+                                items.isNotEmpty &&
+                                canCharge
+                            ? () => _handleCharge(
+                                total,
+                                immediateCompletion: false,
+                              )
+                            : null,
+                        secondaryLoading:
+                            !_isImmediateCompletion && _shouldShowSpinner(),
+                      ),
                   ],
                 ),
               );
