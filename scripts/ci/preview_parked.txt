@@ -1,0 +1,4 @@
+# PRs left out of the internal preview build (scripts/ci/fold_open_prs.sh).
+# One PR number per line; text after the number is a note. Remove a line when
+# that PR is ready to merge. scripts/next.sh (workspace root) reads this too.
+668  ci/artemis-android-signup: needs a Gemini API key, parked 2026-09-27
