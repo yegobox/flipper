@@ -230,6 +230,17 @@ class DataConnectorSessionService {
           )
           .timeout(_timeout);
       if (response.statusCode != 200) {
+        if (!_refusesToken(response.statusCode)) {
+          // A 5xx is the connector or its Supabase store failing, not a
+          // verdict on the token. Treating it as one wiped the token on every
+          // restart, and re-enrolment fails against the same outage, so the
+          // phone was left with no token at all.
+          talker.warning(
+            'data-connector: refresh failed (${response.statusCode}), '
+            'keeping the refresh token',
+          );
+          return const _RefreshResult.unreachable();
+        }
         talker.warning(
           'data-connector: refresh rejected (${response.statusCode})',
         );
@@ -248,6 +259,14 @@ class DataConnectorSessionService {
       return const _RefreshResult.unreachable();
     }
   }
+
+  /// Whether a non-200 from `/auth/token` means the token itself is dead.
+  ///
+  /// The connector refuses a token with 401 and a malformed request with
+  /// 400/422. Anything else — 5xx, a 404 or 502 from the proxy, 408, 429 —
+  /// says nothing about the token.
+  static bool _refusesToken(int status) =>
+      status == 400 || status == 401 || status == 403 || status == 422;
 
   static Future<String?> _enroll({
     required String baseUrl,

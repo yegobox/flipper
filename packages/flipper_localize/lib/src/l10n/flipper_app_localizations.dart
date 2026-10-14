@@ -43463,6 +43463,12 @@ abstract class FlipperAppLocalizations {
   /// **'Clearing the Cash Book is not enabled for this business. Ask Flipper support to enable it for one reset.'**
   String get cashResetNotEnabled;
 
+  /// Clear Cash Book failed because the device has no valid server session (HTTP 401)
+  ///
+  /// In en, this message translates to:
+  /// **'This device could not sign in to the Flipper server. Check the internet connection and try again. If it keeps happening, log out and log back in.'**
+  String get cashResetSignInFailed;
+
   /// Branch transfer refused because some cart lines are not saved yet
   ///
   /// In en, this message translates to:

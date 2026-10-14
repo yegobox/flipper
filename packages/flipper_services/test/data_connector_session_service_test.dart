@@ -416,6 +416,52 @@ void _lifecycleTests() {
     expect(paths, ['/auth/token']);
   });
 
+  for (final status in [500, 502, 503, 429]) {
+    test('a $status from refresh keeps the token and does not enrol', () async {
+      // The connector restarting or losing Supabase answers 5xx. That is an
+      // outage, not a verdict on the token: wiping it and re-enrolling
+      // against the same outage left phones with no token at all.
+      env.store['dataConnectorRefreshToken'] = 'ref-keep';
+      final paths = <String>[];
+      DataConnectorSessionService.testClient = MockClient((req) async {
+        paths.add(req.url.path);
+        return http.Response('{"error":"refresh lookup failed"}', status);
+      });
+
+      final token = await DataConnectorSessionService.ensureAccessToken(
+        baseUrl: 'https://c.invalid/',
+      );
+
+      expect(token, isNull);
+      expect(paths, ['/auth/token']);
+      expect(env.store['dataConnectorRefreshToken'], 'ref-keep');
+    });
+  }
+
+  test('the kept token renews once the connector recovers', () async {
+    env.store['dataConnectorRefreshToken'] = 'ref-keep';
+    var down = true;
+    DataConnectorSessionService.testClient = MockClient((req) async {
+      if (down) return http.Response('{"error":"down"}', 503);
+      expect(jsonDecode(req.body)['refreshToken'], 'ref-keep');
+      return http.Response(tokenResponse('acc-2', 'ref-new'), 200);
+    });
+
+    expect(
+      await DataConnectorSessionService.ensureAccessToken(
+        baseUrl: 'https://c.invalid/',
+      ),
+      isNull,
+    );
+    down = false;
+    expect(
+      await DataConnectorSessionService.ensureAccessToken(
+        baseUrl: 'https://c.invalid/',
+      ),
+      'acc-2',
+    );
+  });
+
   test('reset clears every credential, for a branch switch', () async {
     // The token carries branch and business claims, so one minted for the
     // old branch would ask the server for the wrong tenant.

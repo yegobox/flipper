@@ -77,11 +77,16 @@ class _CashResetDialogState extends ConsumerState<CashResetDialog> {
   }
 
   /// A 403 means staff have not enabled a reset for this business (it is
-  /// granted per request in Supabase); anything else is a real failure.
+  /// granted per request in Supabase). A 401 means this device has no
+  /// connector session, and the server's "authentication required" tells a
+  /// shop owner nothing. Anything else is a real failure.
   String _errorText(Object e) {
     final l10n = context.flipperL10n;
     if (e is CashResetException && e.statusCode == 403) {
       return l10n.cashResetNotEnabled;
+    }
+    if (e is CashResetException && e.statusCode == 401) {
+      return l10n.cashResetSignInFailed;
     }
     return l10n.cashResetFailed('$e');
   }

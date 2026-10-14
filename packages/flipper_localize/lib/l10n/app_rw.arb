@@ -8867,5 +8867,6 @@
   "cashResetDone": "Ibyandikwa {count} byasibwe.",
   "cashResetFailed": "Ntibyashobotse gusiba ibyanditswe mu gitabo cy'amafaranga: {error}",
   "cashResetNotEnabled": "Gusiba ibyanditswe mu gitabo cy'amafaranga ntibyemerewe iki kigo. Saba ubufasha bwa Flipper kubyemera rimwe.",
+  "cashResetSignInFailed": "Iki gikoresho nticyashoboye kwinjira kuri seriveri ya Flipper. Reba ko murandasi ikora hanyuma wongere ugerageze. Nibikomeza, sohoka hanyuma wongere winjire.",
   "branchTransferCartStillSaving": "Hari ibicuruzwa bikibikwa. Tegereza akanya gato, hanyuma wongere wohereze."
 }

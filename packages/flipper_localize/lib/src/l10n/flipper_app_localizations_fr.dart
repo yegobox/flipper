@@ -26419,6 +26419,10 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
       'Le vidage du livre de caisse n\'est pas activé pour cette entreprise. Demandez au support Flipper de l\'activer pour une seule fois.';
 
   @override
+  String get cashResetSignInFailed =>
+      'Cet appareil n\'a pas pu se connecter au serveur Flipper. Vérifiez la connexion internet et réessayez. Si le problème persiste, déconnectez-vous puis reconnectez-vous.';
+
+  @override
   String get branchTransferCartStillSaving =>
       'Certains articles sont encore en cours d\'enregistrement. Patientez un instant, puis relancez le transfert.';
 }

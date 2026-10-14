@@ -19526,6 +19526,10 @@
     "@cashResetNotEnabled": {
         "description": "Clear Cash Book refused because Flipper staff have not enabled a reset for this business"
     },
+    "cashResetSignInFailed": "This device could not sign in to the Flipper server. Check the internet connection and try again. If it keeps happening, log out and log back in.",
+    "@cashResetSignInFailed": {
+        "description": "Clear Cash Book failed because the device has no valid server session (HTTP 401)"
+    },
     "branchTransferCartStillSaving": "Some items are still being saved. Wait a moment, then transfer again.",
     "@branchTransferCartStillSaving": {
         "description": "Branch transfer refused because some cart lines are not saved yet"

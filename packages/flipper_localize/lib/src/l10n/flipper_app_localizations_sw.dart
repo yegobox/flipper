@@ -26158,6 +26158,10 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
       'Kufuta rekodi za daftari la fedha hakujawashwa kwa biashara hii. Omba msaada wa Flipper uwashe mara moja.';
 
   @override
+  String get cashResetSignInFailed =>
+      'Kifaa hiki hakikuweza kuingia kwenye seva ya Flipper. Angalia muunganisho wa intaneti kisha ujaribu tena. Tatizo likiendelea, toka kisha uingie tena.';
+
+  @override
   String get branchTransferCartStillSaving =>
       'Baadhi ya bidhaa bado zinahifadhiwa. Subiri kidogo, kisha uhamishe tena.';
 }
