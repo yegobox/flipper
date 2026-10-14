@@ -978,22 +978,13 @@ jobs:
 
   fastlane-deploy:
     name: "Google Deploy ${{ matrix.app }}"
-    # Runs on main too: everything lands on main through PRs, so skipping it
-    # meant the code users actually get was never built for Android.
-    #
-    # Serialise Play uploads. VERSION_CODE is run_number-based, so overlapping
-    # builds can finish out of order and Play rejects the lower one ("does not
-    # allow any existing users to upgrade"). With cancel-in-progress false,
-    # GitHub keeps one running and one pending job per group, and a newer
-    # pending job replaces the older one, so uploads land in run_number order.
-    #
-    # main and branches get separate groups: in one shared group a branch push
-    # would replace a pending main upload, and the merged build would never
-    # reach Play. The residual cost is that a main and a branch build can still
-    # overlap; if main's upload is rejected for a lower code, push an empty
-    # `ci:` commit to main (a re-run keeps the same run_number, so the same code).
+    # Manual lanes only (beta, promote_to_production, production). Pushes no
+    # longer upload here: the internal track is fed by android_preview.yml,
+    # which uploads main + every open PR so testers always get all open work
+    # instead of whichever branch pushed last.
+    if: github.event_name == 'workflow_dispatch'
     concurrency:
-      group: play-internal-${{ matrix.app }}-${{ github.ref == 'refs/heads/main' && 'main' || 'branches' }}
+      group: play-${{ matrix.app }}-${{ github.event.inputs.lane }}
       cancel-in-progress: false
     runs-on: ubuntu-latest
     continue-on-error: true
@@ -1325,11 +1316,17 @@ jobs:
           cd "$GITHUB_WORKSPACE/apps/flipper"
           shorebird doctor -v
       - name: Calculate Version
+        # Highest versionCode on any Play track + 1 (the preview workflow uses
+        # the same rule), so a manual lane can never be rejected as a downgrade.
+        working-directory: apps/${{ matrix.app }}/android
+        env:
+          PLAY_STORE_CONFIG_JSON: ${{ matrix.app == 'flipper_auth' && secrets.FLIPPER_AUTH_PLAYSTORE_ACCOUNT_KEY || secrets.PLAYSTORE_ACCOUNT_KEY }}
+          NEXT_VERSION_CODE_FILE: ${{ runner.temp }}/next_version_code.txt
         run: |
-          VERSION_CODE=$(( ${{ github.run_number }} + 1800000000 ))
-          VERSION_NAME="1.180.${{ github.run_number }}"
+          bundle exec fastlane next_version_code
+          VERSION_CODE="$(cat "$NEXT_VERSION_CODE_FILE")"
           echo "VERSION_CODE=$VERSION_CODE" >> $GITHUB_ENV
-          echo "VERSION_NAME=$VERSION_NAME" >> $GITHUB_ENV
+          echo "VERSION_NAME=1.180.$(( VERSION_CODE - 1800000000 ))" >> $GITHUB_ENV
       - name: Shorebird release build
         if: matrix.app == 'flipper'
         working-directory: apps/flipper

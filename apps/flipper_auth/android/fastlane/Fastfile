@@ -2,6 +2,24 @@ default_platform(:android)
 
 platform :android do
 
+  # The next free versionCode: one above the highest on any track. Uploads use
+  # it instead of the CI run number, so builds from different workflows or
+  # finishing out of order can never be rejected as a downgrade.
+  desc "Write the next free Play versionCode to $NEXT_VERSION_CODE_FILE"
+  lane :next_version_code do
+    codes = %w[internal alpha beta production].flat_map do |track|
+      google_play_track_version_codes(
+        package_name: 'rw.flipper.auth',
+        track: track,
+        json_key_data: ENV['PLAY_STORE_CONFIG_JSON']
+      )
+    end
+    UI.user_error!('Play returned no versionCodes; refusing to guess') if codes.empty?
+    next_code = codes.map(&:to_i).max + 1
+    File.write(ENV['NEXT_VERSION_CODE_FILE'] || 'next_version_code.txt', next_code.to_s)
+    UI.message("Next versionCode: #{next_code}")
+  end
+
   desc "Submit a new internal build to Google Play"
   lane :internal do 
   

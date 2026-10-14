@@ -1,0 +1,305 @@
+name: Android preview - internal track
+
+# The Play internal track holds ONE build at a time. Uploading each branch on
+# its own meant testers only ever had whichever branch pushed last, and a
+# branch upload waiting in the queue was silently dropped when two more
+# branches pushed. So every upload is now the same thing: origin/main with
+# every open, non-draft, non-parked PR folded in (scripts/ci/fold_open_prs.sh).
+# A dropped pending upload costs nothing — the next one contains it.
+#
+# workflow_run always runs this file as it is on main, so a branch cut before
+# this change cannot run stale upload logic from its own copy.
+
+on:
+  workflow_run:
+    # Any push to main or a branch (release.yml) refreshes the preview.
+    workflows: ["Flipper - CI/CD - Windows & Android & Google Play"]
+    types: [requested]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+env:
+  FLUTTER_VERSION: "3.44.6"
+
+jobs:
+  preview:
+    name: "Preview ${{ matrix.app }} -> Play internal"
+    # One running + one pending per app; a newer pending run replaces the older
+    # one. Never cancel a running upload: it still ships everything open then.
+    concurrency:
+      group: play-internal-preview-${{ matrix.app }}
+      cancel-in-progress: false
+    runs-on: ubuntu-latest
+    env:
+      FLUTTER_TEST_CI: true
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [flipper, flipper_auth]
+    steps:
+      - name: Free Disk Space
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: true
+          android: false
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
+          swap-storage: true
+      - run: git config --global core.autocrlf false
+      # Set up Flutter.
+      - name: Clone Flutter repository with stable channel
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }} #firebase_auth_desktop is broken with  3.10.6
+          channel: stable
+      - run: flutter doctor -v
+
+      # Checkout flipper code
+      - name: Checkout main with every branch
+        uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9
+        with:
+          ref: main
+          fetch-depth: 0
+          submodules: recursive
+          persist-credentials: false  # submodules are public; nothing after checkout needs a credential
+
+      - name: Fold open PRs onto main
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          scripts/ci/fold_open_prs.sh \
+            --notes "$RUNNER_TEMP/preview-notes.txt" \
+            --summary "$GITHUB_STEP_SUMMARY"
+          echo "--- release notes ---"
+          cat "$RUNNER_TEMP/preview-notes.txt"
+
+      - name: Force submodule update
+        run: git submodule update --init --force --recursive
+      - uses: actions/setup-java@v4 #plugin for setting up the java
+        with:
+          distribution: "zulu"
+          java-version: "17" #defines the java version
+      
+      - name: Accept Android licenses
+        run: |
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "ndk;29.0.14206865"
+      - name: Configure Git with PAT
+        env:
+          PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
+        run: |
+          git config --global user.email "info@yegobox.com"
+          git config --global user.name "YEGOBOX"
+          git config --global credential.helper store
+          echo "https://github.com:${PAT_TOKEN}@github.com" > ~/.git-credentials
+      - name: Initialize submodules
+        run: git submodule update --init
+
+      - name: Setup melos
+        run: dart pub global activate melos 7.3.0
+
+      - name: Add pub cache to PATH
+        run: echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
+
+      - name: Bootstrap melos
+        run: dart run melos bootstrap
+
+      - name: Configure Missing files
+        run: |
+          echo "$INDEX" >> apps/flipper/web/index.html
+          echo "$CONFIGDART" >> packages/flipper_login/lib/config.dart
+          echo "$SECRETS" >> packages/flipper_models/lib/secrets.dart
+          echo "$SECRETS" >> apps/flipper_web/lib/core/secrets.dart
+          if [ "${{ matrix.app }}" = "flipper_auth" ]; then
+            echo "$SECRETS" >> apps/flipper_auth/lib/core/secrets.dart
+          fi
+          echo "$FIREBASEOPTIONS" >> apps/flipper/lib/firebase_options.dart
+          echo "$FIREBASEOPTIONS" >> packages/flipper_models/lib/firebase_options.dart
+          git config --global core.autocrlf false
+          echo "$AMPLIFY_CONFIG" >> apps/flipper/lib/amplifyconfiguration.dart
+          echo "$AMPLIFY_TEAM_PROVIDER" >> apps/flipper/amplify/team-provider-info.json
+
+        env:
+          INDEX: ${{ secrets.INDEX }}
+          CONFIGDART: ${{ secrets.CONFIGDART }}
+          SECRETS: ${{ secrets.SECRETS }}
+          FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
+          AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }}
+          AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
+      # Setup Ruby, Bundler, and Gemfile dependencies
+      - name: Setup Fastlane
+        uses: ruby/setup-ruby@v1
+        with:
+          # fastlane is dropping support for Ruby 3.0/3.1
+          ruby-version: "3.2"
+          bundler-cache: true
+          # cache-version: 1
+          working-directory: apps/${{ matrix.app }}/android
+      - name: Write PostHog project token to local.properties
+        run: |
+          echo "POSTHOG_API_KEY=${{ secrets.POSTHOG_API_KEY }}" > android/app/local.properties
+        working-directory: apps/${{ matrix.app }}
+      
+      - name: Set environment variables
+        run: |
+          if [ "${{ matrix.app }}" = "flipper_auth" ]; then
+            cat << 'ENV_EOF' >> "$GITHUB_ENV"
+          PLAY_STORE_UPLOAD_KEY<<EOF
+          ${{ secrets.PLAY_STORE_UPLOAD_KEY }}
+          EOF
+          KEYSTORE_KEY_ALIAS=${{ secrets.KEYSTORE_KEY_ALIAS }}
+          KEYSTORE_KEY_PASSWORD=${{ secrets.KEYSTORE_KEY_PASSWORD }}
+          KEYSTORE_STORE_PASSWORD=${{ secrets.KEYSTORE_STORE_PASSWORD }}
+          GOOGLE_SERVICE_JSON<<EOF
+          ${{ secrets.FLIPPER_AUTH_GOOGLE_SERVICE_JSON }}
+          EOF
+          ENV_EOF
+          else
+            cat << 'ENV_EOF' >> "$GITHUB_ENV"
+          PLAY_STORE_UPLOAD_KEY<<EOF
+          ${{ secrets.PLAY_STORE_UPLOAD_KEY }}
+          EOF
+          KEYSTORE_KEY_ALIAS=${{ secrets.KEYSTORE_KEY_ALIAS }}
+          KEYSTORE_KEY_PASSWORD=${{ secrets.KEYSTORE_KEY_PASSWORD }}
+          KEYSTORE_STORE_PASSWORD=${{ secrets.KEYSTORE_STORE_PASSWORD }}
+          GOOGLE_SERVICE_JSON<<EOF
+          ${{ secrets.GOOGLE_SERVICE_JSON }}
+          EOF
+          ENV_EOF
+          fi
+      - name: Configure Keystore
+        run: |
+          echo "$GOOGLE_SERVICE_JSON" > app/google-services.json
+          echo "$PLAY_STORE_UPLOAD_KEY" | base64 --decode > app/key.jks
+          echo "storeFile=key.jks" >> key.properties
+          echo "keyAlias=$KEYSTORE_KEY_ALIAS" >> key.properties
+          echo "storePassword=$KEYSTORE_STORE_PASSWORD" >> key.properties
+          echo "keyPassword=$KEYSTORE_KEY_PASSWORD" >> key.properties
+        working-directory: apps/${{ matrix.app }}/android
+      - name: Verify package name before upload
+        run: |
+          echo "Verifying package name for ${{ matrix.app }}..."
+          if [ "${{ matrix.app }}" = "flipper_auth" ]; then
+            expected_package="rw.flipper.auth"
+          else
+            expected_package="rw.flipper"
+          fi
+          
+          # Extract package name from build.gradle.kts
+          actual_package=$(grep 'applicationId = ' app/build.gradle.kts | sed 's/.*applicationId = "\(.*\)".*/\1/')
+          echo "Expected package: $expected_package"
+          echo "Actual package: $actual_package"
+          
+          if [ "$actual_package" != "$expected_package" ]; then
+            echo "ERROR: Package name mismatch!"
+            exit 1
+          fi
+        working-directory: apps/${{ matrix.app }}/android
+      - name: Setup Shorebird
+        if: matrix.app == 'flipper'
+        uses: shorebirdtech/setup-shorebird@v1
+        with:
+          cache: true
+      - name: Verify Shorebird auth
+        if: matrix.app == 'flipper'
+        env:
+          SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
+        run: |
+          bash "$GITHUB_WORKSPACE/scripts/ci/verify_shorebird_token.sh"
+          shorebird --version
+          # shorebird.yaml lives in apps/flipper. The repo root pubspec.yaml is the
+          # melos workspace file and has no flutter assets, so doctor must run in the app dir.
+          cd "$GITHUB_WORKSPACE/apps/flipper"
+          shorebird doctor -v
+      - name: Next free versionCode from Play
+        # Highest code on any track + 1: uploads from any workflow, in any
+        # order, can never be rejected as a downgrade.
+        working-directory: apps/${{ matrix.app }}/android
+        env:
+          PLAY_STORE_CONFIG_JSON: ${{ matrix.app == 'flipper_auth' && secrets.FLIPPER_AUTH_PLAYSTORE_ACCOUNT_KEY || secrets.PLAYSTORE_ACCOUNT_KEY }}
+          NEXT_VERSION_CODE_FILE: ${{ runner.temp }}/next_version_code.txt
+        run: |
+          bundle exec fastlane next_version_code
+          VERSION_CODE="$(cat "$NEXT_VERSION_CODE_FILE")"
+          echo "VERSION_CODE=$VERSION_CODE" >> "$GITHUB_ENV"
+          echo "VERSION_NAME=1.180.$(( VERSION_CODE - 1800000000 ))" >> "$GITHUB_ENV"
+          echo "versionCode $VERSION_CODE" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Release notes for testers
+        # supply uploads changelogs/<versionCode>.txt as the release's notes.
+        working-directory: apps/${{ matrix.app }}/android
+        run: |
+          mkdir -p fastlane/metadata/android/en-US/changelogs
+          cp "$RUNNER_TEMP/preview-notes.txt" \
+            "fastlane/metadata/android/en-US/changelogs/$VERSION_CODE.txt"
+
+      - name: Shorebird release build
+        if: matrix.app == 'flipper'
+        working-directory: apps/flipper
+        env:
+          SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
+          VERSION_CODE: ${{ env.VERSION_CODE }}
+          VERSION_NAME: ${{ env.VERSION_NAME }}
+        run: |
+          set -euo pipefail
+          shorebird release android -v -- --no-android-gradle-daemon 2>&1 | tee /tmp/shorebird-release.log
+          test -f build/app/outputs/bundle/release/app-release.aab
+      - name: Verify AAB 16 KB ELF compliance
+        # Must run before Play upload. flipper_auth builds inside fastlane; for that
+        # app we verify after fastlane below as well when an AAB is present.
+        if: matrix.app == 'flipper'
+        working-directory: ${{ github.workspace }}
+        run: |
+          set -euo pipefail
+          ARTIFACT_PATH="apps/flipper/build/app/outputs/bundle/release/app-release.aab"
+          test -f "$ARTIFACT_PATH"
+          python3 scripts/ci/check_aab_16kb_elf.py "$ARTIFACT_PATH"
+      - name: Dump Shorebird release log on failure
+        if: failure() && matrix.app == 'flipper'
+        run: |
+          echo "=== shorebird release log (tail) ==="
+          tail -300 /tmp/shorebird-release.log 2>/dev/null || echo "(no /tmp/shorebird-release.log)"
+          echo "=== build outputs ==="
+          ls -laR apps/flipper/build/app/outputs 2>/dev/null || true
+      - name: Upload to the Play internal track
+        run: bundle exec fastlane internal
+        env:
+          PLAY_STORE_CONFIG_JSON: ${{ matrix.app == 'flipper_auth' && secrets.FLIPPER_AUTH_PLAYSTORE_ACCOUNT_KEY || secrets.PLAYSTORE_ACCOUNT_KEY }}
+          DB_URL: ${{ secrets.DB_URL }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
+          VERSION_CODE: ${{ env.VERSION_CODE }}
+          VERSION_NAME: ${{ env.VERSION_NAME }}
+          SHOREBIRD_PREBUILT: ${{ matrix.app == 'flipper' && 'true' || 'false' }}
+          USE_SHOREBIRD: 'false'
+        working-directory: apps/${{ matrix.app }}/android
+      - name: Verify AAB 16 KB ELF compliance (post-fastlane)
+        if: matrix.app == 'flipper_auth'
+        working-directory: ${{ github.workspace }}
+        run: |
+          set -euo pipefail
+          SEARCH_DIR="apps/${{ matrix.app }}"
+          ARTIFACT_PATH=$(find "$SEARCH_DIR/build/app/outputs/bundle" -name "*.aab" 2>/dev/null | head -n 1 || true)
+          if [ -z "$ARTIFACT_PATH" ]; then
+            ARTIFACT_PATH=$(find "$SEARCH_DIR/build" -name "app-release.aab" 2>/dev/null | head -n 1 || true)
+          fi
+          if [ -z "$ARTIFACT_PATH" ]; then
+            echo "::error::No app-release.aab found under $SEARCH_DIR/build — cannot verify 16KB alignment"
+            exit 1
+          fi
+          python3 scripts/ci/check_aab_16kb_elf.py "$ARTIFACT_PATH"
+      - name: Upload Shorebird logs on failure
+        if: failure() && matrix.app == 'flipper'
+        uses: actions/upload-artifact@v4
+        with:
+          name: shorebird-logs-${{ matrix.app }}-${{ github.run_id }}
+          path: |
+            /tmp/shorebird-release.log
+            ~/.config/shorebird/logs/
+            ~/.shorebird/logs/
+          if-no-files-found: ignore
