@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/features/admin/mobile/mobile_settings_hub.dart';
+import 'package:flipper_dashboard/features/admin/mobile/settings_list.dart';
 import 'package:flipper_dashboard/features/admin/widgets/cash_reset_dialog.dart';
 import 'package:flipper_dashboard/theme/pos_tokens.dart';
 import 'package:flipper_localize/flipper_localize.dart';
@@ -166,5 +167,34 @@ void main() {
     expect(find.byType(CashResetDialog), findsOneWidget);
     expect(find.byType(AlertDialog), findsNothing);
     expect(find.byKey(const ValueKey('cash-reset-preview')), findsOneWidget);
+  });
+
+  testWidgets('rows read as labelled buttons to screen readers', (
+    tester,
+  ) async {
+    final semantics = tester.ensureSemantics();
+    await pump(tester, admin: true);
+    final l10n = FlipperL10n.current;
+    expect(
+      tester.getSemantics(
+        find.widgetWithText(SettingsRow, l10n.userManagement),
+      ),
+      containsSemantics(
+        label: l10n.userManagement,
+        isButton: true,
+        hasTapAction: true,
+      ),
+    );
+    expect(
+      tester.getSemantics(
+        find.byKey(const ValueKey('settings-clear-cash-book')),
+      ),
+      containsSemantics(
+        label: l10n.cashResetTitle,
+        isButton: true,
+        hasTapAction: true,
+      ),
+    );
+    semantics.dispose();
   });
 }

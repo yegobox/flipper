@@ -85,54 +85,63 @@ class SettingsRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ink = destructive ? PosTokens.lossInk : PosTokens.ink1;
-    return InkWell(
-      onTap: onTap,
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(minHeight: _kRowMinHeight),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: _kSidePad,
-            vertical: 12,
-          ),
-          child: Row(
-            children: [
-              Icon(
-                icon,
-                size: _kIconSize,
-                color: destructive ? PosTokens.lossInk : PosTokens.ink3,
+    // One button node for screen readers: title (and value) read together.
+    return MergeSemantics(
+      child: Semantics(
+        button: true,
+        child: InkWell(
+          onTap: onTap,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: _kRowMinHeight),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: _kSidePad,
+                vertical: 12,
               ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w500,
-                    color: ink,
+              child: Row(
+                children: [
+                  Icon(
+                    icon,
+                    size: _kIconSize,
+                    color: destructive ? PosTokens.lossInk : PosTokens.ink3,
                   ),
-                ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
+                        color: ink,
+                      ),
+                    ),
+                  ),
+                  if (value != null) ...[
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        value!,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.end,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: PosTokens.ink3,
+                        ),
+                      ),
+                    ),
+                  ],
+                  if (!destructive) ...[
+                    const SizedBox(width: 6),
+                    const Icon(
+                      Icons.chevron_right_rounded,
+                      size: 20,
+                      color: PosTokens.ink4,
+                    ),
+                  ],
+                ],
               ),
-              if (value != null) ...[
-                const SizedBox(width: 8),
-                Flexible(
-                  child: Text(
-                    value!,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.end,
-                    style: const TextStyle(fontSize: 14, color: PosTokens.ink3),
-                  ),
-                ),
-              ],
-              if (!destructive) ...[
-                const SizedBox(width: 6),
-                const Icon(
-                  Icons.chevron_right_rounded,
-                  size: 20,
-                  color: PosTokens.ink4,
-                ),
-              ],
-            ],
+            ),
           ),
         ),
       ),
