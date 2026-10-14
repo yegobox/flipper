@@ -26116,6 +26116,66 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   }
 
   @override
+  String get smsBridgeHeadline =>
+      'SMS za benki, moja kwa moja kwenye Kitabu cha Fedha';
+
+  @override
+  String get smsBridgeStepInstall => 'Sakinisha programu';
+
+  @override
+  String get smsBridgeInstallBody =>
+      'Kwenye simu inayopokea ujumbe wa benki na MoMo, changanua msimbo huu wa QR au fungua kiungo ili kusakinisha Flipper SMS Bridge.';
+
+  @override
+  String get smsBridgeCopyLink => 'Nakili kiungo';
+
+  @override
+  String get smsBridgeCopied => 'Imenakiliwa';
+
+  @override
+  String get smsBridgeStepPair => 'Unganisha simu';
+
+  @override
+  String get smsBridgePairBody =>
+      'Tengeneza msimbo wa matumizi moja, kisha uuchanganue kwa programu ya SMS Bridge. Hakuna kingine kwenye simu kinachoshirikiwa.';
+
+  @override
+  String get smsBridgeCopyCode => 'Nakili msimbo';
+
+  @override
+  String smsBridgeExpiresIn(String time) {
+    return 'Unaisha baada ya $time';
+  }
+
+  @override
+  String get smsBridgeCodeExpired => 'Msimbo huu umeisha muda.';
+
+  @override
+  String get smsBridgeNewCode => 'Msimbo mpya';
+
+  @override
+  String get smsBridgeOpenOnThisPhone => 'Fungua SMS Bridge kwenye simu hii';
+
+  @override
+  String get smsBridgeNotInstalled =>
+      'SMS Bridge bado haijasakinishwa kwenye simu hii. Isakinishe kwanza, kisha urudi.';
+
+  @override
+  String get smsBridgeWaiting => 'Inasubiri simu…';
+
+  @override
+  String smsBridgePaired(String device) {
+    return '$device imeunganishwa';
+  }
+
+  @override
+  String get smsBridgePairedBody =>
+      'SMS za benki na MoMo kutoka simu hiyo sasa zinaonekana kwenye Kitabu cha Fedha → Za kukagua.';
+
+  @override
+  String get smsBridgePairAnother => 'Unganisha simu nyingine';
+
+  @override
   String get cashResetSectionTitle => 'Eneo la hatari';
 
   @override

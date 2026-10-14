@@ -43403,6 +43403,108 @@ abstract class FlipperAppLocalizations {
   /// **'Could not reach Flipper: {error}'**
   String smsBridgeError(String error);
 
+  /// No description provided for @smsBridgeHeadline.
+  ///
+  /// In en, this message translates to:
+  /// **'Bank SMS, straight into your Cash Book'**
+  String get smsBridgeHeadline;
+
+  /// No description provided for @smsBridgeStepInstall.
+  ///
+  /// In en, this message translates to:
+  /// **'Install the app'**
+  String get smsBridgeStepInstall;
+
+  /// No description provided for @smsBridgeInstallBody.
+  ///
+  /// In en, this message translates to:
+  /// **'On the phone that receives your bank and MoMo messages, scan this QR code or open the link to install Flipper SMS Bridge.'**
+  String get smsBridgeInstallBody;
+
+  /// No description provided for @smsBridgeCopyLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy link'**
+  String get smsBridgeCopyLink;
+
+  /// No description provided for @smsBridgeCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied'**
+  String get smsBridgeCopied;
+
+  /// No description provided for @smsBridgeStepPair.
+  ///
+  /// In en, this message translates to:
+  /// **'Pair the phone'**
+  String get smsBridgeStepPair;
+
+  /// No description provided for @smsBridgePairBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Make a one-time code, then scan it with the SMS Bridge app. Nothing else on the phone is shared.'**
+  String get smsBridgePairBody;
+
+  /// No description provided for @smsBridgeCopyCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy code'**
+  String get smsBridgeCopyCode;
+
+  /// No description provided for @smsBridgeExpiresIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Expires in {time}'**
+  String smsBridgeExpiresIn(String time);
+
+  /// No description provided for @smsBridgeCodeExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'This code has expired.'**
+  String get smsBridgeCodeExpired;
+
+  /// No description provided for @smsBridgeNewCode.
+  ///
+  /// In en, this message translates to:
+  /// **'New code'**
+  String get smsBridgeNewCode;
+
+  /// No description provided for @smsBridgeOpenOnThisPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Open SMS Bridge on this phone'**
+  String get smsBridgeOpenOnThisPhone;
+
+  /// No description provided for @smsBridgeNotInstalled.
+  ///
+  /// In en, this message translates to:
+  /// **'SMS Bridge isn\'t installed on this phone yet. Install it first, then come back.'**
+  String get smsBridgeNotInstalled;
+
+  /// No description provided for @smsBridgeWaiting.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for the phone…'**
+  String get smsBridgeWaiting;
+
+  /// No description provided for @smsBridgePaired.
+  ///
+  /// In en, this message translates to:
+  /// **'{device} is paired'**
+  String smsBridgePaired(String device);
+
+  /// No description provided for @smsBridgePairedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Bank and MoMo SMS from that phone now appear in Cash Book → To review.'**
+  String get smsBridgePairedBody;
+
+  /// No description provided for @smsBridgePairAnother.
+  ///
+  /// In en, this message translates to:
+  /// **'Pair another phone'**
+  String get smsBridgePairAnother;
+
   /// Admin Control danger zone: clear all Cash In / Cash Out for the business
   ///
   /// In en, this message translates to:

@@ -76,7 +76,7 @@ class _FakeBridge extends SmsBridgeClient {
     return SmsBridgePairing(
       code: '7K3QMZ9TXA',
       displayCode: '7K3QM-Z9TXA',
-      expiresAt: DateTime(2026, 10, 14, 10, 10),
+      expiresAt: DateTime.now().add(const Duration(minutes: 10)),
       qrPayload: smsBridgeQrPayload(
         baseUrl: 'https://unused.test/',
         code: '7K3QMZ9TXA',
@@ -96,6 +96,14 @@ class _FakeBridge extends SmsBridgeClient {
     if (error != null) throw error;
     revoked.add(deviceId);
   }
+}
+
+/// The SMS Bridge page is one long scroll (install, pair, paired phones);
+/// a phone-tall surface keeps the phone list built.
+void _tallView(WidgetTester tester) {
+  tester.view.physicalSize = const Size(1080, 6000);
+  tester.view.devicePixelRatio = 3;
+  addTearDown(tester.view.reset);
 }
 
 Widget _app(Widget child, List<Override> overrides) => ProviderScope(
@@ -207,6 +215,7 @@ void main() {
   testWidgets('the SMS Bridge page pairs a phone and unpairs one', (
     tester,
   ) async {
+    _tallView(tester);
     final fake = _FakeBridge();
     await tester.pumpWidget(
       ProviderScope(
@@ -326,6 +335,7 @@ void main() {
   testWidgets('a failed unpair shows why, and the next one clears it', (
     tester,
   ) async {
+    _tallView(tester);
     final fake = _FakeBridge()
       ..revokeError = const SmsBridgeException('connector down');
     await tester.pumpWidget(

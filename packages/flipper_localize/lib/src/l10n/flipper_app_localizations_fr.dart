@@ -26363,6 +26363,66 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   }
 
   @override
+  String get smsBridgeHeadline =>
+      'Les SMS bancaires, directement dans votre livre de caisse';
+
+  @override
+  String get smsBridgeStepInstall => 'Installer l\'application';
+
+  @override
+  String get smsBridgeInstallBody =>
+      'Sur le téléphone qui reçoit vos messages bancaires et MoMo, scannez ce code QR ou ouvrez le lien pour installer Flipper SMS Bridge.';
+
+  @override
+  String get smsBridgeCopyLink => 'Copier le lien';
+
+  @override
+  String get smsBridgeCopied => 'Copié';
+
+  @override
+  String get smsBridgeStepPair => 'Associer le téléphone';
+
+  @override
+  String get smsBridgePairBody =>
+      'Créez un code à usage unique, puis scannez-le avec l\'application SMS Bridge. Rien d\'autre n\'est partagé.';
+
+  @override
+  String get smsBridgeCopyCode => 'Copier le code';
+
+  @override
+  String smsBridgeExpiresIn(String time) {
+    return 'Expire dans $time';
+  }
+
+  @override
+  String get smsBridgeCodeExpired => 'Ce code a expiré.';
+
+  @override
+  String get smsBridgeNewCode => 'Nouveau code';
+
+  @override
+  String get smsBridgeOpenOnThisPhone => 'Ouvrir SMS Bridge sur ce téléphone';
+
+  @override
+  String get smsBridgeNotInstalled =>
+      'SMS Bridge n\'est pas encore installé sur ce téléphone. Installez-le d\'abord, puis revenez.';
+
+  @override
+  String get smsBridgeWaiting => 'En attente du téléphone…';
+
+  @override
+  String smsBridgePaired(String device) {
+    return '$device est associé';
+  }
+
+  @override
+  String get smsBridgePairedBody =>
+      'Les SMS bancaires et MoMo de ce téléphone apparaissent maintenant dans Livre de caisse → À vérifier.';
+
+  @override
+  String get smsBridgePairAnother => 'Associer un autre téléphone';
+
+  @override
   String get cashResetSectionTitle => 'Zone dangereuse';
 
   @override
