@@ -1,3 +1,4 @@
+import 'package:flipper_models/db_model_export.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_dashboard/theme/pos_tokens.dart';
 import 'package:intl/intl.dart';
@@ -67,4 +68,24 @@ String mposCheckoutTimeLabel(DateTime? createdAt) {
   final h = dt.hour.toString().padLeft(2, '0');
   final m = dt.minute.toString().padLeft(2, '0');
   return '$h:$m';
+}
+
+/// Prior non-credit payments already collected for a mobile checkout ticket.
+///
+/// Mirrors [QuickSellingView._effectiveAlreadyPaid]. [ITransaction.cashReceived]
+/// is written synchronously as part of sale completion, while the
+/// payment-records fetch behind [fetchedNonCreditPaid] is persisted in a
+/// deferred/fire-and-forget write and can resolve to a stale/low value shortly
+/// after a prior installment (or still be in flight). Floor the fetched value
+/// with cashReceived on a resumed loan/layaway so a lagging fetch never
+/// auto-fills the full sale total instead of the true remaining balance, or
+/// makes `deriveSaleCompletionState` think an already-fully-paid ticket is
+/// underpaid and re-park it. Never used for non-loan sales, where cashReceived
+/// may just mirror the in-progress tender.
+double mposAlreadyPaid(ITransaction transaction, double? fetchedNonCreditPaid) {
+  final loanFloor = transaction.isLoan == true
+      ? (transaction.cashReceived ?? 0.0)
+      : 0.0;
+  if (fetchedNonCreditPaid == null) return loanFloor;
+  return fetchedNonCreditPaid > loanFloor ? fetchedNonCreditPaid : loanFloor;
 }

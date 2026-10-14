@@ -112,26 +112,9 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
     return ProxyService.box.getBranchId() ?? '0';
   }
 
-  /// Prior non-credit payments already collected for this ticket.
-  ///
-  /// Mirrors [QuickSellingView._effectiveAlreadyPaid]. [ITransaction.cashReceived]
-  /// is written synchronously as part of sale completion, while the
-  /// payment-records fetch behind [_cachedNonCreditPaid] ([fetchNonCreditPaid])
-  /// is persisted in a deferred/fire-and-forget write and can resolve to a
-  /// stale/low value shortly after a prior installment (or still be in flight).
-  /// Floor the fetched value with cashReceived on a resumed loan/layaway so a
-  /// lagging fetch never auto-fills the full sale total instead of the true
-  /// remaining balance, or makes `deriveSaleCompletionState` think an
-  /// already-fully-paid ticket is underpaid and re-park it. Never used for
-  /// non-loan sales, where cashReceived may just mirror the in-progress tender.
-  double _effectiveAlreadyPaid(ITransaction transaction) {
-    final loanFloor = transaction.isLoan == true
-        ? (transaction.cashReceived ?? 0.0)
-        : 0.0;
-    final cached = _cachedNonCreditPaid;
-    if (cached == null) return loanFloor;
-    return cached > loanFloor ? cached : loanFloor;
-  }
+  /// Prior non-credit payments already collected; see [mposAlreadyPaid].
+  double _effectiveAlreadyPaid(ITransaction transaction) =>
+      mposAlreadyPaid(transaction, _cachedNonCreditPaid);
 
   @override
   void dispose() {
