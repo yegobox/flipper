@@ -10,6 +10,7 @@ import 'package:flipper_models/providers/digital_payment_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_services/payment_methods.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -49,7 +50,7 @@ class _MposPaymentSectionState extends ConsumerState<MposPaymentSection>
 
   static const _chipMethods = {
     MposPayChip.cash: 'CASH',
-    MposPayChip.momo: 'MOBILE MONEY',
+    MposPayChip.momo: kMobileMoney,
     MposPayChip.bank: 'BANK CHECK',
     MposPayChip.card: 'DEBIT&CREDIT CARD',
     MposPayChip.credit: 'CREDIT',
@@ -131,7 +132,7 @@ class _MposPaymentSectionState extends ConsumerState<MposPaymentSection>
       setState(() => _chip = MposPayChip.cash);
     } else if (m == 'CREDIT' || m == 'CASH/CREDIT') {
       setState(() => _chip = MposPayChip.credit);
-    } else if (m.contains('MOMO') || m.contains('MOBILE')) {
+    } else if (canonicalPaymentMethod(m) == kMobileMoney) {
       setState(() => _chip = MposPayChip.momo);
     } else if (m.contains('CARD')) {
       setState(() => _chip = MposPayChip.card);

@@ -9,6 +9,7 @@ import 'package:flipper_models/helpers/transaction_report_plu_filters.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_models/sync/capella/capella_sync.dart';
 import 'package:flipper_services/constants.dart';
+import 'package:flipper_services/payment_methods.dart';
 import 'package:flipper_models/sync/shift_sync.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/foundation.dart';
@@ -258,12 +259,7 @@ bool _isMobileMoneyMethod(String? method) {
   if (m.isEmpty) return false;
   if (paymentMethodIsCredit(method)) return false;
   if (m == 'CASH') return false;
-  return m.contains('MOMO') ||
-      m.contains('MOBILE') ||
-      m.contains('MTN') ||
-      m.contains('AIRTEL') ||
-      m.contains('MPESA') ||
-      m.contains('WALLET');
+  return isMobileMoneyTender(m) || m.contains('MPESA') || m.contains('WALLET');
 }
 
 bool _isCompletedShiftSale(ITransaction tx, Shift shift) {

@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/intro_title"
+            android:textSize="22sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/intro_body"
+            android:textColor="@color/muted" />
+
+        <!-- Shown when SMS permission is missing, paired or not. -->
+        <LinearLayout
+            android:id="@+id/permissionSection"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/perm_sms_missing"
+                android:textColor="@color/danger"
+                android:textStyle="bold" />
+
+            <Button
+                android:id="@+id/grantButton"
+                style="@style/Bridge.Button"
+                android:text="@string/perm_grant" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/perm_restricted"
+                android:textColor="@color/muted"
+                android:textSize="13sp" />
+
+            <Button
+                android:id="@+id/appInfoButton"
+                style="@style/Bridge.Button.Outlined"
+                android:text="@string/perm_open_settings" />
+        </LinearLayout>
+
+        <!-- Not paired -->
+        <LinearLayout
+            android:id="@+id/pairSection"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/pair_how" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="@string/pair_backfill_label"
+                android:textColor="@color/muted" />
+
+            <RadioGroup
+                android:id="@+id/backfillGroup"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:checkedButton="@+id/backfillNone">
+
+                <RadioButton
+                    android:id="@+id/backfillNone"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/pair_backfill_none" />
+
+                <RadioButton
+                    android:id="@+id/backfill7"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/pair_backfill_7" />
+
+                <RadioButton
+                    android:id="@+id/backfill30"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/pair_backfill_30" />
+            </RadioGroup>
+
+            <Button
+                android:id="@+id/scanButton"
+                style="@style/Bridge.Button"
+                android:text="@string/pair_scan" />
+
+            <Button
+                android:id="@+id/manualToggle"
+                style="@style/Bridge.Button.Outlined"
+                android:text="@string/pair_manual" />
+
+            <LinearLayout
+                android:id="@+id/manualSection"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <EditText
+                    android:id="@+id/codeInput"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/pair_code_hint"
+                    android:importantForAutofill="no"
+                    android:inputType="textCapCharacters|textNoSuggestions"
+                    android:maxLength="14" />
+
+                <EditText
+                    android:id="@+id/urlInput"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/pair_url_hint"
+                    android:importantForAutofill="no"
+                    android:inputType="textUri" />
+
+                <Button
+                    android:id="@+id/manualSubmit"
+                    style="@style/Bridge.Button"
+                    android:text="@string/pair_submit" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Paired -->
+        <LinearLayout
+            android:id="@+id/statusSection"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/postingTo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/health"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp" />
+
+            <TextView
+                android:id="@+id/queueCount"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp" />
+
+            <TextView
+                android:id="@+id/forwardedCount"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+            <TextView
+                android:id="@+id/lastUpload"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+            <Button
+                android:id="@+id/sendNow"
+                style="@style/Bridge.Button"
+                android:layout_marginTop="16dp"
+                android:text="@string/send_now" />
+
+            <Button
+                android:id="@+id/batteryButton"
+                style="@style/Bridge.Button.Outlined"
+                android:text="@string/battery" />
+
+            <Button
+                android:id="@+id/unpairButton"
+                style="@style/Bridge.Button.Outlined"
+                android:text="@string/unpair"
+                android:textColor="@color/danger" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/message"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:textColor="@color/muted" />
+    </LinearLayout>
+</ScrollView>

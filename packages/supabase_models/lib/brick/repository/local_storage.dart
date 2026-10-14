@@ -12,6 +12,7 @@ import 'package:supabase_models/brick/repository/storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flipper_services/constants.dart';
+import 'package:flipper_services/payment_methods.dart';
 
 /// Local-only Ditto collection for app preferences. Do not register sync
 /// subscriptions for this collection (device-local; may contain secrets).
@@ -312,8 +313,10 @@ class SharedPreferenceStorage implements LocalStorage {
       try {
         await _writeDittoPayload();
       } catch (e) {
+        // dart format off
         print(
             'SharedPreferenceStorage: Ditto session clear failed, JSON cleared: $e');
+        // dart format on
       }
     }
     _emitModeResets();
@@ -436,12 +439,14 @@ class SharedPreferenceStorage implements LocalStorage {
     });
     await store.execute(
       'INSERT INTO $_kDittoPrefsCollection DOCUMENTS (:data) ON ID CONFLICT DO UPDATE',
+      // dart format off
       arguments: {
         'data': {
           '_id': _kDittoPrefsDocId,
           'payload': payload,
         },
       },
+      // dart format on
     );
   }
 
@@ -484,8 +489,10 @@ class SharedPreferenceStorage implements LocalStorage {
         try {
           await _writeDittoPayload();
         } catch (e) {
+          // dart format off
           print(
               'SharedPreferenceStorage: Ditto write failed, using JSON only: $e');
+          // dart format on
         }
       }
     } finally {
@@ -506,9 +513,11 @@ class SharedPreferenceStorage implements LocalStorage {
           // Initialize version if not present
           _cache['_preferencesVersion'] ??= _kPreferencesVersion;
         } else {
+          // dart format off
           _cache = {
             '_preferencesVersion': _kPreferencesVersion,
           };
+          // dart format on
           await _webPrefs!.setString(_kPreferencesKey, jsonEncode(_cache));
         }
       } catch (e) {
@@ -571,8 +580,10 @@ class SharedPreferenceStorage implements LocalStorage {
         try {
           final tempDir = Directory.systemTemp;
           _filePath = path.join(tempDir.path, '${_kPreferencesKey}_test.json');
+          // dart format off
           _backupFilePath =
               path.join(tempDir.path, '${_kPreferencesBackupKey}_test.json');
+          // dart format on
         } catch (pathError) {
           // Fallback to hardcoded paths if even temp directory fails
           _filePath = '${_kPreferencesKey}_test.json';
@@ -976,7 +987,10 @@ class SharedPreferenceStorage implements LocalStorage {
 
   @override
   String? paymentType() {
-    return _cache['paymentType'] as String?;
+    // Folds a method saved under an old spelling (`MTN MOMO`) into the one
+    // the transaction should carry.
+    final stored = _cache['paymentType'] as String?;
+    return stored == null ? null : canonicalPaymentMethod(stored);
   }
 
   @override
@@ -1188,25 +1202,7 @@ class SharedPreferenceStorage implements LocalStorage {
 
   @override
   String paymentMethodCode(String paymentMethod) {
-    // Map payment method names to their corresponding codes
-    switch (paymentMethod.toUpperCase()) {
-      case 'CASH':
-        return '01';
-      case 'CREDIT':
-      case 'CREDIT CARD':
-        return '02';
-      case 'CASH/CREDIT':
-        return '03';
-      case 'BANK CHECK':
-        return '04';
-      case 'DEBIT&CREDIT CARD':
-        return '05';
-      case 'MOBILE MONEY':
-        return '06';
-      case 'OTHER':
-      default:
-        return '07';
-    }
+    return rraPaymentTypeCode(paymentMethod);
   }
 
   @override

@@ -6,6 +6,7 @@ import 'package:flipper_models/sync/utils/rra_line_utils.dart';
 import 'package:flipper_models/sync/utils/sale_accounting_fields.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/locator.dart';
+import 'package:flipper_services/payment_methods.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/setting_service.dart';
 import 'package:flutter/foundation.dart';
@@ -34,8 +35,9 @@ Future<void> issueSaleReceipt({
   required List<TransactionItem> lines,
   required String receiptContext,
 }) async {
-  final businessId = ProxyService.box.getBusinessId();
-  final branchId = ProxyService.box.getBranchId();
+  final box = ProxyService.box;
+  final businessId = box.getBusinessId();
+  final branchId = box.getBranchId();
 
   var fiscalReceiptHandled = false;
   if (businessId != null && branchId != null) {
@@ -43,21 +45,23 @@ Future<void> issueSaleReceipt({
       businessId: businessId,
       branchId: branchId,
     );
-    final stopTax = ProxyService.box.stopTaxService() ?? false;
-    final hasBhf = (await ProxyService.box.bhfId()) != null;
+    final stopTax = box.stopTaxService() ?? false;
+    final hasBhf = (await box.bhfId()) != null;
 
     if (taxEnabled && !stopTax && hasBhf) {
       final ebm = await sync.ebm(branchId: branchId);
       if (ebm?.taxServerUrl != null) {
-        ProxyService.box.writeString(
-          key: 'getServerUrl',
-          value: ebm!.taxServerUrl!,
+        box.writeString(key: 'getServerUrl', value: ebm!.taxServerUrl!);
+        box.writeString(key: 'bhfId', value: ebm.bhfId);
+        // The receipt request reads pmtTyCd from the box. Bar and hotel never
+        // touch the POS picker that sets it, so without this they file under
+        // whatever tender the last POS sale used.
+        box.writeString(
+          key: 'pmtTyCd',
+          value: rraPaymentTypeCode(transaction.paymentType),
         );
-        ProxyService.box.writeString(key: 'bhfId', value: ebm.bhfId);
 
-        final filterType = ProxyService.box.isProformaMode()
-            ? FilterType.PS
-            : FilterType.NS;
+        final filterType = box.isProformaMode() ? FilterType.PS : FilterType.NS;
         final receiptLines = await enrichLinesForRraReceipt(
           lines,
           context: receiptContext,

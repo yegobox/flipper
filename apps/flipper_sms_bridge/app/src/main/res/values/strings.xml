@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Flipper SMS Bridge</string>
+
+    <string name="intro_title">Send bank and MoMo SMS to Flipper</string>
+    <string name="intro_body">This phone forwards transaction messages from BK, MTN MoMo, Airtel Money, Equity and I&amp;M to your Flipper Cash Book and bank feed. Other messages never leave the phone.</string>
+
+    <string name="pair_scan">Scan pairing code</string>
+    <string name="pair_manual">Enter code instead</string>
+    <string name="pair_how">In Flipper, open Settings → SMS Bridge → Pair a phone, then scan the code it shows.</string>
+    <string name="pair_code_hint">Code (e.g. 7K3QM-Z9TXA)</string>
+    <string name="pair_url_hint">Flipper server address</string>
+    <string name="pair_submit">Pair</string>
+    <string name="pair_backfill_label">Also send messages already on this phone from the last:</string>
+    <string name="pair_backfill_none">Only new messages</string>
+    <string name="pair_backfill_7">7 days</string>
+    <string name="pair_backfill_30">30 days</string>
+    <string name="pairing">Pairing…</string>
+    <string name="pair_failed">Pairing failed: %1$s</string>
+    <string name="pair_bad_qr">That is not a Flipper SMS Bridge code.</string>
+    <string name="paired_backfill">Paired. Earlier messages queued: %1$d</string>
+
+    <string name="status_posting_to">Sending to: %1$s</string>
+    <string name="status_queue">Waiting to send: %1$d</string>
+    <string name="status_forwarded">Sent so far: %1$d</string>
+    <string name="status_last_upload">Last sent: %1$s</string>
+    <string name="status_never">never</string>
+    <string name="status_ok">Working. Bank SMS will appear in Flipper within a minute.</string>
+    <string name="status_needs_pairing">This phone was unpaired in Flipper. Pair it again.</string>
+
+    <string name="send_now">Send now</string>
+    <string name="battery">Keep running in the background</string>
+    <string name="unpair">Unpair this phone</string>
+    <string name="unpair_confirm">Stop sending SMS to Flipper? Messages not yet sent are deleted from this phone.</string>
+    <string name="cancel">Cancel</string>
+
+    <string name="perm_sms_missing">SMS permission is off, so nothing can be forwarded.</string>
+    <string name="perm_grant">Allow SMS access</string>
+    <string name="perm_restricted">Android may block SMS access for apps installed outside the Play Store. If the switch is greyed out: open App info → ⋮ (top right) → Allow restricted settings, then try again.</string>
+    <string name="perm_open_settings">Open App info</string>
+</resources>

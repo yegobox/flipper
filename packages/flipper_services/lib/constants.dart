@@ -175,7 +175,6 @@ const List<String> paymentTypes = [
   'BANK CHECK',
   'DEBIT&CREDIT CARD',
   'MOBILE MONEY',
-  'MTN MOMO',
   'AIRTEL MONEY',
   'OTHER',
 ];

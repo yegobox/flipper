@@ -73,6 +73,7 @@ import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flutter/foundation.dart' as foundation;
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_services/constants.dart';
+import 'package:flipper_services/payment_methods.dart';
 import 'package:flipper_services/digital_receipt_service.dart';
 import 'package:flipper_services/receipt_sync_service.dart';
 import 'package:flipper_services/supabase_session_service.dart';
@@ -3004,7 +3005,9 @@ class CoreSync extends AiStrategyImpl
         createdAt: DateTime.now().toUtc(),
         amount: amount,
         transactionId: transactionId,
-        paymentMethod: paymentMethod,
+        paymentMethod: paymentMethod == null
+            ? null
+            : canonicalPaymentMethod(paymentMethod),
         payerName: normalizedPayerName(payerName),
       );
 

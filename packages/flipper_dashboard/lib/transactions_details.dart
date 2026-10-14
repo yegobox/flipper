@@ -16,6 +16,7 @@ import 'package:flipper_models/providers/access_provider.dart';
 import 'package:flipper_models/providers/currency_provider.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_services/constants.dart';
+import 'package:flipper_services/payment_methods.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -1657,8 +1658,9 @@ String _formatPaymentMethod(String? paymentType) {
     return '—';
   }
   final upper = paymentType.toUpperCase();
-  if (upper.contains('AIRTEL')) return 'Airtel Money';
-  if (upper.contains('MOMO') || upper.contains('MOBILE')) return 'MoMo';
+  final method = canonicalPaymentMethod(upper);
+  if (method == kAirtelMoney) return 'Airtel Money';
+  if (method == kMobileMoney) return 'MoMo';
   if (upper.contains('CARD')) return FlipperL10n.current.paymentsTypeCard;
   if (upper.contains('CASH')) return FlipperL10n.current.cash;
   return paymentType;
