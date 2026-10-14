@@ -92,15 +92,15 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
   bool _isClearingCustomer = false;
   double? _cachedNonCreditPaid;
 
-  /// Cart with a good payment read; cleared on charge, re-read on failure.
-  String? _paidReadTxnId;
+  final _paidRead = MposPaidRead(); // Transfer's trusted payment read.
 
   Future<void> _readPaid(String txnId) async {
+    final ticket = _paidRead.start();
     final paid = await tryFetchNonCreditPaid(txnId);
-    if (!mounted) return;
+    if (!mounted || !_paidRead.isCurrent(ticket)) return;
     setState(() {
       _cachedNonCreditPaid = paid ?? 0.0;
-      _paidReadTxnId = paid == null ? null : txnId;
+      _paidRead.txnId = paid == null ? null : txnId;
     });
   }
 
@@ -598,7 +598,7 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
 
     setState(() {
       _isImmediateCompletion = immediateCompletion;
-      _paidReadTxnId = null;
+      _paidRead.invalidate();
       _chargeState = immediateCompletion
           ? ChargeButtonState.printingReceipt
           : ChargeButtonState.waitingForPayment;
@@ -1076,10 +1076,10 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
 
     final txn = transactionAsync.value ?? widget.transaction;
     // Sale → Transfer: >1 branch, no till ticket, and a payment read since the
-    // last charge started (see [_paidReadTxnId]) found nothing paid.
+    // last charge started (see [_paidRead]) found nothing paid.
     final canTransfer =
         ref.watch(canOfferBranchTransferProvider) &&
-        _paidReadTxnId == txn.id &&
+        _paidRead.txnId == txn.id &&
         _canModifyItems(txn);
     final isTransfer = canTransfer && _mode == CheckoutCartMode.transfer;
 
