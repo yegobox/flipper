@@ -1,0 +1,106 @@
+# Flipper SMS Bridge (apps/flipper_sms_bridge): the sideloaded Android
+# companion that forwards bank/MoMo SMS to the data-connector.
+#
+# It is plain Gradle, not part of melos, so nothing else builds it:
+# - every PR or push that touches it: core unit tests + a debug APK;
+# - a `sms-bridge-v*` tag: a signed release APK attached to that tag's
+#   GitHub release, which is where phones download it from.
+#
+# No branch filter on pull_request, so stacked PRs build too.
+name: SMS Bridge
+
+on:
+  pull_request:
+    paths:
+      - "apps/flipper_sms_bridge/**"
+      - ".github/workflows/sms_bridge.yml"
+  push:
+    branches: [main]
+    paths:
+      - "apps/flipper_sms_bridge/**"
+      - ".github/workflows/sms_bridge.yml"
+    tags: ["sms-bridge-v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    working-directory: apps/flipper_sms_bridge
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: zulu
+          java-version: "17"
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.14.3"
+
+      - name: Core unit tests
+        run: gradle :core:test --console=plain
+
+      - name: Debug APK
+        run: gradle :app:assembleDebug --console=plain
+
+      - name: Android lint (report only)
+        run: gradle :app:lintDebug --console=plain
+        continue-on-error: true
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sms-bridge-debug-apk
+          path: apps/flipper_sms_bridge/app/build/outputs/apk/debug/*.apk
+          retention-days: 14
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/sms-bridge-v')
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: zulu
+          java-version: "17"
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.14.3"
+
+      # The release key never changes: Android refuses an update signed with
+      # another key, and the package is registered with it for Google's
+      # developer verification. It exists only in these secrets.
+      - name: Signed release APK
+        env:
+          SMS_BRIDGE_KEYSTORE_BASE64: ${{ secrets.SMS_BRIDGE_KEYSTORE_BASE64 }}
+          SMS_BRIDGE_KEYSTORE_PASSWORD: ${{ secrets.SMS_BRIDGE_KEYSTORE_PASSWORD }}
+          SMS_BRIDGE_KEY_ALIAS: ${{ secrets.SMS_BRIDGE_KEY_ALIAS }}
+          SMS_BRIDGE_KEY_PASSWORD: ${{ secrets.SMS_BRIDGE_KEY_PASSWORD }}
+          SMS_BRIDGE_VERSION_CODE: ${{ github.run_number }}
+        run: |
+          if [ -z "$SMS_BRIDGE_KEYSTORE_BASE64" ]; then
+            echo "::error::SMS_BRIDGE_KEYSTORE_BASE64 is not set; refusing to publish an unsigned APK."
+            exit 1
+          fi
+          export SMS_BRIDGE_KEYSTORE_PATH="$RUNNER_TEMP/sms-bridge.jks"
+          echo "$SMS_BRIDGE_KEYSTORE_BASE64" | base64 -d > "$SMS_BRIDGE_KEYSTORE_PATH"
+          export SMS_BRIDGE_VERSION_NAME="${GITHUB_REF_NAME#sms-bridge-v}"
+          gradle :app:assembleRelease --console=plain
+          cp app/build/outputs/apk/release/app-release.apk "flipper-sms-bridge-${SMS_BRIDGE_VERSION_NAME}.apk"
+
+      - uses: softprops/action-gh-release@v3
+        with:
+          files: apps/flipper_sms_bridge/flipper-sms-bridge-*.apk
