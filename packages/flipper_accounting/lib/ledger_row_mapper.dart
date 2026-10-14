@@ -6,21 +6,21 @@ class LedgerRowMapper {
   LedgerRowMapper._();
 
   static AccountType _accountType(String raw) => switch (raw) {
-        'asset' => AccountType.asset,
-        'liability' => AccountType.liability,
-        'equity' => AccountType.equity,
-        'income' => AccountType.income,
-        'expense' => AccountType.expense,
-        _ => AccountType.asset,
-      };
+    'asset' => AccountType.asset,
+    'liability' => AccountType.liability,
+    'equity' => AccountType.equity,
+    'income' => AccountType.income,
+    'expense' => AccountType.expense,
+    _ => AccountType.asset,
+  };
 
   static String accountTypeToDb(AccountType t) => switch (t) {
-        AccountType.asset => 'asset',
-        AccountType.liability => 'liability',
-        AccountType.equity => 'equity',
-        AccountType.income => 'income',
-        AccountType.expense => 'expense',
-      };
+    AccountType.asset => 'asset',
+    AccountType.liability => 'liability',
+    AccountType.equity => 'equity',
+    AccountType.income => 'income',
+    AccountType.expense => 'expense',
+  };
 
   static AccountNormal _normal(String raw) =>
       raw == 'credit' ? AccountNormal.credit : AccountNormal.debit;
@@ -29,16 +29,16 @@ class LedgerRowMapper {
       n == AccountNormal.credit ? 'credit' : 'debit';
 
   static JournalStatus _status(String raw) => switch (raw) {
-        'posted' => JournalStatus.posted,
-        'pending' => JournalStatus.pending,
-        _ => JournalStatus.draft,
-      };
+    'posted' => JournalStatus.posted,
+    'pending' => JournalStatus.pending,
+    _ => JournalStatus.draft,
+  };
 
   static String statusToDb(JournalStatus s) => switch (s) {
-        JournalStatus.posted => 'posted',
-        JournalStatus.pending => 'pending',
-        JournalStatus.draft => 'draft',
-      };
+    JournalStatus.posted => 'posted',
+    JournalStatus.pending => 'pending',
+    JournalStatus.draft => 'draft',
+  };
 
   static int _int(dynamic v) {
     if (v == null) return 0;
@@ -89,10 +89,10 @@ class LedgerRowMapper {
   }
 
   static JournalLine lineFromRow(Map<String, dynamic> row) => JournalLine(
-        ac: _str(row, 'account_code', 'accountCode'),
-        dr: _int(row['debit']),
-        cr: _int(row['credit']),
-      );
+    ac: _str(row, 'account_code', 'accountCode'),
+    dr: _int(row['debit']),
+    cr: _int(row['credit']),
+  );
 
   static Map<String, dynamic> lineToRow({
     required String journalEntryId,
@@ -155,13 +155,21 @@ class LedgerRowMapper {
   }
 
   static BankLine bankLineFromRow(Map<String, dynamic> row) {
-    final matchedId = row['matched_journal_entry_id'] ?? row['matchedJournalEntryId'];
+    final matchedId =
+        row['matched_journal_entry_id'] ?? row['matchedJournalEntryId'];
+    final rawDate = (row['line_date'] ?? row['lineDate'])?.toString();
+    final id = (row['id'] ?? row['_id'])?.toString();
     return BankLine(
       date: _formatEntryDate(row['line_date'] ?? row['lineDate']),
       desc: _str(row, 'description', 'description'),
       amt: _int(row['amount']),
       matched: matchedId != null && matchedId.toString().isNotEmpty,
       je: row['matched_entry_number'] as String?,
+      id: id == null || id.isEmpty ? null : id,
+      source: row['source'] as String?,
+      isoDate: rawDate == null || rawDate.length < 10
+          ? null
+          : rawDate.substring(0, 10),
     );
   }
 
@@ -187,7 +195,8 @@ class LedgerRowMapper {
         'matched_journal_entry_id': matchedJournalEntryId,
       if (matchedJournalEntryId != null)
         'matchedJournalEntryId': matchedJournalEntryId,
-      if (matchedEntryNumber != null) 'matched_entry_number': matchedEntryNumber,
+      if (matchedEntryNumber != null)
+        'matched_entry_number': matchedEntryNumber,
     };
   }
 
@@ -199,8 +208,11 @@ class LedgerRowMapper {
     required String dueDateLabel,
   }) {
     if (settings == null && outputVat == 0 && inputVat == 0) return null;
-    final rate = (settings?['default_vat_rate'] ?? settings?['defaultVatRate'] ?? 0.18);
-    final rateNum = rate is num ? rate.toDouble() : double.tryParse('$rate') ?? 0.18;
+    final rate =
+        (settings?['default_vat_rate'] ?? settings?['defaultVatRate'] ?? 0.18);
+    final rateNum = rate is num
+        ? rate.toDouble()
+        : double.tryParse('$rate') ?? 0.18;
     return VatInfo(
       rate: rateNum,
       outputVat: outputVat,
@@ -216,8 +228,19 @@ class LedgerRowMapper {
       final dt = DateTime.tryParse(raw);
       if (dt != null) {
         const months = [
-          '', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-          'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+          '',
+          'Jan',
+          'Feb',
+          'Mar',
+          'Apr',
+          'May',
+          'Jun',
+          'Jul',
+          'Aug',
+          'Sep',
+          'Oct',
+          'Nov',
+          'Dec',
         ];
         return '${months[dt.month]} ${dt.day}';
       }
@@ -225,8 +248,19 @@ class LedgerRowMapper {
     }
     if (raw is DateTime) {
       const months = [
-        '', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+        '',
+        'Jan',
+        'Feb',
+        'Mar',
+        'Apr',
+        'May',
+        'Jun',
+        'Jul',
+        'Aug',
+        'Sep',
+        'Oct',
+        'Nov',
+        'Dec',
       ];
       return '${months[raw.month]} ${raw.day}';
     }
@@ -258,15 +292,17 @@ class LedgerRowMapper {
       final dayFirst = int.tryParse(parts[0]);
       if (dayFirst != null) {
         final month = _monthNumber(parts[1]) ?? now.month;
-        final year =
-            parts.length >= 3 ? (int.tryParse(parts[2]) ?? now.year) : now.year;
+        final year = parts.length >= 3
+            ? (int.tryParse(parts[2]) ?? now.year)
+            : now.year;
         return _dateOnlyIso(DateTime(year, month, dayFirst));
       }
 
       final month = _monthNumber(parts[0]) ?? now.month;
       final day = int.tryParse(parts[1]) ?? now.day;
-      final year =
-          parts.length >= 3 ? (int.tryParse(parts[2]) ?? now.year) : now.year;
+      final year = parts.length >= 3
+          ? (int.tryParse(parts[2]) ?? now.year)
+          : now.year;
       return _dateOnlyIso(DateTime(year, month, day));
     }
 

@@ -180,6 +180,11 @@ String _bankLineId(String businessId, BankLine line) => const Uuid().v5(
   'flipper:bank-line:$businessId:${line.date}:${line.amt}:${line.desc}',
 );
 
+/// The id to update an existing line under: its stored id when it has one
+/// (an SMS Bridge line's id is not derivable), else the import scheme.
+String _bankLineDocId(String businessId, BankLine line) =>
+    line.id ?? _bankLineId(businessId, line);
+
 String _bankLineDateLabel(String? isoDate) {
   final dt = isoDate == null ? null : DateTime.tryParse(isoDate);
   if (dt == null) return isoDate ?? '';
@@ -271,14 +276,36 @@ Future<void> _importBankStatement(BuildContext context, WidgetRef ref) async {
     final statement = await ref.read(bankStatementServiceProvider).parse(bytes);
     final businessId = ref.read(accountingBusinessIdProvider);
     final repo = ref.read(accountingLedgerRepositoryProvider);
+    final accountCode = ref.read(bankRecAccountCodeProvider);
+
+    // Lines the SMS Bridge already added for the same day and amount stand
+    // in for the statement's copy, so the money is not on the feed twice.
+    // Awaited: right after an account switch the cached value still holds
+    // the previous account's lines.
+    final accountLines = await ref.read(bankLinesStreamProvider.future);
+    final smsLines = <String, List<BankLine>>{};
+    for (final l in accountLines) {
+      if (l.isFromSms && l.isoDate != null) {
+        smsLines.putIfAbsent('${l.isoDate}|${l.amt}', () => []).add(l);
+      }
+    }
 
     final lines = <BankLine>[];
     for (final parsed in statement.lines) {
+      final iso = DateTime.tryParse(parsed.date ?? '');
+      final isoDate = iso?.toIso8601String().substring(0, 10);
+      final amt = parsed.amount.round();
+      final sameSms = smsLines['$isoDate|$amt'];
+      if (sameSms != null && sameSms.isNotEmpty) {
+        lines.add(sameSms.removeAt(0));
+        continue;
+      }
       final line = BankLine(
         date: _bankLineDateLabel(parsed.date),
         desc: parsed.description ?? '',
-        amt: parsed.amount.round(),
+        amt: amt,
         matched: false,
+        isoDate: isoDate,
       );
       lines.add(line);
       if (businessId.isNotEmpty) {
@@ -286,6 +313,7 @@ Future<void> _importBankStatement(BuildContext context, WidgetRef ref) async {
           businessId: businessId,
           line: line,
           id: _bankLineId(businessId, line),
+          bankAccountCode: accountCode,
         );
       }
     }
@@ -347,16 +375,16 @@ Future<void> _matchBankLine(
   int index,
   BankLine line,
 ) async {
-  const bankAccountCode = '1020';
+  final bankAccountCode = ref.read(bankRecAccountCodeProvider);
   final journal = await _journalEntriesForBankRec(ref);
   final matchCandidates = findBankMatchCandidates(
     journal: journal,
     line: line,
     primaryAccountCode: bankAccountCode,
   );
+  if (!context.mounted) return;
 
   if (matchCandidates.isEmpty) {
-    if (!context.mounted) return;
     // No existing journal moves this amount (bank fees, transfers, owner
     // draws, un-rung income, …). Instead of a dead end, let the user pick a
     // plain-language category; we post the balanced entry for them and match.
@@ -425,13 +453,7 @@ Future<void> _persistBankLineMatch(
   required String entryUuid,
   required String entryNumber,
 }) async {
-  final matched = BankLine(
-    date: line.date,
-    desc: line.desc,
-    amt: line.amt,
-    matched: true,
-    je: entryNumber,
-  );
+  final matched = line.copyWith(matched: true, je: entryNumber);
 
   final lines = List<BankLine>.from(ref.read(accountingBankLinesProvider));
   if (index < lines.length) lines[index] = matched;
@@ -445,7 +467,8 @@ Future<void> _persistBankLineMatch(
         .upsertBankLine(
           businessId: businessId,
           line: matched,
-          id: _bankLineId(businessId, line),
+          id: _bankLineDocId(businessId, line),
+          bankAccountCode: ref.read(bankRecAccountCodeProvider),
           matchedJournalEntryId: entryUuid,
           matchedEntryNumber: entryNumber,
         );
@@ -574,8 +597,11 @@ List<_BankLineCategory> _bankLineCategories(
 
 /// Balanced double-entry for a bank line categorized as [categoryCode].
 /// Money in → Dr Bank / Cr category; money out → Dr category / Cr Bank.
-List<JournalLine> _bankAdjustmentLines(BankLine line, String categoryCode) {
-  const bank = '1020';
+List<JournalLine> _bankAdjustmentLines(
+  BankLine line,
+  String categoryCode, {
+  required String bank,
+}) {
   final amt = line.amt.abs();
   if (line.amt >= 0) {
     return [
@@ -622,7 +648,7 @@ Future<void> _categorizeBankLine(
   // failure converges on the same documents instead of double-counting: the
   // header is upserted under a deterministic id, the ref is collision-free, and
   // the bank-line match is keyed identically.
-  final bankLineId = _bankLineId(businessId, line);
+  final bankLineId = _bankLineDocId(businessId, line);
   final deterministicEntryId = 'je_bankrec_$bankLineId';
   final refText =
       'ADJ-${bankLineId.replaceAll('-', '').substring(0, 10).toUpperCase()}';
@@ -633,7 +659,11 @@ Future<void> _categorizeBankLine(
     ref: refText,
     status: JournalStatus.posted,
     src: 'Bank rec',
-    lines: _bankAdjustmentLines(line, category.accountCode),
+    lines: _bankAdjustmentLines(
+      line,
+      category.accountCode,
+      bank: ref.read(bankRecAccountCodeProvider),
+    ),
   );
 
   try {
@@ -857,14 +887,15 @@ class AccountingBankRecView extends ConsumerWidget {
     final period = ref.watch(accountingPeriodLabelProvider);
     final finished = ref.watch(bankRecFinishedProvider);
     final meta = ref.watch(bankStatementMetaProvider);
+    final accountCode = ref.watch(bankRecAccountCodeProvider);
     final bankBal = accounts
-        .where((a) => a.code == '1020')
+        .where((a) => a.code == accountCode)
         .fold<int>(0, (s, a) => s + a.bal);
     // Prefer the imported statement's closing balance; fall back to the GL.
     final statementBalance = meta?.closingBalance?.round() ?? bankBal;
     // Fall back to the chart-of-accounts name for the bank account (1020),
     // then a neutral label — never a hardcoded bank brand.
-    final bankAccounts = accounts.where((a) => a.code == '1020');
+    final bankAccounts = accounts.where((a) => a.code == accountCode);
     final bankAccountName = bankAccounts.isNotEmpty
         ? bankAccounts.first.name
         : '';
@@ -926,6 +957,31 @@ class AccountingBankRecView extends ConsumerWidget {
                     : null,
               ),
             ],
+          ),
+          Padding(
+            padding: const EdgeInsets.only(bottom: 16),
+            child: SegmentedButton<String>(
+              key: const Key('bank_rec_account'),
+              segments: [
+                ButtonSegment(
+                  value: '1020',
+                  label: Text(l10n.booksBankRecAccountBank),
+                ),
+                ButtonSegment(
+                  value: '1030',
+                  label: Text(l10n.booksBankRecAccountMomo),
+                ),
+              ],
+              selected: {accountCode},
+              onSelectionChanged: (picked) {
+                // Local lines belong to the account they were imported for.
+                ref.read(bankRecLocalLinesProvider.notifier).state = null;
+                ref.read(bankStatementMetaProvider.notifier).state = null;
+                ref.read(bankRecFinishedProvider.notifier).state = false;
+                ref.read(bankRecAccountCodeProvider.notifier).state =
+                    picked.first;
+              },
+            ),
           ),
           AccountingKpiGrid(
             maxColumns: 3,

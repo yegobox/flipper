@@ -74,8 +74,6 @@ import 'package:flipper_web/services/ditto_service.dart';
 import 'package:flutter/foundation.dart'
     show kIsWeb, defaultTargetPlatform, TargetPlatform;
 
-import 'package:flipper_models/SyncStrategy.dart';
-
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/payment_methods.dart';
 
@@ -890,6 +888,7 @@ class CapellaSync extends AiStrategyImpl
     String? categoryId,
     String? note,
     bool skipPersonalGoalAutoSweep = false,
+    DateTime? occurredAt,
   }) async {
     // Resolve the variant before minting the pending row: failing after
     // [manageTransaction] left an orphan PENDING movement that the next one
@@ -983,13 +982,30 @@ class CapellaSync extends AiStrategyImpl
       paymentType: txn.paymentType,
       receiptType: movementReceipt,
     );
-    await _persistCashMovementClassification(txn.id, classification);
-    await updateTransaction(
-      transaction: txn,
-      receiptType: movementReceipt,
-      updatedAt: DateTime.now(),
-      lastTouched: DateTime.now(),
-    );
+    // Back-dated movement (e.g. a bank SMS confirmed days later): stamp the
+    // day the money moved, so the Cash Book and the journal entry land on it.
+    await _persistCashMovementClassification(txn.id, {
+      ...classification,
+      if (occurredAt != null) 'createdAt': occurredAt.toIso8601String(),
+    });
+    if (occurredAt != null) txn.createdAt = occurredAt;
+    try {
+      await updateTransaction(
+        transaction: txn,
+        receiptType: movementReceipt,
+        updatedAt: DateTime.now(),
+        lastTouched: DateTime.now(),
+      );
+    } catch (e, s) {
+      // collectPayment already stored the movement as COMPLETE and the
+      // classification above holds its receipt type. Throwing here would let
+      // a caller (the SMS review queue) retry and record the money twice.
+      talker.error(
+        'Updating completed cash movement failed for ${txn.id}',
+        e,
+        s,
+      );
+    }
     txn.receiptType = movementReceipt;
     txn.transactionType = classification['transactionType'] as String?;
     txn.categoryId = classification['categoryId'] as String?;

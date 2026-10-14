@@ -7,6 +7,7 @@ import 'package:flipper_dashboard/features/admin/sections/receipt_logo_card.dart
 import 'package:flipper_dashboard/features/admin/sections/sms_notifications_card.dart';
 import 'package:flipper_dashboard/features/admin/widgets/cash_reset_dialog.dart';
 import 'package:flipper_dashboard/features/admin/widgets/language_settings_card.dart';
+import 'package:flipper_dashboard/features/admin/widgets/sms_bridge_page.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_mode_admin_section.dart';
 import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_mode_admin_section.dart';
@@ -516,6 +517,8 @@ class _AdminControlState extends ConsumerState<AdminControl> {
         ),
         const SizedBox(height: 28),
         _buildSmsConfigSection(context),
+        const SizedBox(height: 12),
+        _buildSmsBridgeCard(context),
         const SizedBox(height: 28),
         _buildSecuritySection(context),
         const SizedBox(height: 28),
@@ -527,6 +530,25 @@ class _AdminControlState extends ConsumerState<AdminControl> {
         const SizedBox(height: 28),
         _buildDangerZoneSection(context),
       ],
+    );
+  }
+
+  /// Pair a phone that forwards bank/MoMo SMS into the Cash Book review queue.
+  Widget _buildSmsBridgeCard(BuildContext context) {
+    return SettingsCard(
+      title: context.flipperL10n.smsBridgeTitle,
+      subtitle: context.flipperL10n.smsBridgeSubtitle,
+      leading: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: kAdminBarBlue.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: const Icon(Icons.sms_outlined, color: kAdminBarBlue),
+      ),
+      onTap: () => Navigator.of(
+        context,
+      ).push(MaterialPageRoute<void>(builder: (_) => const SmsBridgePage())),
     );
   }
 

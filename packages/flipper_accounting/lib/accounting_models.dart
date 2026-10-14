@@ -102,6 +102,9 @@ class BankLine {
     required this.amt,
     required this.matched,
     this.je,
+    this.id,
+    this.source,
+    this.isoDate,
   });
 
   final String date;
@@ -109,6 +112,31 @@ class BankLine {
   final int amt;
   final bool matched;
   final String? je;
+
+  /// The stored row's id, when the line was read from the ledger. Updates
+  /// must reuse it: a line written by the SMS Bridge (data-connector) has an
+  /// id the statement-import scheme would not reproduce.
+  final String? id;
+
+  /// Who wrote the line: `sms` for the SMS Bridge, null for a statement
+  /// import or a line created in Books.
+  final String? source;
+
+  /// `YYYY-MM-DD`, for comparing lines across sources ([date] is a label).
+  final String? isoDate;
+
+  bool get isFromSms => source == 'sms';
+
+  BankLine copyWith({bool? matched, String? je}) => BankLine(
+    date: date,
+    desc: desc,
+    amt: amt,
+    matched: matched ?? this.matched,
+    je: je ?? this.je,
+    id: id,
+    source: source,
+    isoDate: isoDate,
+  );
 }
 
 class VatInfo {
