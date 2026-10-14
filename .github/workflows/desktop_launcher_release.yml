@@ -469,6 +469,7 @@ jobs:
             --description "Point of sale, stock and EBM receipts" \
             --website "https://yegobox.com" \
             --accent "#00C2E8" \
+            --play-package rw.flipper \
             --channel "$CHANNEL" --version "$VERSION" \
             --notes-file apps/flipper/distribution/whatsnew/whatsnew-en-US \
             --base-url "https://github.com/${GITHUB_REPOSITORY}/releases/download/$TAG" \
