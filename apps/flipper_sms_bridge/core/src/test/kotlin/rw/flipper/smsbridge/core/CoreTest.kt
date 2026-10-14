@@ -1,0 +1,121 @@
+package rw.flipper.smsbridge.core
+
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
+
+class SenderAllowlistTest {
+    @Test
+    fun normalisationMatchesTheConnector() {
+        // Same cases as `normalisation_ignores_case_spaces_and_dashes` in
+        // data-connector/src/sms/senders.rs.
+        assertEquals("MMONEY", SenderAllowlist.normalize("M-Money"))
+        assertEquals("AIRTELMONEY", SenderAllowlist.normalize("  Airtel Money "))
+        assertEquals("I&MBANK", SenderAllowlist.normalize("I&M Bank"))
+    }
+
+    @Test
+    fun bankAndWalletSendersAreForwarded() {
+        val list = SenderAllowlist.DEFAULT
+        assertTrue(list.allows("BK"))
+        assertTrue(list.allows("m-money"))
+        assertTrue(list.allows("AirtelMoney"))
+        assertTrue(list.allows("EQUITY BANK"))
+    }
+
+    @Test
+    fun personalMessagesStayOnThePhone() {
+        val list = SenderAllowlist.DEFAULT
+        assertFalse(list.allows("+250780000000"))
+        assertFalse(list.allows("Mum"))
+        assertFalse(list.allows("MTN"))
+        assertFalse(list.allows(""))
+        assertFalse(list.allows(null))
+    }
+
+    @Test
+    fun aServerListReplacesTheBuiltIns() {
+        val list = SenderAllowlist(listOf("COGEBANQUE"))
+        assertTrue(list.allows("Cogebanque"))
+        assertFalse(list.allows("BK"))
+    }
+}
+
+class MultipartJoinerTest {
+    @Test
+    fun partsFromOneSenderJoinInOrder() {
+        val joined = MultipartJoiner.join(
+            listOf(
+                SmsPart("BK", "TRANSFER - EKASH Beneficiary: Jane DOE ", 2_000),
+                SmsPart("BK", "Amount:RWF 2000.00", 2_001),
+            ),
+        )
+        assertEquals(1, joined.size)
+        assertEquals("TRANSFER - EKASH Beneficiary: Jane DOE Amount:RWF 2000.00", joined[0].body)
+        assertEquals(2_000, joined[0].receivedAtMs)
+    }
+
+    @Test
+    fun twoSendersInOneBroadcastStayApart() {
+        val joined = MultipartJoiner.join(
+            listOf(
+                SmsPart("BK", "one", 1),
+                SmsPart("M-Money", "two", 2),
+                SmsPart("BK", " more", 3),
+            ),
+        )
+        assertEquals(listOf("BK" to "one more", "M-Money" to "two"), joined.map { it.sender to it.body })
+    }
+
+    @Test
+    fun emptyAndSenderlessPartsAreDropped() {
+        val joined = MultipartJoiner.join(
+            listOf(SmsPart(null, "x", 1), SmsPart("BK", "  ", 2), SmsPart(" ", "y", 3)),
+        )
+        assertTrue(joined.isEmpty())
+    }
+}
+
+class PairingPayloadTest {
+    @Test
+    fun aFlipperQrParses() {
+        val p = PairingPayload.parse(
+            "flipper-sms-bridge://pair?v=1&url=https%3A%2F%2Fprod.api.yegobox.com&code=7k3qm-z9txa",
+        )
+        assertEquals(PairingPayload("https://prod.api.yegobox.com/", "7K3QMZ9TXA"), p)
+    }
+
+    @Test
+    fun plainHttpIsRefusedExceptForALocalConnector() {
+        assertNull(PairingPayload.normalizeUrl("http://prod.api.yegobox.com"))
+        assertEquals("http://10.0.2.2:8084/", PairingPayload.normalizeUrl("http://10.0.2.2:8084"))
+    }
+
+    @Test
+    fun otherQrCodesAreNotPairingCodes() {
+        assertNull(PairingPayload.parse("https://example.com/?code=7K3QMZ9TXA"))
+        assertNull(PairingPayload.parse("flipper-sms-bridge://pair?url=https%3A%2F%2Fa.b&code=SHORT"))
+        assertNull(PairingPayload.parse("flipper-sms-bridge://pair?code=7K3QMZ9TXA"))
+        assertNull(PairingPayload.parse("not a uri at all %%%"))
+    }
+
+    @Test
+    fun typedCodesNormaliseLikeTheConnector() {
+        assertEquals("00111", PairingPayload.normalizeCode(" 0oIl1 "))
+    }
+}
+
+class UploadPolicyTest {
+    @Test
+    fun onlyFinalStatusesDeleteARow() {
+        val outcome = UploadPolicy.classify(
+            listOf(1L, 2L, 3L, 4L, 5L),
+            mapOf("1" to "stored", "2" to "duplicate", "3" to "ignored", "4" to "error"),
+        )
+        assertEquals(setOf(1L, 2L, 3L), outcome.delivered)
+        // 5 got no answer at all: kept, never assumed delivered.
+        assertEquals(setOf(4L, 5L), outcome.failed)
+    }
+}
