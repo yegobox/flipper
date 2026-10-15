@@ -255,8 +255,10 @@ jobs:
           set -uo pipefail
           for _ in 1 2 3 4 5; do
             if shorebird release android -v -- --no-android-gradle-daemon 2>&1 | tee /tmp/shorebird-release.log; then
+              # No `set -e` here (the loop reads failures), so exit with
+              # test's status: a release without an AAB must fail the step.
               test -f build/app/outputs/bundle/release/app-release.aab
-              exit 0
+              exit $?
             fi
             grep -q "existing android release for version" /tmp/shorebird-release.log || exit 1
             echo "::warning::Shorebird already has $VERSION_NAME+$VERSION_CODE (orphaned by an earlier run); trying the next code."
