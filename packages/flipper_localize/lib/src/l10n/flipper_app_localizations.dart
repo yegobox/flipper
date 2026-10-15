@@ -5237,6 +5237,150 @@ abstract class FlipperAppLocalizations {
   /// **'Matches a sale'**
   String get smsReviewMatchChip;
 
+  /// No description provided for @smsReviewToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get smsReviewToday;
+
+  /// No description provided for @smsReviewYesterday.
+  ///
+  /// In en, this message translates to:
+  /// **'Yesterday'**
+  String get smsReviewYesterday;
+
+  /// No description provided for @smsReviewInclFee.
+  ///
+  /// In en, this message translates to:
+  /// **'incl. {fee} charge'**
+  String smsReviewInclFee(String fee);
+
+  /// No description provided for @smsReviewDetailWhen.
+  ///
+  /// In en, this message translates to:
+  /// **'Date & time'**
+  String get smsReviewDetailWhen;
+
+  /// No description provided for @smsReviewDetailReference.
+  ///
+  /// In en, this message translates to:
+  /// **'Reference'**
+  String get smsReviewDetailReference;
+
+  /// No description provided for @smsReviewDetailAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get smsReviewDetailAccount;
+
+  /// No description provided for @smsReviewMessageDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Message details'**
+  String get smsReviewMessageDetails;
+
+  /// No description provided for @smsReviewWhatIsIt.
+  ///
+  /// In en, this message translates to:
+  /// **'What is this money?'**
+  String get smsReviewWhatIsIt;
+
+  /// No description provided for @smsReviewConfirmHintIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Records it as Cash In under the category.'**
+  String get smsReviewConfirmHintIn;
+
+  /// No description provided for @smsReviewConfirmHintOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Records it as Cash Out under the category.'**
+  String get smsReviewConfirmHintOut;
+
+  /// No description provided for @smsReviewTransferHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Moved between your bank, MoMo or cash. Not income or expense.'**
+  String get smsReviewTransferHint;
+
+  /// No description provided for @smsReviewIgnoreHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Not business money. The bank line stays in Books.'**
+  String get smsReviewIgnoreHint;
+
+  /// No description provided for @smsReviewTransferWhereTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Where did the money go?'**
+  String get smsReviewTransferWhereTo;
+
+  /// No description provided for @smsReviewTransferWhereFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'Where did the money come from?'**
+  String get smsReviewTransferWhereFrom;
+
+  /// No description provided for @smsReviewAccountCash.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash'**
+  String get smsReviewAccountCash;
+
+  /// No description provided for @smsReviewAccountBank.
+  ///
+  /// In en, this message translates to:
+  /// **'Bank'**
+  String get smsReviewAccountBank;
+
+  /// No description provided for @smsReviewAccountMomo.
+  ///
+  /// In en, this message translates to:
+  /// **'Mobile Money'**
+  String get smsReviewAccountMomo;
+
+  /// No description provided for @smsReviewTransferPaired.
+  ///
+  /// In en, this message translates to:
+  /// **'Matches {provider} {amount} at {time}. Both will be closed.'**
+  String smsReviewTransferPaired(String provider, String amount, String time);
+
+  /// No description provided for @smsReviewTransferRecord.
+  ///
+  /// In en, this message translates to:
+  /// **'Record transfer'**
+  String get smsReviewTransferRecord;
+
+  /// No description provided for @smsReviewTransferDoneTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Recorded as a transfer to {account}'**
+  String smsReviewTransferDoneTo(String account);
+
+  /// No description provided for @smsReviewTransferDoneFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'Recorded as a transfer from {account}'**
+  String smsReviewTransferDoneFrom(String account);
+
+  /// No description provided for @smsReviewIgnored.
+  ///
+  /// In en, this message translates to:
+  /// **'Ignored'**
+  String get smsReviewIgnored;
+
+  /// No description provided for @smsReviewUndo.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get smsReviewUndo;
+
+  /// No description provided for @smsReviewUndone.
+  ///
+  /// In en, this message translates to:
+  /// **'Back in the list'**
+  String get smsReviewUndone;
+
   /// No description provided for @cashbookTitle.
   ///
   /// In en, this message translates to:

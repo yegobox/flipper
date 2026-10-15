@@ -1,12 +1,14 @@
 import 'package:flipper_models/sms_review/sms_review_item.dart';
 import 'package:flipper_models/sms_review/sms_review_service.dart';
+import 'package:flipper_accounting/accounting_models.dart';
 import 'package:flipper_models/sms_review/sms_sale_match.dart';
+import 'package:flipper_models/sms_review/sms_transfer.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 class _FakeStore implements SmsReviewStore {
   final statuses = <String, String>{};
   final extras = <String, Map<String, Object?>>{};
-  final matched = <String, String>{};
+  final matched = <String, String?>{};
 
   @override
   Future<bool> claim(String id) async {
@@ -28,29 +30,34 @@ class _FakeStore implements SmsReviewStore {
   }
 
   @override
-  Future<void> matchBankLine(String bankLineId, String journalEntryId) async {
+  Future<void> matchBankLine(String bankLineId, String? journalEntryId) async {
     matched[bankLineId] = journalEntryId;
   }
 }
 
 SmsReviewItem _item({
+  String id = 'sms-1',
   String direction = 'debit',
   String? bankLineId = 'line-1',
   String paymentType = 'BANK TRANSFER',
   String kind = 'principal',
+  String bankAccountCode = '1020',
+  String providerLabel = 'BK',
+  int amount = 2000,
+  String occurredAt = '2026-10-14T09:29:21',
 }) => SmsReviewItem.fromDitto({
-  '_id': 'sms-1',
+  '_id': id,
   'businessId': 'biz',
   'branchId': 'br',
   'kind': kind,
   'direction': direction,
-  'amount': 2000,
+  'amount': amount,
   'fee': 20,
   'description': 'BK · to Jane DOE · FTCMTEST',
-  'providerLabel': 'BK',
+  'providerLabel': providerLabel,
   'paymentType': paymentType,
-  'bankAccountCode': '1020',
-  'occurredAt': '2026-10-14T09:29:21',
+  'bankAccountCode': bankAccountCode,
+  'occurredAt': occurredAt,
   'lineDate': '2026-10-14',
   'status': 'pending_review',
   if (bankLineId != null) 'bankLineId': bankLineId,
@@ -59,10 +66,14 @@ SmsReviewItem _item({
 void main() {
   late _FakeStore store;
   late List<SmsReviewItem> recorded;
+  late List<(String, String)> posted;
+  late List<String> voided;
 
   SmsReviewService service({bool fail = false}) {
     store = _FakeStore();
     recorded = [];
+    posted = [];
+    voided = [];
     return SmsReviewService(
       store: store,
       recordMovement:
@@ -72,6 +83,13 @@ void main() {
             return 'txn-1';
           },
       journalEntryId: (b, t) => 'je_${b}_${t}_sale',
+      postTransfer:
+          ({required entryId, required item, required otherAccountCode}) async {
+            if (fail) throw StateError('offline');
+            posted.add((entryId, otherAccountCode));
+          },
+      voidTransfer: ({required entryId, required item}) async =>
+          voided.add(entryId),
       clock: () => DateTime.utc(2026, 10, 14, 12),
     );
   }
@@ -117,13 +135,179 @@ void main() {
     expect(store.matched, isEmpty);
   });
 
-  test('ignore and transfer close the item without a movement', () async {
-    final s = service();
-    await s.ignore(_item());
-    expect(store.statuses['sms-1'], SmsReviewItem.ignored);
-    await s.markTransfer(_item());
-    expect(store.statuses['sms-1'], SmsReviewItem.transfer);
-    expect(recorded, isEmpty);
+  test(
+    'ignore closes the item without a movement, and reopen undoes it',
+    () async {
+      final s = service();
+      await s.ignore(_item());
+      expect(store.statuses['sms-1'], SmsReviewItem.ignored);
+      expect(recorded, isEmpty);
+
+      await s.reopen(_item());
+      expect(store.statuses['sms-1'], SmsReviewItem.pending);
+      expect(store.matched, {'line-1': null});
+    },
+  );
+
+  group('transfer between own accounts', () {
+    final bankOut = _item();
+    final momoIn = _item(
+      id: 'sms-2',
+      direction: 'credit',
+      bankLineId: 'line-2',
+      bankAccountCode: kSmsMobileMoneyAccount,
+      providerLabel: 'MTN MoMo',
+      occurredAt: '2026-10-14T09:31:00',
+    );
+
+    test('posts one entry, matches the line, records no movement', () async {
+      final s = service();
+      final result = await s.recordTransfer(
+        bankOut,
+        otherAccountCode: kSmsMobileMoneyAccount,
+      );
+
+      expect(result?.entryId, 'je_smsxfer_sms-1');
+      expect(result?.pairedWith, isNull);
+      expect(posted, [('je_smsxfer_sms-1', kSmsMobileMoneyAccount)]);
+      expect(recorded, isEmpty);
+      expect(store.statuses['sms-1'], SmsReviewItem.transfer);
+      expect(store.extras['sms-1']?['otherAccountCode'], '1030');
+      expect(store.matched, {'line-1': 'je_smsxfer_sms-1'});
+    });
+
+    test('closes the other account\'s SMS against the same entry', () async {
+      final s = service();
+      final result = await s.recordTransfer(
+        bankOut,
+        otherAccountCode: kSmsMobileMoneyAccount,
+        counterpart: momoIn,
+      );
+
+      expect(result?.pairedWith, momoIn);
+      expect(posted, hasLength(1));
+      expect(store.statuses['sms-2'], SmsReviewItem.transfer);
+      expect(store.extras['sms-2']?['otherAccountCode'], '1020');
+      expect(store.matched, {
+        'line-1': 'je_smsxfer_sms-1',
+        'line-2': 'je_smsxfer_sms-1',
+      });
+    });
+
+    test('a counterpart on another account than chosen stays open', () async {
+      final s = service();
+      final result = await s.recordTransfer(
+        bankOut,
+        otherAccountCode: kSmsCashAccount,
+        counterpart: momoIn,
+      );
+      expect(result?.pairedWith, isNull);
+      expect(store.statuses['sms-2'], isNull);
+    });
+
+    test('a lost claim posts nothing', () async {
+      final s = service();
+      await s.ignore(bankOut);
+      expect(await s.recordTransfer(bankOut, otherAccountCode: '1030'), isNull);
+      expect(posted, isEmpty);
+      expect(store.statuses['sms-1'], SmsReviewItem.ignored);
+    });
+
+    test('a failed post puts the item back for a retry', () async {
+      final s = service(fail: true);
+      await expectLater(
+        s.recordTransfer(bankOut, otherAccountCode: '1030'),
+        throwsStateError,
+      );
+      expect(store.statuses['sms-1'], SmsReviewItem.pending);
+      expect(store.matched, isEmpty);
+    });
+
+    test('undo voids the entry and reopens both SMS', () async {
+      final s = service();
+      final result = await s.recordTransfer(
+        bankOut,
+        otherAccountCode: kSmsMobileMoneyAccount,
+        counterpart: momoIn,
+      );
+      await s.undoTransfer(result!, bankOut);
+
+      expect(voided, ['je_smsxfer_sms-1']);
+      expect(store.statuses['sms-1'], SmsReviewItem.pending);
+      expect(store.statuses['sms-2'], SmsReviewItem.pending);
+      expect(store.extras['sms-1']?['journalEntryId'], isNull);
+      expect(store.matched, {'line-1': null, 'line-2': null});
+    });
+
+    test('the entry moves money out of the SMS account into the other', () {
+      final entry = smsTransferEntry(bankOut, kSmsMobileMoneyAccount);
+      expect(entry.status, JournalStatus.posted);
+      expect(entry.memo, 'Transfer · BK to Mobile Money');
+      expect(entry.date, '2026-10-14');
+      expect(entry.ref, startsWith('XFER-'));
+      expect(
+        [for (final l in entry.lines) (l.ac, l.dr, l.cr)],
+        [('1030', 2000, 0), ('1020', 0, 2000)],
+      );
+
+      final moneyIn = smsTransferEntry(momoIn, kSmsBankAccount);
+      expect(moneyIn.memo, 'Transfer · MTN MoMo from Bank');
+      expect(
+        [for (final l in moneyIn.lines) (l.ac, l.dr, l.cr)],
+        [('1030', 2000, 0), ('1020', 0, 2000)],
+      );
+
+      final undone = smsTransferEntry(
+        bankOut,
+        kSmsCashAccount,
+        status: JournalStatus.draft,
+      );
+      expect(undone.lines, isEmpty);
+    });
+
+    test('targets leave out the SMS\'s own account', () {
+      expect(smsTransferTargets(bankOut), ['1010', '1030']);
+      expect(smsTransferTargets(momoIn), ['1010', '1020']);
+    });
+
+    test('the counterpart is the nearest opposite move on another account', () {
+      final later = _item(
+        id: 'sms-3',
+        direction: 'credit',
+        bankAccountCode: kSmsMobileMoneyAccount,
+        occurredAt: '2026-10-14T15:00:00',
+      );
+      expect(
+        findTransferCounterpart(bankOut, [
+          bankOut,
+          later,
+          momoIn,
+          // Same direction, other amount, same account, a day too late, fee.
+          _item(id: 'a', bankAccountCode: '1030'),
+          _item(
+            id: 'b',
+            direction: 'credit',
+            bankAccountCode: '1030',
+            amount: 5,
+          ),
+          _item(id: 'c', direction: 'credit'),
+          _item(
+            id: 'd',
+            direction: 'credit',
+            bankAccountCode: '1030',
+            occurredAt: '2026-10-16T09:29:21',
+          ),
+          _item(
+            id: 'e',
+            direction: 'credit',
+            bankAccountCode: '1030',
+            kind: 'fee',
+          ),
+        ]),
+        momoIn,
+      );
+      expect(findTransferCounterpart(bankOut, [bankOut]), isNull);
+    });
   });
 
   test('linking to a sale records nothing and matches the sale', () async {

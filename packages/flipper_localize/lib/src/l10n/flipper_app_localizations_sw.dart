@@ -2915,6 +2915,90 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   String get smsReviewMatchChip => 'Inalingana na mauzo';
 
   @override
+  String get smsReviewToday => 'Leo';
+
+  @override
+  String get smsReviewYesterday => 'Jana';
+
+  @override
+  String smsReviewInclFee(String fee) {
+    return 'pamoja na ada ya $fee';
+  }
+
+  @override
+  String get smsReviewDetailWhen => 'Tarehe na saa';
+
+  @override
+  String get smsReviewDetailReference => 'Kumbukumbu';
+
+  @override
+  String get smsReviewDetailAccount => 'Akaunti';
+
+  @override
+  String get smsReviewMessageDetails => 'Maelezo ya ujumbe';
+
+  @override
+  String get smsReviewWhatIsIt => 'Pesa hii ni ya nini?';
+
+  @override
+  String get smsReviewConfirmHintIn =>
+      'Inarekodiwa kama pesa iliyoingia kwenye kundi.';
+
+  @override
+  String get smsReviewConfirmHintOut =>
+      'Inarekodiwa kama pesa iliyotoka kwenye kundi.';
+
+  @override
+  String get smsReviewTransferHint =>
+      'Imehamishwa kati ya benki, MoMo au fedha taslimu. Si mapato wala matumizi.';
+
+  @override
+  String get smsReviewIgnoreHint =>
+      'Si pesa ya biashara. Mstari wa benki unabaki kwenye Books.';
+
+  @override
+  String get smsReviewTransferWhereTo => 'Pesa ilienda wapi?';
+
+  @override
+  String get smsReviewTransferWhereFrom => 'Pesa ilitoka wapi?';
+
+  @override
+  String get smsReviewAccountCash => 'Fedha taslimu';
+
+  @override
+  String get smsReviewAccountBank => 'Benki';
+
+  @override
+  String get smsReviewAccountMomo => 'Mobile Money';
+
+  @override
+  String smsReviewTransferPaired(String provider, String amount, String time) {
+    return 'Inalingana na $provider $amount saa $time. Zote mbili zitafungwa.';
+  }
+
+  @override
+  String get smsReviewTransferRecord => 'Rekodi uhamisho';
+
+  @override
+  String smsReviewTransferDoneTo(String account) {
+    return 'Imerekodiwa kama uhamisho kwenda $account';
+  }
+
+  @override
+  String smsReviewTransferDoneFrom(String account) {
+    return 'Imerekodiwa kama uhamisho kutoka $account';
+  }
+
+  @override
+  String get smsReviewIgnored => 'Imepuuzwa';
+
+  @override
+  String get smsReviewUndo => 'Tendua';
+
+  @override
+  String get smsReviewUndone => 'Imerudishwa kwenye orodha';
+
+  @override
   String get cashbookTitle => 'Daftari la fedha';
 
   @override

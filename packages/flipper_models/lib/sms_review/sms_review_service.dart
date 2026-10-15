@@ -1,4 +1,5 @@
 import 'package:flipper_models/sms_review/sms_review_item.dart';
+import 'package:flipper_models/sms_review/sms_transfer.dart';
 
 /// The Ditto writes the review flow needs. Behind an interface so the flow
 /// is unit-tested without a Ditto instance.
@@ -14,8 +15,9 @@ abstract interface class SmsReviewStore {
     Map<String, Object?> extra = const {},
   });
 
-  /// Marks a Books bank line as matched to a journal entry.
-  Future<void> matchBankLine(String bankLineId, String journalEntryId);
+  /// Marks a Books bank line as matched to a journal entry; null unmatches
+  /// it (an undone transfer).
+  Future<void> matchBankLine(String bankLineId, String? journalEntryId);
 }
 
 /// Records a Cash In/Out and returns the new transaction's id. Wraps
@@ -27,6 +29,25 @@ typedef SmsMovementRecorder =
       required String? categoryId,
       required String? categoryName,
     });
+
+/// Posts the transfer entry [entryId] (`smsTransferEntry`) to the ledger.
+typedef SmsTransferPoster =
+    Future<void> Function({
+      required String entryId,
+      required SmsReviewItem item,
+      required String otherAccountCode,
+    });
+
+/// Takes a posted transfer entry back out of the books (undo).
+typedef SmsTransferVoider =
+    Future<void> Function({
+      required String entryId,
+      required SmsReviewItem item,
+    });
+
+/// A recorded transfer: its entry, and the other account's SMS closed with
+/// it (null when there was none), so Undo can reopen both.
+typedef SmsTransferResult = ({String entryId, SmsReviewItem? pairedWith});
 
 /// Turns a reviewed bank SMS into books.
 ///
@@ -40,11 +61,15 @@ class SmsReviewService {
     required this.store,
     required this.recordMovement,
     required this.journalEntryId,
+    required this.postTransfer,
+    required this.voidTransfer,
     DateTime Function()? clock,
   }) : _clock = clock ?? DateTime.now;
 
   final SmsReviewStore store;
   final SmsMovementRecorder recordMovement;
+  final SmsTransferPoster postTransfer;
+  final SmsTransferVoider voidTransfer;
 
   /// `PosJournalPoster.saleEntryId`, injected so this file has no poster
   /// dependency.
@@ -125,9 +150,94 @@ class SmsReviewService {
   Future<void> ignore(SmsReviewItem item) =>
       _close(item, SmsReviewItem.ignored);
 
-  /// Between the business's own accounts (bank → MoMo): no Cash Book entry.
-  Future<void> markTransfer(SmsReviewItem item) =>
-      _close(item, SmsReviewItem.transfer);
+  /// Money moved between the business's own accounts ([otherAccountCode]:
+  /// cash, bank or mobile money). Not income or expense, so nothing goes to
+  /// the Cash Book: one transfer entry is posted and the bank line matched to
+  /// it. [counterpart], the SMS the other account sent for the same move, is
+  /// closed against the same entry so the move is counted once. Null when
+  /// another till already took the item (nothing was posted).
+  Future<SmsTransferResult?> recordTransfer(
+    SmsReviewItem item, {
+    required String otherAccountCode,
+    SmsReviewItem? counterpart,
+  }) async {
+    if (!await store.claim(item.id)) return null;
+    final entryId = smsTransferEntryId(item.id);
+    try {
+      await postTransfer(
+        entryId: entryId,
+        item: item,
+        otherAccountCode: otherAccountCode,
+      );
+    } catch (_) {
+      await store.setStatus(item.id, SmsReviewItem.pending);
+      rethrow;
+    }
+    await _closeTransfer(item, entryId, otherAccountCode);
+    final paired =
+        counterpart != null &&
+            counterpart.bankAccountCode == otherAccountCode &&
+            await store.claim(counterpart.id)
+        ? counterpart
+        : null;
+    if (paired != null) {
+      await _closeTransfer(paired, entryId, item.bankAccountCode);
+    }
+    return (entryId: entryId, pairedWith: paired);
+  }
+
+  /// Undo for [recordTransfer]: takes the entry out of the books and puts
+  /// the SMS (and the one closed with it) back in the queue.
+  Future<void> undoTransfer(
+    SmsTransferResult transfer,
+    SmsReviewItem item,
+  ) async {
+    await voidTransfer(entryId: transfer.entryId, item: item);
+    await reopen(item);
+    final paired = transfer.pairedWith;
+    if (paired != null) await reopen(paired);
+  }
+
+  /// Puts a closed SMS back in the review queue (Undo after Ignore or
+  /// Transfer), with its bank line unmatched.
+  Future<void> reopen(SmsReviewItem item) async {
+    await store.setStatus(
+      item.id,
+      SmsReviewItem.pending,
+      extra: {
+        'reviewedAt': null,
+        'journalEntryId': null,
+        'otherAccountCode': null,
+        'lastTouched': _clock().toIso8601String(),
+      },
+    );
+    final lineId = item.bankLineId;
+    if (lineId != null && lineId.isNotEmpty) {
+      await store.matchBankLine(lineId, null);
+    }
+  }
+
+  Future<void> _closeTransfer(
+    SmsReviewItem item,
+    String entryId,
+    String otherAccountCode,
+  ) async {
+    final now = _clock().toIso8601String();
+    await store.setStatus(
+      item.id,
+      SmsReviewItem.transfer,
+      extra: {
+        'journalEntryId': entryId,
+        'otherAccountCode': otherAccountCode,
+        'reviewedAt': now,
+        'lastTouched': now,
+      },
+    );
+    final lineId = item.bankLineId;
+    if (lineId != null && lineId.isNotEmpty) {
+      await store.matchBankLine(lineId, entryId);
+    }
+  }
 
   Future<void> _close(SmsReviewItem item, String status) async {
     final now = _clock().toIso8601String();
