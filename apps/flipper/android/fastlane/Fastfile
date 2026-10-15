@@ -74,15 +74,32 @@ platform :android do
   
     build_release_bundle
 
-    upload_to_play_store(
-      package_name: 'rw.flipper',
-      track: 'internal',
-      aab: release_aab_path,
-      json_key_data: ENV['PLAY_STORE_CONFIG_JSON'],
-      skip_upload_metadata: false,
-      skip_upload_images: true,
-      skip_upload_screenshots: true
+    # Build + release notes only, never the store listing. The preview
+    # workflow writes metadata/android/en-US/changelogs/<code>.txt, and with
+    # metadata on, supply also sent an en-US listing with no title, which
+    # Play rejects for rw.flipper ("This app has no title for language
+    # en-US"). Every preview upload failed that way after #804.
+    upload = lambda do |notes|
+      upload_to_play_store(
+        package_name: 'rw.flipper',
+        track: 'internal',
+        aab: release_aab_path,
+        json_key_data: ENV['PLAY_STORE_CONFIG_JSON'],
+        skip_upload_metadata: true,
+        skip_upload_changelogs: !notes,
+        skip_upload_images: true,
+        skip_upload_screenshots: true
       )
+    end
+    begin
+      upload.call(true)
+    rescue StandardError => e
+      # Testers need the build more than its notes: if Play refuses notes in
+      # en-US too, ship without them rather than lose the upload.
+      raise unless e.message =~ /language|title|release notes/i
+      UI.important("Play refused the release notes (#{e.message}); uploading without them")
+      upload.call(false)
+    end
   end
   desc "Promote beta track to prod"
   lane :promote_to_production do
