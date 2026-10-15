@@ -26260,6 +26260,10 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
       'Gusiba ibyanditswe mu gitabo cy\'amafaranga ntibyemerewe iki kigo. Saba ubufasha bwa Flipper kubyemera rimwe.';
 
   @override
+  String get cashResetSignInFailed =>
+      'Iki gikoresho nticyashoboye kwinjira kuri seriveri ya Flipper. Reba ko murandasi ikora hanyuma wongere ugerageze. Nibikomeza, sohoka hanyuma wongere winjire.';
+
+  @override
   String get branchTransferCartStillSaving =>
       'Hari ibicuruzwa bikibikwa. Tegereza akanya gato, hanyuma wongere wohereze.';
 }

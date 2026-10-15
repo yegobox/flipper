@@ -234,6 +234,25 @@ void main() {
     expect(fake.resets, isEmpty);
   });
 
+  testWidgets('a device with no server session is told how to recover', (
+    tester,
+  ) async {
+    final fake = _FakeClient()
+      ..previewError = const CashResetException(
+        'authentication required',
+        statusCode: 401,
+      );
+    await tester.pumpWidget(host(fake));
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('cash-reset-preview')));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('could not sign in'), findsOneWidget);
+    expect(find.textContaining('authentication required'), findsNothing);
+    expect(fake.resets, isEmpty);
+  });
+
   testWidgets('other failures keep the server message', (tester) async {
     final fake = _FakeClient()
       ..previewError = const CashResetException('boom', statusCode: 500);

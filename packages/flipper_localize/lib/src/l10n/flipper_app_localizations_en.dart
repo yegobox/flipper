@@ -26012,6 +26012,10 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
       'Clearing the Cash Book is not enabled for this business. Ask Flipper support to enable it for one reset.';
 
   @override
+  String get cashResetSignInFailed =>
+      'This device could not sign in to the Flipper server. Check the internet connection and try again. If it keeps happening, log out and log back in.';
+
+  @override
   String get branchTransferCartStillSaving =>
       'Some items are still being saved. Wait a moment, then transfer again.';
 }
