@@ -19,6 +19,8 @@ git switch -q main; git switch -qc feat/stack; commit a.txt a "a"; commit b.txt 
 git switch -q main; git switch -qc fix/clash; commit app.txt clash "clash"; git push -q origin fix/clash
 git switch -q main; git switch -qc feat/draft; commit d.txt d "d"; git push -q origin feat/draft
 git switch -q main; git switch -qc ci/parked; commit p.txt p "p"; git push -q origin ci/parked
+git switch -q main; git switch -qc feat/strings; commit strings.txt feature "new string"; git push -q origin feat/strings
+git switch -q main; git switch -qc l10n_translations; commit strings.txt crowdin "crowdin rewrite"; git push -q origin l10n_translations
 git switch -q main; commit app.txt main2 "main moves on"; git push -q origin main
 
 cat >"$TMP/prs.json" <<JSON
@@ -28,7 +30,9 @@ cat >"$TMP/prs.json" <<JSON
   {"number": 3, "headRefName": "feat/stack", "isDraft": false, "title": "Stack on A"},
   {"number": 6, "headRefName": "feat/draft", "isDraft": true,  "title": "Draft"},
   {"number": 668, "headRefName": "ci/parked", "isDraft": false, "title": "Parked"},
-  {"number": 9, "headRefName": "gone",       "isDraft": false, "title": "Fork"}
+  {"number": 9, "headRefName": "gone",       "isDraft": false, "title": "Fork"},
+  {"number": 1, "headRefName": "l10n_translations", "isDraft": false, "title": "New translations"},
+  {"number": 7, "headRefName": "feat/strings", "isDraft": false, "title": "Adds a string"}
 ]
 JSON
 
@@ -42,13 +46,15 @@ git checkout -q --detach origin/main
 [ ! -f d.txt ] || fail "draft #6 must not be folded"
 [ ! -f p.txt ] || fail "parked #668 must not be folded"
 [ -z "$(git status --porcelain)" ] || fail "tree must be clean after a skipped conflict"
-grep -q "In: #2 #3" "$TMP/notes.txt" || fail "notes: $(cat "$TMP/notes.txt")"
+[ "$(cat strings.txt)" = feature ] || fail "feature #7 must win over the lower-numbered bot #1"
+grep -q "In: #2 #3 #7" "$TMP/notes.txt" || fail "notes: $(cat "$TMP/notes.txt")"
+grep -q "#1 (conflict)" "$TMP/notes.txt" || fail "bot #1 should fold last and be the one skipped"
 grep -q "#5 (conflict)" "$TMP/notes.txt" || fail "notes miss the conflict"
 grep -q "#6 (draft)" "$TMP/notes.txt" || fail "notes miss the draft"
 grep -q "#668 (parked)" "$TMP/notes.txt" || fail "notes miss the parked PR"
 grep -q "#9 (branch not on origin)" "$TMP/notes.txt" || fail "notes miss the fork PR"
 [ "$(wc -c <"$TMP/notes.txt")" -le 500 ] || fail "notes over Play's 500 characters"
 grep -q "| #5 | \`fix/clash\` | skipped: conflict |" "$TMP/summary.md" || fail "summary row for #5"
-[ "$(git log --oneline origin/main..HEAD --merges | wc -l | tr -d ' ')" = 2 ] || fail "expected two fold merges"
+[ "$(git log --oneline origin/main..HEAD --merges | wc -l | tr -d ' ')" = 3 ] || fail "expected three fold merges"
 
 echo "fold_open_prs: all tests passed"
