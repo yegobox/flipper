@@ -26117,7 +26117,7 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
 
   @override
   String get smsBridgeHeadline =>
-      'SMS za benki, moja kwa moja kwenye Kitabu cha Fedha';
+      'SMS za benki, moja kwa moja kwenye Daftari la fedha';
 
   @override
   String get smsBridgeStepInstall => 'Sakinisha programu';
@@ -26137,7 +26137,7 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
 
   @override
   String get smsBridgePairBody =>
-      'Tengeneza msimbo wa matumizi moja, kisha uuchanganue kwa programu ya SMS Bridge. Hakuna kingine kwenye simu kinachoshirikiwa.';
+      'Tengeneza msimbo wa matumizi moja, kisha uuchanganue kwa programu ya SMS Bridge. Programu inatuma SMS za benki na pesa za simu pekee, pamoja na aina ya simu na kitambulisho cha programu ili kutofautisha vifaa.';
 
   @override
   String get smsBridgeCopyCode => 'Nakili msimbo';
@@ -26170,7 +26170,7 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
 
   @override
   String get smsBridgePairedBody =>
-      'SMS za benki na MoMo kutoka simu hiyo sasa zinaonekana kwenye Kitabu cha Fedha → Za kukagua.';
+      'SMS za benki na MoMo kutoka simu hiyo sasa zinaonekana kwenye Daftari la fedha → Za kukagua.';
 
   @override
   String get smsBridgePairAnother => 'Unganisha simu nyingine';

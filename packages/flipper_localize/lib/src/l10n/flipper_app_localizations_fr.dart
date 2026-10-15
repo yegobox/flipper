@@ -26384,7 +26384,7 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
 
   @override
   String get smsBridgePairBody =>
-      'Créez un code à usage unique, puis scannez-le avec l\'application SMS Bridge. Rien d\'autre n\'est partagé.';
+      'Créez un code à usage unique, puis scannez-le avec l\'application SMS Bridge. L\'application n\'envoie que les SMS bancaires et mobile money, ainsi que le modèle du téléphone et un identifiant d\'application pour distinguer les appareils.';
 
   @override
   String get smsBridgeCopyCode => 'Copier le code';

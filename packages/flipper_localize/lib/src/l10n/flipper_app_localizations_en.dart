@@ -25964,7 +25964,7 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
 
   @override
   String get smsBridgePairBody =>
-      'Make a one-time code, then scan it with the SMS Bridge app. Nothing else on the phone is shared.';
+      'Make a one-time code, then scan it with the SMS Bridge app. The app sends only bank and mobile-money SMS, plus the phone\'s model and an app ID to tell devices apart.';
 
   @override
   String get smsBridgeCopyCode => 'Copy code';

@@ -43442,7 +43442,7 @@ abstract class FlipperAppLocalizations {
   /// No description provided for @smsBridgePairBody.
   ///
   /// In en, this message translates to:
-  /// **'Make a one-time code, then scan it with the SMS Bridge app. Nothing else on the phone is shared.'**
+  /// **'Make a one-time code, then scan it with the SMS Bridge app. The app sends only bank and mobile-money SMS, plus the phone\'s model and an app ID to tell devices apart.'**
   String get smsBridgePairBody;
 
   /// No description provided for @smsBridgeCopyCode.

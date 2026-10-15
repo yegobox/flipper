@@ -9,6 +9,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.work.WorkManager
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -151,7 +152,12 @@ class BridgeViewModel(app: Application) : AndroidViewModel(app) {
                     val queued = if (hasPermission(Manifest.permission.READ_SMS)) Backfill.run(app, days) else 0
                     UploadWorker.enqueue(app)
                     Result.success(queued)
-                } catch (e: IOException) {
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    // Not only IOException: a malformed claim response or a
+                    // provider error in the backfill must still clear the
+                    // spinner, not escape the coroutine and crash the app.
                     Result.failure(e)
                 }
             }
@@ -198,7 +204,8 @@ class BridgeViewModel(app: Application) : AndroidViewModel(app) {
                 app.getString(R.string.pair_error_code)
             e is ApiException && e.status == 429 -> app.getString(R.string.pair_error_throttled)
             e is ApiException -> app.getString(R.string.pair_failed, e.message ?: "HTTP ${e.status}")
-            else -> app.getString(R.string.pair_error_offline)
+            e is IOException -> app.getString(R.string.pair_error_offline)
+            else -> app.getString(R.string.pair_failed, e.message ?: e.javaClass.simpleName)
         }
     }
 

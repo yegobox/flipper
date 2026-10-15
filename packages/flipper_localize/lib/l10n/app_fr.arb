@@ -7278,7 +7278,7 @@
   "smsBridgeCopyLink": "Copier le lien",
   "smsBridgeCopied": "Copié",
   "smsBridgeStepPair": "Associer le téléphone",
-  "smsBridgePairBody": "Créez un code à usage unique, puis scannez-le avec l'application SMS Bridge. Rien d'autre n'est partagé.",
+  "smsBridgePairBody": "Créez un code à usage unique, puis scannez-le avec l'application SMS Bridge. L'application n'envoie que les SMS bancaires et mobile money, ainsi que le modèle du téléphone et un identifiant d'application pour distinguer les appareils.",
   "smsBridgeCopyCode": "Copier le code",
   "smsBridgeExpiresIn": "Expire dans {time}",
   "smsBridgeCodeExpired": "Ce code a expiré.",

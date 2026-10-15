@@ -26227,7 +26227,7 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
 
   @override
   String get smsBridgePairBody =>
-      'Kora kode ikoreshwa rimwe, hanyuma uyisikane ukoresheje porogaramu ya SMS Bridge. Nta kindi kiri kuri telefone gisangizwa.';
+      'Kora kode ikoreshwa rimwe, hanyuma uyisikane ukoresheje porogaramu ya SMS Bridge. Porogaramu yohereza SMS za banki n\'iza mobile money gusa, hamwe n\'ubwoko bwa telefone n\'umubare uyiranga kugira ngo telefone zitandukanywe.';
 
   @override
   String get smsBridgeCopyCode => 'Koporora kode';
@@ -26260,7 +26260,7 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
 
   @override
   String get smsBridgePairedBody =>
-      'SMS za banki na MoMo ziva kuri iyo telefone ubu zigaragara muri Cash Book → Ibyo gusuzuma.';
+      'SMS za banki na MoMo ziva kuri iyo telefone ubu zigaragara mu gitabo cy\'amafaranga → Ibyo gusuzuma.';
 
   @override
   String get smsBridgePairAnother => 'Huza indi telefone';
