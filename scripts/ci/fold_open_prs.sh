@@ -10,6 +10,11 @@
 # skipped (merge aborted) and the fold carries on. Stacked PRs fold cleanly:
 # a child already contains its parent's commits.
 #
+# Bot PRs fold last (Crowdin `l10n_translations`, `dependabot/*`, the README
+# screenshot bot). They stay open for weeks with low numbers, and Crowdin
+# reformats every app_*.arb, so folding it first made every PR that adds a
+# string conflict and drop out. Last, a bot PR is the one that gets skipped.
+#
 # Nothing is pushed: the merges are local commits on a detached HEAD.
 #
 # Usage
@@ -51,7 +56,10 @@ else
   prs="$(gh pr list --state open --limit 200 --json number,headRefName,isDraft,title)"
 fi
 
-rows="$(printf '%s' "$prs" | jq -r 'sort_by(.number)[] |
+rows="$(printf '%s' "$prs" | jq -r 'sort_by([
+    (.headRefName | test("^(l10n_translations$|dependabot/|chore/readme-screenshots$)")),
+    .number
+  ])[] |
   [.number, .headRefName, (if .isDraft then "draft" else "ready" end), .title] | @tsv')"
 
 base_sha="$(git rev-parse --short HEAD)"

@@ -245,10 +245,33 @@ jobs:
           SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
           VERSION_CODE: ${{ env.VERSION_CODE }}
           VERSION_NAME: ${{ env.VERSION_NAME }}
+        # Play's "highest code + 1" can't see a version that only reached
+        # Shorebird: a run that died between `shorebird release` and the Play
+        # upload leaves it behind, and every later run picks the same code and
+        # fails ("existing android release for version"). Step past such
+        # orphans instead of failing; the upload step reads the new code from
+        # GITHUB_ENV.
         run: |
-          set -euo pipefail
-          shorebird release android -v -- --no-android-gradle-daemon 2>&1 | tee /tmp/shorebird-release.log
-          test -f build/app/outputs/bundle/release/app-release.aab
+          set -uo pipefail
+          for _ in 1 2 3 4 5; do
+            if shorebird release android -v -- --no-android-gradle-daemon 2>&1 | tee /tmp/shorebird-release.log; then
+              # No `set -e` here (the loop reads failures), so exit with
+              # test's status: a release without an AAB must fail the step.
+              test -f build/app/outputs/bundle/release/app-release.aab
+              exit $?
+            fi
+            grep -q "existing android release for version" /tmp/shorebird-release.log || exit 1
+            echo "::warning::Shorebird already has $VERSION_NAME+$VERSION_CODE (orphaned by an earlier run); trying the next code."
+            VERSION_CODE=$(( VERSION_CODE + 1 ))
+            VERSION_NAME="1.180.$(( VERSION_CODE - 1800000000 ))"
+            export VERSION_CODE VERSION_NAME
+            echo "VERSION_CODE=$VERSION_CODE" >> "$GITHUB_ENV"
+            echo "VERSION_NAME=$VERSION_NAME" >> "$GITHUB_ENV"
+            echo "versionCode bumped to $VERSION_CODE (Shorebird orphan)" >> "$GITHUB_STEP_SUMMARY"
+            cp "$RUNNER_TEMP/preview-notes.txt" \
+              "android/fastlane/metadata/android/en-US/changelogs/$VERSION_CODE.txt"
+          done
+          exit 1
       - name: Verify AAB 16 KB ELF compliance
         # Must run before Play upload. flipper_auth builds inside fastlane; for that
         # app we verify after fastlane below as well when an AAB is present.
