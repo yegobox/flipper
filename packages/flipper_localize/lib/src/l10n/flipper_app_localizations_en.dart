@@ -2847,6 +2847,53 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
   }
 
   @override
+  String smsReviewHomeTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count bank & MoMo SMS to approve',
+      one: '1 bank & MoMo SMS to approve',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String smsReviewHomeTotals(String moneyIn, String moneyOut) {
+    return '$moneyIn in · $moneyOut out';
+  }
+
+  @override
+  String get smsReviewHomeAction => 'Review';
+
+  @override
+  String get smsReviewEmptyTitle => 'All caught up';
+
+  @override
+  String get smsReviewEmptyBody =>
+      'New bank & MoMo SMS show up here as they arrive.';
+
+  @override
+  String get smsReviewMatchTitle => 'Already recorded as a sale?';
+
+  @override
+  String get smsReviewMatchBody =>
+      'Link it to the sale so this money is not counted twice.';
+
+  @override
+  String smsReviewMatchSale(String time, String amount) {
+    return 'Sale · $time · $amount';
+  }
+
+  @override
+  String get smsReviewLink => 'Link';
+
+  @override
+  String get smsReviewLinked => 'Linked to the sale';
+
+  @override
+  String get smsReviewMatchChip => 'Matches a sale';
+
+  @override
   String get cashbookTitle => 'Cash Book';
 
   @override

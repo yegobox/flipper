@@ -2868,6 +2868,53 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   }
 
   @override
+  String smsReviewHomeTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'SMS $count za benki au MoMo za kuidhinisha',
+      one: 'SMS 1 ya benki au MoMo ya kuidhinisha',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String smsReviewHomeTotals(String moneyIn, String moneyOut) {
+    return '$moneyIn zimeingia · $moneyOut zimetoka';
+  }
+
+  @override
+  String get smsReviewHomeAction => 'Kagua';
+
+  @override
+  String get smsReviewEmptyTitle => 'Zote zimekaguliwa';
+
+  @override
+  String get smsReviewEmptyBody =>
+      'SMS mpya za benki na MoMo zinaonekana hapa zinapofika.';
+
+  @override
+  String get smsReviewMatchTitle => 'Tayari imerekodiwa kama mauzo?';
+
+  @override
+  String get smsReviewMatchBody =>
+      'Iunganishe na mauzo ili pesa hizi zisihesabiwe mara mbili.';
+
+  @override
+  String smsReviewMatchSale(String time, String amount) {
+    return 'Mauzo · $time · $amount';
+  }
+
+  @override
+  String get smsReviewLink => 'Unganisha';
+
+  @override
+  String get smsReviewLinked => 'Imeunganishwa na mauzo';
+
+  @override
+  String get smsReviewMatchChip => 'Inalingana na mauzo';
+
+  @override
   String get cashbookTitle => 'Daftari la fedha';
 
   @override

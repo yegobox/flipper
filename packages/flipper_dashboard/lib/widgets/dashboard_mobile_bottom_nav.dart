@@ -2,6 +2,7 @@ import 'package:flipper_dashboard/dashboard_quick_apps_navigation.dart';
 import 'package:flipper_dashboard/widgets/dashboard_all_apps_sheet.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
+import 'package:flipper_dashboard/widgets/sms_review/sms_review_section.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -136,6 +137,8 @@ class DashboardMobileBottomNav extends ConsumerWidget {
                     ),
                     _NavItem(
                       icon: FluentIcons.grid_24_regular,
+                      // New bank & MoMo SMS: the Cash Book is under More.
+                      showSmsReviewBadge: true,
                       label: context.flipperL10n.more,
                       selected: activeTab == DashboardMobileTab.more,
                       onTap: () => _openTab(
@@ -173,12 +176,14 @@ class _NavItem extends StatelessWidget {
     required this.label,
     required this.selected,
     required this.onTap,
+    this.showSmsReviewBadge = false,
   });
 
   final IconData icon;
   final String label;
   final bool selected;
   final VoidCallback onTap;
+  final bool showSmsReviewBadge;
 
   @override
   Widget build(BuildContext context) {
@@ -194,7 +199,10 @@ class _NavItem extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 22, color: color),
+            if (showSmsReviewBadge)
+              SmsReviewCountBadge(child: Icon(icon, size: 22, color: color))
+            else
+              Icon(icon, size: 22, color: color),
             const SizedBox(height: 2),
             // One line at any locale or text size, so every tab's icon stays
             // on the same baseline (Kinyarwanda labels are long).

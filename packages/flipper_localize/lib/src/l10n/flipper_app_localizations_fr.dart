@@ -2894,6 +2894,53 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   }
 
   @override
+  String smsReviewHomeTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count SMS bancaires ou MoMo à approuver',
+      one: '1 SMS bancaire ou MoMo à approuver',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String smsReviewHomeTotals(String moneyIn, String moneyOut) {
+    return '$moneyIn entrés · $moneyOut sortis';
+  }
+
+  @override
+  String get smsReviewHomeAction => 'Vérifier';
+
+  @override
+  String get smsReviewEmptyTitle => 'Tout est à jour';
+
+  @override
+  String get smsReviewEmptyBody =>
+      'Les nouveaux SMS bancaires et MoMo apparaissent ici dès leur arrivée.';
+
+  @override
+  String get smsReviewMatchTitle => 'Déjà enregistré comme vente ?';
+
+  @override
+  String get smsReviewMatchBody =>
+      'Liez-le à la vente pour que cet argent ne soit pas compté deux fois.';
+
+  @override
+  String smsReviewMatchSale(String time, String amount) {
+    return 'Vente · $time · $amount';
+  }
+
+  @override
+  String get smsReviewLink => 'Lier';
+
+  @override
+  String get smsReviewLinked => 'Lié à la vente';
+
+  @override
+  String get smsReviewMatchChip => 'Correspond à une vente';
+
+  @override
   String get cashbookTitle => 'Livre de caisse';
 
   @override

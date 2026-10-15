@@ -94,6 +94,32 @@ class SmsReviewService {
     return transactionId;
   }
 
+  /// The money was already rung up as a POS sale ([transactionId]): records
+  /// nothing new, so reports and the dashboard count it once. The bank line
+  /// is matched to that sale's journal entry. False when another till already
+  /// took the item.
+  Future<bool> linkToSale(SmsReviewItem item, String transactionId) async {
+    if (!await store.claim(item.id)) return false;
+    final now = _clock().toIso8601String();
+    await store.setStatus(
+      item.id,
+      SmsReviewItem.matched,
+      extra: {
+        'transactionId': transactionId,
+        'reviewedAt': now,
+        'lastTouched': now,
+      },
+    );
+    final lineId = item.bankLineId;
+    if (lineId != null && lineId.isNotEmpty) {
+      await store.matchBankLine(
+        lineId,
+        journalEntryId(item.businessId, transactionId),
+      );
+    }
+    return true;
+  }
+
   /// Not a business transaction (a duplicate, a personal transfer). The bank
   /// line stays for Books to categorise.
   Future<void> ignore(SmsReviewItem item) =>

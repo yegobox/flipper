@@ -17,4 +17,12 @@ void main() {
     openEngagementAction('', navigate: opened.add);
     expect(opened, ['new_sale', 'goal']);
   });
+
+  test('a registered handler opens its action; others are untouched', () {
+    var opened = 0;
+    registerEngagementActionHandler(kSmsReviewEngagementAction, () => opened++);
+    openEngagementAction(kSmsReviewEngagementAction);
+    openEngagementAction('goal');
+    expect(opened, 1);
+  });
 }

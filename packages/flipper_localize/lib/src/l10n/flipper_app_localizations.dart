@@ -5171,6 +5171,72 @@ abstract class FlipperAppLocalizations {
   /// **'Could not save: {error}'**
   String smsReviewFailed(String error);
 
+  /// No description provided for @smsReviewHomeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 bank & MoMo SMS to approve} other{{count} bank & MoMo SMS to approve}}'**
+  String smsReviewHomeTitle(int count);
+
+  /// No description provided for @smsReviewHomeTotals.
+  ///
+  /// In en, this message translates to:
+  /// **'{moneyIn} in · {moneyOut} out'**
+  String smsReviewHomeTotals(String moneyIn, String moneyOut);
+
+  /// No description provided for @smsReviewHomeAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Review'**
+  String get smsReviewHomeAction;
+
+  /// No description provided for @smsReviewEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'All caught up'**
+  String get smsReviewEmptyTitle;
+
+  /// No description provided for @smsReviewEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'New bank & MoMo SMS show up here as they arrive.'**
+  String get smsReviewEmptyBody;
+
+  /// No description provided for @smsReviewMatchTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Already recorded as a sale?'**
+  String get smsReviewMatchTitle;
+
+  /// No description provided for @smsReviewMatchBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Link it to the sale so this money is not counted twice.'**
+  String get smsReviewMatchBody;
+
+  /// No description provided for @smsReviewMatchSale.
+  ///
+  /// In en, this message translates to:
+  /// **'Sale · {time} · {amount}'**
+  String smsReviewMatchSale(String time, String amount);
+
+  /// No description provided for @smsReviewLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Link'**
+  String get smsReviewLink;
+
+  /// No description provided for @smsReviewLinked.
+  ///
+  /// In en, this message translates to:
+  /// **'Linked to the sale'**
+  String get smsReviewLinked;
+
+  /// No description provided for @smsReviewMatchChip.
+  ///
+  /// In en, this message translates to:
+  /// **'Matches a sale'**
+  String get smsReviewMatchChip;
+
   /// No description provided for @cashbookTitle.
   ///
   /// In en, this message translates to:

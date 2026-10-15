@@ -2881,6 +2881,53 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   }
 
   @override
+  String smsReviewHomeTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'SMS $count za banki cyangwa MoMo zo kwemeza',
+      one: 'SMS 1 ya banki cyangwa MoMo yo kwemeza',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String smsReviewHomeTotals(String moneyIn, String moneyOut) {
+    return '$moneyIn byinjiye · $moneyOut byasohotse';
+  }
+
+  @override
+  String get smsReviewHomeAction => 'Reba';
+
+  @override
+  String get smsReviewEmptyTitle => 'Byose byarebwe';
+
+  @override
+  String get smsReviewEmptyBody =>
+      'SMS nshya za banki na MoMo zigaragara hano zikimara kugera.';
+
+  @override
+  String get smsReviewMatchTitle => 'Byamaze kwandikwa nk’igurisha?';
+
+  @override
+  String get smsReviewMatchBody =>
+      'Bihuze n’igurisha kugira ngo aya mafaranga atabarwa kabiri.';
+
+  @override
+  String smsReviewMatchSale(String time, String amount) {
+    return 'Igurisha · $time · $amount';
+  }
+
+  @override
+  String get smsReviewLink => 'Huza';
+
+  @override
+  String get smsReviewLinked => 'Byahujwe n’igurisha';
+
+  @override
+  String get smsReviewMatchChip => 'Bihuye n’igurisha';
+
+  @override
   String get cashbookTitle => 'Igitabo cy\'amafaranga';
 
   @override

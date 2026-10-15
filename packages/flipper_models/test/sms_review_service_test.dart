@@ -1,5 +1,6 @@
 import 'package:flipper_models/sms_review/sms_review_item.dart';
 import 'package:flipper_models/sms_review/sms_review_service.dart';
+import 'package:flipper_models/sms_review/sms_sale_match.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 class _FakeStore implements SmsReviewStore {
@@ -35,17 +36,19 @@ class _FakeStore implements SmsReviewStore {
 SmsReviewItem _item({
   String direction = 'debit',
   String? bankLineId = 'line-1',
+  String paymentType = 'BANK TRANSFER',
+  String kind = 'principal',
 }) => SmsReviewItem.fromDitto({
   '_id': 'sms-1',
   'businessId': 'biz',
   'branchId': 'br',
-  'kind': 'principal',
+  'kind': kind,
   'direction': direction,
   'amount': 2000,
   'fee': 20,
   'description': 'BK · to Jane DOE · FTCMTEST',
   'providerLabel': 'BK',
-  'paymentType': 'BANK TRANSFER',
+  'paymentType': paymentType,
   'bankAccountCode': '1020',
   'occurredAt': '2026-10-14T09:29:21',
   'lineDate': '2026-10-14',
@@ -121,5 +124,77 @@ void main() {
     await s.markTransfer(_item());
     expect(store.statuses['sms-1'], SmsReviewItem.transfer);
     expect(recorded, isEmpty);
+  });
+
+  test('linking to a sale records nothing and matches the sale', () async {
+    final s = service();
+    expect(await s.linkToSale(_item(direction: 'credit'), 'sale-9'), isTrue);
+
+    expect(recorded, isEmpty);
+    expect(store.statuses['sms-1'], SmsReviewItem.matched);
+    expect(store.extras['sms-1']?['transactionId'], 'sale-9');
+    expect(store.matched, {'line-1': 'je_biz_sale-9_sale'});
+  });
+
+  test('a link that loses the claim writes nothing', () async {
+    final s = service();
+    await s.ignore(_item());
+    expect(await s.linkToSale(_item(direction: 'credit'), 'sale-9'), isFalse);
+    expect(store.statuses['sms-1'], SmsReviewItem.ignored);
+    expect(store.matched, isEmpty);
+  });
+
+  group('smsMatchingSales', () {
+    final momoIn = _item(direction: 'credit', paymentType: 'MOBILE MONEY');
+    final at = DateTime(2026, 10, 14, 9, 29, 21);
+
+    SmsSaleCandidate sale(
+      String id, {
+      double amount = 2000,
+      String paymentType = 'MTN MOMO',
+      Duration offset = Duration.zero,
+      String? receiptType,
+      bool isExpense = false,
+    }) => SmsSaleCandidate(
+      transactionId: id,
+      amount: amount,
+      paymentType: paymentType,
+      createdAt: at.add(offset),
+      receiptType: receiptType,
+      isExpense: isExpense,
+    );
+
+    test('offers same-amount, same-tender sales nearest first', () {
+      final found = smsMatchingSales(momoIn, [
+        sale('far', offset: const Duration(minutes: -90)),
+        sale('near', offset: const Duration(minutes: 5)),
+      ]);
+      expect(found.map((c) => c.transactionId), ['near', 'far']);
+    });
+
+    test('skips other amounts, tenders, times, movements and linked sales', () {
+      final found = smsMatchingSales(
+        momoIn,
+        [
+          sale('amount', amount: 2500),
+          sale('cash', paymentType: 'CASH'),
+          sale('late', offset: const Duration(hours: 3)),
+          sale('movement', receiptType: 'Cash In'),
+          sale('expense', isExpense: true),
+          sale('linked'),
+        ],
+        linkedTransactionIds: {'linked'},
+      );
+      expect(found, isEmpty);
+    });
+
+    test('money out and charges never match a sale', () {
+      final sales = [sale('s1', paymentType: 'BANK TRANSFER')];
+      expect(smsMatchingSales(_item(), sales), isEmpty);
+      expect(
+        smsMatchingSales(_item(direction: 'credit', kind: 'fee'), sales),
+        isEmpty,
+      );
+    });
   });
 }

@@ -6,6 +6,7 @@ import 'package:flipper_dashboard/features/daily_goal/daily_goal_card.dart';
 import 'package:flipper_dashboard/widgets/app_icons_grid.dart';
 import 'package:flipper_dashboard/widgets/dashboard_mobile_bottom_nav.dart';
 import 'package:flipper_dashboard/widgets/mpos/mpos_states.dart';
+import 'package:flipper_dashboard/widgets/sms_review/sms_review_section.dart';
 import 'package:flipper_dashboard/widgets/dashboard_quick_access_svgs.dart';
 import 'package:flipper_dashboard/features/stock_value/stock_value_report_screen.dart';
 import 'package:flipper_models/providers/currency_provider.dart';
@@ -54,6 +55,12 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
   static const Color _summaryExpenseStroke = Color(0xFFB42318);
 
   bool get _mobileChrome => !widget.isBigScreen;
+
+  @override
+  void initState() {
+    super.initState();
+    registerSmsReviewPushHandler();
+  }
 
   /// Display label for a period option; the raw value feeds the providers.
   String _periodLabel(String period) {
@@ -426,6 +433,7 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                const SmsReviewHomeCard(padding: EdgeInsets.only(bottom: 12)),
                 DashboardHomeGauge(
                   value: snapshot.displayValue(profitType),
                   revenue: snapshot.revenue,
@@ -488,13 +496,21 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
       data: (snapshot) {
         return Padding(
           padding: const EdgeInsets.only(top: 12),
-          child: SemiCircleGauge(
-            dataOnGreenSide: snapshot.grossProfit,
-            dataOnRedSide: snapshot.deductions,
-            startPadding: 50.0,
-            profitType: profitType,
-            areValueColumnsVisible: true,
-            presentation: GaugePresentation.standard,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SmsReviewHomeCard(
+                padding: EdgeInsets.fromLTRB(16, 0, 16, 12),
+              ),
+              SemiCircleGauge(
+                dataOnGreenSide: snapshot.grossProfit,
+                dataOnRedSide: snapshot.deductions,
+                startPadding: 50.0,
+                profitType: profitType,
+                areValueColumnsVisible: true,
+                presentation: GaugePresentation.standard,
+              ),
+            ],
           ),
         );
       },
