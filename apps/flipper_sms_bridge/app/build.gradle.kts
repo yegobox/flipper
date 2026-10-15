@@ -3,6 +3,7 @@ import java.util.Properties
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    id("org.jetbrains.kotlin.plugin.compose")
 }
 
 // Release signing comes from CI secrets (or a local, gitignored
@@ -55,8 +56,23 @@ android {
     }
 
     buildFeatures {
-        viewBinding = true
+        compose = true
         buildConfig = true
+    }
+
+    // Screenshot tests render the real Compose UI on the JVM (Robolectric +
+    // Roborazzi), so every state can be checked without a phone or emulator:
+    //   gradle :app:testDebugUnitTest -Proborazzi.test.record=true
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+            all {
+                it.systemProperty(
+                    "roborazzi.test.record",
+                    providers.gradleProperty("roborazzi.test.record").getOrElse("false"),
+                )
+            }
+        }
     }
 }
 
@@ -66,8 +82,26 @@ kotlin {
 
 dependencies {
     implementation(project(":core"))
-    implementation("androidx.appcompat:appcompat:1.7.1")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.9.2")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.9.2")
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.9.2")
     implementation("androidx.work:work-runtime-ktx:2.10.3")
     implementation("com.journeyapps:zxing-android-embedded:4.3.0")
+
+    val composeBom = platform("androidx.compose:compose-bom:2026.06.01")
+    implementation(composeBom)
+    implementation("androidx.activity:activity-compose:1.12.4")
+    implementation("androidx.compose.material3:material3")
+    implementation("androidx.compose.material:material-icons-core:1.7.8")
+    implementation("androidx.compose.ui:ui-tooling-preview")
+    debugImplementation("androidx.compose.ui:ui-tooling")
+    debugImplementation("androidx.compose.ui:ui-test-manifest")
+
+    testImplementation(composeBom)
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("org.robolectric:robolectric:4.16.1")
+    testImplementation("androidx.compose.ui:ui-test-junit4")
+    testImplementation("io.github.takahirom.roborazzi:roborazzi:1.76.0")
+    testImplementation("io.github.takahirom.roborazzi:roborazzi-compose:1.76.0")
+    testImplementation("io.github.takahirom.roborazzi:roborazzi-junit-rule:1.76.0")
 }

@@ -38,6 +38,18 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <!--
+              Flipper on the same phone can't be scanned by it, so Flipper's
+              "Open SMS Bridge on this phone" launches the QR's own URI. Any
+              app can fire it, so it only pre-fills a confirmation sheet that
+              shows the server; nothing pairs without a tap.
+            -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="flipper-sms-bridge" android:host="pair" />
+            </intent-filter>
         </activity>
 
         <!--

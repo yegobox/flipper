@@ -108,6 +108,8 @@ void main() {
       l10n.paymentMethods,
       l10n.posDefault,
       l10n.smsNotifications,
+      // Phones pair the SMS Bridge too, not only Admin Control on desktop.
+      l10n.smsBridgeTitle,
       l10n.administratorPin,
       l10n.adminReceiptLogo,
       l10n.cashResetTitle,
@@ -134,6 +136,7 @@ void main() {
     expect(find.text(l10n.language), findsOneWidget);
     expect(find.text(l10n.cashResetTitle), findsNothing);
     expect(find.text(l10n.taxSettings), findsNothing);
+    expect(find.text(l10n.smsBridgeTitle), findsNothing);
     expect(find.text(l10n.security.toUpperCase()), findsNothing);
   });
 

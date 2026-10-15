@@ -48,6 +48,11 @@ jobs:
       - name: Core unit tests
         run: gradle :core:test --console=plain
 
+      # Robolectric renders every screen state on the JVM and checks the
+      # pairing flow (code grouping, link confirmation, unpair prompt).
+      - name: App UI tests
+        run: gradle :app:testDebugUnitTest --console=plain
+
       - name: Debug APK
         run: gradle :app:assembleDebug --console=plain
 
@@ -104,3 +109,18 @@ jobs:
       - uses: softprops/action-gh-release@v3
         with:
           files: apps/flipper_sms_bridge/flipper-sms-bridge-*.apk
+
+      # A link that never changes, for Flipper's SMS Bridge page and its
+      # download QR: .../releases/download/sms-bridge-latest/flipper-sms-bridge.apk
+      # (the per-version releases share this repo with Flipper's own, so
+      # GitHub's "latest release" can't point at the bridge).
+      - name: Update the sms-bridge-latest download
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cp flipper-sms-bridge-*.apk flipper-sms-bridge.apk
+          gh release view sms-bridge-latest >/dev/null 2>&1 || \
+            gh release create sms-bridge-latest --title "Flipper SMS Bridge (latest)" \
+              --notes "Always the newest signed SMS Bridge APK. Versioned builds are under the sms-bridge-v* releases." \
+              --latest=false
+          gh release upload sms-bridge-latest flipper-sms-bridge.apk --clobber

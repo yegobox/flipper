@@ -26206,6 +26206,66 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   }
 
   @override
+  String get smsBridgeHeadline =>
+      'SMS za banki, zihita zijya mu gitabo cy\'amafaranga';
+
+  @override
+  String get smsBridgeStepInstall => 'Shyiraho porogaramu';
+
+  @override
+  String get smsBridgeInstallBody =>
+      'Kuri telefone yakira ubutumwa bwa banki na MoMo, sikana iyi QR code cyangwa ufungure iyi link kugira ngo ushyireho Flipper SMS Bridge.';
+
+  @override
+  String get smsBridgeCopyLink => 'Koporora link';
+
+  @override
+  String get smsBridgeCopied => 'Byakoporowe';
+
+  @override
+  String get smsBridgeStepPair => 'Huza telefone';
+
+  @override
+  String get smsBridgePairBody =>
+      'Kora kode ikoreshwa rimwe, hanyuma uyisikane ukoresheje porogaramu ya SMS Bridge. Porogaramu yohereza SMS za banki n\'iza mobile money gusa, hamwe n\'ubwoko bwa telefone n\'umubare uyiranga kugira ngo telefone zitandukanywe.';
+
+  @override
+  String get smsBridgeCopyCode => 'Koporora kode';
+
+  @override
+  String smsBridgeExpiresIn(String time) {
+    return 'Irarangira mu $time';
+  }
+
+  @override
+  String get smsBridgeCodeExpired => 'Iyi kode yarangiye.';
+
+  @override
+  String get smsBridgeNewCode => 'Kode nshya';
+
+  @override
+  String get smsBridgeOpenOnThisPhone => 'Fungura SMS Bridge kuri iyi telefone';
+
+  @override
+  String get smsBridgeNotInstalled =>
+      'SMS Bridge ntirashyirwa kuri iyi telefone. Banza uyishyireho, hanyuma ugaruke.';
+
+  @override
+  String get smsBridgeWaiting => 'Dutegereje telefone…';
+
+  @override
+  String smsBridgePaired(String device) {
+    return '$device yahujwe';
+  }
+
+  @override
+  String get smsBridgePairedBody =>
+      'SMS za banki na MoMo ziva kuri iyo telefone ubu zigaragara mu gitabo cy\'amafaranga → Ibyo gusuzuma.';
+
+  @override
+  String get smsBridgePairAnother => 'Huza indi telefone';
+
+  @override
   String get cashResetSectionTitle => 'Igice cyo kwitonda';
 
   @override

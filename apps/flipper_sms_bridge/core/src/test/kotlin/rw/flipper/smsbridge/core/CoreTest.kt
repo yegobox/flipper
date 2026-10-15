@@ -105,6 +105,42 @@ class PairingPayloadTest {
     fun typedCodesNormaliseLikeTheConnector() {
         assertEquals("00111", PairingPayload.normalizeCode(" 0oIl1 "))
     }
+
+    @Test
+    fun codesAreShownInTwoHalvesAsTheyAreTyped() {
+        assertEquals("", PairingPayload.formatCode(""))
+        assertEquals("7K3QM", PairingPayload.formatCode("7k3qm"))
+        assertEquals("7K3QM-Z", PairingPayload.formatCode("7k3qmz"))
+        assertEquals("7K3QM-Z9TXA", PairingPayload.formatCode("7K3QM-Z9TXA"))
+        // Pasting with spaces or extra characters still gives one clean code.
+        assertEquals("7K3QM-Z9TXA", PairingPayload.formatCode(" 7k3qm z9txa 99 "))
+    }
+
+    @Test
+    fun onlyFlipperServersAreTrusted() {
+        assertTrue(PairingPayload.isFlipperServer("https://prod.api.yegobox.com/"))
+        assertTrue(PairingPayload.isFlipperServer("https://yegobox.com/"))
+        assertFalse(PairingPayload.isFlipperServer("https://yegobox.com.evil.example/"))
+        assertFalse(PairingPayload.isFlipperServer("https://notyegobox.com/"))
+        assertFalse(PairingPayload.isFlipperServer("http://10.0.2.2:8084/"))
+        assertFalse(PairingPayload.isFlipperServer("%%%"))
+    }
+
+    @Test
+    fun theHostIsShownWithoutTheScheme() {
+        assertEquals("prod.api.yegobox.com", PairingPayload.hostOf("https://prod.api.yegobox.com/"))
+    }
+}
+
+class BridgeStatusTest {
+    @Test
+    fun theWorstProblemWins() {
+        assertEquals(BridgeStatus.NOT_PAIRED, BridgeStatus.derive(false, true, false, "x"))
+        assertEquals(BridgeStatus.NEEDS_PAIRING, BridgeStatus.derive(true, true, false, "x"))
+        assertEquals(BridgeStatus.NO_PERMISSION, BridgeStatus.derive(true, false, false, "x"))
+        assertEquals(BridgeStatus.RETRYING, BridgeStatus.derive(true, false, true, "offline"))
+        assertEquals(BridgeStatus.LIVE, BridgeStatus.derive(true, false, true, null))
+    }
 }
 
 class UploadPolicyTest {

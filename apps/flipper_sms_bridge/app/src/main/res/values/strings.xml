@@ -1,41 +1,100 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Flipper SMS Bridge</string>
+    <string name="brand_eyebrow">Flipper</string>
+    <string name="brand_title">SMS Bridge</string>
 
-    <string name="intro_title">Send bank and MoMo SMS to Flipper</string>
-    <string name="intro_body">This phone forwards transaction messages from BK, MTN MoMo, Airtel Money, Equity and I&amp;M to your Flipper Cash Book and bank feed. Other messages never leave the phone.</string>
+    <!-- Setup -->
+    <string name="setup_title">Connect this phone to Flipper</string>
+    <string name="setup_body">Bank and mobile-money alerts on this phone go straight to your Cash Book and bank feed, ready to confirm.</string>
+    <string name="privacy_title">Only these senders leave the phone</string>
+    <string name="privacy_body">Personal messages never do.</string>
+    <string name="setup_steps">Set up in 3 steps</string>
+    <string name="step_done">Done</string>
 
-    <string name="pair_scan">Scan pairing code</string>
-    <string name="pair_manual">Enter code instead</string>
-    <string name="pair_how">In Flipper, open Settings → SMS Bridge → Pair a phone, then scan the code it shows.</string>
-    <string name="pair_code_hint">Code (e.g. 7K3QM-Z9TXA)</string>
-    <string name="pair_url_hint">Flipper server address</string>
-    <string name="pair_submit">Pair</string>
-    <string name="pair_backfill_label">Also send messages already on this phone from the last:</string>
-    <string name="pair_backfill_none">Only new messages</string>
+    <string name="step_sms_title">Allow SMS access</string>
+    <string name="step_sms_body">So the app sees bank alerts the moment they arrive.</string>
+    <string name="step_sms_action">Allow</string>
+    <string name="perm_restricted">Android may block SMS access for apps installed outside the Play Store. If the switch is greyed out, open App info, tap ⋮ (top right), choose Allow restricted settings, then try again.</string>
+    <string name="perm_open_settings">Open App info</string>
+
+    <string name="step_background_title">Keep running in the background</string>
+    <string name="step_background_body">Stops phones like Tecno, Infinix and Xiaomi from pausing delivery.</string>
+    <string name="step_background_action">Allow</string>
+
+    <string name="step_pair_title">Pair with Flipper</string>
+    <string name="step_pair_body">Scan the code Flipper shows, or type it in.</string>
+    <string name="pair_again_title">Pair this phone again</string>
+    <string name="pair_backfill_label">Also send messages already on this phone</string>
+    <string name="pair_backfill_none">New only</string>
     <string name="pair_backfill_7">7 days</string>
     <string name="pair_backfill_30">30 days</string>
-    <string name="pairing">Pairing…</string>
-    <string name="pair_failed">Pairing failed: %1$s</string>
-    <string name="pair_bad_qr">That is not a Flipper SMS Bridge code.</string>
-    <string name="paired_backfill">Paired. Earlier messages queued: %1$d</string>
+    <string name="pair_scan">Scan code</string>
+    <string name="pair_manual">Enter code</string>
+    <string name="pair_scan_prompt">Point at the QR code in Flipper → SMS Bridge</string>
 
-    <string name="status_posting_to">Sending to: %1$s</string>
-    <string name="status_queue">Waiting to send: %1$d</string>
-    <string name="status_forwarded">Sent so far: %1$d</string>
-    <string name="status_last_upload">Last sent: %1$s</string>
-    <string name="status_never">never</string>
-    <string name="status_ok">Working. Bank SMS will appear in Flipper within a minute.</string>
-    <string name="status_needs_pairing">This phone was unpaired in Flipper. Pair it again.</string>
+    <string name="where_code">Where do I find the code?</string>
+    <string name="where_code_phone_title">Flipper on a phone</string>
+    <string name="where_code_phone">More → Settings → SMS Bridge → Pair a phone</string>
+    <string name="where_code_desktop_title">Flipper on a computer</string>
+    <string name="where_code_desktop">Admin Control → SMS Bridge → Pair a phone</string>
+    <string name="where_code_same_phone">Flipper on this same phone? Tap “Open SMS Bridge on this phone” there instead of scanning.</string>
+    <string name="where_code_expiry">Each code works once and expires after 10 minutes.</string>
 
-    <string name="send_now">Send now</string>
-    <string name="battery">Keep running in the background</string>
-    <string name="unpair">Unpair this phone</string>
-    <string name="unpair_confirm">Stop sending SMS to Flipper? Messages not yet sent are deleted from this phone.</string>
+    <!-- Enter code sheet -->
+    <string name="code_sheet_title">Enter pairing code</string>
+    <string name="code_sheet_body">It is under the QR code in Flipper → SMS Bridge.</string>
+    <string name="code_placeholder">XXXXX-XXXXX</string>
+    <string name="code_paste">Paste</string>
+    <string name="code_server">Server</string>
+    <string name="pair_url_hint">Flipper server address</string>
+    <string name="pair_submit">Pair phone</string>
+
+    <!-- Deep link confirmation -->
+    <string name="confirm_title">Pair with Flipper?</string>
+    <string name="confirm_body">Bank and MoMo SMS from this phone will be sent to:</string>
+    <string name="confirm_untrusted">This is not a Flipper server. Only continue if your IT team set it up.</string>
+    <string name="confirm_pair">Pair phone</string>
     <string name="cancel">Cancel</string>
 
-    <string name="perm_sms_missing">SMS permission is off, so nothing can be forwarded.</string>
-    <string name="perm_grant">Allow SMS access</string>
-    <string name="perm_restricted">Android may block SMS access for apps installed outside the Play Store. If the switch is greyed out: open App info → ⋮ (top right) → Allow restricted settings, then try again.</string>
-    <string name="perm_open_settings">Open App info</string>
+    <!-- Pairing results -->
+    <string name="pair_bad_qr">That is not a Flipper SMS Bridge code.</string>
+    <string name="pair_bad_code">Enter all 10 characters of the code.</string>
+    <string name="pair_error_code">That code is wrong or has expired. Make a new one in Flipper and try again.</string>
+    <string name="pair_error_throttled">Too many tries. Wait a minute, then use a new code.</string>
+    <string name="pair_error_offline">No internet connection. Connect and try again.</string>
+    <string name="pair_failed">Pairing failed: %1$s</string>
+    <string name="paired">Paired. Bank SMS will now reach Flipper.</string>
+    <plurals name="paired_backfill">
+        <item quantity="one">Paired. %1$d earlier message is on its way.</item>
+        <item quantity="other">Paired. %1$d earlier messages are on their way.</item>
+    </plurals>
+
+    <!-- Dashboard -->
+    <string name="status_live">Live</string>
+    <string name="status_retrying">Retrying</string>
+    <string name="status_no_permission">Paused</string>
+    <string name="status_needs_pairing">Unpaired</string>
+    <string name="status_forwarding_to">Forwarding to %1$s</string>
+    <string name="status_not_forwarding_to">Not forwarding to %1$s</string>
+    <string name="status_live_body">Bank and MoMo SMS reach Flipper within a minute.</string>
+    <string name="status_no_permission_body">SMS access is off, so nothing is forwarded.</string>
+    <string name="status_needs_pairing_body">This phone was unpaired in Flipper. Pair it again to keep forwarding.</string>
+    <string name="status_retrying_fallback">Sending failed; retrying automatically.</string>
+    <string name="stat_sent">Sent</string>
+    <string name="stat_waiting">Waiting</string>
+    <string name="stat_last">Last sent</string>
+    <string name="stat_never">—</string>
+    <string name="send_now">Send now</string>
+    <string name="sending">Sending…</string>
+    <string name="checks_title">Checks</string>
+    <string name="check_sms">SMS access</string>
+    <string name="check_background">Runs in background</string>
+    <string name="check_server">Server</string>
+    <string name="check_ok">On</string>
+    <string name="check_fix">Turn on</string>
+    <string name="unpair">Unpair this phone</string>
+    <string name="unpair_title">Unpair this phone?</string>
+    <string name="unpair_confirm">It stops sending SMS to Flipper. Messages not yet sent are deleted from this phone.</string>
+    <string name="version">Version %1$s</string>
 </resources>

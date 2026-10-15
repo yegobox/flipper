@@ -104,7 +104,8 @@ class UploadWorker(context: Context, params: WorkerParameters) : CoroutineWorker
     }
 
     companion object {
-        private const val UNIQUE = "sms-upload"
+        /** Unique name of the upload chain; the status screen watches it. */
+        const val UNIQUE = "sms-upload"
         private const val PERIODIC = "sms-upload-periodic"
         private const val SKEW_MS = 2 * 60 * 1000L
         private const val SENDERS_TTL_MS = 6 * 60 * 60 * 1000L

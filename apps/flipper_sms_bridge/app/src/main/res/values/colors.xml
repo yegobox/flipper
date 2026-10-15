@@ -1,11 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Flipper brand blue (actions are brand blue only). -->
+    <!-- Flipper brand blue (actions are brand blue only). Mirrored in ui/Theme.kt. -->
     <color name="brand">#2563EB</color>
-    <color name="brand_dark">#1D4ED8</color>
-    <color name="ok">#16A34A</color>
-    <color name="warn">#D97706</color>
-    <color name="danger">#DC2626</color>
-    <color name="muted">#64748B</color>
-    <color name="surface">#F8FAFC</color>
+    <color name="surface">#F6F7F9</color>
 </resources>
