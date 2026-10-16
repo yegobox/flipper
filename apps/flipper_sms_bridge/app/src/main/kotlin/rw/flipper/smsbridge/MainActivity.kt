@@ -89,7 +89,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
-        vm.refresh()
+        vm.onResume()
     }
 
     private fun handleLink(intent: Intent?) {

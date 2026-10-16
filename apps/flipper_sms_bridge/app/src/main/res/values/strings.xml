@@ -85,6 +85,10 @@
     <string name="stat_waiting">Waiting</string>
     <string name="stat_last">Last sent</string>
     <string name="stat_never">—</string>
+    <string name="stat_seen">Last SMS caught: %1$s · Inbox checked: %2$s</string>
+    <string name="check_autostart_hint">Some phones also need Auto-start (or “Allow background activity”) turned on for SMS Bridge in Settings, or new SMS wait for the next check.</string>
+    <string name="notify_channel">Sending SMS</string>
+    <string name="notify_sending">Sending bank SMS to Flipper…</string>
     <string name="send_now">Send now</string>
     <string name="sending">Sending…</string>
     <string name="find_missed">Find missed messages</string>

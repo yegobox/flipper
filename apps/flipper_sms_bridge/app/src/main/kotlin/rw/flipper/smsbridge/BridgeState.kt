@@ -50,6 +50,16 @@ class BridgeState(context: Context) {
         get() = prefs.getLong(KEY_SWEPT, 0).takeIf { it > 0 }
         set(v) = prefs.edit().putLong(KEY_SWEPT, v ?: 0).apply()
 
+    /** When the receiver last saw a bank or MoMo SMS. */
+    var lastCaughtAtMs: Long
+        get() = prefs.getLong(KEY_CAUGHT, 0)
+        set(v) = prefs.edit().putLong(KEY_CAUGHT, v).apply()
+
+    /** When an upload run last read the inbox. */
+    var lastSweptAtMs: Long
+        get() = prefs.getLong(KEY_SWEPT_AT, 0)
+        set(v) = prefs.edit().putLong(KEY_SWEPT_AT, v).apply()
+
     /** Set when the connector refused our credentials: the phone must pair again. */
     var needsPairing: Boolean
         get() = prefs.getBoolean(KEY_NEEDS_PAIRING, false)
@@ -62,6 +72,8 @@ class BridgeState(context: Context) {
             .remove(KEY_FORWARDED)
             .remove(KEY_NEEDS_PAIRING)
             .remove(KEY_SWEPT)
+            .remove(KEY_CAUGHT)
+            .remove(KEY_SWEPT_AT)
             .apply()
     }
 
@@ -74,5 +86,7 @@ class BridgeState(context: Context) {
         const val KEY_FORWARDED = "forwarded"
         const val KEY_NEEDS_PAIRING = "needs_pairing"
         const val KEY_SWEPT = "swept_through"
+        const val KEY_CAUGHT = "last_caught"
+        const val KEY_SWEPT_AT = "last_swept_at"
     }
 }

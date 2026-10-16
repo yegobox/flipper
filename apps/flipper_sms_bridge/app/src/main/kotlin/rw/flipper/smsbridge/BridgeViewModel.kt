@@ -67,6 +67,8 @@ class BridgeViewModel(app: Application) : AndroidViewModel(app) {
                     queued = SmsQueue.get(app).size(),
                     forwarded = state.forwardedCount,
                     lastUploadAtMs = state.lastUploadAtMs,
+                    lastCaughtAtMs = state.lastCaughtAtMs,
+                    lastSweptAtMs = state.lastSweptAtMs,
                     hasSms = hasSms,
                     batteryExempt = app.getSystemService(PowerManager::class.java)
                         .isIgnoringBatteryOptimizations(app.packageName),
@@ -81,11 +83,26 @@ class BridgeViewModel(app: Application) : AndroidViewModel(app) {
                     queued = snapshot.queued,
                     forwarded = snapshot.forwarded,
                     lastUploadAtMs = snapshot.lastUploadAtMs,
+                    lastCaughtAtMs = snapshot.lastCaughtAtMs,
+                    lastSweptAtMs = snapshot.lastSweptAtMs,
                     nowMs = System.currentTimeMillis(),
                     hasSmsPermission = snapshot.hasSms,
                     batteryExempt = snapshot.batteryExempt,
                 )
             }
+        }
+    }
+
+    /**
+     * Opening the app sweeps the inbox: anything the phone failed to hand
+     * the receiver goes up now rather than at the next periodic run.
+     */
+    fun onResume() {
+        val app = getApplication<Application>()
+        viewModelScope.launch {
+            val paired = withContext(Dispatchers.IO) { creds.load() != null }
+            if (paired) UploadWorker.enqueue(app)
+            refresh()
         }
     }
 
@@ -244,6 +261,8 @@ class BridgeViewModel(app: Application) : AndroidViewModel(app) {
         val queued: Int,
         val forwarded: Long,
         val lastUploadAtMs: Long,
+        val lastCaughtAtMs: Long,
+        val lastSweptAtMs: Long,
         val hasSms: Boolean,
         val batteryExempt: Boolean,
     )

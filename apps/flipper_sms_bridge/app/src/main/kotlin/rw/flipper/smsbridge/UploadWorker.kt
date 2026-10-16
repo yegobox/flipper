@@ -1,13 +1,18 @@
 package rw.flipper.smsbridge
 
 import android.content.Context
+import android.content.pm.ServiceInfo
+import android.os.Build
+import androidx.core.app.NotificationCompat
 import androidx.work.BackoffPolicy
 import androidx.work.Constraints
 import androidx.work.CoroutineWorker
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.ExistingWorkPolicy
+import androidx.work.ForegroundInfo
 import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.OutOfQuotaPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
@@ -27,11 +32,18 @@ import java.util.concurrent.TimeUnit
  */
 class UploadWorker(context: Context, params: WorkerParameters) : CoroutineWorker(context, params) {
 
+    // A fresh SMS REPLACEs the unique work (see [enqueue]), and the body is
+    // blocking, so a cancelled run keeps going until it returns. The lock
+    // keeps it and its replacement from rotating the refresh token at once.
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
+        synchronized(RUN_LOCK) { runOnce() }
+    }
+
+    private fun runOnce(): Result {
         val creds = CredentialStore(applicationContext)
         val state = BridgeState(applicationContext)
         val queue = SmsQueue.get(applicationContext)
-        var current = creds.load() ?: return@withContext Result.success()
+        var current = creds.load() ?: return Result.success()
         // SMS the receiver missed (it arrived while pairing, or the phone
         // never woke the receiver) are still in the inbox.
         Backfill.sweep(applicationContext)
@@ -60,25 +72,42 @@ class UploadWorker(context: Context, params: WorkerParameters) : CoroutineWorker
                 if (outcome.failed.isNotEmpty()) {
                     queue.recordFailure(outcome.failed, UploadPolicy.MAX_ATTEMPTS)
                     state.lastError = "The server could not store ${outcome.failed.size} message(s); retrying."
-                    return@withContext Result.retry()
+                    return Result.retry()
                 }
             }
             state.lastError = null
-            Result.success()
+            return Result.success()
         } catch (e: ApiException) {
             if (e.status == 401 || e.status == 403) {
                 // Revoked in Flipper, or the refresh token was refused. Retrying
                 // cannot fix that; keep the queue and ask for a new pairing.
                 state.needsPairing = true
                 state.lastError = "This phone was unpaired. Pair it again from Flipper."
-                Result.failure()
-            } else {
-                state.lastError = e.message
-                Result.retry()
+                return Result.failure()
             }
+            state.lastError = e.message
+            return Result.retry()
         } catch (e: IOException) {
             state.lastError = "No connection to Flipper (${e.javaClass.simpleName}); will retry."
-            Result.retry()
+            return Result.retry()
+        }
+    }
+
+    /**
+     * Expedited runs need this on Android 11 and older, where WorkManager
+     * shows them as a short foreground service. Newer versions never call it.
+     */
+    override suspend fun getForegroundInfo(): ForegroundInfo {
+        val notification = NotificationCompat.Builder(applicationContext, BridgeApp.CHANNEL_SENDING)
+            .setSmallIcon(android.R.drawable.stat_notify_sync)
+            .setContentTitle(applicationContext.getString(R.string.notify_sending))
+            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .setOngoing(true)
+            .build()
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            ForegroundInfo(NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
+        } else {
+            ForegroundInfo(NOTIFICATION_ID, notification)
         }
     }
 
@@ -112,6 +141,8 @@ class UploadWorker(context: Context, params: WorkerParameters) : CoroutineWorker
         private const val PERIODIC = "sms-upload-periodic"
         private const val SKEW_MS = 2 * 60 * 1000L
         private const val SENDERS_TTL_MS = 6 * 60 * 60 * 1000L
+        private const val NOTIFICATION_ID = 7101
+        private val RUN_LOCK = Any()
 
         private val network = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)
@@ -121,23 +152,40 @@ class UploadWorker(context: Context, params: WorkerParameters) : CoroutineWorker
          * Upload now (or as soon as there is a network). Appends behind a
          * running upload rather than replacing it, so a message that arrives
          * mid-upload is picked up right after.
+         *
+         * [expedited] for a fresh SMS: it runs at once even when Android has
+         * put a rarely opened app in a restricted standby bucket, where plain
+         * work can wait for hours. Out of quota, it falls back to plain work.
+         * It REPLACEs rather than appends, so it never waits behind a plain
+         * upload that is itself being held back; every run drains the whole
+         * queue, so nothing the replaced run would have sent is lost.
          */
-        fun enqueue(context: Context) {
+        fun enqueue(context: Context, expedited: Boolean = false) {
             val request = OneTimeWorkRequestBuilder<UploadWorker>()
                 .setConstraints(network)
                 .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 30, TimeUnit.SECONDS)
+                .apply { if (expedited) setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST) }
                 .build()
             WorkManager.getInstance(context)
-                .enqueueUniqueWork(UNIQUE, ExistingWorkPolicy.APPEND_OR_REPLACE, request)
+                .enqueueUniqueWork(
+                    UNIQUE,
+                    if (expedited) ExistingWorkPolicy.REPLACE else ExistingWorkPolicy.APPEND_OR_REPLACE,
+                    request,
+                )
         }
 
-        /** Safety net: a sweep every few hours, in case a trigger was missed. */
+        /**
+         * Safety net: every run sweeps the inbox, so an SMS whose broadcast
+         * never arrived (some phones block it for sideloaded apps) still goes
+         * up within about 15 minutes, the shortest period Android allows.
+         * UPDATE, so phones paired with the old 3-hour period move to this.
+         */
         fun schedulePeriodic(context: Context) {
-            val request = PeriodicWorkRequestBuilder<UploadWorker>(3, TimeUnit.HOURS)
+            val request = PeriodicWorkRequestBuilder<UploadWorker>(15, TimeUnit.MINUTES)
                 .setConstraints(network)
                 .build()
             WorkManager.getInstance(context)
-                .enqueueUniquePeriodicWork(PERIODIC, ExistingPeriodicWorkPolicy.KEEP, request)
+                .enqueueUniquePeriodicWork(PERIODIC, ExistingPeriodicWorkPolicy.UPDATE, request)
         }
 
         fun cancelAll(context: Context) {

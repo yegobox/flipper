@@ -374,6 +374,17 @@ private fun DashboardContent(ui: BridgeUi, actions: BridgeActions) {
         StatTile(stringResource(R.string.stat_waiting), ui.queued.toString(), Modifier.weight(1f))
         StatTile(stringResource(R.string.stat_last), lastSentLabel(ui), Modifier.weight(1.3f))
     }
+    Spacer(Modifier.height(8.dp))
+    Text(
+        stringResource(
+            R.string.stat_seen,
+            relativeOrNever(ui.lastCaughtAtMs, ui.nowMs),
+            relativeOrNever(ui.lastSweptAtMs, ui.nowMs),
+        ),
+        style = MaterialTheme.typography.bodySmall,
+        color = Bridge.ink3,
+        modifier = Modifier.padding(horizontal = 4.dp),
+    )
     if (ui.status != BridgeStatus.NEEDS_PAIRING) {
         Spacer(Modifier.height(12.dp))
         SecondaryButton(
@@ -398,6 +409,15 @@ private fun DashboardContent(ui: BridgeUi, actions: BridgeActions) {
         HorizontalDivider(color = Bridge.line)
         InfoRow(stringResource(R.string.check_server), ui.serverHost.orEmpty())
     }
+    // The battery exemption is not enough on phones with their own
+    // auto-start manager, and no API reports that setting.
+    Spacer(Modifier.height(8.dp))
+    Text(
+        stringResource(R.string.check_autostart_hint),
+        style = MaterialTheme.typography.bodySmall,
+        color = Bridge.ink3,
+        modifier = Modifier.padding(horizontal = 4.dp),
+    )
 
     Spacer(Modifier.height(20.dp))
     TextButton(
@@ -512,13 +532,16 @@ private fun InfoRow(label: String, value: String) {
 }
 
 @Composable
-private fun lastSentLabel(ui: BridgeUi): String =
-    if (ui.lastUploadAtMs == 0L) {
+private fun lastSentLabel(ui: BridgeUi): String = relativeOrNever(ui.lastUploadAtMs, ui.nowMs)
+
+@Composable
+private fun relativeOrNever(atMs: Long, nowMs: Long): String =
+    if (atMs == 0L) {
         stringResource(R.string.stat_never)
     } else {
         DateUtils.getRelativeTimeSpanString(
-            ui.lastUploadAtMs,
-            maxOf(ui.nowMs, ui.lastUploadAtMs),
+            atMs,
+            maxOf(nowMs, atMs),
             DateUtils.MINUTE_IN_MILLIS,
             DateUtils.FORMAT_ABBREV_RELATIVE,
         ).toString()

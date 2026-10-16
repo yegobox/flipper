@@ -24,12 +24,16 @@ class SmsReceiver : BroadcastReceiver() {
             ?.map { SmsPart(it.displayOriginatingAddress, it.displayMessageBody, it.timestampMillis) }
             ?: return
 
-        val allowlist = BridgeState(context).allowlist()
+        val state = BridgeState(context)
+        val allowlist = state.allowlist()
         val queue = SmsQueue.get(context)
         var queued = 0
         for (sms in MultipartJoiner.join(parts)) {
-            if (allowlist.allows(sms.sender) && queue.add(sms)) queued++
+            if (!allowlist.allows(sms.sender)) continue
+            // Shown as "Last SMS caught": proves the phone delivers the broadcast.
+            state.lastCaughtAtMs = System.currentTimeMillis()
+            if (queue.add(sms)) queued++
         }
-        if (queued > 0) UploadWorker.enqueue(context)
+        if (queued > 0) UploadWorker.enqueue(context, expedited = true)
     }
 }
