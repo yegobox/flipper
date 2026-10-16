@@ -1,8 +1,11 @@
 import 'dart:async';
 
+import 'package:flipper_accounting/accounting_models.dart';
+import 'package:flipper_accounting/ditto_accounting_ledger_repository.dart';
 import 'package:flipper_models/sms_review/sms_review_item.dart';
 import 'package:flipper_models/sms_review/sms_review_service.dart';
 import 'package:flipper_models/sms_review/sms_sale_match.dart';
+import 'package:flipper_models/sms_review/sms_transfer.dart';
 import 'package:flipper_services/constants.dart' show COMPLETE;
 import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:flipper_web/services/ditto_service.dart';
@@ -144,9 +147,50 @@ class DittoSmsReviewStore implements SmsReviewStore {
 
   /// Both spellings, as `LedgerRowMapper.bankLineToRow` writes them.
   @override
-  Future<void> matchBankLine(String bankLineId, String journalEntryId) =>
+  Future<void> matchBankLine(String bankLineId, String? journalEntryId) =>
       DittoService.instance.executeUpdate('bank_statement_lines', bankLineId, {
         'matchedJournalEntryId': journalEntryId,
         'matched_journal_entry_id': journalEntryId,
       });
+}
+
+/// Posts and voids SMS transfer entries in the Ditto ledger, the way
+/// `PosJournalPoster` posts sales.
+class DittoSmsTransferLedger {
+  const DittoSmsTransferLedger();
+
+  Future<void> post({
+    required String entryId,
+    required SmsReviewItem item,
+    required String otherAccountCode,
+  }) async {
+    final ledger = DittoAccountingLedgerRepository(DittoService.instance);
+    await ledger.ensureSeeded(businessId: item.businessId);
+    await ledger.createJournalEntry(
+      businessId: item.businessId,
+      entry: smsTransferEntry(item, otherAccountCode),
+      journalCode: 'misc',
+      entryId: entryId,
+    );
+    await ledger.postJournalEntry(
+      businessId: item.businessId,
+      entryId: entryId,
+    );
+  }
+
+  /// A draft with no lines: `updateJournalEntry` zeroes the old lines, so
+  /// the entry stops counting. Recording the transfer again rewrites it.
+  Future<void> voidEntry({
+    required String entryId,
+    required SmsReviewItem item,
+  }) =>
+      DittoAccountingLedgerRepository(DittoService.instance).updateJournalEntry(
+        businessId: item.businessId,
+        entryId: entryId,
+        entry: smsTransferEntry(
+          item,
+          kSmsCashAccount,
+          status: JournalStatus.draft,
+        ),
+      );
 }

@@ -3,6 +3,7 @@ package rw.flipper.smsbridge.core
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNotEquals
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
@@ -153,5 +154,44 @@ class UploadPolicyTest {
         assertEquals(setOf(1L, 2L, 3L), outcome.delivered)
         // 5 got no answer at all: kept, never assumed delivered.
         assertEquals(setOf(4L, 5L), outcome.failed)
+        // Only a newly stored message counts as "sent".
+        assertEquals(setOf(1L), outcome.stored)
+    }
+}
+
+class InboxSweepTest {
+    private val now = 1_800_000_000_000L
+    private val hour = 60 * 60 * 1000L
+
+    @Test
+    fun aFreshInstallLooksTwoDaysBack() {
+        assertEquals(now - 48 * hour, InboxSweep.since(null, now))
+        assertEquals(now - 48 * hour, InboxSweep.since(0, now))
+    }
+
+    @Test
+    fun laterRunsStartJustBeforeTheWatermark() {
+        assertEquals(now - hour - InboxSweep.OVERLAP_MS, InboxSweep.since(now - hour, now))
+    }
+
+    @Test
+    fun newOnlyStillCoversTheMinutesSpentPairing() {
+        // A bank SMS that lands while the user scans the QR used to be lost.
+        assertEquals(now - 2 * hour, InboxSweep.pairingSince(0, now))
+        assertEquals(now - 7 * 24 * hour, InboxSweep.pairingSince(7, now))
+        assertEquals(now - 2 * hour, InboxSweep.pairingSince(-3, now))
+    }
+
+    @Test
+    fun theReceiverAndTheInboxAgreeOnOneMessage() {
+        // Synthetic BK layout. The joiner and the inbox can space it differently.
+        val joined = "TRANSFER - EKASH Beneficiary: Jane DOE  Amount:RWF 2000.00\n"
+        val inbox = "TRANSFER - EKASH Beneficiary: Jane DOE Amount:RWF 2000.00"
+        assertEquals(InboxSweep.dedupeKey("BK", joined), InboxSweep.dedupeKey("bk", inbox))
+        assertNotEquals(
+            InboxSweep.dedupeKey("BK", inbox),
+            InboxSweep.dedupeKey("BK", inbox.replace("2000.00", "2500.00")),
+        )
+        assertNotEquals(InboxSweep.dedupeKey("BK", inbox), InboxSweep.dedupeKey("MoMo", inbox))
     }
 }

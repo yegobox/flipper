@@ -5,6 +5,7 @@ import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import rw.flipper.smsbridge.core.InboundSms
+import rw.flipper.smsbridge.core.InboxSweep
 import java.security.MessageDigest
 
 /** A message waiting to be uploaded. [id] is sent as the `clientId`. */
@@ -15,11 +16,13 @@ data class QueuedSms(val id: Long, val sender: String, val body: String, val rec
  *
  * Written by [SmsReceiver] the moment an SMS arrives, so nothing is lost if
  * the phone is offline or the app is killed; drained by [UploadWorker].
- * `(sender, received_at, body hash)` is unique, so the pairing backfill and
- * live capture can both see one SMS without queueing it twice.
+ * The receiver and the inbox sweep see the same SMS with different
+ * timestamps, so a message is identified by [InboxSweep.dedupeKey]: unique
+ * while queued, and remembered in `seen` for a while after delivery so the
+ * next sweep does not send it again.
  */
 class SmsQueue private constructor(context: Context) :
-    SQLiteOpenHelper(context, "sms_queue.db", null, 1) {
+    SQLiteOpenHelper(context, "sms_queue.db", null, 2) {
 
     override fun onCreate(db: SQLiteDatabase) {
         db.execSQL(
@@ -35,19 +38,34 @@ class SmsQueue private constructor(context: Context) :
             )
             """.trimIndent(),
         )
+        addDedupe(db)
     }
 
-    override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) = Unit
+    override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
+        if (oldVersion < 2) addDedupe(db)
+    }
 
-    /** False when the message was already queued. */
+    /** v2: one row per message whichever path saw it, and what was already sent. */
+    private fun addDedupe(db: SQLiteDatabase) {
+        db.execSQL("ALTER TABLE queue ADD COLUMN dedupe_key TEXT")
+        db.execSQL("CREATE UNIQUE INDEX queue_dedupe ON queue (dedupe_key)")
+        db.execSQL("CREATE TABLE seen (key TEXT PRIMARY KEY, at INTEGER NOT NULL)")
+    }
+
+    /** False when the message is already queued or was already sent. */
     fun add(sms: InboundSms): Boolean {
+        val key = InboxSweep.dedupeKey(sms.sender, sms.body)
+        val db = writableDatabase
+        val sent = db.rawQuery("SELECT 1 FROM seen WHERE key = ?", arrayOf(key)).use { it.moveToFirst() }
+        if (sent) return false
         val values = ContentValues().apply {
             put("sender", sms.sender)
             put("body", sms.body)
             put("received_at", sms.receivedAtMs)
             put("body_sha256", sha256(sms.body))
+            put("dedupe_key", key)
         }
-        return writableDatabase.insertWithOnConflict("queue", null, values, SQLiteDatabase.CONFLICT_IGNORE) != -1L
+        return db.insertWithOnConflict("queue", null, values, SQLiteDatabase.CONFLICT_IGNORE) != -1L
     }
 
     fun next(limit: Int): List<QueuedSms> =
@@ -62,9 +80,26 @@ class SmsQueue private constructor(context: Context) :
             }
         }
 
+    /** Drops delivered rows, remembering them so a later sweep skips them. */
     fun delete(ids: Collection<Long>) {
         if (ids.isEmpty()) return
-        writableDatabase.delete("queue", "id IN (${ids.joinToString(",")})", null)
+        val db = writableDatabase
+        val inList = ids.joinToString(",")
+        val now = System.currentTimeMillis()
+        db.beginTransaction()
+        try {
+            db.execSQL(
+                "INSERT OR REPLACE INTO seen (key, at) " +
+                    "SELECT dedupe_key, ? FROM queue WHERE id IN ($inList) AND dedupe_key IS NOT NULL",
+                arrayOf(now),
+            )
+            db.delete("queue", "id IN ($inList)", null)
+            // Well past any sweep window (InboxSweep.FIRST_SWEEP_MS, or a 30-day rescan).
+            db.delete("seen", "at < ?", arrayOf((now - SEEN_TTL_MS).toString()))
+            db.setTransactionSuccessful()
+        } finally {
+            db.endTransaction()
+        }
     }
 
     /** Counts a failed attempt; drops messages that have failed for too long. */
@@ -83,9 +118,12 @@ class SmsQueue private constructor(context: Context) :
     /** Unpairing: queued SMS belong to the old branch and must not follow the phone. */
     fun clear() {
         writableDatabase.delete("queue", null, null)
+        writableDatabase.delete("seen", null, null)
     }
 
     companion object {
+        private const val SEEN_TTL_MS = 35 * 24 * 60 * 60 * 1000L
+
         @Volatile private var instance: SmsQueue? = null
 
         fun get(context: Context): SmsQueue =

@@ -2928,6 +2928,90 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   String get smsReviewMatchChip => 'Bihuye n’igurisha';
 
   @override
+  String get smsReviewToday => 'Uyu munsi';
+
+  @override
+  String get smsReviewYesterday => 'Ejo hashize';
+
+  @override
+  String smsReviewInclFee(String fee) {
+    return 'harimo $fee y\'ikiguzi cya serivisi';
+  }
+
+  @override
+  String get smsReviewDetailWhen => 'Itariki n\'isaha';
+
+  @override
+  String get smsReviewDetailReference => 'Indango';
+
+  @override
+  String get smsReviewDetailAccount => 'Konti';
+
+  @override
+  String get smsReviewMessageDetails => 'Ibisobanuro by\'ubutumwa';
+
+  @override
+  String get smsReviewWhatIsIt => 'Aya mafaranga ni ayahe?';
+
+  @override
+  String get smsReviewConfirmHintIn =>
+      'Byandikwa nk\'amafaranga yinjiye mu cyiciro wahisemo.';
+
+  @override
+  String get smsReviewConfirmHintOut =>
+      'Byandikwa nk\'amafaranga yasohotse mu cyiciro wahisemo.';
+
+  @override
+  String get smsReviewTransferHint =>
+      'Yimuwe hagati ya banki, MoMo cyangwa amafaranga mu ntoki. Si inyungu cyangwa ikiguzi.';
+
+  @override
+  String get smsReviewIgnoreHint =>
+      'Si amafaranga y\'ubucuruzi. Umurongo wa banki uguma muri Books.';
+
+  @override
+  String get smsReviewTransferWhereTo => 'Amafaranga yagiye he?';
+
+  @override
+  String get smsReviewTransferWhereFrom => 'Amafaranga yavuye he?';
+
+  @override
+  String get smsReviewAccountCash => 'Amafaranga mu ntoki';
+
+  @override
+  String get smsReviewAccountBank => 'Banki';
+
+  @override
+  String get smsReviewAccountMomo => 'Mobile Money';
+
+  @override
+  String smsReviewTransferPaired(String provider, String amount, String time) {
+    return 'Bihuye na $provider $amount saa $time. Byombi bizafungwa.';
+  }
+
+  @override
+  String get smsReviewTransferRecord => 'Andika iyimurwa';
+
+  @override
+  String smsReviewTransferDoneTo(String account) {
+    return 'Byanditswe nk\'iyimurwa rijya kuri $account';
+  }
+
+  @override
+  String smsReviewTransferDoneFrom(String account) {
+    return 'Byanditswe nk\'iyimurwa rivuye kuri $account';
+  }
+
+  @override
+  String get smsReviewIgnored => 'Byirengagijwe';
+
+  @override
+  String get smsReviewUndo => 'Subiza inyuma';
+
+  @override
+  String get smsReviewUndone => 'Byagaruwe ku rutonde';
+
+  @override
   String get cashbookTitle => 'Igitabo cy\'amafaranga';
 
   @override
