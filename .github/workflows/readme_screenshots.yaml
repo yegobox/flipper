@@ -51,7 +51,7 @@ jobs:
     outputs:
       run: ${{ steps.check.outputs.run }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 0
       - name: Skip pushes that only carried screenshots
@@ -95,7 +95,7 @@ jobs:
     timeout-minutes: 120
     steps:
       - run: git config --global core.autocrlf false
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7.0.1
         with:
           submodules: recursive
           token: ${{ secrets.ACCESS_TOKEN }}
