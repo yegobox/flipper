@@ -3,8 +3,10 @@
 #
 # It is plain Gradle, not part of melos, so nothing else builds it:
 # - every PR or push that touches it: core unit tests + a debug APK;
-# - a `sms-bridge-v*` tag: a signed release APK attached to that tag's
-#   GitHub release, which is where phones download it from.
+# - every push to main that touches it: a signed release APK, published as
+#   `sms-bridge-v<smsBridgeVersion>.<run number>` (gradle.properties), then
+#   added to the Atlas catalog so phones update, like Flipper on Play;
+# - a `sms-bridge-v*` tag pushed by hand: the same release, at that version.
 #
 # No branch filter on pull_request, so stacked PRs build too.
 name: SMS Bridge
@@ -67,14 +69,35 @@ jobs:
           retention-days: 14
 
   release:
-    if: startsWith(github.ref, 'refs/tags/sms-bridge-v')
+    if: >-
+      github.event_name == 'push' &&
+      (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/sms-bridge-v'))
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
       contents: write
+    outputs:
+      tag: ${{ steps.version.outputs.tag }}
     steps:
       - uses: actions/checkout@v4
+
+      # A hand-pushed tag names its version. On main it is MAJOR.MINOR from
+      # gradle.properties plus the run number, which only grows, so every
+      # merge is a new version without a bump commit.
+      - name: Version
+        id: version
+        run: |
+          set -euo pipefail
+          if [[ "$GITHUB_REF" == refs/tags/sms-bridge-v* ]]; then
+            NAME="${GITHUB_REF_NAME#sms-bridge-v}"
+          else
+            BASE="$(sed -nE 's/^smsBridgeVersion=([0-9]+\.[0-9]+)[[:space:]]*$/\1/p' gradle.properties)"
+            [[ -n "$BASE" ]] || { echo "::error::smsBridgeVersion=MAJOR.MINOR missing from gradle.properties"; exit 1; }
+            NAME="$BASE.$GITHUB_RUN_NUMBER"
+          fi
+          echo "name=$NAME" >> "$GITHUB_OUTPUT"
+          echo "tag=sms-bridge-v$NAME" >> "$GITHUB_OUTPUT"
 
       - uses: actions/setup-java@v4
         with:
@@ -95,6 +118,7 @@ jobs:
           SMS_BRIDGE_KEY_ALIAS: ${{ secrets.SMS_BRIDGE_KEY_ALIAS }}
           SMS_BRIDGE_KEY_PASSWORD: ${{ secrets.SMS_BRIDGE_KEY_PASSWORD }}
           SMS_BRIDGE_VERSION_CODE: ${{ github.run_number }}
+          SMS_BRIDGE_VERSION_NAME: ${{ steps.version.outputs.name }}
         run: |
           if [ -z "$SMS_BRIDGE_KEYSTORE_BASE64" ]; then
             echo "::error::SMS_BRIDGE_KEYSTORE_BASE64 is not set; refusing to publish an unsigned APK."
@@ -102,12 +126,18 @@ jobs:
           fi
           export SMS_BRIDGE_KEYSTORE_PATH="$RUNNER_TEMP/sms-bridge.jks"
           echo "$SMS_BRIDGE_KEYSTORE_BASE64" | base64 -d > "$SMS_BRIDGE_KEYSTORE_PATH"
-          export SMS_BRIDGE_VERSION_NAME="${GITHUB_REF_NAME#sms-bridge-v}"
           gradle :app:assembleRelease --console=plain
           cp app/build/outputs/apk/release/app-release.apk "flipper-sms-bridge-${SMS_BRIDGE_VERSION_NAME}.apk"
 
+      # Creates the tag on a main build. A tag made with the workflow token
+      # starts no other workflow, so this never releases twice. Never
+      # "latest": that belongs to Flipper's own releases in this repo.
       - uses: softprops/action-gh-release@v3
         with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          target_commitish: ${{ github.sha }}
+          name: Flipper SMS Bridge ${{ steps.version.outputs.name }}
+          make_latest: false
           files: apps/flipper_sms_bridge/flipper-sms-bridge-*.apk
 
       # A link that never changes, for Flipper's SMS Bridge page and its
@@ -124,3 +154,14 @@ jobs:
               --notes "Always the newest signed SMS Bridge APK. Versioned builds are under the sms-bridge-v* releases." \
               --latest=false
           gh release upload sms-bridge-latest flipper-sms-bridge.apk --clobber
+
+  # Atlas installs and updates the bridge from its catalog; publish there as
+  # soon as the release exists.
+  atlas:
+    needs: release
+    permissions:
+      contents: write
+    uses: ./.github/workflows/atlas_android_catalog.yml
+    with:
+      tag: ${{ needs.release.outputs.tag }}
+    secrets: inherit
