@@ -31,7 +31,11 @@ const Color _kWarn = Color(0xFFD97706);
 /// The branch whose review queue the Cash Book shows. Empty (nothing to
 /// review) while the box is not set up: the home card and nav badge read
 /// this, and a badge must never take the nav down with it.
+///
+/// Re-read when Ditto comes up: the box is set by then, and a read made
+/// before login finished would otherwise keep the queue empty all session.
 final smsReviewBranchIdProvider = Provider<String>((ref) {
+  ref.watch(usableDittoProvider);
   try {
     return ref.watch(branchServicesProvider).box.getBranchId() ?? '';
   } catch (_) {

@@ -8,12 +8,66 @@ import 'package:flipper_models/sms_review/sms_sale_match.dart';
 import 'package:flipper_models/sms_review/sms_transfer.dart';
 import 'package:flipper_services/constants.dart' show COMPLETE;
 import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
+import 'package:ditto_live/ditto_live.dart' show Ditto;
 import 'package:flipper_web/services/ditto_service.dart';
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 const _pendingQuery =
     'SELECT * FROM ${SmsReviewItem.collection} '
     'WHERE branchId = :branchId AND status = :status';
+
+/// The instance at every change of [addListener], `null` while there is none
+/// or it is not [isUsable], without repeats. [addListener] must call back at
+/// once with the current instance, as `DittoService.addDittoListener` does.
+///
+/// Generic so the bookkeeping is testable without a real Ditto.
+@visibleForTesting
+Stream<D?> usableInstances<D extends Object>({
+  required void Function(void Function(D?) listener) addListener,
+  required void Function(void Function(D?) listener) removeListener,
+  required bool Function(D instance) isUsable,
+}) {
+  late final StreamController<D?> controller;
+  Object? last = const _None();
+  void onChange(D? instance) {
+    final usable = instance != null && isUsable(instance) ? instance : null;
+    if (identical(usable, last)) return;
+    last = usable;
+    controller.add(usable);
+  }
+
+  controller = StreamController<D?>(
+    onListen: () => addListener(onChange),
+    onCancel: () => removeListener(onChange),
+  );
+  return controller.stream;
+}
+
+class _None {
+  const _None();
+}
+
+/// The app's Ditto instance, `null` until it is up. A provider rather than a
+/// `DittoService.instance.dittoInstance` read, so whatever watches it re-runs
+/// when Ditto starts or swaps instance: a review list built before Ditto was
+/// ready used to stay empty for the whole session.
+///
+/// Skips the short-lived QR-login instance, which cannot read the business's
+/// collections (same rule as `AppService._isLoginDitto`).
+final usableDittoProvider = StreamProvider<Ditto?>((ref) {
+  return usableInstances<Ditto>(
+    addListener: DittoService.instance.addDittoListener,
+    removeListener: DittoService.instance.removeDittoListener,
+    isUsable: (ditto) {
+      try {
+        return !ditto.deviceName.contains('-login-');
+      } catch (_) {
+        return true;
+      }
+    },
+  );
+});
 
 /// Bank and mobile-money SMS waiting for review at [branchId], oldest first.
 ///
@@ -22,7 +76,7 @@ const _pendingQuery =
 final smsReviewItemsProvider = StreamProvider.autoDispose
     .family<List<SmsReviewItem>, String>((ref, branchId) {
       if (branchId.isEmpty) return Stream.value(const []);
-      final ditto = DittoService.instance.dittoInstance;
+      final ditto = ref.watch(usableDittoProvider).value;
       if (ditto == null) return Stream.value(const []);
 
       final args = {'branchId': branchId, 'status': SmsReviewItem.pending};

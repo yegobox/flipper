@@ -59,6 +59,7 @@ object Backfill {
         if (!canRead(context)) return 0
         val result = run(context, InboxSweep.since(state.sweptThroughMs, nowMs))
         state.sweptThroughMs = maxOf(state.sweptThroughMs ?: 0, result.newestMs ?: nowMs)
+        state.lastSweptAtMs = nowMs
         return result.queued
     }
 }

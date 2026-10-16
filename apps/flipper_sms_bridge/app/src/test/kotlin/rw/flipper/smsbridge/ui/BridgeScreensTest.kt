@@ -42,6 +42,8 @@ class BridgeScreensTest {
         queued = 0,
         forwarded = 128,
         lastUploadAtMs = now - 2 * 60_000,
+        lastCaughtAtMs = now - 3 * 60_000,
+        lastSweptAtMs = now - 60_000,
         nowMs = now,
         hasSmsPermission = true,
         batteryExempt = true,
@@ -136,6 +138,8 @@ class BridgeScreensTest {
         show(paired)
         compose.onNodeWithText("Forwarding to Kigali Main").assertIsDisplayed()
         compose.onNodeWithText("128").assertIsDisplayed()
+        // What the phone itself saw, so a blocked broadcast is visible.
+        compose.onNodeWithText("Last SMS caught: 3 min. ago · Inbox checked: 1 min. ago").assertIsDisplayed()
         shot("dashboard_live")
     }
 

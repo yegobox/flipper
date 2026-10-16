@@ -1,13 +1,18 @@
 package rw.flipper.smsbridge
 
 import android.content.Context
+import android.content.pm.ServiceInfo
+import android.os.Build
+import androidx.core.app.NotificationCompat
 import androidx.work.BackoffPolicy
 import androidx.work.Constraints
 import androidx.work.CoroutineWorker
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.ExistingWorkPolicy
+import androidx.work.ForegroundInfo
 import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.OutOfQuotaPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
@@ -82,6 +87,24 @@ class UploadWorker(context: Context, params: WorkerParameters) : CoroutineWorker
         }
     }
 
+    /**
+     * Expedited runs need this on Android 11 and older, where WorkManager
+     * shows them as a short foreground service. Newer versions never call it.
+     */
+    override suspend fun getForegroundInfo(): ForegroundInfo {
+        val notification = NotificationCompat.Builder(applicationContext, BridgeApp.CHANNEL_SENDING)
+            .setSmallIcon(android.R.drawable.stat_notify_sync)
+            .setContentTitle(applicationContext.getString(R.string.notify_sending))
+            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .setOngoing(true)
+            .build()
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            ForegroundInfo(NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
+        } else {
+            ForegroundInfo(NOTIFICATION_ID, notification)
+        }
+    }
+
     /** Returns credentials with a usable access token, rotating the refresh token if needed. */
     private fun ensureAccess(c: Credentials, store: CredentialStore): Credentials {
         val fresh = c.accessToken != null && c.accessExpiresAtMs - SKEW_MS > System.currentTimeMillis()
@@ -112,6 +135,7 @@ class UploadWorker(context: Context, params: WorkerParameters) : CoroutineWorker
         private const val PERIODIC = "sms-upload-periodic"
         private const val SKEW_MS = 2 * 60 * 1000L
         private const val SENDERS_TTL_MS = 6 * 60 * 60 * 1000L
+        private const val NOTIFICATION_ID = 7101
 
         private val network = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)
@@ -121,23 +145,33 @@ class UploadWorker(context: Context, params: WorkerParameters) : CoroutineWorker
          * Upload now (or as soon as there is a network). Appends behind a
          * running upload rather than replacing it, so a message that arrives
          * mid-upload is picked up right after.
+         *
+         * [expedited] for a fresh SMS: it runs at once even when Android has
+         * put a rarely opened app in a restricted standby bucket, where plain
+         * work can wait for hours. Out of quota, it falls back to plain work.
          */
-        fun enqueue(context: Context) {
+        fun enqueue(context: Context, expedited: Boolean = false) {
             val request = OneTimeWorkRequestBuilder<UploadWorker>()
                 .setConstraints(network)
                 .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 30, TimeUnit.SECONDS)
+                .apply { if (expedited) setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST) }
                 .build()
             WorkManager.getInstance(context)
                 .enqueueUniqueWork(UNIQUE, ExistingWorkPolicy.APPEND_OR_REPLACE, request)
         }
 
-        /** Safety net: a sweep every few hours, in case a trigger was missed. */
+        /**
+         * Safety net: every run sweeps the inbox, so an SMS whose broadcast
+         * never arrived (some phones block it for sideloaded apps) still goes
+         * up within about 15 minutes, the shortest period Android allows.
+         * UPDATE, so phones paired with the old 3-hour period move to this.
+         */
         fun schedulePeriodic(context: Context) {
-            val request = PeriodicWorkRequestBuilder<UploadWorker>(3, TimeUnit.HOURS)
+            val request = PeriodicWorkRequestBuilder<UploadWorker>(15, TimeUnit.MINUTES)
                 .setConstraints(network)
                 .build()
             WorkManager.getInstance(context)
-                .enqueueUniquePeriodicWork(PERIODIC, ExistingPeriodicWorkPolicy.KEEP, request)
+                .enqueueUniquePeriodicWork(PERIODIC, ExistingPeriodicWorkPolicy.UPDATE, request)
         }
 
         fun cancelAll(context: Context) {

@@ -15,6 +15,10 @@ data class BridgeUi(
     val queued: Int = 0,
     val forwarded: Long = 0,
     val lastUploadAtMs: Long = 0,
+    /** When the receiver last caught a bank SMS; 0 = never. */
+    val lastCaughtAtMs: Long = 0,
+    /** When an upload run last read the inbox; 0 = never. */
+    val lastSweptAtMs: Long = 0,
     val nowMs: Long = 0,
     val hasSmsPermission: Boolean = false,
     /** Android refused at least once: show the "restricted settings" help. */
