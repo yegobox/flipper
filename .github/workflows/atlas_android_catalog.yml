@@ -1,7 +1,8 @@
 name: Atlas - publish SMS Bridge to the Android catalog
 
-# When the SMS Bridge release workflow finishes for a `sms-bridge-v*` tag, add
-# that APK to the Atlas catalog (apps.json on the `launcher-manifest` release),
+# Called by the SMS Bridge workflow right after it publishes a release (every
+# merge to main that touches the bridge, or a hand-pushed `sms-bridge-v*`
+# tag): adds that APK to the Atlas catalog (apps.json on the `launcher-manifest` release),
 # so Android Atlas installs it and updates phones that already have it.
 #
 # The APK is not rebuilt or re-signed (Android needs the Bridge's own release
@@ -9,13 +10,15 @@ name: Atlas - publish SMS Bridge to the Android catalog
 # signing certificate, signs the file with the Atlas catalog key
 # (TAURI_SIGNING_*) so Atlas can verify the download, and patches apps.json.
 #
-# workflow_run fires only once this file is on main. Run it by hand with a
-# tag to (re)publish a release that already exists.
+# Run it by hand with a tag to (re)publish a release that already exists.
 
 on:
-  workflow_run:
-    workflows: ["SMS Bridge"]
-    types: [completed]
+  workflow_call:
+    inputs:
+      tag:
+        description: "SMS Bridge release tag, e.g. sms-bridge-v1.2.0"
+        required: true
+        type: string
   workflow_dispatch:
     inputs:
       tag:
@@ -32,10 +35,6 @@ env:
 
 jobs:
   publish:
-    if: >-
-      github.event_name == 'workflow_dispatch' ||
-      (github.event.workflow_run.conclusion == 'success' &&
-       startsWith(github.event.workflow_run.head_branch, 'sms-bridge-v'))
     runs-on: ubuntu-latest
     # apps.json is read-modify-write; share the desktop release's queue so two
     # publishes never drop each other's entry.
@@ -44,7 +43,7 @@ jobs:
       cancel-in-progress: false
     env:
       GH_TOKEN: ${{ github.token }}
-      TAG: ${{ inputs.tag || github.event.workflow_run.head_branch }}
+      TAG: ${{ inputs.tag }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -89,7 +88,7 @@ jobs:
           # Unpinned, nothing proves this is the release key: automatic runs
           # refuse to publish, and only a manual run may bootstrap the pin.
           if [[ -z "$PIN" ]]; then
-            if [[ "$EVENT" == "workflow_run" ]]; then
+            if [[ "$EVENT" != "workflow_dispatch" ]]; then
               echo "::error::SMS_BRIDGE_CERT_SHA256 is not set; set it to $CERT to publish"; exit 1
             fi
             echo "::warning::repo variable SMS_BRIDGE_CERT_SHA256 is not set; set it to $CERT to pin the signer"
