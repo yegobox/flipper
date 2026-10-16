@@ -17,14 +17,22 @@ object UploadPolicy {
 
     private val FINAL = setOf("stored", "duplicate", "ignored")
 
-    data class Outcome(val delivered: Set<Long>, val failed: Set<Long>)
+    /**
+     * [stored] is the subset of [delivered] the connector kept as new: what
+     * the "sent" count shows. A `duplicate` (the inbox sweep re-reading a
+     * message) or an `ignored` sender is delivered but not counted.
+     */
+    data class Outcome(val delivered: Set<Long>, val failed: Set<Long>, val stored: Set<Long> = emptySet())
 
     fun classify(sentIds: Collection<Long>, statuses: Map<String, String>): Outcome {
         val delivered = mutableSetOf<Long>()
         val failed = mutableSetOf<Long>()
+        val stored = mutableSetOf<Long>()
         for (id in sentIds) {
-            if (statuses[id.toString()] in FINAL) delivered += id else failed += id
+            val status = statuses[id.toString()]
+            if (status in FINAL) delivered += id else failed += id
+            if (status == "stored") stored += id
         }
-        return Outcome(delivered, failed)
+        return Outcome(delivered, failed, stored)
     }
 }

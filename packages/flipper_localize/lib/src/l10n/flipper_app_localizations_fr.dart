@@ -2894,6 +2894,137 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   }
 
   @override
+  String smsReviewHomeTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count SMS bancaires ou MoMo à approuver',
+      one: '1 SMS bancaire ou MoMo à approuver',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String smsReviewHomeTotals(String moneyIn, String moneyOut) {
+    return '$moneyIn entrés · $moneyOut sortis';
+  }
+
+  @override
+  String get smsReviewHomeAction => 'Vérifier';
+
+  @override
+  String get smsReviewEmptyTitle => 'Tout est à jour';
+
+  @override
+  String get smsReviewEmptyBody =>
+      'Les nouveaux SMS bancaires et MoMo apparaissent ici dès leur arrivée.';
+
+  @override
+  String get smsReviewMatchTitle => 'Déjà enregistré comme vente ?';
+
+  @override
+  String get smsReviewMatchBody =>
+      'Liez-le à la vente pour que cet argent ne soit pas compté deux fois.';
+
+  @override
+  String smsReviewMatchSale(String time, String amount) {
+    return 'Vente · $time · $amount';
+  }
+
+  @override
+  String get smsReviewLink => 'Lier';
+
+  @override
+  String get smsReviewLinked => 'Lié à la vente';
+
+  @override
+  String get smsReviewMatchChip => 'Correspond à une vente';
+
+  @override
+  String get smsReviewToday => 'Aujourd\'hui';
+
+  @override
+  String get smsReviewYesterday => 'Hier';
+
+  @override
+  String smsReviewInclFee(String fee) {
+    return 'dont $fee de frais';
+  }
+
+  @override
+  String get smsReviewDetailWhen => 'Date et heure';
+
+  @override
+  String get smsReviewDetailReference => 'Référence';
+
+  @override
+  String get smsReviewDetailAccount => 'Compte';
+
+  @override
+  String get smsReviewMessageDetails => 'Détails du message';
+
+  @override
+  String get smsReviewWhatIsIt => 'Qu\'est-ce que cet argent ?';
+
+  @override
+  String get smsReviewConfirmHintIn =>
+      'L\'enregistre comme entrée de caisse dans la catégorie.';
+
+  @override
+  String get smsReviewConfirmHintOut =>
+      'L\'enregistre comme sortie de caisse dans la catégorie.';
+
+  @override
+  String get smsReviewTransferHint =>
+      'Déplacé entre votre banque, MoMo ou la caisse. Ni recette ni dépense.';
+
+  @override
+  String get smsReviewIgnoreHint =>
+      'Pas de l\'argent de l\'entreprise. La ligne bancaire reste dans Books.';
+
+  @override
+  String get smsReviewTransferWhereTo => 'Où est allé l\'argent ?';
+
+  @override
+  String get smsReviewTransferWhereFrom => 'D\'où vient l\'argent ?';
+
+  @override
+  String get smsReviewAccountCash => 'Caisse';
+
+  @override
+  String get smsReviewAccountBank => 'Banque';
+
+  @override
+  String get smsReviewAccountMomo => 'Mobile Money';
+
+  @override
+  String smsReviewTransferPaired(String provider, String amount, String time) {
+    return 'Correspond à $provider $amount à $time. Les deux seront clôturés.';
+  }
+
+  @override
+  String get smsReviewTransferRecord => 'Enregistrer le transfert';
+
+  @override
+  String smsReviewTransferDoneTo(String account) {
+    return 'Enregistré comme transfert vers $account';
+  }
+
+  @override
+  String smsReviewTransferDoneFrom(String account) {
+    return 'Enregistré comme transfert depuis $account';
+  }
+
+  @override
+  String get smsReviewIgnored => 'Ignoré';
+
+  @override
+  String get smsReviewUndo => 'Annuler';
+
+  @override
+  String get smsReviewUndone => 'Remis dans la liste';
+
+  @override
   String get cashbookTitle => 'Livre de caisse';
 
   @override

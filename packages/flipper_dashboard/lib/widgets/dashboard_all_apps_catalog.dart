@@ -63,7 +63,7 @@ List<DashboardAllAppSection> dashboardAllAppsCatalog(BuildContext context) => [
       ),
       DashboardAllAppTile(
         page: 'Cashbook',
-        label: context.flipperL10n.payments,
+        label: context.flipperL10n.dashboardAppCashBook,
         icon: FluentIcons.wallet_24_regular,
         color: Color(0xFF0891B2),
         feature: 'Cashbook',

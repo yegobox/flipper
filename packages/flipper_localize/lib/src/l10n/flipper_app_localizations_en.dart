@@ -2847,6 +2847,137 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
   }
 
   @override
+  String smsReviewHomeTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count bank & MoMo SMS to approve',
+      one: '1 bank & MoMo SMS to approve',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String smsReviewHomeTotals(String moneyIn, String moneyOut) {
+    return '$moneyIn in · $moneyOut out';
+  }
+
+  @override
+  String get smsReviewHomeAction => 'Review';
+
+  @override
+  String get smsReviewEmptyTitle => 'All caught up';
+
+  @override
+  String get smsReviewEmptyBody =>
+      'New bank & MoMo SMS show up here as they arrive.';
+
+  @override
+  String get smsReviewMatchTitle => 'Already recorded as a sale?';
+
+  @override
+  String get smsReviewMatchBody =>
+      'Link it to the sale so this money is not counted twice.';
+
+  @override
+  String smsReviewMatchSale(String time, String amount) {
+    return 'Sale · $time · $amount';
+  }
+
+  @override
+  String get smsReviewLink => 'Link';
+
+  @override
+  String get smsReviewLinked => 'Linked to the sale';
+
+  @override
+  String get smsReviewMatchChip => 'Matches a sale';
+
+  @override
+  String get smsReviewToday => 'Today';
+
+  @override
+  String get smsReviewYesterday => 'Yesterday';
+
+  @override
+  String smsReviewInclFee(String fee) {
+    return 'incl. $fee charge';
+  }
+
+  @override
+  String get smsReviewDetailWhen => 'Date & time';
+
+  @override
+  String get smsReviewDetailReference => 'Reference';
+
+  @override
+  String get smsReviewDetailAccount => 'Account';
+
+  @override
+  String get smsReviewMessageDetails => 'Message details';
+
+  @override
+  String get smsReviewWhatIsIt => 'What is this money?';
+
+  @override
+  String get smsReviewConfirmHintIn =>
+      'Records it as Cash In under the category.';
+
+  @override
+  String get smsReviewConfirmHintOut =>
+      'Records it as Cash Out under the category.';
+
+  @override
+  String get smsReviewTransferHint =>
+      'Moved between your bank, MoMo or cash. Not income or expense.';
+
+  @override
+  String get smsReviewIgnoreHint =>
+      'Not business money. The bank line stays in Books.';
+
+  @override
+  String get smsReviewTransferWhereTo => 'Where did the money go?';
+
+  @override
+  String get smsReviewTransferWhereFrom => 'Where did the money come from?';
+
+  @override
+  String get smsReviewAccountCash => 'Cash';
+
+  @override
+  String get smsReviewAccountBank => 'Bank';
+
+  @override
+  String get smsReviewAccountMomo => 'Mobile Money';
+
+  @override
+  String smsReviewTransferPaired(String provider, String amount, String time) {
+    return 'Matches $provider $amount at $time. Both will be closed.';
+  }
+
+  @override
+  String get smsReviewTransferRecord => 'Record transfer';
+
+  @override
+  String smsReviewTransferDoneTo(String account) {
+    return 'Recorded as a transfer to $account';
+  }
+
+  @override
+  String smsReviewTransferDoneFrom(String account) {
+    return 'Recorded as a transfer from $account';
+  }
+
+  @override
+  String get smsReviewIgnored => 'Ignored';
+
+  @override
+  String get smsReviewUndo => 'Undo';
+
+  @override
+  String get smsReviewUndone => 'Back in the list';
+
+  @override
   String get cashbookTitle => 'Cash Book';
 
   @override
