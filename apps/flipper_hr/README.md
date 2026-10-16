@@ -82,8 +82,15 @@ Everything except the two widgets is a pure function or a value object, so the
 rules are tested without a backend; the page and form are tested against
 `test/helpers/fake_employee_repository.dart`.
 
-Migrations are applied by hand, lowest number first, in the Supabase SQL editor
-as the service role — `0001` through `0007`, in order. `0002` and `0003` each fix
+**New HR migrations go in the shared `supabase` repo** (`supabase/migrations/`,
+`yegobox/Flipper-Database`), not here, and reach production through
+`supabase db push`. This folder is retired: hand-applied files left nothing
+recording what production had, and `0011` shipped without ever being applied.
+[`supabase/migrations/README.md`](supabase/migrations/README.md) lists where
+each numbered file now lives (`0010` is deliberately not applied).
+
+The numbered files were originally applied by hand, lowest number first, in the
+Supabase SQL editor as the service role. `0002` and `0003` each fix
 the identity mapping the previous one got wrong; stopping before `0003` means
 every read and write returns 403. Stopping before `0007` costs no reads, but
 reporting lines silently do not exist: `hr_my_line()` is missing, so the client
