@@ -32,6 +32,15 @@ import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:stacked_services/stacked_services.dart';
 
+/// The day and time a Cash Book row belongs to: [ITransaction.createdAt], the
+/// business date the dashboard gauge, reports and journal also use. A bank SMS
+/// confirmed days later is back-dated there, while [ITransaction.lastTouched]
+/// is the moment it was confirmed — dating by that listed it under Today when
+/// the gauge (correctly) did not count it.
+DateTime? cashbookEntryInstant(ITransaction t) {
+  return t.createdAt ?? t.lastTouched ?? t.updatedAt;
+}
+
 /// Cash Book UI tokens aligned with product mock (shell, greens, beige surfaces).
 abstract final class _CashbookColors {
   static const Color pageBg = Color(0xFFF7F6F0);
@@ -365,7 +374,7 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
       title: labels.title,
       detail: labels.detail,
       amount: (t.subTotal ?? 0).toDouble(),
-      at: (_transactionWindowInstant(t) ?? DateTime.now()).toLocal(),
+      at: (cashbookEntryInstant(t) ?? DateTime.now()).toLocal(),
       methodBadge: cashbookMethodBadge(t.paymentType),
       isMobileMoney: _isMomoTransaction(t),
     );
@@ -415,11 +424,6 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
     return t.status == WAITING_MOMO_COMPLETE;
   }
 
-  /// Prefer [lastTouched]; fall back so Capella-completed rows still match the UI window.
-  DateTime? _transactionWindowInstant(ITransaction t) {
-    return t.lastTouched ?? t.updatedAt ?? t.createdAt;
-  }
-
   List<ITransaction> _filterByDateWindow(
     List<ITransaction> value,
     ({DateTime start, DateTime end}) window,
@@ -427,17 +431,15 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
     final startDate = window.start;
     final endDate = window.end;
     return value.where((trans) {
-      final d = _transactionWindowInstant(trans);
+      final d = cashbookEntryInstant(trans);
       if (d == null) return false;
       return (d.isAtSameMomentAs(startDate) || d.isAfter(startDate)) &&
           (d.isAtSameMomentAs(endDate) || d.isBefore(endDate));
     }).toList()..sort((a, b) {
       final ta =
-          _transactionWindowInstant(a) ??
-          DateTime.fromMillisecondsSinceEpoch(0);
+          cashbookEntryInstant(a) ?? DateTime.fromMillisecondsSinceEpoch(0);
       final tb =
-          _transactionWindowInstant(b) ??
-          DateTime.fromMillisecondsSinceEpoch(0);
+          cashbookEntryInstant(b) ?? DateTime.fromMillisecondsSinceEpoch(0);
       return tb.compareTo(ta);
     });
   }

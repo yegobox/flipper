@@ -984,11 +984,14 @@ class CapellaSync extends AiStrategyImpl
     );
     // Back-dated movement (e.g. a bank SMS confirmed days later): stamp the
     // day the money moved, so the Cash Book and the journal entry land on it.
+    // Local time: date windows compare createdAt as a local, offset-free ISO
+    // string, so a UTC "…Z" value moves an early-morning SMS to the day before.
+    final occurredLocal = occurredAt?.toLocal();
     await _persistCashMovementClassification(txn.id, {
       ...classification,
-      if (occurredAt != null) 'createdAt': occurredAt.toIso8601String(),
+      if (occurredLocal != null) 'createdAt': occurredLocal.toIso8601String(),
     });
-    if (occurredAt != null) txn.createdAt = occurredAt;
+    if (occurredLocal != null) txn.createdAt = occurredLocal;
     try {
       await updateTransaction(
         transaction: txn,

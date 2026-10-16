@@ -1582,8 +1582,11 @@ class _StatusPresentation {
   final Color dot;
 }
 
+/// Business date first, as in `cashbookEntryInstant` (cashbook.dart):
+/// lastTouched is when a back-dated SMS movement was confirmed, not when the
+/// money moved.
 DateTime? _transactionInstant(ITransaction t) {
-  return t.lastTouched ?? t.updatedAt ?? t.createdAt;
+  return t.createdAt ?? t.lastTouched ?? t.updatedAt;
 }
 
 _StatusPresentation _statusPresentation(

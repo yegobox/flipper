@@ -21,8 +21,11 @@ import 'package:stacked/stacked.dart';
 import 'package:flipper_dashboard/theme/pos_tokens.dart';
 import 'package:flipper_dashboard/widgets/mpos/mpos_states.dart';
 
+/// Business date first, as in `cashbookEntryInstant` (cashbook.dart):
+/// lastTouched is when a back-dated SMS movement was confirmed, not when the
+/// money moved.
 DateTime? _transactionListInstant(ITransaction t) {
-  return t.lastTouched ?? t.updatedAt ?? t.createdAt;
+  return t.createdAt ?? t.lastTouched ?? t.updatedAt;
 }
 
 class Transactions extends StatefulHookConsumerWidget {
