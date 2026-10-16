@@ -6,6 +6,7 @@ import 'package:flipper_dashboard/widgets/dashboard_app_access.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/providers/active_branch_provider.dart';
 import 'package:flipper_dashboard/widgets/mpos/mpos_hit_area.dart';
+import 'package:flipper_dashboard/widgets/sms_review/sms_review_section.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -49,6 +50,9 @@ class _DashboardAllAppsSheetBody extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final sections = filterDashboardAllAppsCatalog(context, ref);
+    final smsReviewCount = ref.watch(
+      smsReviewSummaryProvider.select((s) => s.count),
+    );
     final branchName = ref
         .watch(activeBranchProvider)
         .maybeWhen(data: (b) => b.name?.trim(), orElse: () => null);
@@ -184,7 +188,9 @@ class _DashboardAllAppsSheetBody extends ConsumerWidget {
                         final tile = sections[i].apps[index];
                         return _AppTile(
                           tile: tile,
-                          badge: tile.badge,
+                          badge: tile.page == 'Cashbook' && smsReviewCount > 0
+                              ? '$smsReviewCount'
+                              : tile.badge,
                           onTap: () async {
                             final navigator = Navigator.of(
                               context,

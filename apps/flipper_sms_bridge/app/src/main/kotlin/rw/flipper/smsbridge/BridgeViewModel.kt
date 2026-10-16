@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import rw.flipper.smsbridge.core.BridgeStatus
+import rw.flipper.smsbridge.core.InboxSweep
 import rw.flipper.smsbridge.core.PairingPayload
 import rw.flipper.smsbridge.ui.BridgeUi
 import java.io.IOException
@@ -149,7 +150,11 @@ class BridgeViewModel(app: Application) : AndroidViewModel(app) {
                     )
                     state.resetStatus()
                     UploadWorker.schedulePeriodic(app)
-                    val queued = if (hasPermission(Manifest.permission.READ_SMS)) Backfill.run(app, days) else 0
+                    // "New only" still reaches back a little: an SMS that
+                    // landed while pairing was dropped by the receiver.
+                    val now = System.currentTimeMillis()
+                    val queued = Backfill.run(app, InboxSweep.pairingSince(days, now)).queued
+                    state.sweptThroughMs = now
                     UploadWorker.enqueue(app)
                     Result.success(queued)
                 } catch (e: CancellationException) {
@@ -182,6 +187,25 @@ class BridgeViewModel(app: Application) : AndroidViewModel(app) {
         val app = getApplication<Application>()
         UploadWorker.enqueue(app)
         _ui.update { it.copy(notice = app.getString(R.string.sending)) }
+    }
+
+    /** Re-reads the inbox, e.g. for an SMS that arrived before this version. */
+    fun findMissed(days: Int) {
+        val app = getApplication<Application>()
+        viewModelScope.launch {
+            val queued = withContext(Dispatchers.IO) {
+                val since = System.currentTimeMillis() - days * 24L * 60 * 60 * 1000
+                Backfill.run(app, since).queued
+            }
+            if (queued > 0) UploadWorker.enqueue(app)
+            val notice = if (queued > 0) {
+                app.resources.getQuantityString(R.plurals.missed_found, queued, queued)
+            } else {
+                app.getString(R.string.missed_none)
+            }
+            _ui.update { it.copy(notice = notice) }
+            refresh()
+        }
     }
 
     fun unpair() {

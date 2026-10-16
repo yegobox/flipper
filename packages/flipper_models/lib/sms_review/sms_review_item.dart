@@ -43,6 +43,10 @@ class SmsReviewItem {
   /// but nothing goes to the Cash Book.
   static const transfer = 'transfer';
 
+  /// Already rung up as a POS sale: linked to that sale's transaction, and
+  /// nothing new goes to the Cash Book.
+  static const matched = 'matched';
+
   final String id;
   final String businessId;
   final String branchId;
@@ -82,6 +86,15 @@ class SmsReviewItem {
   final String? confidence;
   final String? parentId;
   final String status;
+
+  /// Equal by id and status, so a provider keyed by an item survives the
+  /// review stream re-emitting the same SMS.
+  @override
+  bool operator ==(Object other) =>
+      other is SmsReviewItem && other.id == id && other.status == status;
+
+  @override
+  int get hashCode => Object.hash(id, status);
 
   bool get isIncome => direction == 'credit';
   bool get isFee => kind == 'fee';

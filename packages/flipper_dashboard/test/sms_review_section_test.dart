@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:flipper_dashboard/features/admin/widgets/sms_bridge_page.dart';
+import 'package:flipper_dashboard/widgets/cashbook_new_category_sheet.dart';
+import 'package:flipper_dashboard/widgets/sms_review/sms_review_categories.dart';
 import 'package:flipper_dashboard/widgets/sms_review/sms_review_section.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/db_model_export.dart'
@@ -12,6 +14,7 @@ import 'package:flipper_models/sms_bridge_client.dart';
 import 'package:flipper_models/sms_review/sms_review_item.dart';
 import 'package:flipper_models/sms_review/sms_review_providers.dart';
 import 'package:flipper_models/sms_review/sms_review_service.dart';
+import 'package:flipper_models/sms_review/sms_sale_match.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
@@ -19,7 +22,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 class _Store implements SmsReviewStore {
   final statuses = <String, String>{};
-  final matched = <String, String>{};
+  final matched = <String, String?>{};
 
   @override
   Future<bool> claim(String id) async {
@@ -36,30 +39,91 @@ class _Store implements SmsReviewStore {
   }) async => statuses[id] = status;
 
   @override
-  Future<void> matchBankLine(String bankLineId, String journalEntryId) async =>
+  Future<void> matchBankLine(String bankLineId, String? journalEntryId) async =>
       matched[bankLineId] = journalEntryId;
 }
 
-SmsReviewItem _item({String kind = 'principal', String? suggested}) =>
-    SmsReviewItem.fromDitto({
-      '_id': kind == 'fee' ? 'sms-fee' : 'sms-1',
-      'businessId': 'biz',
-      'branchId': 'br',
-      'kind': kind,
-      'direction': 'debit',
-      'amount': kind == 'fee' ? 20 : 2000,
-      'description': kind == 'fee'
-          ? 'BK · charge · FTCMTEST'
-          : 'BK · to Jane DOE · FTCMTEST',
-      'providerLabel': 'BK',
-      'paymentType': 'BANK TRANSFER',
-      'bankAccountCode': '1020',
-      'occurredAt': '2026-10-14T09:29:21',
-      'lineDate': '2026-10-14',
-      'status': 'pending_review',
-      'bankLineId': 'line-$kind',
-      if (suggested != null) 'suggestedCategory': suggested,
-    });
+class _Cats implements SmsCategoryStore {
+  final created = <String>[];
+  final remembered = <(String, bool)>[];
+  String? last;
+
+  @override
+  Future<String> create(String name, String branchId) async {
+    created.add(name);
+    return 'new-$name';
+  }
+
+  @override
+  String? lastUsed({required bool isIncome}) => last;
+
+  @override
+  Future<void> remember(String id, {required bool isIncome}) async =>
+      remembered.add((id, isIncome));
+}
+
+/// A phone-sized surface: the detail sheet scrolls, as on a real phone.
+void _phoneView(WidgetTester tester) {
+  tester.view.physicalSize = const Size(1170, 2532);
+  tester.view.devicePixelRatio = 3;
+  addTearDown(tester.view.reset);
+}
+
+/// The detail as the app shows it: a sheet over a screen, so the snackbar
+/// it leaves on closing has somewhere to show.
+Widget _detailLauncher(SmsReviewItem item) => Builder(
+  builder: (context) => TextButton(
+    onPressed: () => showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => SmsReviewDetail(item: item),
+    ),
+    child: const Text('open'),
+  ),
+);
+
+Future<void> _openDetail(WidgetTester tester) async {
+  await tester.tap(find.text('open'));
+  await tester.pumpAndSettle();
+}
+
+Future<void> _tap(WidgetTester tester, Key key) async {
+  await tester.ensureVisible(find.byKey(key));
+  await tester.pumpAndSettle();
+  await tester.tap(find.byKey(key));
+  await tester.pumpAndSettle();
+}
+
+SmsReviewItem _item({
+  String kind = 'principal',
+  String? suggested,
+  String direction = 'debit',
+  String? id,
+  String bankAccountCode = '1020',
+  String providerLabel = 'BK',
+  String? occurredAt = '2026-10-14T09:29:21',
+  String lineDate = '2026-10-14',
+  String? counterpartyName,
+}) => SmsReviewItem.fromDitto({
+  '_id': id ?? (kind == 'fee' ? 'sms-fee' : 'sms-1'),
+  'businessId': 'biz',
+  'branchId': 'br',
+  'kind': kind,
+  'direction': direction,
+  'amount': kind == 'fee' ? 20 : 2000,
+  'description': kind == 'fee'
+      ? 'BK · charge · FTCMTEST'
+      : 'BK · to Jane DOE · FTCMTEST',
+  'providerLabel': providerLabel,
+  'paymentType': 'BANK TRANSFER',
+  'bankAccountCode': bankAccountCode,
+  'occurredAt': ?occurredAt,
+  'lineDate': lineDate,
+  'status': 'pending_review',
+  'bankLineId': 'line-${id ?? kind}',
+  'counterpartyName': ?counterpartyName,
+  if (suggested != null) 'suggestedCategory': suggested,
+});
 
 class _FakeBridge extends SmsBridgeClient {
   _FakeBridge() : super(baseUrl: () async => 'https://unused.test/');
@@ -118,15 +182,22 @@ Widget _app(Widget child, List<Override> overrides) => ProviderScope(
 
 void main() {
   late _Store store;
+  late _Cats categories;
   late List<(SmsReviewItem, String?)> recorded;
+  late List<(String, String)> posted;
+  late List<String> voided;
 
   List<Override> reviewOverrides(
     List<SmsReviewItem> items, {
     List<Category>? cats,
   }) {
     store = _Store();
+    categories = _Cats();
     recorded = [];
+    posted = [];
+    voided = [];
     return [
+      smsCategoryStoreProvider.overrideWithValue(categories),
       smsReviewBranchIdProvider.overrideWithValue('br'),
       smsReviewItemsProvider('br').overrideWith((ref) => Stream.value(items)),
       categoryProvider.overrideWith(
@@ -136,6 +207,14 @@ void main() {
         SmsReviewService(
           store: store,
           journalEntryId: (b, t) => 'je_${b}_${t}_sale',
+          postTransfer:
+              ({
+                required entryId,
+                required item,
+                required otherAccountCode,
+              }) async => posted.add((entryId, otherAccountCode)),
+          voidTransfer: ({required entryId, required item}) async =>
+              voided.add(entryId),
           recordMovement:
               ({
                 required item,
@@ -149,6 +228,103 @@ void main() {
       ),
     ];
   }
+
+  testWidgets('the home card stays hidden until something is waiting', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _app(const SmsReviewHomeCard(), reviewOverrides(const [])),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('sms_review_home_card')), findsNothing);
+  });
+
+  testWidgets('the home card counts, totals and opens the queue', (
+    tester,
+  ) async {
+    final items = [_item(), _item(id: 'sms-2', direction: 'credit')];
+    await tester.pumpWidget(
+      _app(const SmsReviewHomeCard(), reviewOverrides(items)),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('2 bank & MoMo SMS to approve'), findsOneWidget);
+    expect(find.textContaining('in · '), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('sms_review_home_card')));
+    await tester.pumpAndSettle();
+    expect(find.text('Bank & MoMo SMS'), findsOneWidget);
+    expect(find.byKey(const Key('sms_review_row_sms-2')), findsOneWidget);
+  });
+
+  testWidgets('the count badge shows only while SMS are waiting', (
+    tester,
+  ) async {
+    const icon = SmsReviewCountBadge(child: Icon(Icons.grid_view));
+    await tester.pumpWidget(_app(icon, reviewOverrides(const [])));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('sms_review_count_badge')), findsNothing);
+
+    // A fresh scope: overrides can't change on a mounted ProviderScope.
+    await tester.pumpWidget(const SizedBox());
+    await tester.pumpWidget(
+      _app(icon, reviewOverrides([_item(), _item(id: 'sms-2')])),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('sms_review_count_badge')), findsOneWidget);
+    expect(find.text('2'), findsOneWidget);
+  });
+
+  testWidgets('an empty queue says so instead of showing a blank sheet', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _app(const SmsReviewSheet(), reviewOverrides(const [])),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('sms_review_empty')), findsOneWidget);
+  });
+
+  testWidgets('money in for a rung-up sale links to it and records nothing', (
+    tester,
+  ) async {
+    final item = _item(direction: 'credit');
+    await tester.pumpWidget(
+      _app(SmsReviewDetail(item: item), [
+        ...reviewOverrides(const []),
+        smsMatchingSalesProvider(item).overrideWith(
+          (ref) async => [
+            SmsSaleCandidate(
+              transactionId: 'sale-9',
+              amount: 2000,
+              paymentType: 'BANK TRANSFER',
+              createdAt: DateTime(2026, 10, 14, 9, 25),
+            ),
+          ],
+        ),
+      ]),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Already recorded as a sale?'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('sms_review_link_sale-9')));
+    await tester.pumpAndSettle();
+    expect(recorded, isEmpty);
+    expect(store.statuses['sms-1'], SmsReviewItem.matched);
+    expect(store.matched, {'line-principal': 'je_biz_sale-9_sale'});
+  });
+
+  testWidgets('money in with no matching sale offers no link', (tester) async {
+    final item = _item(direction: 'credit');
+    await tester.pumpWidget(
+      _app(SmsReviewDetail(item: item), [
+        ...reviewOverrides(const []),
+        smsMatchingSalesProvider(item).overrideWith((ref) async => const []),
+      ]),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Already recorded as a sale?'), findsNothing);
+    expect(find.byKey(const Key('sms_review_confirm')), findsOneWidget);
+  });
 
   testWidgets('no banner when nothing is waiting', (tester) async {
     await tester.pumpWidget(
@@ -171,14 +347,20 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('sms_review_row_sms-1')));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('sms_review_confirm')));
-    await tester.pumpAndSettle();
+    await _tap(tester, const Key('sms_review_confirm'));
 
     expect(recorded, hasLength(1));
     expect(recorded.single.$1.amount, 2000);
     expect(store.statuses['sms-1'], SmsReviewItem.confirmed);
     expect(store.matched, {'line-principal': 'je_biz_txn-1_sale'});
-    expect(find.text('Added to the Cash Book'), findsOneWidget);
+    // On the queue sheet, not on the screen it covers.
+    expect(
+      find.descendant(
+        of: find.byType(FractionallySizedBox),
+        matching: find.text('Added to the Cash Book'),
+      ),
+      findsOneWidget,
+    );
   });
 
   testWidgets('a fee preselects the suggested category and has no transfer', (
@@ -196,20 +378,232 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('sms_review_transfer')), findsNothing);
 
-    await tester.tap(find.byKey(const Key('sms_review_confirm')));
-    await tester.pumpAndSettle();
+    await _tap(tester, const Key('sms_review_confirm'));
     expect(recorded.single.$2, 'cat-fees');
+    expect(categories.created, isEmpty);
   });
 
   testWidgets('ignore closes the item without recording', (tester) async {
     await tester.pumpWidget(
+      _app(_detailLauncher(_item()), reviewOverrides(const [])),
+    );
+    await tester.pumpAndSettle();
+    await _openDetail(tester);
+    await _tap(tester, const Key('sms_review_ignore'));
+    expect(recorded, isEmpty);
+    expect(store.statuses['sms-1'], SmsReviewItem.ignored);
+    expect(find.text('Ignored'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('sms_review_undo')));
+    await tester.pumpAndSettle();
+    expect(store.statuses['sms-1'], SmsReviewItem.pending);
+    expect(find.text('Back in the list'), findsOneWidget);
+  });
+
+  testWidgets(
+    'money out suggests expense categories; a new one is created on confirm',
+    (tester) async {
+      _phoneView(tester);
+      await tester.pumpWidget(
+        _app(
+          SmsReviewDetail(item: _item()),
+          reviewOverrides(
+            const [],
+            cats: [
+              Category(id: 'p1', name: 'main'),
+              Category(id: 'p2', name: 'UnCategorized'),
+              Category(id: 'c-rent', name: 'rent'),
+            ],
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Salary'), findsOneWidget);
+      expect(find.text('Sales'), findsNothing);
+      expect(find.text('main'), findsNothing);
+      expect(find.text('UnCategorized'), findsNothing);
+      // An existing category stands in for its suggestion, in its own spelling.
+      expect(find.text('rent'), findsOneWidget);
+
+      await _tap(tester, const Key('sms_review_category_Salary'));
+      await _tap(tester, const Key('sms_review_confirm'));
+      expect(categories.created, ['Salary']);
+      expect(recorded.single.$2, 'new-Salary');
+      expect(categories.remembered, [('new-Salary', false)]);
+    },
+  );
+
+  testWidgets('money in suggests income; More shows the branch\'s others', (
+    tester,
+  ) async {
+    _phoneView(tester);
+    await tester.pumpWidget(
+      _app(
+        SmsReviewDetail(item: _item(direction: 'credit')),
+        reviewOverrides(
+          const [],
+          cats: [Category(id: 'c-t', name: 'Transport')],
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Sales'), findsOneWidget);
+    expect(find.text('Transport'), findsNothing);
+
+    await _tap(tester, const Key('sms_review_category_more'));
+    expect(find.text('Transport'), findsOneWidget);
+    expect(find.byKey(const Key('sms_review_category_more')), findsNothing);
+
+    await _tap(tester, const Key('sms_review_category_Transport'));
+    await _tap(tester, const Key('sms_review_confirm'));
+    expect(recorded.single.$2, 'c-t');
+    expect(categories.created, isEmpty);
+  });
+
+  testWidgets('the last category used for the direction is preselected', (
+    tester,
+  ) async {
+    _phoneView(tester);
+    final overrides = reviewOverrides(
+      const [],
+      cats: [Category(id: 'c-rent', name: 'Rent')],
+    );
+    categories.last = 'c-rent';
+    await tester.pumpWidget(_app(SmsReviewDetail(item: _item()), overrides));
+    await tester.pumpAndSettle();
+    await _tap(tester, const Key('sms_review_confirm'));
+    expect(recorded.single.$2, 'c-rent');
+  });
+
+  testWidgets('New opens the new-category sheet for the direction', (
+    tester,
+  ) async {
+    _phoneView(tester);
+    await tester.pumpWidget(
       _app(SmsReviewDetail(item: _item()), reviewOverrides(const [])),
     );
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('sms_review_ignore')));
+    await _tap(tester, const Key('sms_review_category_new'));
+    final sheet = tester.widget<CashbookNewCategorySheet>(
+      find.byType(CashbookNewCategorySheet),
+    );
+    expect(sheet.isIncome, isFalse);
+    expect(await sheet.onCreate('Fuel'), 'new-Fuel');
+    expect(categories.created, ['Fuel']);
+  });
+
+  testWidgets(
+    'a transfer asks where, closes the other account\'s SMS, and undoes',
+    (tester) async {
+      _phoneView(tester);
+      final bankOut = _item(counterpartyName: 'Own MoMo');
+      final momoIn = _item(
+        id: 'sms-2',
+        direction: 'credit',
+        bankAccountCode: '1030',
+        providerLabel: 'MTN MoMo',
+        occurredAt: '2026-10-14T09:31:00',
+      );
+      await tester.pumpWidget(
+        _app(_detailLauncher(bankOut), reviewOverrides([bankOut, momoIn])),
+      );
+      await tester.pumpAndSettle();
+      await _openDetail(tester);
+      expect(find.text('Where did the money go?'), findsNothing);
+
+      await _tap(tester, const Key('sms_review_transfer'));
+      expect(find.text('Where did the money go?'), findsOneWidget);
+      expect(
+        find.byKey(const Key('sms_review_transfer_target_1010')),
+        findsOneWidget,
+      );
+      // Its own account is not a choice.
+      expect(
+        find.byKey(const Key('sms_review_transfer_target_1020')),
+        findsNothing,
+      );
+      // The waiting MoMo SMS for the same move picks the target.
+      expect(
+        find.byKey(const Key('sms_review_transfer_paired')),
+        findsOneWidget,
+      );
+      expect(find.textContaining('MTN MoMo +RWF'), findsOneWidget);
+
+      await _tap(tester, const Key('sms_review_transfer_record'));
+      expect(posted, [('je_smsxfer_sms-1', '1030')]);
+      expect(recorded, isEmpty);
+      expect(store.statuses['sms-1'], SmsReviewItem.transfer);
+      expect(store.statuses['sms-2'], SmsReviewItem.transfer);
+      expect(store.matched, {
+        'line-principal': 'je_smsxfer_sms-1',
+        'line-sms-2': 'je_smsxfer_sms-1',
+      });
+      expect(
+        find.text('Recorded as a transfer to Mobile Money'),
+        findsOneWidget,
+      );
+
+      await tester.tap(find.byKey(const Key('sms_review_undo')));
+      await tester.pumpAndSettle();
+      expect(voided, ['je_smsxfer_sms-1']);
+      expect(store.statuses['sms-1'], SmsReviewItem.pending);
+      expect(store.statuses['sms-2'], SmsReviewItem.pending);
+      expect(store.matched.values, everyElement(isNull));
+    },
+  );
+
+  testWidgets('a transfer with no other SMS waits for a target', (
+    tester,
+  ) async {
+    _phoneView(tester);
+    final moneyIn = _item(direction: 'credit');
+    await tester.pumpWidget(
+      _app(_detailLauncher(moneyIn), reviewOverrides([moneyIn])),
+    );
     await tester.pumpAndSettle();
-    expect(recorded, isEmpty);
-    expect(store.statuses['sms-1'], SmsReviewItem.ignored);
+    await _openDetail(tester);
+    await _tap(tester, const Key('sms_review_transfer'));
+    expect(find.text('Where did the money come from?'), findsOneWidget);
+    expect(find.byKey(const Key('sms_review_transfer_paired')), findsNothing);
+    final record = find.byKey(const Key('sms_review_transfer_record'));
+    expect(tester.widget<FilledButton>(record).onPressed, isNull);
+
+    await _tap(tester, const Key('sms_review_transfer_target_1010'));
+    await _tap(tester, const Key('sms_review_transfer_record'));
+    expect(posted, [('je_smsxfer_sms-1', '1010')]);
+    expect(find.text('Recorded as a transfer from Cash'), findsOneWidget);
+  });
+
+  testWidgets('rows group by day and never show a made-up 00:00', (
+    tester,
+  ) async {
+    _phoneView(tester);
+    await tester.pumpWidget(
+      _app(
+        const SmsReviewSheet(),
+        reviewOverrides([
+          _item(id: 'a', occurredAt: null, lineDate: '2025-01-06'),
+          _item(
+            id: 'b',
+            occurredAt: '2025-01-07T00:00:00',
+            lineDate: '2025-01-07',
+            counterpartyName: 'JANE DOE',
+          ),
+          _item(id: 'c', occurredAt: '2025-01-07T14:05:00'),
+        ]),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Mon 6 Jan'), findsOneWidget);
+    expect(find.text('Tue 7 Jan'), findsOneWidget);
+    expect(find.textContaining('00:00'), findsNothing);
+    expect(find.text('Money out · 14:05'), findsOneWidget);
+    // A named counterparty is the title; the provider moves to the line below.
+    expect(find.text('JANE DOE'), findsOneWidget);
+    expect(find.text('BK · Money out'), findsOneWidget);
+    // The undated-time row, and the money-out total above the list.
+    expect(find.text('Money out'), findsNWidgets(2));
+    expect(find.textContaining('−RWF'), findsWidgets);
   });
 
   testWidgets('the SMS Bridge page pairs a phone and unpairs one', (
@@ -263,6 +657,8 @@ void main() {
     var cashBookBuilds = 0;
     final container = ProviderContainer(
       overrides: [
+        smsCategoryStoreProvider.overrideWithValue(_Cats()),
+        smsReviewBranchIdProvider.overrideWithValue(''),
         categoryProvider.overrideWith(
           (ref) => Stream.value(const <Category>[]),
         ),
@@ -274,6 +670,13 @@ void main() {
           SmsReviewService(
             store: _Store(),
             journalEntryId: (b, t) => 'je_$t',
+            postTransfer:
+                ({
+                  required entryId,
+                  required item,
+                  required otherAccountCode,
+                }) async {},
+            voidTransfer: ({required entryId, required item}) async {},
             recordMovement:
                 ({
                   required item,

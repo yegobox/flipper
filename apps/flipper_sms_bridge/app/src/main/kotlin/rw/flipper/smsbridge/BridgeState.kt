@@ -45,6 +45,11 @@ class BridgeState(context: Context) {
         get() = prefs.getLong(KEY_FORWARDED, 0)
         set(v) = prefs.edit().putLong(KEY_FORWARDED, v).apply()
 
+    /** Newest inbox date the sweep has read; null until the first sweep. */
+    var sweptThroughMs: Long?
+        get() = prefs.getLong(KEY_SWEPT, 0).takeIf { it > 0 }
+        set(v) = prefs.edit().putLong(KEY_SWEPT, v ?: 0).apply()
+
     /** Set when the connector refused our credentials: the phone must pair again. */
     var needsPairing: Boolean
         get() = prefs.getBoolean(KEY_NEEDS_PAIRING, false)
@@ -56,6 +61,7 @@ class BridgeState(context: Context) {
             .remove(KEY_LAST_ERROR)
             .remove(KEY_FORWARDED)
             .remove(KEY_NEEDS_PAIRING)
+            .remove(KEY_SWEPT)
             .apply()
     }
 
@@ -67,5 +73,6 @@ class BridgeState(context: Context) {
         const val KEY_LAST_ERROR = "last_error"
         const val KEY_FORWARDED = "forwarded"
         const val KEY_NEEDS_PAIRING = "needs_pairing"
+        const val KEY_SWEPT = "swept_through"
     }
 }
