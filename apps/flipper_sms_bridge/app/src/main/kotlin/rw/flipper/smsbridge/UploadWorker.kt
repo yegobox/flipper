@@ -140,7 +140,9 @@ class UploadWorker(context: Context, params: WorkerParameters) : CoroutineWorker
         const val UNIQUE = "sms-upload"
         private const val PERIODIC = "sms-upload-periodic"
         private const val SKEW_MS = 2 * 60 * 1000L
-        private const val SENDERS_TTL_MS = 6 * 60 * 60 * 1000L
+        // Short, so a sender added on the connector (a bank changing its id)
+        // reaches phones within the half hour; the GET is tiny.
+        private const val SENDERS_TTL_MS = 30 * 60 * 1000L
         private const val NOTIFICATION_ID = 7101
         private val RUN_LOCK = Any()
 

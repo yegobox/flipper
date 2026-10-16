@@ -31,7 +31,7 @@ class SenderAllowlist(senders: Collection<String>) {
 
         /** Mirrors the connector's built-in list. */
         val BUILT_IN: List<String> = listOf(
-            "BK", "BKBANK", "BANKOFKIGALI", "BKGROUP",
+            "BK", "BKBANK", "BANKOFKIGALI", "BKGROUP", "BKeBANK", "BK Cards",
             "M-Money", "MTN MoMo", "MoMo", "MTNMOMO",
             "AirtelMoney", "Airtel Money",
             "Equity Bank", "EquityBank",
