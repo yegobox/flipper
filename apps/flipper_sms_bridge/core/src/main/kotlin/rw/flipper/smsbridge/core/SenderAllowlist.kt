@@ -36,6 +36,7 @@ class SenderAllowlist(senders: Collection<String>) {
             "AirtelMoney", "Airtel Money",
             "Equity Bank", "EquityBank",
             "I&M Bank", "I&M", "IMBANK",
+            "BPR Bank",
         )
 
         val DEFAULT = SenderAllowlist(BUILT_IN)

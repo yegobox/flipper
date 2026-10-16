@@ -24,6 +24,7 @@ class SenderAllowlistTest {
         // BK's real ids for eKash transfers and card alerts.
         assertTrue(list.allows("BKeBANK"))
         assertTrue(list.allows("BK Cards"))
+        assertTrue(list.allows("BPR Bank"))
         assertTrue(list.allows("m-money"))
         assertTrue(list.allows("AirtelMoney"))
         assertTrue(list.allows("EQUITY BANK"))
