@@ -31,13 +31,24 @@ class FloLocalBriefingService {
         );
   }
 
+  /// Whether [tx] counts towards Flo's sales/revenue. Cash Book movements are
+  /// not sales: a Cash Out (incl. a confirmed SMS debit or a purchase mirror)
+  /// is `isExpense`, and a Cash In is stamped `receiptType = 'Cash In'`. Same
+  /// rule as the connector's `transaction_is_flutter_export_sale`.
+  static bool isFloSale(ITransaction tx) {
+    if ((tx.subTotal ?? 0) <= 0) return false;
+    if (tx.isExpense == true) return false;
+    final receipt = tx.receiptType?.trim();
+    return receipt != 'Cash In' && receipt != 'Cash Out';
+  }
+
   static Future<FloDailyBriefing?> buildFromTransactions(
     List<ITransaction> transactions,
     String branchId,
     DateTime start,
     DateTime end,
   ) async {
-    final sales = transactions.where((tx) => (tx.subTotal ?? 0) > 0).toList();
+    final sales = transactions.where(isFloSale).toList();
     if (sales.isEmpty) return null;
 
     final revenue = sales.fold<double>(
@@ -67,20 +78,9 @@ class FloLocalBriefingService {
       headline: l10n.floBriefingSalesComingIn,
       bodyHtml: l10n.floBriefingBody(rev, txLabel, '$unitCount'),
       stats: [
-        FloBriefingStat(
-          label: l10n.floStatRevenue,
-          unit: 'RWF',
-          value: rev,
-        ),
-        FloBriefingStat(
-          label: l10n.floStatNetProfit,
-          unit: 'RWF',
-          value: '—',
-        ),
-        FloBriefingStat(
-          label: l10n.floStatUnitsSold,
-          value: '$unitCount',
-        ),
+        FloBriefingStat(label: l10n.floStatRevenue, unit: 'RWF', value: rev),
+        FloBriefingStat(label: l10n.floStatNetProfit, unit: 'RWF', value: '—'),
+        FloBriefingStat(label: l10n.floStatUnitsSold, value: '$unitCount'),
       ],
       empty: false,
     );
@@ -146,7 +146,7 @@ class FloLocalBriefingService {
       return null;
     }
 
-    final sales = transactions.where((tx) => (tx.subTotal ?? 0) > 0).toList();
+    final sales = transactions.where(isFloSale).toList();
     if (sales.isEmpty) {
       return {
         'period_label': period.label,
@@ -162,8 +162,10 @@ class FloLocalBriefingService {
     // Item-level breakdown so the model answers "what sold?" from real data
     // instead of inventing product names.
     final topItems = await _topItemsSold(branchId, start, end, sales);
-    final units =
-        topItems.fold<num>(0, (s, it) => s + (it['qty'] as num? ?? 0));
+    final units = topItems.fold<num>(
+      0,
+      (s, it) => s + (it['qty'] as num? ?? 0),
+    );
 
     return {
       'period_label': period.label,
@@ -221,7 +223,9 @@ class FloLocalBriefingService {
 
   /// Prefer local when revenue matches or beats remote and units are at least as high.
   static FloDailyBriefing? merge(
-      FloDailyBriefing? remote, FloDailyBriefing? local) {
+    FloDailyBriefing? remote,
+    FloDailyBriefing? local,
+  ) {
     if (remote == null || remote.empty) return local;
     if (local == null || local.empty) return remote;
     final remoteRevenue = _parseStat(remote, 'Revenue');
@@ -266,8 +270,11 @@ class SalesPeriod {
 
   static SalesPeriod yesterday() {
     final now = DateTime.now();
-    final s = DateTime(now.year, now.month, now.day)
-        .subtract(const Duration(days: 1));
+    final s = DateTime(
+      now.year,
+      now.month,
+      now.day,
+    ).subtract(const Duration(days: 1));
     return SalesPeriod(s, s.add(const Duration(days: 1)), 'yesterday');
   }
 
@@ -281,19 +288,28 @@ class SalesPeriod {
 
     if (m.contains('yesterday')) return yesterday();
     if (m.contains('last month')) {
-      return SalesPeriod(DateTime(now.year, now.month - 1, 1),
-          DateTime(now.year, now.month, 1), 'last month');
+      return SalesPeriod(
+        DateTime(now.year, now.month - 1, 1),
+        DateTime(now.year, now.month, 1),
+        'last month',
+      );
     }
     if (m.contains('this month') || m.contains('month')) {
-      return SalesPeriod(DateTime(now.year, now.month, 1),
-          DateTime(now.year, now.month + 1, 1), 'this month');
+      return SalesPeriod(
+        DateTime(now.year, now.month, 1),
+        DateTime(now.year, now.month + 1, 1),
+        'this month',
+      );
     }
     if (m.contains('last 7') ||
         m.contains('past 7') ||
         m.contains('last week') ||
         m.contains('past week')) {
-      return SalesPeriod(midnight.subtract(const Duration(days: 7)), tomorrow,
-          'the last 7 days');
+      return SalesPeriod(
+        midnight.subtract(const Duration(days: 7)),
+        tomorrow,
+        'the last 7 days',
+      );
     }
     if (m.contains('this week') || m.contains('week')) {
       // Week starting Monday through end of today.
