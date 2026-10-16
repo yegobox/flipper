@@ -162,6 +162,17 @@ class BridgeScreensTest {
     }
 
     @Test
+    fun findMissedAsksHowFarBack() {
+        var days: Int? = null
+        show(paired, BridgeActions(findMissed = { days = it }))
+        compose.onNodeWithText("Find missed messages").performClick()
+        compose.onNodeWithText("30 days").performClick()
+        captureScreenRoboImage("build/outputs/roborazzi/find_missed.png")
+        compose.onNodeWithText("Find").performClick()
+        assertEquals(30, days)
+    }
+
+    @Test
     fun unpairAsksFirst() {
         var unpaired = false
         show(paired, BridgeActions(unpair = { unpaired = true }))

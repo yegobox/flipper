@@ -23,6 +23,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.HorizontalDivider
@@ -39,6 +40,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -254,9 +256,34 @@ fun PairPanel(ui: BridgeUi, actions: BridgeActions) {
 }
 
 @Composable
-fun BackfillChoice(days: Int, onChange: (Int) -> Unit) {
-    val options = listOf(
-        0 to stringResource(R.string.pair_backfill_none),
+private fun FindMissedDialog(onDismiss: () -> Unit, onFind: (Int) -> Unit) {
+    var days by rememberSaveable { mutableIntStateOf(7) }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = Bridge.card,
+        title = { Text(stringResource(R.string.find_missed), style = MaterialTheme.typography.titleLarge) },
+        text = {
+            Column {
+                Text(stringResource(R.string.find_missed_body), style = MaterialTheme.typography.bodyLarge, color = Bridge.ink2)
+                Spacer(Modifier.height(14.dp))
+                BackfillChoice(days, { days = it }, includeNewOnly = false)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel), color = Bridge.ink2) }
+        },
+        confirmButton = {
+            TextButton(onClick = { onFind(days) }) {
+                Text(stringResource(R.string.find_missed_go), color = Bridge.blue, fontWeight = FontWeight.SemiBold)
+            }
+        },
+    )
+}
+
+@Composable
+fun BackfillChoice(days: Int, onChange: (Int) -> Unit, includeNewOnly: Boolean = true) {
+    val options = listOfNotNull(
+        (0 to stringResource(R.string.pair_backfill_none)).takeIf { includeNewOnly },
         7 to stringResource(R.string.pair_backfill_7),
         30 to stringResource(R.string.pair_backfill_30),
     )
@@ -328,6 +355,7 @@ private fun PathLine(title: String, path: String) {
 @Composable
 private fun DashboardContent(ui: BridgeUi, actions: BridgeActions) {
     var confirmUnpair by remember { mutableStateOf(false) }
+    var findMissed by remember { mutableStateOf(false) }
 
     StatusCard(ui, actions)
 
@@ -353,6 +381,12 @@ private fun DashboardContent(ui: BridgeUi, actions: BridgeActions) {
             actions.sendNow,
             icon = rememberVectorPainter(Icons.Filled.Send),
         )
+        Spacer(Modifier.height(10.dp))
+        SecondaryButton(
+            stringResource(R.string.find_missed),
+            { findMissed = true },
+            icon = rememberVectorPainter(Icons.Filled.Refresh),
+        )
     }
 
     Spacer(Modifier.height(28.dp))
@@ -371,6 +405,13 @@ private fun DashboardContent(ui: BridgeUi, actions: BridgeActions) {
         modifier = Modifier.fillMaxWidth().height(48.dp),
     ) {
         Text(stringResource(R.string.unpair), color = Bridge.danger, style = MaterialTheme.typography.labelLarge)
+    }
+
+    if (findMissed) {
+        FindMissedDialog(
+            onDismiss = { findMissed = false },
+            onFind = { days -> findMissed = false; actions.findMissed(days) },
+        )
     }
 
     if (confirmUnpair) {

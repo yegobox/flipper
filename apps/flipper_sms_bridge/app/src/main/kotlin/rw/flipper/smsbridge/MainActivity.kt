@@ -68,6 +68,7 @@ class MainActivity : ComponentActivity() {
             confirmLink = vm::confirmLink,
             dismissLink = vm::dismissLink,
             sendNow = vm::sendNow,
+            findMissed = vm::findMissed,
             unpair = vm::unpair,
             noticeShown = vm::noticeShown,
         )
