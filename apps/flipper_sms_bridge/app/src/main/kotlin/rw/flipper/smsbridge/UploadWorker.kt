@@ -32,6 +32,9 @@ class UploadWorker(context: Context, params: WorkerParameters) : CoroutineWorker
         val state = BridgeState(applicationContext)
         val queue = SmsQueue.get(applicationContext)
         var current = creds.load() ?: return@withContext Result.success()
+        // SMS the receiver missed (it arrived while pairing, or the phone
+        // never woke the receiver) are still in the inbox.
+        Backfill.sweep(applicationContext)
 
         try {
             current = ensureAccess(current, creds)
@@ -52,7 +55,7 @@ class UploadWorker(context: Context, params: WorkerParameters) : CoroutineWorker
                 }
                 val outcome = UploadPolicy.classify(batch.map { it.id }, statuses)
                 queue.delete(outcome.delivered)
-                state.forwardedCount = state.forwardedCount + outcome.delivered.size
+                state.forwardedCount = state.forwardedCount + outcome.stored.size
                 state.lastUploadAtMs = System.currentTimeMillis()
                 if (outcome.failed.isNotEmpty()) {
                     queue.recordFailure(outcome.failed, UploadPolicy.MAX_ATTEMPTS)

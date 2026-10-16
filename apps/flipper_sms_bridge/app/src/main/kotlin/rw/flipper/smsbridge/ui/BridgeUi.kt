@@ -43,6 +43,8 @@ class BridgeActions(
     val confirmLink: () -> Unit = {},
     val dismissLink: () -> Unit = {},
     val sendNow: () -> Unit = {},
+    /** Re-read the inbox for the last N days and send what was missed. */
+    val findMissed: (days: Int) -> Unit = {},
     val unpair: () -> Unit = {},
     val noticeShown: () -> Unit = {},
 )
