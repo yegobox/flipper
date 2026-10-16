@@ -37,18 +37,20 @@ void main() {
     );
   });
 
-  test('a list watched before Ditto is up gets the instance when it arrives',
-      () async {
-    final seen = <String?>[];
-    final sub = stream.listen(seen.add);
-    await pumpEventQueue();
-    expect(seen, [null]);
+  test(
+    'a list watched before Ditto is up gets the instance when it arrives',
+    () async {
+      final seen = <String?>[];
+      final sub = stream.listen(seen.add);
+      await pumpEventQueue();
+      expect(seen, [null]);
 
-    ditto.set('main');
-    await pumpEventQueue();
-    expect(seen, [null, 'main']);
-    await sub.cancel();
-  });
+      ditto.set('main');
+      await pumpEventQueue();
+      expect(seen, [null, 'main']);
+      await sub.cancel();
+    },
+  );
 
   test('the QR-login instance is not used, and repeats are dropped', () async {
     final seen = <String?>[];

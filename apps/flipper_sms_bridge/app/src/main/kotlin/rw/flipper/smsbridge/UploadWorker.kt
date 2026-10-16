@@ -32,11 +32,18 @@ import java.util.concurrent.TimeUnit
  */
 class UploadWorker(context: Context, params: WorkerParameters) : CoroutineWorker(context, params) {
 
+    // A fresh SMS REPLACEs the unique work (see [enqueue]), and the body is
+    // blocking, so a cancelled run keeps going until it returns. The lock
+    // keeps it and its replacement from rotating the refresh token at once.
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
+        synchronized(RUN_LOCK) { runOnce() }
+    }
+
+    private fun runOnce(): Result {
         val creds = CredentialStore(applicationContext)
         val state = BridgeState(applicationContext)
         val queue = SmsQueue.get(applicationContext)
-        var current = creds.load() ?: return@withContext Result.success()
+        var current = creds.load() ?: return Result.success()
         // SMS the receiver missed (it arrived while pairing, or the phone
         // never woke the receiver) are still in the inbox.
         Backfill.sweep(applicationContext)
@@ -65,25 +72,24 @@ class UploadWorker(context: Context, params: WorkerParameters) : CoroutineWorker
                 if (outcome.failed.isNotEmpty()) {
                     queue.recordFailure(outcome.failed, UploadPolicy.MAX_ATTEMPTS)
                     state.lastError = "The server could not store ${outcome.failed.size} message(s); retrying."
-                    return@withContext Result.retry()
+                    return Result.retry()
                 }
             }
             state.lastError = null
-            Result.success()
+            return Result.success()
         } catch (e: ApiException) {
             if (e.status == 401 || e.status == 403) {
                 // Revoked in Flipper, or the refresh token was refused. Retrying
                 // cannot fix that; keep the queue and ask for a new pairing.
                 state.needsPairing = true
                 state.lastError = "This phone was unpaired. Pair it again from Flipper."
-                Result.failure()
-            } else {
-                state.lastError = e.message
-                Result.retry()
+                return Result.failure()
             }
+            state.lastError = e.message
+            return Result.retry()
         } catch (e: IOException) {
             state.lastError = "No connection to Flipper (${e.javaClass.simpleName}); will retry."
-            Result.retry()
+            return Result.retry()
         }
     }
 
@@ -136,6 +142,7 @@ class UploadWorker(context: Context, params: WorkerParameters) : CoroutineWorker
         private const val SKEW_MS = 2 * 60 * 1000L
         private const val SENDERS_TTL_MS = 6 * 60 * 60 * 1000L
         private const val NOTIFICATION_ID = 7101
+        private val RUN_LOCK = Any()
 
         private val network = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)
@@ -149,6 +156,9 @@ class UploadWorker(context: Context, params: WorkerParameters) : CoroutineWorker
          * [expedited] for a fresh SMS: it runs at once even when Android has
          * put a rarely opened app in a restricted standby bucket, where plain
          * work can wait for hours. Out of quota, it falls back to plain work.
+         * It REPLACEs rather than appends, so it never waits behind a plain
+         * upload that is itself being held back; every run drains the whole
+         * queue, so nothing the replaced run would have sent is lost.
          */
         fun enqueue(context: Context, expedited: Boolean = false) {
             val request = OneTimeWorkRequestBuilder<UploadWorker>()
@@ -157,7 +167,11 @@ class UploadWorker(context: Context, params: WorkerParameters) : CoroutineWorker
                 .apply { if (expedited) setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST) }
                 .build()
             WorkManager.getInstance(context)
-                .enqueueUniqueWork(UNIQUE, ExistingWorkPolicy.APPEND_OR_REPLACE, request)
+                .enqueueUniqueWork(
+                    UNIQUE,
+                    if (expedited) ExistingWorkPolicy.REPLACE else ExistingWorkPolicy.APPEND_OR_REPLACE,
+                    request,
+                )
         }
 
         /**
