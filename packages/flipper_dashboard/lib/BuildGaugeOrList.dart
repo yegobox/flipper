@@ -6,6 +6,7 @@ import 'package:stacked_services/stacked_services.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'widgets/analytics_gauge/flipper_analytic.dart';
+import 'package:flipper_models/helpers/sale_exchange.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/constants.dart';
 
@@ -67,7 +68,11 @@ Widget BuildGaugeOrList({
           case 'gauge':
             final sumCashIn = filteredTransactions
                 .where((transaction) => transaction.isIncome == true)
-                .fold(0.0, (sum, transaction) => sum + transaction.subTotal!);
+                // Exchange returns count negative; others are their subTotal.
+                .fold(
+                  0.0,
+                  (sum, transaction) => sum + signedSubTotal(transaction),
+                );
             final sumCashOut = filteredTransactions
                 .where((transaction) => transaction.isIncome == false)
                 .fold(0.0, (sum, transaction) => sum + transaction.subTotal!);

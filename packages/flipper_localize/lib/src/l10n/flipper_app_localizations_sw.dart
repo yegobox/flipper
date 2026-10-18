@@ -3271,6 +3271,136 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
       'Hitaji idhini ya mkaguzi na makabidhiano ya msimamizi wa hisa kabla tiketi iliyolipwa haijakamilika';
 
   @override
+  String get adminSaleExchangeTitle => 'Kubadilisha bidhaa';
+
+  @override
+  String get adminSaleExchangeSubtitle =>
+      'Ruhusu wateja kurudisha bidhaa kutoka mauzo yaliyokamilika na kuchukua nyingine. Hisa, mauzo na hesabu zinabaki sahihi.';
+
+  @override
+  String get exchangeItemButton => 'Badilisha bidhaa';
+
+  @override
+  String exchangeStepOf(int step, int total) {
+    return 'Hatua $step kati ya $total';
+  }
+
+  @override
+  String get exchangeBringingBackTitle => 'Mteja anarudisha nini?';
+
+  @override
+  String get exchangeTakingTitle => 'Anachukua nini badala yake?';
+
+  @override
+  String get exchangeMoneyTitle => 'Pesa';
+
+  @override
+  String get exchangeAlreadyExchanged => 'Imeshabadilishwa';
+
+  @override
+  String get exchangeSearchHint => 'Tafuta bidhaa';
+
+  @override
+  String get exchangeOutOfStock => 'Imeisha';
+
+  @override
+  String exchangeCustomerPays(String amount) {
+    return 'Mteja analipa $amount';
+  }
+
+  @override
+  String exchangeGiveBack(String amount) {
+    return 'Mrudishie mteja $amount';
+  }
+
+  @override
+  String get exchangeNothingToPay => 'Hakuna cha kulipa';
+
+  @override
+  String exchangeBreakdown(String back, String taken) {
+    return 'Anarudisha $back · Anachukua $taken';
+  }
+
+  @override
+  String get exchangeHowPaid => 'Pesa inalipwa vipi?';
+
+  @override
+  String get exchangeConfirm => 'Thibitisha kubadilisha';
+
+  @override
+  String get exchangeNext => 'Endelea';
+
+  @override
+  String get exchangeBack => 'Rudi';
+
+  @override
+  String get exchangeDone => 'Kubadilisha kumekamilika';
+
+  @override
+  String get exchangePrintReceipts => 'Chapisha risiti';
+
+  @override
+  String get exchangeClose => 'Funga';
+
+  @override
+  String exchangeBanner(int count, String date) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Bidhaa $count zimebadilishwa tarehe $date',
+      one: 'Bidhaa 1 imebadilishwa tarehe $date',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get exchangeBadge => 'Kubadilisha';
+
+  @override
+  String get exchangeFinish => 'Kamilisha kubadilisha';
+
+  @override
+  String get exchangeFinishHint => 'Risiti mpya bado inasubiri RRA.';
+
+  @override
+  String get exchangeNoItemsYet => 'Hakuna bidhaa iliyochaguliwa bado';
+
+  @override
+  String get exchangeChooseReturn =>
+      'Chagua angalau bidhaa moja anayorudisha mteja';
+
+  @override
+  String get exchangeChooseTake =>
+      'Chagua angalau bidhaa moja anayochukua mteja';
+
+  @override
+  String get exchangeMoreThanBought => 'Hiyo ni zaidi ya alichonunua mteja.';
+
+  @override
+  String get exchangeRraFailed =>
+      'Imeshindikana kufikia RRA. Hakuna kilichobadilishwa. Jaribu tena.';
+
+  @override
+  String get exchangeFailedNothingChanged =>
+      'Kuna hitilafu. Hakuna kilichobadilishwa. Jaribu tena.';
+
+  @override
+  String get exchangePartlySaved =>
+      'Kubadilisha kumehifadhiwa kwa sehemu tu. Kagua mauzo haya na hisa kabla ya kujaribu tena.';
+
+  @override
+  String get exchangeOnlyNormalSales =>
+      'Mauzo ya kawaida yaliyokamilika pekee ndiyo yanaweza kubadilishwa.';
+
+  @override
+  String get exchangeNotInTrainingOrProforma =>
+      'Zima hali ya mafunzo au proforma ili kubadilisha bidhaa.';
+
+  @override
+  String get refundBlockedAfterExchange =>
+      'Bidhaa za mauzo haya zimebadilishwa, hivyo hayawezi kurejeshewa pesa.';
+
+  @override
   String get adminGroupTaxCompliance => 'Kodi na uzingatiaji';
 
   @override

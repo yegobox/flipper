@@ -5849,6 +5849,216 @@ abstract class FlipperAppLocalizations {
   /// **'Require reviewer sign-off and stock-manager handover before a paid ticket is fully completed'**
   String get adminTicketReviewSubtitle;
 
+  /// No description provided for @adminSaleExchangeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Item exchange'**
+  String get adminSaleExchangeTitle;
+
+  /// No description provided for @adminSaleExchangeSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Let customers bring items back from a completed sale and take others. Stock, sales and the books stay correct.'**
+  String get adminSaleExchangeSubtitle;
+
+  /// No description provided for @exchangeItemButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Exchange item'**
+  String get exchangeItemButton;
+
+  /// No description provided for @exchangeStepOf.
+  ///
+  /// In en, this message translates to:
+  /// **'Step {step} of {total}'**
+  String exchangeStepOf(int step, int total);
+
+  /// No description provided for @exchangeBringingBackTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What is the customer bringing back?'**
+  String get exchangeBringingBackTitle;
+
+  /// No description provided for @exchangeTakingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What are they taking instead?'**
+  String get exchangeTakingTitle;
+
+  /// No description provided for @exchangeMoneyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Money'**
+  String get exchangeMoneyTitle;
+
+  /// No description provided for @exchangeAlreadyExchanged.
+  ///
+  /// In en, this message translates to:
+  /// **'Already exchanged'**
+  String get exchangeAlreadyExchanged;
+
+  /// No description provided for @exchangeSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search items'**
+  String get exchangeSearchHint;
+
+  /// No description provided for @exchangeOutOfStock.
+  ///
+  /// In en, this message translates to:
+  /// **'Out of stock'**
+  String get exchangeOutOfStock;
+
+  /// No description provided for @exchangeCustomerPays.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer pays {amount}'**
+  String exchangeCustomerPays(String amount);
+
+  /// No description provided for @exchangeGiveBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Give back to customer {amount}'**
+  String exchangeGiveBack(String amount);
+
+  /// No description provided for @exchangeNothingToPay.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing to pay'**
+  String get exchangeNothingToPay;
+
+  /// No description provided for @exchangeBreakdown.
+  ///
+  /// In en, this message translates to:
+  /// **'Bringing back {back} · Taking {taken}'**
+  String exchangeBreakdown(String back, String taken);
+
+  /// No description provided for @exchangeHowPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'How is the money paid?'**
+  String get exchangeHowPaid;
+
+  /// No description provided for @exchangeConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm exchange'**
+  String get exchangeConfirm;
+
+  /// No description provided for @exchangeNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get exchangeNext;
+
+  /// No description provided for @exchangeBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get exchangeBack;
+
+  /// No description provided for @exchangeDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Exchange done'**
+  String get exchangeDone;
+
+  /// No description provided for @exchangePrintReceipts.
+  ///
+  /// In en, this message translates to:
+  /// **'Print receipts'**
+  String get exchangePrintReceipts;
+
+  /// No description provided for @exchangeClose.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get exchangeClose;
+
+  /// No description provided for @exchangeBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 item exchanged on {date}} other{{count} items exchanged on {date}}}'**
+  String exchangeBanner(int count, String date);
+
+  /// No description provided for @exchangeBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Exchange'**
+  String get exchangeBadge;
+
+  /// No description provided for @exchangeFinish.
+  ///
+  /// In en, this message translates to:
+  /// **'Finish exchange'**
+  String get exchangeFinish;
+
+  /// No description provided for @exchangeFinishHint.
+  ///
+  /// In en, this message translates to:
+  /// **'The new receipt is still waiting for RRA.'**
+  String get exchangeFinishHint;
+
+  /// No description provided for @exchangeNoItemsYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No items chosen yet'**
+  String get exchangeNoItemsYet;
+
+  /// No description provided for @exchangeChooseReturn.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose at least one item the customer is bringing back'**
+  String get exchangeChooseReturn;
+
+  /// No description provided for @exchangeChooseTake.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose at least one item the customer is taking'**
+  String get exchangeChooseTake;
+
+  /// No description provided for @exchangeMoreThanBought.
+  ///
+  /// In en, this message translates to:
+  /// **'That is more than the customer bought.'**
+  String get exchangeMoreThanBought;
+
+  /// No description provided for @exchangeRraFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t reach RRA. Nothing was changed. Try again.'**
+  String get exchangeRraFailed;
+
+  /// No description provided for @exchangeFailedNothingChanged.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong. Nothing was changed. Try again.'**
+  String get exchangeFailedNothingChanged;
+
+  /// No description provided for @exchangePartlySaved.
+  ///
+  /// In en, this message translates to:
+  /// **'The exchange was only partly saved. Check this sale and the stock before trying again.'**
+  String get exchangePartlySaved;
+
+  /// No description provided for @exchangeOnlyNormalSales.
+  ///
+  /// In en, this message translates to:
+  /// **'Only a normal completed sale can be exchanged.'**
+  String get exchangeOnlyNormalSales;
+
+  /// No description provided for @exchangeNotInTrainingOrProforma.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn off training or proforma mode to exchange items.'**
+  String get exchangeNotInTrainingOrProforma;
+
+  /// No description provided for @refundBlockedAfterExchange.
+  ///
+  /// In en, this message translates to:
+  /// **'Items from this sale were exchanged, so it can\'t be refunded.'**
+  String get refundBlockedAfterExchange;
+
   /// No description provided for @adminGroupTaxCompliance.
   ///
   /// In en, this message translates to:

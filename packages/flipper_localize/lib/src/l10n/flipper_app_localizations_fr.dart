@@ -3297,6 +3297,135 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
       'Exiger la validation d\'un réviseur et la remise par le gestionnaire de stock avant qu\'un ticket payé soit finalisé';
 
   @override
+  String get adminSaleExchangeTitle => 'Échange d\'articles';
+
+  @override
+  String get adminSaleExchangeSubtitle =>
+      'Permettre aux clients de rapporter des articles d\'une vente terminée et d\'en prendre d\'autres. Le stock, les ventes et la comptabilité restent justes.';
+
+  @override
+  String get exchangeItemButton => 'Échanger un article';
+
+  @override
+  String exchangeStepOf(int step, int total) {
+    return 'Étape $step sur $total';
+  }
+
+  @override
+  String get exchangeBringingBackTitle => 'Qu\'est-ce que le client rapporte ?';
+
+  @override
+  String get exchangeTakingTitle => 'Que prend-il à la place ?';
+
+  @override
+  String get exchangeMoneyTitle => 'Argent';
+
+  @override
+  String get exchangeAlreadyExchanged => 'Déjà échangé';
+
+  @override
+  String get exchangeSearchHint => 'Rechercher des articles';
+
+  @override
+  String get exchangeOutOfStock => 'Rupture de stock';
+
+  @override
+  String exchangeCustomerPays(String amount) {
+    return 'Le client paie $amount';
+  }
+
+  @override
+  String exchangeGiveBack(String amount) {
+    return 'Rendre au client $amount';
+  }
+
+  @override
+  String get exchangeNothingToPay => 'Rien à payer';
+
+  @override
+  String exchangeBreakdown(String back, String taken) {
+    return 'Rapporte $back · Prend $taken';
+  }
+
+  @override
+  String get exchangeHowPaid => 'Comment l\'argent est-il réglé ?';
+
+  @override
+  String get exchangeConfirm => 'Confirmer l\'échange';
+
+  @override
+  String get exchangeNext => 'Suivant';
+
+  @override
+  String get exchangeBack => 'Retour';
+
+  @override
+  String get exchangeDone => 'Échange terminé';
+
+  @override
+  String get exchangePrintReceipts => 'Imprimer les reçus';
+
+  @override
+  String get exchangeClose => 'Fermer';
+
+  @override
+  String exchangeBanner(int count, String date) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count articles échangés le $date',
+      one: '1 article échangé le $date',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get exchangeBadge => 'Échange';
+
+  @override
+  String get exchangeFinish => 'Terminer l\'échange';
+
+  @override
+  String get exchangeFinishHint => 'Le nouveau reçu attend encore RRA.';
+
+  @override
+  String get exchangeNoItemsYet => 'Aucun article choisi';
+
+  @override
+  String get exchangeChooseReturn => 'Choisissez au moins un article rapporté';
+
+  @override
+  String get exchangeChooseTake => 'Choisissez au moins un article à prendre';
+
+  @override
+  String get exchangeMoreThanBought =>
+      'C\'est plus que ce que le client a acheté.';
+
+  @override
+  String get exchangeRraFailed =>
+      'Impossible de joindre RRA. Rien n\'a été modifié. Réessayez.';
+
+  @override
+  String get exchangeFailedNothingChanged =>
+      'Un problème est survenu. Rien n\'a été modifié. Réessayez.';
+
+  @override
+  String get exchangePartlySaved =>
+      'L\'échange n\'a été que partiellement enregistré. Vérifiez cette vente et le stock avant de réessayer.';
+
+  @override
+  String get exchangeOnlyNormalSales =>
+      'Seule une vente normale terminée peut être échangée.';
+
+  @override
+  String get exchangeNotInTrainingOrProforma =>
+      'Désactivez le mode formation ou proforma pour échanger des articles.';
+
+  @override
+  String get refundBlockedAfterExchange =>
+      'Des articles de cette vente ont été échangés : elle ne peut pas être remboursée.';
+
+  @override
   String get adminGroupTaxCompliance => 'Taxes et conformité';
 
   @override

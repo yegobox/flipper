@@ -1,7 +1,7 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
-part '20260922100014.migration.dart';
+part '20261018173810.migration.dart';
 part '20260522081221.migration.dart';
 part '20260527030019.migration.dart';
 part '20260603185233.migration.dart';
@@ -16,10 +16,11 @@ part '20260728113000.migration.dart';
 part '20260728163000.migration.dart';
 part '20260807090000.migration.dart';
 part '20260909182413.migration.dart';
+part '20260922100014.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
-  const Migration20260922100014(),
+  const Migration20261018173810(),
   const Migration20260522081221(),
   const Migration20260527030019(),
   const Migration20260603185233(),
@@ -34,11 +35,12 @@ final migrations = <Migration>{
   const Migration20260728163000(),
   const Migration20260807090000(),
   const Migration20260909182413(),
+  const Migration20260922100014(),
 };
 
 /// A consumable database structure including the latest generated migration.
 final schema = Schema(
-  20260909182413,
+  20260922100014,
   generatorVersion: 1,
   tables: <SchemaTable>{
     SchemaTable(
@@ -1304,6 +1306,7 @@ final schema = Schema(
         SchemaColumn('is_currency_decimal', Column.boolean),
         SchemaColumn('allow_selling_below_stock', Column.boolean),
         SchemaColumn('enable_ticket_review_workflow', Column.boolean),
+        SchemaColumn('enable_sale_exchange', Column.boolean),
         SchemaColumn('last_touched', Column.datetime),
         SchemaColumn('deleted_at', Column.datetime),
       },
@@ -1638,6 +1641,7 @@ final schema = Schema(
         SchemaColumn('last_payment_amount', Column.num),
         SchemaColumn('original_transaction_id', Column.varchar),
         SchemaColumn('is_original_transaction', Column.boolean),
+        SchemaColumn('exchange_id', Column.varchar),
         SchemaColumn('tax_amount', Column.num),
         SchemaColumn('number_of_items', Column.integer),
         SchemaColumn('discount_amount', Column.num),

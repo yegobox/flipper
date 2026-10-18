@@ -4,55 +4,57 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/setting_service.dart';
 import 'package:flipper_ui/dialogs/AdminPinDialog.dart';
 import 'package:flutter/material.dart';
+import 'package:supabase_models/brick/repository/storage.dart';
 import 'package:supabase_models/sync/ditto_sync_coordinator.dart';
 
 /// What Admin Control's toggles do, shared by the desktop screen and the phone
 /// settings hub so the two can never drift apart.
 abstract final class AdminActions {
   static SettingsService get _settings => locator<SettingsService>();
+  static LocalStorage get _box => ProxyService.box;
 
   /// POS and Orders are alternative home apps: turning one on turns the other
   /// off.
   static ({bool pos, bool orders}) defaultApps() => (
-    pos: ProxyService.box.readBool(key: 'isPosDefault') ?? false,
-    orders: ProxyService.box.readBool(key: 'isOrdersDefault') ?? true,
+    pos: _box.readBool(key: 'isPosDefault') ?? false,
+    orders: _box.readBool(key: 'isOrdersDefault') ?? true,
   );
 
   static void setPosDefault(bool value) {
-    if (value) ProxyService.box.writeBool(key: 'isOrdersDefault', value: false);
-    ProxyService.box.writeBool(key: 'isPosDefault', value: value);
+    if (value) _box.writeBool(key: 'isOrdersDefault', value: false);
+    _box.writeBool(key: 'isPosDefault', value: value);
   }
 
   static void setOrdersDefault(bool value) {
-    if (value) ProxyService.box.writeBool(key: 'isPosDefault', value: false);
-    ProxyService.box.writeBool(key: 'isOrdersDefault', value: value);
+    if (value) _box.writeBool(key: 'isPosDefault', value: false);
+    _box.writeBool(key: 'isOrdersDefault', value: value);
   }
 
   static bool autoAddSearch() =>
-      ProxyService.box.readBool(key: 'enableAutoAddSearch') ?? false;
+      _box.readBool(key: 'enableAutoAddSearch') ?? false;
 
   static Future<void> setAutoAddSearch(bool value) async {
     await DittoSyncCoordinator.instance.hydrate<Stock>();
-    await ProxyService.box.writeBool(key: 'enableAutoAddSearch', value: value);
+    await _box.writeBool(key: 'enableAutoAddSearch', value: value);
   }
 
   static Future<void> setPriceQuantityAdjustment(bool value) =>
       _settings.togglePriceQuantityAdjustment(
         enabled: value,
-        businessId: ProxyService.box.getBusinessId()!,
+        businessId: _box.getBusinessId()!,
       );
 
-  static Future<void> setCurrencyDecimal(bool value) =>
-      _settings.toggleCurrencyDecimal(
-        enabled: value,
-        businessId: ProxyService.box.getBusinessId()!,
-      );
+  static Future<void> setCurrencyDecimal(bool value) => _settings
+      .toggleCurrencyDecimal(enabled: value, businessId: _box.getBusinessId()!);
 
   static Future<void> setTicketReviewWorkflow(bool value) =>
       _settings.toggleTicketReviewWorkflow(
         enabled: value,
-        businessId: ProxyService.box.getBusinessId()!,
+        businessId: _box.getBusinessId()!,
       );
+
+  static Future<void> setSaleExchange(bool value) => _settings
+      .toggleSaleExchange(enabled: value, businessId: _box.getBusinessId()!);
 
   /// Turning the PIN on sets one first if there is none; turning it off asks
   /// for the current one.
@@ -61,7 +63,7 @@ abstract final class AdminActions {
     bool value,
   ) async {
     final settings = _settings;
-    final businessId = ProxyService.box.getBusinessId()!;
+    final businessId = _box.getBusinessId()!;
     final setting = await settings.settings();
     if (!context.mounted) return;
     if (value) {

@@ -6,6 +6,7 @@ import 'package:flipper_models/helperModels/transaction_report_snapshot.dart';
 import 'package:flipper_models/helperModels/transaction_report_kpi_totals.dart';
 import 'package:flipper_models/helpers/transaction_report_payment_totals.dart';
 import 'package:flipper_models/helpers/transaction_report_plu_filters.dart';
+import 'package:flipper_models/helpers/sale_exchange.dart';
 import 'package:flipper_models/providers/active_branch_provider.dart';
 import 'package:flipper_models/providers/date_range_provider.dart';
 import 'package:flipper_models/sync/capella/capella_sync.dart';
@@ -427,6 +428,9 @@ Future<TransactionReportKpiTotals> transactionReportKpiTotals(Ref ref) async {
 
   // --- Pass 1: the report-scope transactions, paged like the grid. ---
   final saleIds = <String>{};
+  // Item-exchange returns: money and units that went back (see
+  // `isExchangeReturn`). Plain refunds are read as they always were.
+  final exchangeReturnIds = <String>{};
   var periodByHand = 0.0;
   var periodCredit = 0.0;
   var periodOwed = 0.0;
@@ -457,6 +461,14 @@ Future<TransactionReportKpiTotals> transactionReportKpiTotals(Ref ref) async {
     for (final tx in scoped) {
       if (tx.isExpense == true) {
         periodExpense += tx.subTotal ?? 0.0;
+        continue;
+      }
+      if (isExchangeReturn(tx)) {
+        final back = tx.subTotal ?? 0.0;
+        periodSubtotal -= back;
+        periodByHand -= back;
+        saleIds.add(tx.id.toString());
+        exchangeReturnIds.add(tx.id.toString());
         continue;
       }
       if (tx.receiptType == TransactionType.cashIn) {
@@ -491,7 +503,11 @@ Future<TransactionReportKpiTotals> transactionReportKpiTotals(Ref ref) async {
       endDate: endDate,
       branchId: branchIdForPlu,
     );
-    plu = sumReportScopedPluLines(lines: periodLines, saleIds: saleIds);
+    plu = sumReportScopedPluLines(
+      lines: periodLines,
+      saleIds: saleIds,
+      negativeSaleIds: exchangeReturnIds,
+    );
     talker.debug(
       'transactionReportKpiTotals: ${periodLines.length} raw lines → '
       '${saleIds.length} in-scope sales, gross=${plu.grossProfit}',
@@ -564,7 +580,8 @@ Stream<double> grossProfitStream(
     final income = all.where(
       (tx) => !(tx.isExpense ?? false) && !(tx.isRefunded ?? false),
     );
-    return income.fold<double>(0.0, (sum, tx) => sum + (tx.subTotal ?? 0.0));
+    // Exchange returns count negative; every other row is its subTotal.
+    return income.fold<double>(0.0, (sum, tx) => sum + signedSubTotal(tx));
   });
 }
 
@@ -602,7 +619,7 @@ Stream<double> netProfitStream(
 
     final totalIncome = income.fold<double>(
       0.0,
-      (sum, tx) => sum + (tx.subTotal ?? 0.0),
+      (sum, tx) => sum + signedSubTotal(tx),
     );
 
     final totalExpenses = expenses.fold<double>(
@@ -612,13 +629,13 @@ Stream<double> netProfitStream(
 
     final totalTax = income.fold<double>(
       0.0,
-      (sum, tx) => sum + (tx.taxAmount ?? 0.0),
+      (sum, tx) => sum + exchangeSign(tx) * (tx.taxAmount ?? 0.0),
     );
 
     // Simplified COGS: 60 % of revenue — avoids item-by-item lookups.
     final totalCOGS = income.fold<double>(
       0.0,
-      (sum, tx) => sum + ((tx.subTotal ?? 0.0) * 0.6),
+      (sum, tx) => sum + signedSubTotal(tx) * 0.6,
     );
 
     final net = totalIncome - totalCOGS - totalExpenses - totalTax;
@@ -658,7 +675,8 @@ Stream<double> totalIncomeStream(
     forceRealData: forceRealData,
   ).map((all) {
     final income = all.where((tx) => !(tx.isExpense ?? false));
-    return income.fold<double>(0.0, (sum, tx) => sum + (tx.subTotal ?? 0.0));
+    // Exchange returns count negative; every other row is its subTotal.
+    return income.fold<double>(0.0, (sum, tx) => sum + signedSubTotal(tx));
   });
 }
 

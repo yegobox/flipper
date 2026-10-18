@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flipper_dashboard/data_view_reports/DynamicDataSource.dart';
+import 'package:flipper_models/helpers/sale_exchange.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_dashboard/export/transaction_report_full_export_loader.dart';
@@ -275,9 +276,9 @@ class PLUReport {
     required DateTime startDate,
     required DateTime endDate,
   }) async {
-    final business = await ProxyService.getStrategy(Strategy.capella).getBusiness(
-      businessId: ProxyService.box.getBusinessId()!,
-    );
+    final business = await ProxyService.getStrategy(
+      Strategy.capella,
+    ).getBusiness(businessId: ProxyService.box.getBusinessId()!);
 
     // Fetch transactions with their items (Capella-backed; see helper docs).
     final transactionsWithItems = await loadTransactionsWithItemsForReport(
@@ -287,6 +288,12 @@ class PLUReport {
       forceRealData: !(ProxyService.box.enableDebug() ?? false),
       status: COMPLETE,
     );
+
+    // Lines of item-exchange returns came back: they reduce the sold qty.
+    final exchangeReturnIds = {
+      for (final twi in transactionsWithItems)
+        if (isExchangeReturn(twi.transaction)) twi.transaction.id.toString(),
+    };
 
     // Extract all transaction items
     final List<TransactionItem> allItems = transactionsWithItems
@@ -316,12 +323,21 @@ class PLUReport {
       if (items.isEmpty) continue;
 
       // Get variant details from database
-      final variant = await ProxyService.getStrategy(Strategy.capella).getVariant(id: variantId);
+      final variant = await ProxyService.getStrategy(
+        Strategy.capella,
+      ).getVariant(id: variantId);
 
       if (variant == null) continue;
       talker.info(variant.id, "${variant.lastTouched}:${variant.name}");
       // Calculate totals
-      final soldQty = items.fold<double>(0, (sum, item) => sum + item.qty);
+      final soldQty = items.fold<double>(
+        0,
+        (sum, item) =>
+            sum +
+            (exchangeReturnIds.contains(item.transactionId)
+                ? -item.qty
+                : item.qty),
+      );
       totalSoldQty += soldQty;
       totalRemaining += variant.stock?.currentStock ?? 0;
 
@@ -347,12 +363,16 @@ class PLUReport {
     document.template.bottom = await ReportTheme.buildFooter(pageSize);
 
     final normalFont = PdfStandardFont(PdfFontFamily.helvetica, 9);
-    final boldFont =
-        PdfStandardFont(PdfFontFamily.helvetica, 9, style: PdfFontStyle.bold);
+    final boldFont = PdfStandardFont(
+      PdfFontFamily.helvetica,
+      9,
+      style: PdfFontStyle.bold,
+    );
     const double margin = ReportTheme.margin;
 
-    final ebm = await ProxyService.getStrategy(Strategy.capella)
-        .ebm(branchId: ProxyService.box.getBranchId()!);
+    final ebm = await ProxyService.getStrategy(
+      Strategy.capella,
+    ).ebm(branchId: ProxyService.box.getBranchId()!);
 
     final DateFormat periodFmt = DateFormat('MMMM dd, yyyy');
     double yPosition = ReportTheme.drawHeader(

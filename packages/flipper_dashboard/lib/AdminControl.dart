@@ -644,6 +644,14 @@ class _AdminControlState extends ConsumerState<AdminControl> {
             value: settingsService.enableTicketReviewWorkflow,
             onChanged: toggleTicketReviewWorkflow,
           ),
+          _SettingItem(
+            title: l10n.adminSaleExchangeTitle,
+            subtitle: l10n.adminSaleExchangeSubtitle,
+            svg: AdminDashboardSvgs.leadsDollarCurrency,
+            tint: kAdminBarPurple,
+            value: settingsService.enableSaleExchange,
+            onChanged: AdminActions.setSaleExchange,
+          ),
         ],
       ),
       _SettingsGroup(

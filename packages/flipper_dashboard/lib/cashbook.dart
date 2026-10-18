@@ -1,6 +1,7 @@
 // ignore_for_file: unused_result
 
 import 'package:flipper_localize/flipper_localize.dart';
+import 'package:flipper_models/helpers/sale_exchange.dart';
 import 'dart:async';
 
 import 'package:flipper_dashboard/DateCoreWidget.dart';
@@ -358,14 +359,20 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
   }
 
   CashbookListEntry _toListEntry(ITransaction t) {
-    final kind = classifyCashbookEntry(
-      receiptType: t.receiptType,
-      transactionType: t.transactionType,
-      isIncome: t.isIncome,
-    );
+    // An item-exchange return is money handed back: it lists as money out.
+    final exchangeReturn = isExchangeReturn(t);
+    final kind = exchangeReturn
+        ? CashbookEntryKind.cashOut
+        : classifyCashbookEntry(
+            receiptType: t.receiptType,
+            transactionType: t.transactionType,
+            isIncome: t.isIncome,
+          );
     final labels = cashbookRowLabels(
       kind: kind,
-      transactionType: t.transactionType,
+      transactionType: exchangeReturn
+          ? FlipperL10n.current.exchangeBadge
+          : t.transactionType,
       note: t.note,
     );
     return CashbookListEntry(

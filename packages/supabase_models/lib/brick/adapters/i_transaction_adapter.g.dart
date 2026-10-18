@@ -462,6 +462,9 @@ Future<ITransaction> _$ITransactionFromSqlite(
     isOriginalTransaction: data['is_original_transaction'] == null
         ? null
         : data['is_original_transaction'] == 1,
+    exchangeId: data['exchange_id'] == null
+        ? null
+        : data['exchange_id'] as String?,
     taxAmount: data['tax_amount'] == null ? null : data['tax_amount'] as num?,
     numberOfItems: data['number_of_items'] == null
         ? null
@@ -633,6 +636,7 @@ Future<Map<String, dynamic>> _$ITransactionToSqlite(
     'is_original_transaction': instance.isOriginalTransaction == null
         ? null
         : (instance.isOriginalTransaction! ? 1 : 0),
+    'exchange_id': instance.exchangeId,
     'tax_amount': instance.taxAmount,
     'number_of_items': instance.numberOfItems,
     'discount_amount': instance.discountAmount,
@@ -1314,6 +1318,12 @@ class ITransactionAdapter
       columnName: 'is_original_transaction',
       iterable: false,
       type: bool,
+    ),
+    'exchangeId': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'exchange_id',
+      iterable: false,
+      type: String,
     ),
     'taxAmount': const RuntimeSqliteColumnDefinition(
       association: false,

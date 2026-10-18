@@ -44,6 +44,13 @@ class Setting extends OfflineFirstWithSupabaseModel {
   /// instead of completing immediately.
   bool? enableTicketReviewWorkflow;
 
+  /// Item exchange (opt-in, default off). When enabled, a completed sale shows
+  /// "Exchange item": the customer brings items back and takes others, and the
+  /// price difference is paid or given back. The original sale is never edited.
+  /// Lives in Ditto `settings` (read by `getSetting`); not pushed to Supabase.
+  @Supabase(ignore: true)
+  bool? enableSaleExchange;
+
   DateTime? lastTouched;
 
   DateTime? deletedAt;
@@ -72,6 +79,7 @@ class Setting extends OfflineFirstWithSupabaseModel {
     this.isCurrencyDecimal,
     this.allowSellingBelowStock,
     this.enableTicketReviewWorkflow,
+    this.enableSaleExchange,
     this.lastTouched,
     this.deletedAt,
   }) : id = id ?? const Uuid().v4();
@@ -102,11 +110,10 @@ class Setting extends OfflineFirstWithSupabaseModel {
       enablePriceQuantityAdjustment:
           json['enablePriceQuantityAdjustment'] as bool?,
       isCurrencyDecimal: json['isCurrencyDecimal'] as bool?,
-      allowSellingBelowStock:
-          json['allowSellingBelowStock'] as bool? ??
-              json['allow_selling_below_stock'] as bool?,
-      enableTicketReviewWorkflow:
-          json['enableTicketReviewWorkflow'] as bool?,
+      allowSellingBelowStock: json['allowSellingBelowStock'] as bool? ??
+          json['allow_selling_below_stock'] as bool?,
+      enableTicketReviewWorkflow: json['enableTicketReviewWorkflow'] as bool?,
+      enableSaleExchange: json['enableSaleExchange'] as bool?,
       lastTouched: json['lastTouched'] != null
           ? DateTime.tryParse(json['lastTouched'] as String)
           : null,
@@ -143,6 +150,7 @@ class Setting extends OfflineFirstWithSupabaseModel {
       'isCurrencyDecimal': isCurrencyDecimal,
       'allowSellingBelowStock': allowSellingBelowStock,
       'enableTicketReviewWorkflow': enableTicketReviewWorkflow,
+      'enableSaleExchange': enableSaleExchange,
       'lastTouched': lastTouched?.toIso8601String(),
       'deletedAt': deletedAt?.toIso8601String(),
     };

@@ -177,6 +177,9 @@ Future<Setting> _$SettingFromSqlite(
     enableTicketReviewWorkflow: data['enable_ticket_review_workflow'] == null
         ? null
         : data['enable_ticket_review_workflow'] == 1,
+    enableSaleExchange: data['enable_sale_exchange'] == null
+        ? null
+        : data['enable_sale_exchange'] == 1,
     lastTouched: data['last_touched'] == null
         ? null
         : data['last_touched'] == null
@@ -246,6 +249,9 @@ Future<Map<String, dynamic>> _$SettingToSqlite(
     'enable_ticket_review_workflow': instance.enableTicketReviewWorkflow == null
         ? null
         : (instance.enableTicketReviewWorkflow! ? 1 : 0),
+    'enable_sale_exchange': instance.enableSaleExchange == null
+        ? null
+        : (instance.enableSaleExchange! ? 1 : 0),
     'last_touched': instance.lastTouched?.toIso8601String(),
     'deleted_at': instance.deletedAt?.toIso8601String(),
   };
@@ -519,6 +525,12 @@ class SettingAdapter extends OfflineFirstWithSupabaseAdapter<Setting> {
     'enableTicketReviewWorkflow': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'enable_ticket_review_workflow',
+      iterable: false,
+      type: bool,
+    ),
+    'enableSaleExchange': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'enable_sale_exchange',
       iterable: false,
       type: bool,
     ),

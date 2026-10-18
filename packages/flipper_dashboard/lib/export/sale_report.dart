@@ -5,6 +5,7 @@ import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_dashboard/export/transaction_report_full_export_loader.dart';
 import 'package:flipper_dashboard/export/utils/report_theme.dart';
 import 'package:flipper_localize/flipper_localize.dart';
+import 'package:flipper_models/helpers/sale_exchange.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
@@ -40,9 +41,11 @@ class SaleReport {
     double averageTransactionValue = 0.0;
 
     for (final twi in transactionsWithItems) {
-      totalAmount += twi.transaction.subTotal ?? 0.0;
+      // Item-exchange returns subtract (see `isExchangeReturn`).
+      final sign = exchangeSign(twi.transaction);
+      totalAmount += sign * (twi.transaction.subTotal ?? 0.0);
       for (final item in twi.items) {
-        totalVatAmount += item.taxAmt ?? 0.0;
+        totalVatAmount += sign * (item.taxAmt ?? 0.0);
       }
     }
 
@@ -196,14 +199,15 @@ class SaleReport {
         row.cells[5].value = '-';
       }
 
-      row.cells[6].value = (t.subTotal ?? 0).toStringAsFixed(2);
+      final sign = exchangeSign(t);
+      row.cells[6].value = (sign * (t.subTotal ?? 0)).toStringAsFixed(2);
 
       // Calculate VAT from item-level taxAmt for consistency with header totals
       double taxAmount = items.fold<double>(
         0.0,
         (sum, item) => sum + (item.taxAmt ?? 0.0),
       );
-      row.cells[7].value = taxAmount.toStringAsFixed(2);
+      row.cells[7].value = (sign * taxAmount).toStringAsFixed(2);
       row.cells[8].value = t.receiptType ?? l10n.reportStandard;
 
       // Style individual cells

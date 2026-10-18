@@ -3248,6 +3248,136 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
       'Require reviewer sign-off and stock-manager handover before a paid ticket is fully completed';
 
   @override
+  String get adminSaleExchangeTitle => 'Item exchange';
+
+  @override
+  String get adminSaleExchangeSubtitle =>
+      'Let customers bring items back from a completed sale and take others. Stock, sales and the books stay correct.';
+
+  @override
+  String get exchangeItemButton => 'Exchange item';
+
+  @override
+  String exchangeStepOf(int step, int total) {
+    return 'Step $step of $total';
+  }
+
+  @override
+  String get exchangeBringingBackTitle => 'What is the customer bringing back?';
+
+  @override
+  String get exchangeTakingTitle => 'What are they taking instead?';
+
+  @override
+  String get exchangeMoneyTitle => 'Money';
+
+  @override
+  String get exchangeAlreadyExchanged => 'Already exchanged';
+
+  @override
+  String get exchangeSearchHint => 'Search items';
+
+  @override
+  String get exchangeOutOfStock => 'Out of stock';
+
+  @override
+  String exchangeCustomerPays(String amount) {
+    return 'Customer pays $amount';
+  }
+
+  @override
+  String exchangeGiveBack(String amount) {
+    return 'Give back to customer $amount';
+  }
+
+  @override
+  String get exchangeNothingToPay => 'Nothing to pay';
+
+  @override
+  String exchangeBreakdown(String back, String taken) {
+    return 'Bringing back $back · Taking $taken';
+  }
+
+  @override
+  String get exchangeHowPaid => 'How is the money paid?';
+
+  @override
+  String get exchangeConfirm => 'Confirm exchange';
+
+  @override
+  String get exchangeNext => 'Next';
+
+  @override
+  String get exchangeBack => 'Back';
+
+  @override
+  String get exchangeDone => 'Exchange done';
+
+  @override
+  String get exchangePrintReceipts => 'Print receipts';
+
+  @override
+  String get exchangeClose => 'Close';
+
+  @override
+  String exchangeBanner(int count, String date) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items exchanged on $date',
+      one: '1 item exchanged on $date',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get exchangeBadge => 'Exchange';
+
+  @override
+  String get exchangeFinish => 'Finish exchange';
+
+  @override
+  String get exchangeFinishHint => 'The new receipt is still waiting for RRA.';
+
+  @override
+  String get exchangeNoItemsYet => 'No items chosen yet';
+
+  @override
+  String get exchangeChooseReturn =>
+      'Choose at least one item the customer is bringing back';
+
+  @override
+  String get exchangeChooseTake =>
+      'Choose at least one item the customer is taking';
+
+  @override
+  String get exchangeMoreThanBought => 'That is more than the customer bought.';
+
+  @override
+  String get exchangeRraFailed =>
+      'Couldn\'t reach RRA. Nothing was changed. Try again.';
+
+  @override
+  String get exchangeFailedNothingChanged =>
+      'Something went wrong. Nothing was changed. Try again.';
+
+  @override
+  String get exchangePartlySaved =>
+      'The exchange was only partly saved. Check this sale and the stock before trying again.';
+
+  @override
+  String get exchangeOnlyNormalSales =>
+      'Only a normal completed sale can be exchanged.';
+
+  @override
+  String get exchangeNotInTrainingOrProforma =>
+      'Turn off training or proforma mode to exchange items.';
+
+  @override
+  String get refundBlockedAfterExchange =>
+      'Items from this sale were exchanged, so it can\'t be refunded.';
+
+  @override
   String get adminGroupTaxCompliance => 'Tax & compliance';
 
   @override

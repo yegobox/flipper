@@ -275,6 +275,7 @@ class ITransactionDittoAdapter extends DittoSyncAdapter<ITransaction> {
       lastPaymentAmount: document["lastPaymentAmount"],
       originalTransactionId: document["originalTransactionId"],
       isOriginalTransaction: document["isOriginalTransaction"],
+      exchangeId: null, // Excluded from Ditto sync
       taxAmount: document["taxAmount"],
       numberOfItems: document["numberOfItems"],
       discountAmount: document["discountAmount"],

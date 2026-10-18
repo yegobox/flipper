@@ -438,7 +438,11 @@ class TaxController<OBJ> {
           key: 'enableTransactionDelegation',
         );
         try {
+          // Exchanges sign on this device: the return and the new sale must
+          // both be signed before the exchange is written (see
+          // SaleExchangeService), which a delegated job cannot promise.
           if (allowDelegationFallback &&
+              transaction.exchangeId == null &&
               enableTransactionDelegation != null &&
               enableTransactionDelegation &&
               ProxyService.box.selectedDelegationDeviceId() != null) {
@@ -1019,7 +1023,17 @@ class TaxController<OBJ> {
 
         /// update transaction with receipt number and total receipt number
 
-        if (receiptType == "CR" ||
+        if (receiptType == "NR" && transaction.exchangeId != null) {
+          // Item exchange return: [transaction] already IS the return
+          // transaction (its own id, only the returned lines, its own totals),
+          // built and persisted by SaleExchangeService after this returns.
+          // Only record what RRA assigned; never copy the original's lines.
+          transaction.receiptType = receiptType;
+          transaction.receiptNumber = usedInvcNo;
+          transaction.totalReceiptNumber = usedInvcNo;
+          transaction.invoiceNumber = usedInvcNo;
+          transaction.ebmSynced = true;
+        } else if (receiptType == "CR" ||
             receiptType == "NR" ||
             receiptType == "TR" ||
             receiptType == "CS") {

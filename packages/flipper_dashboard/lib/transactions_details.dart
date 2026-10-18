@@ -2,7 +2,11 @@ import 'dart:developer';
 
 import 'package:flipper_design_system/flipper_design_system.dart';
 import 'package:flipper_localize/flipper_localize.dart';
+import 'package:flipper_dashboard/features/branch_location/branch_services.dart';
+import 'package:flipper_dashboard/features/exchange/sale_exchange_flow.dart';
+import 'package:flipper_dashboard/services/sale_exchange_service.dart';
 import 'package:flipper_dashboard/services/transaction_receipt_actions_service.dart';
+import 'package:flipper_dashboard/utils/ebm_receipt_gate.dart';
 import 'package:flipper_dashboard/services/transaction_refund_helpers.dart';
 import 'package:flipper_dashboard/widgets/mpos/mpos_press_button.dart';
 import 'package:flipper_dashboard/widgets/mpos/mpos_states.dart';
@@ -10,14 +14,14 @@ import 'package:flipper_dashboard/widgets/transaction_detail_sheets.dart';
 import 'package:flipper_dashboard/cashbook_form_rules.dart';
 import 'package:flipper_dashboard/widgets/cashbook_svgs.dart';
 import 'package:flipper_dashboard/widgets/transaction_detail_svgs.dart';
-import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/helpers/sale_exchange.dart';
 import 'package:flipper_models/providers/access_provider.dart';
 import 'package:flipper_models/providers/currency_provider.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/payment_methods.dart';
-import 'package:flipper_services/proxy.dart';
+import 'package:flipper_services/setting_service.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -98,16 +102,81 @@ class _TransactionDetailState extends ConsumerState<TransactionDetail> {
   String get _referenceLabel => _formatReference(_transaction);
 
   final _receiptActions = TransactionReceiptActionsService();
+  final _exchange = SaleExchangeService();
+
+  BranchServices get _services => ref.read(branchServicesProvider);
+
+  // Units of this sale already exchanged, and when (original sales only).
+  double _exchangedUnits = 0;
+  DateTime? _lastExchangeAt;
+  // The new sale of an exchange whose receipt RRA has not signed yet.
+  bool _saleAwaitingRra = false;
+  bool _finishingExchange = false;
+
+  bool get _exchangeEnabled => locator<SettingsService>().enableSaleExchange;
+
+  // Refund and exchange are mutations — only offered to users with
+  // Transactions edit (write/admin) access.
+  bool _hasWriteAccess() => ref.read(
+    featureAccessProvider(
+      userId: _services.box.getUserId() ?? '',
+      featureName: AppFeature.Transactions,
+    ),
+  );
+
+  bool get _canExchange =>
+      _exchangeEnabled &&
+      SaleExchangeService.blockReason(_transaction) == null &&
+      _hasWriteAccess();
+
+  Future<void> _openExchange() async {
+    final result = await showSaleExchangeFlow(
+      context,
+      transaction: _transaction,
+      currency: ref.read(defaultCurrencyProvider),
+      service: _exchange,
+    );
+    if (result != null && mounted) await _loadExchangeInfo();
+  }
+
+  Future<void> _loadExchangeInfo() async {
+    final tx = _transaction;
+    try {
+      if (tx.exchangeId != null) {
+        final awaiting =
+            !isExchangeReturn(tx) &&
+            tx.receiptNumber == null &&
+            await ebmWillSignReceipt();
+        if (mounted) setState(() => _saleAwaitingRra = awaiting);
+        return;
+      }
+      if (!_exchangeEnabled) return;
+      final lines = await _exchange.priorReturnLines(tx);
+      if (!mounted || lines.isEmpty) return;
+      setState(() {
+        _exchangedUnits = lines.fold(0, (s, l) => s + l.qty.toDouble());
+        _lastExchangeAt = lines
+            .map((l) => l.createdAt)
+            .whereType<DateTime>()
+            .fold<DateTime?>(null, (a, b) => a == null || b.isAfter(a) ? b : a);
+      });
+    } catch (e, st) {
+      log('transaction detail exchange info: $e', stackTrace: st);
+    }
+  }
+
+  Future<void> _finishExchange() async {
+    setState(() => _finishingExchange = true);
+    final bytes = await _exchange.signSale(_transaction);
+    if (!mounted) return;
+    setState(() {
+      _finishingExchange = false;
+      if (bytes != null) _saleAwaitingRra = false;
+    });
+  }
 
   Future<void> _openMoreActions() async {
-    // Refund is a mutation — only offer it to users with Transactions edit
-    // (write/admin) access. Read-only viewers get the receipt actions only.
-    final hasWriteAccess = ref.read(
-      featureAccessProvider(
-        userId: ProxyService.box.getUserId() ?? '',
-        featureName: AppFeature.Transactions,
-      ),
-    );
+    final hasWriteAccess = _hasWriteAccess();
     // Offer the refund row to editors; sheet/service block credit & unpaid sales.
     await showTransactionActionsSheet(
       context: context,
@@ -145,7 +214,10 @@ class _TransactionDetailState extends ConsumerState<TransactionDetail> {
   Widget build(BuildContext context) {
     return ViewModelBuilder<CoreViewModel>.reactive(
       viewModelBuilder: () => CoreViewModel(),
-      onViewModelReady: (model) => _loadItems(model),
+      onViewModelReady: (model) {
+        _loadItems(model);
+        _loadExchangeInfo();
+      },
       builder: (context, model, child) {
         final items = model.completedTransactionItemsList;
         final palette = _paletteFor(_direction);
@@ -174,6 +246,26 @@ class _TransactionDetailState extends ConsumerState<TransactionDetail> {
                         direction: _direction,
                         palette: palette,
                       ),
+                      if (_exchangedUnits > 0 && _lastExchangeAt != null)
+                        _ExchangeNote(
+                          text: context.flipperL10n.exchangeBanner(
+                            _exchangedUnits.round(),
+                            DateFormat(
+                              'd MMM',
+                            ).format(_lastExchangeAt!.toLocal()),
+                          ),
+                        ),
+                      if (_transaction.exchangeId != null)
+                        _ExchangeNote(
+                          text: _saleAwaitingRra
+                              ? context.flipperL10n.exchangeFinishHint
+                              : context.flipperL10n.exchangeBadge,
+                          actionLabel: _saleAwaitingRra
+                              ? context.flipperL10n.exchangeFinish
+                              : null,
+                          busy: _finishingExchange,
+                          onAction: _finishExchange,
+                        ),
                       _TxExpandableSection(
                         iconSvg: TransactionDetailSvgs.cart(),
                         iconTone: _SectionIconTone.blue,
@@ -222,6 +314,7 @@ class _TransactionDetailState extends ConsumerState<TransactionDetail> {
                   ),
                 ),
                 _TxDetailFooter(
+                  onExchange: _canExchange ? _openExchange : null,
                   onMoreActions: _openMoreActions,
                   onInvoice: () => _receiptActions.viewInvoice(
                     context,
@@ -245,15 +338,14 @@ class _TransactionDetailState extends ConsumerState<TransactionDetail> {
       });
     }
     try {
-      final activeBranch = await ProxyService.strategy.activeBranch(
-        branchId: ProxyService.box.getBranchId()!,
+      final activeBranch = await _services.strategy.activeBranch(
+        branchId: _services.box.getBranchId()!,
       );
-      final items = await ProxyService.getStrategy(Strategy.capella)
-          .transactionItems(
-            branchId: activeBranch.id,
-            transactionId: _transaction.id,
-            fetchRemote: true,
-          );
+      final items = await _services.strategy.transactionItems(
+        branchId: activeBranch.id,
+        transactionId: _transaction.id,
+        fetchRemote: true,
+      );
       model.completedTransactionItemsList = items;
       _items = items;
       if (mounted) setState(() => _itemsLoading = false);
@@ -420,10 +512,17 @@ class _TxDetailHeader extends StatelessWidget {
 }
 
 class _TxDetailFooter extends StatelessWidget {
-  const _TxDetailFooter({required this.onMoreActions, required this.onInvoice});
+  const _TxDetailFooter({
+    required this.onMoreActions,
+    required this.onInvoice,
+    this.onExchange,
+  });
 
   final VoidCallback onMoreActions;
   final VoidCallback onInvoice;
+
+  /// Null hides the button (exchange off, not allowed, or not a sale).
+  final VoidCallback? onExchange;
 
   @override
   Widget build(BuildContext context) {
@@ -438,30 +537,49 @@ class _TxDetailFooter extends StatelessWidget {
         color: _TxDetailColors.surface,
         border: Border(top: BorderSide(color: _TxDetailColors.line)),
       ),
-      child: Row(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Expanded(
-            flex: 10,
-            child: MposPressButton(
-              onPressed: onMoreActions,
+          // Its own full-width row so the label is never cut short on a
+          // phone, and so it is not hidden in a menu.
+          if (onExchange != null) ...[
+            MposPressButton(
+              onPressed: onExchange,
               child: _FooterButton(
                 ghost: true,
-                icon: TransactionDetailSvgs.more(),
-                label: context.flipperL10n.txDetailMoreActions,
+                outlinedBlue: true,
+                icon: TransactionDetailSvgs.swap(),
+                label: context.flipperL10n.exchangeItemButton,
               ),
             ),
-          ),
-          const SizedBox(width: 11),
-          Expanded(
-            flex: 13,
-            child: MposPressButton(
-              onPressed: onInvoice,
-              child: _FooterButton(
-                ghost: false,
-                icon: TransactionDetailSvgs.receipt(),
-                label: context.flipperL10n.invoice,
+            const SizedBox(height: 10),
+          ],
+          Row(
+            children: [
+              Expanded(
+                flex: 10,
+                child: MposPressButton(
+                  onPressed: onMoreActions,
+                  child: _FooterButton(
+                    ghost: true,
+                    icon: TransactionDetailSvgs.more(),
+                    label: context.flipperL10n.txDetailMoreActions,
+                  ),
+                ),
               ),
-            ),
+              const SizedBox(width: 11),
+              Expanded(
+                flex: 13,
+                child: MposPressButton(
+                  onPressed: onInvoice,
+                  child: _FooterButton(
+                    ghost: false,
+                    icon: TransactionDetailSvgs.receipt(),
+                    label: context.flipperL10n.invoice,
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -474,11 +592,15 @@ class _FooterButton extends StatelessWidget {
     required this.ghost,
     required this.icon,
     required this.label,
+    this.outlinedBlue = false,
   });
 
   final bool ghost;
   final String icon;
   final String label;
+
+  /// Secondary action beside the filled one: blue tint with a blue border.
+  final bool outlinedBlue;
 
   @override
   Widget build(BuildContext context) {
@@ -488,7 +610,9 @@ class _FooterButton extends StatelessWidget {
       child: DecoratedBox(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(15),
-          color: ghost ? _TxDetailColors.surface2 : null,
+          color: outlinedBlue
+              ? _TxDetailColors.blueTint
+              : (ghost ? _TxDetailColors.surface2 : null),
           gradient: ghost
               ? null
               : const LinearGradient(
@@ -497,7 +621,12 @@ class _FooterButton extends StatelessWidget {
                   colors: [Color(0xFF3B82F6), Color(0xFF2563EB)],
                 ),
           border: ghost
-              ? Border.all(color: _TxDetailColors.line, width: 1.5)
+              ? Border.all(
+                  color: outlinedBlue
+                      ? _TxDetailColors.blue
+                      : _TxDetailColors.line,
+                  width: 1.5,
+                )
               : null,
           boxShadow: ghost
               ? null
@@ -515,7 +644,9 @@ class _FooterButton extends StatelessWidget {
             TransactionDetailSvgs.icon(
               icon,
               size: 18,
-              color: ghost ? _TxDetailColors.ink2 : Colors.white,
+              color: outlinedBlue
+                  ? _TxDetailColors.blue
+                  : (ghost ? _TxDetailColors.ink2 : Colors.white),
             ),
             const SizedBox(width: 9),
             Flexible(
@@ -526,7 +657,9 @@ class _FooterButton extends StatelessWidget {
                 style: GoogleFonts.outfit(
                   fontSize: 15,
                   fontWeight: FontWeight.w700,
-                  color: ghost ? _TxDetailColors.ink2 : Colors.white,
+                  color: outlinedBlue
+                      ? _TxDetailColors.blue
+                      : (ghost ? _TxDetailColors.ink2 : Colors.white),
                 ),
               ),
             ),
@@ -800,6 +933,73 @@ class _TxHeroCard extends ConsumerWidget {
                 ],
               ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// A calm blue note under the hero card: "1 item exchanged on 18 Oct" on the
+/// sale, "Exchange" on the two new rows, or "Finish exchange" when the new
+/// sale's receipt still waits for RRA.
+class _ExchangeNote extends StatelessWidget {
+  const _ExchangeNote({
+    required this.text,
+    this.actionLabel,
+    this.onAction,
+    this.busy = false,
+  });
+
+  final String text;
+  final String? actionLabel;
+  final VoidCallback? onAction;
+  final bool busy;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: _TxDetailColors.blueTint,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: const Color(0xFFCFE0FD)),
+        ),
+        child: Row(
+          children: [
+            TransactionDetailSvgs.icon(
+              TransactionDetailSvgs.swap(),
+              size: 18,
+              color: _TxDetailColors.blue,
+            ),
+            const SizedBox(width: 11),
+            Expanded(
+              child: Text(
+                text,
+                style: GoogleFonts.outfit(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: _TxDetailColors.ink2,
+                ),
+              ),
+            ),
+            if (actionLabel != null)
+              TextButton(
+                onPressed: busy ? null : onAction,
+                style: TextButton.styleFrom(
+                  minimumSize: const Size(48, 48),
+                  foregroundColor: _TxDetailColors.blue,
+                ),
+                child: busy
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : Text(actionLabel!),
+              ),
           ],
         ),
       ),

@@ -1,3 +1,4 @@
+import 'package:flipper_dashboard/services/sale_exchange_service.dart';
 import 'package:flipper_dashboard/services/transaction_refund_helpers.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/SyncStrategy.dart';
@@ -112,6 +113,26 @@ class TransactionRefundService {
     }
   }
 
+  /// A sale with item exchanges cannot also be refunded: the exchanged items
+  /// were already credited. Only sales with exchanges are affected; if the
+  /// lookup itself fails the refund goes ahead as it always did.
+  Future<void> rejectIfExchanged(ITransaction transaction) async {
+    bool exchanged;
+    try {
+      exchanged = await SaleExchangeService(
+        talker: _talker,
+      ).hasExchanges(transaction);
+    } catch (e) {
+      _talker.warning('Exchange lookup before refund skipped: $e');
+      return;
+    }
+    if (exchanged) {
+      throw TransactionRefundException(
+        FlipperL10n.current.refundBlockedAfterExchange,
+      );
+    }
+  }
+
   Future<void> restoreStock({
     required String transactionId,
     required double refundAmount,
@@ -199,6 +220,7 @@ class TransactionRefundService {
   }) async {
     final transaction = request.transaction;
     validateCanRefund(transaction);
+    await rejectIfExchanged(transaction);
 
     final originalTotal = transaction.subTotal ?? 0;
     if (request.refundAmount <= 0) {
@@ -324,6 +346,7 @@ class TransactionRefundService {
     required String receiptType,
   }) async {
     validateCanRefund(transaction);
+    await rejectIfExchanged(transaction);
     final originalTotal = transaction.subTotal ?? 0;
 
     if (receiptType == 'NR') {

@@ -150,6 +150,17 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
   String? originalTransactionId;
   bool? isOriginalTransaction;
 
+  /// Shared by the two transactions of one item exchange: the return
+  /// (receiptType NR, [originalTransactionId] = the sale) and the new sale
+  /// (receiptType NS). Null for every other transaction. See
+  /// `isExchangeReturn` in flipper_models.
+  ///
+  /// Not pushed by Brick: Supabase `transactions.exchange_id` is filled by the
+  /// data-connector's Ditto mirror, so an app release never depends on that
+  /// column existing.
+  @Supabase(ignore: true)
+  String? exchangeId;
+
   num? taxAmount;
   int? numberOfItems;
   // all discount found on this transaction
@@ -278,6 +289,7 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
     num? lastPaymentAmount,
     this.originalTransactionId,
     bool? isOriginalTransaction,
+    this.exchangeId,
     num? taxAmount,
     this.numberOfItems,
     num? discountAmount,
@@ -378,6 +390,7 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
     num? lastPaymentAmount,
     String? originalTransactionId,
     bool? isOriginalTransaction,
+    String? exchangeId,
     num? taxAmount,
     int? numberOfItems,
     num? discountAmount,
@@ -460,6 +473,7 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
           originalTransactionId ?? this.originalTransactionId,
       isOriginalTransaction:
           isOriginalTransaction ?? this.isOriginalTransaction,
+      exchangeId: exchangeId ?? this.exchangeId,
       taxAmount: taxAmount ?? this.taxAmount,
       numberOfItems: numberOfItems ?? this.numberOfItems,
       discountAmount: discountAmount ?? this.discountAmount,
@@ -470,10 +484,8 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
       agentId: agentId ?? this.agentId,
       attributedAgentUserId:
           attributedAgentUserId ?? this.attributedAgentUserId,
-      agentCommissionType:
-          agentCommissionType ?? this.agentCommissionType,
-      agentCommissionValue:
-          agentCommissionValue ?? this.agentCommissionValue,
+      agentCommissionType: agentCommissionType ?? this.agentCommissionType,
+      agentCommissionValue: agentCommissionValue ?? this.agentCommissionValue,
       agentCommissionAmount:
           agentCommissionAmount ?? this.agentCommissionAmount,
       reviewedBy: reviewedBy ?? this.reviewedBy,

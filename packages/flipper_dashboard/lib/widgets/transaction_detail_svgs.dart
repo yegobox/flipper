@@ -21,8 +21,7 @@ class TransactionDetailSvgs {
     );
   }
 
-  static String chevronLeft() =>
-      _strokeIcon('<path d="m15 6-6 6 6 6"/>');
+  static String chevronLeft() => _strokeIcon('<path d="m15 6-6 6 6 6"/>');
 
   static String chevronDown() => _strokeIcon('<path d="m6 9 6 6 6-6"/>');
 
@@ -35,49 +34,44 @@ class TransactionDetailSvgs {
   static String trendDown() =>
       _strokeIcon('<path d="M7 7 17 17"/><path d="M8 17h9V8"/>');
 
-  static String wallet() =>
-      _strokeIcon(
-        '<path d="M3 7a2 2 0 012-2h12v3"/><path d="M3 7v10a2 2 0 002 2h14a1 1 0 001-1V9a1 1 0 00-1-1H5a2 2 0 01-2-2Z"/><circle cx="17" cy="13.5" r="1.3" fill="currentColor" stroke="none"/>',
-      );
+  static String wallet() => _strokeIcon(
+    '<path d="M3 7a2 2 0 012-2h12v3"/><path d="M3 7v10a2 2 0 002 2h14a1 1 0 001-1V9a1 1 0 00-1-1H5a2 2 0 01-2-2Z"/><circle cx="17" cy="13.5" r="1.3" fill="currentColor" stroke="none"/>',
+  );
 
-  static String cart() =>
-      _strokeIcon(
-        '<path d="M3 4h2l2.5 11a2 2 0 002 1.6h7.5a2 2 0 002-1.6L21 8H6"/><circle cx="9" cy="20" r="1.2" fill="currentColor" stroke="none"/><circle cx="18" cy="20" r="1.2" fill="currentColor" stroke="none"/>',
-      );
+  static String cart() => _strokeIcon(
+    '<path d="M3 4h2l2.5 11a2 2 0 002 1.6h7.5a2 2 0 002-1.6L21 8H6"/><circle cx="9" cy="20" r="1.2" fill="currentColor" stroke="none"/><circle cx="18" cy="20" r="1.2" fill="currentColor" stroke="none"/>',
+  );
 
   static String clock() =>
       _strokeIcon('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>');
 
   static String check() => _strokeIcon('<path d="M5 12.5 10 17 19 7.5"/>');
 
-  static String receipt() =>
-      _strokeIcon(
-        '<path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6"/><path d="M9 12h6"/>',
-      );
+  static String receipt() => _strokeIcon(
+    '<path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6"/><path d="M9 12h6"/>',
+  );
 
-  static String share() =>
-      _strokeIcon(
-        '<path d="M4 12v7a1 1 0 001 1h14a1 1 0 001-1v-7"/><path d="m8 8 4-4 4 4"/><path d="M12 4v12"/>',
-      );
+  static String share() => _strokeIcon(
+    '<path d="M4 12v7a1 1 0 001 1h14a1 1 0 001-1v-7"/><path d="m8 8 4-4 4 4"/><path d="M12 4v12"/>',
+  );
 
-  static String chevronRight() =>
-      _strokeIcon('<path d="m9 6 6 6-6 6"/>');
+  static String chevronRight() => _strokeIcon('<path d="m9 6 6 6-6 6"/>');
 
-  static String download() =>
-      _strokeIcon(
-        '<path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/>',
-      );
+  static String download() => _strokeIcon(
+    '<path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/>',
+  );
 
-  static String print() =>
-      _strokeIcon(
-        '<path d="M7 9V3h10v6"/><path d="M5 9h14a2 2 0 012 2v6H3v-6a2 2 0 012-2Z"/><path d="M7 17v4h10v-4"/>',
-      );
+  static String print() => _strokeIcon(
+    '<path d="M7 9V3h10v6"/><path d="M5 9h14a2 2 0 012 2v6H3v-6a2 2 0 012-2Z"/><path d="M7 17v4h10v-4"/>',
+  );
 
-  static String refresh() =>
-      _strokeIcon(
-        '<path d="M4 12a8 8 0 0113.4-5.9"/><path d="M20 4v5h-5"/><path d="M20 12a8 8 0 01-13.4 5.9"/><path d="M4 20v-5h5"/>',
-      );
+  static String refresh() => _strokeIcon(
+    '<path d="M4 12a8 8 0 0113.4-5.9"/><path d="M20 4v5h-5"/><path d="M20 12a8 8 0 01-13.4 5.9"/><path d="M4 20v-5h5"/>',
+  );
 
-  static String closeX() =>
-      _strokeIcon('<path d="M6 6l12 12M18 6 6 18"/>');
+  static String closeX() => _strokeIcon('<path d="M6 6l12 12M18 6 6 18"/>');
+
+  /// Two opposing arrows: one item in, another out (item exchange).
+  static String swap() =>
+      _strokeIcon('<path d="M4 8h14l-4-4"/><path d="M20 16H6l4 4"/>');
 }
