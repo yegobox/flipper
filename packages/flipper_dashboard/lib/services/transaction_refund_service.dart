@@ -48,10 +48,12 @@ class TransactionRefundException implements Exception {
 
 /// Shared refund execution for income detail and legacy [Refund] dialog.
 class TransactionRefundService {
-  TransactionRefundService({Talker? talker})
-    : _talker = talker ?? TalkerFlutter.init();
+  TransactionRefundService({Talker? talker, SaleExchangeService? exchange})
+    : _talker = talker ?? TalkerFlutter.init(),
+      _exchange = exchange;
 
   final Talker _talker;
+  final SaleExchangeService? _exchange;
 
   static Future<bool> showPurchaseCodeDialog(BuildContext context) async {
     var purchaseCodeReceived = false;
@@ -114,17 +116,19 @@ class TransactionRefundService {
   }
 
   /// A sale with item exchanges cannot also be refunded: the exchanged items
-  /// were already credited. Only sales with exchanges are affected; if the
-  /// lookup itself fails the refund goes ahead as it always did.
+  /// were already credited. If the lookup itself fails the refund is blocked
+  /// too: a signed refund cannot be undone, so "unknown" must not credit the
+  /// customer twice.
   Future<void> rejectIfExchanged(ITransaction transaction) async {
     bool exchanged;
     try {
-      exchanged = await SaleExchangeService(
-        talker: _talker,
-      ).hasExchanges(transaction);
+      exchanged = await (_exchange ?? SaleExchangeService(talker: _talker))
+          .hasExchanges(transaction);
     } catch (e) {
-      _talker.warning('Exchange lookup before refund skipped: $e');
-      return;
+      _talker.warning('Exchange lookup before refund failed: $e');
+      throw TransactionRefundException(
+        FlipperL10n.current.refundExchangeCheckFailed,
+      );
     }
     if (exchanged) {
       throw TransactionRefundException(

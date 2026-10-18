@@ -25,6 +25,26 @@ bool isExchangeReturn(ITransaction transaction) {
   return type != null && _refundReceiptTypes.contains(type);
 }
 
+/// Records on an exchange return that RRA accepted it as [invoiceNumber].
+///
+/// Called the moment RRA answers 000, before any local receipt, counter or
+/// PDF work, so the exchange can tell "RRA refused the return" (nothing is
+/// kept) from "RRA has the return and a local step after it failed" (the
+/// return must still be recorded). See [exchangeReturnSignedByRra].
+void markExchangeReturnSigned(ITransaction transaction, int invoiceNumber) {
+  if (!isExchangeReturn(transaction)) return;
+  transaction
+    ..ebmSynced = true
+    ..receiptNumber = invoiceNumber
+    ..totalReceiptNumber = invoiceNumber
+    ..invoiceNumber = invoiceNumber;
+}
+
+/// True once RRA has accepted [transaction], an exchange return, even if
+/// signing then threw (see [markExchangeReturnSigned]).
+bool exchangeReturnSignedByRra(ITransaction transaction) =>
+    isExchangeReturn(transaction) && transaction.ebmSynced == true;
+
 /// -1 for an exchange return (its positive amounts are money going back),
 /// +1 for everything else.
 int exchangeSign(ITransaction transaction) =>

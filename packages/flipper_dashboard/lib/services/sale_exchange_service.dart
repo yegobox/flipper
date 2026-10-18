@@ -10,6 +10,8 @@ import 'package:flipper_models/helpers/sale_exchange.dart';
 import 'package:flipper_models/mixins/TaxController.dart';
 import 'package:flipper_models/sync/capella/capella_sync.dart';
 import 'package:flipper_models/sync/shift_operations.dart';
+import 'package:flipper_models/sync/utils/rra_stock_reporting.dart'
+    show rraSaleStockSnapshotBoxKey;
 import 'package:flipper_services/constants.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 import 'package:uuid/uuid.dart';
@@ -91,10 +93,58 @@ class SaleExchangeResult {
 }
 
 class SaleExchangeException implements Exception {
-  SaleExchangeException(this.message);
+  SaleExchangeException(this.message, {this.resumableExchangeId});
   final String message;
+
+  /// Set when the return is recorded but the new sale is not finished:
+  /// [SaleExchangeService.resumeExchange] with this id completes it.
+  final String? resumableExchangeId;
   @override
   String toString() => message;
+}
+
+/// Takes the new sale's items out of stock. Injectable for tests; the
+/// default does what checkout does (see [SaleExchangeService]).
+typedef ExchangeSaleStockDeduction =
+    Future<void> Function({
+      required List<TransactionItem> lines,
+      required String transactionId,
+      required bool vat,
+      required String businessId,
+    });
+
+/// An exchange whose return RRA already has, and how far its local writes
+/// got. Every step checks it, so finishing it again never repeats work.
+class _PendingExchange {
+  _PendingExchange({
+    required this.exchangeId,
+    required this.ret,
+    required this.returnLines,
+    required this.sale,
+    required this.saleLines,
+    required this.paymentMethod,
+    required this.branchId,
+    required this.businessId,
+    required this.vat,
+    required this.receipts,
+    this.returnCommitted = false,
+  });
+
+  final String exchangeId;
+  final ITransaction ret;
+  final List<TransactionItem> returnLines;
+  ITransaction sale;
+  final List<TransactionItem> saleLines;
+  final String paymentMethod;
+  final String branchId;
+  final String businessId;
+  final bool vat;
+  final List<Uint8List> receipts;
+
+  bool returnCommitted;
+  final Set<String> restoredLineIds = {};
+  bool shiftRefunded = false;
+  bool saleStockDeducted = false;
 }
 
 /// Records an item exchange on a completed sale. See `sale_exchange.dart` in
@@ -103,21 +153,38 @@ class SaleExchangeException implements Exception {
 ///
 /// Order matters, so a failure never leaves half an exchange behind:
 /// 1. the new sale is drafted (invisible: [exchangeDraftStatus]);
-/// 2. on EBM branches RRA signs the return — if it refuses, nothing is kept;
-/// 3. the return is written, its stock put back and the shift credited;
-/// 4. the new sale is completed, its stock taken out, and signed.
+/// 2. on EBM branches RRA signs the return — if it refuses, nothing is kept.
+///    Once RRA has accepted it the exchange is always carried through, even
+///    if building its receipt fails afterwards;
+/// 3. the return's lines are written, its stock put back, the shift
+///    credited, and then the return row itself (so a return row means the
+///    return is complete);
+/// 4. the new sale is completed: totals and payment, stock out, and only then
+///    its status, so a sale still in [exchangeDraftStatus] is unfinished;
+/// 5. on EBM branches the new sale is signed ("Finish exchange" if not).
+///
+/// If 3 or 4 fail the exchange is partly saved. [resumeExchange] finishes
+/// it: in the same session from what is in memory, later from the return row
+/// and the draft sale (found by `exchangeId`, see [unfinishedExchangeId]).
 class SaleExchangeService {
   SaleExchangeService({
     BranchServices services = const BranchServices(),
     Future<bool> Function()? ebmWillSign,
+    ExchangeSaleStockDeduction? deductSaleStock,
     Talker? talker,
   }) : _services = services,
        _ebmWillSign = ebmWillSign ?? ebmWillSignReceipt,
+       _deductSaleStockOverride = deductSaleStock,
        _talker = talker ?? TalkerFlutter.init();
 
   final BranchServices _services;
   final Future<bool> Function() _ebmWillSign;
+  final ExchangeSaleStockDeduction? _deductSaleStockOverride;
   final Talker _talker;
+
+  /// Exchanges of this session past the point of no return (the return is
+  /// signed, or about to be written) and not finished yet.
+  final Map<String, _PendingExchange> _pending = {};
 
   CapellaSync get _capella => _services.strategy as CapellaSync;
 
@@ -187,8 +254,23 @@ class SaleExchangeService {
       throw SaleExchangeException(l10n.exchangeFailedNothingChanged);
     }
 
+    // --- Reads: nothing is written yet, so a failure changes nothing --------
+    final userId = box.getUserId();
+    final List<ExchangeableLine> exchangeable;
+    final String? shiftId;
+    final bool vat;
+    try {
+      exchangeable = await exchangeableLines(original);
+      shiftId = userId == null
+          ? null
+          : (await ShiftOperations().getCurrentShift(userId: userId))?.id;
+      vat = await _ebmWillSign();
+    } catch (e, s) {
+      _talker.error('Exchange lookup failed: $e', s);
+      throw SaleExchangeException(l10n.exchangeFailedNothingChanged);
+    }
+
     // --- What comes back -------------------------------------------------
-    final exchangeable = await exchangeableLines(original);
     final byId = {for (final e in exchangeable) e.line.id: e};
     final picks = request.returns.entries.where((e) => e.value > 0).toList();
     if (picks.isEmpty) throw SaleExchangeException(l10n.exchangeChooseReturn);
@@ -221,15 +303,10 @@ class SaleExchangeService {
       (s, l) => s + (l.taxAmt?.toDouble() ?? 0),
     );
 
-    final userId = box.getUserId();
-    final shift = userId == null
-        ? null
-        : await ShiftOperations().getCurrentShift(userId: userId);
     final now = DateTime.now().toUtc();
-    final vat = await _ebmWillSign();
 
     // --- 1. Draft the new sale (not visible anywhere yet) ----------------
-    var sale = ITransaction(
+    final sale = ITransaction(
       branchId: branchId,
       status: exchangeDraftStatus,
       transactionType: TransactionType.sale,
@@ -246,7 +323,7 @@ class SaleExchangeService {
       isOriginalTransaction: true,
       exchangeId: exchangeId,
       agentId: userId ?? original.agentId ?? '',
-      shiftId: shift?.id,
+      shiftId: shiftId,
       customerId: original.customerId,
       customerName: original.customerName,
       customerTin: original.customerTin,
@@ -285,7 +362,7 @@ class SaleExchangeService {
       // RRA's orgInvcNo while signing; replaced by the return's own number.
       invoiceNumber: vat ? original.invoiceNumber : null,
       agentId: userId ?? original.agentId ?? '',
-      shiftId: shift?.id,
+      shiftId: shiftId,
       customerId: original.customerId,
       customerName: original.customerName,
       customerTin: original.customerTin,
@@ -310,66 +387,163 @@ class SaleExchangeService {
         }
         if (signed.bytes != null) receipts.add(signed.bytes!);
       } catch (e, s) {
-        _talker.error('Exchange return not signed: $e', s);
-        await _discardDraft(sale);
-        throw SaleExchangeException(l10n.exchangeRraFailed);
+        if (!exchangeReturnSignedByRra(ret)) {
+          _talker.error('Exchange return not signed: $e', s);
+          await _discardDraft(sale);
+          throw SaleExchangeException(l10n.exchangeRraFailed);
+        }
+        // RRA accepted the return; only a local step after it (receipt
+        // record or PDF) failed. The return is fiscal now, so it is written
+        // like any other: dropping it would leave RRA's record unmatched.
+        _talker.error(
+          'Exchange $exchangeId: return signed by RRA, receipt not built: $e',
+          s,
+        );
       }
     }
 
     // From here the return is real (RRA has it on EBM branches). A failure
-    // can no longer be undone, so it is reported as a partial save.
-    try {
-      await _commitReturn(ret, returnLines, now);
-      sale = await _completeSale(
-        sale: sale,
-        saleLines: saleLines,
-        original: original,
-        request: request,
-        branchId: branchId,
-        exchangeId: exchangeId,
-      );
-      // Stock goes out before RRA hears about it, as at the POS: the stock
-      // report sent with the signed sale then carries the new on-hand level.
-      if (vat) {
-        await persistPreSaleStockSnapshot(
-          transactionItems: saleLines,
-          transactionId: sale.id,
+    // can no longer be undone: it is a partial save, finished by
+    // [resumeExchange].
+    final pending = _PendingExchange(
+      exchangeId: exchangeId,
+      ret: ret,
+      returnLines: returnLines,
+      sale: sale,
+      saleLines: saleLines,
+      paymentMethod: request.paymentMethod,
+      branchId: branchId,
+      businessId: businessId,
+      vat: vat,
+      receipts: receipts,
+    );
+    _pending[exchangeId] = pending;
+    return _finish(pending);
+  }
+
+  /// Finishes an exchange that was only partly saved (see
+  /// [SaleExchangeException.resumableExchangeId] and [unfinishedExchangeId]).
+  /// Steps already done are not repeated.
+  Future<SaleExchangeResult> resumeExchange(String exchangeId) async {
+    final l10n = FlipperL10n.current;
+    var pending = _pending[exchangeId];
+    if (pending == null) {
+      try {
+        pending = await _loadPending(exchangeId);
+      } catch (e, s) {
+        _talker.error('Exchange $exchangeId not loaded: $e', s);
+        throw SaleExchangeException(
+          l10n.exchangePartlySaved,
+          resumableExchangeId: exchangeId,
         );
       }
-      await applyDeferredSaleStockDeduction(
-        transactionItems: saleLines,
-        allowSellingBelowStock: await _allowSellingBelowStock(businessId),
-        isProformaOrTraining: false,
-        transactionId: sale.id,
-      );
-    } catch (e, s) {
-      _talker.error('Exchange $exchangeId partly saved: $e', s);
-      throw SaleExchangeException(l10n.exchangePartlySaved);
+      if (pending == null) {
+        // No return row, or no draft sale left to finish.
+        throw SaleExchangeException(l10n.exchangePartlySaved);
+      }
+      _pending[exchangeId] = pending;
     }
+    return _finish(pending);
+  }
 
-    var saleSigned = true;
-    if (vat) {
-      final bytes = await signSale(sale, lines: saleLines);
-      saleSigned = bytes != null;
-      if (bytes != null && bytes.isNotEmpty) receipts.add(bytes);
+  /// The exchange of [transaction] (one of its legs, or the sale it was made
+  /// on) whose return is recorded but whose new sale is still a draft.
+  Future<String?> unfinishedExchangeId(ITransaction transaction) async {
+    // Partly saved in this session: known even before its return row exists.
+    for (final p in _pending.values) {
+      if (p.exchangeId == transaction.exchangeId ||
+          p.ret.originalTransactionId == transaction.id) {
+        return p.exchangeId;
+      }
+    }
+    final ids = <String>{};
+    final own = transaction.exchangeId;
+    if (own != null && own.isNotEmpty) {
+      ids.add(own);
     } else {
-      receipts.addAll(
-        await _nonFiscalReceipts([(ret, returnLines), (sale, saleLines)]),
+      for (final r in await _capella.exchangeReturnsForSale(
+        originalTransactionId: transaction.id,
+      )) {
+        final id = r.exchangeId;
+        if (id != null && id.isNotEmpty) ids.add(id);
+      }
+    }
+    for (final id in ids) {
+      final legs = await _capella.exchangeLegs(exchangeId: id);
+      if (legs.any(isExchangeReturn) && legs.any(_isDraftSale)) return id;
+    }
+    return null;
+  }
+
+  static bool _isDraftSale(ITransaction t) =>
+      !isExchangeReturn(t) && t.status == exchangeDraftStatus;
+
+  /// Rebuilds an unfinished exchange from what was written: the return row
+  /// (written last, so it is complete) and the draft sale with its lines.
+  Future<_PendingExchange?> _loadPending(String exchangeId) async {
+    final legs = await _capella.exchangeLegs(exchangeId: exchangeId);
+    final ret = legs.where(isExchangeReturn).firstOrNull;
+    final sale = legs.where(_isDraftSale).firstOrNull;
+    if (ret == null || sale == null) return null;
+    final saleLines = await _capella.transactionItems(transactionId: sale.id);
+    if (saleLines.isEmpty) return null;
+    final businessId = _services.box.getBusinessId();
+    final branchId = sale.branchId ?? _services.box.getBranchId();
+    if (businessId == null || branchId == null) return null;
+    return _PendingExchange(
+      exchangeId: exchangeId,
+      ret: ret,
+      returnLines: await _capella.transactionItems(transactionId: ret.id),
+      sale: sale,
+      saleLines: saleLines,
+      paymentMethod: sale.paymentType ?? ret.paymentType ?? 'CASH',
+      branchId: branchId,
+      businessId: businessId,
+      vat: await _ebmWillSign(),
+      receipts: [],
+      returnCommitted: true,
+    );
+  }
+
+  /// Steps 3–5 of [execute]; safe to run again after a failure.
+  Future<SaleExchangeResult> _finish(_PendingExchange p) async {
+    try {
+      await _commitReturn(p);
+      await _completeSale(p);
+    } catch (e, s) {
+      _talker.error('Exchange ${p.exchangeId} partly saved: $e', s);
+      throw SaleExchangeException(
+        FlipperL10n.current.exchangePartlySaved,
+        resumableExchangeId: p.exchangeId,
+      );
+    }
+    _pending.remove(p.exchangeId);
+
+    final sale = p.sale;
+    var saleSigned = true;
+    if (p.vat) {
+      final bytes = await signSale(sale, lines: p.saleLines);
+      saleSigned = bytes != null;
+      if (bytes != null && bytes.isNotEmpty) p.receipts.add(bytes);
+    } else {
+      p.receipts.addAll(
+        await _nonFiscalReceipts([(p.ret, p.returnLines), (sale, p.saleLines)]),
       );
     }
 
+    final returned = p.ret.subTotal?.toDouble() ?? 0;
     _talker.info(
-      'Exchange $exchangeId on ${original.id}: back $returnedValue, '
-      'out ${sale.subTotal}, signed=$saleSigned',
+      'Exchange ${p.exchangeId} on ${p.ret.originalTransactionId}: '
+      'back $returned, out ${sale.subTotal}, signed=$saleSigned',
     );
     return SaleExchangeResult(
-      returnTransaction: ret,
+      returnTransaction: p.ret,
       saleTransaction: sale,
       totals: ExchangeTotals(
-        returned: returnedValue,
+        returned: returned,
         taken: sale.subTotal?.toDouble() ?? 0,
       ),
-      receipts: receipts,
+      receipts: List.of(p.receipts),
       saleSigned: saleSigned,
     );
   }
@@ -388,7 +562,9 @@ class SaleExchangeService {
           : await _capella.getStockById(id: stockId);
       final ok = await _capella.saveTransactionItem(
         variation: take.variant,
-        amountTotal: take.total,
+        // The UNIT price: saveTransactionItem prices the line as
+        // amountTotal × updatableQty (SaleLinePricing.compute).
+        amountTotal: take.unitPrice,
         ignoreForReport: false,
         customItem: false,
         doneWithTransaction: false,
@@ -407,15 +583,21 @@ class SaleExchangeService {
     return lines;
   }
 
-  /// Writes the return, puts its stock back and credits the shift.
-  Future<void> _commitReturn(
-    ITransaction ret,
-    List<TransactionItem> lines,
-    DateTime now,
-  ) async {
+  /// Writes the return's lines, puts their stock back, credits the shift,
+  /// then writes the return row. The row comes last so that a return row
+  /// always means a complete return ([_loadPending] relies on it).
+  Future<void> _commitReturn(_PendingExchange p) async {
+    if (p.returnCommitted) return;
+    final ret = p.ret;
+    final now = ret.lastTouched ?? DateTime.now().toUtc();
+    final written = {
+      for (final l in await _capella.transactionItems(transactionId: ret.id))
+        l.id,
+    };
     // Lines before the row: adding a line to an existing row would also add
     // its amount to the row's subTotal, which is already final.
-    for (final line in lines) {
+    for (final line in p.returnLines) {
+      if (written.contains(line.id)) continue;
       await _capella.addTransactionItem(
         transaction: ret,
         item: line,
@@ -429,78 +611,133 @@ class SaleExchangeService {
         ignoreForReport: true,
       );
     }
-    await _capella.addTransaction(transaction: ret);
-    await _restoreStock(lines);
-    try {
-      await _capella.updateShiftTotals(
-        transactionAmount: ret.subTotal?.toDouble() ?? 0,
-        isRefund: true,
-      );
-    } catch (e) {
-      _talker.warning('Exchange: shift refund total skipped: $e');
+    for (final line in p.returnLines) {
+      if (p.restoredLineIds.contains(line.id)) continue;
+      await _restoreLineStock(line);
+      p.restoredLineIds.add(line.id);
     }
+    if (!p.shiftRefunded) {
+      try {
+        await _capella.updateShiftTotals(
+          transactionAmount: ret.subTotal?.toDouble() ?? 0,
+          isRefund: true,
+        );
+      } catch (e) {
+        _talker.warning('Exchange: shift refund total skipped: $e');
+      }
+      p.shiftRefunded = true;
+    }
+    await _capella.addTransaction(transaction: ret);
+    p.returnCommitted = true;
   }
 
   /// Completes the drafted sale the way checkout does: totals and shift via
-  /// collectPayment, then one full write with the exchange's own payment.
-  Future<ITransaction> _completeSale({
-    required ITransaction sale,
-    required List<TransactionItem> saleLines,
-    required ITransaction original,
-    required SaleExchangeRequest request,
-    required String branchId,
-    required String exchangeId,
-  }) async {
-    final takenValue = saleLines.fold<double>(
-      0,
-      (s, l) => s + paidLineTotal(l),
-    );
-    final completed = await _capella.collectPayment(
-      cashReceived: takenValue,
-      transaction: sale,
-      paymentType: request.paymentMethod,
-      discount: 0,
-      branchId: branchId,
-      bhfId: (await _services.box.bhfId()) ?? '00',
-      isProformaMode: false,
-      isTrainingMode: false,
-      transactionType: TransactionType.sale,
-      isIncome: true,
-      customerName: original.customerName,
-      customerTin: original.customerTin,
-      customerPhone: original.customerPhone,
-      countryCode: '',
-      completionStatus: COMPLETE,
-      preloadedLineItems: saleLines,
-      skipTransactionPersist: true,
-      skipPersonalGoalAutoSweep: true,
-    );
-    // collectPayment prefers the POS's selected payment type; the exchange's
-    // own settlement method is what the books and the till must show.
-    completed
-      ..status = COMPLETE
-      ..paymentType = request.paymentMethod
-      ..receiptType = TransactionReceptType.NS
-      ..exchangeId = exchangeId
-      ..cashReceived = completed.subTotal
-      ..customerChangeDue = 0
-      ..remainingBalance = 0
-      ..updatedAt = DateTime.now().toUtc()
-      ..lastTouched = DateTime.now().toUtc();
-    await _capella.addTransaction(transaction: completed);
+  /// collectPayment, the exchange's own payment, stock out — and only then
+  /// the COMPLETE status, so a draft sale is always an unfinished one.
+  Future<void> _completeSale(_PendingExchange p) async {
+    var sale = p.sale;
+    if (sale.status == COMPLETE) return;
+    final now = DateTime.now().toUtc();
+    // lastPaymentDate marks "payment collected": collectPayment also adds
+    // the sale to the shift, which must happen once.
+    if (sale.lastPaymentDate == null) {
+      final takenValue = p.saleLines.fold<double>(
+        0,
+        (s, l) => s + paidLineTotal(l),
+      );
+      final collected = await _capella.collectPayment(
+        cashReceived: takenValue,
+        transaction: sale,
+        paymentType: p.paymentMethod,
+        discount: 0,
+        branchId: p.branchId,
+        bhfId: (await _services.box.bhfId()) ?? '00',
+        isProformaMode: false,
+        isTrainingMode: false,
+        transactionType: TransactionType.sale,
+        isIncome: true,
+        customerName: sale.customerName,
+        customerTin: sale.customerTin,
+        customerPhone: sale.customerPhone,
+        countryCode: '',
+        completionStatus: COMPLETE,
+        preloadedLineItems: p.saleLines,
+        skipTransactionPersist: true,
+        skipPersonalGoalAutoSweep: true,
+      );
+      // collectPayment prefers the POS's selected payment type; the
+      // exchange's own settlement method is what the books and till show.
+      collected
+        ..status = exchangeDraftStatus
+        ..paymentType = p.paymentMethod
+        ..receiptType = TransactionReceptType.NS
+        ..exchangeId = p.exchangeId
+        ..cashReceived = collected.subTotal
+        ..customerChangeDue = 0
+        ..remainingBalance = 0
+        ..lastPaymentDate = now
+        ..lastPaymentAmount = collected.subTotal
+        ..updatedAt = now
+        ..lastTouched = now;
+      await _capella.addTransaction(transaction: collected);
+      sale = p.sale = collected;
+    }
     await _capella.markItemAsDoneWithTransaction(
-      inactiveItems: saleLines,
-      pendingTransaction: completed,
+      inactiveItems: p.saleLines,
+      pendingTransaction: sale,
       ignoreForReport: false,
       isDoneWithTransaction: true,
     );
+    // One tender row per exchange sale; replacing it keeps a retry from
+    // recording the payment twice.
     await _capella.savePaymentType(
-      amount: completed.subTotal?.toDouble() ?? takenValue,
-      transactionId: completed.id,
-      paymentMethod: request.paymentMethod,
-      singlePaymentOnly: false,
+      amount: sale.subTotal?.toDouble() ?? 0,
+      transactionId: sale.id,
+      paymentMethod: p.paymentMethod,
+      singlePaymentOnly: true,
     );
-    return completed;
+    if (!p.saleStockDeducted) {
+      await (_deductSaleStockOverride ?? _deductSaleStock)(
+        lines: p.saleLines,
+        transactionId: sale.id,
+        vat: p.vat,
+        businessId: p.businessId,
+      );
+      p.saleStockDeducted = true;
+    }
+    sale
+      ..status = COMPLETE
+      ..updatedAt = now
+      ..lastTouched = now;
+    await _capella.addTransaction(transaction: sale);
+  }
+
+  /// Stock goes out before RRA hears about it, as at the POS: the stock
+  /// report sent with the signed sale then carries the new on-hand level.
+  /// Lines already taken out (quantityShipped, or the pre-sale snapshot of an
+  /// earlier attempt) are skipped by [applyDeferredSaleStockDeduction].
+  Future<void> _deductSaleStock({
+    required List<TransactionItem> lines,
+    required String transactionId,
+    required bool vat,
+    required String businessId,
+  }) async {
+    if (vat &&
+        _services.box.readString(
+              key: rraSaleStockSnapshotBoxKey(transactionId),
+            ) ==
+            null) {
+      await persistPreSaleStockSnapshot(
+        transactionItems: lines,
+        transactionId: transactionId,
+      );
+    }
+    await applyDeferredSaleStockDeduction(
+      transactionItems: lines,
+      allowSellingBelowStock: await _allowSellingBelowStock(businessId),
+      isProformaOrTraining: false,
+      transactionId: transactionId,
+    );
   }
 
   /// Items matching [query] with what is on hand (null for services, which
@@ -559,20 +796,18 @@ class SaleExchangeService {
     }
   }
 
-  Future<void> _restoreStock(List<TransactionItem> lines) async {
-    for (final line in lines) {
-      final variantId = line.variantId;
-      if (variantId == null) continue;
-      final variant = await _capella.getVariant(id: variantId);
-      if (variant == null || variant.itemTyCd == '3') continue;
-      final stockId = variant.stockId;
-      if (stockId == null || stockId.isEmpty) continue;
-      await _capella.updateStock(
-        stockId: stockId,
-        currentStock: line.qty.toDouble(),
-        appending: true,
-      );
-    }
+  Future<void> _restoreLineStock(TransactionItem line) async {
+    final variantId = line.variantId;
+    if (variantId == null) return;
+    final variant = await _capella.getVariant(id: variantId);
+    if (variant == null || variant.itemTyCd == '3') return;
+    final stockId = variant.stockId;
+    if (stockId == null || stockId.isEmpty) return;
+    await _capella.updateStock(
+      stockId: stockId,
+      currentStock: line.qty.toDouble(),
+      appending: true,
+    );
   }
 
   Future<List<Uint8List>> _nonFiscalReceipts(

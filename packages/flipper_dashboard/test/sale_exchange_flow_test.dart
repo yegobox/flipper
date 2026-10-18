@@ -49,6 +49,10 @@ class _FakeService extends SaleExchangeService {
   final List<Variant> catalog;
   SaleExchangeRequest? executed;
 
+  /// Thrown by [execute] instead of saving, when set.
+  Object? executeError;
+  final resumed = <String>[];
+
   @override
   Future<List<ExchangeableLine>> exchangeableLines(
     ITransaction original,
@@ -60,12 +64,33 @@ class _FakeService extends SaleExchangeService {
   ) async => [
     for (final v in catalog)
       if (v.name.toLowerCase().contains(query.toLowerCase()))
-        (variant: v, onHand: v.id == 'sold-out' ? 0.0 : 10.0),
+        (
+          variant: v,
+          onHand: switch (v.id) {
+            'sold-out' => 0.0,
+            'last-one' => 1.0,
+            _ => 10.0,
+          },
+        ),
   ];
+
+  @override
+  Future<SaleExchangeResult> resumeExchange(String exchangeId) async {
+    resumed.add(exchangeId);
+    return SaleExchangeResult(
+      returnTransaction: _sale(),
+      saleTransaction: _sale(),
+      totals: const ExchangeTotals(returned: 4000, taken: 5500),
+      receipts: const [],
+      saleSigned: true,
+    );
+  }
 
   @override
   Future<SaleExchangeResult> execute(SaleExchangeRequest request) async {
     executed = request;
+    final error = executeError;
+    if (error != null) throw error;
     final back = lines
         .where((l) => request.returns.containsKey(l.line.id))
         .fold<double>(
@@ -89,6 +114,7 @@ Future<_FakeService> _open(
   List<ExchangeableLine>? lines,
   ITransaction? sale,
   bool vat = false,
+  Object? executeError,
 }) async {
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1.0;
@@ -105,8 +131,9 @@ Future<_FakeService> _open(
       _variant('socks', 'Socks', 3000),
       _variant('belt', 'Belt', 4000),
       _variant('sold-out', 'Sold out hat', 2000),
+      _variant('last-one', 'Last scarf', 2500),
     ],
-  );
+  )..executeError = executeError;
   await tester.pumpWidget(
     MaterialApp(
       localizationsDelegates: FlipperLocalizationDelegates.delegates,
@@ -282,6 +309,125 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('result-sold-out')));
     await tester.pumpAndSettle();
     expect(find.text('No items chosen yet'), findsOneWidget);
+  });
+
+  testWidgets('part of a unit can come back; it is not "already exchanged"', (
+    tester,
+  ) async {
+    final service = await _open(
+      tester,
+      size: _phone,
+      lines: [
+        ExchangeableLine(
+          line: _line('a', 'Rice', 2000, qty: 0.5),
+          alreadyReturned: 0,
+        ),
+        ExchangeableLine(line: _line('b', 'Shoes', 4000), alreadyReturned: 0),
+      ],
+    );
+    expect(find.text('Already exchanged'), findsNothing);
+    await _tapPlusOn(tester, const ValueKey('back-a'));
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('back-a')),
+        matching: find.text('0.50'),
+      ),
+      findsOneWidget,
+    );
+    await _next(tester);
+    await _take(tester, 'soc', 'socks');
+    await _next(tester);
+    await tester.tap(find.text('Confirm exchange'));
+    await tester.pumpAndSettle();
+    expect(service.executed!.returns, {'a': 0.5});
+  });
+
+  testWidgets('tapping a search result never takes more than is on hand', (
+    tester,
+  ) async {
+    await _open(tester, size: _phone);
+    await _tapPlusOn(tester, const ValueKey('back-b'));
+    await _next(tester);
+    await _take(tester, 'sca', 'last-one');
+    await tester.tap(find.byKey(const ValueKey('result-last-one')));
+    await tester.pumpAndSettle();
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('take-last-one')),
+        matching: find.text('1'),
+      ),
+      findsOneWidget,
+    );
+  });
+
+  Future<void> confirmWith(WidgetTester tester, Object error) async {
+    await _open(tester, size: _phone, executeError: error);
+    await _tapPlusOn(tester, const ValueKey('back-b'));
+    await _next(tester);
+    await _take(tester, 'boo', 'boots');
+    await _next(tester);
+    await tester.tap(find.text('Confirm exchange'));
+    await tester.pumpAndSettle();
+  }
+
+  testWidgets('an unexpected error says nothing changed', (tester) async {
+    await confirmWith(tester, StateError('boom'));
+    expect(
+      find.text('Something went wrong. Nothing was changed. Try again.'),
+      findsOneWidget,
+    );
+    expect(find.text('Confirm exchange'), findsOneWidget);
+  });
+
+  testWidgets('a partial save can only be finished, not confirmed again', (
+    tester,
+  ) async {
+    await confirmWith(
+      tester,
+      SaleExchangeException(
+        FlipperL10n.current.exchangePartlySaved,
+        resumableExchangeId: 'x1',
+      ),
+    );
+    expect(find.text(FlipperL10n.current.exchangePartlySaved), findsOneWidget);
+    expect(find.text('Confirm exchange'), findsNothing);
+    await tester.tap(find.text('Finish exchange'));
+    await tester.pumpAndSettle();
+    expect(find.text('Exchange done'), findsOneWidget);
+  });
+
+  testWidgets('opened to finish an exchange, it resumes that one', (
+    tester,
+  ) async {
+    tester.view.physicalSize = _phone;
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    final service = _FakeService(lines: const [], catalog: const []);
+    await tester.pumpWidget(
+      MaterialApp(
+        localizationsDelegates: FlipperLocalizationDelegates.delegates,
+        supportedLocales: FlipperLocalizationDelegates.supportedLocales,
+        home: Builder(
+          builder: (context) => Scaffold(
+            body: TextButton(
+              onPressed: () => showSaleExchangeFlow(
+                context,
+                transaction: _sale(),
+                currency: 'RWF',
+                service: service,
+                ebmWillSign: () async => false,
+                resumeExchangeId: 'x9',
+              ),
+              child: const Text('open'),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    expect(service.resumed, ['x9']);
+    expect(find.text('Exchange done'), findsOneWidget);
   });
 
   group('purchase code', () {

@@ -112,6 +112,8 @@ class _TransactionDetailState extends ConsumerState<TransactionDetail> {
   // The new sale of an exchange whose receipt RRA has not signed yet.
   bool _saleAwaitingRra = false;
   bool _finishingExchange = false;
+  // An exchange of this sale (or this leg's exchange) left partly saved.
+  String? _unfinishedExchangeId;
 
   bool get _exchangeEnabled => locator<SettingsService>().enableSaleExchange;
 
@@ -124,9 +126,21 @@ class _TransactionDetailState extends ConsumerState<TransactionDetail> {
     ),
   );
 
+  // Every unit sold has already come back: the flow would be a dead end.
+  bool get _fullyExchanged {
+    if (_exchangedUnits <= 0) return false;
+    final sold = _items.fold<double>(
+      0,
+      (s, l) => l.qty > 0 ? s + l.qty.toDouble() : s,
+    );
+    return sold > 0 && _exchangedUnits >= sold - 1e-9;
+  }
+
   bool get _canExchange =>
       _exchangeEnabled &&
       SaleExchangeService.blockReason(_transaction) == null &&
+      !_fullyExchanged &&
+      _unfinishedExchangeId == null &&
       _hasWriteAccess();
 
   Future<void> _openExchange() async {
@@ -139,21 +153,45 @@ class _TransactionDetailState extends ConsumerState<TransactionDetail> {
     if (result != null && mounted) await _loadExchangeInfo();
   }
 
+  Future<void> _resumeExchange() async {
+    final id = _unfinishedExchangeId;
+    if (id == null) return;
+    await showSaleExchangeFlow(
+      context,
+      transaction: _transaction,
+      currency: ref.read(defaultCurrencyProvider),
+      service: _exchange,
+      resumeExchangeId: id,
+    );
+    if (mounted) await _loadExchangeInfo();
+  }
+
   Future<void> _loadExchangeInfo() async {
     final tx = _transaction;
     try {
       if (tx.exchangeId != null) {
+        final unfinished = isExchangeReturn(tx)
+            ? await _exchange.unfinishedExchangeId(tx)
+            : null;
         final awaiting =
             !isExchangeReturn(tx) &&
             tx.receiptNumber == null &&
             await ebmWillSignReceipt();
-        if (mounted) setState(() => _saleAwaitingRra = awaiting);
+        if (mounted) {
+          setState(() {
+            _saleAwaitingRra = awaiting;
+            _unfinishedExchangeId = unfinished;
+          });
+        }
         return;
       }
       if (!_exchangeEnabled) return;
       final lines = await _exchange.priorReturnLines(tx);
       if (!mounted || lines.isEmpty) return;
+      final unfinished = await _exchange.unfinishedExchangeId(tx);
+      if (!mounted) return;
       setState(() {
+        _unfinishedExchangeId = unfinished;
         _exchangedUnits = lines.fold(0, (s, l) => s + l.qty.toDouble());
         _lastExchangeAt = lines
             .map((l) => l.createdAt)
@@ -255,7 +293,13 @@ class _TransactionDetailState extends ConsumerState<TransactionDetail> {
                             ).format(_lastExchangeAt!.toLocal()),
                           ),
                         ),
-                      if (_transaction.exchangeId != null)
+                      if (_unfinishedExchangeId != null)
+                        _ExchangeNote(
+                          text: context.flipperL10n.exchangeUnfinishedHint,
+                          actionLabel: context.flipperL10n.exchangeFinish,
+                          onAction: _resumeExchange,
+                        )
+                      else if (_transaction.exchangeId != null)
                         _ExchangeNote(
                           text: _saleAwaitingRra
                               ? context.flipperL10n.exchangeFinishHint

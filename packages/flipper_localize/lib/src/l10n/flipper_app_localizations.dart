@@ -6041,6 +6041,12 @@ abstract class FlipperAppLocalizations {
   /// **'The exchange was only partly saved. Check this sale and the stock before trying again.'**
   String get exchangePartlySaved;
 
+  /// No description provided for @exchangeUnfinishedHint.
+  ///
+  /// In en, this message translates to:
+  /// **'This exchange isn\'t finished: the new sale isn\'t recorded yet.'**
+  String get exchangeUnfinishedHint;
+
   /// No description provided for @exchangeOnlyNormalSales.
   ///
   /// In en, this message translates to:
@@ -6058,6 +6064,12 @@ abstract class FlipperAppLocalizations {
   /// In en, this message translates to:
   /// **'Items from this sale were exchanged, so it can\'t be refunded.'**
   String get refundBlockedAfterExchange;
+
+  /// No description provided for @refundExchangeCheckFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t check whether this sale was exchanged. Try again before refunding.'**
+  String get refundExchangeCheckFailed;
 
   /// No description provided for @adminGroupTaxCompliance.
   ///

@@ -3366,6 +3366,10 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
       'The exchange was only partly saved. Check this sale and the stock before trying again.';
 
   @override
+  String get exchangeUnfinishedHint =>
+      'This exchange isn\'t finished: the new sale isn\'t recorded yet.';
+
+  @override
   String get exchangeOnlyNormalSales =>
       'Only a normal completed sale can be exchanged.';
 
@@ -3376,6 +3380,10 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
   @override
   String get refundBlockedAfterExchange =>
       'Items from this sale were exchanged, so it can\'t be refunded.';
+
+  @override
+  String get refundExchangeCheckFailed =>
+      'Couldn\'t check whether this sale was exchanged. Try again before refunding.';
 
   @override
   String get adminGroupTaxCompliance => 'Tax & compliance';

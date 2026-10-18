@@ -42,21 +42,38 @@ can't change. An exchange writes two new transactions that share one
 
 1. **Draft the new sale.** Its status is `exchangeDraft`, never `pending`,
    because the POS adopts the newest pending row as its cart. Lines are added
-   with `saveTransactionItem(updatePendingTransactionSubtotal: false)`.
+   with `saveTransactionItem(updatePendingTransactionSubtotal: false)`, whose
+   `amountTotal` is the **unit** price (the line total is unit × qty).
 2. **EBM branches: RRA signs the return.** This is a line-level NR carrying the
-   sale's `orgInvcNo`. If it fails, the draft is deleted and nothing is kept.
+   sale's `orgInvcNo`. If RRA refuses it, the draft is deleted and nothing is
+   kept. The moment RRA answers `000`, `rw_tax` stamps the return
+   (`markExchangeReturnSigned`). If a local step after that throws (receipt
+   record, counters, PDF), the exchange still goes on: the return is fiscal
+   and must be recorded. Only its receipt PDF is missing.
    - In `TaxController`, NR with `exchangeId` only stamps the signed numbers on
      the return. It doesn't copy the original's lines.
    - Exchanges sign on this device and never go through delegation.
-3. **Write the return.** Its lines are written first, then the transaction row.
-   Stock goes back, and the shift is credited with `isRefund`.
-4. **Complete the new sale.** `collectPayment` runs in memory, then the row is
-   written in full with the settlement method and a payment record. Stock is
-   then deducted and the sale is signed as NS. If RRA is unreachable at this
-   point, the sale detail offers **Finish exchange**.
+3. **Write the return.** Its lines are written first. Then stock goes back
+   and the shift is credited with `isRefund`. The transaction row is written
+   last, so a return row always means a complete return.
+4. **Complete the new sale.** `collectPayment` runs (it also adds the sale to
+   the shift) and the draft is saved with `lastPaymentDate` set. Then come
+   the lines, one payment record (`singlePaymentOnly`), and the stock
+   deduction. The `COMPLETE` status is written last, so a sale still in
+   `exchangeDraft` is an unfinished one.
+5. **EBM branches: sign the new sale** as NS. If RRA is unreachable here, the
+   sale detail offers **Finish exchange**.
 
-A failure after step 2 is reported as "partly saved", never as "nothing
-changed".
+A failure in step 3 or 4 is reported as "partly saved", never as "nothing
+changed". The flow then offers only **Finish exchange**
+(`SaleExchangeService.resumeExchange`), because confirming again would make a
+second exchange. Every step checks what is already done, so a retry repeats
+nothing. In the same session the retry works from memory. Later, the original
+sale and the return show **Finish exchange** (`unfinishedExchangeId`), and the
+retry rebuilds the exchange from the return row and the draft sale.
+
+A failure before anything is written (reading the sale, the shift or the EBM
+setting) reports "nothing changed".
 
 ## Books
 
@@ -77,7 +94,7 @@ the final items directly. See the worked-example test in
 ## Blocked
 
 - A refund of a sale that has exchanges. The exchanged items were already
-  credited.
+  credited. If the exchange lookup fails, the refund is blocked too.
 - Exchanging anything other than a normal completed and fully paid sale. That
   rules out loans, training and proforma sales, cash movements, and the
   exchange's own return.
@@ -89,3 +106,6 @@ the final items directly. See the worked-example test in
 - The `TransactionItem` constructor drops `ignoreForReport`. Flutter readers
   therefore see `false` on every line they read back.
 - The Spice `transaction_items` export still lists returned lines as positive.
+- If a return fails part-way through step 3 and the app is then restarted,
+  that return cannot be finished. Its row is missing, so nothing points back
+  to the planned lines. Finishing it needs a persisted exchange intent.

@@ -3378,7 +3378,7 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   String get exchangeFinishHint => 'Inyemezabwishyu nshya iracyategereje RRA.';
 
   @override
-  String get exchangeNoItemsYet => 'Nta gicuruzwa kiratoranywa';
+  String get exchangeNoItemsYet => 'Nta bicuruzwa biratoranywa';
 
   @override
   String get exchangeChooseReturn =>
@@ -3404,6 +3404,10 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
       'Guhindura byabitswe igice gusa. Banza urebe iri gurisha n\'ububiko mbere yo kongera kugerageza.';
 
   @override
+  String get exchangeUnfinishedHint =>
+      'Guhindura ntibirarangira: igurisha rishya ntirirabikwa.';
+
+  @override
   String get exchangeOnlyNormalSales =>
       'Igurisha risanzwe ryarangiye ni ryo gusa rishobora guhindurwa.';
 
@@ -3414,6 +3418,10 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   @override
   String get refundBlockedAfterExchange =>
       'Ibicuruzwa by\'iri gurisha byarahinduwe, ntirishobora gusubizwa amafaranga.';
+
+  @override
+  String get refundExchangeCheckFailed =>
+      'Ntibyashobotse kugenzura niba iri gurisha ryarahinduwe. Ongera ugerageze mbere yo gusubiza amafaranga.';
 
   @override
   String get adminGroupTaxCompliance => 'Imisoro n\'iyubahirizwa ry\'amategeko';

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:flipper_dashboard/services/pdf_presentation_service.dart';
@@ -18,18 +19,23 @@ const double kExchangeFlowSheetBreakpoint = 600;
 
 /// Opens the item-exchange flow for [transaction]. Returns the result when an
 /// exchange was saved, null when the user closed it first.
+///
+/// With [resumeExchangeId] it skips the steps and finishes that partly saved
+/// exchange instead (see [SaleExchangeService.resumeExchange]).
 Future<SaleExchangeResult?> showSaleExchangeFlow(
   BuildContext context, {
   required ITransaction transaction,
   required String currency,
   SaleExchangeService? service,
   Future<bool> Function()? ebmWillSign,
+  String? resumeExchangeId,
 }) {
   final flow = SaleExchangeFlow(
     transaction: transaction,
     currency: currency,
     service: service ?? SaleExchangeService(),
     ebmWillSign: ebmWillSign ?? ebmWillSignReceipt,
+    resumeExchangeId: resumeExchangeId,
   );
   if (MediaQuery.sizeOf(context).width < kExchangeFlowSheetBreakpoint) {
     return showModalBottomSheet<SaleExchangeResult>(
@@ -71,12 +77,16 @@ class SaleExchangeFlow extends StatefulWidget {
     required this.service,
     required this.ebmWillSign,
     this.presentReceipt,
+    this.resumeExchangeId,
   });
 
   final ITransaction transaction;
   final String currency;
   final SaleExchangeService service;
   final Future<bool> Function() ebmWillSign;
+
+  /// A partly saved exchange to finish instead of starting a new one.
+  final String? resumeExchangeId;
 
   /// Prints one receipt PDF. Defaults to the app's PDF presenter.
   final Future<void> Function(BuildContext context, Uint8List bytes)?
@@ -110,11 +120,21 @@ class _SaleExchangeFlowState extends State<SaleExchangeFlow> {
   SaleExchangeResult? _result;
   bool _finishing = false;
 
+  /// Set once an exchange is partly saved: from then on the only way forward
+  /// is to finish that one — confirming again would exchange twice.
+  String? _resumableId;
+
   @override
   void initState() {
     super.initState();
     final paid = canonicalPaymentMethod(widget.transaction.paymentType);
     _method = paid.isEmpty ? 'CASH' : paid;
+    final resume = widget.resumeExchangeId;
+    if (resume != null) {
+      _resumableId = resume;
+      _resume();
+      return;
+    }
     _load();
     _checkPurchaseCode();
   }
@@ -137,10 +157,11 @@ class _SaleExchangeFlowState extends State<SaleExchangeFlow> {
       if (!mounted) return;
       setState(() {
         _lines = lines;
-        final open = lines.where((l) => l.returnable >= 1).toList();
+        final open = lines.where((l) => l.returnable > _qtyEpsilon).toList();
         // One item on the receipt: it is obviously the one coming back.
-        if (lines.length == 1 && open.length == 1)
-          _back[open.first.line.id] = 1;
+        if (lines.length == 1 && open.length == 1) {
+          _back[open.first.line.id] = math.min(1.0, open.first.returnable);
+        }
       });
     } catch (_) {
       if (mounted) setState(() => _loadFailed = true);
@@ -235,6 +256,33 @@ class _SaleExchangeFlowState extends State<SaleExchangeFlow> {
       );
       if (mounted) setState(() => _result = result);
     } on SaleExchangeException catch (e) {
+      if (mounted) {
+        setState(() {
+          _error = e.message;
+          _resumableId = e.resumableExchangeId;
+        });
+      }
+    } catch (_) {
+      // The service reports every partial save as a SaleExchangeException.
+      if (mounted) setState(() => _error = l10n.exchangeFailedNothingChanged);
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  /// Finishes the partly saved exchange [_resumableId].
+  Future<void> _resume() async {
+    final id = _resumableId;
+    if (id == null) return;
+    final l10n = FlipperL10n.current;
+    setState(() {
+      _saving = true;
+      _error = null;
+    });
+    try {
+      final result = await widget.service.resumeExchange(id);
+      if (mounted) setState(() => _result = result);
+    } on SaleExchangeException catch (e) {
       if (mounted) setState(() => _error = e.message);
     } catch (_) {
       if (mounted) setState(() => _error = l10n.exchangePartlySaved);
@@ -293,7 +341,50 @@ class _SaleExchangeFlowState extends State<SaleExchangeFlow> {
       color: PosTokens.surface,
       borderRadius: BorderRadius.circular(16),
       clipBehavior: Clip.antiAlias,
-      child: result != null ? _buildDone(l10n, result) : _buildSteps(l10n),
+      child: result != null
+          ? _buildDone(l10n, result)
+          : widget.resumeExchangeId != null
+          ? _buildResume(l10n)
+          : _buildSteps(l10n),
+    );
+  }
+
+  /// Finishing a partly saved exchange opened from the sale's detail.
+  Widget _buildResume(FlipperAppLocalizations l10n) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _Header(
+          step: l10n.exchangeBadge,
+          title: l10n.exchangeFinish,
+          onClose: _saving ? null : () => Navigator.of(context).pop(),
+        ),
+        Expanded(
+          child: Center(
+            child: _saving
+                ? const CircularProgressIndicator()
+                : Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Text(
+                      l10n.exchangeUnfinishedHint,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        color: PosTokens.ink2,
+                      ),
+                    ),
+                  ),
+          ),
+        ),
+        if (_error != null) _Message(text: _error!, tone: _MessageTone.error),
+        _Footer(
+          backLabel: l10n.exchangeClose,
+          onBack: _saving ? null : () => Navigator.of(context).pop(),
+          nextLabel: l10n.exchangeFinish,
+          busy: _saving,
+          onNext: _saving ? null : _resume,
+        ),
+      ],
     );
   }
 
@@ -304,6 +395,7 @@ class _SaleExchangeFlowState extends State<SaleExchangeFlow> {
       l10n.exchangeMoneyTitle,
     ];
     final hint = _hint(l10n);
+    final resumable = _resumableId != null;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -323,24 +415,36 @@ class _SaleExchangeFlowState extends State<SaleExchangeFlow> {
           _Message(text: _error!, tone: _MessageTone.error)
         else if (hint != null)
           _Message(text: hint, tone: _MessageTone.hint),
-        _Footer(
-          backLabel: _step == 0 ? l10n.cancel : l10n.exchangeBack,
-          onBack: _saving
-              ? null
-              : () => _step == 0
-                    ? Navigator.of(context).pop()
-                    : setState(() {
-                        _step--;
-                        _error = null;
-                      }),
-          nextLabel: _step == _lastStep
-              ? l10n.exchangeConfirm
-              : l10n.exchangeNext,
-          busy: _saving,
-          onNext: hint != null || _saving
-              ? null
-              : () => _step == _lastStep ? _confirm() : setState(() => _step++),
-        ),
+        if (resumable)
+          // Partly saved: finish it, or close and finish it later from the
+          // sale. Going back to edit would start a second exchange.
+          _Footer(
+            backLabel: l10n.exchangeClose,
+            onBack: _saving ? null : () => Navigator.of(context).pop(),
+            nextLabel: l10n.exchangeFinish,
+            busy: _saving,
+            onNext: _saving ? null : _resume,
+          )
+        else
+          _Footer(
+            backLabel: _step == 0 ? l10n.cancel : l10n.exchangeBack,
+            onBack: _saving
+                ? null
+                : () => _step == 0
+                      ? Navigator.of(context).pop()
+                      : setState(() {
+                          _step--;
+                          _error = null;
+                        }),
+            nextLabel: _step == _lastStep
+                ? l10n.exchangeConfirm
+                : l10n.exchangeNext,
+            busy: _saving,
+            onNext: hint != null || _saving
+                ? null
+                : () =>
+                      _step == _lastStep ? _confirm() : setState(() => _step++),
+          ),
       ],
     );
   }
@@ -365,7 +469,10 @@ class _SaleExchangeFlowState extends State<SaleExchangeFlow> {
             subtitle: _money(l.unitValue),
             qty: _back[l.line.id] ?? 0,
             max: l.returnable,
-            unavailableLabel: l.returnable < 1
+            // Part of a unit (0.5 kg) can come back; only a line with
+            // nothing left is "already exchanged".
+            stepToMax: true,
+            unavailableLabel: l.returnable <= _qtyEpsilon
                 ? l10n.exchangeAlreadyExchanged
                 : null,
             onChanged: (q) => setState(() {
@@ -427,7 +534,11 @@ class _SaleExchangeFlowState extends State<SaleExchangeFlow> {
                 : null,
             onTap: () {
               _onHand[r.variant.id] = r.onHand;
-              _setTake(r.variant, (_taking[r.variant.id]?.qty ?? 0) + 1);
+              final next = (_taking[r.variant.id]?.qty ?? 0) + 1;
+              final limit = r.onHand;
+              // Same cap as the + button: never more than is on hand.
+              if (limit != null && next > limit + _qtyEpsilon) return;
+              _setTake(r.variant, next);
             },
           ),
         const SizedBox(height: 16),
@@ -622,6 +733,9 @@ class _SaleExchangeFlowState extends State<SaleExchangeFlow> {
 
 // ------------------------------------------------------------------ pieces
 
+/// Quantities are doubles; anything closer than this is equal.
+const double _qtyEpsilon = 1e-9;
+
 class _Header extends StatelessWidget {
   const _Header({
     required this.step,
@@ -686,6 +800,7 @@ class _QtyCard extends StatelessWidget {
     required this.max,
     required this.onChanged,
     this.unavailableLabel,
+    this.stepToMax = false,
   });
 
   final String title;
@@ -694,6 +809,23 @@ class _QtyCard extends StatelessWidget {
   final double max;
   final ValueChanged<double> onChanged;
   final String? unavailableLabel;
+
+  /// Lets the last step be part of a unit, so a line of 2.5 goes 1, 2, 2.5.
+  final bool stepToMax;
+
+  double? get _plus {
+    if (stepToMax) {
+      return qty < max - _qtyEpsilon ? math.min(qty + 1, max) : null;
+    }
+    return qty + 1 <= max + _qtyEpsilon ? qty + 1 : null;
+  }
+
+  double? get _minus {
+    if (qty <= 0) return null;
+    final whole = qty.floorToDouble();
+    // From a fractional quantity, step down to the whole units first.
+    return math.max(0.0, qty - whole > _qtyEpsilon ? whole : qty - 1);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -737,7 +869,7 @@ class _QtyCard extends StatelessWidget {
           if (!unavailable) ...[
             _StepButton(
               icon: Icons.remove,
-              onTap: qty > 0 ? () => onChanged(qty - 1) : null,
+              onTap: _minus == null ? null : () => onChanged(_minus!),
             ),
             SizedBox(
               width: 40,
@@ -753,7 +885,7 @@ class _QtyCard extends StatelessWidget {
             ),
             _StepButton(
               icon: Icons.add,
-              onTap: qty + 1 <= max + 1e-9 ? () => onChanged(qty + 1) : null,
+              onTap: _plus == null ? null : () => onChanged(_plus!),
             ),
           ],
         ],

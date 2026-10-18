@@ -3386,7 +3386,8 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   String get exchangeFinish => 'Terminer l\'échange';
 
   @override
-  String get exchangeFinishHint => 'Le nouveau reçu attend encore RRA.';
+  String get exchangeFinishHint =>
+      'Le nouveau reçu attend encore la signature de la RRA.';
 
   @override
   String get exchangeNoItemsYet => 'Aucun article choisi';
@@ -3403,7 +3404,7 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
 
   @override
   String get exchangeRraFailed =>
-      'Impossible de joindre RRA. Rien n\'a été modifié. Réessayez.';
+      'Impossible de joindre la RRA. Rien n\'a été modifié. Réessayez.';
 
   @override
   String get exchangeFailedNothingChanged =>
@@ -3412,6 +3413,10 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   @override
   String get exchangePartlySaved =>
       'L\'échange n\'a été que partiellement enregistré. Vérifiez cette vente et le stock avant de réessayer.';
+
+  @override
+  String get exchangeUnfinishedHint =>
+      'Cet échange n\'est pas terminé : la nouvelle vente n\'est pas encore enregistrée.';
 
   @override
   String get exchangeOnlyNormalSales =>
@@ -3424,6 +3429,10 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   @override
   String get refundBlockedAfterExchange =>
       'Des articles de cette vente ont été échangés : elle ne peut pas être remboursée.';
+
+  @override
+  String get refundExchangeCheckFailed =>
+      'Impossible de vérifier si cette vente a été échangée. Réessayez avant de rembourser.';
 
   @override
   String get adminGroupTaxCompliance => 'Taxes et conformité';

@@ -3389,6 +3389,10 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
       'Kubadilisha kumehifadhiwa kwa sehemu tu. Kagua mauzo haya na hisa kabla ya kujaribu tena.';
 
   @override
+  String get exchangeUnfinishedHint =>
+      'Kubadilisha huku hakujakamilika: mauzo mapya bado hayajahifadhiwa.';
+
+  @override
   String get exchangeOnlyNormalSales =>
       'Mauzo ya kawaida yaliyokamilika pekee ndiyo yanaweza kubadilishwa.';
 
@@ -3399,6 +3403,10 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   @override
   String get refundBlockedAfterExchange =>
       'Bidhaa za mauzo haya zimebadilishwa, hivyo hayawezi kurejeshewa pesa.';
+
+  @override
+  String get refundExchangeCheckFailed =>
+      'Imeshindikana kuthibitisha kama mauzo haya yalibadilishwa. Jaribu tena kabla ya kurejesha pesa.';
 
   @override
   String get adminGroupTaxCompliance => 'Kodi na uzingatiaji';

@@ -69,6 +69,34 @@ void main() {
     });
   });
 
+  group('markExchangeReturnSigned', () {
+    test('records RRA acceptance on an exchange return', () {
+      final r = _txn(receiptType: 'NR', exchangeId: 'x')
+        ..invoiceNumber = 7
+        ..ebmSynced = false;
+      expect(exchangeReturnSignedByRra(r), false);
+
+      markExchangeReturnSigned(r, 42);
+
+      expect(exchangeReturnSignedByRra(r), true);
+      expect(r.invoiceNumber, 42);
+      expect(r.receiptNumber, 42);
+      expect(r.totalReceiptNumber, 42);
+    });
+
+    test('leaves every other transaction alone', () {
+      final refund = _txn(receiptType: 'NR')..ebmSynced = false;
+      final sale = _txn(receiptType: 'NS', exchangeId: 'x')..ebmSynced = false;
+      markExchangeReturnSigned(refund, 42);
+      markExchangeReturnSigned(sale, 42);
+      expect(refund.ebmSynced, false);
+      expect(refund.receiptNumber, isNull);
+      expect(sale.ebmSynced, false);
+      expect(sale.receiptNumber, isNull);
+      expect(exchangeReturnSignedByRra(sale..ebmSynced = true), false);
+    });
+  });
+
   group('proRataShare', () {
     test('one unit at a time adds up to the line exactly', () {
       // 1000 over 3 units does not split evenly.

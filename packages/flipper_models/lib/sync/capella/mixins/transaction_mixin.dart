@@ -4041,24 +4041,41 @@ mixin CapellaTransactionMixin implements TransactionInterface {
 
   /// Item-exchange returns already made against [originalTransactionId]
   /// (see `isExchangeReturn`). Plain refunds of the sale are not included.
+  ///
+  /// Throws when the lookup cannot run: callers guard against crediting the
+  /// same items twice, so "unknown" must never read as "no exchanges".
   Future<List<ITransaction>> exchangeReturnsForSale({
     required String originalTransactionId,
   }) async {
     final ditto = dittoService.dittoInstance;
-    if (ditto == null) return [];
-    try {
-      final result = await ditto.store.execute(
-        'SELECT * FROM transactions WHERE originalTransactionId = :id',
-        arguments: {'id': originalTransactionId},
-      );
-      return [
-        for (final item in result.items)
-          _convertFromDittoDocument(Map<String, dynamic>.from(item.value)),
-      ].where(isExchangeReturn).toList();
-    } catch (e, s) {
-      talker.error('exchangeReturnsForSale: $e', s);
-      return [];
+    if (ditto == null) {
+      throw StateError('Ditto not initialized for exchangeReturnsForSale');
     }
+    final result = await ditto.store.execute(
+      'SELECT * FROM transactions WHERE originalTransactionId = :id',
+      arguments: {'id': originalTransactionId},
+    );
+    return [
+      for (final item in result.items)
+        _convertFromDittoDocument(Map<String, dynamic>.from(item.value)),
+    ].where(isExchangeReturn).toList();
+  }
+
+  /// Both transactions of one item exchange (its return and its new sale),
+  /// whatever their status, including a sale still in its draft status.
+  Future<List<ITransaction>> exchangeLegs({required String exchangeId}) async {
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) {
+      throw StateError('Ditto not initialized for exchangeLegs');
+    }
+    final result = await ditto.store.execute(
+      'SELECT * FROM transactions WHERE exchangeId = :id',
+      arguments: {'id': exchangeId},
+    );
+    return [
+      for (final item in result.items)
+        _convertFromDittoDocument(Map<String, dynamic>.from(item.value)),
+    ];
   }
 
   Future<List<ITransaction>> pageTransactionsReportPagingWindow({

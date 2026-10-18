@@ -79,7 +79,8 @@ bool _isDrawerCashMethod(String? method) {
 
 /// Splits a shift's payment rows into the two kinds of money that are *not*
 /// in the drawer: mobile money, and everything else non-cash (card, bank,
-/// credit, …). Cash rows are ignored.
+/// credit, …). Cash rows are ignored. Negative rows (an item-exchange return
+/// handed back on MoMo) reduce their total, as the shift's sales total does.
 @visibleForTesting
 ({double mobile, double other}) splitNonCashTender(
   Iterable<({String? method, double amount})> rows,
@@ -87,7 +88,7 @@ bool _isDrawerCashMethod(String? method) {
   var mobile = 0.0;
   var other = 0.0;
   for (final row in rows) {
-    if (row.amount <= 0 || _isDrawerCashMethod(row.method)) continue;
+    if (row.amount == 0 || _isDrawerCashMethod(row.method)) continue;
     if (_isMobileMoneyMethod(row.method)) {
       mobile += row.amount;
     } else {
