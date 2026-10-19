@@ -51,6 +51,9 @@ class _FakeService extends SaleExchangeService {
 
   /// Thrown by [execute] instead of saving, when set.
   Object? executeError;
+
+  /// Thrown by [resumeExchange] instead of finishing, when set.
+  Object? resumeError;
   final resumed = <String>[];
 
   @override
@@ -77,6 +80,8 @@ class _FakeService extends SaleExchangeService {
   @override
   Future<SaleExchangeResult> resumeExchange(String exchangeId) async {
     resumed.add(exchangeId);
+    final error = resumeError;
+    if (error != null) throw error;
     return SaleExchangeResult(
       returnTransaction: _sale(),
       saleTransaction: _sale(),
@@ -115,25 +120,35 @@ Future<_FakeService> _open(
   ITransaction? sale,
   bool vat = false,
   Object? executeError,
+  Object? resumeError,
 }) async {
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1.0;
   addTearDown(tester.view.reset);
-  final service = _FakeService(
-    lines:
-        lines ??
-        [
-          ExchangeableLine(line: _line('a', 'Shirt', 6000), alreadyReturned: 0),
-          ExchangeableLine(line: _line('b', 'Shoes', 4000), alreadyReturned: 0),
-        ],
-    catalog: [
-      _variant('boots', 'Boots', 5500),
-      _variant('socks', 'Socks', 3000),
-      _variant('belt', 'Belt', 4000),
-      _variant('sold-out', 'Sold out hat', 2000),
-      _variant('last-one', 'Last scarf', 2500),
-    ],
-  )..executeError = executeError;
+  final service =
+      _FakeService(
+          lines:
+              lines ??
+              [
+                ExchangeableLine(
+                  line: _line('a', 'Shirt', 6000),
+                  alreadyReturned: 0,
+                ),
+                ExchangeableLine(
+                  line: _line('b', 'Shoes', 4000),
+                  alreadyReturned: 0,
+                ),
+              ],
+          catalog: [
+            _variant('boots', 'Boots', 5500),
+            _variant('socks', 'Socks', 3000),
+            _variant('belt', 'Belt', 4000),
+            _variant('sold-out', 'Sold out hat', 2000),
+            _variant('last-one', 'Last scarf', 2500),
+          ],
+        )
+        ..executeError = executeError
+        ..resumeError = resumeError;
   await tester.pumpWidget(
     MaterialApp(
       localizationsDelegates: FlipperLocalizationDelegates.delegates,
@@ -360,8 +375,17 @@ void main() {
     );
   });
 
-  Future<void> confirmWith(WidgetTester tester, Object error) async {
-    await _open(tester, size: _phone, executeError: error);
+  Future<void> confirmWith(
+    WidgetTester tester,
+    Object error, {
+    Object? resumeError,
+  }) async {
+    await _open(
+      tester,
+      size: _phone,
+      executeError: error,
+      resumeError: resumeError,
+    );
     await _tapPlusOn(tester, const ValueKey('back-b'));
     await _next(tester);
     await _take(tester, 'boo', 'boots');
@@ -394,6 +418,70 @@ void main() {
     await tester.tap(find.text('Finish exchange'));
     await tester.pumpAndSettle();
     expect(find.text('Exchange done'), findsOneWidget);
+  });
+
+  testWidgets('a finish RRA refuses leaves only Close', (tester) async {
+    final l10n = FlipperL10n.current;
+    await confirmWith(
+      tester,
+      SaleExchangeException(
+        l10n.exchangePartlySaved,
+        resumableExchangeId: 'x1',
+      ),
+      // RRA refused the return when finishing: the draft and intent are gone.
+      resumeError: SaleExchangeException(l10n.exchangeRraFailed),
+    );
+    await tester.tap(find.text('Finish exchange'));
+    await tester.pumpAndSettle();
+
+    expect(find.text(l10n.exchangeRraFailed), findsOneWidget);
+    expect(find.text(l10n.exchangePartlySaved), findsNothing);
+    expect(find.text('Finish exchange'), findsNothing);
+    expect(find.text('Confirm exchange'), findsNothing);
+    await tester.tap(find.text('Close'));
+    await tester.pumpAndSettle();
+    expect(find.text('open'), findsOneWidget);
+  });
+
+  testWidgets('opened to finish an exchange with nothing left, only Close', (
+    tester,
+  ) async {
+    final l10n = FlipperL10n.current;
+    tester.view.physicalSize = _phone;
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    final service = _FakeService(lines: const [], catalog: const [])
+      ..resumeError = SaleExchangeException(l10n.exchangeNothingToFinish);
+    await tester.pumpWidget(
+      MaterialApp(
+        localizationsDelegates: FlipperLocalizationDelegates.delegates,
+        supportedLocales: FlipperLocalizationDelegates.supportedLocales,
+        home: Builder(
+          builder: (context) => Scaffold(
+            body: TextButton(
+              onPressed: () => showSaleExchangeFlow(
+                context,
+                transaction: _sale(),
+                currency: 'RWF',
+                service: service,
+                ebmWillSign: () async => false,
+                resumeExchangeId: 'x9',
+              ),
+              child: const Text('open'),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+
+    expect(service.resumed, ['x9']);
+    expect(find.text(l10n.exchangeNothingToFinish), findsOneWidget);
+    expect(find.text(l10n.exchangeUnfinishedHint), findsNothing);
+    // Only the header title: the footer offers no Finish button any more.
+    expect(find.text('Finish exchange'), findsOneWidget);
+    expect(find.text('Close'), findsOneWidget);
   });
 
   testWidgets('opened to finish an exchange, it resumes that one', (

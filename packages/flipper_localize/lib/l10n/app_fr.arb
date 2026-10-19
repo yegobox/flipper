@@ -1009,6 +1009,7 @@
     "exchangeRraFailed": "Impossible de joindre la RRA. Rien n'a été modifié. Réessayez.",
     "exchangeFailedNothingChanged": "Un problème est survenu. Rien n'a été modifié. Réessayez.",
     "exchangePartlySaved": "L'échange n'a été que partiellement enregistré. Vérifiez cette vente et le stock avant de réessayer.",
+    "exchangeNothingToFinish": "Il ne reste rien à terminer pour cet échange. Vérifiez cette vente avant de réessayer.",
     "exchangeUnfinishedHint": "Cet échange n'est pas terminé : la nouvelle vente n'est pas encore enregistrée.",
     "exchangeOnlyNormalSales": "Seule une vente normale terminée peut être échangée.",
     "exchangeNotInTrainingOrProforma": "Désactivez le mode formation ou proforma pour échanger des articles.",

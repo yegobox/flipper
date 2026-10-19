@@ -3404,6 +3404,10 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
       'Guhindura byabitswe igice gusa. Banza urebe iri gurisha n\'ububiko mbere yo kongera kugerageza.';
 
   @override
+  String get exchangeNothingToFinish =>
+      'Nta kintu gisigaye cyo kurangiza kuri iri hinduranya. Banza urebe iri gurisha mbere yo kongera kugerageza.';
+
+  @override
   String get exchangeUnfinishedHint =>
       'Guhindura ntibirarangira: igurisha rishya ntirirabikwa.';
 

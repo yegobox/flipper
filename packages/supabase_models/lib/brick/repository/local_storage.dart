@@ -363,7 +363,28 @@ class SharedPreferenceStorage implements LocalStorage {
     // signed back in on the next launch.
     _dropResurrectedSession(merged, legacy, dittoMap);
 
+    _keepLocalFileOnlyKeys(merged, legacy);
+
     return merged;
+  }
+
+  /// Keys the local JSON file alone decides. The Ditto copy is flushed in the
+  /// background, so it can still hold a value the file already dropped; if
+  /// the merge took it, a removed item-exchange intent would come back and
+  /// keep blocking refunds of a finished exchange.
+  static const Set<String> _localFileOnlyKeys = {'saleExchangeIntents'};
+
+  static void _keepLocalFileOnlyKeys(
+    Map<String, dynamic> merged,
+    Map<String, dynamic> legacy,
+  ) {
+    for (final key in _localFileOnlyKeys) {
+      if (legacy.containsKey(key)) {
+        merged[key] = legacy[key];
+      } else {
+        merged.remove(key);
+      }
+    }
   }
 
   /// Keeps [userId] aligned with `/v2/api/user` `id` after Ditto pref merges.

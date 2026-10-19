@@ -2602,6 +2602,7 @@
   "exchangeRraFailed": "Imeshindikana kufikia RRA. Hakuna kilichobadilishwa. Jaribu tena.",
   "exchangeFailedNothingChanged": "Kuna hitilafu. Hakuna kilichobadilishwa. Jaribu tena.",
   "exchangePartlySaved": "Kubadilisha kumehifadhiwa kwa sehemu tu. Kagua mauzo haya na hisa kabla ya kujaribu tena.",
+  "exchangeNothingToFinish": "Hakuna kilichobaki kukamilisha kwa ubadilishaji huu. Kagua mauzo haya kabla ya kujaribu tena.",
   "exchangeUnfinishedHint": "Kubadilisha huku hakujakamilika: mauzo mapya bado hayajahifadhiwa.",
   "exchangeOnlyNormalSales": "Mauzo ya kawaida yaliyokamilika pekee ndiyo yanaweza kubadilishwa.",
   "exchangeNotInTrainingOrProforma": "Zima hali ya mafunzo au proforma ili kubadilisha bidhaa.",

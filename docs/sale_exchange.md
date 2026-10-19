@@ -90,7 +90,9 @@ NR the app no longer knows about. Before RRA is asked, the service saves an
   LocalStorage is written to a local file on every write, so it survives a
   crash or restart, and no other device reads it. That is wanted: only the
   till that asked RRA may finish the return, or two tills could write it
-  twice.
+  twice. The local file alone decides this key: merging the Ditto prefs copy
+  (`mergeDittoPreferences`) never brings back an intent the file has dropped,
+  because that copy is flushed in the background and can be stale.
 - RRA's numbers are saved the moment RRA answers `000`: `rw_tax` calls
   `notifyExchangeReturnSigned` before any receipt or PDF work. Each step of 3
   (stock back per line, shift credited) is saved as it is done, so finishing

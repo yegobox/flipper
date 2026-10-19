@@ -3147,6 +3147,7 @@
     "exchangeRraFailed": "Couldn't reach RRA. Nothing was changed. Try again.",
     "exchangeFailedNothingChanged": "Something went wrong. Nothing was changed. Try again.",
     "exchangePartlySaved": "The exchange was only partly saved. Check this sale and the stock before trying again.",
+    "exchangeNothingToFinish": "There is nothing left to finish for this exchange. Check this sale before trying again.",
     "exchangeUnfinishedHint": "This exchange isn't finished: the new sale isn't recorded yet.",
     "exchangeOnlyNormalSales": "Only a normal completed sale can be exchanged.",
     "exchangeNotInTrainingOrProforma": "Turn off training or proforma mode to exchange items.",

@@ -3389,6 +3389,10 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
       'Kubadilisha kumehifadhiwa kwa sehemu tu. Kagua mauzo haya na hisa kabla ya kujaribu tena.';
 
   @override
+  String get exchangeNothingToFinish =>
+      'Hakuna kilichobaki kukamilisha kwa ubadilishaji huu. Kagua mauzo haya kabla ya kujaribu tena.';
+
+  @override
   String get exchangeUnfinishedHint =>
       'Kubadilisha huku hakujakamilika: mauzo mapya bado hayajahifadhiwa.';
 

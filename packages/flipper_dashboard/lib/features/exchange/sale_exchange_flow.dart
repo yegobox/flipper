@@ -124,6 +124,10 @@ class _SaleExchangeFlowState extends State<SaleExchangeFlow> {
   /// is to finish that one — confirming again would exchange twice.
   String? _resumableId;
 
+  /// Finishing was tried and there is nothing left to finish (RRA refused
+  /// the return, or the exchange is gone): only Close is offered.
+  bool _finishGone = false;
+
   @override
   void initState() {
     super.initState();
@@ -283,7 +287,15 @@ class _SaleExchangeFlowState extends State<SaleExchangeFlow> {
       final result = await widget.service.resumeExchange(id);
       if (mounted) setState(() => _result = result);
     } on SaleExchangeException catch (e) {
-      if (mounted) setState(() => _error = e.message);
+      if (mounted) {
+        setState(() {
+          _error = e.message;
+          if (e.resumableExchangeId == null) {
+            _resumableId = null;
+            _finishGone = true;
+          }
+        });
+      }
     } catch (_) {
       if (mounted) setState(() => _error = l10n.exchangePartlySaved);
     } finally {
@@ -363,6 +375,8 @@ class _SaleExchangeFlowState extends State<SaleExchangeFlow> {
           child: Center(
             child: _saving
                 ? const CircularProgressIndicator()
+                : _finishGone
+                ? const SizedBox.shrink()
                 : Padding(
                     padding: const EdgeInsets.all(24),
                     child: Text(
@@ -380,7 +394,7 @@ class _SaleExchangeFlowState extends State<SaleExchangeFlow> {
         _Footer(
           backLabel: l10n.exchangeClose,
           onBack: _saving ? null : () => Navigator.of(context).pop(),
-          nextLabel: l10n.exchangeFinish,
+          nextLabel: _finishGone ? null : l10n.exchangeFinish,
           busy: _saving,
           onNext: _saving ? null : _resume,
         ),
@@ -395,7 +409,7 @@ class _SaleExchangeFlowState extends State<SaleExchangeFlow> {
       l10n.exchangeMoneyTitle,
     ];
     final hint = _hint(l10n);
-    final resumable = _resumableId != null;
+    final resumable = _resumableId != null || _finishGone;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -421,7 +435,7 @@ class _SaleExchangeFlowState extends State<SaleExchangeFlow> {
           _Footer(
             backLabel: l10n.exchangeClose,
             onBack: _saving ? null : () => Navigator.of(context).pop(),
-            nextLabel: l10n.exchangeFinish,
+            nextLabel: _finishGone ? null : l10n.exchangeFinish,
             busy: _saving,
             onNext: _saving ? null : _resume,
           )
@@ -1030,7 +1044,9 @@ class _Footer extends StatelessWidget {
 
   final String backLabel;
   final VoidCallback? onBack;
-  final String nextLabel;
+
+  /// Null: only [backLabel] is offered.
+  final String? nextLabel;
   final VoidCallback? onNext;
   final bool busy;
 
@@ -1051,11 +1067,13 @@ class _Footer extends StatelessWidget {
           Expanded(
             child: _OutlinedAction(label: backLabel, onTap: onBack),
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            flex: 2,
-            child: _FilledAction(label: nextLabel, onTap: onNext, busy: busy),
-          ),
+          if (nextLabel case final next?) ...[
+            const SizedBox(width: 12),
+            Expanded(
+              flex: 2,
+              child: _FilledAction(label: next, onTap: onNext, busy: busy),
+            ),
+          ],
         ],
       ),
     );

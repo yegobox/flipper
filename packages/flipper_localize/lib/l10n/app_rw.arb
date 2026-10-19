@@ -2594,6 +2594,7 @@
   "exchangeRraFailed": "Ntibyashobotse kugera kuri RRA. Nta cyahindutse. Ongera ugerageze.",
   "exchangeFailedNothingChanged": "Habaye ikibazo. Nta cyahindutse. Ongera ugerageze.",
   "exchangePartlySaved": "Guhindura byabitswe igice gusa. Banza urebe iri gurisha n'ububiko mbere yo kongera kugerageza.",
+  "exchangeNothingToFinish": "Nta kintu gisigaye cyo kurangiza kuri iri hinduranya. Banza urebe iri gurisha mbere yo kongera kugerageza.",
   "exchangeUnfinishedHint": "Guhindura ntibirarangira: igurisha rishya ntirirabikwa.",
   "exchangeOnlyNormalSales": "Igurisha risanzwe ryarangiye ni ryo gusa rishobora guhindurwa.",
   "exchangeNotInTrainingOrProforma": "Zimya uburyo bw'imyitozo cyangwa proforma kugira ngo uhindure ibicuruzwa.",

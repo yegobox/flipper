@@ -143,6 +143,33 @@ void main() {
     );
   });
 
+  // attachDittoPersistence merges the background-flushed Ditto copy into
+  // the local file; a removed intent must not come back from it.
+  group('saleExchangeIntents stays with the local file', () {
+    Map<String, dynamic> prefs(Map<String, dynamic> extra) => {
+          '_preferencesVersion': 1,
+          'dbVersion': 1,
+          ...extra,
+        };
+
+    test('a removed intent is not merged back from Ditto', () {
+      final merged = SharedPreferenceStorage.mergeDittoPreferences(
+        legacy: prefs({'autoPrint': true}),
+        dittoMap: prefs({'saleExchangeIntents': '{"x1":{}}'}),
+      );
+      expect(merged.containsKey('saleExchangeIntents'), isFalse);
+      expect(merged['autoPrint'], isTrue);
+    });
+
+    test('the local intents win over an older Ditto copy', () {
+      final merged = SharedPreferenceStorage.mergeDittoPreferences(
+        legacy: prefs({'saleExchangeIntents': '{"x2":{}}'}),
+        dittoMap: prefs({'saleExchangeIntents': '{"x1":{}}'}),
+      );
+      expect(merged['saleExchangeIntents'], '{"x2":{}}');
+    });
+  });
+
   test('the schema has both exchange columns', () {
     final settings = db.schema.tables.singleWhere((t) => t.name == 'Setting');
     final transactions =

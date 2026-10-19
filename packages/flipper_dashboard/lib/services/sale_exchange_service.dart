@@ -569,8 +569,8 @@ class SaleExchangeService {
         );
       }
       if (pending == null) {
-        // No return row, or no draft sale left to finish.
-        throw SaleExchangeException(l10n.exchangePartlySaved);
+        // No return row and no intent, or no draft sale left to finish.
+        throw SaleExchangeException(l10n.exchangeNothingToFinish);
       }
       _pending[exchangeId] = pending;
     }

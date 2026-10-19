@@ -3415,6 +3415,10 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
       'L\'échange n\'a été que partiellement enregistré. Vérifiez cette vente et le stock avant de réessayer.';
 
   @override
+  String get exchangeNothingToFinish =>
+      'Il ne reste rien à terminer pour cet échange. Vérifiez cette vente avant de réessayer.';
+
+  @override
   String get exchangeUnfinishedHint =>
       'Cet échange n\'est pas terminé : la nouvelle vente n\'est pas encore enregistrée.';
 

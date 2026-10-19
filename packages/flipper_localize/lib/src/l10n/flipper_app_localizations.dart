@@ -6041,6 +6041,12 @@ abstract class FlipperAppLocalizations {
   /// **'The exchange was only partly saved. Check this sale and the stock before trying again.'**
   String get exchangePartlySaved;
 
+  /// No description provided for @exchangeNothingToFinish.
+  ///
+  /// In en, this message translates to:
+  /// **'There is nothing left to finish for this exchange. Check this sale before trying again.'**
+  String get exchangeNothingToFinish;
+
   /// No description provided for @exchangeUnfinishedHint.
   ///
   /// In en, this message translates to:

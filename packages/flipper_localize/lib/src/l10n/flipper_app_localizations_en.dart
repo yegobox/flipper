@@ -3366,6 +3366,10 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
       'The exchange was only partly saved. Check this sale and the stock before trying again.';
 
   @override
+  String get exchangeNothingToFinish =>
+      'There is nothing left to finish for this exchange. Check this sale before trying again.';
+
+  @override
   String get exchangeUnfinishedHint =>
       'This exchange isn\'t finished: the new sale isn\'t recorded yet.';
 
