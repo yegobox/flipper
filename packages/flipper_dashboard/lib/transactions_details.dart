@@ -263,112 +263,117 @@ class _TransactionDetailState extends ConsumerState<TransactionDetail> {
 
         return Scaffold(
           backgroundColor: _TxDetailColors.bg,
-          // The footer pads itself for the home indicator, so only the top
-          // inset belongs here (otherwise a grey band shows under it).
-          body: SafeArea(
-            bottom: false,
-            child: Column(
-              children: [
-                _TxDetailHeader(
-                  title: _direction == _TxDirection.expense
-                      ? context.flipperL10n.txDetailExpense
-                      : context.flipperL10n.txDetailIncome,
-                  onBack: () => locator<RouterService>().back(),
-                  onMore: _openMoreActions,
-                ),
-                Expanded(
-                  child: ListView(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    children: [
-                      _TxHeroCard(
-                        transaction: _transaction,
-                        direction: _direction,
-                        palette: palette,
-                      ),
-                      if (_exchangedUnits > 0 && _lastExchangeAt != null)
-                        _ExchangeNote(
-                          text: context.flipperL10n.exchangeBanner(
-                            _exchangedUnits.round(),
-                            DateFormat(
-                              'd MMM',
-                            ).format(_lastExchangeAt!.toLocal()),
-                          ),
-                        ),
-                      if (_unfinishedExchangeId != null)
-                        _ExchangeNote(
-                          text: context.flipperL10n.exchangeUnfinishedHint,
-                          actionLabel: context.flipperL10n.exchangeFinish,
-                          onAction: _resumeExchange,
-                        )
-                      else if (_transaction.exchangeId != null)
-                        _ExchangeNote(
-                          text: _saleAwaitingRra
-                              ? context.flipperL10n.exchangeFinishHint
-                              : context.flipperL10n.exchangeBadge,
-                          actionLabel: _saleAwaitingRra
-                              ? context.flipperL10n.exchangeFinish
-                              : null,
-                          busy: _finishingExchange,
-                          onAction: _finishExchange,
-                        ),
-                      _TxExpandableSection(
-                        iconSvg: TransactionDetailSvgs.cart(),
-                        iconTone: _SectionIconTone.blue,
-                        title: context.flipperL10n.txDetailProducts,
-                        subtitle: _itemsLoading || _itemsFailed
-                            ? '…'
-                            : _itemCountLabel(items.length),
-                        isOpen: _openProducts,
-                        reduceMotion: _reduceMotion,
-                        onToggle: () =>
-                            setState(() => _openProducts = !_openProducts),
-                        child: _itemsLoading
-                            ? const _ProductsSkeleton()
-                            : _itemsFailed
-                            ? Padding(
-                                padding: const EdgeInsets.only(bottom: 8),
-                                child: MposErrorState(
-                                  compact: true,
-                                  onRetry: () => _loadItems(model),
-                                ),
-                              )
-                            : _ProductsSectionBody(items: items),
-                      ),
-                      _TxExpandableSection(
-                        iconSvg: TransactionDetailSvgs.clock(),
-                        iconTone: _SectionIconTone.green,
-                        title: context.flipperL10n.txDetailTimeline,
-                        subtitle: context.flipperL10n.txDetailEventCount(
-                          _buildTimeline(
-                            _transaction,
-                            ref.watch(defaultCurrencyProvider),
-                          ).length,
-                        ),
-                        isOpen: _openTimeline,
-                        reduceMotion: _reduceMotion,
-                        onToggle: () =>
-                            setState(() => _openTimeline = !_openTimeline),
-                        child: _TimelineSectionBody(
-                          events: _buildTimeline(
-                            _transaction,
-                            ref.watch(defaultCurrencyProvider),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                _TxDetailFooter(
-                  onExchange: _canExchange ? _openExchange : null,
-                  onMoreActions: _openMoreActions,
-                  onInvoice: () => _receiptActions.viewInvoice(
-                    context,
-                    _transaction,
-                    items: items,
-                  ),
-                ),
-              ],
+          // Shared CustomAppBar so the header matches the rest of the app
+          // (round outlined back button, e.g. Cash Book, Customers).
+          appBar: CustomAppBar(
+            title: _direction == _TxDirection.expense
+                ? context.flipperL10n.txDetailExpense
+                : context.flipperL10n.txDetailIncome,
+            icon: Icons.arrow_back,
+            onPop: () => locator<RouterService>().back(),
+            barBackgroundColor: _TxDetailColors.surface,
+            customTrailingWidget: AppBarRoundIconButton(
+              icon: Icons.more_horiz,
+              tooltip: MaterialLocalizations.of(context).moreButtonTooltip,
+              onPressed: _openMoreActions,
             ),
+          ),
+          // The app bar takes the top inset and the footer pads itself for
+          // the home indicator, so the body needs no SafeArea.
+          body: Column(
+            children: [
+              Expanded(
+                child: ListView(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  children: [
+                    _TxHeroCard(
+                      transaction: _transaction,
+                      direction: _direction,
+                      palette: palette,
+                    ),
+                    if (_exchangedUnits > 0 && _lastExchangeAt != null)
+                      _ExchangeNote(
+                        text: context.flipperL10n.exchangeBanner(
+                          _exchangedUnits.round(),
+                          DateFormat(
+                            'd MMM',
+                          ).format(_lastExchangeAt!.toLocal()),
+                        ),
+                      ),
+                    if (_unfinishedExchangeId != null)
+                      _ExchangeNote(
+                        text: context.flipperL10n.exchangeUnfinishedHint,
+                        actionLabel: context.flipperL10n.exchangeFinish,
+                        onAction: _resumeExchange,
+                      )
+                    else if (_transaction.exchangeId != null)
+                      _ExchangeNote(
+                        text: _saleAwaitingRra
+                            ? context.flipperL10n.exchangeFinishHint
+                            : context.flipperL10n.exchangeBadge,
+                        actionLabel: _saleAwaitingRra
+                            ? context.flipperL10n.exchangeFinish
+                            : null,
+                        busy: _finishingExchange,
+                        onAction: _finishExchange,
+                      ),
+                    _TxExpandableSection(
+                      iconSvg: TransactionDetailSvgs.cart(),
+                      iconTone: _SectionIconTone.blue,
+                      title: context.flipperL10n.txDetailProducts,
+                      subtitle: _itemsLoading || _itemsFailed
+                          ? '…'
+                          : _itemCountLabel(items.length),
+                      isOpen: _openProducts,
+                      reduceMotion: _reduceMotion,
+                      onToggle: () =>
+                          setState(() => _openProducts = !_openProducts),
+                      child: _itemsLoading
+                          ? const _ProductsSkeleton()
+                          : _itemsFailed
+                          ? Padding(
+                              padding: const EdgeInsets.only(bottom: 8),
+                              child: MposErrorState(
+                                compact: true,
+                                onRetry: () => _loadItems(model),
+                              ),
+                            )
+                          : _ProductsSectionBody(items: items),
+                    ),
+                    _TxExpandableSection(
+                      iconSvg: TransactionDetailSvgs.clock(),
+                      iconTone: _SectionIconTone.green,
+                      title: context.flipperL10n.txDetailTimeline,
+                      subtitle: context.flipperL10n.txDetailEventCount(
+                        _buildTimeline(
+                          _transaction,
+                          ref.watch(defaultCurrencyProvider),
+                        ).length,
+                      ),
+                      isOpen: _openTimeline,
+                      reduceMotion: _reduceMotion,
+                      onToggle: () =>
+                          setState(() => _openTimeline = !_openTimeline),
+                      child: _TimelineSectionBody(
+                        events: _buildTimeline(
+                          _transaction,
+                          ref.watch(defaultCurrencyProvider),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              _TxDetailFooter(
+                onExchange: _canExchange ? _openExchange : null,
+                onMoreActions: _openMoreActions,
+                onInvoice: () => _receiptActions.viewInvoice(
+                  context,
+                  _transaction,
+                  items: items,
+                ),
+              ),
+            ],
           ),
         );
       },
@@ -489,71 +494,6 @@ _TxPalette _paletteFor(_TxDirection direction) {
     directionLabel: FlipperL10n.current.txDetailIncomeReceived,
     heroGradientEnd: _TxDetailColors.gainSoft,
   );
-}
-
-class _TxDetailHeader extends StatelessWidget {
-  const _TxDetailHeader({
-    required this.title,
-    required this.onBack,
-    required this.onMore,
-  });
-
-  final String title;
-  final VoidCallback onBack;
-  final VoidCallback onMore;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 52,
-      child: Padding(
-        // 12 + the 4dp the 48dp hit box adds around each 40dp tile = 16.
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        child: Row(
-          children: [
-            MposPressButton(
-              onPressed: onBack,
-              semanticLabel: MaterialLocalizations.of(
-                context,
-              ).backButtonTooltip,
-              child: _HeaderIconButton(
-                child: TransactionDetailSvgs.icon(
-                  TransactionDetailSvgs.chevronLeft(),
-                  size: 20,
-                  color: _TxDetailColors.ink1,
-                ),
-              ),
-            ),
-            Expanded(
-              child: Text(
-                title,
-                textAlign: TextAlign.center,
-                style: GoogleFonts.outfit(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: -0.01,
-                  color: _TxDetailColors.ink1,
-                ),
-              ),
-            ),
-            MposPressButton(
-              onPressed: onMore,
-              semanticLabel: MaterialLocalizations.of(
-                context,
-              ).moreButtonTooltip,
-              child: _HeaderIconButton(
-                child: TransactionDetailSvgs.icon(
-                  TransactionDetailSvgs.more(),
-                  size: 20,
-                  color: _TxDetailColors.ink1,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }
 
 class _TxDetailFooter extends StatelessWidget {
@@ -711,33 +651,6 @@ class _FooterButton extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-}
-
-class _HeaderIconButton extends StatelessWidget {
-  const _HeaderIconButton({required this.child});
-
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 40,
-      height: 40,
-      decoration: BoxDecoration(
-        color: _TxDetailColors.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: _TxDetailColors.line),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Center(child: child),
     );
   }
 }
