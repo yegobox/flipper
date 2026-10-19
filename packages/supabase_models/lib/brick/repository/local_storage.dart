@@ -10,7 +10,7 @@ import 'package:supabase_models/brick/repository/session_prefs_keys.dart';
 import 'package:supabase_models/brick/repository/storage.dart';
 // ignore: depend_on_referenced_packages
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kIsWeb, visibleForTesting;
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/payment_methods.dart';
 
@@ -236,11 +236,17 @@ class SharedPreferenceStorage implements LocalStorage {
   bool get _isFlutterTestEnv =>
       const bool.fromEnvironment('FLUTTER_TEST_ENV', defaultValue: false);
 
+  bool get _dittoPrefsAvailable =>
+      !kIsWeb && !_isFlutterTestEnv && DittoService.instance.isReady();
+
   /// Called after [DittoService] is ready to merge Ditto-backed prefs with
   /// JSON bootstrap and enable Ditto writes. Safe to call multiple times.
-  Future<void> attachDittoPersistence() async {
-    if (kIsWeb || _isFlutterTestEnv) return;
-    if (!DittoService.instance.isReady()) return;
+  ///
+  /// [readDitto] stands in for the Ditto read in tests.
+  Future<void> attachDittoPersistence({
+    @visibleForTesting Future<Map<String, dynamic>?> Function()? readDitto,
+  }) async {
+    if (readDitto == null && !_dittoPrefsAvailable) return;
 
     final inFlight = _attachDittoPersistenceInFlight;
     if (inFlight != null) {
@@ -249,8 +255,11 @@ class SharedPreferenceStorage implements LocalStorage {
     }
 
     final operation = () async {
+      final dittoMap = await (readDitto ?? _readDittoPayloadMap)();
+      // The local side is read after the Ditto read: a write that landed
+      // while it was pending (an exchange intent saved just before RRA
+      // signs, say) must be merged, not dropped with a stale snapshot.
       final legacy = Map<String, dynamic>.from(_cache);
-      final dittoMap = await _readDittoPayloadMap();
 
       if (dittoMap == null || dittoMap.isEmpty) {
         await _writeDittoPayload();

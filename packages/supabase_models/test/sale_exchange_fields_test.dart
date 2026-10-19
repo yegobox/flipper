@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:brick_sqlite/brick_sqlite.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:supabase_models/brick/brick.g.dart';
@@ -159,6 +161,51 @@ void main() {
       );
       expect(merged.containsKey('saleExchangeIntents'), isFalse);
       expect(merged['autoPrint'], isTrue);
+    });
+
+    test('an intent saved while Ditto is read survives the attach', () async {
+      final box = SharedPreferenceStorage();
+      await box.initializePreferences();
+      await box.clear();
+      addTearDown(() async {
+        await box.clear();
+        box.dispose();
+      });
+      // Created here, not in setUp: the attach must resume when it completes.
+      final dittoRead = Completer<Map<String, dynamic>?>();
+      final attach = box.attachDittoPersistence(
+        readDitto: () => dittoRead.future,
+      );
+
+      // The exchange saves its intent while the Ditto read is pending.
+      await box.writeString(key: 'saleExchangeIntents', value: '{"x1":{}}');
+      await box.writeString(key: 'cashbookLastPaymentMethod', value: 'MOMO');
+      // A newer Ditto copy that never saw either write.
+      dittoRead.complete(prefs({'_preferencesVersion': 999}));
+      await attach;
+
+      expect(box.readString(key: 'saleExchangeIntents'), '{"x1":{}}');
+      expect(box.readString(key: 'cashbookLastPaymentMethod'), 'MOMO');
+      // And it was saved: a fresh start reads it back from the file.
+      final restarted = SharedPreferenceStorage();
+      await restarted.initializePreferences();
+      expect(restarted.readString(key: 'saleExchangeIntents'), '{"x1":{}}');
+      restarted.dispose();
+    });
+
+    test('an attach with no Ditto copy keeps the local intents', () async {
+      final box = SharedPreferenceStorage();
+      await box.initializePreferences();
+      await box.clear();
+      addTearDown(() async {
+        await box.clear();
+        box.dispose();
+      });
+      await box.writeString(key: 'saleExchangeIntents', value: '{"x3":{}}');
+      // Without Ditto (tests, web) the attach does nothing.
+      await box.attachDittoPersistence();
+      await box.attachDittoPersistence(readDitto: () async => null);
+      expect(box.readString(key: 'saleExchangeIntents'), '{"x3":{}}');
     });
 
     test('the local intents win over an older Ditto copy', () {
