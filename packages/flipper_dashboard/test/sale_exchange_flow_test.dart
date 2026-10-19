@@ -323,7 +323,11 @@ void main() {
     expect(find.text('Out of stock'), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('result-sold-out')));
     await tester.pumpAndSettle();
-    expect(find.text('No items chosen yet'), findsOneWidget);
+    expect(find.byKey(const ValueKey('take-sold-out')), findsNothing);
+    expect(
+      find.text('Choose at least one item the customer is taking'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('part of a unit can come back; it is not "already exchanged"', (
@@ -357,6 +361,51 @@ void main() {
     expect(service.executed!.returns, {'a': 0.5});
   });
 
+  testWidgets('a tapped result lands under the search box; keyboard closes', (
+    tester,
+  ) async {
+    await _open(tester, size: _phone);
+    await _tapPlusOn(tester, const ValueKey('back-b'));
+    await _next(tester);
+    await tester.showKeyboard(find.byKey(const ValueKey('exchange-search')));
+    await _take(tester, 'boo', 'boots');
+
+    expect(find.byKey(const ValueKey('take-boots')), findsOneWidget);
+    expect(find.byKey(const ValueKey('result-boots')), findsNothing);
+    final field = tester.widget<TextField>(
+      find.byKey(const ValueKey('exchange-search')),
+    );
+    expect(field.controller!.text, isEmpty);
+    expect(field.focusNode!.hasFocus, isFalse);
+
+    // A second search lists its results below what is already chosen.
+    await tester.enterText(
+      find.byKey(const ValueKey('exchange-search')),
+      'soc',
+    );
+    await tester.pump(const Duration(milliseconds: 350));
+    await tester.pumpAndSettle();
+    expect(
+      tester.getTopLeft(find.byKey(const ValueKey('take-boots'))).dy,
+      lessThan(
+        tester.getTopLeft(find.byKey(const ValueKey('result-socks'))).dy,
+      ),
+    );
+  });
+
+  testWidgets('the phone sheet stays above the keyboard', (tester) async {
+    await _open(tester, size: _phone);
+    await _tapPlusOn(tester, const ValueKey('back-b'));
+    await _next(tester);
+    await tester.showKeyboard(find.byKey(const ValueKey('exchange-search')));
+    tester.view.viewInsets = const FakeViewPadding(bottom: 300);
+    await tester.pumpAndSettle();
+
+    final keyboardTop = _phone.height - 300;
+    expect(tester.getBottomLeft(find.text('Next')).dy, lessThan(keyboardTop));
+    expect(tester.getBottomLeft(find.text('Back')).dy, lessThan(keyboardTop));
+  });
+
   testWidgets('tapping a search result never takes more than is on hand', (
     tester,
   ) async {
@@ -364,8 +413,8 @@ void main() {
     await _tapPlusOn(tester, const ValueKey('back-b'));
     await _next(tester);
     await _take(tester, 'sca', 'last-one');
-    await tester.tap(find.byKey(const ValueKey('result-last-one')));
-    await tester.pumpAndSettle();
+    // A tap clears the search; search again and try for a second one.
+    await _take(tester, 'sca', 'last-one');
     expect(
       find.descendant(
         of: find.byKey(const ValueKey('take-last-one')),

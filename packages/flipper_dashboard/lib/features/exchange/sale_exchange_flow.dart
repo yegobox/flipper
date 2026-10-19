@@ -48,7 +48,14 @@ Future<SaleExchangeResult?> showSaleExchangeFlow(
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (_) => FractionallySizedBox(heightFactor: 0.94, child: flow),
+      // Ride above the keyboard: without this the phone keyboard covers the
+      // chosen items and the Back / Next buttons while the user searches.
+      builder: (sheetContext) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.viewInsetsOf(sheetContext).bottom,
+        ),
+        child: FractionallySizedBox(heightFactor: 0.94, child: flow),
+      ),
     );
   }
   return showDialog<SaleExchangeResult>(
@@ -107,6 +114,7 @@ class _SaleExchangeFlowState extends State<SaleExchangeFlow> {
   final Map<String, double?> _onHand = {};
 
   final _search = TextEditingController();
+  final _searchFocus = FocusNode();
   Timer? _debounce;
   List<({Variant variant, double? onHand})> _results = const [];
   bool _searching = false;
@@ -147,6 +155,7 @@ class _SaleExchangeFlowState extends State<SaleExchangeFlow> {
   void dispose() {
     _debounce?.cancel();
     _search.dispose();
+    _searchFocus.dispose();
     _purchaseCode.dispose();
     super.dispose();
   }
@@ -230,6 +239,19 @@ class _SaleExchangeFlowState extends State<SaleExchangeFlow> {
         if (mounted) setState(() => _searching = false);
       }
     });
+  }
+
+  /// A tapped result is added, the search is cleared and the keyboard closes,
+  /// so the user sees the item land under the search box and the Next button.
+  void _takeFromSearch(Variant variant, double qty) {
+    _debounce?.cancel();
+    _search.clear();
+    _searchFocus.unfocus();
+    setState(() {
+      _results = const [];
+      _searching = false;
+    });
+    _setTake(variant, qty);
   }
 
   void _setTake(Variant variant, double qty) {
@@ -509,6 +531,7 @@ class _SaleExchangeFlowState extends State<SaleExchangeFlow> {
         TextField(
           key: const ValueKey('exchange-search'),
           controller: _search,
+          focusNode: _searchFocus,
           onChanged: _onSearchChanged,
           textInputAction: TextInputAction.search,
           style: const TextStyle(fontSize: 16),
@@ -538,6 +561,17 @@ class _SaleExchangeFlowState extends State<SaleExchangeFlow> {
           ),
         ),
         const SizedBox(height: 8),
+        // What is already chosen sits right under the search box, so it is
+        // in view (with the keyboard open too) the moment an item is added.
+        for (final t in chosen)
+          _QtyCard(
+            key: ValueKey('take-${t.variant.id}'),
+            title: t.variant.name,
+            subtitle: _money(t.unitPrice),
+            qty: t.qty,
+            max: _onHand[t.variant.id] ?? double.infinity,
+            onChanged: (q) => _setTake(t.variant, q),
+          ),
         for (final r in _results)
           _SearchResult(
             key: ValueKey('result-${r.variant.id}'),
@@ -552,29 +586,18 @@ class _SaleExchangeFlowState extends State<SaleExchangeFlow> {
               final limit = r.onHand;
               // Same cap as the + button: never more than is on hand.
               if (limit != null && next > limit + _qtyEpsilon) return;
-              _setTake(r.variant, next);
+              _takeFromSearch(r.variant, next);
             },
           ),
-        const SizedBox(height: 16),
-        if (chosen.isEmpty)
+        if (chosen.isEmpty && _results.isEmpty)
           Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8),
+            padding: const EdgeInsets.symmetric(vertical: 16),
             child: Text(
               l10n.exchangeNoItemsYet,
               textAlign: TextAlign.center,
               style: const TextStyle(fontSize: 14, color: PosTokens.ink3),
             ),
-          )
-        else
-          for (final t in chosen)
-            _QtyCard(
-              key: ValueKey('take-${t.variant.id}'),
-              title: t.variant.name,
-              subtitle: _money(t.unitPrice),
-              qty: t.qty,
-              max: _onHand[t.variant.id] ?? double.infinity,
-              onChanged: (q) => _setTake(t.variant, q),
-            ),
+          ),
       ],
     );
   }
