@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:flipper_dashboard/features/branch_location/branch_services.dart';
+import 'package:flipper_dashboard/services/sale_exchange_intent.dart';
 import 'package:flipper_dashboard/services/transaction_refund_helpers.dart';
 import 'package:flipper_dashboard/utils/ebm_receipt_gate.dart';
 import 'package:flipper_dashboard/utils/sale_stock_deduction.dart';
@@ -113,6 +114,16 @@ typedef ExchangeSaleStockDeduction =
       required String businessId,
     });
 
+/// Asks RRA to sign one leg of an exchange (the return when [isReturn]).
+/// Injectable for tests; the default goes through [TaxController].
+typedef ExchangeReceiptSigner =
+    Future<({String? resultCd, Uint8List? bytes})> Function({
+      required ITransaction transaction,
+      required List<TransactionItem> items,
+      required bool isReturn,
+      String? purchaseCode,
+    });
+
 /// An exchange whose return RRA already has, and how far its local writes
 /// got. Every step checks it, so finishing it again never repeats work.
 class _PendingExchange {
@@ -127,8 +138,15 @@ class _PendingExchange {
     required this.businessId,
     required this.vat,
     required this.receipts,
+    this.intent,
     this.returnCommitted = false,
-  });
+  }) {
+    final saved = intent;
+    if (saved != null) {
+      restoredLineIds.addAll(saved.restoredLineIds);
+      shiftRefunded = saved.shiftRefunded;
+    }
+  }
 
   final String exchangeId;
   final ITransaction ret;
@@ -140,6 +158,10 @@ class _PendingExchange {
   final String businessId;
   final bool vat;
   final List<Uint8List> receipts;
+
+  /// The saved intent while the return row is not written (see
+  /// [SaleExchangeIntent]); its progress is saved with every step.
+  final SaleExchangeIntent? intent;
 
   bool returnCommitted;
   final Set<String> restoredLineIds = {};
@@ -163,24 +185,37 @@ class _PendingExchange {
 ///    its status, so a sale still in [exchangeDraftStatus] is unfinished;
 /// 5. on EBM branches the new sale is signed ("Finish exchange" if not).
 ///
+/// Before 2, an exchange intent is saved on this device
+/// ([SaleExchangeIntent]): the return as RRA will sign it, updated with RRA's
+/// numbers the moment RRA accepts it, then with each step of 3. It is removed
+/// once the exchange is complete (or RRA refused the return).
+///
 /// If 3 or 4 fail the exchange is partly saved. [resumeExchange] finishes
-/// it: in the same session from what is in memory, later from the return row
-/// and the draft sale (found by `exchangeId`, see [unfinishedExchangeId]).
+/// it: in the same session from what is in memory; later from the return row
+/// and the draft sale (found by `exchangeId`), or, when the return row was
+/// never written, from the intent and the draft sale (see
+/// [unfinishedExchangeId]).
 class SaleExchangeService {
   SaleExchangeService({
     BranchServices services = const BranchServices(),
     Future<bool> Function()? ebmWillSign,
     ExchangeSaleStockDeduction? deductSaleStock,
+    ExchangeReceiptSigner? sign,
     Talker? talker,
   }) : _services = services,
        _ebmWillSign = ebmWillSign ?? ebmWillSignReceipt,
        _deductSaleStockOverride = deductSaleStock,
+       _sign = sign ?? _signWithRra,
        _talker = talker ?? TalkerFlutter.init();
 
   final BranchServices _services;
   final Future<bool> Function() _ebmWillSign;
   final ExchangeSaleStockDeduction? _deductSaleStockOverride;
+  final ExchangeReceiptSigner _sign;
   final Talker _talker;
+
+  SaleExchangeIntentStore get _intents =>
+      SaleExchangeIntentStore(_services.box);
 
   /// Exchanges of this session past the point of no return (the return is
   /// signed, or about to be written) and not finished yet.
@@ -234,7 +269,12 @@ class SaleExchangeService {
     return out;
   }
 
+  /// Also true while an exchange of [original] is saved only as an intent:
+  /// RRA may already hold its return.
   Future<bool> hasExchanges(ITransaction original) async =>
+      _intents.all().values.any(
+        (i) => i.originalTransactionId == original.id,
+      ) ||
       (await _capella.exchangeReturnsForSale(
         originalTransactionId: original.id,
       )).isNotEmpty;
@@ -280,17 +320,26 @@ class SaleExchangeService {
     final exchangeId = const Uuid().v4();
     final returnId = const Uuid().v4();
     final returnLines = <TransactionItem>[];
+    final intentLines = <ExchangeIntentLine>[];
     for (final pick in picks) {
       final e = byId[pick.key];
       if (e == null || pick.value > e.returnable + 1e-9) {
         throw SaleExchangeException(l10n.exchangeMoreThanBought);
       }
-      returnLines.add(
-        buildReturnLine(
-          original: e.line,
+      final line = buildReturnLine(
+        original: e.line,
+        alreadyReturned: e.alreadyReturned,
+        qty: pick.value,
+        returnTransactionId: returnId,
+      );
+      returnLines.add(line);
+      intentLines.add(
+        ExchangeIntentLine(
+          id: line.id,
+          originalLineId: e.line.id,
           alreadyReturned: e.alreadyReturned,
           qty: pick.value,
-          returnTransactionId: returnId,
+          total: line.totAmt?.toDouble() ?? 0,
         ),
       );
     }
@@ -372,34 +421,32 @@ class SaleExchangeService {
       ebmSynced: false,
     );
 
+    // Saved before RRA is asked, so a restart at any later point still knows
+    // the return (see [SaleExchangeIntent]).
+    final intent = SaleExchangeIntent(
+      exchangeId: exchangeId,
+      ret: ret,
+      lines: intentLines,
+      saleId: sale.id,
+      paymentMethod: request.paymentMethod,
+      branchId: branchId,
+      businessId: businessId,
+      vat: vat,
+      purchaseCode: request.purchaseCode,
+    );
+    try {
+      await _intents.save(intent);
+    } catch (e, s) {
+      _talker.error('Exchange intent not saved: $e', s);
+      await _discardDraft(sale);
+      throw SaleExchangeException(l10n.exchangeFailedNothingChanged);
+    }
+
     final receipts = <Uint8List>[];
-    if (vat) {
-      try {
-        final signed = await TaxController(object: ret).handleReceipt(
-          filterType: FilterType.NR,
-          purchaseCode: request.purchaseCode,
-          transactionItems: returnLines,
-          persistReceiptTransactionFields: false,
-          deferPresentation: true,
-        );
-        if (signed.response.resultCd != '000') {
-          throw StateError('RRA ${signed.response.resultCd}');
-        }
-        if (signed.bytes != null) receipts.add(signed.bytes!);
-      } catch (e, s) {
-        if (!exchangeReturnSignedByRra(ret)) {
-          _talker.error('Exchange return not signed: $e', s);
-          await _discardDraft(sale);
-          throw SaleExchangeException(l10n.exchangeRraFailed);
-        }
-        // RRA accepted the return; only a local step after it (receipt
-        // record or PDF) failed. The return is fiscal now, so it is written
-        // like any other: dropping it would leave RRA's record unmatched.
-        _talker.error(
-          'Exchange $exchangeId: return signed by RRA, receipt not built: $e',
-          s,
-        );
-      }
+    if (vat && !await _signReturn(intent, returnLines, receipts: receipts)) {
+      await _discardDraft(sale);
+      await _dropIntent(exchangeId);
+      throw SaleExchangeException(l10n.exchangeRraFailed);
     }
 
     // From here the return is real (RRA has it on EBM branches). A failure
@@ -416,9 +463,91 @@ class SaleExchangeService {
       businessId: businessId,
       vat: vat,
       receipts: receipts,
+      intent: intent,
     );
     _pending[exchangeId] = pending;
     return _finish(pending);
+  }
+
+  /// Asks RRA to sign the return of [intent]; true once RRA accepted it.
+  ///
+  /// The intent is saved again the moment RRA answers 000 (rw_tax calls
+  /// [notifyExchangeReturnSigned] before any receipt or PDF work) and once
+  /// more when signing returns, so a crash after RRA accepted the return
+  /// still leaves it marked signed.
+  Future<bool> _signReturn(
+    SaleExchangeIntent intent,
+    List<TransactionItem> lines, {
+    required List<Uint8List> receipts,
+  }) async {
+    final ret = intent.ret;
+    watchExchangeReturnSigning(intent.exchangeId, (_) => _intents.save(intent));
+    try {
+      final signed = await _sign(
+        transaction: ret,
+        items: lines,
+        isReturn: true,
+        purchaseCode: intent.purchaseCode,
+      );
+      if (signed.resultCd != '000') {
+        throw StateError('RRA ${signed.resultCd}');
+      }
+      if (signed.bytes != null) receipts.add(signed.bytes!);
+    } catch (e, s) {
+      if (!exchangeReturnSignedByRra(ret)) {
+        _talker.error('Exchange return not signed: $e', s);
+        return false;
+      }
+      // RRA accepted the return; only a local step after it (receipt
+      // record or PDF) failed. The return is fiscal now, so it is written
+      // like any other: dropping it would leave RRA's record unmatched.
+      _talker.error(
+        'Exchange ${intent.exchangeId}: return signed by RRA, receipt not '
+        'built: $e',
+        s,
+      );
+    } finally {
+      watchExchangeReturnSigning(intent.exchangeId, null);
+    }
+    // RRA has the return: record it, whatever happens next.
+    await _saveIntent(intent);
+    return true;
+  }
+
+  static Future<({String? resultCd, Uint8List? bytes})> _signWithRra({
+    required ITransaction transaction,
+    required List<TransactionItem> items,
+    required bool isReturn,
+    String? purchaseCode,
+  }) async {
+    final signed = await TaxController(object: transaction).handleReceipt(
+      filterType: isReturn ? FilterType.NR : FilterType.NS,
+      purchaseCode: purchaseCode,
+      transactionItems: items,
+      // The return row is written after signing (see [_commitReturn]).
+      persistReceiptTransactionFields: !isReturn,
+      deferPresentation: true,
+    );
+    return (resultCd: signed.response.resultCd, bytes: signed.bytes);
+  }
+
+  /// Saves the progress of [intent]. A failed save is logged, not thrown:
+  /// the step it records is done, and the session still knows it.
+  Future<void> _saveIntent(SaleExchangeIntent? intent) async {
+    if (intent == null) return;
+    try {
+      await _intents.save(intent);
+    } catch (e, s) {
+      _talker.error('Exchange ${intent.exchangeId} intent not saved: $e', s);
+    }
+  }
+
+  Future<void> _dropIntent(String exchangeId) async {
+    try {
+      await _intents.remove(exchangeId);
+    } catch (e) {
+      _talker.warning('Exchange $exchangeId intent not removed: $e');
+    }
   }
 
   /// Finishes an exchange that was only partly saved (see
@@ -430,6 +559,8 @@ class SaleExchangeService {
     if (pending == null) {
       try {
         pending = await _loadPending(exchangeId);
+      } on SaleExchangeException {
+        rethrow;
       } catch (e, s) {
         _talker.error('Exchange $exchangeId not loaded: $e', s);
         throw SaleExchangeException(
@@ -446,6 +577,63 @@ class SaleExchangeService {
     return _finish(pending);
   }
 
+  /// Rebuilds an exchange whose return row was never written from its saved
+  /// intent and the draft sale. A return RRA may not have signed (the app
+  /// stopped while RRA was being asked) is signed first; if RRA refuses it,
+  /// the exchange is dropped as if confirming had failed.
+  Future<_PendingExchange?> _loadFromIntent(
+    String exchangeId,
+    List<ITransaction> legs,
+  ) async {
+    final intent = _intents.get(exchangeId);
+    final sale = legs.where(_isDraftSale).firstOrNull;
+    if (intent == null || sale == null) return null;
+    final saleLines = await _capella.transactionItems(transactionId: sale.id);
+    if (saleLines.isEmpty) return null;
+    final originalLines = {
+      for (final l in await _capella.transactionItems(
+        transactionId: intent.originalTransactionId,
+      ))
+        l.id: l,
+    };
+    final returnLines = <TransactionItem>[];
+    for (final l in intent.lines) {
+      final original = originalLines[l.originalLineId];
+      if (original == null) {
+        throw StateError('original line ${l.originalLineId} not found');
+      }
+      returnLines.add(
+        buildReturnLine(
+          original: original,
+          alreadyReturned: l.alreadyReturned,
+          qty: l.qty,
+          returnTransactionId: intent.ret.id,
+          id: l.id,
+        ),
+      );
+    }
+    final receipts = <Uint8List>[];
+    if (!intent.signed &&
+        !await _signReturn(intent, returnLines, receipts: receipts)) {
+      await _discardDraft(sale);
+      await _dropIntent(exchangeId);
+      throw SaleExchangeException(FlipperL10n.current.exchangeRraFailed);
+    }
+    return _PendingExchange(
+      exchangeId: exchangeId,
+      ret: intent.ret,
+      returnLines: returnLines,
+      sale: sale,
+      saleLines: saleLines,
+      paymentMethod: intent.paymentMethod,
+      branchId: intent.branchId,
+      businessId: intent.businessId,
+      vat: intent.vat,
+      receipts: receipts,
+      intent: intent,
+    );
+  }
+
   /// The exchange of [transaction] (one of its legs, or the sale it was made
   /// on) whose return is recorded but whose new sale is still a draft.
   Future<String?> unfinishedExchangeId(ITransaction transaction) async {
@@ -455,6 +643,17 @@ class SaleExchangeService {
           p.ret.originalTransactionId == transaction.id) {
         return p.exchangeId;
       }
+    }
+    // Saved only as an intent (no return row yet), e.g. after a restart.
+    for (final intent in _intents.all().values) {
+      if (intent.exchangeId != transaction.exchangeId &&
+          intent.originalTransactionId != transaction.id) {
+        continue;
+      }
+      final legs = await _capella.exchangeLegs(exchangeId: intent.exchangeId);
+      if (legs.any(_isDraftSale)) return intent.exchangeId;
+      // Finished, or dropped after RRA refused it: nothing left to do.
+      await _dropIntent(intent.exchangeId);
     }
     final ids = <String>{};
     final own = transaction.exchangeId;
@@ -479,12 +678,14 @@ class SaleExchangeService {
       !isExchangeReturn(t) && t.status == exchangeDraftStatus;
 
   /// Rebuilds an unfinished exchange from what was written: the return row
-  /// (written last, so it is complete) and the draft sale with its lines.
+  /// (written last, so it is complete) and the draft sale with its lines; or,
+  /// with no return row yet, from the saved intent ([_loadFromIntent]).
   Future<_PendingExchange?> _loadPending(String exchangeId) async {
     final legs = await _capella.exchangeLegs(exchangeId: exchangeId);
     final ret = legs.where(isExchangeReturn).firstOrNull;
     final sale = legs.where(_isDraftSale).firstOrNull;
-    if (ret == null || sale == null) return null;
+    if (ret == null) return _loadFromIntent(exchangeId, legs);
+    if (sale == null) return null;
     final saleLines = await _capella.transactionItems(transactionId: sale.id);
     if (saleLines.isEmpty) return null;
     final businessId = _services.box.getBusinessId();
@@ -518,6 +719,7 @@ class SaleExchangeService {
       );
     }
     _pending.remove(p.exchangeId);
+    await _dropIntent(p.exchangeId);
 
     final sale = p.sale;
     var saleSigned = true;
@@ -615,6 +817,8 @@ class SaleExchangeService {
       if (p.restoredLineIds.contains(line.id)) continue;
       await _restoreLineStock(line);
       p.restoredLineIds.add(line.id);
+      p.intent?.restoredLineIds.add(line.id);
+      await _saveIntent(p.intent);
     }
     if (!p.shiftRefunded) {
       try {
@@ -626,6 +830,8 @@ class SaleExchangeService {
         _talker.warning('Exchange: shift refund total skipped: $e');
       }
       p.shiftRefunded = true;
+      p.intent?.shiftRefunded = true;
+      await _saveIntent(p.intent);
     }
     await _capella.addTransaction(transaction: ret);
     p.returnCommitted = true;
@@ -783,12 +989,12 @@ class SaleExchangeService {
     try {
       final items =
           lines ?? await _capella.transactionItems(transactionId: sale.id);
-      final signed = await TaxController(object: sale).handleReceipt(
-        filterType: FilterType.NS,
-        transactionItems: items,
-        deferPresentation: true,
+      final signed = await _sign(
+        transaction: sale,
+        items: items,
+        isReturn: false,
       );
-      if (signed.response.resultCd != '000') return null;
+      if (signed.resultCd != '000') return null;
       return signed.bytes ?? Uint8List(0);
     } catch (e, s) {
       _talker.error('Exchange sale not signed: $e', s);

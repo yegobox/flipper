@@ -40,6 +40,39 @@ void markExchangeReturnSigned(ITransaction transaction, int invoiceNumber) {
     ..invoiceNumber = invoiceNumber;
 }
 
+/// Savers of exchange returns being signed, by exchangeId (see
+/// [watchExchangeReturnSigning]).
+final Map<String, Future<void> Function(ITransaction)> _signedListeners = {};
+
+/// Registers [onSigned] to persist the exchange return [exchangeId] the
+/// moment RRA accepts it, before any other local work, so a crash after RRA
+/// answers still leaves a record that the return is signed. Pass null to
+/// unregister.
+void watchExchangeReturnSigning(
+  String exchangeId,
+  Future<void> Function(ITransaction signed)? onSigned,
+) {
+  if (onSigned == null) {
+    _signedListeners.remove(exchangeId);
+  } else {
+    _signedListeners[exchangeId] = onSigned;
+  }
+}
+
+/// Called by rw_tax right after [markExchangeReturnSigned]. Never throws: a
+/// failed save must not turn an accepted return into a failed one.
+Future<void> notifyExchangeReturnSigned(ITransaction transaction) async {
+  final id = transaction.exchangeId;
+  if (id == null || !exchangeReturnSignedByRra(transaction)) return;
+  final listener = _signedListeners[id];
+  if (listener == null) return;
+  try {
+    await listener(transaction);
+  } catch (_) {
+    // The listener's owner logs its own failures.
+  }
+}
+
 /// True once RRA has accepted [transaction], an exchange return, even if
 /// signing then threw (see [markExchangeReturnSigned]).
 bool exchangeReturnSignedByRra(ITransaction transaction) =>

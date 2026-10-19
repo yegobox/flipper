@@ -218,6 +218,10 @@ class SharedPreferenceStorage implements LocalStorage {
     // JSON map branchId → ISO time until which the Android "where is this
     // branch?" prompt stays quiet.
     'branchLocationPromptSnooze',
+    // JSON map exchangeId → unfinished item-exchange intent (flipper_dashboard
+    // sale_exchange_intent.dart): lets an exchange whose return RRA signed be
+    // finished after a restart.
+    'saleExchangeIntents',
     // Add new preference keys above this line
   };
 

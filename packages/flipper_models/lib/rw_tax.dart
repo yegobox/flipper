@@ -4,7 +4,7 @@ import 'dart:developer';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/ebm_helper.dart';
 import 'package:flipper_models/helpers/sale_exchange.dart'
-    show markExchangeReturnSigned;
+    show markExchangeReturnSigned, notifyExchangeReturnSigned;
 import 'package:flutter/services.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as odm;
@@ -1230,6 +1230,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
         data.usedInvcNo = currentHighestInvcNo;
         // RRA has an exchange return from here on, whatever fails next.
         markExchangeReturnSigned(transaction, currentHighestInvcNo);
+        await notifyExchangeReturnSigned(transaction);
         await persistCapellaCountersInvcNo(currentHighestInvcNo + 1);
         successData = data;
         break;

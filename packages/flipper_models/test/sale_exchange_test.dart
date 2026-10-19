@@ -182,4 +182,26 @@ void main() {
     expect(const ExchangeTotals(returned: 4000, taken: 3000).giveBack, true);
     expect(const ExchangeTotals(returned: 4000, taken: 4000).difference, 0);
   });
+
+  test('a signed exchange return is reported to its watcher once', () async {
+    final ret = _txn(receiptType: 'NR', exchangeId: 'x1');
+    final seen = <int?>[];
+    watchExchangeReturnSigning('x1', (t) async => seen.add(t.invoiceNumber));
+
+    // Not signed yet: nothing to report.
+    await notifyExchangeReturnSigned(ret);
+    expect(seen, isEmpty);
+
+    markExchangeReturnSigned(ret, 42);
+    await notifyExchangeReturnSigned(ret);
+    expect(seen, [42]);
+
+    // A failing watcher never fails signing.
+    watchExchangeReturnSigning('x1', (_) async => throw StateError('disk'));
+    await notifyExchangeReturnSigned(ret);
+
+    watchExchangeReturnSigning('x1', null);
+    await notifyExchangeReturnSigned(ret);
+    expect(seen, [42]);
+  });
 }

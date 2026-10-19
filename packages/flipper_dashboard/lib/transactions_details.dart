@@ -187,9 +187,10 @@ class _TransactionDetailState extends ConsumerState<TransactionDetail> {
       }
       if (!_exchangeEnabled) return;
       final lines = await _exchange.priorReturnLines(tx);
-      if (!mounted || lines.isEmpty) return;
+      // Asked even with no return lines: an exchange saved only as an
+      // intent (its return row not written yet) has none.
       final unfinished = await _exchange.unfinishedExchangeId(tx);
-      if (!mounted) return;
+      if (!mounted || (lines.isEmpty && unfinished == null)) return;
       setState(() {
         _unfinishedExchangeId = unfinished;
         _exchangedUnits = lines.fold(0, (s, l) => s + l.qty.toDouble());
