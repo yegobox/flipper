@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flipper_dashboard/features/exchange/sale_exchange_flow.dart';
 import 'package:flipper_dashboard/services/sale_exchange_service.dart';
 import 'package:flipper_localize/flipper_localize.dart';
@@ -54,6 +56,18 @@ class _FakeService extends SaleExchangeService {
 
   /// Thrown by [resumeExchange] instead of finishing, when set.
   Object? resumeError;
+
+  /// Whether [execute] reports the new sale as signed by RRA.
+  bool executeSigned = true;
+
+  /// What each [signSale] call returns, in order (null: RRA did not sign).
+  final signResults = <Uint8List?>[];
+
+  @override
+  Future<Uint8List?> signSale(
+    ITransaction sale, {
+    List<TransactionItem>? lines,
+  }) async => signResults.removeAt(0);
   final resumed = <String>[];
 
   @override
@@ -108,7 +122,7 @@ class _FakeService extends SaleExchangeService {
       saleTransaction: _sale(),
       totals: ExchangeTotals(returned: back, taken: taken),
       receipts: const [],
-      saleSigned: true,
+      saleSigned: executeSigned,
     );
   }
 }
@@ -531,6 +545,38 @@ void main() {
     // Only the header title: the footer offers no Finish button any more.
     expect(find.text('Finish exchange'), findsOneWidget);
     expect(find.text('Close'), findsOneWidget);
+  });
+
+  testWidgets('a failed Finish says so; a retry that signs clears it', (
+    tester,
+  ) async {
+    final l10n = FlipperL10n.current;
+    final service = await _open(tester, size: _phone);
+    service
+      ..executeSigned = false
+      ..signResults.addAll([null, Uint8List(0)]);
+    await _tapPlusOn(tester, const ValueKey('back-b'));
+    await _next(tester);
+    await _take(tester, 'boo', 'boots');
+    await _next(tester);
+    await tester.tap(find.text('Confirm exchange'));
+    await tester.pumpAndSettle();
+    expect(find.text(l10n.exchangeFinishHint), findsOneWidget);
+    expect(find.text(l10n.exchangeFinishFailed), findsNothing);
+
+    // RRA does not sign the retry: the screen says so.
+    await tester.tap(find.text('Finish exchange'));
+    await tester.pumpAndSettle();
+    expect(find.text(l10n.exchangeFinishFailed), findsOneWidget);
+    expect(find.text('Finish exchange'), findsOneWidget);
+
+    // The next retry signs: the message and the Finish action are gone.
+    await tester.tap(find.text('Finish exchange'));
+    await tester.pumpAndSettle();
+    expect(find.text(l10n.exchangeFinishFailed), findsNothing);
+    expect(find.text('Finish exchange'), findsNothing);
+    expect(find.text('Exchange done'), findsOneWidget);
+    expect(service.signResults, isEmpty);
   });
 
   testWidgets('opened to finish an exchange, it resumes that one', (

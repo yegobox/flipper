@@ -3390,6 +3390,10 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
       'Le nouveau reçu attend encore la signature de la RRA.';
 
   @override
+  String get exchangeFinishFailed =>
+      'La RRA n\'a pas signé le nouveau reçu. L\'échange est enregistré : réessayez Terminer l\'échange.';
+
+  @override
   String get exchangeNoItemsYet => 'Aucun article choisi';
 
   @override

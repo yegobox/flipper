@@ -5999,6 +5999,12 @@ abstract class FlipperAppLocalizations {
   /// **'The new receipt is still waiting for RRA.'**
   String get exchangeFinishHint;
 
+  /// No description provided for @exchangeFinishFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'RRA didn\'t sign the new receipt. The exchange is saved: try Finish exchange again.'**
+  String get exchangeFinishFailed;
+
   /// No description provided for @exchangeNoItemsYet.
   ///
   /// In en, this message translates to:

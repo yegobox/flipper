@@ -3363,6 +3363,10 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   String get exchangeFinishHint => 'Risiti mpya bado inasubiri RRA.';
 
   @override
+  String get exchangeFinishFailed =>
+      'RRA haikusaini risiti mpya. Kubadilisha kumehifadhiwa: jaribu tena Kamilisha kubadilisha.';
+
+  @override
   String get exchangeNoItemsYet => 'Hakuna bidhaa iliyochaguliwa bado';
 
   @override

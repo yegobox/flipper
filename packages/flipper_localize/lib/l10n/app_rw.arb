@@ -2587,6 +2587,7 @@
   "exchangeBadge": "Guhindura",
   "exchangeFinish": "Soza guhindura",
   "exchangeFinishHint": "Inyemezabwishyu nshya iracyategereje RRA.",
+  "exchangeFinishFailed": "RRA ntiyasinye inyemezabwishyu nshya. Guhindura byabitswe: ongera ukande Soza guhindura.",
   "exchangeNoItemsYet": "Nta bicuruzwa biratoranywa",
   "exchangeChooseReturn": "Hitamo nibura igicuruzwa kimwe umukiriya agaruye",
   "exchangeChooseTake": "Hitamo nibura igicuruzwa kimwe umukiriya atwara",

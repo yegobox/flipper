@@ -1002,6 +1002,7 @@
     "exchangeBadge": "Échange",
     "exchangeFinish": "Terminer l'échange",
     "exchangeFinishHint": "Le nouveau reçu attend encore la signature de la RRA.",
+    "exchangeFinishFailed": "La RRA n'a pas signé le nouveau reçu. L'échange est enregistré : réessayez Terminer l'échange.",
     "exchangeNoItemsYet": "Aucun article choisi",
     "exchangeChooseReturn": "Choisissez au moins un article rapporté",
     "exchangeChooseTake": "Choisissez au moins un article à prendre",

@@ -3378,6 +3378,10 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   String get exchangeFinishHint => 'Inyemezabwishyu nshya iracyategereje RRA.';
 
   @override
+  String get exchangeFinishFailed =>
+      'RRA ntiyasinye inyemezabwishyu nshya. Guhindura byabitswe: ongera ukande Soza guhindura.';
+
+  @override
   String get exchangeNoItemsYet => 'Nta bicuruzwa biratoranywa';
 
   @override

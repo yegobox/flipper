@@ -3340,6 +3340,10 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
   String get exchangeFinishHint => 'The new receipt is still waiting for RRA.';
 
   @override
+  String get exchangeFinishFailed =>
+      'RRA didn\'t sign the new receipt. The exchange is saved: try Finish exchange again.';
+
+  @override
   String get exchangeNoItemsYet => 'No items chosen yet';
 
   @override

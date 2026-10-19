@@ -348,11 +348,16 @@ class _SaleExchangeFlowState extends State<SaleExchangeFlow> {
   Future<void> _finishSale() async {
     final result = _result;
     if (result == null) return;
-    setState(() => _finishing = true);
+    setState(() {
+      _finishing = true;
+      _error = null;
+    });
     final bytes = await widget.service.signSale(result.saleTransaction);
     if (!mounted) return;
     setState(() {
       _finishing = false;
+      // RRA refused or was unreachable: say so, the screen would not change.
+      if (bytes == null) _error = FlipperL10n.current.exchangeFinishFailed;
       if (bytes != null) {
         _result = SaleExchangeResult(
           returnTransaction: result.returnTransaction,
@@ -749,6 +754,10 @@ class _SaleExchangeFlowState extends State<SaleExchangeFlow> {
               busy: _finishing,
               onTap: _finishing ? null : _finishSale,
             ),
+            if (_error != null) ...[
+              const SizedBox(height: 8),
+              _Message(text: _error!, tone: _MessageTone.error),
+            ],
           ],
           const SizedBox(height: 28),
           if (result.receipts.isNotEmpty) ...[

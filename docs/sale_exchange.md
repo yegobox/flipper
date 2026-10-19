@@ -5,6 +5,23 @@ When it is on, a completed sale shows **Exchange item**. The customer brings
 items back and takes others, and the price difference is either paid by the
 customer or given back.
 
+## Prerequisite: data-connector and Supabase
+
+Do not turn the setting on for a business until both server changes below are
+live where its data goes. Without the connector change, an exchange return is
+posted as a sale and counted positive, and the books are wrong.
+
+- **data-connector** [yegobox/data-connector#56](https://github.com/yegobox/data-connector/pull/56):
+  it posts an exchange return as a reversal and counts it negative
+  (`semantics::is_exchange_return`).
+- **Supabase column `transactions.exchange_id`**: Flipper-Database #18,
+  migration `20261018120000`. The connector's Ditto mirror fills it.
+
+Both are in production since 2026-10-18. data-connector #56 is merged and
+deployed (server commit `b046c91`), and the migration was applied the same
+day. A self-hosted or staging stack needs both before the setting is used
+there. The setting is off by default.
+
 ## Model
 
 The original sale is **never edited**. Its journal entry and its RRA invoice

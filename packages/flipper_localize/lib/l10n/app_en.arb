@@ -3140,6 +3140,7 @@
     "exchangeBadge": "Exchange",
     "exchangeFinish": "Finish exchange",
     "exchangeFinishHint": "The new receipt is still waiting for RRA.",
+    "exchangeFinishFailed": "RRA didn't sign the new receipt. The exchange is saved: try Finish exchange again.",
     "exchangeNoItemsYet": "No items chosen yet",
     "exchangeChooseReturn": "Choose at least one item the customer is bringing back",
     "exchangeChooseTake": "Choose at least one item the customer is taking",

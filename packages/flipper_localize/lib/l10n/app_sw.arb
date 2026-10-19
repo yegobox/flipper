@@ -2595,6 +2595,7 @@
   "exchangeBadge": "Kubadilisha",
   "exchangeFinish": "Kamilisha kubadilisha",
   "exchangeFinishHint": "Risiti mpya bado inasubiri RRA.",
+  "exchangeFinishFailed": "RRA haikusaini risiti mpya. Kubadilisha kumehifadhiwa: jaribu tena Kamilisha kubadilisha.",
   "exchangeNoItemsYet": "Hakuna bidhaa iliyochaguliwa bado",
   "exchangeChooseReturn": "Chagua angalau bidhaa moja anayorudisha mteja",
   "exchangeChooseTake": "Chagua angalau bidhaa moja anayochukua mteja",
