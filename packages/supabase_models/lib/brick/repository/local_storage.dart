@@ -10,7 +10,7 @@ import 'package:supabase_models/brick/repository/session_prefs_keys.dart';
 import 'package:supabase_models/brick/repository/storage.dart';
 // ignore: depend_on_referenced_packages
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kIsWeb, visibleForTesting;
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/payment_methods.dart';
 
@@ -218,6 +218,10 @@ class SharedPreferenceStorage implements LocalStorage {
     // JSON map branchId → ISO time until which the Android "where is this
     // branch?" prompt stays quiet.
     'branchLocationPromptSnooze',
+    // JSON map exchangeId → unfinished item-exchange intent (flipper_dashboard
+    // sale_exchange_intent.dart): lets an exchange whose return RRA signed be
+    // finished after a restart.
+    'saleExchangeIntents',
     // Add new preference keys above this line
   };
 
@@ -232,11 +236,17 @@ class SharedPreferenceStorage implements LocalStorage {
   bool get _isFlutterTestEnv =>
       const bool.fromEnvironment('FLUTTER_TEST_ENV', defaultValue: false);
 
+  bool get _dittoPrefsAvailable =>
+      !kIsWeb && !_isFlutterTestEnv && DittoService.instance.isReady();
+
   /// Called after [DittoService] is ready to merge Ditto-backed prefs with
   /// JSON bootstrap and enable Ditto writes. Safe to call multiple times.
-  Future<void> attachDittoPersistence() async {
-    if (kIsWeb || _isFlutterTestEnv) return;
-    if (!DittoService.instance.isReady()) return;
+  ///
+  /// [readDitto] stands in for the Ditto read in tests.
+  Future<void> attachDittoPersistence({
+    @visibleForTesting Future<Map<String, dynamic>?> Function()? readDitto,
+  }) async {
+    if (readDitto == null && !_dittoPrefsAvailable) return;
 
     final inFlight = _attachDittoPersistenceInFlight;
     if (inFlight != null) {
@@ -245,8 +255,11 @@ class SharedPreferenceStorage implements LocalStorage {
     }
 
     final operation = () async {
+      final dittoMap = await (readDitto ?? _readDittoPayloadMap)();
+      // The local side is read after the Ditto read: a write that landed
+      // while it was pending (an exchange intent saved just before RRA
+      // signs, say) must be merged, not dropped with a stale snapshot.
       final legacy = Map<String, dynamic>.from(_cache);
-      final dittoMap = await _readDittoPayloadMap();
 
       if (dittoMap == null || dittoMap.isEmpty) {
         await _writeDittoPayload();
@@ -359,7 +372,28 @@ class SharedPreferenceStorage implements LocalStorage {
     // signed back in on the next launch.
     _dropResurrectedSession(merged, legacy, dittoMap);
 
+    _keepLocalFileOnlyKeys(merged, legacy);
+
     return merged;
+  }
+
+  /// Keys the local JSON file alone decides. The Ditto copy is flushed in the
+  /// background, so it can still hold a value the file already dropped; if
+  /// the merge took it, a removed item-exchange intent would come back and
+  /// keep blocking refunds of a finished exchange.
+  static const Set<String> _localFileOnlyKeys = {'saleExchangeIntents'};
+
+  static void _keepLocalFileOnlyKeys(
+    Map<String, dynamic> merged,
+    Map<String, dynamic> legacy,
+  ) {
+    for (final key in _localFileOnlyKeys) {
+      if (legacy.containsKey(key)) {
+        merged[key] = legacy[key];
+      } else {
+        merged.remove(key);
+      }
+    }
   }
 
   /// Keeps [userId] aligned with `/v2/api/user` `id` after Ditto pref merges.

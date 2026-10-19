@@ -3286,6 +3286,152 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
       'Saba ko umugenzuzi yemeza kandi ushinzwe ububiko agatanga mbere y\'uko itike yishyuwe irangira burundu';
 
   @override
+  String get adminSaleExchangeTitle => 'Guhindura ibicuruzwa';
+
+  @override
+  String get adminSaleExchangeSubtitle =>
+      'Emerera abakiriya kugarura ibicuruzwa baguze bagatwara ibindi. Ububiko, ibyagurishijwe n\'ibaruramari bikomeza kuba ukuri.';
+
+  @override
+  String get exchangeItemButton => 'Hindura igicuruzwa';
+
+  @override
+  String exchangeStepOf(int step, int total) {
+    return 'Intambwe ya $step kuri $total';
+  }
+
+  @override
+  String get exchangeBringingBackTitle => 'Umukiriya agaruye iki?';
+
+  @override
+  String get exchangeTakingTitle => 'Aratwara iki mu mwanya wabyo?';
+
+  @override
+  String get exchangeMoneyTitle => 'Amafaranga';
+
+  @override
+  String get exchangeAlreadyExchanged => 'Byarahinduwe';
+
+  @override
+  String get exchangeSearchHint => 'Shakisha ibicuruzwa';
+
+  @override
+  String get exchangeOutOfStock => 'Byashize mu bubiko';
+
+  @override
+  String exchangeCustomerPays(String amount) {
+    return 'Umukiriya yishyura $amount';
+  }
+
+  @override
+  String exchangeGiveBack(String amount) {
+    return 'Subiza umukiriya $amount';
+  }
+
+  @override
+  String get exchangeNothingToPay => 'Nta kwishyura';
+
+  @override
+  String exchangeBreakdown(String back, String taken) {
+    return 'Agaruye $back · Atwaye $taken';
+  }
+
+  @override
+  String get exchangeHowPaid => 'Amafaranga yishyurwa ate?';
+
+  @override
+  String get exchangeConfirm => 'Emeza guhindura';
+
+  @override
+  String get exchangeNext => 'Komeza';
+
+  @override
+  String get exchangeBack => 'Subira inyuma';
+
+  @override
+  String get exchangeDone => 'Guhindura byarangiye';
+
+  @override
+  String get exchangePrintReceipts => 'Sohora inyemezabwishyu';
+
+  @override
+  String get exchangeClose => 'Funga';
+
+  @override
+  String exchangeBanner(int count, String date) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Ibicuruzwa $count byahinduwe ku wa $date',
+      one: 'Igicuruzwa 1 cyahinduwe ku wa $date',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get exchangeBadge => 'Guhindura';
+
+  @override
+  String get exchangeFinish => 'Soza guhindura';
+
+  @override
+  String get exchangeFinishHint => 'Inyemezabwishyu nshya iracyategereje RRA.';
+
+  @override
+  String get exchangeFinishFailed =>
+      'RRA ntiyasinye inyemezabwishyu nshya. Guhindura byabitswe: ongera ukande Soza guhindura.';
+
+  @override
+  String get exchangeNoItemsYet => 'Nta bicuruzwa biratoranywa';
+
+  @override
+  String get exchangeChooseReturn =>
+      'Hitamo nibura igicuruzwa kimwe umukiriya agaruye';
+
+  @override
+  String get exchangeChooseTake =>
+      'Hitamo nibura igicuruzwa kimwe umukiriya atwara';
+
+  @override
+  String get exchangeMoreThanBought => 'Ibyo birenze ibyo umukiriya yaguze.';
+
+  @override
+  String get exchangeRraFailed =>
+      'Ntibyashobotse kugera kuri RRA. Nta cyahindutse. Ongera ugerageze.';
+
+  @override
+  String get exchangeFailedNothingChanged =>
+      'Habaye ikibazo. Nta cyahindutse. Ongera ugerageze.';
+
+  @override
+  String get exchangePartlySaved =>
+      'Guhindura byabitswe igice gusa. Banza urebe iri gurisha n\'ububiko mbere yo kongera kugerageza.';
+
+  @override
+  String get exchangeNothingToFinish =>
+      'Nta kintu gisigaye cyo kurangiza kuri iri hinduranya. Banza urebe iri gurisha mbere yo kongera kugerageza.';
+
+  @override
+  String get exchangeUnfinishedHint =>
+      'Guhindura ntibirarangira: igurisha rishya ntirirabikwa.';
+
+  @override
+  String get exchangeOnlyNormalSales =>
+      'Igurisha risanzwe ryarangiye ni ryo gusa rishobora guhindurwa.';
+
+  @override
+  String get exchangeNotInTrainingOrProforma =>
+      'Zimya uburyo bw\'imyitozo cyangwa proforma kugira ngo uhindure ibicuruzwa.';
+
+  @override
+  String get refundBlockedAfterExchange =>
+      'Ibicuruzwa by\'iri gurisha byarahinduwe, ntirishobora gusubizwa amafaranga.';
+
+  @override
+  String get refundExchangeCheckFailed =>
+      'Ntibyashobotse kugenzura niba iri gurisha ryarahinduwe. Ongera ugerageze mbere yo gusubiza amafaranga.';
+
+  @override
   String get adminGroupTaxCompliance => 'Imisoro n\'iyubahirizwa ry\'amategeko';
 
   @override

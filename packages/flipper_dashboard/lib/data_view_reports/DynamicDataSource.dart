@@ -5,6 +5,7 @@ import 'package:flipper_dashboard/popup_modal.dart';
 import 'package:flipper_dashboard/Refund.dart';
 import 'package:flipper_dashboard/services/transaction_receipt_actions_service.dart';
 import 'package:flipper_models/helpers/transaction_report_payment_totals.dart';
+import 'package:flipper_models/helpers/sale_exchange.dart';
 import 'package:flipper_dashboard/transaction_report_cashier_profile.dart';
 import 'package:flipper_dashboard/transaction_report_cashier_utils.dart';
 import 'package:flipper_dashboard/transaction_report_mock_cashiers.dart';
@@ -82,6 +83,8 @@ double _reportBalanceDue(ITransaction tx) {
 /// Display amount: expenses (cash out, etc.) show as negative in Transaction Reports.
 double _signedReportMoney(double raw, ITransaction tx) {
   if (tx.isExpense == true) return -raw.abs();
+  // Item-exchange return: money that went back to the customer.
+  if (isExchangeReturn(tx)) return -raw.abs();
   return raw;
 }
 
@@ -119,7 +122,12 @@ Map<String, Object?> transactionSummaryExportRow(
 class TransactionSummaryTax {
   TransactionSummaryTax._();
 
-  static double taxColumn(ITransaction tx) {
+  /// Negative for an item-exchange return (VAT handed back), as the sale
+  /// total beside it is.
+  static double taxColumn(ITransaction tx) =>
+      exchangeSign(tx) * _unsignedTaxColumn(tx);
+
+  static double _unsignedTaxColumn(ITransaction tx) {
     final stored = tx.taxAmount;
     if (stored != null && stored > 0) return stored.toDouble();
     if (tx.isExpense == true) return 0.0;

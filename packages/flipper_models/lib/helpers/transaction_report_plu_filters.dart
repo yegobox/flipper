@@ -58,9 +58,13 @@ class TransactionReportPluTotals {
 /// negative — that is how the KPI strip used to report a negative Net Profit
 /// over a period whose grid was empty. Passing an empty [saleIds] therefore
 /// yields zeros, never a stray total.
+///
+/// Lines of [negativeSaleIds] (item-exchange returns, also listed in
+/// [saleIds]) count negative: those units came back.
 TransactionReportPluTotals sumReportScopedPluLines({
   required Iterable<TransactionItem> lines,
   required Set<String> saleIds,
+  Set<String> negativeSaleIds = const {},
 }) {
   if (saleIds.isEmpty) return const TransactionReportPluTotals();
 
@@ -74,9 +78,14 @@ TransactionReportPluTotals sumReportScopedPluLines({
     try {
       if (transactionReportCashMovementPluLine(item)) continue;
       if (!transactionReportLineMatchesSale(item, saleIds)) continue;
-      lineSales += TransactionItemPluMetrics.lineNetSales(item);
-      grossProfit += TransactionItemPluMetrics.profitMade(item);
-      lineTax += TransactionItemPluMetrics.taxPayable(item);
+      final sign =
+          negativeSaleIds.isNotEmpty &&
+              transactionReportLineMatchesSale(item, negativeSaleIds)
+          ? -1
+          : 1;
+      lineSales += sign * TransactionItemPluMetrics.lineNetSales(item);
+      grossProfit += sign * TransactionItemPluMetrics.profitMade(item);
+      lineTax += sign * TransactionItemPluMetrics.taxPayable(item);
     } catch (e) {
       talker.warning('Skipping malformed PLU line in KPI totals: $e');
     }

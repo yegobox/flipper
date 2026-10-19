@@ -1,3 +1,4 @@
+import 'package:flipper_dashboard/services/sale_exchange_service.dart';
 import 'package:flipper_dashboard/services/transaction_refund_helpers.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/SyncStrategy.dart';
@@ -47,10 +48,12 @@ class TransactionRefundException implements Exception {
 
 /// Shared refund execution for income detail and legacy [Refund] dialog.
 class TransactionRefundService {
-  TransactionRefundService({Talker? talker})
-    : _talker = talker ?? TalkerFlutter.init();
+  TransactionRefundService({Talker? talker, SaleExchangeService? exchange})
+    : _talker = talker ?? TalkerFlutter.init(),
+      _exchange = exchange;
 
   final Talker _talker;
+  final SaleExchangeService? _exchange;
 
   static Future<bool> showPurchaseCodeDialog(BuildContext context) async {
     var purchaseCodeReceived = false;
@@ -109,6 +112,28 @@ class TransactionRefundService {
     final reason = refundBlockReason(transaction);
     if (reason != null) {
       throw TransactionRefundException(reason);
+    }
+  }
+
+  /// A sale with item exchanges cannot also be refunded: the exchanged items
+  /// were already credited. If the lookup itself fails the refund is blocked
+  /// too: a signed refund cannot be undone, so "unknown" must not credit the
+  /// customer twice.
+  Future<void> rejectIfExchanged(ITransaction transaction) async {
+    bool exchanged;
+    try {
+      exchanged = await (_exchange ?? SaleExchangeService(talker: _talker))
+          .hasExchanges(transaction);
+    } catch (e) {
+      _talker.warning('Exchange lookup before refund failed: $e');
+      throw TransactionRefundException(
+        FlipperL10n.current.refundExchangeCheckFailed,
+      );
+    }
+    if (exchanged) {
+      throw TransactionRefundException(
+        FlipperL10n.current.refundBlockedAfterExchange,
+      );
     }
   }
 
@@ -199,6 +224,7 @@ class TransactionRefundService {
   }) async {
     final transaction = request.transaction;
     validateCanRefund(transaction);
+    await rejectIfExchanged(transaction);
 
     final originalTotal = transaction.subTotal ?? 0;
     if (request.refundAmount <= 0) {
@@ -324,6 +350,7 @@ class TransactionRefundService {
     required String receiptType,
   }) async {
     validateCanRefund(transaction);
+    await rejectIfExchanged(transaction);
     final originalTotal = transaction.subTotal ?? 0;
 
     if (receiptType == 'NR') {

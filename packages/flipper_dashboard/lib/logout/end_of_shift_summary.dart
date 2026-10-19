@@ -5,6 +5,7 @@ import 'package:flipper_dashboard/export/export_report_transactions.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/helpers/sale_exchange.dart';
 import 'package:flipper_models/helpers/transaction_report_plu_filters.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_models/sync/capella/capella_sync.dart';
@@ -78,7 +79,8 @@ bool _isDrawerCashMethod(String? method) {
 
 /// Splits a shift's payment rows into the two kinds of money that are *not*
 /// in the drawer: mobile money, and everything else non-cash (card, bank,
-/// credit, …). Cash rows are ignored.
+/// credit, …). Cash rows are ignored. Negative rows (an item-exchange return
+/// handed back on MoMo) reduce their total, as the shift's sales total does.
 @visibleForTesting
 ({double mobile, double other}) splitNonCashTender(
   Iterable<({String? method, double amount})> rows,
@@ -86,7 +88,7 @@ bool _isDrawerCashMethod(String? method) {
   var mobile = 0.0;
   var other = 0.0;
   for (final row in rows) {
-    if (row.amount <= 0 || _isDrawerCashMethod(row.method)) continue;
+    if (row.amount == 0 || _isDrawerCashMethod(row.method)) continue;
     if (_isMobileMoneyMethod(row.method)) {
       mobile += row.amount;
     } else {
@@ -163,7 +165,10 @@ Future<({double mobile, double other})> _sumNonCashTender({
                 (
                   id: tx.id.toString(),
                   paymentType: tx.paymentType,
-                  amount: (tx.cashReceived ?? tx.subTotal ?? 0.0).toDouble(),
+                  // An item-exchange return is money handed back.
+                  amount:
+                      exchangeSign(tx) *
+                      (tx.cashReceived ?? tx.subTotal ?? 0.0).toDouble(),
                 ),
             ],
           ),
@@ -193,7 +198,9 @@ Future<({double mobile, double other})> _sumNonCashTender({
         return [
           (
             method: tx.paymentType,
-            amount: (tx.cashReceived ?? tx.subTotal ?? 0.0).toDouble(),
+            amount:
+                exchangeSign(tx) *
+                (tx.cashReceived ?? tx.subTotal ?? 0.0).toDouble(),
           ),
         ];
       }(),
@@ -401,7 +408,8 @@ Future<EndOfShiftSummary> loadEndOfShiftSummary({String? branchName}) async {
     totalCollected: payments.total,
     cashDrawer: payments.cash,
     mobileMoney: payments.mobile,
-    salesCompleted: sales.length,
+    // An exchange's return is not a sale; its new sale is.
+    salesCompleted: sales.where((tx) => !isExchangeReturn(tx)).length,
     itemsSold: itemsSold,
   );
 }

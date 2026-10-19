@@ -3071,6 +3071,89 @@
     "adminGroupSalesPricing": "Sales & pricing",
     "adminGroupWorkflow": "Workflow",
     "adminTicketReviewSubtitle": "Require reviewer sign-off and stock-manager handover before a paid ticket is fully completed",
+    "adminSaleExchangeTitle": "Item exchange",
+    "adminSaleExchangeSubtitle": "Let customers bring items back from a completed sale and take others. Stock, sales and the books stay correct.",
+    "exchangeItemButton": "Exchange item",
+    "exchangeStepOf": "Step {step} of {total}",
+    "@exchangeStepOf": {
+        "placeholders": {
+            "step": {
+                "type": "int"
+            },
+            "total": {
+                "type": "int"
+            }
+        }
+    },
+    "exchangeBringingBackTitle": "What is the customer bringing back?",
+    "exchangeTakingTitle": "What are they taking instead?",
+    "exchangeMoneyTitle": "Money",
+    "exchangeAlreadyExchanged": "Already exchanged",
+    "exchangeSearchHint": "Search items",
+    "exchangeOutOfStock": "Out of stock",
+    "exchangeCustomerPays": "Customer pays {amount}",
+    "@exchangeCustomerPays": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
+    "exchangeGiveBack": "Give back to customer {amount}",
+    "@exchangeGiveBack": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
+    "exchangeNothingToPay": "Nothing to pay",
+    "exchangeBreakdown": "Bringing back {back} · Taking {taken}",
+    "@exchangeBreakdown": {
+        "placeholders": {
+            "back": {
+                "type": "String"
+            },
+            "taken": {
+                "type": "String"
+            }
+        }
+    },
+    "exchangeHowPaid": "How is the money paid?",
+    "exchangeConfirm": "Confirm exchange",
+    "exchangeNext": "Next",
+    "exchangeBack": "Back",
+    "exchangeDone": "Exchange done",
+    "exchangePrintReceipts": "Print receipts",
+    "exchangeClose": "Close",
+    "exchangeBanner": "{count, plural, =1{1 item exchanged on {date}} other{{count} items exchanged on {date}}}",
+    "@exchangeBanner": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            },
+            "date": {
+                "type": "String"
+            }
+        }
+    },
+    "exchangeBadge": "Exchange",
+    "exchangeFinish": "Finish exchange",
+    "exchangeFinishHint": "The new receipt is still waiting for RRA.",
+    "exchangeFinishFailed": "RRA didn't sign the new receipt. The exchange is saved: try Finish exchange again.",
+    "exchangeNoItemsYet": "No items chosen yet",
+    "exchangeChooseReturn": "Choose at least one item the customer is bringing back",
+    "exchangeChooseTake": "Choose at least one item the customer is taking",
+    "exchangeMoreThanBought": "That is more than the customer bought.",
+    "exchangeRraFailed": "Couldn't reach RRA. Nothing was changed. Try again.",
+    "exchangeFailedNothingChanged": "Something went wrong. Nothing was changed. Try again.",
+    "exchangePartlySaved": "The exchange was only partly saved. Check this sale and the stock before trying again.",
+    "exchangeNothingToFinish": "There is nothing left to finish for this exchange. Check this sale before trying again.",
+    "exchangeUnfinishedHint": "This exchange isn't finished: the new sale isn't recorded yet.",
+    "exchangeOnlyNormalSales": "Only a normal completed sale can be exchanged.",
+    "exchangeNotInTrainingOrProforma": "Turn off training or proforma mode to exchange items.",
+    "refundBlockedAfterExchange": "Items from this sale were exchanged, so it can't be refunded.",
+    "refundExchangeCheckFailed": "Couldn't check whether this sale was exchanged. Try again before refunding.",
     "adminGroupTaxCompliance": "Tax & compliance",
     "adminGroupDataSync": "Data & sync",
     "adminGroupDiagnostics": "Diagnostics",

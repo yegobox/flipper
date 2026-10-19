@@ -31,6 +31,7 @@ import 'package:flipper_models/sync/utils/rra_sar_sequence.dart';
 import 'package:flipper_models/sync/utils/sale_line_pricing.dart';
 import 'package:flipper_models/sync/utils/ticket_reference_sequence.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
+import 'package:flipper_models/helpers/sale_exchange.dart';
 
 /// Serialize pending-cart ensure for a single (branch, type, expense) slot.
 final Map<String, Lock> _pendingCartScopeLocks = {};
@@ -851,6 +852,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       lastPaymentAmount: parseDouble(data['lastPaymentAmount'])?.toDouble(),
       originalTransactionId: data['originalTransactionId'],
       isOriginalTransaction: parseBool(data['isOriginalTransaction']),
+      exchangeId: data['exchangeId'] as String?,
       taxAmount: parseDouble(data['taxAmount'])?.toDouble(),
       numberOfItems: parseInt(data['numberOfItems']),
       discountAmount: parseDouble(data['discountAmount'])?.toDouble(),
@@ -4037,6 +4039,45 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     }
   }
 
+  /// Item-exchange returns already made against [originalTransactionId]
+  /// (see `isExchangeReturn`). Plain refunds of the sale are not included.
+  ///
+  /// Throws when the lookup cannot run: callers guard against crediting the
+  /// same items twice, so "unknown" must never read as "no exchanges".
+  Future<List<ITransaction>> exchangeReturnsForSale({
+    required String originalTransactionId,
+  }) async {
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) {
+      throw StateError('Ditto not initialized for exchangeReturnsForSale');
+    }
+    final result = await ditto.store.execute(
+      'SELECT * FROM transactions WHERE originalTransactionId = :id',
+      arguments: {'id': originalTransactionId},
+    );
+    return [
+      for (final item in result.items)
+        _convertFromDittoDocument(Map<String, dynamic>.from(item.value)),
+    ].where(isExchangeReturn).toList();
+  }
+
+  /// Both transactions of one item exchange (its return and its new sale),
+  /// whatever their status, including a sale still in its draft status.
+  Future<List<ITransaction>> exchangeLegs({required String exchangeId}) async {
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) {
+      throw StateError('Ditto not initialized for exchangeLegs');
+    }
+    final result = await ditto.store.execute(
+      'SELECT * FROM transactions WHERE exchangeId = :id',
+      arguments: {'id': exchangeId},
+    );
+    return [
+      for (final item in result.items)
+        _convertFromDittoDocument(Map<String, dynamic>.from(item.value)),
+    ];
+  }
+
   Future<List<ITransaction>> pageTransactionsReportPagingWindow({
     required DateTime startDate,
     required DateTime endDate,
@@ -4565,6 +4606,8 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       'lastPaymentAmount': transaction.lastPaymentAmount,
       'originalTransactionId': transaction.originalTransactionId,
       'isOriginalTransaction': transaction.isOriginalTransaction,
+      // Only exchange legs carry it; other sales' documents stay as they were.
+      if (transaction.exchangeId != null) 'exchangeId': transaction.exchangeId,
       'taxAmount': transaction.taxAmount,
       'numberOfItems': transaction.numberOfItems,
       'discountAmount': transaction.discountAmount,

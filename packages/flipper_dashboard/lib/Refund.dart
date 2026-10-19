@@ -2,12 +2,18 @@ import 'package:flipper_localize/flipper_localize.dart';
 import 'dart:async';
 
 import 'package:flipper_dashboard/RefundReasonForm.dart';
+import 'package:flipper_dashboard/features/branch_location/branch_services.dart';
+import 'package:flipper_dashboard/features/exchange/sale_exchange_flow.dart';
+import 'package:flipper_dashboard/services/sale_exchange_service.dart';
 import 'package:flipper_dashboard/data_view_reports/DynamicDataSource.dart';
 import 'package:flipper_dashboard/services/transaction_refund_helpers.dart';
 import 'package:flipper_dashboard/services/transaction_refund_service.dart';
 import 'package:flipper_design_system/flipper_design_system.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/providers/access_provider.dart';
+import 'package:flipper_routing/app.locator.dart';
+import 'package:flipper_services/setting_service.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/payment_methods.dart';
 import 'package:flipper_services/proxy.dart';
@@ -95,7 +101,32 @@ class _RefundState extends ConsumerState<Refund> {
     return refundBlockReason(tx) ?? context.flipperL10n.refundUnavailable;
   }
 
-  String get _currency => widget.currency ?? ProxyService.box.defaultCurrency();
+  String get _currency =>
+      widget.currency ?? ref.read(branchServicesProvider).box.defaultCurrency();
+
+  /// Item exchange is offered beside refund when the business turned it on,
+  /// the sale can be exchanged and the user may edit transactions.
+  bool get _canExchange {
+    final tx = _transaction;
+    if (tx == null || _refundBlocked) return false;
+    if (!locator<SettingsService>().enableSaleExchange) return false;
+    if (SaleExchangeService.blockReason(tx) != null) return false;
+    return ref.read(
+      featureAccessProvider(
+        userId: ref.read(branchServicesProvider).box.getUserId() ?? '',
+        featureName: AppFeature.Transactions,
+      ),
+    );
+  }
+
+  Future<void> _onExchangeTap(BuildContext context) async {
+    final result = await showSaleExchangeFlow(
+      context,
+      transaction: _transaction!,
+      currency: _currency,
+    );
+    if (result != null && context.mounted) Navigator.of(context).pop();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -165,6 +196,10 @@ class _RefundState extends ConsumerState<Refund> {
                 enabled: !_refundUnavailable,
                 onTap: () => _onRefundTap(context),
               ),
+              if (_canExchange) ...[
+                const SizedBox(height: 12),
+                _ExchangeButton(onTap: () => _onExchangeTap(context)),
+              ],
               const SizedBox(height: 12),
               _PrintCopyButton(
                 busy: isPrintingCopy,
@@ -909,6 +944,50 @@ class _RefundActionButton extends StatelessWidget {
                       ),
                     ],
                   ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Secondary action: blue tint with a blue border (never a second hue).
+class _ExchangeButton extends StatelessWidget {
+  const _ExchangeButton({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: _PreviewColors.blueTint,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(15),
+        side: const BorderSide(color: _PreviewColors.blue, width: 1.5),
+      ),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(15),
+        onTap: onTap,
+        child: SizedBox(
+          height: 52,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              TransactionDetailSvgs.icon(
+                TransactionDetailSvgs.swap(),
+                size: 18,
+                color: _PreviewColors.blue,
+              ),
+              const SizedBox(width: 9),
+              Text(
+                context.flipperL10n.exchangeItemButton,
+                style: GoogleFonts.outfit(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  color: _PreviewColors.blue,
+                ),
+              ),
+            ],
           ),
         ),
       ),

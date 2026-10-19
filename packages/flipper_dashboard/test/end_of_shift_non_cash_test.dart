@@ -25,6 +25,19 @@ void main() {
       expect(split.other, 20000);
     });
 
+    test('a MoMo exchange return (negative) reduces mobile money', () {
+      // Sale of 1,500 on MoMo, its exchange return of 1,000 handed back on
+      // MoMo: 500 net went through the wallet, none through the drawer.
+      final split = splitNonCashTender([
+        (method: 'MOBILE MONEY', amount: 1500),
+        (method: 'MOBILE MONEY', amount: -1000),
+        (method: 'CASH', amount: -200),
+      ]);
+
+      expect(split.mobile, 500);
+      expect(split.other, 0);
+    });
+
     test('blank and legacy CASH/CREDIT rows count as cash', () {
       final split = splitNonCashTender([
         (method: null, amount: 100),

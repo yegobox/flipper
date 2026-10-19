@@ -28,6 +28,24 @@ TransactionItem _line({
 
 void main() {
   group('sumReportScopedPluLines', () {
+    test('item-exchange return lines count negative', () {
+      // Sale of 1180 (cost 800) then the item came back on an exchange
+      // return; the replacement sold for 2360 (cost 1500).
+      final totals = sumReportScopedPluLines(
+        lines: [
+          _line(id: 'l1', transactionId: 'sale-1', price: 1180, splyAmt: 800),
+          _line(id: 'r1', transactionId: 'ret-1', price: 1180, splyAmt: 800),
+          _line(id: 's1', transactionId: 'sale-2', price: 2360, splyAmt: 1500),
+        ],
+        saleIds: {'sale-1', 'ret-1', 'sale-2'},
+        negativeSaleIds: {'ret-1'},
+      );
+
+      expect(totals.lineSales, 2360);
+      expect(totals.grossProfit, closeTo(860, 0.01));
+      expect(totals.lineTax, closeTo(360, 0.01));
+    });
+
     test('sums only lines whose sale is in report scope', () {
       final totals = sumReportScopedPluLines(
         lines: [

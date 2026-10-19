@@ -40,6 +40,11 @@ class SettingsService with ListenableServiceMixin {
   final _enableTicketReviewWorkflow = ReactiveValue<bool>(false);
   bool get enableTicketReviewWorkflow => _enableTicketReviewWorkflow.value;
 
+  final _enableSaleExchange = ReactiveValue<bool>(false);
+
+  /// Item exchange on completed sales (opt-in, default off).
+  bool get enableSaleExchange => _enableSaleExchange.value;
+
   Future<bool> updateSettings({required Map map}) async {
     String? userId = ProxyService.box.getUserId();
     String? businessId = map['businessId'] ?? ProxyService.box.getBusinessId();
@@ -85,13 +90,16 @@ class SettingsService with ListenableServiceMixin {
         setting.allowSellingBelowStock = map['allowSellingBelowStock'];
       }
       if (map.containsKey('enableTicketReviewWorkflow')) {
-        setting.enableTicketReviewWorkflow =
-            map['enableTicketReviewWorkflow'];
+        setting.enableTicketReviewWorkflow = map['enableTicketReviewWorkflow'];
         _enableTicketReviewWorkflow.value = map['enableTicketReviewWorkflow'];
         await ProxyService.box.writeBool(
           key: 'ticketReviewWorkflowEnabled',
           value: map['enableTicketReviewWorkflow'] as bool,
         );
+      }
+      if (map.containsKey('enableSaleExchange')) {
+        setting.enableSaleExchange = map['enableSaleExchange'];
+        _enableSaleExchange.value = map['enableSaleExchange'];
       }
       setting.lastTouched = DateTime.now().toUtc();
 
@@ -118,10 +126,13 @@ class SettingsService with ListenableServiceMixin {
             map['enablePriceQuantityAdjustment'] ?? false,
         isCurrencyDecimal: map['isCurrencyDecimal'] ?? false,
         allowSellingBelowStock: map['allowSellingBelowStock'] ?? false,
-        enableTicketReviewWorkflow:
-            map['enableTicketReviewWorkflow'] ?? false,
+        enableTicketReviewWorkflow: map['enableTicketReviewWorkflow'] ?? false,
+        enableSaleExchange: map['enableSaleExchange'] ?? false,
         lastTouched: DateTime.now().toUtc(),
       );
+      if (map.containsKey('enableSaleExchange')) {
+        _enableSaleExchange.value = map['enableSaleExchange'] as bool;
+      }
 
       if (map.containsKey('enableTicketReviewWorkflow')) {
         _enableTicketReviewWorkflow.value =
@@ -265,6 +276,7 @@ class SettingsService with ListenableServiceMixin {
     _isCurrencyDecimal.value = setting.isCurrencyDecimal ?? false;
     _enableTicketReviewWorkflow.value =
         setting.enableTicketReviewWorkflow ?? false;
+    _enableSaleExchange.value = setting.enableSaleExchange ?? false;
     // Payment-finalization call sites (`_transaction.dart`,
     // `previewCart.dart`) read this synchronously mid-payment-flow via the
     // box cache rather than awaiting `settings()`.
@@ -329,6 +341,17 @@ class SettingsService with ListenableServiceMixin {
     );
   }
 
+  Future<void> toggleSaleExchange({
+    required bool enabled,
+    required String businessId,
+  }) async {
+    _enableSaleExchange.value = enabled;
+    notifyListeners();
+    await updateSettings(
+      map: {'enableSaleExchange': enabled, 'businessId': businessId},
+    );
+  }
+
   Future<void> setAdminPin({
     required String pin,
     required String businessId,
@@ -364,6 +387,7 @@ class SettingsService with ListenableServiceMixin {
       _enablePriceQuantityAdjustment,
       _isCurrencyDecimal,
       _enableTicketReviewWorkflow,
+      _enableSaleExchange,
     ]);
   }
 }

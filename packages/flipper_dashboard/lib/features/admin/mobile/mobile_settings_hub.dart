@@ -410,6 +410,13 @@ class _SalesSettingsPageState extends State<_SalesSettingsPage> {
                 value: _settings.enableTicketReviewWorkflow,
                 onChanged: AdminActions.setTicketReviewWorkflow,
               ),
+              SettingsSwitchRow(
+                icon: Icons.swap_horiz_rounded,
+                title: l10n.adminSaleExchangeTitle,
+                subtitle: l10n.adminSaleExchangeSubtitle,
+                value: _settings.enableSaleExchange,
+                onChanged: AdminActions.setSaleExchange,
+              ),
             ],
           ),
         ],
