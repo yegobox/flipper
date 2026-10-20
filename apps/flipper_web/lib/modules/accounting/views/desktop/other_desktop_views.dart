@@ -14,6 +14,7 @@ import 'package:flipper_web/modules/accounting/widgets/accounting_kpi_card.dart'
 import 'package:flipper_web/modules/accounting/widgets/accounting_page_header.dart';
 import 'package:flipper_web/modules/accounting/widgets/accounting_tag.dart';
 import 'package:flipper_web/modules/accounting/widgets/accounting_toast.dart';
+import 'package:flipper_web/modules/accounting/widgets/money_accounts_breakdown.dart';
 import 'package:flipper_web/modules/accounting/widgets/create_account_modal.dart';
 import 'package:flipper_web/modules/accounting/widgets/status_pill.dart';
 import 'package:flutter/foundation.dart';
@@ -680,6 +681,7 @@ Future<void> _categorizeBankLine(
     // retry re-runs the whole sequence without producing duplicates.
     await ledger.postJournalEntry(businessId: businessId, entryId: entryId);
     ref.invalidate(journalEntriesStreamProvider);
+    ref.invalidate(journalEntriesThroughPeriodEndProvider);
 
     await _persistBankLineMatch(
       ref,
@@ -1311,6 +1313,7 @@ class AccountingFinancialStatementsView extends ConsumerWidget {
     final journal = ref.watch(accountingJournalProvider);
     final pl = incomeStatement(accounts);
     final bs = balanceSheet(accounts);
+    final liquidBalances = ref.watch(accountingLiquidBalancesProvider);
     final cf = cashFlowFromJournal(journal);
     final entityName = ref.watch(selectedBusinessProvider)?.name ?? '';
     final period = ref.watch(accountingPeriodLabelProvider);
@@ -1391,6 +1394,12 @@ class AccountingFinancialStatementsView extends ConsumerWidget {
                 entityName: entityName,
                 rows: [
                   _StmtRow(l10n.booksTotalAssets, bs.totalAssets),
+                  for (final b in liquidBalances)
+                    _StmtRow(
+                      moneyAccountLabel(l10n, b.code),
+                      b.bal,
+                      indent: true,
+                    ),
                   _StmtRow(l10n.booksTotalLiabilities, bs.totalLiab),
                   _StmtRow(l10n.booksTotalEquity, bs.totalEquity),
                   _StmtRow(
@@ -1423,11 +1432,20 @@ class AccountingFinancialStatementsView extends ConsumerWidget {
 }
 
 class _StmtRow {
-  const _StmtRow(this.label, this.value, {this.total = false});
+  const _StmtRow(
+    this.label,
+    this.value, {
+    this.total = false,
+    this.indent = false,
+  });
 
   final String label;
   final int value;
   final bool total;
+
+  /// A part of the row above it (e.g. Cash under Total assets): inset and
+  /// quieter.
+  final bool indent;
 }
 
 class _StmtBody extends StatelessWidget {
@@ -1459,6 +1477,33 @@ class _StmtBody extends StatelessWidget {
         for (final r in rows)
           Builder(
             builder: (context) {
+              if (r.indent) {
+                return Padding(
+                  padding: const EdgeInsets.only(left: 16, top: 2, bottom: 4),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        r.label,
+                        style: AccountingTokens.sans(
+                          fontSize: 13,
+                          color: AccountingTokens.ink2,
+                        ),
+                      ),
+                      Text(
+                        money(r.value),
+                        style: AccountingTokens.mono(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                          color: r.value < 0
+                              ? AccountingTokens.lossInk
+                              : AccountingTokens.ink2,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }
               final loss = r.total && r.value < 0;
               final emphasis = loss
                   ? AccountingTokens.lossInk

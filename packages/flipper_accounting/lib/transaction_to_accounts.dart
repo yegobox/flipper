@@ -24,6 +24,7 @@ class TransactionToAccounts {
   static const _opexCode = '6000';
   static const _cogsCode = '5010';
   static const _inventoryCode = '1200';
+  static const _ownerCapitalCode = '3010';
 
   // ---------------------------------------------------------------------------
   // Public API
@@ -35,8 +36,9 @@ class TransactionToAccounts {
     List<Map<String, dynamic>> items, {
     List<Account> staticAccounts = const [],
   }) {
-    final recognized =
-        transactions.where(isAccountingRecognizedTransaction).toList();
+    final recognized = transactions
+        .where(isAccountingRecognizedTransaction)
+        .toList();
     final sales = recognized.where((t) => !isAccountingExpense(t)).toList();
     final expenses = recognized.where(isAccountingExpense).toList();
 
@@ -186,8 +188,7 @@ class TransactionToAccounts {
         (txn['receipt_number'] ?? txn['receiptNumber'])?.toString() ??
         (txn['reference'] as String?) ??
         id.substring(0, id.length.clamp(0, 8));
-    final customer =
-        txn['customer_name'] ?? txn['customerName'] ?? ref;
+    final customer = txn['customer_name'] ?? txn['customerName'] ?? ref;
     return JournalEntry(
       id: 'JE-${ref.substring(0, ref.length.clamp(0, 8)).toUpperCase()}-P',
       date: _formatDate(dateIso),
@@ -207,6 +208,8 @@ class TransactionToAccounts {
     final order = <String>[];
 
     for (final txn in transactions.where(isAccountingRecognizedTransaction)) {
+      // Money put in by the owner is neither revenue nor expense.
+      if (isAccountingCashIn(txn)) continue;
       final dt = _parseDate(txn['created_at'] ?? txn['createdAt']);
       if (dt == null) continue;
       final key = '${dt.year}-${dt.month.toString().padLeft(2, '0')}';
@@ -229,11 +232,23 @@ class TransactionToAccounts {
     }).toList();
   }
 
-  static int cashAndBankTotal(List<Account> accounts) {
-    return accounts
-        .where((a) => {'1010', '1020', '1030'}.contains(a.code))
-        .fold(0, (s, a) => s + a.bal);
+  /// The money accounts, in the order Books shows them: cash first (most
+  /// common), then mobile money, then bank.
+  static const liquidAccountCodes = ['1010', '1030', '1020'];
+
+  /// Balance of each money account, in [liquidAccountCodes] order. An account
+  /// missing from [accounts] shows 0, so the three always add up to
+  /// [cashAndBankTotal].
+  static List<({String code, int bal})> liquidBalances(List<Account> accounts) {
+    final byCode = {for (final a in accounts) a.code: a.bal};
+    return [
+      for (final code in liquidAccountCodes)
+        (code: code, bal: byCode[code] ?? 0),
+    ];
   }
+
+  static int cashAndBankTotal(List<Account> accounts) =>
+      liquidBalances(accounts).fold(0, (s, l) => s + l.bal);
 
   // ---------------------------------------------------------------------------
   // Private helpers
@@ -266,15 +281,22 @@ class TransactionToAccounts {
         id.substring(0, id.length.clamp(0, 8));
     final dateStr = _formatDate(txn['created_at'] ?? txn['createdAt']);
     final isExp = isAccountingExpense(txn);
+    final isCashIn = !isExp && isAccountingCashIn(txn);
     final memo = isExp
         ? 'Expense · ${txn['note'] ?? txn['reference'] ?? ref}'
+        : isCashIn
+        ? 'Cash In · ${txn['note'] ?? _cashInCategory(txn) ?? ref}'
         : 'Sale · ${txn['customer_name'] ?? txn['customerName'] ?? ref}';
 
     // Cost of goods sold for the sale, summed from the line-item supply cost.
-    final cogs = isExp ? 0 : _sumField(items, 'sply_amt', 'splyAmt');
+    final cogs = isExp || isCashIn
+        ? 0
+        : _sumField(items, 'sply_amt', 'splyAmt');
 
     final lines = isExp
         ? _expenseLines(sub, accountingLiquidAccountCode(txn))
+        : isCashIn
+        ? _cashInLines(sub, accountingLiquidAccountCode(txn))
         : _saleLines(txn, sub, netRev, tax, cogs);
 
     return JournalEntry(
@@ -283,16 +305,37 @@ class TransactionToAccounts {
       memo: memo,
       ref: ref,
       status: JournalStatus.posted,
-      src: isExp ? 'Expense' : 'POS',
+      src: isExp
+          ? 'Expense'
+          : isCashIn
+          ? 'Cash In'
+          : 'POS',
       lines: lines,
     );
   }
 
+  /// The Cash In's category: `transactionType` holds its name, or just
+  /// "Cash In" when none was picked.
+  static String? _cashInCategory(Map<String, dynamic> txn) {
+    final t = (txn['transactionType'] ?? txn['transaction_type'])
+        ?.toString()
+        .trim();
+    if (t == null || t.isEmpty || t == 'Cash In') return null;
+    return t;
+  }
+
+  /// Dr liquid account / Cr Owner's Capital: money put into the business is
+  /// not revenue, so it carries no VAT and no cost of sales.
+  static List<JournalLine> _cashInLines(int sub, String liquidAc) => [
+    JournalLine(ac: liquidAc, dr: sub),
+    JournalLine(ac: _ownerCapitalCode, cr: sub),
+  ];
+
   /// Dr expense / Cr liquid account.
   static List<JournalLine> _expenseLines(int sub, String liquidAc) => [
-        JournalLine(ac: _opexCode, dr: sub),
-        JournalLine(ac: liquidAc, cr: sub),
-      ];
+    JournalLine(ac: _opexCode, dr: sub),
+    JournalLine(ac: liquidAc, cr: sub),
+  ];
 
   /// Accrual sale: Dr cash (collected) + Dr AR (open) / Cr revenue / Cr VAT,
   /// plus the matching cost entry Dr COGS / Cr Inventory when item cost is known.
@@ -347,8 +390,7 @@ class TransactionToAccounts {
     List<Map<String, dynamic>> rows,
     String snakeKey,
     String camelKey,
-  ) =>
-      rows.fold(0, (s, r) => s + _rawInt(r[snakeKey] ?? r[camelKey]));
+  ) => rows.fold(0, (s, r) => s + _rawInt(r[snakeKey] ?? r[camelKey]));
 
   static int _rawInt(dynamic v) {
     if (v == null) return 0;
@@ -369,8 +411,18 @@ class TransactionToAccounts {
   }
 
   static String _monthAbbr(int m) => const [
-        '',
-        'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
-      ][m];
+    '',
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
+  ][m];
 }

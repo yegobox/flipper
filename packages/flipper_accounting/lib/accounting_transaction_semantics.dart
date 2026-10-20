@@ -60,6 +60,31 @@ bool isPurchaseExpenseMirror(Map<String, dynamic> txn) =>
 bool isAccountingExpense(Map<String, dynamic> txn) =>
     txn['is_expense'] == true || txn['isExpense'] == true;
 
+/// True for a Cash Book "Cash In": money put into the business outside a sale
+/// (owner top-up, loan received, debt repaid). It is not revenue; the ledger
+/// books it Dr money account / Cr 3010 Owner's Capital.
+///
+/// `receiptType` decides. Rows saved before Flipper stamped it carry `NS` (or
+/// nothing) and the movement name in `transactionType`, accepted only when
+/// `isExpense` agrees. Mirrors `semantics::cash_movement` in the
+/// data-connector, which posts the entry.
+bool isAccountingCashIn(Map<String, dynamic> txn) {
+  final id = (txn['_id'] ?? txn['id'])?.toString().trim() ?? '';
+  // Purchase expense mirrors written by the purchase flow.
+  if (id.startsWith('purchase_exp_') || id.startsWith('bill_pay_')) {
+    return false;
+  }
+  final receiptType = (txn['receiptType'] ?? txn['receipt_type'])
+      ?.toString()
+      .trim();
+  if (receiptType == 'Cash In') return true;
+  if (receiptType != null && receiptType != 'NS') return false;
+  final transactionType = (txn['transactionType'] ?? txn['transaction_type'])
+      ?.toString()
+      .trim();
+  return transactionType == 'Cash In' && !isAccountingExpense(txn);
+}
+
 bool isAccountingLoan(Map<String, dynamic> txn) =>
     txn['is_loan'] == true || txn['isLoan'] == true;
 

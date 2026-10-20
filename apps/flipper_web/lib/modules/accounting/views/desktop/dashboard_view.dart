@@ -10,6 +10,7 @@ import 'package:flipper_web/modules/accounting/widgets/accounting_icon.dart';
 import 'package:flipper_web/modules/accounting/widgets/accounting_kpi_card.dart';
 import 'package:flipper_web/modules/accounting/widgets/accounting_page_header.dart';
 import 'package:flipper_web/modules/accounting/widgets/accounting_toast.dart';
+import 'package:flipper_web/modules/accounting/widgets/money_accounts_breakdown.dart';
 import 'package:flipper_web/modules/accounting/widgets/status_pill.dart';
 import 'package:flipper_web/modules/accounting/widgets/trend_chart.dart';
 import 'package:flutter/material.dart';
@@ -38,13 +39,10 @@ class AccountingDashboardView extends ConsumerWidget {
     final entityName = ref.watch(selectedBusinessProvider)?.name ?? '';
     final period = ref.watch(accountingPeriodLabelProvider);
     final currency = ref.watch(accountingCurrencyProvider);
-    final accounts = ref.watch(accountingAccountsProvider);
+    final liquidBalances = ref.watch(accountingLiquidBalancesProvider);
     final arOverdue60 = ref
         .watch(accountingArAgingProvider)
         .fold<int>(0, (s, r) => s + r.d60 + r.d90);
-    final liquidAccountCount = accounts
-        .where((a) => {'1010', '1020', '1030'}.contains(a.code))
-        .length;
     final incomeDelta = _trendDeltaPercent(trend, income: true);
     final cashDelta = _trendDeltaPercent(trend, income: false);
 
@@ -130,9 +128,9 @@ class AccountingDashboardView extends ConsumerWidget {
                 icon: AccIcon.wallet,
                 tone: KpiTone.blue,
                 delta: cashDelta,
-                footnote: liquidAccountCount > 0
-                    ? l10n.booksAcrossAccounts(liquidAccountCount)
-                    : null,
+                // The total is three accounts; show each so cash is never
+                // mistaken for the whole.
+                detail: MoneyAccountsBreakdown(balances: liquidBalances),
               ),
               AccountingKpiCard(
                 label: l10n.booksReceivable,

@@ -29,7 +29,10 @@ class AccountingKpiGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final cols = columnCount(constraints.maxWidth, maxColumns: maxColumns).clamp(1, children.length);
+        final cols = columnCount(
+          constraints.maxWidth,
+          maxColumns: maxColumns,
+        ).clamp(1, children.length);
         final itemWidth = (constraints.maxWidth - spacing * (cols - 1)) / cols;
 
         return Wrap(
@@ -56,6 +59,7 @@ class AccountingKpiCard extends StatelessWidget {
     this.currencyPrefix,
     this.footnote,
     this.note,
+    this.detail,
     this.delta,
     this.deltaPositive,
     this.valueFontSize,
@@ -79,6 +83,10 @@ class AccountingKpiCard extends StatelessWidget {
 
   /// Handoff `.acc-kpi-note` line below the value (e.g. VAT due date).
   final String? note;
+
+  /// Extra content under the value (e.g. a per-account breakdown), above the
+  /// delta chip.
+  final Widget? detail;
   final int? delta;
   final bool? deltaPositive;
   final double? valueFontSize;
@@ -189,6 +197,7 @@ class AccountingKpiCard extends StatelessWidget {
             ),
           ),
         ],
+        if (detail != null) ...[const SizedBox(height: 10), detail!],
         if (delta != null) ...[
           const SizedBox(height: 10),
           _DeltaChip(value: delta!, positive: deltaPositive ?? delta! >= 0),
@@ -242,13 +251,17 @@ class _DeltaChip extends StatelessWidget {
           AccountingIcon(
             icon: positive ? AccIcon.arrowUpRight : AccIcon.arrowDown,
             size: 11,
-            color: positive ? AccountingTokens.gainInk : AccountingTokens.lossInk,
+            color: positive
+                ? AccountingTokens.gainInk
+                : AccountingTokens.lossInk,
           ),
           Text(
             '$value%',
             style: AccountingTokens.mono(
               fontSize: 11,
-              color: positive ? AccountingTokens.gainInk : AccountingTokens.lossInk,
+              color: positive
+                  ? AccountingTokens.gainInk
+                  : AccountingTokens.lossInk,
             ),
           ),
         ],

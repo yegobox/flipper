@@ -23,6 +23,7 @@ Future<void> refreshAccountingFromCloud(WidgetRef ref) async {
   ref.invalidate(rawAllTransactionsStreamProvider);
   ref.invalidate(chartOfAccountsStreamProvider);
   ref.invalidate(journalEntriesStreamProvider);
+  ref.invalidate(journalEntriesThroughPeriodEndProvider);
   ref.invalidate(bankLinesStreamProvider);
   ref.invalidate(accountingSettingsProvider);
   ref.invalidate(accountingInventoryValueProvider);

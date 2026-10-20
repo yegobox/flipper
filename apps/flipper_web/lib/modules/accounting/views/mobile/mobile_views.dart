@@ -1,5 +1,6 @@
 import 'package:flipper_design_system/flipper_design_system.dart'
     show CustomAppBar;
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_web/features/business_selection/business_branch_selector.dart';
 import 'package:flipper_web/features/module_launcher/app_launcher_host.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_derive.dart';
@@ -12,6 +13,7 @@ import 'package:flipper_web/modules/accounting/theme/accounting_tokens.dart';
 import 'package:flipper_web/modules/accounting/widgets/accounting_icon.dart';
 import 'package:flipper_web/modules/accounting/widgets/accounting_toast.dart';
 import 'package:flipper_web/modules/accounting/widgets/journal_approval_card.dart';
+import 'package:flipper_web/modules/accounting/widgets/money_accounts_breakdown.dart';
 import 'package:flipper_web/modules/accounting/widgets/trend_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -23,6 +25,7 @@ class AccountingSnapshotTab extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final pl = ref.watch(accountingIncomeStatementProvider);
     final cashBank = ref.watch(accountingCashBankTotalProvider);
+    final liquidBalances = ref.watch(accountingLiquidBalancesProvider);
     final ar = ageTotals(ref.watch(accountingArAgingProvider)).total;
     final ap = ageTotals(ref.watch(accountingApAgingProvider)).total;
     final pending = ref.watch(pendingCountProvider);
@@ -83,6 +86,9 @@ class AccountingSnapshotTab extends ConsumerWidget {
             ),
           ],
         ),
+        // "Cash & bank" above is three accounts; the strip shows each.
+        const SizedBox(height: 10),
+        _MoneyAccountsStrip(balances: liquidBalances),
         if (pending > 0) ...[
           const SizedBox(height: 12),
           Material(
@@ -378,6 +384,31 @@ class _MiniKpi extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Full-width card under the KPI grid with Cash, Mobile money and Bank. Styled
+/// like [_MiniKpi] so it reads as part of the same grid.
+class _MoneyAccountsStrip extends StatelessWidget {
+  const _MoneyAccountsStrip({required this.balances});
+
+  final List<MoneyAccountBalance> balances;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      key: const Key('books-money-accounts-strip'),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AccountingTokens.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AccountingTokens.line),
+      ),
+      child: MoneyAccountsBreakdown(
+        balances: balances,
+        layout: MoneyAccountsLayout.columns,
       ),
     );
   }
@@ -702,6 +733,12 @@ class AccountingStatementDetail extends ConsumerWidget {
               ],
               MobileReportKey.bs => [
                 _SRow('Total assets', bs.totalAssets),
+                for (final b in ref.watch(accountingLiquidBalancesProvider))
+                  _SRow(
+                    moneyAccountLabel(context.flipperL10n, b.code),
+                    b.bal,
+                    indent: true,
+                  ),
                 _SRow('Total liabilities', bs.totalLiab),
                 _SRow('Total equity', bs.totalEquity),
                 _SRow('Liabilities + equity', bs.totalLiabEquity, bold: true),
@@ -752,15 +789,52 @@ class AccountingStatementDetail extends ConsumerWidget {
 }
 
 class _SRow extends StatelessWidget {
-  const _SRow(this.label, this.value, {this.bold = false, this.labelOverride});
+  const _SRow(
+    this.label,
+    this.value, {
+    this.bold = false,
+    this.indent = false,
+    this.labelOverride,
+  });
 
   final String label;
   final int value;
   final bool bold;
+
+  /// A part of the row above it (e.g. Cash under Total assets): inset and
+  /// quieter.
+  final bool indent;
   final String? labelOverride;
 
   @override
   Widget build(BuildContext context) {
+    if (indent) {
+      return Padding(
+        padding: const EdgeInsets.only(left: 16, top: 3, bottom: 3),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              label,
+              style: AccountingTokens.sans(
+                fontSize: 13,
+                color: AccountingTokens.ink2,
+              ),
+            ),
+            Text(
+              labelOverride ?? money(value),
+              style: AccountingTokens.mono(
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: value < 0
+                    ? AccountingTokens.lossInk
+                    : AccountingTokens.ink2,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
     final loss = bold && value < 0;
     final emphasis = loss ? AccountingTokens.lossInk : AccountingTokens.ink1;
     return Padding(

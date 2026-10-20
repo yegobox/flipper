@@ -12,6 +12,9 @@ class SupabaseAccountingLedgerRepository implements AccountingLedgerRepository {
   static const _coaTable = 'chart_of_accounts';
   static const _entriesTable = 'journal_entries';
   static const _linesTable = 'journal_lines';
+
+  /// Entry ids per `journal_lines` request (UUIDs keep this well under URL limits).
+  static const _linesBatchSize = 150;
   static const _bankTable = 'bank_statement_lines';
   static const _settingsTable = 'accounting_settings';
 
@@ -43,9 +46,10 @@ class SupabaseAccountingLedgerRepository implements AccountingLedgerRepository {
     debugPrint(
       '[Accounting] Supabase seed_default_chart_of_accounts businessId=$businessId',
     );
-    await _client.rpc('seed_default_chart_of_accounts', params: {
-      'p_business_id': businessId,
-    });
+    await _client.rpc(
+      'seed_default_chart_of_accounts',
+      params: {'p_business_id': businessId},
+    );
     debugPrint('[Accounting] Supabase COA seed RPC completed');
   }
 
@@ -76,14 +80,19 @@ class SupabaseAccountingLedgerRepository implements AccountingLedgerRepository {
         .from(_coaTable)
         .stream(primaryKey: ['id'])
         .eq('business_id', businessId)
-        .map((rows) => rows
-            .where((r) => r['is_active'] != false)
-            .map((r) => LedgerRowMapper.accountFromRow(
-                  r,
-                  balance: _int(r['opening_balance']),
-                ))
-            .toList()
-          ..sort((a, b) => a.code.compareTo(b.code)));
+        .map(
+          (rows) =>
+              rows
+                  .where((r) => r['is_active'] != false)
+                  .map(
+                    (r) => LedgerRowMapper.accountFromRow(
+                      r,
+                      balance: _int(r['opening_balance']),
+                    ),
+                  )
+                  .toList()
+                ..sort((a, b) => a.code.compareTo(b.code)),
+        );
   }
 
   @override
@@ -97,40 +106,57 @@ class SupabaseAccountingLedgerRepository implements AccountingLedgerRepository {
         .stream(primaryKey: ['id'])
         .eq('business_id', businessId)
         .asyncMap((rows) async {
-          final filtered = rows.where((r) {
-            final dt = _parseDate(r['entry_date']);
-            if (dt == null) return true;
-            if (startDate != null && dt.isBefore(startDate)) return false;
-            if (endDate != null && dt.isAfter(_endOfDay(endDate))) return false;
-            return true;
-          }).toList()
-            // Newest first; sort on raw entry_date (the mapped display date
-            // "Jul 7" is not chronologically sortable).
-            ..sort((a, b) {
-              final da = _parseDate(a['entry_date']) ?? DateTime(1900);
-              final db = _parseDate(b['entry_date']) ?? DateTime(1900);
-              return db.compareTo(da);
-            });
+          final filtered =
+              rows.where((r) {
+                  final dt = _parseDate(r['entry_date']);
+                  if (dt == null) return true;
+                  if (startDate != null && dt.isBefore(startDate)) return false;
+                  if (endDate != null && dt.isAfter(_endOfDay(endDate)))
+                    return false;
+                  return true;
+                }).toList()
+                // Newest first; sort on raw entry_date (the mapped display date
+                // "Jul 7" is not chronologically sortable).
+                ..sort((a, b) {
+                  final da = _parseDate(a['entry_date']) ?? DateTime(1900);
+                  final db = _parseDate(b['entry_date']) ?? DateTime(1900);
+                  return db.compareTo(da);
+                });
 
           if (filtered.isEmpty) return <JournalEntry>[];
 
           final ids = filtered.map((r) => r['id'].toString()).toList();
-          final linesRows = await _client
-              .from(_linesTable)
-              .select()
-              .inFilter('journal_entry_id', ids);
+          // Batched: a range with no start date (opening balances) can hold
+          // every entry the business has, and one `in.(...)` with thousands
+          // of ids would overflow the request URL.
+          final linesRows = <Map<String, dynamic>>[];
+          for (var i = 0; i < ids.length; i += _linesBatchSize) {
+            final end = i + _linesBatchSize < ids.length
+                ? i + _linesBatchSize
+                : ids.length;
+            linesRows.addAll(
+              await _client
+                  .from(_linesTable)
+                  .select()
+                  .inFilter('journal_entry_id', ids.sublist(i, end)),
+            );
+          }
 
           final linesByEntry = <String, List<JournalLine>>{};
           for (final row in linesRows) {
             final eid = row['journal_entry_id'].toString();
-            linesByEntry.putIfAbsent(eid, () => []).add(LedgerRowMapper.lineFromRow(row));
+            linesByEntry
+                .putIfAbsent(eid, () => [])
+                .add(LedgerRowMapper.lineFromRow(row));
           }
 
           return filtered
-              .map((r) => LedgerRowMapper.entryFromRow(
-                    r,
-                    linesByEntry[r['id'].toString()] ?? const [],
-                  ))
+              .map(
+                (r) => LedgerRowMapper.entryFromRow(
+                  r,
+                  linesByEntry[r['id'].toString()] ?? const [],
+                ),
+              )
               .toList();
         });
   }
@@ -189,14 +215,20 @@ class SupabaseAccountingLedgerRepository implements AccountingLedgerRepository {
       journalId = j?['id']?.toString();
     }
 
-    final header = _forPostgrest(LedgerRowMapper.entryToRow(
-      businessId: businessId,
-      entry: entry,
-      transactionId: transactionId,
-      journalId: journalId,
-    ));
+    final header = _forPostgrest(
+      LedgerRowMapper.entryToRow(
+        businessId: businessId,
+        entry: entry,
+        transactionId: transactionId,
+        journalId: journalId,
+      ),
+    );
 
-    final inserted = await _client.from(_entriesTable).insert(header).select('id').single();
+    final inserted = await _client
+        .from(_entriesTable)
+        .insert(header)
+        .select('id')
+        .single();
     final entryId = inserted['id'].toString();
 
     final lineRows = entry.lines
@@ -221,10 +253,18 @@ class SupabaseAccountingLedgerRepository implements AccountingLedgerRepository {
     required JournalEntry entry,
   }) async {
     final header = _forPostgrest(
-      LedgerRowMapper.entryToRow(businessId: businessId, entry: entry, id: entryId),
+      LedgerRowMapper.entryToRow(
+        businessId: businessId,
+        entry: entry,
+        id: entryId,
+      ),
     );
 
-    await _client.from(_entriesTable).update(header).eq('id', entryId).eq('business_id', businessId);
+    await _client
+        .from(_entriesTable)
+        .update(header)
+        .eq('id', entryId)
+        .eq('business_id', businessId);
 
     await _client.from(_linesTable).delete().eq('journal_entry_id', entryId);
 
@@ -268,10 +308,16 @@ class SupabaseAccountingLedgerRepository implements AccountingLedgerRepository {
         .from(_bankTable)
         .stream(primaryKey: ['id'])
         .eq('business_id', businessId)
-        .map((rows) => rows
-            .where((r) => (r['bank_account_code'] ?? '1020').toString() == bankAccountCode)
-            .map(LedgerRowMapper.bankLineFromRow)
-            .toList());
+        .map(
+          (rows) => rows
+              .where(
+                (r) =>
+                    (r['bank_account_code'] ?? '1020').toString() ==
+                    bankAccountCode,
+              )
+              .map(LedgerRowMapper.bankLineFromRow)
+              .toList(),
+        );
   }
 
   @override
@@ -283,14 +329,16 @@ class SupabaseAccountingLedgerRepository implements AccountingLedgerRepository {
     String? matchedJournalEntryId,
     String? matchedEntryNumber,
   }) async {
-    final row = _forPostgrest(LedgerRowMapper.bankLineToRow(
-      businessId: businessId,
-      line: line,
-      bankAccountCode: bankAccountCode,
-      id: id,
-      matchedJournalEntryId: matchedJournalEntryId,
-      matchedEntryNumber: matchedEntryNumber,
-    ));
+    final row = _forPostgrest(
+      LedgerRowMapper.bankLineToRow(
+        businessId: businessId,
+        line: line,
+        bankAccountCode: bankAccountCode,
+        id: id,
+        matchedJournalEntryId: matchedJournalEntryId,
+        matchedEntryNumber: matchedEntryNumber,
+      ),
+    );
 
     if (id != null) {
       await _client.from(_bankTable).upsert(row);
@@ -312,7 +360,9 @@ class SupabaseAccountingLedgerRepository implements AccountingLedgerRepository {
   }
 
   @override
-  Future<Map<String, dynamic>?> fetchSettings({required String businessId}) async {
+  Future<Map<String, dynamic>?> fetchSettings({
+    required String businessId,
+  }) async {
     return _client
         .from(_settingsTable)
         .select()
