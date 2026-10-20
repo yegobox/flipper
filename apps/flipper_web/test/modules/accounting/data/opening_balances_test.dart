@@ -1,8 +1,14 @@
+import 'dart:async';
+
+import 'package:flipper_web/modules/accounting/data/accounting_backend_config.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_balances.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_derive.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_models.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_providers.dart';
+import 'package:flipper_web/modules/accounting/data/accounting_session_actions.dart';
 import 'package:flipper_web/modules/accounting/data/default_chart_of_accounts_seed.dart';
+import 'package:flipper_web/services/ditto_service.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -69,6 +75,48 @@ class _DatedLedger extends FakeAccountingLedgerRepository {
         if (inRange(d)) e,
       ...undated,
     ]);
+  }
+}
+
+/// The period loads; the open-start (through period end) read never does.
+class _HalfLoadedLedger extends _DatedLedger {
+  _HalfLoadedLedger(super.dated);
+
+  @override
+  Stream<List<JournalEntry>> watchJournalEntries({
+    required String businessId,
+    DateTime? startDate,
+    DateTime? endDate,
+  }) {
+    if (startDate == null) {
+      return Stream.fromFuture(Completer<List<JournalEntry>>().future);
+    }
+    return super.watchJournalEntries(
+      businessId: businessId,
+      startDate: startDate,
+      endDate: endDate,
+    );
+  }
+}
+
+/// Counts the open-start reads (the through-period-end stream).
+class _CountingLedger extends _DatedLedger {
+  _CountingLedger(super.dated);
+
+  var openStartReads = 0;
+
+  @override
+  Stream<List<JournalEntry>> watchJournalEntries({
+    required String businessId,
+    DateTime? startDate,
+    DateTime? endDate,
+  }) {
+    if (startDate == null) openStartReads++;
+    return super.watchJournalEntries(
+      businessId: businessId,
+      startDate: startDate,
+      endDate: endDate,
+    );
   }
 }
 
@@ -211,5 +259,152 @@ void main() {
       (code: '1020', bal: 300),
     ]);
     expect(container.read(accountingCashBankTotalProvider), 105300);
+  });
+
+  group('entries through the period end', () {
+    final ledger = _DatedLedger({_cashIn('a'): DateTime(2026, 9, 3)});
+
+    Future<List<JournalEntry>> throughEnd(ProviderContainer container) async {
+      addTearDown(container.dispose);
+      container.listen(journalEntriesThroughPeriodEndProvider, (_, _) {});
+      return container.read(journalEntriesThroughPeriodEndProvider.future);
+    }
+
+    test('stay empty until Ditto is ready', () async {
+      final container = ProviderContainer(
+        overrides: [
+          accountingBackendStrategyProvider.overrideWithValue(
+            AccountingBackendStrategy.ditto,
+          ),
+          dittoReadyProvider.overrideWith((ref) => false),
+          accountingLedgerRepositoryProvider.overrideWithValue(ledger),
+          accountingBusinessIdProvider.overrideWithValue('biz'),
+        ],
+      );
+      expect(await throughEnd(container), isEmpty);
+    });
+
+    test('stay empty without a business', () async {
+      final container = ProviderContainer(
+        overrides: [
+          ...accountingUnitTestOverrides(),
+          accountingLedgerRepositoryProvider.overrideWithValue(ledger),
+          accountingBusinessIdProvider.overrideWithValue(''),
+        ],
+      );
+      expect(await throughEnd(container), isEmpty);
+    });
+
+    test('read the ledger once Ditto is ready', () async {
+      final container = ProviderContainer(
+        overrides: [
+          accountingBackendStrategyProvider.overrideWithValue(
+            AccountingBackendStrategy.ditto,
+          ),
+          dittoReadyProvider.overrideWith((ref) => true),
+          accountingLedgerRepositoryProvider.overrideWithValue(ledger),
+          accountingBusinessIdProvider.overrideWithValue('biz'),
+          accountingDateRangeProvider.overrideWith(
+            (ref) => (DateTime(2026, 10, 1), DateTime(2026, 10, 31)),
+          ),
+        ],
+      );
+      expect((await throughEnd(container)).single.uuid, 'a');
+    });
+  });
+
+  test('no opening is carried until both journal streams load', () async {
+    final ledger = _HalfLoadedLedger({
+      _cashIn('a'): DateTime(2026, 9, 3),
+      _cashOut('c'): DateTime(2026, 10, 5),
+    });
+    final container = ProviderContainer(
+      overrides: [
+        ...accountingUnitTestOverrides(),
+        accountingLedgerRepositoryProvider.overrideWithValue(ledger),
+        accountingBusinessIdProvider.overrideWithValue('biz'),
+        accountingDateRangeProvider.overrideWith(
+          (ref) => (DateTime(2026, 10, 1), DateTime(2026, 10, 31)),
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+    container.listen(journalEntriesThroughPeriodEndProvider, (_, _) {});
+    for (final p in [
+      chartOfAccountsStreamProvider,
+      journalEntriesStreamProvider,
+    ]) {
+      container.listen(p, (_, _) {});
+      await container.read(p.future);
+    }
+
+    expect(
+      container.read(journalEntriesThroughPeriodEndProvider).hasValue,
+      isFalse,
+    );
+    expect(container.read(accountingOpeningBalancesProvider), isEmpty);
+    // Only the period's own movement until the history arrives.
+    expect(_bal(container.read(accountingAccountsProvider), '1010'), -15000);
+  });
+
+  group('refreshing the books re-reads the earlier entries', () {
+    ProviderContainer containerFor(_CountingLedger ledger) {
+      final container = ProviderContainer(
+        overrides: [
+          ...accountingUnitTestOverrides(),
+          accountingLedgerRepositoryProvider.overrideWithValue(ledger),
+          accountingBusinessIdProvider.overrideWithValue('biz'),
+          accountingDateRangeProvider.overrideWith(
+            (ref) => (DateTime(2026, 10, 1), DateTime(2026, 10, 31)),
+          ),
+          accountingPostSyncBootstrapProvider.overrideWith((ref) async {}),
+        ],
+      );
+      addTearDown(container.dispose);
+      container.listen(journalEntriesThroughPeriodEndProvider, (_, _) {});
+      return container;
+    }
+
+    test('after replication invalidates the streams', () async {
+      final ledger = _CountingLedger({_cashIn('a'): DateTime(2026, 9, 3)});
+      final container = containerFor(ledger);
+      await container.read(journalEntriesThroughPeriodEndProvider.future);
+      expect(ledger.openStartReads, 1);
+
+      invalidateAccountingDataStreamsInContainer(container);
+      final entries = await container.read(
+        journalEntriesThroughPeriodEndProvider.future,
+      );
+
+      expect(ledger.openStartReads, 2);
+      expect(entries.single.uuid, 'a');
+    });
+
+    testWidgets('after a manual refresh from the cloud', (tester) async {
+      final ledger = _CountingLedger({_cashIn('a'): DateTime(2026, 9, 3)});
+      final container = containerFor(ledger);
+      late WidgetRef widgetRef;
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: Consumer(
+            builder: (context, ref, _) {
+              widgetRef = ref;
+              return const SizedBox();
+            },
+          ),
+        ),
+      );
+      // Real async: Riverpod schedules the rebuild after an invalidate.
+      await tester.runAsync(() async {
+        await container.read(journalEntriesThroughPeriodEndProvider.future);
+        expect(ledger.openStartReads, 1);
+
+        await refreshAccountingFromCloud(widgetRef);
+        await container.read(journalEntriesThroughPeriodEndProvider.future);
+      });
+
+      expect(ledger.openStartReads, 2);
+    });
   });
 }
