@@ -571,6 +571,25 @@ final journalEntriesStreamProvider = StreamProvider<List<JournalEntry>>((ref) {
       );
 });
 
+/// Every journal entry dated up to the end of the selected period: the period
+/// itself plus everything before it. Same repository call and end date as
+/// [journalEntriesStreamProvider], so the two agree on every entry's date and
+/// the entries before the period are exactly the difference.
+final journalEntriesThroughPeriodEndProvider =
+    StreamProvider<List<JournalEntry>>((ref) {
+      if (ref.watch(accountingBackendStrategyProvider) ==
+              AccountingBackendStrategy.ditto &&
+          !ref.watch(dittoReadyProvider)) {
+        return _accountingEmptyStream<JournalEntry>();
+      }
+      final businessId = ref.watch(accountingBusinessIdProvider);
+      if (businessId.isEmpty) return _accountingEmptyStream<JournalEntry>();
+      final (_, end) = ref.watch(accountingDateRangeProvider);
+      return ref
+          .watch(accountingLedgerRepositoryProvider)
+          .watchJournalEntries(businessId: businessId, endDate: end);
+    });
+
 final bankLinesStreamProvider = StreamProvider<List<BankLine>>((ref) {
   final businessId = ref.watch(accountingBusinessIdProvider);
   if (businessId.isEmpty) return _accountingEmptyStream<BankLine>();
@@ -601,11 +620,30 @@ final accountingJournalProvider = Provider<List<JournalEntry>>((ref) {
   return ref.watch(journalEntriesStreamProvider).value ?? [];
 });
 
+/// What each account carried into the selected period, from posted entries
+/// dated before it (see [openingBalances]). Empty until both journal streams
+/// have loaded, so a half-loaded pair never moves period entries into the
+/// opening.
+final accountingOpeningBalancesProvider = Provider<Map<String, int>>((ref) {
+  final coa = ref.watch(accountingCoaProvider);
+  final period = ref.watch(journalEntriesStreamProvider).value;
+  final throughEnd = ref.watch(journalEntriesThroughPeriodEndProvider).value;
+  if (coa.isEmpty || period == null || throughEnd == null) return const {};
+  return openingBalances(
+    coa,
+    entriesBeforePeriod(throughPeriodEnd: throughEnd, period: period),
+  );
+});
+
 final accountingAccountsProvider = Provider<List<Account>>((ref) {
   final coa = ref.watch(accountingCoaProvider);
   final journal = ref.watch(accountingJournalProvider);
   if (coa.isEmpty) return coa;
-  return accountsWithBalances(coa, journal);
+  return accountsWithBalances(
+    coa,
+    journal,
+    opening: ref.watch(accountingOpeningBalancesProvider),
+  );
 });
 
 final accountingIncomeStatementProvider = Provider<IncomeStatementResult>(
@@ -622,6 +660,15 @@ final accountingCashBankTotalProvider = Provider<int>((ref) {
     ref.watch(accountingAccountsProvider),
   );
 });
+
+/// Cash, Mobile money and Bank separately; they add up to
+/// [accountingCashBankTotalProvider].
+final accountingLiquidBalancesProvider =
+    Provider<List<({String code, int bal})>>((ref) {
+      return TransactionToAccounts.liquidBalances(
+        ref.watch(accountingAccountsProvider),
+      );
+    });
 
 final accountingInventoryValueProvider = FutureProvider<int>((ref) async {
   if (ref.watch(accountingBackendStrategyProvider) ==
@@ -791,6 +838,7 @@ void invalidateAccountingDataStreamsInContainer(ProviderContainer container) {
   container.invalidate(rawAllTransactionsStreamProvider);
   container.invalidate(chartOfAccountsStreamProvider);
   container.invalidate(journalEntriesStreamProvider);
+  container.invalidate(journalEntriesThroughPeriodEndProvider);
   container.invalidate(bankLinesStreamProvider);
   container.invalidate(accountingSettingsProvider);
   container.invalidate(accountingInventoryValueProvider);
