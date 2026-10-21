@@ -10008,6 +10008,18 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   String get ticketPrintOrderFormFailed => 'Imeshindwa kuchapisha fomu ya oda';
 
   @override
+  String get ticketPrintFailed => 'Imeshindwa kuchapisha tiketi';
+
+  @override
+  String get ticketBillTitle => 'Bili ya tiketi';
+
+  @override
+  String get ticketNotFiscalReceipt => 'HII SI RISITI YA KODI';
+
+  @override
+  String get ticketCustomerAddress => 'Anwani';
+
+  @override
   String ticketOrderFormCaption(String reference, String customer) {
     return 'Fomu ya oda · Tiketi #$reference · $customer';
   }

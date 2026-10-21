@@ -10097,6 +10097,18 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
       'Échec de l\'impression du bon de commande';
 
   @override
+  String get ticketPrintFailed => 'Échec de l\'impression du ticket';
+
+  @override
+  String get ticketBillTitle => 'Note du ticket';
+
+  @override
+  String get ticketNotFiscalReceipt => 'CECI N\'EST PAS UN REÇU FISCAL';
+
+  @override
+  String get ticketCustomerAddress => 'Adresse';
+
+  @override
   String ticketOrderFormCaption(String reference, String customer) {
     return 'Bon de commande · Ticket #$reference · $customer';
   }

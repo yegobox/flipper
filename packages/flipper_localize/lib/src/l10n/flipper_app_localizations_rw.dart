@@ -10044,6 +10044,18 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
       'Gucapa urupapuro rw\'itumizwa ntibyakunze';
 
   @override
+  String get ticketPrintFailed => 'Gucapa itike ntibyakunze';
+
+  @override
+  String get ticketBillTitle => 'Fagitire y\'itike';
+
+  @override
+  String get ticketNotFiscalReceipt => 'SI INYEMEZABUGUZI YA EBM';
+
+  @override
+  String get ticketCustomerAddress => 'Aderesi';
+
+  @override
   String ticketOrderFormCaption(String reference, String customer) {
     return 'Urupapuro rw\'itumizwa · Itike #$reference · $customer';
   }

@@ -9947,6 +9947,18 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
   String get ticketPrintOrderFormFailed => 'Failed to print order form';
 
   @override
+  String get ticketPrintFailed => 'Failed to print ticket';
+
+  @override
+  String get ticketBillTitle => 'Ticket bill';
+
+  @override
+  String get ticketNotFiscalReceipt => 'NOT A FISCAL RECEIPT';
+
+  @override
+  String get ticketCustomerAddress => 'Address';
+
+  @override
   String ticketOrderFormCaption(String reference, String customer) {
     return 'Order form · Ticket #$reference · $customer';
   }
