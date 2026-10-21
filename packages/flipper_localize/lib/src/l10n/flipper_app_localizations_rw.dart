@@ -21683,6 +21683,23 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   String get signupUsage => 'Imikoreshereze';
 
   @override
+  String get signupUseForTitle => 'Flipper uzayikoresha iki?';
+
+  @override
+  String get signupUseForBusiness => 'Gucunga ubucuruzi';
+
+  @override
+  String get signupUseForBusinessHint =>
+      'Ibicuruzwa, ububiko, inyemezabuguzi na EBM';
+
+  @override
+  String get signupUseForPersonal => 'Amafaranga yanjye bwite';
+
+  @override
+  String get signupUseForPersonalHint =>
+      'Kurikirana ibyinjira n\'ibisohoka. Ni ubuntu.';
+
+  @override
   String get signupCountry => 'Igihugu';
 
   @override
@@ -26448,6 +26465,132 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
 
   @override
   String get smsBridgeTitle => 'Ikiraro cya SMS';
+
+  @override
+  String get personalMoneyTitle => 'Amafaranga yanjye';
+
+  @override
+  String get personalMoneyNavHome => 'Ahabanza';
+
+  @override
+  String get personalMoneyNavActivity => 'Ibikorwa';
+
+  @override
+  String get personalMoneyNavFlo => 'Flo';
+
+  @override
+  String get personalMoneyNavMore => 'Ibindi';
+
+  @override
+  String get personalMoneyIn => 'Ibyinjiye';
+
+  @override
+  String get personalMoneyOut => 'Ibyasohotse';
+
+  @override
+  String get personalMoneyLeftOver => 'Ibisigaye';
+
+  @override
+  String get personalMoneyWhereItWent => 'Aho amafaranga yawe yagiye';
+
+  @override
+  String get personalMoneyByAccount => 'Ukurikije konti';
+
+  @override
+  String get personalMoneyAccountCash => 'Amafaranga mu ntoki';
+
+  @override
+  String get personalMoneyAccountBank => 'Banki';
+
+  @override
+  String get personalMoneyAccountMobileMoney => 'Mobile money';
+
+  @override
+  String get personalMoneyRecent => 'Ibiheruka';
+
+  @override
+  String get personalMoneySeeAll => 'Reba byose';
+
+  @override
+  String get personalMoneyEmptyTitle => 'Nta kintu kiranditswe';
+
+  @override
+  String get personalMoneyEmptyBody =>
+      'Ongeramo ibyinjiye cyangwa ibyasohotse ukoresheje akabuto +, cyangwa uhuze Ikiraro cya SMS kugira ngo ubutumwa bwa banki na mobile money bwandikwe ubwabwo.';
+
+  @override
+  String get personalMoneyPairSmsBridge => 'Huza Ikiraro cya SMS';
+
+  @override
+  String get personalMoneyNoCategory => 'Nta cyiciro';
+
+  @override
+  String get personalMoneyAddTitle => 'Ongeramo ibyinjiye cyangwa ibyasohotse';
+
+  @override
+  String get personalMoneyAmount => 'Amafaranga';
+
+  @override
+  String get personalMoneyCategory => 'Icyiciro';
+
+  @override
+  String get personalMoneyAccount => 'Konti';
+
+  @override
+  String get personalMoneyNote => 'Icyitonderwa (si ngombwa)';
+
+  @override
+  String get personalMoneySave => 'Bika';
+
+  @override
+  String get personalMoneySaved => 'Byabitswe';
+
+  @override
+  String get personalMoneyAmountRequired => 'Andika amafaranga';
+
+  @override
+  String get personalMoneySaveFailed =>
+      'Ntibyashobotse kubika. Ongera ugerageze.';
+
+  @override
+  String get personalMoneyNoActivity =>
+      'Nta byinjiye cyangwa ibyasohotse uku kwezi';
+
+  @override
+  String get personalMoneyPreviousMonth => 'Ukwezi gushize';
+
+  @override
+  String get personalMoneyNextMonth => 'Ukwezi gukurikira';
+
+  @override
+  String get personalMoneySavingsGoals => 'Intego zo kuzigama';
+
+  @override
+  String get personalMoneySwitchToBusiness => 'Koresha Flipper mu bucuruzi';
+
+  @override
+  String get personalMoneySwitchToBusinessBody =>
+      'Bifungura ibicuruzwa, ububiko n\'inyemezabuguzi kuri iyi konti. Ibyo wanditse byose bigumaho. Gahunda z\'ubucuruzi ziriishyurwa.';
+
+  @override
+  String get personalMoneySwitchToPersonal =>
+      'Koresha Flipper ku mafaranga yawe bwite';
+
+  @override
+  String get personalMoneySwitchToPersonalBody =>
+      'Bihisha ibicuruzwa, ububiko na EBM ku bikoresho byose by\'ubu bucuruzi, bigafungura porogaramu yoroshye y\'amafaranga. Nta kintu gisibwa, kandi ushobora gusubira inyuma igihe cyose. Gukoresha ku giti cyawe ni ubuntu.';
+
+  @override
+  String get personalMoneySwitch => 'Hindura';
+
+  @override
+  String personalMoneySwitchFailed(String error) {
+    return 'Ntibyashobotse guhindura: $error';
+  }
+
+  @override
+  String get personalMoneyCardStillActive =>
+      'Ifatabuguzi ryawe rya karita riracyakora. Rihagarike muri Kwishyura kugira ngo utishyuzwa.';
 
   @override
   String get smsBridgeSubtitle =>

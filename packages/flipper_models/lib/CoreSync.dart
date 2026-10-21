@@ -3,6 +3,7 @@ import 'dart:math';
 import 'dart:isolate';
 import 'dart:ui';
 import 'package:amplify_flutter/amplify_flutter.dart' as amplify;
+import 'package:flipper_models/account_mode/account_mode_store.dart';
 import 'package:flipper_models/sync/utils/local_store_retention.dart';
 import 'package:flipper_models/DatabaseSyncInterface.dart';
 import 'package:flipper_payments/flipper_payments.dart' show BillingCadence;
@@ -841,7 +842,9 @@ class CoreSync extends AiStrategyImpl
       product = await createProduct(
         tinNumber: tinNumber,
         bhFId: bhFId,
-        skipRRaCall: false,
+        // A personal account has no EBM: its Cash Book must never register an
+        // item with RRA (it would do so under the placeholder TIN).
+        skipRRaCall: await AccountModeStore.instance.isPersonalLocal(),
         createItemCode: true,
         branchId: branchId,
         businessId: businessId,

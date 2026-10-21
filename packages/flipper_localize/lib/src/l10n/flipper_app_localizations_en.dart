@@ -21460,6 +21460,22 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
   String get signupUsage => 'Usage';
 
   @override
+  String get signupUseForTitle => 'What will you use Flipper for?';
+
+  @override
+  String get signupUseForBusiness => 'Run a business';
+
+  @override
+  String get signupUseForBusinessHint => 'Sales, stock, invoices and EBM';
+
+  @override
+  String get signupUseForPersonal => 'My personal money';
+
+  @override
+  String get signupUseForPersonalHint =>
+      'Track what comes in and goes out. Free.';
+
+  @override
   String get signupCountry => 'Country';
 
   @override
@@ -26186,6 +26202,129 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
 
   @override
   String get smsBridgeTitle => 'SMS Bridge';
+
+  @override
+  String get personalMoneyTitle => 'My money';
+
+  @override
+  String get personalMoneyNavHome => 'Home';
+
+  @override
+  String get personalMoneyNavActivity => 'Activity';
+
+  @override
+  String get personalMoneyNavFlo => 'Flo';
+
+  @override
+  String get personalMoneyNavMore => 'More';
+
+  @override
+  String get personalMoneyIn => 'Money in';
+
+  @override
+  String get personalMoneyOut => 'Money out';
+
+  @override
+  String get personalMoneyLeftOver => 'Left over';
+
+  @override
+  String get personalMoneyWhereItWent => 'Where your money went';
+
+  @override
+  String get personalMoneyByAccount => 'By account';
+
+  @override
+  String get personalMoneyAccountCash => 'Cash';
+
+  @override
+  String get personalMoneyAccountBank => 'Bank';
+
+  @override
+  String get personalMoneyAccountMobileMoney => 'Mobile money';
+
+  @override
+  String get personalMoneyRecent => 'Recent';
+
+  @override
+  String get personalMoneySeeAll => 'See all';
+
+  @override
+  String get personalMoneyEmptyTitle => 'Nothing recorded yet';
+
+  @override
+  String get personalMoneyEmptyBody =>
+      'Add money in or out with the + button, or pair the SMS Bridge so your bank and mobile money messages are recorded for you.';
+
+  @override
+  String get personalMoneyPairSmsBridge => 'Pair SMS Bridge';
+
+  @override
+  String get personalMoneyNoCategory => 'No category';
+
+  @override
+  String get personalMoneyAddTitle => 'Add money in or out';
+
+  @override
+  String get personalMoneyAmount => 'Amount';
+
+  @override
+  String get personalMoneyCategory => 'Category';
+
+  @override
+  String get personalMoneyAccount => 'Account';
+
+  @override
+  String get personalMoneyNote => 'Note (optional)';
+
+  @override
+  String get personalMoneySave => 'Save';
+
+  @override
+  String get personalMoneySaved => 'Saved';
+
+  @override
+  String get personalMoneyAmountRequired => 'Enter an amount';
+
+  @override
+  String get personalMoneySaveFailed => 'Could not save. Try again.';
+
+  @override
+  String get personalMoneyNoActivity => 'No money in or out this month';
+
+  @override
+  String get personalMoneyPreviousMonth => 'Previous month';
+
+  @override
+  String get personalMoneyNextMonth => 'Next month';
+
+  @override
+  String get personalMoneySavingsGoals => 'Savings goals';
+
+  @override
+  String get personalMoneySwitchToBusiness => 'Use Flipper for a business';
+
+  @override
+  String get personalMoneySwitchToBusinessBody =>
+      'Turns on sales, stock and invoices for this account. Everything you recorded stays. Business plans are paid.';
+
+  @override
+  String get personalMoneySwitchToPersonal => 'Use Flipper for personal money';
+
+  @override
+  String get personalMoneySwitchToPersonalBody =>
+      'Hides sales, stock and EBM on every device of this business and opens a simple money app. Nothing is deleted, and you can switch back at any time. Personal use is free.';
+
+  @override
+  String get personalMoneySwitch => 'Switch';
+
+  @override
+  String personalMoneySwitchFailed(String error) {
+    return 'Could not switch: $error';
+  }
+
+  @override
+  String get personalMoneyCardStillActive =>
+      'Your card subscription is still active. Pause it in Billing so you are not charged.';
 
   @override
   String get smsBridgeSubtitle =>

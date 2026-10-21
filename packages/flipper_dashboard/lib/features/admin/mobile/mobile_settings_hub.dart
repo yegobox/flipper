@@ -10,12 +10,14 @@ import 'package:flipper_dashboard/features/admin/widgets/sms_bridge_page.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_mode_admin_section.dart';
 import 'package:flipper_dashboard/features/daily_report_recipients/daily_report_recipients_settings.dart';
 import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_mode_admin_section.dart';
+import 'package:flipper_dashboard/features/personal_finance/personal_mode_switch.dart';
 import 'package:flipper_dashboard/modals/_isBranchEnableForPayment.dart';
 import 'package:flipper_dashboard/theme/mpos_tokens.dart';
 import 'package:flipper_dashboard/theme/pos_tokens.dart';
 import 'package:flipper_dashboard/widgets/dashboard_app_access.dart';
 import 'package:flipper_dashboard/widgets/transaction_delegation_settings.dart';
 import 'package:flipper_localize/flipper_localize.dart';
+import 'package:flipper_models/account_mode/account_mode.dart';
 import 'package:flipper_models/providers/access_provider.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
@@ -145,6 +147,20 @@ class _MobileSettingsHubState extends ConsumerState<MobileSettingsHub> {
             onTap: () => locator<RouterService>().navigateTo(AddBranchRoute()),
           ),
           language,
+          SettingsRow(
+            key: const ValueKey('settings-switch-to-personal'),
+            icon: Icons.account_balance_wallet_outlined,
+            title: l10n.personalMoneySwitchToPersonal,
+            onTap: () async {
+              if (!await AdminActions.verifyAdminPinIfEnabled(context)) return;
+              if (!context.mounted) return;
+              await confirmAndSwitchAccountMode(
+                context,
+                ref,
+                AccountMode.personal,
+              );
+            },
+          ),
         ],
       ),
       SettingsGroup(

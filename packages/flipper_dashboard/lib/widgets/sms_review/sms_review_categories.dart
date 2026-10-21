@@ -1,6 +1,8 @@
 import 'package:flipper_dashboard/cashbook_form_rules.dart'
     show cashbookLastCategoryKey, findCashbookCategoryByName;
 import 'package:flipper_dashboard/features/branch_location/branch_services.dart';
+import 'package:flipper_dashboard/features/personal_finance/personal_finance_data.dart'
+    show kPersonalExpenseCategories, kPersonalIncomeCategories;
 import 'package:flipper_models/db_model_export.dart' show Category;
 import 'package:flipper_models/providers/category_provider.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -41,9 +43,12 @@ typedef SmsCategoryChoices = ({
   List<SmsCategoryChoice> more,
 });
 
+/// [personal] suggests what personal money comes from and goes on instead of
+/// the business lists (personal mode, `docs/personal_mode.md`).
 SmsCategoryChoices smsCategoryChoices({
   required bool isIncome,
   required Iterable<Category> branch,
+  bool personal = false,
 }) {
   final usable = [
     for (final c in branch)
@@ -53,7 +58,12 @@ SmsCategoryChoices smsCategoryChoices({
         c,
   ];
   final suggested = <SmsCategoryChoice>[
-    for (final name in isIncome ? kSmsIncomeCategories : kSmsExpenseCategories)
+    for (final name in switch ((personal, isIncome)) {
+      (true, true) => kPersonalIncomeCategories,
+      (true, false) => kPersonalExpenseCategories,
+      (false, true) => kSmsIncomeCategories,
+      (false, false) => kSmsExpenseCategories,
+    })
       switch (findCashbookCategoryByName(
         usable,
         name,
