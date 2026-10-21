@@ -65,6 +65,9 @@ class BarTabPrint {
         ticket: tab,
         items: lines,
         filename: 'tab-${safeName.isEmpty ? tab.id : safeName}.pdf',
+        // Straight to the till's printer (built-in first); picker as fallback.
+        autoPrint: true,
+        notSentMessage: l10n.ticketPrintNotSent,
       );
     } catch (e, st) {
       talker.error('Print bar tab failed: $e', st);

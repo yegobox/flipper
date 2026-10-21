@@ -4372,6 +4372,7 @@
   "ticketInKitchenStage": "Jikoni · {stage}",
   "ticketPrintOrderFormFailed": "Imeshindwa kuchapisha fomu ya oda",
   "ticketPrintFailed": "Imeshindwa kuchapisha tiketi",
+  "ticketPrintNotSent": "Imeshindwa kutuma kwa {printer}. Chapisha tena uchague printa nyingine.",
   "ticketBillTitle": "Bili ya tiketi",
   "ticketNotFiscalReceipt": "HII SI RISITI YA KODI",
   "ticketCustomerAddress": "Anwani",

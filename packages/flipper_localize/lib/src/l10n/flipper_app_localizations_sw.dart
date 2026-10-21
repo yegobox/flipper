@@ -10011,6 +10011,11 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   String get ticketPrintFailed => 'Imeshindwa kuchapisha tiketi';
 
   @override
+  String ticketPrintNotSent(String printer) {
+    return 'Imeshindwa kutuma kwa $printer. Chapisha tena uchague printa nyingine.';
+  }
+
+  @override
   String get ticketBillTitle => 'Bili ya tiketi';
 
   @override

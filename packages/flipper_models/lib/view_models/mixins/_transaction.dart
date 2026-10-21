@@ -589,6 +589,15 @@ mixin TransactionMixinOld {
     /// Defaults to `<customer>-<yyyyMMdd_HHmmss>.pdf` derived from the sale, so
     /// saved receipts don't all collide on a single `receipt.pdf`.
     String? pdfFilename,
+
+    /// When a printer chosen automatically (saved default or auto-picked)
+    /// refuses the job, show the picker instead of giving up. For prints
+    /// that are not a completed sale (ticket bills, bar tabs).
+    bool pickerIfAutoFails = false,
+
+    /// Replaces the sale wording ("Sale completed… reprint it from
+    /// Tickets") when no copy reached the printer named in the argument.
+    String Function(String printerName)? notSentMessage,
   }) async {
     final resolvedPdfFilename = pdfFilename ?? receiptPdfFilename(transaction);
     // A browser cannot list printers, so the picker below would only ever
@@ -631,6 +640,9 @@ mixin TransactionMixinOld {
       Printer? selectedPrinter;
       bool saveAsPdf = false;
       int copies = 1;
+      // Whether the cashier picked [selectedPrinter] just now, rather than it
+      // being the saved default or the auto-picked one.
+      var pickedNow = false;
 
       // Try to find default printer
       final String? savedPrinterName = ProxyService.box.readString(
@@ -712,6 +724,7 @@ mixin TransactionMixinOld {
           selectedPrinter = result.printer;
           saveAsPdf = result.saveAsPdf;
           copies = result.copies;
+          pickedNow = true;
           // Save as default if a physical printer was selected
           if (selectedPrinter != null) {
             ProxyService.box.writeString(
@@ -768,12 +781,36 @@ mixin TransactionMixinOld {
           }
         }
         if (submitted == 0) {
+          // An auto-chosen Windows queue can point at a dead port while the
+          // till's built-in printer sits on a COM port, which was not probed
+          // because Windows listed a printer. Try it before the picker.
+          if (pickerIfAutoFails &&
+              !pickedNow &&
+              await _printOnBuiltinPrinter(bytes, probeSerial: true)) {
+            return;
+          }
+          if (pickerIfAutoFails && !pickedNow && context.mounted) {
+            talker.info(
+              '[receipt_presentation] "${selectedPrinter.name}" refused the '
+              'job — showing the picker',
+            );
+            return printing(
+              bytes,
+              context,
+              transaction: transaction,
+              transactionItems: transactionItems,
+              alwaysShowPicker: true,
+              pdfFilename: pdfFilename,
+              notSentMessage: notSentMessage,
+            );
+          }
           if (context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(
-                  'Sale completed. The receipt could not be sent to '
-                  '${selectedPrinter.name} — reprint it from Tickets.',
+                  notSentMessage?.call(selectedPrinter.name) ??
+                      'Sale completed. The receipt could not be sent to '
+                          '${selectedPrinter.name} — reprint it from Tickets.',
                 ),
                 behavior: SnackBarBehavior.floating,
                 duration: const Duration(seconds: 5),

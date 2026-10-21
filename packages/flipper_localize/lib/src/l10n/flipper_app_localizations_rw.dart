@@ -10047,6 +10047,11 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   String get ticketPrintFailed => 'Gucapa itike ntibyakunze';
 
   @override
+  String ticketPrintNotSent(String printer) {
+    return 'Ntibyashobotse kohereza kuri $printer. Ongera ucape uhitemo indi mashini icapa.';
+  }
+
+  @override
   String get ticketBillTitle => 'Fagitire y\'itike';
 
   @override

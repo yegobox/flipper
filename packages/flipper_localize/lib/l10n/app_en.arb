@@ -9046,6 +9046,15 @@
     },
     "ticketPrintOrderFormFailed": "Failed to print order form",
     "ticketPrintFailed": "Failed to print ticket",
+    "ticketPrintNotSent": "Could not send to {printer}. Print again to pick another printer.",
+    "@ticketPrintNotSent": {
+        "description": "Shown when a ticket or bar tab print did not reach the printer",
+        "placeholders": {
+            "printer": {
+                "type": "String"
+            }
+        }
+    },
     "ticketBillTitle": "Ticket bill",
     "ticketNotFiscalReceipt": "NOT A FISCAL RECEIPT",
     "ticketCustomerAddress": "Address",

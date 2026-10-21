@@ -76,6 +76,46 @@ void main() {
     });
   });
 
+  group('renderTicketBillEscPos (built-in printer)', () {
+    // Printable text of the ESC/POS stream: drop control bytes, keep ASCII.
+    String printable(List<int> bytes) => String.fromCharCodes(
+      bytes.map((b) => b >= 0x20 && b < 0x7F ? b : 0x0A),
+    );
+
+    test('prints the customer, every line and the non-fiscal footer', () {
+      final bytes = renderTicketBillEscPos(_data(), l10n: l10n);
+      final text = printable(bytes);
+      // ESC @ first: a clean printer state, as receipts start.
+      expect(bytes.take(2), [0x1B, 0x40]);
+      expect(text, contains('MUHAZI SHOP'));
+      expect(text, contains('Table 4'));
+      expect(text, contains('Mura'));
+      expect(text, contains('0783000000'));
+      expect(text, contains('Fanta'));
+      expect(text, contains('Brochette'));
+      expect(text, contains('1.50 x'));
+      expect(text, contains('No ice'));
+      expect(text, contains('NOT A FISCAL RECEIPT'));
+    });
+
+    test('no line is wider than a 58 mm roll (32 columns)', () {
+      final text = printable(renderTicketBillEscPos(_data(), l10n: l10n));
+      for (final line in text.split('\n')) {
+        expect(line.length, lessThanOrEqualTo(32), reason: line);
+      }
+    });
+
+    test('a walk-in prints Walk-in', () {
+      final text = printable(
+        renderTicketBillEscPos(
+          _data(customer: const TicketPrintCustomer()),
+          l10n: l10n,
+        ),
+      );
+      expect(text, contains('Walk-in'));
+    });
+  });
+
   group('resolveTicketPaid', () {
     ITransaction paidTicket() => _ticket()..cashReceived = 1500;
 

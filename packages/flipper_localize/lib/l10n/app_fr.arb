@@ -2779,6 +2779,7 @@
     "ticketInKitchenStage": "En cuisine · {stage}",
     "ticketPrintOrderFormFailed": "Échec de l'impression du bon de commande",
     "ticketPrintFailed": "Échec de l'impression du ticket",
+    "ticketPrintNotSent": "Impossible d'envoyer à {printer}. Imprimez à nouveau pour choisir une autre imprimante.",
     "ticketBillTitle": "Note du ticket",
     "ticketNotFiscalReceipt": "CECI N'EST PAS UN REÇU FISCAL",
     "ticketCustomerAddress": "Adresse",
