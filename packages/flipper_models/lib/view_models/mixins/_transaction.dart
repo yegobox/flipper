@@ -781,6 +781,14 @@ mixin TransactionMixinOld {
           }
         }
         if (submitted == 0) {
+          // An auto-chosen Windows queue can point at a dead port while the
+          // till's built-in printer sits on a COM port, which was not probed
+          // because Windows listed a printer. Try it before the picker.
+          if (pickerIfAutoFails &&
+              !pickedNow &&
+              await _printOnBuiltinPrinter(bytes, probeSerial: true)) {
+            return;
+          }
           if (pickerIfAutoFails && !pickedNow && context.mounted) {
             talker.info(
               '[receipt_presentation] "${selectedPrinter.name}" refused the '
