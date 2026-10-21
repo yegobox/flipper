@@ -925,7 +925,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
                       ),
                       isCollecting: _collectingTicketId == ticket.id,
                       showRecordHandover: canRecordHandover,
-                      isPrintingOrderForm: _printingOrderFormTicketIds.contains(
+                      isPrintingOrderForm: _printingTicketIds.contains(
                         ticket.id,
                       ),
                       isSendingOrderFormWhatsApp:
@@ -956,6 +956,10 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
                           unawaited(_recordHandover(context, ticket)),
                       onPrintOrderForm: () =>
                           unawaited(_printReviewedTicketOrderForm(ticket)),
+                      // Reviewed tickets print from the stepper instead.
+                      onPrint: (ticket.status ?? '') == AWAITING_HANDOVER
+                          ? null
+                          : () => unawaited(_printTicketBill(ticket)),
                       onSendOrderFormWhatsApp: () =>
                           _openWhatsAppPicker(ticket),
                       onDelete: () => _deleteTicket(ticket),
@@ -1556,9 +1560,9 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     }
   }
 
-  /// Tickets currently printing their post-review Order Form, so the
-  /// stepper's "Print Order Form" node can show a spinner and block re-taps.
-  final Set<String> _printingOrderFormTicketIds = {};
+  /// Tickets currently printing (Order Form or ticket bill), so the print
+  /// control can show a spinner and block re-taps.
+  final Set<String> _printingTicketIds = {};
 
   /// Tickets currently sending the order form PDF via WhatsApp.
   final Set<String> _sendingOrderFormWhatsAppTicketIds = {};
@@ -1571,9 +1575,48 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   /// hand over the physical goods. This is NOT a receipt — it never touches
   /// [TaxController], EBM/RRA, counters, or ticket status. The real fiscal
   /// receipt is generated later, at handover ([finalizeTicketHandover]).
-  Future<void> _printReviewedTicketOrderForm(ITransaction ticket) async {
-    if (_printingOrderFormTicketIds.contains(ticket.id)) return;
-    setState(() => _printingOrderFormTicketIds.add(ticket.id));
+  Future<void> _printReviewedTicketOrderForm(ITransaction ticket) {
+    return _printTicketPdf(
+      ticket,
+      build: (items, l10n) =>
+          buildOrderFormPdfBytes(ticket: ticket, items: items, l10n: l10n),
+      filenamePrefix: 'order-form',
+      failedMessage: context.flipperL10n.ticketPrintOrderFormFailed,
+      logLabel: 'reviewed-ticket order form',
+    );
+  }
+
+  /// Prints what is on any open ticket — customer details plus every line
+  /// with its price — so staff can hand the customer a bill. Not a receipt:
+  /// no EBM/RRA, counters or status change.
+  Future<void> _printTicketBill(ITransaction ticket) {
+    return _printTicketPdf(
+      ticket,
+      build: (items, l10n) =>
+          buildTicketBillPdfBytes(ticket: ticket, items: items, l10n: l10n),
+      filenamePrefix: 'ticket',
+      failedMessage: context.flipperL10n.ticketPrintFailed,
+      logLabel: 'ticket bill',
+      // A ticket can reach this till before its lines do; a blank bill would
+      // read as "nothing ordered".
+      linesSyncingMessage: context.flipperL10n.ticketLinesSyncing,
+    );
+  }
+
+  Future<void> _printTicketPdf(
+    ITransaction ticket, {
+    required Future<Uint8List> Function(
+      List<TransactionItem> items,
+      FlipperAppLocalizations l10n,
+    )
+    build,
+    required String filenamePrefix,
+    required String failedMessage,
+    required String logLabel,
+    String? linesSyncingMessage,
+  }) async {
+    if (_printingTicketIds.contains(ticket.id)) return;
+    setState(() => _printingTicketIds.add(ticket.id));
     final l10n = context.flipperL10n;
     try {
       final branchId = ticket.branchId ?? ProxyService.box.getBranchId() ?? '';
@@ -1583,12 +1626,14 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
             branchId: branchId,
             active: true,
           );
-      final bytes = await buildOrderFormPdfBytes(
-        ticket: ticket,
-        items: items,
-        l10n: l10n,
-      );
       if (!mounted) return;
+      if (items.isEmpty && linesSyncingMessage != null) {
+        showCustomSnackBarUtil(context, linesSyncingMessage);
+        return;
+      }
+      final bytes = await build(items, l10n);
+      if (!mounted) return;
+      final filename = '$filenamePrefix-${_ticketDisplayRef(ticket)}.pdf';
       if (UniversalPlatform.isDesktopOrWeb && !kIsWeb) {
         // Desktop: branded printer picker (always show — do not auto-skip to
         // saved default). Use this State's context, not the list item builder.
@@ -1598,26 +1643,23 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           transaction: ticket,
           transactionItems: items,
           alwaysShowPicker: true,
-          pdfFilename: 'order-form-${_ticketDisplayRef(ticket)}.pdf',
+          pdfFilename: filename,
         );
       } else {
-        await Printing.sharePdf(
-          bytes: bytes,
-          filename: 'order-form-${_ticketDisplayRef(ticket)}.pdf',
-        );
+        await Printing.sharePdf(bytes: bytes, filename: filename);
       }
     } catch (e, st) {
-      talker.error('Print reviewed-ticket order form failed: $e', st);
+      talker.error('Print $logLabel failed: $e', st);
       if (mounted) {
         showCustomSnackBarUtil(
           context,
-          context.flipperL10n.ticketPrintOrderFormFailed,
+          failedMessage,
           backgroundColor: Colors.red,
         );
       }
     } finally {
       if (mounted) {
-        setState(() => _printingOrderFormTicketIds.remove(ticket.id));
+        setState(() => _printingTicketIds.remove(ticket.id));
       }
     }
   }
@@ -2444,8 +2486,12 @@ class TicketCard extends StatelessWidget {
   /// handover.
   final VoidCallback? onPrintOrderForm;
 
+  /// Prints what is on the ticket (customer details + priced lines). Null
+  /// hides the control — reviewed tickets print from the stepper instead.
+  final VoidCallback? onPrint;
+
   /// Shows a spinner on the "Print Order Form" step while a print is in
-  /// flight.
+  /// flight. Also disables [onPrint] while a ticket bill prints.
   final bool isPrintingOrderForm;
 
   /// Ticket Review + Handover workflow: send the order form PDF to stock
@@ -2510,6 +2556,7 @@ class TicketCard extends StatelessWidget {
     this.onMarkReviewed,
     this.markReviewedLabel,
     this.onPrintOrderForm,
+    this.onPrint,
     this.isPrintingOrderForm = false,
     this.onSendOrderFormWhatsApp,
     this.isSendingOrderFormWhatsApp = false,
@@ -3130,6 +3177,18 @@ class TicketCard extends StatelessWidget {
                                 ),
                                 const SizedBox(width: 8),
                               ],
+                              if (onPrint != null) ...[
+                                _squareIconBtn(
+                                  icon: Icons.print_outlined,
+                                  color: _kAccentBlue,
+                                  onPressed: isPrintingOrderForm
+                                      ? null
+                                      : onPrint,
+                                  tooltip: context.flipperL10n.ticketPrint,
+                                  key: ValueKey('ticket_print_${ticket.id}'),
+                                ),
+                                const SizedBox(width: 8),
+                              ],
                               if (canManage && !deleteBlockedByReview)
                                 _squareIconBtn(
                                   icon: Icons.delete_outline,
@@ -3205,7 +3264,11 @@ class TicketCard extends StatelessWidget {
     return null;
   }
 
-  Future<void> _showMoreSheet(BuildContext context, {required bool canDelete}) {
+  Future<void> _showMoreSheet(
+    BuildContext context, {
+    required bool canDelete,
+    required bool canSelect,
+  }) {
     final l10n = context.flipperL10n;
     return showModalBottomSheet<void>(
       context: context,
@@ -3215,20 +3278,35 @@ class TicketCard extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            ListTile(
-              key: ValueKey('ticket_more_select_${ticket.id}'),
-              leading: Icon(
-                isSelected
-                    ? Icons.check_box_rounded
-                    : Icons.check_box_outline_blank_rounded,
-                color: PosTokens.blue,
+            if (onPrint != null)
+              ListTile(
+                key: ValueKey('ticket_more_print_${ticket.id}'),
+                enabled: !isPrintingOrderForm,
+                leading: const Icon(
+                  Icons.print_outlined,
+                  color: PosTokens.blue,
+                ),
+                title: Text(l10n.ticketPrint),
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  onPrint!();
+                },
               ),
-              title: Text(l10n.ticketSelect),
-              onTap: () {
-                Navigator.pop(sheetContext);
-                onSelectionChanged(!isSelected);
-              },
-            ),
+            if (canSelect)
+              ListTile(
+                key: ValueKey('ticket_more_select_${ticket.id}'),
+                leading: Icon(
+                  isSelected
+                      ? Icons.check_box_rounded
+                      : Icons.check_box_outline_blank_rounded,
+                  color: PosTokens.blue,
+                ),
+                title: Text(l10n.ticketSelect),
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  onSelectionChanged(!isSelected);
+                },
+              ),
             if (canDelete)
               ListTile(
                 key: ValueKey('ticket_more_delete_${ticket.id}'),
@@ -3484,7 +3562,7 @@ class TicketCard extends StatelessWidget {
                   ),
                 ),
               ],
-              if (primary != null || canManage) ...[
+              if (primary != null || canManage || onPrint != null) ...[
                 const SizedBox(height: 12),
                 Row(
                   children: [
@@ -3538,12 +3616,15 @@ class TicketCard extends StatelessWidget {
                       )
                     else
                       const Spacer(),
-                    if (canManage) ...[
+                    if (canManage || onPrint != null) ...[
                       const SizedBox(width: 8),
                       IconButton(
                         key: ValueKey('ticket_more_${ticket.id}'),
-                        onPressed: () =>
-                            _showMoreSheet(context, canDelete: canDelete),
+                        onPressed: () => _showMoreSheet(
+                          context,
+                          canDelete: canDelete,
+                          canSelect: canManage,
+                        ),
                         tooltip: MaterialLocalizations.of(
                           context,
                         ).moreButtonTooltip,
@@ -3649,10 +3730,12 @@ class TicketCard extends StatelessWidget {
   Widget _squareIconBtn({
     required IconData icon,
     required Color color,
-    required VoidCallback onPressed,
+    required VoidCallback? onPressed,
     required String tooltip,
+    Key? key,
   }) {
     return Tooltip(
+      key: key,
       message: tooltip,
       child: Material(
         color: Colors.grey[100],

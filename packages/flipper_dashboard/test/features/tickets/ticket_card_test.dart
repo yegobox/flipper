@@ -32,6 +32,7 @@ class _Calls {
   int collect = 0;
   int delete = 0;
   int longPress = 0;
+  int print = 0;
   final selections = <bool>[];
 }
 
@@ -43,6 +44,8 @@ Future<_Calls> _pumpCard(
   double paid = 0,
   ResumedTicketPlace resumedPlace = ResumedTicketPlace.queued,
   String? collectLabel,
+  bool canManage = true,
+  bool withPrint = true,
 }) async {
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1.0;
@@ -71,6 +74,8 @@ Future<_Calls> _pumpCard(
               onSendToKitchen: () {},
               resumedPlace: resumedPlace,
               collectLabel: collectLabel,
+              canManage: canManage,
+              onPrint: withPrint ? () => calls.print++ : null,
             ),
           ],
         ),
@@ -141,6 +146,60 @@ void main() {
       expect(calls.delete, 1);
     });
 
+    testWidgets('more sheet prints the ticket', (tester) async {
+      final calls = await _pumpCard(
+        tester,
+        size: const Size(360, 800),
+        compact: true,
+      );
+      await tester.tap(find.byKey(const ValueKey('ticket_more_ticket-9')));
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.byKey(const ValueKey('ticket_more_print_ticket-9')),
+      );
+      await tester.pumpAndSettle();
+      expect(calls.print, 1);
+    });
+
+    testWidgets('staff who cannot manage tickets can still print', (
+      tester,
+    ) async {
+      final calls = await _pumpCard(
+        tester,
+        size: const Size(360, 800),
+        compact: true,
+        canManage: false,
+      );
+      await tester.tap(find.byKey(const ValueKey('ticket_more_ticket-9')));
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const ValueKey('ticket_more_select_ticket-9')),
+        findsNothing,
+      );
+      expect(
+        find.byKey(const ValueKey('ticket_more_delete_ticket-9')),
+        findsNothing,
+      );
+      await tester.tap(
+        find.byKey(const ValueKey('ticket_more_print_ticket-9')),
+      );
+      await tester.pumpAndSettle();
+      expect(calls.print, 1);
+    });
+
+    testWidgets('no print and no manage access hides the more button', (
+      tester,
+    ) async {
+      await _pumpCard(
+        tester,
+        size: const Size(360, 800),
+        compact: true,
+        canManage: false,
+        withPrint: false,
+      );
+      expect(find.byKey(const ValueKey('ticket_more_ticket-9')), findsNothing);
+    });
+
     testWidgets('partial payment shows progress and "Paid x of y"', (
       tester,
     ) async {
@@ -179,6 +238,28 @@ void main() {
     expect(find.text('PAID'), findsOneWidget);
     expect(find.text('REMAINING'), findsOneWidget);
     expect(find.byKey(const ValueKey('ticket_primary_ticket-9')), findsNothing);
+  });
+
+  testWidgets('wide TicketCard has a Print button', (tester) async {
+    final calls = await _pumpCard(
+      tester,
+      size: const Size(1280, 800),
+      compact: false,
+    );
+    await tester.tap(find.byKey(const ValueKey('ticket_print_ticket-9')));
+    expect(calls.print, 1);
+  });
+
+  testWidgets('wide TicketCard hides Print when the ticket has no print', (
+    tester,
+  ) async {
+    await _pumpCard(
+      tester,
+      size: const Size(1280, 800),
+      compact: false,
+      withPrint: false,
+    );
+    expect(find.byKey(const ValueKey('ticket_print_ticket-9')), findsNothing);
   });
 
   group('resumed ticket (PENDING) stays listed', () {

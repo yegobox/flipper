@@ -16665,6 +16665,30 @@ abstract class FlipperAppLocalizations {
   /// **'Failed to print order form'**
   String get ticketPrintOrderFormFailed;
 
+  /// No description provided for @ticketPrintFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to print ticket'**
+  String get ticketPrintFailed;
+
+  /// No description provided for @ticketBillTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Ticket bill'**
+  String get ticketBillTitle;
+
+  /// No description provided for @ticketNotFiscalReceipt.
+  ///
+  /// In en, this message translates to:
+  /// **'NOT A FISCAL RECEIPT'**
+  String get ticketNotFiscalReceipt;
+
+  /// No description provided for @ticketCustomerAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Address'**
+  String get ticketCustomerAddress;
+
   /// WhatsApp caption sent with the order form PDF
   ///
   /// In en, this message translates to:

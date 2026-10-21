@@ -9045,6 +9045,10 @@
         }
     },
     "ticketPrintOrderFormFailed": "Failed to print order form",
+    "ticketPrintFailed": "Failed to print ticket",
+    "ticketBillTitle": "Ticket bill",
+    "ticketNotFiscalReceipt": "NOT A FISCAL RECEIPT",
+    "ticketCustomerAddress": "Address",
     "ticketOrderFormCaption": "Order form · Ticket #{reference} · {customer}",
     "@ticketOrderFormCaption": {
         "description": "WhatsApp caption sent with the order form PDF",
