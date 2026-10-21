@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flipper_dashboard/features/bar_mode/bar_mode_settings.dart';
 import 'package:flipper_dashboard/features/bar_mode/bar_pos_actions.dart';
 import 'package:flipper_dashboard/features/bar_mode/bar_room_charge.dart';
+import 'package:flipper_dashboard/features/bar_mode/bar_tab_print.dart';
 import 'package:flipper_dashboard/features/bar_mode/providers/bar_mode_providers.dart';
 import 'package:flipper_dashboard/features/bar_mode/theme/bar_tokens.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_pos_catalog_pane.dart';
@@ -75,7 +76,18 @@ class BarPosDesktopScreen extends HookConsumerWidget {
             ),
             child: Column(
               children: [
-                _cartHead(l10n, ref),
+                _cartHead(
+                  l10n,
+                  ref,
+                  onPrint: lines.isEmpty
+                      ? null
+                      : () => BarTabPrint.printTab(
+                          context: context,
+                          tab: tab,
+                          table: table,
+                          lines: lines,
+                        ),
+                ),
                 BarTableHead(
                   tableBadge: table.name,
                   zoneName: table.zoneName,
@@ -150,7 +162,11 @@ class BarPosDesktopScreen extends HookConsumerWidget {
     );
   }
 
-  Widget _cartHead(FlipperAppLocalizations l10n, WidgetRef ref) {
+  Widget _cartHead(
+    FlipperAppLocalizations l10n,
+    WidgetRef ref, {
+    VoidCallback? onPrint,
+  }) {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
       decoration: const BoxDecoration(
@@ -190,6 +206,48 @@ class BarPosDesktopScreen extends HookConsumerWidget {
             ),
           ),
           const Spacer(),
+          // Prints the tab for the guest (not a fiscal receipt).
+          Tooltip(
+            message: l10n.ticketPrint,
+            child: Material(
+              key: const ValueKey('bar_tab_print'),
+              color: BarTokens.surface,
+              borderRadius: BorderRadius.circular(10),
+              child: InkWell(
+                onTap: onPrint,
+                borderRadius: BorderRadius.circular(10),
+                child: Container(
+                  height: 40,
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: BarTokens.line),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.print_outlined,
+                        size: 15,
+                        color: onPrint == null
+                            ? BarTokens.ink3
+                            : BarTokens.blue,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        l10n.ticketPrint,
+                        style: GoogleFonts.outfit(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: onPrint == null ? BarTokens.ink3 : null,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
           Material(
             color: BarTokens.surface,
             borderRadius: BorderRadius.circular(10),

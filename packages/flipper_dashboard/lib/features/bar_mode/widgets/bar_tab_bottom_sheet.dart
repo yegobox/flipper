@@ -30,6 +30,7 @@ class BarTabBottomSheet extends StatelessWidget {
     required this.onBackToTables,
     required this.onSettle,
     this.onChargeToRoom,
+    this.onPrint,
   });
 
   final String tableBadge;
@@ -51,6 +52,9 @@ class BarTabBottomSheet extends StatelessWidget {
 
   /// Null when the branch has no hotel guest to charge — the bar-only case.
   final VoidCallback? onChargeToRoom;
+
+  /// Prints the tab for the guest (not a fiscal receipt). Null hides it.
+  final VoidCallback? onPrint;
 
   @override
   Widget build(BuildContext context) {
@@ -262,6 +266,17 @@ class BarTabBottomSheet extends StatelessWidget {
                               ? Icons.verified_user_outlined
                               : Icons.account_balance_wallet_outlined,
                         ),
+                        if (onPrint != null) ...[
+                          const SizedBox(height: 10),
+                          KeyedSubtree(
+                            key: const ValueKey('bar_tab_sheet_print'),
+                            child: _outlineBtn(
+                              l10n.ticketPrint,
+                              lineCount == 0 ? null : onPrint,
+                              icon: Icons.print_outlined,
+                            ),
+                          ),
+                        ],
                         // Moves the tab onto a resident guest's folio instead
                         // of taking money for it now.
                         if (onChargeToRoom != null) ...[
@@ -501,12 +516,17 @@ class BarTabBottomSheet extends StatelessWidget {
                 Icon(icon, size: 17, color: accent ?? BarTokens.ink3),
                 const SizedBox(width: 8),
               ],
-              Text(
-                label,
-                style: GoogleFonts.outfit(
-                  fontWeight: FontWeight.w700,
-                  fontSize: 14.5,
-                  color: accent ?? BarTokens.ink1,
+              // Long labels (translations, narrow phones) ellipsize, not overflow.
+              Flexible(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.outfit(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 14.5,
+                    color: accent ?? BarTokens.ink1,
+                  ),
                 ),
               ),
             ],
