@@ -35702,6 +35702,36 @@ abstract class FlipperAppLocalizations {
   /// **'Usage'**
   String get signupUsage;
 
+  /// No description provided for @signupUseForTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What will you use Flipper for?'**
+  String get signupUseForTitle;
+
+  /// No description provided for @signupUseForBusiness.
+  ///
+  /// In en, this message translates to:
+  /// **'Run a business'**
+  String get signupUseForBusiness;
+
+  /// No description provided for @signupUseForBusinessHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Sales, stock, invoices and EBM'**
+  String get signupUseForBusinessHint;
+
+  /// No description provided for @signupUseForPersonal.
+  ///
+  /// In en, this message translates to:
+  /// **'My personal money'**
+  String get signupUseForPersonal;
+
+  /// No description provided for @signupUseForPersonalHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Track what comes in and goes out. Free.'**
+  String get signupUseForPersonalHint;
+
   /// No description provided for @signupCountry.
   ///
   /// In en, this message translates to:
@@ -43798,6 +43828,240 @@ abstract class FlipperAppLocalizations {
   /// In en, this message translates to:
   /// **'SMS Bridge'**
   String get smsBridgeTitle;
+
+  /// No description provided for @personalMoneyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'My money'**
+  String get personalMoneyTitle;
+
+  /// No description provided for @personalMoneyNavHome.
+  ///
+  /// In en, this message translates to:
+  /// **'Home'**
+  String get personalMoneyNavHome;
+
+  /// No description provided for @personalMoneyNavActivity.
+  ///
+  /// In en, this message translates to:
+  /// **'Activity'**
+  String get personalMoneyNavActivity;
+
+  /// No description provided for @personalMoneyNavFlo.
+  ///
+  /// In en, this message translates to:
+  /// **'Flo'**
+  String get personalMoneyNavFlo;
+
+  /// No description provided for @personalMoneyNavMore.
+  ///
+  /// In en, this message translates to:
+  /// **'More'**
+  String get personalMoneyNavMore;
+
+  /// No description provided for @personalMoneyIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Money in'**
+  String get personalMoneyIn;
+
+  /// No description provided for @personalMoneyOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Money out'**
+  String get personalMoneyOut;
+
+  /// No description provided for @personalMoneyLeftOver.
+  ///
+  /// In en, this message translates to:
+  /// **'Left over'**
+  String get personalMoneyLeftOver;
+
+  /// No description provided for @personalMoneyWhereItWent.
+  ///
+  /// In en, this message translates to:
+  /// **'Where your money went'**
+  String get personalMoneyWhereItWent;
+
+  /// No description provided for @personalMoneyByAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'By account'**
+  String get personalMoneyByAccount;
+
+  /// No description provided for @personalMoneyAccountCash.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash'**
+  String get personalMoneyAccountCash;
+
+  /// No description provided for @personalMoneyAccountBank.
+  ///
+  /// In en, this message translates to:
+  /// **'Bank'**
+  String get personalMoneyAccountBank;
+
+  /// No description provided for @personalMoneyAccountMobileMoney.
+  ///
+  /// In en, this message translates to:
+  /// **'Mobile money'**
+  String get personalMoneyAccountMobileMoney;
+
+  /// No description provided for @personalMoneyRecent.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent'**
+  String get personalMoneyRecent;
+
+  /// No description provided for @personalMoneySeeAll.
+  ///
+  /// In en, this message translates to:
+  /// **'See all'**
+  String get personalMoneySeeAll;
+
+  /// No description provided for @personalMoneyEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing recorded yet'**
+  String get personalMoneyEmptyTitle;
+
+  /// No description provided for @personalMoneyEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Add money in or out with the + button, or pair the SMS Bridge so your bank and mobile money messages are recorded for you.'**
+  String get personalMoneyEmptyBody;
+
+  /// No description provided for @personalMoneyPairSmsBridge.
+  ///
+  /// In en, this message translates to:
+  /// **'Pair SMS Bridge'**
+  String get personalMoneyPairSmsBridge;
+
+  /// No description provided for @personalMoneyNoCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'No category'**
+  String get personalMoneyNoCategory;
+
+  /// No description provided for @personalMoneyAddTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add money in or out'**
+  String get personalMoneyAddTitle;
+
+  /// No description provided for @personalMoneyAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get personalMoneyAmount;
+
+  /// No description provided for @personalMoneyCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get personalMoneyCategory;
+
+  /// No description provided for @personalMoneyAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get personalMoneyAccount;
+
+  /// No description provided for @personalMoneyNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Note (optional)'**
+  String get personalMoneyNote;
+
+  /// No description provided for @personalMoneySave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get personalMoneySave;
+
+  /// No description provided for @personalMoneySaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved'**
+  String get personalMoneySaved;
+
+  /// No description provided for @personalMoneyAmountRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter an amount'**
+  String get personalMoneyAmountRequired;
+
+  /// No description provided for @personalMoneySaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save. Try again.'**
+  String get personalMoneySaveFailed;
+
+  /// No description provided for @personalMoneyNoActivity.
+  ///
+  /// In en, this message translates to:
+  /// **'No money in or out this month'**
+  String get personalMoneyNoActivity;
+
+  /// No description provided for @personalMoneyPreviousMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous month'**
+  String get personalMoneyPreviousMonth;
+
+  /// No description provided for @personalMoneyNextMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Next month'**
+  String get personalMoneyNextMonth;
+
+  /// No description provided for @personalMoneySavingsGoals.
+  ///
+  /// In en, this message translates to:
+  /// **'Savings goals'**
+  String get personalMoneySavingsGoals;
+
+  /// No description provided for @personalMoneySwitchToBusiness.
+  ///
+  /// In en, this message translates to:
+  /// **'Use Flipper for a business'**
+  String get personalMoneySwitchToBusiness;
+
+  /// No description provided for @personalMoneySwitchToBusinessBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Turns on sales, stock and invoices for this account. Everything you recorded stays. Business plans are paid.'**
+  String get personalMoneySwitchToBusinessBody;
+
+  /// No description provided for @personalMoneySwitchToPersonal.
+  ///
+  /// In en, this message translates to:
+  /// **'Use Flipper for personal money'**
+  String get personalMoneySwitchToPersonal;
+
+  /// No description provided for @personalMoneySwitchToPersonalBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Hides sales, stock and EBM on every device of this business and opens a simple money app. Nothing is deleted, and you can switch back at any time. Personal use is free.'**
+  String get personalMoneySwitchToPersonalBody;
+
+  /// No description provided for @personalMoneySwitch.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch'**
+  String get personalMoneySwitch;
+
+  /// No description provided for @personalMoneySwitchFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not switch: {error}'**
+  String personalMoneySwitchFailed(String error);
+
+  /// No description provided for @personalMoneyCardStillActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Your card subscription is still active. Pause it in Billing so you are not charged.'**
+  String get personalMoneyCardStillActive;
 
   /// No description provided for @smsBridgeSubtitle.
   ///

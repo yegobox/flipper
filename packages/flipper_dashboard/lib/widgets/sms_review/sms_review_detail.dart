@@ -123,6 +123,7 @@ class _SmsReviewDetailState extends ConsumerState<SmsReviewDetail> {
     final choices = smsCategoryChoices(
       isIncome: item.isIncome,
       branch: categoriesAsync.value ?? const <Category>[],
+      personal: watchAccountMode(ref).isPersonal,
     );
     if (categoriesAsync.hasValue) _applyInitial(choices);
     final service = ref.read(smsReviewServiceProvider);

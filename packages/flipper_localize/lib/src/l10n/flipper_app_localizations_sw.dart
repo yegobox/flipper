@@ -21600,6 +21600,22 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   String get signupUsage => 'Matumizi';
 
   @override
+  String get signupUseForTitle => 'Utatumia Flipper kwa nini?';
+
+  @override
+  String get signupUseForBusiness => 'Kuendesha biashara';
+
+  @override
+  String get signupUseForBusinessHint => 'Mauzo, bidhaa, ankara na EBM';
+
+  @override
+  String get signupUseForPersonal => 'Pesa zangu binafsi';
+
+  @override
+  String get signupUseForPersonalHint =>
+      'Fuatilia kinachoingia na kinachotoka. Bure.';
+
+  @override
   String get signupCountry => 'Nchi';
 
   @override
@@ -26358,6 +26374,130 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
 
   @override
   String get smsBridgeTitle => 'Daraja la SMS';
+
+  @override
+  String get personalMoneyTitle => 'Pesa zangu';
+
+  @override
+  String get personalMoneyNavHome => 'Nyumbani';
+
+  @override
+  String get personalMoneyNavActivity => 'Shughuli';
+
+  @override
+  String get personalMoneyNavFlo => 'Flo';
+
+  @override
+  String get personalMoneyNavMore => 'Zaidi';
+
+  @override
+  String get personalMoneyIn => 'Pesa iliyoingia';
+
+  @override
+  String get personalMoneyOut => 'Pesa iliyotoka';
+
+  @override
+  String get personalMoneyLeftOver => 'Kilichobaki';
+
+  @override
+  String get personalMoneyWhereItWent => 'Pesa zako zilikokwenda';
+
+  @override
+  String get personalMoneyByAccount => 'Kwa akaunti';
+
+  @override
+  String get personalMoneyAccountCash => 'Taslimu';
+
+  @override
+  String get personalMoneyAccountBank => 'Benki';
+
+  @override
+  String get personalMoneyAccountMobileMoney => 'Pesa za simu';
+
+  @override
+  String get personalMoneyRecent => 'Za karibuni';
+
+  @override
+  String get personalMoneySeeAll => 'Ona zote';
+
+  @override
+  String get personalMoneyEmptyTitle => 'Bado hakuna kilichorekodiwa';
+
+  @override
+  String get personalMoneyEmptyBody =>
+      'Ongeza pesa iliyoingia au iliyotoka kwa kitufe cha +, au unganisha Daraja la SMS ili ujumbe wako wa benki na pesa za simu urekodiwe kwa ajili yako.';
+
+  @override
+  String get personalMoneyPairSmsBridge => 'Unganisha Daraja la SMS';
+
+  @override
+  String get personalMoneyNoCategory => 'Hakuna kundi';
+
+  @override
+  String get personalMoneyAddTitle => 'Ongeza pesa iliyoingia au iliyotoka';
+
+  @override
+  String get personalMoneyAmount => 'Kiasi';
+
+  @override
+  String get personalMoneyCategory => 'Kundi';
+
+  @override
+  String get personalMoneyAccount => 'Akaunti';
+
+  @override
+  String get personalMoneyNote => 'Maelezo (si lazima)';
+
+  @override
+  String get personalMoneySave => 'Hifadhi';
+
+  @override
+  String get personalMoneySaved => 'Imehifadhiwa';
+
+  @override
+  String get personalMoneyAmountRequired => 'Weka kiasi';
+
+  @override
+  String get personalMoneySaveFailed => 'Imeshindikana kuhifadhi. Jaribu tena.';
+
+  @override
+  String get personalMoneyNoActivity =>
+      'Hakuna pesa iliyoingia au kutoka mwezi huu';
+
+  @override
+  String get personalMoneyPreviousMonth => 'Mwezi uliopita';
+
+  @override
+  String get personalMoneyNextMonth => 'Mwezi ujao';
+
+  @override
+  String get personalMoneySavingsGoals => 'Malengo ya akiba';
+
+  @override
+  String get personalMoneySwitchToBusiness => 'Tumia Flipper kwa biashara';
+
+  @override
+  String get personalMoneySwitchToBusinessBody =>
+      'Huwasha mauzo, bidhaa na ankara kwa akaunti hii. Kila ulichorekodi kinabaki. Mipango ya biashara inalipiwa.';
+
+  @override
+  String get personalMoneySwitchToPersonal => 'Tumia Flipper kwa pesa binafsi';
+
+  @override
+  String get personalMoneySwitchToPersonalBody =>
+      'Huficha mauzo, bidhaa na EBM kwenye kila kifaa cha biashara hii na kufungua programu rahisi ya pesa. Hakuna kinachofutwa, na unaweza kurudi wakati wowote. Matumizi binafsi ni bure.';
+
+  @override
+  String get personalMoneySwitch => 'Badilisha';
+
+  @override
+  String personalMoneySwitchFailed(String error) {
+    return 'Imeshindikana kubadilisha: $error';
+  }
+
+  @override
+  String get personalMoneyCardStillActive =>
+      'Usajili wako wa kadi bado unaendelea. Usimamishe kwenye Malipo ili usitozwe.';
 
   @override
   String get smsBridgeSubtitle =>

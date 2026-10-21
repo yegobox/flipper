@@ -222,6 +222,10 @@ class SharedPreferenceStorage implements LocalStorage {
     // sale_exchange_intent.dart): lets an exchange whose return RRA signed be
     // finished after a restart.
     'saleExchangeIntents',
+    // Personal mode (flipper_models/lib/account_mode): modes seen per
+    // business, and a personal signup the server has not confirmed yet.
+    'accountModes',
+    'pendingAccountMode',
     // Add new preference keys above this line
   };
 

@@ -11,6 +11,7 @@ import 'package:flipper_dashboard/features/admin/widgets/sms_bridge_page.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_mode_admin_section.dart';
 import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_mode_admin_section.dart';
+import 'package:flipper_dashboard/features/personal_finance/personal_mode_switch.dart';
 import 'package:flipper_dashboard/features/service_mode_device_section.dart';
 import 'package:flipper_dashboard/features/service_mode_shell.dart';
 import 'package:flipper_dashboard/features/service_mode_switch.dart';
@@ -20,6 +21,7 @@ import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/TaxSettingsModal.dart';
 import 'package:flipper_dashboard/TenantManagement.dart';
 import 'package:flipper_dashboard/widgets/transaction_delegation_settings.dart';
+import 'package:flipper_models/account_mode/account_mode.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
@@ -528,6 +530,8 @@ class _AdminControlState extends ConsumerState<AdminControl> {
         const SizedBox(height: 28),
         _buildReceiptBrandingSection(context),
         const SizedBox(height: 28),
+        _buildAccountModeCard(context),
+        const SizedBox(height: 28),
         _buildDangerZoneSection(context),
       ],
     );
@@ -549,6 +553,31 @@ class _AdminControlState extends ConsumerState<AdminControl> {
       onTap: () => Navigator.of(
         context,
       ).push(MaterialPageRoute<void>(builder: (_) => const SmsBridgePage())),
+    );
+  }
+
+  /// Personal money management instead of a shop (`docs/personal_mode.md`).
+  Widget _buildAccountModeCard(BuildContext context) {
+    return SettingsCard(
+      key: const ValueKey('admin-switch-to-personal'),
+      title: context.flipperL10n.personalMoneySwitchToPersonal,
+      subtitle: context.flipperL10n.signupUseForPersonalHint,
+      leading: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: kAdminBarBlue.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: const Icon(
+          Icons.account_balance_wallet_outlined,
+          color: kAdminBarBlue,
+        ),
+      ),
+      onTap: () async {
+        if (!await AdminActions.verifyAdminPinIfEnabled(context)) return;
+        if (!context.mounted) return;
+        await confirmAndSwitchAccountMode(context, ref, AccountMode.personal);
+      },
     );
   }
 

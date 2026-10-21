@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
+import 'package:flipper_models/account_mode/account_mode_store.dart';
 import 'package:flipper_models/exceptions.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/helpers/agent_session_helper.dart';
@@ -182,6 +183,16 @@ class PaymentVerificationNavigator {
       }
     }
 
+    // Personal mode is free: never a paywall, whatever the plan says. Asked
+    // only on the paths that would show one, so an account with a working
+    // plan never waits for it.
+    if (response.result != PaymentVerificationResult.active &&
+        await _isPersonalAccount(resolve: true)) {
+      talker.info('Personal account: no plan needed');
+      await _handleActiveSubscription(mayEnterHome: mayEnterHome);
+      return;
+    }
+
     switch (response.result) {
       case PaymentVerificationResult.active:
         await _handleActiveSubscription(mayEnterHome: mayEnterHome);
@@ -338,6 +349,20 @@ class PaymentVerificationNavigator {
     // in between awaits.
     if (_refuseWhenSignedOut('authenticated home')) return;
 
+    // Personal money management: the personal shell, which [FlipperAppRoute]
+    // shows for a personal account. No gamified app, commission screen or
+    // service mode applies.
+    if (await _isPersonalAccount()) {
+      if (_refuseWhenSignedOut('FlipperApp')) return;
+      talker.info('Personal account — opening the personal shell');
+      if (clearStack) {
+        await _routerService.clearStackAndShow(FlipperAppRoute());
+      } else {
+        _routerService.navigateTo(FlipperAppRoute());
+      }
+      return;
+    }
+
     if (!skipPersonalCheck) {
       final shouldGoToPersonal = await _shouldNavigateToPersonalApp();
       if (shouldGoToPersonal) {
@@ -468,6 +493,20 @@ class PaymentVerificationNavigator {
     businessTypeId: businessTypeId,
     isDefault: isDefault,
   );
+
+  /// Whether the active business is in personal mode
+  /// ([AccountModeStore]). [resolve] may ask the server when nothing on this
+  /// device knows; anything that fails is "not personal".
+  static Future<bool> _isPersonalAccount({bool resolve = false}) async {
+    try {
+      final store = AccountModeStore.instance;
+      final mode = resolve ? await store.resolve() : await store.localMode();
+      return mode?.isPersonal ?? false;
+    } catch (e) {
+      talker.warning('Account mode check failed (treating as business): $e');
+      return false;
+    }
+  }
 
   static Future<bool> _shouldNavigateToPersonalApp() async {
     if (!personalAppEnabled) return false;

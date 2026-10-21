@@ -1,3 +1,4 @@
+import 'package:flipper_models/account_mode/account_mode_store.dart';
 import 'package:flipper_models/helperModels/signup_countries.dart';
 import 'dart:async';
 import 'dart:developer';
@@ -510,6 +511,15 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
 
       // Perform signup
       await signupViewModel.signup();
+
+      // Personal money management: this device opens the personal app at
+      // once; the server learns it as soon as the device can reach it
+      // (AccountModeStore.confirmPending, retried from the personal shell).
+      if (signupViewModel.accountMode.isPersonal) {
+        final store = AccountModeStore.instance;
+        await store.markPendingPersonal();
+        unawaited(store.confirmPending());
+      }
 
       // Signup completed successfully - navigate to startup view
       // The StartupViewModel will handle appInit() and proper navigation

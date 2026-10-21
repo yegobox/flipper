@@ -4,11 +4,13 @@ import 'package:flipper_dashboard/features/bar_mode/bar_mode_settings.dart';
 import 'package:flipper_dashboard/features/branch_location/branch_location_backfill.dart';
 import 'package:flipper_dashboard/features/branch_location/branch_services.dart';
 import 'package:flipper_dashboard/features/hotel_mode/hotel_mode_settings.dart';
+import 'package:flipper_dashboard/features/personal_finance/personal_shell.dart';
 import 'package:flipper_dashboard/features/service_mode_switch.dart';
 import 'package:flipper_dashboard/dashboard_quick_apps_navigation.dart';
 import 'package:flipper_dashboard/hooks/use_tenant_names_realtime.dart';
 import 'package:flipper_dashboard/layout.dart';
 import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
+import 'package:flipper_models/account_mode/account_mode_providers.dart';
 import 'package:flipper_models/services/branch_document_settings_service.dart';
 import 'package:flipper_models/services/tenant_name_sync.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -31,8 +33,22 @@ import 'package:flipper_routing/app.router.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
 
-class FlipperApp extends HookConsumerWidget {
+/// The authenticated home. A personal-mode account (`docs/personal_mode.md`)
+/// gets [PersonalShell]; every other account gets the business app exactly as
+/// before. The mode is live, so a switch made on another device swaps shells
+/// here without a navigation.
+class FlipperApp extends ConsumerWidget {
   const FlipperApp({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (watchAccountMode(ref).isPersonal) return const PersonalShell();
+    return const _BusinessFlipperApp();
+  }
+}
+
+class _BusinessFlipperApp extends HookConsumerWidget {
+  const _BusinessFlipperApp();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

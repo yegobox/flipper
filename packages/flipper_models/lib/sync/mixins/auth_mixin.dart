@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:flipper_models/account_mode/account_mode_store.dart';
 import 'package:flipper_models/helperModels/business.dart';
 import 'package:flipper_models/helperModels/flipperWatch.dart';
 import 'package:flipper_models/helperModels/pin.dart';
@@ -875,6 +876,11 @@ mixin AuthMixin implements AuthInterface {
         if (activeBusiness != null &&
             activeBusiness.businessTypeId == 2 &&
             activeBusiness.isDefault == true) {
+          skipSubscriptionCheck = true;
+        }
+        // Personal money management is free.
+        if (!skipSubscriptionCheck &&
+            await AccountModeStore.instance.isPersonalLocal()) {
           skipSubscriptionCheck = true;
         }
       } catch (e) {

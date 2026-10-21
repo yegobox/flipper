@@ -1,3 +1,4 @@
+import 'package:flipper_models/account_mode/account_mode.dart';
 import 'package:flipper_models/helperModels/signup_countries.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
@@ -14,6 +15,9 @@ class SignupViewModel extends BaseViewModel {
   String? country;
   String? tin;
   BusinessType? businessType;
+
+  /// Business unless the user picked "My personal money" at signup.
+  AccountMode accountMode = AccountMode.business;
 
   /// Start the registration process
   void startRegistering() {

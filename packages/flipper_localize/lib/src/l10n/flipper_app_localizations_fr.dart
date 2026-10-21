@@ -21814,6 +21814,22 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   String get signupUsage => 'Utilisation';
 
   @override
+  String get signupUseForTitle => 'Pour quoi utiliserez-vous Flipper ?';
+
+  @override
+  String get signupUseForBusiness => 'Gérer une entreprise';
+
+  @override
+  String get signupUseForBusinessHint => 'Ventes, stock, factures et EBM';
+
+  @override
+  String get signupUseForPersonal => 'Mon argent personnel';
+
+  @override
+  String get signupUseForPersonalHint =>
+      'Suivez ce qui entre et ce qui sort. Gratuit.';
+
+  @override
   String get signupCountry => 'Pays';
 
   @override
@@ -26605,6 +26621,131 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
 
   @override
   String get smsBridgeTitle => 'Passerelle SMS';
+
+  @override
+  String get personalMoneyTitle => 'Mon argent';
+
+  @override
+  String get personalMoneyNavHome => 'Accueil';
+
+  @override
+  String get personalMoneyNavActivity => 'Activité';
+
+  @override
+  String get personalMoneyNavFlo => 'Flo';
+
+  @override
+  String get personalMoneyNavMore => 'Plus';
+
+  @override
+  String get personalMoneyIn => 'Entrées';
+
+  @override
+  String get personalMoneyOut => 'Sorties';
+
+  @override
+  String get personalMoneyLeftOver => 'Reste';
+
+  @override
+  String get personalMoneyWhereItWent => 'Où est allé votre argent';
+
+  @override
+  String get personalMoneyByAccount => 'Par compte';
+
+  @override
+  String get personalMoneyAccountCash => 'Espèces';
+
+  @override
+  String get personalMoneyAccountBank => 'Banque';
+
+  @override
+  String get personalMoneyAccountMobileMoney => 'Mobile money';
+
+  @override
+  String get personalMoneyRecent => 'Récent';
+
+  @override
+  String get personalMoneySeeAll => 'Tout voir';
+
+  @override
+  String get personalMoneyEmptyTitle => 'Rien d\'enregistré pour l\'instant';
+
+  @override
+  String get personalMoneyEmptyBody =>
+      'Ajoutez une entrée ou une sortie avec le bouton +, ou associez la passerelle SMS pour que vos messages bancaires et mobile money soient enregistrés pour vous.';
+
+  @override
+  String get personalMoneyPairSmsBridge => 'Associer la passerelle SMS';
+
+  @override
+  String get personalMoneyNoCategory => 'Sans catégorie';
+
+  @override
+  String get personalMoneyAddTitle => 'Ajouter une entrée ou une sortie';
+
+  @override
+  String get personalMoneyAmount => 'Montant';
+
+  @override
+  String get personalMoneyCategory => 'Catégorie';
+
+  @override
+  String get personalMoneyAccount => 'Compte';
+
+  @override
+  String get personalMoneyNote => 'Note (facultatif)';
+
+  @override
+  String get personalMoneySave => 'Enregistrer';
+
+  @override
+  String get personalMoneySaved => 'Enregistré';
+
+  @override
+  String get personalMoneyAmountRequired => 'Saisissez un montant';
+
+  @override
+  String get personalMoneySaveFailed => 'Enregistrement impossible. Réessayez.';
+
+  @override
+  String get personalMoneyNoActivity => 'Aucune entrée ni sortie ce mois-ci';
+
+  @override
+  String get personalMoneyPreviousMonth => 'Mois précédent';
+
+  @override
+  String get personalMoneyNextMonth => 'Mois suivant';
+
+  @override
+  String get personalMoneySavingsGoals => 'Objectifs d\'épargne';
+
+  @override
+  String get personalMoneySwitchToBusiness =>
+      'Utiliser Flipper pour une entreprise';
+
+  @override
+  String get personalMoneySwitchToBusinessBody =>
+      'Active les ventes, le stock et les factures pour ce compte. Tout ce que vous avez enregistré est conservé. Les forfaits entreprise sont payants.';
+
+  @override
+  String get personalMoneySwitchToPersonal =>
+      'Utiliser Flipper pour mon argent personnel';
+
+  @override
+  String get personalMoneySwitchToPersonalBody =>
+      'Masque les ventes, le stock et l\'EBM sur tous les appareils de cette entreprise et ouvre une application simple pour votre argent. Rien n\'est supprimé et vous pouvez revenir en arrière à tout moment. L\'usage personnel est gratuit.';
+
+  @override
+  String get personalMoneySwitch => 'Changer';
+
+  @override
+  String personalMoneySwitchFailed(String error) {
+    return 'Changement impossible : $error';
+  }
+
+  @override
+  String get personalMoneyCardStillActive =>
+      'Votre abonnement par carte est toujours actif. Mettez-le en pause dans Facturation pour ne pas être débité.';
 
   @override
   String get smsBridgeSubtitle =>

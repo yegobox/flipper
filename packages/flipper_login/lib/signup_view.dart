@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flipper_design_system/flipper_design_system.dart';
 import 'package:flipper_localize/flipper_localize.dart';
+import 'package:flipper_models/account_mode/account_mode.dart';
 import 'package:flipper_models/helperModels/signup_countries.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/helperModels/business_type.dart';
@@ -36,6 +37,9 @@ class SignUpView extends StatefulHookConsumerWidget {
 
 class _SignUpViewState extends ConsumerState<SignUpView> {
   bool _showTinField = false;
+
+  /// "My personal money" picked: personal mode (`docs/personal_mode.md`).
+  bool _personal = false;
   bool _isSendingOtp = false;
   bool _isVerifyingOtp = false;
   int _signupStep = 0;
@@ -465,44 +469,68 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
                         },
                       ),
                     ] else ...[
-                      components.SignupComponents.buildDropdownField<
-                          BusinessType>(
-                        fieldBloc: formBloc.businessTypes,
-                        label: l10n.signupUsage,
-                        icon: Icons.business_outlined,
-                        itemBuilder: (context, value) => FieldItem(
-                          child: Text(
-                            value.typeName,
-                          ),
-                        ),
-                        onChanged: (value) {
-                          print(
-                            'Usage changed: ${value?.typeName} (id: ${value?.id})',
-                          );
-                          formBloc.businessTypes.updateValue(value);
-                          setState(() {
-                            _showTinField = value?.id != "2";
-                          });
-                        },
+                      _AccountUseChoice(
+                        personal: _personal,
+                        onChanged: (personal) => setState(() {
+                          _personal = personal;
+                          model.accountMode = personal
+                              ? AccountMode.personal
+                              : AccountMode.business;
+                          if (personal) {
+                            // No TIN for personal money: same rule as
+                            // Individual, which is what it registers as.
+                            final individual = formBloc
+                                .businessTypes.state.items
+                                .where((t) =>
+                                    t.id == BusinessTypeEnum.INDIVIDUAL.id)
+                                .firstOrNull;
+                            if (individual != null) {
+                              formBloc.businessTypes.updateValue(individual);
+                            }
+                            _showTinField = false;
+                          }
+                        }),
                       ),
-                      if (_showTinField)
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 16.0),
-                          child: TinInputField(
-                            tinNumberBloc: formBloc.tinNumber,
-                            formBloc: formBloc,
-                            onValidationResult: (isValid, isRelaxed) {
-                              if (isRelaxed) {
-                                formBloc.setTinRelaxed(true);
-                              } else if (isValid) {
-                                formBloc.setTinVerified(true);
-                              } else {
-                                formBloc.setTinVerified(false);
-                              }
-                              setState(() {});
-                            },
+                      if (!_personal) ...[
+                        components.SignupComponents.buildDropdownField<
+                            BusinessType>(
+                          fieldBloc: formBloc.businessTypes,
+                          label: l10n.signupUsage,
+                          icon: Icons.business_outlined,
+                          itemBuilder: (context, value) => FieldItem(
+                            child: Text(
+                              value.typeName,
+                            ),
                           ),
+                          onChanged: (value) {
+                            print(
+                              'Usage changed: ${value?.typeName} (id: ${value?.id})',
+                            );
+                            formBloc.businessTypes.updateValue(value);
+                            setState(() {
+                              _showTinField = value?.id != "2";
+                            });
+                          },
                         ),
+                        if (_showTinField)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 16.0),
+                            child: TinInputField(
+                              tinNumberBloc: formBloc.tinNumber,
+                              formBloc: formBloc,
+                              onValidationResult: (isValid, isRelaxed) {
+                                if (isRelaxed) {
+                                  formBloc.setTinRelaxed(true);
+                                } else if (isValid) {
+                                  formBloc.setTinVerified(true);
+                                } else {
+                                  formBloc.setTinVerified(false);
+                                }
+                                setState(() {});
+                              },
+                            ),
+                          ),
+                      ],
                       components.SignupComponents.buildSearchableSelectField(
                         fieldBloc: formBloc.countryName,
                         label: l10n.signupCountry,
@@ -1035,5 +1063,115 @@ class _SignupFooter extends StatelessWidget {
       return formBloc.phoneNumber.value.trim().isNotEmpty;
     }
     return formBloc.businessTypes.value != null && !isLoading;
+  }
+}
+
+/// "What will you use Flipper for?": a shop, or personal money management.
+/// Business is preselected, so nobody lands in personal mode by default.
+class _AccountUseChoice extends StatelessWidget {
+  const _AccountUseChoice({required this.personal, required this.onChanged});
+
+  final bool personal;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
+    Widget option({
+      required bool value,
+      required IconData icon,
+      required String title,
+      required String hint,
+    }) {
+      final selected = personal == value;
+      return Expanded(
+        child: Semantics(
+          button: true,
+          selected: selected,
+          child: InkWell(
+            key:
+                ValueKey(value ? 'signup-use-personal' : 'signup-use-business'),
+            borderRadius: BorderRadius.circular(14),
+            onTap: () => onChanged(value),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 150),
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: selected ? const Color(0xFFEAF1FE) : Colors.white,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: selected
+                      ? const Color(0xFF2563EB)
+                      : const Color(0xFFD6DEEA),
+                  width: selected ? 1.6 : 1,
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(
+                    icon,
+                    color: selected
+                        ? const Color(0xFF2563EB)
+                        : const Color(0xFF4A5567),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF0B1220),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    hint,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Color(0xFF4A5567),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            l10n.signupUseForTitle,
+            style: const TextStyle(
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF0B1220),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              option(
+                value: false,
+                icon: Icons.storefront_outlined,
+                title: l10n.signupUseForBusiness,
+                hint: l10n.signupUseForBusinessHint,
+              ),
+              const SizedBox(width: 12),
+              option(
+                value: true,
+                icon: Icons.account_balance_wallet_outlined,
+                title: l10n.signupUseForPersonal,
+                hint: l10n.signupUseForPersonalHint,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 }
