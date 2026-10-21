@@ -169,6 +169,48 @@ void main() {
     });
   });
 
+  group('ticketBillBody', () {
+    TransactionItem discounted() => TransactionItem(
+      name: 'Fanta',
+      qty: 2,
+      price: 1000,
+      discount: 0,
+      dcRt: 10,
+      prc: 1000,
+      ttCatCd: 'B',
+    );
+
+    test('a regular ticket still prints its line discounts', () {
+      final body = ticketBillBody(_ticket(), [discounted()]);
+      expect(body.lines.single.lineTotal, 1800);
+      // No stored subTotal yet: the discounted lines' sum.
+      expect(body.total, 1800);
+    });
+
+    test('the stored subTotal wins once it is set', () {
+      final ticket = _ticket()..subTotal = 1750;
+      final body = ticketBillBody(ticket, [discounted()]);
+      expect(body.lines.single.lineTotal, 1800);
+      expect(body.total, 1750);
+    });
+  });
+
+  test('TicketBillLine without the discount prints the gross', () {
+    final line = TicketBillLine.fromItem(
+      TransactionItem(
+        name: 'Fanta',
+        qty: 2,
+        price: 1000,
+        discount: 0,
+        dcRt: 10,
+        prc: 1000,
+        ttCatCd: 'B',
+      ),
+      applyDiscount: false,
+    );
+    expect(line.lineTotal, 2000);
+  });
+
   test('TicketBillLine applies the line discount rate', () {
     final line = TicketBillLine.fromItem(
       TransactionItem(

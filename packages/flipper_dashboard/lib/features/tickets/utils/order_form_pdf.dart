@@ -365,9 +365,14 @@ class TicketBillLine {
   });
 
   /// Same math as the sale receipt: gross less the line's discount rate.
-  factory TicketBillLine.fromItem(TransactionItem item) {
+  /// [applyDiscount] `false` prints the gross price × qty, for papers whose
+  /// screen shows the undiscounted amount (a bar tab).
+  factory TicketBillLine.fromItem(
+    TransactionItem item, {
+    bool applyDiscount = true,
+  }) {
     final gross = (item.price * item.qty).toDouble();
-    final rate = item.dcRt?.toDouble() ?? 0;
+    final rate = applyDiscount ? (item.dcRt?.toDouble() ?? 0.0) : 0.0;
     return TicketBillLine(
       name: item.name,
       qty: item.qty,
@@ -380,6 +385,22 @@ class TicketBillLine {
   final num qty;
   final double unitPrice;
   final double lineTotal;
+}
+
+/// The lines a ticket bill prints and the total under them.
+typedef TicketBillBody = ({List<TicketBillLine> lines, double total});
+
+/// A parked ticket's bill body: each line less its discount rate, under the
+/// ticket's stored subTotal — or the lines' sum while that subTotal lags
+/// (another till just edited the ticket).
+TicketBillBody ticketBillBody(
+  ITransaction ticket,
+  List<TransactionItem> items,
+) {
+  final lines = items.map(TicketBillLine.fromItem).toList();
+  final linesTotal = lines.fold<double>(0, (sum, l) => sum + l.lineTotal);
+  final subTotal = ticket.subTotal ?? 0.0;
+  return (lines: lines, total: subTotal > 0 ? subTotal : linesTotal);
 }
 
 /// Everything a ticket bill shows, already loaded, so the layout can be
@@ -422,19 +443,17 @@ class TicketBillData {
 /// paper: 80mm roll by default, A4 when receipts are set to A4.
 ///
 /// [heading] replaces the ticket name under the title (a bar tab passes its
-/// table). [total] overrides the ticket's stored total when the caller
-/// already shows one computed from the same lines.
+/// table). [body] replaces [ticketBillBody] when the caller's screen shows
+/// the lines and total computed another way, so the paper matches it.
 Future<Uint8List> buildTicketBillPdfBytes({
   required ITransaction ticket,
   required List<TransactionItem> items,
   FlipperAppLocalizations? l10n,
   String? heading,
-  double? total,
+  TicketBillBody? body,
 }) async {
   final basics = await _loadTicketPrintBasics(ticket, withCustomer: true);
-  final lines = items.map(TicketBillLine.fromItem).toList();
-  final linesTotal = lines.fold<double>(0, (sum, l) => sum + l.lineTotal);
-  final subTotal = ticket.subTotal ?? 0.0;
+  final bill = body ?? ticketBillBody(ticket, items);
   return renderTicketBillPdf(
     TicketBillData(
       businessName: basics.businessName,
@@ -447,9 +466,8 @@ Future<Uint8List> buildTicketBillPdfBytes({
         ticket: ticket,
         customer: basics.customer,
       ),
-      lines: lines,
-      // subTotal can lag the lines on a ticket another till just edited.
-      total: total ?? (subTotal > 0 ? subTotal : linesTotal),
+      lines: bill.lines,
+      total: bill.total,
       paid: basics.paid,
       currency: basics.currency,
       useA4: basics.useA4,

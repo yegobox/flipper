@@ -3,6 +3,7 @@ import 'package:flipper_dashboard/features/tickets/utils/ticket_pdf_presenter.da
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/models/bar_table.dart';
+import 'package:flipper_models/sync/utils/bar_mode_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_models/brick/models/transaction.model.dart';
 import 'package:supabase_models/brick/models/transactionItem.model.dart';
@@ -26,6 +27,17 @@ class BarTabPrint {
     return '$zone · $name';
   }
 
+  /// What the tab paper lists: exactly the tab screen — price × qty per line
+  /// and [barTabTotal] under them. A discount rate the line copied from its
+  /// variant is not applied, because the screen does not apply it either.
+  static TicketBillBody bill(List<TransactionItem> lines) => (
+    lines: [
+      for (final line in lines)
+        TicketBillLine.fromItem(line, applyDiscount: false),
+    ],
+    total: barTabTotal(lines),
+  );
+
   static Future<void> printTab({
     required BuildContext context,
     required ITransaction tab,
@@ -41,10 +53,9 @@ class BarTabPrint {
         items: lines,
         l10n: l10n,
         heading: heading(table),
-        // A tab's stored subTotal can lag its lines; total what is printed.
-        total: lines
-            .map(TicketBillLine.fromItem)
-            .fold<double>(0, (sum, l) => sum + l.lineTotal),
+        // A tab's stored subTotal can lag its lines; print what the screen
+        // shows.
+        body: bill(lines),
       );
       if (!context.mounted) return;
       final safeName = table.name.trim().replaceAll(RegExp(r'[^\w-]+'), '_');

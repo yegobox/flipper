@@ -2,6 +2,7 @@ import 'package:flipper_dashboard/features/bar_mode/bar_tab_print.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_tab_bottom_sheet.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/models/bar_table.dart';
+import 'package:flipper_models/sync/utils/bar_mode_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -80,6 +81,38 @@ void main() {
     test('falls back to whichever part is set', () {
       expect(BarTabPrint.heading(_table(zone: '  ')), 'Muvinga');
       expect(BarTabPrint.heading(_table(name: '')), 'Main Bar');
+    });
+  });
+
+  group('BarTabPrint.bill', () {
+    test('prints the gross line totals and barTabTotal, as on screen', () {
+      // Bar lines copy the variant's dcRt; the tab screen ignores it.
+      final lines = [
+        TransactionItem(
+          name: 'Fanta',
+          qty: 2,
+          price: 1000,
+          discount: 0,
+          dcRt: 10,
+          prc: 1000,
+          ttCatCd: 'B',
+          loggedByTenantId: 't1',
+        ),
+        _line(),
+      ];
+
+      final bill = BarTabPrint.bill(lines);
+
+      expect(bill.lines.map((l) => l.lineTotal), [2000, 2500]);
+      expect(bill.lines.first.unitPrice, 1000);
+      expect(bill.total, barTabTotal(lines));
+      expect(bill.total, 4500);
+    });
+
+    test('an empty tab totals zero', () {
+      final bill = BarTabPrint.bill(const []);
+      expect(bill.lines, isEmpty);
+      expect(bill.total, 0);
     });
   });
 
