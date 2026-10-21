@@ -1,9 +1,11 @@
 import 'dart:typed_data';
 
 import 'package:flipper_localize/flipper_localize.dart';
+import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:meta/meta.dart' show visibleForTesting;
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart';
 
@@ -250,14 +252,14 @@ Future<_TicketPrintBasics> _loadTicketPrintBasics(
       : await capella.getBusiness(businessId: businessId);
 
   final branchId = ticket.branchId ?? box.getBranchId() ?? '';
-  final paid = branchId.isEmpty
-      ? (ticket.cashReceived ?? 0.0)
-      : (await capella.getTotalPaidForTransaction(
-              transactionId: ticket.id,
-              branchId: branchId,
-            ) ??
-            ticket.cashReceived ??
-            0.0);
+  final paid = await resolveTicketPaid(
+    ticket,
+    branchId: branchId,
+    lookup: () => capella.getTotalPaidForTransaction(
+      transactionId: ticket.id,
+      branchId: branchId,
+    ),
+  );
 
   final refSource = ticket.reference?.trim();
   final reference = (refSource != null && refSource.isNotEmpty)
@@ -284,6 +286,30 @@ Future<_TicketPrintBasics> _loadTicketPrintBasics(
     useA4: box.A4(),
     customer: customer,
   );
+}
+
+/// What has been paid on [ticket]: the payment records when [lookup] can
+/// read them, otherwise the ticket's own `cashReceived`. A lookup that throws
+/// (Ditto not ready, query failed) is logged and falls back, so it never
+/// stops the print.
+@visibleForTesting
+Future<double> resolveTicketPaid(
+  ITransaction ticket, {
+  required String branchId,
+  required Future<double?> Function() lookup,
+}) async {
+  final fallback = ticket.cashReceived ?? 0.0;
+  if (branchId.isEmpty) return fallback;
+  try {
+    return await lookup() ?? fallback;
+  } catch (e, st) {
+    talker.warning(
+      'Ticket print: paid lookup failed for ${ticket.id}, '
+      'using cashReceived: $e',
+      st,
+    );
+    return fallback;
+  }
 }
 
 /// Customer details printed on a ticket bill. The ticket's own snapshot

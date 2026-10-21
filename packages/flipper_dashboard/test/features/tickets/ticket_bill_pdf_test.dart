@@ -76,6 +76,65 @@ void main() {
     });
   });
 
+  group('resolveTicketPaid', () {
+    ITransaction paidTicket() => _ticket()..cashReceived = 1500;
+
+    test('uses the payment records when the lookup succeeds', () async {
+      final paid = await resolveTicketPaid(
+        paidTicket(),
+        branchId: 'branch-1',
+        lookup: () async => 4000,
+      );
+      expect(paid, 4000);
+    });
+
+    test(
+      'a throwing lookup falls back to cashReceived and still prints',
+      () async {
+        final paid = await resolveTicketPaid(
+          paidTicket(),
+          branchId: 'branch-1',
+          lookup: () async => throw StateError('Ditto not initialized'),
+        );
+        expect(paid, 1500);
+
+        final data = _data();
+        final bytes = await renderTicketBillPdf(
+          TicketBillData(
+            businessName: data.businessName,
+            reference: data.reference,
+            customer: data.customer,
+            lines: data.lines,
+            total: data.total,
+            paid: paid,
+            currency: data.currency,
+          ),
+          l10n: l10n,
+        );
+        expect(String.fromCharCodes(bytes.take(5)), '%PDF-');
+      },
+    );
+
+    test('a null lookup or no branch falls back to cashReceived', () async {
+      expect(
+        await resolveTicketPaid(
+          paidTicket(),
+          branchId: 'branch-1',
+          lookup: () async => null,
+        ),
+        1500,
+      );
+      expect(
+        await resolveTicketPaid(
+          paidTicket(),
+          branchId: '',
+          lookup: () async => fail('no lookup without a branch'),
+        ),
+        1500,
+      );
+    });
+  });
+
   group('TicketPrintCustomer.resolve', () {
     test('ticket snapshot wins over the customer record', () {
       final c = TicketPrintCustomer.resolve(

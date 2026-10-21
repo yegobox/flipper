@@ -10047,7 +10047,7 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   String get ticketPrintFailed => 'Gucapa itike ntibyakunze';
 
   @override
-  String get ticketBillTitle => 'Urutonde rw\'itike';
+  String get ticketBillTitle => 'Fagitire y\'itike';
 
   @override
   String get ticketNotFiscalReceipt => 'SI INYEMEZABUGUZI YA EBM';
