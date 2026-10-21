@@ -10100,6 +10100,11 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   String get ticketPrintFailed => 'Échec de l\'impression du ticket';
 
   @override
+  String ticketPrintNotSent(String printer) {
+    return 'Impossible d\'envoyer à $printer. Imprimez à nouveau pour choisir une autre imprimante.';
+  }
+
+  @override
   String get ticketBillTitle => 'Note du ticket';
 
   @override

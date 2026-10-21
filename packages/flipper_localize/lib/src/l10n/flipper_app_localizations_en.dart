@@ -9950,6 +9950,11 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
   String get ticketPrintFailed => 'Failed to print ticket';
 
   @override
+  String ticketPrintNotSent(String printer) {
+    return 'Could not send to $printer. Print again to pick another printer.';
+  }
+
+  @override
   String get ticketBillTitle => 'Ticket bill';
 
   @override

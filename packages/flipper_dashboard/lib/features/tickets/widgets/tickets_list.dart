@@ -1599,6 +1599,8 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       // A ticket can reach this till before its lines do; a blank bill would
       // read as "nothing ordered".
       linesSyncingMessage: context.flipperL10n.ticketLinesSyncing,
+      // Straight to the till's printer (built-in first); picker as fallback.
+      autoPrint: true,
     );
   }
 
@@ -1613,6 +1615,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     required String failedMessage,
     required String logLabel,
     String? linesSyncingMessage,
+    bool autoPrint = false,
   }) async {
     if (_printingTicketIds.contains(ticket.id)) return;
     setState(() => _printingTicketIds.add(ticket.id));
@@ -1640,6 +1643,8 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         ticket: ticket,
         items: items,
         filename: filename,
+        autoPrint: autoPrint,
+        notSentMessage: l10n.ticketPrintNotSent,
       );
     } catch (e, st) {
       talker.error('Print $logLabel failed: $e', st);

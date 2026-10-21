@@ -16671,6 +16671,12 @@ abstract class FlipperAppLocalizations {
   /// **'Failed to print ticket'**
   String get ticketPrintFailed;
 
+  /// Shown when a ticket or bar tab print did not reach the printer
+  ///
+  /// In en, this message translates to:
+  /// **'Could not send to {printer}. Print again to pick another printer.'**
+  String ticketPrintNotSent(String printer);
+
   /// No description provided for @ticketBillTitle.
   ///
   /// In en, this message translates to:

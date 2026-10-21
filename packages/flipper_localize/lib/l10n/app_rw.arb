@@ -4364,6 +4364,7 @@
   "ticketInKitchenStage": "Mu gikoni · {stage}",
   "ticketPrintOrderFormFailed": "Gucapa urupapuro rw'itumizwa ntibyakunze",
   "ticketPrintFailed": "Gucapa itike ntibyakunze",
+  "ticketPrintNotSent": "Ntibyashobotse kohereza kuri {printer}. Ongera ucape uhitemo indi mashini icapa.",
   "ticketBillTitle": "Fagitire y'itike",
   "ticketNotFiscalReceipt": "SI INYEMEZABUGUZI YA EBM",
   "ticketCustomerAddress": "Aderesi",

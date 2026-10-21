@@ -4,6 +4,9 @@ import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_services/builtin_printer/builtin_printer_service.dart'
+    show receiptEscPos;
+import 'package:flipper_services/builtin_printer/escpos.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:meta/meta.dart' show visibleForTesting;
 import 'package:pdf/pdf.dart';
@@ -435,27 +438,123 @@ Future<Uint8List> buildTicketBillPdfBytes({
   final lines = items.map(TicketBillLine.fromItem).toList();
   final linesTotal = lines.fold<double>(0, (sum, l) => sum + l.lineTotal);
   final subTotal = ticket.subTotal ?? 0.0;
-  return renderTicketBillPdf(
-    TicketBillData(
-      businessName: basics.businessName,
-      reference: basics.reference,
-      ticketName: heading ?? ticket.ticketName,
-      note: ticket.note,
-      createdAt: ticket.createdAt,
-      dueDate: ticket.dueDate,
-      customer: TicketPrintCustomer.resolve(
-        ticket: ticket,
-        customer: basics.customer,
-      ),
-      lines: lines,
-      // subTotal can lag the lines on a ticket another till just edited.
-      total: total ?? (subTotal > 0 ? subTotal : linesTotal),
-      paid: basics.paid,
-      currency: basics.currency,
-      useA4: basics.useA4,
+  final data = TicketBillData(
+    businessName: basics.businessName,
+    reference: basics.reference,
+    ticketName: heading ?? ticket.ticketName,
+    note: ticket.note,
+    createdAt: ticket.createdAt,
+    dueDate: ticket.dueDate,
+    customer: TicketPrintCustomer.resolve(
+      ticket: ticket,
+      customer: basics.customer,
     ),
-    l10n: l10n,
+    lines: lines,
+    // subTotal can lag the lines on a ticket another till just edited.
+    total: total ?? (subTotal > 0 ? subTotal : linesTotal),
+    paid: basics.paid,
+    currency: basics.currency,
+    useA4: basics.useA4,
   );
+  final pdf = await renderTicketBillPdf(data, l10n: l10n);
+  // A till's built-in printer takes raw ESC/POS, not PDF. Attach the 58 mm
+  // rendering the way sale receipts do, so printing() can use it before
+  // falling back to a Windows printer or the picker. A4 stays on Windows.
+  if (!data.useA4) {
+    try {
+      receiptEscPos[pdf] = renderTicketBillEscPos(data, l10n: l10n);
+    } catch (e, st) {
+      talker.warning('Ticket print: no built-in printer layout: $e', st);
+    }
+  }
+  return pdf;
+}
+
+/// The ticket bill for a 58 mm (32-column) built-in thermal printer, in the
+/// printer's own fonts. Same content and order as [renderTicketBillPdf].
+Uint8List renderTicketBillEscPos(
+  TicketBillData data, {
+  FlipperAppLocalizations? l10n,
+}) {
+  final strings = l10n ?? FlipperL10n.current;
+  String money(double v) => v.toCurrencyFormatted(symbol: data.currency);
+  final p = EscPos()..init();
+
+  final businessName = (data.businessName ?? strings.ticketOrderFormShop)
+      .trim()
+      .toUpperCase();
+  for (final line in EscPos.wrap(businessName, 16)) {
+    p.text(line, align: EscPosAlign.center, bold: true, width: 2, height: 2);
+  }
+  p.text(strings.ticketBillTitle, align: EscPosAlign.center);
+  final ticketName = data.ticketName?.trim() ?? '';
+  final customer = data.customer;
+  if (ticketName.isNotEmpty && ticketName != customer.name) {
+    p.wrapped(ticketName, align: EscPosAlign.center, bold: true);
+  }
+  p
+    ..rule()
+    ..row(strings.ticketGeneric, '#${data.reference}');
+  if (data.createdAt != null) {
+    p.row(
+      strings.ticketCreated,
+      _formatShortDateTime(data.createdAt!.toLocal()),
+    );
+  }
+  if (data.dueDate != null) {
+    p.row(
+      strings.ticketDeliveryTime,
+      _formatDeliveryTime(data.dueDate!.toLocal()),
+    );
+  }
+
+  p.rule();
+  if (customer.isEmpty) {
+    p.row(strings.customer, strings.ticketWalkIn);
+  } else {
+    if (customer.name != null) p.row(strings.customer, customer.name!);
+    if (customer.phone != null) p.row(strings.phone, customer.phone!);
+    if (customer.tin != null) p.row(strings.tin, customer.tin!);
+    if (customer.email != null) p.row(strings.email, customer.email!);
+    if (customer.address != null) {
+      p.row(strings.ticketCustomerAddress, customer.address!);
+    }
+  }
+
+  p.rule();
+  for (final line in data.lines) {
+    p
+      ..wrapped(line.name, bold: true)
+      ..row(
+        '${_qtyLabel(line.qty)} x ${money(line.unitPrice)}',
+        money(line.lineTotal),
+      );
+  }
+
+  p
+    ..rule()
+    ..row(strings.ticketTotal, money(data.total), bold: true);
+  if (data.paid > 0) {
+    final balance = data.total - data.paid;
+    p
+      ..row(strings.ticketStatusPaid, money(data.paid))
+      ..row(strings.ticketBalance, money(balance < 0 ? 0.0 : balance));
+  }
+  final note = data.note?.trim() ?? '';
+  if (note.isNotEmpty) {
+    p
+      ..rule()
+      ..wrapped('${strings.ticketNote}: $note');
+  }
+  p
+    ..rule()
+    ..wrapped(
+      strings.ticketNotFiscalReceipt,
+      align: EscPosAlign.center,
+      bold: true,
+    )
+    ..cut();
+  return p.bytes();
 }
 
 Future<Uint8List> renderTicketBillPdf(
