@@ -420,10 +420,16 @@ class TicketBillData {
 /// Not a fiscal receipt — it never touches TaxController, EBM/RRA, counters
 /// or ticket status, and says so at the bottom. Follows the till's receipt
 /// paper: 80mm roll by default, A4 when receipts are set to A4.
+///
+/// [heading] replaces the ticket name under the title (a bar tab passes its
+/// table). [total] overrides the ticket's stored total when the caller
+/// already shows one computed from the same lines.
 Future<Uint8List> buildTicketBillPdfBytes({
   required ITransaction ticket,
   required List<TransactionItem> items,
   FlipperAppLocalizations? l10n,
+  String? heading,
+  double? total,
 }) async {
   final basics = await _loadTicketPrintBasics(ticket, withCustomer: true);
   final lines = items.map(TicketBillLine.fromItem).toList();
@@ -433,7 +439,7 @@ Future<Uint8List> buildTicketBillPdfBytes({
     TicketBillData(
       businessName: basics.businessName,
       reference: basics.reference,
-      ticketName: ticket.ticketName,
+      ticketName: heading ?? ticket.ticketName,
       note: ticket.note,
       createdAt: ticket.createdAt,
       dueDate: ticket.dueDate,
@@ -443,7 +449,7 @@ Future<Uint8List> buildTicketBillPdfBytes({
       ),
       lines: lines,
       // subTotal can lag the lines on a ticket another till just edited.
-      total: subTotal > 0 ? subTotal : linesTotal,
+      total: total ?? (subTotal > 0 ? subTotal : linesTotal),
       paid: basics.paid,
       currency: basics.currency,
       useA4: basics.useA4,

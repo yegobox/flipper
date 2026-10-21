@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flipper_dashboard/features/bar_mode/bar_mode_settings.dart';
 import 'package:flipper_dashboard/features/bar_mode/bar_pos_actions.dart';
 import 'package:flipper_dashboard/features/bar_mode/bar_room_charge.dart';
+import 'package:flipper_dashboard/features/bar_mode/bar_tab_print.dart';
 import 'package:flipper_dashboard/features/bar_mode/providers/bar_mode_providers.dart';
 import 'package:flipper_dashboard/features/bar_mode/theme/bar_tokens.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_mobile_shell.dart';
@@ -127,6 +128,12 @@ class BarPosMobileScreen extends HookConsumerWidget {
                 ref.read(barModeProvider.notifier).showManagerPin();
               }
             },
+            onPrint: () => BarTabPrint.printTab(
+              context: context,
+              tab: tab,
+              table: table,
+              lines: lines,
+            ),
             onChargeToRoom: !canChargeRoom
                 ? null
                 : () {

@@ -36,14 +36,13 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:printing/printing.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
-import 'package:universal_platform/universal_platform.dart';
 import 'package:flipper_ui/dialogs/ResumeTicketDialog.dart';
 import '../models/ticket_status.dart';
 import '../providers/handover_staff_provider.dart';
 import '../utils/order_form_pdf.dart';
+import '../utils/ticket_pdf_presenter.dart';
 import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
 import 'handover_staff_picker_panel.dart';
 // import 'ticket_tile.dart';
@@ -1634,20 +1633,14 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       final bytes = await build(items, l10n);
       if (!mounted) return;
       final filename = '$filenamePrefix-${_ticketDisplayRef(ticket)}.pdf';
-      if (UniversalPlatform.isDesktopOrWeb && !kIsWeb) {
-        // Desktop: branded printer picker (always show — do not auto-skip to
-        // saved default). Use this State's context, not the list item builder.
-        await CoreViewModel().printing(
-          bytes,
-          context,
-          transaction: ticket,
-          transactionItems: items,
-          alwaysShowPicker: true,
-          pdfFilename: filename,
-        );
-      } else {
-        await Printing.sharePdf(bytes: bytes, filename: filename);
-      }
+      // This State's context, not the list item builder's.
+      await presentTicketPdf(
+        context,
+        bytes: bytes,
+        ticket: ticket,
+        items: items,
+        filename: filename,
+      );
     } catch (e, st) {
       talker.error('Print $logLabel failed: $e', st);
       if (mounted) {
