@@ -417,6 +417,31 @@ void main() {
       expect(find.text('from imported statement'), findsNothing);
     });
 
+    testWidgets('a statement with a closing balance names the statement', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        _Ledger({'1020': const []}),
+        balances: _FakeBalances(owner()),
+        statement: const ParsedStatement(
+          bankName: 'BK',
+          closingBalance: 15000,
+          lines: [
+            ParsedStatementLine(
+              date: '2026-10-14',
+              description: 'TRANSFER JANE',
+              debit: 2000,
+            ),
+          ],
+        ),
+      );
+      await tester.tap(find.text('Import statement'));
+      await _settle(tester);
+      expect(find.text('from imported statement'), findsOneWidget);
+      expect(find.text('from bank SMS · 22 Oct, 18:11'), findsNothing);
+    });
+
     testWidgets('a cancelled or failed adjustment posts nothing', (
       tester,
     ) async {
