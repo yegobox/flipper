@@ -6,7 +6,6 @@ import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/widgets/pos_handoff_icon.dart';
 import 'package:flipper_models/sync/utils/bar_mode_utils.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:supabase_models/brick/models/transaction.model.dart';
 import 'package:supabase_models/brick/models/transactionItem.model.dart';
 
 Color barColorForName(String name) {
@@ -22,6 +21,49 @@ String barAbbrevForName(String? name) {
   final t = name.trim();
   if (t.length <= 3) return t.toUpperCase();
   return t.substring(0, 3);
+}
+
+/// Short label for the square table badge. Short codes ("T4") stay as they
+/// are; longer names collapse to the first letter of up to two words, so
+/// "Umunyinya 2(Etage)" becomes "U2" instead of wrapping out of the badge.
+String barTableBadgeLabel(String name) {
+  final t = name.trim();
+  if (t.isEmpty) return '?';
+  if (t.length <= 3) return t.toUpperCase();
+  return t
+      .split(RegExp(r'\s+'))
+      .take(2)
+      .map((w) => w.substring(0, 1))
+      .join()
+      .toUpperCase();
+}
+
+/// Text for a fixed-size table badge, scaled down rather than wrapped.
+class BarTableBadgeText extends StatelessWidget {
+  const BarTableBadgeText(this.tableName, {super.key, required this.fontSize});
+
+  final String tableName;
+  final double fontSize;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Text(
+          barTableBadgeLabel(tableName),
+          maxLines: 1,
+          style: GoogleFonts.outfit(
+            color: Colors.white,
+            fontSize: fontSize,
+            fontWeight: FontWeight.w800,
+            letterSpacing: -0.18,
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 /// Same mark + wordmark as [DashboardLayout] sidebar header / POS shell.
@@ -156,7 +198,7 @@ class BarServerAvatarStack extends StatelessWidget {
 class BarTableHead extends StatelessWidget {
   const BarTableHead({
     super.key,
-    required this.tableBadge,
+    required this.tableName,
     required this.zoneName,
     required this.seats,
     required this.openedAt,
@@ -164,7 +206,7 @@ class BarTableHead extends StatelessWidget {
     this.durationLabel,
   });
 
-  final String tableBadge;
+  final String tableName;
   final String zoneName;
   final int seats;
   final DateTime openedAt;
@@ -194,15 +236,7 @@ class BarTableHead extends StatelessWidget {
               color: BarTokens.blue,
               borderRadius: BorderRadius.circular(13),
             ),
-            child: Text(
-              tableBadge,
-              style: GoogleFonts.outfit(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
-                letterSpacing: -0.18,
-              ),
-            ),
+            child: BarTableBadgeText(tableName, fontSize: 18),
           ),
           const SizedBox(width: 13),
           Expanded(
@@ -211,12 +245,16 @@ class BarTableHead extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    Text(
-                      zoneName,
-                      style: GoogleFonts.outfit(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: -0.16,
+                    Flexible(
+                      child: Text(
+                        tableName,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.outfit(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -0.16,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -232,6 +270,15 @@ class BarTableHead extends StatelessWidget {
                   spacing: 0,
                   runSpacing: 2,
                   children: [
+                    Text(
+                      zoneName,
+                      style: GoogleFonts.outfit(
+                        fontSize: 12,
+                        color: BarTokens.ink3,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    _dotSep(),
                     Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -243,7 +290,7 @@ class BarTableHead extends StatelessWidget {
                         const SizedBox(width: 4),
                         Text(
                           context.flipperL10n.barSeatsCount(seats),
-                          style: GoogleFonts.jetBrainsMono(
+                          style: GoogleFonts.outfit(
                             fontSize: 12,
                             color: BarTokens.ink3,
                             fontWeight: FontWeight.w500,
@@ -544,12 +591,15 @@ String? barFirstName(String? fullName) {
   return fullName.trim().split(RegExp(r'\s+')).first;
 }
 
-String barOpenerName(ITransaction tab, List<TransactionItem> lines) {
+/// First name of whoever logged the tab's first line, or '' before any line.
+/// Never falls back to the tab's ticketName: that holds the table name, which
+/// would read as "Opened 8:04 AM by <table>".
+String barOpenerName(List<TransactionItem> lines) {
   for (final line in lines) {
     final n = line.loggedByName?.toString();
     if (n != null && n.isNotEmpty) {
       return barFirstName(n) ?? n;
     }
   }
-  return barFirstName(tab.ticketName) ?? '';
+  return '';
 }

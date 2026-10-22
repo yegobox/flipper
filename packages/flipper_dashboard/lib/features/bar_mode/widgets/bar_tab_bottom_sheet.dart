@@ -13,7 +13,7 @@ import 'package:supabase_models/brick/models/transactionItem.model.dart';
 class BarTabBottomSheet extends StatelessWidget {
   const BarTabBottomSheet({
     super.key,
-    required this.tableBadge,
+    required this.tableName,
     required this.zoneName,
     required this.lines,
     required this.grouped,
@@ -33,7 +33,7 @@ class BarTabBottomSheet extends StatelessWidget {
     this.onPrint,
   });
 
-  final String tableBadge;
+  final String tableName;
   final String zoneName;
   final List<TransactionItem> lines;
   final Map<String, List<TransactionItem>> grouped;
@@ -107,14 +107,7 @@ class BarTabBottomSheet extends StatelessWidget {
                             color: BarTokens.blue,
                             borderRadius: BorderRadius.circular(11),
                           ),
-                          child: Text(
-                            tableBadge,
-                            style: GoogleFonts.outfit(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w800,
-                              fontSize: 15,
-                            ),
-                          ),
+                          child: BarTableBadgeText(tableName, fontSize: 15),
                         ),
                         const SizedBox(width: 11),
                         Expanded(

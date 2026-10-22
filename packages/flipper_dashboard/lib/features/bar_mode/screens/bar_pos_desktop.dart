@@ -41,6 +41,7 @@ class BarPosDesktopScreen extends HookConsumerWidget {
     final isManager = barTenantIsManager(cashier);
     final canChargeRoom = BarRoomCharge.isAvailable(ref);
     final myLines = lines.where((l) => l.loggedByTenantId == cashier.id).length;
+    final opener = barOpenerName(lines);
     final l10n = context.flipperL10n;
 
     return Container(
@@ -78,7 +79,6 @@ class BarPosDesktopScreen extends HookConsumerWidget {
               children: [
                 _cartHead(
                   l10n,
-                  ref,
                   onPrint: lines.isEmpty
                       ? null
                       : () => BarTabPrint.printTab(
@@ -89,13 +89,11 @@ class BarPosDesktopScreen extends HookConsumerWidget {
                         ),
                 ),
                 BarTableHead(
-                  tableBadge: table.name,
+                  tableName: table.name,
                   zoneName: table.zoneName,
                   seats: table.seats,
                   openedAt: tab.createdAt ?? DateTime.now(),
-                  openedBy: barOpenerName(tab, lines).isEmpty
-                      ? null
-                      : barOpenerName(tab, lines),
+                  openedBy: opener.isEmpty ? null : opener,
                 ),
                 Expanded(
                   child: _linesList(
@@ -162,11 +160,9 @@ class BarPosDesktopScreen extends HookConsumerWidget {
     );
   }
 
-  Widget _cartHead(
-    FlipperAppLocalizations l10n,
-    WidgetRef ref, {
-    VoidCallback? onPrint,
-  }) {
+  // Back-to-tables lives in the top bar and Save to tab in the footer, so
+  // the panel head only carries Print.
+  Widget _cartHead(FlipperAppLocalizations l10n, {VoidCallback? onPrint}) {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
       decoration: const BoxDecoration(
@@ -174,37 +170,6 @@ class BarPosDesktopScreen extends HookConsumerWidget {
       ),
       child: Row(
         children: [
-          Material(
-            color: BarTokens.surface2,
-            borderRadius: BorderRadius.circular(10),
-            child: InkWell(
-              onTap: () => ref
-                  .read(barModeProvider.notifier)
-                  .setScreen(BarScreen.tables),
-              borderRadius: BorderRadius.circular(10),
-              child: Container(
-                height: 40,
-                padding: const EdgeInsets.symmetric(horizontal: 14),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: BarTokens.line),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.chevron_left, size: 18),
-                    const SizedBox(width: 4),
-                    Text(
-                      l10n.barTables,
-                      style: GoogleFonts.outfit(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
           const Spacer(),
           // Prints the tab for the guest (not a fiscal receipt).
           Tooltip(
@@ -243,42 +208,6 @@ class BarPosDesktopScreen extends HookConsumerWidget {
                       ),
                     ],
                   ),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Material(
-            color: BarTokens.surface,
-            borderRadius: BorderRadius.circular(10),
-            child: InkWell(
-              onTap: () => ref
-                  .read(barModeProvider.notifier)
-                  .saveToTab(autoLogout: BarModeSettings.autoLogout),
-              borderRadius: BorderRadius.circular(10),
-              child: Container(
-                height: 40,
-                padding: const EdgeInsets.symmetric(horizontal: 14),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: BarTokens.line),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.archive_outlined,
-                      size: 15,
-                      color: BarTokens.ink2,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      l10n.barSaveToTab,
-                      style: GoogleFonts.outfit(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ],
                 ),
               ),
             ),
