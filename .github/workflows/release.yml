@@ -256,6 +256,11 @@ jobs:
           # step above.
           channelId: ${{ github.ref == 'refs/heads/main' && 'live' || steps.web_channel.outputs.id }}
           projectId: yegobox-2ee43
+          # firebase-tools 15.34.1 (2026-10-21) checks the Service Usage API
+          # before deploying, which this service account may not call: every
+          # deploy then fails with a 403. Pinned to the last version that
+          # deployed; raise it once the account has serviceusage access.
+          firebaseToolsVersion: 15.34.0
           # Same as HR: feat/refactor/fix branches each get a preview channel,
           # and the site caps at 50. Ignored for the live channel.
           expires: 3d
@@ -379,6 +384,11 @@ jobs:
           channelId: ${{ github.ref == 'refs/heads/main' && 'live' || steps.hr_channel.outputs.id }}
           expires: 3d
           projectId: yegobox-2ee43
+          # firebase-tools 15.34.1 (2026-10-21) checks the Service Usage API
+          # before deploying, which this service account may not call: every
+          # deploy then fails with a 403. Pinned to the last version that
+          # deployed; raise it once the account has serviceusage access.
+          firebaseToolsVersion: 15.34.0
 
       - name: Echo Flipper HR URL
         run: echo "Flipper HR app (serves hr.useflipper.com) deployed to ${{ steps.deploy_flipper_hr.outputs.urls }}"
