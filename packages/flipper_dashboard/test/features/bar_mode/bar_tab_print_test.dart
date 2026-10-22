@@ -45,7 +45,7 @@ Future<void> _pumpSheet(
       supportedLocales: FlipperLocalizationDelegates.supportedLocales,
       home: Scaffold(
         body: BarTabBottomSheet(
-          tableBadge: 'Muvinga',
+          tableName: 'Muvinga',
           zoneName: 'Main Bar',
           lines: lines,
           grouped: {if (lines.isNotEmpty) 't1': lines},

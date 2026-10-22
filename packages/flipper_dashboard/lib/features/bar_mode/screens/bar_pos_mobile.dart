@@ -50,7 +50,7 @@ class BarPosMobileScreen extends HookConsumerWidget {
     }
 
     final openedAt = tab.createdAt ?? DateTime.now();
-    final opener = barOpenerName(tab, lines);
+    final opener = barOpenerName(lines);
 
     return Stack(
       children: [
@@ -92,7 +92,7 @@ class BarPosMobileScreen extends HookConsumerWidget {
         ),
         if (showSheet.value)
           BarTabBottomSheet(
-            tableBadge: table.name,
+            tableName: table.name,
             zoneName: table.zoneName,
             lines: lines,
             grouped: grouped,
@@ -210,14 +210,7 @@ class BarPosMobileScreen extends HookConsumerWidget {
               color: BarTokens.blue,
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Text(
-              table.name,
-              style: GoogleFonts.outfit(
-                color: Colors.white,
-                fontWeight: FontWeight.w800,
-                fontSize: 15,
-              ),
-            ),
+            child: BarTableBadgeText(table.name, fontSize: 15),
           ),
           const SizedBox(width: 11),
           Expanded(
@@ -228,7 +221,8 @@ class BarPosMobileScreen extends HookConsumerWidget {
                   children: [
                     Flexible(
                       child: Text(
-                        table.zoneName,
+                        table.name,
+                        maxLines: 1,
                         style: GoogleFonts.outfit(
                           fontWeight: FontWeight.w800,
                           fontSize: 15,
@@ -241,7 +235,7 @@ class BarPosMobileScreen extends HookConsumerWidget {
                   ],
                 ),
                 Text(
-                  meta,
+                  '${table.zoneName} · $meta',
                   style: GoogleFonts.outfit(
                     fontSize: 11,
                     color: BarTokens.ink3,
