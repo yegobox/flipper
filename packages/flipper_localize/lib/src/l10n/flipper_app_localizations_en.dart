@@ -22107,6 +22107,20 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
       'No bank SMS for over 7 days: this balance may be out of date.';
 
   @override
+  String booksSmsBalanceGapOut(String amount, String from, String to) {
+    return '$amount went out between $from and $to with no SMS Flipper received.';
+  }
+
+  @override
+  String booksSmsBalanceGapIn(String amount, String from, String to) {
+    return '$amount came in between $from and $to with no SMS Flipper received.';
+  }
+
+  @override
+  String get booksSmsBalanceGapHint =>
+      'Some SMS seem to be missing. On the SMS Bridge phone, tap Find missed messages.';
+
+  @override
   String get booksSmsBalancePostAdjustment => 'Post adjustment';
 
   @override

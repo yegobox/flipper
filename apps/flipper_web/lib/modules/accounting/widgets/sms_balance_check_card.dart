@@ -40,12 +40,16 @@ class SmsBalanceCheckCard extends StatefulWidget {
     required this.onPostAdjustment,
     required this.onSaveAlert,
     this.alert,
+    this.gaps = const [],
   });
 
   final SmsBalanceTotal total;
   final List<SmsAccountBalance> accounts;
   final SmsBalanceCheck check;
   final SmsBalanceAlert? alert;
+
+  /// Where SMS seem to be missing on this account, newest last.
+  final List<SmsBalanceGap> gaps;
 
   /// Posts an entry moving Books by the unexplained difference.
   final void Function(int amount) onPostAdjustment;
@@ -194,6 +198,29 @@ class _SmsBalanceCheckCardState extends State<SmsBalanceCheckCard> {
                       ),
                     ],
                   ),
+                if (widget.gaps.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  for (final g in widget.gaps.reversed.take(3))
+                    Text(
+                      (g.amount < 0
+                          ? l10n.booksSmsBalanceGapOut
+                          : l10n.booksSmsBalanceGapIn)(
+                        money(g.amount.abs()),
+                        smsBalanceTime(g.after),
+                        smsBalanceTime(g.before),
+                      ),
+                      style: muted,
+                    ),
+                  Text(
+                    l10n.booksSmsBalanceGapHint,
+                    key: const Key('sms-balance-gap-hint'),
+                    style: AccountingTokens.sans(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w600,
+                      color: AccountingTokens.lossInk,
+                    ),
+                  ),
+                ],
                 if (widget.total.stale) ...[
                   const SizedBox(height: 6),
                   Text(

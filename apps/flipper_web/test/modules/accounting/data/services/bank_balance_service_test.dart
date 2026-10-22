@@ -46,6 +46,14 @@ void main() {
             'observedAt': '2026-10-22T16:11:00Z',
           },
         ],
+        'gaps': [
+          {
+            'bankAccountCode': '1020',
+            'amount': -1000,
+            'after': '2026-10-22T07:00:00Z',
+            'before': '2026-10-22T10:00:00Z',
+          },
+        ],
       });
     });
     final balances = (await service.balances())!;
@@ -60,6 +68,12 @@ void main() {
     expect(balances.totalFor('1020')!.balance, 54321);
     expect(balances.totalFor('1030'), isNull);
     expect(balances.accountsFor('1030').single.balance, 3000);
+    expect(balances.gapsFor('1020').single.amount, -1000);
+    expect(
+      balances.gapsFor('1020').single.before,
+      DateTime.utc(2026, 10, 22, 10).toLocal(),
+    );
+    expect(balances.gapsFor('1030'), isEmpty);
   });
 
   test('missing fields fall back instead of failing', () {
@@ -71,6 +85,11 @@ void main() {
     expect(t.stale, isFalse);
     expect(SmsBalances.fromJson(const {}).accounts, isEmpty);
     expect(SmsBalanceAlert.fromJson(const {}).enabled, isTrue);
+    final gap = SmsBalanceGap.fromJson(const {});
+    expect(
+      (gap.amount, gap.after),
+      (0, DateTime.fromMillisecondsSinceEpoch(0)),
+    );
   });
 
   test(

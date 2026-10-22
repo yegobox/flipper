@@ -76,4 +76,55 @@ void main() {
       expect(saved, isEmpty);
     },
   );
+
+  testWidgets('money that moved without an SMS is pointed out', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        localizationsDelegates: FlipperLocalizationDelegates.delegates,
+        supportedLocales: FlipperLocalizationDelegates.supportedLocales,
+        home: Scaffold(
+          body: SingleChildScrollView(
+            child: SmsBalanceCheckCard(
+              total: SmsBalanceTotal(
+                bankAccountCode: '1020',
+                balance: 8000,
+                observedAt: DateTime(2026, 10, 22, 12),
+              ),
+              accounts: const [],
+              check: SmsBalanceCheck(bank: 8000, books: 8000, lines: const []),
+              gaps: [
+                SmsBalanceGap(
+                  bankAccountCode: '1020',
+                  amount: -1000,
+                  after: DateTime(2026, 10, 22, 9),
+                  before: DateTime(2026, 10, 22, 12),
+                ),
+                SmsBalanceGap(
+                  bankAccountCode: '1020',
+                  amount: 500,
+                  after: DateTime(2026, 10, 21, 8),
+                  before: DateTime(2026, 10, 21, 9),
+                ),
+              ],
+              onPostAdjustment: (_) {},
+              onSaveAlert: (_) async {},
+            ),
+          ),
+        ),
+      ),
+    );
+    expect(
+      find.text(
+        '1,000 went out between 22 Oct, 09:00 and 22 Oct, 12:00 with no SMS Flipper received.',
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.text(
+        '500 came in between 21 Oct, 08:00 and 21 Oct, 09:00 with no SMS Flipper received.',
+      ),
+      findsOneWidget,
+    );
+    expect(find.byKey(const Key('sms-balance-gap-hint')), findsOneWidget);
+  });
 }

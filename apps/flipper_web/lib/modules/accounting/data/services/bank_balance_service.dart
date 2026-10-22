@@ -69,10 +69,43 @@ class SmsBalanceTotal {
   final bool stale;
 }
 
+/// Money that moved between two balances of an account without an SMS
+/// Flipper received: positive came in, negative went out.
+class SmsBalanceGap {
+  const SmsBalanceGap({
+    required this.bankAccountCode,
+    required this.amount,
+    required this.after,
+    required this.before,
+  });
+
+  factory SmsBalanceGap.fromJson(Map<String, dynamic> json) {
+    DateTime at(String key) =>
+        DateTime.tryParse(json[key] as String? ?? '')?.toLocal() ??
+        DateTime.fromMillisecondsSinceEpoch(0);
+    return SmsBalanceGap(
+      bankAccountCode: json['bankAccountCode'] as String? ?? '',
+      amount: (json['amount'] as num?)?.round() ?? 0,
+      after: at('after'),
+      before: at('before'),
+    );
+  }
+
+  final String bankAccountCode;
+  final int amount;
+  final DateTime after;
+  final DateTime before;
+}
+
 /// What `GET /api/bank-balances` returns: balances bank and MoMo SMS stated,
-/// kept server-side. Only the business owner or an Admin may read them.
+/// kept server-side, and gaps where SMS seem to be missing. Only the business
+/// owner or an Admin may read them.
 class SmsBalances {
-  const SmsBalances({this.accounts = const [], this.totals = const []});
+  const SmsBalances({
+    this.accounts = const [],
+    this.totals = const [],
+    this.gaps = const [],
+  });
 
   factory SmsBalances.fromJson(Map<String, dynamic> json) {
     List<Map<String, dynamic>> rows(String key) =>
@@ -82,11 +115,13 @@ class SmsBalances {
     return SmsBalances(
       accounts: rows('accounts').map(SmsAccountBalance.fromJson).toList(),
       totals: rows('totals').map(SmsBalanceTotal.fromJson).toList(),
+      gaps: rows('gaps').map(SmsBalanceGap.fromJson).toList(),
     );
   }
 
   final List<SmsAccountBalance> accounts;
   final List<SmsBalanceTotal> totals;
+  final List<SmsBalanceGap> gaps;
 
   SmsBalanceTotal? totalFor(String bankAccountCode) {
     for (final t in totals) {
@@ -97,6 +132,9 @@ class SmsBalances {
 
   List<SmsAccountBalance> accountsFor(String bankAccountCode) =>
       accounts.where((a) => a.bankAccountCode == bankAccountCode).toList();
+
+  List<SmsBalanceGap> gapsFor(String bankAccountCode) =>
+      gaps.where((g) => g.bankAccountCode == bankAccountCode).toList();
 }
 
 /// A low-balance alert level for Bank (1020) or Mobile Money (1030).
