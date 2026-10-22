@@ -344,13 +344,16 @@ extension ViewAccessControlWidget on Widget {
 /// and when given bannk to return B-PAY
 extension PaymentTypeExtension on String {
   String toPaymentType() {
+    // Stored tenders are upper case (`DEBIT&CREDIT CARD`), and that one also
+    // contains "CREDIT": match case-insensitively and check card first.
+    final upper = toUpperCase();
     if (isMobileMoneyTender(this)) {
       return "MOMO";
-    } else if (this.contains("Card")) {
+    } else if (upper.contains("CARD")) {
       return "CARD";
-    } else if (this.contains("Bank")) {
+    } else if (upper.contains("BANK")) {
       return "BANK";
-    } else if (this.contains("Credit")) {
+    } else if (upper.contains("CREDIT")) {
       return "CREDIT";
     }
     return "CASH";

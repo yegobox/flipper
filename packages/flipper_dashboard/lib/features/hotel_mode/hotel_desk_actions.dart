@@ -9,6 +9,7 @@ import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/DatabaseSyncInterface.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/models/hotel_quotation.dart';
+import 'package:flipper_models/helperModels/sale_completion_helpers.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/notifications_client.dart';
 import 'package:flipper_models/models/hotel_room.dart';
@@ -526,8 +527,12 @@ abstract final class HotelDeskActions {
       transaction: invoiced,
       lines: lines,
       transactionId: stay.transactionId,
-      paymentType: paymentType,
-      amount: (invoiced.subTotal ?? 0).toDouble(),
+      payments: [
+        PaymentLineForSaleCompletion(
+          amount: (invoiced.subTotal ?? 0).toDouble(),
+          method: paymentType,
+        ),
+      ],
       receiptContext: 'folio invoice',
       complete: (booked) => _sync.checkOutGuest(
         stay: stay,

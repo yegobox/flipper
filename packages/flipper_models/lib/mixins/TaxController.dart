@@ -643,9 +643,7 @@ class TaxController<OBJ> {
       // A credit / part-paid sale is receipted for the full amount, and its
       // cashReceived can still be null at signing time — never bang it.
       received: transaction.cashReceived ?? 0,
-      payMode: paymentTypes.isEmpty
-          ? "CASH".toPaymentType()
-          : paymentTypes.last.paymentMethod?.toPaymentType() ?? "CASH",
+      payMode: receiptPayMode(paymentTypes, transaction),
       mrc: receipt.mrcNo ?? "",
       internalData: receipt.intrlData ?? "",
       receiptQrCode: receipt.qrCode ?? "",
@@ -788,9 +786,7 @@ class TaxController<OBJ> {
       items: transactionItems,
       cash: transaction.subTotal ?? 0,
       received: transaction.cashReceived ?? 0,
-      payMode: paymentTypes.isEmpty
-          ? "CASH".toPaymentType()
-          : paymentTypes.last.paymentMethod?.toPaymentType() ?? "CASH",
+      payMode: receiptPayMode(paymentTypes, transaction),
       mrc: "",
       internalData: "",
       receiptQrCode: "",
@@ -1330,4 +1326,21 @@ class TaxController<OBJ> {
     }
     throw "Invalid action";
   }
+}
+
+/// The tender printed on a receipt: the latest payment row, else the sale's
+/// own [ITransaction.paymentType].
+///
+/// Bar and hotel file and print the receipt before their payment rows are
+/// written, so the rows are still empty then; falling straight back to CASH
+/// printed every MoMo and card table as a cash sale.
+String receiptPayMode(
+  List<TransactionPaymentRecord> paymentTypes,
+  ITransaction transaction,
+) {
+  final method = paymentTypes.isNotEmpty
+      ? paymentTypes.last.paymentMethod
+      : transaction.paymentType;
+  return (method == null || method.trim().isEmpty ? 'CASH' : method)
+      .toPaymentType();
 }

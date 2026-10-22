@@ -7359,6 +7359,34 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
   String get barMobileMoney => 'Mobile Money';
 
   @override
+  String get barCard => 'Card';
+
+  @override
+  String get barSplitPayment => 'Split payment';
+
+  @override
+  String get barAddPaymentMethod => 'Add another method';
+
+  @override
+  String barSplitPaid(String amount) {
+    return 'Paid $amount';
+  }
+
+  @override
+  String barSplitRemaining(String amount) {
+    return 'Remaining $amount';
+  }
+
+  @override
+  String barSplitChange(String amount) {
+    return 'Change $amount';
+  }
+
+  @override
+  String get barSplitNonCashOverTotal =>
+      'Mobile Money and card can\'t be more than the bill. Only cash gives change.';
+
+  @override
   String get barPickGuestForBill =>
       'Pick the guest whose folio picks up this bill.';
 

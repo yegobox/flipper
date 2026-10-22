@@ -6638,6 +6638,49 @@
     "@barMobileMoney": {
         "description": "Bar settle: Mobile Money payment method label"
     },
+    "barCard": "Card",
+    "@barCard": {
+        "description": "Bar settle: card payment method label"
+    },
+    "barSplitPayment": "Split payment",
+    "@barSplitPayment": {
+        "description": "Bar settle: link that lets one table pay with several methods"
+    },
+    "barAddPaymentMethod": "Add another method",
+    "@barAddPaymentMethod": {
+        "description": "Bar settle: adds one more tender row to a split payment"
+    },
+    "barSplitPaid": "Paid {amount}",
+    "@barSplitPaid": {
+        "description": "Bar settle split: total handed over, already formatted with currency",
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
+    "barSplitRemaining": "Remaining {amount}",
+    "@barSplitRemaining": {
+        "description": "Bar settle split: amount still unpaid, already formatted with currency",
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
+    "barSplitChange": "Change {amount}",
+    "@barSplitChange": {
+        "description": "Bar settle split: change to give back from the cash, already formatted with currency",
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
+    "barSplitNonCashOverTotal": "Mobile Money and card can't be more than the bill. Only cash gives change.",
+    "@barSplitNonCashOverTotal": {
+        "description": "Bar settle split: non-cash tenders add up to more than the bill"
+    },
     "barPickGuestForBill": "Pick the guest whose folio picks up this bill.",
     "@barPickGuestForBill": {
         "description": "Bar settle: room charge selected but no guest chosen yet"

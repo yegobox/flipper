@@ -1,6 +1,7 @@
 import 'package:flipper_dashboard/utils/sale_stock_deduction.dart';
 import 'package:flipper_models/DatabaseSyncInterface.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/helperModels/sale_completion_helpers.dart';
 import 'package:flipper_models/mixins/TaxController.dart';
 import 'package:flipper_models/sync/utils/rra_line_utils.dart';
 import 'package:flipper_models/sync/utils/sale_accounting_fields.dart';
@@ -93,21 +94,28 @@ Future<void> issueSaleReceipt({
 ///
 /// Runs *after* the ticket is marked complete, mirroring the order the POS and
 /// bar settle paths use.
+///
+/// One payment row per tender in [payments], so a table paid part cash, part
+/// MoMo shows both in the Cash Book. Only the first write clears earlier rows:
+/// a retried settle must not leave the previous attempt's rows beside these.
 Future<void> recordSalePaymentAndScheduleStock({
   required DatabaseSyncInterface sync,
   required ITransaction transaction,
   required List<TransactionItem> lines,
   required String transactionId,
-  required String paymentType,
-  required double amount,
+  required List<PaymentLineForSaleCompletion> payments,
 }) async {
-  await sync.savePaymentType(
-    singlePaymentOnly: true,
-    amount: amount,
-    transactionId: transactionId,
-    paymentMethod: paymentType,
-    saleCompletionFastPath: true,
-  );
+  for (var i = 0; i < payments.length; i++) {
+    final payment = payments[i];
+    await sync.savePaymentType(
+      singlePaymentOnly: i == 0,
+      amount: payment.amount,
+      transactionId: transactionId,
+      paymentMethod: payment.method,
+      payerName: payment.payerName,
+      saleCompletionFastPath: true,
+    );
+  }
 
   if (lines.isEmpty) return;
 
@@ -137,7 +145,11 @@ Future<void> recordSalePaymentAndScheduleStock({
 ///      completed behind a refused invoice;
 ///   3. [complete] — the mode's own write (`settleBarTab`, `checkOutGuest`),
 ///      the only part that differs between surfaces;
-///   4. record the payment and hand stock/RRA follow-up to the background.
+///   4. record the payment — one row per tender in [payments] — and hand
+///      stock/RRA follow-up to the background.
+///
+/// The receipt is filed under `transaction.paymentType` alone (RRA takes one
+/// `pmtTyCd`), so callers set it to the primary tender, as the POS does.
 ///
 /// A new mode supplies step 3 and gets the rest right by construction.
 Future<ITransaction> finalizeServiceModeSale({
@@ -145,8 +157,7 @@ Future<ITransaction> finalizeServiceModeSale({
   required ITransaction transaction,
   required List<TransactionItem> lines,
   required String transactionId,
-  required String paymentType,
-  required double amount,
+  required List<PaymentLineForSaleCompletion> payments,
   required String receiptContext,
   required Future<ITransaction> Function(ITransaction invoiced) complete,
 }) async {
@@ -166,8 +177,7 @@ Future<ITransaction> finalizeServiceModeSale({
     transaction: settled,
     lines: lines,
     transactionId: transactionId,
-    paymentType: paymentType,
-    amount: amount,
+    payments: payments,
   );
 
   return settled;

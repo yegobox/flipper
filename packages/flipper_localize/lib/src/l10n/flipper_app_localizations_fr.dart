@@ -7471,6 +7471,34 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   String get barMobileMoney => 'Argent mobile';
 
   @override
+  String get barCard => 'Carte';
+
+  @override
+  String get barSplitPayment => 'Paiement fractionné';
+
+  @override
+  String get barAddPaymentMethod => 'Ajouter un autre moyen';
+
+  @override
+  String barSplitPaid(String amount) {
+    return 'Payé $amount';
+  }
+
+  @override
+  String barSplitRemaining(String amount) {
+    return 'Reste $amount';
+  }
+
+  @override
+  String barSplitChange(String amount) {
+    return 'Monnaie $amount';
+  }
+
+  @override
+  String get barSplitNonCashOverTotal =>
+      'Le mobile money et la carte ne peuvent pas dépasser la note. Seules les espèces rendent la monnaie.';
+
+  @override
   String get barPickGuestForBill =>
       'Choisissez le client dont le folio reprend cette note.';
 

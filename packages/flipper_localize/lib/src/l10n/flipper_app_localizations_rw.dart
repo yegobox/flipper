@@ -7427,6 +7427,34 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   String get barMobileMoney => 'Amafaranga kuri telefoni';
 
   @override
+  String get barCard => 'Ikarita';
+
+  @override
+  String get barSplitPayment => 'Kwishyura mu buryo butandukanye';
+
+  @override
+  String get barAddPaymentMethod => 'Ongeraho ubundi buryo';
+
+  @override
+  String barSplitPaid(String amount) {
+    return 'Byishyuwe $amount';
+  }
+
+  @override
+  String barSplitRemaining(String amount) {
+    return 'Hasigaye $amount';
+  }
+
+  @override
+  String barSplitChange(String amount) {
+    return 'Gusubiza $amount';
+  }
+
+  @override
+  String get barSplitNonCashOverTotal =>
+      'Mobile Money n\'ikarita ntibishobora kurenza fagitire. Amafaranga asubizwa ava kuri cash gusa.';
+
+  @override
   String get barPickGuestForBill =>
       'Hitamo umushyitsi uzishyura iyi fagitire kuri konti ye.';
 

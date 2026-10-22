@@ -4,10 +4,12 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flipper_dashboard/features/bar_mode/bar_room_charge.dart';
+import 'package:flipper_dashboard/features/bar_mode/bar_split_tender.dart';
 import 'package:flipper_dashboard/features/bar_mode/providers/bar_mode_providers.dart';
 import 'package:flipper_dashboard/features/bar_mode/theme/bar_tokens.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_mobile_shell.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_room_charge_tile.dart';
+import 'package:flipper_dashboard/features/bar_mode/widgets/bar_split_tender_rows.dart';
 import 'package:flipper_dashboard/utils/sale_receipt_settlement.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/SyncStrategy.dart';
@@ -32,6 +34,9 @@ class BarSettleMobileScreen extends ConsumerStatefulWidget {
 class _BarSettleMobileScreenState extends ConsumerState<BarSettleMobileScreen> {
   String _method = 'Cash';
   double _tender = 0;
+
+  /// Set while the table is paid several ways; null for a single method.
+  List<BarTender>? _split;
   bool _settling = false;
   HotelStay? _roomStay;
   final _tenderFocus = FocusNode();
@@ -104,12 +109,30 @@ class _BarSettleMobileScreenState extends ConsumerState<BarSettleMobileScreen> {
     });
   }
 
-  /// Display label for [_method]; the raw value is what gets persisted.
-  String _methodLabel(FlipperAppLocalizations l10n) => switch (_method) {
-    'Cash' => l10n.cash,
-    kMobileMoney => l10n.barMobileMoney,
-    _ => _method,
-  };
+  /// The bill as tenders: the split rows, or the one method picked.
+  List<BarTender> get _tenders =>
+      _split ?? [BarTender(method: _method, amount: _tender)];
+
+  void _startSplit(double total) {
+    final next = barAddTender(_tenders, total);
+    if (next != null) setState(() => _split = next);
+  }
+
+  /// Removing down to one tender drops back to the single-method view.
+  void _onSplitChanged(List<BarTender> tenders) {
+    if (tenders.length > 1) {
+      setState(() => _split = tenders);
+      return;
+    }
+    final only = tenders.isEmpty
+        ? const BarTender(method: kBarCash)
+        : tenders.first;
+    setState(() {
+      _split = null;
+      _method = only.method;
+    });
+    _setTender(barTenderIsCash(only.method) ? only.amount : 0);
+  }
 
   void _setTender(double value) {
     final v = value < 0 ? 0.0 : value;
@@ -149,7 +172,7 @@ class _BarSettleMobileScreenState extends ConsumerState<BarSettleMobileScreen> {
         (isRoomCharge
             ? _roomStay != null
             : _receiptPhoneIsValid() &&
-                  (_method == kMobileMoney || _tender >= total - 0.01));
+                  barSplitSummary(_tenders, total).canConfirm);
     final buttonLooksEnabled = canConfirm || _settling;
     final openedAt = tab.createdAt ?? DateTime.now();
     final openedTime = MaterialLocalizations.of(
@@ -196,31 +219,49 @@ class _BarSettleMobileScreenState extends ConsumerState<BarSettleMobileScreen> {
               style: GoogleFonts.outfit(fontSize: 13, color: BarTokens.ink3),
             ),
             const SizedBox(height: 16),
-            Row(
-              children: [
-                _PaymentMethodCard(
-                  label: l10n.cash,
-                  icon: Icons.account_balance_wallet_outlined,
-                  selected: _method == 'Cash',
-                  onTap: () => setState(() => _method = 'Cash'),
-                ),
-                const SizedBox(width: 10),
-                _PaymentMethodCard(
-                  label: l10n.barMobileMoney,
-                  icon: Icons.smartphone_outlined,
-                  selected: _method == kMobileMoney,
-                  onTap: () => setState(() => _method = kMobileMoney),
+            if (_split == null) ...[
+              Row(
+                children: [
+                  _PaymentMethodCard(
+                    label: l10n.cash,
+                    icon: Icons.account_balance_wallet_outlined,
+                    selected: _method == 'Cash',
+                    onTap: () => setState(() => _method = 'Cash'),
+                  ),
+                  const SizedBox(width: 10),
+                  _PaymentMethodCard(
+                    label: l10n.barMobileMoney,
+                    icon: Icons.smartphone_outlined,
+                    selected: _method == kMobileMoney,
+                    onTap: () => setState(() => _method = kMobileMoney),
+                  ),
+                  const SizedBox(width: 10),
+                  _PaymentMethodCard(
+                    label: l10n.barCard,
+                    icon: Icons.credit_card_outlined,
+                    selected: _method == kBarCard,
+                    onTap: () => setState(() => _method = kBarCard),
+                  ),
+                ],
+              ),
+              if (canChargeRoom) ...[
+                const SizedBox(height: 10),
+                BarRoomChargeTile(
+                  selected: isRoomCharge,
+                  stay: _roomStay,
+                  onTap: () => _pickRoom(mobile: true),
                 ),
               ],
-            ),
-            if (canChargeRoom) ...[
-              const SizedBox(height: 10),
-              BarRoomChargeTile(
-                selected: isRoomCharge,
-                stay: _roomStay,
-                onTap: () => _pickRoom(mobile: true),
+              if (!isRoomCharge) ...[
+                const SizedBox(height: 4),
+                BarSplitPaymentLink(onTap: () => _startSplit(total)),
+              ],
+            ] else
+              BarSplitTenderRows(
+                tenders: _split!,
+                total: total,
+                onChanged: _onSplitChanged,
               ),
-            ],
             if (!isRoomCharge) ...[
               const SizedBox(height: 16),
               _ReceiptPhoneField(
@@ -252,7 +293,7 @@ class _BarSettleMobileScreenState extends ConsumerState<BarSettleMobileScreen> {
                   ),
                 ),
               ),
-            ] else if (_method == 'Cash') ...[
+            ] else if (_split == null && _method == 'Cash') ...[
               const SizedBox(height: 16),
               Row(
                 children: [
@@ -344,7 +385,7 @@ class _BarSettleMobileScreenState extends ConsumerState<BarSettleMobileScreen> {
                     ),
                 ],
               ),
-            ] else ...[
+            ] else if (_tenders.any((t) => t.method == kMobileMoney)) ...[
               const SizedBox(height: 16),
               Container(
                 padding: const EdgeInsets.all(14),
@@ -504,8 +545,10 @@ class _BarSettleMobileScreenState extends ConsumerState<BarSettleMobileScreen> {
     setState(() => _settling = true);
 
     final sync = ProxyService.getStrategy(Strategy.capella);
-    final cashReceived = _method == 'Cash' ? _tender : total;
-    final change = (_tender - total).clamp(0, double.infinity).toDouble();
+    final summary = barSplitSummary(_tenders, total);
+    final method = summary.primaryMethod;
+    final cashReceived = summary.paid;
+    final change = summary.change;
     final receiptPhone = _receiptPhoneDigits();
 
     try {
@@ -518,7 +561,7 @@ class _BarSettleMobileScreenState extends ConsumerState<BarSettleMobileScreen> {
         subTotal: total,
         cashReceived: cashReceived,
         customerChangeDue: change,
-        paymentType: _method,
+        paymentType: method,
         customerPhone: receiptPhone,
       );
 
@@ -527,13 +570,12 @@ class _BarSettleMobileScreenState extends ConsumerState<BarSettleMobileScreen> {
         transaction: txn,
         lines: lines,
         transactionId: tab.id,
-        paymentType: _method,
-        amount: total,
+        payments: summary.paymentLines,
         receiptContext: 'receipt',
         complete: (booked) => sync.settleBarTab(
           transaction: booked,
           lines: lines,
-          paymentType: _method,
+          paymentType: method,
           cashReceived: cashReceived,
           customerChangeDue: change,
         ),
@@ -548,7 +590,7 @@ class _BarSettleMobileScreenState extends ConsumerState<BarSettleMobileScreen> {
             message: l10n.barSettledToast(
               tableName,
               'RWF ${NumberFormat('#,###').format(total)}',
-              _methodLabel(l10n),
+              barTendersLabel(l10n, summary.paymentLines, method),
             ),
           );
     } catch (e) {
