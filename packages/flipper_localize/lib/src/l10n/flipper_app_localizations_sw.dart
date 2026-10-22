@@ -22272,8 +22272,14 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   String get booksSmsBalanceDifference => 'Tofauti';
 
   @override
-  String booksSmsBalancePending(String count, String amount) {
-    return 'Mistari $count ya SMS bado haijalinganishwa ($amount)';
+  String booksSmsBalancePending(int count, String amount) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Mistari $count ya SMS bado haijalinganishwa',
+      one: 'Mstari 1 wa SMS bado haujalinganishwa',
+    );
+    return '$_temp0: $amount';
   }
 
   @override

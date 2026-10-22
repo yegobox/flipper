@@ -3,6 +3,21 @@ import 'package:flipper_web/modules/accounting/data/accounting_models.dart';
 import 'package:flipper_web/modules/accounting/data/mapper/ledger_row_mapper.dart';
 import 'package:flipper_web/modules/accounting/data/repository/accounting_ledger_repository.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:uuid/uuid.dart';
+
+/// The Postgres row id for a caller's deterministic entry key (for example
+/// `je_bankrec_bal_1020_<ms>`). `journal_entries.id` is a UUID, so a key that
+/// is not one maps to a stable UUIDv5 scoped to the business: the same key
+/// always names the same row, and the primary key keeps it unique.
+String journalEntryRowId({
+  required String businessId,
+  required String entryId,
+}) => Uuid.isValidUUID(fromString: entryId)
+    ? entryId
+    : const Uuid().v5(
+        Namespace.url.value,
+        'flipper:journal-entry:$businessId:$entryId',
+      );
 
 class SupabaseAccountingLedgerRepository implements AccountingLedgerRepository {
   const SupabaseAccountingLedgerRepository(this._client);
@@ -201,7 +216,7 @@ class SupabaseAccountingLedgerRepository implements AccountingLedgerRepository {
     required JournalEntry entry,
     String? transactionId,
     String? journalCode,
-    // Postgres generates entry ids; dedupe relies on transaction_id instead.
+    // A deterministic key from the caller; see [journalEntryRowId].
     String? entryId,
   }) async {
     String? journalId;
@@ -213,6 +228,16 @@ class SupabaseAccountingLedgerRepository implements AccountingLedgerRepository {
           .eq('code', journalCode)
           .maybeSingle();
       journalId = j?['id']?.toString();
+    }
+
+    if (entryId != null) {
+      return _createKeyedJournalEntry(
+        businessId: businessId,
+        entry: entry,
+        rowId: journalEntryRowId(businessId: businessId, entryId: entryId),
+        transactionId: transactionId,
+        journalId: journalId,
+      );
     }
 
     final header = _forPostgrest(
@@ -229,12 +254,12 @@ class SupabaseAccountingLedgerRepository implements AccountingLedgerRepository {
         .insert(header)
         .select('id')
         .single();
-    final entryId = inserted['id'].toString();
+    final id = inserted['id'].toString();
 
     final lineRows = entry.lines
         .map(
           (l) => _forPostgrest(
-            LedgerRowMapper.lineToRow(journalEntryId: entryId, line: l),
+            LedgerRowMapper.lineToRow(journalEntryId: id, line: l),
           ),
         )
         .toList();
@@ -243,7 +268,80 @@ class SupabaseAccountingLedgerRepository implements AccountingLedgerRepository {
       await _client.from(_linesTable).insert(lineRows);
     }
 
-    return entryId;
+    return id;
+  }
+
+  /// Keyed create, safe to retry and to overlap without a server transaction:
+  ///
+  /// 1. An entry already posted under [rowId] is returned untouched.
+  /// 2. The header is written unposted, so a failure before step 4 leaves an
+  ///    entry that no balance counts, never a posted entry missing lines.
+  /// 3. Lines carry ids derived from [rowId] and their index: they are
+  ///    upserted, then only this entry's lines outside that set are removed.
+  ///    Two attempts write the same rows, so lines never duplicate.
+  /// 4. Only then is the requested status set; `posted` is the last write, and
+  ///    the database's balance trigger checks the lines at that moment.
+  Future<String> _createKeyedJournalEntry({
+    required String businessId,
+    required JournalEntry entry,
+    required String rowId,
+    String? transactionId,
+    String? journalId,
+  }) async {
+    final existing = await _client
+        .from(_entriesTable)
+        .select('id, status')
+        .eq('business_id', businessId)
+        .eq('id', rowId)
+        .maybeSingle();
+    if (existing?['status'] == 'posted') return rowId;
+
+    final status = LedgerRowMapper.statusToDb(entry.status);
+    final header = _forPostgrest(
+      LedgerRowMapper.entryToRow(
+        businessId: businessId,
+        entry: entry,
+        id: rowId,
+        transactionId: transactionId,
+        journalId: journalId,
+      ),
+    );
+    if (status == 'posted') {
+      header['status'] = LedgerRowMapper.statusToDb(JournalStatus.draft);
+    }
+    await _client.from(_entriesTable).upsert(header);
+
+    final lineIds = [
+      for (var i = 0; i < entry.lines.length; i++)
+        const Uuid().v5(Namespace.url.value, 'flipper:journal-line:$rowId:$i'),
+    ];
+    if (lineIds.isNotEmpty) {
+      await _client.from(_linesTable).upsert([
+        for (var i = 0; i < entry.lines.length; i++)
+          _forPostgrest(
+            LedgerRowMapper.lineToRow(
+              journalEntryId: rowId,
+              line: entry.lines[i],
+              id: lineIds[i],
+            ),
+          ),
+      ]);
+    }
+    var stale = _client
+        .from(_linesTable)
+        .delete()
+        .eq('journal_entry_id', rowId);
+    if (lineIds.isNotEmpty) stale = stale.not('id', 'in', lineIds);
+    await stale;
+
+    if (status == 'posted') {
+      await _client
+          .from(_entriesTable)
+          .update({'status': status})
+          .eq('id', rowId)
+          .eq('business_id', businessId);
+    }
+    return rowId;
   }
 
   @override
