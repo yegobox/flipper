@@ -22307,6 +22307,58 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   String get booksFromImportedStatement => 'bivuye ku nyandiko yatumijwe';
 
   @override
+  String booksFromBankSms(String time) {
+    return 'biva kuri SMS ya banki · $time';
+  }
+
+  @override
+  String get booksSmsBalanceCheck =>
+      'Igenzura ry\'asigaye rikoresheje SMS za banki';
+
+  @override
+  String booksSmsBalanceSubtitle(String time) {
+    return 'Asigaye aheruka banki yawe yatanze kuri SMS, kugeza $time. Ba nyir\'ubucuruzi n\'abayobozi ni bo bonyine babibona.';
+  }
+
+  @override
+  String get booksSmsBalanceBank => 'Banki ivuga (SMS)';
+
+  @override
+  String get booksSmsBalanceBooks => 'Books ivuga';
+
+  @override
+  String get booksSmsBalanceDifference => 'Ikinyuranyo';
+
+  @override
+  String booksSmsBalancePending(String count, String amount) {
+    return 'Imirongo $count ya SMS itarahuzwa ($amount)';
+  }
+
+  @override
+  String get booksSmsBalanceUnexplained => 'Ikinyuranyo kidasobanuwe';
+
+  @override
+  String get booksSmsBalanceAgrees => 'Books ihuye na banki yawe.';
+
+  @override
+  String get booksSmsBalanceStale =>
+      'Nta SMS ya banki imaze iminsi irenga 7: aya asigaye ashobora kuba atakiri ay\'ubu.';
+
+  @override
+  String get booksSmsBalancePostAdjustment => 'Andika ihinduka';
+
+  @override
+  String get booksSmsBalanceAlertLabel =>
+      'Nyoherereza imeyili niba agiye munsi ya';
+
+  @override
+  String get booksSmsBalanceAlertSaved => 'Urugero rwo kumenyeshwa rwabitswe';
+
+  @override
+  String get booksSmsBalanceAlertFailed =>
+      'Ntibyashobotse kubika urugero rwo kumenyeshwa';
+
+  @override
   String get booksMatched => 'Byahujwe';
 
   @override

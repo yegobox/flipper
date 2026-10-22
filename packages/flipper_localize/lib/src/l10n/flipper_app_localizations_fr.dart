@@ -22440,6 +22440,56 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   String get booksFromImportedStatement => 'du relevé importé';
 
   @override
+  String booksFromBankSms(String time) {
+    return 'd\'après SMS bancaire · $time';
+  }
+
+  @override
+  String get booksSmsBalanceCheck => 'Contrôle du solde par SMS bancaire';
+
+  @override
+  String booksSmsBalanceSubtitle(String time) {
+    return 'Dernier solde indiqué par SMS par votre banque, au $time. Seuls les propriétaires et administrateurs le voient.';
+  }
+
+  @override
+  String get booksSmsBalanceBank => 'Selon la banque (SMS)';
+
+  @override
+  String get booksSmsBalanceBooks => 'Selon Books';
+
+  @override
+  String get booksSmsBalanceDifference => 'Écart';
+
+  @override
+  String booksSmsBalancePending(String count, String amount) {
+    return '$count lignes SMS pas encore rapprochées ($amount)';
+  }
+
+  @override
+  String get booksSmsBalanceUnexplained => 'Écart inexpliqué';
+
+  @override
+  String get booksSmsBalanceAgrees => 'Books concorde avec votre banque.';
+
+  @override
+  String get booksSmsBalanceStale =>
+      'Aucun SMS bancaire depuis plus de 7 jours : ce solde n\'est peut-être plus à jour.';
+
+  @override
+  String get booksSmsBalancePostAdjustment => 'Passer un ajustement';
+
+  @override
+  String get booksSmsBalanceAlertLabel => 'M\'avertir par e-mail sous';
+
+  @override
+  String get booksSmsBalanceAlertSaved => 'Seuil d\'alerte enregistré';
+
+  @override
+  String get booksSmsBalanceAlertFailed =>
+      'Impossible d\'enregistrer le seuil d\'alerte';
+
+  @override
   String get booksMatched => 'Rapprochées';
 
   @override
