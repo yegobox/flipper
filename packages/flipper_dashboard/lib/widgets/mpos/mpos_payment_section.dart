@@ -14,6 +14,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/payment_methods.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 enum MposPayChip {
@@ -26,6 +27,11 @@ enum MposPayChip {
   /// Settled for the exact total: no tender, no change.
   bool get isFullAmount => this == credit || this == bank || this == card;
 }
+
+/// The sale a split in [paymentMethodsProvider] was made for. The lines
+/// outlive checkout (Back, Save Ticket), so a split must not be re-balanced
+/// onto another cart's bill.
+final mposSplitOwnerProvider = StateProvider<String?>((ref) => null);
 
 /// Payment chips + cash tender UI; drives [paymentMethodsProvider].
 class MposPaymentSection extends ConsumerStatefulWidget {
@@ -108,6 +114,8 @@ class _MposPaymentSectionState extends ConsumerState<MposPaymentSection>
       text: ProxyService.box.currentSaleCustomerPhoneNumber() ?? '',
     );
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _dropSplitFromAnotherSale();
       _syncChipFromProvider();
       _syncAmountsFromTotal();
     });
@@ -131,6 +139,20 @@ class _MposPaymentSectionState extends ConsumerState<MposPaymentSection>
         _syncAmountsFromTotal();
       });
     }
+  }
+
+  /// Coming back to this sale keeps its split (re-balanced to the bill). A
+  /// split left over from another sale starts this one on one cash line.
+  void _dropSplitFromAnotherSale() {
+    if (ref.read(paymentMethodsProvider).length < 2) return;
+    if (ref.read(mposSplitOwnerProvider) == widget.transactionId) return;
+    _applySplit([
+      SplitTender(
+        method: _chipMethods[MposPayChip.cash]!,
+        amount: widget.totalPayable,
+      ),
+    ]);
+    _userEditedCashAmount = false;
   }
 
   void _syncChipFromProvider() {
@@ -334,6 +356,9 @@ class _MposPaymentSectionState extends ConsumerState<MposPaymentSection>
       if (next[i].controller.text != text) next[i].controller.text = text;
     }
     ref.read(paymentMethodsProvider.notifier).setPaymentMethods(next);
+    if (next.length > 1) {
+      ref.read(mposSplitOwnerProvider.notifier).state = widget.transactionId;
+    }
     if (next.length == 1) {
       _userEditedCashAmount = true;
       _syncChipFromProvider();
@@ -363,13 +388,18 @@ class _MposPaymentSectionState extends ConsumerState<MposPaymentSection>
   @override
   Widget build(BuildContext context) {
     final payments = ref.watch(paymentMethodsProvider);
+    // Lines collapsed elsewhere (Charge saves a split net of change and can
+    // drop an all-change cash row): the chips must follow the line left.
+    ref.listen(paymentMethodsProvider, (prev, next) {
+      if ((prev?.length ?? 0) > 1 && next.length == 1) _syncChipFromProvider();
+    });
     final tender = payments.isNotEmpty
         ? double.tryParse(payments.first.controller.text) ?? 0.0
         : 0.0;
 
     final isSplit = payments.length > 1;
     final showMomoPhone = isSplit
-        ? payments.any((p) => canonicalPaymentMethod(p.method) == kMobileMoney)
+        ? mposHasMomoTender(payments)
         : _chip == MposPayChip.momo;
 
     return MposCard(
