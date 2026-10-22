@@ -1904,6 +1904,7 @@
     "mposCreditAmount": "Montant à crédit · {amount}",
     "mposCreditExplanation": "Cette vente est enregistrée sur le solde de crédit du client. Associez un client avant de terminer.",
     "mposPaymentLinesSplitHint": "{count} lignes de paiement · utilisez le fractionnement en mode bureau",
+    "mposSplitNonCashOverTotal": "Seules les espèces peuvent dépasser la note : elles seules rendent la monnaie.",
     "mposTax": "Taxe",
     "mposTotal": "Total",
     "mposAlreadyPaid": "Déjà payé",

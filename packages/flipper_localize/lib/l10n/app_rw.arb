@@ -3489,6 +3489,7 @@
   "mposCreditAmount": "Amafaranga y'inguzanyo · {amount}",
   "mposCreditExplanation": "Iri gurisha ryandikwa ku mwenda w'umukiriya. Ongeraho umukiriya mbere yo kurangiza.",
   "mposPaymentLinesSplitHint": "Imirongo y'ubwishyu {count} · koresha kugabanya muri mudasobwa",
+  "mposSplitNonCashOverTotal": "Amafaranga y'intoki (cash) gusa ni yo ashobora kurenza fagitire: amafaranga yo kugarura ava kuri cash gusa.",
   "mposTax": "Umusoro",
   "mposTotal": "Igiteranyo",
   "mposAlreadyPaid": "Byamaze kwishyurwa",

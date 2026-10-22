@@ -16,17 +16,17 @@ import 'package:mocktail/mocktail.dart';
 
 class _MockSync extends Mock implements DatabaseSyncInterface {}
 
-List<(String, double)> _rows(BarSplitSummary s) => [
+List<(String, double)> _rows(SplitSummary s) => [
   for (final line in s.paymentLines) (line.method, line.amount),
 ];
 
 void main() {
   setUpAll(() => GoogleFonts.config.allowRuntimeFetching = false);
 
-  group('barSplitSummary', () {
+  group('splitSummary', () {
     test('cash alone gives change and records only the bill', () {
-      final s = barSplitSummary([
-        const BarTender(method: kBarCash, amount: 30000),
+      final s = splitSummary([
+        const SplitTender(method: kBarCash, amount: 30000),
       ], 25000);
       expect(s.canConfirm, isTrue);
       expect(s.paid, 30000);
@@ -36,8 +36,8 @@ void main() {
     });
 
     test('cash short of the bill cannot settle', () {
-      final s = barSplitSummary([
-        const BarTender(method: kBarCash, amount: 20000),
+      final s = splitSummary([
+        const SplitTender(method: kBarCash, amount: 20000),
       ], 25000);
       expect(s.remaining, 5000);
       expect(s.canConfirm, isFalse);
@@ -45,7 +45,7 @@ void main() {
 
     test('a single MoMo or card tender pays the whole bill untyped', () {
       for (final method in [kMobileMoney, kBarCard]) {
-        final s = barSplitSummary([BarTender(method: method)], 25000);
+        final s = splitSummary([SplitTender(method: method)], 25000);
         expect(s.canConfirm, isTrue, reason: method);
         expect(s.change, 0);
         expect(_rows(s), [(method, 25000.0)]);
@@ -53,9 +53,9 @@ void main() {
     });
 
     test('cash + MoMo records one row each, filed under the first', () {
-      final s = barSplitSummary([
-        const BarTender(method: kBarCash, amount: 10000),
-        const BarTender(method: kMobileMoney, amount: 15000),
+      final s = splitSummary([
+        const SplitTender(method: kBarCash, amount: 10000),
+        const SplitTender(method: kMobileMoney, amount: 15000),
       ], 25000);
       expect(s.canConfirm, isTrue);
       expect(s.change, 0);
@@ -64,9 +64,9 @@ void main() {
     });
 
     test('change comes off the cash row so the rows add up to the bill', () {
-      final s = barSplitSummary([
-        const BarTender(method: kBarCash, amount: 20000),
-        const BarTender(method: kBarCard, amount: 10000),
+      final s = splitSummary([
+        const SplitTender(method: kBarCash, amount: 20000),
+        const SplitTender(method: kBarCard, amount: 10000),
       ], 25000);
       expect(s.canConfirm, isTrue);
       expect(s.change, 5000);
@@ -74,27 +74,27 @@ void main() {
     });
 
     test('MoMo and card above the bill are refused: they give no change', () {
-      final s = barSplitSummary([
-        const BarTender(method: kBarCash),
-        const BarTender(method: kMobileMoney, amount: 30000),
+      final s = splitSummary([
+        const SplitTender(method: kBarCash),
+        const SplitTender(method: kMobileMoney, amount: 30000),
       ], 25000);
       expect(s.nonCashOverTotal, isTrue);
       expect(s.canConfirm, isFalse);
     });
 
     test('the primary tender is the first that carries money', () {
-      final s = barSplitSummary([
-        const BarTender(method: kBarCash),
-        const BarTender(method: kMobileMoney, amount: 25000),
+      final s = splitSummary([
+        const SplitTender(method: kBarCash),
+        const SplitTender(method: kMobileMoney, amount: 25000),
       ], 25000);
       expect(s.primaryMethod, kMobileMoney);
       expect(_rows(s), [(kMobileMoney, 25000.0)]);
     });
 
     test('zero tenders on a real bill cannot settle', () {
-      final s = barSplitSummary([
-        const BarTender(method: kBarCash),
-        const BarTender(method: kMobileMoney),
+      final s = splitSummary([
+        const SplitTender(method: kBarCash),
+        const SplitTender(method: kMobileMoney),
       ], 25000);
       expect(s.canConfirm, isFalse);
       expect(s.paymentLines, isEmpty);
@@ -103,9 +103,11 @@ void main() {
 
   group('split editing', () {
     test('splitting typed cash adds MoMo for the rest', () {
-      final next = barAddTender([
-        const BarTender(method: kBarCash, amount: 10000),
-      ], 25000)!;
+      final next = addSplitTender(
+        [const SplitTender(method: kBarCash, amount: 10000)],
+        25000,
+        methods: barSettleMethods,
+      )!;
       expect(
         [for (final t in next) (t.method, t.amount)],
         [(kBarCash, 10000.0), (kMobileMoney, 15000.0)],
@@ -113,9 +115,11 @@ void main() {
     });
 
     test('splitting a MoMo bill starts the MoMo part at zero', () {
-      final next = barAddTender([
-        const BarTender(method: kMobileMoney),
-      ], 25000)!;
+      final next = addSplitTender(
+        [const SplitTender(method: kMobileMoney)],
+        25000,
+        methods: barSettleMethods,
+      )!;
       expect(
         [for (final t in next) (t.method, t.amount)],
         [(kMobileMoney, 0.0), (kBarCash, 25000.0)],
@@ -125,12 +129,12 @@ void main() {
     test('typing a row re-balances the last; typing the last re-balances '
         'the first', () {
       const tenders = [
-        BarTender(method: kBarCash, amount: 8000),
-        BarTender(method: kMobileMoney, amount: 0),
+        SplitTender(method: kBarCash, amount: 8000),
+        SplitTender(method: kMobileMoney, amount: 0),
       ];
-      final a = barRebalanceTenders(tenders, 25000, editedIndex: 0);
+      final a = rebalanceSplit(tenders, 25000, editedIndex: 0);
       expect(a.last.amount, 17000);
-      final b = barRebalanceTenders(
+      final b = rebalanceSplit(
         [a.first, a.last.copyWith(amount: 20000)],
         25000,
         editedIndex: 1,
@@ -140,16 +144,16 @@ void main() {
     });
 
     test('no more tenders once every method is on the bill', () {
-      final all = [for (final m in barSettleMethods) BarTender(method: m)];
-      expect(barAddTender(all, 25000), isNull);
+      final all = [for (final m in barSettleMethods) SplitTender(method: m)];
+      expect(addSplitTender(all, 25000, methods: barSettleMethods), isNull);
     });
 
     test('removing a row re-balances what is left', () {
-      final next = barRemoveTender(
+      final next = removeSplitTender(
         const [
-          BarTender(method: kBarCash, amount: 5000),
-          BarTender(method: kMobileMoney, amount: 10000),
-          BarTender(method: kBarCard, amount: 10000),
+          SplitTender(method: kBarCash, amount: 5000),
+          SplitTender(method: kMobileMoney, amount: 10000),
+          SplitTender(method: kBarCard, amount: 10000),
         ],
         1,
         25000,
@@ -217,12 +221,79 @@ void main() {
     );
   });
 
+  group('saveSalePaymentRows', () {
+    late _MockSync sync;
+    setUp(() {
+      sync = _MockSync();
+      when(
+        () => sync.savePaymentType(
+          transactionId: any(named: 'transactionId'),
+          amount: any(named: 'amount'),
+          paymentMethod: any(named: 'paymentMethod'),
+          payerName: any(named: 'payerName'),
+          singlePaymentOnly: any(named: 'singlePaymentOnly'),
+          saleCompletionFastPath: any(named: 'saleCompletionFastPath'),
+        ),
+      ).thenAnswer((_) async {});
+    });
+
+    List<bool> clears() => verify(
+      () => sync.savePaymentType(
+        transactionId: any(named: 'transactionId'),
+        amount: any(named: 'amount'),
+        paymentMethod: any(named: 'paymentMethod'),
+        payerName: any(named: 'payerName'),
+        singlePaymentOnly: captureAny(named: 'singlePaymentOnly'),
+        saleCompletionFastPath: any(named: 'saleCompletionFastPath'),
+      ),
+    ).captured.cast<bool>();
+
+    test(
+      'a single tender writes exactly one row, replacing a retry\'s',
+      () async {
+        await saveSalePaymentRows(
+          sync: sync,
+          transactionId: 'txn-1',
+          payments: const [
+            PaymentLineForSaleCompletion(amount: 1600, method: 'CASH'),
+          ],
+        );
+        expect(clears(), [true]);
+      },
+    );
+
+    test('a split clears once, then adds the other tenders', () async {
+      await saveSalePaymentRows(
+        sync: sync,
+        transactionId: 'txn-1',
+        payments: const [
+          PaymentLineForSaleCompletion(amount: 1000, method: 'CASH'),
+          PaymentLineForSaleCompletion(amount: 600, method: kMobileMoney),
+        ],
+      );
+      expect(clears(), [true, false]);
+    });
+
+    test('a resumed loan keeps its earlier installments', () async {
+      await saveSalePaymentRows(
+        sync: sync,
+        transactionId: 'txn-1',
+        replacePriorRows: false,
+        payments: const [
+          PaymentLineForSaleCompletion(amount: 1000, method: 'CASH'),
+          PaymentLineForSaleCompletion(amount: 600, method: kMobileMoney),
+        ],
+      );
+      expect(clears(), [false, false]);
+    });
+  });
+
   group('BarSplitTenderRows', () {
-    Future<List<List<BarTender>>> pump(
+    Future<List<List<SplitTender>>> pump(
       WidgetTester tester,
-      List<BarTender> initial,
+      List<SplitTender> initial,
     ) async {
-      final changes = <List<BarTender>>[];
+      final changes = <List<SplitTender>>[];
       var tenders = initial;
       await tester.pumpWidget(
         MaterialApp(
@@ -248,8 +319,8 @@ void main() {
 
     testWidgets('typing cash fills MoMo with the rest', (tester) async {
       final changes = await pump(tester, const [
-        BarTender(method: kBarCash, amount: 10000),
-        BarTender(method: kMobileMoney, amount: 15000),
+        SplitTender(method: kBarCash, amount: 10000),
+        SplitTender(method: kMobileMoney, amount: 15000),
       ]);
       expect(find.text('15000'), findsOneWidget);
 
@@ -265,8 +336,8 @@ void main() {
       tester,
     ) async {
       final changes = await pump(tester, const [
-        BarTender(method: kBarCash, amount: 10000),
-        BarTender(method: kMobileMoney, amount: 15000),
+        SplitTender(method: kBarCash, amount: 10000),
+        SplitTender(method: kMobileMoney, amount: 15000),
       ]);
       await tester.tap(find.byKey(const Key('barSplitAddMethod')));
       await tester.pumpAndSettle();
@@ -284,8 +355,8 @@ void main() {
       tester,
     ) async {
       final changes = await pump(tester, const [
-        BarTender(method: kBarCash, amount: 10000),
-        BarTender(method: kMobileMoney, amount: 15000),
+        SplitTender(method: kBarCash, amount: 10000),
+        SplitTender(method: kMobileMoney, amount: 15000),
       ]);
       await tester.tap(find.byIcon(Icons.close).last);
       await tester.pumpAndSettle();

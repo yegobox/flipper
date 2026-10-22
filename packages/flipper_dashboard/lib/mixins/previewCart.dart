@@ -20,6 +20,7 @@ import 'package:flipper_dashboard/providers/customer_phone_provider.dart';
 import 'package:flipper_dashboard/providers/mpos_momo_phone_provider.dart';
 import 'package:flipper_dashboard/providers/digital_receipt_provider.dart';
 // ignore: unused_import
+import 'package:flipper_models/DatabaseSyncInterface.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/providers/pay_button_provider.dart';
 import 'package:flipper_models/providers/selected_provider.dart';
@@ -42,6 +43,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import 'package:flutter_form_bloc/flutter_form_bloc.dart';
 import 'package:flipper_dashboard/utils/sale_agent_completion.dart';
+import 'package:flipper_dashboard/utils/sale_receipt_settlement.dart';
 import 'package:flipper_dashboard/utils/sale_stock_deduction.dart';
 import 'package:flipper_dashboard/utils/stock_validator.dart';
 import 'package:flipper_models/sync/utils/rra_stock_reporting.dart';
@@ -1201,6 +1203,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
                 capella: capella,
                 transactionId: transaction.id,
                 payments: deferredPayments,
+                replacePriorRows: mark.replacesPriorPayments,
               );
             }
             _clearSaleCustomerContextAfterSale();
@@ -1300,22 +1303,19 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
   }
 
   Future<void> _persistSalePaymentLines({
-    required dynamic capella,
+    required DatabaseSyncInterface capella,
     required String transactionId,
     required List<PaymentLineForSaleCompletion> payments,
+    required bool replacePriorRows,
   }) async {
     final paySw = Stopwatch()..start();
     try {
-      for (final payment in payments) {
-        await capella.savePaymentType(
-          singlePaymentOnly: false,
-          amount: payment.amount,
-          transactionId: transactionId,
-          paymentMethod: payment.method,
-          payerName: payment.payerName,
-          saleCompletionFastPath: true,
-        );
-      }
+      await saveSalePaymentRows(
+        sync: capella,
+        transactionId: transactionId,
+        payments: payments,
+        replacePriorRows: replacePriorRows,
+      );
     } catch (e, s) {
       talker.error('Deferred sale payment persist failed: $e', s);
     }
@@ -1336,6 +1336,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       bool wasLoan,
       bool isPendingReview,
       List<PaymentLineForSaleCompletion>? deferredPayments,
+      bool replacesPriorPayments,
     })
   >
   markTransactionAsCompleted({
@@ -1379,6 +1380,11 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       saleTotal: finalSubTotal,
       shouldBeLoan: derived.shouldBeLoan,
     );
+    // The first row written clears the sale's earlier rows, so a retried
+    // completion does not leave a second copy of every tender beside these
+    // (as Bar's settle does). Not on a resumed loan: its rows are the earlier
+    // installments, which the balance is read from.
+    final replacePriorRows = priorPaid <= 0.0001 && transaction.isLoan != true;
 
     // Ticket Review + Handover workflow (opt-in per business): redirect a
     // fully-paid ticket to PENDING_REVIEW instead of COMPLETE so it stays
@@ -1484,16 +1490,12 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
 
     if (!deferPaymentPersist) {
       final paySw = Stopwatch()..start();
-      for (final payment in paymentsToPersist) {
-        await capella.savePaymentType(
-          singlePaymentOnly: false,
-          amount: payment.amount,
-          transactionId: transaction.id,
-          paymentMethod: payment.method,
-          payerName: payment.payerName,
-          saleCompletionFastPath: true,
-        );
-      }
+      await saveSalePaymentRows(
+        sync: capella,
+        transactionId: transaction.id,
+        payments: paymentsToPersist,
+        replacePriorRows: replacePriorRows,
+      );
       logSaleCompletionStage('save_payments', paySw.elapsedMilliseconds);
     }
 
@@ -1546,6 +1548,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       wasLoan: derived.shouldBeLoan,
       isPendingReview: persistedStatus == saleCompletionStatusPendingReview,
       deferredPayments: deferPaymentPersist ? paymentsToPersist : null,
+      replacesPriorPayments: replacePriorRows,
     );
   }
 
@@ -1632,7 +1635,12 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
 
       final uuid = Uuid();
       final paymentId = uuid.v4();
-      final finalPrice = transaction.subTotal!.toInt();
+      // Only the MoMo part of a split sale: the rest was paid another way.
+      final amountPayable = momoRequestAmount(
+        paymentLinesForSaleCompletion(paymentMethods),
+        transaction.subTotal!,
+      );
+      final finalPrice = amountPayable.toInt();
 
       // The row goes in **before** the request, not after.
       //
@@ -1644,7 +1652,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
         'id': paymentId,
         'phone_number': phoneNumber,
         'payment_status': "pending",
-        'amount_payable': transaction.subTotal!,
+        'amount_payable': amountPayable,
         'transaction_id': transaction.id,
       });
 
@@ -1660,10 +1668,12 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
         customerPaymentId: paymentId,
         transactionId: transaction.id,
         // Same ticket, same key: a second tap on Pay returns the request
-        // already in flight instead of debiting the customer twice.
+        // already in flight instead of debiting the customer twice. Keyed on
+        // the sale, not the MoMo part: editing or re-balancing a split must
+        // not mint a new key and so a second live debit.
         idempotencyKey: MomoIdempotency.forTransaction(
           transaction.id,
-          finalPrice,
+          transaction.subTotal!.toInt(),
         ),
       );
 
@@ -1861,6 +1871,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
                     capella: capellaStrategy,
                     transactionId: transaction.id,
                     payments: deferredPayments,
+                    replacePriorRows: mark.replacesPriorPayments,
                   );
                 }
 

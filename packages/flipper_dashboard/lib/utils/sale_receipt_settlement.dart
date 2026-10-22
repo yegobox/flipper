@@ -92,6 +92,31 @@ Future<void> issueSaleReceipt({
 
 /// Records the payment and hands the stock/RRA follow-up to the background.
 ///
+/// One payment row per tender in [payments].
+///
+/// With [replacePriorRows], only the first write clears the sale's earlier
+/// rows, so a retried completion does not leave the previous attempt's rows
+/// beside these. Leave it off where those rows are earlier installments of a
+/// resumed loan: the balance is read back from them.
+Future<void> saveSalePaymentRows({
+  required DatabaseSyncInterface sync,
+  required String transactionId,
+  required List<PaymentLineForSaleCompletion> payments,
+  bool replacePriorRows = true,
+}) async {
+  for (var i = 0; i < payments.length; i++) {
+    final payment = payments[i];
+    await sync.savePaymentType(
+      singlePaymentOnly: replacePriorRows && i == 0,
+      amount: payment.amount,
+      transactionId: transactionId,
+      paymentMethod: payment.method,
+      payerName: payment.payerName,
+      saleCompletionFastPath: true,
+    );
+  }
+}
+
 /// Runs *after* the ticket is marked complete, mirroring the order the POS and
 /// bar settle paths use.
 ///
@@ -105,17 +130,11 @@ Future<void> recordSalePaymentAndScheduleStock({
   required String transactionId,
   required List<PaymentLineForSaleCompletion> payments,
 }) async {
-  for (var i = 0; i < payments.length; i++) {
-    final payment = payments[i];
-    await sync.savePaymentType(
-      singlePaymentOnly: i == 0,
-      amount: payment.amount,
-      transactionId: transactionId,
-      paymentMethod: payment.method,
-      payerName: payment.payerName,
-      saleCompletionFastPath: true,
-    );
-  }
+  await saveSalePaymentRows(
+    sync: sync,
+    transactionId: transactionId,
+    payments: payments,
+  );
 
   if (lines.isEmpty) return;
 

@@ -255,6 +255,12 @@ mixin TransactionComputationMixin {
     final displayRemainder = remainder > 0.01 ? remainder : 0.0;
 
     final payments = ref.read(paymentMethodsProvider);
+    // A split survives Back, Save Ticket and the tickets list (the lines
+    // provider is not autoDispose). Its rows add up to the bill only together,
+    // so putting the whole remainder on row 0 here would double-count: Cash
+    // 1,000 + MoMo 600 on 1,600 became Cash 1,600 + MoMo 600 (600 phantom
+    // change). The split's own rows re-balance it to the current total.
+    if (payments.length > 1) return;
     if (payments.isEmpty) {
       ref
           .read(paymentMethodsProvider.notifier)

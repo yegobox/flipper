@@ -39,7 +39,6 @@ import 'package:flipper_models/services/park_transaction_service.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart'
     as oldProvider;
 import 'package:flipper_services/constants.dart';
-import 'package:flipper_services/payment_methods.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/setting_service.dart';
 import 'package:flipper_ui/dialogs/SharedTicketDialog.dart';
@@ -86,7 +85,7 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
   /// Payment as entered when Charge was tapped. Completion resets the payment
   /// fields before the success screen opens, so reading them then shows
   /// "Tendered RWF 0".
-  ({String methodLabel, double? tendered})? _chargedPayment;
+  ({String methodLabel, double? tendered, double? change})? _chargedPayment;
   String? _lastTransactionId;
   final Map<String, double> _optimisticQtyByItemId = {};
   final Set<String> _optimisticallyDeletedItemIds = {};
@@ -590,11 +589,25 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
       }
     }
 
-    final chargedCash =
-        payments.isNotEmpty && payments.first.method.toUpperCase() == 'CASH';
+    final owed = calculateRemainingBalance(
+      total: total,
+      paid: _effectiveAlreadyPaid(txn),
+    );
+    final cash = mposChargedCash(payments, owed);
     _chargedPayment = (
-      methodLabel: _methodLabel(payments),
-      tendered: chargedCash ? _cashTenderAmount(payments) : null,
+      methodLabel: mposTendersLabel(context.flipperL10n, payments),
+      tendered: cash.tendered,
+      change: cash.change,
+    );
+    // Saved rows add up to the sale: the change comes off the cash row. A
+    // failed charge puts the cashier's own lines back, change and all.
+    final putSplitBack = mposSaveSplitForCharge(
+      payments: payments,
+      owed: owed,
+      readLines: () => ref.read(oldProvider.paymentMethodsProvider),
+      writeLines: ref
+          .read(oldProvider.paymentMethodsProvider.notifier)
+          .setPaymentMethods,
     );
 
     setState(() {
@@ -616,6 +629,7 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
       void onPaymentFailed(String error) {
         if (mounted) {
           setState(() => _chargeState = ChargeButtonState.failed);
+          putSplitBack?.call();
           ref.read(oldProvider.loadingProvider.notifier).stopLoading();
           unawaited(_readPaid(_transactionId));
           showErrorNotification(context, error);
@@ -642,6 +656,7 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
       tv_talk.talker.error('Charge failed: $e');
       if (mounted) {
         setState(() => _chargeState = ChargeButtonState.failed);
+        putSplitBack?.call();
         ref.read(oldProvider.loadingProvider.notifier).stopLoading();
         unawaited(_readPaid(_transactionId));
         showErrorNotification(context, context.flipperL10n.mposErrorOccurred);
@@ -649,19 +664,8 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
     }
   }
 
-  bool _isMomoPayment(List<oldProvider.Payment> payments) {
-    if (payments.isEmpty) return false;
-    return canonicalPaymentMethod(payments.first.method) == kMobileMoney;
-  }
-
-  String _methodLabel(List<oldProvider.Payment> payments) {
-    if (payments.isEmpty) return context.flipperL10n.cash;
-    final m = payments.first.method.toUpperCase();
-    if (canonicalPaymentMethod(m) == kMobileMoney) return 'MoMo';
-    if (m.contains('CARD')) return context.flipperL10n.paymentsTypeCard;
-    if (m.contains('BANK')) return context.flipperL10n.paymentsTypeBank;
-    return context.flipperL10n.cash;
-  }
+  bool _isMomoPayment(List<oldProvider.Payment> payments) =>
+      mposHasMomoTender(payments);
 
   Future<void> _navigateToSuccessScreen({required double total}) async {
     final settling = ref.read(effectiveSettlingTillTicketProvider);
@@ -681,12 +685,12 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
     final charged = _chargedPayment;
     final methodLabel =
         charged?.methodLabel ??
-        _methodLabel(ref.read(oldProvider.paymentMethodsProvider));
-    // Exact cash (nothing typed) tenders the total, so change is zero.
-    final tendered = charged?.tendered == null
-        ? null
-        : (charged!.tendered! < total ? total : charged.tendered!);
-    final change = tendered == null ? null : tendered - total;
+        mposTendersLabel(
+          context.flipperL10n,
+          ref.read(oldProvider.paymentMethodsProvider),
+        );
+    final tendered = charged?.tendered;
+    final change = charged?.change;
 
     final attached = ref.read(
       oldProvider.attachedCustomerProvider(txn.customerId),
@@ -926,13 +930,6 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
     if (id != null && id.isNotEmpty) return true;
     final name = txn.customerName?.trim();
     return name != null && name.isNotEmpty;
-  }
-
-  double _cashTenderAmount(List<oldProvider.Payment> payments) {
-    if (payments.isEmpty) return 0;
-    final p = payments.first;
-    final typed = double.tryParse(p.controller.text) ?? 0.0;
-    return typed > p.amount ? typed : p.amount;
   }
 
   bool _canTapCharge({
@@ -1189,19 +1186,12 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
                   : saleCustomerPhone;
 
               final canCollect = ref.watch(canCollectPosPaymentProvider);
-              final isCash =
-                  paymentsList.isNotEmpty &&
-                  paymentsList.first.method.toUpperCase() == 'CASH';
+              final pay = mposCheckoutTender(paymentsList, saleOutstanding);
+              final isCash = pay.isCash;
               final isMomo = _isMomoPayment(paymentsList);
-              final tender = isCash ? _cashTenderAmount(paymentsList) : 0.0;
-              final change = isCash && tender > 0
-                  ? (tender - remaining).clamp(0.0, double.infinity)
-                  : null;
-              final due = isCash && tender > 0 && tender < remaining
-                  ? remaining - tender
-                  : null;
-
-              final cashOk = !isCash || tender >= saleOutstanding - 0.01;
+              final change = pay.change;
+              final due = pay.due;
+              final cashOk = pay.tenderOk;
               final momoPhone =
                   ref.watch(mposMomoPhoneProvider) ??
                   displaySaleCustomerPhone ??

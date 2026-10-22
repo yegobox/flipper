@@ -1,3 +1,5 @@
+import 'package:flipper_services/payment_methods.dart';
+
 /// Decimal rounding aligned with [DoubleExtension.roundToTwoDecimalPlaces] without Flutter deps.
 double _roundToTwoDecimalPlaces(double value) =>
     double.parse(value.toStringAsFixed(2));
@@ -79,7 +81,8 @@ DateTime? posSettlementCreatedAtStamp({
   required String? newStatus,
   required DateTime settledAt,
 }) {
-  if (newStatus == null || newStatus == saleCompletionStatusPending) return null;
+  if (newStatus == null || newStatus == saleCompletionStatusPending)
+    return null;
   if (priorStatus != saleCompletionStatusPending) return null;
   return settledAt.isUtc ? settledAt.toLocal() : settledAt;
 }
@@ -112,6 +115,23 @@ class PaymentLineForSaleCompletion {
   /// Optional name on the MoMo/bank account that tendered this line. Carried
   /// through completion untouched — it plays no part in the amount math.
   final String? payerName;
+}
+
+/// What a MoMo payment request asks the customer's phone for.
+///
+/// A sale paid part cash, part MoMo must only request the MoMo part: asking for
+/// the whole bill would debit the customer for money already handed over in
+/// cash. A sale with no other tender keeps the full [subTotal], as before
+/// split payment, so a MoMo-only or unsplit sale is unchanged.
+double momoRequestAmount(
+  List<PaymentLineForSaleCompletion> lines,
+  double subTotal,
+) {
+  final paid = lines.where((l) => l.amount > _paymentEpsilon);
+  final momo = paid.where((l) => isMobileMoneyTender(l.method));
+  final hasOtherTender = paid.any((l) => !isMobileMoneyTender(l.method));
+  if (momo.isEmpty || !hasOtherTender) return subTotal;
+  return momo.fold<double>(0, (sum, l) => sum + l.amount);
 }
 
 /// Result of [deriveSaleCompletionState] — status and balances for persisting a sale.
@@ -189,16 +209,16 @@ DerivedSaleCompletionState deriveSaleCompletionState({
   final saleTotal = finalSubTotal;
 
   final installmentNonCreditRaw = currentInstallment - totalCredit;
-  final installmentNonCredit =
-      installmentNonCreditRaw < 0 ? 0.0 : installmentNonCreditRaw;
+  final installmentNonCredit = installmentNonCreditRaw < 0
+      ? 0.0
+      : installmentNonCreditRaw;
 
   // Cumulative non-credit paid after this tender (what cashReceived must store).
   final nonCreditCashReceived =
       installmentNonCredit + priorAlreadyPaidNonCredit;
 
   final remainingAfterAll = saleTotal - nonCreditCashReceived;
-  final remainingClamped =
-      remainingAfterAll < 0 ? 0.0 : remainingAfterAll;
+  final remainingClamped = remainingAfterAll < 0 ? 0.0 : remainingAfterAll;
 
   // Fully paid when cumulative non-credit covers the sale. Also treat a
   // sub-epsilon leftover as paid so we never park a ticket with remaining 0.
@@ -351,10 +371,12 @@ String? _nonEmptyCustomerField(String? value) {
   String? transactionSalePhone,
 }) {
   return (
-    name: _nonEmptyCustomerField(boxName) ??
+    name:
+        _nonEmptyCustomerField(boxName) ??
         _nonEmptyCustomerField(controllerName) ??
         _nonEmptyCustomerField(transactionName),
-    phone: _nonEmptyCustomerField(boxPhone) ??
+    phone:
+        _nonEmptyCustomerField(boxPhone) ??
         _nonEmptyCustomerField(transactionPhone) ??
         _nonEmptyCustomerField(transactionSalePhone),
   );

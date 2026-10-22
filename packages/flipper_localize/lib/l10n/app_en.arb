@@ -5648,6 +5648,10 @@
             }
         }
     },
+    "mposSplitNonCashOverTotal": "Only cash can be more than the bill: it is the only tender that gives change.",
+    "@mposSplitNonCashOverTotal": {
+        "description": "Mobile split payment: MoMo, bank, card or credit add up to more than the bill"
+    },
     "mposTax": "Tax",
     "@mposTax": {
         "description": "Totals card tax row"

@@ -6730,6 +6730,10 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   }
 
   @override
+  String get mposSplitNonCashOverTotal =>
+      'Seules les espèces peuvent dépasser la note : elles seules rendent la monnaie.';
+
+  @override
   String get mposTax => 'Taxe';
 
   @override
