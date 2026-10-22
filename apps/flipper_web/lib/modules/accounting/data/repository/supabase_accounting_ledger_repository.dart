@@ -3,6 +3,21 @@ import 'package:flipper_web/modules/accounting/data/accounting_models.dart';
 import 'package:flipper_web/modules/accounting/data/mapper/ledger_row_mapper.dart';
 import 'package:flipper_web/modules/accounting/data/repository/accounting_ledger_repository.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:uuid/uuid.dart';
+
+/// The Postgres row id for a caller's deterministic entry key (for example
+/// `je_bankrec_bal_1020_<ms>`). `journal_entries.id` is a UUID, so a key that
+/// is not one maps to a stable UUIDv5 scoped to the business: the same key
+/// always names the same row, and the primary key keeps it unique.
+String journalEntryRowId({
+  required String businessId,
+  required String entryId,
+}) => Uuid.isValidUUID(fromString: entryId)
+    ? entryId
+    : const Uuid().v5(
+        Namespace.url.value,
+        'flipper:journal-entry:$businessId:$entryId',
+      );
 
 class SupabaseAccountingLedgerRepository implements AccountingLedgerRepository {
   const SupabaseAccountingLedgerRepository(this._client);
@@ -201,7 +216,7 @@ class SupabaseAccountingLedgerRepository implements AccountingLedgerRepository {
     required JournalEntry entry,
     String? transactionId,
     String? journalCode,
-    // Postgres generates entry ids; dedupe relies on transaction_id instead.
+    // A deterministic key from the caller; see [journalEntryRowId].
     String? entryId,
   }) async {
     String? journalId;
@@ -215,26 +230,39 @@ class SupabaseAccountingLedgerRepository implements AccountingLedgerRepository {
       journalId = j?['id']?.toString();
     }
 
+    final rowId = entryId == null
+        ? null
+        : journalEntryRowId(businessId: businessId, entryId: entryId);
     final header = _forPostgrest(
       LedgerRowMapper.entryToRow(
         businessId: businessId,
         entry: entry,
+        id: rowId,
         transactionId: transactionId,
         journalId: journalId,
       ),
     );
 
-    final inserted = await _client
-        .from(_entriesTable)
-        .insert(header)
-        .select('id')
-        .single();
-    final entryId = inserted['id'].toString();
+    final String id;
+    if (rowId == null) {
+      final inserted = await _client
+          .from(_entriesTable)
+          .insert(header)
+          .select('id')
+          .single();
+      id = inserted['id'].toString();
+    } else {
+      // Keyed create: a retry after a partial failure (header written, lines
+      // not) lands on the same row and rewrites its lines, never a second entry.
+      await _client.from(_entriesTable).upsert(header);
+      await _client.from(_linesTable).delete().eq('journal_entry_id', rowId);
+      id = rowId;
+    }
 
     final lineRows = entry.lines
         .map(
           (l) => _forPostgrest(
-            LedgerRowMapper.lineToRow(journalEntryId: entryId, line: l),
+            LedgerRowMapper.lineToRow(journalEntryId: id, line: l),
           ),
         )
         .toList();
@@ -243,7 +271,7 @@ class SupabaseAccountingLedgerRepository implements AccountingLedgerRepository {
       await _client.from(_linesTable).insert(lineRows);
     }
 
-    return entryId;
+    return id;
   }
 
   @override

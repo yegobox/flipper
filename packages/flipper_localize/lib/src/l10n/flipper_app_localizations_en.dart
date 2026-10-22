@@ -22092,8 +22092,14 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
   String get booksSmsBalanceDifference => 'Difference';
 
   @override
-  String booksSmsBalancePending(String count, String amount) {
-    return '$count SMS lines not matched yet ($amount)';
+  String booksSmsBalancePending(int count, String amount) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count SMS lines not matched yet',
+      one: '1 SMS line not matched yet',
+    );
+    return '$_temp0: $amount';
   }
 
   @override

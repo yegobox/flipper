@@ -22330,8 +22330,14 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   String get booksSmsBalanceDifference => 'Ikinyuranyo';
 
   @override
-  String booksSmsBalancePending(String count, String amount) {
-    return 'Imirongo $count ya SMS itarahuzwa ($amount)';
+  String booksSmsBalancePending(int count, String amount) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Imirongo $count ya SMS itarahuzwa',
+      one: 'Umurongo 1 wa SMS utarahuzwa',
+    );
+    return '$_temp0: $amount';
   }
 
   @override

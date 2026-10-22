@@ -17293,11 +17293,11 @@
     "booksSmsBalanceBank": "Bank says (SMS)",
     "booksSmsBalanceBooks": "Books says",
     "booksSmsBalanceDifference": "Difference",
-    "booksSmsBalancePending": "{count} SMS lines not matched yet ({amount})",
+    "booksSmsBalancePending": "{count, plural, =1{1 SMS line not matched yet} other{{count} SMS lines not matched yet}}: {amount}",
     "@booksSmsBalancePending": {
         "placeholders": {
             "count": {
-                "type": "String"
+                "type": "int"
             },
             "amount": {
                 "type": "String"

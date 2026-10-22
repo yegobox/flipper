@@ -155,7 +155,7 @@ class _SmsBalanceCheckCardState extends State<SmsBalanceCheckCard> {
                 if (check.pendingLines.isNotEmpty)
                   Text(
                     l10n.booksSmsBalancePending(
-                      '${check.pendingLines.length}',
+                      check.pendingLines.length,
                       money(check.pendingNet, sign: true),
                     ),
                     style: muted,

@@ -1011,8 +1011,9 @@ class AccountingBankRecView extends ConsumerWidget {
     final smsTotal = smsBalances?.totalFor(accountCode);
     // Prefer the imported statement's closing balance, then the balance the
     // bank last stated by SMS; fall back to the GL.
-    final statementBalance =
-        meta?.closingBalance?.round() ?? smsTotal?.balance ?? bankBal;
+    // The footnote below keys off the same value, so it names the real source.
+    final importedClosing = meta?.closingBalance?.round();
+    final statementBalance = importedClosing ?? smsTotal?.balance ?? bankBal;
     // Fall back to the chart-of-accounts name for the bank account (1020),
     // then a neutral label — never a hardcoded bank brand.
     final bankAccounts = accounts.where((a) => a.code == accountCode);
@@ -1111,7 +1112,7 @@ class AccountingBankRecView extends ConsumerWidget {
                 value: statementBalance,
                 icon: AccIcon.wallet,
                 tone: KpiTone.blue,
-                footnote: meta != null
+                footnote: importedClosing != null
                     ? l10n.booksFromImportedStatement
                     : smsTotal != null
                     ? l10n.booksFromBankSms(smsBalanceTime(smsTotal.observedAt))

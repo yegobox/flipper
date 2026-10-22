@@ -7727,7 +7727,7 @@
   "booksSmsBalanceBank": "Benki inasema (SMS)",
   "booksSmsBalanceBooks": "Books inasema",
   "booksSmsBalanceDifference": "Tofauti",
-  "booksSmsBalancePending": "Mistari {count} ya SMS bado haijalinganishwa ({amount})",
+  "booksSmsBalancePending": "{count, plural, =1{Mstari 1 wa SMS bado haujalinganishwa} other{Mistari {count} ya SMS bado haijalinganishwa}}: {amount}",
   "booksSmsBalanceUnexplained": "Tofauti isiyoelezwa",
   "booksSmsBalanceAgrees": "Books inakubaliana na benki yako.",
   "booksSmsBalanceStale": "Hakuna SMS ya benki kwa zaidi ya siku 7: salio hili huenda limepitwa na wakati.",

@@ -10,6 +10,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../../../helpers/accounting_unit_test_overrides.dart';
 
@@ -524,6 +525,52 @@ void main() {
               as Map<String, dynamic>;
       expect(header.containsKey('journal_id'), isFalse);
       expect(server.callsTo('POST', 'journal_lines'), isEmpty);
+    });
+
+    test(
+      'a keyed entry upserts one row, so a retry rewrites it, not a second',
+      () async {
+        const key = 'je_bankrec_bal_1020_1760000000000';
+        final rowId = journalEntryRowId(businessId: 'biz', entryId: key);
+        expect(Uuid.isValidUUID(fromString: rowId), isTrue);
+        // Scoped to the business: the same SMS key elsewhere is another row.
+        expect(
+          journalEntryRowId(businessId: 'other', entryId: key),
+          isNot(rowId),
+        );
+
+        // The first attempt, then a retry after it failed half way.
+        for (var attempt = 0; attempt < 2; attempt++) {
+          final id = await repo.createJournalEntry(
+            businessId: 'biz',
+            entry: entry,
+            entryId: key,
+          );
+          expect(id, rowId);
+        }
+
+        final headers = server.callsTo('POST', 'journal_entries');
+        expect(headers, hasLength(2));
+        for (final h in headers) {
+          expect((h.body! as Map)['id'], rowId);
+          expect(h.request.headers['Prefer'], contains('merge-duplicates'));
+        }
+        final deletes = server.callsTo('DELETE', 'journal_lines');
+        expect(deletes.map((d) => d.param('journal_entry_id')), [
+          'eq.$rowId',
+          'eq.$rowId',
+        ]);
+        final lines = server.callsTo('POST', 'journal_lines').last.body!;
+        expect((lines as List).map((l) => (l as Map)['journal_entry_id']), [
+          rowId,
+          rowId,
+        ]);
+      },
+    );
+
+    test('a key that is already a UUID is the row id as is', () {
+      const uuid = '3f2504e0-4f89-41d3-9a0c-0305e82c3301';
+      expect(journalEntryRowId(businessId: 'biz', entryId: uuid), uuid);
     });
 
     test('an update rewrites the header and replaces every line', () async {
