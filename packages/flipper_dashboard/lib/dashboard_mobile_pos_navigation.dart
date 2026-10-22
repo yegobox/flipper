@@ -27,17 +27,21 @@ void warmMobilePosForCheckout(WidgetRef ref) {
           isExpense: false,
         )
         .then((txn) {
-          if (txn == null) return;
+          // The home can be gone by the time Ditto answers: logout, a business
+          // switch, or personal mode swapping the whole shell. `ref` is dead
+          // with it, so the warm-up just stops.
+          if (txn == null || !ref.context.mounted) return;
           scheduleWriteCachedPendingCartTransactionWidget(
             ref,
             isExpense: false,
             transaction: txn,
           );
-          Future.microtask(
-            () => ref
+          Future.microtask(() {
+            if (!ref.context.mounted) return;
+            ref
                 .read(optimisticCartProvider.notifier)
-                .bindPendingTransaction(txn.id),
-          );
+                .bindPendingTransaction(txn.id);
+          });
         }),
   );
 

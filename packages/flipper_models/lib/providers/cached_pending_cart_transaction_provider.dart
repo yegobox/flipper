@@ -172,6 +172,8 @@ void scheduleWriteCachedPendingCartTransactionWidget(
   if (!_isWritablePendingCart(transaction)) return;
   final txn = transaction!;
   Future.microtask(() {
+    // Scheduled from async callbacks: the widget may be unmounted by now.
+    if (!ref.context.mounted) return;
     writeCachedPendingCartTransactionWidget(
       ref,
       isExpense: isExpense,
