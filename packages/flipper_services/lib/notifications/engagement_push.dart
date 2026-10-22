@@ -1,10 +1,7 @@
 import 'dart:convert';
 
-import 'package:flipper_routing/app.locator.dart';
 import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flutter/widgets.dart' show WidgetsBinding;
-import 'package:flipper_routing/app.router.dart';
-import 'package:stacked_services/stacked_services.dart';
 
 /// `data.type` of a "Today's goal" push from data-connector
 /// (`src/engagement/scheduler.rs`).
@@ -34,13 +31,16 @@ String? engagementActionFromPayload(String? payload) {
 /// `new_sale` — the POS, to record the sale the push asked for. `goal` — the
 /// app itself: it opens on the dashboard, where the goal card is.
 /// `sms_review` — the bank & MoMo SMS review sheet, when a paired SMS Bridge
-/// phone forwarded new ones (data-connector `src/api/sms_bridge.rs`); its
-/// handler lives in flipper_dashboard and is added with
-/// [registerEngagementActionHandler].
+/// phone forwarded new ones (data-connector `src/api/sms_bridge.rs`). Both
+/// handlers live in flipper_dashboard and are added with
+/// [registerEngagementActionHandler] by the home that can open them.
 typedef EngagementNavigate = void Function(String action);
 
 /// Push action for new bank & MoMo SMS waiting for review.
 const kSmsReviewEngagementAction = 'sms_review';
+
+/// Push action asking for a sale to be recorded: opens the POS.
+const kNewSaleEngagementAction = 'new_sale';
 
 final Map<String, void Function()> _actionHandlers = {};
 
@@ -61,11 +61,35 @@ DateTime Function() engagementClock = DateTime.now;
 void Function(void Function() run) engagementAfterFrame = (run) =>
     WidgetsBinding.instance.addPostFrameCallback((_) => run());
 
+/// Whether the tap that launched the app has been claimed this process.
+bool _launchTapClaimed = false;
+
 @visibleForTesting
 void resetEngagementActions() {
   _actionHandlers.clear();
   _pendingAction = null;
   _pendingAt = null;
+  _launchTapClaimed = false;
+}
+
+/// `true` the first time it is called in this process, `false` after.
+///
+/// The notification that launched the app stays readable for the whole
+/// process, and the reader runs more than once (`NotificationManager.create`
+/// at boot and again lazily), so without this one tap was routed again
+/// mid-session. Same idea as the FCM tap listeners' guard.
+bool claimLaunchEngagementTap() {
+  if (_launchTapClaimed) return false;
+  _launchTapClaimed = true;
+  return true;
+}
+
+/// Removes [handler] for [action] when it is still the registered one, so a
+/// home that is gone stops answering taps (a later home's handler stays).
+void unregisterEngagementActionHandler(String action, void Function() handler) {
+  if (identical(_actionHandlers[action], handler)) {
+    _actionHandlers.remove(action);
+  }
 }
 
 /// Lets a package this one cannot import open its own screen for [action].
@@ -94,10 +118,9 @@ void openEngagementAction(String? action, {EngagementNavigate? navigate}) {
     handler();
     return;
   }
-  if (action == 'new_sale') {
-    locator<RouterService>().navigateTo(CheckOutRoute(isBigScreen: false));
-    return;
-  }
+  // No home that can open it yet (cold start, still on the splash screen):
+  // wait for one. `new_sale` included: pushing the POS before the router has
+  // a home either failed or was swept away when startup cleared the stack.
   _pendingAction = action;
   _pendingAt = engagementClock();
 }

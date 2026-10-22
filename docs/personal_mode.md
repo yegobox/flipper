@@ -43,6 +43,8 @@ unrelated.
    `changedAt`**. Right after a switch the cache is newer, because the doc
    only changes when the connector's write syncs back. Without this, a
    switch needed several taps. A cache entry with no time never beats a doc.
+   A switch is cached with the time the server sent, never the device
+   clock: a clock running ahead would outrank later switches made elsewhere.
 2. Without a doc, a personal signup the server has not confirmed yet (box
    `pendingAccountMode`), then the cache.
 3. Otherwise **business**.
@@ -83,8 +85,14 @@ device therefore swaps shells without a navigation.
 
   That check never opens the home a second time. It is *decisive*: a lapsed
   plan still reaches the paywall even if the user has already tapped into the
-  POS. Every other start (no session, QR `login-` identity, fresh signup)
-  keeps the blocking path.
+  POS. Behind the home, the paywall (and the commission screen) replaces the
+  whole stack, so Android back cannot return to the POS. The blocking path
+  still pushes it, as before. The startup grace is spent when the home opens,
+  so a `plans` realtime event in the meantime cannot open a second home.
+  After an active result, `reconcileCommissionOnlyHome()` re-asks whether
+  the session is commission-only (the blocking path asked on every start)
+  and swaps the home if the answer changed. Every other start (no session,
+  QR `login-` identity, fresh signup) keeps the blocking path.
 - Startup logs one `[startup] fast|blocking ditto=… requirements=… appInit=… home=…`
   line.
 - **Notification taps**:
@@ -93,7 +101,12 @@ device therefore swaps shells without a navigation.
     queued action runs once the home registers its handler, if within
     `kPendingEngagementTtl` (2 minutes).
   - FCM tap listeners are registered once per process.
-  - A local notification that launched the app is routed the same way.
+  - A local notification that launched the app is routed the same way, once
+    per process (`claimLaunchEngagementTap`): `NotificationManager.create`
+    runs at boot and again lazily, and the launch details never change.
+  - `new_sale` is a handler too, registered by the business home
+    (`FlipperApp`), so a cold-start tap waits for the home instead of
+    pushing the POS onto the splash screen.
 - SMS review logs `[sms-review] branch=… pending=… syncActive=…` once per
   subscription, so "SMS not showing" can be read from logcat.
 

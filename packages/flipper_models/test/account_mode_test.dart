@@ -311,6 +311,29 @@ void main() {
       },
     );
 
+    test(
+      'a switch with no server time never stamps the device clock',
+      () async {
+        final box = _MemBox(businessId: 'me');
+        final store = _store(
+          box,
+          http: MockClient(
+            (_) async => http.Response(jsonEncode({'mode': 'business'}), 200),
+          ),
+        );
+        // An older switch, cached with its server time.
+        await store.remember(
+          'me',
+          AccountMode.personal,
+          changedAt: DateTime.utc(2026, 10, 22, 8),
+        );
+        await store.switchTo(AccountMode.business);
+        // The switch still replaces it, but carries no time of its own.
+        expect(store.cachedMode(), AccountMode.business);
+        expect(store.cachedEntry('me')!.changedAt, isNull);
+      },
+    );
+
     test('no active business is never personal', () async {
       final store = _store(_MemBox(), http: _never());
       expect(await store.isPersonalLocal(), isFalse);

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
@@ -11,6 +13,7 @@ import 'package:flipper_models/services/payment_verification_service.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:stacked/stacked.dart' show PageRouteInfo;
 import 'package:stacked_services/stacked_services.dart';
 
 /// Routes the user based on [PaymentVerificationResponse] (startup, periodic, manual).
@@ -210,10 +213,10 @@ class PaymentVerificationNavigator {
         await _handleActiveSubscription(mayEnterHome: mayEnterHome);
         break;
       case PaymentVerificationResult.noPlan:
-        await _handleNoPlan();
+        await _handleNoPlan(replaceStack: alreadyHome);
         break;
       case PaymentVerificationResult.planExistsButInactive:
-        await _handleInactivePlan(response);
+        await _handleInactivePlan(response, replaceStack: alreadyHome);
         break;
       case PaymentVerificationResult.error:
         await _handleVerificationError(
@@ -223,6 +226,7 @@ class PaymentVerificationNavigator {
             isInitialStartup: isInitialStartup,
             alreadyHome: alreadyHome,
           ),
+          replaceStack: alreadyHome,
         );
         break;
     }
@@ -255,27 +259,49 @@ class PaymentVerificationNavigator {
     await _navigateToAuthenticatedHome();
   }
 
-  static Future<void> _handleNoPlan() async {
-    if (await _navigateCommissionOnlyIfNeeded()) return;
+  /// Opens a lockout (or commission) screen. Pushed over the current page,
+  /// as before, unless [replaceStack]: startup's fast path has already shown
+  /// the home, and a paywall pushed on top of it was one Android back away
+  /// from the full app.
+  static Future<void> _show(
+    PageRouteInfo<dynamic> route, {
+    required bool replaceStack,
+  }) async {
+    if (replaceStack) {
+      await _routerService.clearStackAndShow(route);
+    } else {
+      // Not awaited: a push completes only when the page is popped.
+      unawaited(_routerService.navigateTo(route));
+    }
+  }
+
+  static Future<void> _handleNoPlan({required bool replaceStack}) async {
+    if (await _navigateCommissionOnlyIfNeeded(replaceStack: replaceStack)) {
+      return;
+    }
 
     talker.warning('No payment plan found, directing to payment plan screen');
-    _routerService.navigateTo(PaymentPlanUIRoute());
+    await _show(PaymentPlanUIRoute(), replaceStack: replaceStack);
   }
 
   static Future<void> _handleInactivePlan(
-    PaymentVerificationResponse response,
-  ) async {
-    if (await _navigateCommissionOnlyIfNeeded()) return;
+    PaymentVerificationResponse response, {
+    required bool replaceStack,
+  }) async {
+    if (await _navigateCommissionOnlyIfNeeded(replaceStack: replaceStack)) {
+      return;
+    }
 
     talker.error(
       'Payment plan exists but is not active: ${response.errorMessage}',
     );
-    _routerService.navigateTo(FailedPaymentRoute());
+    await _show(FailedPaymentRoute(), replaceStack: replaceStack);
   }
 
   static Future<void> _handleVerificationError(
     PaymentVerificationResponse response, {
     required bool mayFailOpen,
+    required bool replaceStack,
   }) async {
     talker.error('Error during payment verification: ${response.errorMessage}');
 
@@ -299,7 +325,9 @@ class PaymentVerificationNavigator {
       return;
     }
 
-    if (await _navigateCommissionOnlyIfNeeded()) return;
+    if (await _navigateCommissionOnlyIfNeeded(replaceStack: replaceStack)) {
+      return;
+    }
 
     final shouldGoToPersonal = await _shouldNavigateToPersonalApp();
     if (shouldGoToPersonal) {
@@ -312,10 +340,10 @@ class PaymentVerificationNavigator {
     }
 
     if (response.exception is NoPaymentPlanFound) {
-      _routerService.navigateTo(PaymentPlanUIRoute());
+      await _show(PaymentPlanUIRoute(), replaceStack: replaceStack);
     } else if (response.exception is PaymentIncompleteException ||
         response.exception is FailedPaymentException) {
-      _routerService.navigateTo(FailedPaymentRoute());
+      await _show(FailedPaymentRoute(), replaceStack: replaceStack);
     } else if (mayFailOpen) {
       talker.warning(
         'Proceeding to main app despite payment verification error',
@@ -324,8 +352,16 @@ class PaymentVerificationNavigator {
     }
   }
 
-  static Future<bool> _navigateCommissionOnlyIfNeeded() async {
-    final commissionOnly = await refreshCommissionOnlySession();
+  /// [refreshCommissionOnlySession], replaceable in tests (it asks
+  /// Supabase).
+  @visibleForTesting
+  static Future<bool> Function() refreshCommissionOnly =
+      refreshCommissionOnlySession;
+
+  static Future<bool> _navigateCommissionOnlyIfNeeded({
+    bool replaceStack = false,
+  }) async {
+    final commissionOnly = await refreshCommissionOnly();
     if (!commissionOnly) return false;
 
     // Reported as handled so callers stop here rather than falling through to
@@ -335,8 +371,34 @@ class PaymentVerificationNavigator {
     talker.info(
       'Navigating to agent commission screen for commission-only session',
     );
-    _routerService.navigateTo(AgentCommissionScreenRoute());
+    await _show(AgentCommissionScreenRoute(), replaceStack: replaceStack);
     return true;
+  }
+
+  /// Re-asks whether this is a commission-only session once the home
+  /// [enterHomeFromCache] opened from the cached flag is up, and swaps the
+  /// home when the answer changed: an agent just given full login, or a
+  /// user just restricted to commissions. The blocking startup asked on
+  /// every start before choosing the home; the fast path asks behind it.
+  ///
+  /// A personal account keeps its shell whatever the flag says, as in
+  /// [navigateToAuthenticatedHome].
+  static Future<void> reconcileCommissionOnlyHome() async {
+    if (await _isPersonalAccount()) return;
+    final before = isCommissionOnlySession();
+    final after = await refreshCommissionOnly();
+    if (after == before) return;
+    if (after) {
+      if (_refuseWhenSignedOut('AgentCommission')) return;
+      talker.info('Session became commission-only — opening commissions');
+      await _routerService.clearStackAndShow(AgentCommissionScreenRoute());
+      return;
+    }
+    talker.info('Session no longer commission-only — opening the home');
+    await _navigateToAuthenticatedHome(
+      skipCommissionCheck: true,
+      clearStack: true,
+    );
   }
 
   /// Opens the home a signed-in device last used, from what this device

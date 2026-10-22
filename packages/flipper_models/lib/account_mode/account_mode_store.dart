@@ -163,18 +163,27 @@ class AccountModeStore {
         return;
       }
       if (current?.mode == mode && current?.changedAt == changedAt) return;
-      await box.writeString(
-        key: kAccountModeCacheKey,
-        value: withCachedAccountMode(
-          raw,
-          businessId,
-          mode,
-          changedAt: changedAt,
-        ),
-      );
+      await _write(businessId, mode, changedAt: changedAt);
     } catch (_) {
       // A cache only.
     }
+  }
+
+  Future<void> _write(
+    String businessId,
+    AccountMode mode, {
+    DateTime? changedAt,
+  }) async {
+    final box = _box();
+    await box.writeString(
+      key: kAccountModeCacheKey,
+      value: withCachedAccountMode(
+        box.readString(key: kAccountModeCacheKey),
+        businessId,
+        mode,
+        changedAt: changedAt,
+      ),
+    );
   }
 
   /// After a personal signup: personal from now on, until [confirmPending]
@@ -210,13 +219,15 @@ class AccountModeStore {
       throw const AccountModeException('No business is selected.');
     }
     final result = await _client.switchTo(mode);
-    // The server's time, so this beats the old Ditto doc until the new one
-    // syncs back. The device clock only if the server sent none.
-    await remember(
-      id,
-      result.mode,
-      changedAt: result.changedAt ?? DateTime.now().toUtc(),
-    );
+    // The server just took this switch, so it replaces whatever was cached,
+    // however new. With the server's time it also beats the old Ditto doc
+    // until the new one syncs back. Never the device clock: a clock running
+    // ahead would let this entry outrank later switches made elsewhere.
+    try {
+      await _write(id, result.mode, changedAt: result.changedAt);
+    } catch (_) {
+      // A cache only.
+    }
     try {
       await _box().remove(key: kPendingAccountModeKey);
     } catch (_) {}

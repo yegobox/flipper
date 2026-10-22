@@ -58,6 +58,9 @@ class NotificationManager implements NotificationInterface {
   /// Check if the app was launched from a notification
   Future<void> _checkAppStartup() async {
     if (defaultTargetPlatform != TargetPlatform.android) return;
+    // [create] runs at boot and again lazily; the launch details stay the
+    // same all process long, so only the first may route them.
+    if (!claimLaunchEngagementTap()) return;
 
     final appLaunchDetails = await _notificationsPlugin
         .getNotificationAppLaunchDetails();

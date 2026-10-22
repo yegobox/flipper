@@ -196,6 +196,11 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
       notifyListeners();
 
       if (fastPath) {
+        // The startup grace is spent by opening the home, not when the check
+        // behind it lands: a `plans` realtime event in between would still
+        // count as the initial startup and open a second home over this one.
+        // The check behind it decides on its own ([_verifyBehindHome]).
+        _isInitialStartup = false;
         await PaymentVerificationNavigator.enterHomeFromCache();
         mark('home');
         _progress = 1.0;
@@ -265,6 +270,11 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
         // route" until the next periodic check, hours later.
         decisive: true,
       );
+      // The home came from the cached commission-only flag. The blocking
+      // path re-asked on every start; ask now, behind it.
+      if (response.result == PaymentVerificationResult.active) {
+        await PaymentVerificationNavigator.reconcileCommissionOnlyHome();
+      }
     } catch (e, stackTrace) {
       talker.error(e, stackTrace);
     }
