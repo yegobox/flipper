@@ -65,6 +65,11 @@ Future<void> confirmAndSwitchAccountMode(
 
   final messenger = ScaffoldMessenger.maybeOf(context);
   final navigator = Navigator.of(context, rootNavigator: true);
+  // Everything `ref` is needed for, taken now: the switch swaps the shell
+  // (FlipperApp's gate) and the page that opened this goes with it.
+  final store = ref.read(accountModeStoreProvider);
+  final afterSwitch = ref.read(accountModeAfterSwitchProvider);
+  final container = ProviderScope.containerOf(context, listen: false);
   showDialog<void>(
     context: context,
     barrierDismissible: false,
@@ -72,9 +77,9 @@ Future<void> confirmAndSwitchAccountMode(
     builder: (_) => const Center(child: CircularProgressIndicator()),
   );
   try {
-    final result = await ref.read(accountModeStoreProvider).switchTo(target);
+    final result = await store.switchTo(target);
     if (navigator.mounted) navigator.pop();
-    ref.invalidate(accountModeProvider);
+    container.invalidate(accountModeProvider);
     if (result.cardSubscriptionPaused == false) {
       messenger?.showSnackBar(
         SnackBar(
@@ -83,7 +88,7 @@ Future<void> confirmAndSwitchAccountMode(
         ),
       );
     }
-    await ref.read(accountModeAfterSwitchProvider)(result.mode);
+    await afterSwitch(result.mode);
   } catch (e) {
     if (navigator.mounted) navigator.pop();
     messenger?.showSnackBar(
