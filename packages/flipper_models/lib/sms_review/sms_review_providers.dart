@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flipper_accounting/accounting_models.dart';
 import 'package:flipper_accounting/ditto_accounting_ledger_repository.dart';
+import 'package:flipper_models/sms_review/sms_debt_match.dart';
 import 'package:flipper_models/sms_review/sms_review_item.dart';
 import 'package:flipper_models/sms_review/sms_review_service.dart';
 import 'package:flipper_models/sms_review/sms_sale_match.dart';
@@ -171,6 +172,30 @@ final smsMatchingSalesProvider = FutureProvider.autoDispose
         candidates,
         linkedTransactionIds: linkedIds,
       );
+    });
+
+const _openLoansQuery =
+    'SELECT * FROM transactions WHERE branchId = :branchId '
+    'AND isLoan = true AND remainingBalance > 0';
+
+/// Credit sales at the item's branch still owed, that its money may be
+/// repaying (see [smsMatchingDebts]), most likely first. Empty for money out
+/// and charges. One local read when the review opens, like
+/// [smsMatchingSalesProvider].
+final smsMatchingDebtsProvider = FutureProvider.autoDispose
+    .family<List<SmsDebtCandidate>, SmsReviewItem>((ref, item) async {
+      if (!smsCanSettleDebt(item)) return const [];
+      final ditto = DittoService.instance.dittoInstance;
+      if (ditto == null) return const [];
+      final loans = await ditto.store.execute(
+        _openLoansQuery,
+        arguments: {'branchId': item.branchId},
+      );
+      return smsMatchingDebts(item, [
+        for (final i in loans.items)
+          if (i.value['isExpense'] != true)
+            SmsDebtCandidate.fromDitto(Map.from(i.value)),
+      ]);
     });
 
 /// [SmsReviewStore] over the app's Ditto instance.

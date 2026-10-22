@@ -11,6 +11,7 @@ import 'package:flipper_models/providers/category_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart'
     show cashbookRecentTransactionsProvider;
 import 'package:flipper_models/sms_bridge_client.dart';
+import 'package:flipper_models/sms_review/sms_debt_match.dart';
 import 'package:flipper_models/sms_review/sms_review_item.dart';
 import 'package:flipper_models/sms_review/sms_review_providers.dart';
 import 'package:flipper_models/sms_review/sms_review_service.dart';
@@ -190,6 +191,7 @@ void main() {
   List<Override> reviewOverrides(
     List<SmsReviewItem> items, {
     List<Category>? cats,
+    SmsDebtRepaymentRecorder? recordRepayment,
   }) {
     store = _Store();
     categories = _Cats();
@@ -224,6 +226,7 @@ void main() {
                 recorded.add((item, categoryId));
                 return 'txn-1';
               },
+          recordRepayment: recordRepayment,
         ),
       ),
     ];
@@ -311,6 +314,59 @@ void main() {
     expect(recorded, isEmpty);
     expect(store.statuses['sms-1'], SmsReviewItem.matched);
     expect(store.matched, {'line-principal': 'je_biz_sale-9_sale'});
+  });
+
+  testWidgets('money in from a customer who owes settles their debt', (
+    tester,
+  ) async {
+    final item = _item(direction: 'credit');
+    final settled = <String>[];
+    Future<void> settle(double remaining) async {
+      // A fresh app each time, so an earlier snackbar is not queued ahead.
+      await tester.pumpWidget(const SizedBox());
+      await tester.pumpWidget(
+        _app(_detailLauncher(item), [
+          ...reviewOverrides(
+            const [],
+            recordRepayment: ({required item, required debt}) async {
+              settled.add(debt.transactionId);
+              return (
+                transactionId: debt.transactionId,
+                remaining: remaining,
+                journalEntryId: 'je_biz_${debt.transactionId}_pay_1',
+              );
+            },
+          ),
+          smsMatchingDebtsProvider(item).overrideWith(
+            (ref) async => const [
+              SmsDebtCandidate(
+                transactionId: 'loan-7',
+                remainingBalance: 5000,
+                customerName: 'Jane DOE',
+                customerPhone: '0780000123',
+              ),
+              SmsDebtCandidate(transactionId: 'loan-8', remainingBalance: 9000),
+            ],
+          ),
+        ]),
+      );
+      await tester.pumpAndSettle();
+      await _openDetail(tester);
+      expect(find.text('Is a customer paying off a debt?'), findsOneWidget);
+      expect(find.textContaining('****0123'), findsOneWidget);
+      expect(find.textContaining('Customer · owes'), findsOneWidget);
+      await _tap(tester, const Key('sms_review_settle_loan-7'));
+    }
+
+    await settle(3000);
+    expect(settled, ['loan-7']);
+    expect(recorded, isEmpty);
+    expect(store.statuses['sms-1'], SmsReviewItem.matched);
+    expect(store.matched, {'line-principal': 'je_biz_loan-7_pay_1'});
+    expect(find.textContaining('Still owes'), findsOneWidget);
+
+    await settle(0);
+    expect(find.text("Jane DOE's debt is fully paid."), findsOneWidget);
   });
 
   testWidgets('money in with no matching sale offers no link', (tester) async {

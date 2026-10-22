@@ -2888,6 +2888,34 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
   String get smsReviewLink => 'Link';
 
   @override
+  String get smsReviewDebtTitle => 'Is a customer paying off a debt?';
+
+  @override
+  String get smsReviewDebtBody =>
+      'Record it against what they owe: no new sale, no new receipt.';
+
+  @override
+  String smsReviewDebtOwes(String name, String owed) {
+    return '$name · owes $owed';
+  }
+
+  @override
+  String get smsReviewSettle => 'Settle';
+
+  @override
+  String smsReviewDebtSettled(String amount, String name, String left) {
+    return 'Recorded $amount from $name. Still owes $left.';
+  }
+
+  @override
+  String smsReviewDebtCleared(String name) {
+    return '$name\'s debt is fully paid.';
+  }
+
+  @override
+  String get smsReviewDebtCustomer => 'Customer';
+
+  @override
   String get smsReviewLinked => 'Linked to the sale';
 
   @override

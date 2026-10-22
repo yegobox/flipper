@@ -2935,6 +2935,34 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   String get smsReviewLink => 'Lier';
 
   @override
+  String get smsReviewDebtTitle => 'Un client rembourse-t-il une dette ?';
+
+  @override
+  String get smsReviewDebtBody =>
+      'Enregistrez-le sur ce qu\'il doit : pas de nouvelle vente ni de nouveau reçu.';
+
+  @override
+  String smsReviewDebtOwes(String name, String owed) {
+    return '$name · doit $owed';
+  }
+
+  @override
+  String get smsReviewSettle => 'Rembourser';
+
+  @override
+  String smsReviewDebtSettled(String amount, String name, String left) {
+    return '$amount de $name enregistré. Reste dû : $left.';
+  }
+
+  @override
+  String smsReviewDebtCleared(String name) {
+    return 'La dette de $name est entièrement payée.';
+  }
+
+  @override
+  String get smsReviewDebtCustomer => 'Client';
+
+  @override
   String get smsReviewLinked => 'Lié à la vente';
 
   @override

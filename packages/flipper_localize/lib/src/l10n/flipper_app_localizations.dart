@@ -5225,6 +5225,48 @@ abstract class FlipperAppLocalizations {
   /// **'Link'**
   String get smsReviewLink;
 
+  /// No description provided for @smsReviewDebtTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Is a customer paying off a debt?'**
+  String get smsReviewDebtTitle;
+
+  /// No description provided for @smsReviewDebtBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Record it against what they owe: no new sale, no new receipt.'**
+  String get smsReviewDebtBody;
+
+  /// No description provided for @smsReviewDebtOwes.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} · owes {owed}'**
+  String smsReviewDebtOwes(String name, String owed);
+
+  /// No description provided for @smsReviewSettle.
+  ///
+  /// In en, this message translates to:
+  /// **'Settle'**
+  String get smsReviewSettle;
+
+  /// No description provided for @smsReviewDebtSettled.
+  ///
+  /// In en, this message translates to:
+  /// **'Recorded {amount} from {name}. Still owes {left}.'**
+  String smsReviewDebtSettled(String amount, String name, String left);
+
+  /// No description provided for @smsReviewDebtCleared.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}\'s debt is fully paid.'**
+  String smsReviewDebtCleared(String name);
+
+  /// No description provided for @smsReviewDebtCustomer.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer'**
+  String get smsReviewDebtCustomer;
+
   /// No description provided for @smsReviewLinked.
   ///
   /// In en, this message translates to:

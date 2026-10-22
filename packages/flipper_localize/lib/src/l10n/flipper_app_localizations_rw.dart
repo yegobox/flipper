@@ -2922,6 +2922,34 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   String get smsReviewLink => 'Huza';
 
   @override
+  String get smsReviewDebtTitle => 'Hari umukiriya wishyura umwenda?';
+
+  @override
+  String get smsReviewDebtBody =>
+      'Byandike ku mwenda afite: nta igurisha rishya, nta nyemezabuguzi nshya.';
+
+  @override
+  String smsReviewDebtOwes(String name, String owed) {
+    return '$name · afite umwenda wa $owed';
+  }
+
+  @override
+  String get smsReviewSettle => 'Ishyura';
+
+  @override
+  String smsReviewDebtSettled(String amount, String name, String left) {
+    return '$amount ya $name yanditswe. Asigaje $left.';
+  }
+
+  @override
+  String smsReviewDebtCleared(String name) {
+    return 'Umwenda wa $name wishyuwe wose.';
+  }
+
+  @override
+  String get smsReviewDebtCustomer => 'Umukiriya';
+
+  @override
   String get smsReviewLinked => 'Byahujwe n’igurisha';
 
   @override

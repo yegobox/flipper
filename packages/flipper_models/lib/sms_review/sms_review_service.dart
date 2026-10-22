@@ -1,3 +1,4 @@
+import 'package:flipper_models/sms_review/sms_debt_match.dart';
 import 'package:flipper_models/sms_review/sms_review_item.dart';
 import 'package:flipper_models/sms_review/sms_transfer.dart';
 
@@ -45,6 +46,22 @@ typedef SmsTransferVoider =
       required SmsReviewItem item,
     });
 
+/// A repayment recorded against a customer's debt: the sale it repaid, what
+/// the customer still owes, and the journal entry the money lands in.
+typedef SmsDebtSettlement = ({
+  String transactionId,
+  double remaining,
+  String journalEntryId,
+});
+
+/// Records [item]'s money as an installment on [debt], as the POS would when
+/// the customer pays at the till. Throws when the debt is no longer open.
+typedef SmsDebtRepaymentRecorder =
+    Future<SmsDebtSettlement> Function({
+      required SmsReviewItem item,
+      required SmsDebtCandidate debt,
+    });
+
 /// A recorded transfer: its entry, and the other account's SMS closed with
 /// it (null when there was none), so Undo can reopen both.
 typedef SmsTransferResult = ({String entryId, SmsReviewItem? pairedWith});
@@ -63,6 +80,7 @@ class SmsReviewService {
     required this.journalEntryId,
     required this.postTransfer,
     required this.voidTransfer,
+    this.recordRepayment,
     DateTime Function()? clock,
   }) : _clock = clock ?? DateTime.now;
 
@@ -70,6 +88,9 @@ class SmsReviewService {
   final SmsMovementRecorder recordMovement;
   final SmsTransferPoster postTransfer;
   final SmsTransferVoider voidTransfer;
+
+  /// Null where repayments cannot be recorded; [settleDebt] then throws.
+  final SmsDebtRepaymentRecorder? recordRepayment;
 
   /// `PosJournalPoster.saleEntryId`, injected so this file has no poster
   /// dependency.
@@ -143,6 +164,46 @@ class SmsReviewService {
       );
     }
     return true;
+  }
+
+  /// The money is a customer repaying [debt], a credit sale: records it as an
+  /// installment on that sale (no new sale, no new receipt) and matches the
+  /// bank line to the repayment's entry. Null when another till already took
+  /// the item (nothing was recorded).
+  Future<SmsDebtSettlement?> settleDebt(
+    SmsReviewItem item,
+    SmsDebtCandidate debt,
+  ) async {
+    final record = recordRepayment;
+    if (record == null) {
+      throw StateError('Debt repayments are not available here');
+    }
+    if (!await store.claim(item.id)) return null;
+
+    final SmsDebtSettlement settled;
+    try {
+      settled = await record(item: item, debt: debt);
+    } catch (_) {
+      await store.setStatus(item.id, SmsReviewItem.pending);
+      rethrow;
+    }
+
+    final now = _clock().toIso8601String();
+    await store.setStatus(
+      item.id,
+      SmsReviewItem.matched,
+      extra: {
+        'transactionId': settled.transactionId,
+        'settledDebt': true,
+        'reviewedAt': now,
+        'lastTouched': now,
+      },
+    );
+    final lineId = item.bankLineId;
+    if (lineId != null && lineId.isNotEmpty) {
+      await store.matchBankLine(lineId, settled.journalEntryId);
+    }
+    return settled;
   }
 
   /// Not a business transaction (a duplicate, a personal transfer). The bank
