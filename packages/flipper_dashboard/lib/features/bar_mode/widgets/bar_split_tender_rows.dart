@@ -58,7 +58,7 @@ class BarSplitPaymentLink extends StatelessWidget {
 
 /// One row per tender while a table is paid several ways.
 ///
-/// Typing into a row re-balances the others ([barRebalanceTenders]), so the
+/// Typing into a row re-balances the others ([rebalanceSplit]), so the
 /// waiter types only the MoMo part and the cash row shows what is left.
 class BarSplitTenderRows extends StatefulWidget {
   const BarSplitTenderRows({
@@ -68,12 +68,12 @@ class BarSplitTenderRows extends StatefulWidget {
     required this.onChanged,
   });
 
-  final List<BarTender> tenders;
+  final List<SplitTender> tenders;
   final double total;
 
   /// Called with the new split. A list of one tender means the split was
   /// undone and the screen should go back to its single-method view.
-  final ValueChanged<List<BarTender>> onChanged;
+  final ValueChanged<List<SplitTender>> onChanged;
 
   @override
   State<BarSplitTenderRows> createState() => _BarSplitTenderRowsState();
@@ -136,9 +136,7 @@ class _BarSplitTenderRowsState extends State<BarSplitTenderRows> {
     final amount = double.tryParse(raw) ?? 0;
     final next = [...widget.tenders];
     next[index] = next[index].copyWith(amount: amount);
-    widget.onChanged(
-      barRebalanceTenders(next, widget.total, editedIndex: index),
-    );
+    widget.onChanged(rebalanceSplit(next, widget.total, editedIndex: index));
   }
 
   void _onMethodChanged(int index, String method) {
@@ -148,7 +146,11 @@ class _BarSplitTenderRowsState extends State<BarSplitTenderRows> {
   }
 
   void _add() {
-    final next = barAddTender(widget.tenders, widget.total);
+    final next = addSplitTender(
+      widget.tenders,
+      widget.total,
+      methods: barSettleMethods,
+    );
     if (next != null) widget.onChanged(next);
   }
 
@@ -156,15 +158,15 @@ class _BarSplitTenderRowsState extends State<BarSplitTenderRows> {
   /// rebuilds; disposing it here would pull it from under a mounted field.
   void _remove(int index) {
     FocusScope.of(context).unfocus();
-    widget.onChanged(barRemoveTender(widget.tenders, index, widget.total));
+    widget.onChanged(removeSplitTender(widget.tenders, index, widget.total));
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.flipperL10n;
-    final summary = barSplitSummary(widget.tenders, widget.total);
+    final summary = splitSummary(widget.tenders, widget.total);
     final money = NumberFormat('#,###');
-    final canAdd = barUnusedMethod(widget.tenders) != null;
+    final canAdd = unusedSplitMethod(widget.tenders, barSettleMethods) != null;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,

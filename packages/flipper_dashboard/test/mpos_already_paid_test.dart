@@ -1,6 +1,9 @@
 import 'package:flipper_dashboard/utils/mpos_helpers.dart';
+import 'package:flipper_dashboard/utils/split_tender.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/constants.dart';
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 ITransaction _ticket({bool loan = false, double cashReceived = 0}) =>
@@ -48,5 +51,63 @@ void main() {
       expect(read.isCurrent(first), isFalse);
       expect(read.isCurrent(second), isTrue);
     });
+  });
+
+  group('mposCashChangeAndDue', () {
+    test('exact cash gives no change, even though nothing was typed', () {
+      final r = mposCashChangeAndDue(tender: 1600, outstanding: 1600);
+      expect((r.change, r.due), (null, null));
+    });
+
+    test('change is what was handed over beyond the bill', () {
+      final r = mposCashChangeAndDue(tender: 2000, outstanding: 1600);
+      expect((r.change, r.due), (400.0, null));
+    });
+
+    test('a short tender leaves the rest due', () {
+      final r = mposCashChangeAndDue(tender: 1000, outstanding: 1600);
+      expect((r.change, r.due), (null, 600.0));
+    });
+  });
+
+  group('mposCheckoutTender', () {
+    test('the screenshot case: exact cash pre-filled, field shows 0.00', () {
+      final pay = mposCheckoutTender([
+        Payment(
+          amount: 1600,
+          method: 'CASH',
+          controller: TextEditingController(text: '0.00'),
+        ),
+      ], 1600);
+      expect((pay.change, pay.due, pay.tenderOk), (null, null, true));
+    });
+
+    test('a split decides change, balance due and readiness', () {
+      final ready = mposCheckoutTender([
+        Payment(amount: 1000, method: 'CASH'),
+        Payment(amount: 600, method: 'MOBILE MONEY'),
+      ], 1600);
+      expect((ready.isCash, ready.change, ready.tenderOk), (false, null, true));
+
+      final short = mposCheckoutTender([
+        Payment(amount: 500, method: 'CASH'),
+        Payment(amount: 600, method: 'MOBILE MONEY'),
+      ], 1600);
+      expect((short.due, short.tenderOk), (500.0, false));
+    });
+  });
+
+  test('a split is saved net of change, one line per tender', () {
+    final payments = [
+      Payment(amount: 1500, method: 'CASH'),
+      Payment(amount: 600, method: 'MOBILE MONEY'),
+    ];
+    final split = splitSummary(mposSplitTenders(payments), 1600);
+    final saved = mposSplitSavedLines(payments, split);
+    expect(
+      [for (final p in saved) (p.method, p.amount)],
+      [('CASH', 1000.0), ('MOBILE MONEY', 600.0)],
+    );
+    expect(saved.first.id, payments.first.id);
   });
 }

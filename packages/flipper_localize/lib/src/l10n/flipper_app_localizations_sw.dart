@@ -6668,6 +6668,10 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   }
 
   @override
+  String get mposSplitNonCashOverTotal =>
+      'Pesa taslimu pekee zinaweza kuzidi bili: ndizo pekee zinazotoa chenji.';
+
+  @override
   String get mposTax => 'Kodi';
 
   @override

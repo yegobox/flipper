@@ -6635,6 +6635,10 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
   }
 
   @override
+  String get mposSplitNonCashOverTotal =>
+      'Only cash can be more than the bill: it is the only tender that gives change.';
+
+  @override
   String get mposTax => 'Tax';
 
   @override

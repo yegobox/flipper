@@ -1,6 +1,10 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_services/payment_methods.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_dashboard/theme/pos_tokens.dart';
+import 'package:flipper_dashboard/utils/split_tender.dart';
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:intl/intl.dart';
 
 /// Stable 12-color palette from [design_handoff_mobile_pos/mpos/mpos-data.jsx].
@@ -88,6 +92,104 @@ double mposAlreadyPaid(ITransaction transaction, double? fetchedNonCreditPaid) {
       : 0.0;
   if (fetchedNonCreditPaid == null) return loanFloor;
   return fetchedNonCreditPaid > loanFloor ? fetchedNonCreditPaid : loanFloor;
+}
+
+/// Change and balance still due for a single cash tender, measured against
+/// what was owed **before** this payment ([outstanding]).
+///
+/// Never against the balance left after the tender: that already has the
+/// tender taken off, so change came out as the whole tender (RWF 1,600 change
+/// on an exact 1,600 sale) and a short tender showed no balance due.
+({double? change, double? due}) mposCashChangeAndDue({
+  required double tender,
+  required double outstanding,
+}) {
+  if (tender <= 0) return (change: null, due: null);
+  final diff = tender - outstanding;
+  return (change: diff > 0.01 ? diff : null, due: diff < -0.01 ? -diff : null);
+}
+
+/// Cash handed over on a single cash line: what was typed, or the
+/// pre-filled exact amount when nothing larger was.
+double mposCashTenderAmount(List<Payment> payments) {
+  if (payments.isEmpty) return 0;
+  final p = payments.first;
+  final typed = double.tryParse(p.controller.text) ?? 0.0;
+  return typed > p.amount ? typed : p.amount;
+}
+
+/// What the checkout's payment lines come to against [outstanding] (owed
+/// before this payment): Totals' change and balance due, and whether the
+/// tender lets Charge go ahead.
+///
+/// Several lines mean the cashier split the payment, and the split decides;
+/// one cash line needs the whole bill; any other single tender pays it all.
+({bool isCash, double? change, double? due, bool tenderOk}) mposCheckoutTender(
+  List<Payment> payments,
+  double outstanding,
+) {
+  if (payments.length > 1) {
+    final split = splitSummary(mposSplitTenders(payments), outstanding);
+    return (
+      isCash: false,
+      change: split.change > 0.01 ? split.change : null,
+      due: split.remaining > 0.01 ? split.remaining : null,
+      tenderOk: split.canConfirm,
+    );
+  }
+  final isCash =
+      payments.isNotEmpty && payments.first.method.toUpperCase() == 'CASH';
+  if (!isCash) return (isCash: false, change: null, due: null, tenderOk: true);
+  final tender = mposCashTenderAmount(payments);
+  final r = mposCashChangeAndDue(tender: tender, outstanding: outstanding);
+  return (
+    isCash: true,
+    change: r.change,
+    due: r.due,
+    tenderOk: tender >= outstanding - 0.01,
+  );
+}
+
+/// The split payment lines as tenders for [splitSummary].
+List<SplitTender> mposSplitTenders(List<Payment> payments) => [
+  for (final p in payments) SplitTender(method: p.method, amount: p.amount),
+];
+
+/// A split written back as the lines that get saved: one per tender that
+/// carries money, cash net of change, so the payment rows and the Cash Book
+/// add up to the sale. Each line keeps its row's id, controller and payer.
+List<Payment> mposSplitSavedLines(List<Payment> payments, SplitSummary split) {
+  final byMethod = {for (final p in payments) p.method: p};
+  return [
+    for (final line in split.paymentLines)
+      Payment(
+        amount: line.amount,
+        method: line.method,
+        id: byMethod[line.method]?.id,
+        controller: byMethod[line.method]?.controller,
+        payerName: byMethod[line.method]?.payerName,
+      ),
+  ];
+}
+
+/// The label a mobile checkout shows for one tender.
+String mposTenderLabel(FlipperAppLocalizations l10n, String method) {
+  final m = method.toUpperCase();
+  if (canonicalPaymentMethod(m) == kMobileMoney) return 'MoMo';
+  if (m.contains('CARD')) return l10n.paymentsTypeCard;
+  if (m.contains('BANK')) return l10n.paymentsTypeBank;
+  if (m == 'CREDIT') return l10n.credit;
+  return l10n.cash;
+}
+
+/// "Cash + MoMo" for a split payment, else the one tender's label.
+String mposTendersLabel(FlipperAppLocalizations l10n, List<Payment> payments) {
+  final labels = <String>{
+    for (final p in payments)
+      if (payments.length == 1 || p.amount > 0.01)
+        mposTenderLabel(l10n, p.method),
+  };
+  return labels.isEmpty ? l10n.cash : labels.join(' + ');
 }
 
 /// Which cart has a payment read that mobile checkout may trust for Transfer.

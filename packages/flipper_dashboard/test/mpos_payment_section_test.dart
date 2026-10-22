@@ -162,4 +162,81 @@ void main() {
       'DEBIT&CREDIT CARD',
     );
   });
+
+  group('split payment', () {
+    List<(String, double)> lines(ProviderContainer c) => [
+      for (final p in c.read(paymentMethodsProvider)) (p.method, p.amount),
+    ];
+
+    Finder rowField(int i) => find.descendant(
+      of: find.byKey(ValueKey('mposSplitRow$i')),
+      matching: find.byType(TextField),
+    );
+
+    testWidgets('typing the MoMo part leaves the rest on cash', (tester) async {
+      // Checkout pre-fills cash with the bill, as on the till.
+      final container = await _pump(
+        tester,
+        initialPayments: [Payment(amount: 1500, method: 'CASH')],
+      );
+
+      await tester.tap(find.byKey(const Key('mposSplitPayment')));
+      await tester.pumpAndSettle();
+      expect(lines(container), [('CASH', 1500.0), ('MOBILE MONEY', 0.0)]);
+      // The payer's phone is asked for as soon as MoMo is part of the bill.
+      expect(
+        find.byKey(const Key(MaestroIds.mposPaymentMomoPhone)),
+        findsWidgets,
+      );
+
+      await tester.enterText(rowField(1), '600');
+      await tester.pumpAndSettle();
+      expect(lines(container), [('CASH', 900.0), ('MOBILE MONEY', 600.0)]);
+      expect(find.text('900'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('splitting a MoMo sale puts the bill on cash first', (
+      tester,
+    ) async {
+      final container = await _pump(tester);
+      await tester.tap(find.text('MoMo'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const Key('mposSplitPayment')));
+      await tester.pumpAndSettle();
+      expect(lines(container), [('MOBILE MONEY', 0.0), ('CASH', 1500.0)]);
+    });
+
+    testWidgets('removing a row goes back to the chips', (tester) async {
+      final container = await _pump(tester);
+      await tester.tap(find.byKey(const Key('mposSplitPayment')));
+      await tester.pumpAndSettle();
+      await tester.enterText(rowField(1), '600');
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.close_rounded).last);
+      await tester.pumpAndSettle();
+
+      expect(container.read(paymentMethodsProvider), hasLength(1));
+      expect(
+        find.bySemanticsIdentifier(MaestroIds.mposPaymentCash),
+        findsOneWidget,
+      );
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('a row cannot pick a method another row already uses', (
+      tester,
+    ) async {
+      await _pump(tester);
+      await tester.tap(find.byKey(const Key('mposSplitPayment')));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('MoMo').last);
+      await tester.pumpAndSettle();
+      // The open menu offers MoMo, Bank, Card, Credit, but not Cash.
+      expect(find.text('Cash'), findsOneWidget);
+    });
+  });
 }

@@ -6690,6 +6690,10 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   }
 
   @override
+  String get mposSplitNonCashOverTotal =>
+      'Amafaranga y\'intoki (cash) gusa ni yo ashobora kurenza fagitire: ni yo yonyine asubizwa.';
+
+  @override
   String get mposTax => 'Umusoro';
 
   @override

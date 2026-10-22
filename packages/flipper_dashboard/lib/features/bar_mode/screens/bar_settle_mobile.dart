@@ -36,7 +36,7 @@ class _BarSettleMobileScreenState extends ConsumerState<BarSettleMobileScreen> {
   double _tender = 0;
 
   /// Set while the table is paid several ways; null for a single method.
-  List<BarTender>? _split;
+  List<SplitTender>? _split;
   bool _settling = false;
   HotelStay? _roomStay;
   final _tenderFocus = FocusNode();
@@ -110,28 +110,28 @@ class _BarSettleMobileScreenState extends ConsumerState<BarSettleMobileScreen> {
   }
 
   /// The bill as tenders: the split rows, or the one method picked.
-  List<BarTender> get _tenders =>
-      _split ?? [BarTender(method: _method, amount: _tender)];
+  List<SplitTender> get _tenders =>
+      _split ?? [SplitTender(method: _method, amount: _tender)];
 
   void _startSplit(double total) {
-    final next = barAddTender(_tenders, total);
+    final next = addSplitTender(_tenders, total, methods: barSettleMethods);
     if (next != null) setState(() => _split = next);
   }
 
   /// Removing down to one tender drops back to the single-method view.
-  void _onSplitChanged(List<BarTender> tenders) {
+  void _onSplitChanged(List<SplitTender> tenders) {
     if (tenders.length > 1) {
       setState(() => _split = tenders);
       return;
     }
     final only = tenders.isEmpty
-        ? const BarTender(method: kBarCash)
+        ? const SplitTender(method: kBarCash)
         : tenders.first;
     setState(() {
       _split = null;
       _method = only.method;
     });
-    _setTender(barTenderIsCash(only.method) ? only.amount : 0);
+    _setTender(splitTenderIsCash(only.method) ? only.amount : 0);
   }
 
   void _setTender(double value) {
@@ -172,7 +172,7 @@ class _BarSettleMobileScreenState extends ConsumerState<BarSettleMobileScreen> {
         (isRoomCharge
             ? _roomStay != null
             : _receiptPhoneIsValid() &&
-                  barSplitSummary(_tenders, total).canConfirm);
+                  splitSummary(_tenders, total).canConfirm);
     final buttonLooksEnabled = canConfirm || _settling;
     final openedAt = tab.createdAt ?? DateTime.now();
     final openedTime = MaterialLocalizations.of(
@@ -545,7 +545,7 @@ class _BarSettleMobileScreenState extends ConsumerState<BarSettleMobileScreen> {
     setState(() => _settling = true);
 
     final sync = ProxyService.getStrategy(Strategy.capella);
-    final summary = barSplitSummary(_tenders, total);
+    final summary = splitSummary(_tenders, total);
     final method = summary.primaryMethod;
     final cashReceived = summary.paid;
     final change = summary.change;

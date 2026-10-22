@@ -5,8 +5,9 @@ import 'package:flipper_dashboard/providers/mpos_momo_phone_provider.dart';
 import 'package:flipper_dashboard/theme/mpos_tokens.dart';
 import 'package:flipper_dashboard/theme/pos_tokens.dart';
 import 'package:flipper_dashboard/utils/mpos_helpers.dart';
+import 'package:flipper_dashboard/utils/split_tender.dart';
 import 'package:flipper_dashboard/widgets/mpos/mpos_card.dart';
-import 'package:flipper_models/providers/digital_payment_provider.dart';
+import 'package:flipper_dashboard/widgets/mpos/mpos_split_rows.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
@@ -57,6 +58,14 @@ class _MposPaymentSectionState extends ConsumerState<MposPaymentSection>
   };
 
   void _syncAmountsFromTotal() {
+    final current = ref.read(paymentMethodsProvider);
+    if (current.length > 1) {
+      // A split follows the bill: its last row absorbs the change in total.
+      _applySplit(
+        rebalanceSplit(mposSplitTenders(current), widget.totalPayable),
+      );
+      return;
+    }
     if (_chip.isFullAmount) {
       _setFullAmount();
       return;
@@ -266,6 +275,72 @@ class _MposPaymentSectionState extends ConsumerState<MposPaymentSection>
         );
   }
 
+  /// Chip order doubles as the order split rows pick their next method in.
+  List<String> get _splitMethods => _chipMethods.values.toList();
+
+  /// Turns the single line into a split, or adds one more tender to it.
+  void _addSplitTender() {
+    final payments = ref.read(paymentMethodsProvider);
+    if (payments.isEmpty) return;
+    final next = addSplitTender(
+      mposSplitTenders(payments),
+      widget.totalPayable,
+      methods: _splitMethods,
+    );
+    if (next != null) _applySplit(next);
+  }
+
+  void _onSplitAmountChanged(int index, String raw) {
+    final tenders = mposSplitTenders(ref.read(paymentMethodsProvider));
+    if (index >= tenders.length) return;
+    tenders[index] = tenders[index].copyWith(amount: double.tryParse(raw) ?? 0);
+    _applySplit(
+      rebalanceSplit(tenders, widget.totalPayable, editedIndex: index),
+      editedIndex: index,
+    );
+  }
+
+  void _onSplitMethodChanged(int index, String method) {
+    final tenders = mposSplitTenders(ref.read(paymentMethodsProvider));
+    if (index >= tenders.length) return;
+    tenders[index] = tenders[index].copyWith(method: method);
+    _applySplit(tenders);
+  }
+
+  void _removeSplitTender(int index) {
+    final tenders = mposSplitTenders(ref.read(paymentMethodsProvider));
+    if (index >= tenders.length) return;
+    FocusScope.of(context).unfocus();
+    _applySplit(removeSplitTender(tenders, index, widget.totalPayable));
+  }
+
+  /// Writes [tenders] into [paymentMethodsProvider], keeping each row's id and
+  /// controller. The row being typed into keeps its text so the caret stays.
+  /// Down to one tender, the chips come back on that tender's method.
+  void _applySplit(List<SplitTender> tenders, {int? editedIndex}) {
+    final old = ref.read(paymentMethodsProvider);
+    final next = <Payment>[
+      for (var i = 0; i < tenders.length; i++)
+        Payment(
+          amount: tenders[i].amount,
+          method: tenders[i].method,
+          id: i < old.length ? old[i].id : null,
+          controller: i < old.length ? old[i].controller : null,
+        ),
+    ];
+    for (var i = 0; i < next.length; i++) {
+      if (i == editedIndex) continue;
+      final text = next[i].amount <= 0 ? '' : next[i].amount.round().toString();
+      if (next[i].controller.text != text) next[i].controller.text = text;
+    }
+    ref.read(paymentMethodsProvider.notifier).setPaymentMethods(next);
+    if (next.length == 1) {
+      _userEditedCashAmount = true;
+      _syncChipFromProvider();
+      if (_chip.isFullAmount || _chip == MposPayChip.momo) _setFullAmount();
+    }
+  }
+
   String _fullAmountTitle(BuildContext context) {
     final l10n = context.flipperL10n;
     final amount = mposMoneyLabel(widget.totalPayable);
@@ -288,64 +363,81 @@ class _MposPaymentSectionState extends ConsumerState<MposPaymentSection>
   @override
   Widget build(BuildContext context) {
     final payments = ref.watch(paymentMethodsProvider);
-    final digitalEnabled =
-        ref.watch(isDigitalPaymentEnabledProvider).asData?.value ?? false;
-
     final tender = payments.isNotEmpty
         ? double.tryParse(payments.first.controller.text) ?? 0.0
         : 0.0;
+
+    final isSplit = payments.length > 1;
+    final showMomoPhone = isSplit
+        ? payments.any((p) => canonicalPaymentMethod(p.method) == kMobileMoney)
+        : _chip == MposPayChip.momo;
 
     return MposCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(4, 4, 4, 0),
-            child: Row(
-              children: [
-                _PayChip(
-                  semanticId: MaestroIds.mposPaymentCash,
-                  label: context.flipperL10n.cash,
-                  icon: Icons.payments_outlined,
-                  selected: _chip == MposPayChip.cash,
-                  onTap: () => _selectChip(MposPayChip.cash),
-                ),
-                const SizedBox(width: 6),
-                _PayChip(
-                  semanticId: MaestroIds.mposPaymentMomo,
-                  label: 'MoMo',
-                  icon: Icons.phone_android_rounded,
-                  selected: _chip == MposPayChip.momo,
-                  onTap: () => _selectChip(MposPayChip.momo),
-                ),
-                const SizedBox(width: 6),
-                _PayChip(
-                  semanticId: MaestroIds.mposPaymentBank,
-                  label: context.flipperL10n.paymentsTypeBank,
-                  icon: Icons.account_balance_outlined,
-                  selected: _chip == MposPayChip.bank,
-                  onTap: () => _selectChip(MposPayChip.bank),
-                ),
-                const SizedBox(width: 6),
-                _PayChip(
-                  semanticId: MaestroIds.mposPaymentCard,
-                  label: context.flipperL10n.paymentsTypeCard,
-                  icon: Icons.credit_card_rounded,
-                  selected: _chip == MposPayChip.card,
-                  onTap: () => _selectChip(MposPayChip.card),
-                ),
-                const SizedBox(width: 6),
-                _PayChip(
-                  semanticId: MaestroIds.mposPaymentCredit,
-                  label: context.flipperL10n.credit,
-                  icon: Icons.account_balance_wallet_outlined,
-                  selected: _chip == MposPayChip.credit,
-                  onTap: () => _selectChip(MposPayChip.credit),
-                ),
-              ],
+          if (isSplit)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(14, 12, 14, 4),
+              child: MposSplitRows(
+                payments: payments,
+                total: widget.totalPayable,
+                methods: _splitMethods,
+                labelFor: (m) => mposTenderLabel(context.flipperL10n, m),
+                onAmountChanged: _onSplitAmountChanged,
+                onMethodChanged: _onSplitMethodChanged,
+                onRemove: _removeSplitTender,
+                onAdd: _addSplitTender,
+              ),
+            )
+          else
+            Padding(
+              padding: const EdgeInsets.fromLTRB(4, 4, 4, 0),
+              child: Row(
+                children: [
+                  _PayChip(
+                    semanticId: MaestroIds.mposPaymentCash,
+                    label: context.flipperL10n.cash,
+                    icon: Icons.payments_outlined,
+                    selected: _chip == MposPayChip.cash,
+                    onTap: () => _selectChip(MposPayChip.cash),
+                  ),
+                  const SizedBox(width: 6),
+                  _PayChip(
+                    semanticId: MaestroIds.mposPaymentMomo,
+                    label: 'MoMo',
+                    icon: Icons.phone_android_rounded,
+                    selected: _chip == MposPayChip.momo,
+                    onTap: () => _selectChip(MposPayChip.momo),
+                  ),
+                  const SizedBox(width: 6),
+                  _PayChip(
+                    semanticId: MaestroIds.mposPaymentBank,
+                    label: context.flipperL10n.paymentsTypeBank,
+                    icon: Icons.account_balance_outlined,
+                    selected: _chip == MposPayChip.bank,
+                    onTap: () => _selectChip(MposPayChip.bank),
+                  ),
+                  const SizedBox(width: 6),
+                  _PayChip(
+                    semanticId: MaestroIds.mposPaymentCard,
+                    label: context.flipperL10n.paymentsTypeCard,
+                    icon: Icons.credit_card_rounded,
+                    selected: _chip == MposPayChip.card,
+                    onTap: () => _selectChip(MposPayChip.card),
+                  ),
+                  const SizedBox(width: 6),
+                  _PayChip(
+                    semanticId: MaestroIds.mposPaymentCredit,
+                    label: context.flipperL10n.credit,
+                    icon: Icons.account_balance_wallet_outlined,
+                    selected: _chip == MposPayChip.credit,
+                    onTap: () => _selectChip(MposPayChip.credit),
+                  ),
+                ],
+              ),
             ),
-          ),
-          if (_chip == MposPayChip.momo) ...[
+          if (showMomoPhone) ...[
             Padding(
               padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
               child: Column(
@@ -415,7 +507,7 @@ class _MposPaymentSectionState extends ConsumerState<MposPaymentSection>
               ),
             ),
           ],
-          if (_chip == MposPayChip.cash) ...[
+          if (!isSplit && _chip == MposPayChip.cash) ...[
             Padding(
               padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
               child: Column(
@@ -516,7 +608,7 @@ class _MposPaymentSectionState extends ConsumerState<MposPaymentSection>
                 ],
               ),
             ),
-          ] else if (_chip.isFullAmount) ...[
+          ] else if (!isSplit && _chip.isFullAmount) ...[
             Padding(
               padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
               child: Column(
@@ -540,12 +632,21 @@ class _MposPaymentSectionState extends ConsumerState<MposPaymentSection>
             ),
           ] else
             const SizedBox(height: 8),
-          if (digitalEnabled && payments.length > 1)
+          if (!isSplit && payments.isNotEmpty)
             Padding(
-              padding: const EdgeInsets.fromLTRB(14, 0, 14, 12),
-              child: Text(
-                context.flipperL10n.mposPaymentLinesSplitHint(payments.length),
-                style: const TextStyle(fontSize: 12, color: PosTokens.ink3),
+              padding: const EdgeInsets.fromLTRB(6, 0, 6, 6),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: TextButton.icon(
+                  key: const Key('mposSplitPayment'),
+                  onPressed: _addSplitTender,
+                  icon: const Icon(Icons.call_split_rounded, size: 18),
+                  label: Text(context.flipperL10n.paymentsSplitPayment),
+                  style: TextButton.styleFrom(
+                    foregroundColor: PosTokens.blue,
+                    textStyle: const TextStyle(fontWeight: FontWeight.w700),
+                  ),
+                ),
               ),
             ),
         ],

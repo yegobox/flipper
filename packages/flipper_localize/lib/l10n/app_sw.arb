@@ -3497,6 +3497,7 @@
   "mposCreditAmount": "Kiasi cha mkopo · {amount}",
   "mposCreditExplanation": "Mauzo haya yanarekodiwa kwenye salio la mkopo la mteja. Ambatisha mteja kabla ya kukamilisha.",
   "mposPaymentLinesSplitHint": "Mistari {count} ya malipo · tumia kugawanya katika hali ya kompyuta",
+  "mposSplitNonCashOverTotal": "Pesa taslimu pekee zinaweza kuzidi bili: ndizo pekee zinazotoa chenji.",
   "mposTax": "Kodi",
   "mposTotal": "Jumla",
   "mposAlreadyPaid": "Tayari imelipwa",

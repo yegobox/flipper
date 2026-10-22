@@ -1632,7 +1632,12 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
 
       final uuid = Uuid();
       final paymentId = uuid.v4();
-      final finalPrice = transaction.subTotal!.toInt();
+      // Only the MoMo part of a split sale: the rest was paid another way.
+      final amountPayable = momoRequestAmount(
+        paymentLinesForSaleCompletion(paymentMethods),
+        transaction.subTotal!,
+      );
+      final finalPrice = amountPayable.toInt();
 
       // The row goes in **before** the request, not after.
       //
@@ -1644,7 +1649,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
         'id': paymentId,
         'phone_number': phoneNumber,
         'payment_status': "pending",
-        'amount_payable': transaction.subTotal!,
+        'amount_payable': amountPayable,
         'transaction_id': transaction.id,
       });
 

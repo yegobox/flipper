@@ -11411,6 +11411,12 @@ abstract class FlipperAppLocalizations {
   /// **'{count} payment lines · use split in desktop mode'**
   String mposPaymentLinesSplitHint(int count);
 
+  /// Mobile split payment: MoMo, bank, card or credit add up to more than the bill
+  ///
+  /// In en, this message translates to:
+  /// **'Only cash can be more than the bill: it is the only tender that gives change.'**
+  String get mposSplitNonCashOverTotal;
+
   /// Totals card tax row
   ///
   /// In en, this message translates to:
