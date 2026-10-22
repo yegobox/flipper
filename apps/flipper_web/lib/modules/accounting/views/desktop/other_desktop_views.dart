@@ -1153,6 +1153,7 @@ class AccountingBankRecView extends ConsumerWidget {
                     bank: smsTotal.balance,
                     books: bankBal,
                     lines: lines,
+                    asOf: smsTotal.observedAt,
                   ),
                   alert: alert,
                   onPostAdjustment: (amount) =>

@@ -230,34 +230,31 @@ class SupabaseAccountingLedgerRepository implements AccountingLedgerRepository {
       journalId = j?['id']?.toString();
     }
 
-    final rowId = entryId == null
-        ? null
-        : journalEntryRowId(businessId: businessId, entryId: entryId);
+    if (entryId != null) {
+      return _createKeyedJournalEntry(
+        businessId: businessId,
+        entry: entry,
+        rowId: journalEntryRowId(businessId: businessId, entryId: entryId),
+        transactionId: transactionId,
+        journalId: journalId,
+      );
+    }
+
     final header = _forPostgrest(
       LedgerRowMapper.entryToRow(
         businessId: businessId,
         entry: entry,
-        id: rowId,
         transactionId: transactionId,
         journalId: journalId,
       ),
     );
 
-    final String id;
-    if (rowId == null) {
-      final inserted = await _client
-          .from(_entriesTable)
-          .insert(header)
-          .select('id')
-          .single();
-      id = inserted['id'].toString();
-    } else {
-      // Keyed create: a retry after a partial failure (header written, lines
-      // not) lands on the same row and rewrites its lines, never a second entry.
-      await _client.from(_entriesTable).upsert(header);
-      await _client.from(_linesTable).delete().eq('journal_entry_id', rowId);
-      id = rowId;
-    }
+    final inserted = await _client
+        .from(_entriesTable)
+        .insert(header)
+        .select('id')
+        .single();
+    final id = inserted['id'].toString();
 
     final lineRows = entry.lines
         .map(
@@ -272,6 +269,79 @@ class SupabaseAccountingLedgerRepository implements AccountingLedgerRepository {
     }
 
     return id;
+  }
+
+  /// Keyed create, safe to retry and to overlap without a server transaction:
+  ///
+  /// 1. An entry already posted under [rowId] is returned untouched.
+  /// 2. The header is written unposted, so a failure before step 4 leaves an
+  ///    entry that no balance counts, never a posted entry missing lines.
+  /// 3. Lines carry ids derived from [rowId] and their index: they are
+  ///    upserted, then only this entry's lines outside that set are removed.
+  ///    Two attempts write the same rows, so lines never duplicate.
+  /// 4. Only then is the requested status set; `posted` is the last write, and
+  ///    the database's balance trigger checks the lines at that moment.
+  Future<String> _createKeyedJournalEntry({
+    required String businessId,
+    required JournalEntry entry,
+    required String rowId,
+    String? transactionId,
+    String? journalId,
+  }) async {
+    final existing = await _client
+        .from(_entriesTable)
+        .select('id, status')
+        .eq('business_id', businessId)
+        .eq('id', rowId)
+        .maybeSingle();
+    if (existing?['status'] == 'posted') return rowId;
+
+    final status = LedgerRowMapper.statusToDb(entry.status);
+    final header = _forPostgrest(
+      LedgerRowMapper.entryToRow(
+        businessId: businessId,
+        entry: entry,
+        id: rowId,
+        transactionId: transactionId,
+        journalId: journalId,
+      ),
+    );
+    if (status == 'posted') {
+      header['status'] = LedgerRowMapper.statusToDb(JournalStatus.draft);
+    }
+    await _client.from(_entriesTable).upsert(header);
+
+    final lineIds = [
+      for (var i = 0; i < entry.lines.length; i++)
+        const Uuid().v5(Namespace.url.value, 'flipper:journal-line:$rowId:$i'),
+    ];
+    if (lineIds.isNotEmpty) {
+      await _client.from(_linesTable).upsert([
+        for (var i = 0; i < entry.lines.length; i++)
+          _forPostgrest(
+            LedgerRowMapper.lineToRow(
+              journalEntryId: rowId,
+              line: entry.lines[i],
+              id: lineIds[i],
+            ),
+          ),
+      ]);
+    }
+    var stale = _client
+        .from(_linesTable)
+        .delete()
+        .eq('journal_entry_id', rowId);
+    if (lineIds.isNotEmpty) stale = stale.not('id', 'in', lineIds);
+    await stale;
+
+    if (status == 'posted') {
+      await _client
+          .from(_entriesTable)
+          .update({'status': status})
+          .eq('id', rowId)
+          .eq('business_id', businessId);
+    }
+    return rowId;
   }
 
   @override

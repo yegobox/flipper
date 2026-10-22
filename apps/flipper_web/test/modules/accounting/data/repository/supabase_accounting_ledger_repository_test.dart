@@ -527,46 +527,176 @@ void main() {
       expect(server.callsTo('POST', 'journal_lines'), isEmpty);
     });
 
-    test(
-      'a keyed entry upserts one row, so a retry rewrites it, not a second',
-      () async {
-        const key = 'je_bankrec_bal_1020_1760000000000';
-        final rowId = journalEntryRowId(businessId: 'biz', entryId: key);
+    group('keyed entries', () {
+      const key = 'je_bankrec_bal_1020_1760000000000';
+      late String rowId;
+      const posted = JournalEntry(
+        id: 'BAL-1020-1760000000000',
+        date: '2026-10-05',
+        memo: 'Owner added money · Balance per bank SMS',
+        ref: 'BAL-1020-1760000000000',
+        status: JournalStatus.posted,
+        src: 'Bank rec',
+        lines: [
+          JournalLine(ac: '1020', dr: 12000),
+          JournalLine(ac: '3010', cr: 12000),
+        ],
+      );
+
+      setUp(() => rowId = journalEntryRowId(businessId: 'biz', entryId: key));
+
+      List<String> lineIdsOf(_Call call) => [
+        for (final l in call.body! as List) (l as Map)['id'] as String,
+      ];
+
+      test('the key is a stable UUID per business', () {
         expect(Uuid.isValidUUID(fromString: rowId), isTrue);
+        expect(journalEntryRowId(businessId: 'biz', entryId: key), rowId);
         // Scoped to the business: the same SMS key elsewhere is another row.
         expect(
           journalEntryRowId(businessId: 'other', entryId: key),
           isNot(rowId),
         );
+      });
 
-        // The first attempt, then a retry after it failed half way.
-        for (var attempt = 0; attempt < 2; attempt++) {
+      test(
+        'written unposted, lines upserted under stable ids, posted last',
+        () async {
+          // The first attempt, then a retry of the same key.
+          for (var attempt = 0; attempt < 2; attempt++) {
+            final id = await repo.createJournalEntry(
+              businessId: 'biz',
+              entry: posted,
+              entryId: key,
+            );
+            expect(id, rowId);
+          }
+
+          final lookup = server.callsTo('GET', 'journal_entries').first;
+          expect(lookup.param('id'), 'eq.$rowId');
+          expect(lookup.param('business_id'), 'eq.biz');
+
+          final headers = server.callsTo('POST', 'journal_entries');
+          expect(headers, hasLength(2));
+          for (final h in headers) {
+            expect((h.body! as Map)['id'], rowId);
+            expect((h.body! as Map)['status'], 'draft');
+            expect(h.request.headers['Prefer'], contains('merge-duplicates'));
+          }
+
+          final lineWrites = server.callsTo('POST', 'journal_lines');
+          expect(lineWrites, hasLength(2));
+          final ids = lineIdsOf(lineWrites.first);
+          expect(ids.toSet(), hasLength(2));
+          expect(lineIdsOf(lineWrites.last), ids, reason: 'retry converges');
+          expect(
+            lineWrites.first.request.headers['Prefer'],
+            contains('merge-duplicates'),
+          );
+          for (final l in lineWrites.first.body! as List) {
+            expect((l as Map)['journal_entry_id'], rowId);
+          }
+
+          // Only this entry's lines outside the new set are removed.
+          final delete = server.callsTo('DELETE', 'journal_lines').first;
+          expect(delete.param('journal_entry_id'), 'eq.$rowId');
+          final notIn = delete.param('id')!;
+          expect(notIn, startsWith('not.in.'));
+          expect(_inIds(notIn.substring('not.'.length)), ids);
+
+          // Posting is the last write of each attempt.
+          final post = server.callsTo('PATCH', 'journal_entries');
+          expect(post, hasLength(2));
+          expect(post.first.body, {'status': 'posted'});
+          expect(post.first.param('id'), 'eq.$rowId');
+          expect(server.calls.last, post.last);
+        },
+      );
+
+      test(
+        'a failed line write leaves it unposted; a retry completes it',
+        () async {
+          var failLines = true;
+          server.on('POST', 'journal_lines', (call) {
+            if (!failLines) return null;
+            return http.Response(
+              jsonEncode({'code': '08006', 'message': 'connection lost'}),
+              503,
+              request: call.request,
+            );
+          });
+
+          await expectLater(
+            repo.createJournalEntry(
+              businessId: 'biz',
+              entry: posted,
+              entryId: key,
+            ),
+            throwsA(anything),
+          );
+          final header =
+              server.callsTo('POST', 'journal_entries').single.body! as Map;
+          expect(header['status'], 'draft');
+          expect(server.callsTo('PATCH', 'journal_entries'), isEmpty);
+
+          failLines = false;
           final id = await repo.createJournalEntry(
             businessId: 'biz',
-            entry: entry,
+            entry: posted,
             entryId: key,
           );
           expect(id, rowId);
-        }
+          expect(server.callsTo('PATCH', 'journal_entries').single.body, {
+            'status': 'posted',
+          });
+        },
+      );
 
-        final headers = server.callsTo('POST', 'journal_entries');
-        expect(headers, hasLength(2));
-        for (final h in headers) {
-          expect((h.body! as Map)['id'], rowId);
-          expect(h.request.headers['Prefer'], contains('merge-duplicates'));
-        }
-        final deletes = server.callsTo('DELETE', 'journal_lines');
-        expect(deletes.map((d) => d.param('journal_entry_id')), [
-          'eq.$rowId',
-          'eq.$rowId',
-        ]);
-        final lines = server.callsTo('POST', 'journal_lines').last.body!;
-        expect((lines as List).map((l) => (l as Map)['journal_entry_id']), [
-          rowId,
-          rowId,
-        ]);
-      },
-    );
+      test('a posted entry is returned untouched on retry', () async {
+        server.on(
+          'GET',
+          'journal_entries',
+          (_) => [
+            {'id': rowId, 'status': 'posted'},
+          ],
+        );
+
+        final id = await repo.createJournalEntry(
+          businessId: 'biz',
+          entry: entry,
+          entryId: key,
+        );
+
+        expect(id, rowId);
+        expect(server.calls.where((c) => c.method != 'GET'), isEmpty);
+      });
+
+      test('an unposted entry keeps its status and drops old lines', () async {
+        final id = await repo.createJournalEntry(
+          businessId: 'biz',
+          entry: const JournalEntry(
+            id: 'JE-1',
+            date: '2026-10-05',
+            memo: '',
+            ref: '',
+            status: JournalStatus.pending,
+            src: 'Manual',
+            lines: [],
+          ),
+          entryId: key,
+        );
+
+        expect(id, rowId);
+        final header =
+            server.callsTo('POST', 'journal_entries').single.body! as Map;
+        expect(header['status'], 'pending');
+        expect(server.callsTo('POST', 'journal_lines'), isEmpty);
+        final delete = server.callsTo('DELETE', 'journal_lines').single;
+        expect(delete.param('journal_entry_id'), 'eq.$rowId');
+        expect(delete.param('id'), isNull);
+        expect(server.callsTo('PATCH', 'journal_entries'), isEmpty);
+      });
+    });
 
     test('a key that is already a UUID is the row id as is', () {
       const uuid = '3f2504e0-4f89-41d3-9a0c-0305e82c3301';
