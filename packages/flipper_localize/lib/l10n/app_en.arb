@@ -17273,6 +17273,44 @@
     },
     "booksStatementBalance": "Statement balance",
     "booksFromImportedStatement": "from imported statement",
+    "booksFromBankSms": "from bank SMS · {time}",
+    "@booksFromBankSms": {
+        "placeholders": {
+            "time": {
+                "type": "String"
+            }
+        }
+    },
+    "booksSmsBalanceCheck": "Bank SMS balance check",
+    "booksSmsBalanceSubtitle": "The latest balance your bank stated by SMS, as of {time}. Only owners and admins see this.",
+    "@booksSmsBalanceSubtitle": {
+        "placeholders": {
+            "time": {
+                "type": "String"
+            }
+        }
+    },
+    "booksSmsBalanceBank": "Bank says (SMS)",
+    "booksSmsBalanceBooks": "Books says",
+    "booksSmsBalanceDifference": "Difference",
+    "booksSmsBalancePending": "{count, plural, =1{1 SMS line not matched yet} other{{count} SMS lines not matched yet}}: {amount}",
+    "@booksSmsBalancePending": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            },
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
+    "booksSmsBalanceUnexplained": "Unexplained difference",
+    "booksSmsBalanceAgrees": "Books agree with your bank.",
+    "booksSmsBalanceStale": "No bank SMS for over 7 days: this balance may be out of date.",
+    "booksSmsBalancePostAdjustment": "Post adjustment",
+    "booksSmsBalanceAlertLabel": "Email me when it drops below",
+    "booksSmsBalanceAlertSaved": "Alert level saved",
+    "booksSmsBalanceAlertFailed": "Could not save the alert level",
     "booksMatched": "Matched",
     "booksNoLinesYet": "no lines yet",
     "booksOfTotal": "of {total}",

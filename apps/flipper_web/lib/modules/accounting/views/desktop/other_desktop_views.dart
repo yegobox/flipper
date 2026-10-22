@@ -6,6 +6,7 @@ import 'package:flipper_web/modules/accounting/data/bank_rec_matching.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_derive.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_models.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_providers.dart';
+import 'package:flipper_web/modules/accounting/data/services/bank_balance_service.dart';
 import 'package:flipper_web/modules/accounting/routing/accounting_route.dart';
 import 'package:flipper_web/modules/accounting/theme/accounting_tokens.dart';
 import 'package:flipper_web/modules/accounting/widgets/account_type_pill.dart';
@@ -15,11 +16,13 @@ import 'package:flipper_web/modules/accounting/widgets/accounting_page_header.da
 import 'package:flipper_web/modules/accounting/widgets/accounting_tag.dart';
 import 'package:flipper_web/modules/accounting/widgets/accounting_toast.dart';
 import 'package:flipper_web/modules/accounting/widgets/money_accounts_breakdown.dart';
+import 'package:flipper_web/modules/accounting/widgets/sms_balance_check_card.dart';
 import 'package:flipper_web/modules/accounting/widgets/create_account_modal.dart';
 import 'package:flipper_web/modules/accounting/widgets/status_pill.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 
 class AccountingGeneralLedgerView extends ConsumerWidget {
@@ -715,6 +718,116 @@ Future<void> _categorizeBankLine(
   }
 }
 
+/// Closes the gap between the bank's SMS balance and Books with one entry,
+/// categorized in plain language like an unmatched bank line. Keyed on the
+/// account and the balance's time, so a retry converges on the same entry.
+Future<void> _postSmsBalanceAdjustment(
+  BuildContext context,
+  WidgetRef ref,
+  int amount,
+  SmsBalanceTotal total,
+) async {
+  final bank = ref.read(bankRecAccountCodeProvider);
+  final line = BankLine(
+    date: DateFormat('MMM d', 'en_US').format(total.observedAt),
+    // Ledger data shared by every user: English, like the category memo.
+    desc: 'Balance per bank SMS',
+    amt: amount,
+    matched: false,
+  );
+  final categoryIndex = await showDialog<int>(
+    context: context,
+    builder: (context) => _BankLineCategoryDialog(line: line),
+  );
+  if (categoryIndex == null || !context.mounted) return;
+  final category = _bankLineCategories(
+    context.flipperL10n,
+    moneyIn: amount >= 0,
+  )[categoryIndex];
+  final memoLabel = _bankLineCategories(
+    lookupFlipperAppLocalizations(const Locale('en')),
+    moneyIn: amount >= 0,
+  )[categoryIndex].label;
+
+  final businessId = ref.read(accountingBusinessIdProvider);
+  if (businessId.isEmpty) return;
+  final stamp = total.observedAt.toUtc().millisecondsSinceEpoch;
+  final refText = 'BAL-$bank-$stamp';
+  final entry = JournalEntry(
+    id: refText,
+    date: line.date,
+    memo: '$memoLabel · ${line.desc}',
+    ref: refText,
+    status: JournalStatus.posted,
+    src: 'Bank rec',
+    lines: _bankAdjustmentLines(line, category.accountCode, bank: bank),
+  );
+  try {
+    final ledger = ref.read(accountingLedgerRepositoryProvider);
+    final entryId = await ledger.createJournalEntry(
+      businessId: businessId,
+      entry: entry,
+      journalCode: 'misc',
+      entryId: 'je_bankrec_bal_${bank}_$stamp',
+    );
+    await ledger.postJournalEntry(businessId: businessId, entryId: entryId);
+    ref.invalidate(journalEntriesStreamProvider);
+    ref.invalidate(journalEntriesThroughPeriodEndProvider);
+    if (!context.mounted) return;
+    showAccountingToast(
+      context,
+      context.flipperL10n.booksEntryCreatedMatched,
+      subtitle: context.flipperL10n.booksEntryCreatedMatchedDetail(
+        money(amount.abs()),
+        category.label,
+        refText,
+      ),
+      icon: Icons.check,
+      tone: AccountingToastTone.success,
+    );
+  } catch (e) {
+    if (!context.mounted) return;
+    showAccountingToast(
+      context,
+      context.flipperL10n.booksCouldNotCreateEntry,
+      subtitle: '$e',
+      icon: Icons.error_outline,
+      tone: AccountingToastTone.warn,
+    );
+  }
+}
+
+Future<void> _saveSmsBalanceAlert(
+  BuildContext context,
+  WidgetRef ref,
+  String bankAccountCode,
+  int threshold,
+) async {
+  final l10n = context.flipperL10n;
+  try {
+    await ref
+        .read(bankBalanceServiceProvider)
+        .setAlert(bankAccountCode: bankAccountCode, threshold: threshold);
+    ref.invalidate(smsBalanceAlertsProvider);
+    if (!context.mounted) return;
+    showAccountingToast(
+      context,
+      l10n.booksSmsBalanceAlertSaved,
+      icon: Icons.notifications_active_outlined,
+      tone: AccountingToastTone.success,
+    );
+  } catch (e) {
+    if (!context.mounted) return;
+    showAccountingToast(
+      context,
+      l10n.booksSmsBalanceAlertFailed,
+      subtitle: '$e',
+      icon: Icons.error_outline,
+      tone: AccountingToastTone.warn,
+    );
+  }
+}
+
 class _BankLineCategoryDialog extends StatelessWidget {
   const _BankLineCategoryDialog({required this.line});
 
@@ -893,8 +1006,14 @@ class AccountingBankRecView extends ConsumerWidget {
     final bankBal = accounts
         .where((a) => a.code == accountCode)
         .fold<int>(0, (s, a) => s + a.bal);
-    // Prefer the imported statement's closing balance; fall back to the GL.
-    final statementBalance = meta?.closingBalance?.round() ?? bankBal;
+    // Owner/Admin only: null for anyone else, and the check stays hidden.
+    final smsBalances = ref.watch(smsBankBalancesProvider).value;
+    final smsTotal = smsBalances?.totalFor(accountCode);
+    // Prefer the imported statement's closing balance, then the balance the
+    // bank last stated by SMS; fall back to the GL.
+    // The footnote below keys off the same value, so it names the real source.
+    final importedClosing = meta?.closingBalance?.round();
+    final statementBalance = importedClosing ?? smsTotal?.balance ?? bankBal;
     // Fall back to the chart-of-accounts name for the bank account (1020),
     // then a neutral label — never a hardcoded bank brand.
     final bankAccounts = accounts.where((a) => a.code == accountCode);
@@ -993,7 +1112,11 @@ class AccountingBankRecView extends ConsumerWidget {
                 value: statementBalance,
                 icon: AccIcon.wallet,
                 tone: KpiTone.blue,
-                footnote: meta != null ? l10n.booksFromImportedStatement : null,
+                footnote: importedClosing != null
+                    ? l10n.booksFromImportedStatement
+                    : smsTotal != null
+                    ? l10n.booksFromBankSms(smsBalanceTime(smsTotal.observedAt))
+                    : null,
               ),
               AccountingKpiCard(
                 label: l10n.booksMatched,
@@ -1014,6 +1137,37 @@ class AccountingBankRecView extends ConsumerWidget {
               ),
             ],
           ),
+          if (smsTotal != null) ...[
+            const SizedBox(height: 16),
+            Builder(
+              builder: (context) {
+                final alert = ref
+                    .watch(smsBalanceAlertsProvider)
+                    .value?[accountCode];
+                return SmsBalanceCheckCard(
+                  // Rebuilt when the saved level arrives, so the field shows it.
+                  key: ValueKey('sms-balance-$accountCode-${alert?.threshold}'),
+                  total: smsTotal,
+                  accounts: smsBalances!.accountsFor(accountCode),
+                  check: SmsBalanceCheck(
+                    bank: smsTotal.balance,
+                    books: bankBal,
+                    lines: lines,
+                    asOf: smsTotal.observedAt,
+                  ),
+                  alert: alert,
+                  onPostAdjustment: (amount) =>
+                      _postSmsBalanceAdjustment(context, ref, amount, smsTotal),
+                  onSaveAlert: (threshold) => _saveSmsBalanceAlert(
+                    context,
+                    ref,
+                    accountCode,
+                    threshold,
+                  ),
+                );
+              },
+            ),
+          ],
           const SizedBox(height: 16),
           AccountingCard(
             child: Column(

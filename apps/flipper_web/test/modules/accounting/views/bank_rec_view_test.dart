@@ -5,6 +5,7 @@ import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_models.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_providers.dart';
 import 'package:flipper_web/modules/accounting/data/default_chart_of_accounts_seed.dart';
+import 'package:flipper_web/modules/accounting/data/services/bank_balance_service.dart';
 import 'package:flipper_web/modules/accounting/data/services/bank_statement_service.dart';
 import 'package:flipper_web/modules/accounting/views/desktop/other_desktop_views.dart';
 import 'package:flutter/material.dart';
@@ -39,6 +40,20 @@ class _FakePicker extends FilePicker {
   ]);
 }
 
+/// A ledger whose writes fail.
+class _FailingLedger extends _Ledger {
+  _FailingLedger(super.linesByAccount);
+
+  @override
+  Future<String> createJournalEntry({
+    required String businessId,
+    required JournalEntry entry,
+    String? transactionId,
+    String? journalCode,
+    String? entryId,
+  }) async => throw StateError('ledger down');
+}
+
 class _FakeStatements extends BankStatementService {
   _FakeStatements(this.statement);
 
@@ -46,6 +61,37 @@ class _FakeStatements extends BankStatementService {
 
   @override
   Future<ParsedStatement> parse(Uint8List pdfBytes) async => statement;
+}
+
+/// Bank SMS balances as the data-connector serves them to an owner, or (with
+/// `balances: null`) to a user who may not see them.
+class _FakeBalances extends BankBalanceService {
+  _FakeBalances(
+    this._balances, {
+    this.alertLevels = const {},
+    this.failSave = false,
+  });
+
+  final SmsBalances? _balances;
+  final Map<String, SmsBalanceAlert> alertLevels;
+  final bool failSave;
+  final saved = <(String, int)>[];
+
+  @override
+  Future<SmsBalances?> balances() async => _balances;
+
+  @override
+  Future<Map<String, SmsBalanceAlert>> alerts() async => alertLevels;
+
+  @override
+  Future<void> setAlert({
+    required String bankAccountCode,
+    required int threshold,
+    bool enabled = true,
+  }) async {
+    if (failSave) throw BankBalanceException('down');
+    saved.add((bankAccountCode, threshold));
+  }
 }
 
 typedef _Upsert = ({
@@ -113,6 +159,7 @@ Future<void> _pump(
   WidgetTester tester,
   _Ledger ledger, {
   ParsedStatement statement = const ParsedStatement(),
+  BankBalanceService? balances,
 }) async {
   tester.view.physicalSize = const Size(1400, 2400);
   tester.view.devicePixelRatio = 1.0;
@@ -132,6 +179,8 @@ Future<void> _pump(
         bankStatementServiceProvider.overrideWithValue(
           _FakeStatements(statement),
         ),
+        if (balances != null)
+          bankBalanceServiceProvider.overrideWithValue(balances),
       ],
       child: MaterialApp(
         localizationsDelegates: FlipperLocalizationDelegates.delegates,
@@ -272,5 +321,192 @@ void main() {
     // A line without a stored id is keyed the way the import keys it.
     expect(upsert.id, isNotNull);
     expect(upsert.matchedEntry, entry.uuid);
+  });
+
+  group('bank SMS balance check', () {
+    final asOf = DateTime(2026, 10, 22, 18, 11);
+    SmsBalances owner({bool stale = false, bool twoAccounts = false}) =>
+        SmsBalances(
+          accounts: [
+            SmsAccountBalance(
+              bankAccountCode: '1020',
+              providerLabel: 'BK',
+              ownAccount: '****0042',
+              balance: twoAccounts ? 6000 : 10000,
+              observedAt: asOf,
+              stale: stale,
+            ),
+            if (twoAccounts)
+              SmsAccountBalance(
+                bankAccountCode: '1020',
+                providerLabel: 'Equity',
+                balance: 4000,
+                observedAt: asOf,
+              ),
+          ],
+          totals: [
+            SmsBalanceTotal(
+              bankAccountCode: '1020',
+              balance: 10000,
+              observedAt: asOf,
+              stale: stale,
+            ),
+          ],
+        );
+
+    testWidgets('the bank\'s balance is set against Books and the gap closed', (
+      tester,
+    ) async {
+      final ledger = _Ledger({
+        '1020': [_bankSms],
+      });
+      await _pump(tester, ledger, balances: _FakeBalances(owner()));
+
+      expect(find.text('Bank SMS balance check'), findsOneWidget);
+      expect(find.text('from bank SMS · 22 Oct, 18:11'), findsOneWidget);
+      // Books holds nothing yet; the unmatched SMS line (−2,000) explains
+      // part of the 10,000 gap, the rest is unexplained.
+      expect(find.text('1 SMS line not matched yet: (2,000)'), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('sms-balance-unexplained')),
+          matching: find.text('12,000'),
+        ),
+        findsOneWidget,
+      );
+      expect(find.byKey(const Key('sms-balance-stale')), findsNothing);
+
+      await tester.tap(find.byKey(const Key('sms-balance-adjust')));
+      await _settle(tester);
+      await tester.tap(find.text('Owner added money'));
+      await _settle(tester);
+
+      final entry = ledger.entries.single;
+      expect(
+        [for (final l in entry.lines) (l.ac, l.dr, l.cr)],
+        [('1020', 12000, 0), ('3010', 0, 12000)],
+      );
+      expect(entry.uuid, startsWith('je_bankrec_bal_1020_'));
+      expect(entry.memo, 'Owner added money · Balance per bank SMS');
+      expect(find.text('Entry created & matched'), findsOneWidget);
+    });
+
+    testWidgets('a statement without a closing balance credits the SMS', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        _Ledger({'1020': const []}),
+        balances: _FakeBalances(owner()),
+        statement: const ParsedStatement(
+          bankName: 'BK',
+          lines: [
+            ParsedStatementLine(
+              date: '2026-10-14',
+              description: 'TRANSFER JANE',
+              debit: 2000,
+            ),
+          ],
+        ),
+      );
+      await tester.tap(find.text('Import statement'));
+      await _settle(tester);
+
+      // The KPI shows the SMS balance, so its footnote must say so too.
+      expect(find.text('from bank SMS · 22 Oct, 18:11'), findsOneWidget);
+      expect(find.text('from imported statement'), findsNothing);
+    });
+
+    testWidgets('a statement with a closing balance names the statement', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        _Ledger({'1020': const []}),
+        balances: _FakeBalances(owner()),
+        statement: const ParsedStatement(
+          bankName: 'BK',
+          closingBalance: 15000,
+          lines: [
+            ParsedStatementLine(
+              date: '2026-10-14',
+              description: 'TRANSFER JANE',
+              debit: 2000,
+            ),
+          ],
+        ),
+      );
+      await tester.tap(find.text('Import statement'));
+      await _settle(tester);
+      expect(find.text('from imported statement'), findsOneWidget);
+      expect(find.text('from bank SMS · 22 Oct, 18:11'), findsNothing);
+    });
+
+    testWidgets('a cancelled or failed adjustment posts nothing', (
+      tester,
+    ) async {
+      final ledger = _FailingLedger({'1020': const []});
+      await _pump(tester, ledger, balances: _FakeBalances(owner()));
+      await tester.tap(find.byKey(const Key('sms-balance-adjust')));
+      await _settle(tester);
+      await tester.tap(find.text('Cancel'));
+      await _settle(tester);
+      expect(ledger.entries, isEmpty);
+
+      await tester.tap(find.byKey(const Key('sms-balance-adjust')));
+      await _settle(tester);
+      await tester.tap(find.text('Owner added money'));
+      await _settle(tester);
+      expect(find.text('Could not create entry'), findsOneWidget);
+    });
+
+    testWidgets('alert levels are saved, and failures are said', (
+      tester,
+    ) async {
+      final service = _FakeBalances(
+        owner(stale: true, twoAccounts: true),
+        alertLevels: const {
+          '1020': SmsBalanceAlert(bankAccountCode: '1020', threshold: 3000),
+        },
+      );
+      await _pump(tester, _Ledger({'1020': const []}), balances: service);
+
+      // Every account under the code, and a warning when it has gone quiet.
+      expect(find.textContaining('BK ****0042 · 6,000'), findsOneWidget);
+      expect(find.textContaining('Equity · 4,000'), findsOneWidget);
+      expect(find.byKey(const Key('sms-balance-stale')), findsOneWidget);
+      expect(find.text('3000'), findsOneWidget);
+
+      await tester.enterText(
+        find.byKey(const Key('sms-balance-alert-field')),
+        '5000',
+      );
+      await tester.tap(find.byKey(const Key('sms-balance-alert-save')));
+      await _settle(tester);
+      expect(service.saved, [('1020', 5000)]);
+      expect(find.text('Alert level saved'), findsOneWidget);
+
+      final failing = _FakeBalances(owner(), failSave: true);
+      await _pump(tester, _Ledger({'1020': const []}), balances: failing);
+      await tester.enterText(
+        find.byKey(const Key('sms-balance-alert-field')),
+        '5000',
+      );
+      await tester.tap(find.byKey(const Key('sms-balance-alert-save')));
+      await _settle(tester);
+      expect(find.text('Could not save the alert level'), findsOneWidget);
+    });
+
+    testWidgets('a user who may not see balances gets no check', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        _Ledger({'1020': const []}),
+        balances: _FakeBalances(null),
+      );
+      expect(find.text('Bank SMS balance check'), findsNothing);
+      expect(find.textContaining('from bank SMS'), findsNothing);
+    });
   });
 }

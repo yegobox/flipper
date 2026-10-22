@@ -22222,6 +22222,63 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   String get booksFromImportedStatement => 'kutoka taarifa iliyoingizwa';
 
   @override
+  String booksFromBankSms(String time) {
+    return 'kutoka SMS ya benki · $time';
+  }
+
+  @override
+  String get booksSmsBalanceCheck => 'Ukaguzi wa salio kwa SMS za benki';
+
+  @override
+  String booksSmsBalanceSubtitle(String time) {
+    return 'Salio la mwisho benki yako ilitaja kwa SMS, hadi $time. Ni wamiliki na wasimamizi pekee wanaoliona.';
+  }
+
+  @override
+  String get booksSmsBalanceBank => 'Benki inasema (SMS)';
+
+  @override
+  String get booksSmsBalanceBooks => 'Books inasema';
+
+  @override
+  String get booksSmsBalanceDifference => 'Tofauti';
+
+  @override
+  String booksSmsBalancePending(int count, String amount) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Mistari $count ya SMS bado haijalinganishwa',
+      one: 'Mstari 1 wa SMS bado haujalinganishwa',
+    );
+    return '$_temp0: $amount';
+  }
+
+  @override
+  String get booksSmsBalanceUnexplained => 'Tofauti isiyoelezwa';
+
+  @override
+  String get booksSmsBalanceAgrees => 'Books inakubaliana na benki yako.';
+
+  @override
+  String get booksSmsBalanceStale =>
+      'Hakuna SMS ya benki kwa zaidi ya siku 7: salio hili huenda limepitwa na wakati.';
+
+  @override
+  String get booksSmsBalancePostAdjustment => 'Weka marekebisho';
+
+  @override
+  String get booksSmsBalanceAlertLabel =>
+      'Nitumie barua pepe likishuka chini ya';
+
+  @override
+  String get booksSmsBalanceAlertSaved => 'Kiwango cha tahadhari kimehifadhiwa';
+
+  @override
+  String get booksSmsBalanceAlertFailed =>
+      'Imeshindwa kuhifadhi kiwango cha tahadhari';
+
+  @override
   String get booksMatched => 'Zimelinganishwa';
 
   @override

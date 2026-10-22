@@ -22070,6 +22070,61 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
   String get booksFromImportedStatement => 'from imported statement';
 
   @override
+  String booksFromBankSms(String time) {
+    return 'from bank SMS · $time';
+  }
+
+  @override
+  String get booksSmsBalanceCheck => 'Bank SMS balance check';
+
+  @override
+  String booksSmsBalanceSubtitle(String time) {
+    return 'The latest balance your bank stated by SMS, as of $time. Only owners and admins see this.';
+  }
+
+  @override
+  String get booksSmsBalanceBank => 'Bank says (SMS)';
+
+  @override
+  String get booksSmsBalanceBooks => 'Books says';
+
+  @override
+  String get booksSmsBalanceDifference => 'Difference';
+
+  @override
+  String booksSmsBalancePending(int count, String amount) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count SMS lines not matched yet',
+      one: '1 SMS line not matched yet',
+    );
+    return '$_temp0: $amount';
+  }
+
+  @override
+  String get booksSmsBalanceUnexplained => 'Unexplained difference';
+
+  @override
+  String get booksSmsBalanceAgrees => 'Books agree with your bank.';
+
+  @override
+  String get booksSmsBalanceStale =>
+      'No bank SMS for over 7 days: this balance may be out of date.';
+
+  @override
+  String get booksSmsBalancePostAdjustment => 'Post adjustment';
+
+  @override
+  String get booksSmsBalanceAlertLabel => 'Email me when it drops below';
+
+  @override
+  String get booksSmsBalanceAlertSaved => 'Alert level saved';
+
+  @override
+  String get booksSmsBalanceAlertFailed => 'Could not save the alert level';
+
+  @override
   String get booksMatched => 'Matched';
 
   @override

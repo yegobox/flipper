@@ -36791,6 +36791,90 @@ abstract class FlipperAppLocalizations {
   /// **'from imported statement'**
   String get booksFromImportedStatement;
 
+  /// No description provided for @booksFromBankSms.
+  ///
+  /// In en, this message translates to:
+  /// **'from bank SMS · {time}'**
+  String booksFromBankSms(String time);
+
+  /// No description provided for @booksSmsBalanceCheck.
+  ///
+  /// In en, this message translates to:
+  /// **'Bank SMS balance check'**
+  String get booksSmsBalanceCheck;
+
+  /// No description provided for @booksSmsBalanceSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The latest balance your bank stated by SMS, as of {time}. Only owners and admins see this.'**
+  String booksSmsBalanceSubtitle(String time);
+
+  /// No description provided for @booksSmsBalanceBank.
+  ///
+  /// In en, this message translates to:
+  /// **'Bank says (SMS)'**
+  String get booksSmsBalanceBank;
+
+  /// No description provided for @booksSmsBalanceBooks.
+  ///
+  /// In en, this message translates to:
+  /// **'Books says'**
+  String get booksSmsBalanceBooks;
+
+  /// No description provided for @booksSmsBalanceDifference.
+  ///
+  /// In en, this message translates to:
+  /// **'Difference'**
+  String get booksSmsBalanceDifference;
+
+  /// No description provided for @booksSmsBalancePending.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 SMS line not matched yet} other{{count} SMS lines not matched yet}}: {amount}'**
+  String booksSmsBalancePending(int count, String amount);
+
+  /// No description provided for @booksSmsBalanceUnexplained.
+  ///
+  /// In en, this message translates to:
+  /// **'Unexplained difference'**
+  String get booksSmsBalanceUnexplained;
+
+  /// No description provided for @booksSmsBalanceAgrees.
+  ///
+  /// In en, this message translates to:
+  /// **'Books agree with your bank.'**
+  String get booksSmsBalanceAgrees;
+
+  /// No description provided for @booksSmsBalanceStale.
+  ///
+  /// In en, this message translates to:
+  /// **'No bank SMS for over 7 days: this balance may be out of date.'**
+  String get booksSmsBalanceStale;
+
+  /// No description provided for @booksSmsBalancePostAdjustment.
+  ///
+  /// In en, this message translates to:
+  /// **'Post adjustment'**
+  String get booksSmsBalancePostAdjustment;
+
+  /// No description provided for @booksSmsBalanceAlertLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Email me when it drops below'**
+  String get booksSmsBalanceAlertLabel;
+
+  /// No description provided for @booksSmsBalanceAlertSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Alert level saved'**
+  String get booksSmsBalanceAlertSaved;
+
+  /// No description provided for @booksSmsBalanceAlertFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save the alert level'**
+  String get booksSmsBalanceAlertFailed;
+
   /// No description provided for @booksMatched.
   ///
   /// In en, this message translates to:

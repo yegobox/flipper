@@ -28,6 +28,7 @@ import 'package:flipper_web/modules/accounting/data/repository/ditto_accounting_
 import 'package:flipper_web/modules/accounting/data/repository/supabase_accounting_ledger_repository.dart';
 import 'package:flipper_web/modules/accounting/data/repository/supabase_accounting_repository.dart';
 import 'package:flipper_web/modules/accounting/data/services/accounting_bootstrap_service.dart';
+import 'package:flipper_web/modules/accounting/data/services/bank_balance_service.dart';
 import 'package:flipper_web/modules/accounting/data/services/bank_statement_service.dart';
 import 'package:flipper_web/modules/accounting/data/services/journal_approval_service.dart';
 import 'package:flipper_web/modules/accounting/routing/accounting_route.dart';
@@ -85,6 +86,38 @@ final bankStatementMetaProvider = StateProvider<ParsedStatement?>(
 final bankStatementServiceProvider = Provider<BankStatementService>(
   (ref) => BankStatementService(analytics: ref.watch(productAnalyticsProvider)),
 );
+
+final bankBalanceServiceProvider = Provider<BankBalanceService>(
+  (ref) => BankBalanceService(),
+);
+
+/// Balances the business's bank and MoMo SMS stated (data-connector, owner or
+/// Admin only). `null` for anyone else, and when they cannot be read: the
+/// balance check then just does not show. Errors are swallowed rather than
+/// thrown so Riverpod does not keep retrying a refusal.
+final smsBankBalancesProvider = FutureProvider.autoDispose<SmsBalances?>((
+  ref,
+) async {
+  ref.watch(accountingBusinessIdProvider);
+  try {
+    return await ref.watch(bankBalanceServiceProvider).balances();
+  } catch (e) {
+    debugPrint('Books: bank SMS balances unavailable: $e');
+    return null;
+  }
+});
+
+/// Low-balance alert levels by account code (owner or Admin only).
+final smsBalanceAlertsProvider =
+    FutureProvider.autoDispose<Map<String, SmsBalanceAlert>>((ref) async {
+      ref.watch(accountingBusinessIdProvider);
+      try {
+        return await ref.watch(bankBalanceServiceProvider).alerts();
+      } catch (e) {
+        debugPrint('Books: balance alert levels unavailable: $e');
+        return const {};
+      }
+    });
 
 final journalApprovalServiceProvider = Provider<JournalApprovalService>(
   (ref) =>
