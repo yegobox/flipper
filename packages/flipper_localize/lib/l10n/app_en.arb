@@ -17307,6 +17307,35 @@
     "booksSmsBalanceUnexplained": "Unexplained difference",
     "booksSmsBalanceAgrees": "Books agree with your bank.",
     "booksSmsBalanceStale": "No bank SMS for over 7 days: this balance may be out of date.",
+    "booksSmsBalanceGapOut": "{amount} went out between {from} and {to} with no SMS Flipper received.",
+    "@booksSmsBalanceGapOut": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            },
+            "from": {
+                "type": "String"
+            },
+            "to": {
+                "type": "String"
+            }
+        }
+    },
+    "booksSmsBalanceGapIn": "{amount} came in between {from} and {to} with no SMS Flipper received.",
+    "@booksSmsBalanceGapIn": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            },
+            "from": {
+                "type": "String"
+            },
+            "to": {
+                "type": "String"
+            }
+        }
+    },
+    "booksSmsBalanceGapHint": "Some SMS seem to be missing. On the SMS Bridge phone, tap Find missed messages.",
     "booksSmsBalancePostAdjustment": "Post adjustment",
     "booksSmsBalanceAlertLabel": "Email me when it drops below",
     "booksSmsBalanceAlertSaved": "Alert level saved",

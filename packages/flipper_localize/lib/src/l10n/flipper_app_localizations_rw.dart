@@ -22351,6 +22351,20 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
       'Nta SMS ya banki imaze iminsi irenga 7: aya asigaye ashobora kuba atakiri ay\'ubu.';
 
   @override
+  String booksSmsBalanceGapOut(String amount, String from, String to) {
+    return '$amount yasohotse hagati ya $from na $to nta SMS Flipper yakiriye.';
+  }
+
+  @override
+  String booksSmsBalanceGapIn(String amount, String from, String to) {
+    return '$amount yinjiye hagati ya $from na $to nta SMS Flipper yakiriye.';
+  }
+
+  @override
+  String get booksSmsBalanceGapHint =>
+      'Hari SMS zisa n\'izabuze. Kuri telefone ya SMS Bridge, kanda « Find missed messages ».';
+
+  @override
   String get booksSmsBalancePostAdjustment => 'Andika ihinduka';
 
   @override

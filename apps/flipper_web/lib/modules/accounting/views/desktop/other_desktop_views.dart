@@ -1149,6 +1149,7 @@ class AccountingBankRecView extends ConsumerWidget {
                   key: ValueKey('sms-balance-$accountCode-${alert?.threshold}'),
                   total: smsTotal,
                   accounts: smsBalances!.accountsFor(accountCode),
+                  gaps: smsBalances.gapsFor(accountCode),
                   check: SmsBalanceCheck(
                     bank: smsTotal.balance,
                     books: bankBal,

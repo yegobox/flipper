@@ -36851,6 +36851,24 @@ abstract class FlipperAppLocalizations {
   /// **'No bank SMS for over 7 days: this balance may be out of date.'**
   String get booksSmsBalanceStale;
 
+  /// No description provided for @booksSmsBalanceGapOut.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} went out between {from} and {to} with no SMS Flipper received.'**
+  String booksSmsBalanceGapOut(String amount, String from, String to);
+
+  /// No description provided for @booksSmsBalanceGapIn.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} came in between {from} and {to} with no SMS Flipper received.'**
+  String booksSmsBalanceGapIn(String amount, String from, String to);
+
+  /// No description provided for @booksSmsBalanceGapHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Some SMS seem to be missing. On the SMS Bridge phone, tap Find missed messages.'**
+  String get booksSmsBalanceGapHint;
+
   /// No description provided for @booksSmsBalancePostAdjustment.
   ///
   /// In en, this message translates to:

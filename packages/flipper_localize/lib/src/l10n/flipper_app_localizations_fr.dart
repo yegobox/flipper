@@ -22483,6 +22483,20 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
       'Aucun SMS bancaire depuis plus de 7 jours : ce solde n\'est peut-être plus à jour.';
 
   @override
+  String booksSmsBalanceGapOut(String amount, String from, String to) {
+    return '$amount sont sortis entre $from et $to sans SMS reçu par Flipper.';
+  }
+
+  @override
+  String booksSmsBalanceGapIn(String amount, String from, String to) {
+    return '$amount sont entrés entre $from et $to sans SMS reçu par Flipper.';
+  }
+
+  @override
+  String get booksSmsBalanceGapHint =>
+      'Des SMS semblent manquer. Sur le téléphone SMS Bridge, touchez « Find missed messages ».';
+
+  @override
   String get booksSmsBalancePostAdjustment => 'Passer un ajustement';
 
   @override

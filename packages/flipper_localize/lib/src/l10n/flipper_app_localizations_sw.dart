@@ -22265,6 +22265,20 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
       'Hakuna SMS ya benki kwa zaidi ya siku 7: salio hili huenda limepitwa na wakati.';
 
   @override
+  String booksSmsBalanceGapOut(String amount, String from, String to) {
+    return '$amount zilitoka kati ya $from na $to bila SMS ambayo Flipper ilipokea.';
+  }
+
+  @override
+  String booksSmsBalanceGapIn(String amount, String from, String to) {
+    return '$amount ziliingia kati ya $from na $to bila SMS ambayo Flipper ilipokea.';
+  }
+
+  @override
+  String get booksSmsBalanceGapHint =>
+      'Baadhi ya SMS zinaonekana kukosekana. Kwenye simu ya SMS Bridge, gusa « Find missed messages ».';
+
+  @override
   String get booksSmsBalancePostAdjustment => 'Weka marekebisho';
 
   @override
