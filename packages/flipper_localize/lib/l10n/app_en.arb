@@ -2869,6 +2869,43 @@
     "smsReviewMatchSale": "Sale · {time} · {amount}",
     "@smsReviewMatchSale": {"placeholders": {"time": {"type": "String"}, "amount": {"type": "String"}}},
     "smsReviewLink": "Link",
+    "smsReviewDebtTitle": "Is a customer paying off a debt?",
+    "smsReviewDebtBody": "Record it against what they owe: no new sale, no new receipt.",
+    "smsReviewDebtOwes": "{name} · owes {owed}",
+    "@smsReviewDebtOwes": {
+        "placeholders": {
+            "name": {
+                "type": "String"
+            },
+            "owed": {
+                "type": "String"
+            }
+        }
+    },
+    "smsReviewSettle": "Settle",
+    "smsReviewDebtSettled": "Recorded {amount} from {name}. Still owes {left}.",
+    "@smsReviewDebtSettled": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            },
+            "name": {
+                "type": "String"
+            },
+            "left": {
+                "type": "String"
+            }
+        }
+    },
+    "smsReviewDebtCleared": "{name}'s debt is fully paid.",
+    "@smsReviewDebtCleared": {
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "smsReviewDebtCustomer": "Customer",
     "smsReviewLinked": "Linked to the sale",
     "smsReviewMatchChip": "Matches a sale",
     "smsReviewToday": "Today",

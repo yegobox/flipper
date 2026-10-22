@@ -9,6 +9,9 @@ import 'package:flipper_models/providers/category_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart'
     show cashbookRecentTransactionsProvider;
 import 'package:flipper_models/services/pos_journal_poster.dart';
+import 'package:flipper_models/helperModels/sale_completion_helpers.dart'
+    show saleCompletionStatusComplete, saleCompletionStatusParked;
+import 'package:flipper_models/sms_review/sms_debt_match.dart';
 import 'package:flipper_models/sms_review/sms_review_item.dart';
 import 'package:flipper_models/sms_review/sms_review_providers.dart';
 import 'package:flipper_models/sms_review/sms_review_service.dart';
@@ -20,7 +23,8 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:stacked_services/stacked_services.dart' show StackedService;
-import 'package:flipper_models/db_model_export.dart' show Category;
+import 'package:flipper_models/db_model_export.dart'
+    show Category, TransactionPaymentRecord;
 
 part 'sms_review_detail.dart';
 
@@ -106,6 +110,55 @@ final smsReviewServiceProvider = Provider<SmsReviewService>((ref) {
           );
           return txn.id;
         },
+    // An installment on the credit sale, written as the POS writes one when
+    // the customer pays at the till (`markTransactionAsCompleted`): the
+    // sale's running totals, then one payment record. The data-connector
+    // posts the record as `je_<biz>_<txn>_pay_<createdAt ms>`; the last
+    // installment instead turns the sale's own entry into a paid sale.
+    recordRepayment: ({required item, required debt}) async {
+      final strategy = ref.read(branchServicesProvider).strategy;
+      final txn = await strategy.getTransaction(id: debt.transactionId);
+      if (txn == null ||
+          txn.isLoan != true ||
+          (txn.remainingBalance ?? 0) <= 0) {
+        throw StateError('This debt is no longer open');
+      }
+      final paid = applySmsRepayment(
+        cashReceived: (txn.cashReceived ?? 0).toDouble(),
+        remaining: (txn.remainingBalance ?? 0).toDouble(),
+        amount: item.amount.toDouble(),
+      );
+      final paidAt = (item.occurredAtDate ?? DateTime.now()).toUtc();
+      await strategy.updateTransaction(
+        transaction: txn,
+        isLoan: paid.stillLoan,
+        remainingBalance: paid.remaining,
+        cashReceived: paid.cashReceived,
+        status: paid.stillLoan
+            ? saleCompletionStatusParked
+            : saleCompletionStatusComplete,
+        lastTouched: DateTime.now(),
+        deferEnsureNextPendingCart: true,
+      );
+      await strategy.savePaymentType(
+        paymentRecord: TransactionPaymentRecord(
+          transactionId: txn.id,
+          amount: item.amount.toDouble(),
+          paymentMethod: item.paymentType,
+          createdAt: paidAt,
+          payerName: item.counterpartyName,
+        ),
+        transactionId: txn.id,
+        singlePaymentOnly: false,
+      );
+      return (
+        transactionId: txn.id,
+        remaining: paid.remaining,
+        journalEntryId: paid.stillLoan
+            ? smsLoanPaymentEntryId(item.businessId, txn.id, paidAt)
+            : PosJournalPoster.saleEntryId(item.businessId, txn.id),
+      );
+    },
   );
 });
 

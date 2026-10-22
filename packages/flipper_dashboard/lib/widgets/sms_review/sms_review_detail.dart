@@ -131,6 +131,10 @@ class _SmsReviewDetailState extends ConsumerState<SmsReviewDetail> {
         ? ref.watch(smsMatchingSalesProvider(item)).value ??
               const <SmsSaleCandidate>[]
         : const <SmsSaleCandidate>[];
+    final debts = smsCanSettleDebt(item)
+        ? ref.watch(smsMatchingDebtsProvider(item)).value ??
+              const <SmsDebtCandidate>[]
+        : const <SmsDebtCandidate>[];
     final pending =
         ref
             .watch(smsReviewItemsProvider(ref.watch(smsReviewBranchIdProvider)))
@@ -274,6 +278,29 @@ class _SmsReviewDetailState extends ConsumerState<SmsReviewDetail> {
                     message: linked
                         ? l10n.smsReviewLinked
                         : l10n.smsReviewTakenElsewhere,
+                    undo: null,
+                  );
+                }),
+              ),
+            ],
+            if (debts.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              _DebtMatches(
+                debts: debts,
+                busy: _busy,
+                onSettle: (debt) => _run(() async {
+                  final name = debt.customerName ?? l10n.smsReviewDebtCustomer;
+                  final settled = await service.settleDebt(item, debt);
+                  return (
+                    message: settled == null
+                        ? l10n.smsReviewTakenElsewhere
+                        : settled.remaining > 0
+                        ? l10n.smsReviewDebtSettled(
+                            _money(item.amount, item.currency),
+                            name,
+                            _money(settled.remaining.round(), item.currency),
+                          )
+                        : l10n.smsReviewDebtCleared(name),
                     undo: null,
                   );
                 }),
@@ -809,6 +836,73 @@ class _SaleMatches extends StatelessWidget {
                   style: FilledButton.styleFrom(backgroundColor: _kBlue),
                   onPressed: busy ? null : () => onLink(sale),
                   child: Text(l10n.smsReviewLink),
+                ),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// Customers who owe money and look like the payer: settling records the SMS
+/// as an installment on their credit sale.
+class _DebtMatches extends StatelessWidget {
+  const _DebtMatches({
+    required this.debts,
+    required this.busy,
+    required this.onSettle,
+  });
+
+  final List<SmsDebtCandidate> debts;
+  final bool busy;
+  final void Function(SmsDebtCandidate debt) onSettle;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
+    return Container(
+      key: const Key('sms_review_debts'),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: _kBlue.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: _kBlue.withValues(alpha: 0.2)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            l10n.smsReviewDebtTitle,
+            style: const TextStyle(fontWeight: FontWeight.w700),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            l10n.smsReviewDebtBody,
+            style: TextStyle(color: Colors.grey.shade700),
+          ),
+          for (final debt in debts.take(3)) ...[
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    [
+                      l10n.smsReviewDebtOwes(
+                        debt.customerName ?? l10n.smsReviewDebtCustomer,
+                        _money(debt.remainingBalance.round(), 'RWF'),
+                      ),
+                      ?debt.phoneHint,
+                    ].join(' · '),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                FilledButton(
+                  key: Key('sms_review_settle_${debt.transactionId}'),
+                  style: FilledButton.styleFrom(backgroundColor: _kBlue),
+                  onPressed: busy ? null : () => onSettle(debt),
+                  child: Text(l10n.smsReviewSettle),
                 ),
               ],
             ),

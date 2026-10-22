@@ -2909,6 +2909,34 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   String get smsReviewLink => 'Unganisha';
 
   @override
+  String get smsReviewDebtTitle => 'Je, mteja analipa deni?';
+
+  @override
+  String get smsReviewDebtBody =>
+      'Rekodi kwenye deni lake: hakuna mauzo mapya wala risiti mpya.';
+
+  @override
+  String smsReviewDebtOwes(String name, String owed) {
+    return '$name · anadaiwa $owed';
+  }
+
+  @override
+  String get smsReviewSettle => 'Lipa';
+
+  @override
+  String smsReviewDebtSettled(String amount, String name, String left) {
+    return '$amount kutoka kwa $name imerekodiwa. Bado anadaiwa $left.';
+  }
+
+  @override
+  String smsReviewDebtCleared(String name) {
+    return 'Deni la $name limelipwa lote.';
+  }
+
+  @override
+  String get smsReviewDebtCustomer => 'Mteja';
+
+  @override
   String get smsReviewLinked => 'Imeunganishwa na mauzo';
 
   @override
