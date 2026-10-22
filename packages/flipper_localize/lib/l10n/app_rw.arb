@@ -7719,7 +7719,7 @@
   "booksSmsBalanceBank": "Banki ivuga (SMS)",
   "booksSmsBalanceBooks": "Books ivuga",
   "booksSmsBalanceDifference": "Ikinyuranyo",
-  "booksSmsBalancePending": "Imirongo {count} ya SMS itarahuzwa ({amount})",
+  "booksSmsBalancePending": "{count, plural, =1{Umurongo 1 wa SMS utarahuzwa} other{Imirongo {count} ya SMS itarahuzwa}}: {amount}",
   "booksSmsBalanceUnexplained": "Ikinyuranyo kidasobanuwe",
   "booksSmsBalanceAgrees": "Books ihuye na banki yawe.",
   "booksSmsBalanceStale": "Nta SMS ya banki imaze iminsi irenga 7: aya asigaye ashobora kuba atakiri ay'ubu.",

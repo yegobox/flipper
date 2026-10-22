@@ -366,10 +366,7 @@ void main() {
       expect(find.text('from bank SMS · 22 Oct, 18:11'), findsOneWidget);
       // Books holds nothing yet; the unmatched SMS line (−2,000) explains
       // part of the 10,000 gap, the rest is unexplained.
-      expect(
-        find.text('1 SMS lines not matched yet ((2,000))'),
-        findsOneWidget,
-      );
+      expect(find.text('1 SMS line not matched yet: (2,000)'), findsOneWidget);
       expect(
         find.descendant(
           of: find.byKey(const Key('sms-balance-unexplained')),
@@ -392,6 +389,57 @@ void main() {
       expect(entry.uuid, startsWith('je_bankrec_bal_1020_'));
       expect(entry.memo, 'Owner added money · Balance per bank SMS');
       expect(find.text('Entry created & matched'), findsOneWidget);
+    });
+
+    testWidgets('a statement without a closing balance credits the SMS', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        _Ledger({'1020': const []}),
+        balances: _FakeBalances(owner()),
+        statement: const ParsedStatement(
+          bankName: 'BK',
+          lines: [
+            ParsedStatementLine(
+              date: '2026-10-14',
+              description: 'TRANSFER JANE',
+              debit: 2000,
+            ),
+          ],
+        ),
+      );
+      await tester.tap(find.text('Import statement'));
+      await _settle(tester);
+
+      // The KPI shows the SMS balance, so its footnote must say so too.
+      expect(find.text('from bank SMS · 22 Oct, 18:11'), findsOneWidget);
+      expect(find.text('from imported statement'), findsNothing);
+    });
+
+    testWidgets('a statement with a closing balance names the statement', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        _Ledger({'1020': const []}),
+        balances: _FakeBalances(owner()),
+        statement: const ParsedStatement(
+          bankName: 'BK',
+          closingBalance: 15000,
+          lines: [
+            ParsedStatementLine(
+              date: '2026-10-14',
+              description: 'TRANSFER JANE',
+              debit: 2000,
+            ),
+          ],
+        ),
+      );
+      await tester.tap(find.text('Import statement'));
+      await _settle(tester);
+      expect(find.text('from imported statement'), findsOneWidget);
+      expect(find.text('from bank SMS · 22 Oct, 18:11'), findsNothing);
     });
 
     testWidgets('a cancelled or failed adjustment posts nothing', (

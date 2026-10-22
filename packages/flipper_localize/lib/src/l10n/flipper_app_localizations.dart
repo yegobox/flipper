@@ -36830,8 +36830,8 @@ abstract class FlipperAppLocalizations {
   /// No description provided for @booksSmsBalancePending.
   ///
   /// In en, this message translates to:
-  /// **'{count} SMS lines not matched yet ({amount})'**
-  String booksSmsBalancePending(String count, String amount);
+  /// **'{count, plural, =1{1 SMS line not matched yet} other{{count} SMS lines not matched yet}}: {amount}'**
+  String booksSmsBalancePending(int count, String amount);
 
   /// No description provided for @booksSmsBalanceUnexplained.
   ///

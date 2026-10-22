@@ -13,12 +13,28 @@ import 'package:intl/intl.dart';
 /// SMS lines nobody has matched yet are money the bank already counts and
 /// Books does not, so they explain that much of the gap; whatever is left is
 /// the unexplained difference an adjustment can close.
+///
+/// Only lines the balance observed at [asOf] can include are counted. A bank
+/// line carries a date but no time, so a line dated before [asOf]'s day is
+/// known to be earlier; a line on the same day may have come after the
+/// balance SMS, so it is left out rather than guessed (as is a line with no
+/// date). Later lines are left out too.
 class SmsBalanceCheck {
   SmsBalanceCheck({
     required this.bank,
     required this.books,
     required List<BankLine> lines,
-  }) : pendingLines = lines.where((l) => l.isFromSms && !l.matched).toList();
+    required DateTime asOf,
+  }) : pendingLines = lines
+           .where((l) => l.isFromSms && !l.matched && _before(l, asOf))
+           .toList();
+
+  static bool _before(BankLine line, DateTime asOf) {
+    final day = DateTime.tryParse(line.isoDate ?? '');
+    final local = asOf.toLocal();
+    return day != null &&
+        day.isBefore(DateTime(local.year, local.month, local.day));
+  }
 
   final int bank;
   final int books;
@@ -159,7 +175,7 @@ class _SmsBalanceCheckCardState extends State<SmsBalanceCheckCard> {
                 if (check.pendingLines.isNotEmpty)
                   Text(
                     l10n.booksSmsBalancePending(
-                      '${check.pendingLines.length}',
+                      check.pendingLines.length,
                       money(check.pendingNet, sign: true),
                     ),
                     style: muted,

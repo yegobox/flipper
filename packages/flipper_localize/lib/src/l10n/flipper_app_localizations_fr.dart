@@ -22462,8 +22462,14 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   String get booksSmsBalanceDifference => 'Écart';
 
   @override
-  String booksSmsBalancePending(String count, String amount) {
-    return '$count lignes SMS pas encore rapprochées ($amount)';
+  String booksSmsBalancePending(int count, String amount) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count lignes SMS pas encore rapprochées',
+      one: '1 ligne SMS pas encore rapprochée',
+    );
+    return '$_temp0 : $amount';
   }
 
   @override
@@ -22494,7 +22500,8 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   String get booksSmsBalancePostAdjustment => 'Passer un ajustement';
 
   @override
-  String get booksSmsBalanceAlertLabel => 'M\'avertir par e-mail sous';
+  String get booksSmsBalanceAlertLabel =>
+      'M\'avertir par e-mail lorsque le solde passe sous';
 
   @override
   String get booksSmsBalanceAlertSaved => 'Seuil d\'alerte enregistré';
