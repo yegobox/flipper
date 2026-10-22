@@ -7402,6 +7402,34 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   String get barMobileMoney => 'Pesa ya simu';
 
   @override
+  String get barCard => 'Kadi';
+
+  @override
+  String get barSplitPayment => 'Gawanya malipo';
+
+  @override
+  String get barAddPaymentMethod => 'Ongeza njia nyingine';
+
+  @override
+  String barSplitPaid(String amount) {
+    return 'Imelipwa $amount';
+  }
+
+  @override
+  String barSplitRemaining(String amount) {
+    return 'Zimebaki $amount';
+  }
+
+  @override
+  String barSplitChange(String amount) {
+    return 'Chenji $amount';
+  }
+
+  @override
+  String get barSplitNonCashOverTotal =>
+      'Pesa ya simu na kadi haziwezi kuzidi bili. Chenji hutolewa kwa pesa taslimu tu.';
+
+  @override
   String get barPickGuestForBill =>
       'Chagua mgeni ambaye akaunti yake itachukua bili hii.';
 

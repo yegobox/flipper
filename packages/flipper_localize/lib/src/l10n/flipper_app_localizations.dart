@@ -12610,6 +12610,48 @@ abstract class FlipperAppLocalizations {
   /// **'Mobile Money'**
   String get barMobileMoney;
 
+  /// Bar settle: card payment method label
+  ///
+  /// In en, this message translates to:
+  /// **'Card'**
+  String get barCard;
+
+  /// Bar settle: link that lets one table pay with several methods
+  ///
+  /// In en, this message translates to:
+  /// **'Split payment'**
+  String get barSplitPayment;
+
+  /// Bar settle: adds one more tender row to a split payment
+  ///
+  /// In en, this message translates to:
+  /// **'Add another method'**
+  String get barAddPaymentMethod;
+
+  /// Bar settle split: total handed over, already formatted with currency
+  ///
+  /// In en, this message translates to:
+  /// **'Paid {amount}'**
+  String barSplitPaid(String amount);
+
+  /// Bar settle split: amount still unpaid, already formatted with currency
+  ///
+  /// In en, this message translates to:
+  /// **'Remaining {amount}'**
+  String barSplitRemaining(String amount);
+
+  /// Bar settle split: change to give back from the cash, already formatted with currency
+  ///
+  /// In en, this message translates to:
+  /// **'Change {amount}'**
+  String barSplitChange(String amount);
+
+  /// Bar settle split: non-cash tenders add up to more than the bill
+  ///
+  /// In en, this message translates to:
+  /// **'Mobile Money and card can\'t be more than the bill. Only cash gives change.'**
+  String get barSplitNonCashOverTotal;
+
   /// Bar settle: room charge selected but no guest chosen yet
   ///
   /// In en, this message translates to:
