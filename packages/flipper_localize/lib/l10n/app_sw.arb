@@ -8986,6 +8986,8 @@
   "personalMoneyEmptyTitle": "Bado hakuna kilichorekodiwa",
   "personalMoneyEmptyBody": "Ongeza pesa iliyoingia au iliyotoka kwa kitufe cha +, au unganisha Daraja la SMS ili ujumbe wako wa benki na pesa za simu urekodiwe kwa ajili yako.",
   "personalMoneyPairSmsBridge": "Unganisha Daraja la SMS",
+  "personalMoneyToReview": "SMS za kukagua",
+  "personalMoneyNothingToReview": "Hakuna SMS ya benki au MoMo inayosubiri kukaguliwa",
   "personalMoneyNoCategory": "Hakuna kundi",
   "personalMoneyAddTitle": "Ongeza pesa iliyoingia au iliyotoka",
   "personalMoneyAmount": "Kiasi",

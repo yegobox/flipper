@@ -38,11 +38,14 @@ unrelated.
 
 `AccountModeStore` (`flipper_models/lib/account_mode/`) decides, in this order:
 
-1. The Ditto doc, which the server wrote.
-2. A personal signup the server has not confirmed yet (box
-   `pendingAccountMode`).
-3. The cached value (box `accountModes`, JSON keyed by business).
-4. Otherwise **business**.
+1. The Ditto doc (server-written) or the cached value (box `accountModes`,
+   `{businessId: {mode, changedAt}}`), **whichever has the later server
+   `changedAt`**. Right after a switch the cache is newer, because the doc
+   only changes when the connector's write syncs back. Without this, a
+   switch needed several taps. A cache entry with no time never beats a doc.
+2. Without a doc, a personal signup the server has not confirmed yet (box
+   `pendingAccountMode`), then the cache.
+3. Otherwise **business**.
 
 `localMode()` never touches the network. `resolve()` may ask the connector
 **once per business per session**, and only on the paths that would show a
@@ -64,6 +67,35 @@ device therefore swaps shells without a navigation.
   to the type-2 waiver.
 - Switching back to business runs `verifyAndNavigate(userInitiated: true)`, so
   the normal plan screen decides.
+- A personal home is always opened with `clearStackAndShow`, and
+  `PersonalShell` swallows back (another tab goes to Home first), so back
+  never reaches `StartUpView`.
+
+## Startup and notification taps (all accounts)
+
+- **Cached-session fast path** (`StartupViewModel.fastStartupFor`). A
+  signed-in device with its business and branch cached:
+  - opens Ditto locally, without waiting on the apihub login;
+  - runs the local requirement check and `appInit`;
+  - opens the home through `PaymentVerificationNavigator.enterHomeFromCache()`,
+    which makes no network calls and waits on no settings;
+  - then runs the plan check behind it with `handle(alreadyHome: true)`.
+
+  That check never opens the home a second time. It is *decisive*: a lapsed
+  plan still reaches the paywall even if the user has already tapped into the
+  POS. Every other start (no session, QR `login-` identity, fresh signup)
+  keeps the blocking path.
+- Startup logs one `[startup] fast|blocking ditto=… requirements=… appInit=… home=…`
+  line.
+- **Notification taps**:
+  - `openEngagementAction` queues an action when no handler is registered
+    yet. That is a cold start, where the push is read during startup. The
+    queued action runs once the home registers its handler, if within
+    `kPendingEngagementTtl` (2 minutes).
+  - FCM tap listeners are registered once per process.
+  - A local notification that launched the app is routed the same way.
+- SMS review logs `[sms-review] branch=… pending=… syncActive=…` once per
+  subscription, so "SMS not showing" can be read from logcat.
 
 ## Recording money
 
@@ -74,6 +106,15 @@ ordinary Cash In / Cash Out rows. Category names are the branch's
 `kPersonalExpenseCategories`) are created on first use. A personal account
 never registers its Cash Book's hidden "Utility" item with RRA: in
 `CoreSync.getUtilityVariant`, `skipRRaCall` is set from the account mode.
+
+## SMS review in personal mode
+
+- Home: `SmsReviewHomeCard` when SMS are waiting. Otherwise a
+  "No bank or MoMo SMS waiting" row that links to SMS Bridge pairing.
+- The Home nav item carries `SmsReviewCountBadge`.
+- More → *SMS to review* (with the count) opens `showSmsReviewSheet`.
+- `smsReviewBranchIdProvider` is auto-disposed, so a shell swap or a business
+  switch reads the branch again.
 
 ## Entry points
 

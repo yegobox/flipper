@@ -44129,6 +44129,18 @@ abstract class FlipperAppLocalizations {
   /// **'Pair SMS Bridge'**
   String get personalMoneyPairSmsBridge;
 
+  /// No description provided for @personalMoneyToReview.
+  ///
+  /// In en, this message translates to:
+  /// **'SMS to review'**
+  String get personalMoneyToReview;
+
+  /// No description provided for @personalMoneyNothingToReview.
+  ///
+  /// In en, this message translates to:
+  /// **'No bank or MoMo SMS waiting for review'**
+  String get personalMoneyNothingToReview;
+
   /// No description provided for @personalMoneyNoCategory.
   ///
   /// In en, this message translates to:

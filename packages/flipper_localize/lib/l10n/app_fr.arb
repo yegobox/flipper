@@ -7393,6 +7393,8 @@
   "personalMoneyEmptyTitle": "Rien d'enregistré pour l'instant",
   "personalMoneyEmptyBody": "Ajoutez une entrée ou une sortie avec le bouton +, ou associez la passerelle SMS pour que vos messages bancaires et mobile money soient enregistrés pour vous.",
   "personalMoneyPairSmsBridge": "Associer la passerelle SMS",
+  "personalMoneyToReview": "SMS à vérifier",
+  "personalMoneyNothingToReview": "Aucun SMS de banque ou MoMo à vérifier",
   "personalMoneyNoCategory": "Sans catégorie",
   "personalMoneyAddTitle": "Ajouter une entrée ou une sortie",
   "personalMoneyAmount": "Montant",

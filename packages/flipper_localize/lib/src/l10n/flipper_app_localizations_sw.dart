@@ -26562,6 +26562,13 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   String get personalMoneyPairSmsBridge => 'Unganisha Daraja la SMS';
 
   @override
+  String get personalMoneyToReview => 'SMS za kukagua';
+
+  @override
+  String get personalMoneyNothingToReview =>
+      'Hakuna SMS ya benki au MoMo inayosubiri kukaguliwa';
+
+  @override
   String get personalMoneyNoCategory => 'Hakuna kundi';
 
   @override

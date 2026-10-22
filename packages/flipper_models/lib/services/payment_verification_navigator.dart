@@ -48,8 +48,12 @@ class PaymentVerificationNavigator {
     required String currentRoute,
     required bool userInitiated,
     required bool isInitialStartup,
+    bool alreadyHome = false,
   }) =>
-      userInitiated || isInitialStartup || paywallRoutes.contains(currentRoute);
+      !alreadyHome &&
+      (userInitiated ||
+          isInitialStartup ||
+          paywallRoutes.contains(currentRoute));
 
   /// Whether a verification that *could not complete* may still send the user
   /// home ("proceed despite the error").
@@ -66,7 +70,8 @@ class PaymentVerificationNavigator {
   static bool mayFailOpenFor({
     required bool userInitiated,
     required bool isInitialStartup,
-  }) => userInitiated || isInitialStartup;
+    bool alreadyHome = false,
+  }) => !alreadyHome && (userInitiated || isInitialStartup);
 
   static const _criticalRoutes = {
     'AddProductView',
@@ -128,10 +133,16 @@ class PaymentVerificationNavigator {
     return response;
   }
 
+  /// [alreadyHome]: startup's cached-session fast path has already opened
+  /// the home ([enterHomeFromCache]) and this is the check running behind it.
+  /// A healthy result, or an error that only says "could not check", then
+  /// leaves the user where they are instead of opening the home a second
+  /// time. A real payment problem still goes to the paywall.
   static Future<void> handle(
     PaymentVerificationResponse response, {
     bool userInitiated = false,
     bool isInitialStartup = false,
+    bool alreadyHome = false,
     DateTime? lastUserActivity,
     Duration userActivityThreshold = const Duration(minutes: 5),
   }) async {
@@ -151,6 +162,7 @@ class PaymentVerificationNavigator {
       currentRoute: currentRoute,
       userInitiated: userInitiated,
       isInitialStartup: isInitialStartup,
+      alreadyHome: alreadyHome,
     );
 
     if (!userInitiated) {
@@ -209,6 +221,7 @@ class PaymentVerificationNavigator {
           mayFailOpen: mayFailOpenFor(
             userInitiated: userInitiated,
             isInitialStartup: isInitialStartup,
+            alreadyHome: alreadyHome,
           ),
         );
         break;
@@ -326,6 +339,32 @@ class PaymentVerificationNavigator {
     return true;
   }
 
+  /// Opens the home a signed-in device last used, from what this device
+  /// already knows: no network, no settings hydration. Startup's fast path
+  /// calls it before the plan check, which then runs behind it with
+  /// `handle(alreadyHome: true)`.
+  ///
+  /// Same destinations as [navigateToAuthenticatedHome], read from cache:
+  /// personal mode, a commission-only session, or the bar on a till set to
+  /// it. Everything else is [FlipperAppRoute], whose own startup redirect
+  /// opens a cached hotel or bar mode.
+  static Future<void> enterHomeFromCache() async {
+    if (_refuseWhenSignedOut('authenticated home')) return;
+    if (await _isPersonalAccount()) {
+      await _routerService.clearStackAndShow(FlipperAppRoute());
+      return;
+    }
+    if (isCommissionOnlySession()) {
+      await _routerService.clearStackAndShow(AgentCommissionScreenRoute());
+      return;
+    }
+    if (_shouldOpenBarMode()) {
+      await _routerService.clearStackAndShow(BarModeHostRoute());
+      return;
+    }
+    await _routerService.clearStackAndShow(FlipperAppRoute());
+  }
+
   static Future<void> navigateToAuthenticatedHome({
     bool skipPersonalCheck = false,
     bool skipCommissionCheck = false,
@@ -355,11 +394,9 @@ class PaymentVerificationNavigator {
     if (await _isPersonalAccount()) {
       if (_refuseWhenSignedOut('FlipperApp')) return;
       talker.info('Personal account — opening the personal shell');
-      if (clearStack) {
-        await _routerService.clearStackAndShow(FlipperAppRoute());
-      } else {
-        _routerService.navigateTo(FlipperAppRoute());
-      }
+      // Always a fresh stack: with StartUpView left underneath, Android back
+      // on the personal home went to the splash screen.
+      await _routerService.clearStackAndShow(FlipperAppRoute());
       return;
     }
 

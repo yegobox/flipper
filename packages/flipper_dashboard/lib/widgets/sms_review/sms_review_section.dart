@@ -39,7 +39,10 @@ const Color _kWarn = Color(0xFFD97706);
 ///
 /// Re-read when Ditto comes up: the box is set by then, and a read made
 /// before login finished would otherwise keep the queue empty all session.
-final smsReviewBranchIdProvider = Provider<String>((ref) {
+/// Auto-disposed, so a shell swap (personal mode) or a business/branch switch
+/// that rebuilds the home reads the branch again instead of keeping the first
+/// value for the whole session.
+final smsReviewBranchIdProvider = Provider.autoDispose<String>((ref) {
   ref.watch(usableDittoProvider);
   try {
     return ref.watch(branchServicesProvider).box.getBranchId() ?? '';
@@ -51,7 +54,12 @@ final smsReviewBranchIdProvider = Provider<String>((ref) {
 /// What is waiting for review at this branch: how many SMS, and the money in
 /// and out they add up to. Watched by the home card and the nav badges, so
 /// it is one record they all select from.
-typedef SmsReviewSummary = ({int count, int moneyIn, int moneyOut});
+typedef SmsReviewSummary = ({
+  int count,
+  int moneyIn,
+  int moneyOut,
+  String currency,
+});
 
 final smsReviewSummaryProvider = Provider.autoDispose<SmsReviewSummary>((ref) {
   final branchId = ref.watch(smsReviewBranchIdProvider);
@@ -67,7 +75,12 @@ final smsReviewSummaryProvider = Provider.autoDispose<SmsReviewSummary>((ref) {
       moneyOut += i.amount;
     }
   }
-  return (count: items.length, moneyIn: moneyIn, moneyOut: moneyOut);
+  return (
+    count: items.length,
+    moneyIn: moneyIn,
+    moneyOut: moneyOut,
+    currency: items.isEmpty ? 'RWF' : items.first.currency,
+  );
 });
 
 /// Opens the review sheet when a "new SMS to approve" push is tapped
@@ -259,7 +272,7 @@ class SmsReviewHomeCard extends ConsumerWidget {
     if (summary.count == 0) return const SizedBox.shrink();
     final l10n = context.flipperL10n;
     String money(int v, String sign) =>
-        '$sign${v.toCurrencyFormatted(symbol: 'RWF', decimalDigits: 0)}';
+        '$sign${v.toCurrencyFormatted(symbol: summary.currency, decimalDigits: 0)}';
     final totals = summary.moneyOut == 0
         ? money(summary.moneyIn, '+')
         : summary.moneyIn == 0

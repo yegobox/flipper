@@ -95,13 +95,29 @@ Widget _app(Widget child, List<Override> overrides) => ProviderScope(
   ),
 );
 
-List<Override> _overrides(PersonalMonthSummary summary) => [
+SmsReviewItem _pendingSms() => SmsReviewItem.fromDitto({
+  '_id': 'sms-1',
+  'businessId': 'biz',
+  'branchId': 'br',
+  'kind': 'principal',
+  'direction': 'credit',
+  'amount': 5000,
+  'description': 'MoMo · from Jane',
+  'providerLabel': 'MTN',
+  'paymentType': 'MOBILE MONEY',
+  'bankAccountCode': '1030',
+  'lineDate': '2026-10-22',
+  'status': 'pending_review',
+});
+
+List<Override> _overrides(
+  PersonalMonthSummary summary, {
+  List<SmsReviewItem> sms = const [],
+}) => [
   branchServicesProvider.overrideWithValue(_Services()),
   personalMonthSummaryProvider.overrideWith((ref) => Stream.value(summary)),
   smsReviewBranchIdProvider.overrideWithValue('br'),
-  smsReviewItemsProvider(
-    'br',
-  ).overrideWith((ref) => Stream.value(const <SmsReviewItem>[])),
+  smsReviewItemsProvider('br').overrideWith((ref) => Stream.value(sms)),
   dashboardIsAdminProvider.overrideWithValue(true),
   categoryProvider.overrideWith((ref) => Stream.value(const <Category>[])),
 ];
@@ -325,6 +341,75 @@ void main() {
       expect(find.text('Savings goals'), findsOneWidget);
       expect(
         find.byKey(const ValueKey('personal-switch-to-business')),
+        findsOneWidget,
+      );
+    });
+  });
+
+  group('PersonalShell back and SMS review', () {
+    testWidgets('back on another tab goes Home, on Home it stays', (
+      tester,
+    ) async {
+      _size(tester, const Size(390, 844));
+      await tester.pumpWidget(
+        _app(
+          PersonalShell(floBuilder: (_) => const SizedBox()),
+          _overrides(PersonalMonthSummary.empty),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('More'));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('personal-more')), findsOneWidget);
+
+      await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
+      expect(find.text('My money'), findsOneWidget);
+
+      // On Home, back is swallowed: the shell is still there.
+      await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
+      expect(find.byType(PersonalShell), findsOneWidget);
+      expect(find.text('My money'), findsOneWidget);
+    });
+
+    testWidgets('an empty queue still says so on Home', (tester) async {
+      _size(tester, const Size(390, 844));
+      await tester.pumpWidget(
+        _app(
+          PersonalShell(floBuilder: (_) => const SizedBox()),
+          _overrides(PersonalMonthSummary.empty),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const ValueKey('personal-nothing-to-review')),
+        findsOneWidget,
+      );
+      expect(find.byKey(const Key('sms_review_count_badge')), findsNothing);
+    });
+
+    testWidgets('waiting SMS show on Home, the badge and More', (tester) async {
+      _size(tester, const Size(390, 844));
+      await tester.pumpWidget(
+        _app(
+          PersonalShell(floBuilder: (_) => const SizedBox()),
+          _overrides(PersonalMonthSummary.empty, sms: [_pendingSms()]),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const ValueKey('personal-nothing-to-review')),
+        findsNothing,
+      );
+      expect(find.byKey(const Key('sms_review_count_badge')), findsWidgets);
+
+      await tester.tap(find.text('More'));
+      await tester.pumpAndSettle();
+      final row = find.byKey(const ValueKey('personal-sms-to-review'));
+      expect(row, findsOneWidget);
+      expect(
+        find.descendant(of: row, matching: find.text('1')),
         findsOneWidget,
       );
     });

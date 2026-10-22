@@ -5,6 +5,8 @@ import 'package:flipper_dashboard/features/personal_finance/personal_mode_switch
 import 'package:flipper_dashboard/features/personal_goals/personal_goals_screen.dart';
 import 'package:flipper_dashboard/logout/dashboard_sign_out.dart';
 import 'package:flipper_dashboard/widgets/dashboard_app_access.dart';
+import 'package:flipper_dashboard/widgets/sms_review/sms_review_section.dart'
+    show showSmsReviewSheet, smsReviewSummaryProvider;
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/account_mode/account_mode.dart';
 import 'package:flipper_routing/app.locator.dart';
@@ -27,6 +29,14 @@ class PersonalMore extends ConsumerWidget {
       children: [
         SettingsGroup(
           children: [
+            SettingsRow(
+              key: const ValueKey('personal-sms-to-review'),
+              icon: Icons.mark_chat_unread_outlined,
+              title: l10n.personalMoneyToReview,
+              value:
+                  '${ref.watch(smsReviewSummaryProvider.select((s) => s.count))}',
+              onTap: () => showSmsReviewSheet(context),
+            ),
             SettingsRow(
               icon: Icons.phonelink_ring_outlined,
               title: l10n.smsBridgeTitle,

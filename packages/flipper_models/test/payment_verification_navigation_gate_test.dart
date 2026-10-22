@@ -71,6 +71,41 @@ void main() {
       expect(failOpen(userInitiated: true), isTrue);
     });
 
+    test('the check behind a cached-session home never opens it again', () {
+      // Startup's fast path already showed the home: a healthy or
+      // inconclusive result leaves the user there, from any route, even with
+      // the startup and user-initiated flags it runs with.
+      for (final route in ['FlipperApp', 'CheckOut', 'StartUpView']) {
+        expect(
+          PaymentVerificationNavigator.mayEnterHomeFor(
+            currentRoute: route,
+            userInitiated: true,
+            isInitialStartup: true,
+            alreadyHome: true,
+          ),
+          isFalse,
+          reason: route,
+        );
+      }
+      expect(
+        PaymentVerificationNavigator.mayFailOpenFor(
+          userInitiated: true,
+          isInitialStartup: true,
+          alreadyHome: true,
+        ),
+        isFalse,
+      );
+      // Without the flag nothing changes.
+      expect(
+        PaymentVerificationNavigator.mayEnterHomeFor(
+          currentRoute: 'StartUpView',
+          userInitiated: false,
+          isInitialStartup: true,
+        ),
+        isTrue,
+      );
+    });
+
     test('paywall route set covers both lockout screens', () {
       expect(
         PaymentVerificationNavigator.paywallRoutes,

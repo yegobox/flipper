@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flipper_accounting/accounting_models.dart';
 import 'package:flipper_accounting/ditto_accounting_ledger_repository.dart';
 import 'package:flipper_models/sms_review/sms_debt_match.dart';
+import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/sms_review/sms_review_item.dart';
 import 'package:flipper_models/sms_review/sms_review_service.dart';
 import 'package:flipper_models/sms_review/sms_sale_match.dart';
@@ -92,11 +93,21 @@ final smsReviewItemsProvider = StreamProvider.autoDispose
       }
 
       final controller = StreamController<List<SmsReviewItem>>.broadcast();
+      var logged = false;
       final observer = ditto.store.registerObserver(
         _pendingQuery,
         arguments: args,
         onChange: (result) {
           if (controller.isClosed) return;
+          if (!logged) {
+            // One line per subscription, so "SMS not showing" can be read off
+            // logcat: which branch the device asks for and what it holds.
+            logged = true;
+            talker.info(
+              '[sms-review] branch=$branchId pending=${result.items.length} '
+              'syncActive=${ditto.sync.isActive}',
+            );
+          }
           final items =
               result.items
                   .map(

@@ -26654,6 +26654,13 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   String get personalMoneyPairSmsBridge => 'Huza Ikiraro cya SMS';
 
   @override
+  String get personalMoneyToReview => 'SMS zo gusuzuma';
+
+  @override
+  String get personalMoneyNothingToReview =>
+      'Nta SMS ya banki cyangwa MoMo itegereje gusuzumwa';
+
+  @override
   String get personalMoneyNoCategory => 'Nta cyiciro';
 
   @override

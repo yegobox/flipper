@@ -35,16 +35,16 @@ void main() {
     });
 
     test('errors that say the session is bad still log out', () {
-      expect(keeps(SessionException(term: 'No user in local storage')), isFalse);
+      expect(
+        keeps(SessionException(term: 'No user in local storage')),
+        isFalse,
+      );
       expect(keeps(PinError(term: 'pin')), isFalse);
       expect(keeps(LoginChoicesException(term: 'Branch ID not set')), isFalse);
     });
 
     test('online behaviour is unchanged', () {
-      expect(
-        keeps(Exception('requirements failed'), online: true),
-        isFalse,
-      );
+      expect(keeps(Exception('requirements failed'), online: true), isFalse);
       expect(
         keeps(BusinessNotFoundException(term: 'missing'), online: true),
         isFalse,
@@ -56,6 +56,13 @@ void main() {
         keeps(Exception('requirements failed'), hasCachedSession: false),
         isFalse,
       );
+    });
+  });
+
+  group('StartupViewModel.fastStartupFor', () {
+    test('only a cached signed-in session opens the home first', () {
+      expect(StartupViewModel.fastStartupFor(hasCachedSession: true), isTrue);
+      expect(StartupViewModel.fastStartupFor(hasCachedSession: false), isFalse);
     });
   });
 }

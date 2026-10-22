@@ -85,8 +85,15 @@ class FirebaseMessagingService implements Messaging {
     return await _firebaseMessaging.getToken();
   }
 
+  /// Startup can run more than once per process (a timeout retry, a return to
+  /// StartUpView after login); each run used to add another set of listeners,
+  /// so one push showed and routed several times.
+  static bool _tapListenersRegistered = false;
+
   @override
   Future<void> listenTapOnNotificationForeground() async {
+    if (_tapListenersRegistered) return;
+    _tapListenersRegistered = true;
     FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
       await _handleMessage(message: message, showLocalNotification: true);
     });

@@ -68,6 +68,23 @@ void main() {
       expect(cachedAccountMode(both, 'b2'), AccountMode.business);
       expect(cachedAccountMode('{not json', 'b1'), isNull);
     });
+
+    test('reads the older plain-string form', () {
+      final entry = cachedAccountModeEntry('{"b1":"personal"}', 'b1')!;
+      expect(entry.mode, AccountMode.personal);
+      expect(entry.changedAt, isNull);
+    });
+
+    test('keeps the server time', () {
+      final at = DateTime.utc(2026, 10, 22, 8);
+      final raw = withCachedAccountMode(
+        null,
+        'b1',
+        AccountMode.business,
+        changedAt: at,
+      );
+      expect(cachedAccountModeEntry(raw, 'b1')!.changedAt, at);
+    });
   });
 
   group('localAccountMode precedence', () {
@@ -76,7 +93,7 @@ void main() {
         localAccountMode(
           dittoDoc: {'mode': 'business'},
           pending: 'personal',
-          cached: AccountMode.personal,
+          cached: const CachedAccountMode(AccountMode.personal),
         ),
         AccountMode.business,
       );
@@ -86,11 +103,43 @@ void main() {
         localAccountMode(
           dittoDoc: null,
           pending: 'personal',
-          cached: AccountMode.business,
+          cached: const CachedAccountMode(AccountMode.business),
         ),
         AccountMode.personal,
       );
     });
+    test('right after a switch the newer cache beats the stale doc', () {
+      final docAt = DateTime.utc(2026, 10, 22, 8);
+      expect(
+        localAccountMode(
+          dittoDoc: {'mode': 'personal', 'changedAt': docAt.toIso8601String()},
+          pending: null,
+          cached: CachedAccountMode(
+            AccountMode.business,
+            changedAt: docAt.add(const Duration(seconds: 5)),
+          ),
+        ),
+        AccountMode.business,
+      );
+    });
+
+    test('once the doc catches up it wins again', () {
+      final at = DateTime.utc(2026, 10, 22, 8);
+      for (final docAt in [at, at.add(const Duration(minutes: 1))]) {
+        expect(
+          localAccountMode(
+            dittoDoc: {
+              'mode': 'personal',
+              'changedAt': docAt.toIso8601String(),
+            },
+            pending: null,
+            cached: CachedAccountMode(AccountMode.business, changedAt: at),
+          ),
+          AccountMode.personal,
+        );
+      }
+    });
+
     test('nothing known is null (callers treat it as business)', () {
       expect(
         localAccountMode(dittoDoc: null, pending: null, cached: null),
@@ -225,6 +274,39 @@ void main() {
         expect(result.mode, AccountMode.business);
         expect(result.changedAt, DateTime.utc(2026, 10, 21, 10));
         expect(store.hasPending, isFalse);
+        expect(store.cachedMode(), AccountMode.business);
+      },
+    );
+
+    test(
+      'a switch takes effect at once, even before the doc syncs back',
+      () async {
+        final box = _MemBox(businessId: 'me');
+        // The device still holds the doc from before the switch.
+        final staleDoc = {
+          'mode': 'personal',
+          'changedAt': '2026-10-22T08:00:00Z',
+        };
+        final store = _store(
+          box,
+          doc: staleDoc,
+          http: MockClient(
+            (_) async => http.Response(
+              jsonEncode({
+                'mode': 'business',
+                'changed_at': '2026-10-22T08:05:00Z',
+              }),
+              200,
+            ),
+          ),
+        );
+        expect(await store.isPersonalLocal(), isTrue);
+        await store.switchTo(AccountMode.business);
+        expect(await store.isPersonalLocal(), isFalse);
+        expect(store.cachedMode(), AccountMode.business);
+        // Reading the stale doc again must not overwrite the newer cache.
+        await store.localMode();
+        await Future<void>.delayed(Duration.zero);
         expect(store.cachedMode(), AccountMode.business);
       },
     );

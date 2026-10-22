@@ -26388,6 +26388,13 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
   String get personalMoneyPairSmsBridge => 'Pair SMS Bridge';
 
   @override
+  String get personalMoneyToReview => 'SMS to review';
+
+  @override
+  String get personalMoneyNothingToReview =>
+      'No bank or MoMo SMS waiting for review';
+
+  @override
   String get personalMoneyNoCategory => 'No category';
 
   @override

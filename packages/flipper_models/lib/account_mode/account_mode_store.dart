@@ -90,11 +90,16 @@ class AccountModeStore {
   AccountMode? cachedMode({String? businessId}) {
     final pending = _read(kPendingAccountModeKey);
     final id = businessId ?? activeBusinessId();
-    final cached = id == null
-        ? null
-        : cachedAccountMode(_read(kAccountModeCacheKey), id);
-    return localAccountMode(dittoDoc: null, pending: pending, cached: cached);
+    return localAccountMode(
+      dittoDoc: null,
+      pending: pending,
+      cached: id == null ? null : cachedEntry(id),
+    );
   }
+
+  /// The cached entry (mode and server `changedAt`) of [businessId].
+  CachedAccountMode? cachedEntry(String businessId) =>
+      cachedAccountModeEntry(_read(kAccountModeCacheKey), businessId);
 
   /// What this device knows without the network; `null` when nothing does.
   Future<AccountMode?> localMode({String? businessId}) async {
@@ -104,9 +109,17 @@ class AccountModeStore {
     final mode = localAccountMode(
       dittoDoc: doc,
       pending: _read(kPendingAccountModeKey),
-      cached: cachedAccountMode(_read(kAccountModeCacheKey), id),
+      cached: cachedEntry(id),
     );
-    if (doc != null && mode != null) unawaited(remember(id, mode));
+    if (doc != null) {
+      unawaited(
+        remember(
+          id,
+          parseAccountMode(doc['mode']),
+          changedAt: accountModeDocChangedAt(doc),
+        ),
+      );
+    }
     return mode;
   }
 
@@ -125,7 +138,7 @@ class AccountModeStore {
     if (!_asked.add(id)) return AccountMode.business;
     try {
       final result = await _client.read(timeout: timeout);
-      await remember(id, result.mode);
+      await remember(id, result.mode, changedAt: result.changedAt);
       return result.mode;
     } catch (e) {
       talker.warning('Account mode lookup failed (treating as business): $e');
@@ -133,14 +146,31 @@ class AccountModeStore {
     }
   }
 
-  Future<void> remember(String businessId, AccountMode mode) async {
+  /// Caches [mode]. Never replaces a newer entry with an older one: a stale
+  /// Ditto doc read right after a switch must not undo it.
+  Future<void> remember(
+    String businessId,
+    AccountMode mode, {
+    DateTime? changedAt,
+  }) async {
     try {
       final box = _box();
       final raw = box.readString(key: kAccountModeCacheKey);
-      if (cachedAccountMode(raw, businessId) == mode) return;
+      final current = cachedAccountModeEntry(raw, businessId);
+      final currentAt = current?.changedAt;
+      if (currentAt != null &&
+          (changedAt == null || changedAt.isBefore(currentAt))) {
+        return;
+      }
+      if (current?.mode == mode && current?.changedAt == changedAt) return;
       await box.writeString(
         key: kAccountModeCacheKey,
-        value: withCachedAccountMode(raw, businessId, mode),
+        value: withCachedAccountMode(
+          raw,
+          businessId,
+          mode,
+          changedAt: changedAt,
+        ),
       );
     } catch (_) {
       // A cache only.
@@ -180,7 +210,13 @@ class AccountModeStore {
       throw const AccountModeException('No business is selected.');
     }
     final result = await _client.switchTo(mode);
-    await remember(id, result.mode);
+    // The server's time, so this beats the old Ditto doc until the new one
+    // syncs back. The device clock only if the server sent none.
+    await remember(
+      id,
+      result.mode,
+      changedAt: result.changedAt ?? DateTime.now().toUtc(),
+    );
     try {
       await _box().remove(key: kPendingAccountModeKey);
     } catch (_) {}
