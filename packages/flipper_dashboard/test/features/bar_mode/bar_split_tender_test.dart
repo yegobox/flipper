@@ -221,6 +221,73 @@ void main() {
     );
   });
 
+  group('saveSalePaymentRows', () {
+    late _MockSync sync;
+    setUp(() {
+      sync = _MockSync();
+      when(
+        () => sync.savePaymentType(
+          transactionId: any(named: 'transactionId'),
+          amount: any(named: 'amount'),
+          paymentMethod: any(named: 'paymentMethod'),
+          payerName: any(named: 'payerName'),
+          singlePaymentOnly: any(named: 'singlePaymentOnly'),
+          saleCompletionFastPath: any(named: 'saleCompletionFastPath'),
+        ),
+      ).thenAnswer((_) async {});
+    });
+
+    List<bool> clears() => verify(
+      () => sync.savePaymentType(
+        transactionId: any(named: 'transactionId'),
+        amount: any(named: 'amount'),
+        paymentMethod: any(named: 'paymentMethod'),
+        payerName: any(named: 'payerName'),
+        singlePaymentOnly: captureAny(named: 'singlePaymentOnly'),
+        saleCompletionFastPath: any(named: 'saleCompletionFastPath'),
+      ),
+    ).captured.cast<bool>();
+
+    test(
+      'a single tender writes exactly one row, replacing a retry\'s',
+      () async {
+        await saveSalePaymentRows(
+          sync: sync,
+          transactionId: 'txn-1',
+          payments: const [
+            PaymentLineForSaleCompletion(amount: 1600, method: 'CASH'),
+          ],
+        );
+        expect(clears(), [true]);
+      },
+    );
+
+    test('a split clears once, then adds the other tenders', () async {
+      await saveSalePaymentRows(
+        sync: sync,
+        transactionId: 'txn-1',
+        payments: const [
+          PaymentLineForSaleCompletion(amount: 1000, method: 'CASH'),
+          PaymentLineForSaleCompletion(amount: 600, method: kMobileMoney),
+        ],
+      );
+      expect(clears(), [true, false]);
+    });
+
+    test('a resumed loan keeps its earlier installments', () async {
+      await saveSalePaymentRows(
+        sync: sync,
+        transactionId: 'txn-1',
+        replacePriorRows: false,
+        payments: const [
+          PaymentLineForSaleCompletion(amount: 1000, method: 'CASH'),
+          PaymentLineForSaleCompletion(amount: 600, method: kMobileMoney),
+        ],
+      );
+      expect(clears(), [false, false]);
+    });
+  });
+
   group('BarSplitTenderRows', () {
     Future<List<List<SplitTender>>> pump(
       WidgetTester tester,

@@ -172,6 +172,88 @@ List<Payment> mposSplitSavedLines(List<Payment> payments, SplitSummary split) {
   ];
 }
 
+/// The split's lines as the cashier left them, for putting back when a charge
+/// fails after [mposSplitSavedLines] replaced them (a declined MoMo part):
+/// otherwise the retry shows the cash net of change, and no change.
+///
+/// Each call builds fresh controllers holding the typed text, because the
+/// saved lines may have dropped a row, and with it disposed its controller.
+List<Payment> Function() mposSplitRestorer(List<Payment> payments) {
+  final rows = [
+    for (final p in payments)
+      (
+        amount: p.amount,
+        method: p.method,
+        id: p.id,
+        payerName: p.payerName,
+        text: p.controller.text,
+      ),
+  ];
+  return () => [
+    for (final r in rows)
+      Payment(
+        amount: r.amount,
+        method: r.method,
+        id: r.id,
+        payerName: r.payerName,
+        controller: TextEditingController(text: r.text),
+      ),
+  ];
+}
+
+/// Charge on a split saves its lines net of change ([mposSplitSavedLines]).
+///
+/// Returns what puts the cashier's own lines back after a failed charge, or
+/// null when [payments] is not a split. That does nothing once something else
+/// replaced the lines: a completed sale resets them for the next cart.
+VoidCallback? mposSaveSplitForCharge({
+  required List<Payment> payments,
+  required double owed,
+  required List<Payment> Function() readLines,
+  required void Function(List<Payment>) writeLines,
+}) {
+  if (payments.length < 2) return null;
+  final restore = mposSplitRestorer(payments);
+  final saved = mposSplitSavedLines(
+    payments,
+    splitSummary(mposSplitTenders(payments), owed),
+  );
+  writeLines(saved);
+  return () {
+    if (identical(readLines(), saved)) writeLines(restore());
+  };
+}
+
+/// Cash handed over and change for the success screen, measured against
+/// [owed] (what was still owed before this payment), as the Totals card does.
+/// Both null when the sale gives no cash change to show.
+({double? tendered, double? change}) mposChargedCash(
+  List<Payment> payments,
+  double owed,
+) {
+  if (payments.length > 1) {
+    final change = splitSummary(mposSplitTenders(payments), owed).change;
+    if (change <= 0.01) return (tendered: null, change: null);
+    return (tendered: owed + change, change: change);
+  }
+  if (payments.isEmpty || payments.first.method.toUpperCase() != 'CASH') {
+    return (tendered: null, change: null);
+  }
+  // Exact cash (nothing typed) tenders what was owed, so change is zero.
+  final tender = mposCashTenderAmount(payments);
+  final handed = tender < owed ? owed : tender;
+  return (tendered: handed, change: handed - owed);
+}
+
+/// Whether the sale asks a phone for MoMo. One line is MoMo by its method
+/// alone (it pays the whole bill); in a split only a MoMo row carrying money
+/// counts, so a row just added at zero does not ask for a phone.
+bool mposHasMomoTender(List<Payment> payments) {
+  bool isMomo(Payment p) => canonicalPaymentMethod(p.method) == kMobileMoney;
+  if (payments.length == 1) return isMomo(payments.first);
+  return payments.any((p) => isMomo(p) && p.amount > 0.01);
+}
+
 /// The label a mobile checkout shows for one tender.
 String mposTenderLabel(FlipperAppLocalizations l10n, String method) {
   final m = method.toUpperCase();

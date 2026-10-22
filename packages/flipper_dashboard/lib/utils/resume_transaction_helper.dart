@@ -16,11 +16,7 @@ class TransactionInitializationHelper {
     required ITransaction transaction,
     bool replaceSession = true,
   }) async {
-    await initializeCustomer(
-      ref,
-      transaction,
-      replaceSession: replaceSession,
-    );
+    await initializeCustomer(ref, transaction, replaceSession: replaceSession);
     _initializePaymentWithRemainder(ref, transaction);
   }
 
@@ -56,10 +52,7 @@ class TransactionInitializationHelper {
           final liveTin = _firstNonEmpty([customer.custTin]);
           await _applyCustomerToSession(
             container,
-            name: _firstNonEmpty([
-              customer.custNm,
-              transaction.customerName,
-            ]),
+            name: _firstNonEmpty([customer.custNm, transaction.customerName]),
             phone: _firstNonEmpty([
               customer.telNo,
               transaction.customerPhone,
@@ -84,8 +77,9 @@ class TransactionInitializationHelper {
               ]);
           if (tinDiverged || nameDiverged || phoneDiverged) {
             try {
-              await ProxyService.getStrategy(Strategy.capella)
-                  .assignCustomerToTransaction(
+              await ProxyService.getStrategy(
+                Strategy.capella,
+              ).assignCustomerToTransaction(
                 customer: customer,
                 transaction: transaction,
               );
@@ -147,7 +141,10 @@ class TransactionInitializationHelper {
   }) async {
     final trimmedName = name?.trim();
     if (trimmedName != null && trimmedName.isNotEmpty) {
-      await ProxyService.box.writeString(key: 'customerName', value: trimmedName);
+      await ProxyService.box.writeString(
+        key: 'customerName',
+        value: trimmedName,
+      );
       WidgetsBinding.instance.addPostFrameCallback((_) {
         try {
           final controller = container.read(customerNameControllerProvider);
@@ -214,6 +211,12 @@ class TransactionInitializationHelper {
     });
   }
 
+  @visibleForTesting
+  static void applyPaymentWithRemainderForTest(
+    ProviderContainer container,
+    ITransaction transaction,
+  ) => _applyPaymentWithRemainder(container, transaction);
+
   static void _applyPaymentWithRemainder(
     ProviderContainer container,
     ITransaction transaction,
@@ -227,6 +230,10 @@ class TransactionInitializationHelper {
     if (displayRemainder <= 0) return;
 
     final payments = container.read(oldProvider.paymentMethodsProvider);
+    // A split's rows re-balance themselves; filling row 0 with the whole
+    // remainder would double-count the other rows (see
+    // TransactionComputationMixin.standardizedPaymentInitialization).
+    if (payments.length > 1) return;
 
     if (payments.isEmpty) {
       final controller = TextEditingController(

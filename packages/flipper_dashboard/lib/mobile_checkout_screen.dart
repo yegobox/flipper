@@ -10,7 +10,6 @@ import 'package:flipper_dashboard/providers/mpos_momo_phone_provider.dart';
 import 'package:flipper_dashboard/screens/mpos_success_screen.dart';
 import 'package:flipper_dashboard/theme/mpos_tokens.dart';
 import 'package:flipper_dashboard/utils/mpos_helpers.dart';
-import 'package:flipper_dashboard/utils/split_tender.dart';
 import 'package:flipper_dashboard/utils/resume_transaction_helper.dart';
 import 'package:flipper_dashboard/widgets/mpos/mpos_branch_transfer.dart';
 import 'package:flipper_dashboard/widgets/mpos/mpos_card.dart';
@@ -40,7 +39,6 @@ import 'package:flipper_models/services/park_transaction_service.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart'
     as oldProvider;
 import 'package:flipper_services/constants.dart';
-import 'package:flipper_services/payment_methods.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/setting_service.dart';
 import 'package:flipper_ui/dialogs/SharedTicketDialog.dart';
@@ -87,7 +85,7 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
   /// Payment as entered when Charge was tapped. Completion resets the payment
   /// fields before the success screen opens, so reading them then shows
   /// "Tendered RWF 0".
-  ({String methodLabel, double? tendered})? _chargedPayment;
+  ({String methodLabel, double? tendered, double? change})? _chargedPayment;
   String? _lastTransactionId;
   final Map<String, double> _optimisticQtyByItemId = {};
   final Set<String> _optimisticallyDeletedItemIds = {};
@@ -591,27 +589,25 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
       }
     }
 
-    final chargedCash =
-        payments.length == 1 && payments.first.method.toUpperCase() == 'CASH';
-    var tendered = chargedCash ? mposCashTenderAmount(payments) : null;
-    if (payments.length > 1) {
-      final split = splitSummary(
-        mposSplitTenders(payments),
-        calculateRemainingBalance(
-          total: total,
-          paid: _effectiveAlreadyPaid(txn),
-        ),
-      );
-      // Saved rows add up to the sale: the change comes off the cash row.
-      // What was handed over still drives the success screen's change.
-      tendered = split.change > 0.01 ? total + split.change : null;
-      ref
-          .read(oldProvider.paymentMethodsProvider.notifier)
-          .setPaymentMethods(mposSplitSavedLines(payments, split));
-    }
+    final owed = calculateRemainingBalance(
+      total: total,
+      paid: _effectiveAlreadyPaid(txn),
+    );
+    final cash = mposChargedCash(payments, owed);
     _chargedPayment = (
       methodLabel: mposTendersLabel(context.flipperL10n, payments),
-      tendered: tendered,
+      tendered: cash.tendered,
+      change: cash.change,
+    );
+    // Saved rows add up to the sale: the change comes off the cash row. A
+    // failed charge puts the cashier's own lines back, change and all.
+    final putSplitBack = mposSaveSplitForCharge(
+      payments: payments,
+      owed: owed,
+      readLines: () => ref.read(oldProvider.paymentMethodsProvider),
+      writeLines: ref
+          .read(oldProvider.paymentMethodsProvider.notifier)
+          .setPaymentMethods,
     );
 
     setState(() {
@@ -633,6 +629,7 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
       void onPaymentFailed(String error) {
         if (mounted) {
           setState(() => _chargeState = ChargeButtonState.failed);
+          putSplitBack?.call();
           ref.read(oldProvider.loadingProvider.notifier).stopLoading();
           unawaited(_readPaid(_transactionId));
           showErrorNotification(context, error);
@@ -659,6 +656,7 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
       tv_talk.talker.error('Charge failed: $e');
       if (mounted) {
         setState(() => _chargeState = ChargeButtonState.failed);
+        putSplitBack?.call();
         ref.read(oldProvider.loadingProvider.notifier).stopLoading();
         unawaited(_readPaid(_transactionId));
         showErrorNotification(context, context.flipperL10n.mposErrorOccurred);
@@ -666,9 +664,8 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
     }
   }
 
-  /// Any MoMo line, so a split with a MoMo part still asks for the phone.
   bool _isMomoPayment(List<oldProvider.Payment> payments) =>
-      payments.any((p) => canonicalPaymentMethod(p.method) == kMobileMoney);
+      mposHasMomoTender(payments);
 
   Future<void> _navigateToSuccessScreen({required double total}) async {
     final settling = ref.read(effectiveSettlingTillTicketProvider);
@@ -692,11 +689,8 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
           context.flipperL10n,
           ref.read(oldProvider.paymentMethodsProvider),
         );
-    // Exact cash (nothing typed) tenders the total, so change is zero.
-    final tendered = charged?.tendered == null
-        ? null
-        : (charged!.tendered! < total ? total : charged.tendered!);
-    final change = tendered == null ? null : tendered - total;
+    final tendered = charged?.tendered;
+    final change = charged?.change;
 
     final attached = ref.read(
       oldProvider.attachedCustomerProvider(txn.customerId),
