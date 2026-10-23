@@ -13,8 +13,7 @@ mixin AccountingMixin on DittoCore {
     String? id,
     int openingBalance = 0,
   }) async {
-    if (dittoInstance == null)
-      return handleNotInitialized('upsertChartOfAccount');
+    if (!isReady()) return handleNotInitialized('upsertChartOfAccount');
     // Same id the data-connector seeds (`coa_{business_id}_{code}`), so a
     // client seed and a server seed write one document, not two.
     final docId = id ?? 'coa_${businessId}_${account.code}';
