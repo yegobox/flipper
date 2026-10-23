@@ -279,13 +279,8 @@ void main() {
     expect(find.text('Money in'), findsNothing);
   });
 
-  testWidgets('one foreign currency labels its totals with it', (
-    tester,
-  ) async {
-    final items = [
-      _item(currency: 'USD'),
-      _item(id: 'sms-2', currency: 'USD'),
-    ];
+  testWidgets('one foreign currency labels its totals with it', (tester) async {
+    final items = [_item(currency: 'USD'), _item(id: 'sms-2', currency: 'USD')];
     await tester.pumpWidget(
       _app(const SmsReviewHomeCard(), reviewOverrides(items)),
     );
