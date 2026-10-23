@@ -64,6 +64,33 @@ void main() {
     testWidgets('ICON still shows the round button', (tester) async {
       await pump(tester, CLOSEBUTTON.ICON);
       expect(find.byType(AppBarRoundIconButton), findsOneWidget);
+      expect(find.byTooltip('Close'), findsOneWidget);
+    });
+
+    testWidgets('a back arrow is labelled Back for screen readers', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            appBar: CustomAppBar(
+              title: 'Language',
+              icon: Icons.arrow_back,
+              onPop: () {},
+            ),
+          ),
+        ),
+      );
+      expect(find.byTooltip('Back'), findsOneWidget);
+    });
+
+    test('a 64dp bar can report its real height', () {
+      const bar = CustomAppBar(
+        bottomSpacer: 64,
+        multi: 0.8,
+        isDividerVisible: false,
+      );
+      expect(bar.preferredSize.height, 64);
     });
   });
 }

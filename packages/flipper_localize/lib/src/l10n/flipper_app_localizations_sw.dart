@@ -26531,7 +26531,7 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   String get personalMoneyLeftOver => 'Kilichobaki';
 
   @override
-  String get personalMoneyOverspent => 'Matumizi ya ziada';
+  String get personalMoneyOverspent => 'Matumizi yamezidi';
 
   @override
   String get personalMoneyWhereItWent => 'Pesa zako zilikokwenda';

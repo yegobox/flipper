@@ -108,6 +108,7 @@ class _PersonalShellState extends ConsumerState<PersonalShell> {
             title: titles[_tab],
             closeButton: CLOSEBUTTON.NONE,
             bottomSpacer: 64,
+            multi: 0.8, // preferredSize matches the 64dp bar
             isDividerVisible: false,
             barBackgroundColor: PosTokens.posBg,
           );

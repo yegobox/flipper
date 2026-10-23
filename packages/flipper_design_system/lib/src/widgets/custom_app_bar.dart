@@ -43,10 +43,17 @@ class AppBarRoundIconButton extends StatelessWidget {
     final ic = iconColor ?? Colors.grey.shade700;
     final bc = borderColor ?? Colors.grey.shade400;
     final inferredClose = icon == Icons.close || icon == CupertinoIcons.clear;
+    final inferredBack =
+        icon == Icons.arrow_back ||
+        icon == Icons.arrow_back_ios ||
+        icon == Icons.arrow_back_ios_new ||
+        icon == CupertinoIcons.back;
     final tip =
         tooltip ??
         (inferredClose
             ? MaterialLocalizations.of(context).closeButtonTooltip
+            : inferredBack
+            ? MaterialLocalizations.of(context).backButtonTooltip
             : null);
 
     Widget target = Material(

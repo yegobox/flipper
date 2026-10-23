@@ -242,6 +242,7 @@ CustomAppBar settingsPageAppBar(BuildContext context, String title) {
     icon: Icons.arrow_back,
     onPop: () => Navigator.of(context).maybePop(),
     bottomSpacer: 64,
+    multi: 0.8, // preferredSize matches the 64dp bar
     isDividerVisible: false,
     barBackgroundColor: MposTokens.head,
   );
