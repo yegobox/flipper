@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:flipper_dashboard/features/admin/mobile/settings_list.dart'
+    show settingsPageAppBar;
 import 'package:flipper_dashboard/theme/mpos_tokens.dart';
 import 'package:flipper_dashboard/theme/pos_tokens.dart';
 import 'package:flipper_dashboard/widgets/mpos/mpos_section_label.dart';
@@ -219,21 +221,7 @@ class _SmsBridgePageState extends ConsumerState<SmsBridgePage> {
     final devices = ref.watch(smsBridgeDevicesProvider);
     return Scaffold(
       backgroundColor: MposTokens.bg,
-      appBar: AppBar(
-        backgroundColor: MposTokens.head,
-        surfaceTintColor: Colors.transparent,
-        elevation: 0,
-        scrolledUnderElevation: 0.5,
-        foregroundColor: PosTokens.ink1,
-        title: Text(
-          l10n.smsBridgeTitle,
-          style: const TextStyle(
-            fontSize: 17,
-            fontWeight: FontWeight.w600,
-            color: PosTokens.ink1,
-          ),
-        ),
-      ),
+      appBar: settingsPageAppBar(context, l10n.smsBridgeTitle),
       body: SafeArea(
         top: false,
         child: Align(

@@ -7383,6 +7383,7 @@
   "personalMoneyIn": "Entrées",
   "personalMoneyOut": "Sorties",
   "personalMoneyLeftOver": "Reste",
+  "personalMoneyOverspent": "Dépenses en trop",
   "personalMoneyWhereItWent": "Où est allé votre argent",
   "personalMoneyByAccount": "Par compte",
   "personalMoneyAccountCash": "Espèces",

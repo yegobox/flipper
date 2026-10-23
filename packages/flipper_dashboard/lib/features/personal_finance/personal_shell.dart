@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flipper_ai_feature/flipper_ai_feature.dart' show AiScreen;
+import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flipper_dashboard/features/personal_finance/personal_add_money_sheet.dart';
 import 'package:flipper_dashboard/features/personal_finance/personal_home.dart';
 import 'package:flipper_dashboard/features/personal_finance/personal_more.dart';
@@ -101,16 +102,15 @@ class _PersonalShellState extends ConsumerState<PersonalShell> {
           );
     final appBar = _tab == _flo
         ? null
-        : AppBar(
-            backgroundColor: PosTokens.posBg,
-            surfaceTintColor: Colors.transparent,
-            title: Text(
-              titles[_tab],
-              style: const TextStyle(
-                fontWeight: FontWeight.w700,
-                color: PosTokens.ink1,
-              ),
-            ),
+        // Flipper's one header. A tab is a root, so there is no back button.
+        : CustomAppBar(
+            key: const ValueKey('personal-app-bar'),
+            title: titles[_tab],
+            closeButton: CLOSEBUTTON.NONE,
+            bottomSpacer: 64,
+            multi: 0.8, // preferredSize matches the 64dp bar
+            isDividerVisible: false,
+            barBackgroundColor: PosTokens.posBg,
           );
 
     // The SMS review count sits on Home, where the queue is.
