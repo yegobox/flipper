@@ -24,6 +24,7 @@ class DailyReportFile {
   final String branchId;
   final String type;
   final String? businessId;
+
   /// Report date `YYYY-MM-DD`.
   final String? day;
   final String? fileName;
@@ -33,10 +34,43 @@ class DailyReportFile {
   final String? runId;
   final DateTime? createdAt;
   final String? implementation;
+
   /// When set, the file is hidden from the default list (soft archive).
   final DateTime? archivedAt;
 
   bool get isArchived => archivedAt != null;
+
+  /// `REPORT-<day>`, the name the daily report email gives this file. Null for
+  /// merged files (named by their date range) and for rows without a day.
+  String? get reportName {
+    final d = day?.trim() ?? '';
+    if (d.isEmpty) return null;
+    final name = (fileName ?? '').toLowerCase();
+    if (name.contains('merged')) return null;
+    // Legacy names separate the words with hyphens, underscores or spaces.
+    final words = name.replaceAll(RegExp(r'[\s_-]+'), ' ');
+    final isDailyReport =
+        type.toLowerCase().contains('transaction') ||
+        name.startsWith('report-') ||
+        words.contains('daily transactions');
+    return isDailyReport ? 'REPORT-$d' : null;
+  }
+
+  /// Whether [query] appears in a stored field or in the displayed
+  /// [reportName], so `REPORT-<day>` finds files catalogued under a legacy
+  /// name. An empty query matches every file.
+  bool matchesSearch(String query) {
+    final q = query.trim().toLowerCase();
+    if (q.isEmpty) return true;
+    return [
+      fileName,
+      day,
+      s3ObjectKey,
+      runId,
+      id,
+      reportName,
+    ].any((field) => (field ?? '').toLowerCase().contains(q));
+  }
 
   factory DailyReportFile.fromDittoMap(Map<String, dynamic> m) {
     final rawId = (m['_id'] ?? m['id'])?.toString().trim() ?? '';
@@ -45,15 +79,15 @@ class DailyReportFile {
     final id = rawId.isNotEmpty
         ? rawId
         : (m['s3ObjectKey']?.toString().trim().isNotEmpty ?? false)
-            ? m['s3ObjectKey']!.toString().trim()
-            : (m['fileName']?.toString().trim().isNotEmpty ?? false)
-                ? m['fileName']!.toString().trim()
-                : [
-                    m['branchId']?.toString().trim(),
-                    m['type']?.toString().trim(),
-                    m['day']?.toString().trim(),
-                    m['createdAt']?.toString().trim(),
-                  ].whereType<String>().where((s) => s.isNotEmpty).join('|');
+        ? m['s3ObjectKey']!.toString().trim()
+        : (m['fileName']?.toString().trim().isNotEmpty ?? false)
+        ? m['fileName']!.toString().trim()
+        : [
+            m['branchId']?.toString().trim(),
+            m['type']?.toString().trim(),
+            m['day']?.toString().trim(),
+            m['createdAt']?.toString().trim(),
+          ].whereType<String>().where((s) => s.isNotEmpty).join('|');
     return DailyReportFile(
       id: id,
       branchId: m['branchId']?.toString() ?? '',

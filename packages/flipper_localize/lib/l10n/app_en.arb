@@ -11356,7 +11356,7 @@
     "dailyReportRecipientsSave": "Save recipient",
     "dailyReportRecipientsAddTitle": "Add recipient",
     "dailyReportRecipientsTitle": "Daily report recipients",
-    "dailyReportRecipientsSubtitle": "The owner email above receives the daily detailed transactions report. Add more addresses to receive the same report.",
+    "dailyReportRecipientsSubtitle": "The owner email above receives the daily REPORT email on days with sales. Add more addresses to receive the same report.",
     "dailyReportRecipientsEmpty": "No additional recipients yet.",
     "transfersReportPdfExportFailed": "PDF export failed: {error}",
     "@transfersReportPdfExportFailed": {
@@ -11639,7 +11639,7 @@
     "dailyReportFilesMoreActions": "More actions",
     "dailyReportFilesShare": "Share",
     "dailyReportFilesArchive": "Archive",
-    "dailyReportFilesNameDailyTransactions": "Daily Transactions",
+    "dailyReportFilesNameDailyTransactions": "Report",
     "dailyReportFilesNameSalesSummary": "Sales Summary",
     "dailyReportFilesNamePaymentsBreakdown": "Payments Breakdown",
     "dailyReportFilesNameStockMovement": "Stock Movement",
