@@ -80,7 +80,7 @@ jobs:
 
       - name: Force submodule update
         run: git submodule update --init --force --recursive
-      - uses: actions/setup-java@v4 #plugin for setting up the java
+      - uses: actions/setup-java@v5 #plugin for setting up the java
         with:
           distribution: "zulu"
           java-version: "17" #defines the java version
