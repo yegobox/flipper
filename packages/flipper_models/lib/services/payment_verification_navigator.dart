@@ -263,10 +263,15 @@ class PaymentVerificationNavigator {
   /// as before, unless [replaceStack]: startup's fast path has already shown
   /// the home, and a paywall pushed on top of it was one Android back away
   /// from the full app.
+  ///
+  /// Never for a signed-out device: the fast path's check runs as
+  /// user-initiated (no pre-auth guard), and a logout while it was pending
+  /// must not swap the login screen for a paywall.
   static Future<void> _show(
     PageRouteInfo<dynamic> route, {
     required bool replaceStack,
   }) async {
+    if (_refuseWhenSignedOut(route.routeName)) return;
     if (replaceStack) {
       await _routerService.clearStackAndShow(route);
     } else {

@@ -429,8 +429,11 @@ class _NothingToReviewRow extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final count = ref.watch(smsReviewSummaryProvider.select((s) => s.count));
-    if (count > 0) return const SizedBox.shrink();
+    // Only a queue that was read and is empty: not while it loads or failed.
+    final empty = ref.watch(
+      smsReviewSummaryProvider.select((s) => s.loaded && s.count == 0),
+    );
+    if (!empty) return const SizedBox.shrink();
     final l10n = context.flipperL10n;
     return Padding(
       padding: const EdgeInsets.only(top: 12),

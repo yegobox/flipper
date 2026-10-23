@@ -61,8 +61,31 @@ void main() {
 
   group('StartupViewModel.fastStartupFor', () {
     test('only a cached signed-in session opens the home first', () {
-      expect(StartupViewModel.fastStartupFor(hasCachedSession: true), isTrue);
-      expect(StartupViewModel.fastStartupFor(hasCachedSession: false), isFalse);
+      expect(
+        StartupViewModel.fastStartupFor(
+          hasCachedSession: true,
+          freshSignup: false,
+        ),
+        isTrue,
+      );
+      expect(
+        StartupViewModel.fastStartupFor(
+          hasCachedSession: false,
+          freshSignup: false,
+        ),
+        isFalse,
+      );
+    });
+
+    test('a fresh signup keeps the blocking path to LoginChoices', () {
+      // CoreSync.signup caches both ids before it sets freshSignup.
+      expect(
+        StartupViewModel.fastStartupFor(
+          hasCachedSession: true,
+          freshSignup: true,
+        ),
+        isFalse,
+      );
     });
   });
 }

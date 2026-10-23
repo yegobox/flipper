@@ -334,6 +334,26 @@ void main() {
       },
     );
 
+    test(
+      'an untimed answer repeating the cached mode keeps its server time',
+      () async {
+        final box = _MemBox(businessId: 'me');
+        final at = DateTime.utc(2026, 10, 22, 8);
+        final store = _store(
+          box,
+          // A stale doc that an untimed cache entry would no longer outrank.
+          doc: {'mode': 'personal'},
+          http: MockClient(
+            (_) async => http.Response(jsonEncode({'mode': 'business'}), 200),
+          ),
+        );
+        await store.remember('me', AccountMode.business, changedAt: at);
+        await store.switchTo(AccountMode.business);
+        expect(store.cachedEntry('me')!.changedAt, at);
+        expect(await store.localMode(), AccountMode.business);
+      },
+    );
+
     test('no active business is never personal', () async {
       final store = _store(_MemBox(), http: _never());
       expect(await store.isPersonalLocal(), isFalse);

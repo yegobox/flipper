@@ -54,18 +54,30 @@ final smsReviewBranchIdProvider = Provider.autoDispose<String>((ref) {
 /// What is waiting for review at this branch: how many SMS, and the money in
 /// and out they add up to. Watched by the home card and the nav badges, so
 /// it is one record they all select from.
+///
+/// [loaded] is `true` only once the queue has been read: while it loads or
+/// after an error, `count` is 0 without meaning "nothing waiting".
+/// [currency] is `null` when the SMS are in more than one currency: their
+/// amounts cannot be added up, so no totals are shown.
 typedef SmsReviewSummary = ({
   int count,
   int moneyIn,
   int moneyOut,
-  String currency,
+  String? currency,
+  bool loaded,
 });
 
 final smsReviewSummaryProvider = Provider.autoDispose<SmsReviewSummary>((ref) {
   final branchId = ref.watch(smsReviewBranchIdProvider);
-  final items = ref.watch(
-    smsReviewItemsProvider(branchId).select((v) => v.value ?? const []),
+  final queue = ref.watch(
+    smsReviewItemsProvider(branchId).select(
+      (v) => (
+        items: v.value ?? const <SmsReviewItem>[],
+        loaded: v.hasValue && !v.hasError,
+      ),
+    ),
   );
+  final items = queue.items;
   var moneyIn = 0;
   var moneyOut = 0;
   for (final i in items) {
@@ -75,11 +87,17 @@ final smsReviewSummaryProvider = Provider.autoDispose<SmsReviewSummary>((ref) {
       moneyOut += i.amount;
     }
   }
+  final currencies = items.map((i) => i.currency).toSet();
   return (
     count: items.length,
     moneyIn: moneyIn,
     moneyOut: moneyOut,
-    currency: items.isEmpty ? 'RWF' : items.first.currency,
+    currency: items.isEmpty
+        ? 'RWF'
+        : currencies.length == 1
+        ? currencies.single
+        : null,
+    loaded: queue.loaded,
   );
 });
 
@@ -271,9 +289,13 @@ class SmsReviewHomeCard extends ConsumerWidget {
     final summary = ref.watch(smsReviewSummaryProvider);
     if (summary.count == 0) return const SizedBox.shrink();
     final l10n = context.flipperL10n;
+    final currency = summary.currency;
     String money(int v, String sign) =>
-        '$sign${v.toCurrencyFormatted(symbol: summary.currency, decimalDigits: 0)}';
-    final totals = summary.moneyOut == 0
+        '$sign${v.toCurrencyFormatted(symbol: currency, decimalDigits: 0)}';
+    // Mixed currencies: no total, rather than one labelled wrongly.
+    final totals = currency == null
+        ? null
+        : summary.moneyOut == 0
         ? money(summary.moneyIn, '+')
         : summary.moneyIn == 0
         ? money(summary.moneyOut, '−')
@@ -319,11 +341,13 @@ class SmsReviewHomeCard extends ConsumerWidget {
                           fontSize: 15,
                         ),
                       ),
-                      const SizedBox(height: 2),
-                      Text(
-                        totals,
-                        style: TextStyle(color: Colors.grey.shade700),
-                      ),
+                      if (totals != null) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          totals,
+                          style: TextStyle(color: Colors.grey.shade700),
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -420,6 +444,7 @@ class SmsReviewSheet extends ConsumerWidget {
     final branchId = ref.watch(smsReviewBranchIdProvider);
     final items = ref.watch(smsReviewItemsProvider(branchId)).value ?? const [];
     final summary = ref.watch(smsReviewSummaryProvider);
+    final currency = summary.currency;
 
     final today = DateTime.now();
     final rows = <Widget>[];
@@ -475,7 +500,7 @@ class SmsReviewSheet extends ConsumerWidget {
             l10n.smsReviewSubtitle,
             style: TextStyle(color: Colors.grey.shade700),
           ),
-          if (items.isNotEmpty) ...[
+          if (items.isNotEmpty && currency != null) ...[
             const SizedBox(height: 12),
             Row(
               children: [
@@ -483,7 +508,7 @@ class SmsReviewSheet extends ConsumerWidget {
                   Expanded(
                     child: _TotalTile(
                       label: l10n.smsReviewMoneyIn,
-                      amount: '+${_money(summary.moneyIn, 'RWF')}',
+                      amount: '+${_money(summary.moneyIn, currency)}',
                       color: _kIn,
                     ),
                   ),
@@ -493,7 +518,7 @@ class SmsReviewSheet extends ConsumerWidget {
                   Expanded(
                     child: _TotalTile(
                       label: l10n.smsReviewMoneyOut,
-                      amount: '−${_money(summary.moneyOut, 'RWF')}',
+                      amount: '−${_money(summary.moneyOut, currency)}',
                       color: _kOut,
                     ),
                   ),

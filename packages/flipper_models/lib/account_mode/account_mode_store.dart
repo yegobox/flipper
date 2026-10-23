@@ -223,8 +223,17 @@ class AccountModeStore {
     // however new. With the server's time it also beats the old Ditto doc
     // until the new one syncs back. Never the device clock: a clock running
     // ahead would let this entry outrank later switches made elsewhere.
+    // An answer without a time that only repeats the cached mode keeps the
+    // cached server time, so a stale doc cannot outrank it afterwards.
     try {
-      await _write(id, result.mode, changedAt: result.changedAt);
+      final cached = cachedEntry(id);
+      final repeatsTimedEntry =
+          result.changedAt == null &&
+          cached?.mode == result.mode &&
+          cached?.changedAt != null;
+      if (!repeatsTimedEntry) {
+        await _write(id, result.mode, changedAt: result.changedAt);
+      }
     } catch (_) {
       // A cache only.
     }

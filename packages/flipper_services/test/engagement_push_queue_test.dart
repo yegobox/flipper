@@ -45,6 +45,33 @@ void main() {
     expect(opened, 0);
   });
 
+  test('taps on different actions wait side by side', () {
+    var sales = 0;
+    var reviews = 0;
+    openEngagementAction(kNewSaleEngagementAction);
+    openEngagementAction(kSmsReviewEngagementAction);
+    registerEngagementActionHandler(
+      kSmsReviewEngagementAction,
+      () => reviews++,
+    );
+    registerEngagementActionHandler(kNewSaleEngagementAction, () => sales++);
+    expect((sales, reviews), (1, 1));
+  });
+
+  test('a home gone before the frame does not open the waiting tap', () {
+    var opened = 0;
+    void open() => opened++;
+    final frames = <void Function()>[];
+    engagementAfterFrame = frames.add;
+    openEngagementAction(kNewSaleEngagementAction);
+    registerEngagementActionHandler(kNewSaleEngagementAction, open);
+    unregisterEngagementActionHandler(kNewSaleEngagementAction, open);
+    for (final run in frames) {
+      run();
+    }
+    expect(opened, 0);
+  });
+
   test('a new-sale tap waits for the business home', () {
     var opened = 0;
     // Cold start: no home yet, so nothing is pushed onto the splash screen.

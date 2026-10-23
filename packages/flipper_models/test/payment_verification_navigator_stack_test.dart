@@ -127,6 +127,18 @@ void main() {
       verifyNever(() => router.navigateTo(any()));
     });
 
+    test('never opens a paywall once the user signed out', () async {
+      // Logout cleared the session while the check behind the home ran.
+      when(() => box.getUserId()).thenReturn(null);
+      await handle(PaymentVerificationResult.noPlan, alreadyHome: true);
+      await handle(
+        PaymentVerificationResult.planExistsButInactive,
+        alreadyHome: true,
+      );
+      verifyNever(() => router.clearStackAndShow(any()));
+      verifyNever(() => router.navigateTo(any()));
+    });
+
     test('a commission-only session replaces it with commissions', () async {
       commissionOnly = true;
       await handle(PaymentVerificationResult.noPlan, alreadyHome: true);

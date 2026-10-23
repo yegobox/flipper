@@ -105,6 +105,7 @@ SmsReviewItem _item({
   String? occurredAt = '2026-10-14T09:29:21',
   String lineDate = '2026-10-14',
   String? counterpartyName,
+  String? currency,
 }) => SmsReviewItem.fromDitto({
   '_id': id ?? (kind == 'fee' ? 'sms-fee' : 'sms-1'),
   'businessId': 'biz',
@@ -123,6 +124,7 @@ SmsReviewItem _item({
   'status': 'pending_review',
   'bankLineId': 'line-${id ?? kind}',
   'counterpartyName': ?counterpartyName,
+  'currency': ?currency,
   if (suggested != null) 'suggestedCategory': suggested,
 });
 
@@ -257,6 +259,43 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Bank & MoMo SMS'), findsOneWidget);
     expect(find.byKey(const Key('sms_review_row_sms-2')), findsOneWidget);
+  });
+
+  testWidgets('SMS in two currencies are never added up', (tester) async {
+    final items = [
+      _item(direction: 'credit'),
+      _item(id: 'sms-2', direction: 'credit', currency: 'USD'),
+    ];
+    await tester.pumpWidget(
+      _app(const SmsReviewHomeCard(), reviewOverrides(items)),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('2 bank & MoMo SMS to approve'), findsOneWidget);
+    expect(find.textContaining('4,000'), findsNothing);
+    expect(find.textContaining('RWF'), findsNothing);
+
+    await tester.tap(find.byKey(const Key('sms_review_home_card')));
+    await tester.pumpAndSettle();
+    expect(find.text('Money in'), findsNothing);
+  });
+
+  testWidgets('one foreign currency labels its totals with it', (
+    tester,
+  ) async {
+    final items = [
+      _item(currency: 'USD'),
+      _item(id: 'sms-2', currency: 'USD'),
+    ];
+    await tester.pumpWidget(
+      _app(const SmsReviewHomeCard(), reviewOverrides(items)),
+    );
+    await tester.pumpAndSettle();
+    expect(find.textContaining('USD'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('sms_review_home_card')));
+    await tester.pumpAndSettle();
+    expect(find.text('Money out'), findsOneWidget);
+    expect(find.textContaining('USD 4,000'), findsWidgets);
   });
 
   testWidgets('the count badge shows only while SMS are waiting', (

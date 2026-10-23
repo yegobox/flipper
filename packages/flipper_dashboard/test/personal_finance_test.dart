@@ -113,11 +113,14 @@ SmsReviewItem _pendingSms() => SmsReviewItem.fromDitto({
 List<Override> _overrides(
   PersonalMonthSummary summary, {
   List<SmsReviewItem> sms = const [],
+  Stream<List<SmsReviewItem>>? smsStream,
 }) => [
   branchServicesProvider.overrideWithValue(_Services()),
   personalMonthSummaryProvider.overrideWith((ref) => Stream.value(summary)),
   smsReviewBranchIdProvider.overrideWithValue('br'),
-  smsReviewItemsProvider('br').overrideWith((ref) => Stream.value(sms)),
+  smsReviewItemsProvider(
+    'br',
+  ).overrideWith((ref) => smsStream ?? Stream.value(sms)),
   dashboardIsAdminProvider.overrideWithValue(true),
   categoryProvider.overrideWith((ref) => Stream.value(const <Category>[])),
 ];
@@ -387,6 +390,31 @@ void main() {
         findsOneWidget,
       );
       expect(find.byKey(const Key('sms_review_count_badge')), findsNothing);
+    });
+
+    testWidgets('a queue still loading or failed is not called empty', (
+      tester,
+    ) async {
+      _size(tester, const Size(390, 844));
+      for (final queue in <Stream<List<SmsReviewItem>>>[
+        const Stream.empty(),
+        Stream.error(StateError('ditto down')),
+      ]) {
+        // A fresh scope: overrides can't change on a mounted ProviderScope.
+        await tester.pumpWidget(const SizedBox());
+        await tester.pumpWidget(
+          _app(
+            PersonalShell(floBuilder: (_) => const SizedBox()),
+            _overrides(PersonalMonthSummary.empty, smsStream: queue),
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(find.text('My money'), findsOneWidget);
+        expect(
+          find.byKey(const ValueKey('personal-nothing-to-review')),
+          findsNothing,
+        );
+      }
     });
 
     testWidgets('waiting SMS show on Home, the badge and More', (tester) async {

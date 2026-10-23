@@ -101,7 +101,10 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
       // A signed-in device with its business and branch cached opens the
       // home from that cache and checks the plan behind it, instead of
       // waiting on the network first. See [fastStartupFor].
-      final fastPath = fastStartupFor(hasCachedSession: _hasCachedSession());
+      final fastPath = fastStartupFor(
+        hasCachedSession: _hasCachedSession(),
+        freshSignup: _freshSignupPending(),
+      );
       final trace = Stopwatch()..start();
       final marks = <String>[];
       void mark(String step) =>
@@ -238,10 +241,14 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
   /// plan check. Only a real signed-in session with its business and branch
   /// on this device ([_hasCachedSession]: not QR login's `login-` identity);
   /// everything else (no session, LoginChoices after a fresh signup, which
-  /// `appInit` still routes) keeps the blocking path.
+  /// `appInit` still routes) keeps the blocking path. A fresh signup already
+  /// has both ids cached (`CoreSync.signup` writes them before its
+  /// `freshSignup` flag), so the flag is checked on its own.
   @visibleForTesting
-  static bool fastStartupFor({required bool hasCachedSession}) =>
-      hasCachedSession;
+  static bool fastStartupFor({
+    required bool hasCachedSession,
+    required bool freshSignup,
+  }) => hasCachedSession && !freshSignup;
 
   /// The startup plan check, after [PaymentVerificationNavigator.enterHomeFromCache]
   /// opened the home. Never re-runs startup: a slow or failed check only
@@ -472,12 +479,18 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
   /// temporary `login-` identity is not a session.
   static bool _hasCachedSession() {
     bool present(String? value) => value != null && value.trim().isNotEmpty;
-    final userId = ProxyService.box.getUserId();
+    final box = ProxyService.box;
+    final userId = box.getUserId();
     return present(userId) &&
         !userId!.startsWith('login-') &&
-        present(ProxyService.box.getBusinessId()) &&
-        present(ProxyService.box.getBranchId());
+        present(box.getBusinessId()) &&
+        present(box.getBranchId());
   }
+
+  /// Set by `CoreSync.signup`, cleared by `appInit` once it has routed the
+  /// new account to LoginChoices.
+  static bool _freshSignupPending() =>
+      ProxyService.box.readBool(key: 'freshSignup') ?? false;
 
   Future<bool> _keepsCachedSessionAfter(Object error) async {
     if (!_hasCachedSession()) return false;

@@ -47,9 +47,9 @@ final Map<String, void Function()> _actionHandlers = {};
 /// A tap that arrived before its screen could open: on a cold start the push
 /// is read while the app is still starting, long before the dashboard (or
 /// the personal shell) registers its handler. Kept for [kPendingEngagementTtl]
-/// so an old tap never opens a sheet much later.
-String? _pendingAction;
-DateTime? _pendingAt;
+/// so an old tap never opens a sheet much later. Keyed by action, so a tap
+/// on one push never drops a waiting tap on another.
+final Map<String, DateTime> _pendingTaps = {};
 
 const Duration kPendingEngagementTtl = Duration(minutes: 2);
 
@@ -67,8 +67,7 @@ bool _launchTapClaimed = false;
 @visibleForTesting
 void resetEngagementActions() {
   _actionHandlers.clear();
-  _pendingAction = null;
-  _pendingAt = null;
+  _pendingTaps.clear();
   _launchTapClaimed = false;
 }
 
@@ -97,14 +96,13 @@ void unregisterEngagementActionHandler(String action, void Function() handler) {
 /// for [action] that is still waiting runs now.
 void registerEngagementActionHandler(String action, void Function() handler) {
   _actionHandlers[action] = handler;
-  if (_pendingAction != action) return;
-  final at = _pendingAt;
-  _pendingAction = null;
-  _pendingAt = null;
+  final at = _pendingTaps.remove(action);
   if (at == null || engagementClock().difference(at) > kPendingEngagementTtl) {
     return;
   }
-  engagementAfterFrame(handler);
+  // Whatever is registered when the frame runs: a home that unregistered
+  // meanwhile (e.g. a switch away from the business home) must not open.
+  engagementAfterFrame(() => _actionHandlers[action]?.call());
 }
 
 void openEngagementAction(String? action, {EngagementNavigate? navigate}) {
@@ -121,6 +119,5 @@ void openEngagementAction(String? action, {EngagementNavigate? navigate}) {
   // No home that can open it yet (cold start, still on the splash screen):
   // wait for one. `new_sale` included: pushing the POS before the router has
   // a home either failed or was swept away when startup cleared the stack.
-  _pendingAction = action;
-  _pendingAt = engagementClock();
+  _pendingTaps[action] = engagementClock();
 }
