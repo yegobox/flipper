@@ -26623,6 +26623,9 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   String get personalMoneyLeftOver => 'Ibisigaye';
 
   @override
+  String get personalMoneyOverspent => 'Ibyarenze';
+
+  @override
   String get personalMoneyWhereItWent => 'Aho amafaranga yawe yagiye';
 
   @override

@@ -12,7 +12,9 @@ import 'package:flipper_design_system/src/widgets/hit_area.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-enum CLOSEBUTTON { ICON, BUTTON, WIDGET }
+/// The bar's leading slot. [NONE] is for a root screen (a shell's tab) that
+/// has nothing to close or go back to.
+enum CLOSEBUTTON { ICON, BUTTON, WIDGET, NONE }
 
 /// Cash Book / cash-in header: circular 44×44 tap target, grey outline, Material icon.
 class AppBarRoundIconButton extends StatelessWidget {
@@ -304,6 +306,9 @@ class _CustomAppBarState extends State<CustomAppBar> {
     required ColorScheme colorScheme,
   }) {
     switch (widget.closeButton) {
+      case CLOSEBUTTON.NONE:
+        // With the bar's own padding, the title starts on a 16dp page gutter.
+        return const SizedBox(width: 8);
       case CLOSEBUTTON.WIDGET:
         return widget.customLeadingWidget!;
       case CLOSEBUTTON.ICON:

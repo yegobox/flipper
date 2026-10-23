@@ -44069,6 +44069,12 @@ abstract class FlipperAppLocalizations {
   /// **'Left over'**
   String get personalMoneyLeftOver;
 
+  /// No description provided for @personalMoneyOverspent.
+  ///
+  /// In en, this message translates to:
+  /// **'Overspent'**
+  String get personalMoneyOverspent;
+
   /// No description provided for @personalMoneyWhereItWent.
   ///
   /// In en, this message translates to:

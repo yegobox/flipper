@@ -8968,6 +8968,7 @@
   "personalMoneyIn": "Ibyinjiye",
   "personalMoneyOut": "Ibyasohotse",
   "personalMoneyLeftOver": "Ibisigaye",
+  "personalMoneyOverspent": "Ibyarenze",
   "personalMoneyWhereItWent": "Aho amafaranga yawe yagiye",
   "personalMoneyByAccount": "Ukurikije konti",
   "personalMoneyAccountCash": "Amafaranga mu ntoki",

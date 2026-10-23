@@ -19740,6 +19740,7 @@
     "personalMoneyIn": "Money in",
     "personalMoneyOut": "Money out",
     "personalMoneyLeftOver": "Left over",
+    "personalMoneyOverspent": "Overspent",
     "personalMoneyWhereItWent": "Where your money went",
     "personalMoneyByAccount": "By account",
     "personalMoneyAccountCash": "Cash",

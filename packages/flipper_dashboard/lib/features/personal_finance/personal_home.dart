@@ -33,7 +33,7 @@ class PersonalHome extends ConsumerWidget {
         PersonalMonthSummary.empty;
     return ListView(
       key: const ValueKey('personal-home'),
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 96),
       children: [
         const PersonalMonthBar(),
         const SizedBox(height: 12),
@@ -121,7 +121,7 @@ class PersonalActivity extends ConsumerWidget {
     flush();
     return ListView(
       key: const ValueKey('personal-activity'),
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 96),
       children: children,
     );
   }
@@ -200,9 +200,10 @@ class PersonalMovementTile extends ConsumerWidget {
       ),
       title: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis),
       subtitle: Text(subtitle, maxLines: 1, overflow: TextOverflow.ellipsis),
-      trailing: Text(
+      trailing: _FitAmount(
         '${m.isIncome ? '+' : '−'}${_money(ref, m.amount)}',
         style: TextStyle(
+          fontSize: 14,
           fontWeight: FontWeight.w700,
           color: m.isIncome ? PosTokens.gainInk : PosTokens.ink1,
         ),
@@ -211,59 +212,123 @@ class PersonalMovementTile extends ConsumerWidget {
   }
 }
 
+/// The month at a glance: what is left over (or overspent) in large type
+/// across the card, money in and out side by side under it. Each figure has
+/// its own width, so long amounts on a phone shrink instead of colliding.
 class _SummaryCard extends ConsumerWidget {
   const _SummaryCard({required this.summary});
 
   final PersonalMonthSummary summary;
 
+  static const _tabular = [FontFeature.tabularFigures()];
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.flipperL10n;
-    Widget figure(String label, double v, {Color? color, Key? key}) => Expanded(
+    final overspent = summary.leftOver < 0;
+    Widget amount(
+      double v, {
+      required Key key,
+      required double size,
+      required Color color,
+      FontWeight weight = FontWeight.w700,
+    }) => FittedBox(
+      fit: BoxFit.scaleDown,
+      alignment: AlignmentDirectional.centerStart,
+      child: Text(
+        _money(ref, v),
+        key: key,
+        maxLines: 1,
+        style: TextStyle(
+          fontSize: size,
+          fontWeight: weight,
+          color: color,
+          fontFeatures: _tabular,
+        ),
+      ),
+    );
+    Widget flow(
+      String label,
+      IconData icon,
+      Color iconColor,
+      double v, {
+      required Key key,
+      Color color = PosTokens.ink1,
+    }) => Expanded(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            label,
-            style: const TextStyle(fontSize: 12, color: PosTokens.ink3),
+          Row(
+            children: [
+              Icon(icon, size: 14, color: iconColor),
+              const SizedBox(width: 4),
+              Flexible(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontSize: 12, color: PosTokens.ink3),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 4),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: Alignment.centerLeft,
-            child: Text(
-              _money(ref, v),
-              key: key,
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: color ?? PosTokens.ink1,
-              ),
-            ),
-          ),
+          amount(v, key: key, size: 17, color: color),
         ],
       ),
     );
     return _Card(
-      padding: const EdgeInsets.all(16),
-      child: Row(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          figure(
-            l10n.personalMoneyIn,
-            summary.income,
-            color: PosTokens.gainInk,
-            key: const ValueKey('personal-income'),
+          Text(
+            overspent
+                ? l10n.personalMoneyOverspent
+                : l10n.personalMoneyLeftOver,
+            key: const ValueKey('personal-left-over-label'),
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: overspent ? PosTokens.lossInk : PosTokens.ink3,
+            ),
           ),
-          figure(
-            l10n.personalMoneyOut,
-            summary.spent,
-            key: const ValueKey('personal-spent'),
-          ),
-          figure(
-            l10n.personalMoneyLeftOver,
-            summary.leftOver,
-            color: summary.leftOver < 0 ? PosTokens.lossInk : PosTokens.blue,
+          const SizedBox(height: 2),
+          // Overspent says the sign, so the figure is shown without one.
+          amount(
+            summary.leftOver.abs(),
             key: const ValueKey('personal-left-over'),
+            size: 30,
+            weight: FontWeight.w800,
+            color: overspent ? PosTokens.lossInk : PosTokens.blue,
+          ),
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 12),
+            child: Divider(height: 1, thickness: 1, color: PosTokens.line),
+          ),
+          Row(
+            children: [
+              flow(
+                l10n.personalMoneyIn,
+                Icons.south_west_rounded,
+                PosTokens.gainInk,
+                summary.income,
+                key: const ValueKey('personal-income'),
+                color: PosTokens.gainInk,
+              ),
+              const SizedBox(
+                width: 24,
+                height: 36,
+                child: VerticalDivider(thickness: 1, color: PosTokens.line),
+              ),
+              flow(
+                l10n.personalMoneyOut,
+                Icons.north_east_rounded,
+                PosTokens.ink3,
+                summary.spent,
+                key: const ValueKey('personal-spent'),
+              ),
+            ],
           ),
         ],
       ),
@@ -308,7 +373,7 @@ class _CategoryCard extends ConsumerWidget {
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
-                            Text(
+                            _FitAmount(
                               _money(ref, c.amount),
                               style: const TextStyle(
                                 fontWeight: FontWeight.w600,
@@ -372,10 +437,17 @@ class _AccountsCard extends ConsumerWidget {
             ListTile(
               leading: Icon(icon, color: PosTokens.ink2),
               title: Text(label),
-              trailing: Text(() {
-                final v = summary.netByAccount[account] ?? 0;
-                return '${v < 0 ? '−' : '+'}${_money(ref, v.abs())}';
-              }(), style: const TextStyle(fontWeight: FontWeight.w600)),
+              trailing: _FitAmount(
+                () {
+                  final v = summary.netByAccount[account] ?? 0;
+                  return '${v < 0 ? '−' : '+'}${_money(ref, v.abs())}';
+                }(),
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: PosTokens.ink1,
+                ),
+              ),
             ),
         ],
       ),
@@ -456,6 +528,27 @@ class _NothingToReviewRow extends ConsumerWidget {
       ),
     );
   }
+}
+
+/// A row's amount: its natural size up to [maxWidth], shrunk to fit beyond
+/// that, so a very large figure never pushes its row off the card.
+class _FitAmount extends StatelessWidget {
+  const _FitAmount(this.text, {this.style});
+
+  final String text;
+  final TextStyle? style;
+
+  static const double maxWidth = 160;
+
+  @override
+  Widget build(BuildContext context) => ConstrainedBox(
+    constraints: const BoxConstraints(maxWidth: maxWidth),
+    child: FittedBox(
+      fit: BoxFit.scaleDown,
+      alignment: AlignmentDirectional.centerEnd,
+      child: Text(text, maxLines: 1, style: style),
+    ),
+  );
 }
 
 class _SectionTitle extends StatelessWidget {

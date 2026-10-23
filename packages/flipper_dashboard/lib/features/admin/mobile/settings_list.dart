@@ -1,3 +1,4 @@
+import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flipper_dashboard/theme/mpos_tokens.dart';
 import 'package:flipper_dashboard/theme/pos_tokens.dart';
 import 'package:flipper_dashboard/widgets/mpos/mpos_section_label.dart';
@@ -230,6 +231,22 @@ class SettingsSwitchRow extends StatelessWidget {
   }
 }
 
+/// The header of a page pushed from settings: Flipper's [CustomAppBar] with
+/// its round back button, which shows only when there is somewhere to go back
+/// to, like Material's [AppBar].
+CustomAppBar settingsPageAppBar(BuildContext context, String title) {
+  final canPop = ModalRoute.of(context)?.canPop ?? false;
+  return CustomAppBar(
+    title: title,
+    closeButton: canPop ? CLOSEBUTTON.ICON : CLOSEBUTTON.NONE,
+    icon: Icons.arrow_back,
+    onPop: () => Navigator.of(context).maybePop(),
+    bottomSpacer: 64,
+    isDividerVisible: false,
+    barBackgroundColor: MposTokens.head,
+  );
+}
+
 /// A full page for one settings area: back button, title, scrolling body on
 /// the POS grey.
 class SettingsSubpage extends StatelessWidget {
@@ -254,21 +271,7 @@ class SettingsSubpage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: MposTokens.bg,
-      appBar: AppBar(
-        backgroundColor: MposTokens.head,
-        surfaceTintColor: Colors.transparent,
-        elevation: 0,
-        scrolledUnderElevation: 0.5,
-        foregroundColor: PosTokens.ink1,
-        title: Text(
-          title,
-          style: const TextStyle(
-            fontSize: 17,
-            fontWeight: FontWeight.w600,
-            color: PosTokens.ink1,
-          ),
-        ),
-      ),
+      appBar: settingsPageAppBar(context, title),
       body: SafeArea(
         top: false,
         child: SingleChildScrollView(

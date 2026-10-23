@@ -26357,6 +26357,9 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
   String get personalMoneyLeftOver => 'Left over';
 
   @override
+  String get personalMoneyOverspent => 'Overspent';
+
+  @override
   String get personalMoneyWhereItWent => 'Where your money went';
 
   @override
