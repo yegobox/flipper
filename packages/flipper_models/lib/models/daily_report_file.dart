@@ -47,12 +47,29 @@ class DailyReportFile {
     if (d.isEmpty) return null;
     final name = (fileName ?? '').toLowerCase();
     if (name.contains('merged')) return null;
+    // Legacy names separate the words with hyphens, underscores or spaces.
+    final words = name.replaceAll(RegExp(r'[\s_-]+'), ' ');
     final isDailyReport =
         type.toLowerCase().contains('transaction') ||
         name.startsWith('report-') ||
-        name.contains('daily-transactions') ||
-        name.contains('daily_transactions');
+        words.contains('daily transactions');
     return isDailyReport ? 'REPORT-$d' : null;
+  }
+
+  /// Whether [query] appears in a stored field or in the displayed
+  /// [reportName], so `REPORT-<day>` finds files catalogued under a legacy
+  /// name. An empty query matches every file.
+  bool matchesSearch(String query) {
+    final q = query.trim().toLowerCase();
+    if (q.isEmpty) return true;
+    return [
+      fileName,
+      day,
+      s3ObjectKey,
+      runId,
+      id,
+      reportName,
+    ].any((field) => (field ?? '').toLowerCase().contains(q));
   }
 
   factory DailyReportFile.fromDittoMap(Map<String, dynamic> m) {

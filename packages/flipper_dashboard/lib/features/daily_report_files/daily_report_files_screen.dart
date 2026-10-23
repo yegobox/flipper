@@ -300,20 +300,7 @@ class _DailyReportFilesScreenState
 
     final q = _search.text.trim().toLowerCase();
     if (q.isNotEmpty) {
-      result = result
-          .where((f) {
-            final name = (f.fileName ?? '').toLowerCase();
-            final day = (f.day ?? '').toLowerCase();
-            final key = (f.s3ObjectKey ?? '').toLowerCase();
-            final runId = (f.runId ?? '').toLowerCase();
-            final id = f.id.toLowerCase();
-            return name.contains(q) ||
-                day.contains(q) ||
-                key.contains(q) ||
-                runId.contains(q) ||
-                id.contains(q);
-          })
-          .toList(growable: false);
+      result = result.where((f) => f.matchesSearch(q)).toList(growable: false);
     }
 
     result.sort(_compareFiles);
