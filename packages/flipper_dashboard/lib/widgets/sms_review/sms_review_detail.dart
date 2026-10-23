@@ -21,6 +21,9 @@ class SmsReviewDetail extends ConsumerStatefulWidget {
 
 class _SmsReviewDetailState extends ConsumerState<SmsReviewDetail> {
   SmsCategoryChoice? _category;
+
+  /// Personal mode: the loan a "Loan repayment" SMS pays down.
+  String? _loanId;
   bool _initialApplied = false;
   bool _moreOpen = false;
   bool _transferOpen = false;
@@ -328,6 +331,13 @@ class _SmsReviewDetailState extends ConsumerState<SmsReviewDetail> {
               onNew: () =>
                   _newCategory([...choices.suggested, ...choices.more]),
             ),
+            if (watchAccountMode(ref).isPersonal &&
+                !item.isIncome &&
+                _category?.name == kLoanRepaymentCategory)
+              LoanPicker(
+                selected: _loanId,
+                onChanged: (id) => setState(() => _loanId = id),
+              ),
             const SizedBox(height: 16),
             _ConfirmButton(
               outlined: sales.isNotEmpty,
@@ -352,6 +362,19 @@ class _SmsReviewDetailState extends ConsumerState<SmsReviewDetail> {
                   await categories.remember(
                     categoryId,
                     isIncome: item.isIncome,
+                  );
+                }
+                final loanId = _loanId;
+                if (txn != null &&
+                    loanId != null &&
+                    choice?.name == kLoanRepaymentCategory) {
+                  await recordLoanRepayment(
+                    ref,
+                    loanId: loanId,
+                    amount: item.amount.toDouble(),
+                    paidAt: item.occurredAtDate ?? DateTime.now(),
+                    transactionId: txn,
+                    source: 'sms',
                   );
                 }
                 return (

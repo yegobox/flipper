@@ -44147,6 +44147,366 @@ abstract class FlipperAppLocalizations {
   /// **'No bank or MoMo SMS waiting for review'**
   String get personalMoneyNothingToReview;
 
+  /// No description provided for @personalLoans.
+  ///
+  /// In en, this message translates to:
+  /// **'Loans'**
+  String get personalLoans;
+
+  /// No description provided for @personalLoanWhichLoan.
+  ///
+  /// In en, this message translates to:
+  /// **'Which loan is this for?'**
+  String get personalLoanWhichLoan;
+
+  /// No description provided for @personalLoansTotalOwed.
+  ///
+  /// In en, this message translates to:
+  /// **'Total owed'**
+  String get personalLoansTotalOwed;
+
+  /// No description provided for @personalLoansMonthly.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid every month'**
+  String get personalLoansMonthly;
+
+  /// No description provided for @personalLoansDebtFree.
+  ///
+  /// In en, this message translates to:
+  /// **'Debt-free'**
+  String get personalLoansDebtFree;
+
+  /// No description provided for @personalLoansEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No loans yet. Add one to see what is left to pay and when you will be done.'**
+  String get personalLoansEmpty;
+
+  /// No description provided for @personalLoansEmptyShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Track a loan: balance, months left, payoff date'**
+  String get personalLoansEmptyShort;
+
+  /// No description provided for @personalLoanAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a loan'**
+  String get personalLoanAdd;
+
+  /// No description provided for @personalLoanEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit loan'**
+  String get personalLoanEdit;
+
+  /// No description provided for @personalLoanLender.
+  ///
+  /// In en, this message translates to:
+  /// **'Who lent it'**
+  String get personalLoanLender;
+
+  /// No description provided for @personalLoanLenderHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. BK, SACCO, MoKash, family'**
+  String get personalLoanLenderHint;
+
+  /// No description provided for @personalLoanLenderRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Say who lent the money'**
+  String get personalLoanLenderRequired;
+
+  /// No description provided for @personalLoanModeDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'I know the details'**
+  String get personalLoanModeDetails;
+
+  /// No description provided for @personalLoanModeSimple.
+  ///
+  /// In en, this message translates to:
+  /// **'I know the monthly payment'**
+  String get personalLoanModeSimple;
+
+  /// No description provided for @personalLoanAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount borrowed'**
+  String get personalLoanAmount;
+
+  /// No description provided for @personalLoanStartDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Start date'**
+  String get personalLoanStartDate;
+
+  /// No description provided for @personalLoanEndDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Ends (month and year)'**
+  String get personalLoanEndDate;
+
+  /// No description provided for @personalLoanTermMonths.
+  ///
+  /// In en, this message translates to:
+  /// **'Term in months'**
+  String get personalLoanTermMonths;
+
+  /// No description provided for @personalLoanMonthlyPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly payment'**
+  String get personalLoanMonthlyPayment;
+
+  /// No description provided for @personalLoanRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Interest per year (%), optional'**
+  String get personalLoanRate;
+
+  /// No description provided for @personalLoanRateShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Interest per year'**
+  String get personalLoanRateShort;
+
+  /// No description provided for @personalLoanBalanceToday.
+  ///
+  /// In en, this message translates to:
+  /// **'What you still owe today, optional'**
+  String get personalLoanBalanceToday;
+
+  /// No description provided for @personalLoanReceivedNow.
+  ///
+  /// In en, this message translates to:
+  /// **'I received this money now (add it as money in)'**
+  String get personalLoanReceivedNow;
+
+  /// No description provided for @personalLoanNeedsMore.
+  ///
+  /// In en, this message translates to:
+  /// **'Add the monthly payment and when it ends, or the amount borrowed with its term.'**
+  String get personalLoanNeedsMore;
+
+  /// No description provided for @personalLoanBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Balance'**
+  String get personalLoanBalance;
+
+  /// No description provided for @personalLoanEstimated.
+  ///
+  /// In en, this message translates to:
+  /// **'estimated'**
+  String get personalLoanEstimated;
+
+  /// No description provided for @personalLoanMonthsLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{months, plural, =1{1 month left} other{{months} months left}}'**
+  String personalLoanMonthsLeft(int months);
+
+  /// No description provided for @personalLoanPayoff.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid off by {date}'**
+  String personalLoanPayoff(String date);
+
+  /// No description provided for @personalLoanTimeLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'Time left'**
+  String get personalLoanTimeLeft;
+
+  /// No description provided for @personalLoanPaidOffBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid off by'**
+  String get personalLoanPaidOffBy;
+
+  /// No description provided for @personalLoanInterestLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'Interest still to pay'**
+  String get personalLoanInterestLeft;
+
+  /// No description provided for @personalLoanPlannedEnd.
+  ///
+  /// In en, this message translates to:
+  /// **'Planned end'**
+  String get personalLoanPlannedEnd;
+
+  /// No description provided for @personalLoanPaidSoFar.
+  ///
+  /// In en, this message translates to:
+  /// **'Repaid so far'**
+  String get personalLoanPaidSoFar;
+
+  /// No description provided for @personalLoanNeverEnds.
+  ///
+  /// In en, this message translates to:
+  /// **'This payment does not cover the interest, so the balance never goes down.'**
+  String get personalLoanNeverEnds;
+
+  /// No description provided for @personalLoanNeverEndsShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment below the interest'**
+  String get personalLoanNeverEndsShort;
+
+  /// No description provided for @personalLoanDue.
+  ///
+  /// In en, this message translates to:
+  /// **'No repayment recorded this month'**
+  String get personalLoanDue;
+
+  /// No description provided for @personalLoanRecordPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Record a repayment'**
+  String get personalLoanRecordPayment;
+
+  /// No description provided for @personalLoanRepayments.
+  ///
+  /// In en, this message translates to:
+  /// **'Repayments'**
+  String get personalLoanRepayments;
+
+  /// No description provided for @personalLoanNoRepayments.
+  ///
+  /// In en, this message translates to:
+  /// **'No repayments recorded yet'**
+  String get personalLoanNoRepayments;
+
+  /// No description provided for @personalLoanMarkCleared.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark as cleared'**
+  String get personalLoanMarkCleared;
+
+  /// No description provided for @personalLoanReopen.
+  ///
+  /// In en, this message translates to:
+  /// **'Reopen'**
+  String get personalLoanReopen;
+
+  /// No description provided for @personalLoanCleared.
+  ///
+  /// In en, this message translates to:
+  /// **'Cleared'**
+  String get personalLoanCleared;
+
+  /// No description provided for @personalLoanDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete loan'**
+  String get personalLoanDelete;
+
+  /// No description provided for @personalLoanDeleteConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this loan and its repayment records? Your money in and out stays in your activity.'**
+  String get personalLoanDeleteConfirm;
+
+  /// No description provided for @personalLoanDisclaimer.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimates from what you recorded in Flipper. Your lender\'s statement is the final figure.'**
+  String get personalLoanDisclaimer;
+
+  /// No description provided for @personalLoanWhatIf.
+  ///
+  /// In en, this message translates to:
+  /// **'What if I borrow…'**
+  String get personalLoanWhatIf;
+
+  /// No description provided for @personalLoanWhatIfHint.
+  ///
+  /// In en, this message translates to:
+  /// **'See the monthly payment and what would be left each month'**
+  String get personalLoanWhatIfHint;
+
+  /// No description provided for @personalLoanNewInstallment.
+  ///
+  /// In en, this message translates to:
+  /// **'New monthly payment'**
+  String get personalLoanNewInstallment;
+
+  /// No description provided for @personalLoanTotalInterest.
+  ///
+  /// In en, this message translates to:
+  /// **'Total interest'**
+  String get personalLoanTotalInterest;
+
+  /// No description provided for @personalLoanCurrentInstallments.
+  ///
+  /// In en, this message translates to:
+  /// **'Loans you already pay'**
+  String get personalLoanCurrentInstallments;
+
+  /// No description provided for @personalLoanAvgIncome.
+  ///
+  /// In en, this message translates to:
+  /// **'Money in, last 30 days'**
+  String get personalLoanAvgIncome;
+
+  /// No description provided for @personalLoanAvgSpending.
+  ///
+  /// In en, this message translates to:
+  /// **'Money out without loans, last 30 days'**
+  String get personalLoanAvgSpending;
+
+  /// No description provided for @personalLoanLeftEachMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Left each month'**
+  String get personalLoanLeftEachMonth;
+
+  /// No description provided for @personalLoanDebtShare.
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}% of your income would go to loans'**
+  String personalLoanDebtShare(int percent);
+
+  /// No description provided for @personalLoanVerdictComfortable.
+  ///
+  /// In en, this message translates to:
+  /// **'Comfortable'**
+  String get personalLoanVerdictComfortable;
+
+  /// No description provided for @personalLoanVerdictTight.
+  ///
+  /// In en, this message translates to:
+  /// **'Tight: close to what banks allow (40% of income)'**
+  String get personalLoanVerdictTight;
+
+  /// No description provided for @personalLoanVerdictRisky.
+  ///
+  /// In en, this message translates to:
+  /// **'Risky: more than 40% of your income'**
+  String get personalLoanVerdictRisky;
+
+  /// No description provided for @personalLoanVerdictNotCovered.
+  ///
+  /// In en, this message translates to:
+  /// **'Not covered: you would spend more than comes in'**
+  String get personalLoanVerdictNotCovered;
+
+  /// No description provided for @personalLoanVerdictUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Record your money in for a month to judge this'**
+  String get personalLoanVerdictUnknown;
+
+  /// No description provided for @personalLoanAffordabilityNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Based on your last 30 days in Flipper. A guide, not a lender\'s decision.'**
+  String get personalLoanAffordabilityNote;
+
   /// No description provided for @personalMoneyNoCategory.
   ///
   /// In en, this message translates to:

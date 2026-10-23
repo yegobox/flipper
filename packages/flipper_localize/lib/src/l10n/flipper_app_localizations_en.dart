@@ -26398,6 +26398,210 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
       'No bank or MoMo SMS waiting for review';
 
   @override
+  String get personalLoans => 'Loans';
+
+  @override
+  String get personalLoanWhichLoan => 'Which loan is this for?';
+
+  @override
+  String get personalLoansTotalOwed => 'Total owed';
+
+  @override
+  String get personalLoansMonthly => 'Paid every month';
+
+  @override
+  String get personalLoansDebtFree => 'Debt-free';
+
+  @override
+  String get personalLoansEmpty =>
+      'No loans yet. Add one to see what is left to pay and when you will be done.';
+
+  @override
+  String get personalLoansEmptyShort =>
+      'Track a loan: balance, months left, payoff date';
+
+  @override
+  String get personalLoanAdd => 'Add a loan';
+
+  @override
+  String get personalLoanEdit => 'Edit loan';
+
+  @override
+  String get personalLoanLender => 'Who lent it';
+
+  @override
+  String get personalLoanLenderHint => 'e.g. BK, SACCO, MoKash, family';
+
+  @override
+  String get personalLoanLenderRequired => 'Say who lent the money';
+
+  @override
+  String get personalLoanModeDetails => 'I know the details';
+
+  @override
+  String get personalLoanModeSimple => 'I know the monthly payment';
+
+  @override
+  String get personalLoanAmount => 'Amount borrowed';
+
+  @override
+  String get personalLoanStartDate => 'Start date';
+
+  @override
+  String get personalLoanEndDate => 'Ends (month and year)';
+
+  @override
+  String get personalLoanTermMonths => 'Term in months';
+
+  @override
+  String get personalLoanMonthlyPayment => 'Monthly payment';
+
+  @override
+  String get personalLoanRate => 'Interest per year (%), optional';
+
+  @override
+  String get personalLoanRateShort => 'Interest per year';
+
+  @override
+  String get personalLoanBalanceToday => 'What you still owe today, optional';
+
+  @override
+  String get personalLoanReceivedNow =>
+      'I received this money now (add it as money in)';
+
+  @override
+  String get personalLoanNeedsMore =>
+      'Add the monthly payment and when it ends, or the amount borrowed with its term.';
+
+  @override
+  String get personalLoanBalance => 'Balance';
+
+  @override
+  String get personalLoanEstimated => 'estimated';
+
+  @override
+  String personalLoanMonthsLeft(int months) {
+    String _temp0 = intl.Intl.pluralLogic(
+      months,
+      locale: localeName,
+      other: '$months months left',
+      one: '1 month left',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String personalLoanPayoff(String date) {
+    return 'Paid off by $date';
+  }
+
+  @override
+  String get personalLoanTimeLeft => 'Time left';
+
+  @override
+  String get personalLoanPaidOffBy => 'Paid off by';
+
+  @override
+  String get personalLoanInterestLeft => 'Interest still to pay';
+
+  @override
+  String get personalLoanPlannedEnd => 'Planned end';
+
+  @override
+  String get personalLoanPaidSoFar => 'Repaid so far';
+
+  @override
+  String get personalLoanNeverEnds =>
+      'This payment does not cover the interest, so the balance never goes down.';
+
+  @override
+  String get personalLoanNeverEndsShort => 'Payment below the interest';
+
+  @override
+  String get personalLoanDue => 'No repayment recorded this month';
+
+  @override
+  String get personalLoanRecordPayment => 'Record a repayment';
+
+  @override
+  String get personalLoanRepayments => 'Repayments';
+
+  @override
+  String get personalLoanNoRepayments => 'No repayments recorded yet';
+
+  @override
+  String get personalLoanMarkCleared => 'Mark as cleared';
+
+  @override
+  String get personalLoanReopen => 'Reopen';
+
+  @override
+  String get personalLoanCleared => 'Cleared';
+
+  @override
+  String get personalLoanDelete => 'Delete loan';
+
+  @override
+  String get personalLoanDeleteConfirm =>
+      'Delete this loan and its repayment records? Your money in and out stays in your activity.';
+
+  @override
+  String get personalLoanDisclaimer =>
+      'Estimates from what you recorded in Flipper. Your lender\'s statement is the final figure.';
+
+  @override
+  String get personalLoanWhatIf => 'What if I borrow…';
+
+  @override
+  String get personalLoanWhatIfHint =>
+      'See the monthly payment and what would be left each month';
+
+  @override
+  String get personalLoanNewInstallment => 'New monthly payment';
+
+  @override
+  String get personalLoanTotalInterest => 'Total interest';
+
+  @override
+  String get personalLoanCurrentInstallments => 'Loans you already pay';
+
+  @override
+  String get personalLoanAvgIncome => 'Money in, last 30 days';
+
+  @override
+  String get personalLoanAvgSpending => 'Money out without loans, last 30 days';
+
+  @override
+  String get personalLoanLeftEachMonth => 'Left each month';
+
+  @override
+  String personalLoanDebtShare(int percent) {
+    return '$percent% of your income would go to loans';
+  }
+
+  @override
+  String get personalLoanVerdictComfortable => 'Comfortable';
+
+  @override
+  String get personalLoanVerdictTight =>
+      'Tight: close to what banks allow (40% of income)';
+
+  @override
+  String get personalLoanVerdictRisky => 'Risky: more than 40% of your income';
+
+  @override
+  String get personalLoanVerdictNotCovered =>
+      'Not covered: you would spend more than comes in';
+
+  @override
+  String get personalLoanVerdictUnknown =>
+      'Record your money in for a month to judge this';
+
+  @override
+  String get personalLoanAffordabilityNote =>
+      'Based on your last 30 days in Flipper. A guide, not a lender\'s decision.';
+
+  @override
   String get personalMoneyNoCategory => 'No category';
 
   @override
