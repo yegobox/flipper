@@ -98,18 +98,66 @@ class DittoAccountingLedgerRepository implements AccountingLedgerRepository {
         .watchCollection(
           'chart_of_accounts',
           'SELECT * FROM chart_of_accounts '
-          'WHERE businessId = :businessId OR business_id = :businessId',
+              'WHERE businessId = :businessId OR business_id = :businessId',
           {'businessId': businessId},
         )
-        .map((rows) => rows
-            .where((r) => r['isActive'] != false && r['is_active'] != false)
-            .map((r) => LedgerRowMapper.accountFromRow(
-                  r,
-                  balance: _int(r['openingBalance'] ?? r['opening_balance']),
-                ))
-            .toList()
-          ..sort((a, b) => a.code.compareTo(b.code)));
+        .map(
+          (rows) =>
+              dedupeChartOfAccountRows(
+                    rows.where(
+                      (r) => r['isActive'] != false && r['is_active'] != false,
+                    ),
+                  )
+                  .map(
+                    (r) => LedgerRowMapper.accountFromRow(
+                      r,
+                      balance: _int(
+                        r['openingBalance'] ?? r['opening_balance'],
+                      ),
+                    ),
+                  )
+                  .toList()
+                ..sort((a, b) => a.code.compareTo(b.code)),
+        );
   }
+
+  /// One row per account code.
+  ///
+  /// The client used to seed `<biz>_<code>` while the data-connector seeds
+  /// `coa_<biz>_<code>`, so many businesses hold two documents per account.
+  /// Balances are keyed by code, so every copy showed the full balance and
+  /// every report that sums the chart counted it twice. Keeps the `coa_`
+  /// document and carries over an opening balance only the other copy has.
+  @visibleForTesting
+  static List<Map<String, dynamic>> dedupeChartOfAccountRows(
+    Iterable<Map<String, dynamic>> rows,
+  ) {
+    final byCode = <String, Map<String, dynamic>>{};
+    for (final row in rows) {
+      final code = (row['code'] ?? '').toString();
+      final kept = byCode[code];
+      if (kept == null) {
+        byCode[code] = row;
+        continue;
+      }
+      final rowWins = _isCanonicalCoaRow(row) && !_isCanonicalCoaRow(kept);
+      final winner = rowWins ? row : kept;
+      final loser = rowWins ? kept : row;
+      final winnerOpening = _int(
+        winner['openingBalance'] ?? winner['opening_balance'],
+      );
+      final loserOpening = _int(
+        loser['openingBalance'] ?? loser['opening_balance'],
+      );
+      byCode[code] = winnerOpening == 0 && loserOpening != 0
+          ? {...winner, 'openingBalance': loserOpening}
+          : winner;
+    }
+    return byCode.values.toList();
+  }
+
+  static bool _isCanonicalCoaRow(Map<String, dynamic> row) =>
+      (row['_id'] ?? row['id'] ?? '').toString().startsWith('coa_');
 
   @override
   Stream<List<JournalEntry>> watchJournalEntries({
@@ -123,7 +171,9 @@ class DittoAccountingLedgerRepository implements AccountingLedgerRepository {
         'WHERE businessId = :businessId OR business_id = :businessId';
     final args = <String, dynamic>{'businessId': businessId};
 
-    return _ditto.watchCollection('journal_entries', entriesQuery, args).asyncMap((entries) async {
+    return _ditto.watchCollection('journal_entries', entriesQuery, args).asyncMap((
+      entries,
+    ) async {
       final headerById = <String, Map<String, dynamic>>{};
       for (final row in entries) {
         final entryId = (row['id'] ?? row['_id']).toString();
@@ -135,13 +185,14 @@ class DittoAccountingLedgerRepository implements AccountingLedgerRepository {
       final businessLines = await _ditto.queryCollection(
         'journal_lines',
         'SELECT * FROM journal_lines '
-        'WHERE businessId = :businessId OR business_id = :businessId',
+            'WHERE businessId = :businessId OR business_id = :businessId',
         args,
       );
       final linesByEntry = <String, List<Map<String, dynamic>>>{};
       for (final line in businessLines) {
         final entryId =
-            (line['journalEntryId'] ?? line['journal_entry_id'] ?? '').toString();
+            (line['journalEntryId'] ?? line['journal_entry_id'] ?? '')
+                .toString();
         if (entryId.isEmpty) continue;
         linesByEntry.putIfAbsent(entryId, () => []).add(line);
       }
@@ -197,10 +248,12 @@ class DittoAccountingLedgerRepository implements AccountingLedgerRepository {
             );
           }
         }
-        result.add(LedgerRowMapper.entryFromRow(
-          row,
-          lines.map(LedgerRowMapper.lineFromRow).toList(),
-        ));
+        result.add(
+          LedgerRowMapper.entryFromRow(
+            row,
+            lines.map(LedgerRowMapper.lineFromRow).toList(),
+          ),
+        );
       }
       return result;
     });
@@ -225,14 +278,16 @@ class DittoAccountingLedgerRepository implements AccountingLedgerRepository {
   ) {
     final parsed = _parseDeterministicEntryId(entryId);
     final txnId = parsed?.$2 ?? '';
-    final ref8 = txnId.length >= 8 ? txnId.substring(0, 8).toUpperCase() : txnId;
+    final ref8 = txnId.length >= 8
+        ? txnId.substring(0, 8).toUpperCase()
+        : txnId;
     final suffix = parsed?.$3 ?? 'sale';
     final humanId = suffix == 'sale' ? 'JE-$ref8' : 'JE-$ref8-P';
     final memo = suffix == 'sale'
         ? 'Sale · $ref8'
         : suffix.startsWith('pay')
-            ? 'Loan payment · $ref8'
-            : 'Journal · $ref8';
+        ? 'Loan payment · $ref8'
+        : 'Journal · $ref8';
     return {
       'id': entryId,
       '_id': entryId,
@@ -282,7 +337,11 @@ class DittoAccountingLedgerRepository implements AccountingLedgerRepository {
     if (startDate == null && endDate == null) return true;
     final parsed = _parseEntryRowDate(row['entry_date'] ?? row['entryDate']);
     if (parsed == null) return true;
-    final day = _entryCalendarDay(parsed, startDate: startDate, endDate: endDate);
+    final day = _entryCalendarDay(
+      parsed,
+      startDate: startDate,
+      endDate: endDate,
+    );
     if (startDate != null) {
       final start = DateTime(startDate.year, startDate.month, startDate.day);
       if (day.isBefore(start)) return false;
@@ -403,7 +462,10 @@ class DittoAccountingLedgerRepository implements AccountingLedgerRepository {
     );
     for (final row in existing) {
       final id = (row['id'] ?? row['_id']).toString();
-      await _ditto.executeUpdate('journal_lines', id, {'debit': 0, 'credit': 0});
+      await _ditto.executeUpdate('journal_lines', id, {
+        'debit': 0,
+        'credit': 0,
+      });
     }
 
     for (final line in entry.lines) {
@@ -426,7 +488,9 @@ class DittoAccountingLedgerRepository implements AccountingLedgerRepository {
         extraArgs: {'expectedStatus': 'pending'},
       );
     }
-    await _ditto.executeUpdate('journal_entries', entryId, {'status': 'posted'});
+    await _ditto.executeUpdate('journal_entries', entryId, {
+      'status': 'posted',
+    });
     return true;
   }
 
@@ -482,7 +546,9 @@ class DittoAccountingLedgerRepository implements AccountingLedgerRepository {
   }
 
   @override
-  Future<Map<String, dynamic>?> fetchSettings({required String businessId}) async {
+  Future<Map<String, dynamic>?> fetchSettings({
+    required String businessId,
+  }) async {
     final rows = await _ditto.queryCollection(
       'accounting_settings',
       'SELECT * FROM accounting_settings WHERE businessId = :businessId',
@@ -509,7 +575,9 @@ class DittoAccountingLedgerRepository implements AccountingLedgerRepository {
           {'id': variantId.toString()},
         );
         if (variants.isEmpty) continue;
-        final price = _int(variants.first['supplyPrice'] ?? variants.first['supply_price']);
+        final price = _int(
+          variants.first['supplyPrice'] ?? variants.first['supply_price'],
+        );
         final qty = _int(s['currentStock'] ?? s['current_stock']);
         total += price * qty;
       }

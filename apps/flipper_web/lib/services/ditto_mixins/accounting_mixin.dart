@@ -15,7 +15,9 @@ mixin AccountingMixin on DittoCore {
   }) async {
     if (dittoInstance == null)
       return handleNotInitialized('upsertChartOfAccount');
-    final docId = id ?? '${businessId}_${account.code}';
+    // Same id the data-connector seeds (`coa_{business_id}_{code}`), so a
+    // client seed and a server seed write one document, not two.
+    final docId = id ?? 'coa_${businessId}_${account.code}';
     final data = LedgerRowMapper.accountToRow(
       account,
       businessId: businessId,
