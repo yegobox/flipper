@@ -1,0 +1,271 @@
+name: Android E2E (Artemis)
+
+# Post-merge end-to-end check: an Artemis AI agent (https://github.com/google/artemis)
+# signs up a brand-new user on Android phones and tablets across API levels.
+#
+# Runs only after code lands on main (or by hand). It is not a PR check and not
+# a required status, so it never blocks merges or other workflows.
+# Setup and required secrets: e2e/artemis/README.md
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "**.md"
+      - "docs/**"
+  workflow_dispatch:
+    inputs:
+      devices:
+        description: "Device matrix"
+        type: choice
+        default: full
+        options:
+          - full
+          - smoke
+      profile:
+        description: "Artemis profile (pro = plan + verify, flash = faster/cheaper)"
+        type: choice
+        default: pro
+        options:
+          - pro
+          - flash
+
+permissions:
+  contents: read
+
+# One run at a time; a newer merge replaces a queued (not a running) run.
+concurrency:
+  group: android-artemis-e2e
+  cancel-in-progress: false
+
+env:
+  FLUTTER_VERSION: "3.44.2" # keep in step with mobile_shorebird.yml
+  APP_ID: rw.flipper
+  # Pinned so an upstream Artemis change cannot silently change results.
+  ARTEMIS_REF: 371aa6df56880643da57b30da936e9812fb0ec66
+
+jobs:
+  preflight:
+    name: Check E2E configuration
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.matrix.outputs.matrix }}
+    steps:
+      - name: Require secrets
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          SUPABASE_URL: ${{ secrets.E2E_SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.E2E_SUPABASE_SERVICE_KEY }}
+          SIGNUP_TEST_EMAIL: ${{ vars.E2E_SIGNUP_TEST_EMAIL }}
+        run: |
+          missing=()
+          [ -n "$GEMINI_API_KEY" ] || missing+=("secret GEMINI_API_KEY")
+          [ -n "$SUPABASE_URL" ] || missing+=("secret E2E_SUPABASE_URL")
+          [ -n "$SUPABASE_SERVICE_KEY" ] || missing+=("secret E2E_SUPABASE_SERVICE_KEY")
+          [ -n "$SIGNUP_TEST_EMAIL" ] || missing+=("variable E2E_SIGNUP_TEST_EMAIL")
+          if [ ${#missing[@]} -gt 0 ]; then
+            printf '::error::Missing %s (see e2e/artemis/README.md)\n' "${missing[@]}"
+            exit 1
+          fi
+
+      - name: Select device matrix
+        id: matrix
+        env:
+          DEVICES: ${{ github.event.inputs.devices || 'full' }}
+        run: |
+          # minSdk 26 .. targetSdk 36, phones + tablets + a foldable.
+          # Tablets (shortestSide >= 600, width >= 768) get the split desktop login.
+          full='[
+            {"label":"phone-api26-nexus5x","api":26,"profile":"Nexus 5X"},
+            {"label":"phone-api29-pixel3a","api":29,"profile":"pixel_3a"},
+            {"label":"phone-api31-pixel5","api":31,"profile":"pixel_5"},
+            {"label":"phone-api34-pixel6","api":34,"profile":"pixel_6"},
+            {"label":"phone-api36-pixel7","api":36,"profile":"pixel_7"},
+            {"label":"tablet-api30-pixelc","api":30,"profile":"pixel_c"},
+            {"label":"tablet-api34-pixeltablet","api":34,"profile":"pixel_tablet"},
+            {"label":"foldable-api34-pixelfold","api":34,"profile":"pixel_fold"}
+          ]'
+          smoke='[
+            {"label":"phone-api34-pixel6","api":34,"profile":"pixel_6"},
+            {"label":"tablet-api34-pixeltablet","api":34,"profile":"pixel_tablet"}
+          ]'
+          if [ "$DEVICES" = "smoke" ]; then m="$smoke"; else m="$full"; fi
+          echo "matrix=$(echo "$m" | jq -c .)" >> "$GITHUB_OUTPUT"
+
+  build-apk:
+    name: Build profile APK (x86_64)
+    needs: preflight
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Free disk space
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: false
+          android: false
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
+          swap-storage: false
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          token: ${{ secrets.ACCESS_TOKEN || github.token }}
+          persist-credentials: true
+
+      - name: Configure Git credentials for private dependencies
+        env:
+          PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
+        run: |
+          if [ -n "$PAT_TOKEN" ]; then
+            git config --global credential.helper store
+            echo "https://github.com:${PAT_TOKEN}@github.com" > ~/.git-credentials
+          fi
+          git submodule sync --recursive
+          git submodule update --init --force --recursive
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: zulu
+          java-version: "17"
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Set up Melos
+        run: |
+          dart pub global activate melos 7.3.0
+          echo "$HOME/.pub-cache/bin" >> "$GITHUB_PATH"
+
+      - name: Configure app files
+        shell: bash
+        run: |
+          echo "$CONFIGDART" > packages/flipper_login/lib/config.dart
+          echo "$SECRETS" > packages/flipper_models/lib/secrets.dart
+          echo "$FIREBASEOPTIONS" > apps/flipper/lib/firebase_options.dart
+          echo "$FIREBASEOPTIONS" > packages/flipper_models/lib/firebase_options.dart
+          echo "$AMPLIFY_CONFIG" > apps/flipper/lib/amplifyconfiguration.dart
+          mkdir -p apps/flipper/amplify
+          echo "$AMPLIFY_TEAM_PROVIDER" > apps/flipper/amplify/team-provider-info.json
+          echo "$GOOGLE_SERVICE_JSON" > apps/flipper/android/app/google-services.json
+        env:
+          CONFIGDART: ${{ secrets.CONFIGDART }}
+          SECRETS: ${{ secrets.SECRETS }}
+          FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
+          AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }}
+          AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
+          GOOGLE_SERVICE_JSON: ${{ secrets.GOOGLE_SERVICE_JSON }}
+
+      - name: Bootstrap workspace
+        run: |
+          dart run melos bootstrap
+          dart run melos run generate:icons
+
+      # Profile = AOT like release (realistic speed, kDebugMode false so the
+      # 2-minute debug paywall re-check does not interrupt the flow) but signed
+      # with the debug key, so no Play keystore is needed. No FLUTTER_TEST_ENV:
+      # that swaps in a mock HTTP client and signup cannot work with it.
+      - name: Build APK
+        working-directory: apps/flipper
+        run: flutter build apk --profile --target-platform android-x64
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: flipper-profile-x64-apk
+          path: apps/flipper/build/app/outputs/flutter-apk/app-profile.apk
+          retention-days: 7
+          if-no-files-found: error
+
+  signup:
+    name: Signup · ${{ matrix.device.label }}
+    needs: [preflight, build-apk]
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        device: ${{ fromJSON(needs.preflight.outputs.matrix) }}
+    env:
+      ANDROID_SERIAL: emulator-5554
+      DEVICE_LABEL: ${{ matrix.device.label }}
+      RUN_TAG: ${{ github.run_id }}-${{ github.run_attempt }}
+      ARTEMIS_PROFILE: ${{ github.event.inputs.profile || 'pro' }}
+      ARTEMIS_DEFAULT_PROFILE: ${{ github.event.inputs.profile || 'pro' }}
+      ARTEMIS_KEEP_DEVICE_AWAKE: "true"
+      ARTEMIS_HELPER_AUTO_INSTALL: "true"
+      ARTIFACTS_DIR: ${{ github.workspace }}/artemis-artifacts
+      APK_PATH: ${{ github.workspace }}/apk/app-profile.apk
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      SUPABASE_URL: ${{ secrets.E2E_SUPABASE_URL }}
+      SUPABASE_SERVICE_KEY: ${{ secrets.E2E_SUPABASE_SERVICE_KEY }}
+      SIGNUP_TEST_EMAIL: ${{ vars.E2E_SIGNUP_TEST_EMAIL }}
+      APIHUB_URL: ${{ vars.E2E_APIHUB_URL || 'https://apihub.yegobox.com' }}
+    steps:
+      - name: Checkout (test driver only)
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: e2e/artemis
+
+      - name: Checkout Artemis
+        uses: actions/checkout@v4
+        with:
+          repository: google/artemis
+          ref: ${{ env.ARTEMIS_REF }}
+          path: .artemis
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: .artemis/uv.lock
+
+      - name: Install Artemis
+        working-directory: .artemis
+        run: |
+          uv python install 3.12
+          uv sync --locked --no-dev
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: flipper-profile-x64-apk
+          path: apk
+
+      # Hardware acceleration; without KVM the emulator is too slow to boot.
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Run signup on ${{ matrix.device.label }}
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ matrix.device.api }}
+          arch: x86_64
+          target: google_apis
+          profile: ${{ matrix.device.profile }}
+          cores: 4
+          ram-size: 4096M
+          disk-size: 8G
+          emulator-boot-timeout: 900
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
+          disable-animations: true
+          script: uv run --no-sync --project .artemis python e2e/artemis/signup_e2e.py
+
+      - name: Upload Artemis artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: artemis-${{ matrix.device.label }}
+          path: artemis-artifacts
+          retention-days: 14
+          if-no-files-found: ignore
