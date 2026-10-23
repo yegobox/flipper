@@ -21384,7 +21384,7 @@ abstract class FlipperAppLocalizations {
   /// No description provided for @dailyReportRecipientsSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'The owner email above receives the daily detailed transactions report. Add more addresses to receive the same report.'**
+  /// **'The owner email above receives the daily REPORT email on days with sales. Add more addresses to receive the same report.'**
   String get dailyReportRecipientsSubtitle;
 
   /// No description provided for @dailyReportRecipientsEmpty.
@@ -22068,7 +22068,7 @@ abstract class FlipperAppLocalizations {
   /// No description provided for @dailyReportFilesNameDailyTransactions.
   ///
   /// In en, this message translates to:
-  /// **'Daily Transactions'**
+  /// **'Report'**
   String get dailyReportFilesNameDailyTransactions;
 
   /// No description provided for @dailyReportFilesNameSalesSummary.

@@ -12777,7 +12777,7 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
 
   @override
   String get dailyReportRecipientsSubtitle =>
-      'The owner email above receives the daily detailed transactions report. Add more addresses to receive the same report.';
+      'The owner email above receives the daily REPORT email on days with sales. Add more addresses to receive the same report.';
 
   @override
   String get dailyReportRecipientsEmpty => 'No additional recipients yet.';
@@ -13237,7 +13237,7 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
   String get dailyReportFilesArchive => 'Archive';
 
   @override
-  String get dailyReportFilesNameDailyTransactions => 'Daily Transactions';
+  String get dailyReportFilesNameDailyTransactions => 'Report';
 
   @override
   String get dailyReportFilesNameSalesSummary => 'Sales Summary';

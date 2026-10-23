@@ -12856,7 +12856,7 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
 
   @override
   String get dailyReportRecipientsSubtitle =>
-      'Barua pepe ya mmiliki iliyo hapo juu hupokea ripoti ya kina ya miamala ya kila siku. Ongeza anwani zaidi ili zipokee ripoti hiyo hiyo.';
+      'Barua pepe ya mmiliki iliyo hapo juu hupokea barua pepe ya kila siku ya REPORT siku zenye mauzo. Ongeza anwani zaidi ili zipokee ripoti hiyo hiyo.';
 
   @override
   String get dailyReportRecipientsEmpty => 'Bado hakuna wapokeaji wa ziada.';
@@ -13320,7 +13320,7 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   String get dailyReportFilesArchive => 'Hifadhi kumbukumbu';
 
   @override
-  String get dailyReportFilesNameDailyTransactions => 'Miamala ya kila siku';
+  String get dailyReportFilesNameDailyTransactions => 'Ripoti';
 
   @override
   String get dailyReportFilesNameSalesSummary => 'Muhtasari wa mauzo';

@@ -12902,7 +12902,7 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
 
   @override
   String get dailyReportRecipientsSubtitle =>
-      'Imeyili ya nyiri ubucuruzi iri hejuru yakira raporo irambuye y\'ibikorwa bya buri munsi. Ongeraho izindi aderesi kugira ngo nazo zakire iyo raporo.';
+      'Imeyili ya nyiri ubucuruzi iri hejuru yakira imeyili ya buri munsi ya REPORT ku minsi habayeho igurisha. Ongeraho izindi aderesi kugira ngo nazo zakire iyo raporo.';
 
   @override
   String get dailyReportRecipientsEmpty => 'Nta bandi bakira barashyirwaho.';
@@ -13366,7 +13366,7 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   String get dailyReportFilesArchive => 'Bika mu bubiko';
 
   @override
-  String get dailyReportFilesNameDailyTransactions => 'Ibikorwa bya buri munsi';
+  String get dailyReportFilesNameDailyTransactions => 'Raporo';
 
   @override
   String get dailyReportFilesNameSalesSummary => 'Incamake y\'igurisha';

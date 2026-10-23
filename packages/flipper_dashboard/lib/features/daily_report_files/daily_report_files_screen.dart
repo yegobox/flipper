@@ -2250,6 +2250,8 @@ class _FileRow extends StatelessWidget {
     if (lower.contains('merged')) {
       return _mergedDisplayName(raw);
     }
+    final reportName = file.reportName;
+    if (reportName != null) return reportName;
     if (lower.contains('daily_transactions') ||
         lower.contains('daily transactions') ||
         file.type.toLowerCase().contains('transaction')) {
