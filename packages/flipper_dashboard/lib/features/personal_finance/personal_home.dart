@@ -6,7 +6,7 @@ import 'package:flipper_dashboard/features/personal_finance/personal_finance_dat
 import 'package:flipper_dashboard/features/personal_finance/personal_finance_providers.dart';
 import 'package:flipper_dashboard/theme/pos_tokens.dart';
 import 'package:flipper_dashboard/widgets/sms_review/sms_review_section.dart'
-    show SmsReviewHomeCard;
+    show SmsReviewHomeCard, smsReviewSummaryProvider;
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/helperModels/extensions.dart';
 import 'package:flutter/material.dart';
@@ -39,6 +39,7 @@ class PersonalHome extends ConsumerWidget {
         const SizedBox(height: 12),
         _SummaryCard(summary: summary),
         const SmsReviewHomeCard(padding: EdgeInsets.only(top: 12)),
+        const _NothingToReviewRow(),
         if (summary.isEmpty) ...[
           const SizedBox(height: 12),
           const _EmptyCard(),
@@ -415,6 +416,43 @@ class _EmptyCard extends StatelessWidget {
             label: Text(l10n.personalMoneyPairSmsBridge),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// The SMS queue is always reachable: with items, [SmsReviewHomeCard]
+/// shows them; with none, this says so and leads to pairing, instead of the
+/// home showing nothing at all.
+class _NothingToReviewRow extends ConsumerWidget {
+  const _NothingToReviewRow();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Only a queue that was read and is empty: not while it loads or failed.
+    final empty = ref.watch(
+      smsReviewSummaryProvider.select((s) => s.loaded && s.count == 0),
+    );
+    if (!empty) return const SizedBox.shrink();
+    final l10n = context.flipperL10n;
+    return Padding(
+      padding: const EdgeInsets.only(top: 12),
+      child: _Card(
+        child: ListTile(
+          key: const ValueKey('personal-nothing-to-review'),
+          leading: const Icon(
+            Icons.mark_chat_read_outlined,
+            color: PosTokens.ink3,
+          ),
+          title: Text(
+            l10n.personalMoneyNothingToReview,
+            style: const TextStyle(fontSize: 14, color: PosTokens.ink2),
+          ),
+          trailing: const Icon(Icons.chevron_right_rounded),
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute<void>(builder: (_) => const SmsBridgePage()),
+          ),
+        ),
       ),
     );
   }

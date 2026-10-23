@@ -37,17 +37,48 @@ const String kAccountModeCacheKey = 'accountModes';
 /// it. The device behaves as personal meanwhile.
 const String kPendingAccountModeKey = 'pendingAccountMode';
 
-/// Reads the cached mode of [businessId] from the [kAccountModeCacheKey]
-/// value. `null` when this device has never seen one.
-AccountMode? cachedAccountMode(String? raw, String businessId) {
-  final map = _decode(raw);
-  final value = map[businessId];
-  return value == null ? null : parseAccountMode(value);
+/// One business's cached mode, with the server's `changedAt` when known.
+class CachedAccountMode {
+  const CachedAccountMode(this.mode, {this.changedAt});
+
+  final AccountMode mode;
+  final DateTime? changedAt;
 }
 
+DateTime? _time(Object? value) =>
+    value is String ? DateTime.tryParse(value.trim())?.toUtc() : null;
+
+/// The cached entry of [businessId] from the [kAccountModeCacheKey] value.
+/// Reads both the current `{mode, changedAt}` form and the older plain
+/// string. `null` when this device has never seen one.
+CachedAccountMode? cachedAccountModeEntry(String? raw, String businessId) {
+  final value = _decode(raw)[businessId];
+  if (value == null) return null;
+  if (value is Map) {
+    return CachedAccountMode(
+      parseAccountMode(value['mode']),
+      changedAt: _time(value['changedAt']),
+    );
+  }
+  return CachedAccountMode(parseAccountMode(value));
+}
+
+/// Reads the cached mode of [businessId]. `null` when never seen.
+AccountMode? cachedAccountMode(String? raw, String businessId) =>
+    cachedAccountModeEntry(raw, businessId)?.mode;
+
 /// The [kAccountModeCacheKey] value with [businessId] set to [mode].
-String withCachedAccountMode(String? raw, String businessId, AccountMode mode) {
-  final map = _decode(raw)..[businessId] = mode.value;
+String withCachedAccountMode(
+  String? raw,
+  String businessId,
+  AccountMode mode, {
+  DateTime? changedAt,
+}) {
+  final map = _decode(raw)
+    ..[businessId] = {
+      'mode': mode.value,
+      if (changedAt != null) 'changedAt': changedAt.toUtc().toIso8601String(),
+    };
   return jsonEncode(map);
 }
 
@@ -64,15 +95,33 @@ Map<String, Object?> _decode(String? raw) {
   return {};
 }
 
-/// The mode a device should use, from what it knows locally, in order of
-/// trust: the Ditto doc (server-written), a signup still waiting for the
-/// server, then the cache. `null` when none of them knows.
+/// `changedAt` of a server-written Ditto doc.
+DateTime? accountModeDocChangedAt(Map<String, dynamic>? doc) =>
+    _time(doc?['changedAt']);
+
+/// The mode a device should use, from what it knows locally. `null` when
+/// nothing knows.
+///
+/// The Ditto doc is the server's, but it only changes once the connector's
+/// write syncs back. A switch made on this device is cached with the
+/// server's `changedAt` the moment the server answers, so whichever of the
+/// two is **newer** wins: right after a switch that is the cache, and once
+/// the doc catches up it is the doc again. A cache entry with no time never
+/// beats a doc. Without a doc, a personal signup still waiting for the
+/// server is personal, then the cache.
 AccountMode? localAccountMode({
   required Map<String, dynamic>? dittoDoc,
   required String? pending,
-  required AccountMode? cached,
+  required CachedAccountMode? cached,
 }) {
-  if (dittoDoc != null) return parseAccountMode(dittoDoc['mode']);
+  if (dittoDoc != null) {
+    final docAt = accountModeDocChangedAt(dittoDoc);
+    final cachedAt = cached?.changedAt;
+    if (cachedAt != null && (docAt == null || cachedAt.isAfter(docAt))) {
+      return cached!.mode;
+    }
+    return parseAccountMode(dittoDoc['mode']);
+  }
   if (parseAccountMode(pending).isPersonal) return AccountMode.personal;
-  return cached;
+  return cached?.mode;
 }

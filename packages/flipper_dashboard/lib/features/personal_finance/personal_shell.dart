@@ -6,7 +6,7 @@ import 'package:flipper_dashboard/features/personal_finance/personal_home.dart';
 import 'package:flipper_dashboard/features/personal_finance/personal_more.dart';
 import 'package:flipper_dashboard/theme/pos_tokens.dart';
 import 'package:flipper_dashboard/widgets/sms_review/sms_review_section.dart'
-    show registerSmsReviewPushHandler;
+    show SmsReviewCountBadge, registerSmsReviewPushHandler;
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/account_mode/account_mode_providers.dart';
 import 'package:flutter/material.dart';
@@ -113,74 +113,95 @@ class _PersonalShellState extends ConsumerState<PersonalShell> {
             ),
           );
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        if (constraints.maxWidth < kPersonalShellRailBreakpoint) {
+    // The SMS review count sits on Home, where the queue is.
+    Widget navIcon(int index, IconData icon, {Color? color}) {
+      final widget = Icon(icon, color: color);
+      return index == 0 ? SmsReviewCountBadge(child: widget) : widget;
+    }
+
+    // Back never leaves the shell for the startup screen: on another tab it
+    // goes Home, on Home it does nothing, like the business app
+    // (`DashboardLayout`). Routes pushed on top still pop as usual.
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop && _tab != 0) _select(0);
+      },
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          if (constraints.maxWidth < kPersonalShellRailBreakpoint) {
+            return Scaffold(
+              key: const ValueKey('personal-shell-phone'),
+              backgroundColor: PosTokens.posBg,
+              appBar: appBar,
+              body: SafeArea(top: appBar == null, child: body),
+              floatingActionButton: fab,
+              bottomNavigationBar: NavigationBar(
+                selectedIndex: _tab,
+                onDestinationSelected: _select,
+                indicatorColor: PosTokens.blueTint,
+                destinations: [
+                  for (final (i, (icon, selected, label))
+                      in destinations.indexed)
+                    NavigationDestination(
+                      icon: navIcon(i, icon),
+                      selectedIcon: navIcon(i, selected, color: PosTokens.blue),
+                      label: label,
+                    ),
+                ],
+              ),
+            );
+          }
           return Scaffold(
-            key: const ValueKey('personal-shell-phone'),
+            key: const ValueKey('personal-shell-desktop'),
             backgroundColor: PosTokens.posBg,
-            appBar: appBar,
-            body: SafeArea(top: appBar == null, child: body),
-            floatingActionButton: fab,
-            bottomNavigationBar: NavigationBar(
-              selectedIndex: _tab,
-              onDestinationSelected: _select,
-              indicatorColor: PosTokens.blueTint,
-              destinations: [
-                for (final (icon, selected, label) in destinations)
-                  NavigationDestination(
-                    icon: Icon(icon),
-                    selectedIcon: Icon(selected, color: PosTokens.blue),
-                    label: label,
+            body: SafeArea(
+              child: Row(
+                children: [
+                  NavigationRail(
+                    selectedIndex: _tab,
+                    onDestinationSelected: _select,
+                    labelType: NavigationRailLabelType.all,
+                    indicatorColor: PosTokens.blueTint,
+                    leading: Padding(
+                      padding: const EdgeInsets.only(top: 8, bottom: 16),
+                      child: fab ?? const SizedBox(height: 56),
+                    ),
+                    destinations: [
+                      for (final (i, (icon, selected, label))
+                          in destinations.indexed)
+                        NavigationRailDestination(
+                          icon: navIcon(i, icon),
+                          selectedIcon: navIcon(
+                            i,
+                            selected,
+                            color: PosTokens.blue,
+                          ),
+                          label: Text(label),
+                        ),
+                    ],
                   ),
-              ],
-            ),
-          );
-        }
-        return Scaffold(
-          key: const ValueKey('personal-shell-desktop'),
-          backgroundColor: PosTokens.posBg,
-          body: SafeArea(
-            child: Row(
-              children: [
-                NavigationRail(
-                  selectedIndex: _tab,
-                  onDestinationSelected: _select,
-                  labelType: NavigationRailLabelType.all,
-                  indicatorColor: PosTokens.blueTint,
-                  leading: Padding(
-                    padding: const EdgeInsets.only(top: 8, bottom: 16),
-                    child: fab ?? const SizedBox(height: 56),
-                  ),
-                  destinations: [
-                    for (final (icon, selected, label) in destinations)
-                      NavigationRailDestination(
-                        icon: Icon(icon),
-                        selectedIcon: Icon(selected, color: PosTokens.blue),
-                        label: Text(label),
-                      ),
-                  ],
-                ),
-                const VerticalDivider(width: 1, color: PosTokens.line),
-                Expanded(
-                  child: Center(
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                        maxWidth: _tab == _flo ? double.infinity : 760,
-                      ),
-                      child: Scaffold(
-                        backgroundColor: PosTokens.posBg,
-                        appBar: appBar,
-                        body: body,
+                  const VerticalDivider(width: 1, color: PosTokens.line),
+                  Expanded(
+                    child: Center(
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          maxWidth: _tab == _flo ? double.infinity : 760,
+                        ),
+                        child: Scaffold(
+                          backgroundColor: PosTokens.posBg,
+                          appBar: appBar,
+                          body: body,
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 }

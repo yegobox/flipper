@@ -19750,6 +19750,8 @@
     "personalMoneyEmptyTitle": "Nothing recorded yet",
     "personalMoneyEmptyBody": "Add money in or out with the + button, or pair the SMS Bridge so your bank and mobile money messages are recorded for you.",
     "personalMoneyPairSmsBridge": "Pair SMS Bridge",
+    "personalMoneyToReview": "SMS to review",
+    "personalMoneyNothingToReview": "No bank or MoMo SMS waiting for review",
     "personalMoneyNoCategory": "No category",
     "personalMoneyAddTitle": "Add money in or out",
     "personalMoneyAmount": "Amount",

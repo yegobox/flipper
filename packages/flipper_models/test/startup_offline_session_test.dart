@@ -35,16 +35,16 @@ void main() {
     });
 
     test('errors that say the session is bad still log out', () {
-      expect(keeps(SessionException(term: 'No user in local storage')), isFalse);
+      expect(
+        keeps(SessionException(term: 'No user in local storage')),
+        isFalse,
+      );
       expect(keeps(PinError(term: 'pin')), isFalse);
       expect(keeps(LoginChoicesException(term: 'Branch ID not set')), isFalse);
     });
 
     test('online behaviour is unchanged', () {
-      expect(
-        keeps(Exception('requirements failed'), online: true),
-        isFalse,
-      );
+      expect(keeps(Exception('requirements failed'), online: true), isFalse);
       expect(
         keeps(BusinessNotFoundException(term: 'missing'), online: true),
         isFalse,
@@ -54,6 +54,36 @@ void main() {
     test('a device with no session on it is never let in', () {
       expect(
         keeps(Exception('requirements failed'), hasCachedSession: false),
+        isFalse,
+      );
+    });
+  });
+
+  group('StartupViewModel.fastStartupFor', () {
+    test('only a cached signed-in session opens the home first', () {
+      expect(
+        StartupViewModel.fastStartupFor(
+          hasCachedSession: true,
+          freshSignup: false,
+        ),
+        isTrue,
+      );
+      expect(
+        StartupViewModel.fastStartupFor(
+          hasCachedSession: false,
+          freshSignup: false,
+        ),
+        isFalse,
+      );
+    });
+
+    test('a fresh signup keeps the blocking path to LoginChoices', () {
+      // CoreSync.signup caches both ids before it sets freshSignup.
+      expect(
+        StartupViewModel.fastStartupFor(
+          hasCachedSession: true,
+          freshSignup: true,
+        ),
         isFalse,
       );
     });

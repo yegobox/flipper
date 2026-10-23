@@ -18,6 +18,11 @@ import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/app_shortcuts_platform.dart';
 import 'package:flipper_services/event_bus.dart';
+import 'package:flipper_services/notifications/engagement_push.dart'
+    show
+        kNewSaleEngagementAction,
+        registerEngagementActionHandler,
+        unregisterEngagementActionHandler;
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/setting_service.dart';
@@ -62,7 +67,19 @@ class _BusinessFlipperApp extends HookConsumerWidget {
       );
       final observer = _AppLifecycleObserver(() => _handleResumedState(ref));
       WidgetsBinding.instance.addObserver(observer);
-      return () => WidgetsBinding.instance.removeObserver(observer);
+      // A "record a sale" push opens the POS, but only once this business
+      // home is up: a tap read during startup waits for it here.
+      registerEngagementActionHandler(
+        kNewSaleEngagementAction,
+        _openPosForPush,
+      );
+      return () {
+        WidgetsBinding.instance.removeObserver(observer);
+        unregisterEngagementActionHandler(
+          kNewSaleEngagementAction,
+          _openPosForPush,
+        );
+      };
     }, [coreViewModel]);
 
     return ViewModelBuilder<CoreViewModel>.nonReactive(
@@ -71,6 +88,10 @@ class _BusinessFlipperApp extends HookConsumerWidget {
       builder: (context, model, child) => FlipperScaffold(model: model),
     );
   }
+
+  static void _openPosForPush() => unawaited(
+    locator<RouterService>().navigateTo(CheckOutRoute(isBigScreen: false)),
+  );
 
   void _initServices(BuildContext context, CoreViewModel model) {
     _disableScreenshots();

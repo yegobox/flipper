@@ -42,12 +42,21 @@ final accountModeProvider = StreamProvider.family<AccountMode, String>((
     arguments: args,
     onChange: (result) {
       if (controller.isClosed || result.items.isEmpty) return;
+      final doc = Map<String, dynamic>.from(result.items.first.value);
+      // A switch made here is newer than the doc until the connector's
+      // write syncs back; the newer of the two wins.
       final mode = localAccountMode(
-        dittoDoc: Map<String, dynamic>.from(result.items.first.value),
+        dittoDoc: doc,
         pending: null,
-        cached: null,
+        cached: store.cachedEntry(id),
       )!;
-      unawaited(store.remember(id, mode));
+      unawaited(
+        store.remember(
+          id,
+          parseAccountMode(doc['mode']),
+          changedAt: accountModeDocChangedAt(doc),
+        ),
+      );
       controller.add(mode);
     },
   );

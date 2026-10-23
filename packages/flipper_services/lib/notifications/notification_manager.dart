@@ -4,6 +4,7 @@ import 'package:flipper_models/db_model_export.dart';
 import 'package:flutter/foundation.dart' hide Category;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
+import 'engagement_push.dart';
 import 'interfaces/notification_interface.dart';
 import 'platforms/android_notifications.dart';
 import 'platforms/darwin_notifications.dart';
@@ -57,9 +58,12 @@ class NotificationManager implements NotificationInterface {
   /// Check if the app was launched from a notification
   Future<void> _checkAppStartup() async {
     if (defaultTargetPlatform != TargetPlatform.android) return;
+    // [create] runs at boot and again lazily; the launch details stay the
+    // same all process long, so only the first may route them.
+    if (!claimLaunchEngagementTap()) return;
 
-    final appLaunchDetails =
-        await _notificationsPlugin.getNotificationAppLaunchDetails();
+    final appLaunchDetails = await _notificationsPlugin
+        .getNotificationAppLaunchDetails();
 
     final notificationResponse = appLaunchDetails?.notificationResponse;
 
@@ -68,6 +72,11 @@ class NotificationManager implements NotificationInterface {
         notificationResponse == null) {
       return;
     }
+    // The app was started by a tap on one of our local notifications (an
+    // engagement push shown while the app was open): route it like a tap on
+    // a running app. [openEngagementAction] keeps it until the home is up.
+    final action = engagementActionFromPayload(notificationResponse.payload);
+    if (action != null) openEngagementAction(action);
   }
 
   @override

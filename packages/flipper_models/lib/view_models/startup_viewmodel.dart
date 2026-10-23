@@ -98,13 +98,30 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
         return;
       }
 
+      // A signed-in device with its business and branch cached opens the
+      // home from that cache and checks the plan behind it, instead of
+      // waiting on the network first. See [fastStartupFor].
+      final fastPath = fastStartupFor(
+        hasCachedSession: _hasCachedSession(),
+        freshSignup: _freshSignupPending(),
+      );
+      final trace = Stopwatch()..start();
+      final marks = <String>[];
+      void mark(String step) =>
+          marks.add('$step=${trace.elapsedMilliseconds}ms');
+
       try {
         debugPrint(
           '🚀 [StartupViewModel] Initializing Ditto early for userId: $userId',
         );
         final earlyInit = userId.startsWith('login-')
             ? appService.initDittoForLogin(userId)
-            : appService.initDittoEarlyForSession(userId);
+            // The fast path only opens the store; replication (started by
+            // appInit) does the cloud auth without holding up the home.
+            : appService.initDittoEarlyForSession(
+                userId,
+                authenticate: !fastPath,
+              );
         await earlyInit.timeout(const Duration(seconds: 10));
         debugPrint('🚀 [StartupViewModel] Ditto initialized early');
       } catch (e) {
@@ -112,6 +129,7 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
           '⚠️ [StartupViewModel] Failed to initialize Ditto early (will continue): $e',
         );
       }
+      mark('ditto');
       _progress = 0.2;
       notifyListeners();
 
@@ -126,6 +144,7 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
           'continuing with the cached session',
         );
       }
+      mark('requirements');
       _progress = 0.4;
       notifyListeners();
 
@@ -175,13 +194,31 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
       debugPrint('🚀 [StartupViewModel] Running appService.appInit()...');
       await appService.appInit().timeout(const Duration(seconds: 30));
       debugPrint('🚀 [StartupViewModel] appService.appInit() complete');
+      mark('appInit');
       _progress = 0.8;
       notifyListeners();
+
+      if (fastPath) {
+        // The startup grace is spent by opening the home, not when the check
+        // behind it lands: a `plans` realtime event in between would still
+        // count as the initial startup and open a second home over this one.
+        // The check behind it decides on its own ([_verifyBehindHome]).
+        _isInitialStartup = false;
+        await PaymentVerificationNavigator.enterHomeFromCache();
+        mark('home');
+        _progress = 1.0;
+        notifyListeners();
+        talker.info('[startup] fast ${marks.join(' ')}');
+        unawaited(_verifyBehindHome());
+        return;
+      }
 
       debugPrint('🚀 [StartupViewModel] Verifying payment status...');
       await _handleInitialPaymentVerification().timeout(
         const Duration(seconds: 15),
       );
+      mark('home');
+      talker.info('[startup] blocking ${marks.join(' ')}');
       // Try the watch again now the business is definitely resolved: the call
       // above may have run before `appInit()` had one, and it is a no-op when
       // the channel is already open for this business.
@@ -200,10 +237,63 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
     }
   }
 
+  /// Whether startup may open the home from the cached session before the
+  /// plan check. Only a real signed-in session with its business and branch
+  /// on this device ([_hasCachedSession]: not QR login's `login-` identity);
+  /// everything else (no session, LoginChoices after a fresh signup, which
+  /// `appInit` still routes) keeps the blocking path. A fresh signup already
+  /// has both ids cached (`CoreSync.signup` writes them before its
+  /// `freshSignup` flag), so the flag is checked on its own.
+  @visibleForTesting
+  static bool fastStartupFor({
+    required bool hasCachedSession,
+    required bool freshSignup,
+  }) => hasCachedSession && !freshSignup;
+
+  /// The startup plan check, after [PaymentVerificationNavigator.enterHomeFromCache]
+  /// opened the home. Never re-runs startup: a slow or failed check only
+  /// means the periodic and realtime checks decide later.
+  Future<void> _verifyBehindHome() async {
+    PaymentVerificationResponse response;
+    try {
+      response = await _paymentVerificationService
+          .verifyPaymentStatus()
+          .timeout(const Duration(seconds: 30));
+    } catch (e, stackTrace) {
+      talker.error(e, stackTrace);
+      response = PaymentVerificationResponse(
+        result: PaymentVerificationResult.error,
+        errorMessage: 'Payment verification failed: $e',
+        exception: e is Exception ? e : Exception(e),
+      );
+    }
+    try {
+      await _handlePaymentStatusChange(
+        response,
+        alreadyHome: true,
+        // Decides like the blocking check it replaces: a lapsed plan reaches
+        // the paywall even if the user already tapped into the home or the
+        // POS, which would otherwise skip it as "user active" or "critical
+        // route" until the next periodic check, hours later.
+        decisive: true,
+      );
+      // The home came from the cached commission-only flag. The blocking
+      // path re-asked on every start; ask now, behind it.
+      if (response.result == PaymentVerificationResult.active) {
+        await PaymentVerificationNavigator.reconcileCommissionOnlyHome();
+      }
+    } catch (e, stackTrace) {
+      talker.error(e, stackTrace);
+    }
+    unawaited(_paymentVerificationService.startRealtimeVerification());
+  }
+
   /// Handle payment status changes from periodic verification
   Future<void> _handlePaymentStatusChange(
-    PaymentVerificationResponse response,
-  ) async {
+    PaymentVerificationResponse response, {
+    bool alreadyHome = false,
+    bool decisive = false,
+  }) async {
     // The startup grace period is a ONE-SHOT: it exists so the very first
     // check may navigate off StartUpView, and it deliberately bypasses both
     // the pre-auth route guard and the recent-activity guard in
@@ -221,7 +311,9 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
 
     await PaymentVerificationNavigator.handle(
       response,
-      isInitialStartup: wasInitialStartup,
+      userInitiated: decisive,
+      isInitialStartup: wasInitialStartup || decisive,
+      alreadyHome: alreadyHome,
       lastUserActivity: _lastUserActivity,
       userActivityThreshold: _userActivityThreshold,
     );
@@ -387,12 +479,18 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
   /// temporary `login-` identity is not a session.
   static bool _hasCachedSession() {
     bool present(String? value) => value != null && value.trim().isNotEmpty;
-    final userId = ProxyService.box.getUserId();
+    final box = ProxyService.box;
+    final userId = box.getUserId();
     return present(userId) &&
         !userId!.startsWith('login-') &&
-        present(ProxyService.box.getBusinessId()) &&
-        present(ProxyService.box.getBranchId());
+        present(box.getBusinessId()) &&
+        present(box.getBranchId());
   }
+
+  /// Set by `CoreSync.signup`, cleared by `appInit` once it has routed the
+  /// new account to LoginChoices.
+  static bool _freshSignupPending() =>
+      ProxyService.box.readBool(key: 'freshSignup') ?? false;
 
   Future<bool> _keepsCachedSessionAfter(Object error) async {
     if (!_hasCachedSession()) return false;

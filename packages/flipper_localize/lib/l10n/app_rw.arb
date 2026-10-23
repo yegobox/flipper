@@ -8978,6 +8978,8 @@
   "personalMoneyEmptyTitle": "Nta kintu kiranditswe",
   "personalMoneyEmptyBody": "Ongeramo ibyinjiye cyangwa ibyasohotse ukoresheje akabuto +, cyangwa uhuze Ikiraro cya SMS kugira ngo ubutumwa bwa banki na mobile money bwandikwe ubwabwo.",
   "personalMoneyPairSmsBridge": "Huza Ikiraro cya SMS",
+  "personalMoneyToReview": "SMS zo gusuzuma",
+  "personalMoneyNothingToReview": "Nta SMS ya banki cyangwa MoMo itegereje gusuzumwa",
   "personalMoneyNoCategory": "Nta cyiciro",
   "personalMoneyAddTitle": "Ongeramo ibyinjiye cyangwa ibyasohotse",
   "personalMoneyAmount": "Amafaranga",

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
@@ -11,6 +13,7 @@ import 'package:flipper_models/services/payment_verification_service.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:stacked/stacked.dart' show PageRouteInfo;
 import 'package:stacked_services/stacked_services.dart';
 
 /// Routes the user based on [PaymentVerificationResponse] (startup, periodic, manual).
@@ -48,8 +51,12 @@ class PaymentVerificationNavigator {
     required String currentRoute,
     required bool userInitiated,
     required bool isInitialStartup,
+    bool alreadyHome = false,
   }) =>
-      userInitiated || isInitialStartup || paywallRoutes.contains(currentRoute);
+      !alreadyHome &&
+      (userInitiated ||
+          isInitialStartup ||
+          paywallRoutes.contains(currentRoute));
 
   /// Whether a verification that *could not complete* may still send the user
   /// home ("proceed despite the error").
@@ -66,7 +73,8 @@ class PaymentVerificationNavigator {
   static bool mayFailOpenFor({
     required bool userInitiated,
     required bool isInitialStartup,
-  }) => userInitiated || isInitialStartup;
+    bool alreadyHome = false,
+  }) => !alreadyHome && (userInitiated || isInitialStartup);
 
   static const _criticalRoutes = {
     'AddProductView',
@@ -128,10 +136,16 @@ class PaymentVerificationNavigator {
     return response;
   }
 
+  /// [alreadyHome]: startup's cached-session fast path has already opened
+  /// the home ([enterHomeFromCache]) and this is the check running behind it.
+  /// A healthy result, or an error that only says "could not check", then
+  /// leaves the user where they are instead of opening the home a second
+  /// time. A real payment problem still goes to the paywall.
   static Future<void> handle(
     PaymentVerificationResponse response, {
     bool userInitiated = false,
     bool isInitialStartup = false,
+    bool alreadyHome = false,
     DateTime? lastUserActivity,
     Duration userActivityThreshold = const Duration(minutes: 5),
   }) async {
@@ -151,6 +165,7 @@ class PaymentVerificationNavigator {
       currentRoute: currentRoute,
       userInitiated: userInitiated,
       isInitialStartup: isInitialStartup,
+      alreadyHome: alreadyHome,
     );
 
     if (!userInitiated) {
@@ -198,10 +213,10 @@ class PaymentVerificationNavigator {
         await _handleActiveSubscription(mayEnterHome: mayEnterHome);
         break;
       case PaymentVerificationResult.noPlan:
-        await _handleNoPlan();
+        await _handleNoPlan(replaceStack: alreadyHome);
         break;
       case PaymentVerificationResult.planExistsButInactive:
-        await _handleInactivePlan(response);
+        await _handleInactivePlan(response, replaceStack: alreadyHome);
         break;
       case PaymentVerificationResult.error:
         await _handleVerificationError(
@@ -209,7 +224,9 @@ class PaymentVerificationNavigator {
           mayFailOpen: mayFailOpenFor(
             userInitiated: userInitiated,
             isInitialStartup: isInitialStartup,
+            alreadyHome: alreadyHome,
           ),
+          replaceStack: alreadyHome,
         );
         break;
     }
@@ -242,27 +259,54 @@ class PaymentVerificationNavigator {
     await _navigateToAuthenticatedHome();
   }
 
-  static Future<void> _handleNoPlan() async {
-    if (await _navigateCommissionOnlyIfNeeded()) return;
+  /// Opens a lockout (or commission) screen. Pushed over the current page,
+  /// as before, unless [replaceStack]: startup's fast path has already shown
+  /// the home, and a paywall pushed on top of it was one Android back away
+  /// from the full app.
+  ///
+  /// Never for a signed-out device: the fast path's check runs as
+  /// user-initiated (no pre-auth guard), and a logout while it was pending
+  /// must not swap the login screen for a paywall.
+  static Future<void> _show(
+    PageRouteInfo<dynamic> route, {
+    required bool replaceStack,
+  }) async {
+    if (_refuseWhenSignedOut(route.routeName)) return;
+    if (replaceStack) {
+      await _routerService.clearStackAndShow(route);
+    } else {
+      // Not awaited: a push completes only when the page is popped.
+      unawaited(_routerService.navigateTo(route));
+    }
+  }
+
+  static Future<void> _handleNoPlan({required bool replaceStack}) async {
+    if (await _navigateCommissionOnlyIfNeeded(replaceStack: replaceStack)) {
+      return;
+    }
 
     talker.warning('No payment plan found, directing to payment plan screen');
-    _routerService.navigateTo(PaymentPlanUIRoute());
+    await _show(PaymentPlanUIRoute(), replaceStack: replaceStack);
   }
 
   static Future<void> _handleInactivePlan(
-    PaymentVerificationResponse response,
-  ) async {
-    if (await _navigateCommissionOnlyIfNeeded()) return;
+    PaymentVerificationResponse response, {
+    required bool replaceStack,
+  }) async {
+    if (await _navigateCommissionOnlyIfNeeded(replaceStack: replaceStack)) {
+      return;
+    }
 
     talker.error(
       'Payment plan exists but is not active: ${response.errorMessage}',
     );
-    _routerService.navigateTo(FailedPaymentRoute());
+    await _show(FailedPaymentRoute(), replaceStack: replaceStack);
   }
 
   static Future<void> _handleVerificationError(
     PaymentVerificationResponse response, {
     required bool mayFailOpen,
+    required bool replaceStack,
   }) async {
     talker.error('Error during payment verification: ${response.errorMessage}');
 
@@ -286,7 +330,9 @@ class PaymentVerificationNavigator {
       return;
     }
 
-    if (await _navigateCommissionOnlyIfNeeded()) return;
+    if (await _navigateCommissionOnlyIfNeeded(replaceStack: replaceStack)) {
+      return;
+    }
 
     final shouldGoToPersonal = await _shouldNavigateToPersonalApp();
     if (shouldGoToPersonal) {
@@ -299,10 +345,10 @@ class PaymentVerificationNavigator {
     }
 
     if (response.exception is NoPaymentPlanFound) {
-      _routerService.navigateTo(PaymentPlanUIRoute());
+      await _show(PaymentPlanUIRoute(), replaceStack: replaceStack);
     } else if (response.exception is PaymentIncompleteException ||
         response.exception is FailedPaymentException) {
-      _routerService.navigateTo(FailedPaymentRoute());
+      await _show(FailedPaymentRoute(), replaceStack: replaceStack);
     } else if (mayFailOpen) {
       talker.warning(
         'Proceeding to main app despite payment verification error',
@@ -311,8 +357,16 @@ class PaymentVerificationNavigator {
     }
   }
 
-  static Future<bool> _navigateCommissionOnlyIfNeeded() async {
-    final commissionOnly = await refreshCommissionOnlySession();
+  /// [refreshCommissionOnlySession], replaceable in tests (it asks
+  /// Supabase).
+  @visibleForTesting
+  static Future<bool> Function() refreshCommissionOnly =
+      refreshCommissionOnlySession;
+
+  static Future<bool> _navigateCommissionOnlyIfNeeded({
+    bool replaceStack = false,
+  }) async {
+    final commissionOnly = await refreshCommissionOnly();
     if (!commissionOnly) return false;
 
     // Reported as handled so callers stop here rather than falling through to
@@ -322,8 +376,60 @@ class PaymentVerificationNavigator {
     talker.info(
       'Navigating to agent commission screen for commission-only session',
     );
-    _routerService.navigateTo(AgentCommissionScreenRoute());
+    await _show(AgentCommissionScreenRoute(), replaceStack: replaceStack);
     return true;
+  }
+
+  /// Re-asks whether this is a commission-only session once the home
+  /// [enterHomeFromCache] opened from the cached flag is up, and swaps the
+  /// home when the answer changed: an agent just given full login, or a
+  /// user just restricted to commissions. The blocking startup asked on
+  /// every start before choosing the home; the fast path asks behind it.
+  ///
+  /// A personal account keeps its shell whatever the flag says, as in
+  /// [navigateToAuthenticatedHome].
+  static Future<void> reconcileCommissionOnlyHome() async {
+    if (await _isPersonalAccount()) return;
+    final before = isCommissionOnlySession();
+    final after = await refreshCommissionOnly();
+    if (after == before) return;
+    if (after) {
+      if (_refuseWhenSignedOut('AgentCommission')) return;
+      talker.info('Session became commission-only — opening commissions');
+      await _routerService.clearStackAndShow(AgentCommissionScreenRoute());
+      return;
+    }
+    talker.info('Session no longer commission-only — opening the home');
+    await _navigateToAuthenticatedHome(
+      skipCommissionCheck: true,
+      clearStack: true,
+    );
+  }
+
+  /// Opens the home a signed-in device last used, from what this device
+  /// already knows: no network, no settings hydration. Startup's fast path
+  /// calls it before the plan check, which then runs behind it with
+  /// `handle(alreadyHome: true)`.
+  ///
+  /// Same destinations as [navigateToAuthenticatedHome], read from cache:
+  /// personal mode, a commission-only session, or the bar on a till set to
+  /// it. Everything else is [FlipperAppRoute], whose own startup redirect
+  /// opens a cached hotel or bar mode.
+  static Future<void> enterHomeFromCache() async {
+    if (_refuseWhenSignedOut('authenticated home')) return;
+    if (await _isPersonalAccount()) {
+      await _routerService.clearStackAndShow(FlipperAppRoute());
+      return;
+    }
+    if (isCommissionOnlySession()) {
+      await _routerService.clearStackAndShow(AgentCommissionScreenRoute());
+      return;
+    }
+    if (_shouldOpenBarMode()) {
+      await _routerService.clearStackAndShow(BarModeHostRoute());
+      return;
+    }
+    await _routerService.clearStackAndShow(FlipperAppRoute());
   }
 
   static Future<void> navigateToAuthenticatedHome({
@@ -355,11 +461,9 @@ class PaymentVerificationNavigator {
     if (await _isPersonalAccount()) {
       if (_refuseWhenSignedOut('FlipperApp')) return;
       talker.info('Personal account — opening the personal shell');
-      if (clearStack) {
-        await _routerService.clearStackAndShow(FlipperAppRoute());
-      } else {
-        _routerService.navigateTo(FlipperAppRoute());
-      }
+      // Always a fresh stack: with StartUpView left underneath, Android back
+      // on the personal home went to the splash screen.
+      await _routerService.clearStackAndShow(FlipperAppRoute());
       return;
     }
 

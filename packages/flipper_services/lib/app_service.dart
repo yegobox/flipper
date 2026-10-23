@@ -532,7 +532,14 @@ class AppService with ListenableServiceMixin {
   /// Unlike [initDittoForLogin], this does not tear down the sync coordinator and
   /// does not start replication until [appInit] — avoids Ditto sqlite3 + Brick
   /// sqlite opening at the same time on macOS.
-  Future<void> initDittoEarlyForSession(String userId) async {
+  ///
+  /// [authenticate] false only opens the local store: startup's cached-session
+  /// fast path leaves cloud auth to [appInit]'s replication start, which does
+  /// it anyway, instead of waiting on an apihub round trip before the home.
+  Future<void> initDittoEarlyForSession(
+    String userId, {
+    bool authenticate = true,
+  }) async {
     final appID = kDebugMode ? AppSecrets.appIdDebug : AppSecrets.appId;
     await DittoSingleton.instance.initialize(
       appId: appID,
@@ -543,6 +550,11 @@ class AppService with ListenableServiceMixin {
     final ditto = DittoSingleton.instance.ditto;
     if (ditto != null && !ProxyService.ditto.isReady()) {
       ProxyService.ditto.setDitto(ditto);
+    }
+
+    if (!authenticate) {
+      print('Ditto early session open (auth left to replication start)');
+      return;
     }
 
     // Auth for local reads; replication starts in appInit.

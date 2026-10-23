@@ -26809,6 +26809,13 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   String get personalMoneyPairSmsBridge => 'Associer la passerelle SMS';
 
   @override
+  String get personalMoneyToReview => 'SMS à vérifier';
+
+  @override
+  String get personalMoneyNothingToReview =>
+      'Aucun SMS de banque ou MoMo à vérifier';
+
+  @override
   String get personalMoneyNoCategory => 'Sans catégorie';
 
   @override
