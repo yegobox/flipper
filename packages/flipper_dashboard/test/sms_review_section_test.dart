@@ -5,8 +5,12 @@ import 'package:flipper_dashboard/widgets/cashbook_new_category_sheet.dart';
 import 'package:flipper_dashboard/widgets/sms_review/sms_review_categories.dart';
 import 'package:flipper_dashboard/widgets/sms_review/sms_review_section.dart';
 import 'package:flipper_localize/flipper_localize.dart';
+import 'package:flipper_models/account_mode/account_mode.dart';
+import 'package:flipper_models/account_mode/account_mode_providers.dart';
 import 'package:flipper_models/db_model_export.dart'
     show Category, ITransaction;
+import 'package:flipper_models/personal_loans/personal_loan.dart';
+import 'package:flipper_models/personal_loans/personal_loans_store.dart';
 import 'package:flipper_models/providers/category_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart'
     show cashbookRecentTransactionsProvider;
@@ -62,6 +66,54 @@ class _Cats implements SmsCategoryStore {
   Future<void> remember(String id, {required bool isIncome}) async =>
       remembered.add((id, isIncome));
 }
+
+class _Loans implements PersonalLoansStore {
+  final payments = <PersonalLoanPayment>[];
+
+  /// How many payment writes throw before they succeed.
+  int fail = 0;
+
+  @override
+  Future<void> addPayment(PersonalLoanPayment payment) async {
+    if (fail > 0) {
+      fail--;
+      throw StateError('Ditto is not ready');
+    }
+    payments.add(payment);
+  }
+
+  @override
+  Future<void> saveLoan(PersonalLoan loan) async {}
+
+  @override
+  Future<void> deleteLoan(PersonalLoan loan) async {}
+
+  @override
+  Future<void> deletePayment(PersonalLoanPayment payment) async {}
+}
+
+/// A personal account with one open loan.
+List<Override> _personalLoanOverrides(_Loans loans) => [
+  accountModeProvider.overrideWith(
+    (ref, id) => Stream.value(AccountMode.personal),
+  ),
+  personalLoansStoreProvider.overrideWithValue(loans),
+  personalLoansBusinessIdProvider.overrideWithValue('biz'),
+  personalLoansProvider.overrideWith(
+    (ref) => Stream.value([
+      PersonalLoan(
+        id: 'loan-bk',
+        businessId: 'biz',
+        branchId: 'br',
+        lender: 'BK',
+        monthlyPayment: 2000,
+        balance: 20000,
+        balanceAt: DateTime(2026, 10),
+        createdAt: DateTime(2026, 10),
+      ),
+    ]),
+  ),
+];
 
 /// A phone-sized surface: the detail sheet scrolls, as on a real phone.
 void _phoneView(WidgetTester tester) {
@@ -194,6 +246,7 @@ void main() {
     List<SmsReviewItem> items, {
     List<Category>? cats,
     SmsDebtRepaymentRecorder? recordRepayment,
+    Completer<void>? movementGate,
   }) {
     store = _Store();
     categories = _Cats();
@@ -225,6 +278,7 @@ void main() {
                 required categoryId,
                 required categoryName,
               }) async {
+                await movementGate?.future;
                 recorded.add((item, categoryId));
                 return 'txn-1';
               },
@@ -859,5 +913,68 @@ void main() {
     await unpair();
     expect(fake.revoked, ['d1']);
     expect(find.textContaining('connector down'), findsNothing);
+  });
+
+  testWidgets('a failed loan repayment retries without confirming twice', (
+    tester,
+  ) async {
+    _phoneView(tester);
+    final loans = _Loans()..fail = 1;
+    await tester.pumpWidget(
+      _app(_detailLauncher(_item(suggested: kLoanRepaymentCategory)), [
+        ...reviewOverrides(const []),
+        ..._personalLoanOverrides(loans),
+      ]),
+    );
+    await _openDetail(tester);
+    // The only loan is picked for the repayment.
+    expect(
+      tester
+          .widget<ChoiceChip>(find.byKey(const ValueKey('loan-pick-loan-bk')))
+          .selected,
+      isTrue,
+    );
+
+    await _tap(tester, const Key('sms_review_confirm'));
+    expect(recorded, hasLength(1));
+    expect(loans.payments, isEmpty);
+    expect(find.byType(SmsReviewDetail), findsOneWidget);
+
+    await _tap(tester, const Key('sms_review_confirm'));
+    expect(recorded, hasLength(1), reason: 'the SMS is confirmed once');
+    final p = loans.payments.single;
+    expect(p.loanId, 'loan-bk');
+    expect(p.transactionId, 'txn-1');
+    expect(p.amount, 2000);
+    expect(p.source, 'sms');
+    expect(find.byType(SmsReviewDetail), findsNothing);
+  });
+
+  testWidgets('a loan repayment is written even if the sheet closes', (
+    tester,
+  ) async {
+    _phoneView(tester);
+    final loans = _Loans();
+    final gate = Completer<void>();
+    await tester.pumpWidget(
+      _app(_detailLauncher(_item(suggested: kLoanRepaymentCategory)), [
+        ...reviewOverrides(const [], movementGate: gate),
+        ..._personalLoanOverrides(loans),
+      ]),
+    );
+    await _openDetail(tester);
+    await tester.ensureVisible(find.byKey(const Key('sms_review_confirm')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('sms_review_confirm')));
+    await tester.pump();
+
+    Navigator.of(tester.element(find.byType(SmsReviewDetail))).pop();
+    await tester.pumpAndSettle();
+    expect(find.byType(SmsReviewDetail), findsNothing);
+
+    gate.complete();
+    await tester.pumpAndSettle();
+    expect(recorded, hasLength(1));
+    expect(loans.payments.single.transactionId, 'txn-1');
   });
 }

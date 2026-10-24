@@ -243,34 +243,45 @@ class LoanDetailScreen extends ConsumerWidget {
     String action,
   ) async {
     final store = ref.read(personalLoansStoreProvider);
-    switch (action) {
-      case 'clear':
-        await store.saveLoan(loan.copyWith(closedAt: DateTime.now()));
-      case 'reopen':
-        await store.saveLoan(loan.copyWith(clearClosed: true));
-      case 'delete':
-        final l10n = context.flipperL10n;
-        final ok = await showDialog<bool>(
-          context: context,
-          builder: (c) => AlertDialog(
-            title: Text(l10n.personalLoanDelete),
-            content: Text(l10n.personalLoanDeleteConfirm),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(c).pop(false),
-                child: Text(l10n.cancel),
-              ),
-              TextButton(
-                onPressed: () => Navigator.of(c).pop(true),
-                style: TextButton.styleFrom(foregroundColor: PosTokens.lossInk),
-                child: Text(l10n.personalLoanDelete),
-              ),
-            ],
-          ),
-        );
-        if (ok != true) return;
-        await store.deleteLoan(loan);
-        if (context.mounted) Navigator.of(context).pop();
+    final l10n = context.flipperL10n;
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    try {
+      switch (action) {
+        case 'clear':
+          await store.saveLoan(loan.copyWith(closedAt: DateTime.now()));
+        case 'reopen':
+          await store.saveLoan(loan.copyWith(clearClosed: true));
+        case 'delete':
+          if (await _confirmDelete(context, l10n) != true) return;
+          await store.deleteLoan(loan);
+          if (context.mounted) Navigator.of(context).pop();
+      }
+    } catch (_) {
+      messenger?.showSnackBar(
+        SnackBar(content: Text(l10n.personalMoneySaveFailed)),
+      );
     }
   }
+
+  Future<bool?> _confirmDelete(
+    BuildContext context,
+    FlipperAppLocalizations l10n,
+  ) => showDialog<bool>(
+    context: context,
+    builder: (c) => AlertDialog(
+      title: Text(l10n.personalLoanDelete),
+      content: Text(l10n.personalLoanDeleteConfirm),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(c).pop(false),
+          child: Text(l10n.cancel),
+        ),
+        TextButton(
+          onPressed: () => Navigator.of(c).pop(true),
+          style: TextButton.styleFrom(foregroundColor: PosTokens.lossInk),
+          child: Text(l10n.personalLoanDelete),
+        ),
+      ],
+    ),
+  );
 }

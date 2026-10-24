@@ -14,6 +14,25 @@ import 'package:flipper_models/personal_loans/personal_loan.dart';
 /// Longest schedule we simulate: 50 years.
 const int kMaxLoanMonths = 600;
 
+/// A typed amount. A comma is a thousands separator only when it groups
+/// digits in threes ("1,500,000", "1,500.50"); a single other comma is the
+/// decimal mark ("1,5" is 1.5). Null for text that is not a number, never a
+/// silently rescaled value.
+double? parseLoanAmount(String text) {
+  final t = text.replaceAll(' ', '').trim();
+  if (RegExp(r'^\d{1,3}(,\d{3})+(\.\d+)?$').hasMatch(t)) {
+    return double.tryParse(t.replaceAll(',', ''));
+  }
+  if (RegExp(r'^\d*,\d+$').hasMatch(t)) {
+    return double.tryParse(t.replaceAll(',', '.'));
+  }
+  return double.tryParse(t);
+}
+
+/// A typed annual rate: a comma is always the decimal mark ("16,5" is 16.5).
+double? parseLoanRate(String text) =>
+    double.tryParse(text.replaceAll(' ', '').trim().replaceAll(',', '.'));
+
 double monthlyRate(double? annualRatePct) =>
     annualRatePct == null || annualRatePct <= 0 ? 0 : annualRatePct / 1200;
 
@@ -296,7 +315,8 @@ class LoansOverview {
   /// What open loans take every month.
   final double monthlyPayments;
 
-  /// When the last open loan is projected to be cleared.
+  /// When the last open loan is projected to be cleared. Null when there is
+  /// no open loan, or when any open loan has no projected payoff.
   final DateTime? lastPayoff;
   final List<LoanStatus> loans;
 }
@@ -306,7 +326,13 @@ LoansOverview loansOverview(Iterable<LoanStatus> statuses) {
   DateTime? last;
   for (final s in open) {
     final d = s.outlook?.payoffDate;
-    if (d != null && (last == null || d.isAfter(last))) last = d;
+    // An open loan with no projected end (no balance, no installment, or one
+    // that never covers the interest): no debt-free date can be promised.
+    if (d == null) {
+      last = null;
+      break;
+    }
+    if (last == null || d.isAfter(last)) last = d;
   }
   return LoansOverview(
     totalOwed: open.fold(0, (sum, s) => sum + (s.balance ?? 0)),

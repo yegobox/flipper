@@ -26737,7 +26737,8 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   String get personalLoanTotalInterest => 'Jumla ya riba';
 
   @override
-  String get personalLoanCurrentInstallments => 'Mikopo unayolipa tayari';
+  String get personalLoanCurrentInstallments =>
+      'Malipo ya mikopo unayolipa sasa';
 
   @override
   String get personalLoanAvgIncome => 'Pesa iliyoingia, siku 30 zilizopita';
