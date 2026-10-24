@@ -70,6 +70,9 @@ class _LoanFormSheetState extends ConsumerState<LoanFormSheet> {
   late final _balance = TextEditingController(text: _fmt(_loan?.balance));
   late DateTime? _start = _loan?.startDate;
   late DateTime? _end = _loan?.endDate;
+
+  /// One id per form, so a retried save updates the loan it already wrote.
+  late final String _id = _loan?.id ?? const Uuid().v4();
   bool _receivedNow = false;
   bool _busy = false;
   String? _error;
@@ -78,8 +81,7 @@ class _LoanFormSheetState extends ConsumerState<LoanFormSheet> {
       ? ''
       : (v == v.roundToDouble() ? v.round().toString() : v.toString());
 
-  static double? _parse(TextEditingController c) =>
-      double.tryParse(c.text.replaceAll(',', '').trim());
+  static double? _parse(TextEditingController c) => parseLoanAmount(c.text);
 
   @override
   void dispose() {
@@ -102,11 +104,16 @@ class _LoanFormSheetState extends ConsumerState<LoanFormSheet> {
 
   Future<void> _pickEnd() async {
     final now = DateTime.now();
+    final end = _end;
+    // A saved end outside the usual range widens it rather than breaking the
+    // picker (its initial date must lie between first and last).
+    final first = DateTime(now.year - 1);
+    final last = DateTime(now.year + 40);
     final picked = await showDatePicker(
       context: context,
-      initialDate: _end ?? DateTime(now.year + 1, now.month),
-      firstDate: DateTime(now.year - 1),
-      lastDate: DateTime(now.year + 40),
+      initialDate: end ?? DateTime(now.year + 1, now.month),
+      firstDate: end != null && end.isBefore(first) ? end : first,
+      lastDate: end != null && end.isAfter(last) ? end : last,
       initialDatePickerMode: DatePickerMode.year,
     );
     if (picked != null) setState(() => _end = picked);
@@ -117,7 +124,7 @@ class _LoanFormSheetState extends ConsumerState<LoanFormSheet> {
     final lender = _lender.text.trim();
     final amount = _simple ? null : _parse(_amount);
     final payment = _parse(_payment);
-    final rate = _parse(_rate);
+    final rate = parseLoanRate(_rate.text);
     final term = _simple ? null : int.tryParse(_term.text.trim());
     final balance = _parse(_balance);
     if (lender.isEmpty) {
@@ -134,9 +141,14 @@ class _LoanFormSheetState extends ConsumerState<LoanFormSheet> {
       setState(() => _error = l10n.personalLoanNeedsMore);
       return;
     }
+    // Everything the writes need is read now: the sheet can be dismissed
+    // while they run, and they must still finish without its ref.
     final businessId = ref.read(personalLoansBusinessIdProvider);
     final box = ref.read(branchServicesProvider).box;
     final branchId = box.branchIdString() ?? box.getBranchId() ?? '';
+    final store = ref.read(personalLoansStoreProvider);
+    final categories = ref.read(smsCategoryStoreProvider);
+    final writeMovement = ref.read(personalMovementWriterProvider);
     if (businessId == null) {
       setState(() => _error = l10n.personalMoneySaveFailed);
       return;
@@ -148,7 +160,7 @@ class _LoanFormSheetState extends ConsumerState<LoanFormSheet> {
     final now = DateTime.now();
     final existing = _loan;
     final loan = PersonalLoan(
-      id: existing?.id ?? const Uuid().v4(),
+      id: _id,
       businessId: existing?.businessId ?? businessId,
       branchId: existing?.branchId ?? branchId,
       lender: lender,
@@ -169,9 +181,15 @@ class _LoanFormSheetState extends ConsumerState<LoanFormSheet> {
       closedAt: existing?.closedAt,
     );
     try {
-      await ref.read(personalLoansStoreProvider).saveLoan(loan);
+      await store.saveLoan(loan);
       if (_receivedNow && amount != null && existing == null) {
-        await _recordReceived(amount);
+        await _recordReceived(
+          categories: categories,
+          writeMovement: writeMovement,
+          branchId: branchId,
+          amount: amount,
+          lender: lender,
+        );
       }
       if (!mounted) return;
       Navigator.of(context).pop();
@@ -185,23 +203,26 @@ class _LoanFormSheetState extends ConsumerState<LoanFormSheet> {
     }
   }
 
-  /// The borrowed money as money in, under "Loan received".
-  Future<void> _recordReceived(double amount) async {
-    final box = ref.read(branchServicesProvider).box;
-    final branchId = box.branchIdString() ?? box.getBranchId();
+  /// The borrowed money as money in, under "Loan received". Takes what it
+  /// needs as arguments: it may run after the sheet is gone.
+  static Future<void> _recordReceived({
+    required SmsCategoryStore categories,
+    required PersonalMovementWriter writeMovement,
+    required String branchId,
+    required double amount,
+    required String lender,
+  }) async {
     String? categoryId;
-    if (branchId != null) {
-      categoryId = await ref
-          .read(smsCategoryStoreProvider)
-          .create(kLoanReceivedCategory, branchId);
+    if (branchId.isNotEmpty) {
+      categoryId = await categories.create(kLoanReceivedCategory, branchId);
     }
-    await ref.read(personalMovementWriterProvider)(
+    await writeMovement(
       isIncome: true,
       amount: amount,
       paymentType: 'CASH',
       categoryName: kLoanReceivedCategory,
       categoryId: categoryId,
-      note: _lender.text.trim(),
+      note: lender,
     );
   }
 
@@ -383,7 +404,7 @@ class _LoanFormSheetState extends ConsumerState<LoanFormSheet> {
       branchId: '',
       lender: '',
       monthlyPayment: _parse(_payment),
-      annualRatePct: _parse(_rate),
+      annualRatePct: parseLoanRate(_rate.text),
       principal: _simple ? null : _parse(_amount),
       startDate: _simple ? null : _start,
       endDate: _end,

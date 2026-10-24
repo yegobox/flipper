@@ -105,9 +105,9 @@ class _LoanAffordabilityScreenState
         ref.watch(personalLast30DaysFlowProvider).value ??
         (income: 0.0, spending: 0.0);
     final existing = ref.watch(personalLoansOverviewProvider).monthlyPayments;
-    final amount = double.tryParse(_amount.text.replaceAll(',', '').trim());
+    final amount = parseLoanAmount(_amount.text);
     final months = int.tryParse(_months.text.trim());
-    final rate = double.tryParse(_rate.text.replaceAll(',', '.').trim());
+    final rate = parseLoanRate(_rate.text);
     final check = amount == null || amount <= 0 || months == null || months <= 0
         ? null
         : affordability(

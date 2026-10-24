@@ -124,6 +124,10 @@ class _PersonalAddMoneySheetState extends ConsumerState<PersonalAddMoneySheet> {
   bool get _isRepayment =>
       !_isIncome && _category?.name == kLoanRepaymentCategory;
   String _method = kPersonalMethodCash;
+
+  /// The Cash Out a failed repayment write already saved: a retry links the
+  /// repayment to it instead of writing a second Cash Out.
+  ({String id, double amount})? _written;
   bool _busy = false;
   String? _error;
 
@@ -153,34 +157,41 @@ class _PersonalAddMoneySheetState extends ConsumerState<PersonalAddMoneySheet> {
       _busy = true;
       _error = null;
     });
+    // Read before the first await: the sheet can be dismissed while the
+    // writes run, and the repayment must still be linked to its Cash Out.
+    final box = ref.read(branchServicesProvider).box;
+    final categories = ref.read(smsCategoryStoreProvider);
+    final writeMovement = ref.read(personalMovementWriterProvider);
+    final recordRepayment = loanRepaymentWriter(ref);
+    final loanId = _isRepayment ? _loanId : null;
+    final note = _note.text.trim();
     try {
-      var categoryId = _category?.id;
-      final categoryName = _category?.name;
-      if (categoryName != null && categoryId == null) {
-        final box = ref.read(branchServicesProvider).box;
-        final branchId = box.branchIdString() ?? box.getBranchId();
-        if (branchId != null) {
-          categoryId = await ref
-              .read(smsCategoryStoreProvider)
-              .create(categoryName, branchId);
+      var written = _written;
+      if (written == null) {
+        var categoryId = _category?.id;
+        final categoryName = _category?.name;
+        if (categoryName != null && categoryId == null) {
+          final branchId = box.branchIdString() ?? box.getBranchId();
+          if (branchId != null) {
+            categoryId = await categories.create(categoryName, branchId);
+          }
         }
-      }
-      final transactionId = await ref.read(personalMovementWriterProvider)(
-        isIncome: _isIncome,
-        amount: amount,
-        paymentType: _method,
-        categoryName: categoryName,
-        categoryId: categoryId,
-        note: _note.text.trim().isEmpty ? null : _note.text.trim(),
-      );
-      final loanId = _loanId;
-      if (_isRepayment && loanId != null) {
-        await recordLoanRepayment(
-          ref,
-          loanId: loanId,
+        final transactionId = await writeMovement(
+          isIncome: _isIncome,
           amount: amount,
+          paymentType: _method,
+          categoryName: categoryName,
+          categoryId: categoryId,
+          note: note.isEmpty ? null : note,
+        );
+        written = _written = (id: transactionId, amount: amount);
+      }
+      if (loanId != null) {
+        await recordRepayment(
+          loanId: loanId,
+          amount: written.amount,
           paidAt: DateTime.now(),
-          transactionId: transactionId,
+          transactionId: written.id,
           source: 'form',
         );
       }
@@ -335,7 +346,9 @@ class _PersonalAddMoneySheetState extends ConsumerState<PersonalAddMoneySheet> {
                 backgroundColor: PosTokens.blue,
                 minimumSize: const Size.fromHeight(52),
               ),
-              onPressed: _busy ? null : _save,
+              onPressed: _busy || (_isRepayment && loanPickerPending(ref))
+                  ? null
+                  : _save,
               child: _busy
                   ? const SizedBox(
                       width: 22,

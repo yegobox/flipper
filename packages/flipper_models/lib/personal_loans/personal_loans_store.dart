@@ -9,6 +9,7 @@ import 'package:flipper_models/sms_review/sms_review_providers.dart'
 import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:meta/meta.dart' show visibleForTesting;
 
 /// Writes loans and repayments. Tests override [personalLoansStoreProvider].
 abstract interface class PersonalLoansStore {
@@ -17,6 +18,24 @@ abstract interface class PersonalLoansStore {
   Future<void> addPayment(PersonalLoanPayment payment);
   Future<void> deletePayment(PersonalLoanPayment payment);
 }
+
+/// The soft deletes that remove [loan] and every repayment recorded on it,
+/// in order, so the removal syncs to every device of the business.
+@visibleForTesting
+List<(String, Map<String, Object?>)> loanDeleteStatements(
+  PersonalLoan loan,
+  String at,
+) => [
+  (
+    'UPDATE $kPersonalLoanPaymentsCollection SET deletedAt = :at '
+        'WHERE loanId = :loanId AND businessId = :businessId',
+    {'at': at, 'loanId': loan.id, 'businessId': loan.businessId},
+  ),
+  (
+    'UPDATE $kPersonalLoansCollection SET deletedAt = :at WHERE _id = :id',
+    {'at': at, 'id': loan.id},
+  ),
+];
 
 class DittoPersonalLoansStore implements PersonalLoansStore {
   const DittoPersonalLoansStore();
@@ -44,9 +63,17 @@ class DittoPersonalLoansStore implements PersonalLoansStore {
   Future<void> saveLoan(PersonalLoan loan) =>
       _upsert(kPersonalLoansCollection, loan.toDitto());
 
+  /// Its repayments first, then the loan: a failure part-way leaves the loan
+  /// in place, so deleting it again finishes the job.
   @override
-  Future<void> deleteLoan(PersonalLoan loan) =>
-      _delete(kPersonalLoansCollection, loan.id);
+  Future<void> deleteLoan(PersonalLoan loan) async {
+    final ditto = DittoService.instance.dittoInstance;
+    if (ditto == null) throw StateError('Ditto is not ready');
+    final at = DateTime.now().toUtc().toIso8601String();
+    for (final (dql, args) in loanDeleteStatements(loan, at)) {
+      await ditto.store.execute(dql, arguments: args);
+    }
+  }
 
   @override
   Future<void> addPayment(PersonalLoanPayment payment) =>

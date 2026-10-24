@@ -1,5 +1,6 @@
 import 'package:flipper_models/personal_loans/loan_math.dart';
 import 'package:flipper_models/personal_loans/personal_loan.dart';
+import 'package:flipper_models/personal_loans/personal_loans_store.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 PersonalLoan _loan({
@@ -226,6 +227,84 @@ void main() {
       expect(o.monthlyPayments, 100000);
       expect(o.lastPayoff, DateTime(2026, 7, 10));
     });
+
+    test('no debt-free date while an open loan has no payoff', () {
+      final now = DateTime(2026, 3, 10);
+      final ends = loanStatus(
+        _loan(payment: 100000, principal: 400000, start: DateTime(2026, 3, 1)),
+        const [],
+        now,
+      );
+      // 1M at 24%: 20k of interest a month, more than the 15k paid.
+      final neverEnds = loanStatus(
+        _loan(
+          payment: 15000,
+          rate: 24,
+          principal: 1000000,
+          start: DateTime(2026, 3, 1),
+        ),
+        const [],
+        now,
+      );
+      expect(neverEnds.outlook!.neverEnds, isTrue);
+      expect(loansOverview([ends, neverEnds]).lastPayoff, isNull);
+      // A balance today but no installment to project with.
+      final noPayment = loanStatus(
+        _loan(balance: 300000, balanceAt: DateTime(2026, 3, 1)),
+        const [],
+        now,
+      );
+      expect(noPayment.outlook!.payoffDate, isNull);
+      expect(loansOverview([noPayment, ends]).lastPayoff, isNull);
+      // Nothing that gives a balance at all.
+      final unknown = loanStatus(_loan(payment: 50000), const [], now);
+      expect(unknown.outlook, isNull);
+      expect(loansOverview([ends, unknown]).lastPayoff, isNull);
+      // A cleared loan does not block the date.
+      final cleared = loanStatus(
+        _loan(payment: 15000, rate: 24, principal: 1000000),
+        const [],
+        now,
+      );
+      expect(
+        loansOverview([
+          ends,
+          loanStatus(
+            cleared.loan.copyWith(closedAt: DateTime(2026, 3, 2)),
+            const [],
+            now,
+          ),
+        ]).lastPayoff,
+        DateTime(2026, 7, 10),
+      );
+      expect(loansOverview(const []).lastPayoff, isNull);
+    });
+  });
+
+  group('parsing', () {
+    test('amounts read thousands commas and a decimal comma', () {
+      expect(parseLoanAmount('1500000'), 1500000);
+      expect(parseLoanAmount('1,500,000'), 1500000);
+      expect(parseLoanAmount(' 1,500.50 '), 1500.5);
+      expect(parseLoanAmount('1 500 000'), 1500000);
+      expect(parseLoanAmount('1500.5'), 1500.5);
+      // A decimal comma is not dropped: 1,5 is one and a half, not 15.
+      expect(parseLoanAmount('1,5'), 1.5);
+      expect(parseLoanAmount('1500,75'), 1500.75);
+      expect(parseLoanAmount(',5'), 0.5);
+      expect(parseLoanAmount(''), isNull);
+      expect(parseLoanAmount('1,5,0'), isNull);
+      expect(parseLoanAmount('1.500,5'), isNull);
+      expect(parseLoanAmount('1,50,000'), isNull);
+    });
+
+    test('a rate comma is always the decimal mark', () {
+      expect(parseLoanRate('16'), 16);
+      expect(parseLoanRate('16,5'), 16.5);
+      expect(parseLoanRate(' 16.5 '), 16.5);
+      expect(parseLoanRate(''), isNull);
+      expect(parseLoanRate('1,6,5'), isNull);
+    });
   });
 
   group('affordability', () {
@@ -264,5 +343,21 @@ void main() {
     test('no income recorded cannot be judged', () {
       expect(check(income: 0).verdict, Affordability.unknown);
     });
+  });
+
+  test('deleting a loan soft-deletes its repayments first', () {
+    final loan = _loan(payment: 1000);
+    final steps = loanDeleteStatements(loan, '2026-10-24T00:00:00Z');
+    expect(steps, hasLength(2));
+    expect(steps.first.$1, contains('UPDATE $kPersonalLoanPaymentsCollection'));
+    expect(steps.first.$1, contains('loanId = :loanId'));
+    expect(steps.first.$1, contains('businessId = :businessId'));
+    expect(steps.first.$2, {
+      'at': '2026-10-24T00:00:00Z',
+      'loanId': 'l1',
+      'businessId': 'b',
+    });
+    expect(steps.last.$1, contains('UPDATE $kPersonalLoansCollection'));
+    expect(steps.last.$2, {'at': '2026-10-24T00:00:00Z', 'id': 'l1'});
   });
 }
