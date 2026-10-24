@@ -21,6 +21,13 @@ class SmsReviewDetail extends ConsumerStatefulWidget {
 
 class _SmsReviewDetailState extends ConsumerState<SmsReviewDetail> {
   SmsCategoryChoice? _category;
+
+  /// Personal mode: the loan a "Loan repayment" SMS pays down.
+  String? _loanId;
+
+  /// The Cash Book transaction this SMS was already confirmed as, when the
+  /// repayment write after it failed: a retry records only the repayment.
+  String? _confirmedTxn;
   bool _initialApplied = false;
   bool _moreOpen = false;
   bool _transferOpen = false;
@@ -126,6 +133,11 @@ class _SmsReviewDetailState extends ConsumerState<SmsReviewDetail> {
       personal: watchAccountMode(ref).isPersonal,
     );
     if (categoriesAsync.hasValue) _applyInitial(choices);
+    // Personal mode: a money-out "Loan repayment" asks which loan it pays.
+    final pickLoan =
+        watchAccountMode(ref).isPersonal &&
+        !item.isIncome &&
+        _category?.name == kLoanRepaymentCategory;
     final service = ref.read(smsReviewServiceProvider);
     final sales = smsCanMatchSale(item)
         ? ref.watch(smsMatchingSalesProvider(item)).value ??
@@ -328,13 +340,23 @@ class _SmsReviewDetailState extends ConsumerState<SmsReviewDetail> {
               onNew: () =>
                   _newCategory([...choices.suggested, ...choices.more]),
             ),
+            if (pickLoan)
+              LoanPicker(
+                selected: _loanId,
+                onChanged: (id) => setState(() => _loanId = id),
+              ),
             const SizedBox(height: 16),
             _ConfirmButton(
               outlined: sales.isNotEmpty,
-              busy: _busy,
+              // A repayment waits for the loans, so it can be linked to one.
+              busy: _busy || (pickLoan && loanPickerPending(ref)),
               label: l10n.smsReviewConfirm,
               onPressed: () => _run(() async {
+                // Read before the first await: the repayment must be written
+                // even if the sheet closes while the SMS is confirmed.
                 final choice = _category;
+                final loanId = _loanId;
+                final recordRepayment = loanRepaymentWriter(ref);
                 final categories = ref.read(smsCategoryStoreProvider);
                 var categoryId = choice?.id;
                 if (choice != null && categoryId == null) {
@@ -343,15 +365,29 @@ class _SmsReviewDetailState extends ConsumerState<SmsReviewDetail> {
                     item.branchId,
                   );
                 }
-                final txn = await service.confirm(
-                  item,
-                  categoryId: categoryId,
-                  categoryName: choice?.name,
-                );
+                final txn =
+                    _confirmedTxn ??
+                    await service.confirm(
+                      item,
+                      categoryId: categoryId,
+                      categoryName: choice?.name,
+                    );
+                _confirmedTxn = txn;
                 if (txn != null && categoryId != null) {
                   await categories.remember(
                     categoryId,
                     isIncome: item.isIncome,
+                  );
+                }
+                if (txn != null &&
+                    loanId != null &&
+                    choice?.name == kLoanRepaymentCategory) {
+                  await recordRepayment(
+                    loanId: loanId,
+                    amount: item.amount.toDouble(),
+                    paidAt: item.occurredAtDate ?? DateTime.now(),
+                    transactionId: txn,
+                    source: 'sms',
                   );
                 }
                 return (

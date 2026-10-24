@@ -26572,6 +26572,212 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
       'Hakuna SMS ya benki au MoMo inayosubiri kukaguliwa';
 
   @override
+  String get personalLoans => 'Mikopo';
+
+  @override
+  String get personalLoanWhichLoan => 'Ni mkopo upi?';
+
+  @override
+  String get personalLoansTotalOwed => 'Deni lote';
+
+  @override
+  String get personalLoansMonthly => 'Unalipa kila mwezi';
+
+  @override
+  String get personalLoansDebtFree => 'Bila deni';
+
+  @override
+  String get personalLoansEmpty =>
+      'Bado hakuna mkopo. Ongeza mmoja uone kilichobaki kulipwa na lini utamaliza.';
+
+  @override
+  String get personalLoansEmptyShort =>
+      'Fuatilia mkopo: salio, miezi iliyobaki, tarehe ya kumaliza';
+
+  @override
+  String get personalLoanAdd => 'Ongeza mkopo';
+
+  @override
+  String get personalLoanEdit => 'Hariri mkopo';
+
+  @override
+  String get personalLoanLender => 'Aliyekukopesha';
+
+  @override
+  String get personalLoanLenderHint => 'mf. BK, SACCO, MoKash, familia';
+
+  @override
+  String get personalLoanLenderRequired => 'Andika aliyekukopesha';
+
+  @override
+  String get personalLoanModeDetails => 'Najua maelezo yote';
+
+  @override
+  String get personalLoanModeSimple => 'Najua malipo ya kila mwezi';
+
+  @override
+  String get personalLoanAmount => 'Kiasi ulichokopa';
+
+  @override
+  String get personalLoanStartDate => 'Tarehe ya kuanza';
+
+  @override
+  String get personalLoanEndDate => 'Inaisha (mwezi na mwaka)';
+
+  @override
+  String get personalLoanTermMonths => 'Muda kwa miezi';
+
+  @override
+  String get personalLoanMonthlyPayment => 'Malipo ya kila mwezi';
+
+  @override
+  String get personalLoanRate => 'Riba kwa mwaka (%), si lazima';
+
+  @override
+  String get personalLoanRateShort => 'Riba kwa mwaka';
+
+  @override
+  String get personalLoanBalanceToday => 'Unachodaiwa leo, si lazima';
+
+  @override
+  String get personalLoanReceivedNow =>
+      'Nimepokea pesa hizi sasa (ziongeze kama pesa iliyoingia)';
+
+  @override
+  String get personalLoanNeedsMore =>
+      'Ongeza malipo ya kila mwezi na lini inaisha, au kiasi ulichokopa na muda wake.';
+
+  @override
+  String get personalLoanBalance => 'Salio';
+
+  @override
+  String get personalLoanEstimated => 'makadirio';
+
+  @override
+  String personalLoanMonthsLeft(int months) {
+    String _temp0 = intl.Intl.pluralLogic(
+      months,
+      locale: localeName,
+      other: 'Miezi $months imebaki',
+      one: 'Mwezi 1 umebaki',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String personalLoanPayoff(String date) {
+    return 'Itaisha $date';
+  }
+
+  @override
+  String get personalLoanTimeLeft => 'Muda uliobaki';
+
+  @override
+  String get personalLoanPaidOffBy => 'Itaisha';
+
+  @override
+  String get personalLoanInterestLeft => 'Riba iliyobaki kulipwa';
+
+  @override
+  String get personalLoanPlannedEnd => 'Mwisho uliopangwa';
+
+  @override
+  String get personalLoanPaidSoFar => 'Uliyolipa hadi sasa';
+
+  @override
+  String get personalLoanNeverEnds =>
+      'Malipo haya hayafikii riba, kwa hiyo salio halipungui.';
+
+  @override
+  String get personalLoanNeverEndsShort => 'Malipo chini ya riba';
+
+  @override
+  String get personalLoanDue => 'Hakuna malipo yaliyorekodiwa mwezi huu';
+
+  @override
+  String get personalLoanRecordPayment => 'Rekodi malipo';
+
+  @override
+  String get personalLoanRepayments => 'Malipo';
+
+  @override
+  String get personalLoanNoRepayments => 'Bado hakuna malipo yaliyorekodiwa';
+
+  @override
+  String get personalLoanMarkCleared => 'Weka kuwa imelipwa';
+
+  @override
+  String get personalLoanReopen => 'Fungua tena';
+
+  @override
+  String get personalLoanCleared => 'Imelipwa';
+
+  @override
+  String get personalLoanDelete => 'Futa mkopo';
+
+  @override
+  String get personalLoanDeleteConfirm =>
+      'Futa mkopo huu na malipo yake? Pesa zako zilizoingia na kutoka zinabaki kwenye shughuli zako.';
+
+  @override
+  String get personalLoanDisclaimer =>
+      'Haya ni makadirio kutoka ulichorekodi kwenye Flipper. Taarifa ya mkopeshaji ndiyo ya mwisho.';
+
+  @override
+  String get personalLoanWhatIf => 'Nikikopa…';
+
+  @override
+  String get personalLoanWhatIfHint =>
+      'Ona malipo ya kila mwezi na kitakachobaki kila mwezi';
+
+  @override
+  String get personalLoanNewInstallment => 'Malipo mapya ya kila mwezi';
+
+  @override
+  String get personalLoanTotalInterest => 'Jumla ya riba';
+
+  @override
+  String get personalLoanCurrentInstallments =>
+      'Malipo ya mikopo unayolipa sasa';
+
+  @override
+  String get personalLoanAvgIncome => 'Pesa iliyoingia, siku 30 zilizopita';
+
+  @override
+  String get personalLoanAvgSpending =>
+      'Pesa iliyotoka bila mikopo, siku 30 zilizopita';
+
+  @override
+  String get personalLoanLeftEachMonth => 'Kinachobaki kila mwezi';
+
+  @override
+  String personalLoanDebtShare(int percent) {
+    return '$percent% ya mapato yako yangeenda kwenye mikopo';
+  }
+
+  @override
+  String get personalLoanVerdictComfortable => 'Inawezekana vizuri';
+
+  @override
+  String get personalLoanVerdictTight =>
+      'Ngumu: karibu na kiwango benki zinaruhusu (40% ya mapato)';
+
+  @override
+  String get personalLoanVerdictRisky => 'Hatari: zaidi ya 40% ya mapato yako';
+
+  @override
+  String get personalLoanVerdictNotCovered =>
+      'Haitoshi: ungetumia zaidi ya kinachoingia';
+
+  @override
+  String get personalLoanVerdictUnknown =>
+      'Rekodi pesa inayoingia kwa mwezi mmoja ili kupima hili';
+
+  @override
+  String get personalLoanAffordabilityNote =>
+      'Kulingana na siku 30 zako zilizopita kwenye Flipper. Ni mwongozo, si uamuzi wa mkopeshaji.';
+
+  @override
   String get personalMoneyNoCategory => 'Hakuna kundi';
 
   @override

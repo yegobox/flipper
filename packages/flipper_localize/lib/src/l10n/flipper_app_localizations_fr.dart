@@ -26818,6 +26818,211 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
       'Aucun SMS de banque ou MoMo à vérifier';
 
   @override
+  String get personalLoans => 'Prêts';
+
+  @override
+  String get personalLoanWhichLoan => 'Pour quel prêt ?';
+
+  @override
+  String get personalLoansTotalOwed => 'Total dû';
+
+  @override
+  String get personalLoansMonthly => 'Payé chaque mois';
+
+  @override
+  String get personalLoansDebtFree => 'Sans dette';
+
+  @override
+  String get personalLoansEmpty =>
+      'Aucun prêt. Ajoutez-en un pour voir ce qu\'il reste à payer et quand vous aurez fini.';
+
+  @override
+  String get personalLoansEmptyShort =>
+      'Suivez un prêt : solde, mois restants, date de fin';
+
+  @override
+  String get personalLoanAdd => 'Ajouter un prêt';
+
+  @override
+  String get personalLoanEdit => 'Modifier le prêt';
+
+  @override
+  String get personalLoanLender => 'Prêteur';
+
+  @override
+  String get personalLoanLenderHint => 'ex. BK, SACCO, MoKash, famille';
+
+  @override
+  String get personalLoanLenderRequired => 'Indiquez le prêteur';
+
+  @override
+  String get personalLoanModeDetails => 'Je connais les détails';
+
+  @override
+  String get personalLoanModeSimple => 'Je connais la mensualité';
+
+  @override
+  String get personalLoanAmount => 'Montant emprunté';
+
+  @override
+  String get personalLoanStartDate => 'Date de début';
+
+  @override
+  String get personalLoanEndDate => 'Fin (mois et année)';
+
+  @override
+  String get personalLoanTermMonths => 'Durée en mois';
+
+  @override
+  String get personalLoanMonthlyPayment => 'Mensualité';
+
+  @override
+  String get personalLoanRate => 'Intérêt par an (%), facultatif';
+
+  @override
+  String get personalLoanRateShort => 'Intérêt par an';
+
+  @override
+  String get personalLoanBalanceToday =>
+      'Ce que vous devez encore aujourd\'hui, facultatif';
+
+  @override
+  String get personalLoanReceivedNow =>
+      'J\'ai reçu cet argent maintenant (l\'ajouter aux entrées)';
+
+  @override
+  String get personalLoanNeedsMore =>
+      'Ajoutez la mensualité et la date de fin, ou le montant emprunté et sa durée.';
+
+  @override
+  String get personalLoanBalance => 'Solde';
+
+  @override
+  String get personalLoanEstimated => 'estimé';
+
+  @override
+  String personalLoanMonthsLeft(int months) {
+    String _temp0 = intl.Intl.pluralLogic(
+      months,
+      locale: localeName,
+      other: '$months mois restants',
+      one: '1 mois restant',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String personalLoanPayoff(String date) {
+    return 'Soldé en $date';
+  }
+
+  @override
+  String get personalLoanTimeLeft => 'Temps restant';
+
+  @override
+  String get personalLoanPaidOffBy => 'Soldé en';
+
+  @override
+  String get personalLoanInterestLeft => 'Intérêts restants';
+
+  @override
+  String get personalLoanPlannedEnd => 'Fin prévue';
+
+  @override
+  String get personalLoanPaidSoFar => 'Remboursé à ce jour';
+
+  @override
+  String get personalLoanNeverEnds =>
+      'Cette mensualité ne couvre pas les intérêts : le solde ne baisse jamais.';
+
+  @override
+  String get personalLoanNeverEndsShort => 'Mensualité inférieure aux intérêts';
+
+  @override
+  String get personalLoanDue => 'Aucun remboursement ce mois-ci';
+
+  @override
+  String get personalLoanRecordPayment => 'Enregistrer un remboursement';
+
+  @override
+  String get personalLoanRepayments => 'Remboursements';
+
+  @override
+  String get personalLoanNoRepayments => 'Aucun remboursement enregistré';
+
+  @override
+  String get personalLoanMarkCleared => 'Marquer comme soldé';
+
+  @override
+  String get personalLoanReopen => 'Rouvrir';
+
+  @override
+  String get personalLoanCleared => 'Soldé';
+
+  @override
+  String get personalLoanDelete => 'Supprimer le prêt';
+
+  @override
+  String get personalLoanDeleteConfirm =>
+      'Supprimer ce prêt et ses remboursements ? Vos entrées et sorties restent dans votre activité.';
+
+  @override
+  String get personalLoanDisclaimer =>
+      'Estimations à partir de ce que vous avez saisi dans Flipper. Le relevé du prêteur fait foi.';
+
+  @override
+  String get personalLoanWhatIf => 'Et si j\'emprunte…';
+
+  @override
+  String get personalLoanWhatIfHint =>
+      'Voir la mensualité et ce qu\'il resterait chaque mois';
+
+  @override
+  String get personalLoanNewInstallment => 'Nouvelle mensualité';
+
+  @override
+  String get personalLoanTotalInterest => 'Intérêts totaux';
+
+  @override
+  String get personalLoanCurrentInstallments => 'Prêts déjà en cours';
+
+  @override
+  String get personalLoanAvgIncome => 'Entrées, 30 derniers jours';
+
+  @override
+  String get personalLoanAvgSpending => 'Sorties hors prêts, 30 derniers jours';
+
+  @override
+  String get personalLoanLeftEachMonth => 'Reste chaque mois';
+
+  @override
+  String personalLoanDebtShare(int percent) {
+    return '$percent % de vos revenus iraient aux prêts';
+  }
+
+  @override
+  String get personalLoanVerdictComfortable => 'Confortable';
+
+  @override
+  String get personalLoanVerdictTight =>
+      'Serré : proche de ce que les banques acceptent (40 % des revenus)';
+
+  @override
+  String get personalLoanVerdictRisky => 'Risqué : plus de 40 % de vos revenus';
+
+  @override
+  String get personalLoanVerdictNotCovered =>
+      'Non couvert : vous dépenseriez plus que vos entrées';
+
+  @override
+  String get personalLoanVerdictUnknown =>
+      'Enregistrez vos entrées pendant un mois pour en juger';
+
+  @override
+  String get personalLoanAffordabilityNote =>
+      'Basé sur vos 30 derniers jours dans Flipper. Une indication, pas la décision d\'un prêteur.';
+
+  @override
   String get personalMoneyNoCategory => 'Sans catégorie';
 
   @override

@@ -26664,6 +26664,212 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
       'Nta SMS ya banki cyangwa MoMo itegereje gusuzumwa';
 
   @override
+  String get personalLoans => 'Inguzanyo';
+
+  @override
+  String get personalLoanWhichLoan => 'Ni iyihe nguzanyo?';
+
+  @override
+  String get personalLoansTotalOwed => 'Ideni ryose';
+
+  @override
+  String get personalLoansMonthly => 'Wishyura buri kwezi';
+
+  @override
+  String get personalLoansDebtFree => 'Nta ideni';
+
+  @override
+  String get personalLoansEmpty =>
+      'Nta nguzanyo uranditse. Ongeramo imwe urebe ibisigaye kwishyurwa n\'igihe uzarangiza.';
+
+  @override
+  String get personalLoansEmptyShort =>
+      'Kurikirana inguzanyo: ideni, amezi asigaye, igihe izarangirira';
+
+  @override
+  String get personalLoanAdd => 'Ongeramo inguzanyo';
+
+  @override
+  String get personalLoanEdit => 'Hindura inguzanyo';
+
+  @override
+  String get personalLoanLender => 'Uwakugurije';
+
+  @override
+  String get personalLoanLenderHint => 'urugero: BK, SACCO, MoKash, umuryango';
+
+  @override
+  String get personalLoanLenderRequired => 'Andika uwakugurije';
+
+  @override
+  String get personalLoanModeDetails => 'Nzi ibisobanuro byose';
+
+  @override
+  String get personalLoanModeSimple => 'Nzi ayo nishyura buri kwezi';
+
+  @override
+  String get personalLoanAmount => 'Amafaranga wagurijwe';
+
+  @override
+  String get personalLoanStartDate => 'Itariki yatangiriyeho';
+
+  @override
+  String get personalLoanEndDate => 'Irangira (ukwezi n\'umwaka)';
+
+  @override
+  String get personalLoanTermMonths => 'Igihe mu mezi';
+
+  @override
+  String get personalLoanMonthlyPayment => 'Ayo wishyura buri kwezi';
+
+  @override
+  String get personalLoanRate => 'Inyungu ku mwaka (%), si ngombwa';
+
+  @override
+  String get personalLoanRateShort => 'Inyungu ku mwaka';
+
+  @override
+  String get personalLoanBalanceToday =>
+      'Ideni usigaranye uyu munsi, si ngombwa';
+
+  @override
+  String get personalLoanReceivedNow =>
+      'Nakiriye aya mafaranga ubu (yongere mu byinjiye)';
+
+  @override
+  String get personalLoanNeedsMore =>
+      'Ongeramo ayo wishyura buri kwezi n\'igihe irangira, cyangwa amafaranga wagurijwe n\'igihe.';
+
+  @override
+  String get personalLoanBalance => 'Ideni risigaye';
+
+  @override
+  String get personalLoanEstimated => 'ikigereranyo';
+
+  @override
+  String personalLoanMonthsLeft(int months) {
+    String _temp0 = intl.Intl.pluralLogic(
+      months,
+      locale: localeName,
+      other: 'Hasigaye amezi $months',
+      one: 'Hasigaye ukwezi 1',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String personalLoanPayoff(String date) {
+    return 'Izarangira $date';
+  }
+
+  @override
+  String get personalLoanTimeLeft => 'Igihe gisigaye';
+
+  @override
+  String get personalLoanPaidOffBy => 'Izarangira';
+
+  @override
+  String get personalLoanInterestLeft => 'Inyungu isigaye kwishyurwa';
+
+  @override
+  String get personalLoanPlannedEnd => 'Igihe cyateganyijwe kurangira';
+
+  @override
+  String get personalLoanPaidSoFar => 'Ayamaze kwishyurwa';
+
+  @override
+  String get personalLoanNeverEnds =>
+      'Ayo wishyura ntahagije inyungu, bityo ideni ntirigabanuka.';
+
+  @override
+  String get personalLoanNeverEndsShort => 'Ayo wishyura ari munsi y\'inyungu';
+
+  @override
+  String get personalLoanDue => 'Nta kwishyura kwanditswe uku kwezi';
+
+  @override
+  String get personalLoanRecordPayment => 'Andika ubwishyu';
+
+  @override
+  String get personalLoanRepayments => 'Ubwishyu';
+
+  @override
+  String get personalLoanNoRepayments => 'Nta bwishyu buranditswe';
+
+  @override
+  String get personalLoanMarkCleared => 'Shyira ko yarangiye';
+
+  @override
+  String get personalLoanReopen => 'Ongera uyifungure';
+
+  @override
+  String get personalLoanCleared => 'Yarangiye';
+
+  @override
+  String get personalLoanDelete => 'Siba inguzanyo';
+
+  @override
+  String get personalLoanDeleteConfirm =>
+      'Gusiba iyi nguzanyo n\'ubwishyu bwayo? Ibyinjiye n\'ibyasohotse bigumaho mu bikorwa byawe.';
+
+  @override
+  String get personalLoanDisclaimer =>
+      'Ibi ni ibigereranyo bivuye ku byo wanditse muri Flipper. Inyandiko y\'uwakugurije ni yo ya nyuma.';
+
+  @override
+  String get personalLoanWhatIf => 'Ndamutse nguze…';
+
+  @override
+  String get personalLoanWhatIfHint =>
+      'Reba ayo wakwishyura buri kwezi n\'ayo wasigarana';
+
+  @override
+  String get personalLoanNewInstallment => 'Ayo wakwishyura buri kwezi';
+
+  @override
+  String get personalLoanTotalInterest => 'Inyungu yose';
+
+  @override
+  String get personalLoanCurrentInstallments => 'Inguzanyo usanzwe wishyura';
+
+  @override
+  String get personalLoanAvgIncome => 'Ibyinjiye, iminsi 30 ishize';
+
+  @override
+  String get personalLoanAvgSpending =>
+      'Ibyasohotse utabariyemo inguzanyo, iminsi 30 ishize';
+
+  @override
+  String get personalLoanLeftEachMonth => 'Ibisigara buri kwezi';
+
+  @override
+  String personalLoanDebtShare(int percent) {
+    return '$percent% by\'ibyinjira byajya mu nguzanyo';
+  }
+
+  @override
+  String get personalLoanVerdictComfortable => 'Birashoboka neza';
+
+  @override
+  String get personalLoanVerdictTight =>
+      'Bigoye: hafi y\'ibyo banki zemera (40% by\'ibyinjira)';
+
+  @override
+  String get personalLoanVerdictRisky => 'Ni ibyago: birenze 40% by\'ibyinjira';
+
+  @override
+  String get personalLoanVerdictNotCovered =>
+      'Ntibihagije: wakoresha ibirenze ibyinjira';
+
+  @override
+  String get personalLoanVerdictUnknown =>
+      'Andika ibyinjira mu kwezi kumwe kugira ngo tubimenye';
+
+  @override
+  String get personalLoanAffordabilityNote =>
+      'Bishingiye ku minsi 30 ishize muri Flipper. Ni inama, si icyemezo cy\'uguriza.';
+
+  @override
   String get personalMoneyNoCategory => 'Nta cyiciro';
 
   @override

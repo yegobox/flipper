@@ -640,6 +640,7 @@ void main() {
             'categoryId': categoryId,
             'note': note,
           });
+          return 'txn-1';
         }),
       ];
       await tester.pumpWidget(

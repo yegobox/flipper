@@ -1,6 +1,7 @@
 import 'package:flipper_dashboard/features/admin/mobile/settings_list.dart';
 import 'package:flipper_dashboard/features/admin/widgets/language_settings_card.dart';
 import 'package:flipper_dashboard/features/admin/widgets/sms_bridge_page.dart';
+import 'package:flipper_dashboard/features/personal_finance/loans/loans_screen.dart';
 import 'package:flipper_dashboard/features/personal_finance/personal_mode_switch.dart';
 import 'package:flipper_dashboard/features/personal_goals/personal_goals_screen.dart';
 import 'package:flipper_dashboard/logout/dashboard_sign_out.dart';
@@ -43,6 +44,12 @@ class PersonalMore extends ConsumerWidget {
               onTap: () => Navigator.of(context).push(
                 MaterialPageRoute<void>(builder: (_) => const SmsBridgePage()),
               ),
+            ),
+            SettingsRow(
+              key: const ValueKey('personal-loans-row'),
+              icon: Icons.account_balance_outlined,
+              title: l10n.personalLoans,
+              onTap: () => openLoans(context),
             ),
             SettingsRow(
               icon: Icons.savings_outlined,

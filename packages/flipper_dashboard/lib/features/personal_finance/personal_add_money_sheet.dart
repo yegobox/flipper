@@ -1,9 +1,12 @@
 import 'package:flipper_dashboard/features/branch_location/branch_services.dart';
+import 'package:flipper_dashboard/features/personal_finance/loans/loan_picker.dart';
 import 'package:flipper_dashboard/features/personal_finance/personal_finance_data.dart';
 import 'package:flipper_dashboard/theme/pos_tokens.dart';
 import 'package:flipper_dashboard/widgets/sms_review/sms_review_categories.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/db_model_export.dart' show Category;
+import 'package:flipper_models/personal_loans/personal_loan.dart'
+    show kLoanRepaymentCategory;
 import 'package:flipper_models/providers/category_provider.dart';
 import 'package:flipper_services/payment_methods.dart';
 import 'package:flutter/material.dart';
@@ -12,9 +15,9 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 /// Records one Cash In / Cash Out for a personal account, through the same
 /// `completeCashMovement` the Cash Book and the SMS review use, so the ledger,
-/// Books and Flo see it like any other movement.
+/// Books and Flo see it like any other movement. Returns the transaction id.
 typedef PersonalMovementWriter =
-    Future<void> Function({
+    Future<String> Function({
       required bool isIncome,
       required double amount,
       required String paymentType,
@@ -39,7 +42,7 @@ final personalMovementWriterProvider = Provider<PersonalMovementWriter>((ref) {
       throw StateError('No branch selected');
     }
     final movement = isIncome ? 'Cash In' : 'Cash Out';
-    await services.strategy.completeCashMovement(
+    final txn = await services.strategy.completeCashMovement(
       branchId: branchId,
       bhfId: (await services.box.bhfId()) ?? '00',
       cashReceived: amount,
@@ -54,12 +57,18 @@ final personalMovementWriterProvider = Provider<PersonalMovementWriter>((ref) {
       categoryId: categoryId,
       note: note,
     );
+    return txn.id;
   };
 });
 
+/// [categoryName], [amount] and [loanId] prefill the form ("Record this
+/// month's repayment" on a loan).
 Future<void> showPersonalAddMoneySheet(
   BuildContext context, {
   bool isIncome = false,
+  String? categoryName,
+  double? amount,
+  String? loanId,
 }) {
   return showModalBottomSheet<void>(
     context: context,
@@ -69,14 +78,28 @@ Future<void> showPersonalAddMoneySheet(
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
     ),
-    builder: (_) => PersonalAddMoneySheet(initialIsIncome: isIncome),
+    builder: (_) => PersonalAddMoneySheet(
+      initialIsIncome: isIncome,
+      initialCategoryName: categoryName,
+      initialAmount: amount,
+      initialLoanId: loanId,
+    ),
   );
 }
 
 class PersonalAddMoneySheet extends ConsumerStatefulWidget {
-  const PersonalAddMoneySheet({super.key, this.initialIsIncome = false});
+  const PersonalAddMoneySheet({
+    super.key,
+    this.initialIsIncome = false,
+    this.initialCategoryName,
+    this.initialAmount,
+    this.initialLoanId,
+  });
 
   final bool initialIsIncome;
+  final String? initialCategoryName;
+  final double? initialAmount;
+  final String? initialLoanId;
 
   @override
   ConsumerState<PersonalAddMoneySheet> createState() =>
@@ -85,10 +108,26 @@ class PersonalAddMoneySheet extends ConsumerStatefulWidget {
 
 class _PersonalAddMoneySheetState extends ConsumerState<PersonalAddMoneySheet> {
   late bool _isIncome = widget.initialIsIncome;
-  final _amount = TextEditingController();
+  late final _amount = TextEditingController(
+    text: widget.initialAmount == null
+        ? ''
+        : widget.initialAmount!.round().toString(),
+  );
   final _note = TextEditingController();
-  SmsCategoryChoice? _category;
+  late SmsCategoryChoice? _category = widget.initialCategoryName == null
+      ? null
+      : (name: widget.initialCategoryName!, id: null);
+
+  /// The loan a "Loan repayment" pays down.
+  late String? _loanId = widget.initialLoanId;
+
+  bool get _isRepayment =>
+      !_isIncome && _category?.name == kLoanRepaymentCategory;
   String _method = kPersonalMethodCash;
+
+  /// The Cash Out a failed repayment write already saved: a retry links the
+  /// repayment to it instead of writing a second Cash Out.
+  ({String id, double amount})? _written;
   bool _busy = false;
   String? _error;
 
@@ -118,26 +157,44 @@ class _PersonalAddMoneySheetState extends ConsumerState<PersonalAddMoneySheet> {
       _busy = true;
       _error = null;
     });
+    // Read before the first await: the sheet can be dismissed while the
+    // writes run, and the repayment must still be linked to its Cash Out.
+    final box = ref.read(branchServicesProvider).box;
+    final categories = ref.read(smsCategoryStoreProvider);
+    final writeMovement = ref.read(personalMovementWriterProvider);
+    final recordRepayment = loanRepaymentWriter(ref);
+    final loanId = _isRepayment ? _loanId : null;
+    final note = _note.text.trim();
     try {
-      var categoryId = _category?.id;
-      final categoryName = _category?.name;
-      if (categoryName != null && categoryId == null) {
-        final box = ref.read(branchServicesProvider).box;
-        final branchId = box.branchIdString() ?? box.getBranchId();
-        if (branchId != null) {
-          categoryId = await ref
-              .read(smsCategoryStoreProvider)
-              .create(categoryName, branchId);
+      var written = _written;
+      if (written == null) {
+        var categoryId = _category?.id;
+        final categoryName = _category?.name;
+        if (categoryName != null && categoryId == null) {
+          final branchId = box.branchIdString() ?? box.getBranchId();
+          if (branchId != null) {
+            categoryId = await categories.create(categoryName, branchId);
+          }
         }
+        final transactionId = await writeMovement(
+          isIncome: _isIncome,
+          amount: amount,
+          paymentType: _method,
+          categoryName: categoryName,
+          categoryId: categoryId,
+          note: note.isEmpty ? null : note,
+        );
+        written = _written = (id: transactionId, amount: amount);
       }
-      await ref.read(personalMovementWriterProvider)(
-        isIncome: _isIncome,
-        amount: amount,
-        paymentType: _method,
-        categoryName: categoryName,
-        categoryId: categoryId,
-        note: _note.text.trim().isEmpty ? null : _note.text.trim(),
-      );
+      if (loanId != null) {
+        await recordRepayment(
+          loanId: loanId,
+          amount: written.amount,
+          paidAt: DateTime.now(),
+          transactionId: written.id,
+          source: 'form',
+        );
+      }
       HapticFeedback.lightImpact();
       if (!mounted) return;
       final messenger = ScaffoldMessenger.maybeOf(context);
@@ -163,6 +220,12 @@ class _PersonalAddMoneySheetState extends ConsumerState<PersonalAddMoneySheet> {
       personal: true,
     );
     final all = [...choices.suggested, ...choices.more];
+    // A prefilled category matches the branch's own row once it is loaded.
+    final picked = _category;
+    if (picked != null && picked.id == null) {
+      final match = all.where((c) => c.name == picked.name).firstOrNull;
+      if (match != null && match.id != null) _category = match;
+    }
 
     return Padding(
       padding: EdgeInsets.only(
@@ -249,6 +312,11 @@ class _PersonalAddMoneySheetState extends ConsumerState<PersonalAddMoneySheet> {
                   ),
               ],
             ),
+            if (_isRepayment)
+              LoanPicker(
+                selected: _loanId,
+                onChanged: (id) => setState(() => _loanId = id),
+              ),
             const SizedBox(height: 20),
             _Label(l10n.personalMoneyAccount),
             Wrap(
@@ -278,7 +346,9 @@ class _PersonalAddMoneySheetState extends ConsumerState<PersonalAddMoneySheet> {
                 backgroundColor: PosTokens.blue,
                 minimumSize: const Size.fromHeight(52),
               ),
-              onPressed: _busy ? null : _save,
+              onPressed: _busy || (_isRepayment && loanPickerPending(ref))
+                  ? null
+                  : _save,
               child: _busy
                   ? const SizedBox(
                       width: 22,
