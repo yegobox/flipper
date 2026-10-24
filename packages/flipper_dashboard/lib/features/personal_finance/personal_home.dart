@@ -2,6 +2,7 @@ import 'package:flipper_dashboard/cashbook_form_rules.dart'
     show cashbookDayLabel;
 import 'package:flipper_dashboard/features/admin/widgets/sms_bridge_page.dart';
 import 'package:flipper_dashboard/features/branch_location/branch_services.dart';
+import 'package:flipper_dashboard/features/personal_finance/loans/loans_screen.dart';
 import 'package:flipper_dashboard/features/personal_finance/personal_finance_data.dart';
 import 'package:flipper_dashboard/features/personal_finance/personal_finance_providers.dart';
 import 'package:flipper_dashboard/theme/pos_tokens.dart';
@@ -40,6 +41,7 @@ class PersonalHome extends ConsumerWidget {
         _SummaryCard(summary: summary),
         const SmsReviewHomeCard(padding: EdgeInsets.only(top: 12)),
         const _NothingToReviewRow(),
+        const LoansHomeCard(),
         if (summary.isEmpty) ...[
           const SizedBox(height: 12),
           const _EmptyCard(),

@@ -129,6 +129,41 @@ never registers its Cash Book's hidden "Utility" item with RRA: in
 - `smsReviewBranchIdProvider` is auto-disposed, so a shell swap or a business
   switch reads the branch again.
 
+## Loans (`flipper_models/lib/personal_loans/`, `features/personal_finance/loans/`)
+
+Money the user borrowed: bank, SACCO, MoMo loans, family.
+
+- **Storage.** Ditto-only collections `personal_loans` and
+  `personal_loan_payments`, keyed by `businessId`, soft-deleted with
+  `deletedAt`. They are not windowed or evicted (only `transactions` is).
+- **Two ways to add a loan:**
+  - *I know the details*: amount, start date, term or monthly payment, and
+    optionally the rate.
+  - *I know the monthly payment*: the payment and the month it ends, with the
+    rate and today's balance optional. Many people only remember this much.
+- **Maths** (`loan_math.dart`, pure and tested). It is reducing-balance,
+  bank-style, with monthly interest at rate/12; rate 0 is plain subtraction.
+  - The balance starts from an anchor, in this order: a balance the user
+    entered today, then the amount on its start date, then an estimate (the
+    present value of the remaining installments up to the end date).
+  - From the anchor, interest is added every month and recorded repayments
+    are subtracted.
+  - The outlook simulates the installment forward: months left, payoff date,
+    interest still to pay, or "never ends" when the payment is below the
+    interest.
+- **Repayments:**
+  - The money-out form with category *Loan repayment* records a Cash Out
+    (so it counts as spending) and a payment linked through `transactionId`.
+  - SMS review does the same in personal mode: pick *Loan repayment*, then
+    the loan.
+  - A loan with no repayment this month shows "No repayment recorded".
+- **What if I borrow…**:
+  - It compares the new installment with the last 30 days of money in and
+    money out, leaving loans out of both sides (30 days is the history the
+    device keeps), and with current installments.
+  - Verdict: up to 30% of income is comfortable, up to 40% is tight, more is
+    risky. "Not covered" means nothing is left at the end of the month.
+
 ## Entry points
 
 - **Signup (native)**: "What will you use Flipper for?" defaults to *Run a
