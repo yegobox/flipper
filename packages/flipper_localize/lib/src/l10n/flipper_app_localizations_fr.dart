@@ -27089,6 +27089,14 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   }
 
   @override
+  String get personalMoneySwitchedElsewherePersonal =>
+      'Cette entreprise est passée à l\'argent personnel sur un autre appareil.';
+
+  @override
+  String get personalMoneySwitchedElsewhereBusiness =>
+      'Ce compte est repassé en entreprise sur un autre appareil.';
+
+  @override
   String get personalMoneyCardStillActive =>
       'Votre abonnement par carte est toujours actif. Mettez-le en pause dans Facturation pour ne pas être débité.';
 

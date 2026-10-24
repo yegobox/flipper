@@ -45,6 +45,10 @@ unrelated.
    switch needed several taps. A cache entry with no time never beats a doc.
    A switch is cached with the time the server sent, never the device
    clock: a clock running ahead would outrank later switches made elsewhere.
+   `accountModes` and `pendingAccountMode` are local-file-only in the box's
+   Ditto prefs merge (`_localFileOnlyKeys`). Before that, the background
+   Ditto copy, still holding the mode from before a switch, won the merge
+   when Ditto attached and flipped personal back to business "after a while".
 2. Without a doc, a personal signup the server has not confirmed yet (box
    `pendingAccountMode`), then the cache.
 3. Otherwise **business**.
@@ -53,7 +57,11 @@ unrelated.
 **once per business per session**, and only on the paths that would show a
 paywall. An account with a working plan never waits for it.
 
-`accountModeProvider` follows the Ditto doc live. `FlipperApp` (the
+`accountModeProvider` follows the Ditto doc live. When the mode changes because of
+another device, the home says so ("…switched … on another device"),
+unless the switch was made here in the last 2 minutes or the home has been
+up for less than 10 seconds (first value after login),
+`shouldAnnounceModeSwitch`. `FlipperApp` (the
 `FlipperAppRoute` page) is a gate: it shows `PersonalShell` for personal and
 the unchanged business app for everything else. A switch made on another
 device therefore swaps shells without a navigation.

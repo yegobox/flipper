@@ -26842,6 +26842,14 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   }
 
   @override
+  String get personalMoneySwitchedElsewherePersonal =>
+      'Biashara hii imebadilishwa kuwa pesa binafsi kwenye kifaa kingine.';
+
+  @override
+  String get personalMoneySwitchedElsewhereBusiness =>
+      'Akaunti hii imerudishwa kuwa biashara kwenye kifaa kingine.';
+
+  @override
   String get personalMoneyCardStillActive =>
       'Usajili wako wa kadi bado unaendelea. Usimamishe kwenye Malipo ili usitozwe.';
 

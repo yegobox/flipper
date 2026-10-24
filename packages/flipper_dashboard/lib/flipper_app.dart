@@ -10,6 +10,8 @@ import 'package:flipper_dashboard/dashboard_quick_apps_navigation.dart';
 import 'package:flipper_dashboard/hooks/use_tenant_names_realtime.dart';
 import 'package:flipper_dashboard/layout.dart';
 import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
+import 'package:flipper_localize/flipper_localize.dart';
+import 'package:flipper_models/account_mode/account_mode.dart';
 import 'package:flipper_models/account_mode/account_mode_providers.dart';
 import 'package:flipper_models/services/branch_document_settings_service.dart';
 import 'package:flipper_models/services/tenant_name_sync.dart';
@@ -42,11 +44,61 @@ import 'package:stacked_services/stacked_services.dart';
 /// gets [PersonalShell]; every other account gets the business app exactly as
 /// before. The mode is live, so a switch made on another device swaps shells
 /// here without a navigation.
-class FlipperApp extends ConsumerWidget {
+/// Whether a mode change seen by the home was made on another device and is
+/// worth saying so: a real change, not made here, and not the first value
+/// after login (the home has been up for [FlipperApp.announceAfter]).
+@visibleForTesting
+bool shouldAnnounceModeSwitch({
+  required AccountMode? before,
+  required AccountMode now,
+  required bool switchedHere,
+  required Duration shownFor,
+}) =>
+    before != null &&
+    before != now &&
+    !switchedHere &&
+    shownFor >= FlipperApp.announceAfter;
+
+class FlipperApp extends HookConsumerWidget {
   const FlipperApp({Key? key}) : super(key: key);
+
+  /// Right after login the server's mode can differ from the (empty) cache;
+  /// that is not a switch, so nothing is announced while the home settles.
+  static const Duration announceAfter = Duration(seconds: 10);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final shownAt = useMemoized(DateTime.now);
+    final store = ref.read(accountModeStoreProvider);
+    // A switch made on another device swaps the shell here too; say why, so
+    // it never looks like the app changed on its own.
+    ref.listen(accountModeProvider(store.activeBusinessId() ?? ''), (
+      previous,
+      next,
+    ) {
+      final now = next.value;
+      if (now == null ||
+          !shouldAnnounceModeSwitch(
+            before: previous?.value,
+            now: now,
+            switchedHere: store.switchedHereRecently,
+            shownFor: DateTime.now().difference(shownAt),
+          )) {
+        return;
+      }
+      final l10n = context.flipperL10n;
+      ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+        SnackBar(
+          key: const ValueKey('account-mode-switched-elsewhere'),
+          duration: const Duration(seconds: 6),
+          content: Text(
+            now.isPersonal
+                ? l10n.personalMoneySwitchedElsewherePersonal
+                : l10n.personalMoneySwitchedElsewhereBusiness,
+          ),
+        ),
+      );
+    });
     if (watchAccountMode(ref).isPersonal) return const PersonalShell();
     return const _BusinessFlipperApp();
   }

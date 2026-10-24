@@ -7476,6 +7476,8 @@
   "personalMoneySwitchToPersonalBody": "Masque les ventes, le stock et l'EBM sur tous les appareils de cette entreprise et ouvre une application simple pour votre argent. Rien n'est supprimé et vous pouvez revenir en arrière à tout moment. L'usage personnel est gratuit.",
   "personalMoneySwitch": "Changer",
   "personalMoneySwitchFailed": "Changement impossible : {error}",
+  "personalMoneySwitchedElsewherePersonal": "Cette entreprise est passée à l'argent personnel sur un autre appareil.",
+  "personalMoneySwitchedElsewhereBusiness": "Ce compte est repassé en entreprise sur un autre appareil.",
   "personalMoneyCardStillActive": "Votre abonnement par carte est toujours actif. Mettez-le en pause dans Facturation pour ne pas être débité.",
   "smsBridgeSubtitle": "Importer les SMS banque et MoMo d'un téléphone dans le livre de caisse",
   "smsBridgeIntro": "Installez l'application Flipper SMS Bridge sur le téléphone qui reçoit vos messages banque et MoMo, puis scannez ce code avec elle.",
