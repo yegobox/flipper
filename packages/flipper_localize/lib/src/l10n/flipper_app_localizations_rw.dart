@@ -26937,6 +26937,14 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   }
 
   @override
+  String get personalMoneySwitchedElsewherePersonal =>
+      'Ubu bucuruzi bwahinduriwe mu mafaranga bwite ku kindi gikoresho.';
+
+  @override
+  String get personalMoneySwitchedElsewhereBusiness =>
+      'Iyi konti yasubijwe mu bucuruzi ku kindi gikoresho.';
+
+  @override
   String get personalMoneyCardStillActive =>
       'Ifatabuguzi ryawe rya karita riracyakora. Rihagarike muri Kwishyura kugira ngo utishyuzwa.';
 

@@ -35,4 +35,49 @@ void main() {
       });
     }
   });
+
+  group('personal mode keys stay with the local file', () {
+    Map<String, dynamic> prefs(Map<String, dynamic> extra) => {
+          '_preferencesVersion': 1,
+          'dbVersion': 1,
+          ...extra,
+        };
+
+    // The Ditto prefs copy is flushed in the background. One written before
+    // a switch to personal still says business; when it won the merge, the
+    // app went back to the business shell "after a while".
+    test('an older Ditto copy never reverts the mode', () {
+      const personal =
+          '{"biz":{"mode":"personal","changedAt":"2026-10-23T09:00:00Z"}}';
+      const business =
+          '{"biz":{"mode":"business","changedAt":"2026-10-22T09:00:00Z"}}';
+      for (final dittoVersion in [1, 999]) {
+        final merged = SharedPreferenceStorage.mergeDittoPreferences(
+          legacy: prefs({'accountModes': personal}),
+          dittoMap: {
+            ...prefs({'accountModes': business}),
+            '_preferencesVersion': dittoVersion,
+          },
+        );
+        expect(merged['accountModes'], personal, reason: 'v$dittoVersion');
+      }
+    });
+
+    test('a pending personal signup is neither lost nor resurrected', () {
+      expect(
+        SharedPreferenceStorage.mergeDittoPreferences(
+          legacy: prefs({'pendingAccountMode': 'personal'}),
+          dittoMap: prefs({}),
+        )['pendingAccountMode'],
+        'personal',
+      );
+      expect(
+        SharedPreferenceStorage.mergeDittoPreferences(
+          legacy: prefs({}),
+          dittoMap: prefs({'pendingAccountMode': 'personal'}),
+        ).containsKey('pendingAccountMode'),
+        isFalse,
+      );
+    });
+  });
 }

@@ -9061,6 +9061,8 @@
   "personalMoneySwitchToPersonalBody": "Bihisha ibicuruzwa, ububiko na EBM ku bikoresho byose by'ubu bucuruzi, bigafungura porogaramu yoroshye y'amafaranga. Nta kintu gisibwa, kandi ushobora gusubira inyuma igihe cyose. Gukoresha ku giti cyawe ni ubuntu.",
   "personalMoneySwitch": "Hindura",
   "personalMoneySwitchFailed": "Ntibyashobotse guhindura: {error}",
+  "personalMoneySwitchedElsewherePersonal": "Ubu bucuruzi bwahinduriwe mu mafaranga bwite ku kindi gikoresho.",
+  "personalMoneySwitchedElsewhereBusiness": "Iyi konti yasubijwe mu bucuruzi ku kindi gikoresho.",
   "personalMoneyCardStillActive": "Ifatabuguzi ryawe rya karita riracyakora. Rihagarike muri Kwishyura kugira ngo utishyuzwa.",
   "smsBridgeSubtitle": "Soma SMS za banki na MoMo zivuye kuri telefoni zijye mu gitabo cy'amafaranga",
   "smsBridgeIntro": "Shyira porogaramu ya Flipper SMS Bridge kuri telefoni yakira ubutumwa bwa banki na MoMo, hanyuma uyikoreshe usikane iyi kode.",

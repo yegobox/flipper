@@ -52,6 +52,16 @@ class AccountModeStore {
   /// Businesses already asked over the network this session, answered or not.
   final Set<String> _asked = {};
 
+  DateTime? _lastSwitchHere;
+
+  /// Whether a mode change seen now was made on this device (within the last
+  /// two minutes), so the app only announces switches made elsewhere.
+  bool get switchedHereRecently {
+    final at = _lastSwitchHere;
+    return at != null &&
+        DateTime.now().difference(at) < const Duration(minutes: 2);
+  }
+
   static Future<Map<String, dynamic>?> _readLiveDittoDoc(
     String businessId,
   ) async {
@@ -218,6 +228,7 @@ class AccountModeStore {
     if (id == null) {
       throw const AccountModeException('No business is selected.');
     }
+    _lastSwitchHere = DateTime.now();
     final result = await _client.switchTo(mode);
     // The server just took this switch, so it replaces whatever was cached,
     // however new. With the server's time it also beats the old Ditto doc
