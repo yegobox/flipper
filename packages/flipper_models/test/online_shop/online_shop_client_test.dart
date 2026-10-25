@@ -155,6 +155,61 @@ void main() {
     );
   });
 
+  test('dismissing a suggestion sends its smsId', () async {
+    await client(200, {
+      'id': 'o1',
+      'status': 'new',
+      'paymentStatus': 'unpaid',
+    }).updateOrder(
+      branchId: 'br1',
+      orderId: 'o1',
+      action: OnlineOrderAction.dismissSuggestion,
+      smsId: 'sms9',
+    );
+    expect(jsonDecode(sent.single.body), {
+      'branchId': 'br1',
+      'action': 'dismiss_suggestion',
+      'smsId': 'sms9',
+    });
+  });
+
+  test('onlineOrderConflict reads why a 409 was refused', () {
+    OnlineOrderConflict? of(String message, {int status = 409}) =>
+        onlineOrderConflict(
+          OnlineShopException(message, statusCode: status, code: message),
+        );
+    expect(
+      of(
+        "the order's ticket is not a completed sale yet; sell it at the till first",
+      ),
+      OnlineOrderConflict.sellAtTillFirst,
+    );
+    expect(
+      of('sell the order at the till before completing it'),
+      OnlineOrderConflict.sellAtTillFirst,
+    );
+    expect(
+      of(
+        'that SMS was already recorded in the Cash Book or paid another order',
+      ),
+      OnlineOrderConflict.smsAlreadyUsed,
+    );
+    expect(
+      of('that SMS already paid another order'),
+      OnlineOrderConflict.smsAlreadyUsed,
+    );
+    expect(
+      of('that payment is no longer the one suggested'),
+      OnlineOrderConflict.suggestionChanged,
+    );
+    expect(
+      of('the order changed; reload it'),
+      OnlineOrderConflict.orderChanged,
+    );
+    expect(of('order not found', status: 404), isNull);
+    expect(onlineOrderConflict(StateError('x')), isNull);
+  });
+
   test('slug helpers', () {
     expect(isValidOnlineShopSlug('kigali-mart'), isTrue);
     expect(isValidOnlineShopSlug('ab'), isFalse);

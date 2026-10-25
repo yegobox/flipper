@@ -243,19 +243,27 @@ class OnlineOrder {
   /// The actions staff can take now, in the order the card shows them.
   /// The server enforces the same rules (409 otherwise); this only decides
   /// which buttons to draw.
-  List<OnlineOrderAction> get availableActions {
+  ///
+  /// [ticketSold]: the linked POS ticket is a completed sale on this device.
+  /// The server completes an order only then, so Complete waits for it.
+  List<OnlineOrderAction> availableActions({bool ticketSold = false}) {
     final actions = <OnlineOrderAction>[];
+    final canComplete = hasTicket && ticketSold;
     switch (status) {
       case OnlineOrderStatus.newOrder:
         actions.addAll([OnlineOrderAction.accept, OnlineOrderAction.reject]);
       case OnlineOrderStatus.accepted:
-        actions.addAll([OnlineOrderAction.ready, OnlineOrderAction.reject]);
+        actions.addAll(
+          canComplete
+              ? [OnlineOrderAction.complete]
+              : [OnlineOrderAction.ready, OnlineOrderAction.reject],
+        );
       case OnlineOrderStatus.ready:
-        actions.add(OnlineOrderAction.complete);
+        if (canComplete) actions.add(OnlineOrderAction.complete);
       default:
         break;
     }
-    if (status.isOpen) {
+    if (status.isOpen && !canComplete) {
       if (suggestedPayment != null && !isPaid) {
         actions.addAll([
           OnlineOrderAction.confirmPayment,
@@ -268,6 +276,22 @@ class OnlineOrder {
     }
     return actions;
   }
+
+  /// An accepted order whose ticket is parked but not sold yet: staff sell it
+  /// at the till, then complete the order.
+  bool awaitingSale({bool ticketSold = false}) =>
+      hasTicket &&
+      !ticketSold &&
+      (status == OnlineOrderStatus.accepted ||
+          status == OnlineOrderStatus.ready);
+
+  /// The SMS an action is about: confirm and dismiss name the suggested one,
+  /// so the server refuses (409) if another SMS replaced it meanwhile.
+  String? smsIdFor(OnlineOrderAction action) =>
+      action == OnlineOrderAction.confirmPayment ||
+          action == OnlineOrderAction.dismissSuggestion
+      ? suggestedPayment?.smsId
+      : null;
 
   /// An accepted order whose ticket was never made (the park failed after the
   /// accept went through). The card offers to make it again.

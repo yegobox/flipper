@@ -1317,6 +1317,27 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   }
 
   @override
+  String onlineOrderSellAtTill(String ticket) {
+    return 'Sell $ticket at the till, then complete the order.';
+  }
+
+  @override
+  String get onlineOrderSellFirst =>
+      'This order\'s ticket is not sold yet. Sell it at the till first, then complete the order.';
+
+  @override
+  String get onlineOrderSmsAlreadyUsed =>
+      'That SMS was already recorded at a till or paid another order. Check the Cash Book.';
+
+  @override
+  String get onlineOrderSuggestionChanged =>
+      'The suggested payment changed. Check the order and try again.';
+
+  @override
+  String get onlineOrderChanged =>
+      'Another till updated this order first. Check it and try again.';
+
+  @override
   String get onlineOrderStatusNew => 'New';
 
   @override

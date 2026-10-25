@@ -41,6 +41,7 @@ Future<List<OnlineOrderAction>> _pump(
   WidgetTester tester,
   OnlineOrder order, {
   VoidCallback? onCreateTicket,
+  bool ticketSold = false,
 }) async {
   tester.view.physicalSize = const Size(1200, 2400);
   tester.view.devicePixelRatio = 2;
@@ -57,6 +58,7 @@ Future<List<OnlineOrderAction>> _pump(
             order: order,
             onAction: taps.add,
             onCreateTicket: onCreateTicket,
+            ticketSold: ticketSold,
           ),
         ),
       ),
@@ -129,6 +131,33 @@ void main() {
     expect(find.byKey(const Key('online_order_ready')), findsOneWidget);
     expect(find.byKey(const Key('online_order_mark_paid')), findsNothing);
     expect(find.byKey(const Key('online_order_create_ticket')), findsNothing);
+  });
+
+  testWidgets('a ready order waits for its ticket to be sold at the till', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      _order(status: 'ready', paymentStatus: 'paid', ticket: 't1'),
+    );
+    expect(
+      find.text(
+        'Sell Online #12 – Aline at the till, then complete the order.',
+      ),
+      findsOneWidget,
+    );
+    expect(find.byKey(const Key('online_order_complete')), findsNothing);
+  });
+
+  testWidgets('a sold ticket offers Complete', (tester) async {
+    final taps = await _pump(
+      tester,
+      _order(status: 'ready', paymentStatus: 'paid', ticket: 't1'),
+      ticketSold: true,
+    );
+    expect(find.byKey(const Key('online_order_sell_at_till')), findsNothing);
+    await tester.tap(find.byKey(const Key('online_order_complete')));
+    expect(taps, [OnlineOrderAction.complete]);
   });
 
   testWidgets('an accepted order without a ticket offers Create ticket', (

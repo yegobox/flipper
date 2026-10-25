@@ -1332,6 +1332,27 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   }
 
   @override
+  String onlineOrderSellAtTill(String ticket) {
+    return 'Vendez $ticket à la caisse, puis terminez la commande.';
+  }
+
+  @override
+  String get onlineOrderSellFirst =>
+      'Le ticket de cette commande n\'est pas encore vendu. Vendez-le d\'abord à la caisse, puis terminez la commande.';
+
+  @override
+  String get onlineOrderSmsAlreadyUsed =>
+      'Ce SMS a déjà été enregistré à une caisse ou a payé une autre commande. Vérifiez le livre de caisse.';
+
+  @override
+  String get onlineOrderSuggestionChanged =>
+      'Le paiement suggéré a changé. Vérifiez la commande et réessayez.';
+
+  @override
+  String get onlineOrderChanged =>
+      'Une autre caisse a d\'abord modifié cette commande. Vérifiez-la et réessayez.';
+
+  @override
   String get onlineOrderStatusNew => 'Nouvelle';
 
   @override

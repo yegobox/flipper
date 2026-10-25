@@ -16,6 +16,7 @@ class OnlineOrderCard extends StatelessWidget {
     required this.onAction,
     this.onCreateTicket,
     this.busy = false,
+    this.ticketSold = false,
   });
 
   final OnlineOrder order;
@@ -25,12 +26,15 @@ class OnlineOrderCard extends StatelessWidget {
   final VoidCallback? onCreateTicket;
   final bool busy;
 
+  /// The linked ticket is a completed sale, so the order can be completed.
+  final bool ticketSold;
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.flipperL10n;
     final money = (double v) => formatOnlineMoney(v, order.currency);
     final suggestion = order.suggestedPayment;
-    final actions = order.availableActions;
+    final actions = order.availableActions(ticketSold: ticketSold);
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
@@ -164,6 +168,14 @@ class OnlineOrderCard extends StatelessWidget {
                 ),
                 style: OmTokens.text(fontSize: 13.5, color: OmTokens.amber),
               ),
+            ),
+          ],
+          if (order.awaitingSale(ticketSold: ticketSold)) ...[
+            const SizedBox(height: 12),
+            Text(
+              l10n.onlineOrderSellAtTill(order.ticketName),
+              key: const Key('online_order_sell_at_till'),
+              style: OmTokens.text(fontSize: 13.5, color: OmTokens.muted),
             ),
           ],
           if (actions.isNotEmpty || order.needsTicket) ...[
