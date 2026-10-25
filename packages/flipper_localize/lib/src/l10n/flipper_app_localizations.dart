@@ -8285,6 +8285,420 @@ abstract class FlipperAppLocalizations {
   /// **'Shift Summary'**
   String get shiftSummary;
 
+  /// No description provided for @shopLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t open this shop. Check your connection and try again.'**
+  String get shopLoadFailed;
+
+  /// No description provided for @shopNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'This shop is not open right now.'**
+  String get shopNotFound;
+
+  /// No description provided for @shopSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search products'**
+  String get shopSearchHint;
+
+  /// No description provided for @shopAllCategories.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get shopAllCategories;
+
+  /// No description provided for @shopOutOfStock.
+  ///
+  /// In en, this message translates to:
+  /// **'Out of stock'**
+  String get shopOutOfStock;
+
+  /// No description provided for @shopStockLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} left'**
+  String shopStockLeft(String count);
+
+  /// No description provided for @shopQtyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How much?'**
+  String get shopQtyTitle;
+
+  /// No description provided for @shopQtyInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter an amount above 0, like 1.5'**
+  String get shopQtyInvalid;
+
+  /// No description provided for @shopQtyEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Change amount'**
+  String get shopQtyEdit;
+
+  /// No description provided for @shopAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get shopAdd;
+
+  /// No description provided for @shopViewCart.
+  ///
+  /// In en, this message translates to:
+  /// **'View cart · {count} · {total}'**
+  String shopViewCart(String count, String total);
+
+  /// No description provided for @shopYourOrderInProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'You have an order in progress'**
+  String get shopYourOrderInProgress;
+
+  /// No description provided for @shopViewOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'View'**
+  String get shopViewOrder;
+
+  /// No description provided for @shopCheckoutTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Checkout'**
+  String get shopCheckoutTitle;
+
+  /// No description provided for @shopBackToShop.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to shop'**
+  String get shopBackToShop;
+
+  /// No description provided for @shopYourCart.
+  ///
+  /// In en, this message translates to:
+  /// **'Your cart'**
+  String get shopYourCart;
+
+  /// No description provided for @shopCartEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Your cart is empty'**
+  String get shopCartEmpty;
+
+  /// No description provided for @shopTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get shopTotal;
+
+  /// No description provided for @shopYourDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Your details'**
+  String get shopYourDetails;
+
+  /// No description provided for @shopName.
+  ///
+  /// In en, this message translates to:
+  /// **'Your name'**
+  String get shopName;
+
+  /// No description provided for @shopPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone number'**
+  String get shopPhone;
+
+  /// No description provided for @shopPickup.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick up'**
+  String get shopPickup;
+
+  /// No description provided for @shopDelivery.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery'**
+  String get shopDelivery;
+
+  /// No description provided for @shopDeliveryAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery address'**
+  String get shopDeliveryAddress;
+
+  /// No description provided for @shopNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Note for the shop (optional)'**
+  String get shopNote;
+
+  /// No description provided for @shopPayerPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone you\'ll pay from'**
+  String get shopPayerPhone;
+
+  /// No description provided for @shopPayerPhoneHint.
+  ///
+  /// In en, this message translates to:
+  /// **'The shop uses it to recognise your mobile money payment.'**
+  String get shopPayerPhoneHint;
+
+  /// No description provided for @shopPlaceOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Place order'**
+  String get shopPlaceOrder;
+
+  /// No description provided for @shopErrName.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your name'**
+  String get shopErrName;
+
+  /// No description provided for @shopErrPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid phone number'**
+  String get shopErrPhone;
+
+  /// No description provided for @shopErrAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the delivery address'**
+  String get shopErrAddress;
+
+  /// No description provided for @shopErrFulfilment.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose pick up or delivery'**
+  String get shopErrFulfilment;
+
+  /// No description provided for @shopErrUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Some items are no longer available and were removed from your cart.'**
+  String get shopErrUnavailable;
+
+  /// No description provided for @shopErrRateLimited.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many orders from this connection. Try again in a minute.'**
+  String get shopErrRateLimited;
+
+  /// No description provided for @shopErrOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'No connection. Check your internet and try again.'**
+  String get shopErrOffline;
+
+  /// No description provided for @shopErrGeneric.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong. Please try again.'**
+  String get shopErrGeneric;
+
+  /// No description provided for @shopErrTooManyOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'You have too many unpaid orders at this shop. Pay them, or wait for them to expire.'**
+  String get shopErrTooManyOpen;
+
+  /// No description provided for @shopErrTooLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'This order is too large. Remove some items and try again.'**
+  String get shopErrTooLarge;
+
+  /// No description provided for @shopErrBusy.
+  ///
+  /// In en, this message translates to:
+  /// **'The shop is busy right now. Try again in a few minutes.'**
+  String get shopErrBusy;
+
+  /// No description provided for @shopErrInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'The shop could not accept this order. Check the quantities and try again.'**
+  String get shopErrInvalid;
+
+  /// No description provided for @shopErrAlreadyPlaced.
+  ///
+  /// In en, this message translates to:
+  /// **'This order was already placed. Open it from your order link.'**
+  String get shopErrAlreadyPlaced;
+
+  /// No description provided for @shopErrTooManyTries.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many tries. Wait a minute, or contact the shop.'**
+  String get shopErrTooManyTries;
+
+  /// No description provided for @shopOrderTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Order #{number}'**
+  String shopOrderTitle(String number);
+
+  /// No description provided for @shopOrderNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t find this order.'**
+  String get shopOrderNotFound;
+
+  /// No description provided for @shopOrderStatusNew.
+  ///
+  /// In en, this message translates to:
+  /// **'Received. Waiting for the shop to confirm.'**
+  String get shopOrderStatusNew;
+
+  /// No description provided for @shopOrderStatusAccepted.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirmed. The shop is preparing it.'**
+  String get shopOrderStatusAccepted;
+
+  /// No description provided for @shopOrderStatusReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready'**
+  String get shopOrderStatusReady;
+
+  /// No description provided for @shopOrderStatusCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed. Thank you!'**
+  String get shopOrderStatusCompleted;
+
+  /// No description provided for @shopOrderStatusRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'The shop could not take this order.'**
+  String get shopOrderStatusRejected;
+
+  /// No description provided for @shopOrderStatusCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled'**
+  String get shopOrderStatusCancelled;
+
+  /// No description provided for @shopOrderStatusExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'Expired: it was not paid in time.'**
+  String get shopOrderStatusExpired;
+
+  /// No description provided for @shopPayDial.
+  ///
+  /// In en, this message translates to:
+  /// **'Dial this on your phone:'**
+  String get shopPayDial;
+
+  /// No description provided for @shopPayExactly.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay exactly {amount}'**
+  String shopPayExactly(String amount);
+
+  /// No description provided for @shopPaySendTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Send exactly this amount to:'**
+  String get shopPaySendTo;
+
+  /// No description provided for @shopPayOr.
+  ///
+  /// In en, this message translates to:
+  /// **'Or send it to:'**
+  String get shopPayOr;
+
+  /// No description provided for @shopPayMomoNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'MoMo: {number}'**
+  String shopPayMomoNumber(String number);
+
+  /// No description provided for @shopPayAirtelNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Airtel Money: {number}'**
+  String shopPayAirtelNumber(String number);
+
+  /// No description provided for @shopPayExactWhy.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay the exact amount. It is how the shop matches your payment to your order.'**
+  String get shopPayExactWhy;
+
+  /// No description provided for @shopPayBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay by {time}, or this order is cancelled.'**
+  String shopPayBy(String time);
+
+  /// No description provided for @shopPayByNew.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay by {time}, or this order is cancelled. Once the shop confirms it, you have 24 hours from when you ordered.'**
+  String shopPayByNew(String time);
+
+  /// No description provided for @shopPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment received'**
+  String get shopPaid;
+
+  /// No description provided for @shopPayOnDelivery.
+  ///
+  /// In en, this message translates to:
+  /// **'You pay when you get your order.'**
+  String get shopPayOnDelivery;
+
+  /// No description provided for @shopClaimTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Already paid?'**
+  String get shopClaimTitle;
+
+  /// No description provided for @shopClaimHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste your transaction ID'**
+  String get shopClaimHint;
+
+  /// No description provided for @shopClaimInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'That doesn\'t look like a transaction ID. Check your MoMo SMS.'**
+  String get shopClaimInvalid;
+
+  /// No description provided for @shopClaimSubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get shopClaimSubmit;
+
+  /// No description provided for @shopClaimPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Thanks. The shop is checking your payment.'**
+  String get shopClaimPending;
+
+  /// No description provided for @shopWhatsappShop.
+  ///
+  /// In en, this message translates to:
+  /// **'WhatsApp the shop'**
+  String get shopWhatsappShop;
+
+  /// No description provided for @shopCallShop.
+  ///
+  /// In en, this message translates to:
+  /// **'Call the shop'**
+  String get shopCallShop;
+
   /// No description provided for @shiftOpeningBalance.
   ///
   /// In en, this message translates to:

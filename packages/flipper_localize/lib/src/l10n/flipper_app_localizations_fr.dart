@@ -4820,6 +4820,249 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   String get shiftSummary => 'Résumé du service';
 
   @override
+  String get shopLoadFailed =>
+      'Impossible d\'ouvrir cette boutique. Vérifiez votre connexion et réessayez.';
+
+  @override
+  String get shopNotFound =>
+      'Cette boutique n\'est pas ouverte pour le moment.';
+
+  @override
+  String get shopSearchHint => 'Rechercher des produits';
+
+  @override
+  String get shopAllCategories => 'Tout';
+
+  @override
+  String get shopOutOfStock => 'Rupture de stock';
+
+  @override
+  String shopStockLeft(String count) {
+    return 'Plus que $count';
+  }
+
+  @override
+  String get shopQtyTitle => 'Quelle quantité ?';
+
+  @override
+  String get shopQtyInvalid =>
+      'Entrez une quantité supérieure à 0, par exemple 1,5';
+
+  @override
+  String get shopQtyEdit => 'Modifier la quantité';
+
+  @override
+  String get shopAdd => 'Ajouter';
+
+  @override
+  String shopViewCart(String count, String total) {
+    return 'Voir le panier · $count · $total';
+  }
+
+  @override
+  String get shopYourOrderInProgress => 'Vous avez une commande en cours';
+
+  @override
+  String get shopViewOrder => 'Voir';
+
+  @override
+  String get shopCheckoutTitle => 'Commande';
+
+  @override
+  String get shopBackToShop => 'Retour à la boutique';
+
+  @override
+  String get shopYourCart => 'Votre panier';
+
+  @override
+  String get shopCartEmpty => 'Votre panier est vide';
+
+  @override
+  String get shopTotal => 'Total';
+
+  @override
+  String get shopYourDetails => 'Vos coordonnées';
+
+  @override
+  String get shopName => 'Votre nom';
+
+  @override
+  String get shopPhone => 'Numéro de téléphone';
+
+  @override
+  String get shopPickup => 'Retrait';
+
+  @override
+  String get shopDelivery => 'Livraison';
+
+  @override
+  String get shopDeliveryAddress => 'Adresse de livraison';
+
+  @override
+  String get shopNote => 'Note pour la boutique (facultatif)';
+
+  @override
+  String get shopPayerPhone => 'Téléphone avec lequel vous paierez';
+
+  @override
+  String get shopPayerPhoneHint =>
+      'La boutique s\'en sert pour reconnaître votre paiement mobile money.';
+
+  @override
+  String get shopPlaceOrder => 'Passer la commande';
+
+  @override
+  String get shopErrName => 'Saisissez votre nom';
+
+  @override
+  String get shopErrPhone => 'Saisissez un numéro de téléphone valide';
+
+  @override
+  String get shopErrAddress => 'Saisissez l\'adresse de livraison';
+
+  @override
+  String get shopErrFulfilment => 'Choisissez le retrait ou la livraison';
+
+  @override
+  String get shopErrUnavailable =>
+      'Certains articles ne sont plus disponibles et ont été retirés de votre panier.';
+
+  @override
+  String get shopErrRateLimited =>
+      'Trop de commandes depuis cette connexion. Réessayez dans une minute.';
+
+  @override
+  String get shopErrOffline =>
+      'Pas de connexion. Vérifiez votre internet et réessayez.';
+
+  @override
+  String get shopErrGeneric =>
+      'Une erreur s\'est produite. Veuillez réessayer.';
+
+  @override
+  String get shopErrTooManyOpen =>
+      'Vous avez trop de commandes non payées dans cette boutique. Payez-les ou attendez qu\'elles expirent.';
+
+  @override
+  String get shopErrTooLarge =>
+      'Cette commande est trop grande. Retirez des articles et réessayez.';
+
+  @override
+  String get shopErrBusy =>
+      'La boutique est très occupée. Réessayez dans quelques minutes.';
+
+  @override
+  String get shopErrInvalid =>
+      'La boutique n\'a pas pu accepter cette commande. Vérifiez les quantités et réessayez.';
+
+  @override
+  String get shopErrAlreadyPlaced =>
+      'Cette commande a déjà été passée. Ouvrez-la depuis le lien de votre commande.';
+
+  @override
+  String get shopErrTooManyTries =>
+      'Trop de tentatives. Attendez une minute ou contactez la boutique.';
+
+  @override
+  String shopOrderTitle(String number) {
+    return 'Commande n° $number';
+  }
+
+  @override
+  String get shopOrderNotFound => 'Commande introuvable.';
+
+  @override
+  String get shopOrderStatusNew =>
+      'Reçue. En attente de confirmation de la boutique.';
+
+  @override
+  String get shopOrderStatusAccepted => 'Confirmée. La boutique la prépare.';
+
+  @override
+  String get shopOrderStatusReady => 'Prête';
+
+  @override
+  String get shopOrderStatusCompleted => 'Terminée. Merci !';
+
+  @override
+  String get shopOrderStatusRejected =>
+      'La boutique n\'a pas pu accepter cette commande.';
+
+  @override
+  String get shopOrderStatusCancelled => 'Annulée';
+
+  @override
+  String get shopOrderStatusExpired =>
+      'Expirée : elle n\'a pas été payée à temps.';
+
+  @override
+  String get shopPayDial => 'Composez ceci sur votre téléphone :';
+
+  @override
+  String shopPayExactly(String amount) {
+    return 'Payez exactement $amount';
+  }
+
+  @override
+  String get shopPaySendTo => 'Envoyez exactement ce montant à :';
+
+  @override
+  String get shopPayOr => 'Ou envoyez-le à :';
+
+  @override
+  String shopPayMomoNumber(String number) {
+    return 'MoMo : $number';
+  }
+
+  @override
+  String shopPayAirtelNumber(String number) {
+    return 'Airtel Money : $number';
+  }
+
+  @override
+  String get shopPayExactWhy =>
+      'Payez le montant exact : c\'est ainsi que la boutique relie votre paiement à votre commande.';
+
+  @override
+  String shopPayBy(String time) {
+    return 'Payez avant $time, sinon la commande est annulée.';
+  }
+
+  @override
+  String shopPayByNew(String time) {
+    return 'Payez avant $time, sinon la commande est annulée. Une fois confirmée par la boutique, vous avez 24 heures à partir de votre commande.';
+  }
+
+  @override
+  String get shopPaid => 'Paiement reçu';
+
+  @override
+  String get shopPayOnDelivery =>
+      'Vous payez à la réception de votre commande.';
+
+  @override
+  String get shopClaimTitle => 'Déjà payé ?';
+
+  @override
+  String get shopClaimHint => 'Collez votre identifiant de transaction';
+
+  @override
+  String get shopClaimInvalid =>
+      'Cela ne ressemble pas à un identifiant de transaction. Vérifiez votre SMS MoMo.';
+
+  @override
+  String get shopClaimSubmit => 'Envoyer';
+
+  @override
+  String get shopClaimPending => 'Merci. La boutique vérifie votre paiement.';
+
+  @override
+  String get shopWhatsappShop => 'Écrire à la boutique sur WhatsApp';
+
+  @override
+  String get shopCallShop => 'Appeler la boutique';
+
+  @override
   String get shiftOpeningBalance => 'Solde d\'ouverture';
 
   @override

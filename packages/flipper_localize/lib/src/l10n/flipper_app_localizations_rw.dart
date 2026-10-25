@@ -4798,6 +4798,242 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   String get shiftSummary => 'Incamake y\'igihe cy\'akazi';
 
   @override
+  String get shopLoadFailed =>
+      'We couldn\'t open this shop. Check your connection and try again.';
+
+  @override
+  String get shopNotFound => 'This shop is not open right now.';
+
+  @override
+  String get shopSearchHint => 'Search products';
+
+  @override
+  String get shopAllCategories => 'All';
+
+  @override
+  String get shopOutOfStock => 'Out of stock';
+
+  @override
+  String shopStockLeft(String count) {
+    return '$count left';
+  }
+
+  @override
+  String get shopQtyTitle => 'How much?';
+
+  @override
+  String get shopQtyInvalid => 'Enter an amount above 0, like 1.5';
+
+  @override
+  String get shopQtyEdit => 'Change amount';
+
+  @override
+  String get shopAdd => 'Add';
+
+  @override
+  String shopViewCart(String count, String total) {
+    return 'View cart · $count · $total';
+  }
+
+  @override
+  String get shopYourOrderInProgress => 'You have an order in progress';
+
+  @override
+  String get shopViewOrder => 'View';
+
+  @override
+  String get shopCheckoutTitle => 'Checkout';
+
+  @override
+  String get shopBackToShop => 'Back to shop';
+
+  @override
+  String get shopYourCart => 'Your cart';
+
+  @override
+  String get shopCartEmpty => 'Your cart is empty';
+
+  @override
+  String get shopTotal => 'Total';
+
+  @override
+  String get shopYourDetails => 'Your details';
+
+  @override
+  String get shopName => 'Your name';
+
+  @override
+  String get shopPhone => 'Phone number';
+
+  @override
+  String get shopPickup => 'Pick up';
+
+  @override
+  String get shopDelivery => 'Delivery';
+
+  @override
+  String get shopDeliveryAddress => 'Delivery address';
+
+  @override
+  String get shopNote => 'Note for the shop (optional)';
+
+  @override
+  String get shopPayerPhone => 'Phone you\'ll pay from';
+
+  @override
+  String get shopPayerPhoneHint =>
+      'The shop uses it to recognise your mobile money payment.';
+
+  @override
+  String get shopPlaceOrder => 'Place order';
+
+  @override
+  String get shopErrName => 'Enter your name';
+
+  @override
+  String get shopErrPhone => 'Enter a valid phone number';
+
+  @override
+  String get shopErrAddress => 'Enter the delivery address';
+
+  @override
+  String get shopErrFulfilment => 'Choose pick up or delivery';
+
+  @override
+  String get shopErrUnavailable =>
+      'Some items are no longer available and were removed from your cart.';
+
+  @override
+  String get shopErrRateLimited =>
+      'Too many orders from this connection. Try again in a minute.';
+
+  @override
+  String get shopErrOffline =>
+      'No connection. Check your internet and try again.';
+
+  @override
+  String get shopErrGeneric => 'Something went wrong. Please try again.';
+
+  @override
+  String get shopErrTooManyOpen =>
+      'You have too many unpaid orders at this shop. Pay them, or wait for them to expire.';
+
+  @override
+  String get shopErrTooLarge =>
+      'This order is too large. Remove some items and try again.';
+
+  @override
+  String get shopErrBusy =>
+      'The shop is busy right now. Try again in a few minutes.';
+
+  @override
+  String get shopErrInvalid =>
+      'The shop could not accept this order. Check the quantities and try again.';
+
+  @override
+  String get shopErrAlreadyPlaced =>
+      'This order was already placed. Open it from your order link.';
+
+  @override
+  String get shopErrTooManyTries =>
+      'Too many tries. Wait a minute, or contact the shop.';
+
+  @override
+  String shopOrderTitle(String number) {
+    return 'Order #$number';
+  }
+
+  @override
+  String get shopOrderNotFound => 'We couldn\'t find this order.';
+
+  @override
+  String get shopOrderStatusNew => 'Received. Waiting for the shop to confirm.';
+
+  @override
+  String get shopOrderStatusAccepted => 'Confirmed. The shop is preparing it.';
+
+  @override
+  String get shopOrderStatusReady => 'Ready';
+
+  @override
+  String get shopOrderStatusCompleted => 'Completed. Thank you!';
+
+  @override
+  String get shopOrderStatusRejected => 'The shop could not take this order.';
+
+  @override
+  String get shopOrderStatusCancelled => 'Cancelled';
+
+  @override
+  String get shopOrderStatusExpired => 'Expired: it was not paid in time.';
+
+  @override
+  String get shopPayDial => 'Dial this on your phone:';
+
+  @override
+  String shopPayExactly(String amount) {
+    return 'Pay exactly $amount';
+  }
+
+  @override
+  String get shopPaySendTo => 'Send exactly this amount to:';
+
+  @override
+  String get shopPayOr => 'Or send it to:';
+
+  @override
+  String shopPayMomoNumber(String number) {
+    return 'MoMo: $number';
+  }
+
+  @override
+  String shopPayAirtelNumber(String number) {
+    return 'Airtel Money: $number';
+  }
+
+  @override
+  String get shopPayExactWhy =>
+      'Pay the exact amount. It is how the shop matches your payment to your order.';
+
+  @override
+  String shopPayBy(String time) {
+    return 'Pay by $time, or this order is cancelled.';
+  }
+
+  @override
+  String shopPayByNew(String time) {
+    return 'Pay by $time, or this order is cancelled. Once the shop confirms it, you have 24 hours from when you ordered.';
+  }
+
+  @override
+  String get shopPaid => 'Payment received';
+
+  @override
+  String get shopPayOnDelivery => 'You pay when you get your order.';
+
+  @override
+  String get shopClaimTitle => 'Already paid?';
+
+  @override
+  String get shopClaimHint => 'Paste your transaction ID';
+
+  @override
+  String get shopClaimInvalid =>
+      'That doesn\'t look like a transaction ID. Check your MoMo SMS.';
+
+  @override
+  String get shopClaimSubmit => 'Send';
+
+  @override
+  String get shopClaimPending => 'Thanks. The shop is checking your payment.';
+
+  @override
+  String get shopWhatsappShop => 'WhatsApp the shop';
+
+  @override
+  String get shopCallShop => 'Call the shop';
+
+  @override
   String get shiftOpeningBalance => 'Amafaranga yo gutangiza';
 
   @override

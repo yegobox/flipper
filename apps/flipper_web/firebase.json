@@ -82,6 +82,19 @@
         ]
       },
       {
+        "source": "/shop/**",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache, no-store, must-revalidate"
+          },
+          {
+            "key": "Referrer-Policy",
+            "value": "no-referrer"
+          }
+        ]
+      },
+      {
         "source": "**/*.wasm",
         "headers": [
           {
