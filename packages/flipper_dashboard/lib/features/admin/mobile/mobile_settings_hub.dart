@@ -7,6 +7,8 @@ import 'package:flipper_dashboard/features/admin/sections/sms_notifications_card
 import 'package:flipper_dashboard/features/admin/widgets/cash_reset_dialog.dart';
 import 'package:flipper_dashboard/features/admin/widgets/language_settings_card.dart';
 import 'package:flipper_dashboard/features/admin/widgets/sms_bridge_page.dart';
+import 'package:flipper_dashboard/features/online_shop/online_shop_page.dart';
+import 'package:flipper_dashboard/features/online_shop/online_shop_providers.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_mode_admin_section.dart';
 import 'package:flipper_dashboard/features/daily_report_recipients/daily_report_recipients_settings.dart';
 import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_mode_admin_section.dart';
@@ -217,6 +219,15 @@ class _MobileSettingsHubState extends ConsumerState<MobileSettingsHub> {
             onTap: () =>
                 _open(l10n.hotelModeTitle, const HotelModeAdminSection()),
           ),
+          if (ref.watch(onlineShopAvailableProvider))
+            SettingsRow(
+              key: const ValueKey('settings-online-shop'),
+              icon: Icons.storefront_outlined,
+              title: l10n.onlineShopTitle,
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(builder: (_) => const OnlineShopPage()),
+              ),
+            ),
         ],
       ),
       SettingsGroup(

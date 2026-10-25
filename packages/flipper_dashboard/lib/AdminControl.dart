@@ -8,6 +8,8 @@ import 'package:flipper_dashboard/features/admin/sections/sms_notifications_card
 import 'package:flipper_dashboard/features/admin/widgets/cash_reset_dialog.dart';
 import 'package:flipper_dashboard/features/admin/widgets/language_settings_card.dart';
 import 'package:flipper_dashboard/features/admin/widgets/sms_bridge_page.dart';
+import 'package:flipper_dashboard/features/online_shop/online_shop_page.dart';
+import 'package:flipper_dashboard/features/online_shop/online_shop_providers.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_mode_admin_section.dart';
 import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_mode_admin_section.dart';
@@ -521,6 +523,10 @@ class _AdminControlState extends ConsumerState<AdminControl> {
         _buildSmsConfigSection(context),
         const SizedBox(height: 12),
         _buildSmsBridgeCard(context),
+        if (ref.watch(onlineShopAvailableProvider)) ...[
+          const SizedBox(height: 12),
+          _buildOnlineShopCard(context),
+        ],
         const SizedBox(height: 28),
         _buildSecuritySection(context),
         const SizedBox(height: 28),
@@ -553,6 +559,26 @@ class _AdminControlState extends ConsumerState<AdminControl> {
       onTap: () => Navigator.of(
         context,
       ).push(MaterialPageRoute<void>(builder: (_) => const SmsBridgePage())),
+    );
+  }
+
+  /// Publish the catalog on a public page customers order from.
+  Widget _buildOnlineShopCard(BuildContext context) {
+    return SettingsCard(
+      key: const ValueKey('admin-online-shop'),
+      title: context.flipperL10n.onlineShopTitle,
+      subtitle: context.flipperL10n.onlineShopSubtitle,
+      leading: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: kAdminBarBlue.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: const Icon(Icons.storefront_outlined, color: kAdminBarBlue),
+      ),
+      onTap: () => Navigator.of(
+        context,
+      ).push(MaterialPageRoute<void>(builder: (_) => const OnlineShopPage())),
     );
   }
 
