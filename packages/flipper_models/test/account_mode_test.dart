@@ -360,6 +360,9 @@ void main() {
     );
 
     group('switched-here marker', () {
+      const personal = AccountMode.personal;
+      const business = AccountMode.business;
+
       http.Client answers(String mode) => MockClient(
         (_) async => http.Response(jsonEncode({'mode': mode}), 200),
       );
@@ -367,14 +370,25 @@ void main() {
       test('is scoped to the business that was switched', () async {
         final box = _MemBox(businessId: 'a');
         final store = _store(box, http: answers('personal'));
-        expect(store.switchedHereRecently('a'), isFalse);
-        await store.switchTo(AccountMode.personal);
-        expect(store.switchedHereRecently('a'), isTrue);
+        expect(store.switchedHereRecently('a', personal), isFalse);
+        await store.switchTo(personal);
+        expect(store.switchedHereRecently('a', personal), isTrue);
         // Another business becomes active: its changes are not this
         // device's switch, so they are never suppressed.
         box.businessId = 'b';
-        expect(store.switchedHereRecently('b'), isFalse);
-        expect(store.switchedHereRecently('a'), isTrue);
+        expect(store.switchedHereRecently('b', personal), isFalse);
+        expect(store.switchedHereRecently('a', personal), isTrue);
+      });
+
+      test('only covers the mode switched to: switching back elsewhere '
+          'is still announced', () async {
+        final store = _store(
+          _MemBox(businessId: 'a'),
+          http: answers('personal'),
+        );
+        await store.switchTo(personal);
+        expect(store.switchedHereRecently('a', personal), isTrue);
+        expect(store.switchedHereRecently('a', business), isFalse);
       });
 
       test(
@@ -385,12 +399,12 @@ void main() {
             _MemBox(businessId: 'a'),
             http: MockClient((_) => reply.future),
           );
-          final switching = store.switchTo(AccountMode.personal);
+          final switching = store.switchTo(personal);
           await Future<void>.delayed(Duration.zero);
-          expect(store.switchedHereRecently('a'), isTrue);
+          expect(store.switchedHereRecently('a', personal), isTrue);
           reply.complete(http.Response(jsonEncode({'mode': 'personal'}), 200));
           await switching;
-          expect(store.switchedHereRecently('a'), isTrue);
+          expect(store.switchedHereRecently('a', personal), isTrue);
         },
       );
 
@@ -400,10 +414,10 @@ void main() {
           http: MockClient((_) async => http.Response('{"error":"x"}', 503)),
         );
         await expectLater(
-          store.switchTo(AccountMode.personal),
+          store.switchTo(personal),
           throwsA(isA<AccountModeException>()),
         );
-        expect(store.switchedHereRecently('a'), isFalse);
+        expect(store.switchedHereRecently('a', personal), isFalse);
       });
 
       test('a refused switch keeps an earlier accepted one', () async {
@@ -416,13 +430,39 @@ void main() {
                 : http.Response('{"error":"x"}', 503),
           ),
         );
-        await store.switchTo(AccountMode.personal);
+        await store.switchTo(personal);
         accept = false;
         await expectLater(
-          store.switchTo(AccountMode.business),
+          store.switchTo(business),
           throwsA(isA<AccountModeException>()),
         );
-        expect(store.switchedHereRecently('a'), isTrue);
+        expect(store.switchedHereRecently('a', personal), isTrue);
+        expect(store.switchedHereRecently('a', business), isFalse);
+      });
+
+      test('an older request failing late never undoes a newer one', () async {
+        // Signup's confirmPending and PersonalShell's can overlap.
+        final replies = <Completer<http.Response>>[];
+        final store = _store(
+          _MemBox(businessId: 'a'),
+          http: MockClient((_) {
+            final reply = Completer<http.Response>();
+            replies.add(reply);
+            return reply.future;
+          }),
+        );
+        final older = store.switchTo(personal);
+        await Future<void>.delayed(Duration.zero);
+        final newer = store.switchTo(personal);
+        await Future<void>.delayed(Duration.zero);
+        expect(replies, hasLength(2));
+        replies[1].complete(
+          http.Response(jsonEncode({'mode': 'personal'}), 200),
+        );
+        await newer;
+        replies[0].complete(http.Response('{"error":"x"}', 503));
+        await expectLater(older, throwsA(isA<AccountModeException>()));
+        expect(store.switchedHereRecently('a', personal), isTrue);
       });
 
       test('is cleared when the server answers with the other mode', () async {
@@ -431,10 +471,11 @@ void main() {
           http: answers('business'),
         );
         await expectLater(
-          store.switchTo(AccountMode.personal),
+          store.switchTo(personal),
           throwsA(isA<AccountModeException>()),
         );
-        expect(store.switchedHereRecently('a'), isFalse);
+        expect(store.switchedHereRecently('a', personal), isFalse);
+        expect(store.switchedHereRecently('a', business), isFalse);
       });
     });
 

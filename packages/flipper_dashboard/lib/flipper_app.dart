@@ -74,7 +74,7 @@ class FlipperApp extends HookConsumerWidget {
           !shouldAnnounceModeSwitch(
             before: previous?.value,
             now: now,
-            switchedHere: store.switchedHereRecently(businessId),
+            switchedHere: store.switchedHereRecently(businessId, now.mode),
           )) {
         return;
       }

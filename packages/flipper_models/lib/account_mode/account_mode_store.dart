@@ -52,18 +52,20 @@ class AccountModeStore {
   /// Businesses already asked over the network this session, answered or not.
   final Set<String> _asked = {};
 
-  /// When this device last switched each business (by id): set while the
+  /// This device's last switch of each business (by id): set while the
   /// request is in flight, kept once the server takes it, restored if not.
-  final Map<String, DateTime> _switchedHereAt = {};
+  final Map<String, _SwitchMark> _switchedHere = {};
 
-  /// Whether a mode change of [businessId] seen now was made on this device
+  /// Whether [businessId] changing to [mode] now is this device's own switch
   /// (in flight, or taken by the server within the last two minutes), so the
-  /// app only announces switches made elsewhere. Another business's switch
-  /// never counts.
-  bool switchedHereRecently(String businessId) {
-    final at = _switchedHereAt[businessId];
-    return at != null &&
-        DateTime.now().difference(at) < const Duration(minutes: 2);
+  /// app only announces switches made elsewhere. Another business's switch,
+  /// or a change to the other mode (another device switching back), never
+  /// counts.
+  bool switchedHereRecently(String businessId, AccountMode mode) {
+    final mark = _switchedHere[businessId];
+    return mark != null &&
+        mark.mode == mode &&
+        DateTime.now().difference(mark.at) < const Duration(minutes: 2);
   }
 
   static Future<Map<String, dynamic>?> _readLiveDittoDoc(
@@ -234,22 +236,29 @@ class AccountModeStore {
     }
     // Marked before the request: the connector's Ditto write can reach this
     // device before the answer does, and that is still this device's switch.
-    final before = _switchedHereAt[id];
-    _switchedHereAt[id] = DateTime.now();
+    final before = _switchedHere[id];
+    final mark = _SwitchMark(DateTime.now(), mode);
+    _switchedHere[id] = mark;
     final AccountModeResult result;
     try {
       result = await _client.switchTo(mode);
     } catch (_) {
-      // Not taken: a change seen now came from elsewhere after all.
-      if (before == null) {
-        _switchedHereAt.remove(id);
-      } else {
-        _switchedHereAt[id] = before;
+      // Not taken: a change seen now came from elsewhere after all. Only
+      // this request's own mark is undone; a newer request keeps its own.
+      if (identical(_switchedHere[id], mark)) {
+        if (before == null) {
+          _switchedHere.remove(id);
+        } else {
+          _switchedHere[id] = before;
+        }
       }
       rethrow;
     }
-    // The window runs from when the server took it.
-    _switchedHereAt[id] = DateTime.now();
+    // The window runs from when the server took it (unless a newer request
+    // has marked the business since).
+    if (identical(_switchedHere[id], mark)) {
+      _switchedHere[id] = _SwitchMark(DateTime.now(), result.mode);
+    }
     // The server just took this switch, so it replaces whatever was cached,
     // however new. With the server's time it also beats the old Ditto doc
     // until the new one syncs back. Never the device clock: a clock running
@@ -273,4 +282,12 @@ class AccountModeStore {
     } catch (_) {}
     return result;
   }
+}
+
+/// One switch made on this device: when, and to which mode.
+class _SwitchMark {
+  _SwitchMark(this.at, this.mode);
+
+  final DateTime at;
+  final AccountMode mode;
 }

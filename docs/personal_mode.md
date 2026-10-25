@@ -62,9 +62,10 @@ another device, the home says so ("…switched … on another device"),
 `shouldAnnounceModeSwitch`. Each value says whether a server Ditto doc backs
 it (`fromServer`); the cached fallback never counts, and the first
 server-backed value is only the baseline, however late it arrives. A switch
-of the same business made here (in flight, or taken by the server in the
-last 2 minutes, `switchedHereRecently(businessId)`) is never announced; a
-switch the server refused clears that marker. `FlipperApp` (the
+of the same business to the same mode made here (in flight, or taken by the
+server in the last 2 minutes, `switchedHereRecently(businessId, mode)`) is
+never announced; another device switching it back still is. A switch the
+server refused clears that marker, unless a newer request has replaced it. `FlipperApp` (the
 `FlipperAppRoute` page) is a gate: it shows `PersonalShell` for personal and
 the unchanged business app for everything else. A switch made on another
 device therefore swaps shells without a navigation.
