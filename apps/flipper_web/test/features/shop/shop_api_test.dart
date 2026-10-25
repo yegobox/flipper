@@ -305,6 +305,71 @@ void main() {
     );
   });
 
+  group('WhatsApp link', () {
+    test('a national number takes the dial code of the shop currency', () {
+      expect(
+        shopWhatsappDigits('0788 000 001', currency: 'RWF'),
+        '250788000001',
+      );
+      expect(
+        shopWhatsappDigits('0788000001', currency: ' rwf '),
+        '250788000001',
+      );
+      expect(
+        ShopInfo.fromJson(const {
+          'slug': 's',
+          'whatsapp': '0788000001',
+          'currency': 'RWF',
+        }).whatsappUri,
+        Uri.parse('https://wa.me/250788000001'),
+      );
+    });
+
+    test('an international number is kept as its digits', () {
+      expect(
+        shopWhatsappDigits('+250 788 000 001', currency: 'USD'),
+        '250788000001',
+      );
+      expect(
+        shopWhatsappDigits('00250788000001', currency: 'USD'),
+        '250788000001',
+      );
+      // The server stores digits only, so `+250…` arrives as `250…`.
+      expect(
+        shopWhatsappDigits('250788000001', currency: 'RWF'),
+        '250788000001',
+      );
+      expect(
+        ShopCatalog.fromJson(_catalog).shop.whatsappUri,
+        Uri.parse('https://wa.me/250788000000'),
+      );
+    });
+
+    test('no number, or one no country can be found for, has no link', () {
+      expect(shopWhatsappDigits(null, currency: 'RWF'), isNull);
+      expect(shopWhatsappDigits(' - ', currency: 'RWF'), isNull);
+      // USD is used by many countries: no guessing the dial code.
+      expect(shopWhatsappDigits('0788000001', currency: 'USD'), isNull);
+      expect(shopWhatsappDigits('0788000001', currency: 'XYZ'), isNull);
+      expect(const ShopInfo(slug: 's', name: 'S').whatsappUri, isNull);
+      expect(
+        const ShopInfo(
+          slug: 's',
+          name: 'S',
+          whatsapp: '0788000001',
+          currency: 'EUR',
+        ).whatsappUri,
+        isNull,
+      );
+    });
+
+    test('the dial code comes from the one country using the currency', () {
+      expect(shopDialCodeForCurrency('RWF'), '250');
+      expect(shopDialCodeForCurrency('KES'), '254');
+      expect(shopDialCodeForCurrency('EUR'), isNull);
+    });
+  });
+
   test('a line without lineTotal is priced from qty and unit price', () {
     final o = ShopOrderView.fromJson({
       ..._order,

@@ -19,8 +19,13 @@ String shopMoney(double amount, String currency) {
   return '${NumberFormat.decimalPatternDigits(decimalDigits: digits).format(amount)} $currency';
 }
 
-String shopQty(double qty) =>
-    qty == qty.roundToDouble() ? '${qty.toInt()}' : '$qty';
+/// `3` for counted items, up to three decimals (`0.3`, `1.25`) for weighed
+/// ones: the precision the cart and the server keep. A sum such as the cart
+/// bar's (0.1 kg + 0.2 kg) is rounded first, so float noise never shows.
+String shopQty(double qty) {
+  final rounded = (qty * 1000).round() / 1000;
+  return rounded == rounded.roundToDouble() ? '${rounded.toInt()}' : '$rounded';
+}
 
 ButtonStyle shopPrimaryButton() => FilledButton.styleFrom(
   backgroundColor: kShopBlue,

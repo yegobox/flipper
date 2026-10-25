@@ -498,7 +498,8 @@ void main() {
       await tester.pumpAndSettle();
       expect(_launched, [
         'tel:*182*8*1*12345*4997%23',
-        'https://wa.me/0788000001',
+        // The shop typed 0788000001; a RWF shop is in Rwanda (+250).
+        'https://wa.me/250788000001',
         'tel:0788000000',
       ]);
       await _unmount(tester);
@@ -547,6 +548,27 @@ void main() {
       expect(await const ShopStore().loadOrder('kigali'), isNull);
       await tester.pump(kShopOrderPoll * 2);
       expect(api.orderTokens, hasLength(1));
+    });
+
+    testWidgets('a finished order keeps the link of another order', (
+      tester,
+    ) async {
+      // The browser's saved link is for order o2, still in progress; the
+      // customer opened an old link to o1, which is complete.
+      SharedPreferences.setMockInitialValues({
+        'shop_order_kigali': '{"id": "o2", "token": "o2-token"}',
+      });
+      final api = _FakeApi()
+        ..orders = [
+          ShopOrderView.fromJson(
+            _orderJson(status: 'completed', paymentStatus: 'paid'),
+          ),
+        ];
+      await _pumpOrder(tester, api);
+      expect(find.text(l10n.shopOrderStatusCompleted), findsOneWidget);
+      final saved = await const ShopStore().loadOrder('kigali');
+      expect(saved?.id, 'o2');
+      expect(saved?.token, 'o2-token');
     });
 
     testWidgets('every status has its words', (tester) async {

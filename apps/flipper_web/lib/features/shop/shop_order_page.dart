@@ -112,12 +112,21 @@ class _ShopOrderPageState extends ConsumerState<ShopOrderPage>
       });
       if (order.isFinal) {
         _poll?.cancel();
-        unawaited(ref.read(shopStoreProvider).clearOrder(widget.slug));
+        unawaited(_forgetSavedOrder());
       }
     } catch (e) {
       // Keep showing the last good copy; only an empty page shows the error.
       if (mounted) setState(() => _loadError = e);
     }
+  }
+
+  /// Drops the browser's saved link once this order is over, but only when
+  /// the link is this order's: the store keeps one link per shop, and opening
+  /// an old, finished order must not lose the one still in progress.
+  Future<void> _forgetSavedOrder() async {
+    final store = ref.read(shopStoreProvider);
+    final saved = await store.loadOrder(widget.slug);
+    if (saved?.id == widget.orderId) await store.clearOrder(widget.slug);
   }
 
   Future<void> _claim() async {
@@ -491,17 +500,17 @@ class _Contact extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.flipperL10n;
-    final whatsapp = shop.whatsapp?.replaceAll(RegExp(r'\D'), '');
+    final whatsapp = shop.whatsappUri;
     return Padding(
       padding: const EdgeInsets.only(top: 16),
       child: Wrap(
         spacing: 8,
         children: [
-          if (whatsapp != null && whatsapp.isNotEmpty)
+          if (whatsapp != null)
             OutlinedButton.icon(
               key: const Key('shop_whatsapp'),
               style: OutlinedButton.styleFrom(foregroundColor: kShopBlue),
-              onPressed: () => launchUrl(Uri.parse('https://wa.me/$whatsapp')),
+              onPressed: () => launchUrl(whatsapp),
               icon: const Icon(Icons.chat_outlined),
               label: Text(l10n.shopWhatsappShop),
             ),

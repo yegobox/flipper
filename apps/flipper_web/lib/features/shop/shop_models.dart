@@ -3,6 +3,8 @@
 /// only what a customer may see.
 library;
 
+import 'package:flipper_models/helperModels/signup_countries.dart';
+
 class ShopPayment {
   const ShopPayment({
     this.momo = false,
@@ -50,6 +52,13 @@ class ShopInfo {
   final String? deliveryNote;
   final String currency;
   final ShopPayment payment;
+
+  /// The `wa.me` chat link for [whatsapp], or null when there is no number
+  /// or it cannot be made international (see [shopWhatsappDigits]).
+  Uri? get whatsappUri {
+    final digits = shopWhatsappDigits(whatsapp, currency: currency);
+    return digits == null ? null : Uri.parse('https://wa.me/$digits');
+  }
 
   factory ShopInfo.fromJson(Map<String, dynamic> json) {
     final payment = json['payment'];
@@ -211,6 +220,39 @@ class ShopOrderPay {
 
   /// `tel:` link that opens the dialer with [ussd]; `#` must be `%23`.
   Uri? get ussdUri => ussd == null ? null : shopTelUri(ussd!);
+}
+
+/// [raw] as the international digits `wa.me` needs: no `+`, no trunk `0`.
+///
+/// The owner may type the shop's WhatsApp number either way and the server
+/// keeps only its digits, so `+250 788 000 001` arrives as `250788000001`
+/// (already international) and `0788 000 001` as `0788000001` (national).
+/// `wa.me/0788000001` opens no chat, so a national number takes the dial
+/// code of the shop's country. The public shop has no country, but it has a
+/// currency, and a currency only one country uses (RWF) names it. When the
+/// currency is shared (USD, EUR) the number is not guessed: null hides the
+/// button rather than open a chat with a stranger.
+String? shopWhatsappDigits(String? raw, {required String currency}) {
+  if (raw == null) return null;
+  final trimmed = raw.trim();
+  final digits = trimmed.replaceAll(RegExp(r'\D'), '');
+  if (digits.isEmpty) return null;
+  if (trimmed.startsWith('+')) return digits;
+  if (digits.startsWith('00')) return digits.substring(2);
+  if (!digits.startsWith('0')) return digits;
+  final dialCode = shopDialCodeForCurrency(currency);
+  return dialCode == null ? null : '$dialCode${digits.substring(1)}';
+}
+
+/// The dial code, without `+`, of the one country that uses [currency]; null
+/// when none or several do.
+String? shopDialCodeForCurrency(String currency) {
+  final code = currency.trim().toUpperCase();
+  final dialCodes = {
+    for (final country in kSignupCountries)
+      if (country.currency == code) country.dialCode,
+  };
+  return dialCodes.length == 1 ? dialCodes.single.substring(1) : null;
 }
 
 /// `tel:` URI for a phone number or USSD code. `#` would start a URI
