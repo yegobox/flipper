@@ -18,10 +18,12 @@ class ShopCart {
   double get count => lines.values.fold(0, (a, b) => a + b);
 
   /// Sets [variantId] to [qty], capped at [max] (the stock, when the shop
-  /// shows it). Zero or less removes the line.
-  ShopCart set(String variantId, double qty, {double? max}) {
-    var next = qty;
-    if (max != null && next > max) next = max;
+  /// shows it). Zero or less removes the line. A [whole] item (anything not
+  /// sold by weight or volume) is rounded down to whole units; the rest to
+  /// three decimals, as the server prices them.
+  ShopCart set(String variantId, double qty, {double? max, bool whole = true}) {
+    var next = whole ? qty.floorToDouble() : (qty * 1000).round() / 1000;
+    if (max != null && next > max) next = whole ? max.floorToDouble() : max;
     final copy = Map<String, double>.from(lines);
     if (next <= 0) {
       copy.remove(variantId);
@@ -31,10 +33,11 @@ class ShopCart {
     return ShopCart(copy);
   }
 
-  ShopCart add(String variantId, {double? max}) =>
-      set(variantId, qty(variantId) + 1, max: max);
+  ShopCart add(String variantId, {double? max, bool whole = true}) =>
+      set(variantId, qty(variantId) + 1, max: max, whole: whole);
 
-  ShopCart remove(String variantId) => set(variantId, qty(variantId) - 1);
+  ShopCart remove(String variantId, {bool whole = true}) =>
+      set(variantId, qty(variantId) - 1, whole: whole);
 
   ShopCart without(Iterable<String> variantIds) {
     final copy = Map<String, double>.from(lines);
@@ -44,14 +47,20 @@ class ShopCart {
     return ShopCart(copy);
   }
 
-  /// Drops lines the catalog no longer sells or has run out of, and trims
-  /// quantities to the stock shown. A cart saved yesterday can be stale.
+  /// Drops lines the catalog no longer sells or has run out of, trims
+  /// quantities to the stock shown, and rounds counted items down to whole
+  /// units. A cart saved yesterday can be stale.
   ShopCart reconcile(ShopCatalog catalog) {
     var next = const ShopCart();
     for (final entry in lines.entries) {
       final item = catalog.item(entry.key);
       if (item == null || !item.inStock) continue;
-      next = next.set(entry.key, entry.value, max: item.maxQty);
+      next = next.set(
+        entry.key,
+        entry.value,
+        max: item.maxQty,
+        whole: !item.soldByMeasure,
+      );
     }
     return next;
   }

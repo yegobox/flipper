@@ -326,6 +326,10 @@ class _ItemCard extends ConsumerWidget {
                     canAdd: max == null || qty < max,
                     onAdd: () => cart.add(item),
                     onRemove: () => cart.remove(item),
+                    editLabel: l10n.shopQtyEdit,
+                    onEditQty: item.soldByMeasure
+                        ? () => editShopQty(context, ref, slug, item, qty)
+                        : null,
                   ),
               ],
             ),
@@ -376,6 +380,85 @@ class _CartBar extends ConsumerWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Asks how much of [item] (sold by weight or volume) to order, e.g. 1.5,
+/// and puts that in the cart.
+Future<void> editShopQty(
+  BuildContext context,
+  WidgetRef ref,
+  String slug,
+  ShopItem item,
+  double current,
+) async {
+  final qty = await showDialog<double>(
+    context: context,
+    builder: (_) => _QtyDialog(item: item, current: current),
+  );
+  if (qty != null) {
+    ref.read(shopCartProvider(slug).notifier).setQty(item, qty);
+  }
+}
+
+class _QtyDialog extends StatefulWidget {
+  const _QtyDialog({required this.item, required this.current});
+
+  final ShopItem item;
+  final double current;
+
+  @override
+  State<_QtyDialog> createState() => _QtyDialogState();
+}
+
+class _QtyDialogState extends State<_QtyDialog> {
+  late final _text = TextEditingController(text: shopQty(widget.current));
+  bool _invalid = false;
+
+  @override
+  void dispose() {
+    _text.dispose();
+    super.dispose();
+  }
+
+  void _save() {
+    final qty = double.tryParse(_text.text.trim().replaceAll(',', '.'));
+    if (qty == null || !widget.item.allowsQty(qty)) {
+      setState(() => _invalid = true);
+      return;
+    }
+    Navigator.of(context).pop(qty);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
+    return AlertDialog(
+      title: Text(l10n.shopQtyTitle),
+      content: TextField(
+        key: const Key('shop_qty_field'),
+        controller: _text,
+        autofocus: true,
+        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+        onSubmitted: (_) => _save(),
+        decoration: InputDecoration(
+          labelText: widget.item.name,
+          errorText: _invalid ? l10n.shopQtyInvalid : null,
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(MaterialLocalizations.of(context).cancelButtonLabel),
+        ),
+        FilledButton(
+          key: const Key('shop_qty_save'),
+          style: FilledButton.styleFrom(backgroundColor: kShopBlue),
+          onPressed: _save,
+          child: Text(MaterialLocalizations.of(context).okButtonLabel),
+        ),
+      ],
     );
   }
 }

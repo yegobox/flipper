@@ -88,6 +88,7 @@ class ShopItem {
     this.categoryName,
     this.inStock = true,
     this.stock,
+    this.soldByMeasure = false,
   });
 
   /// The variant id; what an order line sends back.
@@ -102,6 +103,10 @@ class ShopItem {
   /// Units left, only when the shop shows stock levels.
   final double? stock;
 
+  /// Sold by weight or volume (kg, litres), so a fraction may be ordered.
+  /// Anything else is whole units only; the server refuses 1.5 of it.
+  final bool soldByMeasure;
+
   factory ShopItem.fromJson(Map<String, dynamic> json) => ShopItem(
     id: _str(json['id']) ?? '',
     name: _str(json['name']) ?? '',
@@ -111,10 +116,23 @@ class ShopItem {
     categoryName: _str(json['categoryName']),
     inStock: json['inStock'] != false,
     stock: _num(json['stock']),
+    soldByMeasure: json['soldByMeasure'] == true,
   );
 
-  /// Most a customer can put in the cart: the stock when shown, else no cap.
-  double? get maxQty => stock;
+  /// Most a customer can put in the cart: the stock when shown (whole units
+  /// of a counted item), else no cap.
+  double? get maxQty =>
+      stock == null || soldByMeasure ? stock : stock!.floorToDouble();
+
+  /// Whether [qty] of this item can be ordered: above 0, whole unless sold by
+  /// measure (three decimals at most), and worth at least 1 RWF, as the
+  /// server checks.
+  bool allowsQty(double qty) {
+    if (!qty.isFinite || qty <= 0) return false;
+    if (!soldByMeasure && qty != qty.roundToDouble()) return false;
+    final rounded = (qty * 1000).round() / 1000;
+    return (rounded * price).round() >= 1;
+  }
 }
 
 class ShopCatalog {

@@ -8321,6 +8321,24 @@ abstract class FlipperAppLocalizations {
   /// **'{count} left'**
   String shopStockLeft(String count);
 
+  /// No description provided for @shopQtyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How much?'**
+  String get shopQtyTitle;
+
+  /// No description provided for @shopQtyInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter an amount above 0, like 1.5'**
+  String get shopQtyInvalid;
+
+  /// No description provided for @shopQtyEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Change amount'**
+  String get shopQtyEdit;
+
   /// No description provided for @shopAdd.
   ///
   /// In en, this message translates to:
@@ -8483,6 +8501,42 @@ abstract class FlipperAppLocalizations {
   /// **'Something went wrong. Please try again.'**
   String get shopErrGeneric;
 
+  /// No description provided for @shopErrTooManyOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'You have too many unpaid orders at this shop. Pay them, or wait for them to expire.'**
+  String get shopErrTooManyOpen;
+
+  /// No description provided for @shopErrTooLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'This order is too large. Remove some items and try again.'**
+  String get shopErrTooLarge;
+
+  /// No description provided for @shopErrBusy.
+  ///
+  /// In en, this message translates to:
+  /// **'The shop is busy right now. Try again in a few minutes.'**
+  String get shopErrBusy;
+
+  /// No description provided for @shopErrInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'The shop could not accept this order. Check the quantities and try again.'**
+  String get shopErrInvalid;
+
+  /// No description provided for @shopErrAlreadyPlaced.
+  ///
+  /// In en, this message translates to:
+  /// **'This order was already placed. Open it from your order link.'**
+  String get shopErrAlreadyPlaced;
+
+  /// No description provided for @shopErrTooManyTries.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many tries. Wait a minute, or contact the shop.'**
+  String get shopErrTooManyTries;
+
   /// No description provided for @shopOrderTitle.
   ///
   /// In en, this message translates to:
@@ -8582,8 +8636,14 @@ abstract class FlipperAppLocalizations {
   /// No description provided for @shopPayBy.
   ///
   /// In en, this message translates to:
-  /// **'Pay by {time}'**
+  /// **'Pay by {time}, or this order is cancelled.'**
   String shopPayBy(String time);
+
+  /// No description provided for @shopPayByNew.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay by {time}, or this order is cancelled. Once the shop confirms it, you have 24 hours from when you ordered.'**
+  String shopPayByNew(String time);
 
   /// No description provided for @shopPaid.
   ///
@@ -8608,6 +8668,12 @@ abstract class FlipperAppLocalizations {
   /// In en, this message translates to:
   /// **'Paste your transaction ID'**
   String get shopClaimHint;
+
+  /// No description provided for @shopClaimInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'That doesn\'t look like a transaction ID. Check your MoMo SMS.'**
+  String get shopClaimInvalid;
 
   /// No description provided for @shopClaimSubmit.
   ///

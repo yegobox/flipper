@@ -15,6 +15,10 @@ String shopApiBaseUrl() {
       : 'https://data-connector.yegobox.com';
 }
 
+/// Where the order link's secret goes, rather than the URL: query strings
+/// end up in access logs.
+const String kShopOrderTokenHeader = 'X-Order-Token';
+
 class ShopApiException implements Exception {
   const ShopApiException(
     this.statusCode, {
@@ -25,7 +29,8 @@ class ShopApiException implements Exception {
   /// 0 when the request never got an answer (offline, timeout).
   final int statusCode;
 
-  /// The server's `error` field, e.g. `item_unavailable`.
+  /// The server's `error` field: `item_unavailable`, or a plain message
+  /// (`data-connector/src/api/online_shop.rs`).
   final String? code;
 
   /// For `item_unavailable`: the lines the shop can no longer sell.
@@ -35,6 +40,23 @@ class ShopApiException implements Exception {
   bool get itemUnavailable => code == 'item_unavailable';
   bool get rateLimited => statusCode == 429;
   bool get offline => statusCode == 0;
+
+  /// The body was over the server's size cap.
+  bool get tooLarge => statusCode == 413;
+
+  /// The cap on open unpaid orders: 3 per phone, 10 per connection, per
+  /// shop. Also a 429, so check it before [rateLimited].
+  bool get tooManyOpen => rateLimited && (code ?? '').contains('unpaid');
+
+  /// The shop has no free amount to ask for right now.
+  bool get busy => statusCode == 503;
+
+  /// The server refused what was sent (e.g. a fraction of a counted item).
+  bool get invalid => statusCode == 400;
+
+  /// A checkout placed long enough ago that the server no longer hands its
+  /// link back.
+  bool get alreadyPlaced => statusCode == 409 && !itemUnavailable;
 
   @override
   String toString() => 'ShopApiException($statusCode, $code)';
@@ -75,7 +97,8 @@ class ShopOrderRequest {
   final List<ShopOrderRequestLine> items;
 
   /// Same key on a retry, so a double tap or a lost response cannot place
-  /// the order twice.
+  /// the order twice. Not the order link's secret: the server makes that and
+  /// returns it as [ShopOrderView.token].
   final String idempotencyKey;
 
   Map<String, dynamic> toJson() {
@@ -123,12 +146,14 @@ class ShopApi {
     await _send('POST', '${_path(slug)}/orders', body: request.toJson()),
   );
 
+  /// The order behind a link. [token] is the secret the create call
+  /// returned; it goes in a header, not the URL.
   Future<ShopOrderView> order(String slug, String id, String token) async =>
       ShopOrderView.fromJson(
         await _send(
           'GET',
           '${_path(slug)}/orders/${Uri.encodeComponent(id)}',
-          query: {'t': token},
+          token: token,
         ),
       );
 
@@ -143,7 +168,8 @@ class ShopApi {
     await _send(
       'POST',
       '${_path(slug)}/orders/${Uri.encodeComponent(id)}/payment',
-      body: {'token': token, 'transactionId': transactionId.trim()},
+      body: {'transactionId': transactionId.trim()},
+      token: token,
     ),
   );
 
@@ -151,11 +177,10 @@ class ShopApi {
     String method,
     String path, {
     Map<String, dynamic>? body,
-    Map<String, String>? query,
+    String? token,
   }) async {
-    var uri = Uri.parse('$_base$path');
-    if (query != null) uri = uri.replace(queryParameters: query);
-    final request = http.Request(method, uri);
+    final request = http.Request(method, Uri.parse('$_base$path'));
+    if (token != null) request.headers[kShopOrderTokenHeader] = token;
     if (body != null) {
       request.headers['Content-Type'] = 'application/json';
       request.body = jsonEncode(body);

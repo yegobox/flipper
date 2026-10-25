@@ -89,7 +89,10 @@ class _ShopCheckoutPageState extends ConsumerState<ShopCheckoutPage> {
               idempotencyKey: _idempotencyKey!,
             ),
           );
-      final token = order.token ?? '';
+      // The link's secret is the server's, from this answer only; never the
+      // checkout key.
+      final token = order.token;
+      if (token == null || token.isEmpty) throw const ShopApiException(500);
       await ref
           .read(shopStoreProvider)
           .saveOrder(widget.slug, ShopOrderLink(id: order.id, token: token));
@@ -103,15 +106,7 @@ class _ShopCheckoutPageState extends ConsumerState<ShopCheckoutPage> {
         ref.invalidate(shopCatalogProvider(widget.slug));
         _idempotencyKey = null;
       }
-      setState(
-        () => _error = e.itemUnavailable
-            ? l10n.shopErrUnavailable
-            : e.rateLimited
-            ? l10n.shopErrRateLimited
-            : e.offline
-            ? l10n.shopErrOffline
-            : l10n.shopErrGeneric,
-      );
+      setState(() => _error = shopCheckoutErrorText(l10n, e));
     } catch (_) {
       if (mounted) setState(() => _error = l10n.shopErrGeneric);
     } finally {
@@ -211,6 +206,16 @@ class _ShopCheckoutPageState extends ConsumerState<ShopCheckoutPage> {
                             item.maxQty == null || entry.value < item.maxQty!,
                         onAdd: () => notifier.add(item),
                         onRemove: () => notifier.remove(item),
+                        editLabel: l10n.shopQtyEdit,
+                        onEditQty: item.soldByMeasure
+                            ? () => editShopQty(
+                                context,
+                                ref,
+                                widget.slug,
+                                item,
+                                entry.value,
+                              )
+                            : null,
                       ),
                     ],
                   ),
@@ -357,6 +362,20 @@ class _ShopCheckoutPageState extends ConsumerState<ShopCheckoutPage> {
       ),
     );
   }
+}
+
+/// What to tell the customer when placing the order failed. The server's
+/// messages are generic, so the status says what happened.
+String shopCheckoutErrorText(FlipperAppLocalizations l10n, ShopApiException e) {
+  if (e.itemUnavailable) return l10n.shopErrUnavailable;
+  if (e.tooManyOpen) return l10n.shopErrTooManyOpen;
+  if (e.rateLimited) return l10n.shopErrRateLimited;
+  if (e.tooLarge) return l10n.shopErrTooLarge;
+  if (e.alreadyPlaced) return l10n.shopErrAlreadyPlaced;
+  if (e.busy) return l10n.shopErrBusy;
+  if (e.invalid) return l10n.shopErrInvalid;
+  if (e.offline) return l10n.shopErrOffline;
+  return l10n.shopErrGeneric;
 }
 
 class _SectionTitle extends StatelessWidget {

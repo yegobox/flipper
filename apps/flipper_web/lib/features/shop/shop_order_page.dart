@@ -19,7 +19,11 @@ const Duration kShopOrderPoll = Duration(seconds: 15);
 ///
 /// Polls every [kShopOrderPoll] while the tab is visible and the order can
 /// still change. A missing token in the URL falls back to the one this
-/// browser saved when it placed the order.
+/// browser saved when it placed the order. The token is the server's (from
+/// placing the order); the page keeps it in its URL so the link can be
+/// reopened or shared, and sends it to the server only in a header. `/shop/**`
+/// is served with `Referrer-Policy: no-referrer` (firebase.json), so the URL
+/// never leaks to the shop's images or links.
 class ShopOrderPage extends ConsumerStatefulWidget {
   const ShopOrderPage({
     super.key,
@@ -120,7 +124,7 @@ class _ShopOrderPageState extends ConsumerState<ShopOrderPage>
     final l10n = context.flipperL10n;
     final txn = _txn.text.trim();
     if (txn.length < 4) {
-      setState(() => _claimError = l10n.shopErrGeneric);
+      setState(() => _claimError = l10n.shopClaimInvalid);
       return;
     }
     setState(() {
@@ -139,11 +143,7 @@ class _ShopOrderPageState extends ConsumerState<ShopOrderPage>
       if (mounted) setState(() => _order = order);
     } catch (e) {
       if (mounted) {
-        setState(
-          () => _claimError = e is ShopApiException && e.offline
-              ? l10n.shopErrOffline
-              : l10n.shopErrGeneric,
-        );
+        setState(() => _claimError = shopClaimErrorText(l10n, e));
       }
     } finally {
       if (mounted) setState(() => _claiming = false);
@@ -190,7 +190,7 @@ class _ShopOrderPageState extends ConsumerState<ShopOrderPage>
                     _StatusCard(order: order),
                     const SizedBox(height: 16),
                     if (order.paysByMomo && !order.isPaid && !order.isFinal)
-                      ShopPayInstructions(order: order),
+                      ShopPayInstructions(order: order, now: widget.now),
                     if (!order.paysByMomo && !order.isFinal)
                       _Note(text: l10n.shopPayOnDelivery),
                     if (order.claimPending)
@@ -251,12 +251,47 @@ class _ShopOrderPageState extends ConsumerState<ShopOrderPage>
   }
 }
 
+/// What to tell the customer when sending a transaction id failed.
+String shopClaimErrorText(FlipperAppLocalizations l10n, Object error) {
+  if (error is! ShopApiException) return l10n.shopErrGeneric;
+  if (error.offline) return l10n.shopErrOffline;
+  if (error.rateLimited) return l10n.shopErrTooManyTries;
+  if (error.invalid) return l10n.shopClaimInvalid;
+  return l10n.shopErrGeneric;
+}
+
+/// When an unpaid MoMo order stops waiting for its money. A new order waits
+/// 2 hours; once the shop accepts it, until a day after it was placed. The
+/// time alone today, with the date otherwise.
+String shopPayByText(
+  FlipperAppLocalizations l10n,
+  ShopOrderView order,
+  DateTime payBy,
+  DateTime now,
+) {
+  final local = payBy.toLocal();
+  final today = now.toLocal();
+  final sameDay =
+      local.year == today.year &&
+      local.month == today.month &&
+      local.day == today.day;
+  final time = sameDay
+      ? DateFormat.Hm().format(local)
+      : DateFormat.MMMd().add_Hm().format(local);
+  return order.status == 'new' ? l10n.shopPayByNew(time) : l10n.shopPayBy(time);
+}
+
 /// "Dial *182*8*1*12345*4997# and pay exactly 4,997 RWF", with the other
 /// ways to pay and why the exact amount matters.
 class ShopPayInstructions extends StatelessWidget {
-  const ShopPayInstructions({super.key, required this.order});
+  const ShopPayInstructions({
+    super.key,
+    required this.order,
+    this.now = DateTime.now,
+  });
 
   final ShopOrderView order;
+  final DateTime Function() now;
 
   @override
   Widget build(BuildContext context) {
@@ -323,7 +358,8 @@ class ShopPayInstructions extends StatelessWidget {
           if (payBy != null) ...[
             const SizedBox(height: 6),
             Text(
-              l10n.shopPayBy(DateFormat.Hm().format(payBy.toLocal())),
+              shopPayByText(l10n, order, payBy, now()),
+              key: const Key('shop_pay_by'),
               style: const TextStyle(fontSize: 13, color: kShopMuted),
             ),
           ],

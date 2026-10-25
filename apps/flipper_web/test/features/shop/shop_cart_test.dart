@@ -42,6 +42,32 @@ void main() {
       expect(next.lines, {'milk': 3.0, 'bread': 1.0});
     });
 
+    test('counted items stay whole; measured ones keep three decimals', () {
+      final cart = const ShopCart()
+          .set('soap', 2.7, max: 2.5)
+          .set('rice', 1.23456, whole: false)
+          .set('oil', 9, max: 2.5, whole: false);
+      expect(cart.lines, {'soap': 2.0, 'rice': 1.235, 'oil': 2.5});
+      expect(const ShopCart().set('soap', 0.5).isEmpty, isTrue);
+      expect(const ShopCart({'rice': 1.5}).remove('rice', whole: false).lines, {
+        'rice': 0.5,
+      });
+    });
+
+    test('reconcile rounds a saved fraction of a counted item down', () {
+      const catalog = ShopCatalog(
+        shop: ShopInfo(slug: 's', name: 'S'),
+        items: [
+          ShopItem(id: 'soap', name: 'Soap', price: 500),
+          ShopItem(id: 'rice', name: 'Rice', price: 1200, soldByMeasure: true),
+        ],
+      );
+      expect(
+        const ShopCart({'soap': 2.5, 'rice': 1.5}).reconcile(catalog).lines,
+        {'soap': 2.0, 'rice': 1.5},
+      );
+    });
+
     test('without drops the listed lines', () {
       final cart = const ShopCart({'milk': 1, 'bread': 2}).without(['milk']);
       expect(cart.lines, {'bread': 2.0});

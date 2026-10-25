@@ -4803,6 +4803,15 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   }
 
   @override
+  String get shopQtyTitle => 'How much?';
+
+  @override
+  String get shopQtyInvalid => 'Enter an amount above 0, like 1.5';
+
+  @override
+  String get shopQtyEdit => 'Change amount';
+
+  @override
   String get shopAdd => 'Add';
 
   @override
@@ -4890,6 +4899,30 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   String get shopErrGeneric => 'Something went wrong. Please try again.';
 
   @override
+  String get shopErrTooManyOpen =>
+      'You have too many unpaid orders at this shop. Pay them, or wait for them to expire.';
+
+  @override
+  String get shopErrTooLarge =>
+      'This order is too large. Remove some items and try again.';
+
+  @override
+  String get shopErrBusy =>
+      'The shop is busy right now. Try again in a few minutes.';
+
+  @override
+  String get shopErrInvalid =>
+      'The shop could not accept this order. Check the quantities and try again.';
+
+  @override
+  String get shopErrAlreadyPlaced =>
+      'This order was already placed. Open it from your order link.';
+
+  @override
+  String get shopErrTooManyTries =>
+      'Too many tries. Wait a minute, or contact the shop.';
+
+  @override
   String shopOrderTitle(String number) {
     return 'Order #$number';
   }
@@ -4948,7 +4981,12 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
 
   @override
   String shopPayBy(String time) {
-    return 'Pay by $time';
+    return 'Pay by $time, or this order is cancelled.';
+  }
+
+  @override
+  String shopPayByNew(String time) {
+    return 'Pay by $time, or this order is cancelled. Once the shop confirms it, you have 24 hours from when you ordered.';
   }
 
   @override
@@ -4962,6 +5000,10 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
 
   @override
   String get shopClaimHint => 'Paste your transaction ID';
+
+  @override
+  String get shopClaimInvalid =>
+      'That doesn\'t look like a transaction ID. Check your MoMo SMS.';
 
   @override
   String get shopClaimSubmit => 'Send';

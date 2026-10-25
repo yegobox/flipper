@@ -62,6 +62,8 @@ class ShopStepper extends StatelessWidget {
     required this.onRemove,
     required this.addLabel,
     this.canAdd = true,
+    this.onEditQty,
+    this.editLabel,
   });
 
   final double qty;
@@ -69,6 +71,12 @@ class ShopStepper extends StatelessWidget {
   final VoidCallback onRemove;
   final String addLabel;
   final bool canAdd;
+
+  /// Lets the customer type the amount (items sold by weight or volume).
+  final VoidCallback? onEditQty;
+
+  /// Tooltip for [onEditQty].
+  final String? editLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -100,13 +108,20 @@ class ShopStepper extends StatelessWidget {
             icon: const Icon(Icons.remove, size: 18, color: kShopBlue),
             onPressed: onRemove,
           ),
-          Text(
-            shopQty(qty),
-            style: const TextStyle(
-              fontWeight: FontWeight.w700,
-              color: kShopBlue,
+          if (onEditQty == null)
+            _qtyText()
+          else
+            Tooltip(
+              message: editLabel ?? '',
+              child: InkWell(
+                key: const Key('shop_qty_edit'),
+                onTap: onEditQty,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: _qtyText(underline: true),
+                ),
+              ),
             ),
-          ),
           IconButton(
             visualDensity: VisualDensity.compact,
             icon: const Icon(Icons.add, size: 18, color: kShopBlue),
@@ -116,4 +131,13 @@ class ShopStepper extends StatelessWidget {
       ),
     );
   }
+
+  Widget _qtyText({bool underline = false}) => Text(
+    shopQty(qty),
+    style: TextStyle(
+      fontWeight: FontWeight.w700,
+      color: kShopBlue,
+      decoration: underline ? TextDecoration.underline : null,
+    ),
+  );
 }

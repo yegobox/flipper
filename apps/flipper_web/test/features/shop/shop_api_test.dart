@@ -178,12 +178,13 @@ void main() {
     );
   });
 
-  test('order reads with the token; claimPayment posts the txn id', () async {
+  test('order and claimPayment send the token in a header', () async {
     await api(200, _order).order('kigali-mart', 'o1', 'tok');
     expect(
       sent.single.url.toString(),
-      'https://connector.test/api/shop/kigali-mart/orders/o1?t=tok',
+      'https://connector.test/api/shop/kigali-mart/orders/o1',
     );
+    expect(sent.single.headers[kShopOrderTokenHeader], 'tok');
     final o = await api(200, {..._order, 'claimPending': true}).claimPayment(
       'kigali-mart',
       'o1',
@@ -191,11 +192,127 @@ void main() {
       transactionId: ' 123456789 ',
     );
     expect(sent.single.url.path, '/api/shop/kigali-mart/orders/o1/payment');
-    expect(jsonDecode(sent.single.body), {
-      'token': 'tok',
-      'transactionId': '123456789',
-    });
+    expect(sent.single.headers[kShopOrderTokenHeader], 'tok');
+    expect(jsonDecode(sent.single.body), {'transactionId': '123456789'});
     expect(o.claimPending, isTrue);
+  });
+
+  test('the server\'s refusals are told apart by status', () {
+    ShopApiException e(int status, [String? code]) =>
+        ShopApiException(status, code: code);
+    expect(e(413).tooLarge, isTrue);
+    expect(e(503).busy, isTrue);
+    expect(e(400).invalid, isTrue);
+    expect(e(409, 'this checkout was already placed').alreadyPlaced, isTrue);
+    expect(e(409, 'item_unavailable').alreadyPlaced, isFalse);
+    final open = e(429, 'you have too many unpaid orders at this shop');
+    expect(open.tooManyOpen, isTrue);
+    expect(open.rateLimited, isTrue);
+    expect(e(429, 'too many requests').tooManyOpen, isFalse);
+    expect(e(429).tooManyOpen, isFalse);
+    expect(e(500, 'x').toString(), 'ShopApiException(500, x)');
+  });
+
+  test('no answer, a timeout and a non-JSON error body', () async {
+    final offline = ShopApi(
+      baseUrl: 'https://connector.test/',
+      client: MockClient((_) async => throw http.ClientException('down')),
+    );
+    await expectLater(
+      offline.catalog('s'),
+      throwsA(isA<ShopApiException>().having((e) => e.offline, 'off', true)),
+    );
+    final slow = ShopApi(
+      baseUrl: 'https://connector.test',
+      timeout: const Duration(milliseconds: 10),
+      client: MockClient((_) async {
+        await Future<void>.delayed(const Duration(milliseconds: 200));
+        return http.Response('{}', 200);
+      }),
+    );
+    await expectLater(
+      slow.catalog('s'),
+      throwsA(
+        isA<ShopApiException>()
+            .having((e) => e.offline, 'off', true)
+            .having((e) => e.code, 'code', 'timeout'),
+      ),
+    );
+    await expectLater(
+      ShopApi(
+        baseUrl: 'https://connector.test',
+        client: MockClient((_) async => http.Response('<html>', 502)),
+      ).catalog('s'),
+      throwsA(
+        isA<ShopApiException>()
+            .having((e) => e.statusCode, 'status', 502)
+            .having((e) => e.code, 'code', isNull),
+      ),
+    );
+    // A 2xx that is not an object reads as empty.
+    final empty = await ShopApi(
+      baseUrl: 'https://connector.test',
+      client: MockClient((_) async => http.Response('[]', 200)),
+    ).catalog('s');
+    expect(empty.items, isEmpty);
+  });
+
+  test('the default base URL and client', () {
+    expect(shopApiBaseUrl(), 'http://localhost:8084');
+    expect(ShopApi(), isA<ShopApi>());
+  });
+
+  test('order lines send fractions only for what is sold by measure', () {
+    expect(const ShopOrderRequestLine(variantId: 'v', qty: 1.5).toJson(), {
+      'variantId': 'v',
+      'qty': 1.5,
+    });
+    expect(
+      const ShopOrderRequest(
+        customerName: 'A',
+        customerPhone: '0788123456',
+        fulfilment: 'delivery',
+        deliveryAddress: ' KG 11 Ave ',
+        note: 'Gate 2',
+        items: [],
+        idempotencyKey: 'k',
+      ).toJson(),
+      containsPair('deliveryAddress', 'KG 11 Ave'),
+    );
+  });
+
+  test('items: whole units unless sold by measure, at least 1 RWF', () {
+    const count = ShopItem(id: 'a', name: 'Soap', price: 500, stock: 2.5);
+    const kg = ShopItem(
+      id: 'b',
+      name: 'Rice',
+      price: 1200,
+      stock: 2.5,
+      soldByMeasure: true,
+    );
+    expect(count.maxQty, 2);
+    expect(kg.maxQty, 2.5);
+    expect(const ShopItem(id: 'c', name: 'C', price: 1).maxQty, isNull);
+    expect(count.allowsQty(2), isTrue);
+    expect(count.allowsQty(1.5), isFalse);
+    expect(count.allowsQty(0), isFalse);
+    expect(count.allowsQty(double.nan), isFalse);
+    expect(kg.allowsQty(1.5), isTrue);
+    expect(kg.allowsQty(0.0001), isFalse);
+    expect(
+      ShopItem.fromJson(const {'id': 'b', 'soldByMeasure': true}).soldByMeasure,
+      isTrue,
+    );
+  });
+
+  test('a line without lineTotal is priced from qty and unit price', () {
+    final o = ShopOrderView.fromJson({
+      ..._order,
+      'items': [
+        {'variantId': 'v1', 'name': 'Milk', 'qty': 2, 'unitPrice': 1000},
+      ],
+    });
+    expect(o.items.single.lineTotal, 2000);
   });
 
   group('ShopOrderView.canClaim', () {

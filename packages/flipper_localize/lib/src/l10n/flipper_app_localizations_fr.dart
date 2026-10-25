@@ -4842,6 +4842,16 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   }
 
   @override
+  String get shopQtyTitle => 'Quelle quantité ?';
+
+  @override
+  String get shopQtyInvalid =>
+      'Entrez une quantité supérieure à 0, par exemple 1,5';
+
+  @override
+  String get shopQtyEdit => 'Modifier la quantité';
+
+  @override
   String get shopAdd => 'Ajouter';
 
   @override
@@ -4930,6 +4940,30 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
       'Une erreur s\'est produite. Veuillez réessayer.';
 
   @override
+  String get shopErrTooManyOpen =>
+      'Vous avez trop de commandes non payées dans cette boutique. Payez-les ou attendez qu\'elles expirent.';
+
+  @override
+  String get shopErrTooLarge =>
+      'Cette commande est trop grande. Retirez des articles et réessayez.';
+
+  @override
+  String get shopErrBusy =>
+      'La boutique est très occupée. Réessayez dans quelques minutes.';
+
+  @override
+  String get shopErrInvalid =>
+      'La boutique n\'a pas pu accepter cette commande. Vérifiez les quantités et réessayez.';
+
+  @override
+  String get shopErrAlreadyPlaced =>
+      'Cette commande a déjà été passée. Ouvrez-la depuis le lien de votre commande.';
+
+  @override
+  String get shopErrTooManyTries =>
+      'Trop de tentatives. Attendez une minute ou contactez la boutique.';
+
+  @override
   String shopOrderTitle(String number) {
     return 'Commande n° $number';
   }
@@ -4991,7 +5025,12 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
 
   @override
   String shopPayBy(String time) {
-    return 'Payez avant $time';
+    return 'Payez avant $time, sinon la commande est annulée.';
+  }
+
+  @override
+  String shopPayByNew(String time) {
+    return 'Payez avant $time, sinon la commande est annulée. Une fois confirmée par la boutique, vous avez 24 heures à partir de votre commande.';
   }
 
   @override
@@ -5006,6 +5045,10 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
 
   @override
   String get shopClaimHint => 'Collez votre identifiant de transaction';
+
+  @override
+  String get shopClaimInvalid =>
+      'Cela ne ressemble pas à un identifiant de transaction. Vérifiez votre SMS MoMo.';
 
   @override
   String get shopClaimSubmit => 'Envoyer';

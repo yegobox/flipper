@@ -46,9 +46,16 @@ class ShopCartNotifier extends Notifier<ShopCart> {
     unawaited(ref.read(shopStoreProvider).saveCart(slug, cart));
   }
 
-  void add(ShopItem item) => _set(state.add(item.id, max: item.maxQty));
+  void add(ShopItem item) =>
+      _set(state.add(item.id, max: item.maxQty, whole: !item.soldByMeasure));
 
-  void remove(ShopItem item) => _set(state.remove(item.id));
+  void remove(ShopItem item) =>
+      _set(state.remove(item.id, whole: !item.soldByMeasure));
+
+  /// A typed amount, for items sold by weight or volume (1.5 kg).
+  void setQty(ShopItem item, double qty) => _set(
+    state.set(item.id, qty, max: item.maxQty, whole: !item.soldByMeasure),
+  );
 
   void drop(Iterable<String> variantIds) => _set(state.without(variantIds));
 
