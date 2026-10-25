@@ -211,6 +211,26 @@ void main() {
     },
   );
 
+  test('overlapping creates for one order park one ticket', () async {
+    final client = _FakeClient(log);
+    final order = OnlineOrder.fromDitto(orderDoc(status: 'accepted'));
+    Future<String> create() => createOnlineOrderTicket(
+      client: client,
+      writer: writer(),
+      branchId: 'br1',
+      order: order,
+      paidNote: 'PAID',
+      unlinked: {},
+    );
+
+    final ids = await Future.wait([create(), create()]);
+    expect(ids, [minted.id, minted.id]);
+    expect(log.where((e) => e == 'park'), hasLength(1));
+    // Once finished, a later call runs again.
+    await create();
+    expect(log.where((e) => e == 'park'), hasLength(2));
+  });
+
   test('a variant missing from this device stops before parking', () async {
     db = _FakeDb(known: {'v1'});
     log = db.log;

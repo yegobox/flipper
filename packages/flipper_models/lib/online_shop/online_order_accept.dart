@@ -42,12 +42,41 @@ Future<String> acceptOnlineOrder({
 /// parking a second one. Lasts the app session.
 final Map<String, String> unlinkedOnlineOrderTickets = {};
 
+/// Ticket creations still running, by order id. A second call for the same
+/// order (another Online view, a double tap) joins the running one instead
+/// of parking a second ticket.
+final Map<String, Future<String>> _creatingOnlineOrderTickets = {};
+
 /// Parks the ticket for an accepted [order] and links it on the server.
 ///
 /// If the link fails, the parked ticket's id stays in [unlinked] (default
 /// [unlinkedOnlineOrderTickets]) so a retry links it instead of parking a
-/// duplicate.
+/// duplicate. Calls that overlap for one order share one park.
 Future<String> createOnlineOrderTicket({
+  required OnlineShopClient client,
+  required OnlineOrderTicketWriter writer,
+  required String branchId,
+  required OnlineOrder order,
+  required String paidNote,
+  Map<String, String>? unlinked,
+}) {
+  final running = _creatingOnlineOrderTickets[order.id];
+  if (running != null) return running;
+  final created = _parkAndLink(
+    client: client,
+    writer: writer,
+    branchId: branchId,
+    order: order,
+    paidNote: paidNote,
+    unlinked: unlinked,
+  );
+  _creatingOnlineOrderTickets[order.id] = created;
+  return created.whenComplete(
+    () => _creatingOnlineOrderTickets.remove(order.id),
+  );
+}
+
+Future<String> _parkAndLink({
   required OnlineShopClient client,
   required OnlineOrderTicketWriter writer,
   required String branchId,

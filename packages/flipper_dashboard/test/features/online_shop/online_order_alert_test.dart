@@ -34,4 +34,32 @@ void main() {
 
     expect(events.map((e) => e.requestId), ['alert-o1']);
   });
+
+  test('a storage failure lets a later emission alert again', () async {
+    // A non-list under the seen key makes the storage read throw.
+    SharedPreferences.setMockInitialValues({'seen_inventory_requests': 5});
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+    final events = <StockTransferNotificationEvent>[];
+    final sub = EventBus().on<StockTransferNotificationEvent>().listen(
+      events.add,
+    );
+    addTearDown(sub.cancel);
+    final order = OnlineOrder.fromDitto({
+      'id': 'alert-o2',
+      'branchId': 'br1',
+      'orderNumber': 8,
+      'customerName': 'Aline',
+      'total': 5000,
+      'status': 'new',
+    });
+    final alert = container.read(onlineOrderAlertProvider);
+
+    await expectLater(alert(order), throwsA(anything));
+    SharedPreferences.setMockInitialValues({});
+    await alert(order);
+    await Future<void>.delayed(Duration.zero);
+
+    expect(events.map((e) => e.requestId), ['alert-o2']);
+  });
 }
