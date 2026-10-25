@@ -33,7 +33,7 @@ class IncomingOrdersScreen extends HookConsumerWidget {
     final stringValue = ref.watch(stringProvider);
     final status = ref.watch(requestStatusProvider);
     final search = stringValue?.isNotEmpty == true ? stringValue : null;
-    final direction = useState(OmDirection.incoming);
+    final picked = useState(OmDirection.incoming);
     // Gates pagination so loadMore() fires once per scroll-to-bottom, not on
     // every settling scroll notification while parked at the end.
     final loadMoreGate = useRef(false);
@@ -47,9 +47,14 @@ class IncomingOrdersScreen extends HookConsumerWidget {
     );
     final branchAsync = ref.watch(activeBranchProvider);
 
-    final isIncoming = direction.value == OmDirection.incoming;
-    final isOnline = direction.value == OmDirection.online;
     final shopAvailable = ref.watch(onlineShopAvailableProvider);
+    // The Online tab goes away when the shop does (e.g. the business turned
+    // personal); fall back to Incoming instead of showing its orders.
+    final direction = !shopAvailable && picked.value == OmDirection.online
+        ? OmDirection.incoming
+        : picked.value;
+    final isIncoming = direction == OmDirection.incoming;
+    final isOnline = direction == OmDirection.online;
     final newOnline = shopAvailable
         ? ref.watch(newOnlineOrdersCountProvider)
         : 0;
@@ -103,9 +108,9 @@ class IncomingOrdersScreen extends HookConsumerWidget {
                             ),
                             SizedBox(height: compact ? 16 : 22),
                             OmSegmented<OmDirection>(
-                              value: direction.value,
+                              value: direction,
                               large: true,
-                              onChanged: (v) => direction.value = v,
+                              onChanged: (v) => picked.value = v,
                               options: [
                                 OmSegOption(
                                   value: OmDirection.incoming,

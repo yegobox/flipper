@@ -74,7 +74,11 @@ final onlineOrderTicketWriterProvider =
 typedef OnlineOrderAlert = Future<void> Function(OnlineOrder order);
 
 final onlineOrderAlertProvider = Provider<OnlineOrderAlert>((ref) {
+  // Claimed before the first await: two Ditto emissions close together would
+  // otherwise both read the seen set before either marks the order.
+  final claimed = <String>{};
   return (order) async {
+    if (!claimed.add(order.id)) return;
     final seen = await SeenRequestsStorage.getSeenRequests();
     if (seen.contains(order.id)) return;
     await SeenRequestsStorage.markAsSeen(order.id);

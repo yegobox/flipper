@@ -93,7 +93,7 @@ void main() {
       expect(o.suggestedPayment, isNull);
       expect(o.total, 1500);
       expect(o.amountDue, 1500);
-      expect(o.availableActions, isEmpty);
+      expect(o.availableActions(), isEmpty);
     });
 
     test('parseOnlineOrders drops id-less docs and sorts newest first', () {
@@ -107,8 +107,10 @@ void main() {
   });
 
   group('availableActions', () {
-    List<OnlineOrderAction> actions(Map<String, dynamic> doc) =>
-        OnlineOrder.fromDitto(doc).availableActions;
+    List<OnlineOrderAction> actions(
+      Map<String, dynamic> doc, {
+      bool ticketSold = false,
+    }) => OnlineOrder.fromDitto(doc).availableActions(ticketSold: ticketSold);
 
     test('new: accept, reject, mark paid', () {
       expect(actions(orderDoc()), [
@@ -125,10 +127,66 @@ void main() {
       ]);
     });
 
-    test('ready: complete', () {
-      expect(actions(orderDoc(status: 'ready', paymentStatus: 'paid')), [
-        OnlineOrderAction.complete,
+    test('ready: complete only once the linked ticket is sold', () {
+      final ready = orderDoc(
+        status: 'ready',
+        paymentStatus: 'paid',
+        ticketTransactionId: 't1',
+      );
+      expect(actions(ready), isEmpty);
+      expect(actions(ready, ticketSold: true), [OnlineOrderAction.complete]);
+      // Without a ticket there is no sale to wait for: Create ticket first.
+      expect(
+        actions(
+          orderDoc(status: 'ready', paymentStatus: 'paid'),
+          ticketSold: true,
+        ),
+        isEmpty,
+      );
+    });
+
+    test('accepted with a sold ticket: complete, nothing else', () {
+      final sold = orderDoc(status: 'accepted', ticketTransactionId: 't1');
+      expect(actions(sold, ticketSold: true), [OnlineOrderAction.complete]);
+      expect(actions(sold), [
+        OnlineOrderAction.ready,
+        OnlineOrderAction.reject,
+        OnlineOrderAction.markPaid,
       ]);
+    });
+
+    test('awaitingSale while the linked ticket is not sold', () {
+      OnlineOrder order(String status, {String? ticket}) =>
+          OnlineOrder.fromDitto(
+            orderDoc(status: status, ticketTransactionId: ticket),
+          );
+      expect(order('accepted', ticket: 't1').awaitingSale(), isTrue);
+      expect(order('ready', ticket: 't1').awaitingSale(), isTrue);
+      expect(
+        order('ready', ticket: 't1').awaitingSale(ticketSold: true),
+        isFalse,
+      );
+      expect(order('accepted').awaitingSale(), isFalse);
+      expect(order('new', ticket: 't1').awaitingSale(), isFalse);
+      expect(order('completed', ticket: 't1').awaitingSale(), isFalse);
+    });
+
+    test('confirm and dismiss name the suggested SMS', () {
+      final order = OnlineOrder.fromDitto(
+        orderDoc(
+          paymentStatus: 'needs_review',
+          suggestedPayment: {'smsId': 'sms1', 'amount': 4997},
+        ),
+      );
+      expect(order.smsIdFor(OnlineOrderAction.confirmPayment), 'sms1');
+      expect(order.smsIdFor(OnlineOrderAction.dismissSuggestion), 'sms1');
+      expect(order.smsIdFor(OnlineOrderAction.markPaid), isNull);
+      expect(
+        OnlineOrder.fromDitto(
+          orderDoc(),
+        ).smsIdFor(OnlineOrderAction.dismissSuggestion),
+        isNull,
+      );
     });
 
     test('a suggested payment offers confirm and dismiss', () {
@@ -166,6 +224,30 @@ void main() {
           orderDoc(status: 'accepted', ticketTransactionId: 't1'),
         ).needsTicket,
         isFalse,
+      );
+    });
+  });
+
+  group('sold tickets', () {
+    test('openOrderTicketIds takes open orders with a ticket, sorted', () {
+      final orders = [
+        orderDoc(id: 'a', status: 'ready', ticketTransactionId: 't2'),
+        orderDoc(id: 'b', status: 'accepted', ticketTransactionId: 't1'),
+        orderDoc(id: 'c', status: 'accepted'),
+        orderDoc(id: 'd', status: 'completed', ticketTransactionId: 't3'),
+      ].map(OnlineOrder.fromDitto);
+      expect(openOrderTicketIds(orders), ['t1', 't2']);
+    });
+
+    test('soldTicketIds keeps completed sales at the branch', () {
+      expect(
+        soldTicketIds([
+          {'_id': 't1', 'status': 'completed', 'branchId': 'br1'},
+          {'_id': 't2', 'status': 'parked', 'branchId': 'br1'},
+          {'_id': 't3', 'status': 'completed', 'branchId': 'br2'},
+          {'status': 'completed', 'branchId': 'br1'},
+        ], branchId: 'br1'),
+        {'t1'},
       );
     });
   });

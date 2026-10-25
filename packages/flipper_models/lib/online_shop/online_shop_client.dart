@@ -162,6 +162,36 @@ class OnlineShopException implements Exception {
   String toString() => message;
 }
 
+/// Why the server refused an order action with 409, so the till can say
+/// what to do next instead of showing the raw message.
+enum OnlineOrderConflict {
+  /// Complete: the linked ticket is not a completed sale at this branch yet.
+  sellAtTillFirst,
+
+  /// Confirm: a till already recorded that SMS, or it paid another order.
+  smsAlreadyUsed,
+
+  /// Confirm or dismiss: another SMS replaced the suggested one meanwhile.
+  suggestionChanged,
+
+  /// Anything else: another till moved the order on first.
+  orderChanged,
+}
+
+/// The [OnlineOrderConflict] behind [error], or null when [error] is not a
+/// 409 from the server. Reads the connector's messages
+/// (`data-connector/src/api/online_shop_admin.rs`).
+OnlineOrderConflict? onlineOrderConflict(Object error) {
+  if (error is! OnlineShopException || !error.conflict) return null;
+  final message = error.message.toLowerCase();
+  if (message.contains('till')) return OnlineOrderConflict.sellAtTillFirst;
+  if (message.contains('sms')) return OnlineOrderConflict.smsAlreadyUsed;
+  if (message.contains('no longer')) {
+    return OnlineOrderConflict.suggestionChanged;
+  }
+  return OnlineOrderConflict.orderChanged;
+}
+
 /// Client for the connector's online-shop staff routes
 /// (`data-connector/src/api/online_shop.rs`). Authenticated with this
 /// device's connector token, like every other [DataConnectorClient] call.

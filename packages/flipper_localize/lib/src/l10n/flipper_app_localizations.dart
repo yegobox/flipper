@@ -2443,6 +2443,36 @@ abstract class FlipperAppLocalizations {
   /// **'Could not update the order: {error}'**
   String onlineOrderActionFailed(String error);
 
+  /// No description provided for @onlineOrderSellAtTill.
+  ///
+  /// In en, this message translates to:
+  /// **'Sell {ticket} at the till, then complete the order.'**
+  String onlineOrderSellAtTill(String ticket);
+
+  /// No description provided for @onlineOrderSellFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'This order\'s ticket is not sold yet. Sell it at the till first, then complete the order.'**
+  String get onlineOrderSellFirst;
+
+  /// No description provided for @onlineOrderSmsAlreadyUsed.
+  ///
+  /// In en, this message translates to:
+  /// **'That SMS was already recorded at a till or paid another order. Check the Cash Book.'**
+  String get onlineOrderSmsAlreadyUsed;
+
+  /// No description provided for @onlineOrderSuggestionChanged.
+  ///
+  /// In en, this message translates to:
+  /// **'The suggested payment changed. Check the order and try again.'**
+  String get onlineOrderSuggestionChanged;
+
+  /// No description provided for @onlineOrderChanged.
+  ///
+  /// In en, this message translates to:
+  /// **'Another till updated this order first. Check it and try again.'**
+  String get onlineOrderChanged;
+
   /// No description provided for @onlineOrderStatusNew.
   ///
   /// In en, this message translates to:

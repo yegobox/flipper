@@ -6,6 +6,7 @@ import 'package:flipper_models/online_shop/online_order.dart';
 import 'package:flipper_models/online_shop/online_order_accept.dart';
 import 'package:flipper_models/online_shop/online_order_ticket.dart';
 import 'package:flipper_models/online_shop/online_orders_provider.dart';
+import 'package:flipper_models/online_shop/online_shop_client.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
@@ -62,13 +63,23 @@ class _OnlineOrdersViewState extends ConsumerState<OnlineOrdersView> {
         messenger.showSnackBar(SnackBar(content: Text(message)));
       }
     } catch (e) {
-      messenger.showSnackBar(
-        SnackBar(content: Text(l10n.onlineOrderActionFailed('$e'))),
-      );
+      messenger.showSnackBar(SnackBar(content: Text(_failure(l10n, e))));
     } finally {
       if (mounted) setState(() => _busy.remove(order.id));
     }
   }
+
+  /// What to tell staff when an action fails: what to do next for a 409,
+  /// the error otherwise.
+  static String _failure(FlipperAppLocalizations l10n, Object error) =>
+      switch (onlineOrderConflict(error)) {
+        OnlineOrderConflict.sellAtTillFirst => l10n.onlineOrderSellFirst,
+        OnlineOrderConflict.smsAlreadyUsed => l10n.onlineOrderSmsAlreadyUsed,
+        OnlineOrderConflict.suggestionChanged =>
+          l10n.onlineOrderSuggestionChanged,
+        OnlineOrderConflict.orderChanged => l10n.onlineOrderChanged,
+        null => l10n.onlineOrderActionFailed('$error'),
+      };
 
   void _onAction(OnlineOrder order, OnlineOrderAction action) {
     final l10n = context.flipperL10n;
@@ -95,9 +106,7 @@ class _OnlineOrdersViewState extends ConsumerState<OnlineOrdersView> {
           branchId: branchId,
           orderId: order.id,
           action: action,
-          smsId: action == OnlineOrderAction.confirmPayment
-              ? order.suggestedPayment?.smsId
-              : null,
+          smsId: order.smsIdFor(action),
         );
         return null;
       },
@@ -138,6 +147,9 @@ class _OnlineOrdersViewState extends ConsumerState<OnlineOrdersView> {
     // Keeps the new-order alerts running while the tab is open.
     ref.watch(newOnlineOrdersCountProvider);
     final orders = ref.watch(onlineOrdersProvider(branchId));
+    final sold =
+        ref.watch(soldOnlineOrderTicketsProvider(branchId)).value ??
+        const <String>{};
     return orders.when(
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (e, _) => Center(
@@ -163,6 +175,7 @@ class _OnlineOrdersViewState extends ConsumerState<OnlineOrdersView> {
               key: ValueKey(order.id),
               order: order,
               busy: _busy.contains(order.id),
+              ticketSold: sold.contains(order.ticketTransactionId),
               onAction: (action) => _onAction(order, action),
               onCreateTicket: () => _createTicket(order),
             );
