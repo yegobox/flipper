@@ -77,6 +77,7 @@ class _FakeClient extends OnlineShopClient {
   final OnlineOrder? acceptResponse;
   final calls = <(OnlineOrderAction, String?)>[];
   bool conflictOnAccept = false;
+  int failLinks = 0;
 
   @override
   Future<OnlineOrder> updateOrder({
@@ -88,6 +89,10 @@ class _FakeClient extends OnlineShopClient {
   }) async {
     if (action == OnlineOrderAction.accept && conflictOnAccept) {
       throw const OnlineShopException('invalid_transition', statusCode: 409);
+    }
+    if (action == OnlineOrderAction.linkTicket && failLinks > 0) {
+      failLinks--;
+      throw const OnlineShopException('timeout');
     }
     calls.add((action, ticketTransactionId));
     log.add(action.wire);
@@ -178,6 +183,33 @@ void main() {
     );
     expect(log, isEmpty);
   });
+
+  test(
+    'a failed link keeps the ticket, so a retry does not park twice',
+    () async {
+      final client = _FakeClient(log)..failLinks = 1;
+      final unlinked = <String, String>{};
+      final order = OnlineOrder.fromDitto(orderDoc(status: 'accepted'));
+      Future<String> create() => createOnlineOrderTicket(
+        client: client,
+        writer: writer(),
+        branchId: 'br1',
+        order: order,
+        paidNote: 'PAID',
+        unlinked: unlinked,
+      );
+
+      await expectLater(create(), throwsA(isA<OnlineShopException>()));
+      final parkedId = minted.id;
+      expect(unlinked, {order.id: parkedId});
+
+      final id = await create();
+      expect(id, parkedId);
+      expect(log.where((e) => e == 'park'), hasLength(1));
+      expect(client.calls, [(OnlineOrderAction.linkTicket, parkedId)]);
+      expect(unlinked, isEmpty);
+    },
+  );
 
   test('a variant missing from this device stops before parking', () async {
     db = _FakeDb(known: {'v1'});

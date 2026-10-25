@@ -37,24 +37,35 @@ Future<String> acceptOnlineOrder({
   );
 }
 
+/// Tickets parked for an order whose `link_ticket` call failed, by order id.
+/// The next "Create ticket" for that order links this ticket instead of
+/// parking a second one. Lasts the app session.
+final Map<String, String> unlinkedOnlineOrderTickets = {};
+
 /// Parks the ticket for an accepted [order] and links it on the server.
+///
+/// If the link fails, the parked ticket's id stays in [unlinked] (default
+/// [unlinkedOnlineOrderTickets]) so a retry links it instead of parking a
+/// duplicate.
 Future<String> createOnlineOrderTicket({
   required OnlineShopClient client,
   required OnlineOrderTicketWriter writer,
   required String branchId,
   required OnlineOrder order,
   required String paidNote,
+  Map<String, String>? unlinked,
 }) async {
-  final ticketId = await writer.park(
-    branchId: branchId,
-    order: order,
-    paidNote: paidNote,
-  );
+  final pending = unlinked ?? unlinkedOnlineOrderTickets;
+  final ticketId =
+      pending[order.id] ??
+      await writer.park(branchId: branchId, order: order, paidNote: paidNote);
+  pending[order.id] = ticketId;
   await client.updateOrder(
     branchId: branchId,
     orderId: order.id,
     action: OnlineOrderAction.linkTicket,
     ticketTransactionId: ticketId,
   );
+  pending.remove(order.id);
   return ticketId;
 }
