@@ -1,3 +1,5 @@
+import 'package:flipper_accounting/liquid_accounts.dart'
+    show liquidGroupOf, providerAccountFor;
 import 'package:flipper_dashboard/features/branch_location/branch_services.dart';
 import 'package:flipper_dashboard/features/personal_finance/loans/loan_picker.dart';
 import 'package:flipper_dashboard/widgets/cashbook_new_category_sheet.dart';
@@ -123,6 +125,7 @@ final smsReviewServiceProvider = Provider<SmsReviewService>((ref) {
     journalEntryId: PosJournalPoster.saleEntryId,
     postTransfer: ledger.post,
     voidTransfer: ledger.voidEntry,
+    postClearing: ledger.postClearing,
     recordMovement:
         ({required item, required categoryId, required categoryName}) async {
           final services = ref.read(branchServicesProvider);

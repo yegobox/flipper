@@ -76,6 +76,52 @@ void main() {
     expect(balances.gapsFor('1030'), isEmpty);
   });
 
+  test('one bank\'s own account reads only that bank\'s SMS', () {
+    final now = DateTime.utc(2026, 10, 25, 9);
+    SmsAccountBalance acct(String code, String provider, int bal, int h) =>
+        SmsAccountBalance(
+          bankAccountCode: code,
+          providerLabel: provider,
+          balance: bal,
+          observedAt: now.subtract(Duration(hours: h)),
+        );
+    final balances = SmsBalances(
+      accounts: [
+        acct('1020', 'BK', 50000, 1),
+        acct('1020', 'Equity', 20000, 3),
+        acct('1030', 'MTN MoMo', 7000, 2),
+      ],
+      totals: [
+        SmsBalanceTotal(
+          bankAccountCode: '1020',
+          balance: 70000,
+          observedAt: now,
+        ),
+      ],
+      gaps: [
+        SmsBalanceGap(
+          bankAccountCode: '1020',
+          providerLabel: 'Equity',
+          amount: 500,
+          after: now,
+          before: now,
+        ),
+      ],
+    );
+
+    final equity = balances.totalForAccount('1022')!;
+    expect(equity.balance, 20000);
+    expect(equity.observedAt, now.subtract(const Duration(hours: 3)));
+    expect(balances.accountsForAccount('1021').single.providerLabel, 'BK');
+    expect(balances.gapsForAccount('1021'), isEmpty);
+    expect(balances.gapsForAccount('1022'), hasLength(1));
+    // The group keeps its server total and every bank in it.
+    expect(balances.totalForAccount('1020')!.balance, 70000);
+    expect(balances.accountsForAccount('1020'), hasLength(2));
+    // A wallet with no SMS yet has nothing to show.
+    expect(balances.totalForAccount('1032'), isNull);
+  });
+
   test('missing fields fall back instead of failing', () {
     final a = SmsAccountBalance.fromJson(const {});
     expect(a.balance, 0);

@@ -1,4 +1,10 @@
 import 'package:file_picker/file_picker.dart';
+import 'package:flipper_accounting/liquid_accounts.dart'
+    show
+        kBankAccountCode,
+        kMobileMoneyAccountCode,
+        providerAccountFor,
+        providerAccounts;
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_web/features/business_selection/business_branch_selector.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_balances.dart';
@@ -1008,7 +1014,7 @@ class AccountingBankRecView extends ConsumerWidget {
         .fold<int>(0, (s, a) => s + a.bal);
     // Owner/Admin only: null for anyone else, and the check stays hidden.
     final smsBalances = ref.watch(smsBankBalancesProvider).value;
-    final smsTotal = smsBalances?.totalFor(accountCode);
+    final smsTotal = smsBalances?.totalForAccount(accountCode);
     // Prefer the imported statement's closing balance, then the balance the
     // bank last stated by SMS; fall back to the GL.
     // The footnote below keys off the same value, so it names the real source.
@@ -1085,13 +1091,21 @@ class AccountingBankRecView extends ConsumerWidget {
               key: const Key('bank_rec_account'),
               segments: [
                 ButtonSegment(
-                  value: '1020',
+                  value: kBankAccountCode,
                   label: Text(l10n.booksBankRecAccountBank),
                 ),
                 ButtonSegment(
-                  value: '1030',
+                  value: kMobileMoneyAccountCode,
                   label: Text(l10n.booksBankRecAccountMomo),
                 ),
+                // Each bank or wallet with its own account, where its SMS
+                // lines land.
+                for (final provider in providerAccounts)
+                  if (accounts.any((a) => a.code == provider.code))
+                    ButtonSegment(
+                      value: provider.code,
+                      label: Text(provider.providerLabel),
+                    ),
               ],
               selected: {accountCode},
               onSelectionChanged: (picked) {
@@ -1148,8 +1162,8 @@ class AccountingBankRecView extends ConsumerWidget {
                   // Rebuilt when the saved level arrives, so the field shows it.
                   key: ValueKey('sms-balance-$accountCode-${alert?.threshold}'),
                   total: smsTotal,
-                  accounts: smsBalances!.accountsFor(accountCode),
-                  gaps: smsBalances.gapsFor(accountCode),
+                  accounts: smsBalances!.accountsForAccount(accountCode),
+                  gaps: smsBalances.gapsForAccount(accountCode),
                   check: SmsBalanceCheck(
                     bank: smsTotal.balance,
                     books: bankBal,
@@ -1159,12 +1173,14 @@ class AccountingBankRecView extends ConsumerWidget {
                   alert: alert,
                   onPostAdjustment: (amount) =>
                       _postSmsBalanceAdjustment(context, ref, amount, smsTotal),
-                  onSaveAlert: (threshold) => _saveSmsBalanceAlert(
-                    context,
-                    ref,
-                    accountCode,
-                    threshold,
-                  ),
+                  onSaveAlert: providerAccountFor(accountCode) != null
+                      ? null
+                      : (threshold) => _saveSmsBalanceAlert(
+                          context,
+                          ref,
+                          accountCode,
+                          threshold,
+                        ),
                 );
               },
             ),

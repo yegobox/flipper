@@ -3289,6 +3289,12 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   String get smsReviewAccountMomo => 'Mobile Money';
 
   @override
+  String get smsReviewAccountOtherBank => 'Indi banki';
+
+  @override
+  String get smsReviewAccountOtherMomo => 'Indi Mobile Money';
+
+  @override
   String smsReviewTransferPaired(String provider, String amount, String time) {
     return 'Bihuye na $provider $amount saa $time. Byombi bizafungwa.';
   }

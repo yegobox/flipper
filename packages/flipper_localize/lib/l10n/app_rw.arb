@@ -2564,6 +2564,8 @@
   "smsReviewAccountCash": "Amafaranga mu ntoki",
   "smsReviewAccountBank": "Banki",
   "smsReviewAccountMomo": "Mobile Money",
+  "smsReviewAccountOtherBank": "Indi banki",
+  "smsReviewAccountOtherMomo": "Indi Mobile Money",
   "smsReviewTransferPaired": "Bihuye na {provider} {amount} saa {time}. Byombi bizafungwa.",
   "smsReviewTransferRecord": "Andika iyimurwa",
   "smsReviewTransferDoneTo": "Byanditswe nk'iyimurwa rijya kuri {account}",

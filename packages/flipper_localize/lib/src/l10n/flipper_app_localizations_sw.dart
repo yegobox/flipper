@@ -3276,6 +3276,12 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   String get smsReviewAccountMomo => 'Mobile Money';
 
   @override
+  String get smsReviewAccountOtherBank => 'Benki nyingine';
+
+  @override
+  String get smsReviewAccountOtherMomo => 'Mobile Money nyingine';
+
+  @override
   String smsReviewTransferPaired(String provider, String amount, String time) {
     return 'Inalingana na $provider $amount saa $time. Zote mbili zitafungwa.';
   }

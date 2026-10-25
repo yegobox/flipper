@@ -979,6 +979,8 @@
     "smsReviewAccountCash": "Caisse",
     "smsReviewAccountBank": "Banque",
     "smsReviewAccountMomo": "Mobile Money",
+    "smsReviewAccountOtherBank": "Autre banque",
+    "smsReviewAccountOtherMomo": "Autre Mobile Money",
     "smsReviewTransferPaired": "Correspond à {provider} {amount} à {time}. Les deux seront clôturés.",
     "smsReviewTransferRecord": "Enregistrer le transfert",
     "smsReviewTransferDoneTo": "Enregistré comme transfert vers {account}",

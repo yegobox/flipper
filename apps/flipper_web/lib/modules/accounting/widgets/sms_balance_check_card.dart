@@ -54,7 +54,7 @@ class SmsBalanceCheckCard extends StatefulWidget {
     required this.accounts,
     required this.check,
     required this.onPostAdjustment,
-    required this.onSaveAlert,
+    this.onSaveAlert,
     this.alert,
     this.gaps = const [],
   });
@@ -70,8 +70,10 @@ class SmsBalanceCheckCard extends StatefulWidget {
   /// Posts an entry moving Books by the unexplained difference.
   final void Function(int amount) onPostAdjustment;
 
-  /// Saves the low-balance alert level; completes when it is stored.
-  final Future<void> Function(int threshold) onSaveAlert;
+  /// Saves the low-balance alert level; completes when it is stored. Null
+  /// hides the field: alerts are kept for Bank and Mobile Money as a whole,
+  /// not for one bank's own account.
+  final Future<void> Function(int threshold)? onSaveAlert;
 
   @override
   State<SmsBalanceCheckCard> createState() => _SmsBalanceCheckCardState();
@@ -94,7 +96,7 @@ class _SmsBalanceCheckCardState extends State<SmsBalanceCheckCard> {
     if (value == null) return;
     setState(() => _saving = true);
     try {
-      await widget.onSaveAlert(value);
+      await widget.onSaveAlert?.call(value);
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -248,39 +250,44 @@ class _SmsBalanceCheckCardState extends State<SmsBalanceCheckCard> {
                     ),
                   ),
                 ],
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Flexible(
-                      child: Text(l10n.booksSmsBalanceAlertLabel, style: muted),
-                    ),
-                    const SizedBox(width: 8),
-                    SizedBox(
-                      width: 130,
-                      child: TextField(
-                        key: const Key('sms-balance-alert-field'),
-                        controller: _threshold,
-                        keyboardType: TextInputType.number,
-                        inputFormatters: [
-                          FilteringTextInputFormatter.digitsOnly,
-                        ],
-                        decoration: const InputDecoration(
-                          isDense: true,
-                          border: OutlineInputBorder(),
+                if (widget.onSaveAlert != null) ...[
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          l10n.booksSmsBalanceAlertLabel,
+                          style: muted,
                         ),
                       ),
-                    ),
-                    const SizedBox(width: 8),
-                    AccountingButton(
-                      key: const Key('sms-balance-alert-save'),
-                      label: l10n.save,
-                      small: true,
-                      primary: true,
-                      isLoading: _saving,
-                      onPressed: _saving ? null : _save,
-                    ),
-                  ],
-                ),
+                      const SizedBox(width: 8),
+                      SizedBox(
+                        width: 130,
+                        child: TextField(
+                          key: const Key('sms-balance-alert-field'),
+                          controller: _threshold,
+                          keyboardType: TextInputType.number,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.digitsOnly,
+                          ],
+                          decoration: const InputDecoration(
+                            isDense: true,
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      AccountingButton(
+                        key: const Key('sms-balance-alert-save'),
+                        label: l10n.save,
+                        small: true,
+                        primary: true,
+                        isLoading: _saving,
+                        onPressed: _saving ? null : _save,
+                      ),
+                    ],
+                  ),
+                ],
               ],
             ),
           ),

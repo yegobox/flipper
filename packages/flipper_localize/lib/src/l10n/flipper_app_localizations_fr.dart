@@ -3305,6 +3305,12 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   String get smsReviewAccountMomo => 'Mobile Money';
 
   @override
+  String get smsReviewAccountOtherBank => 'Autre banque';
+
+  @override
+  String get smsReviewAccountOtherMomo => 'Autre Mobile Money';
+
+  @override
   String smsReviewTransferPaired(String provider, String amount, String time) {
     return 'Correspond à $provider $amount à $time. Les deux seront clôturés.';
   }

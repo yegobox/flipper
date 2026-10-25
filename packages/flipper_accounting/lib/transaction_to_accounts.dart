@@ -1,5 +1,6 @@
 import 'package:flipper_accounting/accounting_models.dart';
 import 'package:flipper_accounting/accounting_transaction_semantics.dart';
+import 'package:flipper_accounting/liquid_accounts.dart';
 
 /// Maps raw Supabase / Ditto row maps to the accounting model types used by
 /// [accounting_derive.dart].
@@ -238,9 +239,14 @@ class TransactionToAccounts {
 
   /// Balance of each money account, in [liquidAccountCodes] order. An account
   /// missing from [accounts] shows 0, so the three always add up to
-  /// [cashAndBankTotal].
+  /// [cashAndBankTotal]. Each bank's or wallet's own account (`1021 Bank ·
+  /// BK`) counts in its group.
   static List<({String code, int bal})> liquidBalances(List<Account> accounts) {
-    final byCode = {for (final a in accounts) a.code: a.bal};
+    final byCode = <String, int>{};
+    for (final a in accounts) {
+      final group = liquidGroupOf(a.code);
+      byCode[group] = (byCode[group] ?? 0) + a.bal;
+    }
     return [
       for (final code in liquidAccountCodes)
         (code: code, bal: byCode[code] ?? 0),

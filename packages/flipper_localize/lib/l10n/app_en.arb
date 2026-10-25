@@ -3017,6 +3017,8 @@
     "smsReviewAccountCash": "Cash",
     "smsReviewAccountBank": "Bank",
     "smsReviewAccountMomo": "Mobile Money",
+    "smsReviewAccountOtherBank": "Other bank",
+    "smsReviewAccountOtherMomo": "Other mobile money",
     "smsReviewTransferPaired": "Matches {provider} {amount} at {time}. Both will be closed.",
     "@smsReviewTransferPaired": {"placeholders": {"provider": {"type": "String"}, "amount": {"type": "String"}, "time": {"type": "String"}}},
     "smsReviewTransferRecord": "Record transfer",

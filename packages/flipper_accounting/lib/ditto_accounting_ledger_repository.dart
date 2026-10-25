@@ -5,6 +5,7 @@ import 'package:flipper_accounting/ledger_row_mapper.dart';
 import 'package:flipper_accounting/accounting_ledger_repository.dart';
 import 'package:flipper_accounting/accounting_ditto_store.dart';
 import 'package:flipper_accounting/journal_entry_id.dart';
+import 'package:flipper_accounting/liquid_accounts.dart';
 import 'package:intl/intl.dart';
 
 class DittoAccountingLedgerRepository implements AccountingLedgerRepository {
@@ -23,10 +24,17 @@ class DittoAccountingLedgerRepository implements AccountingLedgerRepository {
         '[Accounting] Ditto COA seed proceeding locally — cloud sync not ready',
       );
     }
+    // A provider account (the connector adds one when that bank's first SMS
+    // lands) does not count: a chart holding only "Bank · BK" still needs
+    // the seed.
     final existing = await _ditto.queryCollection(
       'chart_of_accounts',
-      'SELECT _id FROM chart_of_accounts WHERE businessId = :businessId LIMIT 1',
-      {'businessId': businessId},
+      'SELECT _id FROM chart_of_accounts WHERE businessId = :businessId '
+          'AND NOT (code IN :providerCodes) LIMIT 1',
+      {
+        'businessId': businessId,
+        'providerCodes': [for (final a in providerAccounts) a.code],
+      },
     );
     if (existing.isNotEmpty) {
       debugPrint(
