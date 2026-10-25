@@ -1,5 +1,6 @@
 import 'package:flipper_web/features/shop/shop_cart.dart';
 import 'package:flipper_web/features/shop/shop_models.dart';
+import 'package:flipper_web/features/shop/shop_style.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -52,6 +53,20 @@ void main() {
       expect(const ShopCart({'rice': 1.5}).remove('rice', whole: false).lines, {
         'rice': 0.5,
       });
+    });
+
+    test('shopQty prints whole units and at most three decimals', () {
+      expect(shopQty(3), '3');
+      expect(shopQty(1.25), '1.25');
+      expect(shopQty(0.001), '0.001');
+      // A cart bar total: 0.1 kg + 0.2 kg is 0.30000000000000004 in doubles.
+      expect(shopQty(0.1 + 0.2), '0.3');
+      expect(shopQty(2.0000000001), '2');
+      expect(shopQty(1.23456), '1.235');
+      final kg = const ShopCart()
+          .set('rice', 0.1, whole: false)
+          .set('beans', 0.2, whole: false);
+      expect(shopQty(kg.count), '0.3');
     });
 
     test('reconcile rounds a saved fraction of a counted item down', () {
