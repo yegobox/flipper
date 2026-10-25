@@ -1109,6 +1109,285 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   String get onlinePrint => 'Impression en ligne';
 
   @override
+  String get onlineShopTitle => 'Boutique en ligne';
+
+  @override
+  String get onlineShopSubtitle =>
+      'Une page publique où les clients commandent dans votre catalogue';
+
+  @override
+  String get onlineShopEnabled => 'La boutique est ouverte';
+
+  @override
+  String get onlineShopEnabledHint =>
+      'Désactivée, le lien n\'affiche rien et aucune commande n\'arrive';
+
+  @override
+  String get onlineShopSectionDetails => 'Détails de la boutique';
+
+  @override
+  String get onlineShopDisplayName => 'Nom de la boutique';
+
+  @override
+  String get onlineShopNameRequired => 'Saisissez le nom de la boutique';
+
+  @override
+  String get onlineShopSlug => 'Adresse web';
+
+  @override
+  String get onlineShopSlugHint => 'Lettres minuscules, chiffres et tirets';
+
+  @override
+  String get onlineShopSlugInvalid =>
+      'Utilisez 3 à 48 lettres minuscules, chiffres ou tirets';
+
+  @override
+  String get onlineShopSlugTaken =>
+      'Cette adresse est déjà prise. Essayez-en une autre.';
+
+  @override
+  String get onlineShopDescription => 'Description';
+
+  @override
+  String get onlineShopContactPhone => 'Téléphone de contact';
+
+  @override
+  String get onlineShopWhatsapp => 'Numéro WhatsApp';
+
+  @override
+  String get onlineShopShowStock => 'Afficher les niveaux de stock';
+
+  @override
+  String get onlineShopShowStockHint =>
+      'Les clients voient combien il en reste';
+
+  @override
+  String get onlineShopSectionFulfilment => 'Retrait et livraison';
+
+  @override
+  String get onlineShopPickup => 'Retrait en boutique';
+
+  @override
+  String get onlineShopDelivery => 'Nous livrons';
+
+  @override
+  String get onlineShopDeliveryNote =>
+      'Note de livraison (zones, frais, délais)';
+
+  @override
+  String get onlineShopSectionPayment => 'Mobile money';
+
+  @override
+  String get onlineShopMomoPayCode => 'Code MoMo Pay';
+
+  @override
+  String get onlineShopMomoNumber => 'Numéro MoMo';
+
+  @override
+  String get onlineShopAirtelNumber => 'Numéro Airtel Money';
+
+  @override
+  String get onlineShopSmsBridgeNotice =>
+      'Les paiements doivent être confirmés à la main tant qu\'aucun téléphone n\'est jumelé dans SMS Bridge.';
+
+  @override
+  String get onlineShopReadOnly =>
+      'Vous pouvez voir ces paramètres mais pas les modifier.';
+
+  @override
+  String get onlineShopSave => 'Enregistrer';
+
+  @override
+  String get onlineShopSaved => 'Boutique en ligne enregistrée';
+
+  @override
+  String onlineShopError(String error) {
+    return 'Une erreur s\'est produite : $error';
+  }
+
+  @override
+  String get onlineShopShare => 'Partager';
+
+  @override
+  String get onlineShopCopyLink => 'Copier le lien';
+
+  @override
+  String get onlineShopLinkCopied => 'Lien copié';
+
+  @override
+  String onlineShopShareText(String name, String url) {
+    return 'Commandez chez $name : $url';
+  }
+
+  @override
+  String get onlineShopItems => 'Articles de la boutique';
+
+  @override
+  String get onlineShopItemsHint =>
+      'Les articles masqués restent dans votre catalogue mais pas dans la boutique.';
+
+  @override
+  String get onlineShopSearchItems => 'Rechercher des articles';
+
+  @override
+  String onlineShopHiddenCount(int count) {
+    return '$count masqué(s)';
+  }
+
+  @override
+  String get onlineShopShowItem => 'Afficher dans la boutique en ligne';
+
+  @override
+  String get onlineOrdersTab => 'En ligne';
+
+  @override
+  String get onlineOrdersEmpty => 'Aucune commande en ligne';
+
+  @override
+  String get onlineOrdersEmptyHint =>
+      'Les commandes passées depuis le lien de votre boutique apparaissent ici.';
+
+  @override
+  String onlineOrderNumber(String number) {
+    return 'Commande n° $number';
+  }
+
+  @override
+  String get onlineOrderPickup => 'Retrait';
+
+  @override
+  String get onlineOrderDelivery => 'Livraison';
+
+  @override
+  String get onlineOrderPayUnpaid => 'Non payée';
+
+  @override
+  String get onlineOrderPayNeedsReview => 'À vérifier';
+
+  @override
+  String get onlineOrderPayPaid => 'Payée';
+
+  @override
+  String get onlineOrderPayOnDelivery => 'Paiement à la livraison';
+
+  @override
+  String onlineOrderTotal(String amount) {
+    return 'Total $amount';
+  }
+
+  @override
+  String onlineOrderAmountDue(String amount) {
+    return 'Le client envoie $amount';
+  }
+
+  @override
+  String onlineOrderPossiblePayment(String amount, String name, String tail) {
+    return 'Paiement possible : $amount de $name …$tail';
+  }
+
+  @override
+  String get onlineOrderConfirm => 'Confirmer';
+
+  @override
+  String get onlineOrderNotThisOne => 'Pas celui-ci';
+
+  @override
+  String get onlineOrderAccept => 'Accepter';
+
+  @override
+  String get onlineOrderReject => 'Refuser';
+
+  @override
+  String get onlineOrderReady => 'Prête';
+
+  @override
+  String get onlineOrderComplete => 'Terminer';
+
+  @override
+  String get onlineOrderMarkPaid => 'Marquer payée';
+
+  @override
+  String get onlineOrderCreateTicket => 'Créer le ticket';
+
+  @override
+  String get onlineOrderRejectConfirm =>
+      'Refuser cette commande ? Le client verra qu\'elle a été refusée.';
+
+  @override
+  String get onlineOrderMarkPaidConfirm =>
+      'Marquer cette commande comme payée ? Faites-le seulement une fois l\'argent reçu.';
+
+  @override
+  String get onlineOrderTicketPaidNote =>
+      'Payée par MoMo – encaisser avec MoMo';
+
+  @override
+  String onlineOrderAccepted(String ticket) {
+    return 'Acceptée. $ticket est dans les tickets.';
+  }
+
+  @override
+  String onlineOrderActionFailed(String error) {
+    return 'Impossible de mettre à jour la commande : $error';
+  }
+
+  @override
+  String onlineOrderSellAtTill(String ticket) {
+    return 'Vendez $ticket à la caisse, puis terminez la commande.';
+  }
+
+  @override
+  String get onlineOrderSellFirst =>
+      'Le ticket de cette commande n\'est pas encore vendu. Vendez-le d\'abord à la caisse, puis terminez la commande.';
+
+  @override
+  String get onlineOrderSmsAlreadyUsed =>
+      'Ce SMS a déjà été enregistré à une caisse ou a payé une autre commande. Vérifiez le livre de caisse.';
+
+  @override
+  String get onlineOrderSuggestionChanged =>
+      'Le paiement suggéré a changé. Vérifiez la commande et réessayez.';
+
+  @override
+  String get onlineOrderChanged =>
+      'Une autre caisse a d\'abord modifié cette commande. Vérifiez-la et réessayez.';
+
+  @override
+  String get onlineOrderStatusNew => 'Nouvelle';
+
+  @override
+  String get onlineOrderStatusAccepted => 'Acceptée';
+
+  @override
+  String get onlineOrderStatusRejected => 'Refusée';
+
+  @override
+  String get onlineOrderStatusReady => 'Prête';
+
+  @override
+  String get onlineOrderStatusCompleted => 'Terminée';
+
+  @override
+  String get onlineOrderStatusCancelled => 'Annulée';
+
+  @override
+  String get onlineOrderStatusExpired => 'Expirée';
+
+  @override
+  String get onlineOrderCall => 'Appeler';
+
+  @override
+  String get onlineOrderWhatsapp => 'WhatsApp';
+
+  @override
+  String get onlineOrderNewTitle => 'Nouvelle commande en ligne';
+
+  @override
+  String onlineOrderNewBody(String number, String name, String amount) {
+    return 'N° $number de $name : $amount';
+  }
+
+  @override
   String get managePrintSettings => 'Gérer les paramètres d\'impression';
 
   @override

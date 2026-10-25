@@ -2059,6 +2059,486 @@ abstract class FlipperAppLocalizations {
   /// **'Online Print'**
   String get onlinePrint;
 
+  /// No description provided for @onlineShopTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Online Shop'**
+  String get onlineShopTitle;
+
+  /// No description provided for @onlineShopSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'A public page where customers order from your catalog'**
+  String get onlineShopSubtitle;
+
+  /// No description provided for @onlineShopEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Shop is open'**
+  String get onlineShopEnabled;
+
+  /// No description provided for @onlineShopEnabledHint.
+  ///
+  /// In en, this message translates to:
+  /// **'When off, the link shows nothing and no orders come in'**
+  String get onlineShopEnabledHint;
+
+  /// No description provided for @onlineShopSectionDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Shop details'**
+  String get onlineShopSectionDetails;
+
+  /// No description provided for @onlineShopDisplayName.
+  ///
+  /// In en, this message translates to:
+  /// **'Shop name'**
+  String get onlineShopDisplayName;
+
+  /// No description provided for @onlineShopNameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the shop name'**
+  String get onlineShopNameRequired;
+
+  /// No description provided for @onlineShopSlug.
+  ///
+  /// In en, this message translates to:
+  /// **'Web address'**
+  String get onlineShopSlug;
+
+  /// No description provided for @onlineShopSlugHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Lowercase letters, numbers and dashes'**
+  String get onlineShopSlugHint;
+
+  /// No description provided for @onlineShopSlugInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Use 3 to 48 lowercase letters, numbers or dashes'**
+  String get onlineShopSlugInvalid;
+
+  /// No description provided for @onlineShopSlugTaken.
+  ///
+  /// In en, this message translates to:
+  /// **'That address is taken. Try another one.'**
+  String get onlineShopSlugTaken;
+
+  /// No description provided for @onlineShopDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Description'**
+  String get onlineShopDescription;
+
+  /// No description provided for @onlineShopContactPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact phone'**
+  String get onlineShopContactPhone;
+
+  /// No description provided for @onlineShopWhatsapp.
+  ///
+  /// In en, this message translates to:
+  /// **'WhatsApp number'**
+  String get onlineShopWhatsapp;
+
+  /// No description provided for @onlineShopShowStock.
+  ///
+  /// In en, this message translates to:
+  /// **'Show stock levels'**
+  String get onlineShopShowStock;
+
+  /// No description provided for @onlineShopShowStockHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Customers see how many are left'**
+  String get onlineShopShowStockHint;
+
+  /// No description provided for @onlineShopSectionFulfilment.
+  ///
+  /// In en, this message translates to:
+  /// **'Pickup and delivery'**
+  String get onlineShopSectionFulfilment;
+
+  /// No description provided for @onlineShopPickup.
+  ///
+  /// In en, this message translates to:
+  /// **'Customers can pick up'**
+  String get onlineShopPickup;
+
+  /// No description provided for @onlineShopDelivery.
+  ///
+  /// In en, this message translates to:
+  /// **'We deliver'**
+  String get onlineShopDelivery;
+
+  /// No description provided for @onlineShopDeliveryNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery note (areas, fee, timing)'**
+  String get onlineShopDeliveryNote;
+
+  /// No description provided for @onlineShopSectionPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Mobile money'**
+  String get onlineShopSectionPayment;
+
+  /// No description provided for @onlineShopMomoPayCode.
+  ///
+  /// In en, this message translates to:
+  /// **'MoMo Pay code'**
+  String get onlineShopMomoPayCode;
+
+  /// No description provided for @onlineShopMomoNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'MoMo number'**
+  String get onlineShopMomoNumber;
+
+  /// No description provided for @onlineShopAirtelNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Airtel Money number'**
+  String get onlineShopAirtelNumber;
+
+  /// No description provided for @onlineShopSmsBridgeNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'Payments need manual confirmation until a phone is paired in SMS Bridge.'**
+  String get onlineShopSmsBridgeNotice;
+
+  /// No description provided for @onlineShopReadOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'You can view these settings but not change them.'**
+  String get onlineShopReadOnly;
+
+  /// No description provided for @onlineShopSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get onlineShopSave;
+
+  /// No description provided for @onlineShopSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Online shop saved'**
+  String get onlineShopSaved;
+
+  /// No description provided for @onlineShopError.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong: {error}'**
+  String onlineShopError(String error);
+
+  /// No description provided for @onlineShopShare.
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get onlineShopShare;
+
+  /// No description provided for @onlineShopCopyLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy link'**
+  String get onlineShopCopyLink;
+
+  /// No description provided for @onlineShopLinkCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Link copied'**
+  String get onlineShopLinkCopied;
+
+  /// No description provided for @onlineShopShareText.
+  ///
+  /// In en, this message translates to:
+  /// **'Order from {name}: {url}'**
+  String onlineShopShareText(String name, String url);
+
+  /// No description provided for @onlineShopItems.
+  ///
+  /// In en, this message translates to:
+  /// **'Items on the shop'**
+  String get onlineShopItems;
+
+  /// No description provided for @onlineShopItemsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Hidden items stay in your catalog but are not on the shop.'**
+  String get onlineShopItemsHint;
+
+  /// No description provided for @onlineShopSearchItems.
+  ///
+  /// In en, this message translates to:
+  /// **'Search items'**
+  String get onlineShopSearchItems;
+
+  /// No description provided for @onlineShopHiddenCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} hidden'**
+  String onlineShopHiddenCount(int count);
+
+  /// No description provided for @onlineShopShowItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Show in online shop'**
+  String get onlineShopShowItem;
+
+  /// No description provided for @onlineOrdersTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Online'**
+  String get onlineOrdersTab;
+
+  /// No description provided for @onlineOrdersEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No online orders yet'**
+  String get onlineOrdersEmpty;
+
+  /// No description provided for @onlineOrdersEmptyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Orders placed from your shop link appear here.'**
+  String get onlineOrdersEmptyHint;
+
+  /// No description provided for @onlineOrderNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Order #{number}'**
+  String onlineOrderNumber(String number);
+
+  /// No description provided for @onlineOrderPickup.
+  ///
+  /// In en, this message translates to:
+  /// **'Pickup'**
+  String get onlineOrderPickup;
+
+  /// No description provided for @onlineOrderDelivery.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery'**
+  String get onlineOrderDelivery;
+
+  /// No description provided for @onlineOrderPayUnpaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Unpaid'**
+  String get onlineOrderPayUnpaid;
+
+  /// No description provided for @onlineOrderPayNeedsReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs review'**
+  String get onlineOrderPayNeedsReview;
+
+  /// No description provided for @onlineOrderPayPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid'**
+  String get onlineOrderPayPaid;
+
+  /// No description provided for @onlineOrderPayOnDelivery.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay on delivery'**
+  String get onlineOrderPayOnDelivery;
+
+  /// No description provided for @onlineOrderTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Total {amount}'**
+  String onlineOrderTotal(String amount);
+
+  /// No description provided for @onlineOrderAmountDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer sends {amount}'**
+  String onlineOrderAmountDue(String amount);
+
+  /// No description provided for @onlineOrderPossiblePayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Possible payment: {amount} from {name} …{tail}'**
+  String onlineOrderPossiblePayment(String amount, String name, String tail);
+
+  /// No description provided for @onlineOrderConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get onlineOrderConfirm;
+
+  /// No description provided for @onlineOrderNotThisOne.
+  ///
+  /// In en, this message translates to:
+  /// **'Not this one'**
+  String get onlineOrderNotThisOne;
+
+  /// No description provided for @onlineOrderAccept.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept'**
+  String get onlineOrderAccept;
+
+  /// No description provided for @onlineOrderReject.
+  ///
+  /// In en, this message translates to:
+  /// **'Reject'**
+  String get onlineOrderReject;
+
+  /// No description provided for @onlineOrderReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready'**
+  String get onlineOrderReady;
+
+  /// No description provided for @onlineOrderComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete'**
+  String get onlineOrderComplete;
+
+  /// No description provided for @onlineOrderMarkPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark paid'**
+  String get onlineOrderMarkPaid;
+
+  /// No description provided for @onlineOrderCreateTicket.
+  ///
+  /// In en, this message translates to:
+  /// **'Create ticket'**
+  String get onlineOrderCreateTicket;
+
+  /// No description provided for @onlineOrderRejectConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Reject this order? The customer will see that it was rejected.'**
+  String get onlineOrderRejectConfirm;
+
+  /// No description provided for @onlineOrderMarkPaidConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark this order as paid? Only do this once you have the money.'**
+  String get onlineOrderMarkPaidConfirm;
+
+  /// No description provided for @onlineOrderTicketPaidNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid by MoMo – complete with MoMo tender'**
+  String get onlineOrderTicketPaidNote;
+
+  /// No description provided for @onlineOrderAccepted.
+  ///
+  /// In en, this message translates to:
+  /// **'Accepted. {ticket} is in Tickets.'**
+  String onlineOrderAccepted(String ticket);
+
+  /// No description provided for @onlineOrderActionFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not update the order: {error}'**
+  String onlineOrderActionFailed(String error);
+
+  /// No description provided for @onlineOrderSellAtTill.
+  ///
+  /// In en, this message translates to:
+  /// **'Sell {ticket} at the till, then complete the order.'**
+  String onlineOrderSellAtTill(String ticket);
+
+  /// No description provided for @onlineOrderSellFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'This order\'s ticket is not sold yet. Sell it at the till first, then complete the order.'**
+  String get onlineOrderSellFirst;
+
+  /// No description provided for @onlineOrderSmsAlreadyUsed.
+  ///
+  /// In en, this message translates to:
+  /// **'That SMS was already recorded at a till or paid another order. Check the Cash Book.'**
+  String get onlineOrderSmsAlreadyUsed;
+
+  /// No description provided for @onlineOrderSuggestionChanged.
+  ///
+  /// In en, this message translates to:
+  /// **'The suggested payment changed. Check the order and try again.'**
+  String get onlineOrderSuggestionChanged;
+
+  /// No description provided for @onlineOrderChanged.
+  ///
+  /// In en, this message translates to:
+  /// **'Another till updated this order first. Check it and try again.'**
+  String get onlineOrderChanged;
+
+  /// No description provided for @onlineOrderStatusNew.
+  ///
+  /// In en, this message translates to:
+  /// **'New'**
+  String get onlineOrderStatusNew;
+
+  /// No description provided for @onlineOrderStatusAccepted.
+  ///
+  /// In en, this message translates to:
+  /// **'Accepted'**
+  String get onlineOrderStatusAccepted;
+
+  /// No description provided for @onlineOrderStatusRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Rejected'**
+  String get onlineOrderStatusRejected;
+
+  /// No description provided for @onlineOrderStatusReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready'**
+  String get onlineOrderStatusReady;
+
+  /// No description provided for @onlineOrderStatusCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed'**
+  String get onlineOrderStatusCompleted;
+
+  /// No description provided for @onlineOrderStatusCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled'**
+  String get onlineOrderStatusCancelled;
+
+  /// No description provided for @onlineOrderStatusExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'Expired'**
+  String get onlineOrderStatusExpired;
+
+  /// No description provided for @onlineOrderCall.
+  ///
+  /// In en, this message translates to:
+  /// **'Call'**
+  String get onlineOrderCall;
+
+  /// No description provided for @onlineOrderWhatsapp.
+  ///
+  /// In en, this message translates to:
+  /// **'WhatsApp'**
+  String get onlineOrderWhatsapp;
+
+  /// No description provided for @onlineOrderNewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'New online order'**
+  String get onlineOrderNewTitle;
+
+  /// No description provided for @onlineOrderNewBody.
+  ///
+  /// In en, this message translates to:
+  /// **'#{number} from {name}: {amount}'**
+  String onlineOrderNewBody(String number, String name, String amount);
+
   /// Online print subtitle
   ///
   /// In en, this message translates to:

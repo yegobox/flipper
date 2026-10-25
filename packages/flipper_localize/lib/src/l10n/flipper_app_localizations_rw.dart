@@ -1097,6 +1097,282 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   String get onlinePrint => 'Icapa kuri interineti';
 
   @override
+  String get onlineShopTitle => 'Online Shop';
+
+  @override
+  String get onlineShopSubtitle =>
+      'A public page where customers order from your catalog';
+
+  @override
+  String get onlineShopEnabled => 'Shop is open';
+
+  @override
+  String get onlineShopEnabledHint =>
+      'When off, the link shows nothing and no orders come in';
+
+  @override
+  String get onlineShopSectionDetails => 'Shop details';
+
+  @override
+  String get onlineShopDisplayName => 'Shop name';
+
+  @override
+  String get onlineShopNameRequired => 'Enter the shop name';
+
+  @override
+  String get onlineShopSlug => 'Web address';
+
+  @override
+  String get onlineShopSlugHint => 'Lowercase letters, numbers and dashes';
+
+  @override
+  String get onlineShopSlugInvalid =>
+      'Use 3 to 48 lowercase letters, numbers or dashes';
+
+  @override
+  String get onlineShopSlugTaken => 'That address is taken. Try another one.';
+
+  @override
+  String get onlineShopDescription => 'Description';
+
+  @override
+  String get onlineShopContactPhone => 'Contact phone';
+
+  @override
+  String get onlineShopWhatsapp => 'WhatsApp number';
+
+  @override
+  String get onlineShopShowStock => 'Show stock levels';
+
+  @override
+  String get onlineShopShowStockHint => 'Customers see how many are left';
+
+  @override
+  String get onlineShopSectionFulfilment => 'Pickup and delivery';
+
+  @override
+  String get onlineShopPickup => 'Customers can pick up';
+
+  @override
+  String get onlineShopDelivery => 'We deliver';
+
+  @override
+  String get onlineShopDeliveryNote => 'Delivery note (areas, fee, timing)';
+
+  @override
+  String get onlineShopSectionPayment => 'Mobile money';
+
+  @override
+  String get onlineShopMomoPayCode => 'MoMo Pay code';
+
+  @override
+  String get onlineShopMomoNumber => 'MoMo number';
+
+  @override
+  String get onlineShopAirtelNumber => 'Airtel Money number';
+
+  @override
+  String get onlineShopSmsBridgeNotice =>
+      'Payments need manual confirmation until a phone is paired in SMS Bridge.';
+
+  @override
+  String get onlineShopReadOnly =>
+      'You can view these settings but not change them.';
+
+  @override
+  String get onlineShopSave => 'Save';
+
+  @override
+  String get onlineShopSaved => 'Online shop saved';
+
+  @override
+  String onlineShopError(String error) {
+    return 'Something went wrong: $error';
+  }
+
+  @override
+  String get onlineShopShare => 'Share';
+
+  @override
+  String get onlineShopCopyLink => 'Copy link';
+
+  @override
+  String get onlineShopLinkCopied => 'Link copied';
+
+  @override
+  String onlineShopShareText(String name, String url) {
+    return 'Order from $name: $url';
+  }
+
+  @override
+  String get onlineShopItems => 'Items on the shop';
+
+  @override
+  String get onlineShopItemsHint =>
+      'Hidden items stay in your catalog but are not on the shop.';
+
+  @override
+  String get onlineShopSearchItems => 'Search items';
+
+  @override
+  String onlineShopHiddenCount(int count) {
+    return '$count hidden';
+  }
+
+  @override
+  String get onlineShopShowItem => 'Show in online shop';
+
+  @override
+  String get onlineOrdersTab => 'Online';
+
+  @override
+  String get onlineOrdersEmpty => 'No online orders yet';
+
+  @override
+  String get onlineOrdersEmptyHint =>
+      'Orders placed from your shop link appear here.';
+
+  @override
+  String onlineOrderNumber(String number) {
+    return 'Order #$number';
+  }
+
+  @override
+  String get onlineOrderPickup => 'Pickup';
+
+  @override
+  String get onlineOrderDelivery => 'Delivery';
+
+  @override
+  String get onlineOrderPayUnpaid => 'Unpaid';
+
+  @override
+  String get onlineOrderPayNeedsReview => 'Needs review';
+
+  @override
+  String get onlineOrderPayPaid => 'Paid';
+
+  @override
+  String get onlineOrderPayOnDelivery => 'Pay on delivery';
+
+  @override
+  String onlineOrderTotal(String amount) {
+    return 'Total $amount';
+  }
+
+  @override
+  String onlineOrderAmountDue(String amount) {
+    return 'Customer sends $amount';
+  }
+
+  @override
+  String onlineOrderPossiblePayment(String amount, String name, String tail) {
+    return 'Possible payment: $amount from $name …$tail';
+  }
+
+  @override
+  String get onlineOrderConfirm => 'Confirm';
+
+  @override
+  String get onlineOrderNotThisOne => 'Not this one';
+
+  @override
+  String get onlineOrderAccept => 'Accept';
+
+  @override
+  String get onlineOrderReject => 'Reject';
+
+  @override
+  String get onlineOrderReady => 'Ready';
+
+  @override
+  String get onlineOrderComplete => 'Complete';
+
+  @override
+  String get onlineOrderMarkPaid => 'Mark paid';
+
+  @override
+  String get onlineOrderCreateTicket => 'Create ticket';
+
+  @override
+  String get onlineOrderRejectConfirm =>
+      'Reject this order? The customer will see that it was rejected.';
+
+  @override
+  String get onlineOrderMarkPaidConfirm =>
+      'Mark this order as paid? Only do this once you have the money.';
+
+  @override
+  String get onlineOrderTicketPaidNote =>
+      'Paid by MoMo – complete with MoMo tender';
+
+  @override
+  String onlineOrderAccepted(String ticket) {
+    return 'Accepted. $ticket is in Tickets.';
+  }
+
+  @override
+  String onlineOrderActionFailed(String error) {
+    return 'Could not update the order: $error';
+  }
+
+  @override
+  String onlineOrderSellAtTill(String ticket) {
+    return 'Sell $ticket at the till, then complete the order.';
+  }
+
+  @override
+  String get onlineOrderSellFirst =>
+      'This order\'s ticket is not sold yet. Sell it at the till first, then complete the order.';
+
+  @override
+  String get onlineOrderSmsAlreadyUsed =>
+      'That SMS was already recorded at a till or paid another order. Check the Cash Book.';
+
+  @override
+  String get onlineOrderSuggestionChanged =>
+      'The suggested payment changed. Check the order and try again.';
+
+  @override
+  String get onlineOrderChanged =>
+      'Another till updated this order first. Check it and try again.';
+
+  @override
+  String get onlineOrderStatusNew => 'New';
+
+  @override
+  String get onlineOrderStatusAccepted => 'Accepted';
+
+  @override
+  String get onlineOrderStatusRejected => 'Rejected';
+
+  @override
+  String get onlineOrderStatusReady => 'Ready';
+
+  @override
+  String get onlineOrderStatusCompleted => 'Completed';
+
+  @override
+  String get onlineOrderStatusCancelled => 'Cancelled';
+
+  @override
+  String get onlineOrderStatusExpired => 'Expired';
+
+  @override
+  String get onlineOrderCall => 'Call';
+
+  @override
+  String get onlineOrderWhatsapp => 'WhatsApp';
+
+  @override
+  String get onlineOrderNewTitle => 'New online order';
+
+  @override
+  String onlineOrderNewBody(String number, String name, String amount) {
+    return '#$number from $name: $amount';
+  }
+
+  @override
   String get managePrintSettings => 'Cunga igenamiterere ry\'icapa';
 
   @override

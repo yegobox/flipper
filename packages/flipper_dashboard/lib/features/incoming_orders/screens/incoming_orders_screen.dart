@@ -5,6 +5,8 @@ import 'package:flipper_dashboard/checkout.dart' show OrderStatus;
 import 'package:flipper_dashboard/features/incoming_orders/om_tokens.dart';
 import 'package:flipper_dashboard/features/incoming_orders/widgets/bulk_action_bar.dart';
 import 'package:flipper_dashboard/features/incoming_orders/widgets/om_segmented.dart';
+import 'package:flipper_dashboard/features/incoming_orders/widgets/online_orders_view.dart';
+import 'package:flipper_dashboard/features/online_shop/online_shop_providers.dart';
 import 'package:flipper_dashboard/features/incoming_orders/widgets/request_card.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/active_branch_provider.dart';
@@ -15,7 +17,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-enum OmDirection { incoming, outgoing }
+/// Which list the screen shows. [online] is orders from the public online
+/// shop (`features/online_shop`), not stock requests.
+enum OmDirection { incoming, outgoing, online }
 
 class IncomingOrdersScreen extends HookConsumerWidget {
   const IncomingOrdersScreen({Key? key, this.showTitle = true})
@@ -29,7 +33,7 @@ class IncomingOrdersScreen extends HookConsumerWidget {
     final stringValue = ref.watch(stringProvider);
     final status = ref.watch(requestStatusProvider);
     final search = stringValue?.isNotEmpty == true ? stringValue : null;
-    final direction = useState(OmDirection.incoming);
+    final picked = useState(OmDirection.incoming);
     // Gates pagination so loadMore() fires once per scroll-to-bottom, not on
     // every settling scroll notification while parked at the end.
     final loadMoreGate = useRef(false);
@@ -43,7 +47,17 @@ class IncomingOrdersScreen extends HookConsumerWidget {
     );
     final branchAsync = ref.watch(activeBranchProvider);
 
-    final isIncoming = direction.value == OmDirection.incoming;
+    final shopAvailable = ref.watch(onlineShopAvailableProvider);
+    // The Online tab goes away when the shop does (e.g. the business turned
+    // personal); fall back to Incoming instead of showing its orders.
+    final direction = !shopAvailable && picked.value == OmDirection.online
+        ? OmDirection.incoming
+        : picked.value;
+    final isIncoming = direction == OmDirection.incoming;
+    final isOnline = direction == OmDirection.online;
+    final newOnline = shopAvailable
+        ? ref.watch(newOnlineOrdersCountProvider)
+        : 0;
     final requestsAsync = isIncoming
         ? incomingRequestsAsync
         : outgoingRequestsAsync;
@@ -79,6 +93,7 @@ class IncomingOrdersScreen extends HookConsumerWidget {
                           children: [
                             _OmHeader(
                               showTitle: showTitle,
+                              showStatus: !isOnline,
                               compact: compact,
                               orderStatus: orderStatus,
                               onStatusChanged: (newStatus) {
@@ -93,9 +108,9 @@ class IncomingOrdersScreen extends HookConsumerWidget {
                             ),
                             SizedBox(height: compact ? 16 : 22),
                             OmSegmented<OmDirection>(
-                              value: direction.value,
+                              value: direction,
                               large: true,
-                              onChanged: (v) => direction.value = v,
+                              onChanged: (v) => picked.value = v,
                               options: [
                                 OmSegOption(
                                   value: OmDirection.incoming,
@@ -107,24 +122,41 @@ class IncomingOrdersScreen extends HookConsumerWidget {
                                   label: l10n.incomingOrdersOutgoing,
                                   icon: Icons.outbox_outlined,
                                 ),
+                                if (shopAvailable)
+                                  OmSegOption(
+                                    value: OmDirection.online,
+                                    label: newOnline > 0
+                                        ? '${l10n.onlineOrdersTab} · $newOnline'
+                                        : l10n.onlineOrdersTab,
+                                    icon: Icons.storefront_outlined,
+                                  ),
                               ],
                             ),
                           ],
                         ),
                       ),
                       Expanded(
-                        child: _buildBody(
-                          l10n: l10n,
-                          ref: ref,
-                          requestsAsync: requestsAsync,
-                          branchAsync: branchAsync,
-                          isIncoming: isIncoming,
-                          status: status,
-                          search: search,
-                          compact: compact,
-                          hPad: hPad,
-                          loadMoreGate: loadMoreGate,
-                        ),
+                        child: isOnline
+                            ? OnlineOrdersView(
+                                padding: EdgeInsets.fromLTRB(
+                                  hPad,
+                                  compact ? 16 : 22,
+                                  hPad,
+                                  80,
+                                ),
+                              )
+                            : _buildBody(
+                                l10n: l10n,
+                                ref: ref,
+                                requestsAsync: requestsAsync,
+                                branchAsync: branchAsync,
+                                isIncoming: isIncoming,
+                                status: status,
+                                search: search,
+                                compact: compact,
+                                hPad: hPad,
+                                loadMoreGate: loadMoreGate,
+                              ),
                       ),
                     ],
                   ),
@@ -291,9 +323,13 @@ class _OmHeader extends StatelessWidget {
     required this.orderStatus,
     required this.onStatusChanged,
     this.showTitle = true,
+    this.showStatus = true,
   });
 
   final bool showTitle;
+
+  /// False on the Online tab: Pending/Approved is for stock requests.
+  final bool showStatus;
   final bool compact;
   final OrderStatus orderStatus;
   final ValueChanged<OrderStatus> onStatusChanged;
@@ -334,7 +370,13 @@ class _OmHeader extends StatelessWidget {
       ],
     );
 
-    if (!showTitle) return statusSeg;
+    if (!showTitle) return showStatus ? statusSeg : const SizedBox.shrink();
+    if (!showStatus) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [title, const SizedBox(height: 6), subtitle],
+      );
+    }
 
     if (compact) {
       return Column(

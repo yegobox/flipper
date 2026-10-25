@@ -16,6 +16,7 @@ import 'package:flipper_models/providers/pos_cart_display_provider.dart';
 import 'package:flipper_models/providers/orders_provider.dart';
 import 'package:flipper_models/providers/scan_mode_provider.dart';
 import 'package:flipper_dashboard/features/config/widgets/system_config_modal.dart';
+import 'package:flipper_dashboard/features/online_shop/online_shop_providers.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart'
     show buttonIndexProvider, selectedBranchProvider;
 import 'package:flipper_routing/app.locator.dart' show locator;
@@ -82,6 +83,11 @@ class IconRowState extends ConsumerState<IconRow> with CoreMiscellaneous {
       ),
     );
 
+    // New online-shop orders wait in the same Orders screen (Online tab).
+    final online = ref.watch(onlineShopAvailableProvider)
+        ? ref.watch(newOnlineOrdersCountProvider)
+        : 0;
+
     Widget tool({required int count}) {
       final button = PosTopToolButton(
         key: const Key('ribbon_umusada_sales'),
@@ -102,8 +108,8 @@ class IconRowState extends ConsumerState<IconRow> with CoreMiscellaneous {
     }
 
     return orders.when(
-      data: (list) => tool(count: list.length),
-      loading: () => tool(count: 0),
+      data: (list) => tool(count: list.length + online),
+      loading: () => tool(count: online),
       error: (_, __) => const SizedBox.shrink(),
     );
   }
