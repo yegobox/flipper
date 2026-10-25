@@ -95,7 +95,7 @@ class _Loans implements PersonalLoansStore {
 /// A personal account with one open loan.
 List<Override> _personalLoanOverrides(_Loans loans) => [
   accountModeProvider.overrideWith(
-    (ref, id) => Stream.value(AccountMode.personal),
+    (ref, id) => Stream.value((mode: AccountMode.personal, fromServer: true)),
   ),
   personalLoansStoreProvider.overrideWithValue(loans),
   personalLoansBusinessIdProvider.overrideWithValue('biz'),

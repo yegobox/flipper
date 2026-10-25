@@ -59,9 +59,12 @@ paywall. An account with a working plan never waits for it.
 
 `accountModeProvider` follows the Ditto doc live. When the mode changes because of
 another device, the home says so ("…switched … on another device"),
-unless the switch was made here in the last 2 minutes or the home has been
-up for less than 10 seconds (first value after login),
-`shouldAnnounceModeSwitch`. `FlipperApp` (the
+`shouldAnnounceModeSwitch`. Each value says whether a server Ditto doc backs
+it (`fromServer`); the cached fallback never counts, and the first
+server-backed value is only the baseline, however late it arrives. A switch
+of the same business made here (in flight, or taken by the server in the
+last 2 minutes, `switchedHereRecently(businessId)`) is never announced; a
+switch the server refused clears that marker. `FlipperApp` (the
 `FlipperAppRoute` page) is a gate: it shows `PersonalShell` for personal and
 the unchanged business app for everything else. A switch made on another
 device therefore swaps shells without a navigation.

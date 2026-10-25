@@ -52,12 +52,16 @@ class AccountModeStore {
   /// Businesses already asked over the network this session, answered or not.
   final Set<String> _asked = {};
 
-  DateTime? _lastSwitchHere;
+  /// When this device last switched each business (by id): set while the
+  /// request is in flight, kept once the server takes it, restored if not.
+  final Map<String, DateTime> _switchedHereAt = {};
 
-  /// Whether a mode change seen now was made on this device (within the last
-  /// two minutes), so the app only announces switches made elsewhere.
-  bool get switchedHereRecently {
-    final at = _lastSwitchHere;
+  /// Whether a mode change of [businessId] seen now was made on this device
+  /// (in flight, or taken by the server within the last two minutes), so the
+  /// app only announces switches made elsewhere. Another business's switch
+  /// never counts.
+  bool switchedHereRecently(String businessId) {
+    final at = _switchedHereAt[businessId];
     return at != null &&
         DateTime.now().difference(at) < const Duration(minutes: 2);
   }
@@ -228,8 +232,24 @@ class AccountModeStore {
     if (id == null) {
       throw const AccountModeException('No business is selected.');
     }
-    _lastSwitchHere = DateTime.now();
-    final result = await _client.switchTo(mode);
+    // Marked before the request: the connector's Ditto write can reach this
+    // device before the answer does, and that is still this device's switch.
+    final before = _switchedHereAt[id];
+    _switchedHereAt[id] = DateTime.now();
+    final AccountModeResult result;
+    try {
+      result = await _client.switchTo(mode);
+    } catch (_) {
+      // Not taken: a change seen now came from elsewhere after all.
+      if (before == null) {
+        _switchedHereAt.remove(id);
+      } else {
+        _switchedHereAt[id] = before;
+      }
+      rethrow;
+    }
+    // The window runs from when the server took it.
+    _switchedHereAt[id] = DateTime.now();
     // The server just took this switch, so it replaces whatever was cached,
     // however new. With the server's time it also beats the old Ditto doc
     // until the new one syncs back. Never the device clock: a clock running
