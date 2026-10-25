@@ -39,6 +39,14 @@ typedef SmsTransferPoster =
       required String otherAccountCode,
     });
 
+/// Posts the clearing entry [entryId] (`smsClearingEntry`) to the ledger.
+/// False when the SMS has nothing to move.
+typedef SmsClearingPoster =
+    Future<bool> Function({
+      required String entryId,
+      required SmsReviewItem item,
+    });
+
 /// Takes a posted transfer entry back out of the books (undo).
 typedef SmsTransferVoider =
     Future<void> Function({
@@ -73,6 +81,11 @@ typedef SmsTransferResult = ({String entryId, SmsReviewItem? pairedWith});
 /// (`PosJournalPoster.saleEntryId`). That match is what keeps the money from
 /// being counted twice: the movement posts Dr/Cr the bank account, and a
 /// matched bank line posts nothing more.
+///
+/// The movement, a linked sale and a debt repayment all post to Bank or
+/// Mobile Money, the clearing accounts, since a payment method never says
+/// which bank. [postClearing] then moves the money into the SMS's own account
+/// (`1021 Bank · BK`), and the bank line is matched to that entry instead.
 class SmsReviewService {
   SmsReviewService({
     required this.store,
@@ -80,6 +93,7 @@ class SmsReviewService {
     required this.journalEntryId,
     required this.postTransfer,
     required this.voidTransfer,
+    this.postClearing,
     this.recordRepayment,
     DateTime Function()? clock,
   }) : _clock = clock ?? DateTime.now;
@@ -88,6 +102,10 @@ class SmsReviewService {
   final SmsMovementRecorder recordMovement;
   final SmsTransferPoster postTransfer;
   final SmsTransferVoider voidTransfer;
+
+  /// Null where the ledger is not available: the money then stays in the
+  /// clearing account, still counted once.
+  final SmsClearingPoster? postClearing;
 
   /// Null where repayments cannot be recorded; [settleDebt] then throws.
   final SmsDebtRepaymentRecorder? recordRepayment;
@@ -130,13 +148,10 @@ class SmsReviewService {
         'lastTouched': now,
       },
     );
-    final lineId = item.bankLineId;
-    if (lineId != null && lineId.isNotEmpty) {
-      await store.matchBankLine(
-        lineId,
-        journalEntryId(item.businessId, transactionId),
-      );
-    }
+    await _matchBankLine(
+      item,
+      await _clear(item) ?? journalEntryId(item.businessId, transactionId),
+    );
     return transactionId;
   }
 
@@ -156,13 +171,10 @@ class SmsReviewService {
         'lastTouched': now,
       },
     );
-    final lineId = item.bankLineId;
-    if (lineId != null && lineId.isNotEmpty) {
-      await store.matchBankLine(
-        lineId,
-        journalEntryId(item.businessId, transactionId),
-      );
-    }
+    await _matchBankLine(
+      item,
+      await _clear(item) ?? journalEntryId(item.businessId, transactionId),
+    );
     return true;
   }
 
@@ -199,10 +211,7 @@ class SmsReviewService {
         'lastTouched': now,
       },
     );
-    final lineId = item.bankLineId;
-    if (lineId != null && lineId.isNotEmpty) {
-      await store.matchBankLine(lineId, settled.journalEntryId);
-    }
+    await _matchBankLine(item, await _clear(item) ?? settled.journalEntryId);
     return settled;
   }
 
@@ -297,6 +306,28 @@ class SmsReviewService {
     final lineId = item.bankLineId;
     if (lineId != null && lineId.isNotEmpty) {
       await store.matchBankLine(lineId, entryId);
+    }
+  }
+
+  /// Posts [postClearing] for [item]. Returns its entry id, or null when
+  /// there was nothing to move or posting failed. Never throws: the money is
+  /// already recorded, and a retry would record it twice. It then stays in
+  /// the clearing account and the bank line keeps the recorded entry.
+  Future<String?> _clear(SmsReviewItem item) async {
+    final post = postClearing;
+    if (post == null) return null;
+    final entryId = smsClearingEntryId(item.id);
+    try {
+      return await post(entryId: entryId, item: item) ? entryId : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<void> _matchBankLine(SmsReviewItem item, String journalEntryId) async {
+    final lineId = item.bankLineId;
+    if (lineId != null && lineId.isNotEmpty) {
+      await store.matchBankLine(lineId, journalEntryId);
     }
   }
 

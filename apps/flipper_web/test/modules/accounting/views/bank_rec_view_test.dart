@@ -1,6 +1,8 @@
 import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
+import 'package:flipper_accounting/liquid_accounts.dart'
+    show providerAccountFor, providerChartAccount;
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_models.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_providers.dart';
@@ -160,6 +162,7 @@ Future<void> _pump(
   _Ledger ledger, {
   ParsedStatement statement = const ParsedStatement(),
   BankBalanceService? balances,
+  List<Account> chart = defaultChartOfAccountsSeed,
 }) async {
   tester.view.physicalSize = const Size(1400, 2400);
   tester.view.devicePixelRatio = 1.0;
@@ -171,9 +174,7 @@ Future<void> _pump(
         ...accountingUnitTestOverrides(),
         accountingLedgerRepositoryProvider.overrideWithValue(ledger),
         accountingBusinessIdProvider.overrideWithValue('biz'),
-        accountingAccountsProvider.overrideWithValue(
-          defaultChartOfAccountsSeed,
-        ),
+        accountingAccountsProvider.overrideWithValue(chart),
         accountingCurrencyProvider.overrideWithValue('RWF'),
         accountingPeriodLabelProvider.overrideWithValue('Oct 2026'),
         bankStatementServiceProvider.overrideWithValue(
@@ -495,6 +496,47 @@ void main() {
       await tester.tap(find.byKey(const Key('sms-balance-alert-save')));
       await _settle(tester);
       expect(find.text('Could not save the alert level'), findsOneWidget);
+    });
+
+    testWidgets('a bank with its own account gets its own tab and balance', (
+      tester,
+    ) async {
+      // BK's first SMS added "Bank · BK" (1021); Equity has no account yet.
+      final chart = [
+        ...defaultChartOfAccountsSeed,
+        providerChartAccount(providerAccountFor('1021')!),
+      ];
+      await _pump(
+        tester,
+        _Ledger({
+          '1020': const [],
+          '1021': const [_bankSms],
+        }),
+        balances: _FakeBalances(owner(twoAccounts: true)),
+        chart: chart,
+      );
+      expect(find.text('BK'), findsOneWidget);
+      expect(find.text('Equity'), findsNothing);
+      // Bank as a whole keeps its alert level.
+      expect(find.byKey(const Key('sms-balance-alert-field')), findsOneWidget);
+
+      await tester.tap(find.text('BK'));
+      await _settle(tester);
+
+      // Only BK's lines and SMS balance (6,000, not Bank's 10,000): its
+      // unmatched −2,000 leaves 8,000 unexplained. Alerts are kept per
+      // group, so there is no alert field.
+      expect(find.text('BK · to Jane'), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('sms-balance-unexplained')),
+          matching: find.text('8,000'),
+        ),
+        findsOneWidget,
+      );
+      expect(find.textContaining('10,000'), findsNothing);
+      expect(find.textContaining('Equity · 4,000'), findsNothing);
+      expect(find.byKey(const Key('sms-balance-alert-field')), findsNothing);
     });
 
     testWidgets('a user who may not see balances gets no check', (

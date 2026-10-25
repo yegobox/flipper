@@ -2572,6 +2572,8 @@
   "smsReviewAccountCash": "Fedha taslimu",
   "smsReviewAccountBank": "Benki",
   "smsReviewAccountMomo": "Mobile Money",
+  "smsReviewAccountOtherBank": "Benki nyingine",
+  "smsReviewAccountOtherMomo": "Mobile Money nyingine",
   "smsReviewTransferPaired": "Inalingana na {provider} {amount} saa {time}. Zote mbili zitafungwa.",
   "smsReviewTransferRecord": "Rekodi uhamisho",
   "smsReviewTransferDoneTo": "Imerekodiwa kama uhamisho kwenda {account}",

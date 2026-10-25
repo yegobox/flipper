@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:flipper_accounting/liquid_accounts.dart'
+    show liquidGroupOf, providerAccountFor;
 import 'package:flutter/foundation.dart';
 import 'package:flipper_models/data_connector_client.dart';
 import 'package:http/http.dart' as http;
@@ -74,6 +76,7 @@ class SmsBalanceTotal {
 class SmsBalanceGap {
   const SmsBalanceGap({
     required this.bankAccountCode,
+    this.providerLabel = '',
     required this.amount,
     required this.after,
     required this.before,
@@ -85,6 +88,7 @@ class SmsBalanceGap {
         DateTime.fromMillisecondsSinceEpoch(0);
     return SmsBalanceGap(
       bankAccountCode: json['bankAccountCode'] as String? ?? '',
+      providerLabel: json['providerLabel'] as String? ?? '',
       amount: (json['amount'] as num?)?.round() ?? 0,
       after: at('after'),
       before: at('before'),
@@ -92,6 +96,7 @@ class SmsBalanceGap {
   }
 
   final String bankAccountCode;
+  final String providerLabel;
   final int amount;
   final DateTime after;
   final DateTime before;
@@ -130,11 +135,55 @@ class SmsBalances {
     return null;
   }
 
+  /// What the SMS last stated for ledger account [code]: Bank or Mobile
+  /// Money as a whole, or one bank's or wallet's own account (`1021 Bank ·
+  /// BK`) summed over that provider's accounts. Null when no SMS said.
+  SmsBalanceTotal? totalForAccount(String code) {
+    final provider = providerAccountFor(code);
+    if (provider == null) return totalFor(code);
+    final group = liquidGroupOf(code);
+    final mine = accounts.where(
+      (a) =>
+          a.bankAccountCode == group &&
+          a.providerLabel == provider.providerLabel,
+    );
+    if (mine.isEmpty) return null;
+    return SmsBalanceTotal(
+      bankAccountCode: code,
+      balance: mine.fold(0, (s, a) => s + a.balance),
+      observedAt: mine
+          .map((a) => a.observedAt)
+          .reduce((a, b) => a.isAfter(b) ? a : b),
+      stale: mine.any((a) => a.stale),
+    );
+  }
+
   List<SmsAccountBalance> accountsFor(String bankAccountCode) =>
       accounts.where((a) => a.bankAccountCode == bankAccountCode).toList();
 
   List<SmsBalanceGap> gapsFor(String bankAccountCode) =>
       gaps.where((g) => g.bankAccountCode == bankAccountCode).toList();
+
+  /// [accountsFor] ledger account [code]: one bank's own account keeps only
+  /// that provider's accounts.
+  List<SmsAccountBalance> accountsForAccount(String code) {
+    final provider = providerAccountFor(code);
+    return accountsFor(liquidGroupOf(code))
+        .where(
+          (a) => provider == null || a.providerLabel == provider.providerLabel,
+        )
+        .toList();
+  }
+
+  /// [gapsFor] ledger account [code], narrowed the same way.
+  List<SmsBalanceGap> gapsForAccount(String code) {
+    final provider = providerAccountFor(code);
+    return gapsFor(liquidGroupOf(code))
+        .where(
+          (g) => provider == null || g.providerLabel == provider.providerLabel,
+        )
+        .toList();
+  }
 }
 
 /// A low-balance alert level for Bank (1020) or Mobile Money (1030).

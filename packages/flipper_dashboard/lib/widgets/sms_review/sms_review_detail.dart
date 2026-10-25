@@ -155,6 +155,17 @@ class _SmsReviewDetailState extends ConsumerState<SmsReviewDetail> {
     final counterpart = item.isFee
         ? null
         : findTransferCounterpart(item, pending);
+    final targets = smsTransferTargets(
+      item,
+      chartCodes:
+          ref.watch(smsMoneyAccountCodesProvider(item.businessId)).value ??
+          const [],
+      counterpart: counterpart,
+    );
+    final accountLabel = _accountLabeler([
+      ...targets,
+      item.bankAccountCode,
+    ], l10n);
     final name = item.isFee ? null : item.counterpartyName;
 
     return Padding(
@@ -419,7 +430,7 @@ class _SmsReviewDetailState extends ConsumerState<SmsReviewDetail> {
                         final paired = counterpart?.bankAccountCode;
                         if (_target == null &&
                             paired != null &&
-                            smsTransferTargets(item).contains(paired)) {
+                            targets.contains(paired)) {
                           _target = paired;
                         }
                       }),
@@ -432,6 +443,8 @@ class _SmsReviewDetailState extends ConsumerState<SmsReviewDetail> {
               if (_transferOpen)
                 _TransferPanel(
                   item: item,
+                  targets: targets,
+                  accountLabel: accountLabel,
                   target: _target,
                   counterpart: counterpart,
                   busy: _busy,
@@ -449,7 +462,7 @@ class _SmsReviewDetailState extends ConsumerState<SmsReviewDetail> {
                         undo: null,
                       );
                     }
-                    final account = _accountLabel(target, l10n);
+                    final account = accountLabel(target);
                     return (
                       message: item.isIncome
                           ? l10n.smsReviewTransferDoneFrom(account)
@@ -640,14 +653,28 @@ class _CategoryChips extends StatelessWidget {
   }
 }
 
-String _accountLabel(String code, FlipperAppLocalizations l10n) =>
-    switch (code) {
-      kSmsCashAccount => l10n.smsReviewAccountCash,
-      kSmsMobileMoneyAccount => l10n.smsReviewAccountMomo,
-      _ => l10n.smsReviewAccountBank,
-    };
+/// Names [codes]' accounts: a bank or wallet by its own name (BK, MTN MoMo),
+/// and Bank / Mobile Money as "Other …" once one of [codes] is a named
+/// account in that group, so "Bank" never sits beside "BK" as if different.
+String Function(String code) _accountLabeler(
+  List<String> codes,
+  FlipperAppLocalizations l10n,
+) {
+  bool named(String group) =>
+      codes.any((c) => c != group && liquidGroupOf(c) == group);
+  final otherBank = named(kSmsBankAccount);
+  final otherMomo = named(kSmsMobileMoneyAccount);
+  return (code) => switch (code) {
+    kSmsCashAccount => l10n.smsReviewAccountCash,
+    kSmsBankAccount =>
+      otherBank ? l10n.smsReviewAccountOtherBank : l10n.smsReviewAccountBank,
+    kSmsMobileMoneyAccount =>
+      otherMomo ? l10n.smsReviewAccountOtherMomo : l10n.smsReviewAccountMomo,
+    _ => providerAccountFor(code)?.providerLabel ?? l10n.smsReviewAccountBank,
+  };
+}
 
-IconData _accountIcon(String code) => switch (code) {
+IconData _accountIcon(String code) => switch (liquidGroupOf(code)) {
   kSmsCashAccount => Icons.payments_outlined,
   kSmsMobileMoneyAccount => Icons.phone_android_rounded,
   _ => Icons.account_balance_outlined,
@@ -658,6 +685,8 @@ IconData _accountIcon(String code) => switch (code) {
 class _TransferPanel extends StatelessWidget {
   const _TransferPanel({
     required this.item,
+    required this.targets,
+    required this.accountLabel,
     required this.target,
     required this.counterpart,
     required this.busy,
@@ -666,6 +695,8 @@ class _TransferPanel extends StatelessWidget {
   });
 
   final SmsReviewItem item;
+  final List<String> targets;
+  final String Function(String code) accountLabel;
   final String? target;
   final SmsReviewItem? counterpart;
   final bool busy;
@@ -699,11 +730,11 @@ class _TransferPanel extends StatelessWidget {
             spacing: 8,
             runSpacing: 8,
             children: [
-              for (final code in smsTransferTargets(item))
+              for (final code in targets)
                 ChoiceChip(
                   key: Key('sms_review_transfer_target_$code'),
                   avatar: Icon(_accountIcon(code), size: 18),
-                  label: Text(_accountLabel(code, l10n)),
+                  label: Text(accountLabel(code)),
                   selected: target == code,
                   selectedColor: _kBlue.withValues(alpha: 0.15),
                   onSelected: busy ? null : (_) => onTarget(code),

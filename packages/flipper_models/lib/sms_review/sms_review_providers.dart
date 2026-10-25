@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flipper_accounting/accounting_models.dart';
 import 'package:flipper_accounting/ditto_accounting_ledger_repository.dart';
+import 'package:flipper_accounting/liquid_accounts.dart';
 import 'package:flipper_models/sms_review/sms_debt_match.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/sms_review/sms_review_item.dart';
@@ -209,6 +210,30 @@ final smsMatchingDebtsProvider = FutureProvider.autoDispose
       ]);
     });
 
+const _moneyAccountsQuery =
+    'SELECT code FROM chart_of_accounts '
+    'WHERE businessId = :businessId OR business_id = :businessId';
+
+/// Cash and the bank and wallet accounts on [businessId]'s chart
+/// (`1021 Bank · BK`, …), offered as the other side of a transfer. One local
+/// read when the review opens, like [smsMatchingSalesProvider].
+final smsMoneyAccountCodesProvider = FutureProvider.autoDispose
+    .family<List<String>, String>((ref, businessId) async {
+      if (businessId.isEmpty) return const [];
+      final ditto = DittoService.instance.dittoInstance;
+      if (ditto == null) return const [];
+      final rows = await ditto.store.execute(
+        _moneyAccountsQuery,
+        arguments: {'businessId': businessId},
+      );
+      return {
+        for (final i in rows.items)
+          if (i.value['code']?.toString() case final code?
+              when isLiquidAccount(code))
+            code,
+      }.toList();
+    });
+
 /// [SmsReviewStore] over the app's Ditto instance.
 class DittoSmsReviewStore implements SmsReviewStore {
   const DittoSmsReviewStore();
@@ -244,8 +269,8 @@ class DittoSmsReviewStore implements SmsReviewStore {
       });
 }
 
-/// Posts and voids SMS transfer entries in the Ditto ledger, the way
-/// `PosJournalPoster` posts sales.
+/// Posts and voids SMS transfer and clearing entries in the Ditto ledger,
+/// the way `PosJournalPoster` posts sales.
 class DittoSmsTransferLedger {
   const DittoSmsTransferLedger();
 
@@ -253,12 +278,54 @@ class DittoSmsTransferLedger {
     required String entryId,
     required SmsReviewItem item,
     required String otherAccountCode,
+  }) => _post(
+    item: item,
+    entryId: entryId,
+    entry: smsTransferEntry(item, otherAccountCode),
+    accountCodes: [item.bankAccountCode, otherAccountCode],
+  );
+
+  /// Posts [smsClearingEntry]; false when the SMS has nothing to move.
+  Future<bool> postClearing({
+    required String entryId,
+    required SmsReviewItem item,
+  }) async {
+    final entry = smsClearingEntry(item);
+    if (entry == null) return false;
+    await _post(
+      item: item,
+      entryId: entryId,
+      entry: entry,
+      accountCodes: [item.bankAccountCode],
+    );
+    return true;
+  }
+
+  Future<void> _post({
+    required SmsReviewItem item,
+    required String entryId,
+    required JournalEntry entry,
+    required List<String> accountCodes,
   }) async {
     final ledger = DittoAccountingLedgerRepository(DittoService.instance);
     await ledger.ensureSeeded(businessId: item.businessId);
+    // The connector adds a bank's account with its first SMS, but the chart
+    // doc can reach this till after the item does.
+    for (final code in accountCodes) {
+      final provider = providerAccountFor(code);
+      if (provider == null) continue;
+      try {
+        await ledger.createChartOfAccount(
+          businessId: item.businessId,
+          account: providerChartAccount(provider),
+        );
+      } on StateError {
+        // Already on the chart.
+      }
+    }
     await ledger.createJournalEntry(
       businessId: item.businessId,
-      entry: smsTransferEntry(item, otherAccountCode),
+      entry: entry,
       journalCode: 'misc',
       entryId: entryId,
     );

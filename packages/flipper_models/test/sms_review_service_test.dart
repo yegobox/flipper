@@ -68,12 +68,14 @@ void main() {
   late List<SmsReviewItem> recorded;
   late List<(String, String)> posted;
   late List<String> voided;
+  late List<String> cleared;
 
-  SmsReviewService service({bool fail = false}) {
+  SmsReviewService service({bool fail = false, bool clearingFails = false}) {
     store = _FakeStore();
     recorded = [];
     posted = [];
     voided = [];
+    cleared = [];
     return SmsReviewService(
       store: store,
       recordMovement:
@@ -90,6 +92,12 @@ void main() {
           },
       voidTransfer: ({required entryId, required item}) async =>
           voided.add(entryId),
+      postClearing: ({required entryId, required item}) async {
+        if (smsClearingEntry(item) == null) return false;
+        if (clearingFails) throw StateError('offline');
+        cleared.add(entryId);
+        return true;
+      },
       clock: () => DateTime.utc(2026, 10, 14, 12),
     );
   }
@@ -326,6 +334,103 @@ void main() {
     expect(await s.linkToSale(_item(direction: 'credit'), 'sale-9'), isFalse);
     expect(store.statuses['sms-1'], SmsReviewItem.ignored);
     expect(store.matched, isEmpty);
+  });
+
+  group('each bank\'s own account', () {
+    final bkIn = _item(direction: 'credit', bankAccountCode: '1021');
+    final bkOut = _item(bankAccountCode: '1021');
+    final equityIn = _item(
+      id: 'sms-2',
+      direction: 'credit',
+      bankAccountCode: '1022',
+      providerLabel: 'Equity',
+      bankLineId: 'line-2',
+      occurredAt: '2026-10-14T09:31:00',
+    );
+
+    test('confirm clears into the bank and matches the line there', () async {
+      final s = service();
+      expect(await s.confirm(bkIn), 'txn-1');
+      expect(cleared, ['je_smsclear_sms-1']);
+      expect(store.matched, {'line-1': 'je_smsclear_sms-1'});
+    });
+
+    test('an SMS on the clearing account itself moves nothing', () async {
+      final s = service();
+      await s.confirm(_item());
+      expect(cleared, isEmpty);
+      expect(store.matched, {'line-1': 'je_biz_txn-1_sale'});
+    });
+
+    test('a failed clearing still confirms, on the movement', () async {
+      final s = service(clearingFails: true);
+      expect(await s.confirm(bkIn), 'txn-1');
+      expect(store.statuses['sms-1'], SmsReviewItem.confirmed);
+      expect(store.matched, {'line-1': 'je_biz_txn-1_sale'});
+    });
+
+    test('a linked sale clears into the wallet', () async {
+      final s = service();
+      final momoIn = _item(
+        direction: 'credit',
+        bankAccountCode: '1031',
+        paymentType: 'MTN MOMO',
+      );
+      expect(await s.linkToSale(momoIn, 'sale-9'), isTrue);
+      expect(store.matched, {'line-1': 'je_smsclear_sms-1'});
+    });
+
+    test('the clearing entry moves money between Bank and BK', () {
+      final into = smsClearingEntry(bkIn)!;
+      expect(into.memo, 'BK · cleared from Bank');
+      expect(into.src, 'SMS');
+      expect(into.lines.map((l) => (l.ac, l.dr, l.cr)), [
+        ('1021', 2000, 0),
+        ('1020', 0, 2000),
+      ]);
+      final outOf = smsClearingEntry(bkOut)!;
+      expect(outOf.lines.map((l) => (l.ac, l.dr, l.cr)), [
+        ('1020', 2000, 0),
+        ('1021', 0, 2000),
+      ]);
+      expect(smsClearingEntry(_item()), isNull);
+    });
+
+    test('targets list every money account on the chart but its own', () {
+      final chart = ['1010', '1020', '1021', '1022', '1030', '1031', '1100'];
+      expect(smsTransferTargets(bkOut, chartCodes: chart), [
+        '1010',
+        '1020',
+        '1022',
+        '1030',
+        '1031',
+      ]);
+      // The other bank's SMS arrived before its chart account synced.
+      expect(smsTransferTargets(bkOut, counterpart: equityIn), [
+        '1010',
+        '1020',
+        '1022',
+        '1030',
+      ]);
+    });
+
+    test('BK out pairs with Equity in, and the entry names both', () async {
+      expect(findTransferCounterpart(bkOut, [equityIn]), equityIn);
+      expect(smsTransferEntry(bkOut, '1022').memo, 'Transfer · BK to Equity');
+      final s = service();
+      final result = await s.recordTransfer(
+        bkOut,
+        otherAccountCode: '1022',
+        counterpart: equityIn,
+      );
+      expect(result?.pairedWith, equityIn);
+      expect(posted, [('je_smsxfer_sms-1', '1022')]);
+      expect(cleared, isEmpty);
+      expect(store.matched, {
+        'line-1': 'je_smsxfer_sms-1',
+        'line-2': 'je_smsxfer_sms-1',
+      });
+    });
   });
 
   group('smsMatchingSales', () {

@@ -5861,6 +5861,18 @@ abstract class FlipperAppLocalizations {
   /// **'Mobile Money'**
   String get smsReviewAccountMomo;
 
+  /// No description provided for @smsReviewAccountOtherBank.
+  ///
+  /// In en, this message translates to:
+  /// **'Other bank'**
+  String get smsReviewAccountOtherBank;
+
+  /// No description provided for @smsReviewAccountOtherMomo.
+  ///
+  /// In en, this message translates to:
+  /// **'Other mobile money'**
+  String get smsReviewAccountOtherMomo;
+
   /// No description provided for @smsReviewTransferPaired.
   ///
   /// In en, this message translates to:

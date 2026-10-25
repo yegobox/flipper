@@ -160,6 +160,21 @@ void main() {
       ]);
     });
 
+    test('each bank and wallet account counts in its group', () {
+      final balances = TransactionToAccounts.liquidBalances([
+        _acct('1020', 700),
+        _acct('1021', 50000),
+        _acct('1022', -20000),
+        _acct('1031', 3000),
+        _acct('1010', 100),
+      ]);
+      expect(balances, [
+        (code: '1010', bal: 100),
+        (code: '1030', bal: 3000),
+        (code: '1020', bal: 30700),
+      ]);
+    });
+
     test('the total is exactly the sum of the parts', () {
       final accounts = [
         _acct('1010', 105000),

@@ -247,6 +247,7 @@ void main() {
     List<Category>? cats,
     SmsDebtRepaymentRecorder? recordRepayment,
     Completer<void>? movementGate,
+    List<String> chart = const [],
   }) {
     store = _Store();
     categories = _Cats();
@@ -257,6 +258,7 @@ void main() {
       smsCategoryStoreProvider.overrideWithValue(categories),
       smsReviewBranchIdProvider.overrideWithValue('br'),
       smsReviewItemsProvider('br').overrideWith((ref) => Stream.value(items)),
+      smsMoneyAccountCodesProvider('biz').overrideWith((ref) async => chart),
       categoryProvider.overrideWith(
         (ref) => Stream.value(cats ?? const <Category>[]),
       ),
@@ -695,6 +697,52 @@ void main() {
       expect(store.matched.values, everyElement(isNull));
     },
   );
+
+  testWidgets('BK to Equity is a transfer between the two banks', (
+    tester,
+  ) async {
+    _phoneView(tester);
+    final bkOut = _item(bankAccountCode: '1021');
+    final equityIn = _item(
+      id: 'sms-2',
+      direction: 'credit',
+      bankAccountCode: '1022',
+      providerLabel: 'Equity',
+      occurredAt: '2026-10-14T09:31:00',
+    );
+    await tester.pumpWidget(
+      _app(
+        _detailLauncher(bkOut),
+        reviewOverrides(
+          [bkOut, equityIn],
+          chart: ['1010', '1020', '1021', '1022', '1030', '1100'],
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await _openDetail(tester);
+    await _tap(tester, const Key('sms_review_transfer'));
+
+    Finder chip(String code) =>
+        find.byKey(Key('sms_review_transfer_target_$code'));
+    expect(chip('1021'), findsNothing);
+    expect(
+      find.descendant(of: chip('1022'), matching: find.text('Equity')),
+      findsOneWidget,
+    );
+    // Bank, beside named banks, is the one for any other bank.
+    expect(
+      find.descendant(of: chip('1020'), matching: find.text('Other bank')),
+      findsOneWidget,
+    );
+    expect(chip('1100'), findsNothing);
+    expect(find.byKey(const Key('sms_review_transfer_paired')), findsOneWidget);
+
+    await _tap(tester, const Key('sms_review_transfer_record'));
+    expect(posted, [('je_smsxfer_sms-1', '1022')]);
+    expect(store.statuses['sms-2'], SmsReviewItem.transfer);
+    expect(find.text('Recorded as a transfer to Equity'), findsOneWidget);
+  });
 
   testWidgets('a transfer with no other SMS waits for a target', (
     tester,
