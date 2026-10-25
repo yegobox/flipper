@@ -10,6 +10,7 @@ import 'package:flipper_dashboard/dashboard_quick_apps_navigation.dart';
 import 'package:flipper_dashboard/hooks/use_tenant_names_realtime.dart';
 import 'package:flipper_dashboard/layout.dart';
 import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/account_mode/account_mode_providers.dart';
 import 'package:flipper_models/services/branch_document_settings_service.dart';
 import 'package:flipper_models/services/tenant_name_sync.dart';
@@ -38,15 +39,58 @@ import 'package:flipper_routing/app.router.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
 
+/// Whether a mode change seen by the home was made on another device and is
+/// worth saying so: a real change between two server-backed readings, not
+/// made here. The first server-backed reading only sets the baseline, however
+/// late it arrives, and a cached fallback (`fromServer: false`) never counts.
+@visibleForTesting
+bool shouldAnnounceModeSwitch({
+  required AccountModeReading? before,
+  required AccountModeReading now,
+  required bool switchedHere,
+}) =>
+    before != null &&
+    before.fromServer &&
+    now.fromServer &&
+    before.mode != now.mode &&
+    !switchedHere;
+
 /// The authenticated home. A personal-mode account (`docs/personal_mode.md`)
 /// gets [PersonalShell]; every other account gets the business app exactly as
 /// before. The mode is live, so a switch made on another device swaps shells
 /// here without a navigation.
-class FlipperApp extends ConsumerWidget {
+class FlipperApp extends HookConsumerWidget {
   const FlipperApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final store = ref.read(accountModeStoreProvider);
+    final businessId = store.activeBusinessId() ?? '';
+    // A switch made on another device swaps the shell here too; say why, so
+    // it never looks like the app changed on its own.
+    ref.listen(accountModeProvider(businessId), (previous, next) {
+      final now = next.value;
+      if (now == null ||
+          !shouldAnnounceModeSwitch(
+            before: previous?.value,
+            now: now,
+            switchedHere: store.switchedHereRecently(businessId, now.mode),
+          )) {
+        return;
+      }
+      final l10n = context.flipperL10n;
+      ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+        SnackBar(
+          key: const ValueKey('account-mode-switched-elsewhere'),
+          duration: const Duration(seconds: 6),
+          content: Text(
+            now.mode.isPersonal
+                ? l10n.personalMoneySwitchedElsewherePersonal
+                : l10n.personalMoneySwitchedElsewhereBusiness,
+          ),
+        ),
+      );
+    });
     if (watchAccountMode(ref).isPersonal) return const PersonalShell();
     return const _BusinessFlipperApp();
   }

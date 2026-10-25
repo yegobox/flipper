@@ -26666,6 +26666,14 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
   }
 
   @override
+  String get personalMoneySwitchedElsewherePersonal =>
+      'This business was switched to personal money on another device.';
+
+  @override
+  String get personalMoneySwitchedElsewhereBusiness =>
+      'This account was switched back to a business on another device.';
+
+  @override
   String get personalMoneyCardStillActive =>
       'Your card subscription is still active. Pause it in Billing so you are not charged.';
 

@@ -19837,6 +19837,8 @@
     "personalMoneySwitch": "Switch",
     "personalMoneySwitchFailed": "Could not switch: {error}",
     "@personalMoneySwitchFailed": {"placeholders": {"error": {"type": "String"}}},
+    "personalMoneySwitchedElsewherePersonal": "This business was switched to personal money on another device.",
+    "personalMoneySwitchedElsewhereBusiness": "This account was switched back to a business on another device.",
     "personalMoneyCardStillActive": "Your card subscription is still active. Pause it in Billing so you are not charged.",
     "smsBridgeSubtitle": "Read bank and MoMo SMS from a phone into the Cash Book",
     "smsBridgeIntro": "Install the Flipper SMS Bridge app on the phone that receives your bank and MoMo messages, then scan this code with it.",

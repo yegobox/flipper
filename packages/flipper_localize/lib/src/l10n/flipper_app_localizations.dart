@@ -44627,6 +44627,18 @@ abstract class FlipperAppLocalizations {
   /// **'Could not switch: {error}'**
   String personalMoneySwitchFailed(String error);
 
+  /// No description provided for @personalMoneySwitchedElsewherePersonal.
+  ///
+  /// In en, this message translates to:
+  /// **'This business was switched to personal money on another device.'**
+  String get personalMoneySwitchedElsewherePersonal;
+
+  /// No description provided for @personalMoneySwitchedElsewhereBusiness.
+  ///
+  /// In en, this message translates to:
+  /// **'This account was switched back to a business on another device.'**
+  String get personalMoneySwitchedElsewhereBusiness;
+
   /// No description provided for @personalMoneyCardStillActive.
   ///
   /// In en, this message translates to:

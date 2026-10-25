@@ -9069,6 +9069,8 @@
   "personalMoneySwitchToPersonalBody": "Huficha mauzo, bidhaa na EBM kwenye kila kifaa cha biashara hii na kufungua programu rahisi ya pesa. Hakuna kinachofutwa, na unaweza kurudi wakati wowote. Matumizi binafsi ni bure.",
   "personalMoneySwitch": "Badilisha",
   "personalMoneySwitchFailed": "Imeshindikana kubadilisha: {error}",
+  "personalMoneySwitchedElsewherePersonal": "Biashara hii imebadilishwa kuwa pesa binafsi kwenye kifaa kingine.",
+  "personalMoneySwitchedElsewhereBusiness": "Akaunti hii imerudishwa kuwa biashara kwenye kifaa kingine.",
   "personalMoneyCardStillActive": "Usajili wako wa kadi bado unaendelea. Usimamishe kwenye Malipo ili usitozwe.",
   "smsBridgeSubtitle": "Soma SMS za benki na MoMo kutoka simu hadi daftari la fedha",
   "smsBridgeIntro": "Sakinisha programu ya Flipper SMS Bridge kwenye simu inayopokea ujumbe wa benki na MoMo, kisha uchanganue msimbo huu nayo.",

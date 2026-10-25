@@ -10,18 +10,27 @@ final accountModeStoreProvider = Provider<AccountModeStore>(
   (ref) => AccountModeStore.instance,
 );
 
+/// One value of [accountModeProvider]: the [mode] to show, and whether a
+/// server-written Ditto doc backs it ([fromServer]) or it is still the cached
+/// fallback. The first server-backed reading is a baseline, not a change.
+typedef AccountModeReading = ({AccountMode mode, bool fromServer});
+
 /// The live [AccountMode] of [businessId] (`''` = the active business).
 ///
-/// Starts from what the device cached, so the first frame opens the right
-/// shell, then follows the server-written Ditto doc. No doc keeps the cached
-/// (or pending-signup) value, and with neither it is business.
-final accountModeProvider = StreamProvider.family<AccountMode, String>((
+/// Starts from what the device cached (`fromServer: false`), so the first
+/// frame opens the right shell, then follows the server-written Ditto doc
+/// (`fromServer: true`). No doc keeps the cached (or pending-signup) value,
+/// and with neither it is business.
+final accountModeProvider = StreamProvider.family<AccountModeReading, String>((
   ref,
   businessId,
 ) {
   final store = ref.watch(accountModeStoreProvider);
   final id = businessId.isEmpty ? store.activeBusinessId() : businessId;
-  final fallback = store.cachedMode(businessId: id) ?? AccountMode.business;
+  final AccountModeReading fallback = (
+    mode: store.cachedMode(businessId: id) ?? AccountMode.business,
+    fromServer: false,
+  );
   // No business, no Ditto: nothing to observe (signed out, tests).
   if (id == null) return Stream.value(fallback);
   final ditto = ref.watch(usableDittoProvider).value;
@@ -35,7 +44,7 @@ final accountModeProvider = StreamProvider.family<AccountMode, String>((
     // The observer still reads what is already on this device.
   }
 
-  final controller = StreamController<AccountMode>();
+  final controller = StreamController<AccountModeReading>();
   controller.add(fallback);
   final observer = ditto.store.registerObserver(
     query,
@@ -57,7 +66,7 @@ final accountModeProvider = StreamProvider.family<AccountMode, String>((
           changedAt: accountModeDocChangedAt(doc),
         ),
       );
-      controller.add(mode);
+      controller.add((mode: mode, fromServer: true));
     },
   );
   ref.onDispose(() async {
@@ -73,8 +82,8 @@ final accountModeProvider = StreamProvider.family<AccountMode, String>((
 AccountMode watchAccountMode(WidgetRef ref, {String? businessId}) {
   final id =
       businessId ?? ref.read(accountModeStoreProvider).activeBusinessId() ?? '';
-  final async = ref.watch(accountModeProvider(id));
-  return async.value ??
+  final mode = ref.watch(accountModeProvider(id).select((a) => a.value?.mode));
+  return mode ??
       ref.read(accountModeStoreProvider).cachedMode() ??
       AccountMode.business;
 }

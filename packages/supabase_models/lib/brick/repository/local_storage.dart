@@ -385,7 +385,16 @@ class SharedPreferenceStorage implements LocalStorage {
   /// background, so it can still hold a value the file already dropped; if
   /// the merge took it, a removed item-exchange intent would come back and
   /// keep blocking refunds of a finished exchange.
-  static const Set<String> _localFileOnlyKeys = {'saleExchangeIntents'};
+  ///
+  /// The personal-mode keys are here for the same reason: the attach runs a
+  /// while after startup, and an older copy of `accountModes` (from before a
+  /// switch) used to win the merge and flip a personal account back to the
+  /// business app on its own.
+  static const Set<String> _localFileOnlyKeys = {
+    'saleExchangeIntents',
+    'accountModes',
+    'pendingAccountMode',
+  };
 
   static void _keepLocalFileOnlyKeys(
     Map<String, dynamic> merged,

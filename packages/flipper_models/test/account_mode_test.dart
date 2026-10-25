@@ -1,8 +1,13 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flipper_models/account_mode/account_mode.dart';
 import 'package:flipper_models/account_mode/account_mode_client.dart';
+import 'package:flipper_models/account_mode/account_mode_providers.dart';
 import 'package:flipper_models/account_mode/account_mode_store.dart';
+import 'package:flipper_models/sms_review/sms_review_providers.dart'
+    show usableDittoProvider;
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -354,10 +359,226 @@ void main() {
       },
     );
 
+    group('switched-here marker', () {
+      const personal = AccountMode.personal;
+      const business = AccountMode.business;
+
+      http.Client answers(String mode) => MockClient(
+        (_) async => http.Response(jsonEncode({'mode': mode}), 200),
+      );
+
+      test('is scoped to the business that was switched', () async {
+        final box = _MemBox(businessId: 'a');
+        final store = _store(box, http: answers('personal'));
+        expect(store.switchedHereRecently('a', personal), isFalse);
+        await store.switchTo(personal);
+        expect(store.switchedHereRecently('a', personal), isTrue);
+        // Another business becomes active: its changes are not this
+        // device's switch, so they are never suppressed.
+        box.businessId = 'b';
+        expect(store.switchedHereRecently('b', personal), isFalse);
+        expect(store.switchedHereRecently('a', personal), isTrue);
+      });
+
+      test('only covers the mode switched to: switching back elsewhere '
+          'is still announced', () async {
+        final store = _store(
+          _MemBox(businessId: 'a'),
+          http: answers('personal'),
+        );
+        await store.switchTo(personal);
+        expect(store.switchedHereRecently('a', personal), isTrue);
+        expect(store.switchedHereRecently('a', business), isFalse);
+      });
+
+      test(
+        'covers the request in flight (the doc can sync back first)',
+        () async {
+          final reply = Completer<http.Response>();
+          final store = _store(
+            _MemBox(businessId: 'a'),
+            http: MockClient((_) => reply.future),
+          );
+          final switching = store.switchTo(personal);
+          await Future<void>.delayed(Duration.zero);
+          expect(store.switchedHereRecently('a', personal), isTrue);
+          reply.complete(http.Response(jsonEncode({'mode': 'personal'}), 200));
+          await switching;
+          expect(store.switchedHereRecently('a', personal), isTrue);
+        },
+      );
+
+      test('is cleared when the server refuses the switch', () async {
+        final store = _store(
+          _MemBox(businessId: 'a'),
+          http: MockClient((_) async => http.Response('{"error":"x"}', 503)),
+        );
+        await expectLater(
+          store.switchTo(personal),
+          throwsA(isA<AccountModeException>()),
+        );
+        expect(store.switchedHereRecently('a', personal), isFalse);
+      });
+
+      test('a refused switch keeps an earlier accepted one', () async {
+        var accept = true;
+        final store = _store(
+          _MemBox(businessId: 'a'),
+          http: MockClient(
+            (_) async => accept
+                ? http.Response(jsonEncode({'mode': 'personal'}), 200)
+                : http.Response('{"error":"x"}', 503),
+          ),
+        );
+        await store.switchTo(personal);
+        accept = false;
+        await expectLater(
+          store.switchTo(business),
+          throwsA(isA<AccountModeException>()),
+        );
+        expect(store.switchedHereRecently('a', personal), isTrue);
+        expect(store.switchedHereRecently('a', business), isFalse);
+      });
+
+      test('an older request failing late never undoes a newer one', () async {
+        // Signup's confirmPending and PersonalShell's can overlap.
+        final replies = <Completer<http.Response>>[];
+        final store = _store(
+          _MemBox(businessId: 'a'),
+          http: MockClient((_) {
+            final reply = Completer<http.Response>();
+            replies.add(reply);
+            return reply.future;
+          }),
+        );
+        final older = store.switchTo(personal);
+        await Future<void>.delayed(Duration.zero);
+        final newer = store.switchTo(personal);
+        await Future<void>.delayed(Duration.zero);
+        expect(replies, hasLength(2));
+        replies[1].complete(
+          http.Response(jsonEncode({'mode': 'personal'}), 200),
+        );
+        await newer;
+        replies[0].complete(http.Response('{"error":"x"}', 503));
+        await expectLater(older, throwsA(isA<AccountModeException>()));
+        expect(store.switchedHereRecently('a', personal), isTrue);
+      });
+
+      test('two overlapping requests that both fail leave no marker', () async {
+        final replies = <Completer<http.Response>>[];
+        final store = _store(
+          _MemBox(businessId: 'a'),
+          http: MockClient((_) {
+            final reply = Completer<http.Response>();
+            replies.add(reply);
+            return reply.future;
+          }),
+        );
+        final first = store.switchTo(personal);
+        await Future<void>.delayed(Duration.zero);
+        final second = store.switchTo(personal);
+        await Future<void>.delayed(Duration.zero);
+        expect(replies, hasLength(2));
+        // The first fails while the second is still pending...
+        replies[0].complete(http.Response('{"error":"x"}', 503));
+        await expectLater(first, throwsA(isA<AccountModeException>()));
+        expect(store.switchedHereRecently('a', personal), isTrue);
+        // ...then the second fails: the first's dead mark is not restored.
+        replies[1].complete(http.Response('{"error":"x"}', 503));
+        await expectLater(second, throwsA(isA<AccountModeException>()));
+        expect(store.switchedHereRecently('a', personal), isFalse);
+      });
+
+      test('a newer failure rolls back to an older request still pending, '
+          'which then holds once taken', () async {
+        final replies = <Completer<http.Response>>[];
+        final store = _store(
+          _MemBox(businessId: 'a'),
+          http: MockClient((_) {
+            final reply = Completer<http.Response>();
+            replies.add(reply);
+            return reply.future;
+          }),
+        );
+        final older = store.switchTo(personal);
+        await Future<void>.delayed(Duration.zero);
+        final newer = store.switchTo(business);
+        await Future<void>.delayed(Duration.zero);
+        expect(replies, hasLength(2));
+        replies[1].complete(http.Response('{"error":"x"}', 503));
+        await expectLater(newer, throwsA(isA<AccountModeException>()));
+        expect(store.switchedHereRecently('a', business), isFalse);
+        expect(store.switchedHereRecently('a', personal), isTrue);
+        replies[0].complete(
+          http.Response(jsonEncode({'mode': 'personal'}), 200),
+        );
+        await older;
+        expect(store.switchedHereRecently('a', personal), isTrue);
+      });
+
+      test('is cleared when the server answers with the other mode', () async {
+        final store = _store(
+          _MemBox(businessId: 'a'),
+          http: answers('business'),
+        );
+        await expectLater(
+          store.switchTo(personal),
+          throwsA(isA<AccountModeException>()),
+        );
+        expect(store.switchedHereRecently('a', personal), isFalse);
+        expect(store.switchedHereRecently('a', business), isFalse);
+      });
+    });
+
     test('no active business is never personal', () async {
       final store = _store(_MemBox(), http: _never());
       expect(await store.isPersonalLocal(), isFalse);
       expect(await store.resolve(), AccountMode.business);
+    });
+  });
+
+  group('accountModeProvider', () {
+    // Riverpod pauses a provider nobody listens to, so listen first.
+    Future<AccountModeReading> firstReading(ProviderContainer container) {
+      final sub = container.listen(accountModeProvider(''), (_, _) {});
+      addTearDown(sub.close);
+      return container.read(accountModeProvider('').future);
+    }
+
+    test(
+      'without Ditto it is the cached fallback, not a server reading',
+      () async {
+        final box = _MemBox(businessId: 'me');
+        final store = _store(box, http: _never());
+        await store.remember('me', AccountMode.personal);
+        final container = ProviderContainer(
+          overrides: [
+            accountModeStoreProvider.overrideWithValue(store),
+            usableDittoProvider.overrideWith((ref) => Stream.value(null)),
+          ],
+        );
+        addTearDown(container.dispose);
+        expect(await firstReading(container), (
+          mode: AccountMode.personal,
+          fromServer: false,
+        ));
+      },
+    );
+
+    test('nothing known is business, still not from the server', () async {
+      final container = ProviderContainer(
+        overrides: [
+          accountModeStoreProvider.overrideWithValue(
+            _store(_MemBox(), http: _never()),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      expect(await firstReading(container), (
+        mode: AccountMode.business,
+        fromServer: false,
+      ));
     });
   });
 }
