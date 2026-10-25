@@ -79,9 +79,15 @@ final onlineOrderAlertProvider = Provider<OnlineOrderAlert>((ref) {
   final claimed = <String>{};
   return (order) async {
     if (!claimed.add(order.id)) return;
-    final seen = await SeenRequestsStorage.getSeenRequests();
-    if (seen.contains(order.id)) return;
-    await SeenRequestsStorage.markAsSeen(order.id);
+    try {
+      final seen = await SeenRequestsStorage.getSeenRequests();
+      if (seen.contains(order.id)) return;
+      await SeenRequestsStorage.markAsSeen(order.id);
+    } catch (_) {
+      // Storage failed: let a later emission try this order again.
+      claimed.remove(order.id);
+      rethrow;
+    }
     final l10n = FlipperL10n.current;
     await NotificationHandler().showStockTransferNotification(
       requestId: order.id,
