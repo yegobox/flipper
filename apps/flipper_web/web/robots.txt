@@ -4,6 +4,8 @@
 # https://useflipper.com/, so the sitemap lists just that one URL.
 User-agent: *
 Allow: /
+# Business online shops: https://useflipper.com/shop/<slug>
+Allow: /shop/
 Disallow: /canvaskit/
 Disallow: /assets/
 

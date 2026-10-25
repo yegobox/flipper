@@ -14,6 +14,8 @@ import 'package:flipper_web/features/login/signup_view.dart';
 import 'package:flipper_web/features/business_selection/business_selection_wrapper.dart';
 import 'package:flipper_web/features/custom_payment/presentation/custom_payment_page.dart';
 import 'package:flipper_web/features/pos/pos_route_page.dart';
+import 'package:flipper_web/features/shop/shop_route_page.dart';
+import 'package:flipper_web/router/app_redirect.dart';
 
 final goRouterProvider = Provider<GoRouter>((ref) {
   final authRefresh = ValueNotifier<int>(0);
@@ -32,7 +34,8 @@ final goRouterProvider = Provider<GoRouter>((ref) {
 
   return GoRouter(
     refreshListenable: authRefresh,
-    initialLocation: unauthenticatedEntryLocation,
+    initialLocation:
+        shopDeepLinkLocation(Uri.base) ?? unauthenticatedEntryLocation,
     observers: [createPostHogObserver()],
     routes: [
       // Root shows AuthWrapper which will choose appropriate screen
@@ -89,61 +92,48 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         name: 'customPayment',
         builder: (context, state) => const CustomPaymentPage(),
       ),
+      // Public: a business's online shop. Customers order without an
+      // account; see `features/shop`.
+      GoRoute(
+        path: '/shop/:slug',
+        builder: (context, state) => ShopRoutePage(
+          route: ShopRoute.catalog,
+          slug: state.pathParameters['slug']!,
+        ),
+        routes: [
+          GoRoute(
+            path: 'checkout',
+            builder: (context, state) => ShopRoutePage(
+              route: ShopRoute.checkout,
+              slug: state.pathParameters['slug']!,
+            ),
+          ),
+          GoRoute(
+            path: 'order/:id',
+            builder: (context, state) => ShopRoutePage(
+              route: ShopRoute.order,
+              slug: state.pathParameters['slug']!,
+              orderId: state.pathParameters['id'],
+              token: state.uri.queryParameters['t'],
+            ),
+          ),
+        ],
+      ),
       GoRoute(
         path: '/dashboard',
         name: 'dashboard',
         redirect: (context, state) => '/accounting',
       ),
     ],
-    redirect: (context, state) {
-      if (authState is AsyncLoading) return null;
-
-      final isAuthenticated = authState.maybeWhen(
-        data: (s) => s == login_auth.AuthState.authenticated,
-        orElse: () => false,
-      );
-
-      final goingToLogin = state.uri.path == '/login';
-      final goingToDashboard = state.uri.path == '/dashboard';
-      final goingToAccounting = state.uri.path == '/accounting';
-      final goingToPos = state.uri.path == '/pos';
-      final goingToBusinessSelection = state.uri.path == '/business-selection';
-      final goingToSubscribe = state.uri.path == '/subscribe';
-      final goingToCustomPayment = state.uri.path == '/custom-payment';
-      final goingToRoot = state.uri.path == '/';
-
-      // If authenticated, handle routing based on business/branch selection
-      if (isAuthenticated) {
-        if (goingToLogin) {
-          // After login, go to business selection first
-          // We always show business selection screen after login
-          return '/business-selection';
-        }
-
-        // For root path, let AuthWrapper handle the redirection
-        // It will check if business/branch is selected via Ditto
-        if (goingToRoot) {
-          return null;
-        }
-      } else {
-        // Native iOS/macOS: skip marketing home and land on PIN login.
-        if (goingToRoot && opensOnLoginScreen) {
-          return '/login';
-        }
-
-        // If not authenticated and trying to access protected routes
-        if (goingToBusinessSelection ||
-            goingToDashboard ||
-            goingToAccounting ||
-            goingToPos ||
-            goingToSubscribe ||
-            goingToCustomPayment) {
-          return '/login';
-        }
-      }
-
-      // No-op otherwise
-      return null;
-    },
+    redirect: (context, state) => appRedirect(
+      path: state.uri.path,
+      authenticated: authState is AsyncLoading
+          ? null
+          : authState.maybeWhen(
+              data: (s) => s == login_auth.AuthState.authenticated,
+              orElse: () => false,
+            ),
+      opensOnLoginScreen: opensOnLoginScreen,
+    ),
   );
 });
