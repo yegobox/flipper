@@ -465,6 +465,58 @@ void main() {
         expect(store.switchedHereRecently('a', personal), isTrue);
       });
 
+      test('two overlapping requests that both fail leave no marker', () async {
+        final replies = <Completer<http.Response>>[];
+        final store = _store(
+          _MemBox(businessId: 'a'),
+          http: MockClient((_) {
+            final reply = Completer<http.Response>();
+            replies.add(reply);
+            return reply.future;
+          }),
+        );
+        final first = store.switchTo(personal);
+        await Future<void>.delayed(Duration.zero);
+        final second = store.switchTo(personal);
+        await Future<void>.delayed(Duration.zero);
+        expect(replies, hasLength(2));
+        // The first fails while the second is still pending...
+        replies[0].complete(http.Response('{"error":"x"}', 503));
+        await expectLater(first, throwsA(isA<AccountModeException>()));
+        expect(store.switchedHereRecently('a', personal), isTrue);
+        // ...then the second fails: the first's dead mark is not restored.
+        replies[1].complete(http.Response('{"error":"x"}', 503));
+        await expectLater(second, throwsA(isA<AccountModeException>()));
+        expect(store.switchedHereRecently('a', personal), isFalse);
+      });
+
+      test('a newer failure rolls back to an older request still pending, '
+          'which then holds once taken', () async {
+        final replies = <Completer<http.Response>>[];
+        final store = _store(
+          _MemBox(businessId: 'a'),
+          http: MockClient((_) {
+            final reply = Completer<http.Response>();
+            replies.add(reply);
+            return reply.future;
+          }),
+        );
+        final older = store.switchTo(personal);
+        await Future<void>.delayed(Duration.zero);
+        final newer = store.switchTo(business);
+        await Future<void>.delayed(Duration.zero);
+        expect(replies, hasLength(2));
+        replies[1].complete(http.Response('{"error":"x"}', 503));
+        await expectLater(newer, throwsA(isA<AccountModeException>()));
+        expect(store.switchedHereRecently('a', business), isFalse);
+        expect(store.switchedHereRecently('a', personal), isTrue);
+        replies[0].complete(
+          http.Response(jsonEncode({'mode': 'personal'}), 200),
+        );
+        await older;
+        expect(store.switchedHereRecently('a', personal), isTrue);
+      });
+
       test('is cleared when the server answers with the other mode', () async {
         final store = _store(
           _MemBox(businessId: 'a'),

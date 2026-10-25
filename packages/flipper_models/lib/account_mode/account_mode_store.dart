@@ -236,29 +236,36 @@ class AccountModeStore {
     }
     // Marked before the request: the connector's Ditto write can reach this
     // device before the answer does, and that is still this device's switch.
-    final before = _switchedHere[id];
-    final mark = _SwitchMark(DateTime.now(), mode);
+    final mark = _SwitchMark(DateTime.now(), mode, _switchedHere[id]);
     _switchedHere[id] = mark;
     final AccountModeResult result;
     try {
       result = await _client.switchTo(mode);
     } catch (_) {
       // Not taken: a change seen now came from elsewhere after all. Only
-      // this request's own mark is undone; a newer request keeps its own.
+      // this request's own mark is undone (a newer request keeps its own),
+      // back to the latest earlier mark still pending or taken, never one
+      // whose request failed too.
+      mark.failed = true;
       if (identical(_switchedHere[id], mark)) {
-        if (before == null) {
+        var restore = mark.previous;
+        while (restore != null && restore.failed) {
+          restore = restore.previous;
+        }
+        if (restore == null) {
           _switchedHere.remove(id);
         } else {
-          _switchedHere[id] = before;
+          _switchedHere[id] = restore;
         }
       }
       rethrow;
     }
-    // The window runs from when the server took it (unless a newer request
-    // has marked the business since).
-    if (identical(_switchedHere[id], mark)) {
-      _switchedHere[id] = _SwitchMark(DateTime.now(), result.mode);
-    }
+    // The window runs from when the server took it, wherever the mark now
+    // sits; a taken mark is never rolled back, so it needs no history.
+    mark
+      ..at = DateTime.now()
+      ..mode = result.mode
+      ..previous = null;
     // The server just took this switch, so it replaces whatever was cached,
     // however new. With the server's time it also beats the old Ditto doc
     // until the new one syncs back. Never the device clock: a clock running
@@ -284,10 +291,13 @@ class AccountModeStore {
   }
 }
 
-/// One switch made on this device: when, and to which mode.
+/// One switch made on this device: when, to which mode, whether its request
+/// failed, and the mark it replaced (to roll back to while still pending).
 class _SwitchMark {
-  _SwitchMark(this.at, this.mode);
+  _SwitchMark(this.at, this.mode, this.previous);
 
-  final DateTime at;
-  final AccountMode mode;
+  DateTime at;
+  AccountMode mode;
+  _SwitchMark? previous;
+  bool failed = false;
 }
