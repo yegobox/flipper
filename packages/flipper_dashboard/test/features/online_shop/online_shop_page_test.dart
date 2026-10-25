@@ -113,6 +113,25 @@ void main() {
     expect(find.byKey(const ValueKey('online_shop_item_v1')), findsOneWidget);
   });
 
+  testWidgets('saving keeps the shop logo this page cannot edit', (
+    tester,
+  ) async {
+    final client = _FakeClient(
+      const OnlineShopState(
+        shop: OnlineShopSettings(
+          id: 's',
+          displayName: 'Shop',
+          slug: 'shop',
+          logoUrl: 'https://cdn.test/logo.png',
+        ),
+      ),
+    );
+    await _pump(tester, client);
+    await tester.tap(find.byKey(const Key('online_shop_save')));
+    await tester.pumpAndSettle();
+    expect(client.saved!.logoUrl, 'https://cdn.test/logo.png');
+  });
+
   testWidgets('a MoMo field without SMS Bridge shows the manual notice', (
     tester,
   ) async {

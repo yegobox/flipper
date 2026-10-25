@@ -167,6 +167,8 @@ class _OnlineShopFormState extends ConsumerState<OnlineShopForm> {
     enabled: _enabled,
     displayName: _name.text.trim(),
     description: _description.text,
+    // No logo field here yet; keep the saved one, or the save clears it.
+    logoUrl: _state.shop?.logoUrl,
     contactPhone: _phone.text,
     whatsapp: _whatsapp.text,
     showStock: _showStock,
