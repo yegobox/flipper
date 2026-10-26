@@ -7802,6 +7802,10 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   String get barCreditPickCustomerFirst => 'Chagua anayedaiwa bili hii';
 
   @override
+  String get barCreditEmptyTab =>
+      'Ongeza kitu kwenye bili kabla ya kuiweka kwenye mkopo.';
+
+  @override
   String barCreditDueTitle(String customer) {
     return '$customer atalipa lini?';
   }

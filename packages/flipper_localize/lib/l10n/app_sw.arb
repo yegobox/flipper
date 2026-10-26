@@ -3821,6 +3821,7 @@
   "barPutOnCredit": "Weka kwa mkopo",
   "barCreditTileSubtitle": "Mteja atalipa baadaye",
   "barCreditPickCustomerFirst": "Chagua anayedaiwa bili hii",
+  "barCreditEmptyTab": "Ongeza kitu kwenye bili kabla ya kuiweka kwenye mkopo.",
   "barCreditDueTitle": "{customer} atalipa lini?",
   "barCreditOwesBy": "{customer} anadaiwa {amount} · tarehe {date}",
   "barCreditConfirm": "Weka {amount} kwa mkopo",

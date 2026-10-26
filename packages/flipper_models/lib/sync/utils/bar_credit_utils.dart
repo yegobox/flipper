@@ -5,7 +5,7 @@ import 'package:supabase_models/brick/models/transaction.model.dart';
 const kBarCreditNotePrefix = 'Bar · ';
 
 /// Below this a balance is rounding, not a debt.
-const _kBalanceEpsilon = 0.01;
+const kBarCreditBalanceEpsilon = 0.01;
 
 /// The note a bar tab carries once it is on credit: `Bar · T4 · Opened by Ana`.
 String barCreditNote({String? tableName, required String opened}) {
@@ -34,7 +34,7 @@ double barCreditBalance(ITransaction loan) {
 
 /// A loan with money still owed on it.
 bool barCreditIsOpen(ITransaction loan) =>
-    loan.isLoan == true && barCreditBalance(loan) > _kBalanceEpsilon;
+    loan.isLoan == true && barCreditBalance(loan) > kBarCreditBalanceEpsilon;
 
 /// Past its due date (a loan with no due date is never overdue).
 bool barCreditIsOverdue(ITransaction loan, {DateTime? now}) {
@@ -87,4 +87,22 @@ bool barCreditMatchesSearch(ITransaction loan, String query) {
   if (digits.isEmpty) return false;
   final phone = (loan.customerPhone ?? '').replaceAll(RegExp(r'\D'), '');
   return phone.contains(digits);
+}
+
+/// A due date picked from the calendar, as the last moment of that local day
+/// in UTC. The picker returns local midnight, which would make a loan due
+/// today overdue at once.
+DateTime barCreditDueEndOfDay(DateTime picked) =>
+    DateTime(picked.year, picked.month, picked.day, 23, 59, 59).toUtc();
+
+/// An installment above what the stored loan still owes: another till took
+/// a payment after the collect sheet opened.
+class BarCreditOverpaid implements Exception {
+  const BarCreditOverpaid(this.balance);
+
+  /// What is still owed.
+  final double balance;
+
+  @override
+  String toString() => 'Only $balance is still owed';
 }

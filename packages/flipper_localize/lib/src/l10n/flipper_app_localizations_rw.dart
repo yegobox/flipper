@@ -7826,6 +7826,10 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   String get barCreditPickCustomerFirst => 'Hitamo ufite iri deni';
 
   @override
+  String get barCreditEmptyTab =>
+      'Banza wongere ikintu kuri fagitire mbere yo kuyishyira ku ideni.';
+
+  @override
   String barCreditDueTitle(String customer) {
     return '$customer azishyura ryari?';
   }

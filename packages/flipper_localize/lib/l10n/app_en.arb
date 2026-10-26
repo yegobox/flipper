@@ -6629,6 +6629,10 @@
     "@barCreditPickCustomerFirst": {
         "description": "Bar mode: settle screen hint before a debtor is chosen"
     },
+    "barCreditEmptyTab": "Add something to the tab before putting it on credit.",
+    "@barCreditEmptyTab": {
+        "description": "Bar mode: snackbar when putting an empty tab on credit"
+    },
     "barCreditDueTitle": "When will {customer} pay?",
     "@barCreditDueTitle": {
         "description": "Bar mode: title of the due-date picker",

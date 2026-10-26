@@ -3813,6 +3813,7 @@
   "barPutOnCredit": "Shyira ku ideni",
   "barCreditTileSubtitle": "Umukiriya azishyura nyuma",
   "barCreditPickCustomerFirst": "Hitamo ufite iri deni",
+  "barCreditEmptyTab": "Banza wongere ikintu kuri fagitire mbere yo kuyishyira ku ideni.",
   "barCreditDueTitle": "{customer} azishyura ryari?",
   "barCreditOwesBy": "{customer} afite ideni rya {amount} · kugeza {date}",
   "barCreditConfirm": "Shyira {amount} ku ideni",

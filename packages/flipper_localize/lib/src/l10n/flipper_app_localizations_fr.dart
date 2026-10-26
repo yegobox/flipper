@@ -7880,6 +7880,10 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   String get barCreditPickCustomerFirst => 'Choisissez qui doit cette note';
 
   @override
+  String get barCreditEmptyTab =>
+      'Ajoutez un article à la note avant de la mettre à crédit.';
+
+  @override
   String barCreditDueTitle(String customer) {
     return 'Échéance pour $customer';
   }

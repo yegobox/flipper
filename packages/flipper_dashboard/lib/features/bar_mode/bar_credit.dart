@@ -78,6 +78,10 @@ abstract final class BarCredit {
       // Read fresh: the lines the screen shows can trail a just-added round.
       final lines = await sync.barTabLines(transactionId: tab.id);
       final total = barTabTotal(lines);
+      // Before the receipt is filed: an empty tab must not reach RRA.
+      if (lines.isEmpty || total <= 0) {
+        throw Exception(l10n.barCreditEmptyTab);
+      }
       final customer = terms.customer;
       final phone = (customer.telNo ?? '').replaceAll(RegExp(r'\D'), '');
 
@@ -168,16 +172,10 @@ abstract final class BarCredit {
       PaymentLineForSaleCompletion(amount: amount, method: method),
     ];
     try {
+      // Writes the installment's payment row with the loan, in one step.
       final after = await sync.collectBarCreditPayment(
         transaction: loan,
         payments: payments,
-      );
-      // Added beside the earlier installments: the Cash Book reads each one.
-      await saveSalePaymentRows(
-        sync: sync,
-        transactionId: loan.id,
-        payments: payments,
-        replacePriorRows: false,
       );
 
       final name = barCreditDebtorName(loan);
@@ -194,6 +192,18 @@ abstract final class BarCredit {
                 : l10n.barCreditCleared(name),
           );
       return after;
+    } on BarCreditOverpaid catch (e) {
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            l10n.barCreditAmountTooHigh(
+              barCreditDebtorName(loan),
+              barCreditMoney(e.balance),
+            ),
+          ),
+        ),
+      );
+      return null;
     } catch (e) {
       messenger.showSnackBar(
         SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),

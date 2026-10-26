@@ -1,5 +1,6 @@
 import 'package:flipper_dashboard/features/bar_mode/theme/bar_tokens.dart';
 import 'package:flipper_localize/flipper_localize.dart';
+import 'package:flipper_models/sync/utils/bar_credit_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -48,7 +49,7 @@ class BarCreditDuePicker extends StatelessWidget {
       lastDate: now.add(const Duration(days: 365)),
     );
     if (picked == null || !context.mounted) return;
-    Navigator.of(context).pop(picked.toUtc());
+    Navigator.of(context).pop(barCreditDueEndOfDay(picked));
   }
 
   @override

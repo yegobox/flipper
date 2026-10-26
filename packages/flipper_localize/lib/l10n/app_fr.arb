@@ -2228,6 +2228,7 @@
     "barPutOnCredit": "Mettre à crédit",
     "barCreditTileSubtitle": "Le client paie plus tard",
     "barCreditPickCustomerFirst": "Choisissez qui doit cette note",
+    "barCreditEmptyTab": "Ajoutez un article à la note avant de la mettre à crédit.",
     "barCreditDueTitle": "Échéance pour {customer}",
     "barCreditOwesBy": "{customer} doit {amount} · échéance {date}",
     "barCreditConfirm": "Mettre {amount} à crédit",

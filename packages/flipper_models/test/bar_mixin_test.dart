@@ -1,6 +1,7 @@
 import 'package:flipper_models/helperModels/sale_completion_helpers.dart';
 import 'package:flipper_models/models/bar_table.dart';
 import 'package:flipper_models/sync/capella/mixins/bar_mixin.dart';
+import 'package:flipper_models/sync/utils/bar_credit_utils.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/locator.dart';
 import 'package:flipper_web/services/ditto_service.dart';
@@ -343,6 +344,124 @@ void main() {
       expect(paidOff, isNot(endsWith('Z')));
       final line = ditto.store.collections['transaction_items']!['line-1']!;
       expect(line['createdAt'], paidOff);
+    });
+
+    List<Map<String, dynamic>> paymentRows(String loanId) => [
+      ...?ditto.store.collections['transaction_payment_records']?.values.where(
+        (r) => r['transactionId'] == loanId,
+      ),
+    ];
+
+    test('each installment writes its payment row with the loan', () async {
+      final loan = await putOnCredit(await beerTab());
+      await sync.collectBarCreditPayment(
+        transaction: loan,
+        payments: const [
+          PaymentLineForSaleCompletion(amount: 1000, method: 'Cash'),
+        ],
+      );
+
+      final rows = paymentRows(loan.id);
+      expect(rows, hasLength(1));
+      expect(rows.single['amount'], 1000);
+      expect(rows.single['paymentMethod'], 'Cash');
+    });
+
+    test('a failed payment row leaves the loan as it was', () async {
+      final loan = await putOnCredit(await beerTab());
+      ditto.store.failOn = 'INSERT INTO transaction_payment_records';
+
+      await expectLater(
+        sync.collectBarCreditPayment(
+          transaction: loan,
+          payments: const [
+            PaymentLineForSaleCompletion(amount: 1000, method: 'Cash'),
+          ],
+        ),
+        throwsStateError,
+      );
+
+      final stored = ditto.store.collections['transactions']![loan.id]!;
+      expect(stored['remainingBalance'], 3000);
+      expect(stored['cashReceived'], 0);
+      expect(paymentRows(loan.id), isEmpty);
+    });
+
+    /// Two tills hold the same loan: the second one's copy is stale.
+    test(
+      'an installment counts on top of payments another till took',
+      () async {
+        final loan = await putOnCredit(await beerTab());
+        await sync.collectBarCreditPayment(
+          transaction: loan,
+          payments: const [
+            PaymentLineForSaleCompletion(amount: 1000, method: 'Cash'),
+          ],
+        );
+
+        final after = await sync.collectBarCreditPayment(
+          transaction: loan,
+          payments: const [
+            PaymentLineForSaleCompletion(amount: 500, method: 'Cash'),
+          ],
+        );
+
+        final stored = ditto.store.collections['transactions']![loan.id]!;
+        expect(stored['cashReceived'], 1500);
+        expect(stored['remainingBalance'], 1500);
+        expect(after.remainingBalance, 1500);
+        expect(paymentRows(loan.id), hasLength(2));
+      },
+    );
+
+    test('more than is still owed is refused', () async {
+      final loan = await putOnCredit(await beerTab());
+      await sync.collectBarCreditPayment(
+        transaction: loan,
+        payments: const [
+          PaymentLineForSaleCompletion(amount: 1000, method: 'Cash'),
+        ],
+      );
+
+      // The stale copy still says 3,000 is owed; only 2,000 is.
+      await expectLater(
+        sync.collectBarCreditPayment(
+          transaction: loan,
+          payments: const [
+            PaymentLineForSaleCompletion(amount: 2500, method: 'Cash'),
+          ],
+        ),
+        throwsA(
+          isA<BarCreditOverpaid>().having((e) => e.balance, 'balance', 2000),
+        ),
+      );
+
+      final stored = ditto.store.collections['transactions']![loan.id]!;
+      expect(stored['remainingBalance'], 2000);
+      expect(stored['status'], PARKED);
+      expect(paymentRows(loan.id), hasLength(1));
+    });
+
+    test('a paid-off or missing loan takes no payment', () async {
+      final loan = await putOnCredit(await beerTab());
+      await sync.collectBarCreditPayment(
+        transaction: loan,
+        payments: const [
+          PaymentLineForSaleCompletion(amount: 3000, method: 'Cash'),
+        ],
+      );
+      const more = [PaymentLineForSaleCompletion(amount: 100, method: 'Cash')];
+
+      await expectLater(
+        sync.collectBarCreditPayment(transaction: loan, payments: more),
+        throwsStateError,
+      );
+      ditto.store.collections['transactions']!.remove(loan.id);
+      await expectLater(
+        sync.collectBarCreditPayment(transaction: loan, payments: more),
+        throwsStateError,
+      );
+      expect(paymentRows(loan.id), hasLength(1));
     });
   });
 }

@@ -7762,6 +7762,10 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
   String get barCreditPickCustomerFirst => 'Choose who owes this bill';
 
   @override
+  String get barCreditEmptyTab =>
+      'Add something to the tab before putting it on credit.';
+
+  @override
   String barCreditDueTitle(String customer) {
     return 'When will $customer pay?';
   }

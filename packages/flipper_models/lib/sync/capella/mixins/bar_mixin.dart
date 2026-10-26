@@ -9,12 +9,14 @@ import 'package:flipper_models/sync/interfaces/bar_interface.dart';
 import 'package:flipper_models/sync/utils/bar_mode_utils.dart';
 import 'package:flipper_models/sync/utils/sale_line_pricing.dart';
 import 'package:flipper_services/constants.dart';
+import 'package:flipper_services/payment_methods.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:supabase_models/brick/models/transaction.model.dart';
 import 'package:supabase_models/brick/models/transactionItem.model.dart';
 import 'package:talker/talker.dart';
 import 'package:uuid/uuid.dart';
+import 'package:flipper_models/helperModels/payer_name.dart';
 import 'package:flipper_models/helperModels/sale_completion_helpers.dart';
 import 'package:flipper_models/sync/utils/bar_credit_utils.dart';
 import 'package:flipper_models/sync/utils/sale_accounting_fields.dart';
@@ -884,76 +886,120 @@ mixin CapellaBarMixin implements BarInterface {
     final paidNow = payments.fold<double>(0, (s, p) => s + p.amount);
     if (paidNow <= 0) throw StateError('Nothing to collect');
 
-    // Same maths as a POS loan installment (PreviewCartMixin), so a loan
-    // reads the same whichever till took the money.
-    final derived = deriveSaleCompletionState(
-      transactionCashReceived: paidNow,
-      finalSubTotal: (transaction.subTotal ?? 0).toDouble(),
-      paymentMethods: payments,
-      priorAlreadyPaidNonCredit: (transaction.cashReceived ?? 0).toDouble(),
-    );
-
     final now = DateTime.now().toUtc();
-    final args = <String, dynamic>{
-      'id': transaction.id,
-      'status': derived.status,
-      'isLoan': derived.shouldBeLoan,
-      'remainingBalance': derived.remainingBalance,
-      'cashReceived': derived.nonCreditCashReceived,
-      'lastPaymentDate': now.toIso8601String(),
-      'lastPaymentAmount': paidNow,
-      'updatedAt': now.toIso8601String(),
-      'lastTouched': now.toIso8601String(),
-    };
-    final sets = [
-      'status = :status',
-      'isLoan = :isLoan',
-      'remainingBalance = :remainingBalance',
-      'cashReceived = :cashReceived',
-      'lastPaymentDate = :lastPaymentDate',
-      'lastPaymentAmount = :lastPaymentAmount',
-      'updatedAt = :updatedAt',
-      'lastTouched = :lastTouched',
-    ];
-    // The last installment's tender is what the completed sale was paid
-    // with; while money is still owed the ticket stays a CREDIT sale.
-    final completes = !derived.shouldBeLoan;
     final saleDate = serviceModeReportDate(now);
-    if (completes) {
-      sets.add('paymentType = :paymentType');
-      args['paymentType'] = payments.first.method;
-      // Like a POS loan, a paid-off loan is a sale on the day it is paid off.
-      sets.add('createdAt = :createdAt');
-      args['createdAt'] = saleDate.toIso8601String();
-    }
+    ITransaction? after;
 
-    final sql =
-        'UPDATE transactions SET ${sets.join(', ')} WHERE _id = :id OR id = :id';
-    if (completes) {
-      // One write, as in [settleBarTab]: the lines move with the sale.
-      await ditto.store.transaction((txn) async {
-        await txn.execute(sql, arguments: args);
+    // One write: the loan and its payment rows land together or not at all,
+    // so the Cash Book never misses an installment the balance counted.
+    await ditto.store.transaction((txn) async {
+      // The loan as stored, not the caller's copy: another till may have
+      // taken a payment since the collect sheet opened.
+      final found = await txn.execute(
+        'SELECT * FROM transactions WHERE _id = :id OR id = :id LIMIT 1',
+        arguments: {'id': transaction.id},
+      );
+      final loan = found.items.isEmpty
+          ? null
+          : await ITransactionDittoAdapter.instance.fromDittoDocument(
+              Map<String, dynamic>.from(found.items.first.value),
+            );
+      if (loan == null) throw StateError('This loan no longer exists');
+      if (!barCreditIsOpen(loan)) {
+        throw StateError('This loan is already paid');
+      }
+      final owed = barCreditBalance(loan);
+      if (paidNow > owed + kBarCreditBalanceEpsilon) {
+        throw BarCreditOverpaid(owed);
+      }
+
+      // Same maths as a POS loan installment (PreviewCartMixin), so a loan
+      // reads the same whichever till took the money.
+      final derived = deriveSaleCompletionState(
+        transactionCashReceived: paidNow,
+        finalSubTotal: (loan.subTotal ?? 0).toDouble(),
+        paymentMethods: payments,
+        priorAlreadyPaidNonCredit: (loan.cashReceived ?? 0).toDouble(),
+      );
+
+      final args = <String, dynamic>{
+        'id': loan.id,
+        'status': derived.status,
+        'isLoan': derived.shouldBeLoan,
+        'remainingBalance': derived.remainingBalance,
+        'cashReceived': derived.nonCreditCashReceived,
+        'lastPaymentDate': now.toIso8601String(),
+        'lastPaymentAmount': paidNow,
+        'updatedAt': now.toIso8601String(),
+        'lastTouched': now.toIso8601String(),
+      };
+      final sets = [
+        'status = :status',
+        'isLoan = :isLoan',
+        'remainingBalance = :remainingBalance',
+        'cashReceived = :cashReceived',
+        'lastPaymentDate = :lastPaymentDate',
+        'lastPaymentAmount = :lastPaymentAmount',
+        'updatedAt = :updatedAt',
+        'lastTouched = :lastTouched',
+      ];
+      // The last installment's tender is what the completed sale was paid
+      // with; while money is still owed the ticket stays a CREDIT sale.
+      final completes = !derived.shouldBeLoan;
+      if (completes) {
+        sets.add('paymentType = :paymentType');
+        args['paymentType'] = payments.first.method;
+        // Like a POS loan, a paid-off loan is a sale on the day it is paid off.
+        sets.add('createdAt = :createdAt');
+        args['createdAt'] = saleDate.toIso8601String();
+      }
+
+      await txn.execute(
+        'UPDATE transactions SET ${sets.join(', ')} WHERE _id = :id OR id = :id',
+        arguments: args,
+      );
+      // Beside the earlier installments, as savePaymentType writes them: the
+      // Cash Book reads each one.
+      for (final payment in payments) {
+        final id = const Uuid().v4();
+        await txn.execute(
+          'INSERT INTO transaction_payment_records DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE',
+          arguments: {
+            'doc': {
+              'id': id,
+              '_id': id,
+              'transactionId': loan.id,
+              'amount': payment.amount,
+              'paymentMethod': canonicalPaymentMethod(payment.method),
+              'payerName': normalizedPayerName(payment.payerName),
+              'createdAt': now.toIso8601String(),
+            },
+          },
+        );
+      }
+      if (completes) {
+        // As in [settleBarTab]: the lines move with the sale.
         await restampServiceModeSaleLines(
           txn,
-          transactionId: transaction.id,
+          transactionId: loan.id,
           saleDate: saleDate,
         );
-      });
-    } else {
-      await ditto.store.execute(sql, arguments: args);
-    }
+      }
 
-    return transaction.copyWith(
-      status: derived.status,
-      isLoan: derived.shouldBeLoan,
-      remainingBalance: derived.remainingBalance,
-      cashReceived: derived.nonCreditCashReceived,
-      paymentType: completes ? payments.first.method : transaction.paymentType,
-      createdAt: completes ? saleDate : transaction.createdAt,
-      lastPaymentDate: now,
-      lastPaymentAmount: paidNow,
-      updatedAt: now,
-      lastTouched: now,
-    );
+      after = loan.copyWith(
+        status: derived.status,
+        isLoan: derived.shouldBeLoan,
+        remainingBalance: derived.remainingBalance,
+        cashReceived: derived.nonCreditCashReceived,
+        paymentType: completes ? payments.first.method : loan.paymentType,
+        createdAt: completes ? saleDate : loan.createdAt,
+        lastPaymentDate: now,
+        lastPaymentAmount: paidNow,
+        updatedAt: now,
+        lastTouched: now,
+      );
+    });
+
+    return after!;
   }
 }

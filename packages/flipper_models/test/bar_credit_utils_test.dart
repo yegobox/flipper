@@ -89,4 +89,21 @@ void main() {
     expect(barCreditMatchesSearch(loan, 'jean'), isFalse);
     expect(barCreditMatchesSearch(loan, ''), isTrue);
   });
+
+  test('a picked due date lasts to the end of that day', () {
+    final due = barCreditDueEndOfDay(DateTime(2026, 11, 9));
+    expect(due.isUtc, isTrue);
+    expect(due.toLocal(), DateTime(2026, 11, 9, 23, 59, 59));
+    // Due today is not overdue yet.
+    final today = DateTime.now();
+    final loan = _loan('l1', due: barCreditDueEndOfDay(today));
+    expect(barCreditIsOverdue(loan, now: today), isFalse);
+  });
+
+  test('an overpayment says what is still owed', () {
+    expect(
+      const BarCreditOverpaid(2000).toString(),
+      'Only 2000.0 is still owed',
+    );
+  });
 }

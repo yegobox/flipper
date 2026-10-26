@@ -60,8 +60,17 @@ never raise it above the balance. Tenders are Cash, MoMo and Card.
 
 - adds to `cashReceived`
 - lowers `remainingBalance`
-- appends a payment row (`replacePriorRows: false`)
+- appends a payment row beside the earlier installments
 - files no receipt and moves no stock
+
+It is one Ditto transaction: the loan is read again by id (another till may
+have taken a payment since the sheet opened), an amount above the stored
+balance or a loan already paid is refused, and the loan update and its payment
+row are written together, so the Cash Book never misses an installment the
+balance counted.
+
+A due date picked from the calendar means the end of that day, so a loan due
+today is not overdue until tomorrow.
 
 The last installment completes the sale: it becomes `COMPLETE` with
 `isLoan: false`, and its `paymentType` becomes that installment's tender. The

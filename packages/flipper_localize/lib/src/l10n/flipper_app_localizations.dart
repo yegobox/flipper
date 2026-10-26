@@ -13355,6 +13355,12 @@ abstract class FlipperAppLocalizations {
   /// **'Choose who owes this bill'**
   String get barCreditPickCustomerFirst;
 
+  /// Bar mode: snackbar when putting an empty tab on credit
+  ///
+  /// In en, this message translates to:
+  /// **'Add something to the tab before putting it on credit.'**
+  String get barCreditEmptyTab;
+
   /// Bar mode: title of the due-date picker
   ///
   /// In en, this message translates to:
