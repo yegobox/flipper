@@ -36,9 +36,20 @@ void main() {
 
   setUp(() async {
     await getIt.reset();
-    // No business: a receipt that is not skipped stops before RRA.
-    getIt.registerSingleton<LocalStorage>(MockBox());
+    // A business and branch, so a receipt that is not skipped asks whether
+    // the branch files with RRA. It does not: nothing is sent or printed.
+    final box = MockBox();
+    when(() => box.getBusinessId()).thenReturn('biz');
+    when(() => box.getBranchId()).thenReturn('b');
+    when(() => box.bhfId()).thenAnswer((_) async => null);
+    getIt.registerSingleton<LocalStorage>(box);
     sync = _MockSync();
+    when(
+      () => sync.isTaxEnabled(
+        businessId: any(named: 'businessId'),
+        branchId: any(named: 'branchId'),
+      ),
+    ).thenAnswer((_) async => false);
   });
 
   tearDown(() async => getIt.reset());
@@ -106,6 +117,8 @@ void main() {
     );
 
     verify(() => sync.getTransaction(id: _id)).called(1);
+    // It reached the filing step the retry skips.
+    verify(() => sync.isTaxEnabled(businessId: 'biz', branchId: 'b')).called(1);
     expect(first.receiptNumber, isNull);
   });
 }
