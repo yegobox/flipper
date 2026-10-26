@@ -30,6 +30,7 @@ class BarTabBottomSheet extends StatelessWidget {
     required this.onBackToTables,
     required this.onSettle,
     this.onChargeToRoom,
+    this.onPutOnCredit,
     this.onPrint,
   });
 
@@ -52,6 +53,10 @@ class BarTabBottomSheet extends StatelessWidget {
 
   /// Null when the branch has no hotel guest to charge — the bar-only case.
   final VoidCallback? onChargeToRoom;
+
+  /// Null when this cashier needs a manager PIN to settle; credit then goes
+  /// through Settle like any other tender.
+  final VoidCallback? onPutOnCredit;
 
   /// Prints the tab for the guest (not a fiscal receipt). Null hides it.
   final VoidCallback? onPrint;
@@ -259,6 +264,17 @@ class BarTabBottomSheet extends StatelessWidget {
                               ? Icons.verified_user_outlined
                               : Icons.account_balance_wallet_outlined,
                         ),
+                        if (onPutOnCredit != null) ...[
+                          const SizedBox(height: 10),
+                          KeyedSubtree(
+                            key: const ValueKey('bar_tab_sheet_credit'),
+                            child: _outlineBtn(
+                              l10n.barPutOnCredit,
+                              lineCount == 0 ? null : onPutOnCredit,
+                              icon: Icons.schedule_outlined,
+                            ),
+                          ),
+                        ],
                         if (onPrint != null) ...[
                           const SizedBox(height: 10),
                           KeyedSubtree(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flipper_dashboard/features/bar_mode/bar_pos_actions.dart';
 import 'package:flipper_dashboard/features/bar_mode/providers/bar_mode_providers.dart';
+import 'package:flipper_dashboard/features/bar_mode/widgets/bar_credit_floor_button.dart';
 import 'package:flipper_dashboard/features/bar_mode/theme/bar_tokens.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_mobile_shell.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_shared_widgets.dart';
@@ -66,6 +67,8 @@ class _BarFloorMobileScreenState extends ConsumerState<BarFloorMobileScreen> {
             children: [
               const BarFlipperBrand(),
               const Spacer(),
+              const BarCreditFloorButton(compact: true),
+              const SizedBox(width: 8),
               if (cashier != null)
                 BarCashierChip(
                   name: cashier.name ?? '',

@@ -9,12 +9,16 @@ import 'package:flipper_models/sync/interfaces/bar_interface.dart';
 import 'package:flipper_models/sync/utils/bar_mode_utils.dart';
 import 'package:flipper_models/sync/utils/sale_line_pricing.dart';
 import 'package:flipper_services/constants.dart';
+import 'package:flipper_services/payment_methods.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:supabase_models/brick/models/transaction.model.dart';
 import 'package:supabase_models/brick/models/transactionItem.model.dart';
 import 'package:talker/talker.dart';
 import 'package:uuid/uuid.dart';
+import 'package:flipper_models/helperModels/payer_name.dart';
+import 'package:flipper_models/helperModels/sale_completion_helpers.dart';
+import 'package:flipper_models/sync/utils/bar_credit_utils.dart';
 import 'package:flipper_models/sync/utils/sale_accounting_fields.dart';
 import 'package:flipper_models/sync/utils/service_mode_sale_date.dart';
 import 'package:flipper_models/helpers/default_sale_receipt_type.dart';
@@ -756,5 +760,246 @@ mixin CapellaBarMixin implements BarInterface {
     });
 
     return updated;
+  }
+
+  @override
+  Future<ITransaction> parkBarTabAsLoan({
+    required ITransaction transaction,
+    required List<TransactionItem> lines,
+    required String customerId,
+    required String customerName,
+    String? customerPhone,
+    required DateTime dueDate,
+  }) async {
+    final ditto = dittoHandle;
+    if (ditto == null) throw StateError('Ditto not initialized');
+
+    // From the lines, as the settle screen totals it: the tab the UI holds is
+    // a copy taken when the table was opened.
+    final total = barTabTotal(lines);
+    if (lines.isEmpty || total <= 0) {
+      throw StateError('Cannot put an empty tab on credit');
+    }
+
+    final nowIso = DateTime.now().toUtc().toIso8601String();
+    final saleDate = serviceModeReportDate(DateTime.parse(nowIso));
+    final opened = (transaction.note ?? '').trim();
+    final updated = transaction.copyWith(
+      status: PARKED,
+      subTotal: total,
+      isLoan: true,
+      dueDate: dueDate.toUtc(),
+      customerId: customerId,
+      customerName: customerName,
+      customerPhone: customerPhone,
+      // The POS loan list names a ticket by its ticketName, and the table is
+      // about to go to the next guest — so the debtor names it now.
+      ticketName: customerName,
+      note: barCreditNote(tableName: transaction.ticketName, opened: opened),
+      paymentType: 'CREDIT',
+      cashReceived: 0,
+      customerChangeDue: 0,
+      originalLoanAmount: total,
+      remainingBalance: total,
+      isOriginalTransaction: true,
+      createdAt: saleDate,
+      updatedAt: DateTime.parse(nowIso),
+      lastTouched: DateTime.parse(nowIso),
+    );
+
+    // The connector books the receivable as soon as it sees a parked loan, and
+    // splits revenue by taxAmount — same reason as in [settleBarTab].
+    applySaleAccountingFields(transaction: updated, lines: lines);
+    // copyWith cannot clear a field. Without this the loan keeps its table,
+    // and the floor shows it occupied by a guest who has gone home.
+    updated.tableId = null;
+
+    final doc = await ITransactionDittoAdapter.instance.toDittoDocument(
+      updated,
+    );
+    await ditto.store.transaction((txn) async {
+      await txn.execute(
+        'INSERT INTO transactions DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE',
+        arguments: {'doc': doc},
+      );
+      await restampServiceModeSaleLines(
+        txn,
+        transactionId: transaction.id,
+        saleDate: saleDate,
+      );
+    });
+
+    return updated;
+  }
+
+  @override
+  Stream<List<ITransaction>> barCreditTabsStream({required String branchId}) {
+    final ditto = dittoHandle;
+    if (ditto == null) return Stream.value(<ITransaction>[]);
+    _ensureBarTabsSync(ditto, branchId);
+
+    const sql =
+        'SELECT * FROM transactions WHERE branchId = :branchId AND status = :status AND isLoan = :isLoan';
+    final args = {'branchId': branchId, 'status': PARKED, 'isLoan': true};
+    final controller = StreamController<List<ITransaction>>();
+    dynamic observer;
+
+    Future<List<ITransaction>> open(dynamic result) async => sortBarCreditTabs(
+      (await _tabsFromResult(result)).where(barCreditIsOpen).toList(),
+    );
+
+    unawaited(() async {
+      try {
+        final initial = await ditto.store.execute(sql, arguments: args);
+        if (!controller.isClosed) controller.add(await open(initial));
+        observer = ditto.store.registerObserver(
+          sql,
+          arguments: args,
+          onChange: (r) async {
+            if (!controller.isClosed) controller.add(await open(r));
+          },
+        );
+      } catch (e, s) {
+        talker.error('barCreditTabsStream: $e\n$s');
+        if (!controller.isClosed) controller.add([]);
+      }
+    }());
+
+    controller.onCancel = () async {
+      try {
+        await observer?.cancel();
+      } catch (_) {}
+      await controller.close();
+    };
+
+    return controller.stream;
+  }
+
+  @override
+  Future<ITransaction> collectBarCreditPayment({
+    required ITransaction transaction,
+    required List<PaymentLineForSaleCompletion> payments,
+  }) async {
+    final ditto = dittoHandle;
+    if (ditto == null) throw StateError('Ditto not initialized');
+
+    final paidNow = payments.fold<double>(0, (s, p) => s + p.amount);
+    if (paidNow <= 0) throw StateError('Nothing to collect');
+
+    final now = DateTime.now().toUtc();
+    final saleDate = serviceModeReportDate(now);
+    ITransaction? after;
+
+    // One write: the loan and its payment rows land together or not at all,
+    // so the Cash Book never misses an installment the balance counted.
+    await ditto.store.transaction((txn) async {
+      // The loan as stored, not the caller's copy: another till may have
+      // taken a payment since the collect sheet opened.
+      final found = await txn.execute(
+        'SELECT * FROM transactions WHERE _id = :id OR id = :id LIMIT 1',
+        arguments: {'id': transaction.id},
+      );
+      final loan = found.items.isEmpty
+          ? null
+          : await ITransactionDittoAdapter.instance.fromDittoDocument(
+              Map<String, dynamic>.from(found.items.first.value),
+            );
+      if (loan == null) throw StateError('This loan no longer exists');
+      if (!barCreditIsOpen(loan)) {
+        throw StateError('This loan is already paid');
+      }
+      final owed = barCreditBalance(loan);
+      if (paidNow > owed + kBarCreditBalanceEpsilon) {
+        throw BarCreditOverpaid(owed);
+      }
+
+      // Same maths as a POS loan installment (PreviewCartMixin), so a loan
+      // reads the same whichever till took the money.
+      final derived = deriveSaleCompletionState(
+        transactionCashReceived: paidNow,
+        finalSubTotal: (loan.subTotal ?? 0).toDouble(),
+        paymentMethods: payments,
+        priorAlreadyPaidNonCredit: (loan.cashReceived ?? 0).toDouble(),
+      );
+
+      final args = <String, dynamic>{
+        'id': loan.id,
+        'status': derived.status,
+        'isLoan': derived.shouldBeLoan,
+        'remainingBalance': derived.remainingBalance,
+        'cashReceived': derived.nonCreditCashReceived,
+        'lastPaymentDate': now.toIso8601String(),
+        'lastPaymentAmount': paidNow,
+        'updatedAt': now.toIso8601String(),
+        'lastTouched': now.toIso8601String(),
+      };
+      final sets = [
+        'status = :status',
+        'isLoan = :isLoan',
+        'remainingBalance = :remainingBalance',
+        'cashReceived = :cashReceived',
+        'lastPaymentDate = :lastPaymentDate',
+        'lastPaymentAmount = :lastPaymentAmount',
+        'updatedAt = :updatedAt',
+        'lastTouched = :lastTouched',
+      ];
+      // The last installment's tender is what the completed sale was paid
+      // with; while money is still owed the ticket stays a CREDIT sale.
+      final completes = !derived.shouldBeLoan;
+      if (completes) {
+        sets.add('paymentType = :paymentType');
+        args['paymentType'] = payments.first.method;
+        // Like a POS loan, a paid-off loan is a sale on the day it is paid off.
+        sets.add('createdAt = :createdAt');
+        args['createdAt'] = saleDate.toIso8601String();
+      }
+
+      await txn.execute(
+        'UPDATE transactions SET ${sets.join(', ')} WHERE _id = :id OR id = :id',
+        arguments: args,
+      );
+      // Beside the earlier installments, as savePaymentType writes them: the
+      // Cash Book reads each one.
+      for (final payment in payments) {
+        final id = const Uuid().v4();
+        await txn.execute(
+          'INSERT INTO transaction_payment_records DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE',
+          arguments: {
+            'doc': {
+              'id': id,
+              '_id': id,
+              'transactionId': loan.id,
+              'amount': payment.amount,
+              'paymentMethod': canonicalPaymentMethod(payment.method),
+              'payerName': normalizedPayerName(payment.payerName),
+              'createdAt': now.toIso8601String(),
+            },
+          },
+        );
+      }
+      if (completes) {
+        // As in [settleBarTab]: the lines move with the sale.
+        await restampServiceModeSaleLines(
+          txn,
+          transactionId: loan.id,
+          saleDate: saleDate,
+        );
+      }
+
+      after = loan.copyWith(
+        status: derived.status,
+        isLoan: derived.shouldBeLoan,
+        remainingBalance: derived.remainingBalance,
+        cashReceived: derived.nonCreditCashReceived,
+        paymentType: completes ? payments.first.method : loan.paymentType,
+        createdAt: completes ? saleDate : loan.createdAt,
+        lastPaymentDate: now,
+        lastPaymentAmount: paidNow,
+        updatedAt: now,
+        lastTouched: now,
+      );
+    });
+
+    return after!;
   }
 }

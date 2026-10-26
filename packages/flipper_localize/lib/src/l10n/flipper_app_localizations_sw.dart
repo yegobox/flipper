@@ -7790,6 +7790,116 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   }
 
   @override
+  String get barCredit => 'Mkopo';
+
+  @override
+  String get barPutOnCredit => 'Weka kwa mkopo';
+
+  @override
+  String get barCreditTileSubtitle => 'Mteja atalipa baadaye';
+
+  @override
+  String get barCreditPickCustomerFirst => 'Chagua anayedaiwa bili hii';
+
+  @override
+  String get barCreditEmptyTab =>
+      'Ongeza kitu kwenye bili kabla ya kuiweka kwenye mkopo.';
+
+  @override
+  String barCreditDueTitle(String customer) {
+    return '$customer atalipa lini?';
+  }
+
+  @override
+  String barCreditOwesBy(String customer, String amount, String date) {
+    return '$customer anadaiwa $amount · tarehe $date';
+  }
+
+  @override
+  String barCreditConfirm(String amount) {
+    return 'Weka $amount kwa mkopo';
+  }
+
+  @override
+  String get barCreditFootnote =>
+      'Meza inakuwa wazi sasa. Pokea pesa baadaye kutoka Mkopo kwenye skrini ya meza.';
+
+  @override
+  String barCreditParked(String table, String customer, String amount) {
+    return '$table → $customer · $amount kwa mkopo';
+  }
+
+  @override
+  String barCreditCount(int count) {
+    return 'Mkopo · $count';
+  }
+
+  @override
+  String barCreditSummary(int count, String amount) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Bili $count hazijalipwa',
+      one: 'Bili 1 haijalipwa',
+    );
+    return '$_temp0 · $amount zinadaiwa';
+  }
+
+  @override
+  String get barCreditEmpty =>
+      'Hakuna bili ambazo hazijalipwa. Bili zilizowekwa kwa mkopo zinaonekana hapa.';
+
+  @override
+  String get barCreditSearchHint => 'Tafuta jina au simu';
+
+  @override
+  String get barCreditOverdue => 'Imechelewa';
+
+  @override
+  String barCreditDue(String date) {
+    return 'Tarehe $date';
+  }
+
+  @override
+  String barCreditPaidOf(String paid, String total) {
+    return '$paid kati ya $total zimelipwa';
+  }
+
+  @override
+  String get barCreditFromBar => 'Baa';
+
+  @override
+  String get barCreditFromPos => 'POS';
+
+  @override
+  String barCreditCollectTitle(String customer) {
+    return 'Pokea kutoka kwa $customer';
+  }
+
+  @override
+  String get barCreditAmountLabel => 'Kiasi kilichopokelewa';
+
+  @override
+  String barCreditCollectButton(String amount) {
+    return 'Pokea $amount';
+  }
+
+  @override
+  String barCreditPaidLeft(String customer, String amount, String left) {
+    return '$customer amelipa $amount · zimebaki $left';
+  }
+
+  @override
+  String barCreditCleared(String customer) {
+    return '$customer amelipa yote';
+  }
+
+  @override
+  String barCreditAmountTooHigh(String customer, String amount) {
+    return '$customer anadaiwa $amount tu';
+  }
+
+  @override
   String get barTables => 'Meza';
 
   @override

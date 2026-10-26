@@ -7814,6 +7814,116 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   }
 
   @override
+  String get barCredit => 'Ideni';
+
+  @override
+  String get barPutOnCredit => 'Shyira ku ideni';
+
+  @override
+  String get barCreditTileSubtitle => 'Umukiriya azishyura nyuma';
+
+  @override
+  String get barCreditPickCustomerFirst => 'Hitamo ufite iri deni';
+
+  @override
+  String get barCreditEmptyTab =>
+      'Banza wongere ikintu kuri fagitire mbere yo kuyishyira ku ideni.';
+
+  @override
+  String barCreditDueTitle(String customer) {
+    return '$customer azishyura ryari?';
+  }
+
+  @override
+  String barCreditOwesBy(String customer, String amount, String date) {
+    return '$customer afite ideni rya $amount · kugeza $date';
+  }
+
+  @override
+  String barCreditConfirm(String amount) {
+    return 'Shyira $amount ku ideni';
+  }
+
+  @override
+  String get barCreditFootnote =>
+      'Ameza ahita aba ubusa. Uzakire amafaranga nyuma muri Ideni ku rupapuro rw\'ameza.';
+
+  @override
+  String barCreditParked(String table, String customer, String amount) {
+    return '$table → $customer · $amount ku ideni';
+  }
+
+  @override
+  String barCreditCount(int count) {
+    return 'Ideni · $count';
+  }
+
+  @override
+  String barCreditSummary(int count, String amount) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Fagitire $count zitishyuwe',
+      one: 'Fagitire 1 itishyuwe',
+    );
+    return '$_temp0 · $amount zibereyemo';
+  }
+
+  @override
+  String get barCreditEmpty =>
+      'Nta fagitire itishyuwe. Izashyizwe ku ideni zigaragara hano.';
+
+  @override
+  String get barCreditSearchHint => 'Shakisha izina cyangwa telefoni';
+
+  @override
+  String get barCreditOverdue => 'Igihe cyarenze';
+
+  @override
+  String barCreditDue(String date) {
+    return 'Kugeza $date';
+  }
+
+  @override
+  String barCreditPaidOf(String paid, String total) {
+    return '$paid kuri $total byishyuwe';
+  }
+
+  @override
+  String get barCreditFromBar => 'Akabari';
+
+  @override
+  String get barCreditFromPos => 'POS';
+
+  @override
+  String barCreditCollectTitle(String customer) {
+    return 'Kwakira kwa $customer';
+  }
+
+  @override
+  String get barCreditAmountLabel => 'Amafaranga yakiriwe';
+
+  @override
+  String barCreditCollectButton(String amount) {
+    return 'Kwakira $amount';
+  }
+
+  @override
+  String barCreditPaidLeft(String customer, String amount, String left) {
+    return '$customer yishyuye $amount · hasigaye $left';
+  }
+
+  @override
+  String barCreditCleared(String customer) {
+    return '$customer yishyuye yose';
+  }
+
+  @override
+  String barCreditAmountTooHigh(String customer, String amount) {
+    return '$customer afite ideni rya $amount gusa';
+  }
+
+  @override
   String get barTables => 'Ameza';
 
   @override

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flipper_models/models/bar_branch_settings.dart';
 import 'package:flipper_models/models/bar_table.dart';
+import 'package:flipper_models/helperModels/sale_completion_helpers.dart';
 import 'package:supabase_models/brick/models/transaction.model.dart';
 import 'package:supabase_models/brick/models/transactionItem.model.dart';
 
@@ -11,7 +12,9 @@ abstract class BarInterface {
 
   Future<BarBranchSettings?> barBranchSettings({required String branchId});
 
-  Stream<BarBranchSettings?> barBranchSettingsStream({required String branchId});
+  Stream<BarBranchSettings?> barBranchSettingsStream({
+    required String branchId,
+  });
 
   Future<void> saveBarBranchSettings(BarBranchSettings settings);
 
@@ -23,10 +26,7 @@ abstract class BarInterface {
 
   Future<void> saveBarTable(BarTable table);
 
-  Future<void> deleteBarTable({
-    required String id,
-    required String branchId,
-  });
+  Future<void> deleteBarTable({required String id, required String branchId});
 
   Future<void> seedDefaultFloorPlan({required String branchId});
 
@@ -93,5 +93,32 @@ abstract class BarInterface {
     required String paymentType,
     required double cashReceived,
     required double customerChangeDue,
+  });
+
+  // --- Credit (tabs the guest will pay later) ---
+
+  /// Turns [transaction] into a loan owed by the customer and frees its table.
+  ///
+  /// It stays PARKED, as a POS loan does, so POS Tickets → Loans lists it too.
+  Future<ITransaction> parkBarTabAsLoan({
+    required ITransaction transaction,
+    required List<TransactionItem> lines,
+    required String customerId,
+    required String customerName,
+    String? customerPhone,
+    required DateTime dueDate,
+  });
+
+  /// Every open loan in the branch, bar or POS: a debt is collected wherever
+  /// the customer turns up.
+  Stream<List<ITransaction>> barCreditTabsStream({required String branchId});
+
+  /// Records one installment against a loan; completes it once it is paid.
+  ///
+  /// Writes no receipt and moves no stock: both happened when the loan was
+  /// given.
+  Future<ITransaction> collectBarCreditPayment({
+    required ITransaction transaction,
+    required List<PaymentLineForSaleCompletion> payments,
   });
 }
