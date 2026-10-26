@@ -7868,6 +7868,112 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   }
 
   @override
+  String get barCredit => 'Crédit';
+
+  @override
+  String get barPutOnCredit => 'Mettre à crédit';
+
+  @override
+  String get barCreditTileSubtitle => 'Le client paie plus tard';
+
+  @override
+  String get barCreditPickCustomerFirst => 'Choisissez qui doit cette note';
+
+  @override
+  String barCreditDueTitle(String customer) {
+    return 'Échéance pour $customer';
+  }
+
+  @override
+  String barCreditOwesBy(String customer, String amount, String date) {
+    return '$customer doit $amount · échéance $date';
+  }
+
+  @override
+  String barCreditConfirm(String amount) {
+    return 'Mettre $amount à crédit';
+  }
+
+  @override
+  String get barCreditFootnote =>
+      'La table se libère maintenant. Encaissez plus tard depuis Crédit sur l\'écran des tables.';
+
+  @override
+  String barCreditParked(String table, String customer, String amount) {
+    return '$table → $customer · $amount à crédit';
+  }
+
+  @override
+  String barCreditCount(int count) {
+    return 'Crédit · $count';
+  }
+
+  @override
+  String barCreditSummary(int count, String amount) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count notes impayées',
+      one: '1 note impayée',
+    );
+    return '$_temp0 · $amount dus';
+  }
+
+  @override
+  String get barCreditEmpty =>
+      'Aucune note impayée. Les notes mises à crédit s\'affichent ici.';
+
+  @override
+  String get barCreditSearchHint => 'Rechercher un nom ou un téléphone';
+
+  @override
+  String get barCreditOverdue => 'En retard';
+
+  @override
+  String barCreditDue(String date) {
+    return 'Échéance $date';
+  }
+
+  @override
+  String barCreditPaidOf(String paid, String total) {
+    return '$paid payés sur $total';
+  }
+
+  @override
+  String get barCreditFromBar => 'Bar';
+
+  @override
+  String get barCreditFromPos => 'Caisse';
+
+  @override
+  String barCreditCollectTitle(String customer) {
+    return 'Encaisser $customer';
+  }
+
+  @override
+  String get barCreditAmountLabel => 'Montant reçu';
+
+  @override
+  String barCreditCollectButton(String amount) {
+    return 'Encaisser $amount';
+  }
+
+  @override
+  String barCreditPaidLeft(String customer, String amount, String left) {
+    return '$customer a payé $amount · reste $left';
+  }
+
+  @override
+  String barCreditCleared(String customer) {
+    return '$customer a tout payé';
+  }
+
+  @override
+  String barCreditAmountTooHigh(String customer, String amount) {
+    return '$customer ne doit que $amount';
+  }
+
+  @override
   String get barTables => 'Tables';
 
   @override

@@ -6613,6 +6613,194 @@
             }
         }
     },
+    "barCredit": "Credit",
+    "@barCredit": {
+        "description": "Bar mode: credit tender label and floor button"
+    },
+    "barPutOnCredit": "Put on credit",
+    "@barPutOnCredit": {
+        "description": "Bar mode: button that turns an open tab into a loan"
+    },
+    "barCreditTileSubtitle": "The customer pays later",
+    "@barCreditTileSubtitle": {
+        "description": "Bar mode: subtitle of the credit tender on the settle screen"
+    },
+    "barCreditPickCustomerFirst": "Choose who owes this bill",
+    "@barCreditPickCustomerFirst": {
+        "description": "Bar mode: settle screen hint before a debtor is chosen"
+    },
+    "barCreditDueTitle": "When will {customer} pay?",
+    "@barCreditDueTitle": {
+        "description": "Bar mode: title of the due-date picker",
+        "placeholders": {
+            "customer": {
+                "type": "String"
+            }
+        }
+    },
+    "barCreditOwesBy": "{customer} owes {amount} · due {date}",
+    "@barCreditOwesBy": {
+        "description": "Bar mode: settle screen line once a debtor and due date are chosen",
+        "placeholders": {
+            "customer": {
+                "type": "String"
+            },
+            "amount": {
+                "type": "String"
+            },
+            "date": {
+                "type": "String"
+            }
+        }
+    },
+    "barCreditConfirm": "Put {amount} on credit",
+    "@barCreditConfirm": {
+        "description": "Bar mode: confirm button for a credit settle",
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
+    "barCreditFootnote": "The table frees up now. Collect the money later from Credit on the tables screen.",
+    "@barCreditFootnote": {
+        "description": "Bar mode: footnote under the credit confirm button"
+    },
+    "barCreditParked": "{table} → {customer} · {amount} on credit",
+    "@barCreditParked": {
+        "description": "Bar mode: toast after a tab was put on credit",
+        "placeholders": {
+            "table": {
+                "type": "String"
+            },
+            "customer": {
+                "type": "String"
+            },
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
+    "barCreditCount": "Credit · {count}",
+    "@barCreditCount": {
+        "description": "Bar mode: floor button with the number of unpaid bills",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "barCreditSummary": "{count, plural, =1{1 unpaid bill} other{{count} unpaid bills}} · {amount} owed",
+    "@barCreditSummary": {
+        "description": "Bar mode: credit screen subtitle",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            },
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
+    "barCreditEmpty": "No unpaid bills. Tabs put on credit show here.",
+    "@barCreditEmpty": {
+        "description": "Bar mode: credit screen when nobody owes anything"
+    },
+    "barCreditSearchHint": "Search name or phone",
+    "@barCreditSearchHint": {
+        "description": "Bar mode: credit screen search field hint"
+    },
+    "barCreditOverdue": "Overdue",
+    "@barCreditOverdue": {
+        "description": "Bar mode: badge on a loan past its due date"
+    },
+    "barCreditDue": "Due {date}",
+    "@barCreditDue": {
+        "description": "Bar mode: loan due date",
+        "placeholders": {
+            "date": {
+                "type": "String"
+            }
+        }
+    },
+    "barCreditPaidOf": "{paid} of {total} paid",
+    "@barCreditPaidOf": {
+        "description": "Bar mode: how much of a loan is already paid",
+        "placeholders": {
+            "paid": {
+                "type": "String"
+            },
+            "total": {
+                "type": "String"
+            }
+        }
+    },
+    "barCreditFromBar": "Bar",
+    "@barCreditFromBar": {
+        "description": "Bar mode: chip on a loan that started as a bar tab"
+    },
+    "barCreditFromPos": "POS",
+    "@barCreditFromPos": {
+        "description": "Bar mode: chip on a loan given at the POS"
+    },
+    "barCreditCollectTitle": "Collect from {customer}",
+    "@barCreditCollectTitle": {
+        "description": "Bar mode: title of the collect-payment sheet",
+        "placeholders": {
+            "customer": {
+                "type": "String"
+            }
+        }
+    },
+    "barCreditAmountLabel": "Amount received",
+    "@barCreditAmountLabel": {
+        "description": "Bar mode: amount field on the collect-payment sheet"
+    },
+    "barCreditCollectButton": "Collect {amount}",
+    "@barCreditCollectButton": {
+        "description": "Bar mode: confirm button on the collect-payment sheet",
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
+    "barCreditPaidLeft": "{customer} paid {amount} · {left} left",
+    "@barCreditPaidLeft": {
+        "description": "Bar mode: toast after a part payment on a loan",
+        "placeholders": {
+            "customer": {
+                "type": "String"
+            },
+            "amount": {
+                "type": "String"
+            },
+            "left": {
+                "type": "String"
+            }
+        }
+    },
+    "barCreditCleared": "{customer} has paid in full",
+    "@barCreditCleared": {
+        "description": "Bar mode: toast after the last payment on a loan",
+        "placeholders": {
+            "customer": {
+                "type": "String"
+            }
+        }
+    },
+    "barCreditAmountTooHigh": "{customer} owes only {amount}",
+    "@barCreditAmountTooHigh": {
+        "description": "Bar mode: collect amount above the balance",
+        "placeholders": {
+            "customer": {
+                "type": "String"
+            },
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
     "barTables": "Tables",
     "@barTables": {
         "description": "Bar mode: floor screen title / back-to-floor button"

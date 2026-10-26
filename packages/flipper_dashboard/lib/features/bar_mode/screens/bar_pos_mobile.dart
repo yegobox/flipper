@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flipper_dashboard/features/bar_mode/bar_mode_settings.dart';
 import 'package:flipper_dashboard/features/bar_mode/bar_pos_actions.dart';
+import 'package:flipper_dashboard/features/bar_mode/bar_credit.dart';
 import 'package:flipper_dashboard/features/bar_mode/bar_room_charge.dart';
 import 'package:flipper_dashboard/features/bar_mode/bar_tab_print.dart';
 import 'package:flipper_dashboard/features/bar_mode/providers/bar_mode_providers.dart';
@@ -134,6 +135,18 @@ class BarPosMobileScreen extends HookConsumerWidget {
               table: table,
               lines: lines,
             ),
+            onPutOnCredit: !(isManager || !BarModeSettings.managerSettle)
+                ? null
+                : () {
+                    showSheet.value = false;
+                    BarCredit.promptAndPutOnCredit(
+                      context: context,
+                      ref: ref,
+                      tab: tab,
+                      table: table,
+                      mobile: true,
+                    );
+                  },
             onChargeToRoom: !canChargeRoom
                 ? null
                 : () {

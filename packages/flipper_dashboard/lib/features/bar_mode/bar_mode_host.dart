@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flipper_dashboard/features/bar_mode/bar_mode_settings.dart';
 import 'package:flipper_dashboard/features/bar_mode/providers/bar_mode_providers.dart';
+import 'package:flipper_dashboard/features/bar_mode/screens/bar_credit_screen.dart';
 import 'package:flipper_dashboard/features/bar_mode/screens/bar_floor_screen.dart';
 import 'package:flipper_dashboard/features/bar_mode/screens/bar_lock_screen.dart';
 import 'package:flipper_dashboard/features/bar_mode/screens/bar_pos_screen.dart';
@@ -13,7 +14,7 @@ import 'package:flipper_dashboard/features/service_mode_hotkey.dart';
 import 'package:flipper_dashboard/features/service_mode_switch.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-/// Root Bar Mode screen machine (lock → floor → pos → settle).
+/// Root Bar Mode screen machine (lock → floor → pos → settle, floor → credit).
 class BarModeHost extends ConsumerStatefulWidget {
   const BarModeHost({super.key});
 
@@ -69,6 +70,8 @@ class _BarModeHostState extends ConsumerState<BarModeHost> {
         screen = const BarPosScreen();
       case BarScreen.settle:
         screen = const BarSettleScreen();
+      case BarScreen.credit:
+        screen = const BarCreditScreen();
     }
 
     final stage = Scaffold(

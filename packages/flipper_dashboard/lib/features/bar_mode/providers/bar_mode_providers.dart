@@ -1,17 +1,19 @@
 import 'package:flutter/foundation.dart' show mapEquals;
 import 'package:flutter/material.dart' show Color;
 import 'package:flipper_models/SyncStrategy.dart';
+import 'package:flipper_models/DatabaseSyncInterface.dart';
 import 'package:flipper_models/helpers/pos_payment_role_tenant.dart';
 import 'package:flipper_models/models/bar_table.dart';
 import 'package:flipper_models/sync/utils/bar_mode_utils.dart';
 import 'package:flipper_models/view_models/flipperBaseModel.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:supabase_models/brick/repository/storage.dart';
 import 'package:supabase_models/brick/models/tenant.model.dart';
 import 'package:supabase_models/brick/models/transaction.model.dart';
 import 'package:supabase_models/brick/models/transactionItem.model.dart';
 
-enum BarScreen { lock, tables, pos, settle }
+enum BarScreen { lock, tables, pos, settle, credit }
 
 class BarModeState {
   const BarModeState({
@@ -21,6 +23,7 @@ class BarModeState {
     this.activeTab,
     this.toastMessage,
     this.showManagerModal = false,
+    this.managerTarget = BarScreen.settle,
   });
 
   final BarScreen screen;
@@ -29,6 +32,9 @@ class BarModeState {
   final ITransaction? activeTab;
   final String? toastMessage;
   final bool showManagerModal;
+
+  /// Where a manager PIN leads once accepted: Settle, or the Credit list.
+  final BarScreen managerTarget;
 
   BarModeState copyWith({
     BarScreen? screen,
@@ -41,6 +47,7 @@ class BarModeState {
     String? toastMessage,
     bool clearToast = false,
     bool? showManagerModal,
+    BarScreen? managerTarget,
   }) {
     return BarModeState(
       screen: screen ?? this.screen,
@@ -51,6 +58,7 @@ class BarModeState {
       activeTab: clearTab ? null : (activeTab ?? this.activeTab),
       toastMessage: clearToast ? null : (toastMessage ?? this.toastMessage),
       showManagerModal: showManagerModal ?? this.showManagerModal,
+      managerTarget: managerTarget ?? this.managerTarget,
     );
   }
 }
@@ -93,6 +101,9 @@ class BarModeNotifier extends Notifier<BarModeState> {
         state.activeTable == null) {
       next = next.copyWith(screen: BarScreen.tables);
     }
+    if (screen == BarScreen.credit && state.activeCashier == null) {
+      next = next.copyWith(screen: BarScreen.lock);
+    }
     state = next;
   }
 
@@ -132,16 +143,20 @@ class BarModeNotifier extends Notifier<BarModeState> {
 
   void goSettle() => setScreen(BarScreen.settle);
 
+  void goCredit() => setScreen(BarScreen.credit);
+
   void elevateManager(Tenant manager) {
     state = state.copyWith(
       activeCashier: manager,
       showManagerModal: false,
-      screen: BarScreen.settle,
+      screen: state.managerTarget,
     );
   }
 
-  void showManagerPin() {
-    state = state.copyWith(showManagerModal: true);
+  /// [then] is where the accepted PIN leads: Settle for a tab, Credit for
+  /// collecting a loan.
+  void showManagerPin({BarScreen then = BarScreen.settle}) {
+    state = state.copyWith(showManagerModal: true, managerTarget: then);
   }
 
   void hideManagerPin() {
@@ -174,27 +189,49 @@ final barStaffProvider = FutureProvider<List<Tenant>>((ref) async {
   return FlipperBaseModel.fetchBarStaffTenants();
 });
 
+/// What Bar Mode needs from the app. Getters resolve on every call because
+/// the active strategy can change at runtime; tests override
+/// [barServicesProvider] with a subclass.
+class BarServices {
+  const BarServices();
+
+  LocalStorage get box => ProxyService.box;
+
+  /// Bar Mode runs on Capella (Ditto) only.
+  DatabaseSyncInterface get sync => ProxyService.getStrategy(Strategy.capella);
+
+  String? get branchId => box.getBranchId();
+}
+
+final barServicesProvider = Provider<BarServices>((ref) => const BarServices());
+
 final barTablesProvider = StreamProvider<List<BarTable>>((ref) {
-  final branchId = ProxyService.box.getBranchId();
+  final services = ref.watch(barServicesProvider);
+  final branchId = services.branchId;
   if (branchId == null) return Stream.value([]);
-  return ProxyService.getStrategy(
-    Strategy.capella,
-  ).barTablesStream(branchId: branchId);
+  return services.sync.barTablesStream(branchId: branchId);
 });
 
 final barTabsProvider = StreamProvider<List<ITransaction>>((ref) {
-  final branchId = ProxyService.box.getBranchId();
+  final services = ref.watch(barServicesProvider);
+  final branchId = services.branchId;
   if (branchId == null) return Stream.value([]);
-  return ProxyService.getStrategy(
-    Strategy.capella,
-  ).barTabsStream(branchId: branchId);
+  return services.sync.barTabsStream(branchId: branchId);
+});
+
+/// Open loans in the branch, bar and POS alike, overdue first.
+final barCreditTabsProvider = StreamProvider<List<ITransaction>>((ref) {
+  final services = ref.watch(barServicesProvider);
+  final branchId = services.branchId;
+  if (branchId == null) return Stream.value([]);
+  return services.sync.barCreditTabsStream(branchId: branchId);
 });
 
 /// Auto-disposed: it polls every 2 s, and a kept-alive entry per tab ever
 /// shown kept polling after the bar floor was left for another mode.
 final barTabLinesProvider = StreamProvider.autoDispose
     .family<List<TransactionItem>, String>((ref, txnId) async* {
-      final sync = ProxyService.getStrategy(Strategy.capella);
+      final sync = ref.watch(barServicesProvider).sync;
       yield await sync.barTabLines(transactionId: txnId);
       yield* Stream.periodic(
         const Duration(seconds: 2),

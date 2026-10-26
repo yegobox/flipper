@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flipper_models/helperModels/sale_completion_helpers.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/models/bar_branch_settings.dart';
 import 'package:flipper_models/models/bar_table.dart';
@@ -51,8 +52,7 @@ mixin CoreBarStubMixin implements BarInterface {
   Future<void> deleteBarTable({
     required String id,
     required String branchId,
-  }) async =>
-      _warn('deleteBarTable');
+  }) async => _warn('deleteBarTable');
 
   @override
   Future<void> seedDefaultFloorPlan({required String branchId}) async =>
@@ -104,8 +104,7 @@ mixin CoreBarStubMixin implements BarInterface {
     required String cashierName,
     String? color,
     String? sku,
-  }) async =>
-      _warn('addLineToBarTab');
+  }) async => _warn('addLineToBarTab');
 
   @override
   Future<void> setBarTabLineQty({
@@ -113,23 +112,20 @@ mixin CoreBarStubMixin implements BarInterface {
     required String transactionId,
     required num qty,
     required num stockCap,
-  }) async =>
-      _warn('setBarTabLineQty');
+  }) async => _warn('setBarTabLineQty');
 
   @override
   Future<void> setBarTabLinePrice({
     required String lineId,
     required String transactionId,
     required num price,
-  }) async =>
-      _warn('setBarTabLinePrice');
+  }) async => _warn('setBarTabLinePrice');
 
   @override
   Future<void> deleteBarTabLine({
     required String lineId,
     required String transactionId,
-  }) async =>
-      _warn('deleteBarTabLine');
+  }) async => _warn('deleteBarTabLine');
 
   @override
   Future<void> refreshBarTabSubTotal({required String transactionId}) async =>
@@ -144,6 +140,34 @@ mixin CoreBarStubMixin implements BarInterface {
     required double customerChangeDue,
   }) async {
     _warn('settleBarTab');
+    throw UnsupportedError('Bar Mode requires Capella strategy');
+  }
+
+  @override
+  Future<ITransaction> parkBarTabAsLoan({
+    required ITransaction transaction,
+    required List<TransactionItem> lines,
+    required String customerId,
+    required String customerName,
+    String? customerPhone,
+    required DateTime dueDate,
+  }) async {
+    _warn('parkBarTabAsLoan');
+    throw UnsupportedError('Bar Mode requires Capella strategy');
+  }
+
+  @override
+  Stream<List<ITransaction>> barCreditTabsStream({required String branchId}) {
+    _warn('barCreditTabsStream');
+    return Stream.value(<ITransaction>[]);
+  }
+
+  @override
+  Future<ITransaction> collectBarCreditPayment({
+    required ITransaction transaction,
+    required List<PaymentLineForSaleCompletion> payments,
+  }) async {
+    _warn('collectBarCreditPayment');
     throw UnsupportedError('Bar Mode requires Capella strategy');
   }
 }

@@ -3,11 +3,13 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flipper_dashboard/features/bar_mode/bar_credit.dart';
 import 'package:flipper_dashboard/features/bar_mode/bar_room_charge.dart';
 import 'package:flipper_dashboard/features/bar_mode/bar_split_tender.dart';
 import 'package:flipper_dashboard/features/bar_mode/providers/bar_mode_providers.dart';
 import 'package:flipper_dashboard/features/bar_mode/theme/bar_tokens.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_mobile_shell.dart';
+import 'package:flipper_dashboard/features/bar_mode/widgets/bar_credit_tile.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_room_charge_tile.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_split_tender_rows.dart';
 import 'package:flipper_dashboard/utils/sale_receipt_settlement.dart';
@@ -39,6 +41,7 @@ class _BarSettleMobileScreenState extends ConsumerState<BarSettleMobileScreen> {
   List<SplitTender>? _split;
   bool _settling = false;
   HotelStay? _roomStay;
+  BarCreditTerms? _credit;
   final _tenderFocus = FocusNode();
   final _tenderController = TextEditingController(text: '0');
   final _receiptPhoneFocus = FocusNode();
@@ -166,11 +169,14 @@ class _BarSettleMobileScreenState extends ConsumerState<BarSettleMobileScreen> {
     }
 
     final isRoomCharge = _method == BarRoomCharge.method;
+    final isCredit = _method == BarCredit.method;
     final canChargeRoom = BarRoomCharge.isAvailable(ref);
     final canConfirm =
         !_settling &&
         (isRoomCharge
             ? _roomStay != null
+            : isCredit
+            ? _credit != null
             : _receiptPhoneIsValid() &&
                   splitSummary(_tenders, total).canConfirm);
     final buttonLooksEnabled = canConfirm || _settling;
@@ -215,6 +221,8 @@ class _BarSettleMobileScreenState extends ConsumerState<BarSettleMobileScreen> {
             Text(
               isRoomCharge
                   ? l10n.barSettleRoomChargeSubtitle
+                  : isCredit
+                  ? l10n.barCreditTileSubtitle
                   : l10n.barSettleChooseMethod,
               style: GoogleFonts.outfit(fontSize: 13, color: BarTokens.ink3),
             ),
@@ -252,7 +260,13 @@ class _BarSettleMobileScreenState extends ConsumerState<BarSettleMobileScreen> {
                   onTap: () => _pickRoom(mobile: true),
                 ),
               ],
-              if (!isRoomCharge) ...[
+              const SizedBox(height: 10),
+              BarCreditTile(
+                selected: isCredit,
+                terms: _credit,
+                onTap: () => _pickCredit(mobile: true),
+              ),
+              if (!isRoomCharge && !isCredit) ...[
                 const SizedBox(height: 4),
                 BarSplitPaymentLink(onTap: () => _startSplit(total)),
               ],
@@ -262,7 +276,7 @@ class _BarSettleMobileScreenState extends ConsumerState<BarSettleMobileScreen> {
                 total: total,
                 onChanged: _onSplitChanged,
               ),
-            if (!isRoomCharge) ...[
+            if (!isRoomCharge && !isCredit) ...[
               const SizedBox(height: 16),
               _ReceiptPhoneField(
                 controller: _receiptPhoneController,
@@ -286,6 +300,27 @@ class _BarSettleMobileScreenState extends ConsumerState<BarSettleMobileScreen> {
                       : l10n.barRoomChargeNoMoney(
                           hotelRoomChargeTarget(_roomStay!),
                         ),
+                  style: GoogleFonts.outfit(
+                    fontSize: 12.5,
+                    color: BarTokens.ink2,
+                    height: 1.5,
+                  ),
+                ),
+              ),
+            ] else if (isCredit) ...[
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: BarTokens.surface2,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: BarTokens.line),
+                ),
+                child: Text(
+                  _credit == null
+                      ? l10n.barCreditPickCustomerFirst
+                      : '${l10n.barCreditOwesBy(_credit!.customerName, totalLabel, barCreditDate(context, _credit!.dueDate))}\n'
+                            '${l10n.barCreditFootnote}',
                   style: GoogleFonts.outfit(
                     fontSize: 12.5,
                     color: BarTokens.ink2,
@@ -452,6 +487,8 @@ class _BarSettleMobileScreenState extends ConsumerState<BarSettleMobileScreen> {
                           Icon(
                             isRoomCharge
                                 ? Icons.hotel_outlined
+                                : isCredit
+                                ? Icons.schedule_outlined
                                 : Icons.verified_user_outlined,
                             color: buttonLooksEnabled
                                 ? Colors.white
@@ -467,6 +504,8 @@ class _BarSettleMobileScreenState extends ConsumerState<BarSettleMobileScreen> {
                                         _roomStay!.roomName,
                                         totalLabel,
                                       ))
+                              : isCredit
+                              ? l10n.barCreditConfirm(totalLabel)
                               : l10n.barConfirmTotalShort(totalLabel),
                           style: GoogleFonts.outfit(
                             color: buttonLooksEnabled
@@ -496,6 +535,41 @@ class _BarSettleMobileScreenState extends ConsumerState<BarSettleMobileScreen> {
       _roomStay = stay;
       _method = BarRoomCharge.method;
     });
+  }
+
+  /// Asks who owes the bill and by when, and selects the tender on a pick.
+  Future<void> _pickCredit({required bool mobile}) async {
+    final terms = await BarCredit.pickTerms(
+      context,
+      mobile: mobile,
+      current: _credit?.customer,
+    );
+    if (!mounted || terms == null) return;
+    setState(() {
+      _credit = terms;
+      _method = BarCredit.method;
+    });
+  }
+
+  /// Receipts the bill to the debtor and parks it as a loan; the table frees
+  /// up and the money is collected later from the Credit list.
+  Future<void> _putOnCredit(WidgetRef ref, ITransaction tab) async {
+    final terms = _credit;
+    final table = ref.read(barModeProvider).activeTable;
+    if (terms == null || table == null) return;
+
+    setState(() => _settling = true);
+    try {
+      await BarCredit.putOnCredit(
+        context: context,
+        ref: ref,
+        tab: tab,
+        table: table,
+        terms: terms,
+      );
+    } finally {
+      if (mounted) setState(() => _settling = false);
+    }
   }
 
   /// Moves the tab onto the folio instead of settling it. No receipt and no
@@ -531,6 +605,10 @@ class _BarSettleMobileScreenState extends ConsumerState<BarSettleMobileScreen> {
     if (_settling) return;
     if (_method == BarRoomCharge.method) {
       await _chargeRoom(ref, tab);
+      return;
+    }
+    if (_method == BarCredit.method) {
+      await _putOnCredit(ref, tab);
       return;
     }
     final l10n = context.flipperL10n;

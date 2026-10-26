@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flipper_dashboard/features/bar_mode/bar_mode_settings.dart';
 import 'package:flipper_dashboard/features/bar_mode/bar_pos_actions.dart';
+import 'package:flipper_dashboard/features/bar_mode/bar_credit.dart';
 import 'package:flipper_dashboard/features/bar_mode/bar_room_charge.dart';
 import 'package:flipper_dashboard/features/bar_mode/bar_tab_print.dart';
 import 'package:flipper_dashboard/features/bar_mode/providers/bar_mode_providers.dart';
@@ -504,6 +505,55 @@ class BarPosDesktopScreen extends HookConsumerWidget {
               ),
             ),
           ),
+          // The guest pays another day: receipted to them now, collected
+          // later from Credit. Behind the manager PIN with Settle otherwise.
+          if (isManager || !BarModeSettings.managerSettle) ...[
+            const SizedBox(height: 11),
+            Material(
+              color: BarTokens.surface,
+              borderRadius: BorderRadius.circular(BarTokens.radiusMd),
+              child: InkWell(
+                key: const ValueKey('bar_put_on_credit'),
+                onTap: empty
+                    ? null
+                    : () => BarCredit.promptAndPutOnCredit(
+                        context: context,
+                        ref: ref,
+                        tab: tab,
+                        table: table,
+                        mobile: false,
+                      ),
+                borderRadius: BorderRadius.circular(BarTokens.radiusMd),
+                child: Container(
+                  height: 46,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(BarTokens.radiusMd),
+                    border: Border.all(color: BarTokens.lineStrong, width: 1.5),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.schedule_outlined,
+                        size: 17,
+                        color: empty ? BarTokens.ink4 : BarTokens.ink2,
+                      ),
+                      const SizedBox(width: 9),
+                      Text(
+                        l10n.barPutOnCredit,
+                        style: GoogleFonts.outfit(
+                          fontSize: 14.5,
+                          fontWeight: FontWeight.w700,
+                          color: empty ? BarTokens.ink4 : null,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
           // A resident guest's drinks belong on their folio, not on a second
           // bill — so this closes the table without taking any money.
           if (canChargeRoom) ...[

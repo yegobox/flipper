@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flipper_dashboard/features/bar_mode/providers/bar_mode_providers.dart';
 import 'package:flipper_dashboard/features/bar_mode/theme/bar_tokens.dart';
 import 'package:flipper_dashboard/features/bar_mode/bar_pos_actions.dart';
+import 'package:flipper_dashboard/features/bar_mode/widgets/bar_credit_floor_button.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_shared_widgets.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_table_cards.dart';
 import 'package:flipper_localize/flipper_localize.dart';
@@ -101,6 +102,8 @@ class BarFloorDesktopScreen extends ConsumerWidget {
           _legend(l10n.barOpenTab, open: true),
           const SizedBox(width: 16),
           _legend(l10n.barTableFree, open: false),
+          const SizedBox(width: 18),
+          const BarCreditFloorButton(),
           const SizedBox(width: 4),
           if (cashier != null) ...[
             const SizedBox(width: 18),

@@ -13331,6 +13331,150 @@ abstract class FlipperAppLocalizations {
   /// **'{table} → {target} · {count, plural, =1{1 item} other{{count} items}} on the folio'**
   String barRoomChargeMoved(String table, String target, int count);
 
+  /// Bar mode: credit tender label and floor button
+  ///
+  /// In en, this message translates to:
+  /// **'Credit'**
+  String get barCredit;
+
+  /// Bar mode: button that turns an open tab into a loan
+  ///
+  /// In en, this message translates to:
+  /// **'Put on credit'**
+  String get barPutOnCredit;
+
+  /// Bar mode: subtitle of the credit tender on the settle screen
+  ///
+  /// In en, this message translates to:
+  /// **'The customer pays later'**
+  String get barCreditTileSubtitle;
+
+  /// Bar mode: settle screen hint before a debtor is chosen
+  ///
+  /// In en, this message translates to:
+  /// **'Choose who owes this bill'**
+  String get barCreditPickCustomerFirst;
+
+  /// Bar mode: title of the due-date picker
+  ///
+  /// In en, this message translates to:
+  /// **'When will {customer} pay?'**
+  String barCreditDueTitle(String customer);
+
+  /// Bar mode: settle screen line once a debtor and due date are chosen
+  ///
+  /// In en, this message translates to:
+  /// **'{customer} owes {amount} · due {date}'**
+  String barCreditOwesBy(String customer, String amount, String date);
+
+  /// Bar mode: confirm button for a credit settle
+  ///
+  /// In en, this message translates to:
+  /// **'Put {amount} on credit'**
+  String barCreditConfirm(String amount);
+
+  /// Bar mode: footnote under the credit confirm button
+  ///
+  /// In en, this message translates to:
+  /// **'The table frees up now. Collect the money later from Credit on the tables screen.'**
+  String get barCreditFootnote;
+
+  /// Bar mode: toast after a tab was put on credit
+  ///
+  /// In en, this message translates to:
+  /// **'{table} → {customer} · {amount} on credit'**
+  String barCreditParked(String table, String customer, String amount);
+
+  /// Bar mode: floor button with the number of unpaid bills
+  ///
+  /// In en, this message translates to:
+  /// **'Credit · {count}'**
+  String barCreditCount(int count);
+
+  /// Bar mode: credit screen subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 unpaid bill} other{{count} unpaid bills}} · {amount} owed'**
+  String barCreditSummary(int count, String amount);
+
+  /// Bar mode: credit screen when nobody owes anything
+  ///
+  /// In en, this message translates to:
+  /// **'No unpaid bills. Tabs put on credit show here.'**
+  String get barCreditEmpty;
+
+  /// Bar mode: credit screen search field hint
+  ///
+  /// In en, this message translates to:
+  /// **'Search name or phone'**
+  String get barCreditSearchHint;
+
+  /// Bar mode: badge on a loan past its due date
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue'**
+  String get barCreditOverdue;
+
+  /// Bar mode: loan due date
+  ///
+  /// In en, this message translates to:
+  /// **'Due {date}'**
+  String barCreditDue(String date);
+
+  /// Bar mode: how much of a loan is already paid
+  ///
+  /// In en, this message translates to:
+  /// **'{paid} of {total} paid'**
+  String barCreditPaidOf(String paid, String total);
+
+  /// Bar mode: chip on a loan that started as a bar tab
+  ///
+  /// In en, this message translates to:
+  /// **'Bar'**
+  String get barCreditFromBar;
+
+  /// Bar mode: chip on a loan given at the POS
+  ///
+  /// In en, this message translates to:
+  /// **'POS'**
+  String get barCreditFromPos;
+
+  /// Bar mode: title of the collect-payment sheet
+  ///
+  /// In en, this message translates to:
+  /// **'Collect from {customer}'**
+  String barCreditCollectTitle(String customer);
+
+  /// Bar mode: amount field on the collect-payment sheet
+  ///
+  /// In en, this message translates to:
+  /// **'Amount received'**
+  String get barCreditAmountLabel;
+
+  /// Bar mode: confirm button on the collect-payment sheet
+  ///
+  /// In en, this message translates to:
+  /// **'Collect {amount}'**
+  String barCreditCollectButton(String amount);
+
+  /// Bar mode: toast after a part payment on a loan
+  ///
+  /// In en, this message translates to:
+  /// **'{customer} paid {amount} · {left} left'**
+  String barCreditPaidLeft(String customer, String amount, String left);
+
+  /// Bar mode: toast after the last payment on a loan
+  ///
+  /// In en, this message translates to:
+  /// **'{customer} has paid in full'**
+  String barCreditCleared(String customer);
+
+  /// Bar mode: collect amount above the balance
+  ///
+  /// In en, this message translates to:
+  /// **'{customer} owes only {amount}'**
+  String barCreditAmountTooHigh(String customer, String amount);
+
   /// Bar mode: floor screen title / back-to-floor button
   ///
   /// In en, this message translates to:
