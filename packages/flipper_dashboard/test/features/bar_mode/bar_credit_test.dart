@@ -204,12 +204,13 @@ void main() {
       await tester.pumpAndSettle();
     }
 
-    testWidgets('is hidden while nobody owes anything', (tester) async {
+    testWidgets('stays visible while nobody owes anything', (tester) async {
       await pump(tester, const []);
       expect(
         find.byKey(const ValueKey('bar_credit_floor_button')),
-        findsNothing,
+        findsOneWidget,
       );
+      expect(find.text('Credit'), findsOneWidget);
     });
 
     testWidgets('counts the unpaid bills', (tester) async {

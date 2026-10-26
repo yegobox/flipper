@@ -7,8 +7,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-/// "Credit · N" on the tables screen: opens the unpaid bills. Hidden while
-/// nobody owes anything; a red dot once a bill is overdue.
+/// "Credit · N" on the tables screen: opens the unpaid bills. Always shown, so
+/// staff can find where loans live before the first one exists; a red dot
+/// once a bill is overdue.
 ///
 /// Collecting is settling, so it asks for a manager PIN wherever Settle does.
 class BarCreditFloorButton extends ConsumerWidget {
@@ -20,9 +21,14 @@ class BarCreditFloorButton extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final loans = ref.watch(barCreditTabsProvider).value ?? const [];
-    if (loans.isEmpty) return const SizedBox.shrink();
     final overdue = loans.any((l) => barCreditIsOverdue(l));
     final l10n = context.flipperL10n;
+    // Phone header: the icon alone until somebody owes something.
+    final label = loans.isEmpty
+        ? (compact ? '' : l10n.barCredit)
+        : compact
+        ? '${loans.length}'
+        : l10n.barCreditCount(loans.length);
 
     void open() {
       final notifier = ref.read(barModeProvider.notifier);
@@ -76,15 +82,17 @@ class BarCreditFloorButton extends ConsumerWidget {
                     ),
                 ],
               ),
-              const SizedBox(width: 9),
-              Text(
-                compact ? '${loans.length}' : l10n.barCreditCount(loans.length),
-                style: GoogleFonts.outfit(
-                  fontSize: 14.5,
-                  fontWeight: FontWeight.w700,
-                  color: BarTokens.ink2,
+              if (label.isNotEmpty) ...[
+                const SizedBox(width: 9),
+                Text(
+                  label,
+                  style: GoogleFonts.outfit(
+                    fontSize: 14.5,
+                    fontWeight: FontWeight.w700,
+                    color: BarTokens.ink2,
+                  ),
                 ),
-              ),
+              ],
             ],
           ),
         ),
