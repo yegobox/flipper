@@ -19,6 +19,15 @@ import 'package:flutter/foundation.dart';
 /// silently produced no receipt at all: the sale completed, the room or table
 /// was released, and nothing was filed or printed.
 
+/// Whether RRA already signed [stored] as a sale: it carries the receipt
+/// number [TaxController] persists after a successful filing.
+bool saleAlreadyReceipted(ITransaction stored) {
+  final number = stored.receiptNumber;
+  return number != null &&
+      number > 0 &&
+      const {'NS', 'TS', 'PS'}.contains(stored.receiptType);
+}
+
 /// Files [transaction] with RRA and prints it.
 ///
 /// Falls back to a plain non-fiscal print when the branch is not EBM-registered
@@ -36,6 +45,20 @@ Future<void> issueSaleReceipt({
   required List<TransactionItem> lines,
   required String receiptContext,
 }) async {
+  // A retry after a later step failed: RRA already signed this sale, and
+  // filing it again would issue a second receipt for it. Carry the stored
+  // receipt fields so the mode's write does not clear them.
+  final stored = await sync.getTransaction(id: transaction.id);
+  if (stored != null && saleAlreadyReceipted(stored)) {
+    transaction
+      ..receiptType = stored.receiptType
+      ..sarNo = stored.sarNo
+      ..receiptNumber = stored.receiptNumber
+      ..totalReceiptNumber = stored.totalReceiptNumber
+      ..invoiceNumber = stored.invoiceNumber;
+    return;
+  }
+
   final box = ProxyService.box;
   final businessId = box.getBusinessId();
   final branchId = box.getBranchId();
