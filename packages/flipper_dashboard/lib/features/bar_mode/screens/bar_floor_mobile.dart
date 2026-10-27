@@ -66,18 +66,34 @@ class _BarFloorMobileScreenState extends ConsumerState<BarFloorMobileScreen> {
           child: Row(
             children: [
               const BarFlipperBrand(),
-              const Spacer(),
-              const BarCreditFloorButton(compact: true),
               const SizedBox(width: 8),
-              if (cashier != null)
-                BarCashierChip(
-                  name: cashier.name ?? '',
-                  role: l10n.barCashierLogging(
-                    cashier.type ?? l10n.barRoleServer,
-                  ),
-                  initials: barTenantInitials(cashier.name),
-                  color: barColorForTenant(cashier.id, staff),
+              // The Credit button is always there now, so on a narrow phone
+              // the cashier chip shrinks to fit instead of overflowing.
+              Expanded(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    const BarCreditFloorButton(compact: true),
+                    if (cashier != null) ...[
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerRight,
+                          child: BarCashierChip(
+                            name: cashier.name ?? '',
+                            role: l10n.barCashierLogging(
+                              cashier.type ?? l10n.barRoleServer,
+                            ),
+                            initials: barTenantInitials(cashier.name),
+                            color: barColorForTenant(cashier.id, staff),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
+              ),
               const SizedBox(width: 8),
               IconButton(
                 onPressed: () => ref.read(barModeProvider.notifier).logout(),
