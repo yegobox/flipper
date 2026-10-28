@@ -107,11 +107,17 @@ class BarFloorDesktopScreen extends ConsumerWidget {
           const SizedBox(width: 4),
           if (cashier != null) ...[
             const SizedBox(width: 18),
-            BarCashierChip(
-              name: cashier.name ?? '',
-              role: l10n.barCashierLogging(cashier.type ?? l10n.barRoleServer),
-              initials: barTenantInitials(cashier.name),
-              color: barColorForTenant(cashier.id, staff),
+            // A long name ends in an ellipsis rather than pushing the
+            // controls past the header.
+            Flexible(
+              child: BarCashierChip(
+                name: cashier.name ?? '',
+                role: l10n.barCashierLogging(
+                  cashier.type ?? l10n.barRoleServer,
+                ),
+                initials: barTenantInitials(cashier.name),
+                color: barColorForTenant(cashier.id, staff),
+              ),
             ),
           ],
           if (cashier != null && _isAdminOrOwner(cashier)) ...[

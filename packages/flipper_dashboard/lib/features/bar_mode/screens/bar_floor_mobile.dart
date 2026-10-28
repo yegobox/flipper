@@ -68,7 +68,7 @@ class _BarFloorMobileScreenState extends ConsumerState<BarFloorMobileScreen> {
               const BarFlipperBrand(),
               const SizedBox(width: 8),
               // The Credit button is always there now, so on a narrow phone
-              // the cashier chip shrinks to fit instead of overflowing.
+              // the cashier's name ends in an ellipsis instead of overflowing.
               Expanded(
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.end,
@@ -77,17 +77,13 @@ class _BarFloorMobileScreenState extends ConsumerState<BarFloorMobileScreen> {
                     if (cashier != null) ...[
                       const SizedBox(width: 8),
                       Flexible(
-                        child: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          alignment: Alignment.centerRight,
-                          child: BarCashierChip(
-                            name: cashier.name ?? '',
-                            role: l10n.barCashierLogging(
-                              cashier.type ?? l10n.barRoleServer,
-                            ),
-                            initials: barTenantInitials(cashier.name),
-                            color: barColorForTenant(cashier.id, staff),
+                        child: BarCashierChip(
+                          name: cashier.name ?? '',
+                          role: l10n.barCashierLogging(
+                            cashier.type ?? l10n.barRoleServer,
                           ),
+                          initials: barTenantInitials(cashier.name),
+                          color: barColorForTenant(cashier.id, staff),
                         ),
                       ),
                     ],

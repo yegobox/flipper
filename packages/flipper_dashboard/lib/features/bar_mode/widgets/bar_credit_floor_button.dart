@@ -29,6 +29,11 @@ class BarCreditFloorButton extends ConsumerWidget {
         : compact
         ? '${loans.length}'
         : l10n.barCreditCount(loans.length);
+    // The phone button can be an icon alone, so it names itself for screen
+    // readers the way the desktop one reads.
+    final semanticLabel = loans.isEmpty
+        ? l10n.barCredit
+        : l10n.barCreditCount(loans.length);
 
     void open() {
       final notifier = ref.read(barModeProvider.notifier);
@@ -41,59 +46,64 @@ class BarCreditFloorButton extends ConsumerWidget {
       }
     }
 
-    return Material(
-      color: BarTokens.surface,
-      borderRadius: BorderRadius.circular(BarTokens.radiusMd),
-      child: InkWell(
-        key: const ValueKey('bar_credit_floor_button'),
-        onTap: open,
+    return Semantics(
+      button: true,
+      label: semanticLabel,
+      excludeSemantics: true,
+      child: Material(
+        color: BarTokens.surface,
         borderRadius: BorderRadius.circular(BarTokens.radiusMd),
-        child: Container(
-          height: compact ? 40 : 46,
-          padding: EdgeInsets.symmetric(horizontal: compact ? 12 : 18),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(BarTokens.radiusMd),
-            border: Border.all(color: BarTokens.line, width: 1.5),
-            boxShadow: BarTokens.shadow1,
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  const Icon(
-                    Icons.schedule_outlined,
-                    size: 18,
-                    color: BarTokens.blue,
-                  ),
-                  if (overdue)
-                    Positioned(
-                      top: -2,
-                      right: -3,
-                      child: Container(
-                        width: 8,
-                        height: 8,
-                        decoration: const BoxDecoration(
-                          color: BarTokens.lossInk,
-                          shape: BoxShape.circle,
+        child: InkWell(
+          key: const ValueKey('bar_credit_floor_button'),
+          onTap: open,
+          borderRadius: BorderRadius.circular(BarTokens.radiusMd),
+          child: Container(
+            height: compact ? 40 : 46,
+            padding: EdgeInsets.symmetric(horizontal: compact ? 12 : 18),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(BarTokens.radiusMd),
+              border: Border.all(color: BarTokens.line, width: 1.5),
+              boxShadow: BarTokens.shadow1,
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    const Icon(
+                      Icons.schedule_outlined,
+                      size: 18,
+                      color: BarTokens.blue,
+                    ),
+                    if (overdue)
+                      Positioned(
+                        top: -2,
+                        right: -3,
+                        child: Container(
+                          width: 8,
+                          height: 8,
+                          decoration: const BoxDecoration(
+                            color: BarTokens.lossInk,
+                            shape: BoxShape.circle,
+                          ),
                         ),
                       ),
-                    ),
-                ],
-              ),
-              if (label.isNotEmpty) ...[
-                const SizedBox(width: 9),
-                Text(
-                  label,
-                  style: GoogleFonts.outfit(
-                    fontSize: 14.5,
-                    fontWeight: FontWeight.w700,
-                    color: BarTokens.ink2,
-                  ),
+                  ],
                 ),
+                if (label.isNotEmpty) ...[
+                  const SizedBox(width: 9),
+                  Text(
+                    label,
+                    style: GoogleFonts.outfit(
+                      fontSize: 14.5,
+                      fontWeight: FontWeight.w700,
+                      color: BarTokens.ink2,
+                    ),
+                  ),
+                ],
               ],
-            ],
+            ),
           ),
         ),
       ),

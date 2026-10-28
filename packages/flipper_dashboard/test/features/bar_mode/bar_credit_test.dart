@@ -217,5 +217,40 @@ void main() {
       await pump(tester, [_loan(), _loan(id: 'loan-2')]);
       expect(find.text('Credit · 2'), findsOneWidget);
     });
+
+    /// The phone button is an icon alone until somebody owes something.
+    Future<void> pumpCompact(
+      WidgetTester tester,
+      List<ITransaction> loans,
+    ) async {
+      await tester.pumpWidget(
+        _app(
+          const Center(child: BarCreditFloorButton(compact: true)),
+          overrides: [
+            barCreditTabsProvider.overrideWith((ref) => Stream.value(loans)),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('the phone icon names itself for screen readers', (
+      tester,
+    ) async {
+      final semantics = tester.ensureSemantics();
+      await pumpCompact(tester, const []);
+      expect(find.text('Credit'), findsNothing);
+      expect(find.bySemanticsLabel('Credit'), findsOneWidget);
+      semantics.dispose();
+    });
+
+    testWidgets('the phone button reads the count to screen readers', (
+      tester,
+    ) async {
+      final semantics = tester.ensureSemantics();
+      await pumpCompact(tester, [_loan(), _loan(id: 'loan-2')]);
+      expect(find.bySemanticsLabel('Credit · 2'), findsOneWidget);
+      semantics.dispose();
+    });
   });
 }

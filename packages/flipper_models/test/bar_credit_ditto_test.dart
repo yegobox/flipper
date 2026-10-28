@@ -5,6 +5,7 @@
 //   LIBDITTOFFI_PATH=<app>/macos/Pods/DittoFlutter/DittoCore.xcframework/\
 //     macos-arm64_x86_64/DittoCore.framework/DittoCore \
 //     flutter test test/bar_credit_ditto_test.dart
+import 'dart:async';
 import 'dart:io';
 
 import 'package:ditto_live/ditto_live.dart';
@@ -131,8 +132,17 @@ void main() {
       );
       final credit = sync.barCreditTabsStream(branchId: _branch);
       final seen = <List<String>>[];
-      final sub = credit.listen((l) => seen.add(l.map((t) => t.id).toList()));
-      await Future<void>.delayed(const Duration(milliseconds: 300));
+      final first = Completer<void>();
+      final parked = Completer<void>();
+      final sub = credit.listen((l) {
+        final ids = l.map((t) => t.id).toList();
+        seen.add(ids);
+        if (!first.isCompleted) first.complete();
+        if (ids.contains(tab.id) && !parked.isCompleted) parked.complete();
+      });
+      // Listening before the tab goes on credit: nothing is owed yet.
+      await first.future.timeout(const Duration(seconds: 10));
+      expect(seen.first, isEmpty);
 
       await sync.parkBarTabAsLoan(
         transaction: tab,
@@ -142,7 +152,8 @@ void main() {
         customerPhone: '788000000',
         dueDate: DateTime.utc(2026, 11, 9),
       );
-      await Future<void>.delayed(const Duration(milliseconds: 500));
+      // The observer, not a later query, delivers the new loan.
+      await parked.future.timeout(const Duration(seconds: 10));
 
       final stored = (await ditto.store.execute(
         'SELECT * FROM transactions WHERE _id = :id',
