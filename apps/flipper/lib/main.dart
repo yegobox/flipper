@@ -382,6 +382,8 @@ Future<void> _initializeAnalytics() async {
     ga4ApiSecret: !kIsWeb && UniversalPlatform.isWindows
         ? AppSecrets.ga4WindowsApiSecret
         : null,
+    // A local-mode till promised to stay off the cloud.
+    ga4IsEnabled: () => !LocalMode.isOn,
   );
 }
 
