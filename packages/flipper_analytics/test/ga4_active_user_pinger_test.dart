@@ -27,6 +27,18 @@ class _FakeContextProvider implements AnalyticsContextProvider {
   }
 }
 
+class _RecordingClient extends MockClient {
+  _RecordingClient(super.fn);
+
+  bool closed = false;
+
+  @override
+  void close() {
+    closed = true;
+    super.close();
+  }
+}
+
 class _Harness {
   _Harness({
     this.userId = 'user-1',
@@ -36,6 +48,7 @@ class _Harness {
   final String? userId;
   final Future<http.Response> Function(http.Request request) _respond;
   final requests = <http.Request>[];
+  final clients = <_RecordingClient>[];
   DateTime now = DateTime.utc(2026, 10, 29, 8);
   bool online = true;
   bool enabled = true;
@@ -43,15 +56,21 @@ class _Harness {
   Ga4ActiveUserPinger build({
     Duration heartbeat = const Duration(minutes: 15),
     bool validateOnly = false,
+    Future<SharedPreferences> Function()? preferences,
   }) {
     return Ga4ActiveUserPinger(
       measurementId: 'G-TEST',
       apiSecret: 'secret-1',
       contextProvider: _FakeContextProvider(userId: userId),
-      httpClient: MockClient((request) {
-        requests.add(request);
-        return _respond(request);
-      }),
+      createClient: () {
+        final client = _RecordingClient((request) {
+          requests.add(request);
+          return _respond(request);
+        });
+        clients.add(client);
+        return client;
+      },
+      preferences: preferences,
       clock: () => now,
       hasNetwork: () async => online,
       isEnabled: () => enabled,
@@ -296,6 +315,41 @@ void main() {
     pinger.didChangeAppLifecycleState(AppLifecycleState.resumed);
     await harness.advance(tester, const Duration(hours: 1));
     expect(harness.requests, hasLength(1));
+  });
+
+  testWidgets('detach while the client id loads sends nothing', (tester) async {
+    final prefsLoaded = Completer<SharedPreferences>();
+    final harness = _Harness();
+    final pinger = harness.build(preferences: () => prefsLoaded.future)
+      ..attach();
+    await tester.pump();
+
+    await pinger.detach();
+    prefsLoaded.complete(await SharedPreferences.getInstance());
+    await tester.pump();
+
+    expect(harness.requests, isEmpty);
+  });
+
+  testWidgets('detach closes the client it created; attach makes a new one', (
+    tester,
+  ) async {
+    final harness = _Harness();
+    final pinger = harness.build()..attach();
+    await tester.pump();
+    expect(harness.clients, hasLength(1));
+    expect(harness.clients.single.closed, isFalse);
+
+    await pinger.detach();
+    expect(harness.clients.single.closed, isTrue);
+
+    pinger.attach();
+    await tester.pump();
+    expect(harness.clients, hasLength(2));
+    expect(harness.clients.last.closed, isFalse);
+    expect(harness.requests, hasLength(2));
+
+    await pinger.detach();
   });
 
   testWidgets('validateOnly posts to the debug endpoint', (tester) async {

@@ -63,7 +63,6 @@ class AppSecrets {
   static const String password = 'ci-fixture-password';
   static const String payStackApiKey = 'ci-fixture-payStackApiKey';
   static const String postHogProjectToken = 'ci-fixture-postHogProjectToken';
-  static const String ga4WindowsApiSecret = 'ci-fixture-ga4WindowsApiSecret';
   static const String powersyncUrl = 'https://ci-fixture.invalid/powersyncUrl';
   static const String projectId = 'ci-fixture-projectId';
   static const String publicPassword = 'ci-fixture-publicPassword';

@@ -186,7 +186,7 @@ jobs:
           ./scripts/ci/prefetch-pdfium.ps1
           ./scripts/ci/patch-windows-plugins.ps1
           Set-Location apps/flipper
-          flutter build windows --release -v
+          flutter build windows --release -v --dart-define=GA4_WINDOWS_API_SECRET=${{ secrets.GA4_WINDOWS_API_SECRET }}
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           Set-Location ../..
           ./scripts/ci/bundle-native-assets.ps1
