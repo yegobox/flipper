@@ -288,6 +288,11 @@ void main() {
     await harness.advance(tester, Ga4ActiveUserPinger.requestTimeout);
     await harness.advance(tester, const Duration(seconds: 1));
     expect(harness.requests.length, greaterThan(1));
+    // The timed-out request was aborted with its client, not left pending;
+    // later pings go out on a fresh one.
+    expect(harness.clients.first.closed, isTrue);
+    expect(harness.clients.length, greaterThan(1));
+    expect(harness.clients.last.closed, isFalse);
 
     await pinger.detach();
     hang.complete(http.Response('', 204));

@@ -154,13 +154,24 @@ class Ga4ActiveUserPinger with WidgetsBindingObserver {
         now.difference(engagedSince).inMilliseconds,
       );
 
-      final response = await (_client ??= _createClient())
-          .post(
-            _endpoint,
-            headers: const {'Content-Type': 'application/json'},
-            body: jsonEncode(_payload(clientId, engagementMs)),
-          )
-          .timeout(requestTimeout);
+      final client = _client ??= _createClient();
+      final http.Response response;
+      try {
+        response = await client
+            .post(
+              _endpoint,
+              headers: const {'Content-Type': 'application/json'},
+              body: jsonEncode(_payload(clientId, engagementMs)),
+            )
+            .timeout(requestTimeout);
+      } on TimeoutException {
+        // The timeout ends the wait, not the request. Closing the client
+        // aborts it, so a slow network can't leave requests piling up; the
+        // next ping opens a fresh client.
+        if (identical(_client, client)) _client = null;
+        client.close();
+        rethrow;
+      }
       if (kDebugMode) _debugReport(response);
     } catch (error) {
       if (kDebugMode) debugPrint('GA4 active-user ping skipped: $error');
