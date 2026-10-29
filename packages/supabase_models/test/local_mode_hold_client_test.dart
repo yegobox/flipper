@@ -55,4 +55,39 @@ void main() {
     expect(await call('POST', '/rest/v1/access'), 200);
     expect(sent, hasLength(1));
   });
+
+  test('follows LocalMode by default, and closes its inner client', () async {
+    var closed = false;
+    final inner = _ClosingClient(() => closed = true);
+    final byDefault = LocalModeHoldClient(inner);
+    addTearDown(() => LocalMode.debugSet(false));
+
+    LocalMode.debugSet(true);
+    final held = await byDefault.send(
+      http.Request('POST', Uri.parse('https://x.supabase.co/rest/v1/access')),
+    );
+    expect(held.statusCode, LocalModeHoldClient.heldStatus);
+
+    LocalMode.debugSet(false);
+    final sent = await byDefault.send(
+      http.Request('POST', Uri.parse('https://x.supabase.co/rest/v1/access')),
+    );
+    expect(sent.statusCode, 200);
+
+    byDefault.close();
+    expect(closed, isTrue);
+  });
+}
+
+class _ClosingClient extends http.BaseClient {
+  _ClosingClient(this._onClose);
+
+  final void Function() _onClose;
+
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async =>
+      http.StreamedResponse(Stream.value(const []), 200, request: request);
+
+  @override
+  void close() => _onClose();
 }

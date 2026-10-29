@@ -161,6 +161,28 @@ void main() {
     },
   );
 
+  test('a loaded mode is answered without reading the marker again', () async {
+    await writeLocalModeMarker({'businessId': 'biz-a'});
+    expect(await LocalMode.load(), isTrue);
+
+    await marker.delete();
+
+    expect(await LocalMode.load(), isTrue);
+  });
+
+  test('debugSet forces the mode', () {
+    LocalMode.debugSet(true);
+    expect(LocalMode.isOn, isTrue);
+    expect(LocalMode.isLoaded, isTrue);
+  });
+
+  test('the held-store exception names itself', () {
+    expect(
+      const LocalModeDeviceHeldException().toString(),
+      'LocalModeDeviceHeldException',
+    );
+  });
+
   test('allowCloud is visible only inside its body', () async {
     expect(LocalMode.cloudAllowedHere, isFalse);
     final inside = await LocalMode.allowCloud(() async {
