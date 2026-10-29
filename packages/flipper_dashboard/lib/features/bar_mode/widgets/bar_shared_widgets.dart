@@ -543,7 +543,10 @@ class BarCashierChip extends StatelessWidget {
         border: Border.all(color: BarTokens.line),
         boxShadow: BarTokens.shadow1,
       ),
+      // Sized to its text, but in a tight header the name and role end in an
+      // ellipsis instead of overflowing; callers give it a bounded slot.
       child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
           Container(
             width: 34,
@@ -560,25 +563,31 @@ class BarCashierChip extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 10),
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                name,
-                style: GoogleFonts.outfit(
-                  fontWeight: FontWeight.w700,
-                  fontSize: 13.5,
+          Flexible(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.outfit(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 13.5,
+                  ),
                 ),
-              ),
-              Text(
-                role,
-                style: GoogleFonts.outfit(
-                  fontSize: 11.5,
-                  color: BarTokens.ink3,
+                Text(
+                  role,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.outfit(
+                    fontSize: 11.5,
+                    color: BarTokens.ink3,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),

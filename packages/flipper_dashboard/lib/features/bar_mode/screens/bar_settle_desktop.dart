@@ -855,12 +855,17 @@ class _SettleTopBar extends StatelessWidget {
               color: BarTokens.ink1,
             ),
           ),
-          const Spacer(),
-          BarCashierChip(
-            name: displayName,
-            role: l10n.barSettlingAsManager,
-            initials: initials,
-            color: color,
+          const SizedBox(width: 12),
+          Expanded(
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: BarCashierChip(
+                name: displayName,
+                role: l10n.barSettlingAsManager,
+                initials: initials,
+                color: color,
+              ),
+            ),
           ),
         ],
       ),
