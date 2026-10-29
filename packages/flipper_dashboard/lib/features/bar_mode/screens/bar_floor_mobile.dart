@@ -66,30 +66,8 @@ class _BarFloorMobileScreenState extends ConsumerState<BarFloorMobileScreen> {
           child: Row(
             children: [
               const BarFlipperBrand(),
-              const SizedBox(width: 8),
-              // The Credit button is always there now, so on a narrow phone
-              // the cashier's name ends in an ellipsis instead of overflowing.
-              Expanded(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    const BarCreditFloorButton(compact: true),
-                    if (cashier != null) ...[
-                      const SizedBox(width: 8),
-                      Flexible(
-                        child: BarCashierChip(
-                          name: cashier.name ?? '',
-                          role: l10n.barCashierLogging(
-                            cashier.type ?? l10n.barRoleServer,
-                          ),
-                          initials: barTenantInitials(cashier.name),
-                          color: barColorForTenant(cashier.id, staff),
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
+              const Spacer(),
+              const BarCreditFloorButton(compact: true),
               const SizedBox(width: 8),
               IconButton(
                 onPressed: () => ref.read(barModeProvider.notifier).logout(),
@@ -104,25 +82,47 @@ class _BarFloorMobileScreenState extends ConsumerState<BarFloorMobileScreen> {
         ),
         Padding(
           padding: const EdgeInsets.fromLTRB(18, 10, 18, 0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          child: Row(
             children: [
-              Text(
-                l10n.barTables,
-                style: GoogleFonts.outfit(
-                  fontSize: 26,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: -0.8,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.barTables,
+                      style: GoogleFonts.outfit(
+                        fontSize: 26,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -0.8,
+                      ),
+                    ),
+                    Text(
+                      l10n.barFloorOpenTapToLog('$openCount'),
+                      style: GoogleFonts.outfit(
+                        fontSize: 12.5,
+                        color: BarTokens.ink3,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              Text(
-                l10n.barFloorOpenTapToLog('$openCount'),
-                style: GoogleFonts.outfit(
-                  fontSize: 12.5,
-                  color: BarTokens.ink3,
-                  fontWeight: FontWeight.w600,
+              // The top bar has no room left once Credit shows a count (a
+              // 320pt phone overflows), so the cashier sits by the title.
+              if (cashier != null) ...[
+                const SizedBox(width: 12),
+                Flexible(
+                  child: BarCashierChip(
+                    key: const ValueKey('bar_m_cashier_chip'),
+                    name: cashier.name ?? '',
+                    role: l10n.barCashierLogging(
+                      cashier.type ?? l10n.barRoleServer,
+                    ),
+                    initials: barTenantInitials(cashier.name),
+                    color: barColorForTenant(cashier.id, staff),
+                  ),
                 ),
-              ),
+              ],
             ],
           ),
         ),

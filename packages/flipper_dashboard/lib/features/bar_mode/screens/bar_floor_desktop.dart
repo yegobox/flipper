@@ -98,34 +98,44 @@ class BarFloorDesktopScreen extends ConsumerWidget {
               ),
             ],
           ),
-          const Spacer(),
-          _legend(l10n.barOpenTab, open: true),
-          const SizedBox(width: 16),
-          _legend(l10n.barTableFree, open: false),
           const SizedBox(width: 18),
-          const BarCreditFloorButton(),
-          const SizedBox(width: 4),
-          if (cashier != null) ...[
-            const SizedBox(width: 18),
-            // A long name ends in an ellipsis rather than pushing the
-            // controls past the header.
-            Flexible(
-              child: BarCashierChip(
-                name: cashier.name ?? '',
-                role: l10n.barCashierLogging(
-                  cashier.type ?? l10n.barRoleServer,
-                ),
-                initials: barTenantInitials(cashier.name),
-                color: barColorForTenant(cashier.id, staff),
-              ),
+          // One end-aligned group, so the chip gets all the free width and
+          // the controls stay on the right edge.
+          Expanded(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                _legend(l10n.barOpenTab, open: true),
+                const SizedBox(width: 16),
+                _legend(l10n.barTableFree, open: false),
+                const SizedBox(width: 18),
+                const BarCreditFloorButton(),
+                const SizedBox(width: 4),
+                if (cashier != null) ...[
+                  const SizedBox(width: 18),
+                  // A long name ends in an ellipsis rather than pushing the
+                  // controls past the header.
+                  Flexible(
+                    child: BarCashierChip(
+                      key: const ValueKey('bar_d_cashier_chip'),
+                      name: cashier.name ?? '',
+                      role: l10n.barCashierLogging(
+                        cashier.type ?? l10n.barRoleServer,
+                      ),
+                      initials: barTenantInitials(cashier.name),
+                      color: barColorForTenant(cashier.id, staff),
+                    ),
+                  ),
+                ],
+                if (cashier != null && _isAdminOrOwner(cashier)) ...[
+                  const SizedBox(width: 12),
+                  _settingsButton(l10n),
+                ],
+                const SizedBox(width: 12),
+                _dangerLogout(l10n, ref),
+              ],
             ),
-          ],
-          if (cashier != null && _isAdminOrOwner(cashier)) ...[
-            const SizedBox(width: 12),
-            _settingsButton(l10n),
-          ],
-          const SizedBox(width: 12),
-          _dangerLogout(l10n, ref),
+          ),
         ],
       ),
     );
