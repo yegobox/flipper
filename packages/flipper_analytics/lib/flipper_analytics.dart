@@ -5,6 +5,7 @@ export 'src/events/analytics_events.dart';
 export 'src/events/analytics_properties.dart';
 export 'src/implementations/analytics_flush_service.dart';
 export 'src/implementations/callback_analytics_context_provider.dart';
+export 'src/implementations/ga4_active_user_pinger.dart';
 export 'src/implementations/offline_first_analytics.dart';
 export 'src/implementations/posthog_transport.dart';
 export 'src/implementations/shared_preferences_analytics_event_store.dart';

@@ -368,6 +368,14 @@ Future<void> _initializeAnalytics() async {
       businessIdGetter: () => ProxyService.box.getBusinessId(),
       branchIdGetter: () => ProxyService.box.getBranchId(),
     ),
+    // Firebase Analytics has no Windows SDK, so Windows reports its active
+    // users to its GA4 stream directly; other platforms report natively.
+    ga4MeasurementId: !kIsWeb && UniversalPlatform.isWindows
+        ? DefaultFirebaseOptions.windows.measurementId
+        : null,
+    ga4ApiSecret: !kIsWeb && UniversalPlatform.isWindows
+        ? AppSecrets.ga4WindowsApiSecret
+        : null,
   );
 }
 
