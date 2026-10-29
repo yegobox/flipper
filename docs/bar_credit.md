@@ -46,7 +46,7 @@ and `BarCredit` in `flipper_dashboard/lib/features/bar_mode/bar_credit.dart`.
 
 ## Collecting
 
-The tables screen shows a **Credit · N** button whenever any loan is open. It
+The tables screen always shows a **Credit** button (**Credit · N** while loans are open). It
 gets a red dot once a loan is overdue, and it is gated by the same manager-PIN
 rule as Settle.
 
