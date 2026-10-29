@@ -124,6 +124,24 @@ void main() {
     expect(await marker.exists(), isFalse);
   });
 
+  test(
+    'a failed read leaves the mode unknown until a later read works',
+    () async {
+      await writeLocalModeMarker({'businessId': 'biz-a'});
+      LocalMode.debugReset();
+      LocalMode.debugReadMarker = () async =>
+          throw const FileSystemException('store directory unavailable');
+
+      expect(await LocalMode.load(), isFalse);
+      expect(LocalMode.isLoaded, isFalse);
+
+      // The directory resolves again: the next load reads the marker.
+      LocalMode.debugReadMarker = readLocalModeMarker;
+      expect(await LocalMode.load(), isTrue);
+      expect(LocalMode.isLoaded, isTrue);
+    },
+  );
+
   test('allowCloud is visible only inside its body', () async {
     expect(LocalMode.cloudAllowedHere, isFalse);
     final inside = await LocalMode.allowCloud(() async {

@@ -127,7 +127,7 @@ class DittoSingleton {
     }
 
     // QR-login identities always talk to the cloud; local mode hides QR login.
-    final wantLocal = !userId.startsWith('login-') && await LocalMode.load();
+    var wantLocal = !userId.startsWith('login-') && await LocalMode.load();
     if (_ditto != null && _openedLocal != wantLocal) {
       print(
         '🔁 [INIT] Connect mode changed (local=$wantLocal) — reopening store',
@@ -169,6 +169,20 @@ class DittoSingleton {
         _initCompleter?.complete(null);
         _initCompleter = null;
         return null;
+      }
+
+      // The marker read fails only while the store directory can't be
+      // resolved. It resolves now, so read again before choosing transports:
+      // a store whose mode is still unknown never opens with the cloud.
+      if (!isLoginIdentity && !LocalMode.isLoaded) {
+        wantLocal = await LocalMode.load();
+        if (!LocalMode.isLoaded) {
+          print('❌ [INIT FAIL] local mode unknown — not opening the store');
+          _isInitializing = false;
+          _initCompleter?.complete(null);
+          _initCompleter = null;
+          return null;
+        }
       }
 
       // File locks are for desktop/mobile multi-process safety only. WASM/web

@@ -26,6 +26,10 @@ class LocalMode {
   /// (and before Ditto opens), so it is only `false` before then.
   static bool get isOn => _on;
 
+  /// Whether the marker has been read. False after a failed read, which
+  /// [load] retries; until then [isOn] is not to be trusted.
+  static bool get isLoaded => _loaded;
+
   /// Notifies the UI when the mode flips (signup, opt-in).
   static final ValueNotifier<bool> changes = ValueNotifier<bool>(false);
 
@@ -45,7 +49,7 @@ class LocalMode {
       // An existing but unreadable marker reads as local mode (see
       // [readLocalModeMarker]). Only a store directory that can't be resolved
       // lands here, and Ditto can't open that directory either.
-      _set(await readLocalModeMarker() != null);
+      _set(await debugReadMarker() != null);
       _loaded = true;
     } catch (e) {
       debugPrint('LocalMode: marker read failed, will retry: $e');
@@ -130,11 +134,17 @@ class LocalMode {
     _set(on);
   }
 
+  /// Reads the marker file; replaceable in tests to make the read fail.
+  @visibleForTesting
+  static Future<Map<String, dynamic>?> Function() debugReadMarker =
+      readLocalModeMarker;
+
   /// Forgets the loaded state, so the next [load] reads the marker again.
   @visibleForTesting
   static void debugReset() {
     _loaded = false;
     _loading = null;
+    debugReadMarker = readLocalModeMarker;
     _set(false);
   }
 }
