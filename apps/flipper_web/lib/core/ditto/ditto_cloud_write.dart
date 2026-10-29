@@ -25,7 +25,11 @@ Future<void> ensureDittoCloudWriteReady(Ditto ditto) async {
     await Future<void>.delayed(const Duration(milliseconds: 100));
   }
   if (!ditto.sync.isActive) {
-    throw StateError('Ditto sync inactive — cloud write would stay local-only');
+    // dart format off
+    throw StateError(
+      'Ditto sync inactive — cloud write would stay local-only',
+    );
+    // dart format on
   }
 }
 

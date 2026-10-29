@@ -338,13 +338,18 @@ class DittoSingleton {
         print('⏭️ [INIT] Sync start deferred (login fast path)');
       } else {
         print('🔐 [INIT] Authenticating before cloud sync...');
-        await _authenticateThenStartSync(appId, initGeneration: initGeneration);
+        // dart format off
+        await _authenticateThenStartSync(
+          appId,
+          initGeneration: initGeneration,
+        );
+        // dart format on
       }
 
       if (!_isInitGenerationCurrent(initGeneration)) {
-        print(
-          '⏭️ [INIT] Discarding stale init result (generation $initGeneration)',
-        );
+        // dart format off
+        print('⏭️ [INIT] Discarding stale init result (generation $initGeneration)');
+        // dart format on
         return null;
       }
 
@@ -441,9 +446,9 @@ class DittoSingleton {
       // Ditto v5 server mode: sync.start drives auth via the expiration handler.
       try {
         if (!ditto.sync.isActive) {
-          print(
-            '🔧 [INIT] Starting Ditto sync (JWT via expiration handler)...',
-          );
+          // dart format off
+          print('🔧 [INIT] Starting Ditto sync (JWT via expiration handler)...');
+          // dart format on
           ditto.sync.start();
         }
       } catch (e) {

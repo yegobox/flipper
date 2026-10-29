@@ -15,9 +15,7 @@ import 'local_mode_marker.dart';
 ///
 /// Chosen only at signup ([enable]); opting back in to sync is one-way
 /// ([disable]). Native only — Ditto on the web is cloud-only.
-class LocalMode {
-  LocalMode._();
-
+abstract final class LocalMode {
   static bool _on = false;
   static bool _loaded = false;
   static Future<bool>? _loading;
@@ -36,8 +34,8 @@ class LocalMode {
   /// Reads the marker once. Safe to call repeatedly: concurrent callers share
   /// the one read, so none of them sees `false` while it is still running.
   static Future<bool> load() {
-    if (_loaded) return Future.value(_on);
-    if (kIsWeb) {
+    // The web has no marker to read: Ditto there is cloud-only.
+    if (_loaded || kIsWeb) {
       _loaded = true;
       return Future.value(_on);
     }
