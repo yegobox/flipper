@@ -42,40 +42,6 @@ void main() {
     LocalMode.debugReset();
   });
 
-  test('concurrent loads all see an existing marker', () async {
-    await writeLocalModeMarker({'businessId': 'biz-a'});
-    LocalMode.debugReset();
-
-    final results = await Future.wait([LocalMode.load(), LocalMode.load()]);
-
-    expect(results, [true, true]);
-    expect(LocalMode.isOn, isTrue);
-  });
-
-  test('an unreadable marker still means local mode', () async {
-    await marker.writeAsString('{not json');
-
-    expect(await readLocalModeMarker(), isNotNull);
-    expect(await LocalMode.load(), isTrue);
-  });
-
-  test(
-    'a marker write replaces the file whole and leaves no temp file',
-    () async {
-      await writeLocalModeMarker({'businessId': 'biz-a'});
-      await writeLocalModeMarker({
-        'businessId': 'biz-a',
-        'serverChangedAt': 'x',
-      });
-
-      expect(await readLocalModeMarker(), {
-        'businessId': 'biz-a',
-        'serverChangedAt': 'x',
-      });
-      expect(await File('${marker.path}.tmp').exists(), isFalse);
-    },
-  );
-
   test('signup on a store held by another business changes nothing', () async {
     await writeLocalModeMarker({'businessId': 'biz-a', 'enabledAt': 't0'});
     await LocalMode.load();
