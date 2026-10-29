@@ -9,10 +9,10 @@
 // made the analyzer baseline differ between a developer's machine (where the
 // real file exists) and CI (where it does not).
 //
-// This is NOT generated from the real file. The committed source references
-// exactly one member — DefaultFirebaseOptions.currentPlatform — so that is all
-// this provides. Every value is a placeholder; nothing here can reach a real
-// Firebase project.
+// This is NOT generated from the real file. It provides only the members the
+// committed source references: currentPlatform, and windows (its measurementId
+// feeds the Windows GA4 active-user ping). Every value is a placeholder;
+// nothing here can reach a real Firebase project.
 //
 // Named flipper_firebase_options.dart, not firebase_options.dart, because
 // .gitignore line 63 ignores that filename ANYWHERE in the tree -- a fixture
@@ -35,5 +35,16 @@ class DefaultFirebaseOptions {
     projectId: 'ci-fixture-project',
     authDomain: 'ci-fixture.invalid',
     storageBucket: 'ci-fixture.invalid',
+  );
+
+  /// main.dart reads its measurementId for the Windows GA4 ping.
+  static const FirebaseOptions windows = FirebaseOptions(
+    apiKey: 'ci-fixture-apiKey',
+    appId: '1:000000000000:web:0000000000000000000000',
+    messagingSenderId: '000000000000',
+    projectId: 'ci-fixture-project',
+    authDomain: 'ci-fixture.invalid',
+    storageBucket: 'ci-fixture.invalid',
+    measurementId: 'G-CIFIXTURE',
   );
 }
