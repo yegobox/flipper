@@ -59,4 +59,15 @@ void main() {
     });
     expect(LocalMode.isOn, isTrue);
   });
+
+  test('opting in refuses a store whose owner is unknown', () async {
+    await marker.writeAsString('{not json');
+    await LocalMode.load();
+
+    final result = await LocalModeController.optInToSync();
+
+    expect(result, CloudSyncOptIn.notOwner);
+    expect(await marker.readAsString(), '{not json');
+    expect(LocalMode.isOn, isTrue);
+  });
 }

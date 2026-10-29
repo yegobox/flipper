@@ -22,6 +22,9 @@ class LocalModeAccessGate {
   /// someone switches a device's mode, which ends the session anyway.
   static String? _passedFor;
 
+  /// The business this session was let in to, if the gate has run.
+  static String? get passedFor => _passedFor;
+
   static Future<bool> blocksEntry(String? businessId) async {
     if (kIsWeb || businessId == null || businessId.isEmpty) return false;
     if (_passedFor == businessId) return false;

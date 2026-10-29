@@ -1,3 +1,4 @@
+import 'package:flipper_dashboard/local_mode/local_mode_access_gate.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/services/local_mode_controller.dart';
 import 'package:flipper_routing/app.dialogs.dart';
@@ -32,12 +33,17 @@ Future<void> confirmAndTurnOnCloudSync(BuildContext context) async {
   );
   if (confirmed != true) return;
 
-  final optedIn = await LocalModeController.optInToSync();
-  if (!optedIn) {
+  final result = await LocalModeController.optInToSync(
+    sessionBusinessId: LocalModeAccessGate.passedFor,
+  );
+  if (result != CloudSyncOptIn.done) {
     if (!context.mounted) return;
+    final message = result == CloudSyncOptIn.notOwner
+        ? l10n.localModeDeviceHeldBody
+        : l10n.localModeOptInOffline;
     ScaffoldMessenger.of(
       context,
-    ).showSnackBar(SnackBar(content: Text(l10n.localModeOptInOffline)));
+    ).showSnackBar(SnackBar(content: Text(message)));
     return;
   }
 

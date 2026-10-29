@@ -1,14 +1,29 @@
 import 'dart:io' show Platform;
 
 import 'package:flipper_models/helperModels/talker.dart';
+import 'package:flipper_models/services/local_mode_access.dart';
 import 'package:flipper_models/services/local_mode_server.dart';
 import 'package:flipper_services/internet_probe.dart';
 import 'package:flipper_web/core/local_mode/local_mode.dart';
+import 'package:flipper_web/core/local_mode/local_mode_marker_keys.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:supabase_models/brick/repository.dart';
 
 export 'package:flipper_web/core/local_mode/local_mode.dart'
     show LocalModeDeviceHeldException;
+
+/// How [LocalModeController.optInToSync] ended.
+enum CloudSyncOptIn {
+  /// Local mode is off; the caller signs the user out to finish.
+  done,
+
+  /// No internet, or the server could not record the change. Nothing changed.
+  offline,
+
+  /// The store's owner is unknown and the server does not place the signed-in
+  /// business on this device. Nothing changed.
+  notOwner,
+}
 
 /// Moves this device in and out of [LocalMode], keeping the other cloud
 /// writers and the server's record (`businesses.sync_mode`) in step.
@@ -97,19 +112,44 @@ class LocalModeController {
   /// The caller then logs the user out: the next login reopens the same Ditto
   /// store with the cloud connect (its documents upload), and startup's
   /// payment check shows the plan picker like any new business.
-  static Future<bool> optInToSync() async {
-    if (!LocalMode.isOn) return true;
-    if (!await InternetProbe.isOnline()) return false;
-    final businessId = (await LocalMode.marker())?['businessId'] as String?;
+  ///
+  /// [sessionBusinessId] is the business this session signed in to. It is
+  /// needed only when the marker is unreadable: the store then goes to the
+  /// cloud only once the server places that business on this device, as at
+  /// login ([LocalModeAccess.recoverOwner]).
+  static Future<CloudSyncOptIn> optInToSync({String? sessionBusinessId}) async {
+    if (!LocalMode.isOn) return CloudSyncOptIn.done;
+    final marker = await LocalMode.marker();
+    final ownerUnknown = marker?[kLocalModeMarkerUnreadable] == true;
+    if (ownerUnknown && sessionBusinessId == null) {
+      return CloudSyncOptIn.notOwner;
+    }
+    if (!await InternetProbe.isOnline()) return CloudSyncOptIn.offline;
+    var businessId = marker?['businessId'] as String?;
+    if (ownerUnknown) {
+      final server = await LocalModeServer.fetch(sessionBusinessId!);
+      if (server == null) return CloudSyncOptIn.offline;
+      final access = decideLocalModeAccess(
+        businessId: sessionBusinessId,
+        server: server,
+        marker: marker,
+        thisDeviceName: _deviceName(),
+      );
+      if (access != LocalModeAccess.recoverOwner) {
+        return CloudSyncOptIn.notOwner;
+      }
+      await recoverOwner(server, sessionBusinessId);
+      businessId = sessionBusinessId;
+    }
     if (businessId != null) {
       final (result, _) = await LocalModeServer.setMode(
         businessId,
         local: false,
       );
-      if (result == SyncModeWrite.failed) return false;
+      if (result == SyncModeWrite.failed) return CloudSyncOptIn.offline;
     }
     await _leaveLocalMode('opted in to sync');
-    return true;
+    return CloudSyncOptIn.done;
   }
 
   /// Sync was turned on for this business from another device (the old one
