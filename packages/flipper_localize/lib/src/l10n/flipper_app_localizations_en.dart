@@ -27521,7 +27521,7 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
 
   @override
   String get localModeOptInBody =>
-      'Everything on this device will be uploaded to the cloud and you will choose a paid plan. EBM and Flo become available. You can\'t go back to offline mode. You\'ll sign in again to finish.';
+      'All your Flipper data on this device will be uploaded to the cloud and you will choose a paid plan. EBM and Flo become available. You can\'t go back to offline mode. You\'ll sign in again to finish.';
 
   @override
   String get localModeOptInConfirm => 'Turn on sync';

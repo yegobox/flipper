@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flipper_models/helperModels/talker.dart';
+import 'package:flipper_web/core/local_mode/local_mode.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// A business's sync mode as Supabase records it (`businesses.sync_mode`).
@@ -51,12 +52,14 @@ class LocalModeServer {
 
   static Future<BusinessSyncState?> fetch(String businessId) async {
     try {
-      final row = await Supabase.instance.client
-          .from('businesses')
-          .select(_columns)
-          .eq('id', businessId)
-          .maybeSingle()
-          .timeout(_timeout);
+      final row = await LocalMode.allowCloud(
+        () => Supabase.instance.client
+            .from('businesses')
+            .select(_columns)
+            .eq('id', businessId)
+            .maybeSingle()
+            .timeout(_timeout),
+      );
       return row == null ? null : BusinessSyncState.fromRow(row);
     } catch (e) {
       talker.warning('LocalModeServer.fetch($businessId): $e');
@@ -72,16 +75,20 @@ class LocalModeServer {
     String? deviceName,
   }) async {
     try {
-      final row = await Supabase.instance.client
-          .from('businesses')
-          .update({
-            'sync_mode': local ? 'local' : 'full',
-            if (deviceName != null) 'local_device_name': deviceName,
-          })
-          .eq('id', businessId)
-          .select(_columns)
-          .maybeSingle()
-          .timeout(_timeout);
+      // The one write local mode makes on purpose: other devices must learn
+      // where this business's data lives.
+      final row = await LocalMode.allowCloud(
+        () => Supabase.instance.client
+            .from('businesses')
+            .update({
+              'sync_mode': local ? 'local' : 'full',
+              if (deviceName != null) 'local_device_name': deviceName,
+            })
+            .eq('id', businessId)
+            .select(_columns)
+            .maybeSingle()
+            .timeout(_timeout),
+      );
       if (row == null) return (SyncModeWrite.failed, null);
       final state = BusinessSyncState.fromRow(row);
       return (

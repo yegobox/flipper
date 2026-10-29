@@ -30,6 +30,7 @@ export 'package:brick_core/query.dart'
     show And, Or, Query, QueryAction, Where, WherePhrase, Compare, OrderBy;
 
 import 'repository/auth_refreshing_client.dart';
+import 'repository/local_mode_hold_client.dart';
 import 'repository/database_manager.dart';
 import 'repository/legacy_database_migration.dart';
 import 'repository/main_db_opener.dart';
@@ -314,15 +315,19 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     final (client, queue) = OfflineFirstWithSupabaseRepository.clientQueue(
       databaseFactory: PlatformHelpers.getQueueDatabaseFactory(),
       databasePath: queuePath, // This is the path for the queue database
-      // Stamps a live access token onto every request, including queue
-      // replays, which would otherwise carry the JWT frozen at enqueue time.
-      innerClient: AuthRefreshingClient(
-        http.Client(),
-        anonKey: supabaseAnonKey,
-        // Lets the transport itself sign back in (not just refresh) when a
-        // request finds no active session — see auth_refreshing_client.dart.
-        tokenSource: SupabaseAccessTokenSource(
-          ensureAccessToken: SupabaseSessionService.ensureAccessToken,
+      // Local mode holds writes here, after the queue has logged them, so
+      // they upload only once the owner opts in to cloud sync.
+      innerClient: LocalModeHoldClient(
+        // Stamps a live access token onto every request, including queue
+        // replays, which would otherwise carry the JWT frozen at enqueue time.
+        AuthRefreshingClient(
+          http.Client(),
+          anonKey: supabaseAnonKey,
+          // Lets the transport itself sign back in (not just refresh) when a
+          // request finds no active session — see auth_refreshing_client.dart.
+          tokenSource: SupabaseAccessTokenSource(
+            ensureAccessToken: SupabaseSessionService.ensureAccessToken,
+          ),
         ),
       ),
       // Only transport, throttling and server-side failures are worth

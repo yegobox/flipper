@@ -15,20 +15,26 @@ Future<File> _markerFile() async {
 Future<Map<String, dynamic>?> readLocalModeMarker() async {
   final file = await _markerFile();
   if (!await file.exists()) return null;
-  final raw = await file.readAsString();
-  if (raw.trim().isEmpty) return const {};
+  // A marker that exists but can't be read or parsed still means the user
+  // chose local mode; never fall back to cloud sync (and its paywall) because
+  // of a bad write or a locked file.
   try {
+    final raw = await file.readAsString();
+    if (raw.trim().isEmpty) return const {};
     return Map<String, dynamic>.from(jsonDecode(raw) as Map);
   } catch (_) {
-    // A damaged marker still means the user chose local mode; never fall back
-    // to cloud sync (and its paywall) because of a bad write.
     return const {};
   }
 }
 
+/// Writes through a temporary file and renames it over the marker, so an
+/// interrupted write never leaves a truncated marker that has lost its
+/// `businessId`.
 Future<void> writeLocalModeMarker(Map<String, dynamic> data) async {
   final file = await _markerFile();
-  await file.writeAsString(jsonEncode(data), flush: true);
+  final tmp = File('${file.path}.tmp');
+  await tmp.writeAsString(jsonEncode(data), flush: true);
+  await tmp.rename(file.path);
 }
 
 Future<void> deleteLocalModeMarker() async {

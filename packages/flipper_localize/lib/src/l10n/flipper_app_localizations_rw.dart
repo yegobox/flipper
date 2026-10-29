@@ -27759,8 +27759,7 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
       'Abikwa neza kandi aboneka ku bikoresho byawe byose, hamwe na EBM na Flo. Ifatabuguzi ryishyurwa.';
 
   @override
-  String get signupDataLocal =>
-      'Nta murandasi kuri iki gikoresho — ni ubuntu iteka';
+  String get signupDataLocal => 'Kuri iki gikoresho gusa — ni ubuntu iteka';
 
   @override
   String get signupDataLocalHint =>
@@ -27782,7 +27781,7 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
 
   @override
   String get localModeOptInBody =>
-      'Ibiri kuri iki gikoresho byose bizoherezwa kuri cloud kandi uzahitamo ifatabuguzi ryishyurwa. EBM na Flo bizaboneka. Ntushobora gusubira ku buryo butagira murandasi. Uzongera kwinjira kugira ngo urangize.';
+      'Amakuru yose ya Flipper ari kuri iki gikoresho azoherezwa kuri cloud kandi uzahitamo ifatabuguzi ryishyurwa. EBM na Flo bizaboneka. Ntushobora gusubira ku buryo butagira murandasi. Uzongera kwinjira kugira ngo urangize.';
 
   @override
   String get localModeOptInConfirm => 'Fungura guhuza';
@@ -27792,7 +27791,7 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
       'Huza na murandasi kugira ngo ufungure guhuza na cloud.';
 
   @override
-  String get localModeBadge => 'Uburyo butagira murandasi';
+  String get localModeBadge => 'Kuri iki gikoresho gusa';
 
   @override
   String get localModeElsewhereTitle =>

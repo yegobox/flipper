@@ -3,6 +3,7 @@ import 'package:flipper_models/helperModels/signup_countries.dart';
 import 'dart:async';
 import 'dart:developer';
 import 'package:flipper_models/helperModels/business_type.dart';
+import 'package:flipper_models/services/local_mode_controller.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_form_bloc/flutter_form_bloc.dart';
@@ -83,6 +84,10 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
   /// Work offline on this device, free forever. Native only: Ditto on the web
   /// is cloud-only, so the view never offers it there.
   final localMode = BooleanFieldBloc<Object>(initialValue: false);
+
+  /// Failure reason when this device already keeps another business's data
+  /// offline; the view shows its localized explanation.
+  static const localModeDeviceHeldFailure = 'local_mode_device_held';
 
   AsyncFieldValidationFormBloc(
       {required this.signupViewModel, required String country}) {
@@ -530,6 +535,9 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
 
       emitSuccess();
       signupViewModel.stopRegistering(); // Ensure we stop the loading state
+    } on LocalModeDeviceHeldException {
+      signupViewModel.stopRegistering();
+      emitFailure(failureResponse: localModeDeviceHeldFailure);
     } catch (e) {
       log('Error during signup: $e', name: 'AsyncFieldValidationFormBloc');
       signupViewModel.stopRegistering();

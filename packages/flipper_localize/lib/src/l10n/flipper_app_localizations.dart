@@ -46034,7 +46034,7 @@ abstract class FlipperAppLocalizations {
   /// Confirm dialog body for leaving offline mode
   ///
   /// In en, this message translates to:
-  /// **'Everything on this device will be uploaded to the cloud and you will choose a paid plan. EBM and Flo become available. You can\'t go back to offline mode. You\'ll sign in again to finish.'**
+  /// **'All your Flipper data on this device will be uploaded to the cloud and you will choose a paid plan. EBM and Flo become available. You can\'t go back to offline mode. You\'ll sign in again to finish.'**
   String get localModeOptInBody;
 
   /// Confirm button for leaving offline mode

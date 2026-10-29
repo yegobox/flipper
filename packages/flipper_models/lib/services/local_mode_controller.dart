@@ -7,16 +7,27 @@ import 'package:flipper_web/core/local_mode/local_mode.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:supabase_models/brick/repository.dart';
 
+export 'package:flipper_web/core/local_mode/local_mode.dart'
+    show LocalModeDeviceHeldException;
+
 /// Moves this device in and out of [LocalMode], keeping the other cloud
 /// writers and the server's record (`businesses.sync_mode`) in step.
 class LocalModeController {
   LocalModeController._();
 
+  /// Set only when [enterForSignup] turned local mode on, so [abortSignup]
+  /// never removes a marker some earlier business owns.
+  static bool _enteredForSignup = false;
+
   /// Signup chose local mode. Runs before `strategy.signup`, so the login it
   /// performs opens Ditto local-only. The Supabase queue already started at
   /// boot, so it is stopped here.
+  ///
+  /// Throws [LocalModeDeviceHeldException], changing nothing, when this
+  /// device's store already belongs to another business.
   static Future<void> enterForSignup() async {
     await LocalMode.enable();
+    _enteredForSignup = true;
     Repository.pauseCloudSync();
     talker.info('Local mode: on (signup)');
   }
@@ -24,6 +35,7 @@ class LocalModeController {
   /// Signup knows the business: bind this device to it and tell the server,
   /// so logins on other devices know the data lives here.
   static Future<void> recordBusiness(String businessId) async {
+    _enteredForSignup = false;
     if (!LocalMode.isOn) return;
     await LocalMode.recordServerState(businessId: businessId);
     await registerOnServer(businessId);
@@ -48,8 +60,11 @@ class LocalModeController {
     );
   }
 
-  /// A failed signup must not leave the device local.
+  /// A failed signup must not leave the device local. Undoes only what
+  /// [enterForSignup] did: a store held by another business stays local.
   static Future<void> abortSignup() async {
+    if (!_enteredForSignup) return;
+    _enteredForSignup = false;
     if (!LocalMode.isOn) return;
     await LocalMode.disable();
     Repository.resumeCloudSync();

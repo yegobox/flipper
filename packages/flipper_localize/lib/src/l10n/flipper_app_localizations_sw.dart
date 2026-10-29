@@ -27688,7 +27688,7 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
 
   @override
   String get localModeOptInBody =>
-      'Kila kitu kwenye kifaa hiki kitapakiwa kwenye wingu na utachagua mpango wa kulipia. EBM na Flo zitapatikana. Huwezi kurudi kwenye hali ya nje ya mtandao. Utaingia tena ili kumaliza.';
+      'Data yote ya Flipper kwenye kifaa hiki itapakiwa kwenye wingu na utachagua mpango wa kulipia. EBM na Flo zitapatikana. Huwezi kurudi kwenye hali ya nje ya mtandao. Utaingia tena ili kumaliza.';
 
   @override
   String get localModeOptInConfirm => 'Washa usawazishaji';
@@ -27710,7 +27710,7 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   }
 
   @override
-  String get localModeElsewhereUnknownDevice => 'kifaa ambacho iliwekwa';
+  String get localModeElsewhereUnknownDevice => 'kifaa kilipoanzishwa';
 
   @override
   String get localModeElsewhereUseHere => 'Washa usawazishaji wa wingu hapa';

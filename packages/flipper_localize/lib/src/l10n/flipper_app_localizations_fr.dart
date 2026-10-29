@@ -27958,7 +27958,7 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
 
   @override
   String get localModeOptInBody =>
-      'Tout ce qui se trouve sur cet appareil sera envoyé vers le cloud et vous choisirez un abonnement payant. EBM et Flo deviennent disponibles. Vous ne pourrez pas revenir au mode hors ligne. Vous vous reconnecterez pour terminer.';
+      'Toutes vos données Flipper sur cet appareil seront envoyées vers le cloud et vous choisirez un abonnement payant. EBM et Flo deviennent disponibles. Vous ne pourrez pas revenir au mode hors ligne. Vous vous reconnecterez pour terminer.';
 
   @override
   String get localModeOptInConfirm => 'Activer la synchronisation';
@@ -27976,7 +27976,7 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
 
   @override
   String localModeElsewhereBody(String device) {
-    return 'Ses données sont stockées uniquement sur $device, elles ne peuvent donc pas être ouvertes ici. Pour utiliser Flipper sur cet appareil, activez la synchronisation cloud sur $device.\n\nSi cet appareil a été perdu ou réinitialisé, vous pouvez activer la synchronisation cloud ici, mais les données qu\'il contenait ne peuvent pas être récupérées.';
+    return 'Ses données sont stockées uniquement sur $device, elles ne peuvent donc pas être ouvertes ici. Pour utiliser Flipper sur cet appareil, activez la synchronisation cloud sur $device.\n\nSi l\'autre appareil a été perdu ou réinitialisé, vous pouvez activer la synchronisation cloud ici, mais les données qu\'il contenait ne peuvent pas être récupérées.';
   }
 
   @override

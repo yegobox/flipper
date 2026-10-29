@@ -863,6 +863,8 @@ class CronService {
 
   /// Sets up Firebase messaging for notifications
   Future<void> _setupFirebaseMessaging() async {
+    // Local mode: no push registration, and no device token on the server.
+    if (LocalMode.isOn) return;
     try {
       Business? business = await ProxyService.strategy.getBusiness(
         businessId: ProxyService.box.getBusinessId()!,

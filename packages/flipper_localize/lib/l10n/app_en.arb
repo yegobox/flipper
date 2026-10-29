@@ -20369,7 +20369,7 @@
     "@localModeOptInTitle": {
         "description": "Confirm dialog title for leaving offline mode"
     },
-    "localModeOptInBody": "Everything on this device will be uploaded to the cloud and you will choose a paid plan. EBM and Flo become available. You can't go back to offline mode. You'll sign in again to finish.",
+    "localModeOptInBody": "All your Flipper data on this device will be uploaded to the cloud and you will choose a paid plan. EBM and Flo become available. You can't go back to offline mode. You'll sign in again to finish.",
     "@localModeOptInBody": {
         "description": "Confirm dialog body for leaving offline mode"
     },

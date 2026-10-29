@@ -105,6 +105,16 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
                   // failureResponse is a raw (untranslated) reason from the
                   // bloc; match on it, show localized copy.
                   final raw = state.failureResponse;
+                  if (raw ==
+                      AsyncFieldValidationFormBloc.localModeDeviceHeldFailure) {
+                    showErrorNotification(
+                      context,
+                      '${l10n.localModeDeviceHeldTitle}. '
+                      '${l10n.localModeDeviceHeldBody}',
+                      duration: const Duration(seconds: 10),
+                    );
+                    return;
+                  }
                   final message = raw ?? l10n.signupErrorGeneric;
                   final rawLower = raw?.toLowerCase() ?? '';
                   final isOtpError = rawLower.contains('otp') ||
