@@ -31,14 +31,16 @@ class Ga4ActiveUserPinger with WidgetsBindingObserver {
     required this.measurementId,
     required this.apiSecret,
     required AnalyticsContextProvider contextProvider,
-    http.Client? httpClient,
+    http.Client Function()? createClient,
+    Future<SharedPreferences> Function()? preferences,
     DateTime Function()? clock,
     Future<bool> Function()? hasNetwork,
     bool Function()? isEnabled,
     this.heartbeat = const Duration(minutes: 15),
     this.validateOnly = kDebugMode,
   }) : _contextProvider = contextProvider,
-       _httpClient = httpClient ?? http.Client(),
+       _createClient = createClient ?? http.Client.new,
+       _preferences = preferences ?? SharedPreferences.getInstance,
        _clock = clock ?? DateTime.now,
        _hasNetwork = hasNetwork ?? _connectivityHasNetwork,
        _isEnabled = isEnabled ?? _alwaysEnabled;
@@ -58,7 +60,8 @@ class Ga4ActiveUserPinger with WidgetsBindingObserver {
   final bool validateOnly;
 
   final AnalyticsContextProvider _contextProvider;
-  final http.Client _httpClient;
+  final http.Client Function() _createClient;
+  final Future<SharedPreferences> Function() _preferences;
   final DateTime Function() _clock;
   final Future<bool> Function() _hasNetwork;
   final bool Function() _isEnabled;
@@ -66,6 +69,9 @@ class Ga4ActiveUserPinger with WidgetsBindingObserver {
   bool _attached = false;
   bool _inFlight = false;
   Timer? _timer;
+  // Created on the first send and closed on detach: the pinger owns it, so a
+  // detached pinger leaves no keep-alive connection behind.
+  http.Client? _client;
   String? _clientId;
   int? _sessionId;
   DateTime? _engagedSince;
@@ -85,6 +91,8 @@ class Ga4ActiveUserPinger with WidgetsBindingObserver {
     _attached = false;
     _timer?.cancel();
     _timer = null;
+    _client?.close();
+    _client = null;
   }
 
   @override
@@ -136,6 +144,8 @@ class Ga4ActiveUserPinger with WidgetsBindingObserver {
       if (!online || !_attached) return;
 
       final clientId = await _loadClientId();
+      // detach() may have run while the client id was loading.
+      if (!_attached) return;
       final now = _clock();
       final engagedSince = _engagedSince ?? now;
       _engagedSince = now;
@@ -144,7 +154,7 @@ class Ga4ActiveUserPinger with WidgetsBindingObserver {
         now.difference(engagedSince).inMilliseconds,
       );
 
-      final response = await _httpClient
+      final response = await (_client ??= _createClient())
           .post(
             _endpoint,
             headers: const {'Content-Type': 'application/json'},
@@ -193,7 +203,7 @@ class Ga4ActiveUserPinger with WidgetsBindingObserver {
   Future<String> _loadClientId() async {
     final cached = _clientId;
     if (cached != null) return cached;
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await _preferences();
     var clientId = prefs.getString(clientIdKey);
     if (clientId == null || clientId.isEmpty) {
       clientId = const Uuid().v4();
