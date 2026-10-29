@@ -1,4 +1,5 @@
 import 'package:flipper_models/services/local_mode_server.dart';
+import 'package:flipper_web/core/local_mode/local_mode_marker_keys.dart';
 
 /// What a login may do, given where a business keeps its data.
 enum LocalModeAccess {
@@ -18,6 +19,10 @@ enum LocalModeAccess {
   /// This device is offline-only but the server never confirmed it (signup
   /// lost the connection): record it again and carry on.
   registerLocal,
+
+  /// This device's marker was unreadable, and the server says this business
+  /// is offline on this very device: write the owner back and carry on.
+  recoverOwner,
 }
 
 /// Decides [LocalModeAccess] for [businessId] from the server's record
@@ -26,11 +31,27 @@ enum LocalModeAccess {
 ///
 /// An unreadable server never blocks: an offline login can only open data
 /// that is already on this device.
+///
+/// [thisDeviceName] is this device's name as local mode records it
+/// (`businesses.local_device_name`); it identifies the owner of a store whose
+/// marker could not be read.
 LocalModeAccess decideLocalModeAccess({
   required String businessId,
   required BusinessSyncState? server,
   required Map<String, dynamic>? marker,
+  String? thisDeviceName,
 }) {
+  if (marker != null && marker[kLocalModeMarkerUnreadable] == true) {
+    // The owner is unknown, not absent: only the server can name it.
+    if (server == null) return LocalModeAccess.allowed;
+    final ownsThisDevice =
+        server.isLocal &&
+        server.deviceName != null &&
+        server.deviceName == thisDeviceName;
+    return ownsThisDevice
+        ? LocalModeAccess.recoverOwner
+        : LocalModeAccess.deviceHeldByOtherBusiness;
+  }
   if (marker != null) {
     final owner = marker['businessId'] as String?;
     if (owner != null && owner != businessId) {

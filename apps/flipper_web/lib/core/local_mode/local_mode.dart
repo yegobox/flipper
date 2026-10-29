@@ -67,8 +67,11 @@ class LocalMode {
   /// to the new one.
   static Future<void> enable({String? businessId}) async {
     if (kIsWeb) return;
-    final heldBy = (await readLocalModeMarker())?['businessId'];
-    if (heldBy != null && heldBy != businessId) {
+    final current = await readLocalModeMarker();
+    final heldBy = current?['businessId'];
+    // An unreadable marker's owner is unknown, so it may be someone else's.
+    if (current?[kLocalModeMarkerUnreadable] == true ||
+        (heldBy != null && heldBy != businessId)) {
       throw const LocalModeDeviceHeldException();
     }
     await writeLocalModeMarker({
@@ -103,7 +106,8 @@ class LocalMode {
     DateTime? serverChangedAt,
   }) async {
     if (kIsWeb || !_on) return;
-    final current = await readLocalModeMarker() ?? const {};
+    final current = {...?await readLocalModeMarker()}
+      ..remove(kLocalModeMarkerUnreadable);
     await writeLocalModeMarker({
       ...current,
       'businessId': businessId,

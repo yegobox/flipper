@@ -4,6 +4,8 @@ import 'dart:io';
 import 'package:flipper_web/core/utils/database_path.dart';
 import 'package:path/path.dart' as p;
 
+import 'local_mode_marker_keys.dart';
+
 const _kMarkerFile = '.flipper_local_mode';
 
 /// Same directory [DittoSingleton] opens for the session store.
@@ -17,15 +19,18 @@ Future<Map<String, dynamic>?> readLocalModeMarker() async {
   if (!await file.exists()) return null;
   // A marker that exists but can't be read or parsed still means the user
   // chose local mode; never fall back to cloud sync (and its paywall) because
-  // of a bad write or a locked file.
+  // of a bad write or a locked file. Its owner is unknown, which is not the
+  // same as unowned: say so rather than return a marker without a business.
   try {
     final raw = await file.readAsString();
-    if (raw.trim().isEmpty) return const {};
+    if (raw.trim().isEmpty) return _unreadable;
     return Map<String, dynamic>.from(jsonDecode(raw) as Map);
   } catch (_) {
-    return const {};
+    return _unreadable;
   }
 }
+
+const _unreadable = {kLocalModeMarkerUnreadable: true};
 
 /// Writes through a temporary file and renames it over the marker, so an
 /// interrupted write never leaves a truncated marker that has lost its

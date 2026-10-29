@@ -1,5 +1,6 @@
 import 'package:flipper_models/services/local_mode_access.dart';
 import 'package:flipper_models/services/local_mode_server.dart';
+import 'package:flipper_web/core/local_mode/local_mode_marker_keys.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /// How a login decides whether a business's data is reachable from this
@@ -13,10 +14,12 @@ void main() {
     BusinessSyncState? server,
     Map<String, dynamic>? marker,
     String businessId = biz,
+    String? thisDeviceName,
   }) => decideLocalModeAccess(
     businessId: businessId,
     server: server,
     marker: marker,
+    thisDeviceName: thisDeviceName,
   );
 
   group('a device that is not in local mode', () {
@@ -74,5 +77,45 @@ void main() {
         LocalModeAccess.deviceHeldByOtherBusiness,
       );
     }
+  });
+
+  group('a device whose marker could not be read (owner unknown)', () {
+    const unreadable = {kLocalModeMarkerUnreadable: true};
+
+    test('the business the server places on this device recovers it', () {
+      expect(
+        decide(server: local, marker: unreadable, thisDeviceName: 'Shop Mac'),
+        LocalModeAccess.recoverOwner,
+      );
+    });
+
+    test('a business placed on another device is refused', () {
+      expect(
+        decide(server: local, marker: unreadable, thisDeviceName: 'Till 2'),
+        LocalModeAccess.deviceHeldByOtherBusiness,
+      );
+    });
+
+    test('a local business with no recorded device is refused', () {
+      expect(
+        decide(
+          server: const BusinessSyncState(mode: 'local'),
+          marker: unreadable,
+          thisDeviceName: 'Shop Mac',
+        ),
+        LocalModeAccess.deviceHeldByOtherBusiness,
+      );
+    });
+
+    test('a cloud business is refused', () {
+      expect(
+        decide(server: full, marker: unreadable, thisDeviceName: 'Shop Mac'),
+        LocalModeAccess.deviceHeldByOtherBusiness,
+      );
+    });
+
+    test('an unreachable server never blocks', () {
+      expect(decide(server: null, marker: unreadable), LocalModeAccess.allowed);
+    });
   });
 }

@@ -35,11 +35,29 @@ class LocalModeController {
   /// Signup knows the business: bind this device to it and tell the server,
   /// so logins on other devices know the data lives here.
   static Future<void> recordBusiness(String businessId) async {
-    _enteredForSignup = false;
-    if (!LocalMode.isOn) return;
+    if (!LocalMode.isOn) {
+      _enteredForSignup = false;
+      return;
+    }
     await LocalMode.recordServerState(businessId: businessId);
+    // Only now does the marker name its owner; until then a failed signup
+    // must still be able to roll local mode back.
+    _enteredForSignup = false;
     await registerOnServer(businessId);
   }
+
+  /// The marker was unreadable and the server confirmed [businessId] keeps
+  /// its data on this device: write the owner back.
+  static Future<void> recoverOwner(
+    BusinessSyncState server,
+    String businessId,
+  ) => LocalMode.recordServerState(
+    businessId: businessId,
+    serverChangedAt: server.changedAt ?? DateTime.now(),
+  );
+
+  /// This device's name as `businesses.local_device_name` records it.
+  static String? deviceName() => _deviceName();
 
   /// Records `sync_mode = local` for [businessId]. Retried at every startup
   /// until the server confirms it (signup may have lost the connection).

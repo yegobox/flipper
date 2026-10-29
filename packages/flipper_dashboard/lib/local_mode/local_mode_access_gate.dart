@@ -32,6 +32,7 @@ class LocalModeAccessGate {
       businessId: businessId,
       server: server,
       marker: marker,
+      thisDeviceName: LocalModeController.deviceName(),
     );
     talker.info('Local mode access for $businessId: $access');
 
@@ -42,6 +43,10 @@ class LocalModeAccessGate {
       case LocalModeAccess.registerLocal:
         _passedFor = businessId;
         await LocalModeController.registerOnServer(businessId);
+        return false;
+      case LocalModeAccess.recoverOwner:
+        _passedFor = businessId;
+        await LocalModeController.recoverOwner(server!, businessId);
         return false;
       case LocalModeAccess.offlineElsewhere:
         return _offlineElsewhere(businessId, server!);

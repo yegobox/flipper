@@ -40,18 +40,37 @@ void main() {
     expect(LocalMode.isOn, isTrue);
   });
 
-  test('an unreadable marker still means local mode', () async {
+  test('an unreadable marker still means local mode, owner unknown', () async {
     await marker.writeAsString('{not json');
 
-    expect(await readLocalModeMarker(), isNotNull);
+    expect(await readLocalModeMarker(), {kLocalModeMarkerUnreadable: true});
     expect(await LocalMode.load(), isTrue);
   });
 
-  test('an empty marker still means local mode', () async {
+  test('an empty marker still means local mode, owner unknown', () async {
     await marker.writeAsString('');
 
-    expect(await readLocalModeMarker(), isEmpty);
+    expect(await readLocalModeMarker(), {kLocalModeMarkerUnreadable: true});
     expect(await LocalMode.load(), isTrue);
+  });
+
+  test('enable refuses a store whose owner is unknown', () async {
+    await marker.writeAsString('{not json');
+
+    await expectLater(
+      LocalMode.enable(),
+      throwsA(isA<LocalModeDeviceHeldException>()),
+    );
+    expect(await marker.readAsString(), '{not json');
+  });
+
+  test('recording the owner replaces an unreadable marker', () async {
+    await marker.writeAsString('');
+    await LocalMode.load();
+
+    await LocalMode.recordServerState(businessId: 'biz-a');
+
+    expect(await readLocalModeMarker(), {'businessId': 'biz-a'});
   });
 
   test(
