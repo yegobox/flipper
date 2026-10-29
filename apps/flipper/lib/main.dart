@@ -373,7 +373,7 @@ Future<void> _initializeAnalytics() async {
     // API secret is a build define (GA4_WINDOWS_API_SECRET), not secrets.dart,
     // so a build without it still compiles and simply sends nothing.
     ga4MeasurementId: !kIsWeb && UniversalPlatform.isWindows
-        ? DefaultFirebaseOptions.currentPlatform.measurementId
+        ? DefaultFirebaseOptions.windows.measurementId
         : null,
     ga4ApiSecret: !kIsWeb && UniversalPlatform.isWindows
         ? const String.fromEnvironment('GA4_WINDOWS_API_SECRET')
