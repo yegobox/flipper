@@ -3076,6 +3076,9 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   String get appChoiceHrSubtitle => 'Personnel, congés et paie';
 
   @override
+  String get appChoiceFloSubtitle => 'Demandez à Flo et travaillez ensemble';
+
+  @override
   String get appChoiceTitle => 'Choisissez votre application';
 
   @override

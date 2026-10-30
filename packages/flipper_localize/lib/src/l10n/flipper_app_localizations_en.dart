@@ -3026,6 +3026,9 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
   String get appChoiceHrSubtitle => 'Staff, leave and payroll';
 
   @override
+  String get appChoiceFloSubtitle => 'Ask Flo and work together';
+
+  @override
   String get appChoiceTitle => 'Choose your app';
 
   @override

@@ -471,4 +471,11 @@ class DashboardQuickAccessSvgs {
   <circle cx="14" cy="6.5" r="2" stroke="#0F766E" stroke-width="1.5"/>
   <path d="M14 10.5c1.933 0 3.5 1.567 3.5 3.5" stroke="#0F766E" stroke-width="1.5" stroke-linecap="round"/>
 </svg>''';
+
+  static String appSwitcherFloIcon() =>
+      '''
+<svg width="20" height="20" viewBox="0 0 20 20" fill="none" $_xmlns>
+  <path d="M10 2.5l1.6 4.4 4.4 1.6-4.4 1.6L10 14.5l-1.6-4.4L4 8.5l4.4-1.6L10 2.5z" stroke="#7C3AED" stroke-width="1.5" stroke-linejoin="round"/>
+  <path d="M15.5 13l.6 1.4 1.4.6-1.4.6-.6 1.4-.6-1.4-1.4-.6 1.4-.6.6-1.4z" stroke="#7C3AED" stroke-width="1.2" stroke-linejoin="round"/>
+</svg>''';
 }

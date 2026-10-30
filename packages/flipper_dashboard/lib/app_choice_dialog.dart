@@ -5,6 +5,7 @@ import 'dart:ui';
 import 'package:flipper_dashboard/books_module_navigation.dart';
 import 'package:flipper_dashboard/dashboard_shell.dart';
 import 'package:flipper_dashboard/hr_module_entry.dart';
+import 'package:flipper_dashboard/providers/navigation_providers.dart';
 import 'package:flipper_dashboard/widgets/app_launch_overlay.dart';
 import 'package:flipper_dashboard/widgets/dashboard_app_access.dart';
 import 'package:flipper_design_system/flipper_design_system.dart';
@@ -143,8 +144,8 @@ class _AppChoiceDialogState extends ConsumerState<AppChoiceDialog>
         : const AppChoiceDialogRequest();
   }
 
-  // Only POS, Books and HR are apps: inventory, reports, orders, customers and
-  // settings all live inside POS, so they are not offered here.
+  // Only POS, Books, HR and Flo are apps: inventory, reports, orders, customers
+  // and settings all live inside POS, so they are not offered here.
   //
   // Labels come from [FlipperL10n.current] rather than the context, matching
   // the rest of the dialog. It is rebuilt each time it opens, so it always
@@ -171,6 +172,14 @@ class _AppChoiceDialogState extends ConsumerState<AppChoiceDialog>
       subtitle: FlipperL10n.current.appChoiceHrSubtitle,
       iconSvg: DashboardQuickAccessSvgs.appSwitcherHrIcon(),
       accent: const Color(0xFF0F766E),
+    ),
+    _AppChoice(
+      id: 'Flo',
+      title: 'Flo',
+      subtitle: FlipperL10n.current.appChoiceFloSubtitle,
+      iconSvg: DashboardQuickAccessSvgs.appSwitcherFloIcon(),
+      accent: const Color(0xFF7C3AED),
+      page: DashboardPage.ai,
     ),
   ];
 
@@ -350,9 +359,12 @@ class _AppChoiceDialogState extends ConsumerState<AppChoiceDialog>
   Widget build(BuildContext context) {
     final reduceMotion = MediaQuery.disableAnimationsOf(context);
     final canOpenHr = dashboardCanOpenHr(ref);
+    // Flo is cloud AI, so Local Mode drops it as it drops the Ask Flo tab.
+    final floHidden = hiddenInLocalMode(ref, 'Chat');
     _apps = [
       for (final app in _allApps)
-        if (app.id != 'HR' || canOpenHr) app,
+        if ((app.id != 'HR' || canOpenHr) && (app.id != 'Flo' || !floHidden))
+          app,
     ];
     final currentDefault = _normalizedDefault(ProxyService.box.getDefaultApp());
     // Start on the current default so Enter repeats the user's last choice.
@@ -446,9 +458,10 @@ class _AppChoiceDialogState extends ConsumerState<AppChoiceDialog>
     return ConstrainedBox(
       constraints: BoxConstraints(
         // Two cards, or three when HR is offered.
+        // Three cards sit in one wider row; two or four use two columns.
         maxWidth: width < 620
             ? width - 32
-            : _apps.length > 2
+            : _apps.length == 3
             ? 680.0
             : 560.0,
         maxHeight: height - 48,
@@ -563,9 +576,9 @@ class _AppChoiceDialogState extends ConsumerState<AppChoiceDialog>
     return LayoutBuilder(
       builder: (context, constraints) {
         final width = constraints.maxWidth;
-        // One row of cards where they fit; a lone third card wraps rather than
-        // squeezing three into a narrow window.
-        final columns = width >= 600
+        // One row of up to three cards where they fit, and four as a 2×2
+        // grid. A narrow window wraps rather than squeezing cards together.
+        final columns = width >= 600 && _apps.length != 4
             ? _apps.length.clamp(1, 3)
             : width >= 460
             ? 2
