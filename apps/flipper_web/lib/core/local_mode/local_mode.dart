@@ -98,10 +98,21 @@ abstract final class LocalMode {
   /// This store's random id (`null` on the web). Unlike the hostname it is
   /// unique to the store, so it is what identifies the owner of a store whose
   /// marker can't be read.
+  ///
+  /// Concurrent first calls share one read, so they can't each make an id.
+  /// A failed read is not kept: the next call tries again.
   static Future<String?> installId() async {
     if (kIsWeb) return null;
-    return readOrCreateLocalModeInstallId();
+    final pending = _installId ??= debugReadInstallId();
+    try {
+      return await pending;
+    } catch (_) {
+      if (identical(_installId, pending)) _installId = null;
+      rethrow;
+    }
   }
+
+  static Future<String?>? _installId;
 
   /// Records which business owns this device's data and, once the server has
   /// confirmed the business is local, when it did. A device that saw the server
@@ -149,12 +160,20 @@ abstract final class LocalMode {
   static Future<Map<String, dynamic>?> Function() debugReadMarker =
       readLocalModeMarker;
 
-  /// Forgets the loaded state, so the next [load] reads the marker again.
+  /// Reads (or makes) the store id; replaceable in tests to make it fail.
+  @visibleForTesting
+  static Future<String?> Function() debugReadInstallId =
+      readOrCreateLocalModeInstallId;
+
+  /// Forgets the loaded state, so the next [load] reads the marker (and
+  /// [installId] the id file) again.
   @visibleForTesting
   static void debugReset() {
     _loaded = false;
     _loading = null;
+    _installId = null;
     debugReadMarker = readLocalModeMarker;
+    debugReadInstallId = readOrCreateLocalModeInstallId;
     _set(false);
   }
 }

@@ -211,9 +211,32 @@ void main() {
       final id = await LocalMode.installId();
       await LocalMode.enable(businessId: 'biz-a');
       await marker.writeAsString('{not json');
+      LocalMode.debugReset();
       expect(await LocalMode.installId(), id);
       await LocalMode.disable();
+      LocalMode.debugReset();
       expect(await LocalMode.installId(), id);
+    });
+
+    test('concurrent first calls agree on one id', () async {
+      final ids = await Future.wait([
+        LocalMode.installId(),
+        LocalMode.installId(),
+        LocalMode.installId(),
+      ]);
+      expect(ids.toSet(), hasLength(1));
+      expect(await installId.readAsString(), ids.first);
+    });
+
+    test('a failed read is tried again', () async {
+      LocalMode.debugReadInstallId = () async =>
+          throw const FileSystemException();
+      await expectLater(
+        LocalMode.installId(),
+        throwsA(isA<FileSystemException>()),
+      );
+      LocalMode.debugReadInstallId = () async => 'abc';
+      expect(await LocalMode.installId(), 'abc');
     });
 
     test('an empty id file gets a new id', () async {

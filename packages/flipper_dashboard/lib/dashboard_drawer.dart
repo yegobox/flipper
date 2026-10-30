@@ -659,109 +659,111 @@ class _DashboardDrawerState extends ConsumerState<DashboardDrawer>
             const _TurnOnCloudSyncDrawerRow()
           else
             const _CheckSubscriptionDrawerRow(),
-          const SizedBox(height: 12),
+          // Local mode has no EBM, so no EBM status either.
+          if (!LocalMode.isOn) const SizedBox(height: 12),
           // EBM Status Indicator
-          Consumer(
-            builder: (context, ref, child) {
-              final ebmStatus = ref.watch(ebmVatEnabledProvider);
-              return ebmStatus.when(
-                data: (isVatEnabled) {
-                  return Container(
+          if (!LocalMode.isOn)
+            Consumer(
+              builder: (context, ref, child) {
+                final ebmStatus = ref.watch(ebmVatEnabledProvider);
+                return ebmStatus.when(
+                  data: (isVatEnabled) {
+                    return Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: isVatEnabled
+                            ? Colors.green.shade50
+                            : Colors.red.shade50,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: isVatEnabled
+                              ? Colors.green.shade300
+                              : Colors.red.shade300,
+                          width: 1,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            isVatEnabled ? Icons.check_circle : Icons.cancel,
+                            color: isVatEnabled ? Colors.green : Colors.red,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            isVatEnabled
+                                ? context.flipperL10n.drawerMenuEbmOn
+                                : context.flipperL10n.drawerMenuEbmOff,
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                              color: isVatEnabled
+                                  ? Colors.green.shade700
+                                  : Colors.red.shade700,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                  loading: () => Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 12,
                       vertical: 8,
                     ),
                     decoration: BoxDecoration(
-                      color: isVatEnabled
-                          ? Colors.green.shade50
-                          : Colors.red.shade50,
+                      color: Colors.grey.shade50,
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: isVatEnabled
-                            ? Colors.green.shade300
-                            : Colors.red.shade300,
-                        width: 1,
-                      ),
+                      border: Border.all(color: Colors.grey.shade300, width: 1),
                     ),
                     child: Row(
                       children: [
-                        Icon(
-                          isVatEnabled ? Icons.check_circle : Icons.cancel,
-                          color: isVatEnabled ? Colors.green : Colors.red,
-                          size: 20,
+                        const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          isVatEnabled
-                              ? context.flipperL10n.drawerMenuEbmOn
-                              : context.flipperL10n.drawerMenuEbmOff,
+                          context.flipperL10n.drawerMenuCheckingEbm,
                           style: TextStyle(
                             fontSize: 13,
-                            fontWeight: FontWeight.w500,
-                            color: isVatEnabled
-                                ? Colors.green.shade700
-                                : Colors.red.shade700,
+                            color: Colors.grey.shade600,
                           ),
                         ),
                       ],
                     ),
-                  );
-                },
-                loading: () => Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
                   ),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade50,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.grey.shade300, width: 1),
-                  ),
-                  child: Row(
-                    children: [
-                      const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        context.flipperL10n.drawerMenuCheckingEbm,
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Colors.grey.shade600,
+                  error: (error, stack) => Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.red.shade50,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.red.shade300, width: 1),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.error, color: Colors.red, size: 20),
+                        const SizedBox(width: 8),
+                        Text(
+                          context.flipperL10n.drawerMenuEbmStatusError,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.red.shade700,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-                error: (error, stack) => Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.red.shade50,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.red.shade300, width: 1),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.error, color: Colors.red, size: 20),
-                      const SizedBox(width: 8),
-                      Text(
-                        context.flipperL10n.drawerMenuEbmStatusError,
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Colors.red.shade700,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            },
-          ),
+                );
+              },
+            ),
         ],
       ),
     );
