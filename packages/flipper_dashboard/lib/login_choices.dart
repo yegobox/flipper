@@ -939,6 +939,8 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
     final rootNavigator = mounted
         ? Navigator.maybeOf(context, rootNavigator: true)
         : null;
+    // Also resolved while `ref` is still usable.
+    final appToOpen = mounted ? await defaultAppToOpenAfterLogin(ref) : null;
     final commissionOnly = await refreshCommissionOnlySession(
       businessId: selectedBusinessId,
     );
@@ -987,7 +989,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
     // them from the app switcher instead would race `clearStack` and land the
     // user on the dashboard while the curtain said "Opening Books".
     if (!commissionOnly && rootNavigator != null) {
-      openStandaloneApp(rootNavigator, ProxyService.box.getDefaultApp());
+      openStandaloneApp(rootNavigator, appToOpen);
     }
 
     // Destination is on screen: lift the "Opening <app>" curtain (no-op when the

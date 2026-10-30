@@ -478,6 +478,82 @@ void main() {
     });
   });
 
+  group('the app opened after sign-in', () {
+    late WidgetRef capturedRef;
+    Future<String?> resolve(
+      WidgetTester tester, {
+      String? stored,
+      List<Override> overrides = const [],
+    }) async {
+      box.defaultApp = stored;
+      await tester.pumpWidget(
+        ProviderScope(
+          key: UniqueKey(),
+          overrides: overrides,
+          child: Consumer(
+            builder: (context, ref, _) {
+              capturedRef = ref;
+              return const SizedBox();
+            },
+          ),
+        ),
+      );
+      return defaultAppToOpenAfterLogin(capturedRef);
+    }
+
+    testWidgets('is the stored app when it is not HR', (tester) async {
+      expect(await resolve(tester, stored: 'Books'), 'Books');
+      expect(await resolve(tester), isNull);
+    });
+
+    testWidgets('is HR when the user may still run it here', (tester) async {
+      // Read before the access rows have loaded: it waits for them rather
+      // than taking "not loaded yet" for "no".
+      expect(
+        await resolve(tester, stored: 'HR', overrides: _hrOverrides()),
+        'HR',
+      );
+    });
+
+    testWidgets('falls back to POS when HR is no longer theirs', (
+      tester,
+    ) async {
+      expect(
+        await resolve(
+          tester,
+          stored: 'HR',
+          overrides: _hrOverrides(accesses: []),
+        ),
+        'POS',
+      );
+      // The running app does not ship HR.
+      expect(await resolve(tester, stored: 'HR'), 'POS');
+    });
+
+    testWidgets('falls back to POS in Local Mode', (tester) async {
+      LocalMode.debugSet(true);
+      addTearDown(() => LocalMode.debugSet(false));
+      expect(
+        await resolve(tester, stored: 'HR', overrides: _hrOverrides()),
+        'POS',
+      );
+    });
+
+    testWidgets('fails closed when the access rows cannot load', (
+      tester,
+    ) async {
+      final overrides = <Override>[
+        hrAppBuilderProvider.overrideWithValue(
+          ({required onExit, required onUpgrade}) => const SizedBox(),
+        ),
+        allAccessesProvider(
+          _userId,
+        ).overrideWith((ref) async => throw StateError('offline')),
+      ];
+      expect(await resolve(tester, stored: 'HR', overrides: overrides), 'POS');
+    });
+  });
+
   group('canRunHr matches what HR\'s RLS honours', () {
     final now = DateTime.utc(2026, 10, 30);
     bool run(List<Access> accesses, {String? businessId = _businessId}) =>

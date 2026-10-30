@@ -65,6 +65,28 @@ bool dashboardCanOpenHr(WidgetRef ref) {
   );
 }
 
+/// [dashboardCanOpenHr] for code that runs once instead of in build, such as
+/// the login hand-off. Reads rather than watches, and waits for the access rows
+/// so "not loaded yet" is never taken for "no". Fails closed.
+Future<bool> dashboardCanOpenHrNow(WidgetRef ref) async {
+  if (ref.read(hrAppBuilderProvider) == null) return false;
+  if (ref.read(isLocalModeProvider)) return false;
+  final provider = allAccessesProvider(currentDashboardUserId());
+  // allAccesses is autoDispose: hold it while the rows load.
+  final keepAlive = ref.listenManual(provider, (_, _) {});
+  try {
+    return canRunHr(
+      await ref.read(provider.future),
+      businessId: ProxyService.box.getBusinessId(),
+      now: DateTime.now(),
+    );
+  } catch (_) {
+    return false;
+  } finally {
+    keepAlive.close();
+  }
+}
+
 /// Whether a dashboard app tile should be visible for the signed-in user.
 bool dashboardAppTileVisible(WidgetRef ref, DashboardAllAppTile tile) {
   if (hiddenInLocalMode(ref, tile.page)) return false;

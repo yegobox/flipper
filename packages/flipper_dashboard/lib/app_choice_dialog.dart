@@ -35,6 +35,15 @@ abstract final class AppChoiceTokens {
   static const Color scrim = Color(0xFF0B1220);
 }
 
+/// The stored default app to open after sign-in. A stored HR that the user
+/// may no longer run in this business falls back to POS rather than opening
+/// HR onto an empty screen.
+Future<String?> defaultAppToOpenAfterLogin(WidgetRef ref) async {
+  final stored = ProxyService.box.getDefaultApp();
+  if (stored != 'HR') return stored;
+  return await dashboardCanOpenHrNow(ref) ? 'HR' : 'POS';
+}
+
 /// Opens [appId] when it is an app with its own route (Books, HR) rather than
 /// a tab of the dashboard shell, and says whether it did. Navigator-only, so
 /// it works after the chooser has popped or the login flow cleared the stack.
