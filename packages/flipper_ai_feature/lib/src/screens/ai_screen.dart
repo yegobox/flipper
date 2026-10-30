@@ -16,7 +16,12 @@ import '../providers/conversation_provider.dart';
 import '../providers/whatsapp_connection_provider.dart';
 import '../providers/whatsapp_message_provider.dart';
 import '../models/flo_models.dart';
+import '../claude/claude_cli_runner.dart';
+import '../claude/claude_cli_status.dart';
+import '../claude/claude_consent.dart';
 import '../local/sales_rag_indexer.dart';
+import '../models/flo_ai_mode.dart';
+import '../services/claude_flo_service.dart';
 import '../services/flo_chat_service.dart';
 import '../services/local_flo_service.dart';
 import '../services/flo_local_briefing_service.dart';
@@ -48,14 +53,20 @@ class _AiScreenState extends ConsumerState<AiScreen>
   final _scrollController = ScrollController();
   final _chatService = FloChatService();
   final _localFloService = const LocalFloService();
+  final _claudeFloService = const ClaudeFloService();
   final _scaffoldKey = GlobalKey<ScaffoldState>();
 
-  /// AI mode: true = on-device (local), false = cloud (via data-connector).
-  /// Defaults tier-aware (local for free users on capable devices, cloud
-  /// otherwise) and is forced to cloud when on-device isn't supported.
-  /// The user toggles it via the header selector.
-  bool _useLocal = false;
+  /// AI mode. Defaults tier-aware (on-device for free users on capable
+  /// devices, cloud otherwise); the user switches via the header selector.
+  /// Claude is only ever chosen explicitly, after consent.
+  FloAiMode _aiMode = FloAiMode.cloud;
   bool _modeInitialized = false;
+  ClaudeCliStatus? _claudeStatus;
+
+  bool get _useLocal => _aiMode == FloAiMode.onDevice;
+  bool get _claudeOffered =>
+      _claudeStatus != null &&
+      _claudeStatus!.state != ClaudeCliState.unavailable;
 
   bool get _localAvailable => LocalInferenceRegistry.isAvailable;
 
@@ -86,6 +97,7 @@ class _AiScreenState extends ConsumerState<AiScreen>
       // After local Ditto briefing has a chance to arrive (~1s), maybe skip remote.
       Future<void>.delayed(const Duration(milliseconds: 800), _loadBriefing);
       _loadDefaultModel();
+      _detectClaude();
     });
   }
 
@@ -151,10 +163,64 @@ class _AiScreenState extends ConsumerState<AiScreen>
     } catch (_) {}
     if (!mounted) return;
     setState(() {
-      _useLocal = useLocal;
+      // Don't override a mode the user already picked while this loaded.
+      if (!_modeInitialized) {
+        _aiMode = useLocal ? FloAiMode.onDevice : FloAiMode.cloud;
+      }
       _modeInitialized = true;
     });
     _maybeIndexLocalRag();
+  }
+
+  Future<void> _detectClaude() async {
+    final status = await ClaudeCli.status();
+    if (mounted) setState(() => _claudeStatus = status);
+  }
+
+  /// Switch modes. Claude needs a ready CLI and a one-time consent, since the
+  /// shop figures in the prompt go to Anthropic under the user's account.
+  Future<void> _selectMode(FloAiMode mode) async {
+    _modeInitialized = true;
+    if (mode != FloAiMode.claude) {
+      setState(() => _aiMode = mode);
+      _maybeIndexLocalRag();
+      return;
+    }
+    final l10n = FlipperL10n.current;
+    final status = await ClaudeCli.status(refresh: true);
+    if (!mounted) return;
+    setState(() => _claudeStatus = status);
+    if (status.state == ClaudeCliState.notLoggedIn) {
+      _showError(l10n.aiClaudeNotLoggedIn);
+      return;
+    }
+    if (!status.isReady) {
+      _showError(l10n.aiClaudeNotInstalled);
+      return;
+    }
+    if (!await ClaudeConsent.isGranted()) {
+      if (!mounted) return;
+      final ok = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text(l10n.aiClaudeConsentTitle),
+          content: Text(l10n.aiClaudeConsentBody),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(false),
+              child: Text(l10n.cancel),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(ctx).pop(true),
+              child: Text(l10n.aiClaudeConsentAllow),
+            ),
+          ],
+        ),
+      );
+      if (ok != true) return;
+      await ClaudeConsent.grant();
+    }
+    if (mounted) setState(() => _aiMode = FloAiMode.claude);
   }
 
   /// Warm the on-device sales index when local mode is active (background,
@@ -333,24 +399,33 @@ class _AiScreenState extends ConsumerState<AiScreen>
       // Route to the on-device model in local mode; otherwise the cloud
       // data-connector. Both yield the same FloChatEvent shape.
       final useLocal = _useLocal && _localAvailable;
-      final eventStream = useLocal
-          ? _localFloService.streamChat(
-              branchId: branchId,
+      final useClaude = _aiMode == FloAiMode.claude;
+      final eventStream = useClaude
+          ? _claudeFloService.streamChat(
               message: text,
               history: history,
               deviceSales: deviceSales,
               shopName: _shopName,
               currency: _currency,
             )
-          : _chatService.streamChat(
-              branchId: branchId,
-              message: text,
-              history: history,
-              mode: 'business',
-              conversationId: conversationId,
-              deviceSales: deviceSales,
-              shopName: _shopName,
-            );
+          : useLocal
+              ? _localFloService.streamChat(
+                  branchId: branchId,
+                  message: text,
+                  history: history,
+                  deviceSales: deviceSales,
+                  shopName: _shopName,
+                  currency: _currency,
+                )
+              : _chatService.streamChat(
+                  branchId: branchId,
+                  message: text,
+                  history: history,
+                  mode: 'business',
+                  conversationId: conversationId,
+                  deviceSales: deviceSales,
+                  shopName: _shopName,
+                );
 
       await for (final event in eventStream) {
         if (event.event == 'thinking') {
@@ -395,7 +470,7 @@ class _AiScreenState extends ConsumerState<AiScreen>
         }
       }
 
-      if (response == null && !useLocal) {
+      if (response == null && !useLocal && !useClaude) {
         response = await _chatService.chat(
           branchId: branchId,
           message: text,
@@ -540,11 +615,9 @@ class _AiScreenState extends ConsumerState<AiScreen>
     final withAppBar = _isMobile && (ModalRoute.of(context)?.canPop ?? false);
     final modelSelector = FloModelSelector(
       localAvailable: _localAvailable,
-      useLocal: _useLocal,
-      onChanged: (useLocal) {
-        setState(() => _useLocal = useLocal);
-        _maybeIndexLocalRag();
-      },
+      claudeAvailable: _claudeOffered,
+      mode: _aiMode,
+      onChanged: _selectMode,
     );
     void toggleMenu() {
       if (_isMobile) {

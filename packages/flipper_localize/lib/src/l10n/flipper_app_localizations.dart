@@ -35054,6 +35054,60 @@ abstract class FlipperAppLocalizations {
   /// **'More capable · uses connection'**
   String get floCloudSubtitle;
 
+  /// No description provided for @floModeClaude.
+  ///
+  /// In en, this message translates to:
+  /// **'Claude'**
+  String get floModeClaude;
+
+  /// No description provided for @floClaudeSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your Claude subscription · this computer'**
+  String get floClaudeSubtitle;
+
+  /// No description provided for @aiClaudeThinking.
+  ///
+  /// In en, this message translates to:
+  /// **'Asking Claude…'**
+  String get aiClaudeThinking;
+
+  /// No description provided for @aiClaudeNotInstalled.
+  ///
+  /// In en, this message translates to:
+  /// **'Install Claude Code on this computer and sign in to use your Claude subscription with Flo.'**
+  String get aiClaudeNotInstalled;
+
+  /// No description provided for @aiClaudeNotLoggedIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Claude Code is installed but not signed in. Run \"claude auth login\" in a terminal, then try again.'**
+  String get aiClaudeNotLoggedIn;
+
+  /// Claude CLI run failed
+  ///
+  /// In en, this message translates to:
+  /// **'Claude couldn\'t answer: {error}'**
+  String aiClaudeFailed(String error);
+
+  /// No description provided for @aiClaudeConsentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Use your Claude subscription?'**
+  String get aiClaudeConsentTitle;
+
+  /// No description provided for @aiClaudeConsentBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your questions and the shop figures needed to answer them are sent to Anthropic through the Claude Code app signed in on this computer, under your own Claude account. Flipper never sees your Claude login. Only use this with data your organisation allows.'**
+  String get aiClaudeConsentBody;
+
+  /// No description provided for @aiClaudeConsentAllow.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow'**
+  String get aiClaudeConsentAllow;
+
   /// No description provided for @floThinkingUnderstanding.
   ///
   /// In en, this message translates to:

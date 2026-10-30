@@ -5840,6 +5840,23 @@
     "floChooseAiMode": "Choisir le mode IA",
     "floOnDeviceSubtitle": "Gratuit · hors ligne · privé",
     "floCloudSubtitle": "Plus performant · utilise la connexion",
+    "floModeClaude": "Claude",
+    "floClaudeSubtitle": "Votre abonnement Claude · cet ordinateur",
+    "aiClaudeThinking": "Question posée à Claude…",
+    "aiClaudeNotInstalled": "Installez Claude Code sur cet ordinateur et connectez-vous pour utiliser votre abonnement Claude avec Flo.",
+    "aiClaudeNotLoggedIn": "Claude Code est installé mais pas connecté. Exécutez \"claude auth login\" dans un terminal, puis réessayez.",
+    "aiClaudeFailed": "Claude n'a pas pu répondre : {error}",
+    "@aiClaudeFailed": {
+        "description": "Claude CLI run failed",
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "aiClaudeConsentTitle": "Utiliser votre abonnement Claude ?",
+    "aiClaudeConsentBody": "Vos questions et les chiffres de la boutique nécessaires pour y répondre sont envoyés à Anthropic via l'application Claude Code connectée sur cet ordinateur, avec votre propre compte Claude. Flipper ne voit jamais vos identifiants Claude. À utiliser uniquement avec des données autorisées par votre organisation.",
+    "aiClaudeConsentAllow": "Autoriser",
     "floThinkingUnderstanding": "Compréhension de la question",
     "floThinkingQuerying": "Interrogation de MiniData",
     "floThinkingComposing": "Rédaction de la réponse",

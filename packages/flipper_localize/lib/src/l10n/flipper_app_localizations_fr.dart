@@ -21436,6 +21436,38 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   String get floCloudSubtitle => 'Plus performant · utilise la connexion';
 
   @override
+  String get floModeClaude => 'Claude';
+
+  @override
+  String get floClaudeSubtitle => 'Votre abonnement Claude · cet ordinateur';
+
+  @override
+  String get aiClaudeThinking => 'Question posée à Claude…';
+
+  @override
+  String get aiClaudeNotInstalled =>
+      'Installez Claude Code sur cet ordinateur et connectez-vous pour utiliser votre abonnement Claude avec Flo.';
+
+  @override
+  String get aiClaudeNotLoggedIn =>
+      'Claude Code est installé mais pas connecté. Exécutez \"claude auth login\" dans un terminal, puis réessayez.';
+
+  @override
+  String aiClaudeFailed(String error) {
+    return 'Claude n\'a pas pu répondre : $error';
+  }
+
+  @override
+  String get aiClaudeConsentTitle => 'Utiliser votre abonnement Claude ?';
+
+  @override
+  String get aiClaudeConsentBody =>
+      'Vos questions et les chiffres de la boutique nécessaires pour y répondre sont envoyés à Anthropic via l\'application Claude Code connectée sur cet ordinateur, avec votre propre compte Claude. Flipper ne voit jamais vos identifiants Claude. À utiliser uniquement avec des données autorisées par votre organisation.';
+
+  @override
+  String get aiClaudeConsentAllow => 'Autoriser';
+
+  @override
   String get floThinkingUnderstanding => 'Compréhension de la question';
 
   @override
