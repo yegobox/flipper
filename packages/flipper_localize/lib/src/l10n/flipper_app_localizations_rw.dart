@@ -3057,6 +3057,9 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   String get appChoiceBooksSubtitle => 'Ibaruramari n\'ibitabo by\'imari';
 
   @override
+  String get appChoiceHrSubtitle => 'Abakozi, ibiruhuko n\'imishahara';
+
+  @override
   String get appChoiceTitle => 'Hitamo porogaramu yawe';
 
   @override
@@ -3065,7 +3068,7 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
 
   @override
   String get appChoiceKeyboardHint =>
-      'Kanda 1 cyangwa 2 ufungure, imyambi wimuke, Esc ufunge';
+      'Kanda umubare ufungure, imyambi wimuke, Esc ufunge';
 
   @override
   String get posBalanceDue => 'Asigaye kwishyurwa';

@@ -35,7 +35,23 @@ final hrEnsureSupabaseSessionProvider = Provider<Future<String?> Function()>(
   (ref) => SupabaseSessionService.ensureAccessToken,
 );
 
-/// Native host for Flipper HR (More → Apps → HR & Payroll).
+/// Opens HR with only a [NavigatorState] in hand — for callers whose
+/// [BuildContext] is gone, e.g. the app chooser after it popped or the login
+/// flow after it cleared the stack.
+///
+/// Resolves when HR is popped, so callers that just want it on screen should
+/// not await it.
+Future<void> openHrModuleOn(NavigatorState navigator) {
+  return navigator.push<void>(
+    MaterialPageRoute<void>(
+      settings: const RouteSettings(name: HrModuleEntry.routeName),
+      builder: (_) => const HrModuleEntry(),
+    ),
+  );
+}
+
+/// Native host for Flipper HR (More → Apps → HR & Payroll, or the desktop app
+/// chooser).
 ///
 /// Does for HR what its web shell does at sign-in, from the session the app
 /// already has, so there is no second login: seeds the business and branch

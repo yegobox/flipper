@@ -3073,6 +3073,9 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   String get appChoiceBooksSubtitle => 'Comptabilité et grands livres';
 
   @override
+  String get appChoiceHrSubtitle => 'Personnel, congés et paie';
+
+  @override
   String get appChoiceTitle => 'Choisissez votre application';
 
   @override
@@ -3081,7 +3084,7 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
 
   @override
   String get appChoiceKeyboardHint =>
-      'Appuyez sur 1 ou 2 pour ouvrir, les flèches pour vous déplacer, Échap pour fermer';
+      'Appuyez sur un chiffre pour ouvrir, les flèches pour vous déplacer, Échap pour fermer';
 
   @override
   String get posBalanceDue => 'Solde dû';

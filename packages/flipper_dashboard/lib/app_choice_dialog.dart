@@ -4,7 +4,9 @@ import 'dart:ui';
 
 import 'package:flipper_dashboard/books_module_navigation.dart';
 import 'package:flipper_dashboard/dashboard_shell.dart';
+import 'package:flipper_dashboard/hr_module_entry.dart';
 import 'package:flipper_dashboard/widgets/app_launch_overlay.dart';
+import 'package:flipper_dashboard/widgets/dashboard_app_access.dart';
 import 'package:flipper_design_system/flipper_design_system.dart';
 import 'package:flipper_models/providers/active_branch_provider.dart';
 import 'package:flutter/material.dart';
@@ -31,6 +33,30 @@ abstract final class AppChoiceTokens {
   static const Color blue = Color(0xFF2563EB);
   static const Color blueTint = Color(0xFFEAF1FE);
   static const Color scrim = Color(0xFF0B1220);
+}
+
+/// The stored default app to open after sign-in. A stored HR that the user
+/// may no longer run in this business falls back to POS rather than opening
+/// HR onto an empty screen.
+Future<String?> defaultAppToOpenAfterLogin(WidgetRef ref) async {
+  final stored = ProxyService.box.getDefaultApp();
+  if (stored != 'HR') return stored;
+  return await dashboardCanOpenHrNow(ref) ? 'HR' : 'POS';
+}
+
+/// Opens [appId] when it is an app with its own route (Books, HR) rather than
+/// a tab of the dashboard shell, and says whether it did. Navigator-only, so
+/// it works after the chooser has popped or the login flow cleared the stack.
+bool openStandaloneApp(NavigatorState navigator, String? appId) {
+  switch (appId) {
+    case 'Books':
+      unawaited(openBooksModuleOn(navigator));
+      return true;
+    case 'HR':
+      unawaited(openHrModuleOn(navigator));
+      return true;
+  }
+  return false;
 }
 
 /// Optional payload for [AppChoiceDialog], passed as `data` to
@@ -100,6 +126,11 @@ class _AppChoiceDialogState extends ConsumerState<AppChoiceDialog>
   /// Highlighted tile for keyboard navigation; also tracks pointer hover so the
   /// two never disagree.
   int _cursor = 0;
+
+  /// Set once the user moves the cursor (keys or pointer). Until then the
+  /// cursor follows the stored default, which may only appear once HR access
+  /// has loaded.
+  bool _cursorMoved = false;
   int _columns = 4;
   bool _isLaunching = false;
   bool _isClosing = false;
@@ -112,13 +143,13 @@ class _AppChoiceDialogState extends ConsumerState<AppChoiceDialog>
         : const AppChoiceDialogRequest();
   }
 
-  // Only POS and Books are apps: inventory, reports, orders, customers and
+  // Only POS, Books and HR are apps: inventory, reports, orders, customers and
   // settings all live inside POS, so they are not offered here.
   //
-  // Labels come from [FlipperL10n.current]: this list is first read in
-  // initState, where an inherited lookup is not allowed. The dialog is rebuilt
-  // each time it opens, so it always uses the active language.
-  late final List<_AppChoice> _apps = [
+  // Labels come from [FlipperL10n.current] rather than the context, matching
+  // the rest of the dialog. It is rebuilt each time it opens, so it always
+  // uses the active language.
+  late final List<_AppChoice> _allApps = [
     _AppChoice(
       id: 'POS',
       title: 'POS',
@@ -134,26 +165,33 @@ class _AppChoiceDialogState extends ConsumerState<AppChoiceDialog>
       iconSvg: DashboardQuickAccessSvgs.appSwitcherBooksIcon(),
       accent: const Color(0xFF2563EB),
     ),
+    _AppChoice(
+      id: 'HR',
+      title: FlipperL10n.current.hrAndPayroll,
+      subtitle: FlipperL10n.current.appChoiceHrSubtitle,
+      iconSvg: DashboardQuickAccessSvgs.appSwitcherHrIcon(),
+      accent: const Color(0xFF0F766E),
+    ),
   ];
+
+  /// The [_allApps] this user may open, as of the last build. Recomputed every
+  /// build because HR access can resolve after the first frame.
+  List<_AppChoice> _apps = const [];
 
   @override
   void initState() {
     super.initState();
     _entrance.forward();
-
-    // Start on the current default so Enter repeats the user's last choice.
-    final current = _normalizedDefault(ProxyService.box.getDefaultApp());
-    final index = _apps.indexWhere((a) => a.id == current);
-    if (index >= 0) _cursor = index;
   }
 
   /// Maps a stored `defaultApp` onto one of [_apps]. Older builds offered
   /// Inventory, Reports, Orders, Customers and Settings as apps; those are all
-  /// inside POS now, so they read as POS. The stored value is left alone —
-  /// [layout.dart] still opens their old tab.
-  static String? _normalizedDefault(String? stored) {
+  /// inside POS now, so they read as POS, as does HR for someone who may not
+  /// open it. The stored value is left alone: [layout.dart] still opens their
+  /// old tab.
+  String? _normalizedDefault(String? stored) {
     if (stored == null) return null;
-    return stored == 'Books' ? 'Books' : 'POS';
+    return _apps.any((a) => a.id == stored) ? stored : 'POS';
   }
 
   @override
@@ -232,9 +270,7 @@ class _AppChoiceDialogState extends ConsumerState<AppChoiceDialog>
     // Navigator-only entry points: this State is deactivated by the pop above,
     // so nothing here may touch `context` or `ref`.
     var settle = AppLaunchOverlay.routeSettle;
-    if (choice.id == 'Books') {
-      unawaited(openBooksModuleOn(navigator));
-    } else {
+    if (!openStandaloneApp(navigator, choice.id)) {
       // A shell tab: already swapped by the provider write above, so there is no
       // route transition to wait out.
       settle = AppLaunchOverlay.inShellSettle;
@@ -280,6 +316,7 @@ class _AppChoiceDialogState extends ConsumerState<AppChoiceDialog>
     if (delta == 0) return KeyEventResult.ignored;
 
     setState(() {
+      _cursorMoved = true;
       _cursor = (_cursor + delta).clamp(0, _apps.length - 1);
     });
     return KeyEventResult.handled;
@@ -312,7 +349,17 @@ class _AppChoiceDialogState extends ConsumerState<AppChoiceDialog>
   @override
   Widget build(BuildContext context) {
     final reduceMotion = MediaQuery.disableAnimationsOf(context);
+    final canOpenHr = dashboardCanOpenHr(ref);
+    _apps = [
+      for (final app in _allApps)
+        if (app.id != 'HR' || canOpenHr) app,
+    ];
     final currentDefault = _normalizedDefault(ProxyService.box.getDefaultApp());
+    // Start on the current default so Enter repeats the user's last choice.
+    if (!_cursorMoved) {
+      _cursor = _apps.indexWhere((a) => a.id == currentDefault);
+    }
+    _cursor = _cursor.clamp(0, _apps.length - 1);
     _branchName = _watchBranchName();
 
     return Focus(
@@ -398,7 +445,12 @@ class _AppChoiceDialogState extends ConsumerState<AppChoiceDialog>
 
     return ConstrainedBox(
       constraints: BoxConstraints(
-        maxWidth: width < 620 ? width - 32 : 560.0,
+        // Two cards, or three when HR is offered.
+        maxWidth: width < 620
+            ? width - 32
+            : _apps.length > 2
+            ? 680.0
+            : 560.0,
         maxHeight: height - 48,
       ),
       child: Material(
@@ -511,7 +563,13 @@ class _AppChoiceDialogState extends ConsumerState<AppChoiceDialog>
     return LayoutBuilder(
       builder: (context, constraints) {
         final width = constraints.maxWidth;
-        final columns = width >= 460 ? 2 : 1;
+        // One row of cards where they fit; a lone third card wraps rather than
+        // squeezing three into a narrow window.
+        final columns = width >= 600
+            ? _apps.length.clamp(1, 3)
+            : width >= 460
+            ? 2
+            : 1;
         // Read by the arrow-key handler; assigning during layout is safe here
         // because it never triggers a rebuild on its own.
         _columns = columns;
@@ -559,7 +617,10 @@ class _AppChoiceDialogState extends ConsumerState<AppChoiceDialog>
                 isDimmed: _isLaunching && _launchingId != app.id,
                 onHover: () {
                   if (_isLaunching || _cursor == index) return;
-                  setState(() => _cursor = index);
+                  setState(() {
+                    _cursorMoved = true;
+                    _cursor = index;
+                  });
                 },
                 onTap: () => unawaited(_select(app)),
               ),

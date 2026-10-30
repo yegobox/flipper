@@ -3043,6 +3043,9 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   String get appChoiceBooksSubtitle => 'Uhasibu na leja';
 
   @override
+  String get appChoiceHrSubtitle => 'Wafanyakazi, likizo na mishahara';
+
+  @override
   String get appChoiceTitle => 'Chagua programu yako';
 
   @override
@@ -3051,7 +3054,7 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
 
   @override
   String get appChoiceKeyboardHint =>
-      'Bonyeza 1 au 2 kufungua, mishale kusogea, Esc kufunga';
+      'Bonyeza namba kufungua, mishale kusogea, Esc kufunga';
 
   @override
   String get posBalanceDue => 'Salio linalodaiwa';

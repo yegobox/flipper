@@ -2,6 +2,7 @@ import 'package:flipper_dashboard/hr_module_entry.dart';
 import 'package:flipper_dashboard/providers/agent_commission_access_provider.dart';
 import 'package:flipper_dashboard/providers/navigation_providers.dart';
 import 'package:flipper_dashboard/widgets/dashboard_all_apps_catalog.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/access_provider.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
@@ -22,6 +23,69 @@ final dashboardIsAdminProvider = Provider.autoDispose<bool>(
     ),
   ),
 );
+
+/// Whether [accesses] let someone run HR in [businessId]: an Admin of that
+/// business, or a live Admin-level 'HR' grant there — what HR's own RLS honours
+/// (`hr_manager_business_ids()`, migration 0006). A Write-level HR grant, or
+/// a grant from another business, does not count: HR would open and show
+/// nothing.
+bool canRunHr(
+  List<Access> accesses, {
+  required String? businessId,
+  required DateTime now,
+}) {
+  if (businessId == null || businessId.isEmpty) return false;
+  return accesses.any(
+    (a) =>
+        a.businessId == businessId &&
+        a.status == 'active' &&
+        (a.expiresAt == null || a.expiresAt!.isAfter(now)) &&
+        (a.userType?.toLowerCase() == AccessLevel.ADMIN ||
+            (a.featureName?.toLowerCase() == 'hr' &&
+                a.accessLevel?.toLowerCase() == AccessLevel.ADMIN)),
+  );
+}
+
+/// Whether the signed-in user may open Flipper HR (the More → Apps tile and
+/// the desktop app chooser).
+///
+/// HR holds salaries and national IDs, so it is for whoever runs the business
+/// (see [canRunHr]). Never in Local Mode, and never when the running app does
+/// not ship HR.
+bool dashboardCanOpenHr(WidgetRef ref) {
+  if (ref.watch(hrAppBuilderProvider) == null) return false;
+  if (hiddenInLocalMode(ref, 'HR')) return false;
+  final accesses =
+      ref.watch(allAccessesProvider(currentDashboardUserId())).value ??
+      const <Access>[];
+  return canRunHr(
+    accesses,
+    businessId: ProxyService.box.getBusinessId(),
+    now: DateTime.now(),
+  );
+}
+
+/// [dashboardCanOpenHr] for code that runs once instead of in build, such as
+/// the login hand-off. Reads rather than watches, and waits for the access rows
+/// so "not loaded yet" is never taken for "no". Fails closed.
+Future<bool> dashboardCanOpenHrNow(WidgetRef ref) async {
+  if (ref.read(hrAppBuilderProvider) == null) return false;
+  if (ref.read(isLocalModeProvider)) return false;
+  final provider = allAccessesProvider(currentDashboardUserId());
+  // allAccesses is autoDispose: hold it while the rows load.
+  final keepAlive = ref.listenManual(provider, (_, _) {});
+  try {
+    return canRunHr(
+      await ref.read(provider.future),
+      businessId: ProxyService.box.getBusinessId(),
+      now: DateTime.now(),
+    );
+  } catch (_) {
+    return false;
+  } finally {
+    keepAlive.close();
+  }
+}
 
 /// Whether a dashboard app tile should be visible for the signed-in user.
 bool dashboardAppTileVisible(WidgetRef ref, DashboardAllAppTile tile) {
@@ -49,20 +113,9 @@ bool dashboardAppTileVisible(WidgetRef ref, DashboardAllAppTile tile) {
   final feature = tile.feature;
   if (feature == null) return true;
 
-  // HR holds salaries and national IDs, so it is for whoever runs the
-  // business: an admin, or staff given the 'HR' grant at admin level — the
-  // same grant HR's own RLS honours (migration 0006). 'HR' is not an
-  // [AppFeature], so the generic check below would hide it from everyone.
-  if (tile.page == 'HR') {
-    if (ref.watch(hrAppBuilderProvider) == null) return false;
-    return ref.watch(
-          featureAccessLevelProvider(
-            userId: uid,
-            accessLevel: AccessLevel.ADMIN,
-          ),
-        ) ||
-        ref.watch(featureAccessProvider(userId: uid, featureName: 'HR'));
-  }
+  // 'HR' is not an [AppFeature], so the generic check below would hide it
+  // from everyone.
+  if (tile.page == 'HR') return dashboardCanOpenHr(ref);
 
   if (feature == 'Sales' || tile.page == 'POS' || tile.page == 'Inventory') {
     // Browse the POS/inventory catalog under view (read+) access — selling and
