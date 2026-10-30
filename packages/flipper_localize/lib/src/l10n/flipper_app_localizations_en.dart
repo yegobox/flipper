@@ -21119,7 +21119,7 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
 
   @override
   String get aiClaudeConsentBody =>
-      'Your questions and the shop figures needed to answer them are sent to Anthropic through the Claude Code app signed in on this computer, under your own Claude account. Flipper never sees your Claude login. Only use this with data your organisation allows.';
+      'Your questions, recent conversation history and the shop figures needed to answer them are sent to Anthropic through the Claude Code app signed in on this computer, under your own Claude account. Flipper never sees your Claude login. Only use this with data your organisation allows.';
 
   @override
   String get aiClaudeConsentAllow => 'Allow';

@@ -35099,7 +35099,7 @@ abstract class FlipperAppLocalizations {
   /// No description provided for @aiClaudeConsentBody.
   ///
   /// In en, this message translates to:
-  /// **'Your questions and the shop figures needed to answer them are sent to Anthropic through the Claude Code app signed in on this computer, under your own Claude account. Flipper never sees your Claude login. Only use this with data your organisation allows.'**
+  /// **'Your questions, recent conversation history and the shop figures needed to answer them are sent to Anthropic through the Claude Code app signed in on this computer, under your own Claude account. Flipper never sees your Claude login. Only use this with data your organisation allows.'**
   String get aiClaudeConsentBody;
 
   /// No description provided for @aiClaudeConsentAllow.

@@ -7425,6 +7425,23 @@
   "floChooseAiMode": "Hitamo uburyo bwa AI",
   "floOnDeviceSubtitle": "Ubuntu · nta murandasi · ibanga",
   "floCloudSubtitle": "Ifite ubushobozi burenzeho · ikoresha murandasi",
+  "floModeClaude": "Claude",
+  "floClaudeSubtitle": "Konti yawe ya Claude · iyi mudasobwa",
+  "aiClaudeThinking": "Turimo kubaza Claude…",
+  "aiClaudeNotInstalled": "Shyira Claude Code kuri iyi mudasobwa hanyuma winjire kugira ngo ukoreshe konti yawe ya Claude muri Flo.",
+  "aiClaudeNotLoggedIn": "Claude Code irashyizwe ariko ntiwinjiye. Koresha \"claude auth login\" muri terminal, hanyuma ugerageze nanone.",
+  "aiClaudeFailed": "Claude ntiyashoboye gusubiza: {error}",
+  "@aiClaudeFailed": {
+    "description": "Claude CLI run failed",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "aiClaudeConsentTitle": "Gukoresha konti yawe ya Claude?",
+  "aiClaudeConsentBody": "Ibibazo byawe, amateka y'ibiganiro bya vuba n'imibare y'iduka ikenewe kugira ngo bisubizwe byoherezwa kuri Anthropic binyuze kuri porogaramu ya Claude Code yinjiye kuri iyi mudasobwa, hakoreshejwe konti yawe bwite ya Claude. Flipper ntihabona amakuru yawe yo kwinjira muri Claude. Koresha ibi gusa n'amakuru ikigo cyawe cyemera.",
+  "aiClaudeConsentAllow": "Emera",
   "floThinkingUnderstanding": "Gusobanukirwa ikibazo",
   "floThinkingQuerying": "Gushakira muri MiniData",
   "floThinkingComposing": "Gutegura igisubizo",

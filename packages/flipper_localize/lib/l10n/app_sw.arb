@@ -7433,6 +7433,23 @@
   "floChooseAiMode": "Chagua hali ya AI",
   "floOnDeviceSubtitle": "Bure · nje ya mtandao · faragha",
   "floCloudSubtitle": "Ina uwezo zaidi · hutumia muunganisho",
+  "floModeClaude": "Claude",
+  "floClaudeSubtitle": "Usajili wako wa Claude · kompyuta hii",
+  "aiClaudeThinking": "Inauliza Claude…",
+  "aiClaudeNotInstalled": "Sakinisha Claude Code kwenye kompyuta hii na uingie ili utumie usajili wako wa Claude ndani ya Flo.",
+  "aiClaudeNotLoggedIn": "Claude Code imesakinishwa lakini hujaingia. Endesha \"claude auth login\" kwenye terminal, kisha ujaribu tena.",
+  "aiClaudeFailed": "Claude imeshindwa kujibu: {error}",
+  "@aiClaudeFailed": {
+    "description": "Claude CLI run failed",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "aiClaudeConsentTitle": "Tumia usajili wako wa Claude?",
+  "aiClaudeConsentBody": "Maswali yako, historia ya hivi karibuni ya mazungumzo na takwimu za duka zinazohitajika kujibu hutumwa kwa Anthropic kupitia programu ya Claude Code iliyoingia kwenye kompyuta hii, kwa akaunti yako mwenyewe ya Claude. Flipper haioni kamwe taarifa zako za kuingia Claude. Tumia hii tu na data ambayo shirika lako linaruhusu.",
+  "aiClaudeConsentAllow": "Ruhusu",
   "floThinkingUnderstanding": "Kuelewa swali",
   "floThinkingQuerying": "Inauliza MiniData",
   "floThinkingComposing": "Inatunga jibu",

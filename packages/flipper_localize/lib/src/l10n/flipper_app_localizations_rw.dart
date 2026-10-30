@@ -21300,33 +21300,33 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   String get floModeClaude => 'Claude';
 
   @override
-  String get floClaudeSubtitle => 'Your Claude subscription · this computer';
+  String get floClaudeSubtitle => 'Konti yawe ya Claude · iyi mudasobwa';
 
   @override
-  String get aiClaudeThinking => 'Asking Claude…';
+  String get aiClaudeThinking => 'Turimo kubaza Claude…';
 
   @override
   String get aiClaudeNotInstalled =>
-      'Install Claude Code on this computer and sign in to use your Claude subscription with Flo.';
+      'Shyira Claude Code kuri iyi mudasobwa hanyuma winjire kugira ngo ukoreshe konti yawe ya Claude muri Flo.';
 
   @override
   String get aiClaudeNotLoggedIn =>
-      'Claude Code is installed but not signed in. Run \"claude auth login\" in a terminal, then try again.';
+      'Claude Code irashyizwe ariko ntiwinjiye. Koresha \"claude auth login\" muri terminal, hanyuma ugerageze nanone.';
 
   @override
   String aiClaudeFailed(String error) {
-    return 'Claude couldn\'t answer: $error';
+    return 'Claude ntiyashoboye gusubiza: $error';
   }
 
   @override
-  String get aiClaudeConsentTitle => 'Use your Claude subscription?';
+  String get aiClaudeConsentTitle => 'Gukoresha konti yawe ya Claude?';
 
   @override
   String get aiClaudeConsentBody =>
-      'Your questions and the shop figures needed to answer them are sent to Anthropic through the Claude Code app signed in on this computer, under your own Claude account. Flipper never sees your Claude login. Only use this with data your organisation allows.';
+      'Ibibazo byawe, amateka y\'ibiganiro bya vuba n\'imibare y\'iduka ikenewe kugira ngo bisubizwe byoherezwa kuri Anthropic binyuze kuri porogaramu ya Claude Code yinjiye kuri iyi mudasobwa, hakoreshejwe konti yawe bwite ya Claude. Flipper ntihabona amakuru yawe yo kwinjira muri Claude. Koresha ibi gusa n\'amakuru ikigo cyawe cyemera.';
 
   @override
-  String get aiClaudeConsentAllow => 'Allow';
+  String get aiClaudeConsentAllow => 'Emera';
 
   @override
   String get floThinkingUnderstanding => 'Gusobanukirwa ikibazo';

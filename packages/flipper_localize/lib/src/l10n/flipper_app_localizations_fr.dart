@@ -21462,7 +21462,7 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
 
   @override
   String get aiClaudeConsentBody =>
-      'Vos questions et les chiffres de la boutique nécessaires pour y répondre sont envoyés à Anthropic via l\'application Claude Code connectée sur cet ordinateur, avec votre propre compte Claude. Flipper ne voit jamais vos identifiants Claude. À utiliser uniquement avec des données autorisées par votre organisation.';
+      'Vos questions, l\'historique récent de la conversation et les chiffres de la boutique nécessaires pour y répondre sont envoyés à Anthropic via l\'application Claude Code connectée sur cet ordinateur, avec votre propre compte Claude. Flipper ne voit jamais vos identifiants Claude. À utiliser uniquement avec des données autorisées par votre organisation.';
 
   @override
   String get aiClaudeConsentAllow => 'Autoriser';

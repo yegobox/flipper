@@ -94,8 +94,12 @@ class IoClaudeCliRunner implements ClaudeCliRunner {
       runInShell: Platform.isWindows && !executable.endsWith('.exe'),
       workingDirectory: Directory.systemTemp.path,
     );
-    final out = process.stdout.transform(utf8.decoder).join();
-    final err = process.stderr.transform(utf8.decoder).join();
+    final out = process.stdout
+        .transform(const Utf8Decoder(allowMalformed: true))
+        .join();
+    final err = process.stderr
+        .transform(const Utf8Decoder(allowMalformed: true))
+        .join();
     if (stdin != null) {
       process.stdin.write(stdin);
     }

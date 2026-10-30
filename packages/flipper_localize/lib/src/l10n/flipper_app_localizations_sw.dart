@@ -21226,33 +21226,33 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   String get floModeClaude => 'Claude';
 
   @override
-  String get floClaudeSubtitle => 'Your Claude subscription · this computer';
+  String get floClaudeSubtitle => 'Usajili wako wa Claude · kompyuta hii';
 
   @override
-  String get aiClaudeThinking => 'Asking Claude…';
+  String get aiClaudeThinking => 'Inauliza Claude…';
 
   @override
   String get aiClaudeNotInstalled =>
-      'Install Claude Code on this computer and sign in to use your Claude subscription with Flo.';
+      'Sakinisha Claude Code kwenye kompyuta hii na uingie ili utumie usajili wako wa Claude ndani ya Flo.';
 
   @override
   String get aiClaudeNotLoggedIn =>
-      'Claude Code is installed but not signed in. Run \"claude auth login\" in a terminal, then try again.';
+      'Claude Code imesakinishwa lakini hujaingia. Endesha \"claude auth login\" kwenye terminal, kisha ujaribu tena.';
 
   @override
   String aiClaudeFailed(String error) {
-    return 'Claude couldn\'t answer: $error';
+    return 'Claude imeshindwa kujibu: $error';
   }
 
   @override
-  String get aiClaudeConsentTitle => 'Use your Claude subscription?';
+  String get aiClaudeConsentTitle => 'Tumia usajili wako wa Claude?';
 
   @override
   String get aiClaudeConsentBody =>
-      'Your questions and the shop figures needed to answer them are sent to Anthropic through the Claude Code app signed in on this computer, under your own Claude account. Flipper never sees your Claude login. Only use this with data your organisation allows.';
+      'Maswali yako, historia ya hivi karibuni ya mazungumzo na takwimu za duka zinazohitajika kujibu hutumwa kwa Anthropic kupitia programu ya Claude Code iliyoingia kwenye kompyuta hii, kwa akaunti yako mwenyewe ya Claude. Flipper haioni kamwe taarifa zako za kuingia Claude. Tumia hii tu na data ambayo shirika lako linaruhusu.';
 
   @override
-  String get aiClaudeConsentAllow => 'Allow';
+  String get aiClaudeConsentAllow => 'Ruhusu';
 
   @override
   String get floThinkingUnderstanding => 'Kuelewa swali';
