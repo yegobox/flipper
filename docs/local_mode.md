@@ -55,7 +55,12 @@ like it does for any new business.
 The marker only exists on the device that holds the data, so the server
 records the choice too: `businesses.sync_mode` (`full` | `local`), the
 server-stamped `sync_mode_changed_at`, and `local_device_name` (supabase
-`20261012120000_business_sync_mode.sql`). A trigger stops anon/authenticated
+`20261012120000_business_sync_mode.sql`). `local_device_name` is
+`<hostname>#<store id>`: the hostname is only shown to people, and the store id
+is a random id kept in `.flipper_install_id` beside the marker, so a corrupt
+marker can't lose it. A store whose marker can't be read goes back to the
+business whose record carries this store's id, never one that merely shares
+the hostname (every Android phone is `localhost`). A trigger stops anon/authenticated
 writers from going `full` → `local` once the business has any plan, so nobody
 drops out of billing.
 

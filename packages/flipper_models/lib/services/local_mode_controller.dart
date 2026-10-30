@@ -6,7 +6,6 @@ import 'package:flipper_models/services/local_mode_server.dart';
 import 'package:flipper_services/internet_probe.dart';
 import 'package:flipper_web/core/local_mode/local_mode.dart';
 import 'package:flipper_web/core/local_mode/local_mode_marker_keys.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:supabase_models/brick/repository.dart';
 
 export 'package:flipper_web/core/local_mode/local_mode.dart'
@@ -71,8 +70,16 @@ class LocalModeController {
     serverChangedAt: server.changedAt ?? DateTime.now(),
   );
 
-  /// This device's name as `businesses.local_device_name` records it.
-  static String? deviceName() => _deviceName();
+  /// This device's store id, as [BusinessSyncState.deviceId] reads it. Null
+  /// when it can't be read, which never names this device as an owner.
+  static Future<String?> deviceId() async {
+    try {
+      return await LocalMode.installId();
+    } catch (e) {
+      talker.warning('Local mode: store id unreadable: $e');
+      return null;
+    }
+  }
 
   /// Records `sync_mode = local` for [businessId]. Retried at every startup
   /// until the server confirms it (signup may have lost the connection).
@@ -81,7 +88,7 @@ class LocalModeController {
     final (result, state) = await LocalModeServer.setMode(
       businessId,
       local: true,
-      deviceName: _deviceName(),
+      deviceName: await _deviceRecord(),
     );
     if (result != SyncModeWrite.saved) {
       talker.warning('Local mode: server registration $result for $businessId');
@@ -133,7 +140,7 @@ class LocalModeController {
         businessId: sessionBusinessId,
         server: server,
         marker: marker,
-        thisDeviceName: _deviceName(),
+        thisDeviceId: await deviceId(),
       );
       if (access != LocalModeAccess.recoverOwner) {
         return CloudSyncOptIn.notOwner;
@@ -164,8 +171,13 @@ class LocalModeController {
     talker.info('Local mode: off ($reason)');
   }
 
-  static String? _deviceName() {
-    if (kIsWeb) return null;
+  static Future<String?> _deviceRecord() async {
+    final id = await deviceId();
+    if (id == null) return null;
+    return BusinessSyncState.deviceRecord(label: _hostname(), id: id);
+  }
+
+  static String? _hostname() {
     try {
       return Platform.localHostname;
     } catch (_) {

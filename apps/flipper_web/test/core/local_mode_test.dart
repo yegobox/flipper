@@ -11,17 +11,23 @@ import 'package:path/path.dart' as p;
 
 void main() {
   late File marker;
+  late File installId;
 
   setUp(() async {
     final dir = await DatabasePath.getDatabaseDirectory(subDirectory: 'db2');
     await Directory(dir).create(recursive: true);
     marker = File(p.join(dir, '.flipper_local_mode'));
-    if (await marker.exists()) await marker.delete();
+    installId = File(p.join(dir, '.flipper_install_id'));
+    for (final file in [marker, installId]) {
+      if (await file.exists()) await file.delete();
+    }
     LocalMode.debugReset();
   });
 
   tearDown(() async {
-    if (await marker.exists()) await marker.delete();
+    for (final file in [marker, installId]) {
+      if (await file.exists()) await file.delete();
+    }
     LocalMode.debugReset();
   });
 
@@ -191,5 +197,29 @@ void main() {
     });
     expect(inside, isTrue);
     expect(LocalMode.cloudAllowedHere, isFalse);
+  });
+
+  group('install id', () {
+    test('is made once, then kept', () async {
+      final id = await LocalMode.installId();
+      expect(id, matches(RegExp(r'^[0-9a-f]{32}$')));
+      expect(await LocalMode.installId(), id);
+      expect(await installId.readAsString(), id);
+    });
+
+    test('outlives a corrupt marker and the opt-in to sync', () async {
+      final id = await LocalMode.installId();
+      await LocalMode.enable(businessId: 'biz-a');
+      await marker.writeAsString('{not json');
+      expect(await LocalMode.installId(), id);
+      await LocalMode.disable();
+      expect(await LocalMode.installId(), id);
+    });
+
+    test('an empty id file gets a new id', () async {
+      await installId.writeAsString('  ');
+      final id = await LocalMode.installId();
+      expect(id, matches(RegExp(r'^[0-9a-f]{32}$')));
+    });
   });
 }

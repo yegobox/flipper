@@ -7,19 +7,19 @@ import 'package:flutter_test/flutter_test.dart';
 /// device (local mode keeps it on one device only).
 void main() {
   const biz = 'biz-a';
-  const local = BusinessSyncState(mode: 'local', deviceName: 'Shop Mac');
+  const local = BusinessSyncState(mode: 'local', deviceName: 'Shop Mac#a1');
   const full = BusinessSyncState(mode: 'full');
 
   LocalModeAccess decide({
     BusinessSyncState? server,
     Map<String, dynamic>? marker,
     String businessId = biz,
-    String? thisDeviceName,
+    String? thisDeviceId,
   }) => decideLocalModeAccess(
     businessId: businessId,
     server: server,
     marker: marker,
-    thisDeviceName: thisDeviceName,
+    thisDeviceId: thisDeviceId,
   );
 
   group('a device that is not in local mode', () {
@@ -84,14 +84,34 @@ void main() {
 
     test('the business the server places on this device recovers it', () {
       expect(
-        decide(server: local, marker: unreadable, thisDeviceName: 'Shop Mac'),
+        decide(server: local, marker: unreadable, thisDeviceId: 'a1'),
         LocalModeAccess.recoverOwner,
       );
     });
 
     test('a business placed on another device is refused', () {
       expect(
-        decide(server: local, marker: unreadable, thisDeviceName: 'Till 2'),
+        decide(server: local, marker: unreadable, thisDeviceId: 'b2'),
+        LocalModeAccess.deviceHeldByOtherBusiness,
+      );
+    });
+
+    test('a shared hostname is not the same device', () {
+      // Every Android phone is "localhost": only the store id tells them apart.
+      const phone = BusinessSyncState(
+        mode: 'local',
+        deviceName: 'localhost#a1',
+      );
+      expect(
+        decide(server: phone, marker: unreadable, thisDeviceId: 'b2'),
+        LocalModeAccess.deviceHeldByOtherBusiness,
+      );
+    });
+
+    test('a device recorded by name alone is refused', () {
+      const named = BusinessSyncState(mode: 'local', deviceName: 'Shop Mac');
+      expect(
+        decide(server: named, marker: unreadable, thisDeviceId: 'Shop Mac'),
         LocalModeAccess.deviceHeldByOtherBusiness,
       );
     });
@@ -101,7 +121,7 @@ void main() {
         decide(
           server: const BusinessSyncState(mode: 'local'),
           marker: unreadable,
-          thisDeviceName: 'Shop Mac',
+          thisDeviceId: 'a1',
         ),
         LocalModeAccess.deviceHeldByOtherBusiness,
       );
@@ -109,13 +129,54 @@ void main() {
 
     test('a cloud business is refused', () {
       expect(
-        decide(server: full, marker: unreadable, thisDeviceName: 'Shop Mac'),
+        decide(server: full, marker: unreadable, thisDeviceId: 'a1'),
         LocalModeAccess.deviceHeldByOtherBusiness,
       );
     });
 
     test('an unreachable server never blocks', () {
       expect(decide(server: null, marker: unreadable), LocalModeAccess.allowed);
+    });
+  });
+
+  group('the recorded device', () {
+    test('keeps the hostname to read and the store id to match', () {
+      final record = BusinessSyncState.deviceRecord(
+        label: 'Shop Mac',
+        id: 'a1',
+      );
+      final server = BusinessSyncState(mode: 'local', deviceName: record);
+      expect(record, 'Shop Mac#a1');
+      expect(server.deviceLabel, 'Shop Mac');
+      expect(server.deviceId, 'a1');
+    });
+
+    test('a device with no hostname is still identified', () {
+      final server = BusinessSyncState(
+        mode: 'local',
+        deviceName: BusinessSyncState.deviceRecord(id: 'a1'),
+      );
+      expect(server.deviceLabel, '');
+      expect(server.deviceId, 'a1');
+    });
+
+    test('a name alone has no id', () {
+      const server = BusinessSyncState(mode: 'local', deviceName: 'Shop Mac');
+      expect(server.deviceLabel, 'Shop Mac');
+      expect(server.deviceId, isNull);
+    });
+
+    test('no record has neither', () {
+      expect(local.deviceId, 'a1');
+      expect(full.deviceLabel, isNull);
+      expect(full.deviceId, isNull);
+      expect(
+        const BusinessSyncState(
+          mode: 'local',
+          deviceName: 'Shop Mac#',
+        ).deviceId,
+        isNull,
+      );
     });
   });
 }

@@ -32,22 +32,21 @@ enum LocalModeAccess {
 /// An unreadable server never blocks: an offline login can only open data
 /// that is already on this device.
 ///
-/// [thisDeviceName] is this device's name as local mode records it
-/// (`businesses.local_device_name`); it identifies the owner of a store whose
-/// marker could not be read.
+/// [thisDeviceId] is this device's store id ([BusinessSyncState.deviceId]);
+/// it identifies the owner of a store whose marker could not be read.
 LocalModeAccess decideLocalModeAccess({
   required String businessId,
   required BusinessSyncState? server,
   required Map<String, dynamic>? marker,
-  String? thisDeviceName,
+  String? thisDeviceId,
 }) {
   if (marker != null && marker[kLocalModeMarkerUnreadable] == true) {
     // The owner is unknown, not absent: only the server can name it.
     if (server == null) return LocalModeAccess.allowed;
     final ownsThisDevice =
         server.isLocal &&
-        server.deviceName != null &&
-        server.deviceName == thisDeviceName;
+        server.deviceId != null &&
+        server.deviceId == thisDeviceId;
     return ownsThisDevice
         ? LocalModeAccess.recoverOwner
         : LocalModeAccess.deviceHeldByOtherBusiness;

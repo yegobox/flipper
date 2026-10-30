@@ -24,10 +24,33 @@ class BusinessSyncState {
   final String mode;
   final DateTime? changedAt;
 
-  /// The device holding a local business's data (informational).
+  /// The device holding a local business's data, as [deviceRecord] wrote it.
   final String? deviceName;
 
   bool get isLocal => mode == 'local';
+
+  /// The device's name, for people to read.
+  String? get deviceLabel {
+    final name = deviceName;
+    if (name == null) return null;
+    final hash = name.lastIndexOf('#');
+    return hash < 0 ? name : name.substring(0, hash);
+  }
+
+  /// The device's store id ([LocalMode.installId]); null for a record that
+  /// has none, which then names no device.
+  String? get deviceId {
+    final name = deviceName;
+    final hash = name?.lastIndexOf('#') ?? -1;
+    if (hash < 0) return null;
+    final id = name!.substring(hash + 1);
+    return id.isEmpty ? null : id;
+  }
+
+  /// What `local_device_name` records: the hostname to read, and the store
+  /// id that identifies the device (hostnames repeat).
+  static String deviceRecord({String? label, required String id}) =>
+      '${label ?? ''}#$id';
 }
 
 enum SyncModeWrite {

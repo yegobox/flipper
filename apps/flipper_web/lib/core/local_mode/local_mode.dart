@@ -95,6 +95,14 @@ abstract final class LocalMode {
     return readLocalModeMarker();
   }
 
+  /// This store's random id (`null` on the web). Unlike the hostname it is
+  /// unique to the store, so it is what identifies the owner of a store whose
+  /// marker can't be read.
+  static Future<String?> installId() async {
+    if (kIsWeb) return null;
+    return readOrCreateLocalModeInstallId();
+  }
+
   /// Records which business owns this device's data and, once the server has
   /// confirmed the business is local, when it did. A device that saw the server
   /// confirm local mode and later finds it full knows sync was turned on from

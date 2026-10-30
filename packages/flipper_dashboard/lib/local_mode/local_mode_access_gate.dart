@@ -35,7 +35,7 @@ class LocalModeAccessGate {
       businessId: businessId,
       server: server,
       marker: marker,
-      thisDeviceName: LocalModeController.deviceName(),
+      thisDeviceId: await LocalModeController.deviceId(),
     );
     talker.info('Local mode access for $businessId: $access');
 
@@ -85,8 +85,8 @@ class LocalModeAccessGate {
     BusinessSyncState server,
   ) async {
     final l10n = FlipperL10n.current;
-    final device = (server.deviceName?.trim().isNotEmpty ?? false)
-        ? server.deviceName!.trim()
+    final device = (server.deviceLabel?.trim().isNotEmpty ?? false)
+        ? server.deviceLabel!.trim()
         : l10n.localModeElsewhereUnknownDevice;
     final response = await _dialog(
       title: l10n.localModeElsewhereTitle,
