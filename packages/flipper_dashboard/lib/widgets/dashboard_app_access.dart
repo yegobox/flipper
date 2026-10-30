@@ -2,6 +2,7 @@ import 'package:flipper_dashboard/hr_module_entry.dart';
 import 'package:flipper_dashboard/providers/agent_commission_access_provider.dart';
 import 'package:flipper_dashboard/providers/navigation_providers.dart';
 import 'package:flipper_dashboard/widgets/dashboard_all_apps_catalog.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/access_provider.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
@@ -23,21 +24,45 @@ final dashboardIsAdminProvider = Provider.autoDispose<bool>(
   ),
 );
 
+/// Whether [accesses] let someone run HR in [businessId]: an Admin of that
+/// business, or a live Admin-level 'HR' grant there — what HR's own RLS honours
+/// (`hr_manager_business_ids()`, migration 0006). A Write-level HR grant, or
+/// a grant from another business, does not count: HR would open and show
+/// nothing.
+bool canRunHr(
+  List<Access> accesses, {
+  required String? businessId,
+  required DateTime now,
+}) {
+  if (businessId == null || businessId.isEmpty) return false;
+  return accesses.any(
+    (a) =>
+        a.businessId == businessId &&
+        a.status == 'active' &&
+        (a.expiresAt == null || a.expiresAt!.isAfter(now)) &&
+        (a.userType?.toLowerCase() == AccessLevel.ADMIN ||
+            (a.featureName?.toLowerCase() == 'hr' &&
+                a.accessLevel?.toLowerCase() == AccessLevel.ADMIN)),
+  );
+}
+
 /// Whether the signed-in user may open Flipper HR (the More → Apps tile and
 /// the desktop app chooser).
 ///
-/// HR holds salaries and national IDs, so it is for whoever runs the business:
-/// an admin, or staff given the 'HR' grant at admin level — the same grant HR's
-/// own RLS honours (migration 0006). Never in Local Mode, and never when the
-/// running app does not ship HR.
+/// HR holds salaries and national IDs, so it is for whoever runs the business
+/// (see [canRunHr]). Never in Local Mode, and never when the running app does
+/// not ship HR.
 bool dashboardCanOpenHr(WidgetRef ref) {
   if (ref.watch(hrAppBuilderProvider) == null) return false;
   if (hiddenInLocalMode(ref, 'HR')) return false;
-  final uid = currentDashboardUserId();
-  return ref.watch(
-        featureAccessLevelProvider(userId: uid, accessLevel: AccessLevel.ADMIN),
-      ) ||
-      ref.watch(featureAccessProvider(userId: uid, featureName: 'HR'));
+  final accesses =
+      ref.watch(allAccessesProvider(currentDashboardUserId())).value ??
+      const <Access>[];
+  return canRunHr(
+    accesses,
+    businessId: ProxyService.box.getBusinessId(),
+    now: DateTime.now(),
+  );
 }
 
 /// Whether a dashboard app tile should be visible for the signed-in user.

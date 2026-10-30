@@ -5,12 +5,11 @@ import 'package:flipper_dashboard/hr_module_entry.dart';
 import 'package:flipper_dashboard/widgets/dashboard_all_apps_catalog.dart';
 import 'package:flipper_dashboard/widgets/dashboard_app_access.dart';
 import 'package:flipper_dashboard/widgets/app_launch_overlay.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/access_provider.dart';
 import 'package:flipper_models/providers/active_branch_provider.dart';
-import 'package:flipper_services/constants.dart';
 import 'package:flipper_web/core/local_mode/local_mode.dart';
 import 'package:flipper_services/locator.dart';
-import 'package:supabase_models/brick/models/branch.model.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
@@ -30,6 +29,9 @@ class _AppChoiceBox extends MockBox {
   String? getUserId() => _userId;
 
   @override
+  String? getBusinessId() => _businessId;
+
+  @override
   String? getDefaultApp() => defaultApp;
 
   @override
@@ -39,24 +41,38 @@ class _AppChoiceBox extends MockBox {
 }
 
 const _userId = 'u1';
+const _businessId = 'biz1';
 
-/// The host ships HR, and the signed-in user is an admin unless [admin] says
-/// otherwise; [hrGrant] is the staff 'HR' grant.
-List<Override> _hrOverrides({bool admin = true, bool hrGrant = false}) => [
+/// An active access row for the signed-in user in the current business.
+Access _access({
+  String? userType,
+  String? featureName,
+  String? accessLevel,
+  String businessId = _businessId,
+  String status = 'active',
+  DateTime? expiresAt,
+}) => Access(
+  userId: _userId,
+  businessId: businessId,
+  userType: userType,
+  featureName: featureName,
+  accessLevel: accessLevel,
+  status: status,
+  expiresAt: expiresAt,
+);
+
+/// The host ships HR, and the signed-in user holds [accesses] — by default
+/// they are an Admin of the current business.
+List<Override> _hrOverrides({List<Access>? accesses}) => [
   hrAppBuilderProvider.overrideWithValue(
     ({required onExit, required onUpgrade}) => const SizedBox(),
   ),
   // No Supabase session: an opened HR shows its offline page, so the test
   // never reaches the network.
   hrEnsureSupabaseSessionProvider.overrideWithValue(() async => null),
-  featureAccessLevelProvider(
-    userId: _userId,
-    accessLevel: AccessLevel.ADMIN,
-  ).overrideWithValue(admin),
-  featureAccessProvider(
-    userId: _userId,
-    featureName: 'HR',
-  ).overrideWithValue(hrGrant),
+  allAccessesProvider(
+    _userId,
+  ).overrideWith((ref) async => accesses ?? [_access(userType: 'Admin')]),
 ];
 
 /// The selected tile swaps its shortcut badge for a [CircularProgressIndicator],
@@ -328,10 +344,14 @@ void main() {
       expect(find.byType(HrModuleEntry), findsOneWidget);
     });
 
-    testWidgets('is offered to staff with the HR grant', (tester) async {
+    testWidgets('is offered to staff with an Admin-level HR grant', (
+      tester,
+    ) async {
       await pumpChooser(
         tester,
-        overrides: _hrOverrides(admin: false, hrGrant: true),
+        overrides: _hrOverrides(
+          accesses: [_access(featureName: 'HR', accessLevel: 'Admin')],
+        ),
       );
 
       expect(find.text('HR & Payroll'), findsOneWidget);
@@ -341,7 +361,7 @@ void main() {
       tester,
     ) async {
       box.defaultApp = 'HR';
-      await pumpChooser(tester, overrides: _hrOverrides(admin: false));
+      await pumpChooser(tester, overrides: _hrOverrides(accesses: []));
 
       expect(find.text('HR & Payroll'), findsNothing);
       expect(find.text('Default · POS'), findsOneWidget);
@@ -447,12 +467,77 @@ void main() {
             ),
           ),
         );
+        // The access rows load asynchronously; let them land.
+        await tester.pumpAndSettle();
       }
 
       await check(_hrOverrides());
       expect(visible, isTrue);
-      await check(_hrOverrides(admin: false));
+      await check(_hrOverrides(accesses: []));
       expect(visible, isFalse);
+    });
+  });
+
+  group('canRunHr matches what HR\'s RLS honours', () {
+    final now = DateTime.utc(2026, 10, 30);
+    bool run(List<Access> accesses, {String? businessId = _businessId}) =>
+        canRunHr(accesses, businessId: businessId, now: now);
+
+    test('an Admin of this business, or an Admin-level HR grant here', () {
+      expect(run([_access(userType: 'admin')]), isTrue);
+      expect(run([_access(featureName: 'hr', accessLevel: 'admin')]), isTrue);
+    });
+
+    test('a Write-level HR grant does not count', () {
+      expect(run([_access(featureName: 'HR', accessLevel: 'Write')]), isFalse);
+    });
+
+    test('an admin level on another module does not count', () {
+      expect(
+        run([
+          _access(
+            userType: 'Cashier',
+            featureName: 'Sales',
+            accessLevel: 'Admin',
+          ),
+        ]),
+        isFalse,
+      );
+    });
+
+    test('grants from another business do not count', () {
+      expect(
+        run([_access(userType: 'Admin', businessId: 'other-biz')]),
+        isFalse,
+      );
+    });
+
+    test('inactive or expired grants do not count', () {
+      expect(run([_access(userType: 'Admin', status: 'inactive')]), isFalse);
+      expect(
+        run([
+          _access(
+            featureName: 'HR',
+            accessLevel: 'Admin',
+            expiresAt: now.subtract(const Duration(days: 1)),
+          ),
+        ]),
+        isFalse,
+      );
+      expect(
+        run([
+          _access(
+            userType: 'Admin',
+            expiresAt: now.add(const Duration(days: 1)),
+          ),
+        ]),
+        isTrue,
+      );
+    });
+
+    test('nothing counts without a current business', () {
+      expect(run([_access(userType: 'Admin')], businessId: null), isFalse);
+      expect(run([_access(userType: 'Admin')], businessId: ''), isFalse);
     });
   });
 }
