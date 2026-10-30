@@ -221,8 +221,7 @@ class PaymentVerificationNavigator {
     if ((userInitiated || isInitialStartup) && await entryRefused()) return;
 
     // Local mode is free forever: never a paywall, whatever the plan says.
-    if (response.result != PaymentVerificationResult.active &&
-        LocalMode.isOn) {
+    if (response.result != PaymentVerificationResult.active && LocalMode.isOn) {
       talker.info('Local mode: no plan needed');
       await _handleActiveSubscription(mayEnterHome: mayEnterHome);
       return;
