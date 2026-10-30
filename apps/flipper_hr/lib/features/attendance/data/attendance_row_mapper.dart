@@ -6,7 +6,7 @@ import 'package:flipper_hr/features/attendance/data/attendance_session.dart';
 /// `integer` as int but `numeric` as int, double or String depending on the
 /// value, and `date` as `YYYY-MM-DD` while `timestamptz` is a full ISO string.
 ///
-/// Column names must match `supabase/migrations/0005_hr_attendance.sql`.
+/// Column names must match HR migration 0005.
 class AttendanceRowMapper {
   AttendanceRowMapper._();
 
@@ -42,7 +42,8 @@ class AttendanceRowMapper {
   }) {
     return {
       'employee_id': session.employeeId,
-      if (!useServerStart) 'started_at': session.startedAt.toUtc().toIso8601String(),
+      if (!useServerStart)
+        'started_at': session.startedAt.toUtc().toIso8601String(),
       if (session.endedAt != null)
         'ended_at': session.endedAt!.toUtc().toIso8601String(),
       'source': session.source.wire,

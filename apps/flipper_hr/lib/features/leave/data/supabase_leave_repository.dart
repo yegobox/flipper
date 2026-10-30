@@ -7,7 +7,7 @@ import 'package:flipper_hr/features/people/data/supabase_employee_repository.dar
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Supabase-backed leave. Table and policies live in
-/// `supabase/migrations/0004_hr_leave.sql`.
+/// HR migration 0004.
 ///
 /// Writes use `.select().single()` so what lands back in the list is the stored
 /// row. That matters more here than on the roster: a database trigger rewrites

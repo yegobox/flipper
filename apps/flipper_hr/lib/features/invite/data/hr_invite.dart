@@ -84,7 +84,7 @@ class HrInvite {
 
   /// What the invitee types into the PIN screen's identity field on a device
   /// that asks for one. Matches the synthetic keys elsewhere in Flipper
-  /// (`api_login_key.dart`) — see `0003_hr_employees_rls_pin_identity.sql`.
+  /// (`api_login_key.dart`) — see HR migration 0003.
   String get loginKey => '$pin@flipper.rw';
 
   @override

@@ -4,7 +4,7 @@
 /// roster opens are worth testing without a backend, and every one of them is a
 /// pure function of the values below.
 ///
-/// The wire shapes come from `supabase/migrations/0008_hr_billing.sql` —
+/// The wire shapes come from HR migration 0008 —
 /// `hr_access_state()`, `hr_plan_quote()` and `hr_start_subscription()`.
 library;
 

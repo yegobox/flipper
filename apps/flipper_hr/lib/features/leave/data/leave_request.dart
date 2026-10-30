@@ -2,7 +2,7 @@ import 'package:flipper_hr/features/leave/data/leave_type.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 
 /// Where a request stands. One decision per request, recorded on the request
-/// itself — see the table comment in `0004_hr_leave.sql`.
+/// itself — see the table comment in HR migration 0004.
 enum LeaveStatus {
   pending('pending'),
   approved('approved'),

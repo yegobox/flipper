@@ -9,7 +9,7 @@ import 'package:flipper_localize/flipper_localize.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Supabase-backed pay book. Tables, triggers and RPCs live in
-/// `supabase/migrations/0011_hr_payroll.sql`.
+/// HR migration 0011.
 class SupabasePayRepository implements PayRepository {
   const SupabasePayRepository(this._client);
 

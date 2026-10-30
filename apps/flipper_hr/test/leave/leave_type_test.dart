@@ -28,7 +28,7 @@ void main() {
     });
 
     test('wire values are the ones the CHECK constraint allows', () {
-      // Must match supabase/migrations/0004_hr_leave.sql. A mismatch here is a
+      // Must match HR migration 0004. A mismatch here is a
       // 400 on every insert of that type, so it is worth pinning.
       expect(
         {for (final t in LeaveType.values) t.wire},

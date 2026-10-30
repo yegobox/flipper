@@ -1,6 +1,6 @@
 /// The pay book's records: payslips, payments, advances and advance requests.
 ///
-/// Plain values mapped from `supabase/migrations/0011_hr_payroll.sql`. Amounts
+/// Plain values mapped from HR migration 0011. Amounts
 /// are immutable once stored, so none of these has a `copyWith`: a correction
 /// is a void plus a new record, never an edit.
 library;

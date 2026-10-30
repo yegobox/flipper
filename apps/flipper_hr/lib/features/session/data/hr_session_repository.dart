@@ -8,7 +8,7 @@ abstract class HrSessionRepository {
 }
 
 /// Reads `public.hr_whoami_employee()`, the diagnostic function
-/// `0004_hr_leave.sql` installs.
+/// HR migration 0004 installs.
 ///
 /// Deliberately one RPC rather than two table reads. The two identity paths are
 /// SQL functions, and asking the server to evaluate them is the only way to get
@@ -33,8 +33,8 @@ class SupabaseHrSessionRepository implements HrSessionRepository {
       // permission-denied instead of unmigrated.
       if (e.code == 'PGRST202') {
         throw HrSessionException(
-          'This Supabase project is missing hr_whoami_employee(). Apply '
-          'apps/flipper_hr/supabase/migrations/0004_hr_leave.sql.',
+          'This Supabase project is missing hr_whoami_employee() (HR '
+          'migration 0004). Run `supabase db push` from the supabase repo.',
           cause: e,
         );
       }
