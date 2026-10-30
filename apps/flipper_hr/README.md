@@ -69,25 +69,26 @@ lib/features/invite/            three-hop invite (apihub + create_agent)
 lib/features/leave/             requests, balances, approvals
 lib/features/attendance/        clock in/out, board, timesheet
 lib/features/session/           what the database can prove about the caller
-supabase/migrations/0001_hr_employees.sql
-supabase/migrations/0002_hr_employees_rls_identity.sql
-supabase/migrations/0003_hr_employees_rls_pin_identity.sql
-supabase/migrations/0004_hr_leave.sql
-supabase/migrations/0005_hr_attendance.sql
-supabase/migrations/0006_hr_manager_access.sql
-supabase/migrations/0007_hr_reporting_line.sql
 ```
 
 Everything except the two widgets is a pure function or a value object, so the
 rules are tested without a backend; the page and form are tested against
 `test/helpers/fake_employee_repository.dart`.
 
-**New HR migrations go in the shared `supabase` repo** (`supabase/migrations/`,
-`yegobox/Flipper-Database`), not here, and reach production through
-`supabase db push`. This folder is retired: hand-applied files left nothing
-recording what production had, and `0011` shipped without ever being applied.
-[`supabase/migrations/README.md`](supabase/migrations/README.md) lists where
-each numbered file now lives (`0010` is deliberately not applied).
+**HR's schema lives in the shared `supabase` repo** (`supabase/migrations/`,
+`yegobox/Flipper-Database`), like every other table, and reaches production
+through `supabase db push`. New HR migrations go there as a timestamped
+`YYYYMMDDHHMMSS_hr_<topic>.sql`; there is no SQL in this app.
+
+HR's first migrations were numbered files applied by hand in the SQL editor,
+which left nothing recording what production had (`0011` shipped without ever
+being applied). Code comments still name them by number. Where each one is now:
+
+| HR migration | In the `supabase` repo |
+|--------------|------------------------|
+| `0001`–`0009` | inside the 2026-09-15 baseline, `20260915080037_remote_schema.sql` |
+| `0010` (mobile phone identity) | nowhere, on purpose: it would let anyone who knows an owner's phone read that business's HR rows. Dropped; HR needs the server-minted PIN session instead |
+| `0011` (payroll) | `20261016120000_hr_payroll.sql` |
 
 The numbered files were originally applied by hand, lowest number first, in the
 Supabase SQL editor as the service role. `0002` and `0003` each fix
@@ -308,7 +309,7 @@ discount every Flipper tier carries): all Flipper apps, up to 5 POS users, 1
 branch, and up to 50 HR employees. It lives in
 `public.subscription_plan_templates` alongside Mobile / Mobile + Desktop /
 Enterprise, so Books sells the same tier from the same row — see
-`supabase/migrations/0008_hr_billing.sql`.
+HR migration 0008.
 
 ### Who is locked out, and who is not
 

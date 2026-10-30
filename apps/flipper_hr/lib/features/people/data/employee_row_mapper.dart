@@ -7,7 +7,7 @@ import 'package:flipper_hr/features/people/data/employee.dart';
 /// `timestamptz` arrives as a full ISO string. Every read goes through here so
 /// the rest of the app only ever sees a normalised [Employee].
 ///
-/// Column names must match `supabase/migrations/0001_hr_employees.sql`.
+/// Column names must match HR migration 0001.
 class EmployeeRowMapper {
   EmployeeRowMapper._();
 

@@ -58,10 +58,7 @@ void main() {
       // The state the paywall shows after settlement has to be the new one.
       billing.access = entitledState();
 
-      await controller.pay(
-        businessId: 'biz-1',
-        phoneNumber: '0788123456',
-      );
+      await controller.pay(businessId: 'biz-1', phoneNumber: '0788123456');
 
       final state = container.read(hrSubscriptionControllerProvider);
       expect(state.stage, HrPaymentStage.confirmed);
@@ -174,21 +171,23 @@ void main() {
       expect(state.message, 'The payer declined the request.');
     });
 
-    test('no verdict inside the window times out, and never claims failure',
-        () async {
-      final container = _container(
-        billing: FakeHrBillingRepository(access: unpaidState()),
-        gateway: FakeHrMomoGateway(statuses: [HrMomoStatus.pending]),
-      );
+    test(
+      'no verdict inside the window times out, and never claims failure',
+      () async {
+        final container = _container(
+          billing: FakeHrBillingRepository(access: unpaidState()),
+          gateway: FakeHrMomoGateway(statuses: [HrMomoStatus.pending]),
+        );
 
-      await container
-          .read(hrSubscriptionControllerProvider.notifier)
-          .pay(businessId: 'biz-1', phoneNumber: '0788123456');
+        await container
+            .read(hrSubscriptionControllerProvider.notifier)
+            .pay(businessId: 'biz-1', phoneNumber: '0788123456');
 
-      final state = container.read(hrSubscriptionControllerProvider);
-      expect(state.stage, HrPaymentStage.timedOut);
-      expect(state.message, isNot(contains('failed')));
-    });
+        final state = container.read(hrSubscriptionControllerProvider);
+        expect(state.stage, HrPaymentStage.timedOut);
+        expect(state.message, isNot(contains('failed')));
+      },
+    );
 
     test('an unapplied migration is reported, not swallowed', () async {
       final container = _container(
@@ -204,26 +203,30 @@ void main() {
 
       final state = container.read(hrSubscriptionControllerProvider);
       expect(state.stage, HrPaymentStage.failed);
-      expect(state.message, contains('0008_hr_billing.sql'));
+      expect(state.message, contains('HR migration 0008'));
     });
   });
 
   group('hrAccessStateProvider', () {
-    test('an unapplied migration opens the app rather than locking it',
-        () async {
-      final container = _container(
-        billing: FakeHrBillingRepository(
-          failure: const HrBillingSchemaMissing(),
-        ),
-        gateway: FakeHrMomoGateway(),
-      );
+    test(
+      'an unapplied migration opens the app rather than locking it',
+      () async {
+        final container = _container(
+          billing: FakeHrBillingRepository(
+            failure: const HrBillingSchemaMissing(),
+          ),
+          gateway: FakeHrMomoGateway(),
+        );
 
-      final state = await container.read(hrAccessStateProvider('biz-1').future);
+        final state = await container.read(
+          hrAccessStateProvider('biz-1').future,
+        );
 
-      expect(state.schemaMissing, isTrue);
-      expect(state.grantsAccess, isTrue);
-      expect(state.enforced, isFalse);
-    });
+        expect(state.schemaMissing, isTrue);
+        expect(state.grantsAccess, isTrue);
+        expect(state.enforced, isFalse);
+      },
+    );
 
     test('a failed read stays failed instead of retrying invisibly', () async {
       final container = _container(

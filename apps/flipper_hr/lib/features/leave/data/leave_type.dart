@@ -48,7 +48,7 @@ enum LeaveType {
   });
 
   /// Value stored in `hr_leave_requests.leave_type`. Must match the CHECK in
-  /// `supabase/migrations/0004_hr_leave.sql`.
+  /// HR migration 0004.
   final String wire;
 
   /// Display name in the current app language. Never persisted.

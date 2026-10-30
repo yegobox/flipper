@@ -49,6 +49,6 @@ class HrBillingSchemaMissing implements Exception {
 
   @override
   String toString() =>
-      'The billing schema is not installed on this Supabase project. Run '
-      'supabase/migrations/0008_hr_billing.sql.';
+      'The billing schema (HR migration 0008) is not installed on this '
+      'Supabase project. Run `supabase db push` from the supabase repo.';
 }

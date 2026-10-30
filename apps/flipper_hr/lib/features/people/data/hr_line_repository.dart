@@ -18,7 +18,7 @@ abstract class HrLineRepository {
 }
 
 /// Reads `public.hr_my_line()`, installed by
-/// `supabase/migrations/0007_hr_reporting_line.sql`.
+/// HR migration 0007.
 ///
 /// An RPC rather than a table read: the projection is the permission. Selecting
 /// these columns from `hr_employees` directly would need a row-level SELECT
@@ -41,8 +41,8 @@ class SupabaseHrLineRepository implements HrLineRepository {
       // the truth is that 0007 has not been applied.
       if (e.code == 'PGRST202') {
         throw HrLineException(
-          'This Supabase project is missing hr_my_line(). Apply '
-          'apps/flipper_hr/supabase/migrations/0007_hr_reporting_line.sql.',
+          'This Supabase project is missing hr_my_line() (HR migration '
+          '0007). Run `supabase db push` from the supabase repo.',
           cause: e,
         );
       }

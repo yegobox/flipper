@@ -189,8 +189,9 @@ class HrBillingNotice extends ConsumerWidget {
           tone: _Tone.danger,
           icon: Icons.warning_amber_outlined,
           message:
-              'Billing is not installed on this Supabase project, so nobody is '
-              'being charged. Run supabase/migrations/0008_hr_billing.sql.',
+              'Billing (HR migration 0008) is not installed on this Supabase '
+              'project, so nobody is being charged. Run `supabase db push` '
+              'from the supabase repo.',
         ),
       );
     }

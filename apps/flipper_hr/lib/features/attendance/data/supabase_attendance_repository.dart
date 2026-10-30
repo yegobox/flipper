@@ -7,7 +7,7 @@ import 'package:flipper_hr/features/people/data/supabase_employee_repository.dar
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Supabase-backed attendance. Table, trigger and RPCs are defined in
-/// `supabase/migrations/0005_hr_attendance.sql`.
+/// HR migration 0005.
 ///
 /// Clock in and clock out go through RPCs rather than table writes, because the
 /// timestamp has to come from the server: `now()` cannot be expressed in a
@@ -179,8 +179,8 @@ class SupabaseAttendanceRepository implements AttendanceRepository {
   String _clockMessage(Object e, String direction) {
     if (e is PostgrestException) {
       if (e.code == 'PGRST202') {
-        return 'This Supabase project is missing hr_clock_$direction(). Apply '
-            'apps/flipper_hr/supabase/migrations/0005_hr_attendance.sql.';
+        return 'This Supabase project is missing hr_clock_$direction() (HR '
+            'migration 0005). Run `supabase db push` from the supabase repo.';
       }
       // The RPCs raise these with a readable message, so pass it through rather
       // than wrapping it in something vaguer.

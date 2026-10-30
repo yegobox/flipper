@@ -5,7 +5,7 @@ import 'package:flipper_localize/flipper_localize.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Supabase-backed roster. Table and columns are defined in
-/// `supabase/migrations/0001_hr_employees.sql`.
+/// HR migration 0001.
 ///
 /// Writes use `.select().single()` so the stored row — with the Postgres-owned
 /// id and timestamps — is what lands back in the list, rather than the optimistic

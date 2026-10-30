@@ -5,7 +5,7 @@
 /// more than one field (or the rest of the person's year) before submitting.
 ///
 /// Every rule here is also enforced or implied by the database — the CHECK
-/// constraints and the RLS policies in `0004_hr_leave.sql` — except the balance
+/// constraints and the RLS policies in HR migration 0004 — except the balance
 /// check, which Postgres cannot make because it does not know the working-week.
 /// These messages exist to say *why* in the form rather than as a 400 afterwards.
 library;

@@ -8,7 +8,7 @@ import 'package:flipper_hr/features/people/data/employee_row_mapper.dart';
 /// rewritten — PostgREST's looseness about `numeric` and `date` is the same on
 /// this table, and two copies of that logic would drift.
 ///
-/// Column names must match `supabase/migrations/0004_hr_leave.sql`.
+/// Column names must match HR migration 0004.
 class LeaveRowMapper {
   LeaveRowMapper._();
 
@@ -21,10 +21,10 @@ class LeaveRowMapper {
       type: LeaveType.fromWire(row['leave_type'] as String?),
       // A row with no dates should still list rather than break the page; the
       // epoch reads as obviously-unset.
-      startDate: EmployeeRowMapper.parseDate(row['start_date']) ??
-          DateTime.utc(1970),
-      endDate: EmployeeRowMapper.parseDate(row['end_date']) ??
-          DateTime.utc(1970),
+      startDate:
+          EmployeeRowMapper.parseDate(row['start_date']) ?? DateTime.utc(1970),
+      endDate:
+          EmployeeRowMapper.parseDate(row['end_date']) ?? DateTime.utc(1970),
       days: EmployeeRowMapper.parseAmount(row['days']),
       reason: _str(row['reason']),
       status: LeaveStatus.fromWire(row['status'] as String?),
