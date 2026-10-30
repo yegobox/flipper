@@ -2904,6 +2904,7 @@
     "appChoiceBooks": "Books",
     "appChoiceBooksSubtitle": "Accounting and ledgers",
     "appChoiceHrSubtitle": "Staff, leave and payroll",
+    "appChoiceFloSubtitle": "Ask Flo and work together",
     "appChoiceTitle": "Choose your app",
     "appChoiceSubtitle": "Pick where you want to start. You can switch apps any time.",
     "appChoiceKeyboardHint": "Press a number to open, arrows to move, Esc to close",

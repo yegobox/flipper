@@ -3060,6 +3060,9 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   String get appChoiceHrSubtitle => 'Abakozi, ibiruhuko n\'imishahara';
 
   @override
+  String get appChoiceFloSubtitle => 'Baza Flo kandi mukorane';
+
+  @override
   String get appChoiceTitle => 'Hitamo porogaramu yawe';
 
   @override

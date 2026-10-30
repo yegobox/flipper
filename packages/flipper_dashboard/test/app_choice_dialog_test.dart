@@ -2,6 +2,7 @@ import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/app_choice_dialog.dart';
 import 'package:flipper_dashboard/dashboard_shell.dart';
 import 'package:flipper_dashboard/hr_module_entry.dart';
+import 'package:flipper_dashboard/layout.dart';
 import 'package:flipper_dashboard/widgets/dashboard_all_apps_catalog.dart';
 import 'package:flipper_dashboard/widgets/dashboard_app_access.dart';
 import 'package:flipper_dashboard/widgets/app_launch_overlay.dart';
@@ -133,7 +134,7 @@ void main() {
     }
   });
 
-  testWidgets('offers only POS and Books, with the branch and business', (
+  testWidgets('offers POS, Books and Flo, with the branch and business', (
     tester,
   ) async {
     await pumpChooser(tester);
@@ -144,6 +145,9 @@ void main() {
 
     expect(find.text('POS'), findsOneWidget);
     expect(find.text('Books'), findsOneWidget);
+    expect(find.text('Flo'), findsOneWidget);
+    // This app does not ship HR, so HR is not offered.
+    expect(find.text('HR & Payroll'), findsNothing);
     // Everything else lives inside POS, so it is not an app of its own.
     for (final title in [
       'Inventory',
@@ -195,7 +199,7 @@ void main() {
   testWidgets('number keys launch the matching app', (tester) async {
     await pumpChooser(tester);
 
-    // Tiles are ordered POS, Books, so "2" is Books.
+    // Tiles are ordered POS, Books, Flo, so "2" is Books.
     await tester.sendKeyEvent(LogicalKeyboardKey.digit2);
     await _pumpSelection(tester);
 
@@ -206,7 +210,8 @@ void main() {
   testWidgets('number keys past the last app do nothing', (tester) async {
     await pumpChooser(tester);
 
-    await tester.sendKeyEvent(LogicalKeyboardKey.digit3);
+    // POS, Books, Flo: there is no fourth app here.
+    await tester.sendKeyEvent(LogicalKeyboardKey.digit4);
     await _pumpSelection(tester);
 
     expect(box.defaultApp, isNull);
@@ -615,5 +620,117 @@ void main() {
       expect(run([_access(userType: 'Admin')], businessId: null), isFalse);
       expect(run([_access(userType: 'Admin')], businessId: ''), isFalse);
     });
+  });
+
+  group('Flo', () {
+    // The login flow opens the chosen app itself, so selecting does not push
+    // a route here.
+    const loginRequest = AppChoiceDialogRequest(
+      awaitsExternalNavigation: true,
+      branchName: 'Kigali Heights',
+    );
+
+    /// Lays the chooser out at a real desktop width (setSurfaceSize leaves the
+    /// logical size alone).
+    Future<ProviderContainer> pumpWide(
+      WidgetTester tester, {
+      List<Override> overrides = const [],
+    }) async {
+      tester.view.physicalSize = const Size(1280, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+      final container = ProviderContainer(overrides: overrides);
+      addTearDown(container.dispose);
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: MaterialApp(
+            localizationsDelegates: FlipperLocalizationDelegates.delegates,
+            supportedLocales: FlipperLocalizationDelegates.supportedLocales,
+            home: AppChoiceDialog(
+              request: DialogRequest<AppChoiceDialogRequest>(
+                data: loginRequest,
+              ),
+              completer: responses.add,
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      return container;
+    }
+
+    testWidgets('opens the Flo tab of the dashboard', (tester) async {
+      final container = await pumpWide(tester);
+
+      expect(find.text('Ask Flo and work together'), findsOneWidget);
+      await tester.tap(find.text('Flo'));
+      await _pumpSelection(tester);
+
+      expect(box.defaultApp, 'Flo');
+      expect(responses.single.data, {'defaultApp': 'Flo'});
+      expect(container.read(selectedPageProvider), DashboardPage.ai);
+    });
+
+    testWidgets('is hidden in Local Mode', (tester) async {
+      LocalMode.debugSet(true);
+      addTearDown(() => LocalMode.debugSet(false));
+
+      await pumpChooser(tester);
+
+      expect(find.text('Flo'), findsNothing);
+      expect(find.text('POS'), findsOneWidget);
+    });
+
+    testWidgets('as the stored default, Enter opens it again', (tester) async {
+      box.defaultApp = 'Flo';
+      await pumpChooser(tester, request: loginRequest);
+
+      expect(find.text('Default · Flo'), findsOneWidget);
+      await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+      await _pumpSelection(tester);
+
+      expect(responses.single.data, {'defaultApp': 'Flo'});
+    });
+
+    testWidgets('three apps sit in one row', (tester) async {
+      await pumpWide(tester);
+
+      final pos = tester.getTopLeft(find.text('POS'));
+      expect(tester.getTopLeft(find.text('Books')).dy, pos.dy);
+      expect(tester.getTopLeft(find.text('Flo')).dy, pos.dy);
+    });
+
+    testWidgets('four apps form a 2×2 grid, Flo on key 4', (tester) async {
+      await pumpWide(tester, overrides: _hrOverrides());
+
+      final pos = tester.getTopLeft(find.text('POS'));
+      final books = tester.getTopLeft(find.text('Books'));
+      final hr = tester.getTopLeft(find.text('HR & Payroll'));
+      final flo = tester.getTopLeft(find.text('Flo'));
+      expect(books.dy, pos.dy);
+      expect(hr.dx, pos.dx);
+      expect(hr.dy, greaterThan(pos.dy));
+      expect(flo.dx, books.dx);
+      expect(flo.dy, hr.dy);
+      expect(tester.takeException(), isNull);
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.digit4);
+      await _pumpSelection(tester);
+      expect(responses.single.data, {'defaultApp': 'Flo'});
+    });
+  });
+
+  test('a stored default app opens on its dashboard tab', () {
+    expect(dashboardPageForDefaultApp('Flo'), DashboardPage.ai);
+    expect(dashboardPageForDefaultApp('Reports'), DashboardPage.reports);
+    expect(dashboardPageForDefaultApp('Orders'), DashboardPage.orders);
+    for (final app in ['POS', 'Inventory', 'Books', 'HR', 'unknown']) {
+      expect(
+        dashboardPageForDefaultApp(app),
+        DashboardPage.inventory,
+        reason: app,
+      );
+    }
   });
 }

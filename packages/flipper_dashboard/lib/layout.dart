@@ -34,6 +34,17 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';
 
+/// The dashboard tab a stored `defaultApp` opens on. Books and HR are their
+/// own routes and older builds stored inner pages (Inventory, Reports,
+/// Orders), so anything without a tab of its own lands on POS.
+DashboardPage dashboardPageForDefaultApp(String defaultApp) =>
+    switch (defaultApp) {
+      'Reports' => DashboardPage.reports,
+      'Orders' => DashboardPage.orders,
+      'Flo' => DashboardPage.ai,
+      _ => DashboardPage.inventory,
+    };
+
 class DashboardLayout extends HookConsumerWidget {
   const DashboardLayout({Key? key}) : super(key: key);
 
@@ -52,22 +63,7 @@ class DashboardLayout extends HookConsumerWidget {
             ref.read(previewingCart.notifier).state = false;
             final defaultApp = ProxyService.box.getDefaultApp();
             if (defaultApp != null) {
-              DashboardPage page;
-              switch (defaultApp) {
-                case 'POS':
-                case 'Inventory':
-                  page = DashboardPage.inventory;
-                  break;
-                case 'Reports':
-                  page = DashboardPage.reports;
-                  break;
-                case 'Orders':
-                  page = DashboardPage.orders;
-                  break;
-                default:
-                  page = DashboardPage.inventory;
-                  break;
-              }
+              final page = dashboardPageForDefaultApp(defaultApp);
               ref.read(selectedPageProvider.notifier).state = page;
             }
           });

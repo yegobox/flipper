@@ -5483,6 +5483,12 @@ abstract class FlipperAppLocalizations {
   /// **'Staff, leave and payroll'**
   String get appChoiceHrSubtitle;
 
+  /// No description provided for @appChoiceFloSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask Flo and work together'**
+  String get appChoiceFloSubtitle;
+
   /// No description provided for @appChoiceTitle.
   ///
   /// In en, this message translates to:
