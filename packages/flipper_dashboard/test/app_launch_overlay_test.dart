@@ -22,9 +22,9 @@ void main() {
   Future<void> showCurtain(WidgetTester tester) async {
     final shown = AppLaunchOverlay.show(
       navigator: navigatorKey.currentState!,
-      appLabel: 'Reports',
-      accent: const Color(0xFF534AB7),
-      iconSvg: DashboardQuickAccessSvgs.appSwitcherReportsIcon(),
+      appLabel: 'Books',
+      accent: const Color(0xFF2563EB),
+      iconSvg: DashboardQuickAccessSvgs.appSwitcherBooksIcon(),
       contextLabel: 'Kigali Heights',
     );
     // Drain the fade-in without settling: the sweep bar loops forever.
@@ -40,7 +40,7 @@ void main() {
     await showCurtain(tester);
 
     expect(AppLaunchOverlay.isVisible, isTrue);
-    expect(find.text('Opening Reports'), findsOneWidget);
+    expect(find.text('Opening Books'), findsOneWidget);
     expect(find.text('Kigali Heights'), findsOneWidget);
 
     // It covers the route below rather than replacing it, so the destination can
@@ -53,7 +53,7 @@ void main() {
     await dismissed;
 
     expect(AppLaunchOverlay.isVisible, isFalse);
-    expect(find.text('Opening Reports'), findsNothing);
+    expect(find.text('Opening Books'), findsNothing);
   });
 
   testWidgets('dismissWhenSettled holds through the page transition', (

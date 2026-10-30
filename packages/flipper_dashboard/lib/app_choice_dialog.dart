@@ -3,7 +3,6 @@ import 'dart:async';
 import 'dart:ui';
 
 import 'package:flipper_dashboard/books_module_navigation.dart';
-import 'package:flipper_dashboard/dashboard_quick_apps_navigation.dart';
 import 'package:flipper_dashboard/dashboard_shell.dart';
 import 'package:flipper_dashboard/widgets/app_launch_overlay.dart';
 import 'package:flipper_design_system/flipper_design_system.dart';
@@ -113,6 +112,9 @@ class _AppChoiceDialogState extends ConsumerState<AppChoiceDialog>
         : const AppChoiceDialogRequest();
   }
 
+  // Only POS and Books are apps: inventory, reports, orders, customers and
+  // settings all live inside POS, so they are not offered here.
+  //
   // Labels come from [FlipperL10n.current]: this list is first read in
   // initState, where an inherited lookup is not allowed. The dialog is rebuilt
   // each time it opens, so it always uses the active language.
@@ -132,46 +134,6 @@ class _AppChoiceDialogState extends ConsumerState<AppChoiceDialog>
       iconSvg: DashboardQuickAccessSvgs.appSwitcherBooksIcon(),
       accent: const Color(0xFF2563EB),
     ),
-    _AppChoice(
-      id: 'Inventory',
-      title: FlipperL10n.current.inventory,
-      subtitle: FlipperL10n.current.appChoiceInventorySubtitle,
-      iconSvg: DashboardQuickAccessSvgs.appSwitcherInventoryIcon(),
-      accent: const Color(0xFF3B6D11),
-      page: DashboardPage.inventory,
-    ),
-    _AppChoice(
-      id: 'Reports',
-      title: FlipperL10n.current.reports,
-      subtitle: FlipperL10n.current.appChoiceReportsSubtitle,
-      iconSvg: DashboardQuickAccessSvgs.appSwitcherReportsIcon(),
-      accent: const Color(0xFF534AB7),
-      page: DashboardPage.reports,
-    ),
-    _AppChoice(
-      id: 'Orders',
-      title: FlipperL10n.current.appChoiceOrders,
-      subtitle: FlipperL10n.current.appChoiceOrdersSubtitle,
-      iconSvg: DashboardQuickAccessSvgs.appSwitcherOrdersIcon(),
-      accent: const Color(0xFF854F0B),
-      page: DashboardPage.orders,
-    ),
-    _AppChoice(
-      id: 'Customers',
-      title: FlipperL10n.current.customers,
-      subtitle: FlipperL10n.current.appChoiceCustomersSubtitle,
-      iconSvg: DashboardQuickAccessSvgs.appSwitcherCustomersIcon(),
-      accent: const Color(0xFF993556),
-      navPage: 'Contacts',
-    ),
-    _AppChoice(
-      id: 'Settings',
-      title: FlipperL10n.current.settings,
-      subtitle: FlipperL10n.current.appChoiceSettingsSubtitle,
-      iconSvg: DashboardQuickAccessSvgs.appSwitcherSettingsIcon(),
-      accent: const Color(0xFF5F5E5A),
-      navPage: 'Settings',
-    ),
   ];
 
   @override
@@ -180,9 +142,18 @@ class _AppChoiceDialogState extends ConsumerState<AppChoiceDialog>
     _entrance.forward();
 
     // Start on the current default so Enter repeats the user's last choice.
-    final current = ProxyService.box.getDefaultApp();
+    final current = _normalizedDefault(ProxyService.box.getDefaultApp());
     final index = _apps.indexWhere((a) => a.id == current);
     if (index >= 0) _cursor = index;
+  }
+
+  /// Maps a stored `defaultApp` onto one of [_apps]. Older builds offered
+  /// Inventory, Reports, Orders, Customers and Settings as apps; those are all
+  /// inside POS now, so they read as POS. The stored value is left alone —
+  /// [layout.dart] still opens their old tab.
+  static String? _normalizedDefault(String? stored) {
+    if (stored == null) return null;
+    return stored == 'Books' ? 'Books' : 'POS';
   }
 
   @override
@@ -263,15 +234,6 @@ class _AppChoiceDialogState extends ConsumerState<AppChoiceDialog>
     var settle = AppLaunchOverlay.routeSettle;
     if (choice.id == 'Books') {
       unawaited(openBooksModuleOn(navigator));
-    } else if (choice.navPage != null) {
-      unawaited(
-        navigateToDashboardAppPage(
-          context: navigator.context,
-          isBigScreen: true,
-          page: choice.navPage!,
-          navigator: navigator,
-        ),
-      );
     } else {
       // A shell tab: already swapped by the provider write above, so there is no
       // route transition to wait out.
@@ -350,7 +312,7 @@ class _AppChoiceDialogState extends ConsumerState<AppChoiceDialog>
   @override
   Widget build(BuildContext context) {
     final reduceMotion = MediaQuery.disableAnimationsOf(context);
-    final currentDefault = ProxyService.box.getDefaultApp();
+    final currentDefault = _normalizedDefault(ProxyService.box.getDefaultApp());
     _branchName = _watchBranchName();
 
     return Focus(
@@ -436,7 +398,7 @@ class _AppChoiceDialogState extends ConsumerState<AppChoiceDialog>
 
     return ConstrainedBox(
       constraints: BoxConstraints(
-        maxWidth: width < 620 ? width - 32 : 760.0,
+        maxWidth: width < 620 ? width - 32 : 560.0,
         maxHeight: height - 48,
       ),
       child: Material(
@@ -549,11 +511,7 @@ class _AppChoiceDialogState extends ConsumerState<AppChoiceDialog>
     return LayoutBuilder(
       builder: (context, constraints) {
         final width = constraints.maxWidth;
-        final columns = width >= 640
-            ? 4
-            : width >= 460
-            ? 3
-            : 2;
+        final columns = width >= 460 ? 2 : 1;
         // Read by the arrow-key handler; assigning during layout is safe here
         // because it never triggers a rebuild on its own.
         _columns = columns;
@@ -568,7 +526,7 @@ class _AppChoiceDialogState extends ConsumerState<AppChoiceDialog>
             mainAxisSpacing: 12,
             // Fixed extent: tile content varies (badge row) and font metrics
             // differ per platform, so aspect ratio would overflow somewhere.
-            mainAxisExtent: 152,
+            mainAxisExtent: 168,
           ),
           itemCount: _apps.length,
           itemBuilder: (context, index) {
@@ -665,7 +623,6 @@ class _AppChoice {
     required this.iconSvg,
     required this.accent,
     this.page,
-    this.navPage,
   });
 
   /// Stored as `defaultApp` — must stay stable, [layout.dart] switches on it.
@@ -677,10 +634,6 @@ class _AppChoice {
 
   /// Inner dashboard page, when this app is a tab of the shell.
   final DashboardPage? page;
-
-  /// Route key for [navigateToDashboardAppPage], for apps that are their own
-  /// screen rather than a shell tab.
-  final String? navPage;
 }
 
 class _AppChoiceTile extends StatefulWidget {

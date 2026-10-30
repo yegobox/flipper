@@ -3034,31 +3034,13 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   String get qrModeEmailNotGmail => 'Barua pepe iliyoongezwa si ya Gmail';
 
   @override
-  String get appChoicePosSubtitle => 'Uza na upokee malipo';
+  String get appChoicePosSubtitle => 'Mauzo, hisa, oda na ripoti';
 
   @override
   String get appChoiceBooks => 'Hesabu';
 
   @override
   String get appChoiceBooksSubtitle => 'Uhasibu na leja';
-
-  @override
-  String get appChoiceInventorySubtitle => 'Hisa na bidhaa';
-
-  @override
-  String get appChoiceReportsSubtitle => 'Uchanganuzi wa mauzo na kodi';
-
-  @override
-  String get appChoiceOrders => 'Oda';
-
-  @override
-  String get appChoiceOrdersSubtitle => 'Manunuzi na uhamisho';
-
-  @override
-  String get appChoiceCustomersSubtitle => 'Anwani na mikopo';
-
-  @override
-  String get appChoiceSettingsSubtitle => 'Vifaa, kodi na wafanyakazi';
 
   @override
   String get appChoiceTitle => 'Chagua programu yako';
@@ -3069,7 +3051,7 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
 
   @override
   String get appChoiceKeyboardHint =>
-      'Bonyeza 1–7 kufungua, mishale kusogea, Esc kufunga';
+      'Bonyeza 1 au 2 kufungua, mishale kusogea, Esc kufunga';
 
   @override
   String get posBalanceDue => 'Salio linalodaiwa';

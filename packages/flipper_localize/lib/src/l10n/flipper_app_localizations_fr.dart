@@ -3064,31 +3064,13 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
       'L\'e-mail ajouté n\'est pas une adresse Gmail';
 
   @override
-  String get appChoicePosSubtitle => 'Vendre et encaisser';
+  String get appChoicePosSubtitle => 'Ventes, stock, commandes et rapports';
 
   @override
   String get appChoiceBooks => 'Comptabilité';
 
   @override
   String get appChoiceBooksSubtitle => 'Comptabilité et grands livres';
-
-  @override
-  String get appChoiceInventorySubtitle => 'Stock et produits';
-
-  @override
-  String get appChoiceReportsSubtitle => 'Analyses des ventes et des taxes';
-
-  @override
-  String get appChoiceOrders => 'Commandes';
-
-  @override
-  String get appChoiceOrdersSubtitle => 'Achats et transferts';
-
-  @override
-  String get appChoiceCustomersSubtitle => 'Contacts et crédit';
-
-  @override
-  String get appChoiceSettingsSubtitle => 'Appareils, taxes et personnel';
 
   @override
   String get appChoiceTitle => 'Choisissez votre application';
@@ -3099,7 +3081,7 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
 
   @override
   String get appChoiceKeyboardHint =>
-      'Appuyez sur 1–7 pour ouvrir, les flèches pour vous déplacer, Échap pour fermer';
+      'Appuyez sur 1 ou 2 pour ouvrir, les flèches pour vous déplacer, Échap pour fermer';
 
   @override
   String get posBalanceDue => 'Solde dû';

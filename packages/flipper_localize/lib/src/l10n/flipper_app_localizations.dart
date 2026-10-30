@@ -5462,7 +5462,7 @@ abstract class FlipperAppLocalizations {
   /// No description provided for @appChoicePosSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Sell and take payments'**
+  /// **'Sales, stock, orders and reports'**
   String get appChoicePosSubtitle;
 
   /// No description provided for @appChoiceBooks.
@@ -5476,42 +5476,6 @@ abstract class FlipperAppLocalizations {
   /// In en, this message translates to:
   /// **'Accounting and ledgers'**
   String get appChoiceBooksSubtitle;
-
-  /// No description provided for @appChoiceInventorySubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Stock and products'**
-  String get appChoiceInventorySubtitle;
-
-  /// No description provided for @appChoiceReportsSubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Sales and tax analytics'**
-  String get appChoiceReportsSubtitle;
-
-  /// No description provided for @appChoiceOrders.
-  ///
-  /// In en, this message translates to:
-  /// **'Orders'**
-  String get appChoiceOrders;
-
-  /// No description provided for @appChoiceOrdersSubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Purchases and transfers'**
-  String get appChoiceOrdersSubtitle;
-
-  /// No description provided for @appChoiceCustomersSubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Contacts and credit'**
-  String get appChoiceCustomersSubtitle;
-
-  /// No description provided for @appChoiceSettingsSubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Devices, tax and staff'**
-  String get appChoiceSettingsSubtitle;
 
   /// No description provided for @appChoiceTitle.
   ///
@@ -5528,7 +5492,7 @@ abstract class FlipperAppLocalizations {
   /// No description provided for @appChoiceKeyboardHint.
   ///
   /// In en, this message translates to:
-  /// **'Press 1–7 to open, arrows to move, Esc to close'**
+  /// **'Press 1 or 2 to open, arrows to move, Esc to close'**
   String get appChoiceKeyboardHint;
 
   /// No description provided for @posBalanceDue.
