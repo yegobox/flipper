@@ -3014,31 +3014,13 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
   String get qrModeEmailNotGmail => 'Added email is not gmail';
 
   @override
-  String get appChoicePosSubtitle => 'Sell and take payments';
+  String get appChoicePosSubtitle => 'Sales, stock, orders and reports';
 
   @override
   String get appChoiceBooks => 'Books';
 
   @override
   String get appChoiceBooksSubtitle => 'Accounting and ledgers';
-
-  @override
-  String get appChoiceInventorySubtitle => 'Stock and products';
-
-  @override
-  String get appChoiceReportsSubtitle => 'Sales and tax analytics';
-
-  @override
-  String get appChoiceOrders => 'Orders';
-
-  @override
-  String get appChoiceOrdersSubtitle => 'Purchases and transfers';
-
-  @override
-  String get appChoiceCustomersSubtitle => 'Contacts and credit';
-
-  @override
-  String get appChoiceSettingsSubtitle => 'Devices, tax and staff';
 
   @override
   String get appChoiceTitle => 'Choose your app';
@@ -3049,7 +3031,7 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
 
   @override
   String get appChoiceKeyboardHint =>
-      'Press 1–7 to open, arrows to move, Esc to close';
+      'Press 1 or 2 to open, arrows to move, Esc to close';
 
   @override
   String get posBalanceDue => 'Balance due';

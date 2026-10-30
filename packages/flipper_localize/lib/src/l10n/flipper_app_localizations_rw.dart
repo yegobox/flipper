@@ -3047,32 +3047,14 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   String get qrModeEmailNotGmail => 'Imeyili wongeyemo si iya Gmail';
 
   @override
-  String get appChoicePosSubtitle => 'Gurisha kandi wakire ubwishyu';
+  String get appChoicePosSubtitle =>
+      'Ibyagurishijwe, ububiko, ibyatumijwe na raporo';
 
   @override
   String get appChoiceBooks => 'Ibaruramari';
 
   @override
   String get appChoiceBooksSubtitle => 'Ibaruramari n\'ibitabo by\'imari';
-
-  @override
-  String get appChoiceInventorySubtitle => 'Ububiko n\'ibicuruzwa';
-
-  @override
-  String get appChoiceReportsSubtitle =>
-      'Isesengura ry\'ibyagurishijwe n\'imisoro';
-
-  @override
-  String get appChoiceOrders => 'Ibyatumijwe';
-
-  @override
-  String get appChoiceOrdersSubtitle => 'Ibyaguzwe n\'iyimurwa';
-
-  @override
-  String get appChoiceCustomersSubtitle => 'Abo muvugana n\'inguzanyo';
-
-  @override
-  String get appChoiceSettingsSubtitle => 'Ibikoresho, imisoro n\'abakozi';
 
   @override
   String get appChoiceTitle => 'Hitamo porogaramu yawe';
@@ -3083,7 +3065,7 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
 
   @override
   String get appChoiceKeyboardHint =>
-      'Kanda 1–7 ufungure, imyambi wimuke, Esc ufunge';
+      'Kanda 1 cyangwa 2 ufungure, imyambi wimuke, Esc ufunge';
 
   @override
   String get posBalanceDue => 'Asigaye kwishyurwa';

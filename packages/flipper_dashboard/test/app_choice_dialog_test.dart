@@ -83,7 +83,7 @@ void main() {
     }
   });
 
-  testWidgets('renders every app with the branch and business context', (
+  testWidgets('offers only POS and Books, with the branch and business', (
     tester,
   ) async {
     await pumpChooser(tester);
@@ -92,25 +92,40 @@ void main() {
     expect(find.text('Yegobox Ltd'), findsOneWidget);
     expect(find.text('Kigali Heights'), findsOneWidget);
 
+    expect(find.text('POS'), findsOneWidget);
+    expect(find.text('Books'), findsOneWidget);
+    // Everything else lives inside POS, so it is not an app of its own.
     for (final title in [
-      'POS',
-      'Books',
       'Inventory',
       'Reports',
       'Orders',
       'Customers',
       'Settings',
     ]) {
-      expect(find.text(title), findsOneWidget, reason: '$title tile missing');
+      expect(find.text(title), findsNothing, reason: '$title is not an app');
     }
   });
 
   testWidgets('marks the stored default app', (tester) async {
+    box.defaultApp = 'Books';
+    await pumpChooser(tester);
+
+    expect(find.text('DEFAULT'), findsOneWidget);
+    expect(find.text('Default · Books'), findsOneWidget);
+  });
+
+  testWidgets('a default from an older build reads as POS', (tester) async {
     box.defaultApp = 'Reports';
     await pumpChooser(tester);
 
     expect(find.text('DEFAULT'), findsOneWidget);
-    expect(find.text('Default · Reports'), findsOneWidget);
+    expect(find.text('Default · POS'), findsOneWidget);
+
+    // The cursor starts on that default, so Enter opens POS.
+    await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+    await _pumpSelection(tester);
+
+    expect(box.defaultApp, 'POS');
   });
 
   testWidgets('tapping a tile stores the choice and confirms the dialog', (
@@ -118,24 +133,34 @@ void main() {
   ) async {
     await pumpChooser(tester);
 
-    await tester.tap(find.text('Reports'));
+    await tester.tap(find.text('POS'));
     await _pumpSelection(tester);
 
-    expect(box.defaultApp, 'Reports');
+    expect(box.defaultApp, 'POS');
     expect(responses, hasLength(1));
     expect(responses.single.confirmed, isTrue);
-    expect(responses.single.data, {'defaultApp': 'Reports'});
+    expect(responses.single.data, {'defaultApp': 'POS'});
   });
 
   testWidgets('number keys launch the matching app', (tester) async {
     await pumpChooser(tester);
 
-    // Tiles are ordered POS, Books, Inventory, ... so "3" is Inventory.
+    // Tiles are ordered POS, Books, so "2" is Books.
+    await tester.sendKeyEvent(LogicalKeyboardKey.digit2);
+    await _pumpSelection(tester);
+
+    expect(box.defaultApp, 'Books');
+    expect(responses.single.data, {'defaultApp': 'Books'});
+  });
+
+  testWidgets('number keys past the last app do nothing', (tester) async {
+    await pumpChooser(tester);
+
     await tester.sendKeyEvent(LogicalKeyboardKey.digit3);
     await _pumpSelection(tester);
 
-    expect(box.defaultApp, 'Inventory');
-    expect(responses.single.data, {'defaultApp': 'Inventory'});
+    expect(box.defaultApp, isNull);
+    expect(responses, isEmpty);
   });
 
   testWidgets('arrow keys move the cursor and Enter opens it', (tester) async {
@@ -197,19 +222,19 @@ void main() {
 
       expect(find.text('Nyabugogo'), findsOneWidget);
 
-      await tester.tap(find.text('Reports'));
+      await tester.tap(find.text('POS'));
       await _pumpSelection(tester);
 
-      expect(box.defaultApp, 'Reports');
+      expect(box.defaultApp, 'POS');
       expect(responses.single.confirmed, isTrue);
     },
   );
 
-  testWidgets('shell-tab choices preselect their dashboard page', (
-    tester,
-  ) async {
+  testWidgets('choosing POS preselects its dashboard page', (tester) async {
     final container = ProviderContainer();
     addTearDown(container.dispose);
+    // Start elsewhere so the assertion cannot pass on the provider's default.
+    container.read(selectedPageProvider.notifier).state = DashboardPage.reports;
 
     await tester.binding.setSurfaceSize(const Size(1280, 900));
     addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -236,9 +261,9 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Orders'));
+    await tester.tap(find.text('POS'));
     await _pumpSelection(tester);
 
-    expect(container.read(selectedPageProvider), DashboardPage.orders);
+    expect(container.read(selectedPageProvider), DashboardPage.inventory);
   });
 }
