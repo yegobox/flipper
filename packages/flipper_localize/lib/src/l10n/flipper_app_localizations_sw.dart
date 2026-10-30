@@ -21223,6 +21223,38 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   String get floCloudSubtitle => 'Ina uwezo zaidi · hutumia muunganisho';
 
   @override
+  String get floModeClaude => 'Claude';
+
+  @override
+  String get floClaudeSubtitle => 'Usajili wako wa Claude · kompyuta hii';
+
+  @override
+  String get aiClaudeThinking => 'Inauliza Claude…';
+
+  @override
+  String get aiClaudeNotInstalled =>
+      'Sakinisha Claude Code kwenye kompyuta hii na uingie ili utumie usajili wako wa Claude ndani ya Flo.';
+
+  @override
+  String get aiClaudeNotLoggedIn =>
+      'Claude Code imesakinishwa lakini hujaingia. Endesha \"claude auth login\" kwenye terminal, kisha ujaribu tena.';
+
+  @override
+  String aiClaudeFailed(String error) {
+    return 'Claude imeshindwa kujibu: $error';
+  }
+
+  @override
+  String get aiClaudeConsentTitle => 'Tumia usajili wako wa Claude?';
+
+  @override
+  String get aiClaudeConsentBody =>
+      'Maswali yako, historia ya hivi karibuni ya mazungumzo na takwimu za duka zinazohitajika kujibu hutumwa kwa Anthropic kupitia programu ya Claude Code iliyoingia kwenye kompyuta hii, kwa akaunti yako mwenyewe ya Claude. Flipper haioni kamwe taarifa zako za kuingia Claude. Tumia hii tu na data ambayo shirika lako linaruhusu.';
+
+  @override
+  String get aiClaudeConsentAllow => 'Ruhusu';
+
+  @override
   String get floThinkingUnderstanding => 'Kuelewa swali';
 
   @override

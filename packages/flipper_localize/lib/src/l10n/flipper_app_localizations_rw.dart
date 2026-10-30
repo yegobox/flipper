@@ -21297,6 +21297,38 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
       'Ifite ubushobozi burenzeho · ikoresha murandasi';
 
   @override
+  String get floModeClaude => 'Claude';
+
+  @override
+  String get floClaudeSubtitle => 'Konti yawe ya Claude · iyi mudasobwa';
+
+  @override
+  String get aiClaudeThinking => 'Turimo kubaza Claude…';
+
+  @override
+  String get aiClaudeNotInstalled =>
+      'Shyira Claude Code kuri iyi mudasobwa hanyuma winjire kugira ngo ukoreshe konti yawe ya Claude muri Flo.';
+
+  @override
+  String get aiClaudeNotLoggedIn =>
+      'Claude Code irashyizwe ariko ntiwinjiye. Koresha \"claude auth login\" muri terminal, hanyuma ugerageze nanone.';
+
+  @override
+  String aiClaudeFailed(String error) {
+    return 'Claude ntiyashoboye gusubiza: $error';
+  }
+
+  @override
+  String get aiClaudeConsentTitle => 'Gukoresha konti yawe ya Claude?';
+
+  @override
+  String get aiClaudeConsentBody =>
+      'Ibibazo byawe, amateka y\'ibiganiro bya vuba n\'imibare y\'iduka ikenewe kugira ngo bisubizwe byoherezwa kuri Anthropic binyuze kuri porogaramu ya Claude Code yinjiye kuri iyi mudasobwa, hakoreshejwe konti yawe bwite ya Claude. Flipper ntihabona amakuru yawe yo kwinjira muri Claude. Koresha ibi gusa n\'amakuru ikigo cyawe cyemera.';
+
+  @override
+  String get aiClaudeConsentAllow => 'Emera';
+
+  @override
   String get floThinkingUnderstanding => 'Gusobanukirwa ikibazo';
 
   @override
