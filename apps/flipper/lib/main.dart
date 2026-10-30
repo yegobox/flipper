@@ -368,6 +368,16 @@ Future<void> _initializeAnalytics() async {
       businessIdGetter: () => ProxyService.box.getBusinessId(),
       branchIdGetter: () => ProxyService.box.getBranchId(),
     ),
+    // Firebase Analytics has no Windows SDK, so Windows reports its active
+    // users to its GA4 stream directly; other platforms report natively. The
+    // API secret is a build define (GA4_WINDOWS_API_SECRET), not secrets.dart,
+    // so a build without it still compiles and simply sends nothing.
+    ga4MeasurementId: !kIsWeb && UniversalPlatform.isWindows
+        ? DefaultFirebaseOptions.windows.measurementId
+        : null,
+    ga4ApiSecret: !kIsWeb && UniversalPlatform.isWindows
+        ? const String.fromEnvironment('GA4_WINDOWS_API_SECRET')
+        : null,
   );
 }
 
