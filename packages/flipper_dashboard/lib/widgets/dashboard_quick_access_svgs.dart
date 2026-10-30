@@ -462,4 +462,13 @@ class DashboardQuickAccessSvgs {
   <path d="M4 3.5h12a1 1 0 011 1v11a1 1 0 01-1 1H4a1 1 0 01-1-1v-11a1 1 0 011-1z" stroke="#2563EB" stroke-width="1.5" stroke-linejoin="round"/>
   <path d="M7 3.5v13M10 6.5h4M10 9.5h4M10 12.5h3" stroke="#2563EB" stroke-width="1.5" stroke-linecap="round"/>
 </svg>''';
+
+  static String appSwitcherHrIcon() =>
+      '''
+<svg width="20" height="20" viewBox="0 0 20 20" fill="none" $_xmlns>
+  <circle cx="7.5" cy="7" r="2.5" stroke="#0F766E" stroke-width="1.5"/>
+  <path d="M2.5 16c0-2.761 2.239-5 5-5s5 2.239 5 5" stroke="#0F766E" stroke-width="1.5" stroke-linecap="round"/>
+  <circle cx="14" cy="6.5" r="2" stroke="#0F766E" stroke-width="1.5"/>
+  <path d="M14 10.5c1.933 0 3.5 1.567 3.5 3.5" stroke="#0F766E" stroke-width="1.5" stroke-linecap="round"/>
+</svg>''';
 }

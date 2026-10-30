@@ -1,11 +1,19 @@
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/app_choice_dialog.dart';
 import 'package:flipper_dashboard/dashboard_shell.dart';
+import 'package:flipper_dashboard/hr_module_entry.dart';
+import 'package:flipper_dashboard/widgets/dashboard_all_apps_catalog.dart';
+import 'package:flipper_dashboard/widgets/dashboard_app_access.dart';
 import 'package:flipper_dashboard/widgets/app_launch_overlay.dart';
+import 'package:flipper_models/providers/access_provider.dart';
 import 'package:flipper_models/providers/active_branch_provider.dart';
+import 'package:flipper_services/constants.dart';
+import 'package:flipper_web/core/local_mode/local_mode.dart';
 import 'package:flipper_services/locator.dart';
 import 'package:supabase_models/brick/models/branch.model.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -19,6 +27,9 @@ class _AppChoiceBox extends MockBox {
   String? defaultApp;
 
   @override
+  String? getUserId() => _userId;
+
+  @override
   String? getDefaultApp() => defaultApp;
 
   @override
@@ -26,6 +37,27 @@ class _AppChoiceBox extends MockBox {
     if (key == 'defaultApp') defaultApp = value;
   }
 }
+
+const _userId = 'u1';
+
+/// The host ships HR, and the signed-in user is an admin unless [admin] says
+/// otherwise; [hrGrant] is the staff 'HR' grant.
+List<Override> _hrOverrides({bool admin = true, bool hrGrant = false}) => [
+  hrAppBuilderProvider.overrideWithValue(
+    ({required onExit, required onUpgrade}) => const SizedBox(),
+  ),
+  // No Supabase session: an opened HR shows its offline page, so the test
+  // never reaches the network.
+  hrEnsureSupabaseSessionProvider.overrideWithValue(() async => null),
+  featureAccessLevelProvider(
+    userId: _userId,
+    accessLevel: AccessLevel.ADMIN,
+  ).overrideWithValue(admin),
+  featureAccessProvider(
+    userId: _userId,
+    featureName: 'HR',
+  ).overrideWithValue(hrGrant),
+];
 
 /// The selected tile swaps its shortcut badge for a [CircularProgressIndicator],
 /// which spins forever — so settle by pumping fixed frames instead.
@@ -45,12 +77,14 @@ void main() {
       businessName: 'Yegobox Ltd',
       branchName: 'Kigali Heights',
     ),
+    List<Override> overrides = const [],
   }) async {
     await tester.binding.setSurfaceSize(const Size(1280, 900));
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
     await tester.pumpWidget(
       ProviderScope(
+        overrides: overrides,
         child: MaterialApp(
           localizationsDelegates: FlipperLocalizationDelegates.delegates,
           supportedLocales: FlipperLocalizationDelegates.supportedLocales,
@@ -265,5 +299,160 @@ void main() {
     await _pumpSelection(tester);
 
     expect(container.read(selectedPageProvider), DashboardPage.inventory);
+  });
+
+  group('HR', () {
+    // The login flow opens the chosen app itself, so selecting does not push
+    // a route here.
+    const loginRequest = AppChoiceDialogRequest(
+      awaitsExternalNavigation: true,
+      branchName: 'Kigali Heights',
+    );
+
+    testWidgets('is a third app for an admin and opens on its number', (
+      tester,
+    ) async {
+      await pumpChooser(tester, overrides: _hrOverrides());
+
+      expect(find.text('HR & Payroll'), findsOneWidget);
+      expect(find.text('Staff, leave and payroll'), findsOneWidget);
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.digit3);
+      for (var i = 0; i < 10; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+
+      expect(box.defaultApp, 'HR');
+      expect(responses.single.data, {'defaultApp': 'HR'});
+      // Opened as its own route, like Books.
+      expect(find.byType(HrModuleEntry), findsOneWidget);
+    });
+
+    testWidgets('is offered to staff with the HR grant', (tester) async {
+      await pumpChooser(
+        tester,
+        overrides: _hrOverrides(admin: false, hrGrant: true),
+      );
+
+      expect(find.text('HR & Payroll'), findsOneWidget);
+    });
+
+    testWidgets('is hidden without access, and an HR default reads as POS', (
+      tester,
+    ) async {
+      box.defaultApp = 'HR';
+      await pumpChooser(tester, overrides: _hrOverrides(admin: false));
+
+      expect(find.text('HR & Payroll'), findsNothing);
+      expect(find.text('Default · POS'), findsOneWidget);
+    });
+
+    testWidgets('is hidden in Local Mode', (tester) async {
+      LocalMode.debugSet(true);
+      addTearDown(() => LocalMode.debugSet(false));
+
+      await pumpChooser(tester, overrides: _hrOverrides());
+
+      expect(find.text('HR & Payroll'), findsNothing);
+    });
+
+    testWidgets('as the stored default, Enter opens it again', (tester) async {
+      box.defaultApp = 'HR';
+      await pumpChooser(
+        tester,
+        request: loginRequest,
+        overrides: _hrOverrides(),
+      );
+
+      expect(find.text('Default · HR & Payroll'), findsOneWidget);
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+      await _pumpSelection(tester);
+
+      expect(responses.single.data, {'defaultApp': 'HR'});
+    });
+
+    testWidgets('hovering a tile moves the cursor off the default', (
+      tester,
+    ) async {
+      box.defaultApp = 'HR';
+      await pumpChooser(
+        tester,
+        request: loginRequest,
+        overrides: _hrOverrides(),
+      );
+
+      final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
+      await mouse.addPointer(location: Offset.zero);
+      addTearDown(mouse.removePointer);
+      await mouse.moveTo(tester.getCenter(find.text('Books')));
+      await tester.pump();
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+      await _pumpSelection(tester);
+
+      expect(responses.single.data, {'defaultApp': 'Books'});
+    });
+
+    testWidgets('fits a narrow window, one card per row', (tester) async {
+      // setSurfaceSize leaves the logical width alone; the view size is what
+      // lays the dialog out.
+      tester.view.physicalSize = const Size(480, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: _hrOverrides(),
+          child: MaterialApp(
+            localizationsDelegates: FlipperLocalizationDelegates.delegates,
+            supportedLocales: FlipperLocalizationDelegates.supportedLocales,
+            home: AppChoiceDialog(
+              request: DialogRequest<AppChoiceDialogRequest>(
+                data: loginRequest,
+              ),
+              completer: responses.add,
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      final pos = tester.getTopLeft(find.text('POS'));
+      final books = tester.getTopLeft(find.text('Books'));
+      expect(books.dx, pos.dx);
+      expect(books.dy, greaterThan(pos.dy));
+    });
+
+    testWidgets('the More → Apps tile follows the same rule', (tester) async {
+      const tile = DashboardAllAppTile(
+        page: 'HR',
+        label: 'HR & Payroll',
+        icon: Icons.people,
+        color: Colors.blue,
+        feature: 'HR',
+      );
+      late bool visible;
+      Future<void> check(List<Override> overrides) async {
+        await tester.pumpWidget(
+          ProviderScope(
+            key: UniqueKey(),
+            overrides: overrides,
+            child: Consumer(
+              builder: (context, ref, _) {
+                visible = dashboardAppTileVisible(ref, tile);
+                return const SizedBox();
+              },
+            ),
+          ),
+        );
+      }
+
+      await check(_hrOverrides());
+      expect(visible, isTrue);
+      await check(_hrOverrides(admin: false));
+      expect(visible, isFalse);
+    });
   });
 }

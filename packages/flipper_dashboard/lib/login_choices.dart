@@ -20,7 +20,6 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flipper_dashboard/BranchSelectionMixin.dart';
 import 'package:flipper_dashboard/app_choice_dialog.dart';
-import 'package:flipper_dashboard/books_module_navigation.dart';
 import 'package:flipper_dashboard/widgets/app_launch_overlay.dart';
 import 'package:flipper_dashboard/utils/error_handler.dart';
 import 'package:flipper_models/helpers/agent_session_helper.dart';
@@ -983,14 +982,12 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
       );
     }
 
-    // Books is its own route rather than a dashboard tab, so it is pushed here —
-    // after the authenticated home replaced the stack. Pushing it from the app
-    // switcher instead would race `clearStack` and land the user on the
-    // dashboard while the curtain said "Opening Books".
-    if (!commissionOnly &&
-        rootNavigator != null &&
-        ProxyService.box.getDefaultApp() == 'Books') {
-      unawaited(openBooksModuleOn(rootNavigator));
+    // Books and HR are their own routes rather than dashboard tabs, so they are
+    // pushed here — after the authenticated home replaced the stack. Pushing
+    // them from the app switcher instead would race `clearStack` and land the
+    // user on the dashboard while the curtain said "Opening Books".
+    if (!commissionOnly && rootNavigator != null) {
+      openStandaloneApp(rootNavigator, ProxyService.box.getDefaultApp());
     }
 
     // Destination is on screen: lift the "Opening <app>" curtain (no-op when the

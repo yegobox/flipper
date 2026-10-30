@@ -3023,6 +3023,9 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
   String get appChoiceBooksSubtitle => 'Accounting and ledgers';
 
   @override
+  String get appChoiceHrSubtitle => 'Staff, leave and payroll';
+
+  @override
   String get appChoiceTitle => 'Choose your app';
 
   @override
@@ -3031,7 +3034,7 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
 
   @override
   String get appChoiceKeyboardHint =>
-      'Press 1 or 2 to open, arrows to move, Esc to close';
+      'Press a number to open, arrows to move, Esc to close';
 
   @override
   String get posBalanceDue => 'Balance due';

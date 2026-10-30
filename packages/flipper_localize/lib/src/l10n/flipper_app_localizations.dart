@@ -5477,6 +5477,12 @@ abstract class FlipperAppLocalizations {
   /// **'Accounting and ledgers'**
   String get appChoiceBooksSubtitle;
 
+  /// No description provided for @appChoiceHrSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Staff, leave and payroll'**
+  String get appChoiceHrSubtitle;
+
   /// No description provided for @appChoiceTitle.
   ///
   /// In en, this message translates to:
@@ -5492,7 +5498,7 @@ abstract class FlipperAppLocalizations {
   /// No description provided for @appChoiceKeyboardHint.
   ///
   /// In en, this message translates to:
-  /// **'Press 1 or 2 to open, arrows to move, Esc to close'**
+  /// **'Press a number to open, arrows to move, Esc to close'**
   String get appChoiceKeyboardHint;
 
   /// No description provided for @posBalanceDue.

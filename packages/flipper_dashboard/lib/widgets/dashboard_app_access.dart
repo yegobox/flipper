@@ -23,6 +23,23 @@ final dashboardIsAdminProvider = Provider.autoDispose<bool>(
   ),
 );
 
+/// Whether the signed-in user may open Flipper HR (the More → Apps tile and
+/// the desktop app chooser).
+///
+/// HR holds salaries and national IDs, so it is for whoever runs the business:
+/// an admin, or staff given the 'HR' grant at admin level — the same grant HR's
+/// own RLS honours (migration 0006). Never in Local Mode, and never when the
+/// running app does not ship HR.
+bool dashboardCanOpenHr(WidgetRef ref) {
+  if (ref.watch(hrAppBuilderProvider) == null) return false;
+  if (hiddenInLocalMode(ref, 'HR')) return false;
+  final uid = currentDashboardUserId();
+  return ref.watch(
+        featureAccessLevelProvider(userId: uid, accessLevel: AccessLevel.ADMIN),
+      ) ||
+      ref.watch(featureAccessProvider(userId: uid, featureName: 'HR'));
+}
+
 /// Whether a dashboard app tile should be visible for the signed-in user.
 bool dashboardAppTileVisible(WidgetRef ref, DashboardAllAppTile tile) {
   if (hiddenInLocalMode(ref, tile.page)) return false;
@@ -49,20 +66,9 @@ bool dashboardAppTileVisible(WidgetRef ref, DashboardAllAppTile tile) {
   final feature = tile.feature;
   if (feature == null) return true;
 
-  // HR holds salaries and national IDs, so it is for whoever runs the
-  // business: an admin, or staff given the 'HR' grant at admin level — the
-  // same grant HR's own RLS honours (migration 0006). 'HR' is not an
-  // [AppFeature], so the generic check below would hide it from everyone.
-  if (tile.page == 'HR') {
-    if (ref.watch(hrAppBuilderProvider) == null) return false;
-    return ref.watch(
-          featureAccessLevelProvider(
-            userId: uid,
-            accessLevel: AccessLevel.ADMIN,
-          ),
-        ) ||
-        ref.watch(featureAccessProvider(userId: uid, featureName: 'HR'));
-  }
+  // 'HR' is not an [AppFeature], so the generic check below would hide it
+  // from everyone.
+  if (tile.page == 'HR') return dashboardCanOpenHr(ref);
 
   if (feature == 'Sales' || tile.page == 'POS' || tile.page == 'Inventory') {
     // Browse the POS/inventory catalog under view (read+) access — selling and
