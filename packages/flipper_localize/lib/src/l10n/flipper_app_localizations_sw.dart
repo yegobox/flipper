@@ -27653,4 +27653,80 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   @override
   String get branchTransferCartStillSaving =>
       'Baadhi ya bidhaa bado zinahifadhiwa. Subiri kidogo, kisha uhamishe tena.';
+
+  @override
+  String get signupDataChoice => 'Mahali data yako inapohifadhiwa';
+
+  @override
+  String get signupDataCloud => 'Sawazisha na wingu';
+
+  @override
+  String get signupDataCloudHint =>
+      'Imehifadhiwa na ipo kwenye vifaa vyako vyote, pamoja na EBM na Flo. Mpango wa kulipia.';
+
+  @override
+  String get signupDataLocal =>
+      'Nje ya mtandao kwenye kifaa hiki — bure milele';
+
+  @override
+  String get signupDataLocalHint =>
+      'Data inabaki kwenye kifaa hiki pekee, bila nakala rudufu: kuondoa programu au kupoteza kifaa kunaifuta. Hakuna EBM, hakuna Flo. Unaweza kuwasha usawazishaji wa wingu baadaye.';
+
+  @override
+  String get localModeFloUnavailable =>
+      'Flo inahitaji usawazishaji wa wingu. Washa usawazishaji wa wingu ili kuzungumza na Flo.';
+
+  @override
+  String get localModeTurnOnSync => 'Washa usawazishaji wa wingu';
+
+  @override
+  String get localModeTurnOnSyncHint =>
+      'Hifadhi nakala ya kifaa hiki na uchague mpango';
+
+  @override
+  String get localModeOptInTitle => 'Washa usawazishaji wa wingu?';
+
+  @override
+  String get localModeOptInBody =>
+      'Data yote ya Flipper kwenye kifaa hiki itapakiwa kwenye wingu na utachagua mpango wa kulipia. EBM na Flo zitapatikana. Huwezi kurudi kwenye hali ya nje ya mtandao. Utaingia tena ili kumaliza.';
+
+  @override
+  String get localModeOptInConfirm => 'Washa usawazishaji';
+
+  @override
+  String get localModeOptInOffline =>
+      'Unganisha kwenye intaneti ili kuwasha usawazishaji wa wingu.';
+
+  @override
+  String get localModeBadge => 'Hali ya nje ya mtandao';
+
+  @override
+  String get localModeElsewhereTitle =>
+      'Biashara hii inafanya kazi nje ya mtandao kwenye kifaa kingine';
+
+  @override
+  String localModeElsewhereBody(String device) {
+    return 'Data yake imehifadhiwa kwenye $device pekee, kwa hiyo haiwezi kufunguliwa hapa. Ili kutumia Flipper kwenye kifaa hiki, washa usawazishaji wa wingu kwenye $device.\n\nIkiwa kifaa hicho kilipotea au kiliwekwa upya, unaweza kuwasha usawazishaji wa wingu hapa badala yake, lakini data iliyokuwa juu yake haiwezi kurejeshwa.';
+  }
+
+  @override
+  String get localModeElsewhereUnknownDevice => 'kifaa kilipoanzishwa';
+
+  @override
+  String get localModeElsewhereUseHere => 'Washa usawazishaji wa wingu hapa';
+
+  @override
+  String get localModeDeviceHeldTitle =>
+      'Kifaa hiki kinatumiwa nje ya mtandao na biashara nyingine';
+
+  @override
+  String get localModeDeviceHeldBody =>
+      'Biashara hiyo inahifadhi data yake kwenye kifaa hiki pekee, kwa hiyo huwezi kuingia kwenye biashara nyingine hapa hadi iwashe usawazishaji wa wingu.';
+
+  @override
+  String get localModeSyncOnElsewhereTitle => 'Usawazishaji wa wingu umewashwa';
+
+  @override
+  String get localModeSyncOnElsewhereBody =>
+      'Usawazishaji wa wingu umewashwa kwa biashara hii kutoka kifaa kingine. Ingia tena ili kupakia data ya kifaa hiki na kumaliza.';
 }

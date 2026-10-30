@@ -4,6 +4,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:ditto_live/ditto_live.dart';
 import 'package:flipper_models/helperModels/sale_device_id.dart';
+import 'package:flipper_web/core/local_mode/local_mode.dart';
 import 'package:flipper_web/core/secrets.dart';
 import 'package:flipper_web/core/utils/platform.dart';
 import 'package:flipper_web/core/utils/platform_utils.dart';
@@ -19,11 +20,17 @@ class DittoSingleton {
   static Ditto? _ditto;
   static bool _isInitializing = false;
   static Completer<Ditto?>? _initCompleter;
+
   /// userId for the in-flight [initialize] call (may differ from [_userId] briefly).
   static String? _initTargetUserId;
+
   /// Bumped when an in-flight init is aborted so stale work discards its result.
   static int _initGeneration = 0;
   static String? _userId;
+
+  /// Whether [_ditto] was opened local-only ([LocalMode]). The connect mode is
+  /// fixed at open, so a mode change (signup, opt-in) needs a reopen.
+  static bool? _openedLocal;
 
   // Lock mechanism abstraction
   static LockMechanism? _lockMechanism;
@@ -119,6 +126,15 @@ class DittoSingleton {
       await _abortInFlightInit();
     }
 
+    // QR-login identities always talk to the cloud; local mode hides QR login.
+    var wantLocal = !userId.startsWith('login-') && await LocalMode.load();
+    if (_ditto != null && _openedLocal != wantLocal) {
+      print(
+        '🔁 [INIT] Connect mode changed (local=$wantLocal) — reopening store',
+      );
+      await dispose();
+    }
+
     // Return existing instance if available and properly initialized
     if (_ditto != null && _lockAcquired) {
       print(
@@ -153,6 +169,20 @@ class DittoSingleton {
         _initCompleter?.complete(null);
         _initCompleter = null;
         return null;
+      }
+
+      // The marker read fails only while the store directory can't be
+      // resolved. It resolves now, so read again before choosing transports:
+      // a store whose mode is still unknown never opens with the cloud.
+      if (!isLoginIdentity && !LocalMode.isLoaded) {
+        wantLocal = await LocalMode.load();
+        if (!LocalMode.isLoaded) {
+          print('❌ [INIT FAIL] local mode unknown — not opening the store');
+          _isInitializing = false;
+          _initCompleter?.complete(null);
+          _initCompleter = null;
+          return null;
+        }
       }
 
       // File locks are for desktop/mobile multi-process safety only. WASM/web
@@ -191,11 +221,16 @@ class DittoSingleton {
       print('🔧 [INIT] Creating DittoConfig (Ditto v5)...');
       final config = DittoConfig(
         databaseID: appId,
-        connect: DittoConfigConnectServer(url: cloudUrl),
+        // Local mode never reaches the cloud. Same databaseID and directory,
+        // so opting in later reopens this store with the server connect.
+        connect: wantLocal
+            ? const DittoConfigConnectSmallPeersOnly()
+            : DittoConfigConnectServer(url: cloudUrl),
         persistenceDirectory: persistenceDirectory,
       );
-      print('✅ [INIT] Calling Ditto.open(config)...');
+      print('✅ [INIT] Calling Ditto.open(config) (local=$wantLocal)...');
       _ditto = await Ditto.open(config);
+      _openedLocal = wantLocal;
       print(
         '✅ [INIT] Ditto.open() completed, instance hashCode: ${_ditto.hashCode}',
       );
@@ -208,13 +243,15 @@ class DittoSingleton {
       unawaited(ensureLocalStoreIndexes(ditto: _ditto));
 
       // Required for server connections before sync.start.
-      await _ditto!.auth.setExpirationHandler((ditto, timeUntilExpiration) {
-        print(
-          '🔐 [AUTH] expiration handler '
-          '(expires in ${timeUntilExpiration.inSeconds}s)',
-        );
-        unawaited(_performAuthentication(ditto, appId));
-      });
+      if (!wantLocal) {
+        await _ditto!.auth.setExpirationHandler((ditto, timeUntilExpiration) {
+          print(
+            '🔐 [AUTH] expiration handler '
+            '(expires in ${timeUntilExpiration.inSeconds}s)',
+          );
+          unawaited(_performAuthentication(ditto, appId));
+        });
+      }
 
       if (!isLoginIdentity) {
         try {
@@ -242,7 +279,14 @@ class DittoSingleton {
 
       try {
         print('🔧 [INIT] Configuring transports...');
-        if (kIsWeb) {
+        if (wantLocal) {
+          // Local mode: single device, no peers and no cloud.
+          _ditto!.updateTransportConfig((config) {
+            config.setAllPeerToPeerEnabled(false);
+            config.connect.webSocketUrls = <String>{};
+          });
+          print('✅ [INIT] Local mode — all transports off');
+        } else if (kIsWeb) {
           // Web/WASM: cloud WebSocket only (no BLE/AWDL/mDNS in browser).
           _ditto!.transportConfig = TransportConfig.builder(
             connect: Connect(webSocketUrls: {webSocketUrl}),
@@ -280,7 +324,9 @@ class DittoSingleton {
         print('Stack: $stack');
       }
 
-      if (isLoginIdentity) {
+      if (wantLocal) {
+        print('⏭️ [INIT] Local mode — no cloud auth, sync never starts');
+      } else if (isLoginIdentity) {
         print(
           '🔐 [INIT] Authenticating QR-login Ditto before starting sync...',
         );
@@ -292,14 +338,18 @@ class DittoSingleton {
         print('⏭️ [INIT] Sync start deferred (login fast path)');
       } else {
         print('🔐 [INIT] Authenticating before cloud sync...');
+        // dart format off
         await _authenticateThenStartSync(
           appId,
           initGeneration: initGeneration,
         );
+        // dart format on
       }
 
       if (!_isInitGenerationCurrent(initGeneration)) {
+        // dart format off
         print('⏭️ [INIT] Discarding stale init result (generation $initGeneration)');
+        // dart format on
         return null;
       }
 
@@ -386,7 +436,7 @@ class DittoSingleton {
     required int initGeneration,
   }) async {
     final ditto = _ditto;
-    if (ditto == null) return;
+    if (ditto == null || LocalMode.isOn) return;
 
     try {
       if (!_isInitGenerationCurrent(initGeneration) || _ditto != ditto) {
@@ -396,7 +446,9 @@ class DittoSingleton {
       // Ditto v5 server mode: sync.start drives auth via the expiration handler.
       try {
         if (!ditto.sync.isActive) {
+          // dart format off
           print('🔧 [INIT] Starting Ditto sync (JWT via expiration handler)...');
+          // dart format on
           ditto.sync.start();
         }
       } catch (e) {
@@ -487,7 +539,7 @@ class DittoSingleton {
   /// Completes cloud auth + sync after [initialize] with [deferSyncStart: true].
   Future<void> ensureAuthenticatedAndSyncing({required String appId}) async {
     final ditto = _ditto;
-    if (ditto == null) return;
+    if (ditto == null || LocalMode.isOn) return;
     if (ditto.sync.isActive) return;
 
     final authed = await _performAuthentication(ditto, appId);
@@ -586,6 +638,8 @@ class DittoSingleton {
   }
 
   Future<bool> _performAuthentication(Ditto ditto, String appId) {
+    // Local mode: no JWT, no apihub call. Covers every auth entry point.
+    if (LocalMode.isOn) return Future.value(false);
     final existing = DittoSingleton._dittoAuthInFlight;
     if (existing != null) {
       print('⏳ [AUTH] Joining in-flight Ditto authentication');

@@ -3,6 +3,7 @@ import 'package:flipper_models/helperModels/signup_countries.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_models/helperModels/business_type.dart';
+import 'package:flipper_models/services/local_mode_controller.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/user_profile_name_service.dart';
 
@@ -18,6 +19,9 @@ class SignupViewModel extends BaseViewModel {
 
   /// Business unless the user picked "My personal money" at signup.
   AccountMode accountMode = AccountMode.business;
+
+  /// Work offline on this device, free forever ([LocalModeController]).
+  bool localMode = false;
 
   /// Start the registration process
   void startRegistering() {
@@ -87,10 +91,15 @@ class SignupViewModel extends BaseViewModel {
       // CoreSync.signup() internally calls login() which calls sendLoginRequest().
       // sendLoginRequest() stores userId in ProxyService.box AND saves user_access
       // to Ditto, so we do NOT need a separate sendLoginRequest call here.
-      await ProxyService.strategy.signup(
+      // Before signup: its login opens Ditto, which must open local-only.
+      if (localMode) await LocalModeController.enterForSignup();
+      final business = await ProxyService.strategy.signup(
         business: businessMap,
         flipperHttpClient: ProxyService.http,
       );
+      if (localMode && business != null) {
+        await LocalModeController.recordBusiness(business.id);
+      }
 
       // The server creates the users row with a placeholder name, so the Admin
       // profile card would show a UUID until it is edited by hand. Write the
@@ -98,6 +107,7 @@ class SignupViewModel extends BaseViewModel {
       // it is already correct the first time they log in.
       await _persistUserDisplayName(phoneNumber: phoneNumber);
     } catch (e) {
+      if (localMode) await LocalModeController.abortSignup();
       rethrow;
     }
   }

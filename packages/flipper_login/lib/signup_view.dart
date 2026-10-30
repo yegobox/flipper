@@ -6,6 +6,7 @@ import 'package:flipper_models/account_mode/account_mode.dart';
 import 'package:flipper_models/helperModels/signup_countries.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/helperModels/business_type.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 
 import 'package:flipper_login/pin_login_brand_panel.dart';
@@ -104,6 +105,16 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
                   // failureResponse is a raw (untranslated) reason from the
                   // bloc; match on it, show localized copy.
                   final raw = state.failureResponse;
+                  if (raw ==
+                      AsyncFieldValidationFormBloc.localModeDeviceHeldFailure) {
+                    showErrorNotification(
+                      context,
+                      '${l10n.localModeDeviceHeldTitle}. '
+                      '${l10n.localModeDeviceHeldBody}',
+                      duration: const Duration(seconds: 10),
+                    );
+                    return;
+                  }
                   final message = raw ?? l10n.signupErrorGeneric;
                   final rawLower = raw?.toLowerCase() ?? '';
                   final isOtpError = rawLower.contains('otp') ||
@@ -512,7 +523,8 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
                             });
                           },
                         ),
-                        if (_showTinField)
+                        // A TIN is for EBM, which local mode does not have.
+                        if (_showTinField && !formBloc.localMode.value)
                           Padding(
                             padding: const EdgeInsets.only(bottom: 16.0),
                             child: TinInputField(
@@ -541,6 +553,14 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
                         search: (query, options) =>
                             searchSignupCountries(query, within: options),
                       ),
+                      // Ditto on the web is cloud-only: no offline choice.
+                      if (!kIsWeb)
+                        _SignupDataChoice(
+                          localMode: formBloc.localMode.value,
+                          onChanged: (local) => setState(
+                            () => formBloc.localMode.updateValue(local),
+                          ),
+                        ),
                       BlocBuilder<AsyncFieldValidationFormBloc, FormBlocState>(
                         builder: (context, state) {
                           return const SizedBox.shrink();
@@ -675,6 +695,137 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
       return;
     }
     formBloc.submit();
+  }
+}
+
+/// Cloud sync (default, paid) or offline on this device (free forever).
+class _SignupDataChoice extends StatelessWidget {
+  const _SignupDataChoice({required this.localMode, required this.onChanged});
+
+  final bool localMode;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            l10n.signupDataChoice,
+            style: const TextStyle(
+              color: SignInTokens.ink2,
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 8),
+          _SignupDataOption(
+            icon: Icons.cloud_done_outlined,
+            title: l10n.signupDataCloud,
+            hint: l10n.signupDataCloudHint,
+            selected: !localMode,
+            onTap: () => onChanged(false),
+          ),
+          const SizedBox(height: 8),
+          _SignupDataOption(
+            icon: Icons.phone_android_outlined,
+            title: l10n.signupDataLocal,
+            hint: l10n.signupDataLocalHint,
+            selected: localMode,
+            onTap: () => onChanged(true),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SignupDataOption extends StatelessWidget {
+  const _SignupDataOption({
+    required this.icon,
+    required this.title,
+    required this.hint,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String title;
+  final String hint;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final radius = BorderRadius.circular(SignInTokens.radiusMd);
+    return Semantics(
+      selected: selected,
+      button: true,
+      child: Material(
+        color: selected ? SignInTokens.blueTint : SignInTokens.surface2,
+        borderRadius: radius,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: radius,
+          child: Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              borderRadius: radius,
+              border: Border.all(
+                color: selected ? SignInTokens.blue : SignInTokens.line,
+                width: selected ? 1.6 : 1,
+              ),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  icon,
+                  size: 22,
+                  color: selected ? SignInTokens.blue : SignInTokens.ink3,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: const TextStyle(
+                          color: SignInTokens.ink1,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        hint,
+                        style: const TextStyle(
+                          color: SignInTokens.ink2,
+                          fontSize: 12,
+                          height: 1.35,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Icon(
+                  selected
+                      ? Icons.radio_button_checked
+                      : Icons.radio_button_unchecked,
+                  size: 20,
+                  color: selected ? SignInTokens.blue : SignInTokens.ink3,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 

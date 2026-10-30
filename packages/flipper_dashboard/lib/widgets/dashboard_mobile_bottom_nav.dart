@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/dashboard_quick_apps_navigation.dart';
+import 'package:flipper_dashboard/providers/navigation_providers.dart';
 import 'package:flipper_dashboard/widgets/dashboard_all_apps_sheet.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
@@ -60,6 +61,7 @@ class DashboardMobileBottomNav extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final barPad = _barPad(context);
+    final localMode = ref.watch(isLocalModeProvider);
 
     // The Stack is tall enough to contain the raised button. A child sticking
     // out of a Stack (negative top + Clip.none) still paints, but taps on the
@@ -107,19 +109,24 @@ class DashboardMobileBottomNav extends ConsumerWidget {
                     ),
                     // Sales and Inventory both landed on the POS the "+" button
                     // already opens; Flo and Books earn the slots instead.
-                    _NavItem(
-                      icon: FluentIcons.chat_sparkle_24_regular,
-                      label: context.flipperL10n.floAskFlo,
-                      selected: activeTab == DashboardMobileTab.flo,
-                      onTap: () => _openTab(
-                        DashboardMobileTab.flo,
-                        () => navigateToDashboardAppPage(
-                          context: context,
-                          isBigScreen: false,
-                          page: 'Chat',
+                    // Flo is unavailable in local mode. An empty slot of the
+                    // same width keeps the bar centred on the raised button.
+                    if (localMode)
+                      const SizedBox(width: 64)
+                    else
+                      _NavItem(
+                        icon: FluentIcons.chat_sparkle_24_regular,
+                        label: context.flipperL10n.floAskFlo,
+                        selected: activeTab == DashboardMobileTab.flo,
+                        onTap: () => _openTab(
+                          DashboardMobileTab.flo,
+                          () => navigateToDashboardAppPage(
+                            context: context,
+                            isBigScreen: false,
+                            page: 'Chat',
+                          ),
                         ),
                       ),
-                    ),
                     const SizedBox(width: 72),
                     _NavItem(
                       icon: FluentIcons.book_24_regular,

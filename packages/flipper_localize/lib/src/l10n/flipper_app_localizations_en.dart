@@ -27488,4 +27488,79 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
   @override
   String get branchTransferCartStillSaving =>
       'Some items are still being saved. Wait a moment, then transfer again.';
+
+  @override
+  String get signupDataChoice => 'Where your data is kept';
+
+  @override
+  String get signupDataCloud => 'Sync to the cloud';
+
+  @override
+  String get signupDataCloudHint =>
+      'Backed up and on all your devices, with EBM and Flo. Paid plan.';
+
+  @override
+  String get signupDataLocal => 'Offline on this device — free forever';
+
+  @override
+  String get signupDataLocalHint =>
+      'Data stays only on this device, with no backup: uninstalling the app or losing the device deletes it. No EBM, no Flo. You can turn on cloud sync later.';
+
+  @override
+  String get localModeFloUnavailable =>
+      'Flo needs cloud sync. Turn on cloud sync to chat with Flo.';
+
+  @override
+  String get localModeTurnOnSync => 'Turn on cloud sync';
+
+  @override
+  String get localModeTurnOnSyncHint => 'Back up this device and choose a plan';
+
+  @override
+  String get localModeOptInTitle => 'Turn on cloud sync?';
+
+  @override
+  String get localModeOptInBody =>
+      'All your Flipper data on this device will be uploaded to the cloud and you will choose a paid plan. EBM and Flo become available. You can\'t go back to offline mode. You\'ll sign in again to finish.';
+
+  @override
+  String get localModeOptInConfirm => 'Turn on sync';
+
+  @override
+  String get localModeOptInOffline =>
+      'Connect to the internet to turn on cloud sync.';
+
+  @override
+  String get localModeBadge => 'Offline mode';
+
+  @override
+  String get localModeElsewhereTitle =>
+      'This business works offline on another device';
+
+  @override
+  String localModeElsewhereBody(String device) {
+    return 'Its data is stored only on $device, so it can\'t be opened here. To use Flipper on this device, turn on cloud sync on $device.\n\nIf that device was lost or reset, you can turn on cloud sync here instead, but the data that was on it can\'t be recovered.';
+  }
+
+  @override
+  String get localModeElsewhereUnknownDevice =>
+      'the device where it was set up';
+
+  @override
+  String get localModeElsewhereUseHere => 'Turn on cloud sync here';
+
+  @override
+  String get localModeDeviceHeldTitle =>
+      'This device is used offline by another business';
+
+  @override
+  String get localModeDeviceHeldBody =>
+      'That business keeps its data only on this device, so you can\'t sign in to a different business here until it turns on cloud sync.';
+
+  @override
+  String get localModeSyncOnElsewhereTitle => 'Cloud sync was turned on';
+
+  @override
+  String get localModeSyncOnElsewhereBody =>
+      'Cloud sync was turned on for this business from another device. Sign in again to upload this device\'s data and finish.';
 }

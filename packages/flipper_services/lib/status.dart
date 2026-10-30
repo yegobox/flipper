@@ -5,6 +5,7 @@ import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/internet_probe.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_web/core/local_mode/local_mode.dart';
 import 'package:http/http.dart' as http;
 
 abstract class Status {
@@ -61,8 +62,9 @@ class StatusAppBarForWindowsAndWeb
           _statusColor.value = Colors.black;
           notifyListeners();
         }
-      } else {
-        // If there's no internet connection
+      } else if (!LocalMode.isOn) {
+        // If there's no internet connection. Local mode never needs it, so
+        // being offline there is not a problem to report.
         _statusColor.value = Colors.red;
         _statusText.value = _internetDownMsg;
         notifyListeners();
@@ -100,7 +102,8 @@ class StatusAppBarForWindowsAndWeb
       return;
     }
 
-    if (ProxyService.box.stopTaxService() ?? false) {
+    // No EBM in local mode, so there is no tax server to be down.
+    if (LocalMode.isOn || (ProxyService.box.stopTaxService() ?? false)) {
       _clearTaxServerDownBanner();
       return;
     }

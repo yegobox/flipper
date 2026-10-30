@@ -15,6 +15,8 @@ import 'dart:async';
 import 'package:flipper_web/core/utils/ditto_singleton.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_routing/app.dialogs.dart';
+import 'package:flipper_dashboard/local_mode/turn_on_cloud_sync.dart';
+import 'package:flipper_web/core/local_mode/local_mode.dart';
 // import 'package:flipper_nfc/flipper_nfc.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -601,159 +603,167 @@ class _DashboardDrawerState extends ConsumerState<DashboardDrawer>
             },
           ),
           const SizedBox(height: 12),
-          _ModernSwitchRow(
-            iconSvg:
-                DashboardQuickAccessSvgs.drawerBackgroundSyncGridPlusIcon(),
-            title: context.flipperL10n.backgroundSync,
-            subtitle: context.flipperL10n.syncDataInBackground,
-            value: backgroundSyncEnabled,
-            onChanged: (value) async {
-              await ProxyService.box.writeBool(
-                key: 'background_sync_enabled',
-                value: value,
-              );
-              setState(() {
-                backgroundSyncEnabled = value;
-              });
-              if (value) {
-                final appID = kDebugMode
-                    ? AppSecrets.appIdDebug
-                    : AppSecrets.appId;
+          // Local mode never syncs; its only way out is opting in below.
+          if (!LocalMode.isOn)
+            _ModernSwitchRow(
+              iconSvg:
+                  DashboardQuickAccessSvgs.drawerBackgroundSyncGridPlusIcon(),
+              title: context.flipperL10n.backgroundSync,
+              subtitle: context.flipperL10n.syncDataInBackground,
+              value: backgroundSyncEnabled,
+              onChanged: (value) async {
+                await ProxyService.box.writeBool(
+                  key: 'background_sync_enabled',
+                  value: value,
+                );
+                setState(() {
+                  backgroundSyncEnabled = value;
+                });
+                if (value) {
+                  final appID = kDebugMode
+                      ? AppSecrets.appIdDebug
+                      : AppSecrets.appId;
 
-                final userId = ProxyService.box.getUserId();
-                if (userId != null && appID.isNotEmpty) {
-                  await DittoSingleton.instance.initialize(
-                    appId: appID,
-                    userId: userId,
-                  );
-                  DittoSyncCoordinator.instance.setDitto(
-                    DittoSingleton.instance.ditto,
-                    skipInitialFetch:
-                        true, // Skip initial fetch to prevent upserting all models on startup
-                  );
-                  final prefsBox = ProxyService.box;
-                  if (prefsBox is SharedPreferenceStorage) {
-                    await prefsBox.attachDittoPersistence();
+                  final userId = ProxyService.box.getUserId();
+                  if (userId != null && appID.isNotEmpty) {
+                    await DittoSingleton.instance.initialize(
+                      appId: appID,
+                      userId: userId,
+                    );
+                    DittoSyncCoordinator.instance.setDitto(
+                      DittoSingleton.instance.ditto,
+                      skipInitialFetch:
+                          true, // Skip initial fetch to prevent upserting all models on startup
+                    );
+                    final prefsBox = ProxyService.box;
+                    if (prefsBox is SharedPreferenceStorage) {
+                      await prefsBox.attachDittoPersistence();
+                    }
+                    await ProxyService.notification.sendLocalNotification(
+                      body: FlipperL10n.current.drawerMenuBackgroundSyncEnabled,
+                    );
                   }
+                } else {
+                  // Stop Ditto sync and cleanup when disabling
+                  await DittoSyncCoordinator.instance.setDitto(null);
+                  await DittoSingleton.instance.dispose();
                   await ProxyService.notification.sendLocalNotification(
-                    body: FlipperL10n.current.drawerMenuBackgroundSyncEnabled,
+                    body: FlipperL10n.current.drawerMenuBackgroundSyncDisabled,
                   );
                 }
-              } else {
-                // Stop Ditto sync and cleanup when disabling
-                await DittoSyncCoordinator.instance.setDitto(null);
-                await DittoSingleton.instance.dispose();
-                await ProxyService.notification.sendLocalNotification(
-                  body: FlipperL10n.current.drawerMenuBackgroundSyncDisabled,
-                );
-              }
-            },
-          ),
+              },
+            ),
           const SizedBox(height: 12),
-          const _CheckSubscriptionDrawerRow(),
-          const SizedBox(height: 12),
+          // Local mode is free forever: no subscription to check.
+          if (LocalMode.isOn)
+            const _TurnOnCloudSyncDrawerRow()
+          else
+            const _CheckSubscriptionDrawerRow(),
+          // Local mode has no EBM, so no EBM status either.
+          if (!LocalMode.isOn) const SizedBox(height: 12),
           // EBM Status Indicator
-          Consumer(
-            builder: (context, ref, child) {
-              final ebmStatus = ref.watch(ebmVatEnabledProvider);
-              return ebmStatus.when(
-                data: (isVatEnabled) {
-                  return Container(
+          if (!LocalMode.isOn)
+            Consumer(
+              builder: (context, ref, child) {
+                final ebmStatus = ref.watch(ebmVatEnabledProvider);
+                return ebmStatus.when(
+                  data: (isVatEnabled) {
+                    return Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: isVatEnabled
+                            ? Colors.green.shade50
+                            : Colors.red.shade50,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: isVatEnabled
+                              ? Colors.green.shade300
+                              : Colors.red.shade300,
+                          width: 1,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            isVatEnabled ? Icons.check_circle : Icons.cancel,
+                            color: isVatEnabled ? Colors.green : Colors.red,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            isVatEnabled
+                                ? context.flipperL10n.drawerMenuEbmOn
+                                : context.flipperL10n.drawerMenuEbmOff,
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                              color: isVatEnabled
+                                  ? Colors.green.shade700
+                                  : Colors.red.shade700,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                  loading: () => Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 12,
                       vertical: 8,
                     ),
                     decoration: BoxDecoration(
-                      color: isVatEnabled
-                          ? Colors.green.shade50
-                          : Colors.red.shade50,
+                      color: Colors.grey.shade50,
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: isVatEnabled
-                            ? Colors.green.shade300
-                            : Colors.red.shade300,
-                        width: 1,
-                      ),
+                      border: Border.all(color: Colors.grey.shade300, width: 1),
                     ),
                     child: Row(
                       children: [
-                        Icon(
-                          isVatEnabled ? Icons.check_circle : Icons.cancel,
-                          color: isVatEnabled ? Colors.green : Colors.red,
-                          size: 20,
+                        const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          isVatEnabled
-                              ? context.flipperL10n.drawerMenuEbmOn
-                              : context.flipperL10n.drawerMenuEbmOff,
+                          context.flipperL10n.drawerMenuCheckingEbm,
                           style: TextStyle(
                             fontSize: 13,
-                            fontWeight: FontWeight.w500,
-                            color: isVatEnabled
-                                ? Colors.green.shade700
-                                : Colors.red.shade700,
+                            color: Colors.grey.shade600,
                           ),
                         ),
                       ],
                     ),
-                  );
-                },
-                loading: () => Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
                   ),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade50,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.grey.shade300, width: 1),
-                  ),
-                  child: Row(
-                    children: [
-                      const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        context.flipperL10n.drawerMenuCheckingEbm,
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Colors.grey.shade600,
+                  error: (error, stack) => Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.red.shade50,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.red.shade300, width: 1),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.error, color: Colors.red, size: 20),
+                        const SizedBox(width: 8),
+                        Text(
+                          context.flipperL10n.drawerMenuEbmStatusError,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.red.shade700,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-                error: (error, stack) => Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.red.shade50,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.red.shade300, width: 1),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.error, color: Colors.red, size: 20),
-                      const SizedBox(width: 8),
-                      Text(
-                        context.flipperL10n.drawerMenuEbmStatusError,
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Colors.red.shade700,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            },
-          ),
+                );
+              },
+            ),
         ],
       ),
     );
@@ -1158,6 +1168,24 @@ class _ModernShiftTileState extends State<ModernShiftTile> {
 }
 
 /// Drawer row: verify subscription online and navigate (sales / post-signup).
+class _TurnOnCloudSyncDrawerRow extends StatelessWidget {
+  const _TurnOnCloudSyncDrawerRow();
+
+  @override
+  Widget build(BuildContext context) {
+    return _ModernMenuRow(
+      iconSvg: DashboardQuickAccessSvgs.drawerBackgroundSyncGridPlusIcon(),
+      title: context.flipperL10n.localModeTurnOnSync,
+      subtitle: context.flipperL10n.localModeTurnOnSyncHint,
+      onTap: () {
+        final rootContext = Navigator.of(context, rootNavigator: true).context;
+        Navigator.pop(context);
+        confirmAndTurnOnCloudSync(rootContext);
+      },
+    );
+  }
+}
+
 class _CheckSubscriptionDrawerRow extends ConsumerWidget {
   const _CheckSubscriptionDrawerRow();
 

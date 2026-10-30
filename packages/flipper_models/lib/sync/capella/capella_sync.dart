@@ -70,6 +70,7 @@ import 'package:supabase_models/brick/models/all_models.dart' hide BusinessType;
 import 'package:flipper_models/sync/capella/mixins/production_output_mixin.dart';
 import 'package:flipper_models/sync/mixins/bulk_process_item_mixin.dart';
 import 'package:flipper_web/services/ditto_service.dart';
+import 'package:flipper_web/core/local_mode/local_mode.dart';
 
 import 'package:flutter/foundation.dart'
     show kIsWeb, defaultTargetPlatform, TargetPlatform;
@@ -1764,6 +1765,8 @@ class CapellaSync extends AiStrategyImpl
     required String businessId,
     required String branchId,
   }) async {
+    // No EBM in local mode: sales, receipts and product registration skip RRA.
+    if (LocalMode.isOn) return false;
     // Ported verbatim from the brick (CoreSync) Ditto-backed implementation so
     // the Capella strategy resolves tax-enabled state identically (no regression).
     try {

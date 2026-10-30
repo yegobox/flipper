@@ -13,6 +13,7 @@ import 'package:flipper_models/services/internet_connection_service.dart';
 import 'package:flipper_services/Miscellaneous.dart';
 import 'package:flipper_services/locator.dart' as loc;
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_web/core/local_mode/local_mode.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
@@ -151,11 +152,15 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
       debugPrint('🚀 [StartupViewModel] Initializing app components...');
       AppInitializer.initialize();
 
-      final repository = Repository();
-      EbmSyncService(repository);
+      // Local mode: no EBM, and nothing uploads to S3. Pending assets and
+      // receipts stay queued and go up after the user opts in to sync.
+      if (!LocalMode.isOn) {
+        final repository = Repository();
+        EbmSyncService(repository);
 
-      AssetSyncService().initialize();
-      ReceiptSyncService().initialize();
+        AssetSyncService().initialize();
+        ReceiptSyncService().initialize();
+      }
 
       ProxyService.strategy.cleanDuplicatePlans();
       debugPrint('🚀 [StartupViewModel] App components initialized');
@@ -403,6 +408,20 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
       // business goes to signup and creates one. Windows used to be bounced
       // back to the login screen here, which left desktop with no way in.
       _routerService.navigateTo(SignUpViewRoute(countryNm: "Rwanda"));
+      return;
+    } else if ((e is SubscriptionError ||
+            e is FailedPaymentException ||
+            e is NoPaymentPlanFound) &&
+        await PaymentVerificationNavigator.entryRefused()) {
+      // A local-mode business whose data is on another device: the gate has
+      // explained and signed out instead of showing a paywall.
+      return;
+    } else if (LocalMode.isOn &&
+        (e is SubscriptionError ||
+            e is FailedPaymentException ||
+            e is NoPaymentPlanFound)) {
+      // Local mode is free forever — never a paywall.
+      await PaymentVerificationNavigator.navigateToAuthenticatedHome();
       return;
     } else if (e is SubscriptionError) {
       _routerService.navigateTo(PaymentPlanUIRoute());

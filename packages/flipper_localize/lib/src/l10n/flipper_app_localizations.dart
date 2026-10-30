@@ -45976,6 +45976,132 @@ abstract class FlipperAppLocalizations {
   /// In en, this message translates to:
   /// **'Some items are still being saved. Wait a moment, then transfer again.'**
   String get branchTransferCartStillSaving;
+
+  /// Signup: heading above the cloud-sync / offline-only choice
+  ///
+  /// In en, this message translates to:
+  /// **'Where your data is kept'**
+  String get signupDataChoice;
+
+  /// Signup option: normal cloud sync
+  ///
+  /// In en, this message translates to:
+  /// **'Sync to the cloud'**
+  String get signupDataCloud;
+
+  /// Signup option hint for cloud sync
+  ///
+  /// In en, this message translates to:
+  /// **'Backed up and on all your devices, with EBM and Flo. Paid plan.'**
+  String get signupDataCloudHint;
+
+  /// Signup option: local-only mode, no subscription
+  ///
+  /// In en, this message translates to:
+  /// **'Offline on this device — free forever'**
+  String get signupDataLocal;
+
+  /// Signup option hint for local-only mode; must warn about data loss
+  ///
+  /// In en, this message translates to:
+  /// **'Data stays only on this device, with no backup: uninstalling the app or losing the device deletes it. No EBM, no Flo. You can turn on cloud sync later.'**
+  String get signupDataLocalHint;
+
+  /// Shown instead of Flo chat in offline (local) mode
+  ///
+  /// In en, this message translates to:
+  /// **'Flo needs cloud sync. Turn on cloud sync to chat with Flo.'**
+  String get localModeFloUnavailable;
+
+  /// Menu entry in offline mode to opt in to cloud sync
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on cloud sync'**
+  String get localModeTurnOnSync;
+
+  /// Subtitle of the turn-on-cloud-sync entry
+  ///
+  /// In en, this message translates to:
+  /// **'Back up this device and choose a plan'**
+  String get localModeTurnOnSyncHint;
+
+  /// Confirm dialog title for leaving offline mode
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on cloud sync?'**
+  String get localModeOptInTitle;
+
+  /// Confirm dialog body for leaving offline mode
+  ///
+  /// In en, this message translates to:
+  /// **'All your Flipper data on this device will be uploaded to the cloud and you will choose a paid plan. EBM and Flo become available. You can\'t go back to offline mode. You\'ll sign in again to finish.'**
+  String get localModeOptInBody;
+
+  /// Confirm button for leaving offline mode
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on sync'**
+  String get localModeOptInConfirm;
+
+  /// Error when opting in to sync without internet
+  ///
+  /// In en, this message translates to:
+  /// **'Connect to the internet to turn on cloud sync.'**
+  String get localModeOptInOffline;
+
+  /// Short label showing the device runs offline-only
+  ///
+  /// In en, this message translates to:
+  /// **'Offline mode'**
+  String get localModeBadge;
+
+  /// Login on a second device for an offline-only (local mode) business
+  ///
+  /// In en, this message translates to:
+  /// **'This business works offline on another device'**
+  String get localModeElsewhereTitle;
+
+  /// Body explaining the data lives on another device; {device} is that device's name
+  ///
+  /// In en, this message translates to:
+  /// **'Its data is stored only on {device}, so it can\'t be opened here. To use Flipper on this device, turn on cloud sync on {device}.\n\nIf that device was lost or reset, you can turn on cloud sync here instead, but the data that was on it can\'t be recovered.'**
+  String localModeElsewhereBody(String device);
+
+  /// Fallback for {device} when the device name is unknown
+  ///
+  /// In en, this message translates to:
+  /// **'the device where it was set up'**
+  String get localModeElsewhereUnknownDevice;
+
+  /// Button: give up the other device's data and turn on cloud sync from this device
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on cloud sync here'**
+  String get localModeElsewhereUseHere;
+
+  /// Signing in to another business on a device held by an offline-only business
+  ///
+  /// In en, this message translates to:
+  /// **'This device is used offline by another business'**
+  String get localModeDeviceHeldTitle;
+
+  /// Body for the device-held-by-another-business dialog
+  ///
+  /// In en, this message translates to:
+  /// **'That business keeps its data only on this device, so you can\'t sign in to a different business here until it turns on cloud sync.'**
+  String get localModeDeviceHeldBody;
+
+  /// Offline device learns sync was turned on from another device
+  ///
+  /// In en, this message translates to:
+  /// **'Cloud sync was turned on'**
+  String get localModeSyncOnElsewhereTitle;
+
+  /// Body: sign in again to finish switching this device to cloud sync
+  ///
+  /// In en, this message translates to:
+  /// **'Cloud sync was turned on for this business from another device. Sign in again to upload this device\'s data and finish.'**
+  String get localModeSyncOnElsewhereBody;
 }
 
 class _FlipperAppLocalizationsDelegate

@@ -20332,5 +20332,94 @@
     "branchTransferCartStillSaving": "Some items are still being saved. Wait a moment, then transfer again.",
     "@branchTransferCartStillSaving": {
         "description": "Branch transfer refused because some cart lines are not saved yet"
+    },
+    "signupDataChoice": "Where your data is kept",
+    "@signupDataChoice": {
+        "description": "Signup: heading above the cloud-sync / offline-only choice"
+    },
+    "signupDataCloud": "Sync to the cloud",
+    "@signupDataCloud": {
+        "description": "Signup option: normal cloud sync"
+    },
+    "signupDataCloudHint": "Backed up and on all your devices, with EBM and Flo. Paid plan.",
+    "@signupDataCloudHint": {
+        "description": "Signup option hint for cloud sync"
+    },
+    "signupDataLocal": "Offline on this device — free forever",
+    "@signupDataLocal": {
+        "description": "Signup option: local-only mode, no subscription"
+    },
+    "signupDataLocalHint": "Data stays only on this device, with no backup: uninstalling the app or losing the device deletes it. No EBM, no Flo. You can turn on cloud sync later.",
+    "@signupDataLocalHint": {
+        "description": "Signup option hint for local-only mode; must warn about data loss"
+    },
+    "localModeFloUnavailable": "Flo needs cloud sync. Turn on cloud sync to chat with Flo.",
+    "@localModeFloUnavailable": {
+        "description": "Shown instead of Flo chat in offline (local) mode"
+    },
+    "localModeTurnOnSync": "Turn on cloud sync",
+    "@localModeTurnOnSync": {
+        "description": "Menu entry in offline mode to opt in to cloud sync"
+    },
+    "localModeTurnOnSyncHint": "Back up this device and choose a plan",
+    "@localModeTurnOnSyncHint": {
+        "description": "Subtitle of the turn-on-cloud-sync entry"
+    },
+    "localModeOptInTitle": "Turn on cloud sync?",
+    "@localModeOptInTitle": {
+        "description": "Confirm dialog title for leaving offline mode"
+    },
+    "localModeOptInBody": "All your Flipper data on this device will be uploaded to the cloud and you will choose a paid plan. EBM and Flo become available. You can't go back to offline mode. You'll sign in again to finish.",
+    "@localModeOptInBody": {
+        "description": "Confirm dialog body for leaving offline mode"
+    },
+    "localModeOptInConfirm": "Turn on sync",
+    "@localModeOptInConfirm": {
+        "description": "Confirm button for leaving offline mode"
+    },
+    "localModeOptInOffline": "Connect to the internet to turn on cloud sync.",
+    "@localModeOptInOffline": {
+        "description": "Error when opting in to sync without internet"
+    },
+    "localModeBadge": "Offline mode",
+    "@localModeBadge": {
+        "description": "Short label showing the device runs offline-only"
+    },
+    "localModeElsewhereTitle": "This business works offline on another device",
+    "@localModeElsewhereTitle": {
+        "description": "Login on a second device for an offline-only (local mode) business"
+    },
+    "localModeElsewhereBody": "Its data is stored only on {device}, so it can't be opened here. To use Flipper on this device, turn on cloud sync on {device}.\n\nIf that device was lost or reset, you can turn on cloud sync here instead, but the data that was on it can't be recovered.",
+    "@localModeElsewhereBody": {
+        "description": "Body explaining the data lives on another device; {device} is that device's name",
+        "placeholders": {
+            "device": {
+                "type": "String"
+            }
+        }
+    },
+    "localModeElsewhereUnknownDevice": "the device where it was set up",
+    "@localModeElsewhereUnknownDevice": {
+        "description": "Fallback for {device} when the device name is unknown"
+    },
+    "localModeElsewhereUseHere": "Turn on cloud sync here",
+    "@localModeElsewhereUseHere": {
+        "description": "Button: give up the other device's data and turn on cloud sync from this device"
+    },
+    "localModeDeviceHeldTitle": "This device is used offline by another business",
+    "@localModeDeviceHeldTitle": {
+        "description": "Signing in to another business on a device held by an offline-only business"
+    },
+    "localModeDeviceHeldBody": "That business keeps its data only on this device, so you can't sign in to a different business here until it turns on cloud sync.",
+    "@localModeDeviceHeldBody": {
+        "description": "Body for the device-held-by-another-business dialog"
+    },
+    "localModeSyncOnElsewhereTitle": "Cloud sync was turned on",
+    "@localModeSyncOnElsewhereTitle": {
+        "description": "Offline device learns sync was turned on from another device"
+    },
+    "localModeSyncOnElsewhereBody": "Cloud sync was turned on for this business from another device. Sign in again to upload this device's data and finish.",
+    "@localModeSyncOnElsewhereBody": {
+        "description": "Body: sign in again to finish switching this device to cloud sync"
     }
 }

@@ -14,6 +14,7 @@ import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:stacked/stacked.dart' show PageRouteInfo;
+import 'package:flipper_web/core/local_mode/local_mode.dart';
 import 'package:stacked_services/stacked_services.dart';
 
 /// Routes the user based on [PaymentVerificationResponse] (startup, periodic, manual).
@@ -21,6 +22,22 @@ class PaymentVerificationNavigator {
   PaymentVerificationNavigator._();
 
   static final _routerService = locator<RouterService>();
+
+  /// Set by the app: refuses entry to a business whose data is not on this
+  /// device (local mode — offline on another device, or this device held by
+  /// another business). Returns true when it took over navigation.
+  static Future<bool> Function(String? businessId)? entryGate;
+
+  static Future<bool> entryRefused() async {
+    final gate = entryGate;
+    if (gate == null) return false;
+    try {
+      return await gate(ProxyService.box.getBusinessId());
+    } catch (e, s) {
+      talker.error('Local mode entry gate failed: $e', s);
+      return false;
+    }
+  }
 
   /// The lockout screens.
   ///
@@ -196,6 +213,18 @@ class PaymentVerificationNavigator {
         );
         return;
       }
+    }
+
+    // Before the paywall or home: a local-mode business may not be reachable
+    // from this device. Background ticks never get this far into a session
+    // that could change, so only entry points ask.
+    if ((userInitiated || isInitialStartup) && await entryRefused()) return;
+
+    // Local mode is free forever: never a paywall, whatever the plan says.
+    if (response.result != PaymentVerificationResult.active && LocalMode.isOn) {
+      talker.info('Local mode: no plan needed');
+      await _handleActiveSubscription(mayEnterHome: mayEnterHome);
+      return;
     }
 
     // Personal mode is free: never a paywall, whatever the plan says. Asked
@@ -454,6 +483,7 @@ class PaymentVerificationNavigator {
     // with no session. Checked again at each navigation below, since the work
     // in between awaits.
     if (_refuseWhenSignedOut('authenticated home')) return;
+    if (await entryRefused()) return;
 
     // Personal money management: the personal shell, which [FlipperAppRoute]
     // shows for a personal account. No gamified app, commission screen or

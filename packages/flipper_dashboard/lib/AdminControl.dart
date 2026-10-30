@@ -6,6 +6,7 @@ import 'package:flipper_dashboard/features/admin/sections/admin_style.dart';
 import 'package:flipper_dashboard/features/admin/sections/receipt_logo_card.dart';
 import 'package:flipper_dashboard/features/admin/sections/sms_notifications_card.dart';
 import 'package:flipper_dashboard/features/admin/widgets/cash_reset_dialog.dart';
+import 'package:flipper_web/core/local_mode/local_mode.dart';
 import 'package:flipper_dashboard/features/admin/widgets/language_settings_card.dart';
 import 'package:flipper_dashboard/features/admin/widgets/sms_bridge_page.dart';
 import 'package:flipper_dashboard/features/online_shop/online_shop_page.dart';
@@ -709,28 +710,30 @@ class _AdminControlState extends ConsumerState<AdminControl> {
           ),
         ],
       ),
-      _SettingsGroup(
-        title: l10n.adminGroupTaxCompliance,
-        color: kAdminBarTeal,
-        items: [
-          _SettingItem(
-            title: l10n.ebm,
-            subtitle: l10n.reinitializeEbm,
-            svg: AdminDashboardSvgs.ebm,
-            tint: kAdminBarTeal,
-            value: switchToCloudSync,
-            onChanged: (_) => showReInitializeEbmDialog(context),
-          ),
-          _SettingItem(
-            title: l10n.taxService,
-            subtitle: l10n.manageTaxServiceStatus,
-            svg: AdminDashboardSvgs.taxService,
-            tint: kAdminBarPurple,
-            value: stopTaxService,
-            onChanged: toggleTaxService,
-          ),
-        ],
-      ),
+      // EBM is unavailable in local mode.
+      if (!LocalMode.isOn)
+        _SettingsGroup(
+          title: l10n.adminGroupTaxCompliance,
+          color: kAdminBarTeal,
+          items: [
+            _SettingItem(
+              title: l10n.ebm,
+              subtitle: l10n.reinitializeEbm,
+              svg: AdminDashboardSvgs.ebm,
+              tint: kAdminBarTeal,
+              value: switchToCloudSync,
+              onChanged: (_) => showReInitializeEbmDialog(context),
+            ),
+            _SettingItem(
+              title: l10n.taxService,
+              subtitle: l10n.manageTaxServiceStatus,
+              svg: AdminDashboardSvgs.taxService,
+              tint: kAdminBarPurple,
+              value: stopTaxService,
+              onChanged: toggleTaxService,
+            ),
+          ],
+        ),
       _SettingsGroup(
         title: l10n.adminGroupDataSync,
         color: kAdminBarBlue,

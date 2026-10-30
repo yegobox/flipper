@@ -3,6 +3,7 @@ import 'package:flipper_dashboard/books_module_navigation.dart';
 import 'package:flipper_dashboard/features/daily_report_files/daily_report_files_app.dart';
 import 'package:flipper_dashboard/features/incoming_orders/om_tokens.dart';
 import 'package:flipper_dashboard/hr_module_entry.dart';
+import 'package:flipper_dashboard/providers/navigation_providers.dart';
 import 'package:flipper_dashboard/features/personal_goals/personal_goals_screen.dart';
 import 'package:flipper_dashboard/features/leads/leads_mobile_screen.dart';
 import 'package:flipper_dashboard/features/production_output/production_output_app.dart';
@@ -13,6 +14,7 @@ import 'package:flipper_dashboard/features/services_gigs/services_gigs_app.dart'
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_web/core/local_mode/local_mode.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stacked_services/stacked_services.dart';
@@ -33,6 +35,8 @@ Future<void> navigateToDashboardAppPage({
   NavigatorState? navigator,
   void Function(String page)? onAppSelected,
 }) async {
+  // Covers every way in: tiles, bottom nav, launcher shortcuts, desktop tabs.
+  if (LocalMode.isOn && kLocalModeHiddenPages.contains(page)) return;
   if (onAppSelected != null) {
     onAppSelected(page);
     return;

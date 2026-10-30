@@ -156,6 +156,7 @@ class AppIconsGrid extends ConsumerWidget {
 
     final showIncomingOrders = ref.watch(sideMenuShowIncomingOrdersProvider);
     final filteredApps = rippleApps.where((app) {
+      if (hiddenInLocalMode(ref, app['page'] as String?)) return false;
       if (app['feature'] == 'Orders') return showIncomingOrders;
       if (app['feature'] == 'ServicesGigs') return true;
       if (app['feature'] == 'Settings') return true;

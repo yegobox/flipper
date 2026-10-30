@@ -9,6 +9,7 @@ import 'package:brick_sqlite/brick_sqlite.dart';
 import 'package:brick_sqlite/memory_cache_provider.dart';
 import 'package:brick_supabase/brick_supabase.dart' hide Supabase;
 import 'package:flipper_services/constants.dart';
+import 'package:flipper_web/core/local_mode/local_mode.dart';
 import 'package:flipper_services/event_bus.dart';
 import 'package:flipper_services/supabase_session_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -29,6 +30,7 @@ export 'package:brick_core/query.dart'
     show And, Or, Query, QueryAction, Where, WherePhrase, Compare, OrderBy;
 
 import 'repository/auth_refreshing_client.dart';
+import 'repository/local_mode_hold_client.dart';
 import 'repository/database_manager.dart';
 import 'repository/legacy_database_migration.dart';
 import 'repository/main_db_opener.dart';
@@ -308,7 +310,9 @@ class Repository extends OfflineFirstWithSupabaseRepository {
       databasePath: queuePath, // This is the path for the queue database
       // Stamps a live access token onto every request, including queue
       // replays, which would otherwise carry the JWT frozen at enqueue time.
-      innerClient: AuthRefreshingClient(
+      // Local mode holds writes in front of it, after the queue has logged
+      // them, so they upload only once the owner opts in to cloud sync.
+      innerClient: LocalModeHoldClient(AuthRefreshingClient(
         http.Client(),
         anonKey: supabaseAnonKey,
         // Lets the transport itself sign back in (not just refresh) when a
@@ -316,7 +320,7 @@ class Repository extends OfflineFirstWithSupabaseRepository {
         tokenSource: SupabaseAccessTokenSource(
           ensureAccessToken: SupabaseSessionService.ensureAccessToken,
         ),
-      ),
+      )),
       // Only transport, throttling and server-side failures are worth
       // replaying. Brick's default list contains 401/403 (and 404), which means
       // a rejection the server will never change its mind about is retried
@@ -506,8 +510,7 @@ class Repository extends OfflineFirstWithSupabaseRepository {
   /// working main DB (the queue has its own fallback).
   Future<void> _migrateMainDb() async {
     final lastVersion = await sqliteProvider.lastMigrationVersion();
-    await sqliteProvider
-        .migrate(migrationManager.migrationsSince(lastVersion));
+    await sqliteProvider.migrate(migrationManager.migrationsSince(lastVersion));
   }
 
   /// Closes the connection only. Not [SqliteProvider.resetDb], which deletes
@@ -659,7 +662,8 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     final inFlight = _initializationInFlight;
     if (inFlight != null) {
       _logger.info(
-          'Repository initialization already in progress, awaiting it.');
+        'Repository initialization already in progress, awaiting it.',
+      );
       return inFlight;
     }
 
@@ -788,9 +792,29 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     } else {
       await migrate();
     }
+    // Local mode: nothing leaves the device. Queued Supabase writes stay on
+    // disk and flush when the user opts in to sync ([resumeCloudSync]).
+    if (LocalMode.isOn) {
+      print('⏭️ [Repository] Local mode — offline queue and Turso push paused');
+      return;
+    }
     offlineRequestQueue.start();
     unawaited(_backgroundTursoSync());
     print('✅ [Repository] initialize() completed (Turso sync in background)');
+  }
+
+  /// Stops pushing queued writes to Supabase. Signup into local mode calls
+  /// this because the queue already started at boot.
+  static void pauseCloudSync() {
+    _singleton?.offlineRequestQueue.stop();
+  }
+
+  /// Starts the Supabase queue again and pushes to Turso Cloud (opt-in to sync).
+  static void resumeCloudSync() {
+    final repo = _singleton;
+    if (repo == null) return;
+    repo.offlineRequestQueue.start();
+    unawaited(repo._backgroundTursoSync());
   }
 
   static const _backgroundTursoSyncTimeout = Duration(seconds: 45);

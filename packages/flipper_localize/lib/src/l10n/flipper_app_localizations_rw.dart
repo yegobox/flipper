@@ -27747,4 +27747,79 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   @override
   String get branchTransferCartStillSaving =>
       'Hari ibicuruzwa bikibikwa. Tegereza akanya gato, hanyuma wongere wohereze.';
+
+  @override
+  String get signupDataChoice => 'Aho amakuru yawe abikwa';
+
+  @override
+  String get signupDataCloud => 'Guhuza n\'ikoranabuhanga rya cloud';
+
+  @override
+  String get signupDataCloudHint =>
+      'Abikwa neza kandi aboneka ku bikoresho byawe byose, hamwe na EBM na Flo. Ifatabuguzi ryishyurwa.';
+
+  @override
+  String get signupDataLocal => 'Kuri iki gikoresho gusa — ni ubuntu iteka';
+
+  @override
+  String get signupDataLocalHint =>
+      'Amakuru aguma kuri iki gikoresho gusa, nta bubiko bw\'inyongera: gusiba porogaramu cyangwa gutakaza igikoresho birayasiba. Nta EBM, nta Flo. Ushobora gufungura guhuza na cloud nyuma.';
+
+  @override
+  String get localModeFloUnavailable =>
+      'Flo ikenera guhuza na cloud. Fungura guhuza na cloud kugira ngo uganire na Flo.';
+
+  @override
+  String get localModeTurnOnSync => 'Fungura guhuza na cloud';
+
+  @override
+  String get localModeTurnOnSyncHint =>
+      'Bika amakuru y\'iki gikoresho kandi uhitemo ifatabuguzi';
+
+  @override
+  String get localModeOptInTitle => 'Gufungura guhuza na cloud?';
+
+  @override
+  String get localModeOptInBody =>
+      'Amakuru yose ya Flipper ari kuri iki gikoresho azoherezwa kuri cloud kandi uzahitamo ifatabuguzi ryishyurwa. EBM na Flo bizaboneka. Ntushobora gusubira ku buryo butagira murandasi. Uzongera kwinjira kugira ngo urangize.';
+
+  @override
+  String get localModeOptInConfirm => 'Fungura guhuza';
+
+  @override
+  String get localModeOptInOffline =>
+      'Huza na murandasi kugira ngo ufungure guhuza na cloud.';
+
+  @override
+  String get localModeBadge => 'Kuri iki gikoresho gusa';
+
+  @override
+  String get localModeElsewhereTitle =>
+      'Ubu bucuruzi bukorera ku kindi gikoresho nta murandasi';
+
+  @override
+  String localModeElsewhereBody(String device) {
+    return 'Amakuru yabwo abitswe kuri $device gusa, bityo ntashobora gufungurwa hano. Kugira ngo ukoreshe Flipper kuri iki gikoresho, fungura guhuza na cloud kuri $device.\n\nNiba icyo gikoresho cyatakaye cyangwa cyasubijwe ku ntangiriro, ushobora gufungura guhuza na cloud hano, ariko amakuru yari kuri cyo ntashobora kugarurwa.';
+  }
+
+  @override
+  String get localModeElsewhereUnknownDevice => 'igikoresho bwashyiriweho';
+
+  @override
+  String get localModeElsewhereUseHere => 'Fungura guhuza na cloud hano';
+
+  @override
+  String get localModeDeviceHeldTitle =>
+      'Iki gikoresho gikoreshwa nta murandasi n\'ubundi bucuruzi';
+
+  @override
+  String get localModeDeviceHeldBody =>
+      'Ubwo bucuruzi bubika amakuru yabwo kuri iki gikoresho gusa, bityo ntushobora kwinjira hano mu bundi bucuruzi kugeza bufunguye guhuza na cloud.';
+
+  @override
+  String get localModeSyncOnElsewhereTitle => 'Guhuza na cloud byafunguwe';
+
+  @override
+  String get localModeSyncOnElsewhereBody =>
+      'Guhuza na cloud byafunguwe kuri ubu bucuruzi bivuye ku kindi gikoresho. Ongera winjire kugira ngo wohereze amakuru y\'iki gikoresho urangize.';
 }
