@@ -34928,6 +34928,174 @@ abstract class FlipperAppLocalizations {
   /// **'Messages'**
   String get floMessages;
 
+  /// No description provided for @floTeamTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Team'**
+  String get floTeamTab;
+
+  /// No description provided for @floTeamNotMemberTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Flo Team is for invited members'**
+  String get floTeamNotMemberTitle;
+
+  /// No description provided for @floTeamNotMemberBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask the business owner or an admin to invite you.'**
+  String get floTeamNotMemberBody;
+
+  /// No description provided for @floTeamMembers.
+  ///
+  /// In en, this message translates to:
+  /// **'Members'**
+  String get floTeamMembers;
+
+  /// No description provided for @floTeamNewIdea.
+  ///
+  /// In en, this message translates to:
+  /// **'New idea'**
+  String get floTeamNewIdea;
+
+  /// No description provided for @floTeamNewDiscussion.
+  ///
+  /// In en, this message translates to:
+  /// **'New discussion'**
+  String get floTeamNewDiscussion;
+
+  /// No description provided for @floTeamIdeas.
+  ///
+  /// In en, this message translates to:
+  /// **'Ideas'**
+  String get floTeamIdeas;
+
+  /// No description provided for @floTeamTodo.
+  ///
+  /// In en, this message translates to:
+  /// **'To do'**
+  String get floTeamTodo;
+
+  /// No description provided for @floTeamDoing.
+  ///
+  /// In en, this message translates to:
+  /// **'Doing'**
+  String get floTeamDoing;
+
+  /// No description provided for @floTeamDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get floTeamDone;
+
+  /// No description provided for @floTeamDiscussions.
+  ///
+  /// In en, this message translates to:
+  /// **'Discussions'**
+  String get floTeamDiscussions;
+
+  /// No description provided for @floTeamEmptyColumn.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing here yet.'**
+  String get floTeamEmptyColumn;
+
+  /// No description provided for @floTeamTitleHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Title'**
+  String get floTeamTitleHint;
+
+  /// No description provided for @floTeamDetailsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Details (optional)'**
+  String get floTeamDetailsHint;
+
+  /// No description provided for @floTeamPost.
+  ///
+  /// In en, this message translates to:
+  /// **'Post'**
+  String get floTeamPost;
+
+  /// No description provided for @floTeamReplyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Write a reply…'**
+  String get floTeamReplyHint;
+
+  /// No description provided for @floTeamMention.
+  ///
+  /// In en, this message translates to:
+  /// **'Mention'**
+  String get floTeamMention;
+
+  /// No description provided for @floTeamSummarize.
+  ///
+  /// In en, this message translates to:
+  /// **'Summarise'**
+  String get floTeamSummarize;
+
+  /// No description provided for @floTeamFloThinking.
+  ///
+  /// In en, this message translates to:
+  /// **'Flo is thinking…'**
+  String get floTeamFloThinking;
+
+  /// No description provided for @floTeamAssignee.
+  ///
+  /// In en, this message translates to:
+  /// **'Assigned to'**
+  String get floTeamAssignee;
+
+  /// No description provided for @floTeamNobody.
+  ///
+  /// In en, this message translates to:
+  /// **'Nobody'**
+  String get floTeamNobody;
+
+  /// No description provided for @floTeamDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Due'**
+  String get floTeamDue;
+
+  /// No description provided for @floTeamNoDate.
+  ///
+  /// In en, this message translates to:
+  /// **'No date'**
+  String get floTeamNoDate;
+
+  /// No description provided for @floTeamTask.
+  ///
+  /// In en, this message translates to:
+  /// **'Task'**
+  String get floTeamTask;
+
+  /// No description provided for @floTeamStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get floTeamStatus;
+
+  /// No description provided for @floTeamOwner.
+  ///
+  /// In en, this message translates to:
+  /// **'Owner'**
+  String get floTeamOwner;
+
+  /// No description provided for @floTeamNoColleagues.
+  ///
+  /// In en, this message translates to:
+  /// **'Everyone on your staff is already in the team.'**
+  String get floTeamNoColleagues;
+
+  /// No description provided for @floTeamLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load Flo Team'**
+  String get floTeamLoadFailed;
+
   /// No description provided for @floNewConversation.
   ///
   /// In en, this message translates to:

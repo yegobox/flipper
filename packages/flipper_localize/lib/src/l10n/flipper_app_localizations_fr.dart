@@ -21371,6 +21371,93 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   String get floMessages => 'Messages';
 
   @override
+  String get floTeamTab => 'Équipe';
+
+  @override
+  String get floTeamNotMemberTitle =>
+      'Flo Team est réservé aux membres invités';
+
+  @override
+  String get floTeamNotMemberBody =>
+      'Demandez au propriétaire ou à un administrateur de vous inviter.';
+
+  @override
+  String get floTeamMembers => 'Membres';
+
+  @override
+  String get floTeamNewIdea => 'Nouvelle idée';
+
+  @override
+  String get floTeamNewDiscussion => 'Nouvelle discussion';
+
+  @override
+  String get floTeamIdeas => 'Idées';
+
+  @override
+  String get floTeamTodo => 'À faire';
+
+  @override
+  String get floTeamDoing => 'En cours';
+
+  @override
+  String get floTeamDone => 'Terminé';
+
+  @override
+  String get floTeamDiscussions => 'Discussions';
+
+  @override
+  String get floTeamEmptyColumn => 'Rien pour l\'instant.';
+
+  @override
+  String get floTeamTitleHint => 'Titre';
+
+  @override
+  String get floTeamDetailsHint => 'Détails (facultatif)';
+
+  @override
+  String get floTeamPost => 'Publier';
+
+  @override
+  String get floTeamReplyHint => 'Écrire une réponse…';
+
+  @override
+  String get floTeamMention => 'Mentionner';
+
+  @override
+  String get floTeamSummarize => 'Résumer';
+
+  @override
+  String get floTeamFloThinking => 'Flo réfléchit…';
+
+  @override
+  String get floTeamAssignee => 'Assigné à';
+
+  @override
+  String get floTeamNobody => 'Personne';
+
+  @override
+  String get floTeamDue => 'Échéance';
+
+  @override
+  String get floTeamNoDate => 'Aucune date';
+
+  @override
+  String get floTeamTask => 'Tâche';
+
+  @override
+  String get floTeamStatus => 'Statut';
+
+  @override
+  String get floTeamOwner => 'Propriétaire';
+
+  @override
+  String get floTeamNoColleagues =>
+      'Tout votre personnel est déjà dans l\'équipe.';
+
+  @override
+  String get floTeamLoadFailed => 'Impossible de charger Flo Team';
+
+  @override
   String get floNewConversation => 'Nouvelle conversation';
 
   @override

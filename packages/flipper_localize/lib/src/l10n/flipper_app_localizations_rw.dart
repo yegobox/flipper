@@ -21231,6 +21231,91 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   String get floMessages => 'Ubutumwa';
 
   @override
+  String get floTeamTab => 'Itsinda';
+
+  @override
+  String get floTeamNotMemberTitle => 'Flo Team ni iy\'abatumiwe gusa';
+
+  @override
+  String get floTeamNotMemberBody =>
+      'Saba nyir\'ubucuruzi cyangwa umuyobozi akugutumire.';
+
+  @override
+  String get floTeamMembers => 'Abanyamuryango';
+
+  @override
+  String get floTeamNewIdea => 'Igitekerezo gishya';
+
+  @override
+  String get floTeamNewDiscussion => 'Ikiganiro gishya';
+
+  @override
+  String get floTeamIdeas => 'Ibitekerezo';
+
+  @override
+  String get floTeamTodo => 'Ibyo gukora';
+
+  @override
+  String get floTeamDoing => 'Birimo gukorwa';
+
+  @override
+  String get floTeamDone => 'Byarangiye';
+
+  @override
+  String get floTeamDiscussions => 'Ibiganiro';
+
+  @override
+  String get floTeamEmptyColumn => 'Nta kirimo ubu.';
+
+  @override
+  String get floTeamTitleHint => 'Umutwe';
+
+  @override
+  String get floTeamDetailsHint => 'Ibisobanuro (si ngombwa)';
+
+  @override
+  String get floTeamPost => 'Ohereza';
+
+  @override
+  String get floTeamReplyHint => 'Andika igisubizo…';
+
+  @override
+  String get floTeamMention => 'Vuga';
+
+  @override
+  String get floTeamSummarize => 'Incamake';
+
+  @override
+  String get floTeamFloThinking => 'Flo aratekereza…';
+
+  @override
+  String get floTeamAssignee => 'Ushinzwe';
+
+  @override
+  String get floTeamNobody => 'Nta muntu';
+
+  @override
+  String get floTeamDue => 'Itariki ntarengwa';
+
+  @override
+  String get floTeamNoDate => 'Nta tariki';
+
+  @override
+  String get floTeamTask => 'Igikorwa';
+
+  @override
+  String get floTeamStatus => 'Uko bihagaze';
+
+  @override
+  String get floTeamOwner => 'Nyirabyo';
+
+  @override
+  String get floTeamNoColleagues => 'Abakozi bawe bose bari mu itsinda.';
+
+  @override
+  String get floTeamLoadFailed => 'Flo Team ntiyabashije gufunguka';
+
+  @override
   String get floNewConversation => 'Ikiganiro gishya';
 
   @override
