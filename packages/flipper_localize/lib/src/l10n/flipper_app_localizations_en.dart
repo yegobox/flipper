@@ -21029,6 +21029,92 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
   String get floMessages => 'Messages';
 
   @override
+  String get floTeamTab => 'Team';
+
+  @override
+  String get floTeamNotMemberTitle => 'Flo Team is for invited members';
+
+  @override
+  String get floTeamNotMemberBody =>
+      'Ask the business owner or an admin to invite you.';
+
+  @override
+  String get floTeamMembers => 'Members';
+
+  @override
+  String get floTeamNewIdea => 'New idea';
+
+  @override
+  String get floTeamNewDiscussion => 'New discussion';
+
+  @override
+  String get floTeamIdeas => 'Ideas';
+
+  @override
+  String get floTeamTodo => 'To do';
+
+  @override
+  String get floTeamDoing => 'Doing';
+
+  @override
+  String get floTeamDone => 'Done';
+
+  @override
+  String get floTeamDiscussions => 'Discussions';
+
+  @override
+  String get floTeamEmptyColumn => 'Nothing here yet.';
+
+  @override
+  String get floTeamTitleHint => 'Title';
+
+  @override
+  String get floTeamDetailsHint => 'Details (optional)';
+
+  @override
+  String get floTeamPost => 'Post';
+
+  @override
+  String get floTeamReplyHint => 'Write a reply…';
+
+  @override
+  String get floTeamMention => 'Mention';
+
+  @override
+  String get floTeamSummarize => 'Summarise';
+
+  @override
+  String get floTeamFloThinking => 'Flo is thinking…';
+
+  @override
+  String get floTeamAssignee => 'Assigned to';
+
+  @override
+  String get floTeamNobody => 'Nobody';
+
+  @override
+  String get floTeamDue => 'Due';
+
+  @override
+  String get floTeamNoDate => 'No date';
+
+  @override
+  String get floTeamTask => 'Task';
+
+  @override
+  String get floTeamStatus => 'Status';
+
+  @override
+  String get floTeamOwner => 'Owner';
+
+  @override
+  String get floTeamNoColleagues =>
+      'Everyone on your staff is already in the team.';
+
+  @override
+  String get floTeamLoadFailed => 'Couldn\'t load Flo Team';
+
+  @override
   String get floNewConversation => 'New conversation';
 
   @override

@@ -21159,6 +21159,92 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   String get floMessages => 'Ujumbe';
 
   @override
+  String get floTeamTab => 'Timu';
+
+  @override
+  String get floTeamNotMemberTitle => 'Flo Team ni kwa wanachama walioalikwa';
+
+  @override
+  String get floTeamNotMemberBody =>
+      'Muombe mmiliki wa biashara au msimamizi akualike.';
+
+  @override
+  String get floTeamMembers => 'Wanachama';
+
+  @override
+  String get floTeamNewIdea => 'Wazo jipya';
+
+  @override
+  String get floTeamNewDiscussion => 'Mjadala mpya';
+
+  @override
+  String get floTeamIdeas => 'Mawazo';
+
+  @override
+  String get floTeamTodo => 'Ya kufanya';
+
+  @override
+  String get floTeamDoing => 'Inaendelea';
+
+  @override
+  String get floTeamDone => 'Imekamilika';
+
+  @override
+  String get floTeamDiscussions => 'Mijadala';
+
+  @override
+  String get floTeamEmptyColumn => 'Hakuna kitu bado.';
+
+  @override
+  String get floTeamTitleHint => 'Kichwa';
+
+  @override
+  String get floTeamDetailsHint => 'Maelezo (si lazima)';
+
+  @override
+  String get floTeamPost => 'Chapisha';
+
+  @override
+  String get floTeamReplyHint => 'Andika jibu…';
+
+  @override
+  String get floTeamMention => 'Taja';
+
+  @override
+  String get floTeamSummarize => 'Fanya muhtasari';
+
+  @override
+  String get floTeamFloThinking => 'Flo anafikiri…';
+
+  @override
+  String get floTeamAssignee => 'Amepewa';
+
+  @override
+  String get floTeamNobody => 'Hakuna';
+
+  @override
+  String get floTeamDue => 'Tarehe ya mwisho';
+
+  @override
+  String get floTeamNoDate => 'Hakuna tarehe';
+
+  @override
+  String get floTeamTask => 'Kazi';
+
+  @override
+  String get floTeamStatus => 'Hali';
+
+  @override
+  String get floTeamOwner => 'Mmiliki';
+
+  @override
+  String get floTeamNoColleagues =>
+      'Wafanyakazi wako wote tayari wako kwenye timu.';
+
+  @override
+  String get floTeamLoadFailed => 'Imeshindwa kupakia Flo Team';
+
+  @override
   String get floNewConversation => 'Mazungumzo mapya';
 
   @override

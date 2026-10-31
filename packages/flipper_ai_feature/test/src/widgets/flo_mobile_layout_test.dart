@@ -34,13 +34,14 @@ void main() {
           of: find.text(label),
           matching: find.byType(InkWell),
         ));
-    final askWidth = tester.getSize(find.byWidget(tabOf(l10n.floAskFlo))).width;
-    final messagesWidth =
-        tester.getSize(find.byWidget(tabOf(l10n.floMessages))).width;
+    final widths = [l10n.floAskFlo, l10n.floTeamTab, l10n.floMessages]
+        .map((label) => tester.getSize(find.byWidget(tabOf(label))).width)
+        .toList();
 
-    expect(askWidth, messagesWidth);
-    // Both tabs together fill the row bar its padding and the pill's inset.
-    expect(askWidth + messagesWidth, greaterThan(390 - 40));
+    expect(tester.takeException(), isNull);
+    expect(widths.toSet(), hasLength(1));
+    // The tabs together fill the row bar its padding and the pill's inset.
+    expect(widths.reduce((a, b) => a + b), greaterThan(390 - 40));
   });
 
   testWidgets('phone suggestions stack at natural height, not a fixed grid', (

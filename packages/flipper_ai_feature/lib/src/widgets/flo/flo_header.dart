@@ -5,7 +5,9 @@ import '../../theme/flo_theme.dart';
 import 'flo_icons.dart';
 import 'flo_mark.dart';
 
-enum FloPanelMode { askFlo, messages }
+/// Ask Flo, Flo Team (ideas and tasks shared with colleagues) and the
+/// WhatsApp inbox.
+enum FloPanelMode { askFlo, team, messages }
 
 class FloHeader extends StatelessWidget {
   const FloHeader({
@@ -16,6 +18,7 @@ class FloHeader extends StatelessWidget {
     this.miniDataConnected = true,
     this.whatsAppConnected = false,
     this.unreadCount = 0,
+    this.teamUnreadCount = 0,
     this.onNewChat,
     this.onConnectWhatsApp,
     this.onManageSources,
@@ -32,6 +35,9 @@ class FloHeader extends StatelessWidget {
   final bool miniDataConnected;
   final bool whatsAppConnected;
   final int unreadCount;
+
+  /// Unread @mentions in Flo Team.
+  final int teamUnreadCount;
   final VoidCallback? onNewChat;
   final VoidCallback? onConnectWhatsApp;
   final VoidCallback? onManageSources;
@@ -58,6 +64,7 @@ class FloHeader extends StatelessWidget {
         child: _ModeTabs(
           mode: mode,
           unreadCount: unreadCount,
+          teamUnreadCount: teamUnreadCount,
           whatsAppConnected: whatsAppConnected,
           isMobile: isMobile,
           onChanged: onModeChanged,
@@ -66,6 +73,20 @@ class FloHeader extends StatelessWidget {
       );
     }
 
+    return LayoutBuilder(
+      builder: (context, constraints) => _row(
+        context,
+        // The source chips need room beside three mode tabs; when narrower,
+        // the + menu still offers WhatsApp and Sources.
+        showChips: constraints.maxWidth >= chipsMinWidth,
+      ),
+    );
+  }
+
+  /// Narrowest header that also shows the source chips.
+  static const double chipsMinWidth = 1200;
+
+  Widget _row(BuildContext context, {required bool showChips}) {
     return Container(
       padding: EdgeInsets.symmetric(
         horizontal: isMobile ? 12 : 20,
@@ -136,18 +157,21 @@ class FloHeader extends StatelessWidget {
           _ModeTabs(
             mode: mode,
             unreadCount: unreadCount,
+            teamUnreadCount: teamUnreadCount,
             whatsAppConnected: whatsAppConnected,
             isMobile: isMobile,
             onChanged: onModeChanged,
           ),
           const Spacer(),
           if (!isMobile) ...[
-            _HeaderChips(
-              whatsAppConnected: whatsAppConnected,
-              onManageSources: onManageSources,
-              onConnectWhatsApp: onConnectWhatsApp,
-            ),
-            const SizedBox(width: 8),
+            if (showChips) ...[
+              _HeaderChips(
+                whatsAppConnected: whatsAppConnected,
+                onManageSources: onManageSources,
+                onConnectWhatsApp: onConnectWhatsApp,
+              ),
+              const SizedBox(width: 8),
+            ],
             _HeadBtn(
               label: context.flipperL10n.floNewChat,
               icon: FloIcons.newChat(size: 17, color: FloTheme.ink2),
@@ -185,6 +209,7 @@ class _ModeTabs extends StatelessWidget {
   const _ModeTabs({
     required this.mode,
     required this.unreadCount,
+    required this.teamUnreadCount,
     required this.whatsAppConnected,
     required this.isMobile,
     required this.onChanged,
@@ -193,6 +218,7 @@ class _ModeTabs extends StatelessWidget {
 
   final FloPanelMode mode;
   final int unreadCount;
+  final int teamUnreadCount;
   final bool whatsAppConnected;
   final bool isMobile;
   final ValueChanged<FloPanelMode> onChanged;
@@ -224,6 +250,21 @@ class _ModeTabs extends StatelessWidget {
             selected: mode == FloPanelMode.askFlo,
             onTap: () => onChanged(FloPanelMode.askFlo),
             compact: isMobile,
+            showIcon: !stretch,
+          )),
+          tab(_ModeTab(
+            key: const Key('flo-mode-team'),
+            label: context.flipperL10n.floTeamTab,
+            icon: Icon(
+              Icons.groups_2_outlined,
+              size: 15,
+              color: mode == FloPanelMode.team ? FloTheme.ink1 : FloTheme.ink3,
+            ),
+            selected: mode == FloPanelMode.team,
+            onTap: () => onChanged(FloPanelMode.team),
+            compact: isMobile,
+            showIcon: !stretch,
+            badge: teamUnreadCount > 0 ? teamUnreadCount : null,
           )),
           tab(_ModeTab(
             label: context.flipperL10n.floMessages,
@@ -235,6 +276,7 @@ class _ModeTabs extends StatelessWidget {
             selected: mode == FloPanelMode.messages,
             onTap: () => onChanged(FloPanelMode.messages),
             compact: isMobile,
+            showIcon: !stretch,
             badge: whatsAppConnected && unreadCount > 0 ? unreadCount : null,
           )),
         ],
@@ -245,11 +287,13 @@ class _ModeTabs extends StatelessWidget {
 
 class _ModeTab extends StatelessWidget {
   const _ModeTab({
+    super.key,
     required this.label,
     required this.icon,
     required this.selected,
     required this.onTap,
     this.compact = false,
+    this.showIcon = true,
     this.badge,
   });
 
@@ -258,6 +302,9 @@ class _ModeTab extends StatelessWidget {
   final bool selected;
   final VoidCallback onTap;
   final bool compact;
+
+  /// Off when three tabs share a phone's width: the labels need the room.
+  final bool showIcon;
   final int? badge;
 
   @override
@@ -279,14 +326,18 @@ class _ModeTab extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              icon,
-              const SizedBox(width: 7),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: selected ? FloTheme.ink1 : FloTheme.ink3,
+              if (showIcon) ...[icon, const SizedBox(width: 7)],
+              Flexible(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  softWrap: false,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: selected ? FloTheme.ink1 : FloTheme.ink3,
+                  ),
                 ),
               ),
               if (badge != null) ...[
