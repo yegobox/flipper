@@ -3,8 +3,10 @@
 import 'dart:async';
 import 'dart:math' as math;
 import 'package:collection/collection.dart';
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/talker.dart';
+import 'package:flipper_models/perf/ui_stall_watchdog.dart';
 import 'package:flipper_models/providers/ebm_provider.dart';
 import 'package:flipper_models/providers/scan_mode_provider.dart';
 import 'package:flipper_models/services/hotel_room_rra_service.dart';
@@ -69,6 +71,13 @@ class OuterVariants extends _$OuterVariants {
 
   String _currentSearch = '';
   int _searchGeneration = 0;
+
+  /// Held while a search query runs; see [_applySearchQuery].
+  Completer<void>? _searchSlot;
+
+  /// How long a search may take before the grid stops waiting for it.
+  @visibleForTesting
+  static Duration searchTimeout = const Duration(seconds: 8);
 
   /// Non-null while the user is driving the explicit page bar: state then shows
   /// exactly that page instead of every cached page flattened together.
@@ -251,6 +260,12 @@ class OuterVariants extends _$OuterVariants {
   }
 
   /// Search updates without re-running [build] (keeps current grid visible).
+  ///
+  /// One search query runs at a time: each is its own isolate on a slow till,
+  /// and stacking one per keystroke is how a typist queues seconds of work. A
+  /// term typed meanwhile waits, and only the newest of those runs. A query
+  /// that never answers gives up after [searchTimeout] and leaves the grid as
+  /// it was, so the search can never spin forever.
   Future<void> _applySearchQuery(String searchString) async {
     final generation = ++_searchGeneration;
     _currentSearch = searchString;
@@ -258,8 +273,18 @@ class OuterVariants extends _$OuterVariants {
     _firstCachedPage = 0;
     _lastCachedPage = -1;
 
+    while (_searchSlot != null) {
+      await _searchSlot!.future;
+      if (generation != _searchGeneration) return;
+    }
+    final slot = _searchSlot = Completer<void>();
+
     try {
-      final paged = await _fetchVariants(branchId, 0, searchString);
+      final paged = await PerfOpTrail.instance.track(
+        'pos_search',
+        () => _fetchVariants(branchId, 0, searchString).timeout(searchTimeout),
+        critical: true,
+      );
       if (generation != _searchGeneration) return;
 
       _totalCount = paged.totalCount;
@@ -267,9 +292,20 @@ class OuterVariants extends _$OuterVariants {
       _firstCachedPage = 0;
       _lastCachedPage = 0;
       state = AsyncValue.data(_currentView());
+    } on TimeoutException {
+      talker.warning(
+        'OuterVariants: search gave up after ${searchTimeout.inSeconds}s',
+      );
+      PerfOpTrail.instance.report('search_timeout', {
+        'timeout_ms': searchTimeout.inMilliseconds,
+        'recent': PerfOpTrail.instance.recent().join(', '),
+      });
     } catch (error, stackTrace) {
       if (generation != _searchGeneration) return;
       state = AsyncValue.error(error, stackTrace);
+    } finally {
+      _searchSlot = null;
+      slot.complete();
     }
   }
 

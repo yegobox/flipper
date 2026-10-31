@@ -1,5 +1,31 @@
+import 'dart:io';
+
+import 'package:flipper_models/perf/ui_stall_watchdog.dart';
 import 'package:flipper_models/sync/ditto_observer_registry.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+/// Just enough of a Ditto handle for [registerTrackedObserver]: it keeps the
+/// callback so a test can fire it.
+class _FakeStore {
+  void Function(dynamic)? onChange;
+
+  Object registerObserver(
+    String query, {
+    Map<String, dynamic>? arguments,
+    required void Function(dynamic) onChange,
+  }) {
+    this.onChange = onChange;
+    return Object();
+  }
+}
+
+class _FakeDitto {
+  final store = _FakeStore();
+}
+
+class _FakeResult {
+  final items = const [1, 2];
+}
 
 void main() {
   late DittoObserverStats stats;
@@ -12,10 +38,7 @@ void main() {
     stats.opened(name: 'transactionsStream', collection: 'transactions');
 
     expect(stats.live, 3);
-    expect(stats.liveByCollection, {
-      'transaction_items': 1,
-      'transactions': 2,
-    });
+    expect(stats.liveByCollection, {'transaction_items': 1, 'transactions': 2});
   });
 
   test('a leak shows as a count that only grows', () {
@@ -61,6 +84,22 @@ void main() {
     stats.opened(name: 'e', collection: 'variants');
 
     expect(stats.summary(), startsWith('transactions=3'));
+  });
+
+  test('a slow callback lands in the perf trail by name', () {
+    final ditto = _FakeDitto();
+    registerTrackedObserver(
+      ditto: ditto,
+      name: 'barTabs',
+      collection: 'transactions',
+      query: 'SELECT * FROM transactions',
+      onChange: (_) =>
+          sleep(const Duration(milliseconds: kSlowObserverCallbackMs + 10)),
+    );
+
+    ditto.store.onChange!(_FakeResult());
+
+    expect(PerfOpTrail.instance.recent().last, startsWith('obs:barTabs('));
   });
 
   test('the slow-callback threshold is the documented one', () {

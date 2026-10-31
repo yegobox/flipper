@@ -4,6 +4,7 @@ import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/providers/pending_cart_sale_session_provider.dart';
 import 'package:flipper_models/providers/scan_mode_provider.dart';
+import 'package:flipper_models/perf/ui_stall_watchdog.dart';
 import 'package:flipper_models/providers/ebm_provider.dart';
 import 'package:flipper_models/sync/utils/pos_catalog_tax_ty_cds.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -36,7 +37,14 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
   }
 
   /// Barcode-first lookup, then a minimal text search (max 2 rows).
-  Future<List<Variant>> _resolveAutoAddMatches(String value) async {
+  Future<List<Variant>> _resolveAutoAddMatches(String value) =>
+      PerfOpTrail.instance.track(
+        'pos_autoadd_lookup',
+        () => _lookupAutoAddMatches(value),
+        critical: true,
+      );
+
+  Future<List<Variant>> _lookupAutoAddMatches(String value) async {
     final trimmed = value.trim();
     if (trimmed.isEmpty) return const [];
 
