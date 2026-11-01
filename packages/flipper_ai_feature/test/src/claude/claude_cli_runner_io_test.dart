@@ -109,6 +109,16 @@ printf '{"type":"result","is_error":false,"result":"caf\\351 ok"}'
     await timesOut(IoClaudeCliRunner(isWindows: true, taskkill: taskkill.path));
   }, skip: skip);
 
+  test('a hung taskkill is cut off and the CLI still ends', () async {
+    final taskkill = fakeTaskkill('exec sleep 30\n');
+    await timesOut(IoClaudeCliRunner(isWindows: true, taskkill: taskkill.path));
+  }, skip: skip);
+
+  test('the system taskkill is the default', () async {
+    // Not present on this host, so the CLI is ended directly.
+    await timesOut(IoClaudeCliRunner(isWindows: true));
+  }, skip: skip);
+
   test('without taskkill a Windows timeout still ends the CLI', () async {
     await timesOut(
         IoClaudeCliRunner(isWindows: true, taskkill: '${dir.path}/missing'));
