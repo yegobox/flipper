@@ -128,10 +128,11 @@ class _AppChoiceDialogState extends ConsumerState<AppChoiceDialog>
   /// two never disagree.
   int _cursor = 0;
 
-  /// Set once the user moves the cursor (keys or pointer). Until then the
-  /// cursor follows the stored default, which may only appear once HR access
-  /// has loaded.
-  bool _cursorMoved = false;
+  /// The app the user moved the cursor to (keys or pointer), by id. Until
+  /// they move it the cursor follows the stored default, which may only
+  /// appear once HR access has loaded. Kept by id, not index, because HR
+  /// appearing late shifts every app after it.
+  String? _movedTo;
   int _columns = 4;
   bool _isLaunching = false;
   bool _isClosing = false;
@@ -325,8 +326,8 @@ class _AppChoiceDialogState extends ConsumerState<AppChoiceDialog>
     if (delta == 0) return KeyEventResult.ignored;
 
     setState(() {
-      _cursorMoved = true;
       _cursor = (_cursor + delta).clamp(0, _apps.length - 1);
+      _movedTo = _apps[_cursor].id;
     });
     return KeyEventResult.handled;
   }
@@ -367,10 +368,9 @@ class _AppChoiceDialogState extends ConsumerState<AppChoiceDialog>
           app,
     ];
     final currentDefault = _normalizedDefault(ProxyService.box.getDefaultApp());
-    // Start on the current default so Enter repeats the user's last choice.
-    if (!_cursorMoved) {
-      _cursor = _apps.indexWhere((a) => a.id == currentDefault);
-    }
+    // Start on the current default so Enter repeats the user's last choice,
+    // and stay on whichever app the user moved to after that.
+    _cursor = _apps.indexWhere((a) => a.id == (_movedTo ?? currentDefault));
     _cursor = _cursor.clamp(0, _apps.length - 1);
     _branchName = _watchBranchName();
 
@@ -631,8 +631,8 @@ class _AppChoiceDialogState extends ConsumerState<AppChoiceDialog>
                 onHover: () {
                   if (_isLaunching || _cursor == index) return;
                   setState(() {
-                    _cursorMoved = true;
                     _cursor = index;
+                    _movedTo = app.id;
                   });
                 },
                 onTap: () => unawaited(_select(app)),

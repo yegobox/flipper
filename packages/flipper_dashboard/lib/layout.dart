@@ -27,6 +27,7 @@ import 'package:flipper_dashboard/widgets/pos_handoff_icon.dart';
 import 'package:flipper_dashboard/widgets/pos_system_status_strip.dart';
 import 'package:flipper_dashboard/widgets/unified_top_bar.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_web/core/local_mode/local_mode.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flutter/material.dart';
@@ -41,7 +42,8 @@ DashboardPage dashboardPageForDefaultApp(String defaultApp) =>
     switch (defaultApp) {
       'Reports' => DashboardPage.reports,
       'Orders' => DashboardPage.orders,
-      'Flo' => DashboardPage.ai,
+      // Local Mode has no Flo (cloud AI): a stored Flo default opens POS.
+      'Flo' when !LocalMode.isOn => DashboardPage.ai,
       _ => DashboardPage.inventory,
     };
 

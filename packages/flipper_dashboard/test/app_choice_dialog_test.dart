@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/app_choice_dialog.dart';
 import 'package:flipper_dashboard/dashboard_shell.dart';
@@ -228,6 +230,34 @@ void main() {
     await _pumpSelection(tester);
 
     expect(box.defaultApp, 'Books');
+  });
+
+  testWidgets('the cursor stays on its app when HR appears late', (
+    tester,
+  ) async {
+    final accesses = Completer<List<Access>>();
+    await pumpChooser(
+      tester,
+      overrides: [
+        hrAppBuilderProvider.overrideWithValue(
+          ({required onExit, required onUpgrade}) => const SizedBox(),
+        ),
+        hrEnsureSupabaseSessionProvider.overrideWithValue(() async => null),
+        allAccessesProvider(_userId).overrideWith((ref) => accesses.future),
+      ],
+    );
+
+    // POS, Books, Flo while access loads: two steps right is Flo.
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+    await tester.pump();
+    // HR now slots in where Flo was.
+    accesses.complete([_access(userType: 'Admin')]);
+    await tester.pumpAndSettle();
+    await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+    await _pumpSelection(tester);
+
+    expect(box.defaultApp, 'Flo');
   });
 
   testWidgets('Escape cancels without storing a default', (tester) async {
@@ -719,6 +749,12 @@ void main() {
       await _pumpSelection(tester);
       expect(responses.single.data, {'defaultApp': 'Flo'});
     });
+  });
+
+  test('a stored Flo default opens POS in Local Mode, which has no Flo', () {
+    LocalMode.debugSet(true);
+    addTearDown(() => LocalMode.debugSet(false));
+    expect(dashboardPageForDefaultApp('Flo'), DashboardPage.inventory);
   });
 
   test('a stored default app opens on its dashboard tab', () {
