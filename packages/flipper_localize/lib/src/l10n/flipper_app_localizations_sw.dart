@@ -21217,7 +21217,7 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   String get floTeamFloThinking => 'Flo anafikiri…';
 
   @override
-  String get floTeamAssignee => 'Amepewa';
+  String get floTeamAssignee => 'Aliyekabidhiwa';
 
   @override
   String get floTeamNobody => 'Hakuna';

@@ -36,6 +36,12 @@ class FakeFloTeamRepository implements FloTeamRepository {
   /// When set, the next call throws it (once).
   Object? failNext;
 
+  /// When set, the next `members` call throws it (once).
+  Object? failMembers;
+
+  /// When set, `me` waits for it.
+  Future<void>? meGate;
+
   /// When set, every `changes` call throws it.
   Object? failChanges;
 
@@ -53,6 +59,7 @@ class FakeFloTeamRepository implements FloTeamRepository {
   @override
   Future<FloTeamMe> me() async {
     calls.add('me');
+    await meGate;
     await _maybeFail();
     return FloTeamMe(userId: 'me', isMember: isMember, isManager: isManager);
   }
@@ -61,6 +68,9 @@ class FakeFloTeamRepository implements FloTeamRepository {
   Future<List<FloTeamMember>> members() async {
     calls.add('members');
     await _maybeFail();
+    final f = failMembers;
+    failMembers = null;
+    if (f != null) throw f;
     return List.of(memberList);
   }
 

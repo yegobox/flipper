@@ -6,6 +6,7 @@ import '../theme/flo_theme.dart';
 import '../widgets/flo/flo_block_renderer.dart';
 import 'flo_team_controller.dart';
 import 'flo_team_models.dart';
+import 'flo_team_repository.dart' show FloTeamException;
 
 /// The Team tab of Flo: a board of ideas, tasks and discussions shared with
 /// invited colleagues, threads where Flo joins in, and (for the owner or an
@@ -44,7 +45,11 @@ class _FloTeamViewState extends ConsumerState<FloTeamView> {
         child: CircularProgressIndicator(key: Key('flo-team-loading')),
       );
     }
-    if (state.error != null && state.board.threads.isEmpty && state.isMember) {
+    // A failed first load has no `me` yet: that is an error to retry, not
+    // "not a member".
+    if (state.error != null &&
+        state.board.threads.isEmpty &&
+        (state.isMember || state.me == null)) {
       return _Message(
         title: l10n.floTeamLoadFailed,
         body: state.error!,
@@ -441,8 +446,14 @@ class _ThreadPanelState extends ConsumerState<_ThreadPanel> {
   @override
   void initState() {
     super.initState();
-    // Opening the thread reads its mentions.
-    Future.microtask(() => _team.markRead(widget.thread.id));
+    // Opening the thread reads its mentions. If that fails (offline) they
+    // stay unread until the thread is opened again.
+    Future.microtask(
+      () => _team.markRead(widget.thread.id).catchError(
+            (Object _) {},
+            test: (e) => e is FloTeamException,
+          ),
+    );
   }
 
   @override

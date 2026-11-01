@@ -205,6 +205,14 @@ void main() {
 
     http.Response ok(Object body) => http.Response(jsonEncode(body), 200);
 
+    test('a base URL that cannot be resolved is a FloTeamException', () {
+      final r = HttpFloTeamRepository(
+        baseUrl: () async => throw StateError('no branch'),
+        client: MockClient((_) async => ok({})),
+      );
+      expect(r.me(), throwsA(isA<FloTeamException>()));
+    });
+
     test('every call goes to its route', () async {
       final r = repo((req) {
         final path = req.url.path;

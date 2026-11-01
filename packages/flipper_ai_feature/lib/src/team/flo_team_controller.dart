@@ -72,13 +72,20 @@ class FloTeamController extends Notifier<FloTeamState> {
   Timer? _timer;
   bool _polling = false;
 
+  /// Set when the provider is disposed, so a refresh still awaiting the
+  /// server leaves the dead state alone.
+  bool _disposed = false;
+
   FloTeamRepository get _repo => ref.read(floTeamRepositoryProvider);
 
   @override
   FloTeamState build() {
     final every = ref.watch(floTeamPollIntervalProvider);
     _timer = Timer.periodic(every, (_) => refresh());
-    ref.onDispose(() => _timer?.cancel());
+    ref.onDispose(() {
+      _disposed = true;
+      _timer?.cancel();
+    });
     Future.microtask(refresh);
     return const FloTeamState();
   }
@@ -91,20 +98,26 @@ class FloTeamController extends Notifier<FloTeamState> {
     try {
       if (!state.isMember) {
         final me = await _repo.me();
-        state = state.copyWith(me: me);
+        if (_disposed) return;
         if (!me.isMember) {
-          state = state.copyWith(loading: false, clearError: true);
+          state = state.copyWith(me: me, loading: false, clearError: true);
           return;
         }
-        state = state.copyWith(members: await _repo.members());
+        // Membership is kept only with the member list, so a failed list is
+        // fetched again (with `me`) on the next poll instead of never.
+        final members = await _repo.members();
+        if (_disposed) return;
+        state = state.copyWith(me: me, members: members);
       }
       final changes = await _repo.changes(since: state.board.since);
+      if (_disposed) return;
       state = state.copyWith(
         loading: false,
         clearError: true,
         board: state.board.merge(changes),
       );
     } on FloTeamException catch (e) {
+      if (_disposed) return;
       if (e.notMember) {
         // Removed from the team since the last poll.
         state = FloTeamState(

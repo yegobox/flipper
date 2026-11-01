@@ -139,6 +139,29 @@ void main() {
           [false, true, 0]);
     });
 
+    test('a failed member list is fetched again on the next poll', () async {
+      final repo = _team()..failMembers = FloTeamException('down');
+      start(repo);
+      await team().refresh();
+      expect([state().isMember, state().members.length, state().error],
+          [false, 0, 'down']);
+      await team().refresh();
+      expect([state().isMember, state().members.length], [true, 2]);
+      expect(repo.calls.where((c) => c == 'me').length, 2);
+    });
+
+    test('a refresh outliving the provider leaves it alone', () async {
+      final repo = _team();
+      final gate = Completer<void>();
+      repo.meGate = gate.future;
+      start(repo);
+      final pending = team().refresh();
+      container.dispose();
+      gate.complete();
+      await pending;
+      expect(repo.calls, isNot(contains('members')));
+    });
+
     test('overlapping refreshes run once', () async {
       final repo = _team();
       start(repo);
@@ -237,6 +260,28 @@ void main() {
       await tester.tap(find.text('Retry'));
       await tester.pumpAndSettle();
       expect(find.text('Open on Sundays'), findsOneWidget);
+    });
+
+    testWidgets('a first load that fails before membership offers Retry',
+        (tester) async {
+      final repo = _team()..failNext = FloTeamException('Flo Team is down');
+      await _pump(tester, repo);
+      expect(find.text('Couldn\'t load Flo Team'), findsOneWidget);
+      expect(find.text('Flo Team is for invited members'), findsNothing);
+      await tester.tap(find.text('Retry'));
+      await tester.pumpAndSettle();
+      expect(find.text('Open on Sundays'), findsOneWidget);
+    });
+
+    testWidgets('a mention that cannot be marked read stays quiet',
+        (tester) async {
+      final repo = _team();
+      await _pump(tester, repo);
+      repo.failNext = FloTeamException('offline');
+      await tester.tap(find.byKey(const Key('flo-team-thread-t1')));
+      await tester.pumpAndSettle();
+      expect(repo.calls, contains('read(t1)'));
+      expect(tester.takeException(), isNull);
     });
 
     testWidgets('the board filters by column and posts new threads',

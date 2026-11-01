@@ -74,15 +74,20 @@ class HttpFloTeamRepository implements FloTeamRepository {
     Object? body,
     Duration timeout = _timeout,
   }) async {
-    final base = await _baseUrl();
-    final client = DataConnectorClient(baseUrl: base, inner: _client);
-    final request = http.Request(method, Uri.parse('${base}api/flo/team/$path'))
-      ..headers['Content-Type'] = 'application/json';
-    if (body != null) request.body = jsonEncode(body);
     final http.Response response;
+    // Everything up to the full body is inside the try and the timeout: a
+    // failure anywhere is a FloTeamException, which the controller handles.
     try {
-      response = await http.Response.fromStream(
-          await client.send(request).timeout(timeout));
+      final base = await _baseUrl();
+      final client = DataConnectorClient(baseUrl: base, inner: _client);
+      final request =
+          http.Request(method, Uri.parse('${base}api/flo/team/$path'))
+            ..headers['Content-Type'] = 'application/json';
+      if (body != null) request.body = jsonEncode(body);
+      response = await client
+          .send(request)
+          .then(http.Response.fromStream)
+          .timeout(timeout);
     } catch (e) {
       throw FloTeamException('Could not reach Flo Team: $e');
     }
