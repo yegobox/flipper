@@ -14,12 +14,26 @@ ClaudeCliRunner createRunner() => IoClaudeCliRunner();
 /// disabled, so it behaves as a plain question-answering model that cannot read
 /// files or run commands on the user's machine.
 class IoClaudeCliRunner implements ClaudeCliRunner {
-  IoClaudeCliRunner({this.homeOverride});
+  IoClaudeCliRunner({
+    this.homeOverride,
+    this.environment,
+    this.systemDirs,
+    this.isDesktop,
+  });
 
   final String? homeOverride;
 
-  static bool get _isDesktop =>
-      Platform.isMacOS || Platform.isWindows || Platform.isLinux;
+  /// Process environment (PATH, SHELL, HOME…); defaults to the real one.
+  final Map<String, String>? environment;
+
+  /// Fixed install dirs probed after the home ones; defaults per platform.
+  final List<String>? systemDirs;
+
+  /// Overrides the desktop-platform check; defaults to the host platform.
+  final bool? isDesktop;
+
+  bool get _isDesktop =>
+      isDesktop ?? (Platform.isMacOS || Platform.isWindows || Platform.isLinux);
 
   @override
   Future<ClaudeCliStatus> detect() async {
@@ -116,7 +130,7 @@ class IoClaudeCliRunner implements ClaudeCliRunner {
   /// GUI apps do not inherit the shell PATH, so probe the usual install
   /// locations before asking a login shell.
   Future<String?> locateExecutable() async {
-    final env = Platform.environment;
+    final env = environment ?? Platform.environment;
     final home = homeOverride ?? env['HOME'] ?? env['USERPROFILE'] ?? '';
     final names =
         Platform.isWindows ? ['claude.exe', 'claude.cmd'] : ['claude'];
@@ -130,8 +144,11 @@ class IoClaudeCliRunner implements ClaudeCliRunner {
         '$home${sep}.bun${sep}bin',
         if (Platform.isWindows) '$home${sep}AppData${sep}Roaming${sep}npm',
       ],
-      if (Platform.isMacOS) '/opt/homebrew/bin',
-      if (!Platform.isWindows) '/usr/local/bin',
+      ...systemDirs ??
+          [
+            if (Platform.isMacOS) '/opt/homebrew/bin',
+            if (!Platform.isWindows) '/usr/local/bin',
+          ],
       ...(env['PATH'] ?? '')
           .split(Platform.isWindows ? ';' : ':')
           .where((d) => d.isNotEmpty),
