@@ -20427,6 +20427,14 @@
     "@localModeDeviceHeldBody": {
         "description": "Body for the device-held-by-another-business dialog"
     },
+    "localModeHoldReleasedTitle": "This device is ready",
+    "@localModeHoldReleasedTitle": {
+        "description": "Title: the business this device kept offline no longer keeps its data here"
+    },
+    "localModeHoldReleasedBody": "This device kept data offline for another business that no longer needs it here. Sign in again to continue.",
+    "@localModeHoldReleasedBody": {
+        "description": "Body: a stale offline hold was released; sign in again to open the business with cloud sync"
+    },
     "localModeSyncOnElsewhereTitle": "Cloud sync was turned on",
     "@localModeSyncOnElsewhereTitle": {
         "description": "Offline device learns sync was turned on from another device"

@@ -27744,6 +27744,13 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
       'Biashara hiyo inahifadhi data yake kwenye kifaa hiki pekee, kwa hiyo huwezi kuingia kwenye biashara nyingine hapa hadi iwashe usawazishaji wa wingu.';
 
   @override
+  String get localModeHoldReleasedTitle => 'Kifaa hiki kiko tayari';
+
+  @override
+  String get localModeHoldReleasedBody =>
+      'Kifaa hiki kilihifadhi data nje ya mtandao kwa biashara nyingine ambayo haihitaji tena hapa. Ingia tena ili kuendelea.';
+
+  @override
   String get localModeSyncOnElsewhereTitle => 'Usawazishaji wa wingu umewashwa';
 
   @override

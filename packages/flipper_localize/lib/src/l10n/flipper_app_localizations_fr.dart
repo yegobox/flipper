@@ -28016,6 +28016,13 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
       'Cette entreprise conserve ses données uniquement sur cet appareil : vous ne pouvez donc pas vous connecter ici à une autre entreprise tant qu\'elle n\'a pas activé la synchronisation cloud.';
 
   @override
+  String get localModeHoldReleasedTitle => 'Cet appareil est prêt';
+
+  @override
+  String get localModeHoldReleasedBody =>
+      'Cet appareil conservait hors ligne les données d\'une autre entreprise qui n\'en a plus besoin ici. Reconnectez-vous pour continuer.';
+
+  @override
   String get localModeSyncOnElsewhereTitle =>
       'La synchronisation cloud a été activée';
 

@@ -77,10 +77,17 @@ screen. It is backed by the pure `decideLocalModeAccess`:
 | This device | Server | Result |
 |---|---|---|
 | no marker | `local` | "Works offline on another device": sign out, or turn on cloud sync here (that device's data is not recoverable) |
-| marker for another business | any | "This device is used offline by another business": sign out |
+| marker for another business, which the server keeps `local` on this store (or can't tell: no store id on either side, or unreadable) | any | "This device is used offline by another business": sign out |
+| marker for another business, which the server has as `full`, doesn't have, or keeps on another store | any | Stale hold: leave local mode, "This device is ready", sign in again |
 | marker, server confirmed local before | `full` | Sync was turned on elsewhere: leave local mode, sign in again, and this device's data uploads and merges |
 | marker never confirmed | `full` | Re-register `local` |
 | anything | unreadable | Allowed. An offline login only opens data already on the device |
+
+For a marker naming another business, the gate also reads that business's
+record (`LocalModeServer.fetchOwner`, where a missing row reads as `full`).
+A marker the server never confirmed (a signup test, or one that died before
+registering) would otherwise lock every other business out of the device for
+good. Releasing it uploads the store on the next login, like opting in.
 
 Before the migration is deployed, reads fail and the gate allows every login.
 Writes report `notSupported`, and opt-in still proceeds.

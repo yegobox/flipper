@@ -46121,6 +46121,18 @@ abstract class FlipperAppLocalizations {
   /// **'That business keeps its data only on this device, so you can\'t sign in to a different business here until it turns on cloud sync.'**
   String get localModeDeviceHeldBody;
 
+  /// Title: the business this device kept offline no longer keeps its data here
+  ///
+  /// In en, this message translates to:
+  /// **'This device is ready'**
+  String get localModeHoldReleasedTitle;
+
+  /// Body: a stale offline hold was released; sign in again to open the business with cloud sync
+  ///
+  /// In en, this message translates to:
+  /// **'This device kept data offline for another business that no longer needs it here. Sign in again to continue.'**
+  String get localModeHoldReleasedBody;
+
   /// Offline device learns sync was turned on from another device
   ///
   /// In en, this message translates to:

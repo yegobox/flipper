@@ -27578,6 +27578,13 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
       'That business keeps its data only on this device, so you can\'t sign in to a different business here until it turns on cloud sync.';
 
   @override
+  String get localModeHoldReleasedTitle => 'This device is ready';
+
+  @override
+  String get localModeHoldReleasedBody =>
+      'This device kept data offline for another business that no longer needs it here. Sign in again to continue.';
+
+  @override
   String get localModeSyncOnElsewhereTitle => 'Cloud sync was turned on';
 
   @override

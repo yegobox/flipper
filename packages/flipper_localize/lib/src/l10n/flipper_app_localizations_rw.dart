@@ -27837,6 +27837,13 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
       'Ubwo bucuruzi bubika amakuru yabwo kuri iki gikoresho gusa, bityo ntushobora kwinjira hano mu bundi bucuruzi kugeza bufunguye guhuza na cloud.';
 
   @override
+  String get localModeHoldReleasedTitle => 'Iki gikoresho kiriteguye';
+
+  @override
+  String get localModeHoldReleasedBody =>
+      'Iki gikoresho cyabikaga amakuru y\'ubundi bucuruzi butagikeneye kuyabika hano. Ongera winjire kugira ngo ukomeze.';
+
+  @override
   String get localModeSyncOnElsewhereTitle => 'Guhuza na cloud byafunguwe';
 
   @override

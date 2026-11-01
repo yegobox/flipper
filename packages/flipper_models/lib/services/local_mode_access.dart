@@ -12,6 +12,11 @@ enum LocalModeAccess {
   /// This device holds another business's offline-only data.
   deviceHeldByOtherBusiness,
 
+  /// This device's marker names another business, but the server does not
+  /// keep that business's data here (it is in the cloud, gone, or on another
+  /// device): the marker is stale, so this device leaves local mode.
+  releaseStaleHold,
+
   /// This device was the business's offline device, but sync has since been
   /// turned on from another one: this device should follow.
   syncTurnedOnElsewhere,
@@ -34,11 +39,16 @@ enum LocalModeAccess {
 ///
 /// [thisDeviceId] is this device's store id ([BusinessSyncState.deviceId]);
 /// it identifies the owner of a store whose marker could not be read.
+///
+/// [ownerServer] is the server's record of the business the marker names,
+/// when that is not [businessId] (null when it could not be read). Only a
+/// record placing that business on this store keeps the device held.
 LocalModeAccess decideLocalModeAccess({
   required String businessId,
   required BusinessSyncState? server,
   required Map<String, dynamic>? marker,
   String? thisDeviceId,
+  BusinessSyncState? ownerServer,
 }) {
   if (marker != null && marker[kLocalModeMarkerUnreadable] == true) {
     // The owner is unknown, not absent: only the server can name it.
@@ -54,7 +64,18 @@ LocalModeAccess decideLocalModeAccess({
   if (marker != null) {
     final owner = marker['businessId'] as String?;
     if (owner != null && owner != businessId) {
-      return LocalModeAccess.deviceHeldByOtherBusiness;
+      // Unverifiable, so the owner's data may be here only: stay held.
+      if (ownerServer == null) return LocalModeAccess.deviceHeldByOtherBusiness;
+      // Only a store id on both sides can prove the data is elsewhere; a
+      // record naming no store (older devices) may mean this one.
+      final heldHere =
+          ownerServer.isLocal &&
+          (ownerServer.deviceId == null ||
+              thisDeviceId == null ||
+              ownerServer.deviceId == thisDeviceId);
+      return heldHere
+          ? LocalModeAccess.deviceHeldByOtherBusiness
+          : LocalModeAccess.releaseStaleHold;
     }
     if (server == null || server.isLocal) return LocalModeAccess.allowed;
     // Signup never recorded its business (it died first): don't claim this

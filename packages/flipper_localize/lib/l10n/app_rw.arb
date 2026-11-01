@@ -9318,6 +9318,8 @@
   "localModeElsewhereUseHere": "Fungura guhuza na cloud hano",
   "localModeDeviceHeldTitle": "Iki gikoresho gikoreshwa nta murandasi n'ubundi bucuruzi",
   "localModeDeviceHeldBody": "Ubwo bucuruzi bubika amakuru yabwo kuri iki gikoresho gusa, bityo ntushobora kwinjira hano mu bundi bucuruzi kugeza bufunguye guhuza na cloud.",
+  "localModeHoldReleasedTitle": "Iki gikoresho kiriteguye",
+  "localModeHoldReleasedBody": "Iki gikoresho cyabikaga amakuru y'ubundi bucuruzi butagikeneye kuyabika hano. Ongera winjire kugira ngo ukomeze.",
   "localModeSyncOnElsewhereTitle": "Guhuza na cloud byafunguwe",
   "localModeSyncOnElsewhereBody": "Guhuza na cloud byafunguwe kuri ubu bucuruzi bivuye ku kindi gikoresho. Ongera winjire kugira ngo wohereze amakuru y'iki gikoresho urangize."
 }

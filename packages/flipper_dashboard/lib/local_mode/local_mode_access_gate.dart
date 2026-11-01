@@ -31,11 +31,18 @@ class LocalModeAccessGate {
 
     final marker = await LocalMode.marker();
     final server = await LocalModeServer.fetch(businessId);
+    // Another business's marker holds this device only while the server
+    // still places that business here.
+    final owner = marker?['businessId'] as String?;
+    final otherOwner = owner != null && owner != businessId ? owner : null;
     final access = decideLocalModeAccess(
       businessId: businessId,
       server: server,
       marker: marker,
       thisDeviceId: await LocalModeController.deviceId(),
+      ownerServer: otherOwner == null
+          ? null
+          : await LocalModeServer.fetchOwner(otherOwner),
     );
     talker.info('Local mode access for $businessId: $access');
 
@@ -60,6 +67,18 @@ class LocalModeAccessGate {
           description: l10n.localModeDeviceHeldBody,
           button: l10n.signOut,
         );
+        await _signOut();
+        return true;
+      case LocalModeAccess.releaseStaleHold:
+        final l10n = FlipperL10n.current;
+        await LocalModeController.releaseStaleHold(otherOwner!);
+        await _dialog(
+          title: l10n.localModeHoldReleasedTitle,
+          description: l10n.localModeHoldReleasedBody,
+          button: l10n.ok,
+        );
+        // Ditto opened local-only this session; the next login opens it with
+        // the cloud connect.
         await _signOut();
         return true;
       case LocalModeAccess.syncTurnedOnElsewhere:

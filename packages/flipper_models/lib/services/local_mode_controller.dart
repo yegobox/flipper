@@ -165,6 +165,11 @@ class LocalModeController {
   static Future<void> adoptSyncFromElsewhere() =>
       _leaveLocalMode('sync turned on from another device');
 
+  /// The marker names [owner], but the server does not keep [owner]'s data
+  /// on this device ([LocalModeAccess.releaseStaleHold]): drop the hold.
+  static Future<void> releaseStaleHold(String owner) =>
+      _leaveLocalMode('stale hold by $owner released');
+
   static Future<void> _leaveLocalMode(String reason) async {
     await LocalMode.disable();
     Repository.resumeCloudSync();
