@@ -70,7 +70,9 @@ class FloTeamState {
 /// it (the Flo header's unread badge does, so it runs while Flo is open).
 class FloTeamController extends Notifier<FloTeamState> {
   Timer? _timer;
-  bool _polling = false;
+
+  /// The refresh in flight, shared by everyone who asks while it runs.
+  Future<void>? _running;
 
   /// Set when the provider is disposed, so a refresh still awaiting the
   /// server leaves the dead state alone.
@@ -92,9 +94,11 @@ class FloTeamController extends Notifier<FloTeamState> {
 
   /// Who we are, then what changed. Someone not yet invited is asked again
   /// each time, so an invitation takes effect without a restart.
-  Future<void> refresh() async {
-    if (_polling) return;
-    _polling = true;
+  Future<void> refresh() =>
+      _running ??= _refresh().whenComplete(() => _running = null);
+
+  Future<void> _refresh() async {
+    if (_disposed) return;
     try {
       if (!state.isMember) {
         final me = await _repo.me();
@@ -131,8 +135,6 @@ class FloTeamController extends Notifier<FloTeamState> {
       } else {
         state = state.copyWith(loading: false, error: e.message);
       }
-    } finally {
-      _polling = false;
     }
   }
 
@@ -141,6 +143,9 @@ class FloTeamController extends Notifier<FloTeamState> {
   Future<void> _act(
       Future<void> Function(FloTeamRepository repo) action) async {
     await action(_repo);
+    // A poll already running may have read the server before the write, so
+    // let it finish and load again.
+    await _running;
     await refresh();
   }
 
@@ -177,7 +182,10 @@ class FloTeamController extends Notifier<FloTeamState> {
             : r.askFlo(threadId, question: question),
       );
     } finally {
-      state = state.copyWith(floBusy: {...state.floBusy}..remove(threadId));
+      // Flo can take minutes; the user may have closed Flo meanwhile.
+      if (!_disposed) {
+        state = state.copyWith(floBusy: {...state.floBusy}..remove(threadId));
+      }
     }
   }
 
@@ -185,12 +193,17 @@ class FloTeamController extends Notifier<FloTeamState> {
 
   Future<void> invite(String userId) async {
     await _repo.invite(userId);
-    state = state.copyWith(members: await _repo.members());
+    await _reloadMembers();
   }
 
   Future<void> remove(String userId) async {
     await _repo.remove(userId);
-    state = state.copyWith(members: await _repo.members());
+    await _reloadMembers();
+  }
+
+  Future<void> _reloadMembers() async {
+    final members = await _repo.members();
+    if (!_disposed) state = state.copyWith(members: members);
   }
 }
 

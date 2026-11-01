@@ -162,6 +162,34 @@ void main() {
       expect(repo.calls, isNot(contains('members')));
     });
 
+    test('an action reloads after a poll that read before it', () async {
+      final repo = _team();
+      final gate = Completer<void>();
+      repo.meGate = gate.future;
+      start(repo);
+      final poll = team().refresh();
+      final act = team().createThread(kind: 'idea', title: 'New');
+      gate.complete();
+      await Future.wait([poll, act]);
+      final created = repo.calls.indexWhere((c) => c.startsWith('create'));
+      expect(created, isNonNegative);
+      expect(
+          repo.calls.lastIndexWhere((c) => c.startsWith('changes')) > created,
+          isTrue);
+    });
+
+    test('Flo answering after Flo closed leaves the state alone', () async {
+      final repo = _team();
+      final gate = Completer<void>();
+      start(repo);
+      await team().refresh();
+      repo.floGate = gate.future;
+      final asking = team().askFlo('t1');
+      container.dispose();
+      gate.complete();
+      await asking;
+    });
+
     test('overlapping refreshes run once', () async {
       final repo = _team();
       start(repo);
@@ -466,6 +494,22 @@ void main() {
       final update = repo.calls.singleWhere((c) => c.startsWith('update'));
       expect(update,
           startsWith('update(t1,{status: todo, assigneeUserId: u2, dueDate: '));
+    });
+
+    testWidgets('a task assigned to someone since removed still opens',
+        (tester) async {
+      final repo = FakeFloTeamRepository(
+        threads: [idea('t9', 'Old task', assignee: 'gone')],
+      );
+      await _pump(tester, repo);
+      await tester.tap(find.byKey(const Key('flo-team-thread-t9')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('flo-team-task')));
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(find.byKey(const Key('flo-team-task-save')), findsOneWidget);
+      expect(find.text('gone'), findsWidgets);
     });
 
     testWidgets('a manager invites and removes members', (tester) async {

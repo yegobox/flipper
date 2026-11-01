@@ -468,6 +468,8 @@ class _ThreadPanelState extends ConsumerState<_ThreadPanel> {
     final mentions = _mentions.toList();
     await _guard(context, () async {
       await _team.post(widget.thread.id, body, mentions);
+      // The user may have left the thread while it posted.
+      if (!mounted) return;
       _reply.clear();
       setState(() {
         _mentions.clear();
@@ -744,6 +746,11 @@ class _TaskDialogState extends ConsumerState<_TaskDialog> {
               for (final m in members)
                 DropdownMenuItem<String?>(
                     value: m.userId, child: Text(m.displayName)),
+              // Assigned to someone since removed from the team.
+              if (_assignee != null &&
+                  members.every((m) => m.userId != _assignee))
+                DropdownMenuItem<String?>(
+                    value: _assignee, child: Text(_assignee!)),
             ],
             onChanged: (u) => setState(() => _assignee = u),
           ),
