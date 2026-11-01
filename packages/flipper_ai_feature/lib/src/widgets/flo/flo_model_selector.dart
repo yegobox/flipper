@@ -1,36 +1,39 @@
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 
+import '../../models/flo_ai_mode.dart';
 import '../../theme/flo_theme.dart';
 
-/// Binary AI mode picker for the Flo header: **On-Device** vs **Cloud**.
+/// AI mode picker for the Flo header: **On-Device**, **Cloud** or **Claude**
+/// (the user's own subscription, desktop only).
 ///
 /// Cloud chat is routed through the data-connector, which selects the actual
-/// cloud model server-side — so the client never picks a specific cloud model
-/// here. The only meaningful choice is local vs cloud. When on-device AI isn't
-/// supported on this platform/device, only Cloud is shown (and selected).
+/// cloud model server-side, so the client never picks a specific cloud model.
+/// Options the platform can't offer are omitted; with only Cloud left, a static
+/// pill is shown.
 class FloModelSelector extends StatelessWidget {
   const FloModelSelector({
     super.key,
     required this.localAvailable,
-    required this.useLocal,
+    required this.claudeAvailable,
+    required this.mode,
     required this.onChanged,
   });
 
   /// Whether on-device inference is available on this device.
   final bool localAvailable;
 
-  /// Current mode: true = on-device, false = cloud.
-  final bool useLocal;
+  /// Whether the Claude CLI option should be offered (desktop platforms).
+  final bool claudeAvailable;
 
-  /// Emits the new mode (true = local, false = cloud).
-  final ValueChanged<bool> onChanged;
+  final FloAiMode mode;
+
+  final ValueChanged<FloAiMode> onChanged;
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.flipperL10n;
-    // No local option → a static "Cloud" indicator, nothing to switch.
-    if (!localAvailable) {
+    if (!localAvailable && !claudeAvailable) {
       return _pill(
         icon: Icons.cloud_outlined,
         iconColor: FloTheme.blue,
@@ -39,46 +42,60 @@ class FloModelSelector extends StatelessWidget {
       );
     }
 
-    return PopupMenuButton<bool>(
+    final current = _spec(l10n, mode);
+    return PopupMenuButton<FloAiMode>(
       tooltip: l10n.floChooseAiMode,
       position: PopupMenuPosition.under,
       onSelected: onChanged,
       itemBuilder: (context) => [
-        _menuItem(
-          value: true,
-          selected: useLocal,
-          icon: Icons.offline_bolt_outlined,
-          iconColor: FloTheme.gain,
-          title: l10n.floModeOnDevice,
-          subtitle: l10n.floOnDeviceSubtitle,
-        ),
-        _menuItem(
-          value: false,
-          selected: !useLocal,
-          icon: Icons.cloud_outlined,
-          iconColor: FloTheme.blue,
-          title: l10n.floModeCloud,
-          subtitle: l10n.floCloudSubtitle,
-        ),
+        for (final m in FloAiMode.values)
+          if (m == FloAiMode.cloud ||
+              (m == FloAiMode.onDevice && localAvailable) ||
+              (m == FloAiMode.claude && claudeAvailable))
+            _menuItem(
+              value: m,
+              selected: m == mode,
+              spec: _spec(l10n, m),
+            ),
       ],
       child: _pill(
-        icon: useLocal ? Icons.offline_bolt_outlined : Icons.cloud_outlined,
-        iconColor: useLocal ? FloTheme.gain : FloTheme.blue,
-        label: useLocal ? l10n.floModeOnDevice : l10n.floModeCloud,
+        icon: current.icon,
+        iconColor: current.color,
+        label: current.title,
         showChevron: true,
       ),
     );
   }
 
-  PopupMenuItem<bool> _menuItem({
-    required bool value,
+  _ModeSpec _spec(FlipperAppLocalizations l10n, FloAiMode m) => switch (m) {
+        FloAiMode.onDevice => _ModeSpec(
+            Icons.offline_bolt_outlined,
+            FloTheme.gain,
+            l10n.floModeOnDevice,
+            l10n.floOnDeviceSubtitle,
+          ),
+        FloAiMode.cloud => _ModeSpec(
+            Icons.cloud_outlined,
+            FloTheme.blue,
+            l10n.floModeCloud,
+            l10n.floCloudSubtitle,
+          ),
+        FloAiMode.claude => _ModeSpec(
+            Icons.auto_awesome_outlined,
+            FloTheme.blue,
+            l10n.floModeClaude,
+            l10n.floClaudeSubtitle,
+          ),
+      };
+
+  PopupMenuItem<FloAiMode> _menuItem({
+    required FloAiMode value,
     required bool selected,
-    required IconData icon,
-    required Color iconColor,
-    required String title,
-    required String subtitle,
+    required _ModeSpec spec,
   }) {
-    return PopupMenuItem<bool>(
+    final (icon, iconColor, title, subtitle) =
+        (spec.icon, spec.color, spec.title, spec.subtitle);
+    return PopupMenuItem<FloAiMode>(
       value: value,
       child: Row(
         children: [
@@ -138,4 +155,12 @@ class FloModelSelector extends StatelessWidget {
       ),
     );
   }
+}
+
+class _ModeSpec {
+  const _ModeSpec(this.icon, this.color, this.title, this.subtitle);
+  final IconData icon;
+  final Color color;
+  final String title;
+  final String subtitle;
 }
