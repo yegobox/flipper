@@ -44,6 +44,19 @@ void main() {
     expect(runner.detects, 2);
   });
 
+  test('an unavailable status is asked again, not cached', () async {
+    final runner = _CountingRunner([
+      ClaudeCliStatus.unavailable,
+      const ClaudeCliStatus(ClaudeCliState.ready, executable: '/bin/claude'),
+    ]);
+    ClaudeCli.runner = runner;
+
+    expect((await ClaudeCli.status(refresh: true)).state,
+        ClaudeCliState.unavailable);
+    expect((await ClaudeCli.status()).isReady, isTrue);
+    expect(runner.detects, 2);
+  });
+
   test('ClaudeCliStatus.isReady is true only for ready', () {
     for (final state in ClaudeCliState.values) {
       expect(ClaudeCliStatus(state).isReady, state == ClaudeCliState.ready);

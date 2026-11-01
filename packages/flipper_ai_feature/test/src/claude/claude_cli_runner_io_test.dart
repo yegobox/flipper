@@ -75,6 +75,68 @@ printf '{"type":"result","is_error":false,"result":"caf\\351 ok"}'
     );
   }, skip: skip);
 
+  Future<void> timesOut(IoClaudeCliRunner runner) async {
+    final script = stub('cat > /dev/null\nexec sleep 30');
+    await expectLater(
+      runner.ask(
+        executable: script.path,
+        systemPrompt: 's',
+        prompt: 'p',
+        timeout: const Duration(milliseconds: 300),
+      ),
+      throwsA(isA<ClaudeCliException>()),
+    );
+  }
+
+  File fakeTaskkill(String body) {
+    final f = File('${dir.path}/taskkill')
+      ..writeAsStringSync('#!/bin/sh\n$body');
+    Process.runSync('chmod', ['+x', f.path]);
+    return f;
+  }
+
+  test('on Windows a timeout ends the whole process tree', () async {
+    // taskkill /T /F /PID <pid>: record the call and end the process.
+    final taskkill = fakeTaskkill(
+        'printf \'%s \' "\$@" > "${dir.path}/taskkill.args"\nkill "\$4"\n');
+    await timesOut(IoClaudeCliRunner(isWindows: true, taskkill: taskkill.path));
+    expect(File('${dir.path}/taskkill.args').readAsStringSync(),
+        startsWith('/T /F /PID '));
+  }, skip: skip);
+
+  test('a taskkill that fails falls back to ending the CLI', () async {
+    final taskkill = fakeTaskkill('exit 1\n');
+    await timesOut(IoClaudeCliRunner(isWindows: true, taskkill: taskkill.path));
+  }, skip: skip);
+
+  test('a hung taskkill is cut off and the CLI still ends', () async {
+    final taskkill = fakeTaskkill('exec sleep 30\n');
+    await timesOut(IoClaudeCliRunner(isWindows: true, taskkill: taskkill.path));
+  }, skip: skip);
+
+  test('the system taskkill is the default', () async {
+    // Not present on this host, so the CLI is ended directly.
+    await timesOut(IoClaudeCliRunner(isWindows: true));
+  }, skip: skip);
+
+  test('without taskkill a Windows timeout still ends the CLI', () async {
+    await timesOut(
+        IoClaudeCliRunner(isWindows: true, taskkill: '${dir.path}/missing'));
+  }, skip: skip);
+
+  test('on Windows the CLI is found as an npm .cmd shim', () async {
+    final shim = File('${dir.path}/claude.cmd')..writeAsStringSync('');
+
+    final found = await IoClaudeCliRunner(
+      isWindows: true,
+      homeOverride: '',
+      systemDirs: const [],
+      environment: {'PATH': dir.path},
+    ).locateExecutable();
+
+    expect(found, shim.path);
+  }, skip: skip);
+
   group('detect', () {
     // Lays out `<home>/.local/bin/claude` answering `auth status --json`.
     String homeWithClaude(String authJson) {

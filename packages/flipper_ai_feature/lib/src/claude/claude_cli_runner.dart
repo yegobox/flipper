@@ -28,9 +28,13 @@ abstract final class ClaudeCli {
   static ClaudeCliStatus? _cached;
 
   /// Cached [ClaudeCliRunner.detect]; pass [refresh] after the user installs
-  /// or signs in.
+  /// or signs in. `unavailable` is not cached: detection also reports it for a
+  /// transient failure (a cold CLI timing out), and caching it would hide
+  /// Claude until the app restarts.
   static Future<ClaudeCliStatus> status({bool refresh = false}) async {
     if (!refresh && _cached != null) return _cached!;
-    return _cached = await runner.detect();
+    final status = await runner.detect();
+    _cached = status.state == ClaudeCliState.unavailable ? null : status;
+    return status;
   }
 }
