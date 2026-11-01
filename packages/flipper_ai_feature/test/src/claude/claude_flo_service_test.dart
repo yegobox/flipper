@@ -119,4 +119,55 @@ void main() {
     expect(events.last.event, 'error');
     expect(events.last.data, contains('rate limited'));
   });
+
+  test('an unavailable CLI asks the user to install Claude Code', () async {
+    ClaudeCli.runner = _FakeRunner(ClaudeCliStatus.unavailable);
+    final events = await service.streamChat(message: 'x').toList();
+    expect(events.single.event, 'error');
+    expect(events.single.data, contains('Install Claude Code'));
+  });
+
+  test('an empty answer falls back to the no-response text', () async {
+    ClaudeCli.runner = _FakeRunner(ready, answer: '');
+    final events = await service.streamChat(message: 'x').toList();
+    final blocks = jsonDecode(events[2].data) as List;
+    expect(blocks.single['html'], isNotEmpty);
+    final meta = jsonDecode(events.last.data) as Map;
+    expect(meta['model_used'], 'claude-cli');
+  });
+
+  group('buildPrompt', () {
+    test('includes non-empty history turns with their roles', () {
+      final prompt = ClaudeFloService.buildPrompt(
+        message: 'And yesterday?',
+        history: const [
+          {'role': 'user', 'content': ' What sold today? '},
+          {'role': 'assistant', 'content': 'Mostly bread.'},
+          {'role': 'user', 'content': '   '},
+          {'role': 'system'},
+        ],
+      );
+
+      expect(prompt, contains('Recent conversation:'));
+      expect(prompt, contains('User: What sold today?'));
+      expect(prompt, contains('Assistant: Mostly bread.'));
+      expect('User:'.allMatches(prompt).length, 1);
+      expect(prompt, endsWith('User question: And yesterday?'));
+    });
+
+    test('defaults the shop name and omits empty sections', () {
+      final prompt = ClaudeFloService.buildPrompt(
+        message: 'hi',
+        history: const [],
+        shopName: '  ',
+        currency: ' ',
+        deviceSales: const {},
+      );
+
+      expect(prompt, startsWith('Shop: your shop'));
+      expect(prompt, isNot(contains('Currency is')));
+      expect(prompt, isNot(contains('Sales for')));
+      expect(prompt, isNot(contains('Recent conversation:')));
+    });
+  });
 }

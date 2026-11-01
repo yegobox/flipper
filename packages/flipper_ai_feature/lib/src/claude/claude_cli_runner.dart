@@ -22,9 +22,7 @@ abstract class ClaudeCliRunner {
 }
 
 /// Process-wide runner; tests swap it for a fake.
-class ClaudeCli {
-  ClaudeCli._();
-
+abstract final class ClaudeCli {
   static ClaudeCliRunner runner = platform.createRunner();
 
   static ClaudeCliStatus? _cached;
