@@ -3046,6 +3046,9 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   String get appChoiceHrSubtitle => 'Wafanyakazi, likizo na mishahara';
 
   @override
+  String get appChoiceFloSubtitle => 'Muulize Flo na mfanye kazi pamoja';
+
+  @override
   String get appChoiceTitle => 'Chagua programu yako';
 
   @override
