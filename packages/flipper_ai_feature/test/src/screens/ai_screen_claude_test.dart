@@ -8,7 +8,10 @@ import 'package:flipper_ai_feature/src/providers/conversation_provider.dart';
 import 'package:flipper_ai_feature/src/providers/whatsapp_connection_provider.dart';
 import 'package:flipper_ai_feature/src/providers/whatsapp_message_provider.dart';
 import 'package:flipper_ai_feature/src/screens/ai_screen.dart';
+import 'package:flipper_ai_feature/src/services/flo_chat_service.dart';
 import 'package:flipper_ai_feature/src/services/whatsapp_connection_service.dart';
+import 'package:flipper_ai_feature/src/team/flo_team_controller.dart';
+import 'package:flipper_ai_feature/src/team/flo_team_view.dart';
 import 'package:flipper_ai_feature/src/widgets/flo/flo_composer.dart';
 import 'package:flipper_ai_feature/src/widgets/flo/flo_model_selector.dart';
 import 'package:flipper_localize/flipper_localize.dart';
@@ -28,6 +31,7 @@ import 'package:supabase_models/brick/models/all_models.dart' as models;
 import 'package:supabase_models/brick/models/conversation.model.dart';
 
 import '../../helpers/mocks.dart';
+import '../team/fake_flo_team_repository.dart';
 
 class _FakeRunner implements ClaudeCliRunner {
   _FakeRunner(this.status);
@@ -66,8 +70,11 @@ class _EchoEngine implements LocalInferenceEngine {
   bool get supportsRag => false;
 
   @override
-  Stream<String> generate(String prompt,
-      {double? temperature, int? maxTokens}) async* {
+  Stream<String> generate(
+    String prompt, {
+    double? temperature,
+    int? maxTokens,
+  }) async* {
     prompts.add(prompt);
     yield 'Local says hi.';
   }
@@ -148,10 +155,12 @@ void main() {
         startDate: any(named: 'startDate'),
         endDate: any(named: 'endDate'),
         branchId: any(named: 'branchId'),
-        skipOriginalTransactionCheck:
-            any(named: 'skipOriginalTransactionCheck'),
-        removeAdjustmentTransactions:
-            any(named: 'removeAdjustmentTransactions'),
+        skipOriginalTransactionCheck: any(
+          named: 'skipOriginalTransactionCheck',
+        ),
+        removeAdjustmentTransactions: any(
+          named: 'removeAdjustmentTransactions',
+        ),
         forceRealData: any(named: 'forceRealData'),
       ),
     ).thenAnswer((_) => Stream.value(<models.ITransaction>[]));
@@ -171,8 +180,9 @@ void main() {
         createdAt: DateTime(2026),
       ),
     );
-    when(() => db.subscribeToMessages(any()))
-        .thenAnswer((_) => const Stream.empty());
+    when(
+      () => db.subscribeToMessages(any()),
+    ).thenAnswer((_) => const Stream.empty());
     when(
       () => db.saveMessage(
         text: any(named: 'text'),
@@ -194,9 +204,9 @@ void main() {
         delivered: true,
       ),
     );
-    when(() => db.updateConversation(any())).thenAnswer(
-      (i) async => i.positionalArguments.first as Conversation,
-    );
+    when(
+      () => db.updateConversation(any()),
+    ).thenAnswer((i) async => i.positionalArguments.first as Conversation);
   });
 
   Future<void> pumpScreen(WidgetTester tester, ClaudeCliStatus status) async {
@@ -211,10 +221,16 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          // The Team tab's board, kept off the network.
+          floTeamRepositoryProvider.overrideWithValue(FakeFloTeamRepository()),
+          floTeamPollIntervalProvider.overrideWithValue(
+            const Duration(hours: 1),
+          ),
           defaultAiModelProvider.overrideWith((ref) async => null),
           whatsappMessageSyncProvider.overrideWith((ref) => _IdleWaSync()),
-          whatsAppConnectionStateProvider
-              .overrideWith((ref) => _IdleWaConnection()),
+          whatsAppConnectionStateProvider.overrideWith(
+            (ref) => _IdleWaConnection(),
+          ),
           conversationProvider.overrideWith(
             (ref) => Stream.value([
               Conversation(
@@ -277,8 +293,9 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('a CLI the platform cannot run hides the Claude option',
-      (tester) async {
+  testWidgets('a CLI the platform cannot run hides the Claude option', (
+    tester,
+  ) async {
     await pumpScreen(tester, ClaudeCliStatus.unavailable);
 
     expect(LocalInferenceRegistry.isAvailable, isFalse);
@@ -286,8 +303,9 @@ void main() {
     expect(selector(tester).mode, FloAiMode.cloud);
   });
 
-  testWidgets('Claude needs consent; cancelling keeps the current mode',
-      (tester) async {
+  testWidgets('Claude needs consent; cancelling keeps the current mode', (
+    tester,
+  ) async {
     await pumpScreen(tester, _ready);
     expect(selector(tester).claudeAvailable, isTrue);
 
@@ -311,8 +329,9 @@ void main() {
     expect(selector(tester).mode, FloAiMode.cloud);
   });
 
-  testWidgets('with consent on file, questions are answered by Claude',
-      (tester) async {
+  testWidgets('with consent on file, questions are answered by Claude', (
+    tester,
+  ) async {
     SharedPreferences.setMockInitialValues({'flo_claude_cli_consent_v1': true});
     await pumpScreen(tester, _ready);
 
@@ -324,17 +343,17 @@ void main() {
 
     expect(runner.prompts, hasLength(1));
     expect(
-        runner.prompts.single, contains('User question: How did I do today?'));
+      runner.prompts.single,
+      contains('User question: How did I do today?'),
+    );
     expect(runner.prompts.single, contains('No sales recorded for today'));
     expect(savedReply('How did I do today?'), contains('Claude says hi.'));
   });
 
-  testWidgets('a signed-out CLI explains how to sign in and stays on Cloud',
-      (tester) async {
-    await pumpScreen(
-      tester,
-      const ClaudeCliStatus(ClaudeCliState.notLoggedIn),
-    );
+  testWidgets('a signed-out CLI explains how to sign in and stays on Cloud', (
+    tester,
+  ) async {
+    await pumpScreen(tester, const ClaudeCliStatus(ClaudeCliState.notLoggedIn));
 
     await pick(tester, l10n.floModeClaude);
 
@@ -343,8 +362,9 @@ void main() {
     await drainSnackBar(tester);
   });
 
-  testWidgets('a CLI that vanished since detection asks to install it',
-      (tester) async {
+  testWidgets('a CLI that vanished since detection asks to install it', (
+    tester,
+  ) async {
     await pumpScreen(tester, _ready);
     runner.status = const ClaudeCliStatus(ClaudeCliState.notInstalled);
 
@@ -357,8 +377,9 @@ void main() {
     await drainSnackBar(tester);
   });
 
-  testWidgets('in Cloud mode the question never reaches Claude',
-      (tester) async {
+  testWidgets('in Cloud mode the question never reaches Claude', (
+    tester,
+  ) async {
     await pumpScreen(tester, _ready);
 
     await ask(tester, 'Top items?');
@@ -371,8 +392,9 @@ void main() {
   });
 
   // Registers a process-wide engine, so it runs last.
-  testWidgets('On-Device mode answers from the local model, not Claude',
-      (tester) async {
+  testWidgets('On-Device mode answers from the local model, not Claude', (
+    tester,
+  ) async {
     final engine = _EchoEngine();
     LocalInferenceRegistry.register(engine);
     await pumpScreen(tester, _ready);
@@ -384,5 +406,23 @@ void main() {
     expect(runner.prompts, isEmpty);
     expect(engine.prompts.single, contains('User question: Sales today?'));
     expect(savedReply('Sales today?'), contains('Local says hi.'));
+  });
+
+  testWidgets('the Team tab shows the team board in place of the chat', (
+    tester,
+  ) async {
+    await pumpScreen(tester, _ready);
+    expect(find.byType(FloTeamView), findsNothing);
+
+    await tester.tap(find.byKey(const Key('flo-mode-team')));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(FloTeamView), findsOneWidget);
+    expect(find.byType(FloComposer), findsNothing);
+  });
+
+  test('Flo Team uses the data connector Flo chats with', () async {
+    // No branch, so no EBM URL: the debug connector.
+    expect(await FloChatService().baseUrl(), 'http://127.0.0.1:8084/');
   });
 }
