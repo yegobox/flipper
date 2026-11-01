@@ -62,7 +62,7 @@ printf '{"type":"result","is_error":false,"result":"caf\\351 ok"}'
   }, skip: skip);
 
   test('times out and kills a hung CLI', () async {
-    final script = stub('cat > /dev/null\nsleep 30');
+    final script = stub('cat > /dev/null\nexec sleep 30');
 
     expect(
       IoClaudeCliRunner().ask(
