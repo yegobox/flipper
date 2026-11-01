@@ -19,6 +19,8 @@ class IoClaudeCliRunner implements ClaudeCliRunner {
     this.environment,
     this.systemDirs,
     this.isDesktop,
+    this.isWindows,
+    this.taskkill = 'taskkill',
   });
 
   final String? homeOverride;
@@ -31,6 +33,14 @@ class IoClaudeCliRunner implements ClaudeCliRunner {
 
   /// Overrides the desktop-platform check; defaults to the host platform.
   final bool? isDesktop;
+
+  /// Overrides the Windows check used to end a timed-out CLI.
+  final bool? isWindows;
+
+  /// The Windows tool that ends a process tree; tests point it at a stub.
+  final String taskkill;
+
+  bool get _onWindows => isWindows ?? Platform.isWindows;
 
   bool get _isDesktop =>
       isDesktop ?? (Platform.isMacOS || Platform.isWindows || Platform.isLinux);
@@ -122,9 +132,25 @@ class IoClaudeCliRunner implements ClaudeCliRunner {
       final code = await process.exitCode.timeout(timeout);
       return (exitCode: code, stdout: await out, stderr: await err);
     } on TimeoutException {
-      process.kill();
+      await _end(process);
       throw const ClaudeCliException('Claude took too long to answer.');
     }
+  }
+
+  /// On Windows a `.cmd` shim runs under cmd.exe, and [Process.kill] ends
+  /// only that wrapper: the Node CLI would keep running on the user's Claude
+  /// subscription. End the whole tree there; elsewhere the CLI is the process.
+  Future<void> _end(Process process) async {
+    if (_onWindows) {
+      try {
+        final result =
+            await Process.run(taskkill, ['/T', '/F', '/PID', '${process.pid}']);
+        if (result.exitCode == 0) return;
+      } on ProcessException {
+        // No taskkill: fall back to ending the direct process.
+      }
+    }
+    process.kill();
   }
 
   /// GUI apps do not inherit the shell PATH, so probe the usual install
@@ -132,8 +158,7 @@ class IoClaudeCliRunner implements ClaudeCliRunner {
   Future<String?> locateExecutable() async {
     final env = environment ?? Platform.environment;
     final home = homeOverride ?? env['HOME'] ?? env['USERPROFILE'] ?? '';
-    final names =
-        Platform.isWindows ? ['claude.exe', 'claude.cmd'] : ['claude'];
+    final names = _onWindows ? ['claude.exe', 'claude.cmd'] : ['claude'];
     final sep = Platform.pathSeparator;
 
     final dirs = <String>[
