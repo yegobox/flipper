@@ -300,6 +300,16 @@ class AppService with ListenableServiceMixin {
     final appID = kDebugMode ? AppSecrets.appIdDebug : AppSecrets.appId;
     try {
       await Future(() async {
+        // Local mode was left earlier in this run (stale hold released, sync
+        // turned on elsewhere): the store is still open local-only, and this
+        // path never reaches appInit's initialize, which would reopen it.
+        if (DittoSingleton.instance.connectModeStale) {
+          await DittoSingleton.instance.initialize(
+            appId: appID,
+            userId: userId,
+            deferSyncStart: true,
+          );
+        }
         await DittoSingleton.instance.ensureAuthenticatedAndSyncing(
           appId: appID,
         );

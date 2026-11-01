@@ -60,6 +60,12 @@ class DittoSingleton {
   /// Check if Ditto is ready
   bool get isReady => _ditto != null && !_isInitializing;
 
+  /// Whether the open store's connect mode no longer matches [LocalMode]:
+  /// local mode was left (or entered) after it opened, so only a reopen
+  /// ([initialize]) gives it the right transports.
+  bool get connectModeStale =>
+      _ditto != null && _openedLocal != null && _openedLocal != LocalMode.isOn;
+
   /// Get detailed initialization status
   Map<String, dynamic> getInitializationStatus() {
     return {
