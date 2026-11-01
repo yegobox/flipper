@@ -154,6 +154,9 @@ class IoClaudeCliRunner implements ClaudeCliRunner {
       try {
         final killer = await Process.start(
             _taskkill, ['/T', '/F', '/PID', '${process.pid}']);
+        // Its output is unused, but an unread pipe can fill and stall it.
+        unawaited(killer.stdout.drain<void>());
+        unawaited(killer.stderr.drain<void>());
         // A hung taskkill must not hang the timeout it is cleaning up after.
         final code =
             await killer.exitCode.timeout(_taskkillTimeout, onTimeout: () {
