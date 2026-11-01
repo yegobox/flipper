@@ -25,6 +25,8 @@ import '../services/claude_flo_service.dart';
 import '../services/flo_chat_service.dart';
 import '../services/local_flo_service.dart';
 import '../services/flo_local_briefing_service.dart';
+import '../team/flo_team_controller.dart';
+import '../team/flo_team_view.dart';
 import '../theme/flo_theme.dart';
 import '../widgets/conversation_list.dart';
 import '../widgets/data_source/data_source_list_screen.dart';
@@ -606,6 +608,10 @@ class _AiScreenState extends ConsumerState<AiScreen>
     }
   }
 
+  /// The Team tab's board in place of the chat when Team is selected.
+  Widget _teamOrBody(Widget body) =>
+      _mode == FloPanelMode.team ? const Expanded(child: FloTeamView()) : body;
+
   @override
   Widget build(BuildContext context) {
     final waState = ref.watch(whatsAppConnectionStateProvider);
@@ -699,6 +705,7 @@ class _AiScreenState extends ConsumerState<AiScreen>
                 actionsInAppBar: withAppBar,
                 miniDataConnected: true,
                 whatsAppConnected: waConnected,
+                teamUnreadCount: ref.watch(floTeamUnreadProvider),
                 modelSelector: modelSelector,
                 onNewChat: _newChat,
                 onConnectWhatsApp: _openWhatsAppModal,
@@ -723,7 +730,7 @@ class _AiScreenState extends ConsumerState<AiScreen>
                       )
                     : null,
               ),
-              Expanded(
+              _teamOrBody(Expanded(
                 child: _mode == FloPanelMode.messages
                     ? FloInboxView(
                         connected: waConnected,
@@ -760,7 +767,7 @@ class _AiScreenState extends ConsumerState<AiScreen>
                             isMobile: _isMobile,
                             onAsk: _sendMessage,
                           ),
-              ),
+              )),
               if (_mode == FloPanelMode.askFlo)
                 FloComposer(
                   controller: _controller,
