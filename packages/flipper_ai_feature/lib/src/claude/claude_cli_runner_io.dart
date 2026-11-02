@@ -20,7 +20,7 @@ class IoClaudeCliRunner implements ClaudeCliRunner {
     this.systemDirs,
     this.isDesktop,
     this.isWindows,
-    this.taskkill = 'taskkill',
+    this.taskkill,
   });
 
   final String? homeOverride;
@@ -38,9 +38,18 @@ class IoClaudeCliRunner implements ClaudeCliRunner {
   final bool? isWindows;
 
   /// The Windows tool that ends a process tree; tests point it at a stub.
-  final String taskkill;
+  /// Defaults to the system copy, never one found earlier on PATH.
+  final String? taskkill;
+
+  /// How long taskkill may take before the direct kill is used instead.
+  static const _taskkillTimeout = Duration(seconds: 5);
 
   bool get _onWindows => isWindows ?? Platform.isWindows;
+
+  String get _taskkill =>
+      taskkill ??
+      '${Platform.environment['SystemRoot'] ?? r'C:\Windows'}'
+          r'\System32\taskkill.exe';
 
   bool get _isDesktop =>
       isDesktop ?? (Platform.isMacOS || Platform.isWindows || Platform.isLinux);
@@ -143,9 +152,18 @@ class IoClaudeCliRunner implements ClaudeCliRunner {
   Future<void> _end(Process process) async {
     if (_onWindows) {
       try {
-        final result =
-            await Process.run(taskkill, ['/T', '/F', '/PID', '${process.pid}']);
-        if (result.exitCode == 0) return;
+        final killer = await Process.start(
+            _taskkill, ['/T', '/F', '/PID', '${process.pid}']);
+        // Its output is unused, but an unread pipe can fill and stall it.
+        unawaited(killer.stdout.drain<void>());
+        unawaited(killer.stderr.drain<void>());
+        // A hung taskkill must not hang the timeout it is cleaning up after.
+        final code =
+            await killer.exitCode.timeout(_taskkillTimeout, onTimeout: () {
+          killer.kill();
+          return -1;
+        });
+        if (code == 0) return;
       } on ProcessException {
         // No taskkill: fall back to ending the direct process.
       }

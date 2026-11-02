@@ -35,6 +35,9 @@ class FloChatService {
   static const _chatTimeout = Duration(minutes: 3);
   static const _briefingTimeout = Duration(seconds: 90);
 
+  /// The data-connector base URL Flo uses, for Flo Team's client.
+  Future<String> baseUrl() => _baseUrl();
+
   Future<String> _baseUrl() async {
     final branchId = ProxyService.box.getBranchId();
     String? dataConnectorUrl;
