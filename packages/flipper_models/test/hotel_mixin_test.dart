@@ -1786,9 +1786,35 @@ void main() {
       },
     );
 
+    test('drops the charges posted to an open folio', () async {
+      await sync.saveHotelRoom(_room());
+      ditto.store.seed('transactions', _folioDoc(id: 't1'));
+      ditto.store.seed(
+        'transaction_items',
+        _lineDoc(id: 'l1', transactionId: 't1'),
+      );
+      ditto.store.seed(
+        'transaction_items',
+        _lineDoc(id: 'other', transactionId: 't2'),
+      );
+
+      await sync.cancelHotelStay(
+        stay: _stay(id: 's1', roomId: 'r1'),
+      );
+
+      expect(ditto.store.docs('transactions'), isEmpty);
+      expect(ditto.store.docs('transaction_items').map((line) => line['_id']), [
+        'other',
+      ]);
+    });
+
     test('leaves a completed transaction alone', () async {
       await sync.saveHotelRoom(_room());
       ditto.store.seed('transactions', _folioDoc(id: 't1', status: 'complete'));
+      ditto.store.seed(
+        'transaction_items',
+        _lineDoc(id: 'l1', transactionId: 't1'),
+      );
 
       await sync.cancelHotelStay(
         stay: _stay(id: 's1', roomId: 'r1'),
@@ -1796,6 +1822,7 @@ void main() {
 
       // Only PARKED folios are dropped; a settled sale is history.
       expect(ditto.store.docs('transactions'), hasLength(1));
+      expect(ditto.store.docs('transaction_items'), hasLength(1));
     });
   });
 

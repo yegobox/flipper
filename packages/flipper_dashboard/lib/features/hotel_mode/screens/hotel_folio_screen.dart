@@ -219,7 +219,10 @@ class _HotelFolioBody extends ConsumerWidget {
       children: [
         Expanded(
           child: TextButton(
-            onPressed: lines.isEmpty ? () => _cancelStay(context, ref) : null,
+            // Always live: with the room charge auto-posted at check-in, a
+            // button gated on an empty folio was dead for nearly every stay
+            // while still looking tappable. Charges are confirmed instead.
+            onPressed: settling ? null : () => _cancelStay(context, ref, lines),
             style: TextButton.styleFrom(
               minimumSize: const Size.fromHeight(
                 HotelTokens.mobilePrimaryButtonHeight,
@@ -317,8 +320,45 @@ class _HotelFolioBody extends ConsumerWidget {
     }
   }
 
-  Future<void> _cancelStay(BuildContext context, WidgetRef ref) async {
-    await HotelDeskActions.cancelStay(ref: ref, stay: stay);
+  Future<void> _cancelStay(
+    BuildContext context,
+    WidgetRef ref,
+    List<TransactionItem> lines,
+  ) async {
+    if (lines.isNotEmpty) {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: Text(
+            dialogContext.flipperL10n.hotelCancelStayQuestion(stay.guestName),
+            style: GoogleFonts.outfit(fontWeight: FontWeight.w700),
+          ),
+          content: Text(
+            dialogContext.flipperL10n.hotelCancelStayChargesBody(
+              hotelMoney(hotelFolioTotal(lines).round()),
+            ),
+            style: GoogleFonts.outfit(),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: Text(dialogContext.flipperL10n.hotelKeepStay),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              child: Text(dialogContext.flipperL10n.hotelCancelStay),
+            ),
+          ],
+        ),
+      );
+      if (confirmed != true) return;
+    }
+    try {
+      await HotelDeskActions.cancelStay(ref: ref, stay: stay);
+    } catch (e) {
+      ref.read(hotelModeProvider.notifier).showToast('$e');
+    }
   }
 
   Future<void> _checkOut(

@@ -8723,6 +8723,19 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
   String get hotelCancelStay => 'Cancel stay';
 
   @override
+  String hotelCancelStayQuestion(String guest) {
+    return 'Cancel the stay for $guest?';
+  }
+
+  @override
+  String hotelCancelStayChargesBody(String amount) {
+    return 'This removes $amount of charges from the folio and frees the room. No receipt has been issued yet.';
+  }
+
+  @override
+  String get hotelKeepStay => 'Keep stay';
+
+  @override
   String get hotelSettling => 'Settling…';
 
   @override

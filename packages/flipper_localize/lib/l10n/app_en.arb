@@ -7769,6 +7769,23 @@
     "hotelNoChargesYet": "No charges yet. Post the room charge to start this folio.",
     "hotelAutoRoomChargeOffHelp": "Automatic room charge is off for this branch.\nUse + Room charge above, or turn it back on in Settings → Hotel Mode.",
     "hotelCancelStay": "Cancel stay",
+    "hotelCancelStayQuestion": "Cancel the stay for {guest}?",
+    "@hotelCancelStayQuestion": {
+        "placeholders": {
+            "guest": {
+                "type": "String"
+            }
+        }
+    },
+    "hotelCancelStayChargesBody": "This removes {amount} of charges from the folio and frees the room. No receipt has been issued yet.",
+    "@hotelCancelStayChargesBody": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
+    "hotelKeepStay": "Keep stay",
     "hotelSettling": "Settling…",
     "hotelCheckOutAmount": "Check out · {amount}",
     "@hotelCheckOutAmount": {

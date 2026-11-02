@@ -14704,6 +14704,24 @@ abstract class FlipperAppLocalizations {
   /// **'Cancel stay'**
   String get hotelCancelStay;
 
+  /// No description provided for @hotelCancelStayQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel the stay for {guest}?'**
+  String hotelCancelStayQuestion(String guest);
+
+  /// No description provided for @hotelCancelStayChargesBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This removes {amount} of charges from the folio and frees the room. No receipt has been issued yet.'**
+  String hotelCancelStayChargesBody(String amount);
+
+  /// No description provided for @hotelKeepStay.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep stay'**
+  String get hotelKeepStay;
+
   /// No description provided for @hotelSettling.
   ///
   /// In en, this message translates to:

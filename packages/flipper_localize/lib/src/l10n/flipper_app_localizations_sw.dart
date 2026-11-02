@@ -8772,6 +8772,19 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   String get hotelCancelStay => 'Ghairi ukaaji';
 
   @override
+  String hotelCancelStayQuestion(String guest) {
+    return 'Ghairi ukaaji wa $guest?';
+  }
+
+  @override
+  String hotelCancelStayChargesBody(String amount) {
+    return 'Hii inaondoa gharama za $amount kwenye ankara na kuachilia chumba. Hakuna risiti iliyotolewa bado.';
+  }
+
+  @override
+  String get hotelKeepStay => 'Endelea na ukaaji';
+
+  @override
   String get hotelSettling => 'Inalipwa…';
 
   @override
