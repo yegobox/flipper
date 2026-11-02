@@ -34610,23 +34610,23 @@ abstract class FlipperAppLocalizations {
   /// **'Which products are most profitable this week?'**
   String get floSuggestProfitQuestion;
 
-  /// No description provided for @floSuggestUsersTitle.
+  /// No description provided for @floSuggestOweTitle.
   ///
   /// In en, this message translates to:
-  /// **'How many users in MiniData?'**
-  String get floSuggestUsersTitle;
+  /// **'Who do we owe?'**
+  String get floSuggestOweTitle;
 
-  /// No description provided for @floSuggestUsersDesc.
+  /// No description provided for @floSuggestOweDesc.
   ///
   /// In en, this message translates to:
-  /// **'Counts & recent activity'**
-  String get floSuggestUsersDesc;
+  /// **'Open supplier bills'**
+  String get floSuggestOweDesc;
 
-  /// No description provided for @floSuggestUsersQuestion.
+  /// No description provided for @floSuggestOweQuestion.
   ///
   /// In en, this message translates to:
-  /// **'How many users do we have in MiniData?'**
-  String get floSuggestUsersQuestion;
+  /// **'Who do we owe money to?'**
+  String get floSuggestOweQuestion;
 
   /// No description provided for @floSuggestTrendTitle.
   ///
@@ -34700,12 +34700,6 @@ abstract class FlipperAppLocalizations {
   /// **'Channels'**
   String get floChannels;
 
-  /// No description provided for @floMiniDataDesc.
-  ///
-  /// In en, this message translates to:
-  /// **'Live Supabase data — sales, users, products.'**
-  String get floMiniDataDesc;
-
   /// No description provided for @floManage.
   ///
   /// In en, this message translates to:
@@ -34745,7 +34739,7 @@ abstract class FlipperAppLocalizations {
   /// No description provided for @floReadingLiveSales.
   ///
   /// In en, this message translates to:
-  /// **'Reading live sales from MiniData.'**
+  /// **'Reading today\'s live sales.'**
   String get floReadingLiveSales;
 
   /// No description provided for @floCheckDataConnection.
@@ -34927,12 +34921,6 @@ abstract class FlipperAppLocalizations {
   /// In en, this message translates to:
   /// **'Business AI'**
   String get floBusinessAi;
-
-  /// No description provided for @floMiniDataConnectedLive.
-  ///
-  /// In en, this message translates to:
-  /// **'MiniData connected · live'**
-  String get floMiniDataConnectedLive;
 
   /// No description provided for @floNewChat.
   ///
@@ -35192,12 +35180,6 @@ abstract class FlipperAppLocalizations {
   /// **'Off'**
   String get floOff;
 
-  /// No description provided for @floManageDataSources.
-  ///
-  /// In en, this message translates to:
-  /// **'Manage data sources'**
-  String get floManageDataSources;
-
   /// No description provided for @floQuickSummarizeToday.
   ///
   /// In en, this message translates to:
@@ -35210,11 +35192,11 @@ abstract class FlipperAppLocalizations {
   /// **'Top products'**
   String get floQuickTopProducts;
 
-  /// No description provided for @floQuickUserCount.
+  /// No description provided for @floQuickWhoWeOwe.
   ///
   /// In en, this message translates to:
-  /// **'User count'**
-  String get floQuickUserCount;
+  /// **'Who we owe'**
+  String get floQuickWhoWeOwe;
 
   /// No description provided for @floQuickSalesTrend.
   ///
@@ -35246,11 +35228,11 @@ abstract class FlipperAppLocalizations {
   /// **'Flo can make mistakes — check important figures. '**
   String get floCanMakeMistakes;
 
-  /// No description provided for @floGroundedInMiniData.
+  /// No description provided for @floGroundedInYourData.
   ///
   /// In en, this message translates to:
-  /// **'Grounded in MiniData.'**
-  String get floGroundedInMiniData;
+  /// **'Grounded in your business data.'**
+  String get floGroundedInYourData;
 
   /// No description provided for @floStarting.
   ///
@@ -35357,7 +35339,7 @@ abstract class FlipperAppLocalizations {
   /// No description provided for @floThinkingQuerying.
   ///
   /// In en, this message translates to:
-  /// **'Querying MiniData'**
+  /// **'Checking your data'**
   String get floThinkingQuerying;
 
   /// No description provided for @floThinkingComposing.

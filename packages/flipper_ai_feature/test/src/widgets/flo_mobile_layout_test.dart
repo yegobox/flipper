@@ -80,25 +80,30 @@ void main() {
     expect(FloHomeView.greetingFor(l10n, 23), l10n.floGoodEvening);
   });
 
-  testWidgets('the source chip lines up with the "+" button below it', (
-    tester,
-  ) async {
-    _phoneSurface(tester);
+  testWidgets('Flo names no data source: there is only one', (tester) async {
+    tester.view.physicalSize = const Size(1440, 2400);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
     final controller = TextEditingController();
     addTearDown(controller.dispose);
-    await tester.pumpWidget(_app(Align(
-      alignment: Alignment.bottomCenter,
-      child: FloComposer(controller: controller, onSend: () {}, isMobile: true),
+    await tester.pumpWidget(_app(Column(
+      children: [
+        FloHeader(
+          mode: FloPanelMode.askFlo,
+          onModeChanged: (_) {},
+          isMobile: false,
+          whatsAppConnected: true,
+        ),
+        Expanded(
+          child: SingleChildScrollView(
+            child: FloHomeView(shopName: 'Shop', onSuggestionTap: (_) {}),
+          ),
+        ),
+        FloComposer(controller: controller, onSend: () {}),
+      ],
     )));
 
-    final chip = find
-        .ancestor(of: find.text('MiniData'), matching: find.byType(Container))
-        .first;
-    // No quick prompts, so the composer's first ink well is "+".
-    final plus = find.byType(InkWell).first;
-
-    expect(tester.getTopLeft(chip).dx, tester.getTopLeft(plus).dx);
-    expect(tester.getBottomLeft(chip).dy,
-        lessThanOrEqualTo(tester.getTopLeft(plus).dy));
+    expect(find.textContaining('MiniData'), findsNothing);
+    expect(find.text('WhatsApp'), findsWidgets);
   });
 }

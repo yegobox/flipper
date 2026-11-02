@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 
 import '../../theme/flo_theme.dart';
 import 'flo_icons.dart';
-import 'flo_mark.dart';
 
 /// Ask Flo, Flo Team (ideas and tasks shared with colleagues) and the
 /// WhatsApp inbox.
@@ -15,13 +14,11 @@ class FloHeader extends StatelessWidget {
     required this.mode,
     required this.onModeChanged,
     required this.isMobile,
-    this.miniDataConnected = true,
     this.whatsAppConnected = false,
     this.unreadCount = 0,
     this.teamUnreadCount = 0,
     this.onNewChat,
     this.onConnectWhatsApp,
-    this.onManageSources,
     this.onMenuToggle,
     this.menuOpen = false,
     this.menuContent,
@@ -32,7 +29,6 @@ class FloHeader extends StatelessWidget {
   final FloPanelMode mode;
   final ValueChanged<FloPanelMode> onModeChanged;
   final bool isMobile;
-  final bool miniDataConnected;
   final bool whatsAppConnected;
   final int unreadCount;
 
@@ -40,7 +36,6 @@ class FloHeader extends StatelessWidget {
   final int teamUnreadCount;
   final VoidCallback? onNewChat;
   final VoidCallback? onConnectWhatsApp;
-  final VoidCallback? onManageSources;
   final VoidCallback? onMenuToggle;
   final bool menuOpen;
   final Widget? menuContent;
@@ -134,22 +129,6 @@ class FloHeader extends StatelessWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 1),
-                if (miniDataConnected)
-                  Row(
-                    children: [
-                      const FloLiveDot(),
-                      const SizedBox(width: 6),
-                      Text(
-                        context.flipperL10n.floMiniDataConnectedLive,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                          color: FloTheme.ink3,
-                        ),
-                      ),
-                    ],
-                  ),
               ],
             ),
           ],
@@ -167,7 +146,6 @@ class FloHeader extends StatelessWidget {
             if (showChips) ...[
               _HeaderChips(
                 whatsAppConnected: whatsAppConnected,
-                onManageSources: onManageSources,
                 onConnectWhatsApp: onConnectWhatsApp,
               ),
               const SizedBox(width: 8),
@@ -369,38 +347,23 @@ class _ModeTab extends StatelessWidget {
 class _HeaderChips extends StatelessWidget {
   const _HeaderChips({
     required this.whatsAppConnected,
-    this.onManageSources,
     this.onConnectWhatsApp,
   });
 
   final bool whatsAppConnected;
-  final VoidCallback? onManageSources;
   final VoidCallback? onConnectWhatsApp;
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        _ChanChip(
-          label: 'MiniData',
-          icon: FloIcons.database(size: 14, color: FloTheme.blue),
-          connected: true,
-          isMiniData: true,
-          onTap: onManageSources,
-        ),
-        const SizedBox(width: 8),
-        whatsAppConnected
-            ? _ChanChip(
-                label: 'WhatsApp',
-                icon: FloIcons.whatsApp(size: 14, color: FloTheme.blueDeep),
-                connected: true,
-                isWhatsApp: true,
-                onTap: onConnectWhatsApp,
-              )
-            : _ConnectChip(onTap: onConnectWhatsApp),
-      ],
-    );
+    return whatsAppConnected
+        ? _ChanChip(
+            label: 'WhatsApp',
+            icon: FloIcons.whatsApp(size: 14, color: FloTheme.blueDeep),
+            connected: true,
+            isWhatsApp: true,
+            onTap: onConnectWhatsApp,
+          )
+        : _ConnectChip(onTap: onConnectWhatsApp);
   }
 }
 
@@ -409,7 +372,6 @@ class _ChanChip extends StatelessWidget {
     required this.label,
     required this.icon,
     required this.connected,
-    this.isMiniData = false,
     this.isWhatsApp = false,
     this.onTap,
   });
@@ -417,7 +379,6 @@ class _ChanChip extends StatelessWidget {
   final String label;
   final Widget icon;
   final bool connected;
-  final bool isMiniData;
   final bool isWhatsApp;
   final VoidCallback? onTap;
 
@@ -594,13 +555,11 @@ class FloMenuPopover extends StatelessWidget {
     super.key,
     required this.onNewChat,
     required this.onWhatsApp,
-    required this.onSources,
     required this.whatsAppConnected,
   });
 
   final VoidCallback onNewChat;
   final VoidCallback onWhatsApp;
-  final VoidCallback onSources;
   final bool whatsAppConnected;
 
   @override
@@ -634,13 +593,6 @@ class FloMenuPopover extends StatelessWidget {
                 : context.flipperL10n.floOff,
             badgeOn: whatsAppConnected,
             onTap: onWhatsApp,
-          ),
-          _MenuItem(
-            icon: FloIcons.database(size: 16, color: FloTheme.blue),
-            iconBg: FloTheme.blueTint,
-            title: context.flipperL10n.floManageDataSources,
-            subtitle: 'MiniData · Supabase',
-            onTap: onSources,
           ),
         ],
       ),

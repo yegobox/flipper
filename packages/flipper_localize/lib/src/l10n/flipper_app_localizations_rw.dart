@@ -21046,14 +21046,14 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
       'Ni ibihe bicuruzwa byunguka cyane muri iki cyumweru?';
 
   @override
-  String get floSuggestUsersTitle => 'Abakoresha bangahe bari muri MiniData?';
+  String get floSuggestOweTitle => 'Ni nde tubereyemo umwenda?';
 
   @override
-  String get floSuggestUsersDesc => 'Imibare n\'ibikorwa bya vuba';
+  String get floSuggestOweDesc =>
+      'Fagitire z\'abatanga ibicuruzwa zitarishyurwa';
 
   @override
-  String get floSuggestUsersQuestion =>
-      'Dufite abakoresha bangahe muri MiniData?';
+  String get floSuggestOweQuestion => 'Ni bande tubereyemo umwenda?';
 
   @override
   String get floSuggestTrendTitle =>
@@ -21099,10 +21099,6 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   String get floChannels => 'Inzira';
 
   @override
-  String get floMiniDataDesc =>
-      'Amakuru ya Supabase ako kanya — ibyagurishijwe, abakoresha, ibicuruzwa.';
-
-  @override
   String get floManage => 'Cunga';
 
   @override
@@ -21124,7 +21120,7 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
 
   @override
   String get floReadingLiveSales =>
-      'Gusoma ibyagurishijwe ako kanya muri MiniData.';
+      'Gusoma ibyagurishijwe uyu munsi ako kanya.';
 
   @override
   String get floCheckDataConnection =>
@@ -21233,9 +21229,6 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
 
   @override
   String get floBusinessAi => 'AI y\'ubucuruzi';
-
-  @override
-  String get floMiniDataConnectedLive => 'MiniData ihujwe · ako kanya';
 
   @override
   String get floNewChat => 'Ikiganiro gishya';
@@ -21370,16 +21363,13 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   String get floOff => 'Birafunze';
 
   @override
-  String get floManageDataSources => 'Cunga aho amakuru aturuka';
-
-  @override
   String get floQuickSummarizeToday => 'Incamake y\'uyu munsi';
 
   @override
   String get floQuickTopProducts => 'Ibicuruzwa by\'imbere';
 
   @override
-  String get floQuickUserCount => 'Umubare w\'abakoresha';
+  String get floQuickWhoWeOwe => 'Abo tubereyemo umwenda';
 
   @override
   String get floQuickSalesTrend => 'Uko ibicuruzwa bigurishwa';
@@ -21399,7 +21389,8 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
       'Flo ishobora kwibeshya — genzura imibare y\'ingenzi. ';
 
   @override
-  String get floGroundedInMiniData => 'Bishingiye kuri MiniData.';
+  String get floGroundedInYourData =>
+      'Bishingiye ku makuru y\'ubucuruzi bwawe.';
 
   @override
   String get floStarting => 'Biratangira…';
@@ -21459,7 +21450,7 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   String get floThinkingUnderstanding => 'Gusobanukirwa ikibazo';
 
   @override
-  String get floThinkingQuerying => 'Gushakira muri MiniData';
+  String get floThinkingQuerying => 'Gusuzuma amakuru yawe';
 
   @override
   String get floThinkingComposing => 'Gutegura igisubizo';
