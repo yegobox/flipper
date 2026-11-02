@@ -35120,6 +35120,54 @@ abstract class FlipperAppLocalizations {
   /// **'Couldn\'t load Flo Team'**
   String get floTeamLoadFailed;
 
+  /// No description provided for @floTeamBoardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Team board'**
+  String get floTeamBoardTitle;
+
+  /// No description provided for @floTeamSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Ideas, tasks and discussions with your team and Flo'**
+  String get floTeamSubtitle;
+
+  /// No description provided for @floTeamEmptyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Post an idea or start a discussion to get your team\'s take.'**
+  String get floTeamEmptyHint;
+
+  /// No description provided for @floTeamIdea.
+  ///
+  /// In en, this message translates to:
+  /// **'Idea'**
+  String get floTeamIdea;
+
+  /// No description provided for @floTeamDiscussion.
+  ///
+  /// In en, this message translates to:
+  /// **'Discussion'**
+  String get floTeamDiscussion;
+
+  /// No description provided for @floTeamYou.
+  ///
+  /// In en, this message translates to:
+  /// **'You'**
+  String get floTeamYou;
+
+  /// No description provided for @floTeamSomeone.
+  ///
+  /// In en, this message translates to:
+  /// **'A teammate'**
+  String get floTeamSomeone;
+
+  /// No description provided for @floTeamInviteFromStaff.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite from your staff'**
+  String get floTeamInviteFromStaff;
+
   /// No description provided for @floNewConversation.
   ///
   /// In en, this message translates to:

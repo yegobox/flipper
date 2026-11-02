@@ -21261,6 +21261,31 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   String get floTeamLoadFailed => 'Imeshindwa kupakia Flo Team';
 
   @override
+  String get floTeamBoardTitle => 'Ubao wa timu';
+
+  @override
+  String get floTeamSubtitle => 'Mawazo, kazi na mijadala na timu yako na Flo';
+
+  @override
+  String get floTeamEmptyHint =>
+      'Weka wazo au anzisha mjadala upate maoni ya timu.';
+
+  @override
+  String get floTeamIdea => 'Wazo';
+
+  @override
+  String get floTeamDiscussion => 'Mjadala';
+
+  @override
+  String get floTeamYou => 'Wewe';
+
+  @override
+  String get floTeamSomeone => 'Mwenzako';
+
+  @override
+  String get floTeamInviteFromStaff => 'Alika wafanyakazi wako';
+
+  @override
   String get floNewConversation => 'Mazungumzo mapya';
 
   @override

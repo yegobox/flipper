@@ -21474,6 +21474,32 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   String get floTeamLoadFailed => 'Impossible de charger Flo Team';
 
   @override
+  String get floTeamBoardTitle => 'Tableau d\'équipe';
+
+  @override
+  String get floTeamSubtitle =>
+      'Idées, tâches et discussions avec votre équipe et Flo';
+
+  @override
+  String get floTeamEmptyHint =>
+      'Publiez une idée ou lancez une discussion pour avoir l\'avis de l\'équipe.';
+
+  @override
+  String get floTeamIdea => 'Idée';
+
+  @override
+  String get floTeamDiscussion => 'Discussion';
+
+  @override
+  String get floTeamYou => 'Vous';
+
+  @override
+  String get floTeamSomeone => 'Un collègue';
+
+  @override
+  String get floTeamInviteFromStaff => 'Inviter des membres du personnel';
+
+  @override
   String get floNewConversation => 'Nouvelle conversation';
 
   @override

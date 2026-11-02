@@ -21332,6 +21332,32 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   String get floTeamLoadFailed => 'Flo Team ntiyabashije gufunguka';
 
   @override
+  String get floTeamBoardTitle => 'Ikibaho cy\'itsinda';
+
+  @override
+  String get floTeamSubtitle =>
+      'Ibitekerezo, imirimo n\'ibiganiro n\'itsinda ryawe na Flo';
+
+  @override
+  String get floTeamEmptyHint =>
+      'Shyiraho igitekerezo cyangwa utangize ikiganiro ubone icyo itsinda ribitekerezaho.';
+
+  @override
+  String get floTeamIdea => 'Igitekerezo';
+
+  @override
+  String get floTeamDiscussion => 'Ikiganiro';
+
+  @override
+  String get floTeamYou => 'Wowe';
+
+  @override
+  String get floTeamSomeone => 'Mugenzi wawe';
+
+  @override
+  String get floTeamInviteFromStaff => 'Tumira abakozi bawe';
+
+  @override
   String get floNewConversation => 'Ikiganiro gishya';
 
   @override
