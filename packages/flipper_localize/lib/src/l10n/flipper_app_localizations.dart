@@ -46298,7 +46298,7 @@ abstract class FlipperAppLocalizations {
   /// Body: a stale offline hold was released; sign in again to open the business with cloud sync
   ///
   /// In en, this message translates to:
-  /// **'This device kept data offline for another business that no longer needs it here. Sign in again to continue.'**
+  /// **'The offline hold on this device has been released. Sign in again to continue.'**
   String get localModeHoldReleasedBody;
 
   /// Offline device learns sync was turned on from another device

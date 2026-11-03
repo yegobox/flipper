@@ -28107,7 +28107,7 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
 
   @override
   String get localModeHoldReleasedBody =>
-      'Cet appareil conservait hors ligne les données d\'une autre entreprise qui n\'en a plus besoin ici. Reconnectez-vous pour continuer.';
+      'Le blocage hors ligne de cet appareil a été levé. Reconnectez-vous pour continuer.';
 
   @override
   String get localModeSyncOnElsewhereTitle =>

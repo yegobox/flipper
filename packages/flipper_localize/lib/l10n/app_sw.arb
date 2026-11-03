@@ -9355,7 +9355,7 @@
   "localModeDeviceHeldTitle": "Kifaa hiki kinatumiwa nje ya mtandao na biashara nyingine",
   "localModeDeviceHeldBody": "Biashara hiyo inahifadhi data yake kwenye kifaa hiki pekee, kwa hiyo huwezi kuingia kwenye biashara nyingine hapa hadi iwashe usawazishaji wa wingu.",
   "localModeHoldReleasedTitle": "Kifaa hiki kiko tayari",
-  "localModeHoldReleasedBody": "Kifaa hiki kilihifadhi data nje ya mtandao kwa biashara nyingine ambayo haihitaji tena hapa. Ingia tena ili kuendelea.",
+  "localModeHoldReleasedBody": "Kizuizi cha nje ya mtandao kwenye kifaa hiki kimeondolewa. Ingia tena ili kuendelea.",
   "localModeSyncOnElsewhereTitle": "Usawazishaji wa wingu umewashwa",
   "localModeSyncOnElsewhereBody": "Usawazishaji wa wingu umewashwa kwa biashara hii kutoka kifaa kingine. Ingia tena ili kupakia data ya kifaa hiki na kumaliza."
 }

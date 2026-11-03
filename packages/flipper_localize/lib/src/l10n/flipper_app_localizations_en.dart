@@ -27668,7 +27668,7 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
 
   @override
   String get localModeHoldReleasedBody =>
-      'This device kept data offline for another business that no longer needs it here. Sign in again to continue.';
+      'The offline hold on this device has been released. Sign in again to continue.';
 
   @override
   String get localModeSyncOnElsewhereTitle => 'Cloud sync was turned on';

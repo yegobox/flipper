@@ -64,7 +64,12 @@ class DittoSingleton {
   /// local mode was left (or entered) after it opened, so only a reopen
   /// ([initialize]) gives it the right transports.
   bool get connectModeStale =>
-      _ditto != null && _openedLocal != null && _openedLocal != LocalMode.isOn;
+      isConnectModeStale(open: _ditto != null, openedLocal: _openedLocal);
+
+  /// [connectModeStale] for a store that is [open] in [openedLocal] mode.
+  @visibleForTesting
+  static bool isConnectModeStale({required bool open, bool? openedLocal}) =>
+      open && openedLocal != null && openedLocal != LocalMode.isOn;
 
   /// Get detailed initialization status
   Map<String, dynamic> getInitializationStatus() {

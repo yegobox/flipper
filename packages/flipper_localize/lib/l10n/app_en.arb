@@ -20459,7 +20459,7 @@
     "@localModeHoldReleasedTitle": {
         "description": "Title: the business this device kept offline no longer keeps its data here"
     },
-    "localModeHoldReleasedBody": "This device kept data offline for another business that no longer needs it here. Sign in again to continue.",
+    "localModeHoldReleasedBody": "The offline hold on this device has been released. Sign in again to continue.",
     "@localModeHoldReleasedBody": {
         "description": "Body: a stale offline hold was released; sign in again to open the business with cloud sync"
     },
