@@ -67,6 +67,14 @@ class _BarModeHostState extends ConsumerState<BarModeHost> {
   @override
   Widget build(BuildContext context) {
     final bar = ref.watch(barModeProvider);
+    // A cashier whose grant (or Admin type) went, on the floor or on a PIN
+    // pick made before it went, hands the bar back to the lock straight away.
+    signOutIneligibleClerk(
+      ref,
+      ServiceMode.bar,
+      clerk: barModeProvider.select((s) => s.activeCashier),
+      signOut: ref.read(barModeProvider.notifier).logout,
+    );
 
     Widget screen;
     switch (bar.screen) {

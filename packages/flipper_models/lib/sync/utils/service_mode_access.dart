@@ -4,7 +4,8 @@ import 'dart:convert';
 import 'package:flipper_models/sync/utils/staff_roster_cache.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flutter/foundation.dart';
-import 'package:supabase_flutter/supabase_flutter.dart' show Supabase;
+import 'package:supabase_flutter/supabase_flutter.dart'
+    show CountOption, Supabase;
 import 'package:supabase_models/brick/models/tenant.model.dart';
 import 'package:supabase_models/brick/repository/storage.dart';
 
@@ -184,17 +185,24 @@ typedef ServiceModeGrantRowsLoader =
 @visibleForTesting
 const int serviceModeGrantsPageSize = 1000;
 
-/// Every page of [fetchPage] (offset, limit), until a short page.
+/// One `accesses` page and the matching row count the server reports.
+typedef ServiceModeGrantPage = ({List<Map<String, dynamic>> rows, int total});
+
+/// Every row [fetchPage] (offset, last index) holds.
+///
+/// The next page starts after the rows actually returned, and the read ends
+/// at the server's count, not at a short page: a project whose row cap is
+/// below [pageSize] answers every page short. An empty page also ends it.
 @visibleForTesting
 Future<List<Map<String, dynamic>>> readAllServiceModeGrantPages(
-  Future<List<Map<String, dynamic>>> Function(int from, int to) fetchPage, {
+  Future<ServiceModeGrantPage> Function(int from, int to) fetchPage, {
   int pageSize = serviceModeGrantsPageSize,
 }) async {
   final rows = <Map<String, dynamic>>[];
-  for (var from = 0; ; from += pageSize) {
-    final page = await fetchPage(from, from + pageSize - 1);
-    rows.addAll(page);
-    if (page.length < pageSize) return rows;
+  while (true) {
+    final page = await fetchPage(rows.length, rows.length + pageSize - 1);
+    rows.addAll(page.rows);
+    if (page.rows.isEmpty || rows.length >= page.total) return rows;
   }
 }
 
@@ -221,7 +229,9 @@ loadServiceModeGrantRows(String businessId) async {
         .eq('business_id', businessId)
         .or('feature_name.in.($features),user_type.ilike.admin')
         .order('id')
-        .range(from, to),
+        .range(from, to)
+        .count(CountOption.exact)
+        .then((res) => (rows: res.data, total: res.count)),
   );
   return (rows: rows, ownerUserId: await ownerQuery);
 }

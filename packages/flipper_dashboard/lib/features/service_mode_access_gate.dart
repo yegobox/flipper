@@ -5,6 +5,8 @@ import 'package:flipper_models/sync/utils/service_mode_access.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:hooks_riverpod/misc.dart' show ProviderListenable;
+import 'package:supabase_models/brick/models/tenant.model.dart';
 
 /// The module that grants [mode]; null for plain POS, which is gated on Sales.
 String? serviceModeFeature(ServiceMode mode) => switch (mode) {
@@ -62,6 +64,53 @@ bool signedInUserMayRun(WidgetRef ref, ServiceMode mode, {bool listen = true}) {
   if (!grants.isRestricted(feature)) return true;
   final userId = ref.read(barServicesProvider).box.getUserId()?.trim();
   return grants.allows(feature, userId);
+}
+
+/// Whether [clerk], signed in on a Bar or Hotel lock screen, may still run
+/// [mode].
+///
+/// The Admin bypass reads the clerk's entry in the current roster: the
+/// [Tenant] kept at sign-in still says Admin after a demotion. A loaded
+/// roster without the clerk gives no bypass; an unloaded or empty one (a
+/// failed read) falls back to the kept copy, so a missing admin row cannot
+/// lock an admin out.
+bool clerkMayRun(WidgetRef ref, ServiceMode mode, Tenant clerk) {
+  final feature = serviceModeFeature(mode);
+  if (feature == null) return true;
+  final grants = currentServiceModeGrants(ref, listen: false);
+  if (!grants.isRestricted(feature)) return true;
+  final roster = ref.read(barStaffProvider).value;
+  Tenant? current = clerk;
+  if (roster != null && roster.isNotEmpty) {
+    current = null;
+    for (final tenant in roster) {
+      if (tenant.id == clerk.id) current = tenant;
+    }
+  }
+  return grants.allows(
+    feature,
+    clerk.userId?.trim(),
+    isAdminOrOwner: current != null && barTenantIsAdmin(current),
+  );
+}
+
+/// Signs the desk's clerk out the moment they may no longer run [mode]:
+/// when they sign in with a pick made before the grants changed, and when
+/// the grants or the roster refresh. Call from `build`.
+void signOutIneligibleClerk(
+  WidgetRef ref,
+  ServiceMode mode, {
+  required ProviderListenable<Tenant?> clerk,
+  required void Function() signOut,
+}) {
+  void check() {
+    final current = ref.read(clerk);
+    if (current != null && !clerkMayRun(ref, mode, current)) signOut();
+  }
+
+  ref.listen(clerk, (_, _) => check());
+  ref.listen(serviceModeGrantsProvider, (_, _) => check());
+  ref.listen(barStaffProvider, (_, _) => check());
 }
 
 /// Shows [child] (a Bar or Hotel host) only to a signed-in user who may run

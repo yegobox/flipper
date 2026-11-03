@@ -43,6 +43,16 @@ final _waiter = Tenant(id: 't-w', name: 'Waiter', userId: 'u-w');
 final _cashier = Tenant(id: 't-c', name: 'Cashier', userId: 'u-c');
 final _admin = Tenant(id: 't-a', name: 'Boss', userId: 'u-a', type: 'Admin');
 
+/// Stands in for the Bar / Hotel notifier's signed-in clerk.
+class _Clerk extends Notifier<Tenant?> {
+  @override
+  Tenant? build() => null;
+
+  void set(Tenant? tenant) => state = tenant;
+}
+
+final _clerkProvider = NotifierProvider<_Clerk, Tenant?>(_Clerk.new);
+
 ServiceModeGrants _barGrantedTo(String userId) => ServiceModeGrants(
   byFeature: {
     AppFeature.BarMode: {userId},
@@ -178,6 +188,136 @@ void main() {
         ),
       );
       expect(find.byType(ServiceModeNoAccess), findsOneWidget);
+    });
+
+    // The host opens on its own lock / starting screen, which waits for the
+    // grants itself; the gate only closes once they are known.
+    testWidgets('first fetch pending, no offline copy: host, then the grants', (
+      tester,
+    ) async {
+      final pending = Completer<ServiceModeGrants>();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            barServicesProvider.overrideWithValue(_Services(_Box('u-c'))),
+            serviceModeGrantsProvider.overrideWith((ref) => pending.future),
+          ],
+          child: MaterialApp(
+            localizationsDelegates: FlipperLocalizationDelegates.delegates,
+            supportedLocales: FlipperLocalizationDelegates.supportedLocales,
+            home: const ServiceModeAccessGate(
+              mode: ServiceMode.bar,
+              child: Text('HOST'),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      expect(find.text('HOST'), findsOneWidget);
+
+      pending.complete(_barGrantedTo('u-w'));
+      await tester.pumpAndSettle();
+      expect(find.text('HOST'), findsNothing);
+      expect(find.byType(ServiceModeNoAccess), findsOneWidget);
+    });
+  });
+
+  group('signOutIneligibleClerk', () {
+    late ServiceModeGrants grants;
+    late List<Tenant> roster;
+
+    Future<ProviderContainer> pumpDesk(WidgetTester tester) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            barServicesProvider.overrideWithValue(_Services(_Box(null))),
+            serviceModeGrantsProvider.overrideWith((ref) async => grants),
+            barStaffProvider.overrideWith((ref) async => roster),
+          ],
+          child: MaterialApp(
+            home: Consumer(
+              builder: (context, ref, _) {
+                signOutIneligibleClerk(
+                  ref,
+                  ServiceMode.bar,
+                  clerk: _clerkProvider,
+                  signOut: () => ref.read(_clerkProvider.notifier).set(null),
+                );
+                return Text(ref.watch(_clerkProvider)?.name ?? 'LOCK');
+              },
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      return ProviderScope.containerOf(tester.element(find.byType(Consumer)));
+    }
+
+    Future<void> signIn(WidgetTester tester, ProviderContainer c, Tenant t) {
+      c.read(_clerkProvider.notifier).set(t);
+      return tester.pumpAndSettle();
+    }
+
+    setUp(() {
+      grants = _barGrantedTo('u-w');
+      roster = [_waiter, _cashier, _admin];
+    });
+
+    testWidgets('a pick made before the grant went never opens the floor', (
+      tester,
+    ) async {
+      final c = await pumpDesk(tester);
+      await signIn(tester, c, _cashier);
+      expect(find.text('LOCK'), findsOneWidget);
+
+      await signIn(tester, c, _waiter);
+      expect(find.text('Waiter'), findsOneWidget);
+    });
+
+    testWidgets('a grant revoked at the desk signs the clerk out', (
+      tester,
+    ) async {
+      final c = await pumpDesk(tester);
+      await signIn(tester, c, _waiter);
+      expect(find.text('Waiter'), findsOneWidget);
+
+      grants = _barGrantedTo('u-c');
+      c.invalidate(serviceModeGrantsProvider);
+      await tester.pumpAndSettle();
+      expect(find.text('LOCK'), findsOneWidget);
+    });
+
+    testWidgets('an Admin demoted at the desk loses the bypass', (
+      tester,
+    ) async {
+      final c = await pumpDesk(tester);
+      await signIn(tester, c, _admin);
+      expect(find.text('Boss'), findsOneWidget);
+
+      // The kept tenant still says Admin; the refreshed roster does not.
+      roster = [
+        _waiter,
+        Tenant(id: 't-a', name: 'Boss', userId: 'u-a', type: 'Agent'),
+      ];
+      c.invalidate(barStaffProvider);
+      await tester.pumpAndSettle();
+      expect(find.text('LOCK'), findsOneWidget);
+    });
+
+    testWidgets('an unreadable roster keeps the signed-in Admin', (
+      tester,
+    ) async {
+      roster = const [];
+      final c = await pumpDesk(tester);
+      await signIn(tester, c, _admin);
+      expect(find.text('Boss'), findsOneWidget);
+    });
+
+    testWidgets('grandfathered: anyone stays', (tester) async {
+      grants = const ServiceModeGrants();
+      final c = await pumpDesk(tester);
+      await signIn(tester, c, _cashier);
+      expect(find.text('Cashier'), findsOneWidget);
     });
   });
 

@@ -1,9 +1,10 @@
 import 'dart:async';
 
 import 'package:flipper_dashboard/features/bar_mode/providers/bar_mode_providers.dart'
-    show serviceModeGrantsProvider;
+    show barServicesProvider, barStaffProvider, serviceModeGrantsProvider;
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/providers/access_provider.dart';
+import 'package:flipper_models/providers/active_branch_provider.dart';
 import 'package:flipper_models/secrets.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
@@ -51,9 +52,6 @@ void useAccessPermissionsRealtimeSync(WidgetRef ref) {
           for (final f in features) {
             ref.invalidate(userAccessesProvider(userId, featureName: f));
           }
-          // Bar / Hotel entry reads the business-wide grants, not the rows
-          // above: a revoked Bar or Hotel grant must close the host too.
-          ref.invalidate(serviceModeGrantsProvider);
         } catch (e, s) {
           talker.warning('accesses realtime → login refresh failed: $e\n$s');
         }
@@ -91,4 +89,53 @@ void useAccessPermissionsRealtimeSync(WidgetRef ref) {
       unawaited(client.removeChannel(channel));
     };
   }, [userId]);
+
+  useServiceModeGrantsRealtimeSync(ref);
+}
+
+/// Re-reads the Bar / Hotel grants and the staff roster when any `accesses`
+/// row in the active business changes, not only the signed-in user's: the
+/// clerk at a Bar or Hotel desk is usually someone else, and a grant (or
+/// Admin type) taken from them must sign them out there.
+///
+/// Runs whether or not the user-access refresh above succeeds.
+void useServiceModeGrantsRealtimeSync(WidgetRef ref) {
+  final businessId =
+      ref.watch(
+        activeBranchProvider.select((branch) => branch.value?.businessId),
+      ) ??
+      ref.read(barServicesProvider).box.getBusinessId();
+
+  useEffect(() {
+    if (businessId == null || businessId.isEmpty) return null;
+
+    final client = Supabase.instance.client;
+    Timer? debounce;
+
+    final channel = client
+        .channel('accesses-grants-$businessId')
+        .onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
+          table: 'accesses',
+          filter: PostgresChangeFilter(
+            type: PostgresChangeFilterType.eq,
+            column: 'business_id',
+            value: businessId,
+          ),
+          callback: (_) {
+            debounce?.cancel();
+            debounce = Timer(const Duration(milliseconds: 500), () {
+              ref.invalidate(serviceModeGrantsProvider);
+              ref.invalidate(barStaffProvider);
+            });
+          },
+        )
+        .subscribe(onSupabaseChannelSubscribeStatus);
+
+    return () {
+      debounce?.cancel();
+      unawaited(client.removeChannel(channel));
+    };
+  }, [businessId]);
 }

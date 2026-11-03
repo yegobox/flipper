@@ -171,24 +171,56 @@ void main() {
   });
 
   group('readAllServiceModeGrantPages', () {
-    test('reads every page until a short one', () async {
+    final all = List.generate(5, (i) => {'user_id': 'u-$i'});
+
+    test('reads pages until it has the counted rows', () async {
       final ranges = <(int, int)>[];
-      final all = List.generate(5, (i) => {'user_id': 'u-$i'});
       final rows = await readAllServiceModeGrantPages((from, to) async {
         ranges.add((from, to));
-        return all.sublist(from, (to + 1).clamp(0, all.length));
+        return (
+          rows: all.sublist(from, (to + 1).clamp(0, all.length)),
+          total: all.length,
+        );
       }, pageSize: 2);
       expect(rows, all);
       expect(ranges, [(0, 1), (2, 3), (4, 5)]);
     });
 
-    test('an exactly full last page costs one empty read', () async {
+    test('a server row cap below the page size: no row skipped', () async {
+      final ranges = <(int, int)>[];
+      final rows = await readAllServiceModeGrantPages((from, to) async {
+        ranges.add((from, to));
+        // Capped at 2 rows a response, whatever range was asked for.
+        return (
+          rows: all.sublist(from, (from + 2).clamp(0, all.length)),
+          total: all.length,
+        );
+      }, pageSize: 1000);
+      expect(rows, all);
+      expect(ranges, [(0, 999), (2, 1001), (4, 1003)]);
+    });
+
+    test('everything on the first page costs one read', () async {
       var reads = 0;
       final rows = await readAllServiceModeGrantPages((from, to) async {
         reads++;
-        return from == 0 ? [{}, {}] : <Map<String, dynamic>>[];
+        return (rows: all, total: all.length);
+      });
+      expect(rows, all);
+      expect(reads, 1);
+    });
+
+    test('an empty page ends the read even below the count', () async {
+      var reads = 0;
+      final rows = await readAllServiceModeGrantPages((from, to) async {
+        reads++;
+        // Rows deleted between the count and the next page.
+        return (
+          rows: from == 0 ? all.sublist(0, 2) : <Map<String, dynamic>>[],
+          total: all.length,
+        );
       }, pageSize: 2);
-      expect(rows, hasLength(2));
+      expect(rows, all.sublist(0, 2));
       expect(reads, 2);
     });
   });

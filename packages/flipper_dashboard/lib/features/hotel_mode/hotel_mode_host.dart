@@ -1,8 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flipper_dashboard/features/bar_mode/providers/bar_mode_providers.dart'
-    show barTenantIsAdmin, serviceModeGrantsProvider;
 import 'package:flipper_dashboard/features/hotel_mode/hotel_mode_settings.dart';
 import 'package:flipper_dashboard/features/hotel_mode/services/hotel_quotation_actions.dart';
 import 'package:flipper_dashboard/features/hotel_mode/providers/hotel_mode_providers.dart';
@@ -21,7 +19,6 @@ import 'package:flipper_dashboard/features/service_mode_hotkey.dart';
 import 'package:flipper_dashboard/features/service_mode_switch.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/services/hotel_room_rra_service.dart';
-import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:supabase_models/brick/models/tenant.model.dart';
@@ -112,7 +109,7 @@ class _HotelModeHostState extends ConsumerState<HotelModeHost> {
     try {
       final clerk = ref.read(hotelModeProvider).activeClerk;
       if (clerk != null) {
-        if (_clerkMayRunHotel(clerk)) {
+        if (clerkMayRun(ref, ServiceMode.hotel, clerk)) {
           notifier.setScreen(HotelScreen.dashboard);
           return;
         }
@@ -143,15 +140,6 @@ class _HotelModeHostState extends ConsumerState<HotelModeHost> {
     }
   }
 
-  /// Whether the clerk bound to the desk still holds Hotel Mode (or never
-  /// needed it: grandfathered, Admin-type or owner).
-  bool _clerkMayRunHotel(Tenant clerk) =>
-      currentServiceModeGrants(ref, listen: false).allows(
-        AppFeature.HotelMode,
-        clerk.userId?.trim(),
-        isAdminOrOwner: barTenantIsAdmin(clerk),
-      );
-
   Future<Tenant?> _signedInStaffMember() async {
     final userId = ProxyService.box.getUserId()?.trim();
     if (userId == null || userId.isEmpty) return null;
@@ -166,14 +154,14 @@ class _HotelModeHostState extends ConsumerState<HotelModeHost> {
   @override
   Widget build(BuildContext context) {
     final hotel = ref.watch(hotelModeProvider);
-    // A grant removed while the clerk is at the desk hands it back to the
-    // lock straight away.
-    ref.listen(serviceModeGrantsProvider, (_, next) {
-      final clerk = ref.read(hotelModeProvider).activeClerk;
-      if (next.hasValue && clerk != null && !_clerkMayRunHotel(clerk)) {
-        ref.read(hotelModeProvider.notifier).logout();
-      }
-    });
+    // A clerk whose grant (or Admin type) went, at the desk or on a PIN pick
+    // made before it went, hands the desk back to the lock straight away.
+    signOutIneligibleClerk(
+      ref,
+      ServiceMode.hotel,
+      clerk: hotelModeProvider.select((s) => s.activeClerk),
+      signOut: ref.read(hotelModeProvider.notifier).logout,
+    );
 
     final desk = Scaffold(
       backgroundColor: HotelTokens.stageBg,

@@ -193,7 +193,12 @@ final barModeProvider = NotifierProvider<BarModeNotifier, BarModeState>(
 );
 
 final barStaffProvider = FutureProvider<List<Tenant>>((ref) async {
-  return FlipperBaseModel.fetchBarStaffTenants();
+  // Re-read on a business switch, as [serviceModeGrantsProvider] does: the
+  // Bar and Hotel sign-in lists filter this roster with those grants.
+  final businessId = ref.watch(
+    activeBranchProvider.select((branch) => branch.value?.businessId),
+  );
+  return FlipperBaseModel.fetchBarStaffTenants(businessId: businessId);
 });
 
 /// Who may run Bar Mode / Hotel Mode in this business (see [ServiceModeGrants]).
