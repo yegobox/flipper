@@ -5,6 +5,7 @@ import 'package:flipper_services/ebm_sync_service.dart';
 import 'package:flutter/foundation.dart' hide Category;
 import 'package:supabase_models/brick/repository.dart';
 import 'package:flipper_models/AppInitializer.dart';
+import 'package:flipper_models/helperModels/startup_route_log.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/services/payment_verification_navigator.dart';
@@ -80,6 +81,9 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
       if (forceLogout) {
         talker.warning('Force logout detected - logging out user');
         // Reset the force logout flag to prevent repeated logouts
+        // Recorded before the flag is cleared: if the app dies mid-write, the
+        // next start still sees the flag and records it again.
+        await StartupRouteLog.record('force logout flag was set');
         await ProxyService.box.setForceLogout(false);
         await logOut();
         _routerService.navigateTo(LoginRoute());
@@ -95,6 +99,7 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
         debugPrint(
           '🚀 [StartupViewModel] No user in local storage; showing login',
         );
+        unawaited(StartupRouteLog.record('no userId in local storage'));
         _routerService.clearStackAndShow(LoginRoute());
         return;
       }
@@ -400,6 +405,7 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
       _routerService.navigateTo(LoginChoicesRoute());
     } else if (e is SessionException || e is PinError) {
       log(stackTrace.toString(), name: 'runStartupLogic');
+      unawaited(StartupRouteLog.record('logged out', e, stackTrace));
       await logOut();
       _routerService.clearStackAndShow(LoginRoute());
       return;
@@ -445,17 +451,22 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
         talker.warning(
           'Entering app with cached session despite startup timeout',
         );
+        unawaited(
+          StartupRouteLog.record('kept the cached session', e, stackTrace),
+        );
         await _handleInitialPaymentVerification();
       }
       return;
     } else {
       if (await _keepsCachedSessionAfter(e)) {
-        talker.warning(
-          'Startup failed offline ($e); entering with the cached session',
+        talker.warning('Startup failed ($e); entering with the cached session');
+        unawaited(
+          StartupRouteLog.record('kept the cached session', e, stackTrace),
         );
         await _handleInitialPaymentVerification();
         return;
       }
+      unawaited(StartupRouteLog.record('logged out', e, stackTrace));
       try {
         logOut();
         _routerService.navigateTo(LoginRoute());
@@ -478,19 +489,48 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
   /// online. Ditto never replicates `branches` down, so on a device with no
   /// network the online step finds nothing and the check used to throw —
   /// which fell through to `logOut()` and the login screen, although the user
-  /// never signed out. Being offline says nothing about whether the session is
-  /// valid, so a device holding one keeps it. Errors that do say the session
-  /// is bad still log out, and online behaviour is unchanged.
+  /// never signed out.
+  ///
+  /// Being online is no better evidence. Any other startup failure (a Ditto
+  /// open error, a failed branch fetch, an `appInit` throw) also used to wipe
+  /// the session, so a Windows till reopened online landed on the login screen
+  /// every time. Only errors that say the session is bad log out, plus a
+  /// business the server says is gone; failures that say nothing about the
+  /// session keep it.
   @visibleForTesting
   static bool keepsCachedSessionAfter(
     Object error, {
     required bool hasCachedSession,
     required bool online,
   }) {
-    if (!hasCachedSession || online) return false;
-    return error is! SessionException &&
-        error is! PinError &&
-        error is! LoginChoicesException;
+    if (!hasCachedSession) return false;
+    if (error is SessionException ||
+        error is PinError ||
+        error is LoginChoicesException) {
+      return false;
+    }
+    // Online, a missing business is the server's answer, not a failed check.
+    return !(online && error is BusinessNotFoundException);
+  }
+
+  /// Looks a business missing locally up online.
+  ///
+  /// Only the server answering "no such business" is a
+  /// [BusinessNotFoundException], which sends the user to signup. A timeout or
+  /// transport error says nothing about the business, so it is rethrown as is
+  /// and [keepsCachedSessionAfter] keeps the cached session.
+  @visibleForTesting
+  static Future<T> fetchOnlineOrNotFound<T extends Object>(
+    Future<T?> Function() fetch, {
+    Duration timeout = const Duration(seconds: 10),
+  }) async {
+    final found = await fetch().timeout(timeout);
+    if (found == null) {
+      throw BusinessNotFoundException(
+        term: 'Business not found locally or online',
+      );
+    }
+    return found;
   }
 
   /// A signed-in user with a business and branch picked — everything the last
@@ -516,7 +556,10 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
     return keepsCachedSessionAfter(
       error,
       hasCachedSession: true,
-      online: await ProxyService.status.isInternetAvailable(),
+      // Only a missing business depends on it; skip the probe otherwise.
+      online:
+          error is BusinessNotFoundException &&
+          await ProxyService.status.isInternetAvailable(),
     );
   }
 
@@ -564,29 +607,19 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
         // happen when the app restarts before local syncing/hydration
         // completed (Ditto/Turso). Prefer a quick online fetch rather than
         // failing startup immediately.
-        try {
-          talker.warning(
-            'Business not found locally; attempting online fetch...',
-          );
-          // Ensure we have a Future so `.timeout` is available even if the
-          // underlying implementation returns `FutureOr<Business?>`.
-          business = await Future.value(
+        talker.warning(
+          'Business not found locally; attempting online fetch...',
+        );
+        // Ensure we have a Future so `.timeout` is available even if the
+        // underlying implementation returns `FutureOr<Business?>`.
+        business = await fetchOnlineOrNotFound<Business>(
+          () => Future.value(
             ProxyService.strategy.getBusinessById(
               businessId: businessId,
               fetchOnline: true,
             ),
-          ).timeout(const Duration(seconds: 10));
-          if (business == null) {
-            throw BusinessNotFoundException(
-              term: 'Business not found locally or online',
-            );
-          }
-        } catch (e, st) {
-          talker.error(e, st);
-          throw BusinessNotFoundException(
-            term: 'Business not found locally or online',
-          );
-        }
+          ),
+        );
       }
       talker.warning("Business found: ${business.name}");
 
