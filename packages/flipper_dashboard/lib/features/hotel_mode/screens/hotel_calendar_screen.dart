@@ -24,6 +24,13 @@ class HotelCalendarScreen extends ConsumerWidget {
   const HotelCalendarScreen({super.key});
 
   static const _roomColumnWidth = 150.0;
+
+  /// Narrower on a phone, where 150 took over 40% of the screen from the
+  /// nights the desk is booking.
+  static const _compactRoomColumnWidth = 96.0;
+
+  static double _roomColumnWidthFor(bool compact) =>
+      compact ? _compactRoomColumnWidth : _roomColumnWidth;
   static const _rowHeight = 46.0;
 
   @override
@@ -44,7 +51,7 @@ class HotelCalendarScreen extends ConsumerWidget {
         // instead of empty grey.
         final available = math.max(
           0.0,
-          constraints.maxWidth - _roomColumnWidth,
+          constraints.maxWidth - _roomColumnWidthFor(compact),
         );
         final target = compact ? 54.0 : 78.0;
         final minCell = compact ? 44.0 : 56.0;
@@ -278,12 +285,19 @@ class HotelCalendarScreen extends ConsumerWidget {
       child: SizedBox(
         width: math.max(
           viewportWidth,
-          _roomColumnWidth + cellWidth * days.length,
+          _roomColumnWidthFor(compact) + cellWidth * days.length,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _dayHeader(context.flipperL10n, rooms, stays, days, cellWidth),
+            _dayHeader(
+              context.flipperL10n,
+              rooms,
+              stays,
+              days,
+              cellWidth,
+              compact,
+            ),
             Expanded(
               child: ListView.builder(
                 itemCount: rooms.length,
@@ -311,6 +325,7 @@ class HotelCalendarScreen extends ConsumerWidget {
     List<HotelStay> stays,
     List<DateTime> days,
     double cellWidth,
+    bool compact,
   ) {
     final today = hotelDateOnly(DateTime.now());
 
@@ -323,7 +338,7 @@ class HotelCalendarScreen extends ConsumerWidget {
       child: Row(
         children: [
           SizedBox(
-            width: _roomColumnWidth,
+            width: _roomColumnWidthFor(compact),
             child: Padding(
               padding: const EdgeInsets.only(left: 14),
               child: Align(
@@ -400,33 +415,40 @@ class HotelCalendarScreen extends ConsumerWidget {
       child: Row(
         children: [
           Container(
-            width: _roomColumnWidth,
+            width: _roomColumnWidthFor(compact),
             height: _rowHeight,
-            padding: const EdgeInsets.symmetric(horizontal: 14),
+            padding: EdgeInsets.symmetric(horizontal: compact ? 10 : 14),
             color: HotelTokens.surface,
             child: Row(
               children: [
-                Text(
-                  room.name,
-                  style: GoogleFonts.outfit(
-                    fontSize: 14.5,
-                    fontWeight: FontWeight.w800,
-                    color: HotelTokens.ink1,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
+                Flexible(
                   child: Text(
-                    room.roomType,
+                    room.name,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.outfit(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w500,
-                      color: HotelTokens.ink3,
+                      fontSize: 14.5,
+                      fontWeight: FontWeight.w800,
+                      color: HotelTokens.ink1,
                     ),
                   ),
                 ),
+                // The phone's narrow column keeps the room name only.
+                if (!compact) ...[
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      room.roomType,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.outfit(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                        color: HotelTokens.ink3,
+                      ),
+                    ),
+                  ),
+                ],
               ],
             ),
           ),

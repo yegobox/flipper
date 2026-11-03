@@ -227,10 +227,13 @@ class _BusinessFlipperApp extends HookConsumerWidget {
 
     // Nothing cached: hydrate both together rather than end to end, so the
     // cold path costs one timeout instead of two.
-    await Future.wait([
-      HotelModeSettings.hydrateForActiveBranch(),
-      BarModeSettings.hydrateForActiveBranch(),
-    ]);
+    await hydrateOfferedServiceModes(
+      () => Future.wait([
+        HotelModeSettings.hydrateForActiveBranch(),
+        BarModeSettings.hydrateForActiveBranch(),
+      ]),
+      phone: isPhoneLayout,
+    );
     HotelModeSettings.startWatchingActiveBranch();
     BarModeSettings.startWatchingActiveBranch();
 

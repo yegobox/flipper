@@ -16,6 +16,7 @@ import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_manager_pin_
 import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_shared_widgets.dart';
 import 'package:flipper_dashboard/features/service_mode_access_gate.dart';
 import 'package:flipper_dashboard/features/service_mode_hotkey.dart';
+import 'package:flipper_dashboard/features/service_mode_shell.dart';
 import 'package:flipper_dashboard/features/service_mode_switch.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/services/hotel_room_rra_service.dart';
@@ -108,13 +109,13 @@ class _HotelModeHostState extends ConsumerState<HotelModeHost> {
     final notifier = ref.read(hotelModeProvider.notifier);
     try {
       final clerk = ref.read(hotelModeProvider).activeClerk;
-      if (clerk != null) {
-        if (clerkMayRun(ref, ServiceMode.hotel, clerk)) {
-          notifier.setScreen(HotelScreen.dashboard);
-          return;
-        }
-        // Their Hotel grant went while they were away from the desk.
-        notifier.logout();
+      if (clerk != null &&
+          notifier.resumeRetainedClerk(
+            mayRun: clerkMayRun(ref, ServiceMode.hotel, clerk),
+            requirePin: HotelModeSettings.requirePin,
+            isPhone: isPhoneLayout,
+          )) {
+        return;
       }
 
       if (HotelModeSettings.requirePin) {
@@ -231,7 +232,9 @@ class _HotelModeHostState extends ConsumerState<HotelModeHost> {
     );
 
     return ServiceModeHotkeyScope(
-      child: ServiceModeAccessGate(mode: ServiceMode.hotel, child: desk),
+      child: ServiceModePhoneShellSync(
+        child: ServiceModeAccessGate(mode: ServiceMode.hotel, child: desk),
+      ),
     );
   }
 }

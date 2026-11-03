@@ -23,6 +23,27 @@ final ValueNotifier<int> serviceModeRevision = ValueNotifier<int>(0);
 
 void notifyServiceModeChanged() => serviceModeRevision.value++;
 
+/// Runs [hydrate], which pulls the branch's Bar / Hotel flags into the local
+/// cache, and on a [phone] bumps [serviceModeRevision] when that changed which
+/// modes the branch offers.
+///
+/// The branch watchers start after a cold-start hydration, find the flags
+/// already written and report no change, so without this the phone home kept
+/// its Bar and Hotel tiles hidden for the session. A desk is left as it was:
+/// its shell guard re-syncs on every bump while the startup redirect is
+/// navigating by itself. [offered] reads the flags; tests replace it.
+Future<void> hydrateOfferedServiceModes(
+  Future<void> Function() hydrate, {
+  required bool phone,
+  (bool, bool) Function()? offered,
+}) async {
+  final read =
+      offered ?? () => (BarModeSettings.enabled, HotelModeSettings.enabled);
+  final before = phone ? read() : null;
+  await hydrate();
+  if (before != null && read() != before) notifyServiceModeChanged();
+}
+
 /// A service surface a terminal can run.
 ///
 /// Bar and Hotel each replace the whole POS sales pane, so one *device* runs

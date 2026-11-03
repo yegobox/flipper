@@ -5,6 +5,7 @@ import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_desk_nav.dar
 import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_room_card.dart';
 import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_room_interactions.dart';
 import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_shared_widgets.dart';
+import 'package:flipper_dashboard/features/service_mode_shell.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/models/hotel_room.dart';
 import 'package:flipper_models/models/hotel_stay.dart';
@@ -53,15 +54,22 @@ class _RoomsHeader extends ConsumerWidget {
           Row(
             children: [
               const HotelDeskBrand(logoSize: 24, wordmarkSize: 15),
-              const Spacer(),
-              Text(
-                l10n.hotelOccupiedFraction(
-                  '${counts.occupied}/${counts.total}',
-                ),
-                style: GoogleFonts.jetBrainsMono(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  color: HotelTokens.ink3,
+              const SizedBox(width: 8),
+              // Gives way to the buttons: a long translation with three-digit
+              // counts pushed the close button off a narrow phone.
+              Expanded(
+                child: Text(
+                  l10n.hotelOccupiedFraction(
+                    '${counts.occupied}/${counts.total}',
+                  ),
+                  textAlign: TextAlign.right,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.jetBrainsMono(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: HotelTokens.ink3,
+                  ),
                 ),
               ),
               IconButton(
@@ -73,6 +81,7 @@ class _RoomsHeader extends ConsumerWidget {
                   color: HotelTokens.lossInk,
                 ),
               ),
+              const ServiceModeCloseButton(color: HotelTokens.ink3),
             ],
           ),
           const SizedBox(height: 10),

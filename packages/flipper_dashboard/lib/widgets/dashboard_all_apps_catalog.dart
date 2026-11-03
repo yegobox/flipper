@@ -1,4 +1,5 @@
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
+import 'package:flipper_dashboard/features/service_mode_access_gate.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 
@@ -60,6 +61,20 @@ List<DashboardAllAppSection> dashboardAllAppsCatalog(BuildContext context) => [
         icon: FluentIcons.clipboard_text_edit_24_regular,
         color: Color(0xFF006AFE),
         feature: 'Tickets',
+      ),
+      // Shown only where the branch runs the mode and the user may run it
+      // (see serviceModeTileVisible).
+      DashboardAllAppTile(
+        page: barModeDashboardPage,
+        label: context.flipperL10n.serviceModeBarMode,
+        icon: FluentIcons.drink_beer_24_regular,
+        color: Color(0xFF7C3AED),
+      ),
+      DashboardAllAppTile(
+        page: hotelModeDashboardPage,
+        label: context.flipperL10n.serviceModeHotelMode,
+        icon: FluentIcons.bed_24_regular,
+        color: Color(0xFF0F766E),
       ),
       DashboardAllAppTile(
         page: 'Cashbook',

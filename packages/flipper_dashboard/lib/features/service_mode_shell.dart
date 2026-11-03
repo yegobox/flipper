@@ -4,7 +4,8 @@ import 'package:flipper_dashboard/features/service_mode_switch.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
-import 'package:flutter/widgets.dart';
+import 'package:flipper_localize/flipper_localize.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
@@ -130,8 +131,9 @@ void _openHost(
 /// Wraps the POS sales pane and hands the device over to its mode's own route
 /// whenever that pane would otherwise draw the mode inside the POS shell.
 ///
-/// The pane still renders the mode host for the frame before the handover,
-/// and on a phone, where nothing is handed over. Re-checked on every mode
+/// The pane still renders the mode host for the frame before the handover.
+/// Phones never get here: their home is not the POS pane (see
+/// [ServiceModePhoneShellSync]). Re-checked on every mode
 /// change and whenever this route is uncovered again — Back from a host lands
 /// here, and a terminal pinned to a mode goes straight back to it.
 ///
@@ -151,6 +153,49 @@ class ServiceModeShellGuard extends HookWidget {
       return null;
     }, [revision, isTopRoute]);
     return child;
+  }
+}
+
+/// Wraps a mode host and, on a phone, leaves it once the branch stops
+/// offering its mode.
+///
+/// A phone's home is not the POS pane, so no [ServiceModeShellGuard] is
+/// mounted there; without this a host stayed up after Settings or another
+/// device turned its service off. [syncServiceModeShell] never moves a phone
+/// into a mode, so this only ever leaves one.
+class ServiceModePhoneShellSync extends HookWidget {
+  const ServiceModePhoneShellSync({super.key, required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final revision = useValueListenable(serviceModeRevision);
+    useEffect(() {
+      if (isPhoneLayout) _scheduleShellSync();
+      return null;
+    }, [revision]);
+    return child;
+  }
+}
+
+/// Closes a mode host back to the phone's home, so leaving does not depend on
+/// the system Back gesture. Nothing on a desktop, whose shell guard would only
+/// reopen the mode, or when the host has nowhere to go back to.
+class ServiceModeCloseButton extends StatelessWidget {
+  const ServiceModeCloseButton({super.key, this.color});
+
+  final Color? color;
+
+  @override
+  Widget build(BuildContext context) {
+    final canClose = isPhoneLayout && (ModalRoute.of(context)?.canPop ?? false);
+    if (!canClose) return const SizedBox.shrink();
+    return IconButton(
+      tooltip: context.flipperL10n.close,
+      onPressed: () => Navigator.of(context).maybePop(),
+      icon: Icon(Icons.close, color: color),
+    );
   }
 }
 

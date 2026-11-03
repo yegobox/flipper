@@ -106,3 +106,14 @@ class BarMobilePeopleStrip extends StatelessWidget {
     );
   }
 }
+
+/// [pick] as [roster] has it now: their latest record (PIN included), or null
+/// once they have left the roster. A sign-in screen stays mounted across a
+/// roster refresh, so the [Tenant] captured at the tap can be stale.
+Tenant? barPickInRoster(Tenant? pick, List<Tenant>? roster) {
+  if (pick == null || roster == null) return null;
+  for (final tenant in roster) {
+    if (tenant.id == pick.id) return tenant;
+  }
+  return null;
+}

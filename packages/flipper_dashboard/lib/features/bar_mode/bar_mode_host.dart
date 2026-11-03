@@ -12,6 +12,7 @@ import 'package:flipper_dashboard/features/bar_mode/widgets/bar_manager_pin_moda
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_toast.dart';
 import 'package:flipper_dashboard/features/service_mode_access_gate.dart';
 import 'package:flipper_dashboard/features/service_mode_hotkey.dart';
+import 'package:flipper_dashboard/features/service_mode_shell.dart';
 import 'package:flipper_dashboard/features/service_mode_switch.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
@@ -167,7 +168,9 @@ class _BarModeHostState extends ConsumerState<BarModeHost> {
     );
 
     return ServiceModeHotkeyScope(
-      child: ServiceModeAccessGate(mode: ServiceMode.bar, child: stage),
+      child: ServiceModePhoneShellSync(
+        child: ServiceModeAccessGate(mode: ServiceMode.bar, child: stage),
+      ),
     );
   }
 }

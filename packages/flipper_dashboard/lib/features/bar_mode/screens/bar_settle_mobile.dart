@@ -468,7 +468,10 @@ class _BarSettleMobileScreenState extends ConsumerState<BarSettleMobileScreen> {
                         : Border.all(color: BarTokens.line),
                   ),
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 16,
+                      horizontal: 12,
+                    ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -496,23 +499,31 @@ class _BarSettleMobileScreenState extends ConsumerState<BarSettleMobileScreen> {
                             size: 20,
                           ),
                         const SizedBox(width: 10),
-                        Text(
-                          isRoomCharge
-                              ? (_roomStay == null
-                                    ? l10n.barChargeToRoomTotalShort(totalLabel)
-                                    : l10n.barChargeRoomTotalShort(
-                                        _roomStay!.roomName,
-                                        totalLabel,
-                                      ))
-                              : isCredit
-                              ? l10n.barCreditConfirm(totalLabel)
-                              : l10n.barConfirmTotalShort(totalLabel),
-                          style: GoogleFonts.outfit(
-                            color: buttonLooksEnabled
-                                ? Colors.white
-                                : BarTokens.ink4,
-                            fontWeight: FontWeight.w800,
-                            fontSize: 15,
+                        // A long room name or translation shrinks the label
+                        // instead of overflowing a narrow phone.
+                        Flexible(
+                          child: Text(
+                            isRoomCharge
+                                ? (_roomStay == null
+                                      ? l10n.barChargeToRoomTotalShort(
+                                          totalLabel,
+                                        )
+                                      : l10n.barChargeRoomTotalShort(
+                                          _roomStay!.roomName,
+                                          totalLabel,
+                                        ))
+                                : isCredit
+                                ? l10n.barCreditConfirm(totalLabel)
+                                : l10n.barConfirmTotalShort(totalLabel),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.outfit(
+                              color: buttonLooksEnabled
+                                  ? Colors.white
+                                  : BarTokens.ink4,
+                              fontWeight: FontWeight.w800,
+                              fontSize: 15,
+                            ),
                           ),
                         ),
                       ],

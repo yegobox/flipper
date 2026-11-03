@@ -160,6 +160,28 @@ class HotelModeNotifier extends Notifier<HotelModeState> {
     state = state.copyWith(activeClerk: clerk, screen: HotelScreen.dashboard);
   }
 
+  /// Reopens the desk for the clerk still signed in from an earlier visit,
+  /// and returns whether it did. Signs them out otherwise.
+  ///
+  /// A desk terminal keeps them across Bar → Hotel → Bar. A phone does not
+  /// when the branch requires a PIN: it is closed to its home and reopened,
+  /// often by whoever holds it next, so it goes back to the lock as Bar does.
+  /// A clerk who may no longer run the desk ([mayRun] false) is signed out
+  /// either way.
+  bool resumeRetainedClerk({
+    required bool mayRun,
+    required bool requirePin,
+    required bool isPhone,
+  }) {
+    if (state.activeClerk == null) return false;
+    if (mayRun && !(isPhone && requirePin)) {
+      setScreen(HotelScreen.dashboard);
+      return true;
+    }
+    logout();
+    return false;
+  }
+
   /// Hands the terminal back: clears the clerk and everything they had open.
   void logout() {
     state = state.copyWith(
