@@ -81,8 +81,10 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
       if (forceLogout) {
         talker.warning('Force logout detected - logging out user');
         // Reset the force logout flag to prevent repeated logouts
+        // Recorded before the flag is cleared: if the app dies mid-write, the
+        // next start still sees the flag and records it again.
+        await StartupRouteLog.record('force logout flag was set');
         await ProxyService.box.setForceLogout(false);
-        unawaited(StartupRouteLog.record('force logout flag was set'));
         await logOut();
         _routerService.navigateTo(LoginRoute());
         return;
@@ -449,6 +451,9 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
         talker.warning(
           'Entering app with cached session despite startup timeout',
         );
+        unawaited(
+          StartupRouteLog.record('kept the cached session', e, stackTrace),
+        );
         await _handleInitialPaymentVerification();
       }
       return;
@@ -506,6 +511,26 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
     }
     // Online, a missing business is the server's answer, not a failed check.
     return !(online && error is BusinessNotFoundException);
+  }
+
+  /// Looks a business missing locally up online.
+  ///
+  /// Only the server answering "no such business" is a
+  /// [BusinessNotFoundException], which sends the user to signup. A timeout or
+  /// transport error says nothing about the business, so it is rethrown as is
+  /// and [keepsCachedSessionAfter] keeps the cached session.
+  @visibleForTesting
+  static Future<T> fetchOnlineOrNotFound<T extends Object>(
+    Future<T?> Function() fetch, {
+    Duration timeout = const Duration(seconds: 10),
+  }) async {
+    final found = await fetch().timeout(timeout);
+    if (found == null) {
+      throw BusinessNotFoundException(
+        term: 'Business not found locally or online',
+      );
+    }
+    return found;
   }
 
   /// A signed-in user with a business and branch picked — everything the last
@@ -582,29 +607,19 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
         // happen when the app restarts before local syncing/hydration
         // completed (Ditto/Turso). Prefer a quick online fetch rather than
         // failing startup immediately.
-        try {
-          talker.warning(
-            'Business not found locally; attempting online fetch...',
-          );
-          // Ensure we have a Future so `.timeout` is available even if the
-          // underlying implementation returns `FutureOr<Business?>`.
-          business = await Future.value(
+        talker.warning(
+          'Business not found locally; attempting online fetch...',
+        );
+        // Ensure we have a Future so `.timeout` is available even if the
+        // underlying implementation returns `FutureOr<Business?>`.
+        business = await fetchOnlineOrNotFound<Business>(
+          () => Future.value(
             ProxyService.strategy.getBusinessById(
               businessId: businessId,
               fetchOnline: true,
             ),
-          ).timeout(const Duration(seconds: 10));
-          if (business == null) {
-            throw BusinessNotFoundException(
-              term: 'Business not found locally or online',
-            );
-          }
-        } catch (e, st) {
-          talker.error(e, st);
-          throw BusinessNotFoundException(
-            term: 'Business not found locally or online',
-          );
-        }
+          ),
+        );
       }
       talker.warning("Business found: ${business.name}");
 

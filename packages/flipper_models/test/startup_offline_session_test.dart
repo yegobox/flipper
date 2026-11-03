@@ -1,9 +1,23 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flipper_models/exceptions.dart';
 import 'package:flipper_models/helperModels/startup_route_log.dart';
 import 'package:flipper_models/view_models/startup_viewmodel.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
+import 'package:plugin_platform_interface/plugin_platform_interface.dart';
+
+class _FakePaths extends Fake
+    with MockPlatformInterfaceMixin
+    implements PathProviderPlatform {
+  _FakePaths(this.dir);
+
+  final String? dir;
+
+  @override
+  Future<String?> getApplicationSupportPath() async => dir;
+}
 
 /// Pins the rule that reopening the app offline keeps a signed-in session.
 ///
@@ -89,6 +103,85 @@ void main() {
         ),
         isFalse,
       );
+    });
+  });
+
+  group('StartupViewModel.fetchOnlineOrNotFound', () {
+    test('returns what the server found', () async {
+      expect(
+        await StartupViewModel.fetchOnlineOrNotFound<String>(() async => 'biz'),
+        'biz',
+      );
+    });
+
+    test('only a server "none" is a missing business', () {
+      expect(
+        StartupViewModel.fetchOnlineOrNotFound<String>(() async => null),
+        throwsA(isA<BusinessNotFoundException>()),
+      );
+    });
+
+    test('a timeout stays a timeout, so the session is kept', () {
+      expect(
+        StartupViewModel.fetchOnlineOrNotFound<String>(
+          () => Completer<String?>().future,
+          timeout: const Duration(milliseconds: 10),
+        ),
+        throwsA(isA<TimeoutException>()),
+      );
+    });
+
+    test('a transport error is rethrown as is', () {
+      expect(
+        StartupViewModel.fetchOnlineOrNotFound<String>(
+          () async => throw const SocketException('down'),
+        ),
+        throwsA(isA<SocketException>()),
+      );
+    });
+  });
+
+  group('StartupRouteLog.record', () {
+    late Directory dir;
+    late PathProviderPlatform original;
+
+    setUp(() {
+      dir = Directory.systemTemp.createTempSync('startup_route_log_');
+      original = PathProviderPlatform.instance;
+      PathProviderPlatform.instance = _FakePaths(dir.path);
+    });
+
+    tearDown(() {
+      PathProviderPlatform.instance = original;
+      dir.deleteSync(recursive: true);
+    });
+
+    File log() => File('${dir.path}/${StartupRouteLog.fileName}');
+
+    test('creates the log, then appends to it', () async {
+      await StartupRouteLog.record('first', StateError('a'));
+      await StartupRouteLog.record('second');
+
+      final text = log().readAsStringSync();
+      expect(text, contains('first\nStateError: Bad state: a\n'));
+      expect(text, contains('second\n'));
+      expect(text.indexOf('first'), lessThan(text.indexOf('second')));
+    });
+
+    test('starts over once the log reaches 256 KB', () async {
+      log().writeAsStringSync('x' * (256 * 1024));
+
+      await StartupRouteLog.record('fresh');
+
+      final text = log().readAsStringSync();
+      expect(text, isNot(contains('x')));
+      expect(text, contains('fresh\n'));
+    });
+
+    test('a failed write never throws', () async {
+      // No support directory: path_provider throws, record swallows it.
+      PathProviderPlatform.instance = _FakePaths(null);
+      await expectLater(StartupRouteLog.record('lost'), completes);
     });
   });
 
