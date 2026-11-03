@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flipper_models/exceptions.dart';
+import 'package:flipper_models/helperModels/startup_route_log.dart';
 import 'package:flipper_models/view_models/startup_viewmodel.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -43,10 +44,34 @@ void main() {
       expect(keeps(LoginChoicesException(term: 'Branch ID not set')), isFalse);
     });
 
-    test('online behaviour is unchanged', () {
-      expect(keeps(Exception('requirements failed'), online: true), isFalse);
+    test('online, a failure that says nothing about the session keeps it', () {
+      // Windows tills reopened online used to land on login every time: any
+      // startup error fell through to logOut().
+      for (final error in <Object>[
+        Exception('requirements failed for having branches saved locally'),
+        TimeoutException('appInit'),
+        StateError('Ditto not initialized'),
+      ]) {
+        expect(
+          keeps(error, online: true),
+          isTrue,
+          reason: '$error must not log out',
+        );
+      }
+    });
+
+    test('online, a business the server says is gone still logs out', () {
       expect(
         keeps(BusinessNotFoundException(term: 'missing'), online: true),
+        isFalse,
+      );
+    });
+
+    test('session errors log out online too', () {
+      expect(keeps(SessionException(term: 'x'), online: true), isFalse);
+      expect(keeps(PinError(term: 'pin'), online: true), isFalse);
+      expect(
+        keeps(LoginChoicesException(term: 'Branch ID not set'), online: true),
         isFalse,
       );
     });
@@ -55,6 +80,35 @@ void main() {
       expect(
         keeps(Exception('requirements failed'), hasCachedSession: false),
         isFalse,
+      );
+      expect(
+        keeps(
+          Exception('requirements failed'),
+          hasCachedSession: false,
+          online: true,
+        ),
+        isFalse,
+      );
+    });
+  });
+
+  group('StartupRouteLog.format', () {
+    test('records when, why and the error behind it', () {
+      final text = StartupRouteLog.format(
+        DateTime.utc(2026, 11, 3, 9),
+        'logged out',
+        StateError('Ditto not initialized'),
+        StackTrace.fromString('#0 main'),
+      );
+      expect(text, startsWith('=== 2026-11-03T09:00:00.000Z logged out\n'));
+      expect(text, contains('StateError: Bad state: Ditto not initialized'));
+      expect(text, contains('#0 main'));
+    });
+
+    test('a reason alone is one line', () {
+      expect(
+        StartupRouteLog.format(DateTime.utc(2026), 'no userId'),
+        '=== 2026-01-01T00:00:00.000Z no userId\n',
       );
     });
   });

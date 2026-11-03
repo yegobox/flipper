@@ -5,6 +5,7 @@ import 'package:flipper_services/ebm_sync_service.dart';
 import 'package:flutter/foundation.dart' hide Category;
 import 'package:supabase_models/brick/repository.dart';
 import 'package:flipper_models/AppInitializer.dart';
+import 'package:flipper_models/helperModels/startup_route_log.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/services/payment_verification_navigator.dart';
@@ -81,6 +82,7 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
         talker.warning('Force logout detected - logging out user');
         // Reset the force logout flag to prevent repeated logouts
         await ProxyService.box.setForceLogout(false);
+        unawaited(StartupRouteLog.record('force logout flag was set'));
         await logOut();
         _routerService.navigateTo(LoginRoute());
         return;
@@ -95,6 +97,7 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
         debugPrint(
           '🚀 [StartupViewModel] No user in local storage; showing login',
         );
+        unawaited(StartupRouteLog.record('no userId in local storage'));
         _routerService.clearStackAndShow(LoginRoute());
         return;
       }
@@ -400,6 +403,7 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
       _routerService.navigateTo(LoginChoicesRoute());
     } else if (e is SessionException || e is PinError) {
       log(stackTrace.toString(), name: 'runStartupLogic');
+      unawaited(StartupRouteLog.record('logged out', e, stackTrace));
       await logOut();
       _routerService.clearStackAndShow(LoginRoute());
       return;
@@ -450,12 +454,14 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
       return;
     } else {
       if (await _keepsCachedSessionAfter(e)) {
-        talker.warning(
-          'Startup failed offline ($e); entering with the cached session',
+        talker.warning('Startup failed ($e); entering with the cached session');
+        unawaited(
+          StartupRouteLog.record('kept the cached session', e, stackTrace),
         );
         await _handleInitialPaymentVerification();
         return;
       }
+      unawaited(StartupRouteLog.record('logged out', e, stackTrace));
       try {
         logOut();
         _routerService.navigateTo(LoginRoute());
@@ -478,19 +484,28 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
   /// online. Ditto never replicates `branches` down, so on a device with no
   /// network the online step finds nothing and the check used to throw —
   /// which fell through to `logOut()` and the login screen, although the user
-  /// never signed out. Being offline says nothing about whether the session is
-  /// valid, so a device holding one keeps it. Errors that do say the session
-  /// is bad still log out, and online behaviour is unchanged.
+  /// never signed out.
+  ///
+  /// Being online is no better evidence. Any other startup failure (a Ditto
+  /// open error, a failed branch fetch, an `appInit` throw) also used to wipe
+  /// the session, so a Windows till reopened online landed on the login screen
+  /// every time. Only errors that say the session is bad log out, plus a
+  /// business the server says is gone; failures that say nothing about the
+  /// session keep it.
   @visibleForTesting
   static bool keepsCachedSessionAfter(
     Object error, {
     required bool hasCachedSession,
     required bool online,
   }) {
-    if (!hasCachedSession || online) return false;
-    return error is! SessionException &&
-        error is! PinError &&
-        error is! LoginChoicesException;
+    if (!hasCachedSession) return false;
+    if (error is SessionException ||
+        error is PinError ||
+        error is LoginChoicesException) {
+      return false;
+    }
+    // Online, a missing business is the server's answer, not a failed check.
+    return !(online && error is BusinessNotFoundException);
   }
 
   /// A signed-in user with a business and branch picked — everything the last
@@ -516,7 +531,10 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
     return keepsCachedSessionAfter(
       error,
       hasCachedSession: true,
-      online: await ProxyService.status.isInternetAvailable(),
+      // Only a missing business depends on it; skip the probe otherwise.
+      online:
+          error is BusinessNotFoundException &&
+          await ProxyService.status.isInternetAvailable(),
     );
   }
 
