@@ -7765,7 +7765,7 @@
     "localModeDeviceHeldTitle": "Cet appareil est utilisé hors ligne par une autre entreprise",
     "localModeDeviceHeldBody": "Cette entreprise conserve ses données uniquement sur cet appareil : vous ne pouvez donc pas vous connecter ici à une autre entreprise tant qu'elle n'a pas activé la synchronisation cloud.",
     "localModeHoldReleasedTitle": "Cet appareil est prêt",
-    "localModeHoldReleasedBody": "Cet appareil conservait hors ligne les données d'une autre entreprise qui n'en a plus besoin ici. Reconnectez-vous pour continuer.",
+    "localModeHoldReleasedBody": "Le blocage hors ligne de cet appareil a été levé. Reconnectez-vous pour continuer.",
     "localModeSyncOnElsewhereTitle": "La synchronisation cloud a été activée",
     "localModeSyncOnElsewhereBody": "La synchronisation cloud a été activée pour cette entreprise depuis un autre appareil. Reconnectez-vous pour envoyer les données de cet appareil et terminer."
 }
