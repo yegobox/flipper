@@ -313,10 +313,13 @@ void main() {
       expect(find.text('Boss'), findsOneWidget);
     });
 
+    /// [sinceLoaded] changes the server's answer after the container loaded
+    /// the grants and roster, i.e. what a fresh read would see.
     Future<ProviderContainer> mountWithClerk(
       WidgetTester tester,
-      Tenant clerk,
-    ) async {
+      Tenant clerk, {
+      void Function()? sinceLoaded,
+    }) async {
       final container = ProviderContainer(
         overrides: [
           barServicesProvider.overrideWithValue(_Services(_Box(null))),
@@ -329,6 +332,7 @@ void main() {
       container.read(_clerkProvider.notifier).set(clerk);
       await container.read(serviceModeGrantsProvider.future);
       await container.read(barStaffProvider.future);
+      sinceLoaded?.call();
       await tester.pumpWidget(
         UncontrolledProviderScope(
           container: container,
@@ -363,6 +367,38 @@ void main() {
     ) async {
       final container = await mountWithClerk(tester, _waiter);
       expect(container.read(_clerkProvider), _waiter);
+    });
+
+    testWidgets('bound before the desk opened: a loaded demotion is re-read', (
+      tester,
+    ) async {
+      // Loaded while demoted; promoted back to Admin since.
+      roster = [
+        _waiter,
+        Tenant(id: 't-a', name: 'Boss', userId: 'u-a', type: 'Agent'),
+      ];
+      final container = await mountWithClerk(
+        tester,
+        _admin,
+        sinceLoaded: () => roster = [_waiter, _admin],
+      );
+      expect(container.read(_clerkProvider), _admin);
+    });
+
+    testWidgets('bound before the desk opened: a loaded revoke is re-read', (
+      tester,
+    ) async {
+      // Loaded without the cashier's grant; granted since.
+      final container = await mountWithClerk(
+        tester,
+        _cashier,
+        sinceLoaded: () => grants = ServiceModeGrants(
+          byFeature: {
+            AppFeature.BarMode: {'u-w', 'u-c'},
+          },
+        ),
+      );
+      expect(container.read(_clerkProvider), _cashier);
     });
 
     testWidgets('grandfathered: anyone stays', (tester) async {

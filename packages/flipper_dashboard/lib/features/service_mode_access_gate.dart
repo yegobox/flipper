@@ -109,7 +109,13 @@ void signOutIneligibleClerk(
     return current != null && !clerkMayRun(ref, mode, current);
   }
 
+  // A read in flight still carries the old value: wait for both to land.
+  // The listener of whichever lands last decides.
   void check() {
+    if (ref.read(serviceModeGrantsProvider).isLoading ||
+        ref.read(barStaffProvider).isLoading) {
+      return;
+    }
     if (ineligible()) signOut();
   }
 
@@ -118,11 +124,22 @@ void signOutIneligibleClerk(
   ref.listen(barStaffProvider, (_, _) => check());
 
   // A clerk still bound from an earlier visit (Bar → Hotel → Bar keeps the
-  // Bar notifier) who lost access meanwhile: nothing changes to fire the
-  // listeners above. Signing out is a provider write, so it waits for the
-  // build to finish.
+  // Bar notifier): nothing changes to fire the listeners above, and the
+  // loaded grants and roster may predate a grant or promotion since. So a
+  // clerk who looks ineligible is judged on a re-read of both (each falls
+  // back to its offline copy). Both wait for the build to finish: a refresh
+  // and the sign-out are provider writes.
   if (ineligible()) {
-    Future.microtask(() {
+    Future.microtask(() async {
+      if (!ref.context.mounted) return;
+      try {
+        await Future.wait([
+          ref.refresh(serviceModeGrantsProvider.future),
+          ref.refresh(barStaffProvider.future),
+        ]);
+      } catch (_) {
+        // Neither read throws (both fall back); decide with what is loaded.
+      }
       if (ref.context.mounted) check();
     });
   }
