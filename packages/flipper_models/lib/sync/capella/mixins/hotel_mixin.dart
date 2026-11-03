@@ -549,11 +549,24 @@ mixin CapellaHotelMixin implements HotelInterface {
 
     final ditto = dittoHandle;
     if (ditto != null) {
-      // Drop the empty folio so cancelled bookings never surface as tickets.
-      await ditto.store.execute(
-        'DELETE FROM transactions WHERE (_id = :id OR id = :id) AND status = :status',
+      // Drop the open folio and its charges so cancelled bookings never
+      // surface as tickets or leave orphan lines. Nothing on an open folio is
+      // receipted until checkout, so there is no fiscal record to reverse;
+      // a settled folio is history and is left alone.
+      final open = await ditto.store.execute(
+        'SELECT _id FROM transactions WHERE (_id = :id OR id = :id) AND status = :status',
         arguments: {'id': stay.transactionId, 'status': PARKED},
       );
+      if (open.items.isNotEmpty) {
+        await ditto.store.execute(
+          'DELETE FROM transaction_items WHERE transactionId = :id',
+          arguments: {'id': stay.transactionId},
+        );
+        await ditto.store.execute(
+          'DELETE FROM transactions WHERE (_id = :id OR id = :id) AND status = :status',
+          arguments: {'id': stay.transactionId, 'status': PARKED},
+        );
+      }
     }
     cartLineDocCache.forget(stay.transactionId);
 

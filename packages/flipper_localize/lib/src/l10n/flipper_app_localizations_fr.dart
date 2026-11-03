@@ -8854,6 +8854,19 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   String get hotelCancelStay => 'Annuler le séjour';
 
   @override
+  String hotelCancelStayQuestion(String guest) {
+    return 'Annuler le séjour de $guest ?';
+  }
+
+  @override
+  String hotelCancelStayChargesBody(String amount) {
+    return 'Cela retire $amount de charges du folio et libère la chambre. Aucun reçu n’a encore été émis.';
+  }
+
+  @override
+  String get hotelKeepStay => 'Garder le séjour';
+
+  @override
   String get hotelSettling => 'Règlement…';
 
   @override
@@ -21173,14 +21186,13 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
       'Quels produits sont les plus rentables cette semaine ?';
 
   @override
-  String get floSuggestUsersTitle => 'Combien d\'utilisateurs dans MiniData ?';
+  String get floSuggestOweTitle => 'À qui devons-nous de l\'argent ?';
 
   @override
-  String get floSuggestUsersDesc => 'Totaux et activité récente';
+  String get floSuggestOweDesc => 'Factures fournisseurs ouvertes';
 
   @override
-  String get floSuggestUsersQuestion =>
-      'Combien d\'utilisateurs avons-nous dans MiniData ?';
+  String get floSuggestOweQuestion => 'À qui devons-nous de l\'argent ?';
 
   @override
   String get floSuggestTrendTitle => 'Tendance des ventes de la semaine';
@@ -21226,10 +21238,6 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   String get floChannels => 'Canaux';
 
   @override
-  String get floMiniDataDesc =>
-      'Données Supabase en direct — ventes, utilisateurs, produits.';
-
-  @override
   String get floManage => 'Gérer';
 
   @override
@@ -21250,8 +21258,7 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   String get floBriefingUnavailable => 'Point du jour indisponible';
 
   @override
-  String get floReadingLiveSales =>
-      'Lecture des ventes en direct depuis MiniData.';
+  String get floReadingLiveSales => 'Lecture des ventes du jour en direct.';
 
   @override
   String get floCheckDataConnection =>
@@ -21362,9 +21369,6 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   String get floBusinessAi => 'IA d\'entreprise';
 
   @override
-  String get floMiniDataConnectedLive => 'MiniData connecté · en direct';
-
-  @override
   String get floNewChat => 'Nouvelle discussion';
 
   @override
@@ -21461,6 +21465,32 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   String get floTeamLoadFailed => 'Impossible de charger Flo Team';
 
   @override
+  String get floTeamBoardTitle => 'Tableau d\'équipe';
+
+  @override
+  String get floTeamSubtitle =>
+      'Idées, tâches et discussions avec votre équipe et Flo';
+
+  @override
+  String get floTeamEmptyHint =>
+      'Publiez une idée ou lancez une discussion pour avoir l\'avis de l\'équipe.';
+
+  @override
+  String get floTeamIdea => 'Idée';
+
+  @override
+  String get floTeamDiscussion => 'Discussion';
+
+  @override
+  String get floTeamYou => 'Vous';
+
+  @override
+  String get floTeamSomeone => 'Un collègue';
+
+  @override
+  String get floTeamInviteFromStaff => 'Inviter des membres du personnel';
+
+  @override
   String get floNewConversation => 'Nouvelle conversation';
 
   @override
@@ -21473,16 +21503,13 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   String get floOff => 'Désactivé';
 
   @override
-  String get floManageDataSources => 'Gérer les sources de données';
-
-  @override
   String get floQuickSummarizeToday => 'Résumer la journée';
 
   @override
   String get floQuickTopProducts => 'Meilleurs produits';
 
   @override
-  String get floQuickUserCount => 'Nombre d\'utilisateurs';
+  String get floQuickWhoWeOwe => 'Nos dettes';
 
   @override
   String get floQuickSalesTrend => 'Tendance des ventes';
@@ -21502,7 +21529,8 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
       'Flo peut se tromper — vérifiez les chiffres importants. ';
 
   @override
-  String get floGroundedInMiniData => 'Basé sur MiniData.';
+  String get floGroundedInYourData =>
+      'Basé sur les données de votre entreprise.';
 
   @override
   String get floStarting => 'Démarrage…';
@@ -21561,7 +21589,7 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   String get floThinkingUnderstanding => 'Compréhension de la question';
 
   @override
-  String get floThinkingQuerying => 'Interrogation de MiniData';
+  String get floThinkingQuerying => 'Consultation de vos données';
 
   @override
   String get floThinkingComposing => 'Rédaction de la réponse';
