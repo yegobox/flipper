@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flipper_dashboard/features/hotel_mode/hotel_mode_settings.dart';
 import 'package:flipper_dashboard/features/hotel_mode/theme/hotel_tokens.dart';
+import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_shared_widgets.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/models/hotel_room.dart';
 import 'package:flipper_models/sync/utils/hotel_mode_utils.dart';
@@ -41,9 +42,12 @@ class HotelCheckInDraft {
 /// Check-in form. Presented as a dialog on desktop and a sheet on mobile —
 /// one widget so the two layouts can never validate differently.
 class HotelCheckInSheet extends StatefulWidget {
-  const HotelCheckInSheet({super.key, required this.room});
+  const HotelCheckInSheet({super.key, required this.room, this.mobile = false});
 
   final HotelRoom room;
+
+  /// Drawn as a phone bottom sheet: grab bar, top-only corners, light hints.
+  final bool mobile;
 
   /// Returns the draft, or null when the desk backs out.
   static Future<HotelCheckInDraft?> show(
@@ -62,7 +66,7 @@ class HotelCheckInSheet extends StatefulWidget {
           padding: EdgeInsets.only(
             bottom: MediaQuery.viewInsetsOf(sheetContext).bottom,
           ),
-          child: HotelCheckInSheet(room: room),
+          child: HotelCheckInSheet(room: room, mobile: true),
         ),
       );
     }
@@ -168,17 +172,27 @@ class _HotelCheckInSheetState extends State<HotelCheckInSheet> {
     // keyboard.
     return SingleChildScrollView(
       child: Container(
-        padding: const EdgeInsets.fromLTRB(22, 20, 22, 22),
-        decoration: const BoxDecoration(
-          color: HotelTokens.surface,
-          borderRadius: BorderRadius.all(
-            Radius.circular(HotelTokens.mobileSheetRadius),
-          ),
-        ),
+        padding: widget.mobile
+            ? EdgeInsets.fromLTRB(
+                20,
+                10,
+                20,
+                16 + MediaQuery.paddingOf(context).bottom,
+              )
+            : const EdgeInsets.fromLTRB(22, 20, 22, 22),
+        decoration: widget.mobile
+            ? hotelPhoneSheetDecoration()
+            : const BoxDecoration(
+                color: HotelTokens.surface,
+                borderRadius: BorderRadius.all(
+                  Radius.circular(HotelTokens.mobileSheetRadius),
+                ),
+              ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            if (widget.mobile) const HotelSheetHandle(),
             Text(
               l10n.hotelCheckInTitle(widget.room.name),
               style: GoogleFonts.outfit(
@@ -419,6 +433,7 @@ class _HotelCheckInSheetState extends State<HotelCheckInSheet> {
           ),
           decoration: InputDecoration(
             hintText: hint,
+            hintStyle: widget.mobile ? hotelSheetHintStyle() : null,
             errorText: errorText,
             isDense: true,
             contentPadding: const EdgeInsets.symmetric(

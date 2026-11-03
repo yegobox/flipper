@@ -64,66 +64,87 @@ class _HotelFolioBody extends ConsumerWidget {
             child: linesAsync.when(
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (e, _) => Center(child: Text('$e')),
-              data: (lines) => ListView(
-                padding: EdgeInsets.fromLTRB(pad, pad, pad, pad + 12),
+              data: (lines) => Column(
                 children: [
-                  HotelFolioHeaderCard(stay: stay, compact: compact),
-                  const SizedBox(height: 18),
-                  Row(
-                    children: [
-                      Text(
-                        l10n.hotelCharges,
-                        style: GoogleFonts.outfit(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w800,
-                          color: HotelTokens.ink1,
+                  Expanded(
+                    child: ListView(
+                      padding: EdgeInsets.fromLTRB(pad, pad, pad, pad + 12),
+                      children: [
+                        HotelFolioHeaderCard(stay: stay, compact: compact),
+                        const SizedBox(height: 18),
+                        Row(
+                          children: [
+                            Text(
+                              l10n.hotelCharges,
+                              style: GoogleFonts.outfit(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w800,
+                                color: HotelTokens.ink1,
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Text(
+                              l10n.hotelItemsCount(hotelFolioItemCount(lines)),
+                              style: GoogleFonts.jetBrainsMono(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: HotelTokens.ink3,
+                              ),
+                            ),
+                            const Spacer(),
+                            _roomChargeButton(context, ref),
+                          ],
                         ),
-                      ),
-                      const SizedBox(width: 10),
-                      Text(
-                        l10n.hotelItemsCount(hotelFolioItemCount(lines)),
-                        style: GoogleFonts.jetBrainsMono(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: HotelTokens.ink3,
-                        ),
-                      ),
-                      const Spacer(),
-                      _roomChargeButton(context, ref),
-                    ],
+                        const SizedBox(height: 10),
+                        if (lines.isEmpty)
+                          _emptyCharges(l10n)
+                        else
+                          for (final line in lines) ...[
+                            HotelFolioLineTile(
+                              key: ValueKey('hotel-folio-line-${line.id}'),
+                              line: line,
+                              onIncrement: () => HotelDeskActions.changeQty(
+                                ref: ref,
+                                stay: stay,
+                                line: line,
+                                delta: 1,
+                              ),
+                              onDecrement: () => HotelDeskActions.changeQty(
+                                ref: ref,
+                                stay: stay,
+                                line: line,
+                                delta: -1,
+                              ),
+                              onDelete: () => HotelDeskActions.deleteLine(
+                                ref: ref,
+                                stay: stay,
+                                line: line,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                          ],
+                        const SizedBox(height: 14),
+                        HotelFolioTotals(lines: lines),
+                        if (!compact) ...[
+                          const SizedBox(height: 18),
+                          _actions(context, ref, lines),
+                        ],
+                      ],
+                    ),
                   ),
-                  const SizedBox(height: 10),
-                  if (lines.isEmpty)
-                    _emptyCharges(l10n)
-                  else
-                    for (final line in lines) ...[
-                      HotelFolioLineTile(
-                        key: ValueKey('hotel-folio-line-${line.id}'),
-                        line: line,
-                        onIncrement: () => HotelDeskActions.changeQty(
-                          ref: ref,
-                          stay: stay,
-                          line: line,
-                          delta: 1,
-                        ),
-                        onDecrement: () => HotelDeskActions.changeQty(
-                          ref: ref,
-                          stay: stay,
-                          line: line,
-                          delta: -1,
-                        ),
-                        onDelete: () => HotelDeskActions.deleteLine(
-                          ref: ref,
-                          stay: stay,
-                          line: line,
+                  // A phone keeps Check out under the thumb instead of below
+                  // the fold, as the bar's settle screen does.
+                  if (compact)
+                    Container(
+                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+                      decoration: const BoxDecoration(
+                        color: HotelTokens.surface,
+                        border: Border(
+                          top: BorderSide(color: HotelTokens.line),
                         ),
                       ),
-                      const SizedBox(height: 8),
-                    ],
-                  const SizedBox(height: 14),
-                  HotelFolioTotals(lines: lines),
-                  const SizedBox(height: 18),
-                  _actions(context, ref, lines),
+                      child: _actions(context, ref, lines),
+                    ),
                 ],
               ),
             ),

@@ -799,29 +799,24 @@ class _BillSummaryCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Text(
-                  l10n.barTableRunningTab(tableName),
-                  style: GoogleFonts.outfit(
-                    fontWeight: FontWeight.w800,
-                    fontSize: 18,
-                    letterSpacing: -0.16,
-                    color: BarTokens.ink1,
-                  ),
-                ),
-              ),
-              Text(
-                openedLabel,
-                style: GoogleFonts.outfit(
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w500,
-                  color: BarTokens.ink3,
-                ),
-              ),
-            ],
+          // Stacked: side by side, the time ran into the title on a phone.
+          Text(
+            l10n.barTableRunningTab(tableName),
+            style: GoogleFonts.outfit(
+              fontWeight: FontWeight.w800,
+              fontSize: 18,
+              letterSpacing: -0.16,
+              color: BarTokens.ink1,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            openedLabel,
+            style: GoogleFonts.outfit(
+              fontSize: 12.5,
+              fontWeight: FontWeight.w500,
+              color: BarTokens.ink3,
+            ),
           ),
           const SizedBox(height: 18),
           const _DottedDivider(),

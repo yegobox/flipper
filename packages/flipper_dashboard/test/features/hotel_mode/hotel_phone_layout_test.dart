@@ -1,10 +1,15 @@
+import 'package:flipper_dashboard/features/hotel_mode/providers/hotel_mode_providers.dart';
+import 'package:flipper_dashboard/features/hotel_mode/screens/hotel_folio_screen.dart';
 import 'package:flipper_dashboard/features/hotel_mode/theme/hotel_layout_breakpoints.dart';
+import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_desk_nav.dart';
 import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_check_in_sheet.dart';
 import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_folio_widgets.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/models/hotel_room.dart';
+import 'package:flipper_models/models/hotel_stay.dart';
 import 'package:flipper_services/locator.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_models/brick/models/transactionItem.model.dart';
@@ -17,6 +22,16 @@ class _Box extends Fake implements LocalStorage {
 }
 
 const _phone = Size(360, 640);
+
+/// Starts the desk on [initial] instead of the starting screen.
+class _Desk extends HotelModeNotifier {
+  _Desk(this.initial);
+
+  final HotelModeState initial;
+
+  @override
+  HotelModeState build() => initial;
+}
 
 void _usePhone(WidgetTester tester) {
   tester.view.physicalSize = _phone;
@@ -214,6 +229,122 @@ void main() {
       );
       expect(find.text('× 2'), findsOneWidget);
       expect(find.byIcon(Icons.delete_outline), findsNothing);
+    });
+  });
+
+  group('desk nav', () {
+    Future<void> pumpNav(
+      WidgetTester tester, {
+      required bool mobile,
+      bool compact = false,
+    }) => tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          hotelModeProvider.overrideWith(
+            () => _Desk(const HotelModeState(screen: HotelScreen.rooms)),
+          ),
+        ],
+        child: MaterialApp(
+          localizationsDelegates: FlipperLocalizationDelegates.delegates,
+          supportedLocales: FlipperLocalizationDelegates.supportedLocales,
+          home: Scaffold(
+            body: HotelLayoutScope(
+              mobile: mobile,
+              child: HotelDeskNav(compact: compact),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    testWidgets('a phone names every segment and drops Today', (tester) async {
+      _usePhone(tester);
+      await pumpNav(tester, mobile: true, compact: true);
+      expect(find.text('Rooms'), findsOneWidget);
+      expect(find.text('Calendar'), findsOneWidget);
+      expect(find.text('Today'), findsNothing);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('the desk keeps its icon-only compact nav', (tester) async {
+      tester.view.physicalSize = const Size(1280, 800);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await pumpNav(tester, mobile: false, compact: true);
+      expect(find.text('Rooms'), findsNothing);
+      expect(find.byIcon(Icons.grid_view_rounded), findsOneWidget);
+    });
+  });
+
+  group('folio on a phone', () {
+    final stay = HotelStay(
+      id: 's1',
+      branchId: 'b1',
+      roomId: 'r1',
+      roomName: '101',
+      transactionId: 't1',
+      guestName: 'Aline Uwase',
+      checkInAt: DateTime(2026, 1, 10, 14),
+      expectedCheckOutAt: DateTime(2026, 1, 12, 11),
+      nightlyRate: 50000,
+    );
+
+    Future<void> pumpFolio(WidgetTester tester, {required bool mobile}) =>
+        tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              hotelModeProvider.overrideWith(
+                () => _Desk(
+                  HotelModeState(
+                    screen: HotelScreen.folio,
+                    activeRoom: _room,
+                    activeStay: stay,
+                  ),
+                ),
+              ),
+              hotelFolioLinesProvider.overrideWith(
+                (ref, id) => Stream.value([
+                  for (var i = 0; i < 6; i++) _line('Charge $i'),
+                ]),
+              ),
+            ],
+            child: MaterialApp(
+              localizationsDelegates: FlipperLocalizationDelegates.delegates,
+              supportedLocales: FlipperLocalizationDelegates.supportedLocales,
+              home: const Scaffold(body: HotelFolioScreen()),
+            ),
+          ),
+        );
+
+    testWidgets('pins Check out below the charges', (tester) async {
+      _usePhone(tester);
+      await pumpFolio(tester, mobile: true);
+      await tester.pumpAndSettle();
+      final checkOut = find.textContaining('Check out');
+      expect(checkOut, findsOneWidget);
+      // Outside the list, so it never scrolls below the fold.
+      expect(
+        find.ancestor(of: checkOut, matching: find.byType(Scrollable)),
+        findsNothing,
+      );
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('the desk keeps Check out at the end of the list', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(1280, 2000);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await pumpFolio(tester, mobile: false);
+      await tester.pumpAndSettle();
+      expect(
+        find.ancestor(
+          of: find.textContaining('Check out'),
+          matching: find.byType(Scrollable),
+        ),
+        findsWidgets,
+      );
     });
   });
 }

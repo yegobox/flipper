@@ -50,13 +50,68 @@ class HotelDeskNav extends ConsumerWidget {
         border: Border.all(color: HotelTokens.line),
       ),
       child: Row(
-        mainAxisSize: MainAxisSize.min,
+        mainAxisSize: mobile ? MainAxisSize.max : MainAxisSize.min,
         children: [
           for (final (screen, label, icon) in _tabs(context.flipperL10n))
             // No Today tab on a phone: it would only redraw Rooms.
             if (!mobile || screen != HotelScreen.dashboard)
-              _tab(ref, screen, label, icon, current == screen),
+              mobile
+                  ? Expanded(
+                      child: _phoneTab(
+                        ref,
+                        screen,
+                        label,
+                        icon,
+                        current == screen,
+                      ),
+                    )
+                  : _tab(ref, screen, label, icon, current == screen),
         ],
+      ),
+    );
+  }
+
+  /// A phone has the width for all three labels, so each segment shares the
+  /// row and names itself: icons alone left the clerk guessing.
+  Widget _phoneTab(
+    WidgetRef ref,
+    HotelScreen screen,
+    String label,
+    IconData icon,
+    bool selected,
+  ) {
+    final color = selected ? HotelTokens.ink1 : HotelTokens.ink3;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () => ref.read(hotelModeProvider.notifier).setScreen(screen),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 140),
+        height: 40,
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+        decoration: BoxDecoration(
+          color: selected ? HotelTokens.surface : Colors.transparent,
+          borderRadius: BorderRadius.circular(999),
+          boxShadow: selected ? HotelTokens.shadow1 : null,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 16, color: color),
+            const SizedBox(width: 6),
+            Flexible(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.outfit(
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w700,
+                  color: color,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
