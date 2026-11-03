@@ -95,22 +95,37 @@ bool clerkMayRun(WidgetRef ref, ServiceMode mode, Tenant clerk) {
 }
 
 /// Signs the desk's clerk out the moment they may no longer run [mode]:
-/// when they sign in with a pick made before the grants changed, and when
-/// the grants or the roster refresh. Call from `build`.
+/// when the desk opens with one already bound, when they sign in with a
+/// pick made before the grants changed, and when the grants or the roster
+/// refresh. Call from `build`.
 void signOutIneligibleClerk(
   WidgetRef ref,
   ServiceMode mode, {
   required ProviderListenable<Tenant?> clerk,
   required void Function() signOut,
 }) {
-  void check() {
+  bool ineligible() {
     final current = ref.read(clerk);
-    if (current != null && !clerkMayRun(ref, mode, current)) signOut();
+    return current != null && !clerkMayRun(ref, mode, current);
+  }
+
+  void check() {
+    if (ineligible()) signOut();
   }
 
   ref.listen(clerk, (_, _) => check());
   ref.listen(serviceModeGrantsProvider, (_, _) => check());
   ref.listen(barStaffProvider, (_, _) => check());
+
+  // A clerk still bound from an earlier visit (Bar → Hotel → Bar keeps the
+  // Bar notifier) who lost access meanwhile: nothing changes to fire the
+  // listeners above. Signing out is a provider write, so it waits for the
+  // build to finish.
+  if (ineligible()) {
+    Future.microtask(() {
+      if (ref.context.mounted) check();
+    });
+  }
 }
 
 /// Shows [child] (a Bar or Hotel host) only to a signed-in user who may run

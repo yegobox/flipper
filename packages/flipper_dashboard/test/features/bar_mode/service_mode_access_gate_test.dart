@@ -313,6 +313,58 @@ void main() {
       expect(find.text('Boss'), findsOneWidget);
     });
 
+    Future<ProviderContainer> mountWithClerk(
+      WidgetTester tester,
+      Tenant clerk,
+    ) async {
+      final container = ProviderContainer(
+        overrides: [
+          barServicesProvider.overrideWithValue(_Services(_Box(null))),
+          serviceModeGrantsProvider.overrideWith((ref) async => grants),
+          barStaffProvider.overrideWith((ref) async => roster),
+        ],
+      );
+      addTearDown(container.dispose);
+      // Bound and settled before the desk exists, as after Bar → Hotel → Bar.
+      container.read(_clerkProvider.notifier).set(clerk);
+      await container.read(serviceModeGrantsProvider.future);
+      await container.read(barStaffProvider.future);
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: MaterialApp(
+            home: Consumer(
+              builder: (context, ref, _) {
+                signOutIneligibleClerk(
+                  ref,
+                  ServiceMode.bar,
+                  clerk: _clerkProvider,
+                  signOut: () => ref.read(_clerkProvider.notifier).set(null),
+                );
+                return const Text('DESK');
+              },
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      return container;
+    }
+
+    testWidgets('a clerk bound before the desk opened, without access', (
+      tester,
+    ) async {
+      final container = await mountWithClerk(tester, _cashier);
+      expect(container.read(_clerkProvider), isNull);
+    });
+
+    testWidgets('a clerk bound before the desk opened, with access', (
+      tester,
+    ) async {
+      final container = await mountWithClerk(tester, _waiter);
+      expect(container.read(_clerkProvider), _waiter);
+    });
+
     testWidgets('grandfathered: anyone stays', (tester) async {
       grants = const ServiceModeGrants();
       final c = await pumpDesk(tester);
