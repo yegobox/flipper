@@ -20850,14 +20850,13 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
       'Which products are most profitable this week?';
 
   @override
-  String get floSuggestUsersTitle => 'How many users in MiniData?';
+  String get floSuggestOweTitle => 'Who do we owe?';
 
   @override
-  String get floSuggestUsersDesc => 'Counts & recent activity';
+  String get floSuggestOweDesc => 'Open supplier bills';
 
   @override
-  String get floSuggestUsersQuestion =>
-      'How many users do we have in MiniData?';
+  String get floSuggestOweQuestion => 'Who do we owe money to?';
 
   @override
   String get floSuggestTrendTitle => 'This week\'s sales trend';
@@ -20901,9 +20900,6 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
   String get floChannels => 'Channels';
 
   @override
-  String get floMiniDataDesc => 'Live Supabase data — sales, users, products.';
-
-  @override
   String get floManage => 'Manage';
 
   @override
@@ -20923,7 +20919,7 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
   String get floBriefingUnavailable => 'Daily briefing unavailable';
 
   @override
-  String get floReadingLiveSales => 'Reading live sales from MiniData.';
+  String get floReadingLiveSales => 'Reading today\'s live sales.';
 
   @override
   String get floCheckDataConnection =>
@@ -21033,9 +21029,6 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
   String get floBusinessAi => 'Business AI';
 
   @override
-  String get floMiniDataConnectedLive => 'MiniData connected · live';
-
-  @override
   String get floNewChat => 'New chat';
 
   @override
@@ -21131,6 +21124,32 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
   String get floTeamLoadFailed => 'Couldn\'t load Flo Team';
 
   @override
+  String get floTeamBoardTitle => 'Team board';
+
+  @override
+  String get floTeamSubtitle =>
+      'Ideas, tasks and discussions with your team and Flo';
+
+  @override
+  String get floTeamEmptyHint =>
+      'Post an idea or start a discussion to get your team\'s take.';
+
+  @override
+  String get floTeamIdea => 'Idea';
+
+  @override
+  String get floTeamDiscussion => 'Discussion';
+
+  @override
+  String get floTeamYou => 'You';
+
+  @override
+  String get floTeamSomeone => 'A teammate';
+
+  @override
+  String get floTeamInviteFromStaff => 'Invite from your staff';
+
+  @override
   String get floNewConversation => 'New conversation';
 
   @override
@@ -21143,16 +21162,13 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
   String get floOff => 'Off';
 
   @override
-  String get floManageDataSources => 'Manage data sources';
-
-  @override
   String get floQuickSummarizeToday => 'Summarize today';
 
   @override
   String get floQuickTopProducts => 'Top products';
 
   @override
-  String get floQuickUserCount => 'User count';
+  String get floQuickWhoWeOwe => 'Who we owe';
 
   @override
   String get floQuickSalesTrend => 'Sales trend';
@@ -21171,7 +21187,7 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
       'Flo can make mistakes — check important figures. ';
 
   @override
-  String get floGroundedInMiniData => 'Grounded in MiniData.';
+  String get floGroundedInYourData => 'Grounded in your business data.';
 
   @override
   String get floStarting => 'Starting…';
@@ -21230,7 +21246,7 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
   String get floThinkingUnderstanding => 'Understanding question';
 
   @override
-  String get floThinkingQuerying => 'Querying MiniData';
+  String get floThinkingQuerying => 'Checking your data';
 
   @override
   String get floThinkingComposing => 'Composing answer';

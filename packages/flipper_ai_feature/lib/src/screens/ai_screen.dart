@@ -29,7 +29,6 @@ import '../team/flo_team_controller.dart';
 import '../team/flo_team_view.dart';
 import '../theme/flo_theme.dart';
 import '../widgets/conversation_list.dart';
-import '../widgets/data_source/data_source_list_screen.dart';
 import '../widgets/excel_analysis_modal.dart';
 import '../widgets/flo/flo_composer.dart';
 import '../widgets/flo/flo_header.dart';
@@ -594,12 +593,6 @@ class _AiScreenState extends ConsumerState<AiScreen>
     );
   }
 
-  void _openSources() {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const DataSourceListScreen()),
-    );
-  }
-
   void _handleAttach() {
     if (_attachedFilePath != null &&
         (_attachedFilePath!.endsWith('.xlsx') ||
@@ -703,13 +696,11 @@ class _AiScreenState extends ConsumerState<AiScreen>
                 },
                 isMobile: _isMobile,
                 actionsInAppBar: withAppBar,
-                miniDataConnected: true,
                 whatsAppConnected: waConnected,
                 teamUnreadCount: ref.watch(floTeamUnreadProvider),
                 modelSelector: modelSelector,
                 onNewChat: _newChat,
                 onConnectWhatsApp: _openWhatsAppModal,
-                onManageSources: _openSources,
                 menuOpen: _menuOpen,
                 onMenuToggle: toggleMenu,
                 menuContent: _menuOpen && !_isMobile
@@ -721,10 +712,6 @@ class _AiScreenState extends ConsumerState<AiScreen>
                         onWhatsApp: () {
                           setState(() => _menuOpen = false);
                           _openWhatsAppModal();
-                        },
-                        onSources: () {
-                          setState(() => _menuOpen = false);
-                          _openSources();
                         },
                         whatsAppConnected: waConnected,
                       )
@@ -753,7 +740,6 @@ class _AiScreenState extends ConsumerState<AiScreen>
                                   onSuggestionTap: _sendMessage,
                                   whatsAppConnected: waConnected,
                                   onConnectWhatsApp: _openWhatsAppModal,
-                                  onManageSources: _openSources,
                                 ),
                               ),
                             ),

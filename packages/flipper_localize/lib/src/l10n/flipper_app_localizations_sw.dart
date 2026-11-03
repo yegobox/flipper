@@ -20974,14 +20974,13 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
       'Ni bidhaa zipi zenye faida zaidi wiki hii?';
 
   @override
-  String get floSuggestUsersTitle => 'Watumiaji wangapi katika MiniData?';
+  String get floSuggestOweTitle => 'Tunadaiwa na nani?';
 
   @override
-  String get floSuggestUsersDesc => 'Idadi na shughuli za hivi karibuni';
+  String get floSuggestOweDesc => 'Ankara za wasambazaji ambazo hazijalipwa';
 
   @override
-  String get floSuggestUsersQuestion =>
-      'Tuna watumiaji wangapi katika MiniData?';
+  String get floSuggestOweQuestion => 'Tunadaiwa pesa na nani?';
 
   @override
   String get floSuggestTrendTitle => 'Mwenendo wa mauzo wiki hii';
@@ -21025,10 +21024,6 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   String get floChannels => 'Njia';
 
   @override
-  String get floMiniDataDesc =>
-      'Data ya Supabase moja kwa moja — mauzo, watumiaji, bidhaa.';
-
-  @override
   String get floManage => 'Simamia';
 
   @override
@@ -21049,8 +21044,7 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   String get floBriefingUnavailable => 'Muhtasari wa kila siku haupatikani';
 
   @override
-  String get floReadingLiveSales =>
-      'Inasoma mauzo ya moja kwa moja kutoka MiniData.';
+  String get floReadingLiveSales => 'Inasoma mauzo ya leo moja kwa moja.';
 
   @override
   String get floCheckDataConnection =>
@@ -21162,10 +21156,6 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   String get floBusinessAi => 'AI ya biashara';
 
   @override
-  String get floMiniDataConnectedLive =>
-      'MiniData imeunganishwa · moja kwa moja';
-
-  @override
   String get floNewChat => 'Mazungumzo mapya';
 
   @override
@@ -21261,6 +21251,31 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   String get floTeamLoadFailed => 'Imeshindwa kupakia Flo Team';
 
   @override
+  String get floTeamBoardTitle => 'Ubao wa timu';
+
+  @override
+  String get floTeamSubtitle => 'Mawazo, kazi na mijadala na timu yako na Flo';
+
+  @override
+  String get floTeamEmptyHint =>
+      'Weka wazo au anzisha mjadala upate maoni ya timu.';
+
+  @override
+  String get floTeamIdea => 'Wazo';
+
+  @override
+  String get floTeamDiscussion => 'Mjadala';
+
+  @override
+  String get floTeamYou => 'Wewe';
+
+  @override
+  String get floTeamSomeone => 'Mwenzako';
+
+  @override
+  String get floTeamInviteFromStaff => 'Alika wafanyakazi wako';
+
+  @override
   String get floNewConversation => 'Mazungumzo mapya';
 
   @override
@@ -21273,16 +21288,13 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   String get floOff => 'Imezimwa';
 
   @override
-  String get floManageDataSources => 'Simamia vyanzo vya data';
-
-  @override
   String get floQuickSummarizeToday => 'Fupisha leo';
 
   @override
   String get floQuickTopProducts => 'Bidhaa bora';
 
   @override
-  String get floQuickUserCount => 'Idadi ya watumiaji';
+  String get floQuickWhoWeOwe => 'Tunaodaiwa nao';
 
   @override
   String get floQuickSalesTrend => 'Mwenendo wa mauzo';
@@ -21301,7 +21313,7 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
       'Flo anaweza kukosea — hakiki takwimu muhimu. ';
 
   @override
-  String get floGroundedInMiniData => 'Imetegemea MiniData.';
+  String get floGroundedInYourData => 'Imetegemea data ya biashara yako.';
 
   @override
   String get floStarting => 'Inaanza…';
@@ -21360,7 +21372,7 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   String get floThinkingUnderstanding => 'Kuelewa swali';
 
   @override
-  String get floThinkingQuerying => 'Inauliza MiniData';
+  String get floThinkingQuerying => 'Inakagua data yako';
 
   @override
   String get floThinkingComposing => 'Inatunga jibu';
