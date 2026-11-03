@@ -998,8 +998,15 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
 
     // PIN login often defers Ditto sync until after business/branch selection.
     if (commissionOnly) {
-      unawaited(locator<AppService>().completeDittoAfterLoginChoices());
-      locator<AppService>().ensureBranchDittoSubscriptionsForCurrentBranch();
+      // Subscriptions go on the store this leaves open: completing Ditto may
+      // reopen it (a stale local-only connect mode), which drops anything
+      // registered on the old instance.
+      final appService = locator<AppService>();
+      unawaited(
+        appService.completeDittoAfterLoginChoices().then(
+          (_) => appService.ensureBranchDittoSubscriptionsForCurrentBranch(),
+        ),
+      );
     }
     unawaited(locator<AppService>().completePostLoginLocalSetup());
 

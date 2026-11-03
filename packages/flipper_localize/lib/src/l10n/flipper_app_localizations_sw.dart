@@ -27859,7 +27859,7 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
 
   @override
   String get localModeHoldReleasedBody =>
-      'Kifaa hiki kilihifadhi data nje ya mtandao kwa biashara nyingine ambayo haihitaji tena hapa. Ingia tena ili kuendelea.';
+      'Kizuizi cha nje ya mtandao kwenye kifaa hiki kimeondolewa. Ingia tena ili kuendelea.';
 
   @override
   String get localModeSyncOnElsewhereTitle => 'Usawazishaji wa wingu umewashwa';
