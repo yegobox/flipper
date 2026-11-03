@@ -42,7 +42,7 @@ class HotelDeskNav extends ConsumerWidget {
       mobile: mobile,
     );
 
-    return Container(
+    Widget nav({required bool segmented}) => Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
         color: HotelTokens.surface2,
@@ -50,12 +50,12 @@ class HotelDeskNav extends ConsumerWidget {
         border: Border.all(color: HotelTokens.line),
       ),
       child: Row(
-        mainAxisSize: mobile ? MainAxisSize.max : MainAxisSize.min,
+        mainAxisSize: segmented ? MainAxisSize.max : MainAxisSize.min,
         children: [
           for (final (screen, label, icon) in _tabs(context.flipperL10n))
             // No Today tab on a phone: it would only redraw Rooms.
             if (!mobile || screen != HotelScreen.dashboard)
-              mobile
+              segmented
                   ? Expanded(
                       child: _phoneTab(
                         ref,
@@ -68,6 +68,15 @@ class HotelDeskNav extends ConsumerWidget {
                   : _tab(ref, screen, label, icon, current == screen),
         ],
       ),
+    );
+
+    if (!mobile) return nav(segmented: false);
+    // The labelled segments share a width, which the Rooms header gives. The
+    // Calendar and Quotes headers set the nav in a row beside their own
+    // controls, where it has none: those keep the compact tabs.
+    return LayoutBuilder(
+      builder: (context, constraints) =>
+          nav(segmented: constraints.hasBoundedWidth),
     );
   }
 

@@ -319,6 +319,7 @@ void main() {
       WidgetTester tester, {
       required bool mobile,
       bool compact = false,
+      bool besideControls = false,
     }) => tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -332,7 +333,16 @@ void main() {
           home: Scaffold(
             body: HotelLayoutScope(
               mobile: mobile,
-              child: HotelDeskNav(compact: compact),
+              // The Calendar and Quotes headers set the nav in a row.
+              child: besideControls
+                  ? Row(
+                      children: [
+                        HotelDeskNav(compact: compact),
+                        const Spacer(),
+                        const Icon(Icons.chevron_right),
+                      ],
+                    )
+                  : HotelDeskNav(compact: compact),
             ),
           ),
         ),
@@ -346,6 +356,16 @@ void main() {
       expect(find.text('Calendar'), findsOneWidget);
       expect(find.text('Today'), findsNothing);
       expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('beside header controls a phone keeps the compact tabs', (
+      tester,
+    ) async {
+      _usePhone(tester);
+      await pumpNav(tester, mobile: true, compact: true, besideControls: true);
+      expect(tester.takeException(), isNull);
+      expect(find.byIcon(Icons.calendar_month_outlined), findsOneWidget);
+      expect(find.byIcon(Icons.insights_outlined), findsNothing);
     });
 
     testWidgets('the desk keeps its icon-only compact nav', (tester) async {
