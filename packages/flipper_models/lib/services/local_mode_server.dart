@@ -74,6 +74,23 @@ class LocalModeServer {
   static const _undefinedColumn = '42703';
 
   static Future<BusinessSyncState?> fetch(String businessId) async {
+    final (_, state) = await _readOrMissing(businessId);
+    return state;
+  }
+
+  /// The record of the business a device's marker names, when another
+  /// business signs in there. A business the server does not know holds
+  /// nothing, so it reads as `full`; only an unreachable server is null.
+  static Future<BusinessSyncState?> fetchOwner(String businessId) async {
+    final (reached, state) = await _readOrMissing(businessId);
+    if (!reached) return null;
+    return state ?? const BusinessSyncState(mode: 'full');
+  }
+
+  /// Whether the server answered, and the row if it has one.
+  static Future<(bool, BusinessSyncState?)> _readOrMissing(
+    String businessId,
+  ) async {
     try {
       final row = await LocalMode.allowCloud(
         () => Supabase.instance.client
@@ -83,10 +100,10 @@ class LocalModeServer {
             .maybeSingle()
             .timeout(_timeout),
       );
-      return row == null ? null : BusinessSyncState.fromRow(row);
+      return (true, row == null ? null : BusinessSyncState.fromRow(row));
     } catch (e) {
       talker.warning('LocalModeServer.fetch($businessId): $e');
-      return null;
+      return (false, null);
     }
   }
 

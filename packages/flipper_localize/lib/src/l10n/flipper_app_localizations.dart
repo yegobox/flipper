@@ -14704,6 +14704,24 @@ abstract class FlipperAppLocalizations {
   /// **'Cancel stay'**
   String get hotelCancelStay;
 
+  /// No description provided for @hotelCancelStayQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel the stay for {guest}?'**
+  String hotelCancelStayQuestion(String guest);
+
+  /// No description provided for @hotelCancelStayChargesBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This removes {amount} of charges from the folio and frees the room. No receipt has been issued yet.'**
+  String hotelCancelStayChargesBody(String amount);
+
+  /// No description provided for @hotelKeepStay.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep stay'**
+  String get hotelKeepStay;
+
   /// No description provided for @hotelSettling.
   ///
   /// In en, this message translates to:
@@ -34592,23 +34610,23 @@ abstract class FlipperAppLocalizations {
   /// **'Which products are most profitable this week?'**
   String get floSuggestProfitQuestion;
 
-  /// No description provided for @floSuggestUsersTitle.
+  /// No description provided for @floSuggestOweTitle.
   ///
   /// In en, this message translates to:
-  /// **'How many users in MiniData?'**
-  String get floSuggestUsersTitle;
+  /// **'Who do we owe?'**
+  String get floSuggestOweTitle;
 
-  /// No description provided for @floSuggestUsersDesc.
+  /// No description provided for @floSuggestOweDesc.
   ///
   /// In en, this message translates to:
-  /// **'Counts & recent activity'**
-  String get floSuggestUsersDesc;
+  /// **'Open supplier bills'**
+  String get floSuggestOweDesc;
 
-  /// No description provided for @floSuggestUsersQuestion.
+  /// No description provided for @floSuggestOweQuestion.
   ///
   /// In en, this message translates to:
-  /// **'How many users do we have in MiniData?'**
-  String get floSuggestUsersQuestion;
+  /// **'Who do we owe money to?'**
+  String get floSuggestOweQuestion;
 
   /// No description provided for @floSuggestTrendTitle.
   ///
@@ -34682,12 +34700,6 @@ abstract class FlipperAppLocalizations {
   /// **'Channels'**
   String get floChannels;
 
-  /// No description provided for @floMiniDataDesc.
-  ///
-  /// In en, this message translates to:
-  /// **'Live Supabase data — sales, users, products.'**
-  String get floMiniDataDesc;
-
   /// No description provided for @floManage.
   ///
   /// In en, this message translates to:
@@ -34727,7 +34739,7 @@ abstract class FlipperAppLocalizations {
   /// No description provided for @floReadingLiveSales.
   ///
   /// In en, this message translates to:
-  /// **'Reading live sales from MiniData.'**
+  /// **'Reading today\'s live sales.'**
   String get floReadingLiveSales;
 
   /// No description provided for @floCheckDataConnection.
@@ -34909,12 +34921,6 @@ abstract class FlipperAppLocalizations {
   /// In en, this message translates to:
   /// **'Business AI'**
   String get floBusinessAi;
-
-  /// No description provided for @floMiniDataConnectedLive.
-  ///
-  /// In en, this message translates to:
-  /// **'MiniData connected · live'**
-  String get floMiniDataConnectedLive;
 
   /// No description provided for @floNewChat.
   ///
@@ -35102,6 +35108,54 @@ abstract class FlipperAppLocalizations {
   /// **'Couldn\'t load Flo Team'**
   String get floTeamLoadFailed;
 
+  /// No description provided for @floTeamBoardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Team board'**
+  String get floTeamBoardTitle;
+
+  /// No description provided for @floTeamSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Ideas, tasks and discussions with your team and Flo'**
+  String get floTeamSubtitle;
+
+  /// No description provided for @floTeamEmptyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Post an idea or start a discussion to get your team\'s take.'**
+  String get floTeamEmptyHint;
+
+  /// No description provided for @floTeamIdea.
+  ///
+  /// In en, this message translates to:
+  /// **'Idea'**
+  String get floTeamIdea;
+
+  /// No description provided for @floTeamDiscussion.
+  ///
+  /// In en, this message translates to:
+  /// **'Discussion'**
+  String get floTeamDiscussion;
+
+  /// No description provided for @floTeamYou.
+  ///
+  /// In en, this message translates to:
+  /// **'You'**
+  String get floTeamYou;
+
+  /// No description provided for @floTeamSomeone.
+  ///
+  /// In en, this message translates to:
+  /// **'A teammate'**
+  String get floTeamSomeone;
+
+  /// No description provided for @floTeamInviteFromStaff.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite from your staff'**
+  String get floTeamInviteFromStaff;
+
   /// No description provided for @floNewConversation.
   ///
   /// In en, this message translates to:
@@ -35126,12 +35180,6 @@ abstract class FlipperAppLocalizations {
   /// **'Off'**
   String get floOff;
 
-  /// No description provided for @floManageDataSources.
-  ///
-  /// In en, this message translates to:
-  /// **'Manage data sources'**
-  String get floManageDataSources;
-
   /// No description provided for @floQuickSummarizeToday.
   ///
   /// In en, this message translates to:
@@ -35144,11 +35192,11 @@ abstract class FlipperAppLocalizations {
   /// **'Top products'**
   String get floQuickTopProducts;
 
-  /// No description provided for @floQuickUserCount.
+  /// No description provided for @floQuickWhoWeOwe.
   ///
   /// In en, this message translates to:
-  /// **'User count'**
-  String get floQuickUserCount;
+  /// **'Who we owe'**
+  String get floQuickWhoWeOwe;
 
   /// No description provided for @floQuickSalesTrend.
   ///
@@ -35180,11 +35228,11 @@ abstract class FlipperAppLocalizations {
   /// **'Flo can make mistakes — check important figures. '**
   String get floCanMakeMistakes;
 
-  /// No description provided for @floGroundedInMiniData.
+  /// No description provided for @floGroundedInYourData.
   ///
   /// In en, this message translates to:
-  /// **'Grounded in MiniData.'**
-  String get floGroundedInMiniData;
+  /// **'Grounded in your business data.'**
+  String get floGroundedInYourData;
 
   /// No description provided for @floStarting.
   ///
@@ -35291,7 +35339,7 @@ abstract class FlipperAppLocalizations {
   /// No description provided for @floThinkingQuerying.
   ///
   /// In en, this message translates to:
-  /// **'Querying MiniData'**
+  /// **'Checking your data'**
   String get floThinkingQuerying;
 
   /// No description provided for @floThinkingComposing.
@@ -46288,6 +46336,18 @@ abstract class FlipperAppLocalizations {
   /// In en, this message translates to:
   /// **'That business keeps its data only on this device, so you can\'t sign in to a different business here until it turns on cloud sync.'**
   String get localModeDeviceHeldBody;
+
+  /// Title: the business this device kept offline no longer keeps its data here
+  ///
+  /// In en, this message translates to:
+  /// **'This device is ready'**
+  String get localModeHoldReleasedTitle;
+
+  /// Body: a stale offline hold was released; sign in again to open the business with cloud sync
+  ///
+  /// In en, this message translates to:
+  /// **'The offline hold on this device has been released. Sign in again to continue.'**
+  String get localModeHoldReleasedBody;
 
   /// Offline device learns sync was turned on from another device
   ///

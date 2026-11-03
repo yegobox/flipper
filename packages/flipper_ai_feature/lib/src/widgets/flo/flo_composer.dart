@@ -44,9 +44,9 @@ class FloComposer extends StatefulWidget {
           'q': l10n.floSuggestProfitQuestion,
         },
         {
-          'icon': 'users',
-          'label': l10n.floQuickUserCount,
-          'q': l10n.floSuggestUsersQuestion,
+          'icon': 'receipt',
+          'label': l10n.floQuickWhoWeOwe,
+          'q': l10n.floSuggestOweQuestion,
         },
         {
           'icon': 'trend',
@@ -112,7 +112,7 @@ class _FloComposerState extends State<FloComposer> {
   Widget _quickIcon(String name) => switch (name) {
         'bolt' => FloIcons.bolt(size: 14, color: FloTheme.ink3),
         'coins' => FloIcons.coins(size: 14, color: FloTheme.ink3),
-        'users' => FloIcons.users(size: 14, color: FloTheme.ink3),
+        'receipt' => FloIcons.receipt(size: 14, color: FloTheme.ink3),
         'trend' => FloIcons.trend(size: 14, color: FloTheme.ink3),
         _ => FloIcons.bolt(size: 14, color: FloTheme.ink3),
       };
@@ -181,56 +181,16 @@ class _FloComposerState extends State<FloComposer> {
                       boxShadow: const [FloTheme.sh2],
                     ),
                     padding: const EdgeInsets.fromLTRB(12, 10, 8, 8),
-                    // Source chip on its own line, flush with the "+" below it;
-                    // nested inside the text column it was indented past "+"
-                    // and left an empty corner above it.
+                    // The listening pill sits on its own line, flush with the
+                    // "+" below it.
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.fromLTRB(7, 3, 9, 3),
-                              decoration: BoxDecoration(
-                                color: FloTheme.surface2,
-                                borderRadius:
-                                    BorderRadius.circular(FloTheme.radiusPill),
-                                border: Border.all(color: FloTheme.line),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const FloLiveDot(
-                                    color: FloTheme.gain,
-                                    glow: FloTheme.gainTint,
-                                  ),
-                                  const SizedBox(width: 6),
-                                  FloIcons.database(
-                                      size: 12, color: FloTheme.ink2),
-                                  const SizedBox(width: 4),
-                                  const Text(
-                                    'MiniData',
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w700,
-                                      color: FloTheme.ink2,
-                                    ),
-                                  ),
-                                  FloIcons.chevDown(
-                                      size: 12, color: FloTheme.ink4),
-                                ],
-                              ),
-                            ),
-                            if (dictating)
-                              Padding(
-                                padding: const EdgeInsets.only(left: 6),
-                                child: _ListeningPill(busy: _dictation.isBusy),
-                              ),
-                          ],
-                        ),
-                        const SizedBox(height: 6),
+                        if (dictating) ...[
+                          _ListeningPill(busy: _dictation.isBusy),
+                          const SizedBox(height: 6),
+                        ],
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
@@ -334,7 +294,7 @@ class _FloComposerState extends State<FloComposer> {
                       text: context.flipperL10n.floCanMakeMistakes,
                     ),
                     TextSpan(
-                      text: context.flipperL10n.floGroundedInMiniData,
+                      text: context.flipperL10n.floGroundedInYourData,
                       style: const TextStyle(
                         fontWeight: FontWeight.w700,
                         color: FloTheme.ink3,

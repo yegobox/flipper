@@ -15,11 +15,13 @@ void main() {
     Map<String, dynamic>? marker,
     String businessId = biz,
     String? thisDeviceId,
+    BusinessSyncState? ownerServer,
   }) => decideLocalModeAccess(
     businessId: businessId,
     server: server,
     marker: marker,
     thisDeviceId: thisDeviceId,
+    ownerServer: ownerServer,
   );
 
   group('a device that is not in local mode', () {
@@ -69,14 +71,86 @@ void main() {
     });
   });
 
-  test('a device held by one business refuses another', () {
-    final marker = {'businessId': 'biz-b', 'serverChangedAt': 'x'};
-    for (final server in [full, local, null]) {
+  group('a device whose marker names another business', () {
+    final confirmed = {'businessId': 'biz-b', 'serverChangedAt': 'x'};
+    final unconfirmed = {'businessId': 'biz-b'};
+    const ownerHere = BusinessSyncState(
+      mode: 'local',
+      deviceName: 'Shop Mac#store1',
+    );
+
+    test('refuses while the server keeps that business here', () {
+      for (final server in [full, local, null]) {
+        expect(
+          decide(
+            server: server,
+            marker: confirmed,
+            thisDeviceId: 'store1',
+            ownerServer: ownerHere,
+          ),
+          LocalModeAccess.deviceHeldByOtherBusiness,
+        );
+      }
+    });
+
+    test('refuses when that business is recorded by name alone', () {
       expect(
-        decide(server: server, marker: marker),
+        decide(
+          server: full,
+          marker: confirmed,
+          thisDeviceId: 'store1',
+          ownerServer: const BusinessSyncState(
+            mode: 'local',
+            deviceName: 'Shop Mac',
+          ),
+        ),
         LocalModeAccess.deviceHeldByOtherBusiness,
       );
-    }
+    });
+
+    test('refuses when that business cannot be looked up', () {
+      for (final marker in [confirmed, unconfirmed]) {
+        expect(
+          decide(server: full, marker: marker, ownerServer: null),
+          LocalModeAccess.deviceHeldByOtherBusiness,
+        );
+      }
+    });
+
+    test('releases a business that keeps its data in the cloud', () {
+      // Confirmed then turned on elsewhere, or never registered at all
+      // (fetchOwner reads a business the server lacks as full too).
+      for (final marker in [confirmed, unconfirmed]) {
+        expect(
+          decide(
+            server: full,
+            marker: marker,
+            thisDeviceId: 'store1',
+            ownerServer: full,
+          ),
+          LocalModeAccess.releaseStaleHold,
+        );
+      }
+    });
+
+    test('releases a business the server places on another store', () {
+      expect(
+        decide(
+          server: full,
+          marker: confirmed,
+          thisDeviceId: 'store2',
+          ownerServer: ownerHere,
+        ),
+        LocalModeAccess.releaseStaleHold,
+      );
+    });
+
+    test('refuses when this store has no id to compare', () {
+      expect(
+        decide(server: full, marker: confirmed, ownerServer: ownerHere),
+        LocalModeAccess.deviceHeldByOtherBusiness,
+      );
+    });
   });
 
   group('a device whose marker could not be read (owner unknown)', () {

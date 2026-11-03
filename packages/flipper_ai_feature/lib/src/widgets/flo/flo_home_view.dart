@@ -16,7 +16,6 @@ class FloHomeView extends StatelessWidget {
     this.isMobile = false,
     this.whatsAppConnected = false,
     this.onConnectWhatsApp,
-    this.onManageSources,
     this.briefing,
     this.briefingLoading = false,
   });
@@ -26,7 +25,6 @@ class FloHomeView extends StatelessWidget {
   final bool isMobile;
   final bool whatsAppConnected;
   final VoidCallback? onConnectWhatsApp;
-  final VoidCallback? onManageSources;
   final FloDailyBriefing? briefing;
   final bool briefingLoading;
 
@@ -50,11 +48,11 @@ class FloHomeView extends StatelessWidget {
           'q': l10n.floSuggestProfitQuestion,
         },
         {
-          'icon': 'users',
+          'icon': 'receipt',
           'tone': 'violet',
-          't': l10n.floSuggestUsersTitle,
-          'd': l10n.floSuggestUsersDesc,
-          'q': l10n.floSuggestUsersQuestion,
+          't': l10n.floSuggestOweTitle,
+          'd': l10n.floSuggestOweDesc,
+          'q': l10n.floSuggestOweQuestion,
         },
         {
           'icon': 'trend',
@@ -213,61 +211,16 @@ class FloHomeView extends StatelessWidget {
               children: suggestionCards,
             ),
           _SectionLabel(l10n.floChannels),
-          if (isMobile)
-            Column(
-              children: [
-                _ChannelCard(
-                  title: 'MiniData',
-                  desc: l10n.floMiniDataDesc,
-                  connected: true,
-                  isData: true,
-                  actionLabel: l10n.floManage,
-                  onAction: onManageSources,
-                ),
-                const SizedBox(height: 10),
-                _ChannelCard(
-                  title: 'WhatsApp',
-                  desc: whatsAppConnected
-                      ? l10n.floWhatsAppConnectedDesc
-                      : l10n.floWhatsAppSetupDesc,
-                  connected: whatsAppConnected,
-                  actionLabel:
-                      whatsAppConnected ? l10n.floManage : l10n.floConnect,
-                  primaryAction: !whatsAppConnected,
-                  onAction: onConnectWhatsApp,
-                ),
-              ],
-            )
-          else
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: _ChannelCard(
-                    title: 'MiniData',
-                    desc: l10n.floMiniDataDesc,
-                    connected: true,
-                    isData: true,
-                    actionLabel: l10n.floManage,
-                    onAction: onManageSources,
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: _ChannelCard(
-                    title: 'WhatsApp',
-                    desc: whatsAppConnected
-                        ? l10n.floWhatsAppConnectedDesc
-                        : l10n.floWhatsAppSetupDesc,
-                    connected: whatsAppConnected,
-                    actionLabel:
-                        whatsAppConnected ? l10n.floManage : l10n.floConnect,
-                    primaryAction: !whatsAppConnected,
-                    onAction: onConnectWhatsApp,
-                  ),
-                ),
-              ],
-            ),
+          _ChannelCard(
+            title: 'WhatsApp',
+            desc: whatsAppConnected
+                ? l10n.floWhatsAppConnectedDesc
+                : l10n.floWhatsAppSetupDesc,
+            connected: whatsAppConnected,
+            actionLabel: whatsAppConnected ? l10n.floManage : l10n.floConnect,
+            primaryAction: !whatsAppConnected,
+            onAction: onConnectWhatsApp,
+          ),
         ],
       ),
     );
@@ -530,7 +483,7 @@ class _SuggestCard extends StatelessWidget {
   Widget _icon(Color fg) => switch (iconName) {
         'chart' => FloIcons.chart(size: 19, color: fg),
         'coins' => FloIcons.coins(size: 19, color: fg),
-        'users' => FloIcons.users(size: 19, color: fg),
+        'receipt' => FloIcons.receipt(size: 19, color: fg),
         'trend' => FloIcons.trend(size: 19, color: fg),
         _ => FloIcons.chart(size: 19, color: fg),
       };
@@ -604,7 +557,6 @@ class _ChannelCard extends StatelessWidget {
     required this.desc,
     required this.connected,
     required this.actionLabel,
-    this.isData = false,
     this.primaryAction = false,
     this.onAction,
   });
@@ -612,7 +564,6 @@ class _ChannelCard extends StatelessWidget {
   final String title;
   final String desc;
   final bool connected;
-  final bool isData;
   final String actionLabel;
   final bool primaryAction;
   final VoidCallback? onAction;
@@ -638,9 +589,7 @@ class _ChannelCard extends StatelessWidget {
               color: FloTheme.blueTint,
               borderRadius: BorderRadius.circular(11),
             ),
-            child: isData
-                ? FloIcons.database(size: 21, color: FloTheme.blue)
-                : FloIcons.whatsApp(size: 21, color: FloTheme.blueDeep),
+            child: FloIcons.whatsApp(size: 21, color: FloTheme.blueDeep),
           ),
           const SizedBox(width: 12),
           Expanded(

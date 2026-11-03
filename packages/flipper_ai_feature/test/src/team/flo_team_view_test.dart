@@ -5,9 +5,11 @@ import 'package:flipper_ai_feature/src/team/flo_team_controller.dart';
 import 'package:flipper_ai_feature/src/team/flo_team_models.dart';
 import 'package:flipper_ai_feature/src/team/flo_team_repository.dart';
 import 'package:flipper_ai_feature/src/team/flo_team_view.dart';
+import 'package:flipper_ai_feature/src/theme/flo_theme.dart';
 import 'package:flipper_ai_feature/src/widgets/flo/flo_header.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart' show PointerDeviceKind;
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
@@ -546,6 +548,132 @@ void main() {
       await _pump(tester, _team()..isManager = false);
       expect(find.byKey(const Key('flo-team-open-members')), findsNothing);
       expect(find.byKey(const Key('flo-team-new-idea')), findsOneWidget);
+    });
+
+    testWidgets('more than four members fold into a +N bubble', (tester) async {
+      await _pump(
+        tester,
+        FakeFloTeamRepository(memberList: [
+          for (var i = 0; i < 6; i++)
+            FloTeamMember(userId: 'u$i', name: 'Member $i'),
+        ]),
+      );
+      expect(find.text('+2'), findsOneWidget);
+      expect(find.text('M'), findsNWidgets(4));
+    });
+
+    testWidgets('a narrow board stacks the actions under the title',
+        (tester) async {
+      await _pump(tester, _team());
+      final wide =
+          tester.getTopLeft(find.byKey(const Key('flo-team-new-idea')));
+
+      tester.view.physicalSize = const Size(600, 1600);
+      await tester.pumpAndSettle();
+      final idea = tester.getRect(find.byKey(const Key('flo-team-new-idea')));
+      final discussion =
+          tester.getRect(find.byKey(const Key('flo-team-new-discussion')));
+
+      expect(idea.top, greaterThan(wide.dy));
+      expect(idea.top, discussion.top);
+      expect(idea.width, discussion.width);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('a card lights up while the mouse is over it', (tester) async {
+      await _pump(tester, _team());
+      Icon chevron() => tester.widget<Icon>(find.descendant(
+            of: find.byKey(const Key('flo-team-thread-t1')),
+            matching: find.byIcon(Icons.chevron_right),
+          ));
+      final idle = chevron().color;
+
+      final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
+      addTearDown(mouse.removePointer);
+      await mouse.addPointer(location: Offset.zero);
+      await mouse.moveTo(
+          tester.getCenter(find.byKey(const Key('flo-team-thread-t1'))));
+      await tester.pumpAndSettle();
+      final hovered = chevron().color;
+
+      await mouse.moveTo(Offset.zero);
+      await tester.pumpAndSettle();
+      expect(hovered, isNot(idle));
+      expect(chevron().color, idle);
+    });
+
+    testWidgets('a thread shows where it stands, its due date and post times',
+        (tester) async {
+      final now = DateTime.now();
+      final repo = FakeFloTeamRepository(
+        threads: [
+          idea('d1', 'Fix the sign',
+              status: FloTeamStatus.doing,
+              assignee: 'u2',
+              due: DateTime(2020, 1, 6)),
+          idea('d2', 'Paint the door', status: FloTeamStatus.done),
+          idea('t3', 'Weekly chat', kind: 'discussion'),
+        ],
+        posts: [
+          FloTeamPost(
+              id: 'p1',
+              threadId: 'd1',
+              isFlo: false,
+              body: 'On it',
+              authorUserId: 'u2',
+              createdAt: DateTime(now.year, now.month, now.day, 9, 5)),
+        ],
+      );
+      await _pump(tester, repo);
+      final l10n = tester.element(find.byType(FloTeamView)).flipperL10n;
+
+      Future<void> open(String filter, String id) async {
+        await tester.tap(find.byKey(Key('flo-team-filter-$filter')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(Key('flo-team-thread-$id')));
+        await tester.pumpAndSettle();
+      }
+
+      Future<void> back() async {
+        await tester.tap(find.byKey(const Key('flo-team-back')));
+        await tester.pumpAndSettle();
+      }
+
+      await open('doing', 'd1');
+      expect(find.text(l10n.floTeamDoing), findsOneWidget);
+      expect(find.text('${l10n.floTeamDue}: 6 Jan 2020'), findsOneWidget);
+      expect(
+          tester
+              .widget<Text>(find.text('${l10n.floTeamDue}: 6 Jan 2020'))
+              .style
+              ?.color,
+          FloTheme.lossInk);
+      expect(find.text('09:05'), findsOneWidget);
+      await back();
+
+      await open('done', 'd2');
+      expect(find.text(l10n.floTeamDone), findsOneWidget);
+      await back();
+
+      await open('discussions', 't3');
+      expect(find.text(l10n.floTeamDiscussion), findsOneWidget);
+      expect(find.byKey(const Key('flo-team-task')), findsNothing);
+    });
+
+    testWidgets('a member the server has no name for is shown as You',
+        (tester) async {
+      await _pump(
+        tester,
+        FakeFloTeamRepository(memberList: [
+          const FloTeamMember(userId: 'me'),
+          const FloTeamMember(userId: 'u2', name: 'Eric'),
+        ]),
+      );
+      await tester.tap(find.byKey(const Key('flo-team-open-members')));
+      await tester.pumpAndSettle();
+      final l10n = tester.element(find.byType(FloTeamView)).flipperL10n;
+      expect(find.text(l10n.floTeamYou), findsOneWidget);
+      expect(find.text('me'), findsNothing);
     });
   });
 
