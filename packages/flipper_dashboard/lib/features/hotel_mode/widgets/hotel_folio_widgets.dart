@@ -362,9 +362,16 @@ class HotelCheckOutResult {
 /// Payment capture at checkout. Cash requires a tender that covers the folio;
 /// the non-cash rails settle at exactly the folio total.
 class HotelCheckOutDialog extends StatefulWidget {
-  const HotelCheckOutDialog({super.key, required this.total});
+  const HotelCheckOutDialog({
+    super.key,
+    required this.total,
+    this.mobile = false,
+  });
 
   final double total;
+
+  /// The phone's bottom sheet: payment labels wrap instead of shrinking.
+  final bool mobile;
 
   /// A bottom sheet on a phone, where a centred dialog left each payment
   /// button too narrow for its label; a dialog on the desk.
@@ -387,7 +394,12 @@ class HotelCheckOutDialog extends StatefulWidget {
           padding: EdgeInsets.only(
             bottom: MediaQuery.viewInsetsOf(sheetContext).bottom,
           ),
-          child: HotelCheckOutDialog(total: total),
+          // Keeps Settle above a navigation bar or home indicator when the
+          // app draws edge to edge.
+          child: SafeArea(
+            top: false,
+            child: HotelCheckOutDialog(total: total, mobile: true),
+          ),
         ),
       );
     }
@@ -453,6 +465,72 @@ class _HotelCheckOutDialogState extends State<HotelCheckOutDialog> {
 
   bool get _canSettle => _tender + 0.5 >= widget.total;
 
+  /// Shrinks rather than wraps on the desk, where three rails share a
+  /// 420-wide dialog. On a phone the label wraps and every rail grows to the
+  /// tallest: shrunk to a phone rail, a long translation ("Amafaranga kuri
+  /// telefoni") rendered at half size.
+  Widget _paymentRails(FlipperAppLocalizations l10n) {
+    final rails = Row(
+      crossAxisAlignment: widget.mobile
+          ? CrossAxisAlignment.stretch
+          : CrossAxisAlignment.center,
+      children: [
+        for (final type in _paymentTypes) ...[
+          Expanded(
+            child: GestureDetector(
+              onTap: () => setState(() => _paymentType = type),
+              child: Container(
+                height: widget.mobile ? null : 44,
+                constraints: widget.mobile
+                    ? const BoxConstraints(minHeight: 44)
+                    : null,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: _paymentType == type
+                      ? HotelTokens.ink1
+                      : HotelTokens.surface2,
+                  borderRadius: BorderRadius.circular(HotelTokens.radiusMd),
+                  border: Border.all(
+                    color: _paymentType == type
+                        ? HotelTokens.ink1
+                        : HotelTokens.line,
+                  ),
+                ),
+                padding: EdgeInsets.symmetric(
+                  horizontal: 6,
+                  vertical: widget.mobile ? 4 : 0,
+                ),
+                child: widget.mobile
+                    ? _paymentLabelText(l10n, type)
+                    : FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: _paymentLabelText(l10n, type, maxLines: 1),
+                      ),
+              ),
+            ),
+          ),
+          if (type != _paymentTypes.last) const SizedBox(width: 8),
+        ],
+      ],
+    );
+    return widget.mobile ? IntrinsicHeight(child: rails) : rails;
+  }
+
+  Widget _paymentLabelText(
+    FlipperAppLocalizations l10n,
+    String type, {
+    int? maxLines,
+  }) => Text(
+    _paymentLabel(l10n, type),
+    maxLines: maxLines,
+    textAlign: TextAlign.center,
+    style: GoogleFonts.outfit(
+      fontSize: 14,
+      fontWeight: FontWeight.w700,
+      color: _paymentType == type ? Colors.white : HotelTokens.ink2,
+    ),
+  );
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.flipperL10n;
@@ -487,52 +565,7 @@ class _HotelCheckOutDialogState extends State<HotelCheckOutDialog> {
               ),
             ),
             const SizedBox(height: 16),
-            Row(
-              children: [
-                for (final type in _paymentTypes) ...[
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () => setState(() => _paymentType = type),
-                      child: Container(
-                        height: 44,
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          color: _paymentType == type
-                              ? HotelTokens.ink1
-                              : HotelTokens.surface2,
-                          borderRadius: BorderRadius.circular(
-                            HotelTokens.radiusMd,
-                          ),
-                          border: Border.all(
-                            color: _paymentType == type
-                                ? HotelTokens.ink1
-                                : HotelTokens.line,
-                          ),
-                        ),
-                        padding: const EdgeInsets.symmetric(horizontal: 6),
-                        // Shrinks rather than wraps: three rails share a
-                        // phone-wide row.
-                        child: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: Text(
-                            _paymentLabel(l10n, type),
-                            maxLines: 1,
-                            style: GoogleFonts.outfit(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
-                              color: _paymentType == type
-                                  ? Colors.white
-                                  : HotelTokens.ink2,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  if (type != _paymentTypes.last) const SizedBox(width: 8),
-                ],
-              ],
-            ),
+            _paymentRails(l10n),
             if (_paymentType == 'Cash') ...[
               const SizedBox(height: 14),
               TextField(

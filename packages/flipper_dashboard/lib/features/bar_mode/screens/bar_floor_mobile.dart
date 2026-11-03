@@ -66,8 +66,18 @@ class _BarFloorMobileScreenState extends ConsumerState<BarFloorMobileScreen> {
           ),
           child: Row(
             children: [
-              const BarFlipperBrand(),
-              const Spacer(),
+              // Gives way to the buttons: with Credit showing a count and the
+              // close button, a 320pt phone overflowed.
+              const Expanded(
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: BarFlipperBrand(),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
               const BarCreditFloorButton(compact: true),
               const SizedBox(width: 8),
               IconButton(

@@ -129,4 +129,28 @@ void main() {
       });
     }
   });
+
+  group('availability calendar on a phone', () {
+    testWidgets('the header and every row share the narrow room column', (
+      tester,
+    ) async {
+      await _pump(tester, 360);
+      expect(tester.takeException(), isNull);
+
+      // The header's slot holds the "Room" label; a row's holds its name.
+      final header = tester.getRect(
+        find
+            .ancestor(of: find.text('Room'), matching: find.byType(SizedBox))
+            .first,
+      );
+      final row = tester.getRect(
+        find
+            .ancestor(of: find.text('101'), matching: find.byType(Container))
+            .first,
+      );
+      expect(row.left, header.left);
+      expect(row.width, header.width);
+      expect(header.width, lessThan(150));
+    });
+  });
 }

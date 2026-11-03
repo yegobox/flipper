@@ -54,15 +54,22 @@ class _RoomsHeader extends ConsumerWidget {
           Row(
             children: [
               const HotelDeskBrand(logoSize: 24, wordmarkSize: 15),
-              const Spacer(),
-              Text(
-                l10n.hotelOccupiedFraction(
-                  '${counts.occupied}/${counts.total}',
-                ),
-                style: GoogleFonts.jetBrainsMono(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  color: HotelTokens.ink3,
+              const SizedBox(width: 8),
+              // Gives way to the buttons: a long translation with three-digit
+              // counts pushed the close button off a narrow phone.
+              Expanded(
+                child: Text(
+                  l10n.hotelOccupiedFraction(
+                    '${counts.occupied}/${counts.total}',
+                  ),
+                  textAlign: TextAlign.right,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.jetBrainsMono(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: HotelTokens.ink3,
+                  ),
                 ),
               ),
               IconButton(

@@ -74,27 +74,27 @@ class BarTabBottomSheet extends StatelessWidget {
     final needsManagerPin =
         !isManager && BarModeSettings.managerSettle && lineCount > 0;
 
-    Widget linesBody({required bool shrinkWrap}) => lines.isEmpty
-        ? Padding(
-            padding: const EdgeInsets.all(32),
-            child: Text(
-              l10n.barTapProductsFirstRound,
-              style: GoogleFonts.outfit(color: BarTokens.ink3),
-              textAlign: TextAlign.center,
-            ),
-          )
-        : ListView(
-            shrinkWrap: shrinkWrap,
-            physics: shrinkWrap ? const NeverScrollableScrollPhysics() : null,
-            padding: const EdgeInsets.symmetric(horizontal: 18),
-            children: [
-              for (final entry in grouped.entries) ...[
-                _groupHeader(l10n, entry.key, entry.value, staff),
-                for (final line in entry.value)
-                  _lineRow(l10n, line, cashier, isManager),
-              ],
-            ],
-          );
+    final emptyLines = Padding(
+      padding: const EdgeInsets.all(32),
+      child: Text(
+        l10n.barTapProductsFirstRound,
+        style: GoogleFonts.outfit(color: BarTokens.ink3),
+        textAlign: TextAlign.center,
+      ),
+    );
+    // Group headers and lines as one flat list, so either layout can build
+    // just the rows on screen: a long tab has many.
+    final rows = <Object>[
+      for (final entry in grouped.entries) ...[entry, ...entry.value],
+    ];
+    Widget rowAt(int i) {
+      final row = rows[i];
+      return row is MapEntry<String, List<TransactionItem>>
+          ? _groupHeader(l10n, row.key, row.value, staff)
+          : _lineRow(l10n, row as TransactionItem, cashier, isManager);
+    }
+
+    const linesPadding = EdgeInsets.symmetric(horizontal: 18);
     final footer = Container(
       padding: const EdgeInsets.fromLTRB(18, 14, 18, 14),
       decoration: const BoxDecoration(
@@ -294,14 +294,33 @@ class BarTabBottomSheet extends StatelessWidget {
                         // A short phone cannot pin a footer of up to six actions
                         // under the lines: they scroll together instead.
                         Flexible(
-                          child: ListView(
+                          child: CustomScrollView(
                             shrinkWrap: true,
-                            padding: EdgeInsets.zero,
-                            children: [linesBody(shrinkWrap: true), footer],
+                            slivers: [
+                              if (lines.isEmpty)
+                                SliverToBoxAdapter(child: emptyLines)
+                              else
+                                SliverPadding(
+                                  padding: linesPadding,
+                                  sliver: SliverList.builder(
+                                    itemCount: rows.length,
+                                    itemBuilder: (_, i) => rowAt(i),
+                                  ),
+                                ),
+                              SliverToBoxAdapter(child: footer),
+                            ],
                           ),
                         )
                       else ...[
-                        Flexible(child: linesBody(shrinkWrap: false)),
+                        Flexible(
+                          child: lines.isEmpty
+                              ? emptyLines
+                              : ListView.builder(
+                                  padding: linesPadding,
+                                  itemCount: rows.length,
+                                  itemBuilder: (_, i) => rowAt(i),
+                                ),
+                        ),
                         footer,
                       ],
                     ],

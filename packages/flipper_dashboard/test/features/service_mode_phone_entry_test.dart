@@ -151,6 +151,51 @@ void main() {
     });
   });
 
+  group('hydrateOfferedServiceModes', () {
+    /// Runs a cold-start hydration that moves the flags from [from] to [to].
+    Future<int> bumps({
+      required bool phone,
+      required (bool, bool) from,
+      required (bool, bool) to,
+    }) async {
+      var flags = from;
+      final before = serviceModeRevision.value;
+      await hydrateOfferedServiceModes(
+        () async => flags = to,
+        phone: phone,
+        offered: () => flags,
+      );
+      return serviceModeRevision.value - before;
+    }
+
+    test('a phone hears when hydration turns a mode on', () async {
+      // The watchers start after this and see no change, so without the bump
+      // the home's Bar / Hotel tiles stayed hidden for the session.
+      expect(
+        await bumps(phone: true, from: (false, false), to: (true, false)),
+        1,
+      );
+      expect(
+        await bumps(phone: true, from: (true, true), to: (true, false)),
+        1,
+      );
+    });
+
+    test('nothing changed: no bump', () async {
+      expect(
+        await bumps(phone: true, from: (true, false), to: (true, false)),
+        0,
+      );
+    });
+
+    test('a desk is left to its own redirect', () async {
+      expect(
+        await bumps(phone: false, from: (false, false), to: (true, true)),
+        0,
+      );
+    });
+  });
+
   group('phone Bar / Hotel tiles', () {
     testWidgets('the Sell section offers both modes', (tester) async {
       late List<DashboardAllAppSection> catalog;
@@ -244,6 +289,13 @@ void main() {
         ),
         true,
       );
+    });
+
+    testWidgets('only the grants decide, not the feature-access check', (
+      tester,
+    ) async {
+      // Admin-type users reach the grants as [ServiceModeGrants.admins]; a
+      // featureViewAccessProvider answer the grants do not back opens nothing.
       expect(
         await _tileVisible(
           tester,
@@ -254,7 +306,7 @@ void main() {
             viewAccess: true,
           ),
         ),
-        true,
+        false,
       );
     });
   });
