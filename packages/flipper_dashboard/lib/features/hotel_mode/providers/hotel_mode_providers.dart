@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart' show mapEquals;
 import 'package:flutter/material.dart' show Color;
 import 'package:flipper_dashboard/features/hotel_mode/theme/hotel_tokens.dart';
 import 'package:flipper_dashboard/features/bar_mode/providers/bar_mode_providers.dart'
-    show barTenantIsAdmin, serviceModeGrantsProvider;
+    show barStaffProvider, barTenantIsAdmin, serviceModeGrantsProvider;
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/helpers/pos_payment_role_tenant.dart';
@@ -14,7 +14,6 @@ import 'package:flipper_models/services/hotel_room_rra_service.dart';
 import 'package:flipper_models/sync/utils/hotel_dashboard_metrics.dart';
 import 'package:flipper_models/sync/utils/hotel_mode_utils.dart';
 import 'package:flipper_models/sync/utils/service_mode_access.dart';
-import 'package:flipper_models/view_models/flipperBaseModel.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -437,7 +436,7 @@ final hotelOverdueStaysProvider = Provider<List<HotelStay>>((ref) {
 /// Staff who may sign in to the desk: the business roster, narrowed to
 /// [AppFeature.HotelMode] once anyone holds it.
 final hotelStaffProvider = FutureProvider<List<Tenant>>((ref) async {
-  final staff = FlipperBaseModel.fetchBarStaffTenants();
+  final staff = ref.watch(barStaffProvider.future);
   final grants = await ref.watch(serviceModeGrantsProvider.future);
   return staffForServiceMode(
     await staff,

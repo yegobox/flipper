@@ -1,5 +1,5 @@
 import 'package:flipper_dashboard/features/bar_mode/providers/bar_mode_providers.dart'
-    show serviceModeGrantsProvider;
+    show barStaffProvider, serviceModeGrantsProvider;
 import 'package:flipper_localize/flipper_localize.dart';
 import 'dart:convert';
 
@@ -344,6 +344,10 @@ class TenantOperationsMixin {
         talker.error(s);
         _fail(context, l10n.tenantMgmtSavePermissionsFailed(e.toString()), e);
       }
+      // The grants and type are saved from here on, even if a later step
+      // fails: Bar / Hotel lock screens on this device follow them now.
+      ref.invalidate(serviceModeGrantsProvider);
+      ref.invalidate(barStaffProvider);
 
       // Get the tenant ID returned by the RPC function (PostgREST can return
       // a JSON string, or a 1-row json list depending on headers).
@@ -384,8 +388,6 @@ class TenantOperationsMixin {
       }
 
       await model.loadTenants();
-      // Bar / Hotel lock screens on this device follow the new grants now.
-      ref.invalidate(serviceModeGrantsProvider);
 
       String successMessage;
       if (!editMode) {

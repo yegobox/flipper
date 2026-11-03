@@ -103,9 +103,15 @@ class InventoryApp extends HookConsumerWidget {
   /// the mode's grant, the host's own [ServiceModeAccessGate] decides and Sales
   /// is no longer needed: a Bar-only waiter gets the floor, never the POS.
   /// Until then the pane keeps the Sales + Inventory gate it always had.
+  /// While neither the first fetch nor an offline copy has answered, it waits
+  /// rather than show a Bar- or Hotel-only waiter an empty Sales gate.
   Widget _serviceModeHost(WidgetRef ref, ServiceMode mode, Widget host) {
     final feature = serviceModeFeature(mode)!;
-    if (currentServiceModeGrants(ref).isRestricted(feature)) return host;
+    final grants = knownServiceModeGrants(ref);
+    if (grants == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (grants.isRestricted(feature)) return host;
     return host
         .shouldViewTheApp(ref, featureName: AppFeature.Sales)
         .shouldViewTheApp(ref, featureName: AppFeature.Inventory);
