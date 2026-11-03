@@ -7714,6 +7714,11 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
       'Msimamizi pekee ndiye anaweza kubadilisha hali ya huduma ya kifaa hiki.';
 
   @override
+  String serviceModeNoAccess(String mode) {
+    return 'Huna ruhusa ya kutumia $mode. Muombe msimamizi akupe ruhusa katika Usimamizi wa Watumiaji.';
+  }
+
+  @override
   String serviceModeSwitchNotSaved(String mode) {
     return 'Imeshindwa kubadili kwenda $mode: mipangilio ya tawi haikuhifadhiwa. Angalia muunganisho wako na ujaribu tena.';
   }

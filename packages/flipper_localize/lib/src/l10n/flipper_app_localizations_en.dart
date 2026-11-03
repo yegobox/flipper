@@ -7676,6 +7676,11 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
       'Only an admin can switch this device\'s service mode.';
 
   @override
+  String serviceModeNoAccess(String mode) {
+    return 'You don\'t have access to $mode. Ask an admin to grant it in User Management.';
+  }
+
+  @override
   String serviceModeSwitchNotSaved(String mode) {
     return 'Could not switch to $mode: the branch settings did not save. Check your connection and try again.';
   }

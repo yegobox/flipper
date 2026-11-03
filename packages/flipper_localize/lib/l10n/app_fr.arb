@@ -2206,6 +2206,7 @@
     "serviceModeBarCounter": "Comptoir du bar",
     "serviceModeFrontDesk": "Réception",
     "serviceModeAdminOnly": "Seul un administrateur peut changer le mode de service de cet appareil.",
+    "serviceModeNoAccess": "Vous n'avez pas accès au {mode}. Demandez à un administrateur de vous l'accorder dans la gestion des utilisateurs.",
     "serviceModeSwitchNotSaved": "Impossible de passer en {mode} : les paramètres de la succursale n'ont pas été enregistrés. Vérifiez votre connexion et réessayez.",
     "serviceModeSwitched": "Cet appareil est passé en {mode} · {hotkey} pour changer",
     "serviceModeSwitchFailed": "Impossible de changer le mode de service.",

@@ -6519,6 +6519,15 @@
     "@serviceModeAdminOnly": {
         "description": "Service-mode hotkey: non-admin tried to switch"
     },
+    "serviceModeNoAccess": "You don't have access to {mode}. Ask an admin to grant it in User Management.",
+    "@serviceModeNoAccess": {
+        "description": "Bar/Hotel host: the signed-in user holds no grant for this mode",
+        "placeholders": {
+            "mode": {
+                "type": "String"
+            }
+        }
+    },
     "serviceModeSwitchNotSaved": "Could not switch to {mode}: the branch settings did not save. Check your connection and try again.",
     "@serviceModeSwitchNotSaved": {
         "description": "Service-mode hotkey: switch rolled back",

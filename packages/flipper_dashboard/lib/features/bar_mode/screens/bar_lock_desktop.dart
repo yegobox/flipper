@@ -23,7 +23,7 @@ class _BarLockDesktopScreenState extends ConsumerState<BarLockDesktopScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final staffAsync = ref.watch(barStaffProvider);
+    final staffAsync = ref.watch(barSignInStaffProvider);
     final l10n = context.flipperL10n;
 
     return Container(

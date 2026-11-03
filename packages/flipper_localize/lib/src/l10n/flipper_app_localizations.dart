@@ -13223,6 +13223,12 @@ abstract class FlipperAppLocalizations {
   /// **'Only an admin can switch this device\'s service mode.'**
   String get serviceModeAdminOnly;
 
+  /// Bar/Hotel host: the signed-in user holds no grant for this mode
+  ///
+  /// In en, this message translates to:
+  /// **'You don\'t have access to {mode}. Ask an admin to grant it in User Management.'**
+  String serviceModeNoAccess(String mode);
+
   /// Service-mode hotkey: switch rolled back
   ///
   /// In en, this message translates to:

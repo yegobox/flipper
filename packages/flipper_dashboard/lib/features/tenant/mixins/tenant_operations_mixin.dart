@@ -1,3 +1,5 @@
+import 'package:flipper_dashboard/features/bar_mode/providers/bar_mode_providers.dart'
+    show serviceModeGrantsProvider;
 import 'package:flipper_localize/flipper_localize.dart';
 import 'dart:convert';
 
@@ -382,6 +384,8 @@ class TenantOperationsMixin {
       }
 
       await model.loadTenants();
+      // Bar / Hotel lock screens on this device follow the new grants now.
+      ref.invalidate(serviceModeGrantsProvider);
 
       String successMessage;
       if (!editMode) {

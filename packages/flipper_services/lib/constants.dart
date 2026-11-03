@@ -87,6 +87,8 @@ final features = [
   AppFeature.TicketReview,
   AppFeature.StockHandover,
   AppFeature.HideStockQuantity,
+  AppFeature.BarMode,
+  AppFeature.HotelMode,
 ];
 
 class AppFeature {
@@ -121,6 +123,14 @@ class AppFeature {
   /// quantities ("N in stock") are hidden from them across the POS/catalog.
   /// Absence of the grant (the default) shows quantities as before.
   static const String HideStockQuantity = "Hide Stock Quantity";
+
+  /// Bar Mode tables + tabs. Grantable on its own, without [Sales]: a waiter
+  /// granted only this never reaches the plain POS. Until someone in the
+  /// business holds it, Bar Mode stays open to every staff member.
+  static const String BarMode = "Bar Mode";
+
+  /// Hotel Mode front desk (rooms, stays, folios). Same rules as [BarMode].
+  static const String HotelMode = "Hotel Mode";
 }
 
 class AccessLevel {

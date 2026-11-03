@@ -5,7 +5,9 @@ import 'package:flipper_models/DatabaseSyncInterface.dart';
 import 'package:flipper_models/helpers/pos_payment_role_tenant.dart';
 import 'package:flipper_models/models/bar_table.dart';
 import 'package:flipper_models/sync/utils/bar_mode_utils.dart';
+import 'package:flipper_models/sync/utils/service_mode_access.dart';
 import 'package:flipper_models/view_models/flipperBaseModel.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:supabase_models/brick/repository/storage.dart';
@@ -187,6 +189,38 @@ final barModeProvider = NotifierProvider<BarModeNotifier, BarModeState>(
 
 final barStaffProvider = FutureProvider<List<Tenant>>((ref) async {
   return FlipperBaseModel.fetchBarStaffTenants();
+});
+
+/// Who may run Bar Mode / Hotel Mode in this business (see [ServiceModeGrants]).
+///
+/// Invalidate after a permission change, and from a lock screen's retry.
+final serviceModeGrantsProvider = FutureProvider<ServiceModeGrants>((
+  ref,
+) async {
+  final box = ref.watch(barServicesProvider).box;
+  final businessId = box.getBusinessId();
+  if (businessId == null || businessId.isEmpty) {
+    return const ServiceModeGrants();
+  }
+  return fetchServiceModeGrants(
+    businessId: businessId,
+    box: box,
+    timeout: FlipperBaseModel.staffRosterRemoteTimeout,
+  );
+});
+
+/// Staff the bar lock screen and manager PIN modal offer: [barStaffProvider]
+/// narrowed to [AppFeature.BarMode] once anyone holds it. The full roster
+/// still names who logged each line, and drives the POS user switch.
+final barSignInStaffProvider = FutureProvider<List<Tenant>>((ref) async {
+  final staff = ref.watch(barStaffProvider.future);
+  final grants = await ref.watch(serviceModeGrantsProvider.future);
+  return staffForServiceMode(
+    await staff,
+    grants,
+    AppFeature.BarMode,
+    isAdminOrOwner: barTenantIsAdmin,
+  );
 });
 
 /// What Bar Mode needs from the app. Getters resolve on every call because

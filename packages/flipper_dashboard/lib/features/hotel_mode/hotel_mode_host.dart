@@ -14,6 +14,7 @@ import 'package:flipper_dashboard/features/hotel_mode/theme/hotel_layout_breakpo
 import 'package:flipper_dashboard/features/hotel_mode/theme/hotel_tokens.dart';
 import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_manager_pin_modal.dart';
 import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_shared_widgets.dart';
+import 'package:flipper_dashboard/features/service_mode_access_gate.dart';
 import 'package:flipper_dashboard/features/service_mode_hotkey.dart';
 import 'package:flipper_dashboard/features/service_mode_switch.dart';
 import 'package:flipper_localize/flipper_localize.dart';
@@ -76,13 +77,16 @@ class _HotelModeHostState extends ConsumerState<HotelModeHost> {
       // the screen it was left on is the screen it comes back to.
       // A phone is never pinned: it must keep opening on its own home.
       if (shouldPinOpenedServiceMode(
-        hostMode: ServiceMode.hotel,
-        pickAtOpen: pickAtOpen,
-        pickNow: deviceServiceMode,
-        stillOpen: mounted,
-        serviceEnabled: HotelModeSettings.enabled,
-        isPhone: isPhoneLayout,
-      )) {
+            hostMode: ServiceMode.hotel,
+            pickAtOpen: pickAtOpen,
+            pickNow: deviceServiceMode,
+            stillOpen: mounted,
+            serviceEnabled: HotelModeSettings.enabled,
+            isPhone: isPhoneLayout,
+          ) &&
+          // Someone who may not run the hotel must not make it this
+          // terminal's surface either.
+          signedInUserMayRun(ref, ServiceMode.hotel, listen: false)) {
         setDeviceServiceMode(ServiceMode.hotel);
       }
       await _resolveEntry();
@@ -207,6 +211,8 @@ class _HotelModeHostState extends ConsumerState<HotelModeHost> {
       ),
     );
 
-    return ServiceModeHotkeyScope(child: desk);
+    return ServiceModeHotkeyScope(
+      child: ServiceModeAccessGate(mode: ServiceMode.hotel, child: desk),
+    );
   }
 }

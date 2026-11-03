@@ -10,6 +10,7 @@ import 'package:flipper_dashboard/features/bar_mode/theme/bar_layout_breakpoints
 import 'package:flipper_dashboard/features/bar_mode/theme/bar_tokens.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_manager_pin_modal.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_toast.dart';
+import 'package:flipper_dashboard/features/service_mode_access_gate.dart';
 import 'package:flipper_dashboard/features/service_mode_hotkey.dart';
 import 'package:flipper_dashboard/features/service_mode_switch.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -43,13 +44,16 @@ class _BarModeHostState extends ConsumerState<BarModeHost> {
       // pick, so the screen it was left on is the screen it comes back to.
       // A phone is never pinned: it must keep opening on its own home.
       if (shouldPinOpenedServiceMode(
-        hostMode: ServiceMode.bar,
-        pickAtOpen: pickAtOpen,
-        pickNow: deviceServiceMode,
-        stillOpen: mounted,
-        serviceEnabled: BarModeSettings.enabled,
-        isPhone: isPhoneLayout,
-      )) {
+            hostMode: ServiceMode.bar,
+            pickAtOpen: pickAtOpen,
+            pickNow: deviceServiceMode,
+            stillOpen: mounted,
+            serviceEnabled: BarModeSettings.enabled,
+            isPhone: isPhoneLayout,
+          ) &&
+          // Someone who may not run the bar must not make it this
+          // terminal's surface either.
+          signedInUserMayRun(ref, ServiceMode.bar, listen: false)) {
         setDeviceServiceMode(ServiceMode.bar);
       }
       ref.read(barModeProvider.notifier).setScreen(BarScreen.lock);
@@ -150,6 +154,8 @@ class _BarModeHostState extends ConsumerState<BarModeHost> {
       ),
     );
 
-    return ServiceModeHotkeyScope(child: stage);
+    return ServiceModeHotkeyScope(
+      child: ServiceModeAccessGate(mode: ServiceMode.bar, child: stage),
+    );
   }
 }

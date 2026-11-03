@@ -67,6 +67,10 @@ class TenantPermissionsMixin {
         return l10n.tenantMgmtFeatureStockHandover;
       case AppFeature.HideStockQuantity:
         return l10n.tenantMgmtFeatureHideStockQuantity;
+      case AppFeature.BarMode:
+        return l10n.serviceModeBarMode;
+      case AppFeature.HotelMode:
+        return l10n.serviceModeHotelMode;
       default:
         return feature;
     }
