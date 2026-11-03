@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flipper_dashboard/features/bar_mode/bar_mode_settings.dart';
 import 'package:flipper_dashboard/features/bar_mode/providers/bar_mode_providers.dart';
@@ -62,7 +64,8 @@ class BarTabBottomSheet extends StatelessWidget {
   final VoidCallback? onPrint;
 
   /// Below this the footer scrolls with the lines instead of being pinned:
-  /// with every action showing it is about 430 tall.
+  /// with every action showing it is about 430 tall. Set at the default text
+  /// size and scaled with the system text size (see [build]).
   static const double _pinnedFooterMinSheetHeight = 640;
 
   @override
@@ -103,40 +106,56 @@ class BarTabBottomSheet extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            children: [
-              Text(
-                l10n.barTabTotal,
-                style: GoogleFonts.outfit(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: BarTokens.ink2,
+          // Under large system text the label shortens and the total
+          // shrinks rather than overflow; at normal sizes neither changes.
+          LayoutBuilder(
+            builder: (context, constraints) => Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    l10n.barTabTotal,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.outfit(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: BarTokens.ink2,
+                    ),
+                  ),
                 ),
-              ),
-              const Spacer(),
-              Text.rich(
-                TextSpan(
-                  children: [
-                    TextSpan(
-                      text: 'RWF ',
-                      style: GoogleFonts.jetBrainsMono(
-                        fontSize: 12,
-                        color: BarTokens.ink3,
-                        fontWeight: FontWeight.w700,
+                const SizedBox(width: 12),
+                ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxWidth: constraints.maxWidth * 0.7,
+                  ),
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text.rich(
+                      TextSpan(
+                        children: [
+                          TextSpan(
+                            text: 'RWF ',
+                            style: GoogleFonts.jetBrainsMono(
+                              fontSize: 12,
+                              color: BarTokens.ink3,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          TextSpan(
+                            text: NumberFormat('#,###').format(total),
+                            style: GoogleFonts.jetBrainsMono(
+                              fontSize: 24,
+                              fontWeight: FontWeight.w800,
+                              color: BarTokens.ink1,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    TextSpan(
-                      text: NumberFormat('#,###').format(total),
-                      style: GoogleFonts.jetBrainsMono(
-                        fontSize: 24,
-                        fontWeight: FontWeight.w800,
-                        color: BarTokens.ink1,
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
           const SizedBox(height: 6),
           Row(
@@ -228,7 +247,16 @@ class BarTabBottomSheet extends StatelessWidget {
             child: LayoutBuilder(
               builder: (context, constraints) {
                 final maxHeight = constraints.maxHeight * 0.88;
-                final scrollFooter = maxHeight < _pinnedFooterMinSheetHeight;
+                // Larger system text makes the header and the footer's text
+                // rows taller, so a pinned footer could outgrow the sheet and
+                // be clipped. The whole threshold scales, though the 48pt
+                // buttons do not, so the scroll layout takes over early.
+                final textScale = math.max(
+                  1.0,
+                  MediaQuery.textScalerOf(context).scale(14) / 14,
+                );
+                final scrollFooter =
+                    maxHeight < _pinnedFooterMinSheetHeight * textScale;
                 return ConstrainedBox(
                   constraints: BoxConstraints(maxHeight: maxHeight),
                   child: Column(
