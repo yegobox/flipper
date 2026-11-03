@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flipper_dashboard/features/bar_mode/providers/bar_mode_providers.dart';
 import 'package:flipper_dashboard/features/bar_mode/screens/bar_floor_mobile.dart';
 import 'package:flipper_dashboard/features/bar_mode/screens/bar_lock_mobile.dart';
@@ -8,7 +10,12 @@ import 'package:flipper_dashboard/features/hotel_mode/providers/hotel_mode_provi
 import 'package:flipper_dashboard/features/hotel_mode/screens/hotel_lock_mobile.dart';
 import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_manager_pin_modal.dart';
 import 'package:flipper_localize/flipper_localize.dart';
+import 'package:flipper_models/DatabaseSyncInterface.dart';
+import 'package:flipper_models/SyncStrategy.dart';
+import 'package:flipper_models/flipper_http_client.dart';
+import 'package:flipper_models/helperModels/pin.dart';
 import 'package:flipper_models/sync/utils/service_mode_access.dart';
+import 'package:flipper_services/locator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
@@ -46,7 +53,11 @@ List<TransactionItem> _lines(int count) => [
     ),
 ];
 
-Future<void> _pumpTabSheet(WidgetTester tester, List<TransactionItem> lines) {
+Future<void> _pumpTabSheet(
+  WidgetTester tester,
+  List<TransactionItem> lines, {
+  bool everyAction = false,
+}) {
   final cashier = Tenant(id: 't1', name: 'Server');
   return tester.pumpWidget(
     _app(
@@ -69,6 +80,8 @@ Future<void> _pumpTabSheet(WidgetTester tester, List<TransactionItem> lines) {
         onBackToTables: () {},
         onSettle: () {},
         onPrint: () {},
+        onPutOnCredit: everyAction ? () {} : null,
+        onChargeToRoom: everyAction ? () {} : null,
       ),
     ),
   );
@@ -115,6 +128,32 @@ Future<ProviderContainer> _pickThenRefresh(
   await tester.pumpAndSettle();
   return container;
 }
+
+/// The server PIN lookup, held open until a test answers it.
+class _PendingPinSync extends Fake implements DatabaseSyncInterface {
+  /// Made on first use, inside the test body: a Completer made in setUp
+  /// belongs to another zone and never resumes the test's awaits.
+  late final pending = Completer<IPin?>();
+
+  @override
+  Future<IPin?> getPin({
+    required String pinString,
+    required HttpClientInterface flipperHttpClient,
+  }) => pending.future;
+}
+
+class _Http extends Fake implements HttpClientInterface {}
+
+IPin _serverPin(String userId) => IPin(
+  id: 'p1',
+  userId: userId,
+  phoneNumber: '',
+  pin: 999999,
+  branchId: 'b1',
+  businessId: 'biz-1',
+  ownerName: null,
+  tokenUid: null,
+);
 
 class _SignedInBar extends BarModeNotifier {
   @override
@@ -209,6 +248,29 @@ void main() {
           matching: find.text('Settle bill & close table'),
         ),
         findsNothing,
+      );
+    });
+
+    testWidgets('large system text moves the actions into the list', (
+      tester,
+    ) async {
+      // Tall enough to pin the footer at the default text size; at 2.5× the
+      // pinned header and footer outgrew the sheet and lost the last actions.
+      _useView(tester, const Size(360, 728));
+      tester.platformDispatcher.textScaleFactorTestValue = 2.5;
+      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+      await _pumpTabSheet(tester, _lines(2), everyAction: true);
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+
+      final room = find.text('Charge to room');
+      final list = find.byType(Scrollable).first;
+      expect(find.descendant(of: list, matching: room), findsOneWidget);
+      await tester.ensureVisible(room);
+      await tester.pumpAndSettle();
+      expect(
+        tester.getRect(room).bottom,
+        lessThanOrEqualTo(tester.getRect(list).bottom),
       );
     });
 
@@ -387,6 +449,116 @@ void main() {
       expect(container.read(hotelModeProvider).activeClerk, isNull);
       await _enterPin(tester, '333333');
       expect(container.read(hotelModeProvider).activeClerk?.pin, 333333);
+    });
+  });
+
+  // The roster providers reload (not refresh) when barStaffProvider is
+  // invalidated, and the lock screens' `when` shows the spinner on a reload
+  // (riverpod 3.0.3: skipLoadingOnReload false). So the keypad that started
+  // the server check is unmounted, its `mounted` guard drops the answer, and
+  // nobody is signed in from it, whether or not the refresh kept them.
+  group('a roster refresh lands during the server PIN check', () {
+    late _PendingPinSync sync;
+
+    setUp(() {
+      sync = _PendingPinSync();
+      getIt.registerSingleton<SyncStrategy>(
+        SyncStrategy(capella: sync, cloudSync: sync),
+        instanceName: 'strategy',
+      );
+      getIt.registerSingleton<HttpClientInterface>(_Http());
+      // A userId and a PIN the local record does not hold: the keypad has
+      // to ask the server.
+      _roster = [
+        Tenant(id: 't1', name: 'Aline', userId: 'u1', pin: 111111),
+        _staff('t2', 'Bosco', 222222),
+      ];
+    });
+    tearDown(() => getIt.reset());
+
+    Future<void> typeServerPin(WidgetTester tester) async {
+      for (final digit in '999999'.split('')) {
+        await tester.tap(find.text(digit).last);
+        await tester.pump();
+      }
+      // The keypad submits 90 ms after the last digit.
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+
+    /// Picks Aline, types a PIN only the server knows, refreshes the roster
+    /// to [refreshed] while the server check is open, then answers it.
+    Future<ProviderContainer> answerAfterRefresh(
+      WidgetTester tester,
+      Widget screen,
+      List<Tenant> refreshed,
+    ) async {
+      _useView(tester, _phone);
+      await tester.pumpWidget(
+        ProviderScope(overrides: _lockOverrides(), child: _app(screen)),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Aline'));
+      await tester.pumpAndSettle();
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(screen.runtimeType)),
+      );
+      await typeServerPin(tester);
+      expect(sync.pending.isCompleted, isFalse);
+
+      _roster = refreshed;
+      container.invalidate(barStaffProvider);
+      await tester.pump();
+      // The reload swaps the keypad for the spinner.
+      expect(find.byType(BarKeypad), findsNothing);
+      await tester.pumpAndSettle();
+      expect(find.byType(BarKeypad), findsOneWidget);
+
+      sync.pending.complete(_serverPin('u1'));
+      await tester.pumpAndSettle();
+      return container;
+    }
+
+    testWidgets('bar: dropped meanwhile, the answer signs nobody in', (
+      tester,
+    ) async {
+      final container = await answerAfterRefresh(
+        tester,
+        const BarLockMobileScreen(),
+        [_staff('t2', 'Bosco', 222222)],
+      );
+      expect(container.read(barModeProvider).activeCashier, isNull);
+      // And the keypad is off: nobody is picked any more.
+      expect(tester.widget<BarKeypad>(find.byType(BarKeypad)).enabled, isFalse);
+    });
+
+    testWidgets('bar: kept, the answer is dropped and a retry signs in', (
+      tester,
+    ) async {
+      final container = await answerAfterRefresh(
+        tester,
+        const BarLockMobileScreen(),
+        [Tenant(id: 't1', name: 'Aline M.', userId: 'u1', pin: 111111)],
+      );
+      expect(container.read(barModeProvider).activeCashier, isNull);
+
+      // Still picked, so the same PIN again goes through, as the refreshed
+      // record has them.
+      await typeServerPin(tester);
+      await tester.pumpAndSettle();
+      final cashier = container.read(barModeProvider).activeCashier;
+      expect(cashier?.id, 't1');
+      expect(cashier?.name, 'Aline M.');
+    });
+
+    testWidgets('hotel: dropped meanwhile, the answer signs nobody in', (
+      tester,
+    ) async {
+      final container = await answerAfterRefresh(
+        tester,
+        const HotelLockMobileScreen(),
+        [_staff('t2', 'Bosco', 222222)],
+      );
+      expect(container.read(hotelModeProvider).activeClerk, isNull);
     });
   });
 }

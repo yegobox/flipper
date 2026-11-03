@@ -41,6 +41,77 @@ void main() {
   final clerk = Tenant(id: 'c1', userId: 'u1', name: 'Richie', type: 'Agent');
   final manager = Tenant(id: 'm1', userId: 'u2', name: 'Ada', type: 'Admin');
 
+  group('reopening the desk with a clerk still signed in', () {
+    setUp(() => notifier().login(clerk));
+
+    test('a desk terminal keeps them, PIN or not', () {
+      expect(
+        notifier().resumeRetainedClerk(
+          mayRun: true,
+          requirePin: true,
+          isPhone: false,
+        ),
+        isTrue,
+      );
+      expect(read().activeClerk, clerk);
+      expect(read().screen, HotelScreen.dashboard);
+    });
+
+    test('a phone on a PIN branch goes back to the lock', () {
+      // Closed to its home and reopened, often by whoever holds it next.
+      expect(
+        notifier().resumeRetainedClerk(
+          mayRun: true,
+          requirePin: true,
+          isPhone: true,
+        ),
+        isFalse,
+      );
+      expect(read().activeClerk, isNull);
+      notifier().resolveEntry(requirePin: true);
+      expect(read().screen, HotelScreen.lock);
+    });
+
+    test('a phone on a no-PIN branch keeps them', () {
+      expect(
+        notifier().resumeRetainedClerk(
+          mayRun: true,
+          requirePin: false,
+          isPhone: true,
+        ),
+        isTrue,
+      );
+      expect(read().activeClerk, clerk);
+    });
+
+    test('a clerk who may no longer run the desk is signed out', () {
+      for (final isPhone in [false, true]) {
+        notifier().login(clerk);
+        expect(
+          notifier().resumeRetainedClerk(
+            mayRun: false,
+            requirePin: false,
+            isPhone: isPhone,
+          ),
+          isFalse,
+        );
+        expect(read().activeClerk, isNull);
+      }
+    });
+
+    test('nobody retained: nothing to resume', () {
+      notifier().logout();
+      expect(
+        notifier().resumeRetainedClerk(
+          mayRun: true,
+          requirePin: false,
+          isPhone: false,
+        ),
+        isFalse,
+      );
+    });
+  });
+
   group('shared register', () {
     test('opens on the starting gate, not on the lock', () {
       // Showing the lock before branch settings are known makes it flash up

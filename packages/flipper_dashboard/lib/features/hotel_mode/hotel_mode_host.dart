@@ -109,13 +109,13 @@ class _HotelModeHostState extends ConsumerState<HotelModeHost> {
     final notifier = ref.read(hotelModeProvider.notifier);
     try {
       final clerk = ref.read(hotelModeProvider).activeClerk;
-      if (clerk != null) {
-        if (clerkMayRun(ref, ServiceMode.hotel, clerk)) {
-          notifier.setScreen(HotelScreen.dashboard);
-          return;
-        }
-        // Their Hotel grant went while they were away from the desk.
-        notifier.logout();
+      if (clerk != null &&
+          notifier.resumeRetainedClerk(
+            mayRun: clerkMayRun(ref, ServiceMode.hotel, clerk),
+            requirePin: HotelModeSettings.requirePin,
+            isPhone: isPhoneLayout,
+          )) {
+        return;
       }
 
       if (HotelModeSettings.requirePin) {

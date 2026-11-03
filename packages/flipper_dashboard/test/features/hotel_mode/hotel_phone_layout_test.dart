@@ -116,6 +116,12 @@ void main() {
       expect(tester.takeException(), isNull);
       final label = find.text('Amafaranga kuri telefoni');
       expect(label, findsOneWidget);
+      // Wrapped, not cut to one line: taller than the one-line Cash label in
+      // the same style.
+      expect(
+        tester.getSize(label).height,
+        greaterThan(tester.getSize(find.text('Amafaranga')).height),
+      );
       // Painted width over layout width: below 1 means it was scaled down.
       expect(
         tester.getRect(label).width / tester.getSize(label).width,
