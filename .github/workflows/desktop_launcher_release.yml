@@ -62,11 +62,9 @@ env:
 
 jobs:
   version:
-    name: "Resolve version"
+    name: "Pick platforms"
     runs-on: ubuntu-latest
     outputs:
-      version: ${{ steps.v.outputs.version }}
-      tag: ${{ steps.v.outputs.tag }}
       windows: ${{ contains(env.PLATFORMS, 'windows') }}
       macos: ${{ steps.mac.outputs.build }}
       linux: ${{ contains(env.PLATFORMS, 'linux') }}
@@ -92,33 +90,11 @@ jobs:
             fi
           done
           echo "build=true" >> "$GITHUB_OUTPUT"
-      - id: v
-        env:
-          GH_TOKEN: ${{ github.token }}
+      - name: Check channel
         run: |
           if [[ "$CHANNEL" == stable && "$GITHUB_REF" != refs/heads/main ]]; then
             echo "::error::stable releases only run from main (got $GITHUB_REF)"; exit 1
           fi
-          # MAJOR.MINOR from the version Flipper reports (package_info); PATCH is
-          # this workflow's run number. Plenty of merges land without a version
-          # bump (stacked PRs skip it), and each must still ship as a newer
-          # version, so PATCH can't come from pubspec. The run number only
-          # grows, so every run sorts above the last. Beta adds -beta, which
-          # sorts below the stable build of a later run.
-          BASE="$(awk '/^version:/ { sub(/\+.*/, "", $2); print $2; exit }' apps/flipper/pubspec.yaml)"
-          if [[ ! "$BASE" =~ ^([0-9]+)\.([0-9]+)\.[0-9]+$ ]]; then
-            echo "::error::unusable version '$BASE' in apps/flipper/pubspec.yaml"; exit 1
-          fi
-          VERSION="${BASH_REMATCH[1]}.${BASH_REMATCH[2]}.$GITHUB_RUN_NUMBER"
-          [[ "$CHANNEL" == beta ]] && VERSION="$VERSION-beta"
-          TAG="desktop-v$VERSION"
-          if gh release view "$TAG" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            # Only a re-run of an already published run gets here.
-            echo "::error::$TAG is already published; start a new run instead of re-running this one"; exit 1
-          fi
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
-          echo "Publishing $TAG to $CHANNEL"
 
   windows:
     name: "Build Windows"
@@ -416,14 +392,33 @@ jobs:
     concurrency:
       group: launcher-manifest
       cancel-in-progress: false
+    # The version step may wait up to 45 min for the Store build's tag.
+    timeout-minutes: 90
     env:
       GH_TOKEN: ${{ github.token }}
-      VERSION: ${{ needs.version.outputs.version }}
-      TAG: ${{ needs.version.outputs.tag }}
     steps:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
+      - name: Resolve version
+        # Major.N.<run>, N being the Store msix Minor of this same commit
+        # (release.yml tags it v<Major>.<N>.0.0_windows_prod), so the Store
+        # and the launcher show one number for one build: Store 1.587.0.0,
+        # launcher 1.587.65. PATCH is this workflow's run number, which only
+        # grows, so each run sorts above the last even when N stays put.
+        # Beta adds -beta. Resolved here, not before the builds, because the
+        # Store job tags its version while those builds run; the builds don't
+        # use the version. See the script.
+        run: |
+          VERSION="$(./scripts/ci/launcher_version.sh)"
+          TAG="desktop-v$VERSION"
+          if gh release view "$TAG" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            # Only a re-run of an already published run gets here.
+            echo "::error::$TAG is already published; start a new run instead of re-running this one"; exit 1
+          fi
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          echo "TAG=$TAG" >> "$GITHUB_ENV"
+          echo "Publishing $TAG to $CHANNEL"
       - uses: actions/download-artifact@v4
         with:
           pattern: desktop-*

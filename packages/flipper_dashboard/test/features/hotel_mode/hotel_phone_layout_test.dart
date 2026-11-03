@@ -1,5 +1,6 @@
 import 'package:flipper_dashboard/features/hotel_mode/providers/hotel_mode_providers.dart';
 import 'package:flipper_dashboard/features/hotel_mode/screens/hotel_folio_screen.dart';
+import 'package:flipper_dashboard/features/hotel_mode/screens/hotel_rooms_mobile.dart';
 import 'package:flipper_dashboard/features/hotel_mode/theme/hotel_layout_breakpoints.dart';
 import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_desk_nav.dart';
 import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_check_in_sheet.dart';
@@ -42,10 +43,12 @@ void _usePhone(WidgetTester tester) {
 /// Opens [open] from a button on a bare phone screen.
 Future<void> _openFrom(
   WidgetTester tester,
-  Future<void> Function(BuildContext context) open,
-) async {
+  Future<void> Function(BuildContext context) open, {
+  Locale? locale,
+}) async {
   await tester.pumpWidget(
     MaterialApp(
+      locale: locale,
       localizationsDelegates: FlipperLocalizationDelegates.delegates,
       supportedLocales: FlipperLocalizationDelegates.supportedLocales,
       home: Builder(
@@ -101,6 +104,50 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
+    testWidgets('a long tender label wraps at full size instead of shrinking', (
+      tester,
+    ) async {
+      _usePhone(tester);
+      await _openFrom(
+        tester,
+        (context) => HotelCheckOutDialog.show(context, total: 120000),
+        locale: const Locale('rw'),
+      );
+      expect(tester.takeException(), isNull);
+      final label = find.text('Amafaranga kuri telefoni');
+      expect(label, findsOneWidget);
+      // Painted width over layout width: below 1 means it was scaled down.
+      expect(
+        tester.getRect(label).width / tester.getSize(label).width,
+        closeTo(1, 0.001),
+      );
+      // Every rail grows to the tallest label.
+      final cash = find.ancestor(
+        of: find.text('Amafaranga'),
+        matching: find.byType(Container),
+      );
+      final momo = find.ancestor(of: label, matching: find.byType(Container));
+      expect(
+        tester.getSize(cash.first).height,
+        tester.getSize(momo.first).height,
+      );
+    });
+
+    testWidgets('keeps Settle clear of the system navigation bar', (
+      tester,
+    ) async {
+      _usePhone(tester);
+      tester.view.padding = const FakeViewPadding(bottom: 48);
+      addTearDown(tester.view.resetPadding);
+      await _openFrom(
+        tester,
+        (context) => HotelCheckOutDialog.show(context, total: 120000),
+      );
+      expect(tester.takeException(), isNull);
+      final settle = find.text('Settle & release room');
+      expect(tester.getRect(settle).bottom, lessThanOrEqualTo(640 - 48));
+    });
+
     testWidgets('fits above the keyboard', (tester) async {
       _usePhone(tester);
       tester.view.viewInsets = const FakeViewPadding(bottom: 300);
@@ -121,6 +168,41 @@ void main() {
         (context) => HotelCheckOutDialog.show(context, total: 120000),
       );
       expect(find.byType(Dialog), findsOneWidget);
+    });
+  });
+
+  group('room board on a phone', () {
+    testWidgets('a long occupancy count leaves the header buttons on screen', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(320, 640);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            hotelRoomsProvider.overrideWith((ref) => Stream.value([])),
+            hotelStaysProvider.overrideWith((ref) => Stream.value([])),
+            hotelOccupancyProvider.overrideWithValue((
+              total: 120,
+              occupied: 118,
+              vacant: 2,
+              reserved: 0,
+              dirty: 0,
+              blocked: 0,
+            )),
+          ],
+          child: MaterialApp(
+            locale: const Locale('rw'),
+            localizationsDelegates: FlipperLocalizationDelegates.delegates,
+            supportedLocales: FlipperLocalizationDelegates.supportedLocales,
+            home: const Scaffold(body: HotelRoomsMobileScreen()),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      expect(tester.getRect(find.byIcon(Icons.logout)).right, lessThan(320));
     });
   });
 

@@ -4,7 +4,8 @@ import 'dart:convert';
 import 'package:flipper_models/sync/utils/staff_roster_cache.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flutter/foundation.dart';
-import 'package:supabase_flutter/supabase_flutter.dart' show Supabase;
+import 'package:supabase_flutter/supabase_flutter.dart'
+    show CountOption, Supabase;
 import 'package:supabase_models/brick/models/tenant.model.dart';
 import 'package:supabase_models/brick/repository/storage.dart';
 
@@ -20,7 +21,11 @@ import 'package:supabase_models/brick/repository/storage.dart';
 /// modules existed. The first grant restricts it to the granted staff, the
 /// business owner and Admin-type users.
 class ServiceModeGrants {
-  const ServiceModeGrants({this.admins = const {}, this.byFeature = const {}});
+  const ServiceModeGrants({
+    this.admins = const {},
+    this.byFeature = const {},
+    this.nextExpiry,
+  });
 
   /// Owner plus every user whose access rows carry the Admin user type.
   final Set<String> admins;
@@ -28,6 +33,10 @@ class ServiceModeGrants {
   /// Active, unexpired grants per mode ([AppFeature.BarMode] /
   /// [AppFeature.HotelMode]), as user ids.
   final Map<String, Set<String>> byFeature;
+
+  /// When the first row counted here expires, so the holder can re-read the
+  /// grants then. Null when none of them expires.
+  final DateTime? nextExpiry;
 
   /// Whether [feature] has been granted to anyone, i.e. is no longer open to
   /// all staff.
@@ -89,6 +98,7 @@ ServiceModeGrants serviceModeGrantsFromRows(
 }) {
   final admins = <String>{};
   final byFeature = <String, Set<String>>{};
+  DateTime? nextExpiry;
   final owner = ownerUserId?.trim();
   if (owner != null && owner.isNotEmpty) admins.add(owner);
 
@@ -100,15 +110,23 @@ ServiceModeGrants serviceModeGrantsFromRows(
     final expiresAt = DateTime.tryParse(raw['expires_at']?.toString() ?? '');
     if (expiresAt != null && !expiresAt.isAfter(now)) continue;
 
-    if (raw['user_type']?.toString().toLowerCase() == AccessLevel.ADMIN) {
-      admins.add(userId);
-    }
+    final isAdmin =
+        raw['user_type']?.toString().toLowerCase() == AccessLevel.ADMIN;
     final feature = raw['feature_name']?.toString();
-    if (serviceModeFeatures.contains(feature)) {
-      byFeature.putIfAbsent(feature!, () => <String>{}).add(userId);
+    final isGrant = serviceModeFeatures.contains(feature);
+    if (isAdmin) admins.add(userId);
+    if (isGrant) byFeature.putIfAbsent(feature!, () => <String>{}).add(userId);
+    if ((isAdmin || isGrant) &&
+        expiresAt != null &&
+        (nextExpiry == null || expiresAt.isBefore(nextExpiry))) {
+      nextExpiry = expiresAt;
     }
   }
-  return ServiceModeGrants(admins: admins, byFeature: byFeature);
+  return ServiceModeGrants(
+    admins: admins,
+    byFeature: byFeature,
+    nextExpiry: nextExpiry,
+  );
 }
 
 /// Box key for the offline copy. Shares the roster prefix, so it is already
@@ -163,22 +181,59 @@ typedef ServiceModeGrantRowsLoader =
       String businessId,
     );
 
+/// Rows per `accesses` page; PostgREST caps an unranged read at 1,000.
+@visibleForTesting
+const int serviceModeGrantsPageSize = 1000;
+
+/// One `accesses` page and the matching row count the server reports.
+typedef ServiceModeGrantPage = ({List<Map<String, dynamic>> rows, int total});
+
+/// Every row [fetchPage] (offset, last index) holds.
+///
+/// The next page starts after the rows actually returned, and the read ends
+/// at the server's count, not at a short page: a project whose row cap is
+/// below [pageSize] answers every page short. An empty page also ends it.
+@visibleForTesting
+Future<List<Map<String, dynamic>>> readAllServiceModeGrantPages(
+  Future<ServiceModeGrantPage> Function(int from, int to) fetchPage, {
+  int pageSize = serviceModeGrantsPageSize,
+}) async {
+  final rows = <Map<String, dynamic>>[];
+  while (true) {
+    final page = await fetchPage(rows.length, rows.length + pageSize - 1);
+    rows.addAll(page.rows);
+    if (page.rows.isEmpty || rows.length >= page.total) return rows;
+  }
+}
+
 Future<({List<Map<String, dynamic>> rows, String? ownerUserId})>
 loadServiceModeGrantRows(String businessId) async {
   final client = Supabase.instance.client;
   final features = serviceModeFeatures.map((f) => '"$f"').join(',');
-  final Future<List<Map<String, dynamic>>> rowsQuery = client
-      .from('accesses')
-      .select('user_id, feature_name, user_type, status, expires_at')
-      .eq('business_id', businessId)
-      .or('feature_name.in.($features),user_type.ilike.admin');
-  final Future<Map<String, dynamic>?> ownerQuery = client
+  // The owner only adds an admin: a failed lookup must not cost the grants,
+  // which would leave both modes open.
+  final ownerQuery = client
       .from('businesses')
       .select('user_id')
       .eq('id', businessId)
-      .maybeSingle();
-  final (rows, owner) = await (rowsQuery, ownerQuery).wait;
-  return (rows: rows, ownerUserId: owner?['user_id']?.toString());
+      .maybeSingle()
+      .then<String?>((row) => row?['user_id']?.toString())
+      .catchError((Object e) {
+        debugPrint('loadServiceModeGrantRows: owner lookup failed: $e');
+        return null;
+      });
+  final rows = await readAllServiceModeGrantPages(
+    (from, to) => client
+        .from('accesses')
+        .select('user_id, feature_name, user_type, status, expires_at')
+        .eq('business_id', businessId)
+        .or('feature_name.in.($features),user_type.ilike.admin')
+        .order('id')
+        .range(from, to)
+        .count(CountOption.exact)
+        .then((res) => (rows: res.data, total: res.count)),
+  );
+  return (rows: rows, ownerUserId: await ownerQuery);
 }
 
 /// Bar/Hotel grants for [businessId]: Supabase first, the offline copy when
