@@ -344,6 +344,9 @@ class TenantOperationsMixin {
         talker.error(s);
         _fail(context, l10n.tenantMgmtSavePermissionsFailed(e.toString()), e);
       }
+      // The grants are saved from here on, even if a later step fails: Bar /
+      // Hotel lock screens on this device follow them now.
+      ref.invalidate(serviceModeGrantsProvider);
 
       // Get the tenant ID returned by the RPC function (PostgREST can return
       // a JSON string, or a 1-row json list depending on headers).
@@ -384,8 +387,6 @@ class TenantOperationsMixin {
       }
 
       await model.loadTenants();
-      // Bar / Hotel lock screens on this device follow the new grants now.
-      ref.invalidate(serviceModeGrantsProvider);
 
       String successMessage;
       if (!editMode) {

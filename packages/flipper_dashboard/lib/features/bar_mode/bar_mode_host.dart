@@ -34,6 +34,11 @@ class _BarModeHostState extends ConsumerState<BarModeHost> {
       // now would drag the device back here. See shouldPinOpenedServiceMode.
       if (!mounted) return;
       BarModeSettings.startWatchingActiveBranch();
+      ref.read(barModeProvider.notifier).setScreen(BarScreen.lock);
+      // The pin decides with the grants, so it must not read a first fetch
+      // that is still running as "nobody holds Bar Mode".
+      await serviceModeGrantsSettled(ref);
+      if (!mounted) return;
       // No floor-plan seeding here: this runs on every device that opens the
       // bar, usually before Ditto has synced the branch's tables, and the
       // seed's fixed ids would bring back deleted tables and reset renamed
@@ -56,7 +61,6 @@ class _BarModeHostState extends ConsumerState<BarModeHost> {
           signedInUserMayRun(ref, ServiceMode.bar, listen: false)) {
         setDeviceServiceMode(ServiceMode.bar);
       }
-      ref.read(barModeProvider.notifier).setScreen(BarScreen.lock);
     });
   }
 

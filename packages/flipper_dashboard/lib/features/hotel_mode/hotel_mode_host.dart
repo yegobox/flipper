@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flipper_dashboard/features/bar_mode/providers/bar_mode_providers.dart'
+    show barTenantIsAdmin, serviceModeGrantsProvider;
 import 'package:flipper_dashboard/features/hotel_mode/hotel_mode_settings.dart';
 import 'package:flipper_dashboard/features/hotel_mode/services/hotel_quotation_actions.dart';
 import 'package:flipper_dashboard/features/hotel_mode/providers/hotel_mode_providers.dart';
@@ -19,6 +21,7 @@ import 'package:flipper_dashboard/features/service_mode_hotkey.dart';
 import 'package:flipper_dashboard/features/service_mode_switch.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/services/hotel_room_rra_service.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:supabase_models/brick/models/tenant.model.dart';
@@ -50,7 +53,13 @@ class _HotelModeHostState extends ConsumerState<HotelModeHost> {
       // room sweep nor the pin belongs to this desk any more.
       if (!mounted) return;
       HotelModeSettings.startWatchingActiveBranch();
-      if (branchId != null) {
+      // The room sweep and the pin act for the signed-in user, so decide with
+      // settled grants: a first fetch still running reads as "nobody holds
+      // Hotel Mode". The desk stays on its starting screen meanwhile.
+      await serviceModeGrantsSettled(ref);
+      if (!mounted) return;
+      final mayRun = signedInUserMayRun(ref, ServiceMode.hotel, listen: false);
+      if (branchId != null && mayRun) {
         // No room seeding here: this runs on every device that opens the
         // desk, usually before Ditto has synced the branch's rooms, and the
         // seed's fixed ids would bring back deleted rooms and reset renamed
@@ -86,7 +95,7 @@ class _HotelModeHostState extends ConsumerState<HotelModeHost> {
           ) &&
           // Someone who may not run the hotel must not make it this
           // terminal's surface either.
-          signedInUserMayRun(ref, ServiceMode.hotel, listen: false)) {
+          mayRun) {
         setDeviceServiceMode(ServiceMode.hotel);
       }
       await _resolveEntry();
@@ -101,9 +110,14 @@ class _HotelModeHostState extends ConsumerState<HotelModeHost> {
   Future<void> _resolveEntry() async {
     final notifier = ref.read(hotelModeProvider.notifier);
     try {
-      if (ref.read(hotelModeProvider).activeClerk != null) {
-        notifier.setScreen(HotelScreen.dashboard);
-        return;
+      final clerk = ref.read(hotelModeProvider).activeClerk;
+      if (clerk != null) {
+        if (_clerkMayRunHotel(clerk)) {
+          notifier.setScreen(HotelScreen.dashboard);
+          return;
+        }
+        // Their Hotel grant went while they were away from the desk.
+        notifier.logout();
       }
 
       if (HotelModeSettings.requirePin) {
@@ -129,6 +143,15 @@ class _HotelModeHostState extends ConsumerState<HotelModeHost> {
     }
   }
 
+  /// Whether the clerk bound to the desk still holds Hotel Mode (or never
+  /// needed it: grandfathered, Admin-type or owner).
+  bool _clerkMayRunHotel(Tenant clerk) =>
+      currentServiceModeGrants(ref, listen: false).allows(
+        AppFeature.HotelMode,
+        clerk.userId?.trim(),
+        isAdminOrOwner: barTenantIsAdmin(clerk),
+      );
+
   Future<Tenant?> _signedInStaffMember() async {
     final userId = ProxyService.box.getUserId()?.trim();
     if (userId == null || userId.isEmpty) return null;
@@ -143,6 +166,14 @@ class _HotelModeHostState extends ConsumerState<HotelModeHost> {
   @override
   Widget build(BuildContext context) {
     final hotel = ref.watch(hotelModeProvider);
+    // A grant removed while the clerk is at the desk hands it back to the
+    // lock straight away.
+    ref.listen(serviceModeGrantsProvider, (_, next) {
+      final clerk = ref.read(hotelModeProvider).activeClerk;
+      if (next.hasValue && clerk != null && !_clerkMayRunHotel(clerk)) {
+        ref.read(hotelModeProvider.notifier).logout();
+      }
+    });
 
     final desk = Scaffold(
       backgroundColor: HotelTokens.stageBg,

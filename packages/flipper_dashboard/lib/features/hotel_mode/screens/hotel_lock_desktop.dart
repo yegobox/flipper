@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flipper_dashboard/features/bar_mode/providers/bar_mode_providers.dart'
-    show serviceModeGrantsProvider;
+    show barStaffProvider, serviceModeGrantsProvider;
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_admin_widgets.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_keypad.dart';
 import 'package:flipper_dashboard/features/hotel_mode/providers/hotel_mode_providers.dart';
@@ -172,6 +172,7 @@ class _HotelLockDesktopScreenState
                         // Grants too: a desk that started offline fell back
                         // to "open to all" and should pick up the real ones.
                         ref.invalidate(serviceModeGrantsProvider);
+                        ref.invalidate(barStaffProvider);
                         ref.invalidate(hotelStaffProvider);
                       },
                       child: Text(l10n.retry),

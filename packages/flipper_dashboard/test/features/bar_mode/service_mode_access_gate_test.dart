@@ -1,8 +1,10 @@
+import 'dart:async';
+
 import 'package:flipper_dashboard/features/bar_mode/providers/bar_mode_providers.dart';
 import 'package:flipper_dashboard/features/service_mode_access_gate.dart';
+import 'package:flipper_dashboard/features/hotel_mode/providers/hotel_mode_providers.dart';
 import 'package:flipper_dashboard/features/service_mode_switch.dart';
 import 'package:flipper_localize/flipper_localize.dart';
-import 'package:flipper_models/providers/access_provider.dart';
 import 'package:flipper_models/sync/utils/service_mode_access.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flutter/material.dart';
@@ -13,9 +15,10 @@ import 'package:supabase_models/brick/models/tenant.model.dart';
 import 'package:supabase_models/brick/repository/storage.dart';
 
 class _Box extends Fake implements LocalStorage {
-  _Box(this.userId);
+  _Box(this.userId, {this.values = const {}});
 
   final String? userId;
+  final Map<String, String> values;
 
   @override
   String? getUserId() => userId;
@@ -24,7 +27,7 @@ class _Box extends Fake implements LocalStorage {
   String? getBusinessId() => 'biz-1';
 
   @override
-  String? readString({required String key}) => null;
+  String? readString({required String key}) => values[key];
 }
 
 class _Services extends BarServices {
@@ -53,12 +56,6 @@ List<Override> _overrides({
   barServicesProvider.overrideWithValue(_Services(_Box(signedIn))),
   serviceModeGrantsProvider.overrideWith((ref) async => grants),
   barStaffProvider.overrideWith((ref) async => [_waiter, _cashier, _admin]),
-  if (signedIn != null)
-    for (final feature in serviceModeFeatures)
-      featureViewAccessProvider(
-        userId: signedIn,
-        featureName: feature,
-      ).overrideWithValue(false),
 ];
 
 Future<void> _pumpGate(
@@ -100,6 +97,25 @@ void main() {
 
     test('Bar Mode granted: only the granted staff and admins', () async {
       expect(await signIn(_barGrantedTo('u-w')), [_waiter, _admin]);
+    });
+
+    test('hotel roster: only the Hotel Mode holders and admins', () async {
+      final container = ProviderContainer(
+        overrides: _overrides(
+          signedIn: null,
+          grants: ServiceModeGrants(
+            byFeature: {
+              AppFeature.BarMode: {'u-w'},
+              AppFeature.HotelMode: {'u-c'},
+            },
+          ),
+        ),
+      );
+      addTearDown(container.dispose);
+      expect(await container.read(hotelStaffProvider.future), [
+        _cashier,
+        _admin,
+      ]);
     });
 
     test('a Hotel Mode grant leaves the bar roster open', () async {
@@ -162,6 +178,72 @@ void main() {
         ),
       );
       expect(find.byType(ServiceModeNoAccess), findsOneWidget);
+    });
+  });
+
+  group('knownServiceModeGrants', () {
+    Future<void> pumpProbe(
+      WidgetTester tester,
+      Future<ServiceModeGrants> grants, {
+      Map<String, String> box = const {},
+    }) => tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          barServicesProvider.overrideWithValue(
+            _Services(_Box('u-c', values: box)),
+          ),
+          serviceModeGrantsProvider.overrideWith((ref) => grants),
+        ],
+        child: MaterialApp(
+          home: Consumer(
+            builder: (context, ref, _) {
+              final known = knownServiceModeGrants(ref);
+              return Text(
+                known == null
+                    ? 'UNKNOWN'
+                    : known.isRestricted(AppFeature.BarMode)
+                    ? 'RESTRICTED'
+                    : 'OPEN',
+              );
+            },
+          ),
+        ),
+      ),
+    );
+
+    testWidgets('unknown while the first fetch runs with no offline copy', (
+      tester,
+    ) async {
+      final pending = Completer<ServiceModeGrants>();
+      await pumpProbe(tester, pending.future);
+      expect(find.text('UNKNOWN'), findsOneWidget);
+
+      pending.complete(_barGrantedTo('u-w'));
+      await tester.pumpAndSettle();
+      expect(find.text('RESTRICTED'), findsOneWidget);
+    });
+
+    testWidgets('the offline copy answers while the fetch runs', (
+      tester,
+    ) async {
+      final pending = Completer<ServiceModeGrants>();
+      await pumpProbe(
+        tester,
+        pending.future,
+        box: {
+          serviceModeGrantsCacheKey('biz-1'): encodeServiceModeGrantRows([
+            {
+              'user_id': 'u-w',
+              'feature_name': AppFeature.BarMode,
+              'status': 'active',
+            },
+          ]),
+        },
+      );
+      expect(find.text('RESTRICTED'), findsOneWidget);
+      pending.complete(const ServiceModeGrants());
+      await tester.pumpAndSettle();
+      expect(find.text('OPEN'), findsOneWidget);
     });
   });
 }

@@ -1,12 +1,17 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart' show mapEquals;
 import 'package:flutter/material.dart' show Color;
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/DatabaseSyncInterface.dart';
 import 'package:flipper_models/helpers/pos_payment_role_tenant.dart';
 import 'package:flipper_models/models/bar_table.dart';
+import 'package:flipper_models/providers/active_branch_provider.dart';
 import 'package:flipper_models/sync/utils/bar_mode_utils.dart';
 import 'package:flipper_models/sync/utils/service_mode_access.dart';
 import 'package:flipper_models/view_models/flipperBaseModel.dart';
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart'
+    show connectivityStreamProvider;
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -193,20 +198,40 @@ final barStaffProvider = FutureProvider<List<Tenant>>((ref) async {
 
 /// Who may run Bar Mode / Hotel Mode in this business (see [ServiceModeGrants]).
 ///
-/// Invalidate after a permission change, and from a lock screen's retry.
+/// Invalidate after a permission change, and from a lock screen's retry. It
+/// also re-reads itself on a business switch, when the device comes back
+/// online, and when a grant it counted expires.
 final serviceModeGrantsProvider = FutureProvider<ServiceModeGrants>((
   ref,
 ) async {
   final box = ref.watch(barServicesProvider).box;
-  final businessId = box.getBusinessId();
+  // A business switch replaces the active branch; the box alone would keep
+  // serving the previous business's grants.
+  final branchBusinessId = ref.watch(
+    activeBranchProvider.select((branch) => branch.value?.businessId),
+  );
+  // Offline at the last read means it may be the open fallback: re-read.
+  ref.listen(connectivityStreamProvider, (previous, next) {
+    if (previous?.value == false && next.value == true) ref.invalidateSelf();
+  });
+  final businessId = branchBusinessId ?? box.getBusinessId();
   if (businessId == null || businessId.isEmpty) {
     return const ServiceModeGrants();
   }
-  return fetchServiceModeGrants(
+  final grants = await fetchServiceModeGrants(
     businessId: businessId,
     box: box,
     timeout: FlipperBaseModel.staffRosterRemoteTimeout,
   );
+  final expiry = grants.nextExpiry;
+  if (expiry != null) {
+    final timer = Timer(
+      expiry.difference(DateTime.now()) + const Duration(seconds: 1),
+      ref.invalidateSelf,
+    );
+    ref.onDispose(timer.cancel);
+  }
+  return grants;
 });
 
 /// Staff the bar lock screen and manager PIN modal offer: [barStaffProvider]

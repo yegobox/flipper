@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:flipper_dashboard/features/bar_mode/providers/bar_mode_providers.dart'
+    show serviceModeGrantsProvider;
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/providers/access_provider.dart';
 import 'package:flipper_models/secrets.dart';
@@ -35,8 +37,7 @@ void useAccessPermissionsRealtimeSync(WidgetRef ref) {
     Future<void> scheduleRefresh() async {
       debounce?.cancel();
       debounce = Timer(const Duration(milliseconds: 500), () async {
-        final loginKey =
-            ProxyService.box.getUserPhone() ?? userId;
+        final loginKey = ProxyService.box.getUserPhone() ?? userId;
         if (loginKey.isEmpty) return;
         try {
           await ProxyService.strategy.sendLoginRequest(
@@ -50,6 +51,9 @@ void useAccessPermissionsRealtimeSync(WidgetRef ref) {
           for (final f in features) {
             ref.invalidate(userAccessesProvider(userId, featureName: f));
           }
+          // Bar / Hotel entry reads the business-wide grants, not the rows
+          // above: a revoked Bar or Hotel grant must close the host too.
+          ref.invalidate(serviceModeGrantsProvider);
         } catch (e, s) {
           talker.warning('accesses realtime → login refresh failed: $e\n$s');
         }

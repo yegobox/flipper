@@ -140,6 +140,59 @@ void main() {
     });
   });
 
+  group('nextExpiry', () {
+    test('is the first expiry among the counted rows', () {
+      final soon = now.add(const Duration(hours: 1));
+      final later = now.add(const Duration(days: 2));
+      final grants = serviceModeGrantsFromRows([
+        _row('u-bar', AppFeature.BarMode, expiresAt: later.toIso8601String()),
+        _row(
+          'u-admin',
+          AppFeature.Settings,
+          userType: 'Admin',
+          expiresAt: soon.toIso8601String(),
+        ),
+        // Neither a Bar/Hotel grant nor an admin: never re-read for it.
+        _row(
+          'u-x',
+          AppFeature.Settings,
+          expiresAt: now.add(const Duration(minutes: 1)).toIso8601String(),
+        ),
+      ], now: now);
+      expect(grants.nextExpiry, soon);
+    });
+
+    test('is null when nothing counted expires', () {
+      final grants = serviceModeGrantsFromRows([
+        _row('u-bar', AppFeature.BarMode),
+      ], now: now);
+      expect(grants.nextExpiry, isNull);
+    });
+  });
+
+  group('readAllServiceModeGrantPages', () {
+    test('reads every page until a short one', () async {
+      final ranges = <(int, int)>[];
+      final all = List.generate(5, (i) => {'user_id': 'u-$i'});
+      final rows = await readAllServiceModeGrantPages((from, to) async {
+        ranges.add((from, to));
+        return all.sublist(from, (to + 1).clamp(0, all.length));
+      }, pageSize: 2);
+      expect(rows, all);
+      expect(ranges, [(0, 1), (2, 3), (4, 5)]);
+    });
+
+    test('an exactly full last page costs one empty read', () async {
+      var reads = 0;
+      final rows = await readAllServiceModeGrantPages((from, to) async {
+        reads++;
+        return from == 0 ? [{}, {}] : <Map<String, dynamic>>[];
+      }, pageSize: 2);
+      expect(rows, hasLength(2));
+      expect(reads, 2);
+    });
+  });
+
   group('staffForServiceMode', () {
     final waiter = Tenant(id: 't-w', name: 'Waiter', userId: 'u-w');
     final cashier = Tenant(id: 't-c', name: 'Cashier', userId: 'u-c');

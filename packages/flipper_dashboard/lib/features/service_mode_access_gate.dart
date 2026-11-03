@@ -1,7 +1,6 @@
 import 'package:flipper_dashboard/features/bar_mode/providers/bar_mode_providers.dart';
 import 'package:flipper_dashboard/features/service_mode_switch.dart';
 import 'package:flipper_localize/flipper_localize.dart';
-import 'package:flipper_models/providers/access_provider.dart';
 import 'package:flipper_models/sync/utils/service_mode_access.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flutter/material.dart';
@@ -15,44 +14,54 @@ String? serviceModeFeature(ServiceMode mode) => switch (mode) {
 };
 
 /// The grants to decide with right now: the fresh ones once loaded, else the
-/// offline copy, else none (every mode open, as before grants existed).
+/// offline copy. Null while the first fetch is still running on a device
+/// with no offline copy, i.e. nothing is known yet.
 ///
 /// [listen] false reads without subscribing, for callers outside `build`.
-ServiceModeGrants currentServiceModeGrants(
-  WidgetRef ref, {
-  bool listen = true,
-}) {
-  final loaded = listen
-      ? ref.watch(serviceModeGrantsProvider).value
-      : ref.read(serviceModeGrantsProvider).value;
+ServiceModeGrants? knownServiceModeGrants(WidgetRef ref, {bool listen = true}) {
+  final state = listen
+      ? ref.watch(serviceModeGrantsProvider)
+      : ref.read(serviceModeGrantsProvider);
+  final loaded = state.value;
   if (loaded != null) return loaded;
   final box = ref.read(barServicesProvider).box;
   final businessId = box.getBusinessId();
-  if (businessId == null || businessId.isEmpty) {
-    return const ServiceModeGrants();
+  final cached = businessId == null || businessId.isEmpty
+      ? null
+      : cachedServiceModeGrants(businessId: businessId, box: box);
+  if (cached != null) return cached;
+  // Settled with nothing (the fetch itself never throws, but be safe):
+  // every mode open, as before grants existed.
+  return state.isLoading ? null : const ServiceModeGrants();
+}
+
+/// [knownServiceModeGrants], treating "not known yet" as no grants (open).
+ServiceModeGrants currentServiceModeGrants(
+  WidgetRef ref, {
+  bool listen = true,
+}) => knownServiceModeGrants(ref, listen: listen) ?? const ServiceModeGrants();
+
+/// Waits until the grants fetch has settled (fresh, cached or open fallback;
+/// bounded by its timeout). Check `mounted` before using [ref] again.
+Future<void> serviceModeGrantsSettled(WidgetRef ref) async {
+  try {
+    await ref.read(serviceModeGrantsProvider.future);
+  } catch (_) {
+    // The fetch falls back instead of throwing; nothing more to wait for.
   }
-  return cachedServiceModeGrants(businessId: businessId, box: box) ??
-      const ServiceModeGrants();
 }
 
 /// Whether the user signed in to the app may run [mode] on this device.
 ///
-/// The Admin user type counts through [featureViewAccessProvider], the owner
-/// through [ServiceModeGrants.admins]. [listen] as for
-/// [currentServiceModeGrants].
+/// Admin-type users and the owner are in [ServiceModeGrants.admins]. [listen]
+/// as for [currentServiceModeGrants].
 bool signedInUserMayRun(WidgetRef ref, ServiceMode mode, {bool listen = true}) {
   final feature = serviceModeFeature(mode);
   if (feature == null) return true;
   final grants = currentServiceModeGrants(ref, listen: listen);
   if (!grants.isRestricted(feature)) return true;
   final userId = ref.read(barServicesProvider).box.getUserId()?.trim();
-  if (userId == null || userId.isEmpty) return false;
-  if (grants.allows(feature, userId)) return true;
-  final viewAccess = featureViewAccessProvider(
-    userId: userId,
-    featureName: feature,
-  );
-  return listen ? ref.watch(viewAccess) : ref.read(viewAccess);
+  return grants.allows(feature, userId);
 }
 
 /// Shows [child] (a Bar or Hotel host) only to a signed-in user who may run
