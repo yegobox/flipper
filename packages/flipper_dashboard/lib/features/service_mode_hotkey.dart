@@ -69,6 +69,9 @@ class _ServiceModeHotkeyScopeState extends State<ServiceModeHotkeyScope> {
     final keyboard = HardwareKeyboard.instance;
     if (!keyboard.isShiftPressed) return false;
     if (!keyboard.isControlPressed && !keyboard.isMetaPressed) return false;
+    // A phone is never a mode's terminal: the hotkey would pin it to one (and
+    // could turn the service on for the branch) from a hardware keyboard.
+    if (isPhoneLayout) return false;
 
     unawaited(cycleServiceMode());
     return true;

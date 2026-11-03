@@ -1,4 +1,6 @@
+import 'package:flipper_dashboard/features/bar_mode/bar_mode_settings.dart';
 import 'package:flipper_dashboard/features/bar_mode/providers/bar_mode_providers.dart';
+import 'package:flipper_dashboard/features/hotel_mode/hotel_mode_settings.dart';
 import 'package:flipper_dashboard/features/service_mode_switch.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/providers/access_provider.dart';
@@ -55,6 +57,48 @@ bool signedInUserMayRun(WidgetRef ref, ServiceMode mode, {bool listen = true}) {
   return listen ? ref.watch(viewAccess) : ref.read(viewAccess);
 }
 
+/// [serviceModeRevision] as a provider, so a widget that reads a mode's
+/// branch flag rebuilds when Settings or another device flips it.
+final serviceModeRevisionProvider = Provider<int>((ref) {
+  void bump() => ref.invalidateSelf();
+  serviceModeRevision.addListener(bump);
+  ref.onDispose(() => serviceModeRevision.removeListener(bump));
+  return serviceModeRevision.value;
+});
+
+/// Whether this branch offers [mode], from the local cache. POS always.
+final serviceModeOfferedProvider = Provider.family<bool, ServiceMode>((
+  ref,
+  mode,
+) {
+  ref.watch(serviceModeRevisionProvider);
+  return switch (mode) {
+    ServiceMode.bar => BarModeSettings.enabled,
+    ServiceMode.hotel => HotelModeSettings.enabled,
+    ServiceMode.pos => true,
+  };
+});
+
+/// The phone dashboard page (More sheet and home grid tile) that opens a mode.
+const barModeDashboardPage = 'BarMode';
+const hotelModeDashboardPage = 'HotelMode';
+
+/// The mode a dashboard [page] opens, or null for any other page.
+ServiceMode? serviceModeForDashboardPage(String? page) => switch (page) {
+  barModeDashboardPage => ServiceMode.bar,
+  hotelModeDashboardPage => ServiceMode.hotel,
+  _ => null,
+};
+
+/// Whether the phone dashboard offers [mode]'s tile to the signed-in user: the
+/// branch runs the mode and the user may run it.
+///
+/// Not a [featureAccessProvider] check: while nobody holds the grant the mode
+/// is open to all staff, and they hold no Access row for it.
+bool serviceModeTileVisible(WidgetRef ref, ServiceMode mode) =>
+    ref.watch(serviceModeOfferedProvider(mode)) &&
+    signedInUserMayRun(ref, mode);
+
 /// Shows [child] (a Bar or Hotel host) only to a signed-in user who may run
 /// [mode], and a "no access" notice to anyone else.
 ///
@@ -85,6 +129,11 @@ class ServiceModeNoAccess extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    // A phone opened the mode from its home, so Back returns there. A pinned
+    // desktop would only be sent straight back here by the shell guard.
+    final canLeave =
+        isPhoneWidth(MediaQuery.sizeOf(context).width) &&
+        (ModalRoute.of(context)?.canPop ?? false);
     return Material(
       color: theme.colorScheme.surface,
       child: Center(
@@ -107,6 +156,13 @@ class ServiceModeNoAccess extends StatelessWidget {
                   style: theme.textTheme.titleMedium,
                 ),
               ),
+              if (canLeave) ...[
+                const SizedBox(height: 24),
+                OutlinedButton(
+                  onPressed: () => Navigator.of(context).maybePop(),
+                  child: Text(context.flipperL10n.back),
+                ),
+              ],
             ],
           ),
         ),

@@ -7,6 +7,7 @@ import 'package:flipper_dashboard/features/bar_mode/widgets/bar_mobile_shell.dar
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_shared_widgets.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_table_cards.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_zone_tab_bar.dart';
+import 'package:flipper_dashboard/features/service_mode_shell.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/models/bar_table.dart';
 import 'package:flipper_models/sync/utils/bar_mode_utils.dart';
@@ -77,6 +78,7 @@ class _BarFloorMobileScreenState extends ConsumerState<BarFloorMobileScreen> {
                   side: const BorderSide(color: BarTokens.dangerBorder),
                 ),
               ),
+              const ServiceModeCloseButton(color: BarTokens.ink3),
             ],
           ),
         ),

@@ -5,6 +5,7 @@ import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_desk_nav.dar
 import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_room_card.dart';
 import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_room_interactions.dart';
 import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_shared_widgets.dart';
+import 'package:flipper_dashboard/features/service_mode_shell.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/models/hotel_room.dart';
 import 'package:flipper_models/models/hotel_stay.dart';
@@ -73,6 +74,7 @@ class _RoomsHeader extends ConsumerWidget {
                   color: HotelTokens.lossInk,
                 ),
               ),
+              const ServiceModeCloseButton(color: HotelTokens.ink3),
             ],
           ),
           const SizedBox(height: 10),

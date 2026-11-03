@@ -4,6 +4,7 @@ import 'dart:async';
 import 'package:flipper_dashboard/CreditIcon.dart';
 import 'package:flipper_dashboard/dashboard_app_shortcuts.dart';
 import 'package:flipper_dashboard/dashboard_quick_apps_navigation.dart';
+import 'package:flipper_dashboard/features/service_mode_access_gate.dart';
 import 'package:flipper_dashboard/features/services_gigs/providers/services_gig_admin_provider.dart';
 import 'package:flipper_dashboard/providers/agent_commission_access_provider.dart';
 import 'package:flipper_dashboard/providers/navigation_providers.dart';
@@ -147,6 +148,20 @@ class AppIconsGrid extends ConsumerWidget {
           'label': l10n.dashboardAppOrders,
           'feature': 'Orders',
         },
+        {
+          'icon': FluentIcons.drink_beer_24_regular,
+          'color': const Color(0xFF7C3AED),
+          'page': barModeDashboardPage,
+          'label': l10n.serviceModeBarMode,
+          'feature': AppFeature.BarMode,
+        },
+        {
+          'icon': FluentIcons.bed_24_regular,
+          'color': const Color(0xFF0F766E),
+          'page': hotelModeDashboardPage,
+          'label': l10n.serviceModeHotelMode,
+          'feature': AppFeature.HotelMode,
+        },
       ],
     ];
 
@@ -157,6 +172,8 @@ class AppIconsGrid extends ConsumerWidget {
     final showIncomingOrders = ref.watch(sideMenuShowIncomingOrdersProvider);
     final filteredApps = rippleApps.where((app) {
       if (hiddenInLocalMode(ref, app['page'] as String?)) return false;
+      final serviceMode = serviceModeForDashboardPage(app['page'] as String?);
+      if (serviceMode != null) return serviceModeTileVisible(ref, serviceMode);
       if (app['feature'] == 'Orders') return showIncomingOrders;
       if (app['feature'] == 'ServicesGigs') return true;
       if (app['feature'] == 'Settings') return true;

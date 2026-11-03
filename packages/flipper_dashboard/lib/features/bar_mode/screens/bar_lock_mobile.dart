@@ -5,6 +5,7 @@ import 'package:flipper_dashboard/features/bar_mode/widgets/bar_keypad.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_mobile_people_strip.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_mobile_shell.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_shared_widgets.dart';
+import 'package:flipper_dashboard/features/service_mode_shell.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/sync/utils/bar_mode_utils.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -22,6 +23,18 @@ class BarLockMobileScreen extends ConsumerStatefulWidget {
 class _BarLockMobileScreenState extends ConsumerState<BarLockMobileScreen> {
   Tenant? _selected;
 
+  /// Re-reads the roster and the grants: a phone that opened the desk
+  /// offline fell back to "open to all" and should pick up the real ones.
+  Future<void> _reloadStaff() async {
+    ref.invalidate(serviceModeGrantsProvider);
+    ref.invalidate(barStaffProvider);
+    try {
+      await ref.read(barSignInStaffProvider.future);
+    } catch (_) {
+      // The error state offers Retry again.
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final staffAsync = ref.watch(barSignInStaffProvider);
@@ -31,86 +44,103 @@ class _BarLockMobileScreenState extends ConsumerState<BarLockMobileScreen> {
       backgroundColor: BarTokens.bg,
       body: staffAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (_, __) => Center(child: Text(l10n.barCouldNotLoadStaff)),
-        data: (staff) => SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
+        error: (_, __) => Center(
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              const SizedBox(height: 8),
-              const BarFlipperBrand(),
-              const SizedBox(height: 14),
-              Text(
-                l10n.barModeSharedRegister.toUpperCase(),
-                style: GoogleFonts.outfit(
-                  fontSize: 10.5,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 1,
-                  color: BarTokens.ink4,
+              Text(l10n.barCouldNotLoadStaff),
+              TextButton(onPressed: _reloadStaff, child: Text(l10n.retry)),
+              const ServiceModeCloseButton(color: BarTokens.ink3),
+            ],
+          ),
+        ),
+        data: (staff) => RefreshIndicator(
+          onRefresh: _reloadStaff,
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
+            child: Column(
+              children: [
+                const Align(
+                  alignment: Alignment.centerRight,
+                  child: ServiceModeCloseButton(color: BarTokens.ink3),
                 ),
-              ),
-              const SizedBox(height: 3),
-              Text(
-                l10n.barWhosServing,
-                style: GoogleFonts.outfit(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: -0.4,
-                ),
-              ),
-              const SizedBox(height: 18),
-              BarMobilePeopleStrip(
-                staff: staff,
-                selected: _selected,
-                onSelect: (p) => setState(() => _selected = p),
-              ),
-              const SizedBox(height: 20),
-              BarKeypad(
-                mobile: true,
-                enabled: _selected != null,
-                title: _selected?.name ?? '—',
-                hint: _selected == null
-                    ? l10n.barLockHintTapAbove
-                    : l10n.barLockHintEnterPin,
-                avatarLabel: _selected == null
-                    ? null
-                    : barTenantInitials(_selected!.name),
-                avatarColor: _selected == null
-                    ? null
-                    : barColorForTenant(_selected!.id, staff),
-                verifyPin: (pin) async {
-                  final selected = _selected;
-                  if (selected == null) return false;
-                  return barVerifyStaffPin(selected, pin);
-                },
-                onSubmit: (_) {
-                  if (_selected != null) {
-                    ref.read(barModeProvider.notifier).login(_selected!);
-                  }
-                },
-              ),
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.settings_outlined,
-                    size: 13,
+                const SizedBox(height: 8),
+                const BarFlipperBrand(),
+                const SizedBox(height: 14),
+                Text(
+                  l10n.barModeSharedRegister.toUpperCase(),
+                  style: GoogleFonts.outfit(
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 1,
                     color: BarTokens.ink4,
                   ),
-                  const SizedBox(width: 6),
-                  Flexible(
-                    child: Text(
-                      l10n.barConfiguredByAdmin,
-                      textAlign: TextAlign.center,
-                      style: GoogleFonts.outfit(
-                        fontSize: 11.5,
-                        color: BarTokens.ink4,
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  l10n.barWhosServing,
+                  style: GoogleFonts.outfit(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.4,
+                  ),
+                ),
+                const SizedBox(height: 18),
+                BarMobilePeopleStrip(
+                  staff: staff,
+                  selected: _selected,
+                  onSelect: (p) => setState(() => _selected = p),
+                ),
+                const SizedBox(height: 20),
+                BarKeypad(
+                  mobile: true,
+                  enabled: _selected != null,
+                  title: _selected?.name ?? '—',
+                  hint: _selected == null
+                      ? l10n.barLockHintTapAbove
+                      : l10n.barLockHintEnterPin,
+                  avatarLabel: _selected == null
+                      ? null
+                      : barTenantInitials(_selected!.name),
+                  avatarColor: _selected == null
+                      ? null
+                      : barColorForTenant(_selected!.id, staff),
+                  verifyPin: (pin) async {
+                    final selected = _selected;
+                    if (selected == null) return false;
+                    return barVerifyStaffPin(selected, pin);
+                  },
+                  onSubmit: (_) {
+                    if (_selected != null) {
+                      ref.read(barModeProvider.notifier).login(_selected!);
+                    }
+                  },
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.settings_outlined,
+                      size: 13,
+                      color: BarTokens.ink4,
+                    ),
+                    const SizedBox(width: 6),
+                    Flexible(
+                      child: Text(
+                        l10n.barConfiguredByAdmin,
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.outfit(
+                          fontSize: 11.5,
+                          color: BarTokens.ink4,
+                        ),
                       ),
                     ),
-                  ),
-                ],
-              ),
-            ],
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),

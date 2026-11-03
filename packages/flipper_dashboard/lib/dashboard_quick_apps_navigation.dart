@@ -1,6 +1,11 @@
 import 'package:flipper_ai_feature/flipper_ai_feature.dart';
 import 'package:flipper_dashboard/books_module_navigation.dart';
+import 'package:flipper_dashboard/features/bar_mode/bar_mode_settings.dart';
 import 'package:flipper_dashboard/features/daily_report_files/daily_report_files_app.dart';
+import 'package:flipper_dashboard/features/hotel_mode/hotel_mode_settings.dart';
+import 'package:flipper_dashboard/features/service_mode_access_gate.dart';
+import 'package:flipper_dashboard/features/service_mode_shell.dart';
+import 'package:flipper_dashboard/features/service_mode_switch.dart';
 import 'package:flipper_dashboard/features/incoming_orders/om_tokens.dart';
 import 'package:flipper_dashboard/hr_module_entry.dart';
 import 'package:flipper_dashboard/providers/navigation_providers.dart';
@@ -96,6 +101,16 @@ Future<void> navigateToDashboardAppPage({
       break;
     case 'Tickets':
       await routerService.navigateTo(TicketsListRoute(transaction: null));
+      break;
+    case barModeDashboardPage:
+    case hotelModeDashboardPage:
+      // A pinned launcher shortcut can outlive the branch's mode. The host
+      // checks the user's grant itself (ServiceModeAccessGate).
+      final mode = serviceModeForDashboardPage(page)!;
+      final offered = mode == ServiceMode.bar
+          ? BarModeSettings.enabled
+          : HotelModeSettings.enabled;
+      if (offered) openServiceModeShell(mode);
       break;
     case 'Contacts':
       await routerService.navigateTo(CustomersRoute());

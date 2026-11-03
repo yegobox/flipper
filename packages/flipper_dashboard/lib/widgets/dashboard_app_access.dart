@@ -1,3 +1,4 @@
+import 'package:flipper_dashboard/features/service_mode_access_gate.dart';
 import 'package:flipper_dashboard/hr_module_entry.dart';
 import 'package:flipper_dashboard/providers/agent_commission_access_provider.dart';
 import 'package:flipper_dashboard/providers/navigation_providers.dart';
@@ -90,6 +91,8 @@ Future<bool> dashboardCanOpenHrNow(WidgetRef ref) async {
 /// Whether a dashboard app tile should be visible for the signed-in user.
 bool dashboardAppTileVisible(WidgetRef ref, DashboardAllAppTile tile) {
   if (hiddenInLocalMode(ref, tile.page)) return false;
+  final serviceMode = serviceModeForDashboardPage(tile.page);
+  if (serviceMode != null) return serviceModeTileVisible(ref, serviceMode);
   if (tile.page == 'DailyReports') {
     return ref.watch(sideMenuShowDailyReportFilesProvider);
   }

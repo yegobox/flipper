@@ -16,6 +16,7 @@ import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_manager_pin_
 import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_shared_widgets.dart';
 import 'package:flipper_dashboard/features/service_mode_access_gate.dart';
 import 'package:flipper_dashboard/features/service_mode_hotkey.dart';
+import 'package:flipper_dashboard/features/service_mode_shell.dart';
 import 'package:flipper_dashboard/features/service_mode_switch.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/services/hotel_room_rra_service.dart';
@@ -101,9 +102,17 @@ class _HotelModeHostState extends ConsumerState<HotelModeHost> {
   Future<void> _resolveEntry() async {
     final notifier = ref.read(hotelModeProvider.notifier);
     try {
-      if (ref.read(hotelModeProvider).activeClerk != null) {
-        notifier.setScreen(HotelScreen.dashboard);
-        return;
+      final retained = ref.read(hotelModeProvider).activeClerk;
+      if (retained != null) {
+        // The desk state outlives the route, so the clerk from last time
+        // comes back without a PIN — but only while they may still sign in.
+        final staff = await ref.read(hotelStaffProvider.future);
+        if (!mounted) return;
+        if (staff.any((tenant) => tenant.id == retained.id)) {
+          notifier.setScreen(HotelScreen.dashboard);
+          return;
+        }
+        notifier.logout();
       }
 
       if (HotelModeSettings.requirePin) {
@@ -212,7 +221,9 @@ class _HotelModeHostState extends ConsumerState<HotelModeHost> {
     );
 
     return ServiceModeHotkeyScope(
-      child: ServiceModeAccessGate(mode: ServiceMode.hotel, child: desk),
+      child: ServiceModePhoneShellSync(
+        child: ServiceModeAccessGate(mode: ServiceMode.hotel, child: desk),
+      ),
     );
   }
 }
