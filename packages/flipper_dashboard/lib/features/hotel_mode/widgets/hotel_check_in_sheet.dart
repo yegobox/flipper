@@ -164,157 +164,163 @@ class _HotelCheckInSheetState extends State<HotelCheckInSheet> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.flipperL10n;
-    return Container(
-      padding: const EdgeInsets.fromLTRB(22, 20, 22, 22),
-      decoration: const BoxDecoration(
-        color: HotelTokens.surface,
-        borderRadius: BorderRadius.all(
-          Radius.circular(HotelTokens.mobileSheetRadius),
+    // Scrolls: on a phone the form is taller than what is left above the
+    // keyboard.
+    return SingleChildScrollView(
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(22, 20, 22, 22),
+        decoration: const BoxDecoration(
+          color: HotelTokens.surface,
+          borderRadius: BorderRadius.all(
+            Radius.circular(HotelTokens.mobileSheetRadius),
+          ),
         ),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            l10n.hotelCheckInTitle(widget.room.name),
-            style: GoogleFonts.outfit(
-              fontSize: 19,
-              fontWeight: FontWeight.w800,
-              letterSpacing: -0.3,
-              color: HotelTokens.ink1,
-            ),
-          ),
-          const SizedBox(height: 3),
-          Text(
-            l10n.hotelRoomTypeSleeps(
-              widget.room.roomType,
-              '${widget.room.capacity}',
-            ),
-            style: GoogleFonts.outfit(
-              fontSize: 12.5,
-              fontWeight: FontWeight.w500,
-              color: HotelTokens.ink3,
-            ),
-          ),
-          const SizedBox(height: 18),
-          _field(
-            label: l10n.hotelGuestName,
-            controller: _nameController,
-            hint: l10n.hotelGuestNameHint,
-            errorText: _nameError,
-            onChanged: (_) {
-              if (_nameError != null) setState(() => _nameError = null);
-            },
-          ),
-          const SizedBox(height: 12),
-          _field(
-            label: l10n.hotelPhoneOptional,
-            controller: _phoneController,
-            hint: '07…',
-            keyboardType: TextInputType.phone,
-          ),
-          const SizedBox(height: 12),
-          _field(
-            label: l10n.hotelEmailOptional,
-            controller: _emailController,
-            hint: l10n.hotelSendsConfirmationHint,
-            keyboardType: TextInputType.emailAddress,
-            errorText: _emailError,
-            onChanged: (_) {
-              if (_emailError != null) setState(() => _emailError = null);
-            },
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: _stepper(l10n.hotelNights, _nights, 1, 60, (v) {
-                  setState(() => _nights = v);
-                }),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              l10n.hotelCheckInTitle(widget.room.name),
+              style: GoogleFonts.outfit(
+                fontSize: 19,
+                fontWeight: FontWeight.w800,
+                letterSpacing: -0.3,
+                color: HotelTokens.ink1,
               ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: _stepper(l10n.hotelAdults, _adults, 1, 10, (v) {
-                  setState(() => _adults = v);
-                }),
+            ),
+            const SizedBox(height: 3),
+            Text(
+              l10n.hotelRoomTypeSleeps(
+                widget.room.roomType,
+                '${widget.room.capacity}',
               ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: _stepper(l10n.hotelChildren, _children, 0, 10, (v) {
-                  setState(() => _children = v);
-                }),
+              style: GoogleFonts.outfit(
+                fontSize: 12.5,
+                fontWeight: FontWeight.w500,
+                color: HotelTokens.ink3,
               ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          _field(
-            label: l10n.hotelRatePerNightRwf,
-            controller: _rateController,
-            hint: '0',
-            keyboardType: TextInputType.number,
-            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-            onChanged: (_) => setState(() {}),
-          ),
-          const SizedBox(height: 16),
-          _summaryRow(),
-          const SizedBox(height: 18),
-          Row(
-            children: [
-              Expanded(
-                child: TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  style: TextButton.styleFrom(
-                    minimumSize: const Size.fromHeight(
-                      HotelTokens.mobilePrimaryButtonHeight,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(HotelTokens.radiusMd),
-                      side: const BorderSide(
-                        color: HotelTokens.line,
-                        width: 1.5,
-                      ),
-                    ),
-                  ),
-                  child: Text(
-                    l10n.cancel,
-                    style: GoogleFonts.outfit(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                      color: HotelTokens.ink2,
-                    ),
-                  ),
+            ),
+            const SizedBox(height: 18),
+            _field(
+              label: l10n.hotelGuestName,
+              controller: _nameController,
+              hint: l10n.hotelGuestNameHint,
+              errorText: _nameError,
+              onChanged: (_) {
+                if (_nameError != null) setState(() => _nameError = null);
+              },
+            ),
+            const SizedBox(height: 12),
+            _field(
+              label: l10n.hotelPhoneOptional,
+              controller: _phoneController,
+              hint: '07…',
+              keyboardType: TextInputType.phone,
+            ),
+            const SizedBox(height: 12),
+            _field(
+              label: l10n.hotelEmailOptional,
+              controller: _emailController,
+              hint: l10n.hotelSendsConfirmationHint,
+              keyboardType: TextInputType.emailAddress,
+              errorText: _emailError,
+              onChanged: (_) {
+                if (_emailError != null) setState(() => _emailError = null);
+              },
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: _stepper(l10n.hotelNights, _nights, 1, 60, (v) {
+                    setState(() => _nights = v);
+                  }),
                 ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                flex: 2,
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    gradient: HotelTokens.gradBtn,
-                    borderRadius: BorderRadius.circular(HotelTokens.radiusMd),
-                  ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: _stepper(l10n.hotelAdults, _adults, 1, 10, (v) {
+                    setState(() => _adults = v);
+                  }),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: _stepper(l10n.hotelChildren, _children, 0, 10, (v) {
+                    setState(() => _children = v);
+                  }),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            _field(
+              label: l10n.hotelRatePerNightRwf,
+              controller: _rateController,
+              hint: '0',
+              keyboardType: TextInputType.number,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              onChanged: (_) => setState(() {}),
+            ),
+            const SizedBox(height: 16),
+            _summaryRow(),
+            const SizedBox(height: 18),
+            Row(
+              children: [
+                Expanded(
                   child: TextButton(
-                    onPressed: _submit,
+                    onPressed: () => Navigator.of(context).pop(),
                     style: TextButton.styleFrom(
                       minimumSize: const Size.fromHeight(
                         HotelTokens.mobilePrimaryButtonHeight,
                       ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(
+                          HotelTokens.radiusMd,
+                        ),
+                        side: const BorderSide(
+                          color: HotelTokens.line,
+                          width: 1.5,
+                        ),
+                      ),
                     ),
                     child: Text(
-                      l10n.hotelCheckInGuest,
+                      l10n.cancel,
                       style: GoogleFonts.outfit(
-                        fontSize: 15.5,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.white,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        color: HotelTokens.ink2,
                       ),
                     ),
                   ),
                 ),
-              ),
-            ],
-          ),
-        ],
+                const SizedBox(width: 12),
+                Expanded(
+                  flex: 2,
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: HotelTokens.gradBtn,
+                      borderRadius: BorderRadius.circular(HotelTokens.radiusMd),
+                    ),
+                    child: TextButton(
+                      onPressed: _submit,
+                      style: TextButton.styleFrom(
+                        minimumSize: const Size.fromHeight(
+                          HotelTokens.mobilePrimaryButtonHeight,
+                        ),
+                      ),
+                      child: Text(
+                        l10n.hotelCheckInGuest,
+                        style: GoogleFonts.outfit(
+                          fontSize: 15.5,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

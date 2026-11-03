@@ -68,13 +68,15 @@ class HotelDeskNav extends ConsumerWidget {
     IconData icon,
     bool selected,
   ) {
-    return GestureDetector(
+    final tab = GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: () => ref.read(hotelModeProvider.notifier).setScreen(screen),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 140),
+        // Icon-only on a phone: padded out to a thumb-sized target.
         padding: EdgeInsets.symmetric(
-          horizontal: compact ? 12 : 16,
-          vertical: compact ? 7 : 9,
+          horizontal: 16,
+          vertical: compact ? 14 : 9,
         ),
         decoration: BoxDecoration(
           color: selected ? HotelTokens.surface : Colors.transparent,
@@ -104,5 +106,7 @@ class HotelDeskNav extends ConsumerWidget {
         ),
       ),
     );
+    // The label is hidden on a phone, so it is offered on long-press.
+    return compact ? Tooltip(message: label, child: tab) : tab;
   }
 }

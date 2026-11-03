@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flipper_dashboard/features/hotel_mode/theme/hotel_layout_breakpoints.dart';
 import 'package:flipper_dashboard/features/hotel_mode/theme/hotel_tokens.dart';
 import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_shared_widgets.dart';
 import 'package:flipper_localize/flipper_localize.dart';
@@ -159,46 +160,58 @@ class HotelFolioLineTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      decoration: BoxDecoration(
-        color: HotelTokens.surface,
-        borderRadius: BorderRadius.circular(HotelTokens.radiusMd),
-        border: Border.all(color: HotelTokens.line),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  line.name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.outfit(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: HotelTokens.ink1,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  '${context.flipperL10n.hotelPriceEach(hotelMoney(line.price))}'
-                  '${line.loggedByName == null ? '' : ' · ${line.loggedByName}'}',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.outfit(
-                    fontSize: 11.5,
-                    fontWeight: FontWeight.w500,
-                    color: HotelTokens.ink3,
-                  ),
-                ),
-              ],
-            ),
+    // On a phone the fixed-width qty, amount and delete controls left the
+    // item name a few characters, so they move to a second row there.
+    final compact = HotelLayoutScope.maybeMobileOf(context) ?? false;
+    final info = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          line.name,
+          maxLines: compact ? 2 : 1,
+          overflow: TextOverflow.ellipsis,
+          style: GoogleFonts.outfit(
+            fontSize: 14,
+            fontWeight: FontWeight.w700,
+            color: HotelTokens.ink1,
           ),
-          if (!readOnly) ...[
-            _qtyButton(Icons.remove, onDecrement),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          '${context.flipperL10n.hotelPriceEach(hotelMoney(line.price))}'
+          '${line.loggedByName == null ? '' : ' · ${line.loggedByName}'}',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: GoogleFonts.outfit(
+            fontSize: 11.5,
+            fontWeight: FontWeight.w500,
+            color: HotelTokens.ink3,
+          ),
+        ),
+      ],
+    );
+    final amount = Text(
+      hotelMoney(line.price * line.qty),
+      textAlign: TextAlign.right,
+      style: GoogleFonts.jetBrainsMono(
+        fontSize: 14,
+        fontWeight: FontWeight.w700,
+        color: HotelTokens.ink1,
+      ),
+    );
+    final qty = readOnly
+        ? <Widget>[
+            Text(
+              '× ${line.qty.toInt()}',
+              style: GoogleFonts.jetBrainsMono(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: HotelTokens.ink3,
+              ),
+            ),
+          ]
+        : <Widget>[
+            _qtyButton(Icons.remove, onDecrement, compact: compact),
             SizedBox(
               width: 34,
               child: Text(
@@ -211,49 +224,58 @@ class HotelFolioLineTile extends StatelessWidget {
                 ),
               ),
             ),
-            _qtyButton(Icons.add, onIncrement),
-            const SizedBox(width: 6),
-          ] else ...[
-            Text(
-              '× ${line.qty.toInt()}',
-              style: GoogleFonts.jetBrainsMono(
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-                color: HotelTokens.ink3,
-              ),
-            ),
-            const SizedBox(width: 12),
-          ],
-          SizedBox(
-            width: 96,
-            child: Text(
-              hotelMoney(line.price * line.qty),
-              textAlign: TextAlign.right,
-              style: GoogleFonts.jetBrainsMono(
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-                color: HotelTokens.ink1,
-              ),
-            ),
-          ),
-          if (!readOnly)
-            IconButton(
-              onPressed: onDelete,
-              icon: const Icon(
-                Icons.delete_outline,
-                size: 18,
-                color: HotelTokens.ink3,
-              ),
-            ),
-        ],
+            _qtyButton(Icons.add, onIncrement, compact: compact),
+          ];
+    final delete = IconButton(
+      onPressed: onDelete,
+      icon: const Icon(Icons.delete_outline, size: 18, color: HotelTokens.ink3),
+    );
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: HotelTokens.surface,
+        borderRadius: BorderRadius.circular(HotelTokens.radiusMd),
+        border: Border.all(color: HotelTokens.line),
       ),
+      child: compact
+          ? Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(child: info),
+                    const SizedBox(width: 12),
+                    amount,
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Row(children: [...qty, const Spacer(), if (!readOnly) delete]),
+              ],
+            )
+          : Row(
+              children: [
+                Expanded(child: info),
+                ...qty,
+                SizedBox(width: readOnly ? 12 : 6),
+                SizedBox(width: 96, child: amount),
+                if (!readOnly) delete,
+              ],
+            ),
     );
   }
 
-  Widget _qtyButton(IconData icon, VoidCallback onTap) {
+  Widget _qtyButton(
+    IconData icon,
+    VoidCallback onTap, {
+    required bool compact,
+  }) {
+    // A thumb-sized target on a phone; the desk keeps its dense row.
+    final size = compact ? 40.0 : 32.0;
     return SizedBox(
-      width: 32,
-      height: 32,
+      width: size,
+      height: size,
       child: IconButton(
         padding: EdgeInsets.zero,
         onPressed: onTap,
@@ -344,10 +366,31 @@ class HotelCheckOutDialog extends StatefulWidget {
 
   final double total;
 
+  /// A bottom sheet on a phone, where a centred dialog left each payment
+  /// button too narrow for its label; a dialog on the desk.
   static Future<HotelCheckOutResult?> show(
     BuildContext context, {
     required double total,
   }) {
+    final mobile =
+        HotelLayoutScope.maybeMobileOf(context) ??
+        HotelLayoutBreakpoints.isHotelMobileLayout(
+          MediaQuery.sizeOf(context).width,
+        );
+    if (mobile) {
+      return showModalBottomSheet<HotelCheckOutResult>(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        // The sheet's own inset, as in HotelCheckInSheet.show.
+        builder: (sheetContext) => Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.viewInsetsOf(sheetContext).bottom,
+          ),
+          child: HotelCheckOutDialog(total: total),
+        ),
+      );
+    }
     return showDialog<HotelCheckOutResult>(
       context: context,
       builder: (_) => Dialog(
@@ -413,193 +456,206 @@ class _HotelCheckOutDialogState extends State<HotelCheckOutDialog> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.flipperL10n;
-    return Container(
-      padding: const EdgeInsets.fromLTRB(22, 20, 22, 22),
-      decoration: const BoxDecoration(
-        color: HotelTokens.surface,
-        borderRadius: BorderRadius.all(
-          Radius.circular(HotelTokens.mobileSheetRadius),
+    return SingleChildScrollView(
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(22, 20, 22, 22),
+        decoration: const BoxDecoration(
+          color: HotelTokens.surface,
+          borderRadius: BorderRadius.all(
+            Radius.circular(HotelTokens.mobileSheetRadius),
+          ),
         ),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            l10n.hotelCheckOut,
-            style: GoogleFonts.outfit(
-              fontSize: 19,
-              fontWeight: FontWeight.w800,
-              color: HotelTokens.ink1,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              l10n.hotelCheckOut,
+              style: GoogleFonts.outfit(
+                fontSize: 19,
+                fontWeight: FontWeight.w800,
+                color: HotelTokens.ink1,
+              ),
             ),
-          ),
-          const SizedBox(height: 3),
-          Text(
-            l10n.hotelFolioTotalAmount(hotelMoney(widget.total.round())),
-            style: GoogleFonts.outfit(
-              fontSize: 12.5,
-              fontWeight: FontWeight.w500,
-              color: HotelTokens.ink3,
+            const SizedBox(height: 3),
+            Text(
+              l10n.hotelFolioTotalAmount(hotelMoney(widget.total.round())),
+              style: GoogleFonts.outfit(
+                fontSize: 12.5,
+                fontWeight: FontWeight.w500,
+                color: HotelTokens.ink3,
+              ),
             ),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              for (final type in _paymentTypes) ...[
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () => setState(() => _paymentType = type),
-                    child: Container(
-                      height: 44,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        color: _paymentType == type
-                            ? HotelTokens.ink1
-                            : HotelTokens.surface2,
-                        borderRadius: BorderRadius.circular(
-                          HotelTokens.radiusMd,
-                        ),
-                        border: Border.all(
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                for (final type in _paymentTypes) ...[
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () => setState(() => _paymentType = type),
+                      child: Container(
+                        height: 44,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
                           color: _paymentType == type
                               ? HotelTokens.ink1
-                              : HotelTokens.line,
+                              : HotelTokens.surface2,
+                          borderRadius: BorderRadius.circular(
+                            HotelTokens.radiusMd,
+                          ),
+                          border: Border.all(
+                            color: _paymentType == type
+                                ? HotelTokens.ink1
+                                : HotelTokens.line,
+                          ),
                         ),
-                      ),
-                      child: Text(
-                        _paymentLabel(l10n, type),
-                        style: GoogleFonts.outfit(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                          color: _paymentType == type
-                              ? Colors.white
-                              : HotelTokens.ink2,
+                        padding: const EdgeInsets.symmetric(horizontal: 6),
+                        // Shrinks rather than wraps: three rails share a
+                        // phone-wide row.
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            _paymentLabel(l10n, type),
+                            maxLines: 1,
+                            style: GoogleFonts.outfit(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                              color: _paymentType == type
+                                  ? Colors.white
+                                  : HotelTokens.ink2,
+                            ),
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
-                if (type != _paymentTypes.last) const SizedBox(width: 8),
+                  if (type != _paymentTypes.last) const SizedBox(width: 8),
+                ],
               ],
-            ],
-          ),
-          if (_paymentType == 'Cash') ...[
-            const SizedBox(height: 14),
-            TextField(
-              controller: _tenderController,
-              keyboardType: TextInputType.number,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              onChanged: (_) => setState(() {}),
-              style: GoogleFonts.jetBrainsMono(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: HotelTokens.ink1,
-              ),
-              decoration: InputDecoration(
-                labelText: l10n.cashReceived,
-                isDense: true,
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 16,
-                ),
-                filled: true,
-                fillColor: HotelTokens.surface2,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(HotelTokens.radiusMd),
-                  borderSide: const BorderSide(color: HotelTokens.line),
-                ),
-              ),
             ),
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                Text(
-                  l10n.hotelChangeDue,
-                  style: GoogleFonts.outfit(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: HotelTokens.ink3,
+            if (_paymentType == 'Cash') ...[
+              const SizedBox(height: 14),
+              TextField(
+                controller: _tenderController,
+                keyboardType: TextInputType.number,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                onChanged: (_) => setState(() {}),
+                style: GoogleFonts.jetBrainsMono(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: HotelTokens.ink1,
+                ),
+                decoration: InputDecoration(
+                  labelText: l10n.cashReceived,
+                  isDense: true,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 16,
+                  ),
+                  filled: true,
+                  fillColor: HotelTokens.surface2,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(HotelTokens.radiusMd),
+                    borderSide: const BorderSide(color: HotelTokens.line),
                   ),
                 ),
-                const Spacer(),
-                Text(
-                  hotelMoney(_change.round()),
-                  style: GoogleFonts.jetBrainsMono(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                    color: HotelTokens.ink1,
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Text(
+                    l10n.hotelChangeDue,
+                    style: GoogleFonts.outfit(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: HotelTokens.ink3,
+                    ),
+                  ),
+                  const Spacer(),
+                  Text(
+                    hotelMoney(_change.round()),
+                    style: GoogleFonts.jetBrainsMono(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: HotelTokens.ink1,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+            const SizedBox(height: 18),
+            Row(
+              children: [
+                Expanded(
+                  child: TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    style: TextButton.styleFrom(
+                      minimumSize: const Size.fromHeight(
+                        HotelTokens.mobilePrimaryButtonHeight,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(
+                          HotelTokens.radiusMd,
+                        ),
+                        side: const BorderSide(
+                          color: HotelTokens.line,
+                          width: 1.5,
+                        ),
+                      ),
+                    ),
+                    child: Text(
+                      l10n.cancel,
+                      style: GoogleFonts.outfit(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        color: HotelTokens.ink2,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  flex: 2,
+                  child: Opacity(
+                    opacity: _canSettle ? 1 : 0.5,
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: HotelTokens.gradBtn,
+                        borderRadius: BorderRadius.circular(
+                          HotelTokens.radiusMd,
+                        ),
+                      ),
+                      child: TextButton(
+                        onPressed: _canSettle
+                            ? () => Navigator.of(context).pop(
+                                HotelCheckOutResult(
+                                  paymentType: _paymentType,
+                                  cashReceived: _tender,
+                                  changeDue: _change,
+                                ),
+                              )
+                            : null,
+                        style: TextButton.styleFrom(
+                          minimumSize: const Size.fromHeight(
+                            HotelTokens.mobilePrimaryButtonHeight,
+                          ),
+                        ),
+                        child: Text(
+                          l10n.hotelSettleAndRelease,
+                          style: GoogleFonts.outfit(
+                            fontSize: 15.5,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ],
             ),
           ],
-          const SizedBox(height: 18),
-          Row(
-            children: [
-              Expanded(
-                child: TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  style: TextButton.styleFrom(
-                    minimumSize: const Size.fromHeight(
-                      HotelTokens.mobilePrimaryButtonHeight,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(HotelTokens.radiusMd),
-                      side: const BorderSide(
-                        color: HotelTokens.line,
-                        width: 1.5,
-                      ),
-                    ),
-                  ),
-                  child: Text(
-                    l10n.cancel,
-                    style: GoogleFonts.outfit(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                      color: HotelTokens.ink2,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                flex: 2,
-                child: Opacity(
-                  opacity: _canSettle ? 1 : 0.5,
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      gradient: HotelTokens.gradBtn,
-                      borderRadius: BorderRadius.circular(HotelTokens.radiusMd),
-                    ),
-                    child: TextButton(
-                      onPressed: _canSettle
-                          ? () => Navigator.of(context).pop(
-                              HotelCheckOutResult(
-                                paymentType: _paymentType,
-                                cashReceived: _tender,
-                                changeDue: _change,
-                              ),
-                            )
-                          : null,
-                      style: TextButton.styleFrom(
-                        minimumSize: const Size.fromHeight(
-                          HotelTokens.mobilePrimaryButtonHeight,
-                        ),
-                      ),
-                      child: Text(
-                        l10n.hotelSettleAndRelease,
-                        style: GoogleFonts.outfit(
-                          fontSize: 15.5,
-                          fontWeight: FontWeight.w800,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
+        ),
       ),
     );
   }

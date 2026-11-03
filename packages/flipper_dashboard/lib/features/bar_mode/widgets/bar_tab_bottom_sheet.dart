@@ -61,6 +61,10 @@ class BarTabBottomSheet extends StatelessWidget {
   /// Prints the tab for the guest (not a fiscal receipt). Null hides it.
   final VoidCallback? onPrint;
 
+  /// Below this the footer scrolls with the lines instead of being pinned:
+  /// with every action showing it is about 430 tall.
+  static const double _pinnedFooterMinSheetHeight = 640;
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.flipperL10n;
@@ -69,6 +73,141 @@ class BarTabBottomSheet extends StatelessWidget {
         : l10n.barYouLoggedLines(myLines);
     final needsManagerPin =
         !isManager && BarModeSettings.managerSettle && lineCount > 0;
+
+    Widget linesBody({required bool shrinkWrap}) => lines.isEmpty
+        ? Padding(
+            padding: const EdgeInsets.all(32),
+            child: Text(
+              l10n.barTapProductsFirstRound,
+              style: GoogleFonts.outfit(color: BarTokens.ink3),
+              textAlign: TextAlign.center,
+            ),
+          )
+        : ListView(
+            shrinkWrap: shrinkWrap,
+            physics: shrinkWrap ? const NeverScrollableScrollPhysics() : null,
+            padding: const EdgeInsets.symmetric(horizontal: 18),
+            children: [
+              for (final entry in grouped.entries) ...[
+                _groupHeader(l10n, entry.key, entry.value, staff),
+                for (final line in entry.value)
+                  _lineRow(l10n, line, cashier, isManager),
+              ],
+            ],
+          );
+    final footer = Container(
+      padding: const EdgeInsets.fromLTRB(18, 14, 18, 14),
+      decoration: const BoxDecoration(
+        border: Border(top: BorderSide(color: BarTokens.line)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Text(
+                l10n.barTabTotal,
+                style: GoogleFonts.outfit(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: BarTokens.ink2,
+                ),
+              ),
+              const Spacer(),
+              Text.rich(
+                TextSpan(
+                  children: [
+                    TextSpan(
+                      text: 'RWF ',
+                      style: GoogleFonts.jetBrainsMono(
+                        fontSize: 12,
+                        color: BarTokens.ink3,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    TextSpan(
+                      text: NumberFormat('#,###').format(total),
+                      style: GoogleFonts.jetBrainsMono(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w800,
+                        color: BarTokens.ink1,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Row(
+            children: [
+              Icon(Icons.people_outline, size: 14, color: BarTokens.ink3),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  footNote,
+                  style: GoogleFonts.outfit(
+                    fontSize: 11.5,
+                    color: BarTokens.ink3,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: _outlineBtn(l10n.barBackToTables, onBackToTables),
+              ),
+              const SizedBox(width: 10),
+              Expanded(child: _primaryBtn(l10n.barSaveToTab, onSaveToTab)),
+            ],
+          ),
+          const SizedBox(height: 10),
+          _outlineBtn(
+            needsManagerPin ? l10n.barSettleManagerPin : l10n.barSettleAndClose,
+            lineCount == 0 ? null : onSettle,
+            icon: needsManagerPin
+                ? Icons.verified_user_outlined
+                : Icons.account_balance_wallet_outlined,
+          ),
+          if (onPutOnCredit != null) ...[
+            const SizedBox(height: 10),
+            KeyedSubtree(
+              key: const ValueKey('bar_tab_sheet_credit'),
+              child: _outlineBtn(
+                l10n.barPutOnCredit,
+                lineCount == 0 ? null : onPutOnCredit,
+                icon: Icons.schedule_outlined,
+              ),
+            ),
+          ],
+          if (onPrint != null) ...[
+            const SizedBox(height: 10),
+            KeyedSubtree(
+              key: const ValueKey('bar_tab_sheet_print'),
+              child: _outlineBtn(
+                l10n.ticketPrint,
+                lineCount == 0 ? null : onPrint,
+                icon: Icons.print_outlined,
+              ),
+            ),
+          ],
+          // Moves the tab onto a resident guest's folio instead
+          // of taking money for it now.
+          if (onChargeToRoom != null) ...[
+            const SizedBox(height: 10),
+            _outlineBtn(
+              l10n.barChargeToRoom,
+              lineCount == 0 ? null : onChargeToRoom,
+              icon: Icons.hotel_outlined,
+              accent: lineCount == 0 ? null : BarTokens.violet,
+            ),
+          ],
+        ],
+      ),
+    );
 
     return Stack(
       children: [
@@ -84,224 +223,91 @@ class BarTabBottomSheet extends StatelessWidget {
               top: Radius.circular(BarTokens.mobileSheetRadius),
             ),
             clipBehavior: Clip.antiAlias,
-            child: ConstrainedBox(
-              constraints: BoxConstraints(
-                maxHeight: MediaQuery.sizeOf(context).height * 0.88,
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const SizedBox(height: 10),
-                  Container(
-                    width: 40,
-                    height: 5,
-                    decoration: BoxDecoration(
-                      color: BarTokens.lineStrong,
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(18, 8, 18, 12),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 38,
-                          height: 38,
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                            color: BarTokens.blue,
-                            borderRadius: BorderRadius.circular(11),
-                          ),
-                          child: BarTableBadgeText(tableName, fontSize: 15),
+            // The host's SafeArea, not the whole screen: 0.88 of the screen
+            // ran under the status bar and the gesture bar.
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final maxHeight = constraints.maxHeight * 0.88;
+                final scrollFooter = maxHeight < _pinnedFooterMinSheetHeight;
+                return ConstrainedBox(
+                  constraints: BoxConstraints(maxHeight: maxHeight),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const SizedBox(height: 10),
+                      Container(
+                        width: 40,
+                        height: 5,
+                        decoration: BoxDecoration(
+                          color: BarTokens.lineStrong,
+                          borderRadius: BorderRadius.circular(999),
                         ),
-                        const SizedBox(width: 11),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                l10n.barRunningTab,
-                                style: GoogleFonts.outfit(
-                                  fontWeight: FontWeight.w800,
-                                  fontSize: 16,
-                                ),
-                              ),
-                              Text(
-                                l10n.barZoneItemCount(zoneName, lineCount),
-                                style: GoogleFonts.outfit(
-                                  fontSize: 11.5,
-                                  color: BarTokens.ink3,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        IconButton(
-                          onPressed: onClose,
-                          icon: const Icon(Icons.close, size: 20),
-                          style: IconButton.styleFrom(
-                            backgroundColor: BarTokens.surface2,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const Divider(height: 1, color: BarTokens.line),
-                  Flexible(
-                    child: lines.isEmpty
-                        ? Padding(
-                            padding: const EdgeInsets.all(32),
-                            child: Text(
-                              l10n.barTapProductsFirstRound,
-                              style: GoogleFonts.outfit(color: BarTokens.ink3),
-                              textAlign: TextAlign.center,
-                            ),
-                          )
-                        : ListView(
-                            padding: const EdgeInsets.symmetric(horizontal: 18),
-                            children: [
-                              for (final entry in grouped.entries) ...[
-                                _groupHeader(
-                                  l10n,
-                                  entry.key,
-                                  entry.value,
-                                  staff,
-                                ),
-                                for (final line in entry.value)
-                                  _lineRow(l10n, line, cashier, isManager),
-                              ],
-                            ],
-                          ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.fromLTRB(18, 14, 18, 14),
-                    decoration: const BoxDecoration(
-                      border: Border(top: BorderSide(color: BarTokens.line)),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Row(
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(18, 8, 18, 12),
+                        child: Row(
                           children: [
-                            Text(
-                              l10n.barTabTotal,
-                              style: GoogleFonts.outfit(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                                color: BarTokens.ink2,
+                            Container(
+                              width: 38,
+                              height: 38,
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                color: BarTokens.blue,
+                                borderRadius: BorderRadius.circular(11),
                               ),
+                              child: BarTableBadgeText(tableName, fontSize: 15),
                             ),
-                            const Spacer(),
-                            Text.rich(
-                              TextSpan(
+                            const SizedBox(width: 11),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  TextSpan(
-                                    text: 'RWF ',
-                                    style: GoogleFonts.jetBrainsMono(
-                                      fontSize: 12,
-                                      color: BarTokens.ink3,
-                                      fontWeight: FontWeight.w700,
+                                  Text(
+                                    l10n.barRunningTab,
+                                    style: GoogleFonts.outfit(
+                                      fontWeight: FontWeight.w800,
+                                      fontSize: 16,
                                     ),
                                   ),
-                                  TextSpan(
-                                    text: NumberFormat('#,###').format(total),
-                                    style: GoogleFonts.jetBrainsMono(
-                                      fontSize: 24,
-                                      fontWeight: FontWeight.w800,
-                                      color: BarTokens.ink1,
+                                  Text(
+                                    l10n.barZoneItemCount(zoneName, lineCount),
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 11.5,
+                                      color: BarTokens.ink3,
                                     ),
                                   ),
                                 ],
                               ),
                             ),
-                          ],
-                        ),
-                        const SizedBox(height: 6),
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.people_outline,
-                              size: 14,
-                              color: BarTokens.ink3,
-                            ),
-                            const SizedBox(width: 6),
-                            Expanded(
-                              child: Text(
-                                footNote,
-                                style: GoogleFonts.outfit(
-                                  fontSize: 11.5,
-                                  color: BarTokens.ink3,
-                                ),
+                            IconButton(
+                              onPressed: onClose,
+                              icon: const Icon(Icons.close, size: 20),
+                              style: IconButton.styleFrom(
+                                backgroundColor: BarTokens.surface2,
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 12),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: _outlineBtn(
-                                l10n.barBackToTables,
-                                onBackToTables,
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: _primaryBtn(
-                                l10n.barSaveToTab,
-                                onSaveToTab,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 10),
-                        _outlineBtn(
-                          needsManagerPin
-                              ? l10n.barSettleManagerPin
-                              : l10n.barSettleAndClose,
-                          lineCount == 0 ? null : onSettle,
-                          icon: needsManagerPin
-                              ? Icons.verified_user_outlined
-                              : Icons.account_balance_wallet_outlined,
-                        ),
-                        if (onPutOnCredit != null) ...[
-                          const SizedBox(height: 10),
-                          KeyedSubtree(
-                            key: const ValueKey('bar_tab_sheet_credit'),
-                            child: _outlineBtn(
-                              l10n.barPutOnCredit,
-                              lineCount == 0 ? null : onPutOnCredit,
-                              icon: Icons.schedule_outlined,
-                            ),
+                      ),
+                      const Divider(height: 1, color: BarTokens.line),
+                      if (scrollFooter)
+                        // A short phone cannot pin a footer of up to six actions
+                        // under the lines: they scroll together instead.
+                        Flexible(
+                          child: ListView(
+                            shrinkWrap: true,
+                            padding: EdgeInsets.zero,
+                            children: [linesBody(shrinkWrap: true), footer],
                           ),
-                        ],
-                        if (onPrint != null) ...[
-                          const SizedBox(height: 10),
-                          KeyedSubtree(
-                            key: const ValueKey('bar_tab_sheet_print'),
-                            child: _outlineBtn(
-                              l10n.ticketPrint,
-                              lineCount == 0 ? null : onPrint,
-                              icon: Icons.print_outlined,
-                            ),
-                          ),
-                        ],
-                        // Moves the tab onto a resident guest's folio instead
-                        // of taking money for it now.
-                        if (onChargeToRoom != null) ...[
-                          const SizedBox(height: 10),
-                          _outlineBtn(
-                            l10n.barChargeToRoom,
-                            lineCount == 0 ? null : onChargeToRoom,
-                            icon: Icons.hotel_outlined,
-                            accent: lineCount == 0 ? null : BarTokens.violet,
-                          ),
-                        ],
+                        )
+                      else ...[
+                        Flexible(child: linesBody(shrinkWrap: false)),
+                        footer,
                       ],
-                    ),
+                    ],
                   ),
-                ],
-              ),
+                );
+              },
             ),
           ),
         ),
@@ -483,14 +489,15 @@ class BarTabBottomSheet extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(9),
+        // 40: this sheet only ever shows on a phone, under a thumb.
         child: Container(
-          width: 30,
-          height: 30,
+          width: 40,
+          height: 40,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(9),
             border: Border.all(color: BarTokens.line, width: 1.5),
           ),
-          child: Icon(icon, size: 15),
+          child: Icon(icon, size: 17),
         ),
       ),
     );

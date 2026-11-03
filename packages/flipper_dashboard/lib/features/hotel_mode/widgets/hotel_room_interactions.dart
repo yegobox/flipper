@@ -42,6 +42,16 @@ Future<void> hotelHandleRoomTap({
 
   final state = hotelRoomState(room: room, stay: null);
   if (!hotelRoomAcceptsCheckIn(state)) {
+    // A phone has no hover hint for the long-press menu, so a tap on a room
+    // being cleaned or blocked opens housekeeping instead of a dead-end toast.
+    if (mobile) {
+      await hotelShowHousekeepingMenu(
+        context: context,
+        room: room,
+        mobile: true,
+      );
+      return;
+    }
     ref
         .read(hotelModeProvider.notifier)
         .showToast(

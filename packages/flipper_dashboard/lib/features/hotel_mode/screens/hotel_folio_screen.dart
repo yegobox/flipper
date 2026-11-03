@@ -150,30 +150,37 @@ class _HotelFolioBody extends ConsumerWidget {
             tooltip: l10n.hotelBackToRooms,
           ),
           const SizedBox(width: 4),
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                l10n.hotelRoomNamed(stay.roomName),
-                style: GoogleFonts.outfit(
-                  fontSize: compact ? 17 : 20,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: -0.4,
-                  color: HotelTokens.ink1,
+          // Flexible + ellipsis: a long room or clerk name overflowed a phone.
+          Flexible(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l10n.hotelRoomNamed(stay.roomName),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.outfit(
+                    fontSize: compact ? 17 : 20,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.4,
+                    color: HotelTokens.ink1,
+                  ),
                 ),
-              ),
-              Text(
-                l10n.hotelFolioOpenedBy(
-                  stay.openedByName ?? l10n.hotelFrontDesk,
+                Text(
+                  l10n.hotelFolioOpenedBy(
+                    stay.openedByName ?? l10n.hotelFrontDesk,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.outfit(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: HotelTokens.ink3,
+                  ),
                 ),
-                style: GoogleFonts.outfit(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                  color: HotelTokens.ink3,
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),

@@ -18,9 +18,13 @@ class HotelManagerPinModal extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final staff = ref.watch(hotelStaffProvider).value ?? const <Tenant>[];
     final managers = staff.where(hotelTenantIsManager).toList();
-    final isMobile = HotelLayoutBreakpoints.isHotelMobileLayout(
-      MediaQuery.sizeOf(context).width,
-    );
+    // The host's flag, so the modal agrees with the screen under it when a
+    // side menu narrows the pane.
+    final isMobile =
+        HotelLayoutScope.maybeMobileOf(context) ??
+        HotelLayoutBreakpoints.isHotelMobileLayout(
+          MediaQuery.sizeOf(context).width,
+        );
 
     Future<Tenant?> findManager(String pin) async {
       for (final manager in managers) {
@@ -31,7 +35,9 @@ class HotelManagerPinModal extends ConsumerWidget {
 
     final l10n = context.flipperL10n;
     final keypad = BarKeypad(
-      tight: true,
+      // The phone keypad: the dense desk one ran the sheet off a short phone.
+      tight: !isMobile,
+      mobile: isMobile,
       title: l10n.hotelManager,
       hint: l10n.hotelEnterManagerPin,
       errorText: l10n.hotelNotManagerPin,
@@ -90,24 +96,26 @@ class HotelManagerPinModal extends ConsumerWidget {
                 top: Radius.circular(HotelTokens.mobileSheetRadius),
               ),
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 40,
-                  height: 5,
-                  decoration: BoxDecoration(
-                    color: HotelTokens.lineStrong,
-                    borderRadius: BorderRadius.circular(999),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 40,
+                    height: 5,
+                    decoration: BoxDecoration(
+                      color: HotelTokens.lineStrong,
+                      borderRadius: BorderRadius.circular(999),
+                    ),
                   ),
-                ),
-                const SizedBox(height: 12),
-                heading,
-                const SizedBox(height: 18),
-                keypad,
-                const SizedBox(height: 12),
-                cancel,
-              ],
+                  const SizedBox(height: 12),
+                  heading,
+                  const SizedBox(height: 18),
+                  keypad,
+                  const SizedBox(height: 12),
+                  cancel,
+                ],
+              ),
             ),
           ),
         ),

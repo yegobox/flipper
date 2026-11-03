@@ -17,24 +17,40 @@ class BarManagerPinModal extends ConsumerWidget {
     final staff = ref.watch(barSignInStaffProvider).value ?? [];
     final managers = staff.where(barTenantIsManager).toList();
     final l10n = context.flipperL10n;
-    final isMobile = BarLayoutBreakpoints.isBarMobileLayout(
-      MediaQuery.sizeOf(context).width,
+    // Measured on the host's stage, as the host picks its own layout: the
+    // window is wider than the pane when a side menu sits beside it.
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isMobile = BarLayoutBreakpoints.isBarMobileLayout(
+          constraints.maxWidth,
+        );
+        return isMobile
+            ? _mobile(context, ref, managers, l10n)
+            : _desktop(context, ref, managers, l10n);
+      },
     );
+  }
 
-    if (isMobile) {
-      return Material(
-        color: const Color(0x800B1220),
-        child: Align(
-          alignment: Alignment.bottomCenter,
-          child: Container(
-            width: double.infinity,
-            padding: const EdgeInsets.fromLTRB(20, 14, 20, 30),
-            decoration: const BoxDecoration(
-              color: BarTokens.surface,
-              borderRadius: BorderRadius.vertical(
-                top: Radius.circular(BarTokens.mobileSheetRadius),
-              ),
+  Widget _mobile(
+    BuildContext context,
+    WidgetRef ref,
+    List<Tenant> managers,
+    FlipperAppLocalizations l10n,
+  ) {
+    return Material(
+      color: const Color(0x800B1220),
+      child: Align(
+        alignment: Alignment.bottomCenter,
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.fromLTRB(20, 14, 20, 30),
+          decoration: const BoxDecoration(
+            color: BarTokens.surface,
+            borderRadius: BorderRadius.vertical(
+              top: Radius.circular(BarTokens.mobileSheetRadius),
             ),
+          ),
+          child: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -76,7 +92,9 @@ class BarManagerPinModal extends ConsumerWidget {
                 ),
                 const SizedBox(height: 18),
                 BarKeypad(
-                  tight: true,
+                  // The phone keypad: the dense desk one ran the sheet off a
+                  // short phone.
+                  mobile: true,
                   title: l10n.hotelManager,
                   hint: l10n.hotelEnterManagerPin,
                   verifyPin: (pin) async {
@@ -111,9 +129,16 @@ class BarManagerPinModal extends ConsumerWidget {
             ),
           ),
         ),
-      );
-    }
+      ),
+    );
+  }
 
+  Widget _desktop(
+    BuildContext context,
+    WidgetRef ref,
+    List<Tenant> managers,
+    FlipperAppLocalizations l10n,
+  ) {
     return Material(
       color: Colors.black54,
       child: Center(
