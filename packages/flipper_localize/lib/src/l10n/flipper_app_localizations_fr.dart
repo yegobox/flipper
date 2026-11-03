@@ -7791,6 +7791,11 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
       'Seul un administrateur peut changer le mode de service de cet appareil.';
 
   @override
+  String serviceModeNoAccess(String mode) {
+    return 'Vous n\'avez pas accès au $mode. Demandez à un administrateur de vous l\'accorder dans la gestion des utilisateurs.';
+  }
+
+  @override
   String serviceModeSwitchNotSaved(String mode) {
     return 'Impossible de passer en $mode : les paramètres de la succursale n\'ont pas été enregistrés. Vérifiez votre connexion et réessayez.';
   }

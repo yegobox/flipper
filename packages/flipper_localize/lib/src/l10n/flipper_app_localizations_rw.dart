@@ -7739,6 +7739,11 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
       'Umuyobozi wenyine ni we ushobora guhindura uburyo bwa serivisi bw\'iki gikoresho.';
 
   @override
+  String serviceModeNoAccess(String mode) {
+    return 'Nta burenganzira ufite bwo gukoresha $mode. Saba umuyobozi kubuguha mu micungire y\'abakoresha.';
+  }
+
+  @override
   String serviceModeSwitchNotSaved(String mode) {
     return 'Ntibyashobotse kujya kuri $mode: igenamiterere ry\'ishami ntiryabitswe. Reba murandasi yawe wongere ugerageze.';
   }

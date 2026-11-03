@@ -1,6 +1,7 @@
 import 'package:flipper_dashboard/features/bar_mode/providers/bar_mode_providers.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/models/bar_table.dart';
+import 'package:flipper_models/sync/utils/service_mode_access.dart';
 import 'package:flipper_dashboard/features/bar_mode/screens/bar_floor_desktop.dart';
 import 'package:flipper_dashboard/features/bar_mode/screens/bar_floor_mobile.dart';
 import 'package:flipper_dashboard/features/bar_mode/screens/bar_lock_desktop.dart';
@@ -24,6 +25,9 @@ Widget _barTestApp({
   return ProviderScope(
     overrides: [
       barStaffProvider.overrideWith((ref) async => <Tenant>[]),
+      serviceModeGrantsProvider.overrideWith(
+        (ref) async => const ServiceModeGrants(),
+      ),
       barTablesProvider.overrideWith((ref) => Stream.value(tables)),
       barTabsProvider.overrideWith((ref) => Stream.value([])),
       barCreditTabsProvider.overrideWith((ref) => Stream.value(loans)),

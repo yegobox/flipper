@@ -14,6 +14,7 @@ import 'package:flipper_dashboard/features/hotel_mode/theme/hotel_layout_breakpo
 import 'package:flipper_dashboard/features/hotel_mode/theme/hotel_tokens.dart';
 import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_manager_pin_modal.dart';
 import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_shared_widgets.dart';
+import 'package:flipper_dashboard/features/service_mode_access_gate.dart';
 import 'package:flipper_dashboard/features/service_mode_hotkey.dart';
 import 'package:flipper_dashboard/features/service_mode_switch.dart';
 import 'package:flipper_localize/flipper_localize.dart';
@@ -49,7 +50,13 @@ class _HotelModeHostState extends ConsumerState<HotelModeHost> {
       // room sweep nor the pin belongs to this desk any more.
       if (!mounted) return;
       HotelModeSettings.startWatchingActiveBranch();
-      if (branchId != null) {
+      // The room sweep and the pin act for the signed-in user, so decide with
+      // settled grants: a first fetch still running reads as "nobody holds
+      // Hotel Mode". The desk stays on its starting screen meanwhile.
+      await serviceModeGrantsSettled(ref);
+      if (!mounted) return;
+      final mayRun = signedInUserMayRun(ref, ServiceMode.hotel, listen: false);
+      if (branchId != null && mayRun) {
         // No room seeding here: this runs on every device that opens the
         // desk, usually before Ditto has synced the branch's rooms, and the
         // seed's fixed ids would bring back deleted rooms and reset renamed
@@ -76,13 +83,16 @@ class _HotelModeHostState extends ConsumerState<HotelModeHost> {
       // the screen it was left on is the screen it comes back to.
       // A phone is never pinned: it must keep opening on its own home.
       if (shouldPinOpenedServiceMode(
-        hostMode: ServiceMode.hotel,
-        pickAtOpen: pickAtOpen,
-        pickNow: deviceServiceMode,
-        stillOpen: mounted,
-        serviceEnabled: HotelModeSettings.enabled,
-        isPhone: isPhoneLayout,
-      )) {
+            hostMode: ServiceMode.hotel,
+            pickAtOpen: pickAtOpen,
+            pickNow: deviceServiceMode,
+            stillOpen: mounted,
+            serviceEnabled: HotelModeSettings.enabled,
+            isPhone: isPhoneLayout,
+          ) &&
+          // Someone who may not run the hotel must not make it this
+          // terminal's surface either.
+          mayRun) {
         setDeviceServiceMode(ServiceMode.hotel);
       }
       await _resolveEntry();
@@ -97,9 +107,14 @@ class _HotelModeHostState extends ConsumerState<HotelModeHost> {
   Future<void> _resolveEntry() async {
     final notifier = ref.read(hotelModeProvider.notifier);
     try {
-      if (ref.read(hotelModeProvider).activeClerk != null) {
-        notifier.setScreen(HotelScreen.dashboard);
-        return;
+      final clerk = ref.read(hotelModeProvider).activeClerk;
+      if (clerk != null) {
+        if (clerkMayRun(ref, ServiceMode.hotel, clerk)) {
+          notifier.setScreen(HotelScreen.dashboard);
+          return;
+        }
+        // Their Hotel grant went while they were away from the desk.
+        notifier.logout();
       }
 
       if (HotelModeSettings.requirePin) {
@@ -139,6 +154,14 @@ class _HotelModeHostState extends ConsumerState<HotelModeHost> {
   @override
   Widget build(BuildContext context) {
     final hotel = ref.watch(hotelModeProvider);
+    // A clerk whose grant (or Admin type) went, at the desk or on a PIN pick
+    // made before it went, hands the desk back to the lock straight away.
+    signOutIneligibleClerk(
+      ref,
+      ServiceMode.hotel,
+      clerk: hotelModeProvider.select((s) => s.activeClerk),
+      signOut: ref.read(hotelModeProvider.notifier).logout,
+    );
 
     final desk = Scaffold(
       backgroundColor: HotelTokens.stageBg,
@@ -207,6 +230,8 @@ class _HotelModeHostState extends ConsumerState<HotelModeHost> {
       ),
     );
 
-    return ServiceModeHotkeyScope(child: desk);
+    return ServiceModeHotkeyScope(
+      child: ServiceModeAccessGate(mode: ServiceMode.hotel, child: desk),
+    );
   }
 }

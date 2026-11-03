@@ -10,6 +10,7 @@ import 'package:flipper_dashboard/features/bar_mode/theme/bar_layout_breakpoints
 import 'package:flipper_dashboard/features/bar_mode/theme/bar_tokens.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_manager_pin_modal.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_toast.dart';
+import 'package:flipper_dashboard/features/service_mode_access_gate.dart';
 import 'package:flipper_dashboard/features/service_mode_hotkey.dart';
 import 'package:flipper_dashboard/features/service_mode_switch.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -33,6 +34,11 @@ class _BarModeHostState extends ConsumerState<BarModeHost> {
       // now would drag the device back here. See shouldPinOpenedServiceMode.
       if (!mounted) return;
       BarModeSettings.startWatchingActiveBranch();
+      ref.read(barModeProvider.notifier).setScreen(BarScreen.lock);
+      // The pin decides with the grants, so it must not read a first fetch
+      // that is still running as "nobody holds Bar Mode".
+      await serviceModeGrantsSettled(ref);
+      if (!mounted) return;
       // No floor-plan seeding here: this runs on every device that opens the
       // bar, usually before Ditto has synced the branch's tables, and the
       // seed's fixed ids would bring back deleted tables and reset renamed
@@ -43,22 +49,32 @@ class _BarModeHostState extends ConsumerState<BarModeHost> {
       // pick, so the screen it was left on is the screen it comes back to.
       // A phone is never pinned: it must keep opening on its own home.
       if (shouldPinOpenedServiceMode(
-        hostMode: ServiceMode.bar,
-        pickAtOpen: pickAtOpen,
-        pickNow: deviceServiceMode,
-        stillOpen: mounted,
-        serviceEnabled: BarModeSettings.enabled,
-        isPhone: isPhoneLayout,
-      )) {
+            hostMode: ServiceMode.bar,
+            pickAtOpen: pickAtOpen,
+            pickNow: deviceServiceMode,
+            stillOpen: mounted,
+            serviceEnabled: BarModeSettings.enabled,
+            isPhone: isPhoneLayout,
+          ) &&
+          // Someone who may not run the bar must not make it this
+          // terminal's surface either.
+          signedInUserMayRun(ref, ServiceMode.bar, listen: false)) {
         setDeviceServiceMode(ServiceMode.bar);
       }
-      ref.read(barModeProvider.notifier).setScreen(BarScreen.lock);
     });
   }
 
   @override
   Widget build(BuildContext context) {
     final bar = ref.watch(barModeProvider);
+    // A cashier whose grant (or Admin type) went, on the floor or on a PIN
+    // pick made before it went, hands the bar back to the lock straight away.
+    signOutIneligibleClerk(
+      ref,
+      ServiceMode.bar,
+      clerk: barModeProvider.select((s) => s.activeCashier),
+      signOut: ref.read(barModeProvider.notifier).logout,
+    );
 
     Widget screen;
     switch (bar.screen) {
@@ -150,6 +166,8 @@ class _BarModeHostState extends ConsumerState<BarModeHost> {
       ),
     );
 
-    return ServiceModeHotkeyScope(child: stage);
+    return ServiceModeHotkeyScope(
+      child: ServiceModeAccessGate(mode: ServiceMode.bar, child: stage),
+    );
   }
 }

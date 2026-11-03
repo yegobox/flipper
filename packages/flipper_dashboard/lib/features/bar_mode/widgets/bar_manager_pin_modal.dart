@@ -14,7 +14,7 @@ class BarManagerPinModal extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final staff = ref.watch(barStaffProvider).value ?? [];
+    final staff = ref.watch(barSignInStaffProvider).value ?? [];
     final managers = staff.where(barTenantIsManager).toList();
     final l10n = context.flipperL10n;
     final isMobile = BarLayoutBreakpoints.isBarMobileLayout(

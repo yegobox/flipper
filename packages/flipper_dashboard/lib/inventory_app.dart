@@ -5,6 +5,7 @@ import 'package:flipper_dashboard/features/bar_mode/bar_mode_host.dart';
 import 'package:flipper_dashboard/features/bar_mode/bar_mode_settings.dart';
 import 'package:flipper_dashboard/features/hotel_mode/hotel_mode_host.dart';
 import 'package:flipper_dashboard/features/hotel_mode/hotel_mode_settings.dart';
+import 'package:flipper_dashboard/features/service_mode_access_gate.dart';
 import 'package:flipper_dashboard/features/service_mode_shell.dart';
 import 'package:flipper_dashboard/features/service_mode_switch.dart';
 import 'package:flipper_dashboard/Ai.dart';
@@ -85,13 +86,9 @@ class InventoryApp extends HookConsumerWidget {
   Widget _salesContent(bool isScanningMode, WidgetRef ref) {
     switch (SalesSurface.current) {
       case SalesSurface.hotel:
-        return const HotelModeHost()
-            .shouldViewTheApp(ref, featureName: AppFeature.Sales)
-            .shouldViewTheApp(ref, featureName: AppFeature.Inventory);
+        return _serviceModeHost(ref, ServiceMode.hotel, const HotelModeHost());
       case SalesSurface.bar:
-        return const BarModeHost()
-            .shouldViewTheApp(ref, featureName: AppFeature.Sales)
-            .shouldViewTheApp(ref, featureName: AppFeature.Inventory);
+        return _serviceModeHost(ref, ServiceMode.bar, const BarModeHost());
       case SalesSurface.pos:
         break;
     }
@@ -100,6 +97,24 @@ class InventoryApp extends HookConsumerWidget {
         : CheckOut(isBigScreen: true)
               .shouldViewTheApp(ref, featureName: AppFeature.Sales)
               .shouldViewTheApp(ref, featureName: AppFeature.Inventory);
+  }
+
+  /// A Bar / Hotel host in the sales pane. Once anyone in the business holds
+  /// the mode's grant, the host's own [ServiceModeAccessGate] decides and Sales
+  /// is no longer needed: a Bar-only waiter gets the floor, never the POS.
+  /// Until then the pane keeps the Sales + Inventory gate it always had.
+  /// While neither the first fetch nor an offline copy has answered, it waits
+  /// rather than show a Bar- or Hotel-only waiter an empty Sales gate.
+  Widget _serviceModeHost(WidgetRef ref, ServiceMode mode, Widget host) {
+    final feature = serviceModeFeature(mode)!;
+    final grants = knownServiceModeGrants(ref);
+    if (grants == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (grants.isRestricted(feature)) return host;
+    return host
+        .shouldViewTheApp(ref, featureName: AppFeature.Sales)
+        .shouldViewTheApp(ref, featureName: AppFeature.Inventory);
   }
 
   Widget buildMainContent(bool isScanningMode, WidgetRef ref) {

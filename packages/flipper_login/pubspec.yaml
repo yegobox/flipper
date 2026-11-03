@@ -59,7 +59,7 @@ dependency_overrides:
   archive: ^4.0.9
   excel:
     path: ../../open-sources/excel
-  cbor: ^6.3.7
+  cbor: 6.5.1 # 6.5.2 needs Dart 3.13; overrides skip the SDK check
   jni: ^0.14.2
   
 
