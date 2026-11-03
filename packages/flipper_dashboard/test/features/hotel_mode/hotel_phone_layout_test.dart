@@ -13,6 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:supabase_models/brick/models/tenant.model.dart';
 import 'package:supabase_models/brick/models/transactionItem.model.dart';
 import 'package:supabase_models/brick/repository/storage.dart';
 
@@ -326,11 +327,15 @@ void main() {
       required bool mobile,
       bool compact = false,
       bool besideControls = false,
+      double? paneWidth,
+      Tenant? clerk,
     }) => tester.pumpWidget(
       ProviderScope(
         overrides: [
           hotelModeProvider.overrideWith(
-            () => _Desk(const HotelModeState(screen: HotelScreen.rooms)),
+            () => _Desk(
+              HotelModeState(screen: HotelScreen.rooms, activeClerk: clerk),
+            ),
           ),
         ],
         child: MaterialApp(
@@ -348,6 +353,14 @@ void main() {
                         const Icon(Icons.chevron_right),
                       ],
                     )
+                  : paneWidth != null
+                  ? Align(
+                      alignment: Alignment.topLeft,
+                      child: SizedBox(
+                        width: paneWidth,
+                        child: HotelDeskNav(compact: compact),
+                      ),
+                    )
                   : HotelDeskNav(compact: compact),
             ),
           ),
@@ -362,6 +375,65 @@ void main() {
       expect(find.text('Calendar'), findsOneWidget);
       expect(find.text('Today'), findsNothing);
       expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('a phone segment opens its screen', (tester) async {
+      _usePhone(tester);
+      await pumpNav(
+        tester,
+        mobile: true,
+        compact: true,
+        clerk: Tenant(id: 'c1', name: 'Richie'),
+      );
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(HotelDeskNav)),
+      );
+      for (final (label, screen) in [
+        ('Calendar', HotelScreen.calendar),
+        ('Quotes', HotelScreen.quotes),
+        ('Rooms', HotelScreen.rooms),
+      ]) {
+        await tester.tap(find.text(label));
+        await tester.pumpAndSettle();
+        expect(container.read(hotelModeProvider).screen, screen);
+      }
+    });
+
+    testWidgets('a phone segment grows with larger system text', (
+      tester,
+    ) async {
+      _usePhone(tester);
+      tester.platformDispatcher.textScaleFactorTestValue = 3;
+      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+      await pumpNav(tester, mobile: true, compact: true);
+      expect(tester.takeException(), isNull);
+      // A fixed 40pt pill clamped the 3x label to 40 and cut it off.
+      final pill = tester.getSize(
+        find
+            .ancestor(
+              of: find.text('Rooms'),
+              matching: find.byType(AnimatedContainer),
+            )
+            .first,
+      );
+      expect(pill.height, greaterThan(40));
+      expect(
+        tester.getSize(find.text('Rooms')).height,
+        lessThanOrEqualTo(pill.height),
+      );
+    });
+
+    testWidgets('a pane too narrow for the segments scales the tabs down', (
+      tester,
+    ) async {
+      _usePhone(tester);
+      await pumpNav(tester, mobile: true, compact: true, paneWidth: 100);
+      expect(tester.takeException(), isNull);
+      expect(
+        tester.getRect(find.byType(HotelDeskNav)).right,
+        lessThanOrEqualTo(100),
+      );
+      expect(find.byIcon(Icons.calendar_month_outlined), findsOneWidget);
     });
 
     testWidgets('beside header controls a phone keeps the compact tabs', (

@@ -74,11 +74,30 @@ class HotelDeskNav extends ConsumerWidget {
     // The labelled segments share a width, which the Rooms header gives. The
     // Calendar and Quotes headers set the nav in a row beside their own
     // controls, where it has none: those keep the compact tabs.
+    // Below the segments' minimum (icon, gap and padding each, plus the
+    // pill's own padding and border) a pane too narrow even for that gets the
+    // compact tabs scaled to fit rather than an overflow.
+    final segments = _tabs(
+      context.flipperL10n,
+    ).where((tab) => tab.$1 != HotelScreen.dashboard).length;
+    final segmentedMinWidth = segments * _phoneTabMinWidth + 2 * 4 + 2 * 1;
     return LayoutBuilder(
-      builder: (context, constraints) =>
-          nav(segmented: constraints.hasBoundedWidth),
+      builder: (context, constraints) {
+        if (!constraints.hasBoundedWidth) return nav(segmented: false);
+        if (constraints.maxWidth >= segmentedMinWidth) {
+          return nav(segmented: true);
+        }
+        return FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerLeft,
+          child: nav(segmented: false),
+        );
+      },
     );
   }
+
+  /// A phone segment's narrowest: its icon, the gap and its side padding.
+  static const double _phoneTabMinWidth = 16 + 6 + 2 * 8;
 
   /// A phone has the width for all three labels, so each segment shares the
   /// row and names itself: icons alone left the clerk guessing.
@@ -95,7 +114,8 @@ class HotelDeskNav extends ConsumerWidget {
       onTap: () => ref.read(hotelModeProvider.notifier).setScreen(screen),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 140),
-        height: 40,
+        // A minimum, not a height: the label grows with the system text size.
+        constraints: const BoxConstraints(minHeight: 40),
         padding: const EdgeInsets.symmetric(horizontal: 8),
         decoration: BoxDecoration(
           color: selected ? HotelTokens.surface : Colors.transparent,
