@@ -7715,11 +7715,11 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
 
   @override
   String get serviceModeHotkeyOpenDesk =>
-      'Open POS, Bar or Hotel to switch this device\'s service mode.';
+      'Fungua POS, Baa au Hoteli ili kubadilisha hali ya huduma ya kifaa hiki.';
 
   @override
   String get serviceModeHotkeySignInFirst =>
-      'Sign in at the desk first, then switch the service mode.';
+      'Ingia kwenye kituo kwanza, kisha ubadilishe hali ya huduma.';
 
   @override
   String serviceModeNoAccess(String mode) {
