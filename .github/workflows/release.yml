@@ -789,11 +789,14 @@ jobs:
           VERSION: ${{ steps.get_version.outputs.version }}
         run: |
           set -euo pipefail
-          prev=$(gh api --paginate "repos/$GITHUB_REPOSITORY/git/matching-refs/tags/v" --jq '.[].ref' \
+          # A failed lookup stops the release; only "no earlier tag" may fall
+          # back to GitHub's default base for the notes.
+          refs=$(gh api --paginate "repos/$GITHUB_REPOSITORY/git/matching-refs/tags/v" --jq '.[].ref')
+          prev=$(printf '%s\n' "$refs" \
             | sed 's#^refs/tags/##' \
-            | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+_windows_prod$' \
-            | grep -vx "v${VERSION}_windows_prod" \
-            | sort -V | tail -n 1 || true)
+            | { grep -E '^v[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+_windows_prod$' || true; } \
+            | { grep -vx "v${VERSION}_windows_prod" || true; } \
+            | sort -V | tail -n 1)
           echo "Previous production tag: ${prev:-<none>}"
           echo "tag=$prev" >> "$GITHUB_OUTPUT"
 
@@ -830,16 +833,24 @@ jobs:
             gh release view "$TAG" --repo "$GITHUB_REPOSITORY" \
               --json assets --jq '.assets[] | select(.name == "flipper_rw.msix") | .size' 2>/dev/null
           }
+          # Upload only after a successful read shows the asset missing or the
+          # wrong size: --clobber deletes the existing asset first, so acting on
+          # a failed read could strip a good msix off the release.
           for attempt in 1 2 3; do
-            if [ "$(attached)" = "$want" ]; then
+            if ! size=$(attached); then
+              echo "::warning::could not read $TAG (attempt $attempt/3), retrying"
+              sleep $((attempt * 15))
+              continue
+            fi
+            if [ "$size" = "$want" ]; then
               echo "flipper_rw.msix is attached to $TAG ($want bytes)."
               exit 0
             fi
-            echo "::warning::flipper_rw.msix missing from $TAG, uploading (attempt $attempt/3)"
+            echo "::warning::flipper_rw.msix missing from $TAG (size '${size:-none}'), uploading (attempt $attempt/3)"
             gh release upload "$TAG" "$MSIX" --repo "$GITHUB_REPOSITORY" --clobber || true
             sleep $((attempt * 15))
           done
-          if [ "$(attached)" = "$want" ]; then exit 0; fi
+          if size=$(attached) && [ "$size" = "$want" ]; then exit 0; fi
           echo "::error::flipper_rw.msix is still not attached to $TAG."
           exit 1
 
