@@ -778,17 +778,70 @@ jobs:
             exit 1
           fi
 
+      # Release notes list the PRs merged since the last Store build. Without
+      # previous_tag GitHub would compare against whichever tag is newest
+      # (often a desktop-v* or _windows_debug tag from another job).
+      - name: Find previous production tag
+        id: previous_tag
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.get_version.outputs.version }}
+        run: |
+          set -euo pipefail
+          prev=$(gh api --paginate "repos/$GITHUB_REPOSITORY/git/matching-refs/tags/v" --jq '.[].ref' \
+            | sed 's#^refs/tags/##' \
+            | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+_windows_prod$' \
+            | grep -vx "v${VERSION}_windows_prod" \
+            | sort -V | tail -n 1 || true)
+          echo "Previous production tag: ${prev:-<none>}"
+          echo "tag=$prev" >> "$GITHUB_OUTPUT"
+
       - name: Create Production Release
         uses: softprops/action-gh-release@v3
         with:
           files: apps/flipper/build/windows/x64/runner/Release/flipper_rw.msix
+          fail_on_unmatched_files: true
           tag_name: v${{ steps.get_version.outputs.version }}_windows_prod
           name: Windows Production Release ${{ steps.get_version.outputs.version }}
           draft: false
+          generate_release_notes: true
+          previous_tag: ${{ steps.previous_tag.outputs.tag }}
           body: |
             Production Release for Windows App Store
         env:
           GITHUB_TOKEN: ${{ github.token }}  # Use the default GITHUB_TOKEN
+
+      # The release step can report success with no msix attached: on
+      # 2026-11-04 GitHub answered the create call with 502s, the retries left
+      # an orphan draft, and the upload landed on neither release
+      # (v1.592.0.0_windows_prod shipped empty). Check the published release
+      # and re-upload until the asset is there with the right size.
+      - name: Verify msix is attached
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: v${{ steps.get_version.outputs.version }}_windows_prod
+          MSIX: apps/flipper/build/windows/x64/runner/Release/flipper_rw.msix
+        run: |
+          set -euo pipefail
+          want=$(stat -c %s "$MSIX")
+          attached() {
+            gh release view "$TAG" --repo "$GITHUB_REPOSITORY" \
+              --json assets --jq '.assets[] | select(.name == "flipper_rw.msix") | .size' 2>/dev/null
+          }
+          for attempt in 1 2 3; do
+            if [ "$(attached)" = "$want" ]; then
+              echo "flipper_rw.msix is attached to $TAG ($want bytes)."
+              exit 0
+            fi
+            echo "::warning::flipper_rw.msix missing from $TAG, uploading (attempt $attempt/3)"
+            gh release upload "$TAG" "$MSIX" --repo "$GITHUB_REPOSITORY" --clobber || true
+            sleep $((attempt * 15))
+          done
+          if [ "$(attached)" = "$want" ]; then exit 0; fi
+          echo "::error::flipper_rw.msix is still not attached to $TAG."
+          exit 1
 
   # Store-format (--store) msix build off branches that ship without waiting for
   # main: the long-running migration branch and every hotfix-*. The artifact can
