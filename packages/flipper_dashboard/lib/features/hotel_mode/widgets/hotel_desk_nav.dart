@@ -42,7 +42,7 @@ class HotelDeskNav extends ConsumerWidget {
       mobile: mobile,
     );
 
-    return Container(
+    Widget nav({required bool segmented}) => Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
         color: HotelTokens.surface2,
@@ -50,13 +50,97 @@ class HotelDeskNav extends ConsumerWidget {
         border: Border.all(color: HotelTokens.line),
       ),
       child: Row(
-        mainAxisSize: MainAxisSize.min,
+        mainAxisSize: segmented ? MainAxisSize.max : MainAxisSize.min,
         children: [
           for (final (screen, label, icon) in _tabs(context.flipperL10n))
             // No Today tab on a phone: it would only redraw Rooms.
             if (!mobile || screen != HotelScreen.dashboard)
-              _tab(ref, screen, label, icon, current == screen),
+              segmented
+                  ? Expanded(
+                      child: _phoneTab(
+                        ref,
+                        screen,
+                        label,
+                        icon,
+                        current == screen,
+                      ),
+                    )
+                  : _tab(ref, screen, label, icon, current == screen),
         ],
+      ),
+    );
+
+    if (!mobile) return nav(segmented: false);
+    // The labelled segments share a width, which the Rooms header gives. The
+    // Calendar and Quotes headers set the nav in a row beside their own
+    // controls, where it has none: those keep the compact tabs.
+    // Below the segments' minimum (icon, gap and padding each, plus the
+    // pill's own padding and border) a pane too narrow even for that gets the
+    // compact tabs scaled to fit rather than an overflow.
+    final segments = _tabs(
+      context.flipperL10n,
+    ).where((tab) => tab.$1 != HotelScreen.dashboard).length;
+    final segmentedMinWidth = segments * _phoneTabMinWidth + 2 * 4 + 2 * 1;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (!constraints.hasBoundedWidth) return nav(segmented: false);
+        if (constraints.maxWidth >= segmentedMinWidth) {
+          return nav(segmented: true);
+        }
+        return FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerLeft,
+          child: nav(segmented: false),
+        );
+      },
+    );
+  }
+
+  /// A phone segment's narrowest: its icon, the gap and its side padding.
+  static const double _phoneTabMinWidth = 16 + 6 + 2 * 8;
+
+  /// A phone has the width for all three labels, so each segment shares the
+  /// row and names itself: icons alone left the clerk guessing.
+  Widget _phoneTab(
+    WidgetRef ref,
+    HotelScreen screen,
+    String label,
+    IconData icon,
+    bool selected,
+  ) {
+    final color = selected ? HotelTokens.ink1 : HotelTokens.ink3;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () => ref.read(hotelModeProvider.notifier).setScreen(screen),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 140),
+        // A minimum, not a height: the label grows with the system text size.
+        constraints: const BoxConstraints(minHeight: 40),
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+        decoration: BoxDecoration(
+          color: selected ? HotelTokens.surface : Colors.transparent,
+          borderRadius: BorderRadius.circular(999),
+          boxShadow: selected ? HotelTokens.shadow1 : null,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 16, color: color),
+            const SizedBox(width: 6),
+            Flexible(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.outfit(
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w700,
+                  color: color,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

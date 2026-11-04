@@ -251,7 +251,28 @@ class HotelFolioLineTile extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 8),
-                Row(children: [...qty, const Spacer(), if (!readOnly) delete]),
+                Row(
+                  children: [
+                    // One stepper pill, as on the check-in sheet, so the
+                    // controls read as a single quantity control.
+                    if (readOnly)
+                      ...qty
+                    else
+                      Container(
+                        decoration: BoxDecoration(
+                          color: HotelTokens.surface2,
+                          borderRadius: BorderRadius.circular(999),
+                          border: Border.all(color: HotelTokens.line),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: qty,
+                        ),
+                      ),
+                    const Spacer(),
+                    if (!readOnly) delete,
+                  ],
+                ),
               ],
             )
           : Row(
@@ -370,7 +391,9 @@ class HotelCheckOutDialog extends StatefulWidget {
 
   final double total;
 
-  /// The phone's bottom sheet: payment labels wrap instead of shrinking.
+  /// Drawn as a phone bottom sheet: grab bar, top-only corners, the bar's
+  /// blue selection rather than the desk's black one, and payment labels that
+  /// wrap instead of shrinking.
   final bool mobile;
 
   /// A bottom sheet on a phone, where a centred dialog left each payment
@@ -394,12 +417,7 @@ class HotelCheckOutDialog extends StatefulWidget {
           padding: EdgeInsets.only(
             bottom: MediaQuery.viewInsetsOf(sheetContext).bottom,
           ),
-          // Keeps Settle above a navigation bar or home indicator when the
-          // app draws edge to edge.
-          child: SafeArea(
-            top: false,
-            child: HotelCheckOutDialog(total: total, mobile: true),
-          ),
+          child: HotelCheckOutDialog(total: total, mobile: true),
         ),
       );
     }
@@ -487,13 +505,16 @@ class _HotelCheckOutDialogState extends State<HotelCheckOutDialog> {
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                   color: _paymentType == type
-                      ? HotelTokens.ink1
+                      ? (widget.mobile
+                            ? HotelTokens.blueTint
+                            : HotelTokens.ink1)
                       : HotelTokens.surface2,
                   borderRadius: BorderRadius.circular(HotelTokens.radiusMd),
                   border: Border.all(
                     color: _paymentType == type
-                        ? HotelTokens.ink1
+                        ? (widget.mobile ? HotelTokens.blue : HotelTokens.ink1)
                         : HotelTokens.line,
+                    width: widget.mobile && _paymentType == type ? 1.5 : 1,
                   ),
                 ),
                 padding: EdgeInsets.symmetric(
@@ -527,7 +548,9 @@ class _HotelCheckOutDialogState extends State<HotelCheckOutDialog> {
     style: GoogleFonts.outfit(
       fontSize: 14,
       fontWeight: FontWeight.w700,
-      color: _paymentType == type ? Colors.white : HotelTokens.ink2,
+      color: _paymentType == type
+          ? (widget.mobile ? HotelTokens.blue : Colors.white)
+          : HotelTokens.ink2,
     ),
   );
 
@@ -536,17 +559,27 @@ class _HotelCheckOutDialogState extends State<HotelCheckOutDialog> {
     final l10n = context.flipperL10n;
     return SingleChildScrollView(
       child: Container(
-        padding: const EdgeInsets.fromLTRB(22, 20, 22, 22),
-        decoration: const BoxDecoration(
-          color: HotelTokens.surface,
-          borderRadius: BorderRadius.all(
-            Radius.circular(HotelTokens.mobileSheetRadius),
-          ),
-        ),
+        padding: widget.mobile
+            ? EdgeInsets.fromLTRB(
+                20,
+                10,
+                20,
+                16 + MediaQuery.paddingOf(context).bottom,
+              )
+            : const EdgeInsets.fromLTRB(22, 20, 22, 22),
+        decoration: widget.mobile
+            ? hotelPhoneSheetDecoration()
+            : const BoxDecoration(
+                color: HotelTokens.surface,
+                borderRadius: BorderRadius.all(
+                  Radius.circular(HotelTokens.mobileSheetRadius),
+                ),
+              ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            if (widget.mobile) const HotelSheetHandle(),
             Text(
               l10n.hotelCheckOut,
               style: GoogleFonts.outfit(
@@ -591,6 +624,26 @@ class _HotelCheckOutDialogState extends State<HotelCheckOutDialog> {
                     borderRadius: BorderRadius.circular(HotelTokens.radiusMd),
                     borderSide: const BorderSide(color: HotelTokens.line),
                   ),
+                  // The theme's dark outline read as an error on a phone.
+                  enabledBorder: widget.mobile
+                      ? OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(
+                            HotelTokens.radiusMd,
+                          ),
+                          borderSide: const BorderSide(color: HotelTokens.line),
+                        )
+                      : null,
+                  focusedBorder: widget.mobile
+                      ? OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(
+                            HotelTokens.radiusMd,
+                          ),
+                          borderSide: const BorderSide(
+                            color: HotelTokens.blue,
+                            width: 1.5,
+                          ),
+                        )
+                      : null,
                 ),
               ),
               const SizedBox(height: 10),

@@ -34,6 +34,43 @@ String hotelStaySummaryText(FlipperAppLocalizations l10n, HotelStay stay) {
 }
 
 /// Same mark + wordmark as the POS shell and Bar Mode header.
+/// The grab bar on top of a phone bottom sheet, as the bar's sheets have.
+class HotelSheetHandle extends StatelessWidget {
+  const HotelSheetHandle({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Container(
+        width: 40,
+        height: 5,
+        margin: const EdgeInsets.only(bottom: 14),
+        decoration: BoxDecoration(
+          color: HotelTokens.lineStrong,
+          borderRadius: BorderRadius.circular(999),
+        ),
+      ),
+    );
+  }
+}
+
+/// Field hint on a phone sheet: light enough that it never reads as a value
+/// someone already typed.
+TextStyle hotelSheetHintStyle() => GoogleFonts.outfit(
+  fontSize: 15,
+  fontWeight: FontWeight.w500,
+  color: HotelTokens.ink4,
+);
+
+/// A phone bottom sheet's surface: rounded on top only, and clear of the
+/// gesture bar at the bottom.
+BoxDecoration hotelPhoneSheetDecoration() => const BoxDecoration(
+  color: HotelTokens.surface,
+  borderRadius: BorderRadius.vertical(
+    top: Radius.circular(HotelTokens.mobileSheetRadius),
+  ),
+);
+
 class HotelDeskBrand extends StatelessWidget {
   const HotelDeskBrand({
     super.key,

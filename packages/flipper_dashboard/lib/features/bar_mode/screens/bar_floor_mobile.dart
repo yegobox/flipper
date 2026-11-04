@@ -176,6 +176,7 @@ class _BarFloorMobileScreenState extends ConsumerState<BarFloorMobileScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        const SizedBox(height: 8),
         BarZoneTabBar(
           zones: zones,
           selectedZone: selected,
@@ -189,7 +190,9 @@ class _BarFloorMobileScreenState extends ConsumerState<BarFloorMobileScreen> {
               crossAxisCount: 2,
               mainAxisSpacing: 12,
               crossAxisSpacing: 12,
-              childAspectRatio: 1.05,
+              // A fixed height that fits an open tab: square cells left a
+              // free table mostly blank and showed four tables a screen.
+              mainAxisExtent: 140,
             ),
             itemCount: zoneTables.length,
             itemBuilder: (context, i) {
