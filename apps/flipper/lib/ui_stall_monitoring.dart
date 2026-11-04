@@ -11,6 +11,10 @@ import 'package:path_provider/path_provider.dart';
 
 UiStallWatchdog? _watchdog;
 
+/// Sends one diagnostic event to product analytics.
+typedef StallEventSender = Future<void> Function(
+    String event, Map<String, Object?> properties);
+
 /// Watches the till for main-thread stalls and reports what was running.
 ///
 /// A frozen Windows till ("Not Responding") cannot be watched live, so each
@@ -25,10 +29,19 @@ Future<void> startUiStallMonitoring() async {
   final marker = File('$perfDir${Platform.pathSeparator}inflight.json');
   final trail = PerfOpTrail.instance;
 
-  trail.useReporter((event, properties) => _report(log, event, properties));
+  trail.useReporter((event, properties) {
+    talker.warning('[perf] $event $properties');
+    unawaited(
+      log.append(
+          '${DateTime.now().toUtc().toIso8601String()} $event $properties'),
+    );
+    unawaited(sendStallTelemetry(event, properties));
+  });
   final leftover = PerfOpTrail.takeLeftoverMarker(marker);
   if (leftover != null) trail.report('ui_hang_killed', leftover);
   trail.useMarkerFile(marker);
+  // A normal quit mid-search is not a hang. The binding keeps the listener.
+  clearMarkerOnExitRequest(trail);
 
   _watchdog = UiStallWatchdog(
     onStall: (stall) => trail.report('ui_stall', stall.toProperties()),
@@ -36,18 +49,25 @@ Future<void> startUiStallMonitoring() async {
   )..start();
 }
 
-void _report(PerfLogFile log, String event, Map<String, Object?> properties) {
-  talker.warning('[perf] $event $properties');
-  log.append('${DateTime.now().toUtc().toIso8601String()} $event $properties');
-  // A local-mode till promised to stay off the cloud.
-  if (LocalMode.isOn) return;
+/// Sends [event] to analytics only once Local Mode is known to be off.
+///
+/// A local-mode till promised to stay off the cloud, and until its marker
+/// has been read [LocalMode.isOn] is just a default `false`. A failed read
+/// is retried here; if it fails again the event stays in the log only.
+@visibleForTesting
+Future<void> sendStallTelemetry(
+  String event,
+  Map<String, Object?> properties, {
+  StallEventSender? send,
+}) async {
   try {
-    unawaited(
-      FlipperAnalytics.instance
-          .track(event, properties: properties)
-          .catchError((Object _) {}),
-    );
+    if (!LocalMode.isLoaded) await LocalMode.load();
+    if (!LocalMode.isLoaded || LocalMode.isOn) return;
+    await (send ?? _sendToAnalytics)(event, properties);
   } catch (_) {
-    // Analytics never initialised; the log file still has it.
+    // Analytics never initialised or offline; the log file still has it.
   }
 }
+
+Future<void> _sendToAnalytics(String event, Map<String, Object?> properties) =>
+    FlipperAnalytics.instance.track(event, properties: properties);

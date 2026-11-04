@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:ui' show AppExitResponse;
 
 import 'package:flipper_models/perf/ui_stall_watchdog.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -68,6 +69,74 @@ void main() {
 
       second.complete();
       await b;
+      expect(marker.existsSync(), isFalse);
+    });
+
+    test('when the newer critical op ends first, the older one takes the '
+        'marker back', () async {
+      final marker = File('${tmp.path}/perf/inflight.json');
+      trail.useMarkerFile(marker);
+      final older = Completer<void>();
+      final newer = Completer<void>();
+
+      final a = trail.track('pos_search', () => older.future, critical: true);
+      final b = trail.track('autoadd', () => newer.future, critical: true);
+      expect(jsonDecode(marker.readAsStringSync())['op'], 'autoadd');
+
+      newer.complete();
+      await b;
+      expect(jsonDecode(marker.readAsStringSync())['op'], 'pos_search');
+
+      older.complete();
+      await a;
+      expect(marker.existsSync(), isFalse);
+    });
+
+    test('a clean exit drops the marker, and ops ending after it do not '
+        'write it back', () async {
+      final marker = File('${tmp.path}/perf/inflight.json');
+      trail.useMarkerFile(marker);
+      final first = Completer<void>();
+      final second = Completer<void>();
+      final a = trail.track('a', () => first.future, critical: true);
+      final b = trail.track('b', () => second.future, critical: true);
+
+      trail.markCleanExit();
+      expect(marker.existsSync(), isFalse);
+
+      second.complete();
+      await b;
+      expect(marker.existsSync(), isFalse);
+      first.complete();
+      await a;
+      expect(marker.existsSync(), isFalse);
+
+      // A critical op started afterwards (the exit was cancelled) still counts.
+      final later = Completer<void>();
+      final c = trail.track('c', () => later.future, critical: true);
+      expect(marker.existsSync(), isTrue);
+      later.complete();
+      await c;
+      expect(marker.existsSync(), isFalse);
+    });
+
+    testWidgets('a quit request clears the marker and lets the app exit', (
+      tester,
+    ) async {
+      final marker = File('${tmp.path}/perf/inflight.json');
+      trail.useMarkerFile(marker);
+      final gate = Completer<void>();
+      final op = trail.track('pos_search', () => gate.future, critical: true);
+      expect(marker.existsSync(), isTrue);
+
+      final listener = clearMarkerOnExitRequest(trail);
+      addTearDown(listener.dispose);
+      final response = await tester.binding.handleRequestAppExit();
+
+      expect(response, AppExitResponse.exit);
+      expect(marker.existsSync(), isFalse);
+      gate.complete();
+      await op;
       expect(marker.existsSync(), isFalse);
     });
 
@@ -175,6 +244,29 @@ void main() {
       expect(watchdog.isRunning, isFalse);
     });
 
+    test(
+      'a till that slept is not a stall when the clock leaves sleep out',
+      () {
+        // Unbiased interrupt time in 100ns units: it stands still while the
+        // machine sleeps, so one hour asleep reads as a single on-time tick.
+        var ticks = 5000000;
+        final slept = UiStallWatchdog(
+          onStall: stalls.add,
+          trail: trail,
+          elapsed: awakeClock(unbiasedTicks: () => ticks),
+        )..start();
+        addTearDown(slept.stop);
+
+        ticks += 2500000; // 250ms awake
+        slept.check();
+        expect(stalls, isEmpty);
+
+        ticks += 32500000; // 3.25s awake, main thread blocked
+        slept.check();
+        expect(stalls.single.lag, const Duration(seconds: 3));
+      },
+    );
+
     test('the default clock and trail need no setup', () {
       final real = UiStallWatchdog(onStall: (_) {})..start();
       real.check();
@@ -193,22 +285,34 @@ void main() {
   });
 
   group('PerfLogFile', () {
-    test('appends lines and rolls past the size cap', () {
+    test('appends lines in order and rolls past the size cap', () async {
       final file = File('${tmp.path}/logs/perf.log');
       final log = PerfLogFile(file, maxBytes: 15);
 
-      log.append('first line');
-      log.append('second');
+      unawaited(log.append('first line'));
+      await log.append('second');
       expect(file.readAsStringSync(), 'first line\nsecond\n');
 
-      log.append('third');
+      await log.append('third');
       expect(File('${file.path}.1').readAsStringSync(), contains('second'));
       expect(file.readAsStringSync(), 'third\n');
     });
 
-    test('a file that cannot be written is ignored', () {
+    test('append returns before touching the disk', () async {
+      final file = File('${tmp.path}/logs/perf.log');
+      final written = PerfLogFile(file).append('stall');
+      // A synchronous write would already have made the file.
+      expect(file.existsSync(), isFalse);
+      await written;
+      expect(file.readAsStringSync(), 'stall\n');
+    });
+
+    test('a file that cannot be written is ignored', () async {
       final blocker = File('${tmp.path}/blocker')..writeAsStringSync('x');
-      PerfLogFile(File('${blocker.path}/perf.log')).append('lost');
+      final log = PerfLogFile(File('${blocker.path}/perf.log'));
+      await log.append('lost');
+      // The queue keeps going after a failed write.
+      await log.append('also lost');
     });
   });
 }

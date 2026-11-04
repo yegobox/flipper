@@ -1,7 +1,12 @@
 import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
+import 'dart:ffi' as ffi;
 import 'dart:io';
+import 'dart:ui' show AppExitResponse;
+
+import 'package:ffi/ffi.dart' show calloc;
+import 'package:flutter/widgets.dart' show AppLifecycleListener;
 
 /// Reports a diagnostic event (`ui_stall`, `ui_hang_killed`, `search_timeout`)
 /// to wherever the app sends them. Set once at startup.
@@ -44,7 +49,9 @@ class PerfOpTrail {
   final DateTime Function() _clock;
   final ListQueue<PerfOp> _recent = ListQueue<PerfOp>();
   final List<PerfOp> _running = <PerfOp>[];
-  int _criticalRunning = 0;
+
+  /// Critical ops still running, oldest first; the marker names the last.
+  final List<PerfOp> _critical = <PerfOp>[];
   File? _marker;
   PerfEventReporter? _reporter;
 
@@ -73,7 +80,7 @@ class PerfOpTrail {
     final op = PerfOp(label, _clock());
     _running.add(op);
     if (critical) {
-      _criticalRunning++;
+      _critical.add(op);
       _writeMarker(op);
     }
     try {
@@ -82,8 +89,24 @@ class PerfOpTrail {
       op.duration = _clock().difference(op.startedAt);
       _running.remove(op);
       _remember(op);
-      if (critical && --_criticalRunning == 0) _clearMarker();
+      // Not found after [markCleanExit]: the app was already quitting.
+      if (_critical.remove(op)) {
+        // An overlapping op that is still running takes the marker back, so
+        // a kill now names it rather than the one that just finished.
+        if (_critical.isEmpty) {
+          _clearMarker();
+        } else {
+          _writeMarker(_critical.last);
+        }
+      }
     }
+  }
+
+  /// The app is quitting normally: the ops still running are cut off by the
+  /// exit, not by a hang, so the next start must not report them.
+  void markCleanExit() {
+    _critical.clear();
+    _clearMarker();
   }
 
   /// Records something that already happened and took [took].
@@ -150,6 +173,22 @@ class PerfOpTrail {
   }
 }
 
+/// Clears [trail]'s marker when the desktop app is asked to quit (last window
+/// closed, Cmd+Q, Alt+F4), so a normal close mid-search is not reported as a
+/// killed hang on the next start. A hung app cannot answer the request, so a
+/// kill from "Not Responding" still leaves the marker. Phones send no exit
+/// request; there the window is only as long as the critical op itself.
+///
+/// Always lets the exit go ahead. Dispose the listener to stop.
+AppLifecycleListener clearMarkerOnExitRequest(PerfOpTrail trail) {
+  return AppLifecycleListener(
+    onExitRequested: () async {
+      trail.markCleanExit();
+      return AppExitResponse.exit;
+    },
+  );
+}
+
 /// A main-thread stall the watchdog saw, with what was running around it.
 class UiStall {
   const UiStall({
@@ -196,7 +235,7 @@ class UiStallWatchdog {
     Duration Function()? elapsed,
   }) : _trail = trail ?? PerfOpTrail.instance,
        _context = context,
-       _elapsed = elapsed ?? _monotonic();
+       _elapsed = elapsed ?? awakeClock();
 
   final void Function(UiStall stall) onStall;
   final Duration tick;
@@ -245,26 +284,71 @@ class UiStallWatchdog {
   }
 }
 
-Duration Function() _monotonic() {
-  final stopwatch = Stopwatch()..start();
-  return () => stopwatch.elapsed;
+/// Time since the clock was made, not counting time the OS spent asleep.
+///
+/// A sleeping till is not a stalled one. `Stopwatch` already stands still
+/// during sleep on macOS, Linux and phones, but on Windows it reads
+/// QueryPerformanceCounter, which keeps counting, so waking a till would look
+/// like a stall as long as the sleep. Windows reads the unbiased interrupt
+/// time instead, which leaves sleep out.
+///
+/// [unbiasedTicks] (100ns units) replaces the Windows source in tests.
+Duration Function() awakeClock({int Function()? unbiasedTicks}) {
+  final read =
+      unbiasedTicks ?? (Platform.isWindows ? _windowsUnbiasedTicks() : null);
+  if (read == null) {
+    final stopwatch = Stopwatch()..start();
+    return () => stopwatch.elapsed;
+  }
+  final start = read();
+  return () => Duration(microseconds: (read() - start) ~/ 10);
+}
+
+typedef _QueryUnbiasedInterruptTimeC =
+    ffi.Int32 Function(ffi.Pointer<ffi.Uint64>);
+typedef _QueryUnbiasedInterruptTime = int Function(ffi.Pointer<ffi.Uint64>);
+
+/// `QueryUnbiasedInterruptTime` from kernel32, or null when it can't be read
+/// (the watchdog then falls back to `Stopwatch`).
+int Function()? _windowsUnbiasedTicks() {
+  try {
+    final query = ffi.DynamicLibrary.open('kernel32.dll')
+        .lookupFunction<
+          _QueryUnbiasedInterruptTimeC,
+          _QueryUnbiasedInterruptTime
+        >('QueryUnbiasedInterruptTime');
+    // One 8-byte slot for the life of the app; never freed.
+    final out = calloc<ffi.Uint64>();
+    int read() => query(out) == 0 ? 0 : out.value;
+    if (read() == 0) return null;
+    return read;
+  } catch (_) {
+    return null;
+  }
 }
 
 /// Append-only text log that rolls to `<name>.1` past [maxBytes], so support
 /// can ask a till for the file without it growing forever.
+///
+/// Writes are async and run one after another: the watchdog reports from the
+/// main isolate, and a slow disk must not lengthen the stall it is reporting.
 class PerfLogFile {
   PerfLogFile(this.file, {this.maxBytes = 1024 * 1024});
 
   final File file;
   final int maxBytes;
+  Future<void> _tail = Future<void>.value();
 
-  void append(String line) {
+  /// Queues [line]; the future completes once it is written (or dropped).
+  Future<void> append(String line) => _tail = _tail.then((_) => _write(line));
+
+  Future<void> _write(String line) async {
     try {
-      file.parent.createSync(recursive: true);
-      if (file.existsSync() && file.lengthSync() > maxBytes) {
-        file.renameSync('${file.path}.1');
+      await file.parent.create(recursive: true);
+      if (await file.exists() && await file.length() > maxBytes) {
+        await file.rename('${file.path}.1');
       }
-      file.writeAsStringSync('$line\n', mode: FileMode.append, flush: true);
+      await file.writeAsString('$line\n', mode: FileMode.append, flush: true);
     } catch (_) {}
   }
 }

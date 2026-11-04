@@ -44,6 +44,25 @@ List<OuterVariantsProvider> posStockFilteredCatalogs(String branchId) => [
       outerVariantsProvider(branchId, stockFilter: filter),
 ];
 
+/// What the POS grid was showing before a search started.
+class _PaintedCatalog {
+  _PaintedCatalog({
+    required this.search,
+    required this.pages,
+    required this.firstPage,
+    required this.lastPage,
+    required this.viewPage,
+    required this.totalCount,
+  });
+
+  final String search;
+  final Map<int, List<Variant>> pages;
+  final int firstPage;
+  final int lastPage;
+  final int? viewPage;
+  final int? totalCount;
+}
+
 @riverpod
 class OuterVariants extends _$OuterVariants {
   /// In-memory pages `[firstCachedPage … lastCachedPage]`; oldest dropped when
@@ -74,6 +93,14 @@ class OuterVariants extends _$OuterVariants {
 
   /// Held while a search query runs; see [_applySearchQuery].
   Completer<void>? _searchSlot;
+
+  /// A search that timed out but whose query is still running. At most one
+  /// is let go of: a second timeout keeps the slot until its query ends.
+  Future<void>? _orphanedSearch;
+
+  /// The page cache as last painted, kept while a search is pending so a
+  /// search that times out can put it back. Null when nothing is pending.
+  _PaintedCatalog? _beforeSearch;
 
   /// How long a search may take before the grid stops waiting for it.
   @visibleForTesting
@@ -212,6 +239,7 @@ class OuterVariants extends _$OuterVariants {
     );
 
     _currentSearch = ref.read(searchStringProvider);
+    _beforeSearch = null;
 
     ref.listen(searchStringProvider, (previous, next) {
       if (next == _currentSearch) return;
@@ -264,10 +292,25 @@ class OuterVariants extends _$OuterVariants {
   /// One search query runs at a time: each is its own isolate on a slow till,
   /// and stacking one per keystroke is how a typist queues seconds of work. A
   /// term typed meanwhile waits, and only the newest of those runs. A query
-  /// that never answers gives up after [searchTimeout] and leaves the grid as
-  /// it was, so the search can never spin forever.
+  /// that never answers gives up after [searchTimeout] and puts back the
+  /// grid, term and pages it replaced, so the search can never spin forever
+  /// and scrolling keeps paging what is on screen.
+  ///
+  /// The timed-out query itself cannot be stopped. One is let go so the next
+  /// term can run; if a second one times out while the first is still
+  /// running, it keeps the slot until it ends, so no more than two queries
+  /// ever run at once.
   Future<void> _applySearchQuery(String searchString) async {
     final generation = ++_searchGeneration;
+    // Only the first of a run of pending terms sees what is painted.
+    _beforeSearch ??= _PaintedCatalog(
+      search: _currentSearch,
+      pages: Map.of(_pageCache),
+      firstPage: _firstCachedPage,
+      lastPage: _lastCachedPage,
+      viewPage: _viewPage,
+      totalCount: _totalCount,
+    );
     _currentSearch = searchString;
     _resetPageCache();
     _firstCachedPage = 0;
@@ -278,15 +321,20 @@ class OuterVariants extends _$OuterVariants {
       if (generation != _searchGeneration) return;
     }
     final slot = _searchSlot = Completer<void>();
+    var keepSlot = false;
 
+    // Tracked without the timeout: the op, and its kill marker, last as long
+    // as the query really runs, not just as long as the grid waits for it.
+    final query = PerfOpTrail.instance.track(
+      'pos_search',
+      () => _fetchVariants(branchId, 0, searchString),
+      critical: true,
+    );
     try {
-      final paged = await PerfOpTrail.instance.track(
-        'pos_search',
-        () => _fetchVariants(branchId, 0, searchString).timeout(searchTimeout),
-        critical: true,
-      );
+      final paged = await query.timeout(searchTimeout);
       if (generation != _searchGeneration) return;
 
+      _beforeSearch = null;
       _totalCount = paged.totalCount;
       _pageCache[0] = List<Variant>.from(paged.variants);
       _firstCachedPage = 0;
@@ -300,13 +348,49 @@ class OuterVariants extends _$OuterVariants {
         'timeout_ms': searchTimeout.inMilliseconds,
         'recent': PerfOpTrail.instance.recent().join(', '),
       });
+      // A newer term is waiting and owns the cache now.
+      if (generation == _searchGeneration) _restoreBeforeSearch();
+
+      final ended = query.then<void>((_) {}, onError: (Object _) {});
+      if (_orphanedSearch == null) {
+        _orphanedSearch = ended;
+        unawaited(
+          ended.whenComplete(() {
+            if (identical(_orphanedSearch, ended)) _orphanedSearch = null;
+          }),
+        );
+      } else {
+        keepSlot = true;
+        unawaited(ended.whenComplete(() => _releaseSearchSlot(slot)));
+      }
     } catch (error, stackTrace) {
       if (generation != _searchGeneration) return;
+      _beforeSearch = null;
       state = AsyncValue.error(error, stackTrace);
     } finally {
-      _searchSlot = null;
-      slot.complete();
+      if (!keepSlot) _releaseSearchSlot(slot);
     }
+  }
+
+  void _releaseSearchSlot(Completer<void> slot) {
+    if (identical(_searchSlot, slot)) _searchSlot = null;
+    if (!slot.isCompleted) slot.complete();
+  }
+
+  /// Puts back what the grid showed before the pending search, so paging and
+  /// the total keep describing the rows on screen.
+  void _restoreBeforeSearch() {
+    final before = _beforeSearch;
+    if (before == null) return;
+    _beforeSearch = null;
+    _currentSearch = before.search;
+    _pageCache
+      ..clear()
+      ..addAll(before.pages);
+    _firstCachedPage = before.firstPage;
+    _lastCachedPage = before.lastPage;
+    _viewPage = before.viewPage;
+    _totalCount = before.totalCount;
   }
 
   /// Extra backoff after an empty first fetch so products appear on cold start
@@ -440,6 +524,7 @@ class OuterVariants extends _$OuterVariants {
     final paged = await _fetchVariants(branchId, 0, '');
     if (generation != _searchGeneration) return;
     _currentSearch = '';
+    _beforeSearch = null;
     _totalCount = paged.totalCount;
     _resetPageCache();
     _pageCache[0] = List<Variant>.from(paged.variants);
