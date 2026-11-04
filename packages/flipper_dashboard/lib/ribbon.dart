@@ -15,7 +15,6 @@ import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/providers/app_mode_provider.dart';
 import 'package:flipper_models/providers/pos_cart_display_provider.dart';
 import 'package:flipper_models/providers/orders_provider.dart';
-import 'package:flipper_models/providers/scan_mode_provider.dart';
 import 'package:flipper_dashboard/features/config/widgets/system_config_modal.dart';
 import 'package:flipper_dashboard/features/online_shop/online_shop_providers.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart'
@@ -76,12 +75,10 @@ class IconRowState extends ConsumerState<IconRow> with CoreMiscellaneous {
   }
 
   Widget _buildOrderingButton() {
-    final stringValue = ref.watch(searchStringProvider);
+    // Not keyed by the POS search: each term would rebuild the provider and
+    // its Ditto observer on the main isolate while the cashier types.
     final orders = ref.watch(
-      stockRequestsProvider(
-        status: RequestStatus.pending,
-        search: stringValue.isNotEmpty ? stringValue : null,
-      ),
+      stockRequestsProvider(status: RequestStatus.pending),
     );
 
     // New online-shop orders wait in the same Orders screen (Online tab).

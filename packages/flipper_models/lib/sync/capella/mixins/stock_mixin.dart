@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:ditto_live/ditto_live.dart' show SyncSubscription;
 import 'package:flipper_models/ebm_helper.dart';
 import 'package:flipper_models/helper_models.dart';
 import 'package:flipper_models/sync/interfaces/stock_interface.dart';
@@ -839,12 +840,16 @@ mixin CapellaStockMixin implements StockInterface {
     // Add ordering and limit
     query += ' ORDER BY createdAt DESC LIMIT :limit';
 
-    // Register subscription
+    // Register subscription. Handles are kept so cancelling the stream drops
+    // them; each requester branch is subscribed once, not on every change.
     final prepared = prepareDqlSyncSubscription(query, arguments);
-    ditto.sync.registerSubscription(
-      prepared.dql,
-      arguments: prepared.arguments,
-    );
+    final subscriptions = <SyncSubscription>[
+      ditto.sync.registerSubscription(
+        prepared.dql,
+        arguments: prepared.arguments,
+      ),
+    ];
+    final subscribedBranchIds = <String>{};
 
     observer = ditto.store.registerObserver(
       query,
@@ -861,14 +866,18 @@ mixin CapellaStockMixin implements StockInterface {
             // Fetch requester branch details (subBranchId)
             if (request.subBranchId != null) {
               // Ensure we subscribe to this branch data so it syncs to this device
-              final preparedBranch = prepareDqlSyncSubscription(
-                "SELECT * FROM branches WHERE _id = :id",
-                {'id': request.subBranchId},
-              );
-              ditto.sync.registerSubscription(
-                preparedBranch.dql,
-                arguments: preparedBranch.arguments,
-              );
+              if (subscribedBranchIds.add(request.subBranchId!)) {
+                final preparedBranch = prepareDqlSyncSubscription(
+                  "SELECT * FROM branches WHERE _id = :id",
+                  {'id': request.subBranchId},
+                );
+                subscriptions.add(
+                  ditto.sync.registerSubscription(
+                    preparedBranch.dql,
+                    arguments: preparedBranch.arguments,
+                  ),
+                );
+              }
 
               talker.info(
                 'Fetching branch details for subBranchId: ${request.subBranchId}',
@@ -898,6 +907,9 @@ mixin CapellaStockMixin implements StockInterface {
 
     controller.onCancel = () async {
       await observer?.cancel();
+      for (final subscription in subscriptions) {
+        subscription.cancel();
+      }
       await controller.close();
     };
 
