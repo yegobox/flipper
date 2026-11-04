@@ -4,6 +4,7 @@ import 'package:flipper_models/ebm_helper.dart';
 import 'package:flipper_models/helper_models.dart';
 import 'package:flipper_models/sync/interfaces/stock_interface.dart';
 import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
+import 'package:flipper_models/sync/keyed_sync_subscriptions.dart';
 import 'package:flipper_models/sync/utils/stock_qty_milli.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_services/constants.dart';
@@ -167,9 +168,7 @@ mixin CapellaStockMixin implements StockInterface {
         throw Exception('Ditto not initialized:4');
       }
       var result = await ditto.store.execute(
-        stockSelectWithMilliDql(
-          whereClause: '_id = :id OR id = :id LIMIT 1',
-        ),
+        stockSelectWithMilliDql(whereClause: '_id = :id OR id = :id LIMIT 1'),
         arguments: {'id': id},
       );
 
@@ -208,8 +207,7 @@ mixin CapellaStockMixin implements StockInterface {
         for (var i = 0; i < unique.length; i++) 's$i': unique[i],
       };
       final query = stockSelectWithMilliDql(
-        whereClause:
-            '_id IN ($placeholders) OR id IN ($placeholders)',
+        whereClause: '_id IN ($placeholders) OR id IN ($placeholders)',
       );
       final result = await ditto.store.execute(query, arguments: arguments);
 
@@ -406,7 +404,10 @@ mixin CapellaStockMixin implements StockInterface {
     final registerQty = _parseDouble(data['currentStock']) ?? 0.0;
     final milli = parseStockMilli(data[stockCurrentStockMilliField]);
     final action = stockMilliPrepAction(milli: milli, registerQty: registerQty);
-    final targetMilli = stockMilliAfterPrep(milli: milli, registerQty: registerQty);
+    final targetMilli = stockMilliAfterPrep(
+      milli: milli,
+      registerQty: registerQty,
+    );
     if (action != StockMilliPrepAction.none) {
       await ditto.store.execute(
         stockRestartMilliDql(),
@@ -457,11 +458,7 @@ mixin CapellaStockMixin implements StockInterface {
     final qty = fromMilli(milli);
     await ditto.store.execute(
       stockDualWriteRegistersDql(),
-      arguments: {
-        'stockId': stockId,
-        'currentStock': qty,
-        'rsdQty': qty,
-      },
+      arguments: {'stockId': stockId, 'currentStock': qty, 'rsdQty': qty},
     );
   }
 
@@ -577,8 +574,9 @@ mixin CapellaStockMixin implements StockInterface {
       if (initialStock != null) {
         final existingInitial =
             (existingData['initialStock'] as num?)?.toDouble() ?? 0;
-        meta['initialStock'] =
-            appending ? existingInitial + initialStock : initialStock;
+        meta['initialStock'] = appending
+            ? existingInitial + initialStock
+            : initialStock;
       }
       if (value != null) {
         meta['value'] = value;
@@ -634,10 +632,7 @@ mixin CapellaStockMixin implements StockInterface {
       final registerRsd = _parseDouble(existingData['rsdQty']) ?? registerQty;
       final nextCurrent = currentStock ?? registerQty;
       final nextRsd = rsdQty ?? (currentStock ?? registerRsd);
-      await _ensureAndReconcileStockMilli(
-        stockId: stockId,
-        data: existingData,
-      );
+      await _ensureAndReconcileStockMilli(stockId: stockId, data: existingData);
       await _setStockQtyViaMilli(
         stockId: stockId,
         currentStock: nextCurrent,
@@ -841,43 +836,46 @@ mixin CapellaStockMixin implements StockInterface {
     query += ' ORDER BY createdAt DESC LIMIT :limit';
 
     // Register subscription. Handles are kept so cancelling the stream drops
-    // them; each requester branch is subscribed once, not on every change.
+    // them; each requester branch is subscribed once while it is in the
+    // result, not on every change.
     final prepared = prepareDqlSyncSubscription(query, arguments);
-    final subscriptions = <SyncSubscription>[
-      ditto.sync.registerSubscription(
-        prepared.dql,
-        arguments: prepared.arguments,
-      ),
-    ];
-    final subscribedBranchIds = <String>{};
+    final SyncSubscription requestsSubscription = ditto.sync
+        .registerSubscription(prepared.dql, arguments: prepared.arguments);
+    final branchSubscriptions = KeyedSyncSubscriptions((branchId) {
+      final preparedBranch = prepareDqlSyncSubscription(
+        "SELECT * FROM branches WHERE _id = :id",
+        {'id': branchId},
+      );
+      return ditto.sync
+          .registerSubscription(
+            preparedBranch.dql,
+            arguments: preparedBranch.arguments,
+          )
+          .cancel;
+    });
+    var emission = 0;
 
     observer = ditto.store.registerObserver(
       query,
       arguments: arguments,
       onChange: (queryResult) async {
         if (controller.isClosed) return;
+        final thisEmission = ++emission;
 
         try {
           final requests = <InventoryRequest>[];
+          final branchIds = <String>{};
           for (final item in queryResult.items) {
+            // A pending branch lookup can outlive the stream.
+            if (controller.isClosed) return;
             final data = Map<String, dynamic>.from(item.value);
             final request = _convertInventoryRequestFromDitto(data);
 
             // Fetch requester branch details (subBranchId)
             if (request.subBranchId != null) {
               // Ensure we subscribe to this branch data so it syncs to this device
-              if (subscribedBranchIds.add(request.subBranchId!)) {
-                final preparedBranch = prepareDqlSyncSubscription(
-                  "SELECT * FROM branches WHERE _id = :id",
-                  {'id': request.subBranchId},
-                );
-                subscriptions.add(
-                  ditto.sync.registerSubscription(
-                    preparedBranch.dql,
-                    arguments: preparedBranch.arguments,
-                  ),
-                );
-              }
+              branchIds.add(request.subBranchId!);
+              branchSubscriptions.ensure(request.subBranchId!);
 
               talker.info(
                 'Fetching branch details for subBranchId: ${request.subBranchId}',
@@ -898,6 +896,11 @@ mixin CapellaStockMixin implements StockInterface {
             }
             requests.add(request);
           }
+          if (controller.isClosed) return;
+          // An older result finishing late must not drop a newer one's branch.
+          if (thisEmission == emission) {
+            branchSubscriptions.retainOnly(branchIds);
+          }
           controller.add(requests);
         } catch (e) {
           talker.error('Error processing requests stream: $e');
@@ -907,9 +910,8 @@ mixin CapellaStockMixin implements StockInterface {
 
     controller.onCancel = () async {
       await observer?.cancel();
-      for (final subscription in subscriptions) {
-        subscription.cancel();
-      }
+      requestsSubscription.cancel();
+      branchSubscriptions.cancelAll();
       await controller.close();
     };
 
@@ -1267,10 +1269,9 @@ mixin CapellaStockMixin implements StockInterface {
       final controller = StreamController<Stock?>.broadcast();
       dynamic observer;
       final stockQuery = stockSelectWithMilliDql(whereClause: 'id = :id');
-      final preparedStockId = prepareDqlSyncSubscription(
-        stockQuery,
-        {'id': stockId},
-      );
+      final preparedStockId = prepareDqlSyncSubscription(stockQuery, {
+        'id': stockId,
+      });
       ditto.sync.registerSubscription(
         preparedStockId.dql,
         arguments: preparedStockId.arguments,
