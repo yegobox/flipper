@@ -19,8 +19,8 @@ void main() {
   tearDown(LocalMode.debugReset);
 
   test('nothing is sent while the local-mode marker cannot be read', () async {
-    LocalMode.debugReadMarker = () async =>
-        throw const FileSystemException('store locked');
+    LocalMode.debugReadMarker =
+        () async => throw const FileSystemException('store locked');
 
     await sendStallTelemetry('ui_stall', const {'lag_ms': 3000}, send: send);
 

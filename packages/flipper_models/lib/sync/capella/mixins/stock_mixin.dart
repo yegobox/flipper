@@ -814,9 +814,6 @@ mixin CapellaStockMixin implements StockInterface {
       return Stream.value([]);
     }
 
-    final controller = StreamController<List<InventoryRequest>>.broadcast();
-    dynamic observer;
-
     // Use a basic query for stock requests where we are the main branch (supplier)
     String query =
         'SELECT * FROM stock_requests WHERE mainBranchId = :branchId';
@@ -841,81 +838,55 @@ mixin CapellaStockMixin implements StockInterface {
     final prepared = prepareDqlSyncSubscription(query, arguments);
     final SyncSubscription requestsSubscription = ditto.sync
         .registerSubscription(prepared.dql, arguments: prepared.arguments);
-    final branchSubscriptions = KeyedSyncSubscriptions((branchId) {
-      final preparedBranch = prepareDqlSyncSubscription(
-        "SELECT * FROM branches WHERE _id = :id",
-        {'id': branchId},
-      );
-      return ditto.sync
-          .registerSubscription(
-            preparedBranch.dql,
-            arguments: preparedBranch.arguments,
-          )
-          .cancel;
-    });
-    var emission = 0;
-
-    observer = ditto.store.registerObserver(
-      query,
-      arguments: arguments,
-      onChange: (queryResult) async {
-        if (controller.isClosed) return;
-        final thisEmission = ++emission;
-
-        try {
-          final requests = <InventoryRequest>[];
-          final branchIds = <String>{};
-          for (final item in queryResult.items) {
-            // A pending branch lookup can outlive the stream.
-            if (controller.isClosed) return;
-            final data = Map<String, dynamic>.from(item.value);
-            final request = _convertInventoryRequestFromDitto(data);
-
-            // Fetch requester branch details (subBranchId)
-            if (request.subBranchId != null) {
-              // Ensure we subscribe to this branch data so it syncs to this device
-              branchIds.add(request.subBranchId!);
-              branchSubscriptions.ensure(request.subBranchId!);
-
-              talker.info(
-                'Fetching branch details for subBranchId: ${request.subBranchId}',
-              );
-              final branchResult = await ditto.store.execute(
-                'SELECT * FROM branches WHERE _id = :id',
-                arguments: {'id': request.subBranchId},
-              );
-
-              if (branchResult.items.isNotEmpty) {
-                talker.info('Branch found for ${request.subBranchId}');
-                request.branch = Branch.fromMap(
-                  Map<String, dynamic>.from(branchResult.items.first.value),
-                );
-              } else {
-                talker.error('Branch NOT found for ${request.subBranchId}');
-              }
-            }
-            requests.add(request);
-          }
-          if (controller.isClosed) return;
-          // An older result finishing late must not drop a newer one's branch.
-          if (thisEmission == emission) {
-            branchSubscriptions.retainOnly(branchIds);
-          }
-          controller.add(requests);
-        } catch (e) {
-          talker.error('Error processing requests stream: $e');
+    final feed = KeyedObserverFeed<InventoryRequest>(
+      cancelSubscription: requestsSubscription.cancel,
+      subscriptions: KeyedSyncSubscriptions((branchId) {
+        final preparedBranch = prepareDqlSyncSubscription(
+          "SELECT * FROM branches WHERE _id = :id",
+          {'id': branchId},
+        );
+        return ditto.sync
+            .registerSubscription(
+              preparedBranch.dql,
+              arguments: preparedBranch.arguments,
+            )
+            .cancel;
+      }),
+      // Requester branch details, synced to this device while listed.
+      keyOf: (request) => request.subBranchId,
+      resolve: (request, subBranchId) async {
+        talker.info('Fetching branch details for subBranchId: $subBranchId');
+        final branchResult = await ditto.store.execute(
+          'SELECT * FROM branches WHERE _id = :id',
+          arguments: {'id': subBranchId},
+        );
+        if (branchResult.items.isNotEmpty) {
+          talker.info('Branch found for $subBranchId');
+          request.branch = Branch.fromMap(
+            Map<String, dynamic>.from(branchResult.items.first.value),
+          );
+        } else {
+          talker.error('Branch NOT found for $subBranchId');
         }
       },
+      onError: (e) => talker.error('Error processing requests stream: $e'),
     );
 
-    controller.onCancel = () async {
-      await observer?.cancel();
-      requestsSubscription.cancel();
-      branchSubscriptions.cancelAll();
-      await controller.close();
-    };
+    final observer = ditto.store.registerObserver(
+      query,
+      arguments: arguments,
+      onChange: (queryResult) => feed.emit(
+        () => [
+          for (final item in queryResult.items)
+            _convertInventoryRequestFromDitto(
+              Map<String, dynamic>.from(item.value),
+            ),
+        ],
+      ),
+    );
+    feed.cancelObserver = observer.cancel;
 
-    return controller.stream;
+    return feed.stream;
   }
 
   @override
@@ -930,9 +901,6 @@ mixin CapellaStockMixin implements StockInterface {
       talker.error('Ditto not initialized');
       return Stream.value([]);
     }
-
-    final controller = StreamController<List<InventoryRequest>>.broadcast();
-    dynamic observer;
 
     // Query for requests where we are the subBranch (requester)
     String query = 'SELECT * FROM stock_requests WHERE subBranchId = :branchId';
@@ -951,63 +919,60 @@ mixin CapellaStockMixin implements StockInterface {
     // Add ordering and limit
     query += ' ORDER BY createdAt DESC LIMIT :limit';
 
-    // Register subscription
+    // Register subscription. Handles are kept so cancelling the stream drops
+    // them; each supplier branch is subscribed once while it is listed.
     final preparedOutgoing = prepareDqlSyncSubscription(query, arguments);
-    ditto.sync.registerSubscription(
-      preparedOutgoing.dql,
-      arguments: preparedOutgoing.arguments,
-    );
-
-    observer = ditto.store.registerObserver(
-      query,
-      arguments: arguments,
-      onChange: (queryResult) async {
-        if (controller.isClosed) return;
-
-        try {
-          final requests = <InventoryRequest>[];
-          for (final item in queryResult.items) {
-            final data = Map<String, dynamic>.from(item.value);
-            final request = _convertInventoryRequestFromDitto(data);
-
-            // Fetch supplier branch details (mainBranchId)
-            if (request.mainBranchId != null) {
-              // Ensure subscription
-              final preparedBranch = prepareDqlSyncSubscription(
-                "SELECT * FROM branches WHERE _id = :id",
-                {'id': request.mainBranchId},
-              );
-              ditto.sync.registerSubscription(
-                preparedBranch.dql,
-                arguments: preparedBranch.arguments,
-              );
-
-              final branchResult = await ditto.store.execute(
-                'SELECT * FROM branches WHERE _id = :id',
-                arguments: {'id': request.mainBranchId},
-              );
-
-              if (branchResult.items.isNotEmpty) {
-                request.branch = Branch.fromMap(
-                  Map<String, dynamic>.from(branchResult.items.first.value),
-                );
-              }
-            }
-            requests.add(request);
-          }
-          controller.add(requests);
-        } catch (e) {
-          talker.error('Error processing outgoing requests stream: $e');
+    final SyncSubscription requestsSubscription = ditto.sync
+        .registerSubscription(
+          preparedOutgoing.dql,
+          arguments: preparedOutgoing.arguments,
+        );
+    final feed = KeyedObserverFeed<InventoryRequest>(
+      cancelSubscription: requestsSubscription.cancel,
+      subscriptions: KeyedSyncSubscriptions((branchId) {
+        final preparedBranch = prepareDqlSyncSubscription(
+          "SELECT * FROM branches WHERE _id = :id",
+          {'id': branchId},
+        );
+        return ditto.sync
+            .registerSubscription(
+              preparedBranch.dql,
+              arguments: preparedBranch.arguments,
+            )
+            .cancel;
+      }),
+      // Supplier branch details (mainBranchId).
+      keyOf: (request) => request.mainBranchId,
+      resolve: (request, mainBranchId) async {
+        final branchResult = await ditto.store.execute(
+          'SELECT * FROM branches WHERE _id = :id',
+          arguments: {'id': mainBranchId},
+        );
+        if (branchResult.items.isNotEmpty) {
+          request.branch = Branch.fromMap(
+            Map<String, dynamic>.from(branchResult.items.first.value),
+          );
         }
       },
+      onError: (e) =>
+          talker.error('Error processing outgoing requests stream: $e'),
     );
 
-    controller.onCancel = () async {
-      await observer?.cancel();
-      await controller.close();
-    };
+    final observer = ditto.store.registerObserver(
+      query,
+      arguments: arguments,
+      onChange: (queryResult) => feed.emit(
+        () => [
+          for (final item in queryResult.items)
+            _convertInventoryRequestFromDitto(
+              Map<String, dynamic>.from(item.value),
+            ),
+        ],
+      ),
+    );
+    feed.cancelObserver = observer.cancel;
 
-    return controller.stream;
+    return feed.stream;
   }
 
   @override

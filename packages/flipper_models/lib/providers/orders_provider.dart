@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'package:collection/collection.dart';
 import 'package:flipper_models/SyncStrategy.dart';
+import 'package:flipper_models/providers/active_branch_provider.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:supabase_models/brick/models/inventory_request.model.dart';
 import 'package:flipper_services/notifications/notification_handler.dart';
@@ -27,6 +29,8 @@ class StockRequests extends _$StockRequests {
   }) {
     _status = status;
     _search = search;
+    // Rebuild on a branch switch: the requests below are this branch's.
+    ref.watch(activeBranchProvider.select((b) => b.value?.id));
 
     final branchId = ProxyService.box.getBranchId();
     if (branchId == null) {
@@ -112,6 +116,8 @@ class OutgoingStockRequests extends _$OutgoingStockRequests {
   }) {
     _status = status;
     _search = search;
+    // Rebuild on a branch switch: the requests below are this branch's.
+    ref.watch(activeBranchProvider.select((b) => b.value?.id));
 
     final branchId = ProxyService.box.getBranchId();
     if (branchId == null) {

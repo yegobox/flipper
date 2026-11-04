@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flipper_models/sync/keyed_sync_subscriptions.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -52,5 +54,115 @@ void main() {
     subscriptions.ensure('branch-c');
     expect(registered, ['branch-a', 'branch-b']);
     expect(subscriptions.keys, isEmpty);
+  });
+
+  group('KeyedObserverFeed', () {
+    late Map<String, Completer<void>> held;
+    late List<List<String>> emitted;
+    late List<Object> errors;
+    late int observerCancels;
+    late int streamCancels;
+    late KeyedObserverFeed<String> feed;
+    late StreamSubscription<List<String>> listening;
+
+    // Rows are `id:key`; a row with no key has no colon.
+    String? keyOf(String row) => row.contains(':') ? row.split(':')[1] : null;
+
+    setUp(() {
+      held = {};
+      emitted = [];
+      errors = [];
+      observerCancels = 0;
+      streamCancels = 0;
+      feed = KeyedObserverFeed<String>(
+        subscriptions: subscriptions,
+        keyOf: keyOf,
+        resolve: (row, key) async {
+          if (key == 'boom') throw StateError('lookup failed');
+          await held[row]?.future;
+        },
+        cancelSubscription: () => streamCancels++,
+        onError: errors.add,
+      )..cancelObserver = () => observerCancels++;
+      listening = feed.stream.listen(emitted.add);
+    });
+
+    test('an older emission finishing late neither replaces the newer list '
+        'nor drops its keys', () async {
+      held['r1:x'] = Completer<void>();
+      final older = feed.emit(() => ['r1:x']);
+      await feed.emit(() => ['r3:x', 'r2:y']);
+      await Future<void>.delayed(Duration.zero);
+      expect(emitted, [
+        ['r3:x', 'r2:y'],
+      ]);
+
+      held['r1:x']!.complete();
+      await older;
+      await Future<void>.delayed(Duration.zero);
+
+      expect(emitted, hasLength(1));
+      expect(subscriptions.keys, unorderedEquals(['x', 'y']));
+    });
+
+    test('a superseded emission never subscribes a key after the newer one '
+        'pruned it', () async {
+      held['r1:x'] = Completer<void>();
+      final older = feed.emit(() => ['r1:x', 'r2:z']);
+      await feed.emit(() => ['r3:x']);
+      expect(subscriptions.keys, ['x']);
+
+      held['r1:x']!.complete();
+      await older;
+
+      expect(subscriptions.keys, ['x']);
+      expect(registered.where((k) => k == 'z'), hasLength(1));
+      expect(cancelled, ['z']);
+    });
+
+    test('a failed lookup still prunes keys that left the result', () async {
+      await feed.emit(() => ['r1:a', 'r2:b']);
+      await feed.emit(() => ['r2:b', 'r3:boom']);
+
+      expect(errors.single, isStateError);
+      expect(subscriptions.keys, unorderedEquals(['b', 'boom']));
+      expect(cancelled, ['a']);
+      await Future<void>.delayed(Duration.zero);
+      expect(emitted, hasLength(1));
+    });
+
+    test(
+      'a result that cannot be read is reported and changes nothing',
+      () async {
+        await feed.emit(() => ['r1:a']);
+        await feed.emit(() => throw const FormatException('bad row'));
+
+        expect(errors.single, isFormatException);
+        expect(subscriptions.keys, ['a']);
+      },
+    );
+
+    test('rows without a key are delivered without a subscription', () async {
+      await feed.emit(() => ['plain']);
+      await Future<void>.delayed(Duration.zero);
+      expect(emitted, [
+        ['plain'],
+      ]);
+      expect(registered, isEmpty);
+    });
+
+    test('closing the stream cancels the observer, its own subscription and '
+        'every keyed one', () async {
+      await feed.emit(() => ['r1:a', 'r2:b']);
+      await listening.cancel();
+
+      expect(observerCancels, 1);
+      expect(streamCancels, 1);
+      expect(cancelled, unorderedEquals(['a', 'b']));
+
+      // Late observer work after close is ignored.
+      await feed.emit(() => ['r3:c']);
+      expect(registered, ['a', 'b']);
+    });
   });
 }
