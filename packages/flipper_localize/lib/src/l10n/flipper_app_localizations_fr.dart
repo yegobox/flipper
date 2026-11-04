@@ -28157,4 +28157,7 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   @override
   String get localModeSyncOnElsewhereBody =>
       'La synchronisation cloud a été activée pour cette entreprise depuis un autre appareil. Reconnectez-vous pour envoyer les données de cet appareil et terminer.';
+
+  @override
+  String get tenantMgmtPinOnly => 'PIN uniquement';
 }

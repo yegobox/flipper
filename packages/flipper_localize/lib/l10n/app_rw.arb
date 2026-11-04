@@ -9360,5 +9360,6 @@
   "localModeHoldReleasedTitle": "Iki gikoresho kiriteguye",
   "localModeHoldReleasedBody": "Ububiko bw'iki gikoresho bwari bufatiwe gukora nta interineti bwarekuwe. Ongera winjire kugira ngo ukomeze.",
   "localModeSyncOnElsewhereTitle": "Guhuza na cloud byafunguwe",
-  "localModeSyncOnElsewhereBody": "Guhuza na cloud byafunguwe kuri ubu bucuruzi bivuye ku kindi gikoresho. Ongera winjire kugira ngo wohereze amakuru y'iki gikoresho urangize."
+  "localModeSyncOnElsewhereBody": "Guhuza na cloud byafunguwe kuri ubu bucuruzi bivuye ku kindi gikoresho. Ongera winjire kugira ngo wohereze amakuru y'iki gikoresho urangize.",
+  "tenantMgmtPinOnly": "PIN gusa"
 }

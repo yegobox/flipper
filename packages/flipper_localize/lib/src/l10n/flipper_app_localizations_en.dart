@@ -27718,4 +27718,7 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
   @override
   String get localModeSyncOnElsewhereBody =>
       'Cloud sync was turned on for this business from another device. Sign in again to upload this device\'s data and finish.';
+
+  @override
+  String get tenantMgmtPinOnly => 'PIN only';
 }

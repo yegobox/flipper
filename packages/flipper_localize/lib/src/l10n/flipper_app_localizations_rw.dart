@@ -27977,4 +27977,7 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   @override
   String get localModeSyncOnElsewhereBody =>
       'Guhuza na cloud byafunguwe kuri ubu bucuruzi bivuye ku kindi gikoresho. Ongera winjire kugira ngo wohereze amakuru y\'iki gikoresho urangize.';
+
+  @override
+  String get tenantMgmtPinOnly => 'PIN gusa';
 }

@@ -33,7 +33,7 @@ class FlipperBaseModel extends ReactiveViewModel {
     return type == 'agent' && uid.isNotEmpty;
   }
 
-  /// Agent tenants for [businessId] via Supabase — same pipeline as [loadTenants].
+  /// Agent tenants for [businessId] via Supabase (`tenants` rows only).
   static Future<List<Tenant>> fetchAgentTenantsFromSupabase({
     String? businessId,
   }) async {
@@ -150,6 +150,9 @@ class FlipperBaseModel extends ReactiveViewModel {
     return tenants;
   }
 
+  /// User Management list — the same roster as Bar Mode's Staff & PINs
+  /// ([fetchBarStaffTenants]), so PIN-only staff and the owner show up here
+  /// too and both screens list the same people.
   Future<void> loadTenants() async {
     final businessId = ProxyService.box.getBusinessId();
     if (businessId == null || businessId.isEmpty) {
@@ -158,24 +161,10 @@ class FlipperBaseModel extends ReactiveViewModel {
       return;
     }
 
-    List<Tenant> users;
-    try {
-      final businessUuid = await resolveBusinessUuidForTenants(businessId);
-      if (businessUuid == null || businessUuid.isEmpty) {
-        debugPrint('loadTenants: could not resolve business id "$businessId"');
-        users = [];
-      } else {
-        users = await fetchTenantsFromSupabase(businessUuid);
-        debugPrint(
-          'loadTenants: businessUuid=$businessUuid count=${users.length}',
-        );
-      }
-    } catch (e, s) {
-      debugPrint('loadTenants Supabase: $e\n$s');
-      users = [];
-    }
+    final users = await fetchBarStaffTenants(businessId: businessId);
+    debugPrint('loadTenants: businessId=$businessId count=${users.length}');
 
-    _tenants = dedupeTenantsForDisplay(users);
+    _tenants = List<Tenant>.from(users);
     notifyListeners();
   }
 
@@ -263,6 +252,50 @@ class FlipperBaseModel extends ReactiveViewModel {
     );
   }
 
+  /// The owner's own `tenants` row as a roster entry. Keeps the account name
+  /// User Management shows (not `users.name`), so both screens agree.
+  static Tenant ownerStaffFromTenant(
+    Tenant tenant, {
+    required String businessUuid,
+    String? ownerPhone,
+  }) {
+    return Tenant(
+      id: tenant.id,
+      name: tenant.name,
+      phoneNumber: tenant.phoneNumber ?? ownerPhone,
+      email: tenant.email,
+      nfcEnabled: tenant.nfcEnabled,
+      businessId: tenant.businessId ?? businessUuid,
+      userId: tenant.userId,
+      imageUrl: tenant.imageUrl,
+      lastTouched: tenant.lastTouched,
+      deletedAt: tenant.deletedAt,
+      pin: tenant.pin,
+      isDefault: tenant.isDefault,
+      sessionActive: tenant.sessionActive,
+      type: tenant.type ?? 'Owner',
+      allowBusinessLogin: true,
+    );
+  }
+
+  /// Staff who can sign in with a PIN but have no `tenants` row. Those rows
+  /// are built from `pins`/`users` and use the user id as their id.
+  static bool isPinOnlyStaff(Tenant t) {
+    final uid = t.userId;
+    return uid != null && uid.isNotEmpty && t.id == uid;
+  }
+
+  /// The roster row to open for editing: the freshly loaded one for the same
+  /// user when there is one, else [initial] as given.
+  static Tenant resolveInitialEditTenant(List<Tenant> loaded, Tenant initial) {
+    final uid = initial.userId;
+    if (uid == null || uid.isEmpty) return initial;
+    for (final t in loaded) {
+      if (t.userId == uid) return t;
+    }
+    return initial;
+  }
+
   /// Business creator — often in `users` + `pins` but not `tenants`.
   static Future<Tenant?> fetchBusinessOwnerStaffMember(
     String businessUuid,
@@ -298,32 +331,11 @@ class FlipperBaseModel extends ReactiveViewModel {
 
     if (tenantRows.isNotEmpty) {
       final row = Map<String, dynamic>.from(tenantRows.first as Map);
-      final tenant = withPinFromLookup(
-        tenantFromSupabaseRow(row),
-        pinsByUserId,
+      return ownerStaffFromTenant(
+        withPinFromLookup(tenantFromSupabaseRow(row), pinsByUserId),
+        businessUuid: businessUuid,
+        ownerPhone: ownerPhone,
       );
-      if (ownerName != null &&
-          ownerName.isNotEmpty &&
-          tenant.name != ownerName) {
-        return Tenant(
-          id: tenant.id,
-          name: ownerName,
-          phoneNumber: ownerPhone ?? tenant.phoneNumber,
-          email: tenant.email,
-          nfcEnabled: tenant.nfcEnabled,
-          businessId: tenant.businessId ?? businessUuid,
-          userId: tenant.userId,
-          imageUrl: tenant.imageUrl,
-          lastTouched: tenant.lastTouched,
-          deletedAt: tenant.deletedAt,
-          pin: tenant.pin,
-          isDefault: tenant.isDefault,
-          sessionActive: tenant.sessionActive,
-          type: tenant.type ?? 'Owner',
-          allowBusinessLogin: true,
-        );
-      }
-      return tenant;
     }
 
     return Tenant(

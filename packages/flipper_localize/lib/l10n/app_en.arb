@@ -20509,5 +20509,9 @@
     "localModeSyncOnElsewhereBody": "Cloud sync was turned on for this business from another device. Sign in again to upload this device's data and finish.",
     "@localModeSyncOnElsewhereBody": {
         "description": "Body: sign in again to finish switching this device to cloud sync"
+    },
+    "tenantMgmtPinOnly": "PIN only",
+    "@tenantMgmtPinOnly": {
+        "description": "User Management chip: this person signs in with a PIN but has no account permissions saved yet"
     }
 }

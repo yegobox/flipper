@@ -46378,6 +46378,12 @@ abstract class FlipperAppLocalizations {
   /// In en, this message translates to:
   /// **'Cloud sync was turned on for this business from another device. Sign in again to upload this device\'s data and finish.'**
   String get localModeSyncOnElsewhereBody;
+
+  /// User Management chip: this person signs in with a PIN but has no account permissions saved yet
+  ///
+  /// In en, this message translates to:
+  /// **'PIN only'**
+  String get tenantMgmtPinOnly;
 }
 
 class _FlipperAppLocalizationsDelegate

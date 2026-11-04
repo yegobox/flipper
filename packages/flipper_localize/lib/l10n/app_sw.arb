@@ -9366,5 +9366,6 @@
   "localModeHoldReleasedTitle": "Kifaa hiki kiko tayari",
   "localModeHoldReleasedBody": "Kizuizi cha nje ya mtandao kwenye kifaa hiki kimeondolewa. Ingia tena ili kuendelea.",
   "localModeSyncOnElsewhereTitle": "Usawazishaji wa wingu umewashwa",
-  "localModeSyncOnElsewhereBody": "Usawazishaji wa wingu umewashwa kwa biashara hii kutoka kifaa kingine. Ingia tena ili kupakia data ya kifaa hiki na kumaliza."
+  "localModeSyncOnElsewhereBody": "Usawazishaji wa wingu umewashwa kwa biashara hii kutoka kifaa kingine. Ingia tena ili kupakia data ya kifaa hiki na kumaliza.",
+  "tenantMgmtPinOnly": "PIN pekee"
 }

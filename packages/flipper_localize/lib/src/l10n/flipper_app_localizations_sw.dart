@@ -27880,4 +27880,7 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   @override
   String get localModeSyncOnElsewhereBody =>
       'Usawazishaji wa wingu umewashwa kwa biashara hii kutoka kifaa kingine. Ingia tena ili kupakia data ya kifaa hiki na kumaliza.';
+
+  @override
+  String get tenantMgmtPinOnly => 'PIN pekee';
 }
