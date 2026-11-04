@@ -3799,6 +3799,8 @@
   "serviceModeBarCounter": "Kaunta ya baa",
   "serviceModeFrontDesk": "Mapokezi",
   "serviceModeAdminOnly": "Msimamizi pekee ndiye anaweza kubadilisha hali ya huduma ya kifaa hiki.",
+  "serviceModeHotkeyOpenDesk": "Fungua POS, Baa au Hoteli ili kubadilisha hali ya huduma ya kifaa hiki.",
+  "serviceModeHotkeySignInFirst": "Ingia kwenye kituo kwanza, kisha ubadilishe hali ya huduma.",
   "serviceModeNoAccess": "Huna ruhusa ya kutumia {mode}. Muombe msimamizi akupe ruhusa katika Usimamizi wa Watumiaji.",
   "serviceModeSwitchNotSaved": "Imeshindwa kubadili kwenda {mode}: mipangilio ya tawi haikuhifadhiwa. Angalia muunganisho wako na ujaribu tena.",
   "serviceModeSwitched": "Kifaa hiki kimebadilika kwenda {mode} · {hotkey} kubadili tena",
