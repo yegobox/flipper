@@ -7676,6 +7676,14 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
       'Only an admin can switch this device\'s service mode.';
 
   @override
+  String get serviceModeHotkeyOpenDesk =>
+      'Open POS, Bar or Hotel to switch this device\'s service mode.';
+
+  @override
+  String get serviceModeHotkeySignInFirst =>
+      'Sign in at the desk first, then switch the service mode.';
+
+  @override
   String serviceModeNoAccess(String mode) {
     return 'You don\'t have access to $mode. Ask an admin to grant it in User Management.';
   }

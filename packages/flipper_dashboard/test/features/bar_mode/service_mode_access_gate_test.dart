@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flipper_dashboard/features/bar_mode/providers/bar_mode_providers.dart';
 import 'package:flipper_dashboard/features/service_mode_access_gate.dart';
+import 'package:flipper_dashboard/features/service_mode_hotkey.dart';
 import 'package:flipper_dashboard/features/hotel_mode/providers/hotel_mode_providers.dart';
 import 'package:flipper_dashboard/features/service_mode_switch.dart';
 import 'package:flipper_localize/flipper_localize.dart';
@@ -52,6 +53,16 @@ class _Clerk extends Notifier<Tenant?> {
 }
 
 final _clerkProvider = NotifierProvider<_Clerk, Tenant?>(_Clerk.new);
+
+/// Stands in for "the desk shows its lock".
+class _Locked extends Notifier<bool> {
+  @override
+  bool build() => false;
+
+  void set(bool locked) => state = locked;
+}
+
+final _lockedProvider = NotifierProvider<_Locked, bool>(_Locked.new);
 
 ServiceModeGrants _barGrantedTo(String userId) => ServiceModeGrants(
   byFeature: {
@@ -406,6 +417,91 @@ void main() {
       final c = await pumpDesk(tester);
       await signIn(tester, c, _cashier);
       expect(find.text('Cashier'), findsOneWidget);
+    });
+  });
+
+  group('ServiceModeClerkDesk', () {
+    late List<Tenant> roster;
+
+    Future<ProviderContainer> pumpDesk(WidgetTester tester) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            barServicesProvider.overrideWithValue(_Services(_Box(null))),
+            barStaffProvider.overrideWith((ref) async => roster),
+          ],
+          child: MaterialApp(
+            home: ServiceModeClerkDesk(
+              clerk: _clerkProvider,
+              locked: _lockedProvider,
+              child: const Text('DESK'),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      return ProviderScope.containerOf(tester.element(find.text('DESK')));
+    }
+
+    setUp(() => roster = [_waiter, _cashier, _admin]);
+
+    testWidgets('nobody signed in: sign in first', (tester) async {
+      await pumpDesk(tester);
+      expect(
+        await serviceModeHotkeyRefusal(),
+        ServiceModeHotkeyRefusal.signInFirst,
+      );
+    });
+
+    testWidgets('a clerk still bound on the lock: sign in first', (
+      tester,
+    ) async {
+      final c = await pumpDesk(tester);
+      c.read(_clerkProvider.notifier).set(_admin);
+      c.read(_lockedProvider.notifier).set(true);
+      expect(
+        await serviceModeHotkeyRefusal(),
+        ServiceModeHotkeyRefusal.signInFirst,
+      );
+    });
+
+    testWidgets('a cashier at the desk is not an admin, whoever runs the app', (
+      tester,
+    ) async {
+      final c = await pumpDesk(tester);
+      c.read(_clerkProvider.notifier).set(_cashier);
+      expect(
+        await serviceModeHotkeyRefusal(),
+        ServiceModeHotkeyRefusal.notAdmin,
+      );
+    });
+
+    testWidgets('an Admin at the desk may switch', (tester) async {
+      final c = await pumpDesk(tester);
+      c.read(_clerkProvider.notifier).set(_admin);
+      expect(await serviceModeHotkeyRefusal(), isNull);
+    });
+
+    testWidgets('an Admin demoted since sign-in may not', (tester) async {
+      roster = [
+        _waiter,
+        Tenant(id: 't-a', name: 'Boss', userId: 'u-a', type: 'Agent'),
+      ];
+      final c = await pumpDesk(tester);
+      c.read(_clerkProvider.notifier).set(_admin);
+      expect(
+        await serviceModeHotkeyRefusal(),
+        ServiceModeHotkeyRefusal.notAdmin,
+      );
+    });
+
+    testWidgets('an unreadable roster keeps the signed-in Admin', (
+      tester,
+    ) async {
+      roster = const [];
+      final c = await pumpDesk(tester);
+      c.read(_clerkProvider.notifier).set(_admin);
+      expect(await serviceModeHotkeyRefusal(), isNull);
     });
   });
 

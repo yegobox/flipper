@@ -6519,6 +6519,14 @@
     "@serviceModeAdminOnly": {
         "description": "Service-mode hotkey: non-admin tried to switch"
     },
+    "serviceModeHotkeyOpenDesk": "Open POS, Bar or Hotel to switch this device's service mode.",
+    "@serviceModeHotkeyOpenDesk": {
+        "description": "Service-mode hotkey pressed outside POS, Bar and Hotel"
+    },
+    "serviceModeHotkeySignInFirst": "Sign in at the desk first, then switch the service mode.",
+    "@serviceModeHotkeySignInFirst": {
+        "description": "Service-mode hotkey pressed on a Bar or Hotel lock screen"
+    },
     "serviceModeNoAccess": "You don't have access to {mode}. Ask an admin to grant it in User Management.",
     "@serviceModeNoAccess": {
         "description": "Bar/Hotel host: the signed-in user holds no grant for this mode",

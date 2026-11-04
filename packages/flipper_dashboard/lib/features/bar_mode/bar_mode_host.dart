@@ -169,7 +169,14 @@ class _BarModeHostState extends ConsumerState<BarModeHost> {
 
     return ServiceModeHotkeyScope(
       child: ServiceModePhoneShellSync(
-        child: ServiceModeAccessGate(mode: ServiceMode.bar, child: stage),
+        child: ServiceModeAccessGate(
+          mode: ServiceMode.bar,
+          child: ServiceModeClerkDesk(
+            clerk: barModeProvider.select((s) => s.activeCashier),
+            locked: barModeProvider.select((s) => s.screen == BarScreen.lock),
+            child: stage,
+          ),
+        ),
       ),
     );
   }

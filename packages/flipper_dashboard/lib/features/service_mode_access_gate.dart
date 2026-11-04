@@ -1,6 +1,7 @@
 import 'package:flipper_dashboard/features/bar_mode/bar_mode_settings.dart';
 import 'package:flipper_dashboard/features/bar_mode/providers/bar_mode_providers.dart';
 import 'package:flipper_dashboard/features/hotel_mode/hotel_mode_settings.dart';
+import 'package:flipper_dashboard/features/service_mode_hotkey.dart';
 import 'package:flipper_dashboard/features/service_mode_switch.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/sync/utils/service_mode_access.dart';
@@ -68,19 +69,14 @@ bool signedInUserMayRun(WidgetRef ref, ServiceMode mode, {bool listen = true}) {
   return grants.allows(feature, userId);
 }
 
-/// Whether [clerk], signed in on a Bar or Hotel lock screen, may still run
-/// [mode].
+/// Whether [clerk], signed in on a Bar or Hotel lock screen, is an Admin (or
+/// the owner) now.
 ///
-/// The Admin bypass reads the clerk's entry in the current roster: the
-/// [Tenant] kept at sign-in still says Admin after a demotion. A loaded
-/// roster without the clerk gives no bypass; an unloaded or empty one (a
-/// failed read) falls back to the kept copy, so a missing admin row cannot
-/// lock an admin out.
-bool clerkMayRun(WidgetRef ref, ServiceMode mode, Tenant clerk) {
-  final feature = serviceModeFeature(mode);
-  if (feature == null) return true;
-  final grants = currentServiceModeGrants(ref, listen: false);
-  if (!grants.isRestricted(feature)) return true;
+/// Reads the clerk's entry in the current roster: the [Tenant] kept at
+/// sign-in still says Admin after a demotion. A loaded roster without the
+/// clerk says no; an unloaded or empty one (a failed read) falls back to the
+/// kept copy, so a missing admin row cannot lock an admin out.
+bool clerkIsAdmin(WidgetRef ref, Tenant clerk) {
   final roster = ref.read(barStaffProvider).value;
   Tenant? current = clerk;
   if (roster != null && roster.isNotEmpty) {
@@ -89,11 +85,51 @@ bool clerkMayRun(WidgetRef ref, ServiceMode mode, Tenant clerk) {
       if (tenant.id == clerk.id) current = tenant;
     }
   }
+  return current != null && barTenantIsAdmin(current);
+}
+
+/// Whether [clerk], signed in on a Bar or Hotel lock screen, may still run
+/// [mode]. Admins pass, judged by [clerkIsAdmin].
+bool clerkMayRun(WidgetRef ref, ServiceMode mode, Tenant clerk) {
+  final feature = serviceModeFeature(mode);
+  if (feature == null) return true;
+  final grants = currentServiceModeGrants(ref, listen: false);
+  if (!grants.isRestricted(feature)) return true;
   return grants.allows(
     feature,
     clerk.userId?.trim(),
-    isAdminOrOwner: current != null && barTenantIsAdmin(current),
+    isAdminOrOwner: clerkIsAdmin(ref, clerk),
   );
+}
+
+/// A Bar or Hotel desk for the mode hotkey ([ServiceModeDesk]): judged on
+/// the signed-in [clerk], and on nobody while the desk shows its lock
+/// ([locked]; the Bar keeps its cashier bound on the lock).
+class ServiceModeClerkDesk extends ConsumerWidget {
+  const ServiceModeClerkDesk({
+    super.key,
+    required this.clerk,
+    required this.locked,
+    required this.child,
+  });
+
+  final ProviderListenable<Tenant?> clerk;
+  final ProviderListenable<bool> locked;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Keeps the roster [clerkIsAdmin] reads loaded, without rebuilding.
+    ref.listen(barStaffProvider, (_, _) {});
+    return ServiceModeDesk(
+      deskAdmin: () {
+        final current = ref.read(clerk);
+        if (current == null || ref.read(locked)) return null;
+        return clerkIsAdmin(ref, current);
+      },
+      child: child,
+    );
+  }
 }
 
 /// Signs the desk's clerk out the moment they may no longer run [mode]:

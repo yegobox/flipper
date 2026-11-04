@@ -6,6 +6,7 @@ import 'package:flipper_dashboard/features/bar_mode/bar_mode_settings.dart';
 import 'package:flipper_dashboard/features/hotel_mode/hotel_mode_host.dart';
 import 'package:flipper_dashboard/features/hotel_mode/hotel_mode_settings.dart';
 import 'package:flipper_dashboard/features/service_mode_access_gate.dart';
+import 'package:flipper_dashboard/features/service_mode_hotkey.dart';
 import 'package:flipper_dashboard/features/service_mode_shell.dart';
 import 'package:flipper_dashboard/features/service_mode_switch.dart';
 import 'package:flipper_dashboard/Ai.dart';
@@ -92,9 +93,17 @@ class InventoryApp extends HookConsumerWidget {
       case SalesSurface.pos:
         break;
     }
+    // The mode hotkey judges whoever runs this POS; a pane without access is
+    // no desk to switch from.
     return isScanningMode
-        ? buildReceiptUI().shouldViewTheApp(ref, featureName: AppFeature.Sales)
-        : CheckOut(isBigScreen: true)
+        ? ServiceModeDesk(
+            deskAdmin: posDeskAdmin,
+            child: buildReceiptUI(),
+          ).shouldViewTheApp(ref, featureName: AppFeature.Sales)
+        : ServiceModeDesk(
+                deskAdmin: posDeskAdmin,
+                child: CheckOut(isBigScreen: true),
+              )
               .shouldViewTheApp(ref, featureName: AppFeature.Sales)
               .shouldViewTheApp(ref, featureName: AppFeature.Inventory);
   }

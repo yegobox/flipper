@@ -13223,6 +13223,18 @@ abstract class FlipperAppLocalizations {
   /// **'Only an admin can switch this device\'s service mode.'**
   String get serviceModeAdminOnly;
 
+  /// Service-mode hotkey pressed outside POS, Bar and Hotel
+  ///
+  /// In en, this message translates to:
+  /// **'Open POS, Bar or Hotel to switch this device\'s service mode.'**
+  String get serviceModeHotkeyOpenDesk;
+
+  /// Service-mode hotkey pressed on a Bar or Hotel lock screen
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in at the desk first, then switch the service mode.'**
+  String get serviceModeHotkeySignInFirst;
+
   /// Bar/Hotel host: the signed-in user holds no grant for this mode
   ///
   /// In en, this message translates to:
