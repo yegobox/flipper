@@ -660,6 +660,71 @@ void main() {
       expect(find.byKey(const Key('flo-team-task')), findsNothing);
     });
 
+    testWidgets(
+        'support threads get their own tab, carry the customer and can be resolved',
+        (tester) async {
+      final repo = FakeFloTeamRepository(
+        threads: [
+          idea('s1', 'Payment help · Shop', kind: 'support'),
+          idea('t3', 'Weekly chat', kind: 'discussion'),
+        ],
+        posts: [
+          const FloTeamPost(
+              id: 'c1',
+              threadId: 's1',
+              isFlo: false,
+              isCustomer: true,
+              authorName: 'Aline · Shop',
+              body: 'My payment failed',
+              authorUserId: 'cust'),
+          const FloTeamPost(
+              id: 'r1',
+              threadId: 's1',
+              isFlo: false,
+              body: 'We are on it',
+              authorUserId: 'u2'),
+        ],
+      );
+      await _pump(tester, repo);
+      final l10n = tester.element(find.byType(FloTeamView)).flipperL10n;
+
+      // Support is not a discussion.
+      await tester.tap(find.byKey(const Key('flo-team-filter-discussions')));
+      await tester.pumpAndSettle();
+      expect(find.text('Weekly chat'), findsOneWidget);
+      expect(find.text('Payment help · Shop'), findsNothing);
+
+      await tester.tap(find.byKey(const Key('flo-team-filter-support')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('flo-team-thread-s1')));
+      await tester.pumpAndSettle();
+      expect(find.text(l10n.floTeamSupport), findsOneWidget);
+      expect(find.text('Aline · Shop'), findsOneWidget);
+      // The header names the customer, not "A teammate".
+      expect(find.textContaining('Aline · Shop · '), findsOneWidget);
+      expect(find.byKey(const Key('flo-team-support-hint')), findsOneWidget);
+      expect(find.byKey(const Key('flo-team-task')), findsNothing);
+
+      await tester.tap(find.byKey(const Key('flo-team-resolve')));
+      await tester.pumpAndSettle();
+      expect(repo.calls, contains('update(s1,{status: done})'));
+      expect(find.text(l10n.floTeamResolved), findsOneWidget);
+      expect(find.text(l10n.floTeamReopen), findsOneWidget);
+
+      await tester.tap(find.byKey(const Key('flo-team-resolve')));
+      await tester.pumpAndSettle();
+      expect(repo.calls, contains('update(s1,{status: idea})'));
+      expect(find.text(l10n.floTeamResolve), findsOneWidget);
+    });
+
+    testWidgets('a business with no support threads has no Support tab',
+        (tester) async {
+      await _pump(tester, _team());
+      expect(find.byKey(const Key('flo-team-filter-support')), findsNothing);
+      expect(
+          find.byKey(const Key('flo-team-filter-discussions')), findsOneWidget);
+    });
+
     testWidgets('a member the server has no name for is shown as You',
         (tester) async {
       await _pump(

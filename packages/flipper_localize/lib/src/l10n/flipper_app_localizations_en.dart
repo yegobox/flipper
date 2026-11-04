@@ -21160,6 +21160,48 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
   String get floTeamSomeone => 'A teammate';
 
   @override
+  String get floTeamSupport => 'Support';
+
+  @override
+  String get floTeamResolve => 'Resolve';
+
+  @override
+  String get floTeamReopen => 'Reopen';
+
+  @override
+  String get floTeamResolved => 'Resolved';
+
+  @override
+  String get floTeamSupportReplyHint =>
+      'Replies here are sent to the customer.';
+
+  @override
+  String get floSupportTitle => 'Chat with support';
+
+  @override
+  String get floSupportSubtitle => 'Flipper Support replies right here.';
+
+  @override
+  String get floSupportEmpty => 'Tell us what went wrong. We\'ll reply here.';
+
+  @override
+  String get floSupportHint => 'Type your message';
+
+  @override
+  String get floSupportSend => 'Send';
+
+  @override
+  String get floSupportResolved =>
+      'Support marked this resolved. Write again if you still need help.';
+
+  @override
+  String get floSupportError =>
+      'Couldn\'t reach support. Check your connection and try again.';
+
+  @override
+  String get floSupportFallback => 'Use WhatsApp';
+
+  @override
   String get floTeamInviteFromStaff => 'Invite from your staff';
 
   @override

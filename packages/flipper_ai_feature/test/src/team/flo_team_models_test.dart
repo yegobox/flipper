@@ -156,6 +156,52 @@ void main() {
       expect(FloTeamChanges.fromJson({}).threads, isEmpty);
     });
 
+    test('a support thread and a customer post read the API rows', () {
+      final t = FloTeamThread.fromJson({
+        'id': 's1',
+        'kind': 'support',
+        'title': 'Payment help · Shop',
+        'status': 'done',
+        'requester_business_id': 'biz',
+      });
+      expect([t.isSupport, t.isIdea, t.requesterBusinessId, t.status],
+          [true, false, 'biz', FloTeamStatus.done]);
+      expect(
+          FloTeamThread.fromJson({'kind': 'idea'}).requesterBusinessId, isNull);
+
+      final p = FloTeamPost.fromJson({
+        'id': 'c1',
+        'thread_id': 's1',
+        'author_kind': 'customer',
+        'author_user_id': 'cust',
+        'author_name': 'Aline · Shop',
+        'body': 'Help',
+      });
+      expect(
+          [p.isCustomer, p.isFlo, p.authorName], [true, false, 'Aline · Shop']);
+      expect(
+          FloTeamPost.fromJson({'author_kind': 'member'}).authorName, isNull);
+    });
+
+    test('support threads stay out of the idea and discussion columns', () {
+      final board = FloTeamBoard(threads: {
+        for (final t in [
+          idea('s1', 'Open', kind: 'support'),
+          idea('s2', 'Resolved', kind: 'support', status: FloTeamStatus.done),
+          idea('s3', 'Archived',
+              kind: 'support', status: FloTeamStatus.archived),
+          idea('g', 'Chat', kind: 'discussion'),
+        ])
+          t.id: t,
+      });
+      List<String> ids(FloTeamFilter f) =>
+          board.filtered(f).map((t) => t.id).toList()..sort();
+      expect(ids(FloTeamFilter.support), ['s1', 's2']);
+      expect(ids(FloTeamFilter.done), isEmpty);
+      expect(ids(FloTeamFilter.ideas), isEmpty);
+      expect(ids(FloTeamFilter.discussions), ['g']);
+    });
+
     test('each column holds its threads, ideas by votes', () {
       final board = FloTeamBoard(threads: {
         for (final t in [

@@ -20,6 +20,7 @@ import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_dashboard/payment/payment_format.dart';
+import 'package:flipper_dashboard/payment/payment_support.dart';
 import 'package:flipper_dashboard/payment/payment_tokens.dart';
 import 'package:flipper_dashboard/payment/payment_typography.dart';
 import 'package:flipper_dashboard/payment/widgets/payment_widgets.dart';
@@ -1683,10 +1684,15 @@ class _FailedPaymentState extends State<FailedPayment>
   }
 
   Widget _buildHelpSection() {
+    final plan = _plan;
     return PaymentHelpCard(
-      onTap: () {
-        // Handle contact support
-      },
+      onTap: () => openPaymentSupport(
+        context,
+        plan: plan,
+        amount: plan == null
+            ? null
+            : formatPaymentTotal(_totalDisplayAmount(plan)),
+      ),
     );
   }
 
