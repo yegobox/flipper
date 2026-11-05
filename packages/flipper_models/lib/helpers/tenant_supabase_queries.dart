@@ -27,8 +27,9 @@ abstract final class TenantSupabaseQueries {
       String? businessUuid;
       final resolvedScope = scopeBusinessId ?? ProxyService.box.getBusinessId();
       if (resolvedScope != null && resolvedScope.isNotEmpty) {
-        businessUuid =
-            await FlipperBaseModel.resolveBusinessUuidForTenants(resolvedScope);
+        businessUuid = await FlipperBaseModel.resolveBusinessUuidForTenants(
+          resolvedScope,
+        );
       }
 
       var rows = await fetchRows(businessUuid: businessUuid);
@@ -83,8 +84,9 @@ abstract final class TenantSupabaseQueries {
 
   static Future<Tenant?> firstForBusiness(String businessId) async {
     try {
-      final businessUuid =
-          await FlipperBaseModel.resolveBusinessUuidForTenants(businessId);
+      final businessUuid = await FlipperBaseModel.resolveBusinessUuidForTenants(
+        businessId,
+      );
       if (businessUuid == null || businessUuid.isEmpty) return null;
 
       final rows = await _client
@@ -115,7 +117,6 @@ abstract final class TenantSupabaseQueries {
     return null;
   }
 
-
   static Future<List<Tenant>> listByUserId(String userId) async {
     try {
       final rows = await _client
@@ -139,8 +140,9 @@ abstract final class TenantSupabaseQueries {
 
   static Future<Tenant?> defaultForBusiness(String businessId) async {
     try {
-      final businessUuid =
-          await FlipperBaseModel.resolveBusinessUuidForTenants(businessId);
+      final businessUuid = await FlipperBaseModel.resolveBusinessUuidForTenants(
+        businessId,
+      );
       if (businessUuid == null || businessUuid.isEmpty) return null;
 
       final businessRow = await _client
@@ -234,8 +236,9 @@ abstract final class TenantSupabaseQueries {
       throw StateError('No active business');
     }
 
-    final businessUuid =
-        await FlipperBaseModel.resolveBusinessUuidForTenants(scopedBusinessId);
+    final businessUuid = await FlipperBaseModel.resolveBusinessUuidForTenants(
+      scopedBusinessId,
+    );
     if (businessUuid == null || businessUuid.isEmpty) {
       throw StateError('Could not resolve business');
     }
@@ -250,10 +253,7 @@ abstract final class TenantSupabaseQueries {
     if (tenantUuid != null && tenantUuid.isNotEmpty) {
       await _client.rpc(
         'remove_tenant_access',
-        params: {
-          'p_tenant_id': tenantUuid,
-          'p_business_id': businessUuid,
-        },
+        params: {'p_tenant_id': tenantUuid, 'p_business_id': businessUuid},
       );
     } else if (userId == null || userId.isEmpty) {
       await _client.from('tenants').delete().eq('id', tenant.id);

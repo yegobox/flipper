@@ -208,27 +208,27 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
     );
 
     var rows = await Supabase.instance.client
-          .from('accesses')
-          .select()
-          .eq('user_id', uid)
-          .eq('tenant_id', tid);
+        .from('accesses')
+        .select()
+        .eq('user_id', uid)
+        .eq('tenant_id', tid);
 
-      // Some legacy rows might not include tenant_id as expected; fall back to a broader query.
-      if ((rows as List).isEmpty) {
-        final biz = tenant.businessId ?? ProxyService.box.getBusinessId();
-        if (biz != null && biz.isNotEmpty) {
-          rows = await Supabase.instance.client
-              .from('accesses')
-              .select()
-              .eq('user_id', uid)
-              .eq('business_id', biz);
-        } else {
-          rows = await Supabase.instance.client
-              .from('accesses')
-              .select()
-              .eq('user_id', uid);
-        }
+    // Some legacy rows might not include tenant_id as expected; fall back to a broader query.
+    if ((rows as List).isEmpty) {
+      final biz = tenant.businessId ?? ProxyService.box.getBusinessId();
+      if (biz != null && biz.isNotEmpty) {
+        rows = await Supabase.instance.client
+            .from('accesses')
+            .select()
+            .eq('user_id', uid)
+            .eq('business_id', biz);
+      } else {
+        rows = await Supabase.instance.client
+            .from('accesses')
+            .select()
+            .eq('user_id', uid);
       }
+    }
     debugPrint('selectTenantForEdit: accesses rows=${(rows as List).length}');
 
     return [
@@ -345,27 +345,30 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
       },
       items:
           <String>[
-            'Agent',
-            'Cashier',
-            'Admin',
-            'Driver',
-            // Convenience labels only — actual gating is via the per-feature
-            // Access matrix below (AppFeature.TicketReview / StockHandover).
-            'Reviewer',
-            'Stock Manager',
-          ].followedBy([
-            // A stored role the list lacks (legacy rows) stays as stored
-            // rather than tripping the dropdown or changing silently.
-            if (!_kUserTypes.contains(selectedUserType)) selectedUserType,
-          ]).map<DropdownMenuItem<String>>((String value) {
-            return DropdownMenuItem<String>(
-              value: value,
-              child: Text(
-                TenantUIMixin.roleLabel(context.flipperL10n, value),
-                style: GoogleFonts.outfit(fontWeight: FontWeight.w600),
-              ),
-            );
-          }).toList(),
+                'Agent',
+                'Cashier',
+                'Admin',
+                'Driver',
+                // Convenience labels only — actual gating is via the per-feature
+                // Access matrix below (AppFeature.TicketReview / StockHandover).
+                'Reviewer',
+                'Stock Manager',
+              ]
+              .followedBy([
+                // A stored role the list lacks (legacy rows) stays as stored
+                // rather than tripping the dropdown or changing silently.
+                if (!_kUserTypes.contains(selectedUserType)) selectedUserType,
+              ])
+              .map<DropdownMenuItem<String>>((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(
+                    TenantUIMixin.roleLabel(context.flipperL10n, value),
+                    style: GoogleFonts.outfit(fontWeight: FontWeight.w600),
+                  ),
+                );
+              })
+              .toList(),
       decoration: InputDecoration(
         labelText: context.flipperL10n.tenantMgmtUserTypeCaps,
         labelStyle: GoogleFonts.outfit(

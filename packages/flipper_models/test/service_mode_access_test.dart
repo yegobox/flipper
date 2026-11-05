@@ -94,10 +94,7 @@ void main() {
       );
       expect(grants.ownerUserId, 'u-owner');
       expect(grants.admins, {'u-owner', 'u-admin'});
-      expect(
-        serviceModeGrantsFromRows(const [], now: now).ownerUserId,
-        isNull,
-      );
+      expect(serviceModeGrantsFromRows(const [], now: now).ownerUserId, isNull);
       expect(
         decodeServiceModeGrants(
           encodeServiceModeGrantRows(const [], ownerUserId: 'u-owner'),
