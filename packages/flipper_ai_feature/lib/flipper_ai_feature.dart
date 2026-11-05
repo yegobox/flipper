@@ -71,6 +71,11 @@ export 'src/models/flo_models.dart';
 // Services
 export 'src/services/flo_chat_service.dart';
 
+// Support chat (customers → the support business's Flo Team)
+export 'src/support/flo_support_controller.dart';
+export 'src/support/flo_support_repository.dart';
+export 'src/support/flo_support_sheet.dart';
+
 // Providers
 export 'src/providers/ai_provider.dart';
 export 'src/providers/conversation_provider.dart';

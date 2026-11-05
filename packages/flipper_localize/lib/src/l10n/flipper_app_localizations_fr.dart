@@ -21501,6 +21501,49 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   String get floTeamSomeone => 'Un collègue';
 
   @override
+  String get floTeamSupport => 'Assistance';
+
+  @override
+  String get floTeamResolve => 'Résoudre';
+
+  @override
+  String get floTeamReopen => 'Rouvrir';
+
+  @override
+  String get floTeamResolved => 'Résolu';
+
+  @override
+  String get floTeamSupportReplyHint =>
+      'Les réponses ici sont envoyées au client.';
+
+  @override
+  String get floSupportTitle => 'Discuter avec l\'assistance';
+
+  @override
+  String get floSupportSubtitle => 'L\'assistance Flipper vous répond ici.';
+
+  @override
+  String get floSupportEmpty =>
+      'Dites-nous ce qui ne va pas. Nous vous répondrons ici.';
+
+  @override
+  String get floSupportHint => 'Écrivez votre message';
+
+  @override
+  String get floSupportSend => 'Envoyer';
+
+  @override
+  String get floSupportResolved =>
+      'L\'assistance a marqué ceci comme résolu. Écrivez de nouveau si vous avez encore besoin d\'aide.';
+
+  @override
+  String get floSupportError =>
+      'Impossible de joindre l\'assistance. Vérifiez votre connexion et réessayez.';
+
+  @override
+  String get floSupportFallback => 'Utiliser WhatsApp';
+
+  @override
   String get floTeamInviteFromStaff => 'Inviter des membres du personnel';
 
   @override
@@ -28157,4 +28200,7 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   @override
   String get localModeSyncOnElsewhereBody =>
       'La synchronisation cloud a été activée pour cette entreprise depuis un autre appareil. Reconnectez-vous pour envoyer les données de cet appareil et terminer.';
+
+  @override
+  String get tenantMgmtPinOnly => 'PIN uniquement';
 }

@@ -166,6 +166,7 @@ String _filterLabel(BuildContext context, FloTeamFilter f) {
     FloTeamFilter.doing => l10n.floTeamDoing,
     FloTeamFilter.done => l10n.floTeamDone,
     FloTeamFilter.discussions => l10n.floTeamDiscussions,
+    FloTeamFilter.support => l10n.floTeamSupport,
   };
 }
 
@@ -175,6 +176,7 @@ IconData _filterIcon(FloTeamFilter f) => switch (f) {
       FloTeamFilter.doing => Icons.timelapse,
       FloTeamFilter.done => Icons.check_circle_outline,
       FloTeamFilter.discussions => Icons.forum_outlined,
+      FloTeamFilter.support => Icons.support_agent,
     };
 
 /// The board's columns as underlined tabs, each with how many it holds.
@@ -201,14 +203,18 @@ class _FilterTabs extends StatelessWidget {
         child: Row(
           children: [
             for (final f in FloTeamFilter.values)
-              _FilterTab(
-                key: Key('flo-team-filter-${f.name}'),
-                icon: _filterIcon(f),
-                label: _filterLabel(context, f),
-                count: board.filtered(f).length,
-                selected: f == selected,
-                onTap: () => onSelected(f),
-              ),
+              // Only a support business ever gets support threads.
+              if (f != FloTeamFilter.support ||
+                  f == selected ||
+                  board.filtered(f).isNotEmpty)
+                _FilterTab(
+                  key: Key('flo-team-filter-${f.name}'),
+                  icon: _filterIcon(f),
+                  label: _filterLabel(context, f),
+                  count: board.filtered(f).length,
+                  selected: f == selected,
+                  onTap: () => onSelected(f),
+                ),
           ],
         ),
       ),
@@ -389,8 +395,12 @@ class _ThreadCardState extends ConsumerState<_ThreadCard> {
                         color: FloTheme.violetTint,
                         borderRadius: BorderRadius.circular(FloTheme.radiusSm),
                       ),
-                      child: const Icon(Icons.forum_outlined,
-                          size: 20, color: FloTheme.violet),
+                      child: Icon(
+                          thread.isSupport
+                              ? Icons.support_agent
+                              : Icons.forum_outlined,
+                          size: 20,
+                          color: FloTheme.violet),
                     ),
                   const SizedBox(width: 14),
                   Expanded(

@@ -9,7 +9,11 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';
 
 class TenantManagement extends StatefulHookConsumerWidget {
-  const TenantManagement({Key? key}) : super(key: key);
+  const TenantManagement({Key? key, this.initialTenant}) : super(key: key);
+
+  /// Opened from a staff row's Edit (Bar Mode): load this person into the
+  /// form instead of starting on Add New User.
+  final Tenant? initialTenant;
 
   @override
   UserManagement createState() => UserManagement();
@@ -31,7 +35,15 @@ class UserManagement extends ConsumerState<TenantManagement>
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<FlipperBaseModel>.reactive(
-      onViewModelReady: (model) async => await model.loadTenants(),
+      onViewModelReady: (model) async {
+        await model.loadTenants();
+        final initial = widget.initialTenant;
+        if (initial == null || !mounted) return;
+        await selectTenantForEdit(
+          FlipperBaseModel.resolveInitialEditTenant(model.tenants, initial),
+          model,
+        );
+      },
       viewModelBuilder: () => FlipperBaseModel(),
       builder: (context, model, widget) {
         return Scaffold(

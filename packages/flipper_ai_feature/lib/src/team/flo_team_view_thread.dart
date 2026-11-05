@@ -73,6 +73,15 @@ class _ThreadPanelState extends ConsumerState<_ThreadPanel> {
     final me = state.me?.userId;
     final created = thread.createdAt ?? thread.updatedAt;
     final assignee = _who(context, state, thread.assigneeUserId);
+    // A support thread is opened by a customer of another business, whose
+    // name only their own posts carry.
+    final customer = thread.isSupport
+        ? posts
+            .where((p) => p.isCustomer && p.authorName != null)
+            .map((p) => p.authorName!)
+            .firstOrNull
+        : null;
+    final author = customer ?? _who(context, state, thread.authorUserId);
     final floStyle = _secondaryButton.copyWith(
       padding: const WidgetStatePropertyAll(
         EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -110,14 +119,14 @@ class _ThreadPanelState extends ConsumerState<_ThreadPanel> {
                   children: [
                     _Avatar(
                       userId: thread.authorUserId,
-                      name: _knownName(state, thread.authorUserId),
+                      name: customer ?? _knownName(state, thread.authorUserId),
                       size: 22,
                     ),
                     const SizedBox(width: 8),
                     Flexible(
                       child: Text(
                         [
-                          _who(context, state, thread.authorUserId),
+                          author,
                           if (created != null) _when(created),
                         ].join(' · '),
                         style: const TextStyle(
@@ -216,6 +225,35 @@ class _ThreadPanelState extends ConsumerState<_ThreadPanel> {
                         icon: const Icon(Icons.summarize_outlined, size: 16),
                         label: Text(l10n.floTeamSummarize),
                       ),
+                      if (thread.isSupport)
+                        FilledButton.icon(
+                          key: const Key('flo-team-resolve'),
+                          style: _primaryButton.copyWith(
+                            padding: const WidgetStatePropertyAll(
+                              EdgeInsets.symmetric(
+                                  horizontal: 14, vertical: 12),
+                            ),
+                          ),
+                          onPressed: () => _guard(
+                            context,
+                            () => _team.updateThread(thread.id, {
+                              'status': thread.status == FloTeamStatus.done
+                                  ? 'idea'
+                                  : 'done',
+                            }),
+                          ),
+                          icon: Icon(
+                            thread.status == FloTeamStatus.done
+                                ? Icons.replay
+                                : Icons.check_circle_outline,
+                            size: 16,
+                          ),
+                          label: Text(
+                            thread.status == FloTeamStatus.done
+                                ? l10n.floTeamReopen
+                                : l10n.floTeamResolve,
+                          ),
+                        ),
                       if (thread.isIdea)
                         FilledButton.icon(
                           key: const Key('flo-team-task'),
@@ -250,8 +288,10 @@ class _ThreadPanelState extends ConsumerState<_ThreadPanel> {
                     for (final post in posts)
                       _PostTile(
                         post: post,
-                        author: _who(context, state, post.authorUserId),
-                        knownName: _knownName(state, post.authorUserId),
+                        author: post.authorName ??
+                            _who(context, state, post.authorUserId),
+                        knownName: post.authorName ??
+                            _knownName(state, post.authorUserId),
                       ),
                     if (floBusy)
                       Padding(
@@ -293,6 +333,27 @@ class _ThreadPanelState extends ConsumerState<_ThreadPanel> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                if (thread.isSupport)
+                  Padding(
+                    key: const Key('flo-team-support-hint'),
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.visibility_outlined,
+                            size: 15, color: FloTheme.ink3),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            l10n.floTeamSupportReplyHint,
+                            style: const TextStyle(
+                              fontSize: 12.5,
+                              color: FloTheme.ink3,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 if (_picking)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 8),
@@ -448,7 +509,11 @@ class _PostTile extends StatelessWidget {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                   decoration: BoxDecoration(
-                    color: post.isFlo ? FloTheme.violetTint : FloTheme.surface,
+                    color: post.isFlo
+                        ? FloTheme.violetTint
+                        : post.isCustomer
+                            ? FloTheme.blueTint
+                            : FloTheme.surface,
                     borderRadius: const BorderRadius.only(
                       topRight: Radius.circular(FloTheme.radiusMd),
                       bottomLeft: Radius.circular(FloTheme.radiusMd),
@@ -456,8 +521,11 @@ class _PostTile extends StatelessWidget {
                       topLeft: Radius.circular(4),
                     ),
                     border: Border.all(
-                      color:
-                          post.isFlo ? const Color(0xFFE4DAF8) : FloTheme.line,
+                      color: post.isFlo
+                          ? const Color(0xFFE4DAF8)
+                          : post.isCustomer
+                              ? FloTheme.blueTint2
+                              : FloTheme.line,
                     ),
                   ),
                   child: post.isFlo && post.blocks.isNotEmpty

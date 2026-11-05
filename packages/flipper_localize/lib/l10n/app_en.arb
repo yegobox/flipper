@@ -16710,6 +16710,19 @@
     "floTeamDiscussion": "Discussion",
     "floTeamYou": "You",
     "floTeamSomeone": "A teammate",
+    "floTeamSupport": "Support",
+    "floTeamResolve": "Resolve",
+    "floTeamReopen": "Reopen",
+    "floTeamResolved": "Resolved",
+    "floTeamSupportReplyHint": "Replies here are sent to the customer.",
+    "floSupportTitle": "Chat with support",
+    "floSupportSubtitle": "Flipper Support replies right here.",
+    "floSupportEmpty": "Tell us what went wrong. We'll reply here.",
+    "floSupportHint": "Type your message",
+    "floSupportSend": "Send",
+    "floSupportResolved": "Support marked this resolved. Write again if you still need help.",
+    "floSupportError": "Couldn't reach support. Check your connection and try again.",
+    "floSupportFallback": "Use WhatsApp",
     "floTeamInviteFromStaff": "Invite from your staff",
     "floNewConversation": "New conversation",
     "floChatWithFloAndCustomers": "Chat with Flo & customers",
@@ -20509,5 +20522,9 @@
     "localModeSyncOnElsewhereBody": "Cloud sync was turned on for this business from another device. Sign in again to upload this device's data and finish.",
     "@localModeSyncOnElsewhereBody": {
         "description": "Body: sign in again to finish switching this device to cloud sync"
+    },
+    "tenantMgmtPinOnly": "PIN only",
+    "@tenantMgmtPinOnly": {
+        "description": "User Management chip: this person signs in with a PIN but has no account permissions saved yet"
     }
 }
