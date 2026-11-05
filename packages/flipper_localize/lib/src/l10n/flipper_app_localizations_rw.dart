@@ -7739,6 +7739,15 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
       'Umuyobozi wenyine ni we ushobora guhindura uburyo bwa serivisi bw\'iki gikoresho.';
 
   @override
+  String get serviceModeHotkeyNoMode =>
+      'Nta burenganzira ufite bwo gukoresha POS, Akabari cyangwa Hoteli. Saba umuyobozi kubuguha mu micungire y\'abakoresha.';
+
+  @override
+  String serviceModeHotkeyModeOff(String mode) {
+    return '$mode ntiburafungurwa kuri iri shami. Saba umuyobozi kubufungura.';
+  }
+
+  @override
   String get serviceModeHotkeyOpenDesk =>
       'Fungura POS, Akabari cyangwa Hoteli kugira ngo uhindure uburyo bwa serivisi bw\'iki gikoresho.';
 

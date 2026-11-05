@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/app_choice_dialog.dart';
 import 'package:flipper_dashboard/dashboard_shell.dart';
+import 'package:flipper_dashboard/features/bar_mode/providers/bar_mode_providers.dart';
 import 'package:flipper_dashboard/hr_module_entry.dart';
 import 'package:flipper_dashboard/layout.dart';
 import 'package:flipper_dashboard/widgets/dashboard_all_apps_catalog.dart';
@@ -11,6 +12,8 @@ import 'package:flipper_dashboard/widgets/app_launch_overlay.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/access_provider.dart';
 import 'package:flipper_models/providers/active_branch_provider.dart';
+import 'package:flipper_models/sync/utils/service_mode_access.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_web/core/local_mode/local_mode.dart';
 import 'package:flipper_services/locator.dart';
 import 'package:flutter/gestures.dart';
@@ -23,6 +26,7 @@ import 'package:stacked_services/stacked_services.dart';
 import 'package:supabase_models/brick/repository/storage.dart';
 
 import 'test_helpers/mocks.dart';
+import 'test_helpers/module_grants.dart';
 
 /// LocalStorage that records `defaultApp` writes the way the dialog expects.
 class _AppChoiceBox extends MockBox {
@@ -78,6 +82,10 @@ List<Override> _hrOverrides({List<Access>? accesses}) => [
   ).overrideWith((ref) async => accesses ?? [_access(userType: 'Admin')]),
 ];
 
+/// Books / Flo (and Bar / Hotel) grants for the business.
+Override _grants(ServiceModeGrants grants) =>
+    serviceModeGrantsProvider.overrideWith((ref) async => grants);
+
 /// The selected tile swaps its shortcut badge for a [CircularProgressIndicator],
 /// which spins forever — so settle by pumping fixed frames instead.
 Future<void> _pumpSelection(WidgetTester tester) async {
@@ -97,13 +105,22 @@ void main() {
       branchName: 'Kigali Heights',
     ),
     List<Override> overrides = const [],
+    ServiceModeGrants grants = const ServiceModeGrants(),
+    Future<ServiceModeGrants> Function()? loadGrants,
   }) async {
     await tester.binding.setSurfaceSize(const Size(1280, 900));
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
     await tester.pumpWidget(
       ProviderScope(
-        overrides: overrides,
+        overrides: [
+          ...moduleGrantsOverrides(
+            grants: grants,
+            userId: _userId,
+            load: loadGrants,
+          ),
+          ...overrides,
+        ],
         child: MaterialApp(
           localizationsDelegates: FlipperLocalizationDelegates.delegates,
           supportedLocales: FlipperLocalizationDelegates.supportedLocales,
@@ -160,6 +177,69 @@ void main() {
     ]) {
       expect(find.text(title), findsNothing, reason: '$title is not an app');
     }
+  });
+
+  testWidgets('hides Books and Flo from staff not granted them', (
+    tester,
+  ) async {
+    box.defaultApp = 'Books';
+    await pumpChooser(
+      tester,
+      grants: const ServiceModeGrants(
+        byFeature: {
+          AppFeature.Books: {'someone-else'},
+          AppFeature.Flo: {'someone-else'},
+        },
+      ),
+    );
+
+    expect(find.text('POS'), findsOneWidget);
+    expect(find.text('Books'), findsNothing);
+    expect(find.text('Flo'), findsNothing);
+    expect(find.text('Default · POS'), findsOneWidget);
+  });
+
+  testWidgets('hides Books and Flo until the grants are known', (tester) async {
+    // No offline copy (the box has none), and the fetch is still out.
+    final grants = Completer<ServiceModeGrants>();
+    await pumpChooser(tester, loadGrants: () => grants.future);
+    expect(find.text('POS'), findsOneWidget);
+    expect(find.text('Books'), findsNothing);
+    expect(find.text('Flo'), findsNothing);
+    // Number 2 is not a hidden Books.
+    await tester.sendKeyEvent(LogicalKeyboardKey.digit2);
+    await _pumpSelection(tester);
+    expect(box.defaultApp, isNull);
+
+    grants.complete(const ServiceModeGrants());
+    await tester.pumpAndSettle();
+    expect(find.text('Books'), findsOneWidget);
+    expect(find.text('Flo'), findsOneWidget);
+  });
+
+  testWidgets('a tile its grant was taken from since the last build does '
+      'not open', (tester) async {
+    var grants = const ServiceModeGrants();
+    await pumpChooser(tester, loadGrants: () async => grants);
+    expect(find.text('Books'), findsOneWidget);
+
+    // The grants change, but the chooser has not rebuilt yet.
+    grants = const ServiceModeGrants(
+      byFeature: {
+        AppFeature.Books: {'someone-else'},
+      },
+    );
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(AppChoiceDialog)),
+    );
+    container.invalidate(serviceModeGrantsProvider);
+    await container.read(serviceModeGrantsProvider.future);
+    await tester.sendKeyEvent(LogicalKeyboardKey.digit2);
+    await _pumpSelection(tester);
+
+    expect(box.defaultApp, isNull);
+    expect(responses, isEmpty);
+    expect(find.text('Books'), findsNothing);
   });
 
   testWidgets('marks the stored default app', (tester) async {
@@ -282,6 +362,7 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
+            ...moduleGrantsOverrides(userId: _userId),
             activeBranchProvider.overrideWith(
               (ref) => Stream.value(
                 Branch(
@@ -316,7 +397,9 @@ void main() {
   );
 
   testWidgets('choosing POS preselects its dashboard page', (tester) async {
-    final container = ProviderContainer();
+    final container = ProviderContainer(
+      overrides: moduleGrantsOverrides(userId: _userId),
+    );
     addTearDown(container.dispose);
     // Start elsewhere so the assertion cannot pass on the provider's default.
     container.read(selectedPageProvider.notifier).state = DashboardPage.reports;
@@ -458,7 +541,10 @@ void main() {
 
       await tester.pumpWidget(
         ProviderScope(
-          overrides: _hrOverrides(),
+          overrides: [
+            ...moduleGrantsOverrides(userId: _userId),
+            ..._hrOverrides(),
+          ],
           child: MaterialApp(
             localizationsDelegates: FlipperLocalizationDelegates.delegates,
             supportedLocales: FlipperLocalizationDelegates.supportedLocales,
@@ -536,9 +622,67 @@ void main() {
       return defaultAppToOpenAfterLogin(capturedRef);
     }
 
-    testWidgets('is the stored app when it is not HR', (tester) async {
-      expect(await resolve(tester, stored: 'Books'), 'Books');
+    testWidgets('is the stored app when it is still theirs', (tester) async {
+      final open = [_grants(const ServiceModeGrants())];
+      expect(await resolve(tester, stored: 'Books', overrides: open), 'Books');
+      expect(await resolve(tester, stored: 'Flo', overrides: open), 'Flo');
+      expect(await resolve(tester, stored: 'Reports'), 'Reports');
       expect(await resolve(tester), isNull);
+    });
+
+    testWidgets('does not touch the login page once it is gone', (
+      tester,
+    ) async {
+      // Back can close the login page while the grants load.
+      final grants = Completer<ServiceModeGrants>();
+      box.defaultApp = 'Books';
+      Widget host(bool page) => ProviderScope(
+        overrides: [
+          serviceModeGrantsProvider.overrideWith((ref) => grants.future),
+        ],
+        child: page
+            ? Consumer(
+                builder: (context, ref, _) {
+                  capturedRef = ref;
+                  return const SizedBox();
+                },
+              )
+            : const SizedBox(),
+      );
+      await tester.pumpWidget(host(true));
+      final app = defaultAppToOpenAfterLogin(capturedRef);
+      await tester.pumpWidget(host(false));
+      grants.complete(
+        const ServiceModeGrants(
+          byFeature: {
+            AppFeature.Books: {'someone-else'},
+          },
+        ),
+      );
+      expect(await app, 'POS');
+    });
+
+    testWidgets('falls back to POS when Books or Flo is no longer theirs', (
+      tester,
+    ) async {
+      final restricted = [
+        _grants(
+          ServiceModeGrants(
+            byFeature: {
+              AppFeature.Books: {'someone-else'},
+              AppFeature.Flo: {'someone-else'},
+            },
+          ),
+        ),
+      ];
+      expect(
+        await resolve(tester, stored: 'Books', overrides: restricted),
+        'POS',
+      );
+      expect(
+        await resolve(tester, stored: 'Flo', overrides: restricted),
+        'POS',
+      );
     });
 
     testWidgets('is HR when the user may still run it here', (tester) async {
@@ -669,7 +813,12 @@ void main() {
       tester.view.physicalSize = const Size(1280, 900);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.reset);
-      final container = ProviderContainer(overrides: overrides);
+      final container = ProviderContainer(
+        overrides: [
+          ...moduleGrantsOverrides(userId: _userId),
+          ...overrides,
+        ],
+      );
       addTearDown(container.dispose);
       await tester.pumpWidget(
         UncontrolledProviderScope(

@@ -4,17 +4,21 @@ import 'dart:ui';
 
 import 'package:flipper_dashboard/books_module_navigation.dart';
 import 'package:flipper_dashboard/dashboard_shell.dart';
+import 'package:flipper_dashboard/features/bar_mode/providers/bar_mode_providers.dart';
+import 'package:flipper_dashboard/features/service_mode_access_gate.dart';
 import 'package:flipper_dashboard/hr_module_entry.dart';
 import 'package:flipper_dashboard/providers/navigation_providers.dart';
 import 'package:flipper_dashboard/widgets/app_launch_overlay.dart';
 import 'package:flipper_dashboard/widgets/dashboard_app_access.dart';
 import 'package:flipper_design_system/flipper_design_system.dart';
 import 'package:flipper_models/providers/active_branch_provider.dart';
+import 'package:flipper_models/sync/utils/service_mode_access.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked_services/stacked_services.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_dashboard/widgets/dashboard_quick_access_svgs.dart';
 
@@ -36,11 +40,31 @@ abstract final class AppChoiceTokens {
   static const Color scrim = Color(0xFF0B1220);
 }
 
-/// The stored default app to open after sign-in. A stored HR that the user
-/// may no longer run in this business falls back to POS rather than opening
-/// HR onto an empty screen.
+/// The stored default app to open after sign-in. A stored HR, Books or Flo
+/// that the user may no longer open in this business falls back to POS rather
+/// than opening onto an empty screen or a "no access" notice.
 Future<String?> defaultAppToOpenAfterLogin(WidgetRef ref) async {
   final stored = ProxyService.box.getDefaultApp();
+  final module = switch (stored) {
+    'Books' => AppFeature.Books,
+    'Flo' => AppFeature.Flo,
+    _ => null,
+  };
+  if (module != null) {
+    // Everything [ref] gives is read before the wait: Back can close the
+    // login page while it runs, and [ref] throws once its widget is gone.
+    final box = ref.read(barServicesProvider).box;
+    final pending = ref.read(serviceModeGrantsProvider.future);
+    ServiceModeGrants? grants;
+    try {
+      // Bounded: sign-in must not wait out a slow network.
+      grants = await pending.timeout(const Duration(seconds: 3));
+    } catch (_) {
+      // Until the grants land, the offline copy (or "open") decides.
+    }
+    grants ??= offlineServiceModeGrants(box) ?? const ServiceModeGrants();
+    return userMayOpenModule(grants, module, box.getUserId()) ? stored : 'POS';
+  }
   if (stored != 'HR') return stored;
   return await dashboardCanOpenHrNow(ref) ? 'HR' : 'POS';
 }
@@ -194,6 +218,21 @@ class _AppChoiceDialogState extends ConsumerState<AppChoiceDialog>
     _entrance.forward();
   }
 
+  /// Whether the user may open the app [id] by its grant: Books and Flo
+  /// only once the grants are known, so neither shows while the first fetch
+  /// runs (HR and POS are judged elsewhere). [listen] as for
+  /// [knownServiceModeGrants].
+  bool _mayOpen(String id, {bool listen = true}) {
+    final module = switch (id) {
+      'Books' => AppFeature.Books,
+      'Flo' => AppFeature.Flo,
+      _ => null,
+    };
+    if (module == null) return true;
+    if (knownServiceModeGrants(ref, listen: listen) == null) return false;
+    return signedInUserMayOpen(ref, module, listen: listen);
+  }
+
   /// Maps a stored `defaultApp` onto one of [_apps]. Older builds offered
   /// Inventory, Reports, Orders, Customers and Settings as apps; those are all
   /// inside POS now, so they read as POS, as does HR for someone who may not
@@ -245,6 +284,9 @@ class _AppChoiceDialogState extends ConsumerState<AppChoiceDialog>
 
   Future<void> _select(_AppChoice choice) async {
     if (_isLaunching) return;
+    // The tiles are as of the last build: grants that changed since may have
+    // taken this one away. Its tile goes at the next build.
+    if (!_mayOpen(choice.id, listen: false)) return;
     setState(() {
       _isLaunching = true;
       _launchingId = choice.id;
@@ -361,10 +403,13 @@ class _AppChoiceDialogState extends ConsumerState<AppChoiceDialog>
     final reduceMotion = MediaQuery.disableAnimationsOf(context);
     final canOpenHr = dashboardCanOpenHr(ref);
     // Flo is cloud AI, so Local Mode drops it as it drops the Ask Flo tab.
-    final floHidden = hiddenInLocalMode(ref, 'Chat');
+    final floHidden = hiddenInLocalMode(ref, 'Chat') || !_mayOpen('Flo');
+    final booksHidden = !_mayOpen('Books');
     _apps = [
       for (final app in _allApps)
-        if ((app.id != 'HR' || canOpenHr) && (app.id != 'Flo' || !floHidden))
+        if ((app.id != 'HR' || canOpenHr) &&
+            (app.id != 'Flo' || !floHidden) &&
+            (app.id != 'Books' || !booksHidden))
           app,
     ];
     final currentDefault = _normalizedDefault(ProxyService.box.getDefaultApp());

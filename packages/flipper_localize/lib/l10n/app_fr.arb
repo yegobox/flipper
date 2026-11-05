@@ -2206,6 +2206,8 @@
     "serviceModeBarCounter": "Comptoir du bar",
     "serviceModeFrontDesk": "Réception",
     "serviceModeAdminOnly": "Seul un administrateur peut changer le mode de service de cet appareil.",
+    "serviceModeHotkeyNoMode": "Vous n'avez accès ni au POS, ni au Bar, ni à l'Hôtel. Demandez à un administrateur de vous en accorder un dans la gestion des utilisateurs.",
+    "serviceModeHotkeyModeOff": "{mode} : pas encore activé dans cette succursale. Demandez à un administrateur de l'activer.",
     "serviceModeHotkeyOpenDesk": "Ouvrez le POS, le Bar ou l'Hôtel pour changer le mode de service de cet appareil.",
     "serviceModeHotkeyPromptOpen": "Terminez ou annulez d'abord le code PIN du gérant, puis changez le mode de service.",
     "serviceModeHotkeySignInFirst": "Connectez-vous d'abord au poste, puis changez le mode de service.",

@@ -89,6 +89,9 @@ final features = [
   AppFeature.HideStockQuantity,
   AppFeature.BarMode,
   AppFeature.HotelMode,
+  AppFeature.Books,
+  AppFeature.Flo,
+  AppFeature.HR,
 ];
 
 class AppFeature {
@@ -131,6 +134,17 @@ class AppFeature {
 
   /// Hotel Mode front desk (rooms, stays, folios). Same rules as [BarMode].
   static const String HotelMode = "Hotel Mode";
+
+  /// Flipper Books (accounting). Until someone in the business holds it,
+  /// Books stays open to every staff member, as before it was grantable.
+  static const String Books = "Books";
+
+  /// Flo, the AI assistant. Same rollout rule as [Books].
+  static const String Flo = "Flo";
+
+  /// Flipper HR (people, leave, payroll). Only an Admin-level grant opens it,
+  /// since HR's own RLS honours nothing less (`canRunHr`).
+  static const String HR = "HR";
 }
 
 class AccessLevel {

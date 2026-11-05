@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:hooks_riverpod/misc.dart' show ProviderListenable;
 import 'package:supabase_models/brick/models/tenant.model.dart';
+import 'package:supabase_models/brick/repository/storage.dart';
 
 /// The module that grants [mode]; null for plain POS, which is gated on Sales.
 String? serviceModeFeature(ServiceMode mode) => switch (mode) {
@@ -29,15 +30,19 @@ ServiceModeGrants? knownServiceModeGrants(WidgetRef ref, {bool listen = true}) {
       : ref.read(serviceModeGrantsProvider);
   final loaded = state.value;
   if (loaded != null) return loaded;
-  final box = ref.read(barServicesProvider).box;
-  final businessId = box.getBusinessId();
-  final cached = businessId == null || businessId.isEmpty
-      ? null
-      : cachedServiceModeGrants(businessId: businessId, box: box);
+  final cached = offlineServiceModeGrants(ref.read(barServicesProvider).box);
   if (cached != null) return cached;
   // Settled with nothing (the fetch itself never throws, but be safe):
   // every mode open, as before grants existed.
   return state.isLoading ? null : const ServiceModeGrants();
+}
+
+/// The offline copy of the grants for the business signed in on [box]; null
+/// when there is none.
+ServiceModeGrants? offlineServiceModeGrants(LocalStorage box) {
+  final businessId = box.getBusinessId();
+  if (businessId == null || businessId.isEmpty) return null;
+  return cachedServiceModeGrants(businessId: businessId, box: box);
 }
 
 /// [knownServiceModeGrants], treating "not known yet" as no grants (open).
@@ -63,11 +68,29 @@ Future<void> serviceModeGrantsSettled(WidgetRef ref) async {
 bool signedInUserMayRun(WidgetRef ref, ServiceMode mode, {bool listen = true}) {
   final feature = serviceModeFeature(mode);
   if (feature == null) return true;
+  return signedInUserMayOpen(ref, feature, listen: listen);
+}
+
+/// Whether the user signed in to the app may open [feature], one of the
+/// grandfathered modules in `serviceModeFeatures` (Bar, Hotel, Books, Flo):
+/// open to all until anyone in the business holds it, then to the granted
+/// staff, admins and the owner. [listen] as for [currentServiceModeGrants].
+bool signedInUserMayOpen(WidgetRef ref, String feature, {bool listen = true}) {
   final grants = currentServiceModeGrants(ref, listen: listen);
   if (!grants.isRestricted(feature)) return true;
-  final userId = ref.read(barServicesProvider).box.getUserId()?.trim();
-  return grants.allows(feature, userId);
+  return userMayOpenModule(
+    grants,
+    feature,
+    ref.read(barServicesProvider).box.getUserId(),
+  );
 }
+
+/// [signedInUserMayOpen] on [grants] already in hand, for [userId].
+bool userMayOpenModule(
+  ServiceModeGrants grants,
+  String feature,
+  String? userId,
+) => !grants.isRestricted(feature) || grants.allows(feature, userId?.trim());
 
 /// Whether [clerk], signed in on a Bar or Hotel lock screen, is an Admin (or
 /// the owner) now.
@@ -281,18 +304,54 @@ class ServiceModeAccessGate extends ConsumerWidget {
   }
 }
 
-class ServiceModeNoAccess extends StatelessWidget {
-  const ServiceModeNoAccess({super.key, required this.mode});
+/// Shows [child] (Books, Flo) only to a signed-in user who may open
+/// [feature] ([signedInUserMayOpen]), and a "no access" notice to anyone else.
+/// A spinner while nothing is known yet (first fetch, no offline copy), so a
+/// user who is not granted the module never sees it, even for a frame.
+class ModuleAccessGate extends ConsumerWidget {
+  const ModuleAccessGate({
+    super.key,
+    required this.feature,
+    required this.label,
+    required this.child,
+  });
 
-  final ServiceMode mode;
+  final String feature;
+
+  /// The module's name in the notice.
+  final String Function(BuildContext context) label;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (knownServiceModeGrants(ref) == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (signedInUserMayOpen(ref, feature)) return child;
+    return ServiceModeNoAccess.module(module: label(context));
+  }
+}
+
+class ServiceModeNoAccess extends StatelessWidget {
+  const ServiceModeNoAccess({super.key, required ServiceMode this.mode})
+    : module = null;
+
+  /// The notice for a module with its own route (Books, Flo) rather than a
+  /// mode the device is pinned to.
+  const ServiceModeNoAccess.module({super.key, required String this.module})
+    : mode = null;
+
+  final ServiceMode? mode;
+  final String? module;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     // A phone opened the mode from its home, so Back returns there. A pinned
-    // desktop would only be sent straight back here by the shell guard.
+    // desktop would only be sent straight back here by the shell guard. A
+    // module was opened over something on every screen size.
     final canLeave =
-        isPhoneWidth(MediaQuery.sizeOf(context).width) &&
+        (module != null || isPhoneWidth(MediaQuery.sizeOf(context).width)) &&
         (ModalRoute.of(context)?.canPop ?? false);
     return Material(
       color: theme.colorScheme.surface,
@@ -311,7 +370,9 @@ class ServiceModeNoAccess extends StatelessWidget {
               ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 420),
                 child: Text(
-                  context.flipperL10n.serviceModeNoAccess(mode.label),
+                  context.flipperL10n.serviceModeNoAccess(
+                    module ?? mode!.label,
+                  ),
                   textAlign: TextAlign.center,
                   style: theme.textTheme.titleMedium,
                 ),

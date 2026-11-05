@@ -6519,6 +6519,19 @@
     "@serviceModeAdminOnly": {
         "description": "Service-mode hotkey: non-admin tried to switch"
     },
+    "serviceModeHotkeyNoMode": "You don't have access to POS, Bar or Hotel. Ask an admin to grant one in User Management.",
+    "@serviceModeHotkeyNoMode": {
+        "description": "Service-mode hotkey pressed in Books by someone who may open none of POS, Bar and Hotel"
+    },
+    "serviceModeHotkeyModeOff": "{mode} isn't turned on at this branch yet. Ask an admin to turn it on.",
+    "@serviceModeHotkeyModeOff": {
+        "description": "Service-mode hotkey pressed in Books by someone who holds Bar or Hotel, but the branch does not run it and only an admin may turn it on",
+        "placeholders": {
+            "mode": {
+                "type": "String"
+            }
+        }
+    },
     "serviceModeHotkeyOpenDesk": "Open POS, Bar or Hotel to switch this device's service mode.",
     "@serviceModeHotkeyOpenDesk": {
         "description": "Service-mode hotkey pressed outside POS, Bar and Hotel"

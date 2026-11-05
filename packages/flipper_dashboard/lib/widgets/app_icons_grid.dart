@@ -181,6 +181,9 @@ class AppIconsGrid extends ConsumerWidget {
       // no Access grant behind it, so it must not go through featureAccess.
       if (app['feature'] == 'Credits') return true;
       if (app['feature'] == 'AgentCommission') return showCommission;
+      if (app['page'] == 'Chat') {
+        return signedInUserMayOpen(ref, AppFeature.Flo);
+      }
       final feature = app['feature'] as String;
       // The Tickets screen also hosts the Review Queue and Record Handover
       // actions, so let review-only / handover-only staff reach it. Each

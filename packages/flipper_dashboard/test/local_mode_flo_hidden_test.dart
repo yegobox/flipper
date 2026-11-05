@@ -1,18 +1,47 @@
+import 'package:flipper_dashboard/features/bar_mode/providers/bar_mode_providers.dart';
 import 'package:flipper_dashboard/providers/navigation_providers.dart';
 import 'package:flipper_dashboard/widgets/dashboard_mobile_bottom_nav.dart';
 import 'package:flipper_localize/flipper_localize.dart';
+import 'package:flipper_models/sync/utils/service_mode_access.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_web/core/local_mode/local_mode.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:supabase_models/brick/repository/storage.dart';
+
+class _Box extends Fake implements LocalStorage {
+  @override
+  String? getUserId() => 'u-1';
+
+  @override
+  String? getBusinessId() => 'biz-1';
+
+  @override
+  String? readString({required String key}) => null;
+}
+
+class _Services extends BarServices {
+  const _Services();
+
+  @override
+  LocalStorage get box => _Box();
+}
 
 /// Local mode has no Flo: its tab and tiles disappear. With the flag off the
 /// bottom bar must be unchanged.
 void main() {
   tearDown(() => LocalMode.debugSet(false));
 
-  Future<void> pumpNav(WidgetTester tester) => tester.pumpWidget(
+  Future<void> pumpNav(
+    WidgetTester tester, {
+    ServiceModeGrants grants = const ServiceModeGrants(),
+  }) => tester.pumpWidget(
     ProviderScope(
+      overrides: [
+        barServicesProvider.overrideWithValue(const _Services()),
+        serviceModeGrantsProvider.overrideWith((ref) async => grants),
+      ],
       child: MaterialApp(
         localizationsDelegates: FlipperLocalizationDelegates.delegates,
         supportedLocales: FlipperLocalizationDelegates.supportedLocales,
@@ -39,6 +68,23 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Ask Flo'), findsNothing);
     expect(find.text('Books'), findsOneWidget);
+  });
+
+  testWidgets('staff not granted Flo or Books lose those tabs', (tester) async {
+    LocalMode.debugSet(false);
+    await pumpNav(
+      tester,
+      grants: const ServiceModeGrants(
+        byFeature: {
+          AppFeature.Books: {'someone-else'},
+          AppFeature.Flo: {'someone-else'},
+        },
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Ask Flo'), findsNothing);
+    expect(find.text('Books'), findsNothing);
+    expect(find.text('More'), findsOneWidget);
   });
 
   testWidgets('hiddenInLocalMode only hides Flo, HR and Credits', (

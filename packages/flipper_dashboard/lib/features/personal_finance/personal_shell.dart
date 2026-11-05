@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flipper_ai_feature/flipper_ai_feature.dart' show AiScreen;
 import 'package:flipper_dashboard/customappbar.dart';
+import 'package:flipper_dashboard/features/service_mode_access_gate.dart';
 import 'package:flipper_dashboard/features/personal_finance/personal_add_money_sheet.dart';
 import 'package:flipper_dashboard/features/personal_finance/personal_home.dart';
 import 'package:flipper_dashboard/features/personal_finance/personal_more.dart';
@@ -10,6 +11,7 @@ import 'package:flipper_dashboard/widgets/sms_review/sms_review_section.dart'
     show SmsReviewCountBadge, registerSmsReviewPushHandler;
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/account_mode/account_mode_providers.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
@@ -82,9 +84,14 @@ class _PersonalShellState extends ConsumerState<PersonalShell> {
       children: [
         PersonalHome(onSeeAll: () => _select(1)),
         const PersonalActivity(),
-        // Built only once opened: Flo starts a chat session.
+        // Built only once opened: Flo starts a chat session. Gated on the
+        // Flo grant, as every other way into Flo is.
         if (_floOpened)
-          (widget.floBuilder ?? (_) => const AiScreen())(context)
+          ModuleAccessGate(
+            feature: AppFeature.Flo,
+            label: (_) => 'Flo',
+            child: (widget.floBuilder ?? (_) => const AiScreen())(context),
+          )
         else
           const SizedBox.shrink(),
         const PersonalMore(),

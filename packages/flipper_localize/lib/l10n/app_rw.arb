@@ -3791,6 +3791,8 @@
   "serviceModeBarCounter": "Konteri y'akabari",
   "serviceModeFrontDesk": "Iyakira",
   "serviceModeAdminOnly": "Umuyobozi wenyine ni we ushobora guhindura uburyo bwa serivisi bw'iki gikoresho.",
+  "serviceModeHotkeyNoMode": "Nta burenganzira ufite bwo gukoresha POS, Akabari cyangwa Hoteli. Saba umuyobozi kubuguha mu micungire y'abakoresha.",
+  "serviceModeHotkeyModeOff": "{mode} ntiburafungurwa kuri iri shami. Saba umuyobozi kubufungura.",
   "serviceModeHotkeyOpenDesk": "Fungura POS, Akabari cyangwa Hoteli kugira ngo uhindure uburyo bwa serivisi bw'iki gikoresho.",
   "serviceModeHotkeyPromptOpen": "Banza urangize cyangwa uhagarike PIN y'umuyobozi, hanyuma uhindure uburyo bwa serivisi.",
   "serviceModeHotkeySignInFirst": "Banza winjire, hanyuma uhindure uburyo bwa serivisi.",

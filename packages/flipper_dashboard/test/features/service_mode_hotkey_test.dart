@@ -105,6 +105,57 @@ void main() {
       expect(await serviceModeHotkeyRefusal(), isNull);
     });
 
+    testWidgets('a Books-style desk judges by its own pick', (tester) async {
+      ServiceMode? pick;
+      await _pump(
+        tester,
+        ServiceModeDesk(target: () => pick, child: const SizedBox()),
+      );
+      expect(
+        await serviceModeHotkeyRefusal(),
+        ServiceModeHotkeyRefusal.noAllowedMode,
+      );
+      pick = ServiceMode.pos;
+      expect(await serviceModeHotkeyRefusal(), isNull);
+    });
+
+    testWidgets('a Books-style desk with a held mode the branch does not run', (
+      tester,
+    ) async {
+      ServiceMode? off = ServiceMode.hotel;
+      await _pump(
+        tester,
+        ServiceModeDesk(
+          target: () => null,
+          grantedModeOff: () => off,
+          child: const SizedBox(),
+        ),
+      );
+      expect(
+        await serviceModeHotkeyRefusal(),
+        ServiceModeHotkeyRefusal.modeOffHere,
+      );
+      off = null;
+      expect(
+        await serviceModeHotkeyRefusal(),
+        ServiceModeHotkeyRefusal.noAllowedMode,
+      );
+    });
+
+    testWidgets('a Books-style desk gone while it picked: nobody to judge', (
+      tester,
+    ) async {
+      final lookup = Completer<ServiceMode?>();
+      await _pump(
+        tester,
+        ServiceModeDesk(target: () => lookup.future, child: const Text('')),
+      );
+      final refusal = serviceModeHotkeyRefusal();
+      await _pump(tester, const Text('LOCK'));
+      lookup.complete(ServiceMode.bar);
+      expect(await refusal, ServiceModeHotkeyRefusal.noDesk);
+    });
+
     testWidgets('a page or dialog over the desk turns it off', (tester) async {
       await _pump(tester, _desk(true));
       final navigator = StackedService.navigatorKey!.currentState!;
@@ -160,6 +211,37 @@ void main() {
       await tester.pumpAndSettle(const Duration(seconds: 5));
     });
 
+    testWidgets('from Books with no mode allowed: says so', (tester) async {
+      await press(
+        tester,
+        ServiceModeDesk(target: () => null, child: const SizedBox()),
+      );
+      expect(
+        find.textContaining("You don't have access to POS, Bar or Hotel."),
+        findsOneWidget,
+      );
+      await tester.pumpAndSettle(const Duration(seconds: 5));
+    });
+
+    testWidgets('from Books with a held mode off here: asks to turn it on', (
+      tester,
+    ) async {
+      await press(
+        tester,
+        ServiceModeDesk(
+          target: () => null,
+          grantedModeOff: () => ServiceMode.hotel,
+          child: const SizedBox(),
+        ),
+      );
+      expect(
+        find.textContaining("Hotel Mode isn't turned on at this branch yet."),
+        findsOneWidget,
+      );
+      expect(find.textContaining("You don't have access"), findsNothing);
+      await tester.pumpAndSettle(const Duration(seconds: 5));
+    });
+
     testWidgets('a manager PIN prompt open: finish it first', (tester) async {
       await press(
         tester,
@@ -212,6 +294,49 @@ void main() {
         await tester.pumpAndSettle(const Duration(seconds: 5));
       });
 
+      Widget books(ServiceMode target) => ServiceModeDesk(
+        target: () => target,
+        onLeave: () => did.add('leave'),
+        child: const SizedBox(),
+      );
+
+      testWidgets('from Books: saves, leaves Books, then lands', (
+        tester,
+      ) async {
+        serviceModeHotkeyApply = (mode) async {
+          did.add('apply ${mode.name}');
+          return true;
+        };
+        await press(tester, books(ServiceMode.hotel));
+        expect(did, ['apply hotel', 'leave', 'open hotel']);
+        await tester.pumpAndSettle(const Duration(seconds: 5));
+      });
+
+      testWidgets('from Books back to the mode it runs: no switch to save', (
+        tester,
+      ) async {
+        serviceModeHotkeyApply = (mode) async {
+          did.add('apply ${mode.name}');
+          return true;
+        };
+        // Nothing picked and no service offered: this device runs POS.
+        await press(tester, books(ServiceMode.pos));
+        expect(did, ['leave', 'open pos']);
+        await tester.pumpAndSettle(const Duration(seconds: 5));
+      });
+
+      testWidgets('from Books, a switch that rolled back stays in Books', (
+        tester,
+      ) async {
+        serviceModeHotkeyApply = (mode) async {
+          did.add('apply ${mode.name}');
+          return false;
+        };
+        await press(tester, books(ServiceMode.bar));
+        expect(did, ['apply bar']);
+        await tester.pumpAndSettle(const Duration(seconds: 5));
+      });
+
       testWidgets('a switch that rolled back stays put and says so', (
         tester,
       ) async {
@@ -227,6 +352,83 @@ void main() {
         );
         await tester.pumpAndSettle(const Duration(seconds: 5));
       });
+    });
+  });
+
+  group('pickPermittedServiceMode', () {
+    Future<ServiceMode?> pick({
+      ServiceMode current = ServiceMode.pos,
+      Set<ServiceMode> mayRun = const {...ServiceMode.values},
+      Set<ServiceMode> offered = const {...ServiceMode.values},
+      bool? admin = false,
+      List<String>? asked,
+    }) => pickPermittedServiceMode(
+      current: current,
+      mayRun: mayRun.contains,
+      offered: (mode) => mode == ServiceMode.pos || offered.contains(mode),
+      isAdmin: () {
+        asked?.add('admin');
+        return admin;
+      },
+    );
+
+    test('goes to the next mode in the hotkey order', () async {
+      expect(await pick(), ServiceMode.bar);
+      expect(await pick(current: ServiceMode.bar), ServiceMode.hotel);
+      expect(await pick(current: ServiceMode.hotel), ServiceMode.pos);
+    });
+
+    test('skips a mode the user holds no grant for', () async {
+      expect(
+        await pick(mayRun: {ServiceMode.pos, ServiceMode.hotel}),
+        ServiceMode.hotel,
+      );
+    });
+
+    test('a mode the branch does not offer: admins only', () async {
+      final asked = <String>[];
+      expect(
+        await pick(offered: {ServiceMode.hotel}, asked: asked),
+        ServiceMode.hotel,
+      );
+      // Asked once, for the Bar, and not again for later modes.
+      expect(asked, ['admin']);
+      expect(await pick(offered: const {}, admin: true), ServiceMode.bar);
+      // Nobody signed in counts as not an admin.
+      expect(await pick(offered: const {}, admin: null), ServiceMode.pos);
+    });
+
+    test('with nothing else allowed, back to the mode it runs', () async {
+      expect(
+        await pick(current: ServiceMode.bar, mayRun: {ServiceMode.bar}),
+        ServiceMode.bar,
+      );
+    });
+
+    test('none allowed: null', () async {
+      expect(await pick(mayRun: const {}), isNull);
+    });
+  });
+
+  group('grantedServiceModeOff', () {
+    ServiceMode? off({
+      Set<ServiceMode> mayRun = const {...ServiceMode.values},
+      Set<ServiceMode> offered = const {},
+    }) => grantedServiceModeOff(
+      mayRun: mayRun.contains,
+      offered: (mode) => mode == ServiceMode.pos || offered.contains(mode),
+    );
+
+    test('the first held service the branch does not run', () {
+      expect(off(), ServiceMode.bar);
+      expect(off(offered: {ServiceMode.bar}), ServiceMode.hotel);
+      expect(off(mayRun: {ServiceMode.hotel}), ServiceMode.hotel);
+    });
+
+    test('none when every held service runs, or none is held', () {
+      expect(off(offered: {ServiceMode.bar, ServiceMode.hotel}), isNull);
+      expect(off(mayRun: {ServiceMode.pos}), isNull);
+      expect(off(mayRun: const {}), isNull);
     });
   });
 

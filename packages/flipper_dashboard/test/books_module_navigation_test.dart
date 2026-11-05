@@ -1,5 +1,7 @@
 import 'package:flipper_dashboard/books_module_entry.dart';
 import 'package:flipper_dashboard/customappbar.dart';
+import 'package:flipper_models/sync/utils/service_mode_access.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/widgets/dashboard_all_apps_catalog.dart';
 import 'package:flipper_web/features/business_selection/business_branch_selector.dart';
@@ -19,6 +21,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'TestApp.dart';
+import 'test_helpers/module_grants.dart';
 
 final _testBusiness = Business(
   id: 'biz-test',
@@ -101,6 +104,24 @@ void main() {
     // The bottom nav's New Sale / Inventory buttons already open checkout.
     expect(pages, isNot(contains('POS')));
     expect(pages, isNot(contains('Inventory')));
+  });
+
+  testWidgets('Books turns away staff not granted it', (tester) async {
+    await _pumpBooks(
+      tester,
+      const Size(1400, 900),
+      grants: const ServiceModeGrants(
+        byFeature: {
+          AppFeature.Books: {'someone-else'},
+        },
+      ),
+    );
+
+    expect(find.byType(AccountingModuleScreen), findsNothing);
+    expect(
+      find.textContaining("You don't have access to Books"),
+      findsOneWidget,
+    );
   });
 
   testWidgets('BooksModuleEntry hosts AccountingModuleScreen', (tester) async {
@@ -197,14 +218,21 @@ void main() {
   });
 }
 
-Future<void> _pumpBooks(WidgetTester tester, Size size) async {
+Future<void> _pumpBooks(
+  WidgetTester tester,
+  Size size, {
+  ServiceModeGrants grants = const ServiceModeGrants(),
+}) async {
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1.0;
   addTearDown(tester.view.reset);
+  // The mode hotkey reads the signed-in user's POS access.
+  registerModuleGrantsBox();
 
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
+        ...moduleGrantsOverrides(grants: grants),
         accountingBackendStrategyProvider.overrideWithValue(
           AccountingBackendStrategy.supabase,
         ),

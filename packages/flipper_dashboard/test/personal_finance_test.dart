@@ -18,6 +18,8 @@ import 'package:flipper_models/db_model_export.dart'
 import 'package:flipper_models/providers/category_provider.dart';
 import 'package:flipper_models/sms_review/sms_review_item.dart';
 import 'package:flipper_models/sms_review/sms_review_providers.dart';
+import 'package:flipper_models/sync/utils/service_mode_access.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/payment_methods.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
@@ -25,6 +27,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:supabase_models/brick/repository/storage.dart';
+
+import 'test_helpers/module_grants.dart';
 
 class _Box extends Fake implements LocalStorage {
   @override
@@ -118,7 +122,10 @@ List<Override> _overrides(
   PersonalMonthSummary summary, {
   List<SmsReviewItem> sms = const [],
   Stream<List<SmsReviewItem>>? smsStream,
+  ServiceModeGrants grants = const ServiceModeGrants(),
 }) => [
+  // Who holds Flo; nobody by default, so it is open.
+  ...moduleGrantsOverrides(grants: grants),
   branchServicesProvider.overrideWithValue(_Services()),
   personalMonthSummaryProvider.overrideWith((ref) => Stream.value(summary)),
   smsReviewBranchIdProvider.overrideWithValue('br'),
@@ -332,6 +339,31 @@ void main() {
       expect(find.text('flo-screen'), findsOneWidget);
       // No + button over the chat.
       expect(find.byKey(const ValueKey('personal-add-money')), findsNothing);
+    });
+
+    testWidgets('Flo turns away someone not granted it', (tester) async {
+      _size(tester, const Size(390, 844));
+      await tester.pumpWidget(
+        _app(
+          PersonalShell(floBuilder: (_) => const Text('flo-screen')),
+          _overrides(
+            PersonalMonthSummary.empty,
+            grants: const ServiceModeGrants(
+              byFeature: {
+                AppFeature.Flo: {'someone-else'},
+              },
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Flo'));
+      await tester.pumpAndSettle();
+      expect(find.text('flo-screen'), findsNothing);
+      expect(
+        find.textContaining("You don't have access to Flo"),
+        findsOneWidget,
+      );
     });
 
     testWidgets('More offers SMS Bridge, goals and going back to business', (

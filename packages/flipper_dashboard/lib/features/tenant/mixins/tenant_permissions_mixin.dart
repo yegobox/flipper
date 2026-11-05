@@ -71,10 +71,21 @@ class TenantPermissionsMixin {
         return l10n.serviceModeBarMode;
       case AppFeature.HotelMode:
         return l10n.serviceModeHotelMode;
+      case AppFeature.Books:
+        return l10n.dashboardAppBooks;
+      case AppFeature.Flo:
+        return 'Flo';
+      case AppFeature.HR:
+        return l10n.hrAndPayroll;
       default:
         return feature;
     }
   }
+
+  /// The levels the matrix offers for [feature]. HR opens only on an Admin
+  /// grant (HR's RLS honours nothing less), so it offers no Read or Write.
+  static List<String> accessLevelsFor(String feature) =>
+      feature == AppFeature.HR ? const ['No Access', 'admin'] : accessLevels;
 
   /// Display label for an [accessLevels] value (the raw value is persisted).
   static String accessLevelLabel(FlipperAppLocalizations l10n, String level) {
@@ -280,9 +291,14 @@ class TenantPermissionsMixin {
     void Function(void Function()) setState,
   ) {
     final raw = tenantAllowedFeatures[feature] ?? 'No Access';
-    final dropdownValue = accessLevels.contains(raw)
+    final levels = accessLevelsFor(feature);
+    final normalized = accessLevels.contains(raw)
         ? raw
         : normalizeAccessLevelForUi(raw);
+    // A level this row does not offer (a Write HR grant) opens nothing.
+    final dropdownValue = levels.contains(normalized)
+        ? normalized
+        : 'No Access';
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10.0),
@@ -350,9 +366,7 @@ class TenantPermissionsMixin {
                       );
                     });
                   },
-                  items: accessLevels.map<DropdownMenuItem<String>>((
-                    String value,
-                  ) {
+                  items: levels.map<DropdownMenuItem<String>>((String value) {
                     return DropdownMenuItem<String>(
                       value: value,
                       child: Text(
@@ -413,6 +427,8 @@ class TenantPermissionsMixin {
   /// Keeps Access Level and Active in sync when the switch changes.
   /// Turning Active on with "No Access" defaults the level to write
   /// (maps are often pre-filled with "No Access", so containsKey alone is wrong).
+  /// HR opens on nothing less than Admin, so turning it on makes any other
+  /// level Admin, including a Write kept from before HR offered only Admin.
   static void applyActiveToggle(
     String feature,
     bool active,
@@ -422,7 +438,11 @@ class TenantPermissionsMixin {
     activeFeatures[feature] = active;
     if (!active) return;
     final current = tenantAllowedFeatures[feature];
-    if (current == null || current == 'No Access') {
+    if (feature == AppFeature.HR) {
+      if (current?.toLowerCase() != AccessLevel.ADMIN) {
+        tenantAllowedFeatures[feature] = 'admin';
+      }
+    } else if (current == null || current == 'No Access') {
       tenantAllowedFeatures[feature] = 'write';
     }
   }
