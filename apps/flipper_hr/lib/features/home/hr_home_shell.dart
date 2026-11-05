@@ -1,8 +1,9 @@
+import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
+import 'package:flipper_dashboard/widgets/pos_side_rail.dart';
 import 'package:flipper_design_system/flipper_design_system.dart'
     show CustomAppBar;
 import 'package:flipper_hr/features/billing/presentation/hr_billing_gate.dart';
 import 'package:flipper_hr/features/branding/hr_tokens.dart';
-import 'package:flipper_hr/features/home/hr_sidebar_state.dart';
 import 'package:flipper_hr/features/host/hr_host.dart';
 import 'package:flipper_hr/features/people/data/people_providers.dart';
 import 'package:flipper_hr/features/session/data/hr_identity.dart';
@@ -19,8 +20,9 @@ import 'package:go_router/go_router.dart';
 
 // ─── Shell ────────────────────────────────────────────────────────────────────
 
-/// Signed-in HR chrome: sidebar nav + topbar, matching the flipper_web
-/// accounting shell layout and token set exactly.
+/// Signed-in HR chrome: on desktop, the POS rail (shared widgets, so the two
+/// apps cannot drift) beside the page under a header row; on a phone, a
+/// header, drawer and bottom nav.
 class HrHomeShell extends ConsumerStatefulWidget {
   const HrHomeShell({super.key, required this.child});
 
@@ -69,37 +71,42 @@ class _HrHomeShellState extends ConsumerState<HrHomeShell> {
     final isWide = MediaQuery.sizeOf(context).width >= _sidebarBreakpoint;
 
     if (isWide) {
-      final collapsed = ref.watch(hrSidebarCollapsedProvider);
+      // The POS desktop layout: a header row spanning the logo cell and the
+      // top bar, then the rail beside the page.
       return Scaffold(
         backgroundColor: HrTokens.workspaceBg,
-        body: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+        body: Column(
           children: [
-            _HrSidebar(
-              destinations: destinations,
+            _HrTopbar(
               location: location,
+              destinations: destinations,
               isSigningOut: _isSigningOut,
               onSignOut: _signOut,
-              collapsed: collapsed,
+              canSearch: session.canManageRoster,
+              onSearch: _search,
             ),
             Expanded(
-              child: Column(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  _HrTopbar(
-                    location: location,
-                    destinations: destinations,
-                    collapsed: collapsed,
-                    onToggleSidebar: () =>
-                        ref.read(hrSidebarCollapsedProvider.notifier).toggle(),
-                    isSigningOut: _isSigningOut,
-                    onSignOut: _signOut,
-                    canSearch: session.canManageRoster,
-                    onSearch: _search,
+                  PosRailFrame(
+                    child: _HrRail(
+                      destinations: destinations,
+                      location: location,
+                      isSigningOut: _isSigningOut,
+                      onSignOut: _signOut,
+                    ),
                   ),
-                  const HrBillingNotice(
-                    padding: EdgeInsets.fromLTRB(24, 12, 24, 0),
+                  Expanded(
+                    child: Column(
+                      children: [
+                        const HrBillingNotice(
+                          padding: EdgeInsets.fromLTRB(24, 12, 24, 0),
+                        ),
+                        Expanded(child: widget.child),
+                      ],
+                    ),
                   ),
-                  Expanded(child: widget.child),
                 ],
               ),
             ),
@@ -144,15 +151,11 @@ class _HrHomeShellState extends ConsumerState<HrHomeShell> {
             ),
       drawer: Drawer(
         backgroundColor: HrTokens.sidebarBg,
-        child: _HrSidebar(
+        child: _HrDrawerMenu(
           destinations: destinations,
           location: location,
           isSigningOut: _isSigningOut,
           onSignOut: _signOut,
-          // A drawer is opened to read the labels; collapsing it there would
-          // leave a rail floating in an empty sheet.
-          collapsed: false,
-          inDrawer: true,
         ),
       ),
       body: Column(
@@ -168,24 +171,115 @@ class _HrHomeShellState extends ConsumerState<HrHomeShell> {
   }
 }
 
-// ─── Sidebar ──────────────────────────────────────────────────────────────────
+// ─── Rail (desktop) ───────────────────────────────────────────────────────────
 
-class _HrSidebar extends ConsumerWidget {
-  const _HrSidebar({
+/// HR's desktop menu, drawn with the POS rail's own widgets so the two apps
+/// look and behave the same: icons named by tooltip, a hairline between the
+/// "manage" and "you" groups, the red exit entry and the branch at the foot.
+class _HrRail extends ConsumerWidget {
+  const _HrRail({
     required this.destinations,
     required this.location,
     required this.isSigningOut,
     required this.onSignOut,
-    required this.collapsed,
-    this.inDrawer = false,
   });
 
   final List<HrDestination> destinations;
   final String location;
   final bool isSigningOut;
   final VoidCallback onSignOut;
-  final bool collapsed;
-  final bool inDrawer;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final host = ref.watch(hrHostProvider);
+    final business = ref.watch(selectedBusinessProvider);
+    final branch = ref.watch(selectedBranchProvider);
+    final entityName = business?.name ?? 'Flipper HR';
+    final branchName = branch?.name ?? '';
+    final l10n = context.flipperL10n;
+
+    return PosRailColumn(
+      groups: [
+        for (final group in hrNavGroups(destinations))
+          [
+            for (final d in group.destinations)
+              PosRailItem(
+                key: Key('hr-sidebar-${d.path.replaceAll('/', '')}'),
+                iconBuilder: (c) => Icon(d.icon, color: c),
+                isSelected: _isSelected(d, location),
+                onTap: () => context.go(d.path),
+                tooltip: d.label,
+              ),
+          ],
+      ],
+      bottom: [
+        // Embedded, the account belongs to the host: the exit leads back to
+        // Flipper rather than signing the whole app out.
+        PosRailItem(
+          key: const Key('hr-rail-exit'),
+          iconBuilder: (c) => posRailSvg(PosRailSvgs.logout, c),
+          isSelected: false,
+          isLogout: true,
+          onTap: host.ownsAccount
+              ? (isSigningOut ? () {} : onSignOut)
+              : host.exit,
+          tooltip: !host.ownsAccount
+              ? l10n.hrBackToFlipper
+              : (isSigningOut ? l10n.hrSigningOut : l10n.signOut),
+        ),
+      ],
+      footer: Padding(
+        padding: const EdgeInsets.fromLTRB(0, 6, 0, 12),
+        child: Tooltip(
+          key: const Key('hr-rail-branch'),
+          message: branchName.isEmpty
+              ? entityName
+              : '$entityName · $branchName',
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              // Embedded, the branch is the host's; picking another happens
+              // there, so the avatar is a label, not a button.
+              onTap: host.ownsAccount
+                  ? () => context.go('/business-selection')
+                  : null,
+              customBorder: const CircleBorder(),
+              child: Padding(
+                padding: const EdgeInsets.all(4),
+                child: _CircleAvatar(
+                  label: hrInitials(
+                    branchName.isEmpty ? entityName : branchName,
+                  ),
+                  radius: 16,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+bool _isSelected(HrDestination d, String location) =>
+    location == d.path || location.startsWith('${d.path}/');
+
+// ─── Drawer (narrow only) ─────────────────────────────────────────────────────
+
+/// The phone drawer: everything the bottom bar has no room for, with labels,
+/// since a drawer is opened to read them.
+class _HrDrawerMenu extends ConsumerWidget {
+  const _HrDrawerMenu({
+    required this.destinations,
+    required this.location,
+    required this.isSigningOut,
+    required this.onSignOut,
+  });
+
+  final List<HrDestination> destinations;
+  final String location;
+  final bool isSigningOut;
+  final VoidCallback onSignOut;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -195,111 +289,69 @@ class _HrSidebar extends ConsumerWidget {
     final entityName = business?.name ?? 'Flipper HR';
     final subtitle = branch?.name ?? '';
 
-    return AnimatedContainer(
-      duration: HrTokens.motion,
-      curve: Curves.easeOutCubic,
-      width: collapsed ? HrTokens.railWidth : HrTokens.sidebarWidth,
-      decoration: const BoxDecoration(
-        color: HrTokens.sidebarBg,
-        border: Border(right: BorderSide(color: HrTokens.border)),
-      ),
-      // The two widths are laid out at their own size and clipped, so labels
-      // slide out of view instead of overflowing while the width animates.
-      child: ClipRect(
-        child: OverflowBox(
-          alignment: Alignment.centerLeft,
-          minWidth: collapsed ? HrTokens.railWidth : HrTokens.sidebarWidth,
-          maxWidth: collapsed ? HrTokens.railWidth : HrTokens.sidebarWidth,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // ── Brand ────────────────────────────────────────────────────────────
+        const Padding(
+          padding: EdgeInsets.fromLTRB(18, 18, 18, 14),
+          child: _HrWordmark(),
+        ),
+
+        // ── Entity switcher ──────────────────────────────────────────────────
+        Padding(
+          padding: const EdgeInsets.fromLTRB(10, 0, 10, 8),
+          child: _EntitySwitcher(
+            entityName: entityName,
+            subtitle: subtitle,
+            // Embedded, the branch is the host's; picking another happens
+            // there, so the card is a label, not a button.
+            onTap: ref.watch(hrHostProvider).ownsAccount
+                ? () {
+                    Navigator.of(context).pop();
+                    context.go('/business-selection');
+                  }
+                : null,
+          ),
+        ),
+
+        // ── Nav items ────────────────────────────────────────────────────────
+        Expanded(
+          child: ListView(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             children: [
-              // ── Brand ──────────────────────────────────────────────────────
-              Padding(
-                padding: collapsed
-                    ? const EdgeInsets.fromLTRB(0, 18, 0, 14)
-                    : const EdgeInsets.fromLTRB(18, 18, 18, 14),
-                child: _HrWordmark(compact: collapsed),
-              ),
-
-              // ── Entity switcher ────────────────────────────────────────────
-              Padding(
-                padding: collapsed
-                    ? const EdgeInsets.fromLTRB(0, 0, 0, 8)
-                    : const EdgeInsets.fromLTRB(10, 0, 10, 8),
-                child: _EntitySwitcher(
-                  entityName: entityName,
-                  subtitle: subtitle,
-                  collapsed: collapsed,
-                  // Embedded, the branch is the host's; picking another
-                  // happens there, so the card is a label, not a button.
-                  onTap: ref.watch(hrHostProvider).ownsAccount
-                      ? () {
-                          if (inDrawer) Navigator.of(context).pop();
-                          context.go('/business-selection');
-                        }
-                      : null,
-                ),
-              ),
-
-              // ── Nav items ──────────────────────────────────────────────────
-              Expanded(
-                child: ListView(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: collapsed ? 10 : 8,
-                    vertical: 4,
+              for (final group in hrNavGroups(destinations)) ...[
+                // The heading is what makes a nav a map rather than a list:
+                // "Manage" and "You" are two different jobs, and someone who
+                // has both switches between them all day.
+                if (group.title != null)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(12, 14, 12, 6),
+                    child: Text(
+                      group.title!.toUpperCase(),
+                      style: HrType.overline,
+                    ),
                   ),
-                  children: [
-                    for (final group in hrNavGroups(destinations)) ...[
-                      // The heading is what makes a nav a map rather than a
-                      // list: "Manage" and "You" are two different jobs, and
-                      // someone who has both switches between them all day.
-                      if (!collapsed && group.title != null)
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(12, 14, 12, 6),
-                          child: Text(
-                            group.title!.toUpperCase(),
-                            style: HrType.overline,
-                          ),
-                        ),
-                      if (collapsed && group.title != null)
-                        const Padding(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 10,
-                          ),
-                          child: Divider(height: 1, color: HrTokens.line),
-                        ),
-                      for (final d in group.destinations)
-                        _SidebarNavItem(
-                          key: Key('hr-sidebar-${d.path.replaceAll('/', '')}'),
-                          destination: d,
-                          selected: _isSelected(d, location),
-                          collapsed: collapsed,
-                          onTap: () {
-                            if (inDrawer) Navigator.of(context).pop();
-                            context.go(d.path);
-                          },
-                        ),
-                    ],
-                  ],
-                ),
-              ),
-
-              // ── Account footer ─────────────────────────────────────────────
-              _SidebarAccountFooter(
-                isSigningOut: isSigningOut,
-                onSignOut: onSignOut,
-                collapsed: collapsed,
-              ),
+                for (final d in group.destinations)
+                  _DrawerNavItem(
+                    key: Key('hr-drawer-${d.path.replaceAll('/', '')}'),
+                    destination: d,
+                    selected: _isSelected(d, location),
+                    onTap: () {
+                      Navigator.of(context).pop();
+                      context.go(d.path);
+                    },
+                  ),
+              ],
             ],
           ),
         ),
-      ),
+
+        // ── Account footer ───────────────────────────────────────────────────
+        _DrawerAccountFooter(isSigningOut: isSigningOut, onSignOut: onSignOut),
+      ],
     );
   }
-
-  static bool _isSelected(HrDestination d, String location) =>
-      location == d.path || location.startsWith('${d.path}/');
 }
 
 // ─── Entity switcher ──────────────────────────────────────────────────────────
@@ -308,38 +360,15 @@ class _EntitySwitcher extends StatelessWidget {
   const _EntitySwitcher({
     required this.entityName,
     required this.subtitle,
-    required this.collapsed,
     required this.onTap,
   });
 
   final String entityName;
   final String subtitle;
-  final bool collapsed;
   final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    final avatar = _GradientAvatar(
-      label: hrInitials(entityName),
-      fallbackIcon: Icons.storefront_outlined,
-    );
-
-    if (collapsed) {
-      return Center(
-        child: Tooltip(
-          message: subtitle.isEmpty ? entityName : '$entityName · $subtitle',
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: onTap,
-              borderRadius: BorderRadius.circular(HrTokens.radiusSm),
-              child: Padding(padding: const EdgeInsets.all(4), child: avatar),
-            ),
-          ),
-        ),
-      );
-    }
-
     return Material(
       color: HrTokens.sidebarBg2,
       shape: RoundedRectangleBorder(
@@ -354,7 +383,10 @@ class _EntitySwitcher extends StatelessWidget {
           padding: const EdgeInsets.all(10),
           child: Row(
             children: [
-              avatar,
+              _GradientAvatar(
+                label: hrInitials(entityName),
+                fallbackIcon: Icons.storefront_outlined,
+              ),
               const SizedBox(width: 10),
               Expanded(
                 child: Column(
@@ -392,20 +424,18 @@ class _EntitySwitcher extends StatelessWidget {
   }
 }
 
-// ─── Sidebar nav item ─────────────────────────────────────────────────────────
+// ─── Drawer nav item ──────────────────────────────────────────────────────────
 
-class _SidebarNavItem extends StatelessWidget {
-  const _SidebarNavItem({
+class _DrawerNavItem extends StatelessWidget {
+  const _DrawerNavItem({
     super.key,
     required this.destination,
     required this.selected,
-    required this.collapsed,
     required this.onTap,
   });
 
   final HrDestination destination;
   final bool selected;
-  final bool collapsed;
   final VoidCallback onTap;
 
   @override
@@ -415,52 +445,38 @@ class _SidebarNavItem extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 2),
-      child: Tooltip(
-        message: destination.label,
-        // A rail has no labels, so its tooltip is the label — it appears at
-        // once. Expanded, the label is already on screen and a tooltip that
-        // races the pointer is just noise.
-        waitDuration: Duration(milliseconds: collapsed ? 200 : 600),
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: onTap,
-            borderRadius: BorderRadius.circular(HrTokens.radiusSm),
-            hoverColor: HrTokens.surface2,
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 120),
-              curve: Curves.ease,
-              height: 40,
-              padding: EdgeInsets.symmetric(horizontal: collapsed ? 0 : 12),
-              decoration: BoxDecoration(
-                color: selected ? HrTokens.accentTint : Colors.transparent,
-                borderRadius: BorderRadius.circular(HrTokens.radiusSm),
-              ),
-              child: Row(
-                mainAxisAlignment: collapsed
-                    ? MainAxisAlignment.center
-                    : MainAxisAlignment.start,
-                children: [
-                  Icon(destination.icon, size: 18, color: iconColor),
-                  if (!collapsed) ...[
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        destination.label,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 13.5,
-                          fontWeight: selected
-                              ? FontWeight.w600
-                              : FontWeight.w500,
-                          color: labelColor,
-                        ),
-                      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(HrTokens.radiusSm),
+          hoverColor: HrTokens.surface2,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 120),
+            curve: Curves.ease,
+            height: 40,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            decoration: BoxDecoration(
+              color: selected ? HrTokens.accentTint : Colors.transparent,
+              borderRadius: BorderRadius.circular(HrTokens.radiusSm),
+            ),
+            child: Row(
+              children: [
+                Icon(destination.icon, size: 18, color: iconColor),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    destination.label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 13.5,
+                      fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+                      color: labelColor,
                     ),
-                  ],
-                ],
-              ),
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -469,18 +485,16 @@ class _SidebarNavItem extends StatelessWidget {
   }
 }
 
-// ─── Sidebar account footer ───────────────────────────────────────────────────
+// ─── Drawer account footer ────────────────────────────────────────────────────
 
-class _SidebarAccountFooter extends ConsumerWidget {
-  const _SidebarAccountFooter({
+class _DrawerAccountFooter extends ConsumerWidget {
+  const _DrawerAccountFooter({
     required this.isSigningOut,
     required this.onSignOut,
-    required this.collapsed,
   });
 
   final bool isSigningOut;
   final VoidCallback onSignOut;
-  final bool collapsed;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -490,69 +504,58 @@ class _SidebarAccountFooter extends ConsumerWidget {
       decoration: const BoxDecoration(
         border: Border(top: BorderSide(color: HrTokens.line)),
       ),
-      padding: EdgeInsets.all(collapsed ? 6 : 10),
+      padding: const EdgeInsets.all(10),
       child: _AccountMenu(
         identity: identity,
         isSigningOut: isSigningOut,
         onSignOut: onSignOut,
         offset: const Offset(0, -8),
-        child: collapsed
-            ? Center(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 6),
-                  child: _CircleAvatar(label: identity.initials, radius: 16),
-                ),
-              )
-            : Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
-                child: Row(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+          child: Row(
+            children: [
+              _CircleAvatar(label: identity.initials),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    _CircleAvatar(label: identity.initials),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            identity.name,
-                            key: const Key('hr-account-name'),
-                            style: const TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                              color: HrTokens.ink1,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          if (identity.secondary != null)
-                            Text(
-                              identity.secondary!,
-                              style: const TextStyle(
-                                fontSize: 11.5,
-                                color: HrTokens.ink3,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                        ],
+                    Text(
+                      identity.name,
+                      key: const Key('hr-account-name'),
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: HrTokens.ink1,
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    if (isSigningOut)
-                      const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    else
-                      const Icon(
-                        Icons.more_horiz,
-                        color: HrTokens.ink3,
-                        size: 18,
+                    if (identity.secondary != null)
+                      Text(
+                        identity.secondary!,
+                        style: const TextStyle(
+                          fontSize: 11.5,
+                          color: HrTokens.ink3,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                   ],
                 ),
               ),
+              if (isSigningOut)
+                const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              else
+                const Icon(Icons.more_horiz, color: HrTokens.ink3, size: 18),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -564,8 +567,6 @@ class _HrTopbar extends ConsumerWidget {
   const _HrTopbar({
     required this.location,
     required this.destinations,
-    required this.collapsed,
-    required this.onToggleSidebar,
     required this.isSigningOut,
     required this.onSignOut,
     required this.canSearch,
@@ -574,8 +575,6 @@ class _HrTopbar extends ConsumerWidget {
 
   final String location;
   final List<HrDestination> destinations;
-  final bool collapsed;
-  final VoidCallback onToggleSidebar;
   final bool isSigningOut;
   final VoidCallback onSignOut;
 
@@ -595,22 +594,20 @@ class _HrTopbar extends ConsumerWidget {
 
     return Container(
       height: HrTokens.topbarHeight,
-      padding: const EdgeInsets.fromLTRB(10, 0, 16, 0),
+      padding: const EdgeInsets.fromLTRB(0, 0, 16, 0),
       decoration: const BoxDecoration(
         color: HrTokens.surface,
         border: Border(bottom: BorderSide(color: HrTokens.line)),
       ),
       child: Row(
         children: [
-          _IconAction(
-            key: const Key('hr-sidebar-toggle'),
-            icon: collapsed ? Icons.menu_open_outlined : Icons.menu_outlined,
-            tooltip: collapsed
-                ? context.flipperL10n.hrExpandMenu
-                : context.flipperL10n.hrCollapseMenu,
-            onTap: onToggleSidebar,
+          // The mark sits in a cell as wide as the rail, so it lines up with
+          // the rail's icons, as the POS logo does.
+          const SizedBox(
+            width: PosLayoutBreakpoints.sideMenuWidth,
+            child: Center(child: _BrandMark()),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 16),
           // Breadcrumb
           const Text(
             'HR',
@@ -620,7 +617,10 @@ class _HrTopbar extends ConsumerWidget {
             padding: EdgeInsets.symmetric(horizontal: 8),
             child: Icon(Icons.chevron_right, size: 14, color: HrTokens.ink3),
           ),
-          Flexible(
+          // Expanded, not Flexible beside a Spacer: a loose child leaves its
+          // unused share at the row's end, so search and the avatar stopped
+          // short of the right edge.
+          Expanded(
             child: Text(
               current.label,
               maxLines: 1,
@@ -632,7 +632,6 @@ class _HrTopbar extends ConsumerWidget {
               ),
             ),
           ),
-          const Spacer(),
           // Search sends you to the roster with the term already typed — the
           // one index HR has. It is a real control rather than an icon that
           // opens a palette that does not exist yet.
@@ -653,39 +652,6 @@ class _HrTopbar extends ConsumerWidget {
             onSignOut: onSignOut,
           ),
         ],
-      ),
-    );
-  }
-}
-
-/// A square, quiet icon button — the topbar's only affordance shape.
-class _IconAction extends StatelessWidget {
-  const _IconAction({
-    super.key,
-    required this.icon,
-    required this.tooltip,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final String tooltip;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Tooltip(
-      message: tooltip,
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(HrTokens.radiusSm),
-          hoverColor: HrTokens.surface2,
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Icon(icon, size: 20, color: HrTokens.ink2),
-          ),
-        ),
       ),
     );
   }
@@ -911,19 +877,10 @@ class _HrBottomNav extends StatelessWidget {
 // ─── Shared small widgets ─────────────────────────────────────────────────────
 
 class _HrWordmark extends StatelessWidget {
-  const _HrWordmark({this.compact = false});
-
-  /// Mark only — what the rail and a narrow app bar have room for.
-  final bool compact;
+  const _HrWordmark();
 
   @override
   Widget build(BuildContext context) {
-    if (compact) {
-      return const Center(
-        child: Tooltip(message: 'Flipper HR', child: _BrandMark()),
-      );
-    }
-
     return const Row(
       mainAxisSize: MainAxisSize.min,
       children: [

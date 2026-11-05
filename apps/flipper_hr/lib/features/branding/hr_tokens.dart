@@ -34,8 +34,6 @@ abstract final class HrTokens {
     stops: [0, 0.52, 1],
   );
 
-  static const double sidebarWidth = 240;
-  static const double railWidth    = 68;
   static const double topbarHeight = 56;
   static const double radiusSm     = 10;
   static const double radiusMd     = 14;
