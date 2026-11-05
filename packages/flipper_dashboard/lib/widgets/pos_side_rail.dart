@@ -11,6 +11,10 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 /// The rail's column: [PosLayoutBreakpoints.sideMenuWidth] wide, white, a hairline on its
 /// right edge. The POS dashboard and the HR shell both mount their rail in it.
+///
+/// The opaque fill would hide ink painted on the Material behind it, so the
+/// entries get a transparent Material of their own above the fill: their
+/// hover and keyboard-focus highlights draw on that one and stay visible.
 class PosRailFrame extends StatelessWidget {
   const PosRailFrame({super.key, required this.child});
 
@@ -25,7 +29,7 @@ class PosRailFrame extends StatelessWidget {
           color: PosTokens.posRail,
           border: Border(right: BorderSide(color: PosTokens.line, width: 1)),
         ),
-        child: child,
+        child: Material(type: MaterialType.transparency, child: child),
       ),
     );
   }

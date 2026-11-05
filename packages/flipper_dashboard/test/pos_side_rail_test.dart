@@ -68,6 +68,53 @@ void main() {
     expect((decoration.border! as Border).right.color, PosTokens.line);
   });
 
+  testWidgets('entries paint their ink above the frame\'s fill', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _host(
+        PosRailColumn(
+          groups: [
+            [_item('a')],
+          ],
+          bottom: const [],
+        ),
+      ),
+    );
+
+    // An InkWell draws hover and focus on the nearest Material. If that is
+    // the Scaffold's, the frame's opaque fill covers it and focus is invisible.
+    final inkWell = find.descendant(
+      of: find.byKey(const Key('a')),
+      matching: find.byType(InkWell),
+    );
+    final ink = Material.of(tester.element(inkWell)) as RenderObject;
+    // The frame's own fill: the outermost box under it.
+    final fillBox = find
+        .descendant(
+          of: find.byType(PosRailFrame),
+          matching: find.byType(DecoratedBox),
+        )
+        .first;
+    expect(
+      (tester.widget<DecoratedBox>(fillBox).decoration as BoxDecoration).color,
+      PosTokens.posRail,
+    );
+    final fill = tester.renderObject(fillBox);
+
+    var aboveFill = false;
+    for (RenderObject? node = ink.parent; node != null; node = node.parent) {
+      if (identical(node, fill)) aboveFill = true;
+    }
+    expect(aboveFill, isTrue);
+
+    // That Material is see-through, so the rail looks the same at rest.
+    final material = tester.widget<Material>(
+      find.ancestor(of: inkWell, matching: find.byType(Material)).first,
+    );
+    expect(material.type, MaterialType.transparency);
+  });
+
   testWidgets('entries draw idle, selected and logout states', (tester) async {
     await tester.pumpWidget(
       _host(
@@ -159,6 +206,39 @@ void main() {
     final footerY = tester.getTopLeft(find.byKey(const Key('footer'))).dy;
     expect(endY, greaterThan(threeY));
     expect(footerY, greaterThan(endY));
+  });
+
+  testWidgets('the groups scroll under the pinned entries and footer', (
+    tester,
+  ) async {
+    // Twenty one-entry groups are far taller than the 600px test surface.
+    await tester.pumpWidget(
+      _host(
+        PosRailColumn(
+          groups: [
+            for (var i = 0; i < 20; i++) [_item('g$i')],
+          ],
+          bottom: [_item('end')],
+          footer: const SizedBox(key: Key('footer'), height: 10),
+        ),
+      ),
+    );
+
+    double top(String key) => tester.getTopLeft(find.byKey(Key(key))).dy;
+    final firstY = top('g0');
+    final endY = top('end');
+    final footerY = top('footer');
+    expect(footerY, greaterThan(endY));
+
+    await tester.drag(
+      find.byType(SingleChildScrollView),
+      const Offset(0, -200),
+    );
+    await tester.pumpAndSettle();
+
+    expect(top('g0'), lessThan(firstY));
+    expect(top('end'), endY);
+    expect(top('footer'), footerY);
   });
 
   testWidgets('without a footer nothing is drawn under the pinned entries', (

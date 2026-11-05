@@ -13,6 +13,7 @@ import 'package:flipper_hr/features/session/data/hr_session.dart';
 import 'package:flipper_hr/features/session/data/hr_session_providers.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_web/features/business_selection/business_selection_providers.dart';
+import 'package:flipper_web/services/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -22,11 +23,24 @@ import '../helpers/fake_hr_account_repository.dart';
 import '../helpers/fake_hr_billing_repository.dart';
 import '../helpers/fake_hr_session_repository.dart';
 
+/// Implements rather than extends: the real constructor reaches for
+/// `Supabase.instance`, which tests never initialise.
+class _FakeAuthService implements AuthService {
+  int signOuts = 0;
+
+  @override
+  Future<void> signOut() async => signOuts++;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
 Future<GoRouter> _pumpShell(
   WidgetTester tester, {
   required HrSession session,
   HrHost host = const HrHost.web(),
   Size size = const Size(1400, 900),
+  AuthService? auth,
 }) async {
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1.0;
@@ -56,6 +70,7 @@ Future<GoRouter> _pumpShell(
         path: '/business-selection',
         builder: (_, _) => page('/business-selection'),
       ),
+      GoRoute(path: '/login', builder: (_, _) => page('/login')),
     ],
   );
   addTearDown(router.dispose);
@@ -64,6 +79,7 @@ Future<GoRouter> _pumpShell(
     ProviderScope(
       overrides: [
         hrHostProvider.overrideWithValue(host),
+        if (auth != null) authServiceProvider.overrideWithValue(auth),
         hrSessionRepositoryProvider.overrideWithValue(
           FakeHrSessionRepository(session: session),
         ),
@@ -158,11 +174,23 @@ void main() {
   });
 
   testWidgets('on the web the exit entry signs out', (tester) async {
-    await _pumpShell(tester, session: ownerSession());
+    final auth = _FakeAuthService();
+    final router = await _pumpShell(
+      tester,
+      session: ownerSession(),
+      auth: auth,
+    );
 
     final exit = find.byKey(const Key('hr-rail-exit'));
     expect(tester.widget<PosRailItem>(exit).isLogout, isTrue);
     expect(_tooltipOf(tester, exit), 'Sign Out');
+
+    await tester.tap(exit);
+    await tester.pumpAndSettle();
+
+    expect(auth.signOuts, 1);
+    expect(router.routerDelegate.currentConfiguration.uri.path, '/login');
+    expect(find.text('page /login'), findsOneWidget);
   });
 
   testWidgets('embedded, the exit entry goes back to Flipper', (tester) async {
