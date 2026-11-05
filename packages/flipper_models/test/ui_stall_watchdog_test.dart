@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:ui' show AppExitResponse;
 
 import 'package:flipper_models/perf/ui_stall_watchdog.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -71,6 +72,74 @@ void main() {
       expect(marker.existsSync(), isFalse);
     });
 
+    test('when the newer critical op ends first, the older one takes the '
+        'marker back', () async {
+      final marker = File('${tmp.path}/perf/inflight.json');
+      trail.useMarkerFile(marker);
+      final older = Completer<void>();
+      final newer = Completer<void>();
+
+      final a = trail.track('pos_search', () => older.future, critical: true);
+      final b = trail.track('autoadd', () => newer.future, critical: true);
+      expect(jsonDecode(marker.readAsStringSync())['op'], 'autoadd');
+
+      newer.complete();
+      await b;
+      expect(jsonDecode(marker.readAsStringSync())['op'], 'pos_search');
+
+      older.complete();
+      await a;
+      expect(marker.existsSync(), isFalse);
+    });
+
+    test('a clean exit drops the marker, and ops ending after it do not '
+        'write it back', () async {
+      final marker = File('${tmp.path}/perf/inflight.json');
+      trail.useMarkerFile(marker);
+      final first = Completer<void>();
+      final second = Completer<void>();
+      final a = trail.track('a', () => first.future, critical: true);
+      final b = trail.track('b', () => second.future, critical: true);
+
+      trail.markCleanExit();
+      expect(marker.existsSync(), isFalse);
+
+      second.complete();
+      await b;
+      expect(marker.existsSync(), isFalse);
+      first.complete();
+      await a;
+      expect(marker.existsSync(), isFalse);
+
+      // A critical op started afterwards (the exit was cancelled) still counts.
+      final later = Completer<void>();
+      final c = trail.track('c', () => later.future, critical: true);
+      expect(marker.existsSync(), isTrue);
+      later.complete();
+      await c;
+      expect(marker.existsSync(), isFalse);
+    });
+
+    testWidgets('a quit request clears the marker and lets the app exit', (
+      tester,
+    ) async {
+      final marker = File('${tmp.path}/perf/inflight.json');
+      trail.useMarkerFile(marker);
+      final gate = Completer<void>();
+      final op = trail.track('pos_search', () => gate.future, critical: true);
+      expect(marker.existsSync(), isTrue);
+
+      final listener = clearMarkerOnExitRequest(trail);
+      addTearDown(listener.dispose);
+      final response = await tester.binding.handleRequestAppExit();
+
+      expect(response, AppExitResponse.exit);
+      expect(marker.existsSync(), isFalse);
+      gate.complete();
+      await op;
+      expect(marker.existsSync(), isFalse);
+    });
+
     test('a plain op never touches the marker', () async {
       final marker = File('${tmp.path}/inflight.json');
       trail.useMarkerFile(marker);
@@ -79,22 +148,46 @@ void main() {
       });
     });
 
-    test('a marker left by a killed run is reported once', () {
+    test('a marker left by a killed run stays until it is cleared', () {
       final marker = File('${tmp.path}/inflight.json')
         ..writeAsStringSync(jsonEncode({'op': 'pos_search'}));
 
-      expect(PerfOpTrail.takeLeftoverMarker(marker), {'op': 'pos_search'});
+      // Reading alone keeps it: the report may not be written yet.
+      expect(PerfOpTrail.readLeftoverMarker(marker), {'op': 'pos_search'});
+      expect(marker.existsSync(), isTrue);
+
+      PerfOpTrail.clearLeftoverMarker(marker);
       expect(marker.existsSync(), isFalse);
-      expect(PerfOpTrail.takeLeftoverMarker(marker), isNull);
+      expect(PerfOpTrail.readLeftoverMarker(marker), isNull);
+      // Clearing a missing marker is harmless.
+      PerfOpTrail.clearLeftoverMarker(marker);
+    });
+
+    test('a critical op already running when the marker is set is written '
+        'at once', () async {
+      final marker = File('${tmp.path}/inflight.json');
+      final held = Completer<void>();
+      final search = trail.track(
+        'pos_search',
+        () => held.future,
+        critical: true,
+      );
+
+      trail.useMarkerFile(marker);
+      expect(jsonDecode(marker.readAsStringSync())['op'], 'pos_search');
+
+      held.complete();
+      await search;
+      expect(marker.existsSync(), isFalse);
     });
 
     test('an unreadable marker still counts as a killed run', () {
       final marker = File('${tmp.path}/inflight.json')
         ..writeAsStringSync('not json');
-      expect(PerfOpTrail.takeLeftoverMarker(marker), {'op': 'unknown'});
+      expect(PerfOpTrail.readLeftoverMarker(marker), {'op': 'unknown'});
 
       final list = File('${tmp.path}/list.json')..writeAsStringSync('[1]');
-      expect(PerfOpTrail.takeLeftoverMarker(list), {'op': 'unknown'});
+      expect(PerfOpTrail.readLeftoverMarker(list), {'op': 'unknown'});
     });
 
     test('reports go to the reporter, and a failing one is swallowed', () {
@@ -175,6 +268,53 @@ void main() {
       expect(watchdog.isRunning, isFalse);
     });
 
+    test(
+      'a till that slept is not a stall when the clock leaves sleep out',
+      () {
+        // Unbiased interrupt time in 100ns units: it stands still while the
+        // machine sleeps, so one hour asleep reads as a single on-time tick.
+        var ticks = 5000000;
+        final slept = UiStallWatchdog(
+          onStall: stalls.add,
+          trail: trail,
+          elapsed: awakeClock(unbiasedTicks: () => ticks),
+        )..start();
+        addTearDown(slept.stop);
+
+        ticks += 2500000; // 250ms awake
+        slept.check();
+        expect(stalls, isEmpty);
+
+        ticks += 32500000; // 3.25s awake, main thread blocked
+        slept.check();
+        expect(stalls.single.lag, const Duration(seconds: 3));
+      },
+    );
+
+    test('a failed clock read keeps the last good value', () {
+      // Uptime well past zero, as on a real till: falling back to 0 would
+      // read as a jump of ~1000s.
+      var ticks = 10000000000;
+      final clocked = UiStallWatchdog(
+        onStall: stalls.add,
+        trail: trail,
+        elapsed: awakeClock(unbiasedTicks: () => ticks),
+      )..start();
+      addTearDown(clocked.stop);
+
+      ticks += 2500000;
+      clocked.check();
+      final good = ticks;
+      ticks = 0; // QueryUnbiasedInterruptTime failed
+      clocked.check();
+      ticks = good + 2500000;
+      clocked.check();
+      ticks += 2500000;
+      clocked.check();
+
+      expect(stalls, isEmpty);
+    });
+
     test('the default clock and trail need no setup', () {
       final real = UiStallWatchdog(onStall: (_) {})..start();
       real.check();
@@ -193,22 +333,34 @@ void main() {
   });
 
   group('PerfLogFile', () {
-    test('appends lines and rolls past the size cap', () {
+    test('appends lines in order and rolls past the size cap', () async {
       final file = File('${tmp.path}/logs/perf.log');
       final log = PerfLogFile(file, maxBytes: 15);
 
-      log.append('first line');
-      log.append('second');
+      unawaited(log.append('first line'));
+      await log.append('second');
       expect(file.readAsStringSync(), 'first line\nsecond\n');
 
-      log.append('third');
+      await log.append('third');
       expect(File('${file.path}.1').readAsStringSync(), contains('second'));
       expect(file.readAsStringSync(), 'third\n');
     });
 
-    test('a file that cannot be written is ignored', () {
+    test('append returns before touching the disk', () async {
+      final file = File('${tmp.path}/logs/perf.log');
+      final written = PerfLogFile(file).append('stall');
+      // A synchronous write would already have made the file.
+      expect(file.existsSync(), isFalse);
+      await written;
+      expect(file.readAsStringSync(), 'stall\n');
+    });
+
+    test('a file that cannot be written is ignored', () async {
       final blocker = File('${tmp.path}/blocker')..writeAsStringSync('x');
-      PerfLogFile(File('${blocker.path}/perf.log')).append('lost');
+      final log = PerfLogFile(File('${blocker.path}/perf.log'));
+      await log.append('lost');
+      // The queue keeps going after a failed write.
+      await log.append('also lost');
     });
   });
 }

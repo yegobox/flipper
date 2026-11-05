@@ -2,6 +2,10 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:ui' show AppExitResponse;
+
+import 'package:flipper_models/perf/windows_unbiased_ticks.dart';
+import 'package:flutter/widgets.dart' show AppLifecycleListener;
 
 /// Reports a diagnostic event (`ui_stall`, `ui_hang_killed`, `search_timeout`)
 /// to wherever the app sends them. Set once at startup.
@@ -44,14 +48,20 @@ class PerfOpTrail {
   final DateTime Function() _clock;
   final ListQueue<PerfOp> _recent = ListQueue<PerfOp>();
   final List<PerfOp> _running = <PerfOp>[];
-  int _criticalRunning = 0;
+
+  /// Critical ops still running, oldest first; the marker names the last.
+  final List<PerfOp> _critical = <PerfOp>[];
   File? _marker;
   PerfEventReporter? _reporter;
 
   /// While a `critical` op runs, its label sits in [file]. A hang the user
   /// ends by killing the app leaves the file behind for the next start to
-  /// report (see [takeLeftoverMarker]).
-  void useMarkerFile(File? file) => _marker = file;
+  /// report (see [readLeftoverMarker]). A critical op already running when
+  /// the file is set is written at once, so a kill during it is not missed.
+  void useMarkerFile(File? file) {
+    _marker = file;
+    if (_critical.isNotEmpty) _writeMarker(_critical.last);
+  }
 
   void useReporter(PerfEventReporter? reporter) => _reporter = reporter;
 
@@ -73,7 +83,7 @@ class PerfOpTrail {
     final op = PerfOp(label, _clock());
     _running.add(op);
     if (critical) {
-      _criticalRunning++;
+      _critical.add(op);
       _writeMarker(op);
     }
     try {
@@ -82,8 +92,24 @@ class PerfOpTrail {
       op.duration = _clock().difference(op.startedAt);
       _running.remove(op);
       _remember(op);
-      if (critical && --_criticalRunning == 0) _clearMarker();
+      // Not found after [markCleanExit]: the app was already quitting.
+      if (_critical.remove(op)) {
+        // An overlapping op that is still running takes the marker back, so
+        // a kill now names it rather than the one that just finished.
+        if (_critical.isEmpty) {
+          _clearMarker();
+        } else {
+          _writeMarker(_critical.last);
+        }
+      }
     }
+  }
+
+  /// The app is quitting normally: the ops still running are cut off by the
+  /// exit, not by a hang, so the next start must not report them.
+  void markCleanExit() {
+    _critical.clear();
+    _clearMarker();
   }
 
   /// Records something that already happened and took [took].
@@ -135,19 +161,43 @@ class PerfOpTrail {
   }
 
   /// The op a previous run was in when it died, or null after a clean exit.
-  /// Deletes the marker so it is reported once.
-  static Map<String, Object?>? takeLeftoverMarker(File file) {
+  ///
+  /// Leaves the file in place: delete it with [clearLeftoverMarker] only once
+  /// the report is written, so a crash in between reports it again rather
+  /// than losing it.
+  static Map<String, Object?>? readLeftoverMarker(File file) {
     try {
       if (!file.existsSync()) return null;
-      final raw = file.readAsStringSync();
-      file.deleteSync();
-      final decoded = jsonDecode(raw);
+      final decoded = jsonDecode(file.readAsStringSync());
       if (decoded is Map) return Map<String, Object?>.from(decoded);
       return {'op': 'unknown'};
     } catch (_) {
       return {'op': 'unknown'};
     }
   }
+
+  /// Deletes a marker [readLeftoverMarker] returned, once it is reported.
+  static void clearLeftoverMarker(File file) {
+    try {
+      if (file.existsSync()) file.deleteSync();
+    } catch (_) {}
+  }
+}
+
+/// Clears [trail]'s marker when the desktop app is asked to quit (last window
+/// closed, Cmd+Q, Alt+F4), so a normal close mid-search is not reported as a
+/// killed hang on the next start. A hung app cannot answer the request, so a
+/// kill from "Not Responding" still leaves the marker. Phones send no exit
+/// request; there the window is only as long as the critical op itself.
+///
+/// Always lets the exit go ahead. Dispose the listener to stop.
+AppLifecycleListener clearMarkerOnExitRequest(PerfOpTrail trail) {
+  return AppLifecycleListener(
+    onExitRequested: () async {
+      trail.markCleanExit();
+      return AppExitResponse.exit;
+    },
+  );
 }
 
 /// A main-thread stall the watchdog saw, with what was running around it.
@@ -196,7 +246,7 @@ class UiStallWatchdog {
     Duration Function()? elapsed,
   }) : _trail = trail ?? PerfOpTrail.instance,
        _context = context,
-       _elapsed = elapsed ?? _monotonic();
+       _elapsed = elapsed ?? awakeClock();
 
   final void Function(UiStall stall) onStall;
   final Duration tick;
@@ -245,26 +295,56 @@ class UiStallWatchdog {
   }
 }
 
-Duration Function() _monotonic() {
-  final stopwatch = Stopwatch()..start();
-  return () => stopwatch.elapsed;
+/// Time since the clock was made, not counting time the OS spent asleep.
+///
+/// A sleeping till is not a stalled one. `Stopwatch` already stands still
+/// during sleep on macOS, Linux and phones, but on Windows it reads
+/// QueryPerformanceCounter, which keeps counting, so waking a till would look
+/// like a stall as long as the sleep. Windows reads the unbiased interrupt
+/// time instead, which leaves sleep out.
+///
+/// [unbiasedTicks] (100ns units) replaces the Windows source in tests.
+Duration Function() awakeClock({int Function()? unbiasedTicks}) {
+  final read =
+      unbiasedTicks ?? (Platform.isWindows ? windowsUnbiasedTicks() : null);
+  if (read == null) {
+    final stopwatch = Stopwatch()..start();
+    return () => stopwatch.elapsed;
+  }
+  final start = read();
+  var last = start;
+  return () {
+    // A failed read gives 0. Keeping the last good value stops the clock
+    // jumping back, which would make the next tick look like a stall as long
+    // as the uptime.
+    final now = read();
+    if (now > last) last = now;
+    return Duration(microseconds: (last - start) ~/ 10);
+  };
 }
 
 /// Append-only text log that rolls to `<name>.1` past [maxBytes], so support
 /// can ask a till for the file without it growing forever.
+///
+/// Writes are async and run one after another: the watchdog reports from the
+/// main isolate, and a slow disk must not lengthen the stall it is reporting.
 class PerfLogFile {
   PerfLogFile(this.file, {this.maxBytes = 1024 * 1024});
 
   final File file;
   final int maxBytes;
+  Future<void> _tail = Future<void>.value();
 
-  void append(String line) {
+  /// Queues [line]; the future completes once it is written (or dropped).
+  Future<void> append(String line) => _tail = _tail.then((_) => _write(line));
+
+  Future<void> _write(String line) async {
     try {
-      file.parent.createSync(recursive: true);
-      if (file.existsSync() && file.lengthSync() > maxBytes) {
-        file.renameSync('${file.path}.1');
+      await file.parent.create(recursive: true);
+      if (await file.exists() && await file.length() > maxBytes) {
+        await file.rename('${file.path}.1');
       }
-      file.writeAsStringSync('$line\n', mode: FileMode.append, flush: true);
+      await file.writeAsString('$line\n', mode: FileMode.append, flush: true);
     } catch (_) {}
   }
 }

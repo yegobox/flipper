@@ -44,6 +44,29 @@ List<OuterVariantsProvider> posStockFilteredCatalogs(String branchId) => [
       outerVariantsProvider(branchId, stockFilter: filter),
 ];
 
+/// What the POS grid was showing before a search started.
+class _PaintedCatalog {
+  _PaintedCatalog({
+    required this.search,
+    required this.pages,
+    required this.firstPage,
+    required this.lastPage,
+    required this.viewPage,
+    required this.totalCount,
+  });
+
+  final String search;
+  final Map<int, List<Variant>> pages;
+  final int firstPage;
+  final int lastPage;
+  final int? viewPage;
+  final int? totalCount;
+
+  /// Catalog edits (add, delete) made while the search was pending, applied
+  /// to these pages if they are put back.
+  final edits = <void Function()>[];
+}
+
 @riverpod
 class OuterVariants extends _$OuterVariants {
   /// In-memory pages `[firstCachedPage … lastCachedPage]`; oldest dropped when
@@ -74,6 +97,14 @@ class OuterVariants extends _$OuterVariants {
 
   /// Held while a search query runs; see [_applySearchQuery].
   Completer<void>? _searchSlot;
+
+  /// A search that timed out but whose query is still running. At most one
+  /// is let go of: a second timeout keeps the slot until its query ends.
+  Future<void>? _orphanedSearch;
+
+  /// The page cache as last painted, kept while a search is pending so a
+  /// search that times out can put it back. Null when nothing is pending.
+  _PaintedCatalog? _beforeSearch;
 
   /// How long a search may take before the grid stops waiting for it.
   @visibleForTesting
@@ -212,6 +243,7 @@ class OuterVariants extends _$OuterVariants {
     );
 
     _currentSearch = ref.read(searchStringProvider);
+    _beforeSearch = null;
 
     ref.listen(searchStringProvider, (previous, next) {
       if (next == _currentSearch) return;
@@ -264,49 +296,139 @@ class OuterVariants extends _$OuterVariants {
   /// One search query runs at a time: each is its own isolate on a slow till,
   /// and stacking one per keystroke is how a typist queues seconds of work. A
   /// term typed meanwhile waits, and only the newest of those runs. A query
-  /// that never answers gives up after [searchTimeout] and leaves the grid as
-  /// it was, so the search can never spin forever.
+  /// that never answers gives up after [searchTimeout] and puts back the
+  /// grid, term and pages it replaced, so the search can never spin forever
+  /// and scrolling keeps paging what is on screen.
+  ///
+  /// The timed-out query itself cannot be stopped. One is let go so the next
+  /// term can run; if a second one times out while the first is still
+  /// running, it keeps the slot until it ends, so no more than two queries
+  /// ever run at once. A term waiting behind it gives up after
+  /// [searchTimeout] too, like a query that never answers.
   Future<void> _applySearchQuery(String searchString) async {
     final generation = ++_searchGeneration;
+    // Only the first of a run of pending terms sees what is painted.
+    _beforeSearch ??= _PaintedCatalog(
+      search: _currentSearch,
+      pages: Map.of(_pageCache),
+      firstPage: _firstCachedPage,
+      lastPage: _lastCachedPage,
+      viewPage: _viewPage,
+      totalCount: _totalCount,
+    );
     _currentSearch = searchString;
     _resetPageCache();
     _firstCachedPage = 0;
     _lastCachedPage = -1;
 
-    while (_searchSlot != null) {
-      await _searchSlot!.future;
-      if (generation != _searchGeneration) return;
-    }
-    final slot = _searchSlot = Completer<void>();
-
+    final bool slotFree;
     try {
-      final paged = await PerfOpTrail.instance.track(
-        'pos_search',
-        () => _fetchVariants(branchId, 0, searchString).timeout(searchTimeout),
-        critical: true,
-      );
+      slotFree = await _waitForSearchSlot(generation).timeout(searchTimeout);
+    } on TimeoutException {
+      if (generation != _searchGeneration) return;
+      _reportSearchTimeout(waitedForSlot: true);
+      _restoreBeforeSearch();
+      return;
+    }
+    if (!slotFree) return;
+    final slot = _searchSlot = Completer<void>();
+    var keepSlot = false;
+
+    // Tracked without the timeout: the op, and its kill marker, last as long
+    // as the query really runs, not just as long as the grid waits for it.
+    final query = PerfOpTrail.instance.track(
+      'pos_search',
+      () => _fetchVariants(branchId, 0, searchString),
+      critical: true,
+    );
+    try {
+      final paged = await query.timeout(searchTimeout);
       if (generation != _searchGeneration) return;
 
+      _beforeSearch = null;
       _totalCount = paged.totalCount;
       _pageCache[0] = List<Variant>.from(paged.variants);
       _firstCachedPage = 0;
       _lastCachedPage = 0;
       state = AsyncValue.data(_currentView());
     } on TimeoutException {
-      talker.warning(
-        'OuterVariants: search gave up after ${searchTimeout.inSeconds}s',
-      );
-      PerfOpTrail.instance.report('search_timeout', {
-        'timeout_ms': searchTimeout.inMilliseconds,
-        'recent': PerfOpTrail.instance.recent().join(', '),
-      });
+      _reportSearchTimeout(waitedForSlot: false);
+      // A newer term is waiting and owns the cache now.
+      if (generation == _searchGeneration) _restoreBeforeSearch();
+
+      final ended = query.then<void>((_) {}, onError: (Object _) {});
+      if (_orphanedSearch == null) {
+        _orphanedSearch = ended;
+        unawaited(
+          ended.whenComplete(() {
+            if (identical(_orphanedSearch, ended)) _orphanedSearch = null;
+          }),
+        );
+      } else {
+        keepSlot = true;
+        unawaited(ended.whenComplete(() => _releaseSearchSlot(slot)));
+      }
     } catch (error, stackTrace) {
       if (generation != _searchGeneration) return;
+      _beforeSearch = null;
       state = AsyncValue.error(error, stackTrace);
     } finally {
-      _searchSlot = null;
-      slot.complete();
+      if (!keepSlot) _releaseSearchSlot(slot);
     }
+  }
+
+  /// True once no query holds the slot; false when a newer term took over
+  /// while waiting.
+  Future<bool> _waitForSearchSlot(int generation) async {
+    while (_searchSlot != null) {
+      await _searchSlot!.future;
+      if (generation != _searchGeneration) return false;
+    }
+    return true;
+  }
+
+  void _reportSearchTimeout({required bool waitedForSlot}) {
+    talker.warning(
+      'OuterVariants: search gave up after ${searchTimeout.inSeconds}s'
+      '${waitedForSlot ? ' waiting for an earlier query' : ''}',
+    );
+    PerfOpTrail.instance.report('search_timeout', {
+      'timeout_ms': searchTimeout.inMilliseconds,
+      'waited_for_slot': waitedForSlot,
+      'recent': PerfOpTrail.instance.recent().join(', '),
+    });
+  }
+
+  void _releaseSearchSlot(Completer<void> slot) {
+    if (identical(_searchSlot, slot)) _searchSlot = null;
+    if (!slot.isCompleted) slot.complete();
+  }
+
+  /// Puts back what the grid showed before the pending search, so paging and
+  /// the total keep describing the rows on screen, and the search term with
+  /// it, so the next keystroke (even the same term again) searches anew.
+  void _restoreBeforeSearch() {
+    final before = _beforeSearch;
+    if (before == null || !ref.mounted) return;
+    _beforeSearch = null;
+    _currentSearch = before.search;
+    // Page fetches started for the abandoned term must not land here.
+    _inFlightPages.clear();
+    _cacheGeneration++;
+    _pageCache
+      ..clear()
+      ..addAll(before.pages);
+    _firstCachedPage = before.firstPage;
+    _lastCachedPage = before.lastPage;
+    _viewPage = before.viewPage;
+    _totalCount = before.totalCount;
+    for (final edit in before.edits) {
+      edit();
+    }
+    // A page fetched for the abandoned term may have been painted meanwhile.
+    state = AsyncValue.data(_currentView());
+    // Matches [_currentSearch], so this listener ignores it.
+    ref.read(searchStringProvider.notifier).emitString(value: before.search);
   }
 
   /// Extra backoff after an empty first fetch so products appear on cold start
@@ -386,6 +508,10 @@ class OuterVariants extends _$OuterVariants {
 
   /// Loads the next page of variants for pagination.
   Future<void> loadMore() async {
+    // The grid still shows the catalog from before a pending search, but the
+    // cache already belongs to the new term: paging now would paint its rows
+    // under the old total. The search settling repaints anyway.
+    if (_beforeSearch != null) return;
     // Scrolling past the end is a request for a continuous list, so leave
     // page-bar mode rather than appending a page nobody is looking at.
     _leavePagedMode();
@@ -394,8 +520,11 @@ class OuterVariants extends _$OuterVariants {
       return;
     }
 
+    final cacheGeneration = _cacheGeneration;
     final nextPage = _lastCachedPage + 1;
     final paged = await _fetchVariants(branchId, nextPage, _currentSearch);
+    // A search, refresh or restore replaced the cache meanwhile.
+    if (cacheGeneration != _cacheGeneration) return;
     _pageCache[nextPage] = List<Variant>.from(paged.variants);
     _lastCachedPage = nextPage;
 
@@ -440,6 +569,7 @@ class OuterVariants extends _$OuterVariants {
     final paged = await _fetchVariants(branchId, 0, '');
     if (generation != _searchGeneration) return;
     _currentSearch = '';
+    _beforeSearch = null;
     _totalCount = paged.totalCount;
     _resetPageCache();
     _pageCache[0] = List<Variant>.from(paged.variants);
@@ -479,6 +609,7 @@ class OuterVariants extends _$OuterVariants {
   /// Add newly created variants to the provider without full reload.
   void addVariants(List<Variant> newVariants) {
     if (newVariants.isEmpty || state.value == null) return;
+    if (_deferWhileSearching(() => addVariants(newVariants))) return;
 
     // Get IDs of new/updated variants
     final newVariantIds = newVariants.map((v) => v.id).toSet();
@@ -521,6 +652,17 @@ class OuterVariants extends _$OuterVariants {
     state = AsyncValue.data(_currentView());
   }
 
+  /// While a search is pending the cache is the new term's (empty until it
+  /// answers) and the grid still shows the saved catalog, so an edit would
+  /// land on neither. The search answering reads the store, edit included;
+  /// a timeout puts the saved catalog back and replays [edit] onto it.
+  bool _deferWhileSearching(void Function() edit) {
+    final pending = _beforeSearch;
+    if (pending == null) return false;
+    pending.edits.add(edit);
+    return true;
+  }
+
   /// The count behind "x of y products" and the page bar. Only a filter change
   /// re-runs the COUNT(*), so a delete has to keep it honest itself or the
   /// total stays one too high for the rest of the session.
@@ -532,6 +674,7 @@ class OuterVariants extends _$OuterVariants {
   /// Removes a variant from the state.
   void removeVariantById(String variantId) {
     if (state.value == null) return;
+    if (_deferWhileSearching(() => removeVariantById(variantId))) return;
     if (_pageCache.isEmpty) {
       final existing = state.value!;
       final newList = existing.where((v) => v.id != variantId).toList();
