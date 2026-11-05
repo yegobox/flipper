@@ -137,23 +137,29 @@ class FloSupportController extends Notifier<FloSupportState> {
     if (text.isEmpty || state.sending) return false;
     state = state.copyWith(sending: true, clearError: true);
     try {
-      await _repo.send(text, topic: topic, context: context);
+      final sent = await _repo.send(text, topic: topic, context: context);
       if (_disposed) return true;
-      state = state.copyWith(sending: false);
+      // Shown now, so a failing follow-up read cannot hide a message the
+      // server took.
+      if (sent.id.isNotEmpty) {
+        state = state.copyWith(
+          posts: [...state.posts.where((p) => p.id != sent.id), sent],
+        );
+      }
       // The poll may already be reading; let it finish, then read again so
-      // the new message (and a reopened thread) shows at once.
+      // the new message (and a reopened thread) shows at once. Still
+      // sending until then: the composer keeps the text until this returns,
+      // so a second tap would post it twice.
       await _running;
       await refresh();
       return true;
     } on FloSupportException catch (e) {
       if (!_disposed) {
-        state = state.copyWith(
-          sending: false,
-          error: e.message,
-          unavailable: e.unavailable,
-        );
+        state = state.copyWith(error: e.message, unavailable: e.unavailable);
       }
       return false;
+    } finally {
+      if (!_disposed) state = state.copyWith(sending: false);
     }
   }
 }

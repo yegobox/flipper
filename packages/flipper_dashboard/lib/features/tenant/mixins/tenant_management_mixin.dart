@@ -17,6 +17,16 @@ import 'tenant_ui_mixin.dart';
 
 const Color _kUserMgmtAccent = Color(0xff006AFE);
 
+/// The roles the User Type dropdown offers.
+const _kUserTypes = {
+  'Agent',
+  'Cashier',
+  'Admin',
+  'Driver',
+  'Reviewer',
+  'Stock Manager',
+};
+
 mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
     on ConsumerState<T> {
   final routerService = locator<RouterService>();
@@ -40,6 +50,10 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
   String _tenantListSearchQuery = '';
   String? selectedTenantUserId;
   String? _selectedTenantBranchIdForEdit;
+
+  /// Bumped by every pick and by Add New, so a slower lookup for an earlier
+  /// pick never fills the form over a newer one.
+  int _editRequest = 0;
 
   /// When [selectedUserType] is Agent: false = commission-only login (default).
   bool allowBusinessLoginForAgent = false;
@@ -82,24 +96,118 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
     _syncAgentBranchNameFromFullName();
   }
 
+  /// The role the form shows for a stored [type]. The owner has every right
+  /// an Admin has, and the role list has no Owner entry to select.
+  static String formUserType(String? type) {
+    final raw = type?.trim() ?? '';
+    if (raw.isEmpty) return 'Agent';
+    if (raw.toLowerCase() == 'owner') return 'Admin';
+    return raw;
+  }
+
+  bool get _formTouched =>
+      selectedTenantUserId != null ||
+      nameController.text.trim().isNotEmpty ||
+      phoneController.text.trim().isNotEmpty;
+
+  /// Opens [initial] (a staff row's Edit in Bar Mode) once [model] has loaded
+  /// the roster. A pick or typing made while it loaded wins.
+  Future<void> openInitialEdit(FlipperBaseModel model, Tenant initial) async {
+    if (!mounted || _formTouched) return;
+    final l10n = context.flipperL10n;
+    final name = (initial.name ?? '').trim();
+    final uid = initial.userId?.trim();
+    if (uid == null || uid.isEmpty) {
+      // A legacy row with no sign-in account: there is nobody to load.
+      _initialEditNotice(l10n.tenantMgmtNoAccountToEdit(name));
+      return;
+    }
+    final target = FlipperBaseModel.resolveInitialEditTenant(
+      model.tenants,
+      initial,
+      fresh: model.tenantsFresh,
+    );
+    if (target == null) {
+      _initialEditNotice(l10n.tenantMgmtNoLongerStaff(name));
+      return;
+    }
+    await selectTenantForEdit(target, model, onlyIfUntouched: true);
+  }
+
+  void _initialEditNotice(String message) {
+    showCustomSnackBarUtil(context, message, type: NotificationType.info);
+  }
+
+  /// Loads [tenant] into the form. [onlyIfUntouched]: drop the load if the
+  /// name or phone was typed into while it ran.
   Future<void> selectTenantForEdit(
     Tenant tenant,
-    FlipperBaseModel model,
-  ) async {
+    FlipperBaseModel model, {
+    bool onlyIfUntouched = false,
+  }) async {
     final uid = tenant.userId;
-    final tid = tenant.id;
     if (uid == null || uid.isEmpty) return;
+
+    final request = ++_editRequest;
+    final typedName = nameController.text;
+    final typedPhone = phoneController.text;
+    bool superseded() {
+      if (!mounted || request != _editRequest) return true;
+      if (onlyIfUntouched &&
+          (nameController.text != typedName ||
+              phoneController.text != typedPhone)) {
+        // The typing wins; nobody is being edited.
+        setState(() => selectedTenantUserId = null);
+        return true;
+      }
+      return false;
+    }
 
     setState(() {
       selectedTenantUserId = uid;
     });
 
     try {
-      debugPrint(
-        'selectTenantForEdit: tenantId=$tid userId=$uid businessId=${tenant.businessId} boxBusinessId=${ProxyService.box.getBusinessId()} boxBranchId=${ProxyService.box.getBranchId()}',
-      );
+      final list = await fetchTenantAccessesForEdit(tenant);
+      // Preserve the branch id used by existing accesses so edits upsert in-place
+      // (unique key includes branch_id). Only consider accesses of the current
+      // business — stale rows can reference branches of another business and
+      // create_agent rejects those.
+      final currentBusinessId = ProxyService.box.getBusinessId();
+      final branchIdFromAccesses = list
+          .firstWhere(
+            (a) =>
+                a.branchId != null &&
+                a.branchId!.isNotEmpty &&
+                (currentBusinessId == null ||
+                    a.businessId == currentBusinessId),
+            orElse: () => Access(id: 'x'),
+          )
+          .branchId;
+      if (superseded()) return;
+      if (branchIdFromAccesses != null && branchIdFromAccesses.isNotEmpty) {
+        _selectedTenantBranchIdForEdit = branchIdFromAccesses;
+      } else {
+        _selectedTenantBranchIdForEdit = ProxyService.box.getBranchId();
+      }
+      fillFormWithTenantData(tenant, list);
+    } catch (e, s) {
+      debugPrint('selectTenantForEdit: $e\n$s');
+      if (superseded()) return;
+      fillFormWithTenantData(tenant, const []);
+    }
+  }
 
-      var rows = await Supabase.instance.client
+  /// [tenant]'s `accesses` rows, for the edit form.
+  @protected
+  Future<List<Access>> fetchTenantAccessesForEdit(Tenant tenant) async {
+    final uid = tenant.userId!;
+    final tid = tenant.id;
+    debugPrint(
+      'selectTenantForEdit: tenantId=$tid userId=$uid businessId=${tenant.businessId} boxBusinessId=${ProxyService.box.getBusinessId()} boxBranchId=${ProxyService.box.getBranchId()}',
+    );
+
+    var rows = await Supabase.instance.client
           .from('accesses')
           .select()
           .eq('user_id', uid)
@@ -121,52 +229,23 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
               .eq('user_id', uid);
         }
       }
-      debugPrint('selectTenantForEdit: accesses rows=${(rows as List).length}');
+    debugPrint('selectTenantForEdit: accesses rows=${(rows as List).length}');
 
-      final list = <Access>[];
-      for (final item in rows as List<dynamic>) {
-        final e = Map<String, dynamic>.from(item as Map);
-        list.add(
+    return [
+      for (final item in rows as List<dynamic>)
+        if (item is Map)
           Access(
-            id: e['id'] as String?,
-            userId: e['user_id'] as String?,
-            tenantId: e['tenant_id'] as String?,
-            businessId: e['business_id'] as String?,
-            branchId: e['branch_id'] as String?,
-            featureName: e['feature_name'] as String?,
-            userType: e['user_type'] as String?,
-            accessLevel: e['access_level'] as String?,
-            status: e['status'] as String?,
+            id: item['id'] as String?,
+            userId: item['user_id'] as String?,
+            tenantId: item['tenant_id'] as String?,
+            businessId: item['business_id'] as String?,
+            branchId: item['branch_id'] as String?,
+            featureName: item['feature_name'] as String?,
+            userType: item['user_type'] as String?,
+            accessLevel: item['access_level'] as String?,
+            status: item['status'] as String?,
           ),
-        );
-      }
-      // Preserve the branch id used by existing accesses so edits upsert in-place
-      // (unique key includes branch_id). Only consider accesses of the current
-      // business — stale rows can reference branches of another business and
-      // create_agent rejects those.
-      final currentBusinessId = ProxyService.box.getBusinessId();
-      final branchIdFromAccesses = list
-          .firstWhere(
-            (a) =>
-                a.branchId != null &&
-                a.branchId!.isNotEmpty &&
-                (currentBusinessId == null ||
-                    a.businessId == currentBusinessId),
-            orElse: () => Access(id: 'x'),
-          )
-          .branchId;
-      if (branchIdFromAccesses != null && branchIdFromAccesses.isNotEmpty) {
-        _selectedTenantBranchIdForEdit = branchIdFromAccesses;
-      } else {
-        _selectedTenantBranchIdForEdit = ProxyService.box.getBranchId();
-      }
-      if (!mounted) return;
-      fillFormWithTenantData(tenant, list);
-    } catch (e, s) {
-      debugPrint('selectTenantForEdit: $e\n$s');
-      if (!mounted) return;
-      fillFormWithTenantData(tenant, const []);
-    }
+    ];
   }
 
   @override
@@ -179,6 +258,7 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
   }
 
   void resetForm() {
+    _editRequest++;
     nameController.clear();
     phoneController.clear();
     agentBranchNameController.clear();
@@ -273,7 +353,11 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
             // Access matrix below (AppFeature.TicketReview / StockHandover).
             'Reviewer',
             'Stock Manager',
-          ].map<DropdownMenuItem<String>>((String value) {
+          ].followedBy([
+            // A stored role the list lacks (legacy rows) stays as stored
+            // rather than tripping the dropdown or changing silently.
+            if (!_kUserTypes.contains(selectedUserType)) selectedUserType,
+          ]).map<DropdownMenuItem<String>>((String value) {
             return DropdownMenuItem<String>(
               value: value,
               child: Text(
@@ -391,7 +475,7 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
         editMode = true;
         editedTenant = tenant;
         userId = tenant.userId;
-        selectedUserType = tenant.type ?? 'Agent';
+        selectedUserType = formUserType(tenant.type);
         allowBusinessLoginForAgent = tenant.allowBusinessLogin;
         fn();
       }),

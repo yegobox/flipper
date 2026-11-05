@@ -37,8 +37,13 @@ Future<void> showFloSupportSheet(
           top: Radius.circular(FloTheme.radiusLg),
         ),
       ),
-      builder: (context) =>
-          FractionallySizedBox(heightFactor: 0.85, child: chat),
+      // The sheet sits above the keyboard rather than under it, so the
+      // composer never has to fit the keyboard inside the sheet.
+      builder: (context) => Padding(
+        padding:
+            EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+        child: FractionallySizedBox(heightFactor: 0.85, child: chat),
+      ),
     );
   }
   return showDialog<void>(
@@ -82,19 +87,38 @@ class _FloSupportChatState extends ConsumerState<FloSupportChat> {
     super.dispose();
   }
 
+  /// Below this the chat scrolls as a whole (a phone on its side with the
+  /// keyboard up), so the composer is never pushed off the sheet.
+  static const _minHeight = 300.0;
+
   Future<void> _send() async {
+    final body = _message.text;
     final sent = await ref.read(floSupportControllerProvider.notifier).send(
-          _message.text,
+          body,
           topic: widget.topic,
           context: widget.screenContext,
         );
-    if (sent && mounted) _message.clear();
+    // Text typed while it was sending is a new message: keep it.
+    if (sent && mounted && _message.text == body) _message.clear();
   }
 
   @override
   Widget build(BuildContext context) {
-    final l10n = context.flipperL10n;
     final state = ref.watch(floSupportControllerProvider);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final chat = _chat(context, state);
+        if (constraints.maxHeight >= _minHeight) return chat;
+        return SingleChildScrollView(
+          reverse: true,
+          child: SizedBox(height: _minHeight, child: chat),
+        );
+      },
+    );
+  }
+
+  Widget _chat(BuildContext context, FloSupportState state) {
+    final l10n = context.flipperL10n;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -216,12 +240,7 @@ class _FloSupportChatState extends ConsumerState<FloSupportChat> {
         SafeArea(
           top: false,
           child: Padding(
-            padding: EdgeInsets.fromLTRB(
-              16,
-              0,
-              16,
-              12 + MediaQuery.viewInsetsOf(context).bottom,
-            ),
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [

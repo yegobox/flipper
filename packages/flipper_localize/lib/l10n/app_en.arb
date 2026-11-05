@@ -6523,6 +6523,10 @@
     "@serviceModeHotkeyOpenDesk": {
         "description": "Service-mode hotkey pressed outside POS, Bar and Hotel"
     },
+    "serviceModeHotkeyPromptOpen": "Finish or cancel the manager PIN first, then switch the service mode.",
+    "@serviceModeHotkeyPromptOpen": {
+        "description": "Service-mode hotkey pressed while the Bar or Hotel manager PIN prompt is open"
+    },
     "serviceModeHotkeySignInFirst": "Sign in at the desk first, then switch the service mode.",
     "@serviceModeHotkeySignInFirst": {
         "description": "Service-mode hotkey pressed on a Bar or Hotel lock screen"
@@ -16722,6 +16726,15 @@
     "floSupportSend": "Send",
     "floSupportResolved": "Support marked this resolved. Write again if you still need help.",
     "floSupportError": "Couldn't reach support. Check your connection and try again.",
+    "paymentSupportWhatsAppFailed": "Could not open WhatsApp. Message Flipper Support on +{number}.",
+    "@paymentSupportWhatsAppFailed": {
+        "description": "Payment help: the WhatsApp fallback could not open; shows the support number",
+        "placeholders": {
+            "number": {
+                "type": "String"
+            }
+        }
+    },
     "floSupportFallback": "Use WhatsApp",
     "floTeamInviteFromStaff": "Invite from your staff",
     "floNewConversation": "New conversation",
@@ -20522,6 +20535,24 @@
     "localModeSyncOnElsewhereBody": "Cloud sync was turned on for this business from another device. Sign in again to upload this device's data and finish.",
     "@localModeSyncOnElsewhereBody": {
         "description": "Body: sign in again to finish switching this device to cloud sync"
+    },
+    "tenantMgmtNoAccountToEdit": "{name} has no sign-in account to edit yet. Add them as a new user to give them one.",
+    "@tenantMgmtNoAccountToEdit": {
+        "description": "User Management opened from a Bar staff row that has no sign-in account (no user id)",
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "tenantMgmtNoLongerStaff": "{name} is no longer on this business's staff.",
+    "@tenantMgmtNoLongerStaff": {
+        "description": "User Management opened from a Bar staff row whose person a fresh roster no longer lists",
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
     },
     "tenantMgmtPinOnly": "PIN only",
     "@tenantMgmtPinOnly": {

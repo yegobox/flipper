@@ -2,6 +2,7 @@ import 'package:flipper_ai_feature/flipper_ai_feature.dart';
 import 'package:flipper_dashboard/payment/payment_support.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/models/subscription_plan.dart';
+import 'package:flipper_web/core/local_mode/local_mode.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -9,10 +10,13 @@ import 'package:flutter_test/flutter_test.dart';
 /// Records what the payment screen sends to support.
 class _Support implements FloSupportRepository {
   final sent = <(String, String, Map<String, String>?)>[];
+  var reads = 0;
 
   @override
-  Future<FloSupportConversation> conversation({String? since}) async =>
-      const FloSupportConversation();
+  Future<FloSupportConversation> conversation({String? since}) async {
+    reads++;
+    return const FloSupportConversation();
+  }
 
   @override
   Future<FloSupportPost> send(
@@ -80,6 +84,19 @@ void main() {
     expect(paymentSupportContext(null), isEmpty);
   });
 
+  test('the error on screen is what support hears about', () {
+    final plan = Plan(id: 'p1', lastError: 'server said no');
+    expect(
+      paymentSupportContext(plan, error: ' Payment timed out ')['lastError'],
+      'Payment timed out',
+    );
+    expect(paymentSupportContext(plan)['lastError'], 'server said no');
+    expect(
+      paymentSupportContext(plan, error: '  ')['lastError'],
+      'server said no',
+    );
+  });
+
   test('WhatsApp support names the business', () {
     expect(
       paymentSupportWhatsAppUri(Plan(businessId: 'biz')).toString(),
@@ -117,6 +134,74 @@ void main() {
       'planId': 'p1',
       'plan': 'Mobile',
       'amount': 'RWF 5,000.00',
+    });
+  });
+
+  group('WhatsApp fallback', () {
+    late List<Uri> opened;
+
+    setUp(() => opened = []);
+    tearDown(() {
+      paymentSupportLaunch = (uri) async => false;
+      LocalMode.debugSet(false);
+    });
+
+    for (final (name, launch) in <(String, Future<bool> Function(Uri))>[
+      ('cannot open', (uri) async => false),
+      ('throws', (uri) async => throw StateError('no app')),
+    ]) {
+      testWidgets('a launch that $name shows the support number', (
+        tester,
+      ) async {
+        paymentSupportLaunch = (uri) {
+          opened.add(uri);
+          return launch(uri);
+        };
+        final context = await _app(tester, _Support());
+        openPaymentSupportWhatsApp(context, Plan(businessId: 'biz'));
+        await tester.pumpAndSettle();
+        expect(opened.single.host, 'wa.me');
+        expect(
+          find.byKey(const Key('payment-support-whatsapp-failed')),
+          findsOneWidget,
+        );
+        expect(find.textContaining('+250788360058'), findsOneWidget);
+      });
+    }
+
+    testWidgets('an opened WhatsApp needs nothing more', (tester) async {
+      paymentSupportLaunch = (uri) async {
+        opened.add(uri);
+        return true;
+      };
+      final context = await _app(tester, _Support());
+      openPaymentSupportWhatsApp(context, null);
+      await tester.pumpAndSettle();
+      expect(opened, hasLength(1));
+      expect(
+        find.byKey(const Key('payment-support-whatsapp-failed')),
+        findsNothing,
+      );
+    });
+
+    testWidgets('in Local Mode the chat never reaches the connector', (
+      tester,
+    ) async {
+      LocalMode.debugSet(true);
+      paymentSupportLaunch = (uri) async {
+        opened.add(uri);
+        return true;
+      };
+      final support = _Support();
+      final context = await _app(tester, support);
+      openPaymentSupport(
+        context,
+        plan: Plan(id: 'p1', businessId: 'biz'),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(FloSupportChat), findsNothing);
+      expect(support.reads, 0);
+      expect(opened.single.host, 'wa.me');
     });
   });
 }

@@ -75,12 +75,7 @@ class _ThreadPanelState extends ConsumerState<_ThreadPanel> {
     final assignee = _who(context, state, thread.assigneeUserId);
     // A support thread is opened by a customer of another business, whose
     // name only their own posts carry.
-    final customer = thread.isSupport
-        ? posts
-            .where((p) => p.isCustomer && p.authorName != null)
-            .map((p) => p.authorName!)
-            .firstOrNull
-        : null;
+    final customer = _supportCustomer(thread, posts);
     final author = customer ?? _who(context, state, thread.authorUserId);
     final floStyle = _secondaryButton.copyWith(
       padding: const WidgetStatePropertyAll(

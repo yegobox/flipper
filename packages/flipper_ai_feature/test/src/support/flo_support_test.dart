@@ -23,29 +23,48 @@ FloSupportPost _post(String id, String body,
       createdAt: DateTime(2026, 11, 4, 10, minute),
     );
 
-/// An in-memory support thread that records what was asked of it.
+/// An in-memory support thread that records what was asked of it. Like the
+/// server, a read with `since` answers only the posts new since then.
 class _FakeSupport implements FloSupportRepository {
   String? threadId;
   bool resolved = false;
   final List<FloSupportPost> posts = [];
   final List<String> calls = [];
 
+  /// The read (`s<n>`) that first returned each post.
+  final Map<String, int> _firstRead = {};
+
   /// When set, every call throws it.
   Object? fail;
+
+  /// When set, reads (not sends) throw it.
+  Object? failReads;
 
   /// When set, `send` waits for it.
   Future<void>? gate;
 
+  /// When set, reads wait for it.
+  Future<void>? readGate;
+
   @override
   Future<FloSupportConversation> conversation({String? since}) async {
     calls.add('read($since)');
-    final f = fail;
+    final now = calls.length;
+    await readGate;
+    final f = fail ?? failReads;
     if (f != null) throw f;
+    final after = since == null ? null : int.parse(since.substring(1));
+    for (final p in posts) {
+      _firstRead.putIfAbsent(p.id, () => now);
+    }
     return FloSupportConversation(
       threadId: threadId,
       resolved: resolved,
-      posts: List.of(posts),
-      serverTime: 's${calls.length}',
+      posts: [
+        for (final p in posts)
+          if (after == null || _firstRead[p.id]! > after) p,
+      ],
+      serverTime: 's$now',
     );
   }
 
@@ -213,6 +232,35 @@ void main() {
         baseUrl: () async => throw StateError('no branch'),
       ).conversation());
       expect(offline.statusCode, isNull);
+
+      final oddError = await failure(
+          repo((_) => http.Response(jsonEncode({'error': 42}), 400)).send('x'));
+      expect(oddError.message, 'Support request failed (400)');
+    });
+
+    test('a connector lookup that stalls times out like the request', () async {
+      final stalled = HttpFloSupportRepository(
+        baseUrl: () => Completer<String>().future,
+        timeout: const Duration(milliseconds: 10),
+      );
+      await expectLater(
+          stalled.conversation(), throwsA(isA<FloSupportException>()));
+    });
+
+    test('odd wire values read as missing, not as a crash', () async {
+      final c = await repo((_) => ok({
+            'thread': {'id': 't1'},
+            'posts': {'p1': 'not a list'},
+            'serverTime': 12,
+          })).conversation();
+      expect([c.threadId, c.posts, c.serverTime], ['t1', isEmpty, null]);
+    });
+
+    test('a message answered with a page, not JSON, was not sent', () async {
+      final page = repo((_) => http.Response('<html>login</html>', 200));
+      await expectLater(page.send('Help'), throwsA(isA<FloSupportException>()));
+      // A read of the same is still just an empty conversation.
+      expect((await page.conversation()).threadId, isNull);
     });
   });
 
@@ -253,6 +301,51 @@ void main() {
       await support().refresh();
       expect(state().posts.map((p) => p.body), ['Help', 'On it']);
       expect(state().resolved, isTrue);
+    });
+
+    test('a poll merges what changed and keeps the rest', () async {
+      start();
+      await support().send('Help');
+      repo.posts.add(_post('r1', 'On it', support: true, minute: 5));
+      await support().refresh();
+      expect(state().posts.map((p) => p.id), ['p0', 'r1']);
+
+      // The next delta omits both older posts and adds one.
+      repo.posts.add(_post('r2', 'Done', support: true, minute: 6));
+      await support().refresh();
+      expect(repo.calls.last, startsWith('read(s'));
+      expect(state().posts.map((p) => p.id), ['p0', 'r1', 'r2']);
+
+      // An empty delta changes nothing.
+      final before = state().posts;
+      await support().refresh();
+      expect(state().posts, before);
+    });
+
+    test('a sent message shows even when the read after it fails', () async {
+      start();
+      await support().refresh();
+      repo.failReads = FloSupportException('down');
+      expect(await support().send('Help'), isTrue);
+      expect(state().posts.map((p) => p.body), ['Help']);
+      expect(state().sending, isFalse);
+    });
+
+    test('still sending until the read after it lands', () async {
+      start();
+      await support().refresh();
+      final read = Completer<void>();
+      repo.readGate = read.future;
+      final first = support().send('Help');
+      await pumpEventQueue();
+      expect(repo.calls.where((c) => c.startsWith('send')), hasLength(1));
+      expect(state().sending, isTrue);
+      expect(await support().send('Help'), isFalse);
+
+      read.complete();
+      expect(await first, isTrue);
+      expect(state().sending, isFalse);
+      expect(repo.calls.where((c) => c.startsWith('send')), hasLength(1));
     });
 
     test('a failure keeps the conversation and says so', () async {
@@ -338,6 +431,32 @@ void main() {
       await tester.tap(find.byKey(const Key('flo-support-close')));
       await tester.pumpAndSettle();
       expect(find.byType(FloSupportChat), findsNothing);
+    });
+
+    testWidgets('text typed while a message sends is kept', (tester) async {
+      final repo = _FakeSupport();
+      await _pump(tester, repo);
+      final gate = Completer<void>();
+      repo.gate = gate.future;
+      final message = find.byKey(const Key('flo-support-message'));
+      await tester.enterText(message, 'First');
+      await tester.tap(find.byKey(const Key('flo-support-send')));
+      await tester.pump();
+      await tester.enterText(message, 'Second');
+      gate.complete();
+      await tester.pumpAndSettle();
+      expect(repo.calls, contains('send(First,payment,{plan: Mobile})'));
+      expect(tester.widget<TextField>(message).controller!.text, 'Second');
+    });
+
+    testWidgets('the composer stays above the keyboard on a short screen',
+        (tester) async {
+      tester.view.viewInsets = const FakeViewPadding(bottom: 300);
+      await _pump(tester, _FakeSupport(), size: const Size(400, 500));
+      expect(tester.takeException(), isNull);
+      final send = tester.getRect(find.byKey(const Key('flo-support-send')));
+      expect(send.bottom, lessThanOrEqualTo(500 - 300));
+      expect(send.top, greaterThanOrEqualTo(0));
     });
 
     testWidgets('a wide screen gets a dialog', (tester) async {

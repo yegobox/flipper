@@ -18,7 +18,16 @@ void main() {
     when(() => mockBox.getUserId()).thenReturn('someone-else');
   });
 
-  Future<void> pumpCard(WidgetTester tester, Tenant tenant) async {
+  Future<void> pumpCard(
+    WidgetTester tester,
+    Tenant tenant, {
+    double? width,
+  }) async {
+    if (width != null) {
+      tester.view.physicalSize = Size(width, 800);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+    }
     await tester.pumpWidget(
       MaterialApp(
         localizationsDelegates: FlipperLocalizationDelegates.delegates,
@@ -43,11 +52,40 @@ void main() {
   testWidgets('PIN-only staff get a PIN only chip', (tester) async {
     await pumpCard(
       tester,
-      Tenant(id: 'u-king', name: 'Agent King', userId: 'u-king'),
+      Tenant(id: 'u-king', name: 'Agent King', userId: 'u-king', pin: 1234),
     );
 
     expect(find.byKey(const ValueKey('tenant_pin_only_chip')), findsOneWidget);
     expect(find.text('PIN only'), findsOneWidget);
+  });
+
+  testWidgets('a stand-in row with no PIN gets no PIN only chip', (
+    tester,
+  ) async {
+    await pumpCard(tester, Tenant(id: 'u-o', name: 'Owner', userId: 'u-o'));
+
+    expect(find.byKey(const ValueKey('tenant_pin_only_chip')), findsNothing);
+  });
+
+  testWidgets('on a phone the chip leaves room for the buttons', (
+    tester,
+  ) async {
+    await pumpCard(
+      tester,
+      Tenant(
+        id: 'u-king',
+        name: 'Agent King of the Night Shift',
+        userId: 'u-king',
+        pin: 1234,
+        type: 'Stock Manager',
+      ),
+      width: 320,
+    );
+
+    expect(tester.takeException(), isNull);
+    expect(find.byKey(const ValueKey('tenant_pin_only_chip')), findsOneWidget);
+    expect(find.byIcon(Icons.edit_outlined).hitTestable(), findsOneWidget);
+    expect(find.byIcon(Icons.delete_outline).hitTestable(), findsOneWidget);
   });
 
   testWidgets('staff with an account row get no PIN only chip', (tester) async {

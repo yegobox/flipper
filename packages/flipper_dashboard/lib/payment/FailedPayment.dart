@@ -1684,15 +1684,21 @@ class _FailedPaymentState extends State<FailedPayment>
   }
 
   Widget _buildHelpSection() {
-    final plan = _plan;
     return PaymentHelpCard(
-      onTap: () => openPaymentSupport(
-        context,
-        plan: plan,
-        amount: plan == null
-            ? null
-            : formatPaymentTotal(_totalDisplayAmount(plan)),
-      ),
+      onTap: () {
+        final plan = _plan;
+        // The plan a retry would charge (the switch selection when it
+        // differs from the saved plan), the amount shown, and the error on
+        // screen, all read at the tap.
+        openPaymentSupport(
+          context,
+          plan: plan == null ? null : _buildEffectivePlanForRetry(),
+          amount: plan == null
+              ? null
+              : formatPaymentTotal(_totalDisplayAmount(plan)),
+          error: _errorMessage,
+        );
+      },
     );
   }
 

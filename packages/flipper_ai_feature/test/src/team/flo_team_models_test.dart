@@ -190,16 +190,23 @@ void main() {
           idea('s2', 'Resolved', kind: 'support', status: FloTeamStatus.done),
           idea('s3', 'Archived',
               kind: 'support', status: FloTeamStatus.archived),
+          idea('s4', 'Queued', kind: 'support', status: FloTeamStatus.todo),
+          idea('s5', 'In progress',
+              kind: 'support', status: FloTeamStatus.doing),
           idea('g', 'Chat', kind: 'discussion'),
+          idea('g2', 'Queued chat',
+              kind: 'discussion', status: FloTeamStatus.todo),
         ])
           t.id: t,
       });
       List<String> ids(FloTeamFilter f) =>
           board.filtered(f).map((t) => t.id).toList()..sort();
-      expect(ids(FloTeamFilter.support), ['s1', 's2']);
+      expect(ids(FloTeamFilter.support), ['s1', 's2', 's4', 's5']);
       expect(ids(FloTeamFilter.done), isEmpty);
       expect(ids(FloTeamFilter.ideas), isEmpty);
-      expect(ids(FloTeamFilter.discussions), ['g']);
+      expect(ids(FloTeamFilter.discussions), ['g', 'g2']);
+      expect(ids(FloTeamFilter.todo), isEmpty);
+      expect(ids(FloTeamFilter.doing), isEmpty);
     });
 
     test('each column holds its threads, ideas by votes', () {

@@ -317,14 +317,16 @@ class TenantUIMixin {
                         color: Colors.grey[600],
                       ),
                     ),
+                    // Under the name rather than beside the role, so a phone
+                    // row keeps room for the name and its buttons.
+                    if (FlipperBaseModel.isPinOnlyStaff(tenant)) ...[
+                      const SizedBox(height: 6),
+                      _pinOnlyChip(context),
+                    ],
                   ],
                 ),
               ),
               const SizedBox(width: 8),
-              if (FlipperBaseModel.isPinOnlyStaff(tenant)) ...[
-                _pinOnlyChip(context),
-                const SizedBox(width: 6),
-              ],
               _roleChip(context, tenant.type),
               const SizedBox(width: 8),
               _squareIconButton(

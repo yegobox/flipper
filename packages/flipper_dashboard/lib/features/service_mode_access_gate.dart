@@ -75,7 +75,8 @@ bool signedInUserMayRun(WidgetRef ref, ServiceMode mode, {bool listen = true}) {
 /// Reads the clerk's entry in the current roster: the [Tenant] kept at
 /// sign-in still says Admin after a demotion. A loaded roster without the
 /// clerk says no; an unloaded or empty one (a failed read) falls back to the
-/// kept copy, so a missing admin row cannot lock an admin out.
+/// kept copy, so a missing admin row cannot lock an admin out. The owner is
+/// an admin whatever type their own row carries.
 bool clerkIsAdmin(WidgetRef ref, Tenant clerk) {
   final roster = ref.read(barStaffProvider).value;
   Tenant? current = clerk;
@@ -85,8 +86,16 @@ bool clerkIsAdmin(WidgetRef ref, Tenant clerk) {
       if (tenant.id == clerk.id) current = tenant;
     }
   }
-  return current != null && barTenantIsAdmin(current);
+  if (current != null && barTenantIsAdmin(current)) return true;
+  final userId = clerk.userId?.trim();
+  return userId != null &&
+      userId.isNotEmpty &&
+      userId == currentServiceModeGrants(ref, listen: false).ownerUserId;
 }
+
+/// How long the mode hotkey waits for a fresh roster before judging an
+/// Admin on the one it has.
+const serviceModeHotkeyRosterWait = Duration(seconds: 4);
 
 /// Whether [clerk], signed in on a Bar or Hotel lock screen, may still run
 /// [mode]. Admins pass, judged by [clerkIsAdmin].
@@ -104,28 +113,53 @@ bool clerkMayRun(WidgetRef ref, ServiceMode mode, Tenant clerk) {
 
 /// A Bar or Hotel desk for the mode hotkey ([ServiceModeDesk]): judged on
 /// the signed-in [clerk], and on nobody while the desk shows its lock
-/// ([locked]; the Bar keeps its cashier bound on the lock).
+/// ([locked]; the Bar keeps its cashier bound on the lock). [managerPrompt]
+/// is the desk's manager PIN prompt being open.
 class ServiceModeClerkDesk extends ConsumerWidget {
   const ServiceModeClerkDesk({
     super.key,
     required this.clerk,
     required this.locked,
+    this.managerPrompt,
     required this.child,
   });
 
   final ProviderListenable<Tenant?> clerk;
   final ProviderListenable<bool> locked;
+  final ProviderListenable<bool>? managerPrompt;
   final Widget child;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Keeps the roster [clerkIsAdmin] reads loaded, without rebuilding.
+    // Keeps the roster and grants (the owner) [clerkIsAdmin] reads loaded,
+    // without rebuilding.
     ref.listen(barStaffProvider, (_, _) {});
+    ref.listen(serviceModeGrantsProvider, (_, _) {});
+    bool? judge() {
+      final current = ref.read(clerk);
+      if (current == null || ref.read(locked)) return null;
+      return clerkIsAdmin(ref, current);
+    }
+
+    final prompt = managerPrompt;
     return ServiceModeDesk(
-      deskAdmin: () {
-        final current = ref.read(clerk);
-        if (current == null || ref.read(locked)) return null;
-        return clerkIsAdmin(ref, current);
+      promptOpen: prompt == null ? null : () => ref.read(prompt),
+      deskAdmin: () async {
+        final first = judge();
+        if (first != true) return first;
+        // A yes stands only on a fresh roster: a demotion saved on another
+        // device changes only `tenants`, which no realtime channel carries,
+        // so the loaded roster can still say Admin. A refusal needs no
+        // re-read. Offline, the read falls back to the cached roster.
+        try {
+          await ref
+              .refresh(barStaffProvider.future)
+              .timeout(serviceModeHotkeyRosterWait);
+        } catch (_) {
+          // Judge on what is loaded.
+        }
+        if (!context.mounted) return null;
+        return judge();
       },
       child: child,
     );

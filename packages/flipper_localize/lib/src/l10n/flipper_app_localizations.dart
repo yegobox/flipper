@@ -13229,6 +13229,12 @@ abstract class FlipperAppLocalizations {
   /// **'Open POS, Bar or Hotel to switch this device\'s service mode.'**
   String get serviceModeHotkeyOpenDesk;
 
+  /// Service-mode hotkey pressed while the Bar or Hotel manager PIN prompt is open
+  ///
+  /// In en, this message translates to:
+  /// **'Finish or cancel the manager PIN first, then switch the service mode.'**
+  String get serviceModeHotkeyPromptOpen;
+
   /// Service-mode hotkey pressed on a Bar or Hotel lock screen
   ///
   /// In en, this message translates to:
@@ -35240,6 +35246,12 @@ abstract class FlipperAppLocalizations {
   /// **'Couldn\'t reach support. Check your connection and try again.'**
   String get floSupportError;
 
+  /// Payment help: the WhatsApp fallback could not open; shows the support number
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open WhatsApp. Message Flipper Support on +{number}.'**
+  String paymentSupportWhatsAppFailed(String number);
+
   /// No description provided for @floSupportFallback.
   ///
   /// In en, this message translates to:
@@ -46456,6 +46468,18 @@ abstract class FlipperAppLocalizations {
   /// In en, this message translates to:
   /// **'Cloud sync was turned on for this business from another device. Sign in again to upload this device\'s data and finish.'**
   String get localModeSyncOnElsewhereBody;
+
+  /// User Management opened from a Bar staff row that has no sign-in account (no user id)
+  ///
+  /// In en, this message translates to:
+  /// **'{name} has no sign-in account to edit yet. Add them as a new user to give them one.'**
+  String tenantMgmtNoAccountToEdit(String name);
+
+  /// User Management opened from a Bar staff row whose person a fresh roster no longer lists
+  ///
+  /// In en, this message translates to:
+  /// **'{name} is no longer on this business\'s staff.'**
+  String tenantMgmtNoLongerStaff(String name);
 
   /// User Management chip: this person signs in with a PIN but has no account permissions saved yet
   ///

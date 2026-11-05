@@ -696,6 +696,13 @@ void main() {
 
       await tester.tap(find.byKey(const Key('flo-team-filter-support')));
       await tester.pumpAndSettle();
+      // The card names the customer too, not "A teammate".
+      final card = find.byKey(const Key('flo-team-thread-s1'));
+      expect(find.descendant(of: card, matching: find.text('Aline · Shop')),
+          findsOneWidget);
+      expect(
+          find.descendant(of: card, matching: find.text(l10n.floTeamSomeone)),
+          findsNothing);
       await tester.tap(find.byKey(const Key('flo-team-thread-s1')));
       await tester.pumpAndSettle();
       expect(find.text(l10n.floTeamSupport), findsOneWidget);

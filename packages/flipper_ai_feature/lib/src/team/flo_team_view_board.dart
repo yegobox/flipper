@@ -357,7 +357,9 @@ class _ThreadCardState extends ConsumerState<_ThreadCard> {
     final state = ref.watch(floTeamControllerProvider);
     final thread = widget.thread;
     final unread = state.board.unreadIn(thread.id);
-    final replies = state.board.posts[thread.id]?.length ?? 0;
+    final posts = state.board.posts[thread.id] ?? const <FloTeamPost>[];
+    final replies = posts.length;
+    final customer = _supportCustomer(thread, posts);
     final assignee = _who(context, state, thread.assigneeUserId);
     final updated = thread.updatedAt ?? thread.createdAt;
     final overdue = _isOverdue(thread);
@@ -442,12 +444,14 @@ class _ThreadCardState extends ConsumerState<_ThreadCard> {
                               children: [
                                 _Avatar(
                                   userId: thread.authorUserId,
-                                  name: _knownName(state, thread.authorUserId),
+                                  name: customer ??
+                                      _knownName(state, thread.authorUserId),
                                   size: 20,
                                 ),
                                 const SizedBox(width: 6),
                                 Text(
-                                  _who(context, state, thread.authorUserId),
+                                  customer ??
+                                      _who(context, state, thread.authorUserId),
                                   style: const TextStyle(
                                     fontSize: 12.5,
                                     fontWeight: FontWeight.w600,

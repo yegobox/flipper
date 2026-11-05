@@ -1,5 +1,4 @@
 import 'package:flipper_models/db_model_export.dart';
-import 'package:flipper_models/view_models/flipperBaseModel.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -263,5 +262,9 @@ abstract final class TenantSupabaseQueries {
     if (userId != null && userId.isNotEmpty) {
       await _client.from('pins').delete().eq('user_id', userId);
     }
+
+    // The roster falls back to its offline copy when a read fails: without
+    // this, the person just removed would be listed again.
+    await FlipperBaseModel.forgetStaffInRosterCache(scopedBusinessId, tenant);
   }
 }

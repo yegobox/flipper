@@ -242,6 +242,7 @@ class _HotelModeHostState extends ConsumerState<HotelModeHost> {
                   s.screen == HotelScreen.lock ||
                   s.screen == HotelScreen.starting,
             ),
+            managerPrompt: hotelModeProvider.select((s) => s.showManagerModal),
             child: desk,
           ),
         ),

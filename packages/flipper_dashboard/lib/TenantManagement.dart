@@ -39,10 +39,7 @@ class UserManagement extends ConsumerState<TenantManagement>
         await model.loadTenants();
         final initial = widget.initialTenant;
         if (initial == null || !mounted) return;
-        await selectTenantForEdit(
-          FlipperBaseModel.resolveInitialEditTenant(model.tenants, initial),
-          model,
-        );
+        await openInitialEdit(model, initial);
       },
       viewModelBuilder: () => FlipperBaseModel(),
       builder: (context, model, widget) {

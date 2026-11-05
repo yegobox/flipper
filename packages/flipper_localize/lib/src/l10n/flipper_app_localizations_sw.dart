@@ -7718,6 +7718,10 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
       'Fungua POS, Baa au Hoteli ili kubadilisha hali ya huduma ya kifaa hiki.';
 
   @override
+  String get serviceModeHotkeyPromptOpen =>
+      'Maliza au ghairi PIN ya meneja kwanza, kisha ubadilishe hali ya huduma.';
+
+  @override
   String get serviceModeHotkeySignInFirst =>
       'Ingia kwenye kituo kwanza, kisha ubadilishe hali ya huduma.';
 
@@ -21324,6 +21328,11 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
       'Imeshindwa kufikia msaada. Angalia muunganisho wako na ujaribu tena.';
 
   @override
+  String paymentSupportWhatsAppFailed(String number) {
+    return 'Imeshindikana kufungua WhatsApp. Mwandikie Flipper Support kwa +$number.';
+  }
+
+  @override
   String get floSupportFallback => 'Tumia WhatsApp';
 
   @override
@@ -27921,6 +27930,16 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   @override
   String get localModeSyncOnElsewhereBody =>
       'Usawazishaji wa wingu umewashwa kwa biashara hii kutoka kifaa kingine. Ingia tena ili kupakia data ya kifaa hiki na kumaliza.';
+
+  @override
+  String tenantMgmtNoAccountToEdit(String name) {
+    return '$name bado hana akaunti ya kuingia ya kuhariri. Mwongeze kama mtumiaji mpya ili apate moja.';
+  }
+
+  @override
+  String tenantMgmtNoLongerStaff(String name) {
+    return '$name si mfanyakazi wa biashara hii tena.';
+  }
 
   @override
   String get tenantMgmtPinOnly => 'PIN pekee';

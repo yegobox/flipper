@@ -7680,6 +7680,10 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
       'Open POS, Bar or Hotel to switch this device\'s service mode.';
 
   @override
+  String get serviceModeHotkeyPromptOpen =>
+      'Finish or cancel the manager PIN first, then switch the service mode.';
+
+  @override
   String get serviceModeHotkeySignInFirst =>
       'Sign in at the desk first, then switch the service mode.';
 
@@ -21199,6 +21203,11 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
       'Couldn\'t reach support. Check your connection and try again.';
 
   @override
+  String paymentSupportWhatsAppFailed(String number) {
+    return 'Could not open WhatsApp. Message Flipper Support on +$number.';
+  }
+
+  @override
   String get floSupportFallback => 'Use WhatsApp';
 
   @override
@@ -27760,6 +27769,16 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
   @override
   String get localModeSyncOnElsewhereBody =>
       'Cloud sync was turned on for this business from another device. Sign in again to upload this device\'s data and finish.';
+
+  @override
+  String tenantMgmtNoAccountToEdit(String name) {
+    return '$name has no sign-in account to edit yet. Add them as a new user to give them one.';
+  }
+
+  @override
+  String tenantMgmtNoLongerStaff(String name) {
+    return '$name is no longer on this business\'s staff.';
+  }
 
   @override
   String get tenantMgmtPinOnly => 'PIN only';

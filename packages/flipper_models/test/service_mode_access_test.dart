@@ -86,6 +86,27 @@ void main() {
   });
 
   group('serviceModeGrantsFromRows', () {
+    test('keeps the owner apart from the other admins', () {
+      final grants = serviceModeGrantsFromRows(
+        [_row('u-admin', AppFeature.Sales, userType: 'admin')],
+        ownerUserId: ' u-owner ',
+        now: now,
+      );
+      expect(grants.ownerUserId, 'u-owner');
+      expect(grants.admins, {'u-owner', 'u-admin'});
+      expect(
+        serviceModeGrantsFromRows(const [], now: now).ownerUserId,
+        isNull,
+      );
+      expect(
+        decodeServiceModeGrants(
+          encodeServiceModeGrantRows(const [], ownerUserId: 'u-owner'),
+          now: now,
+        )?.ownerUserId,
+        'u-owner',
+      );
+    });
+
     test('splits grants per mode and keeps them independent', () {
       final grants = serviceModeGrantsFromRows([
         _row('u-bar', AppFeature.BarMode),

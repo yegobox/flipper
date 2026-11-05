@@ -69,11 +69,12 @@ class FloSupportConversation {
     return FloSupportConversation(
       threadId: thread is Map ? _str(thread['id']) : null,
       resolved: thread is Map && thread['status'] == 'done',
-      posts: (json['posts'] as List? ?? [])
+      posts: (json['posts'] is List ? json['posts'] as List : const [])
           .whereType<Map>()
           .map((p) => FloSupportPost.fromJson(Map<String, dynamic>.from(p)))
           .toList(),
-      serverTime: json['serverTime'] as String?,
+      serverTime:
+          json['serverTime'] is String ? json['serverTime'] as String : null,
     );
   }
 
@@ -110,22 +111,29 @@ class HttpFloSupportRepository implements FloSupportRepository {
   HttpFloSupportRepository({
     required Future<String> Function() baseUrl,
     http.Client? client,
+    Duration timeout = const Duration(seconds: 30),
   })  : _baseUrl = baseUrl,
-        _client = client ?? http.Client();
+        _client = client ?? http.Client(),
+        _timeout = timeout;
 
   final Future<String> Function() _baseUrl;
   final http.Client _client;
 
-  static const _timeout = Duration(seconds: 30);
+  /// Bounds the connector lookup and the request: a stalled one would leave
+  /// the chat loading with no error, so the fallback would never show.
+  final Duration _timeout;
 
+  /// [requireJson]: a 200 whose body is not JSON (a login or proxy page) is
+  /// a failure, not an empty answer.
   Future<Map<String, dynamic>> _send(
     String method,
     String path, {
     Object? body,
+    bool requireJson = false,
   }) async {
     final http.Response response;
     try {
-      final base = await _baseUrl();
+      final base = await _baseUrl().timeout(_timeout);
       final client = DataConnectorClient(baseUrl: base, inner: _client);
       final request =
           http.Request(method, Uri.parse('${base}api/flo/support/$path'))
@@ -138,19 +146,25 @@ class HttpFloSupportRepository implements FloSupportRepository {
     } catch (e) {
       throw FloSupportException('Could not reach support: $e');
     }
-    Map<String, dynamic> decoded;
+    var decoded = <String, dynamic>{};
+    var malformed = false;
     try {
       final value = jsonDecode(response.body);
-      decoded = value is Map ? Map<String, dynamic>.from(value) : {};
+      if (value is Map) decoded = Map<String, dynamic>.from(value);
     } catch (_) {
-      decoded = {};
+      malformed = true;
     }
     if (response.statusCode != 200) {
+      final error = decoded['error'];
       throw FloSupportException(
-        (decoded['error'] as String?) ??
-            'Support request failed (${response.statusCode})',
+        error is String
+            ? error
+            : 'Support request failed (${response.statusCode})',
         statusCode: response.statusCode,
       );
+    }
+    if (malformed && requireJson) {
+      throw FloSupportException('Support sent an unreadable answer');
     }
     return decoded;
   }
@@ -172,11 +186,16 @@ class HttpFloSupportRepository implements FloSupportRepository {
     String topic = 'general',
     Map<String, String>? context,
   }) async {
-    final json = await _send('POST', 'messages', body: {
-      'body': body,
-      'topic': topic,
-      if (context != null) 'context': context,
-    });
+    final json = await _send(
+      'POST',
+      'messages',
+      body: {
+        'body': body,
+        'topic': topic,
+        if (context != null) 'context': context,
+      },
+      requireJson: true,
+    );
     final post = json['post'];
     return FloSupportPost.fromJson(
       post is Map ? Map<String, dynamic>.from(post) : const {},

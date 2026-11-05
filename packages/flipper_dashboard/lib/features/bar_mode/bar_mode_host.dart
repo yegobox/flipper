@@ -174,6 +174,7 @@ class _BarModeHostState extends ConsumerState<BarModeHost> {
           child: ServiceModeClerkDesk(
             clerk: barModeProvider.select((s) => s.activeCashier),
             locked: barModeProvider.select((s) => s.screen == BarScreen.lock),
+            managerPrompt: barModeProvider.select((s) => s.showManagerModal),
             child: stage,
           ),
         ),

@@ -3792,6 +3792,7 @@
   "serviceModeFrontDesk": "Iyakira",
   "serviceModeAdminOnly": "Umuyobozi wenyine ni we ushobora guhindura uburyo bwa serivisi bw'iki gikoresho.",
   "serviceModeHotkeyOpenDesk": "Fungura POS, Akabari cyangwa Hoteli kugira ngo uhindure uburyo bwa serivisi bw'iki gikoresho.",
+  "serviceModeHotkeyPromptOpen": "Banza urangize cyangwa uhagarike PIN y'umuyobozi, hanyuma uhindure uburyo bwa serivisi.",
   "serviceModeHotkeySignInFirst": "Banza winjire, hanyuma uhindure uburyo bwa serivisi.",
   "serviceModeNoAccess": "Nta burenganzira ufite bwo gukoresha {mode}. Saba umuyobozi kubuguha mu micungire y'abakoresha.",
   "serviceModeSwitchNotSaved": "Ntibyashobotse kujya kuri {mode}: igenamiterere ry'ishami ntiryabitswe. Reba murandasi yawe wongere ugerageze.",
@@ -7456,6 +7457,7 @@
   "floSupportSend": "Ohereza",
   "floSupportResolved": "Ubufasha bwemeje ko iki kibazo cyakemutse. Ongera wandike niba ugikeneye ubufasha.",
   "floSupportError": "Ntitwashoboye kugera ku bufasha. Reba interineti yawe wongere ugerageze.",
+  "paymentSupportWhatsAppFailed": "Ntibyashobotse gufungura WhatsApp. Andikira ubufasha bwa Flipper kuri +{number}.",
   "floSupportFallback": "Koresha WhatsApp",
   "floTeamInviteFromStaff": "Tumira abakozi bawe",
   "floNewConversation": "Ikiganiro gishya",
@@ -9374,5 +9376,7 @@
   "localModeHoldReleasedBody": "Ububiko bw'iki gikoresho bwari bufatiwe gukora nta interineti bwarekuwe. Ongera winjire kugira ngo ukomeze.",
   "localModeSyncOnElsewhereTitle": "Guhuza na cloud byafunguwe",
   "localModeSyncOnElsewhereBody": "Guhuza na cloud byafunguwe kuri ubu bucuruzi bivuye ku kindi gikoresho. Ongera winjire kugira ngo wohereze amakuru y'iki gikoresho urangize.",
+  "tenantMgmtNoAccountToEdit": "{name} nta konti yo kwinjira afite yo guhindura. Mwongere nk'umukoresha mushya kugira ngo ayibone.",
+  "tenantMgmtNoLongerStaff": "{name} ntakiri mu bakozi b'ubu bucuruzi.",
   "tenantMgmtPinOnly": "PIN gusa"
 }

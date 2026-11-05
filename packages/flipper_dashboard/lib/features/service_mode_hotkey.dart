@@ -88,16 +88,20 @@ class _ServiceModeHotkeyScopeState extends State<ServiceModeHotkeyScope> {
 /// or dialog pushed over the desk) there is nobody to judge, so no switch.
 ///
 /// [deskAdmin] answers null while nobody is signed in at the desk, else
-/// whether that person is an admin. Nesting is harmless: the desk mounted
-/// last wins, so a Bar route pushed over the dashboard beats POS under it.
+/// whether that person is an admin. [promptOpen], when given, says the desk
+/// is asking for something (the manager PIN) that a switch would throw away.
+/// Nesting is harmless: the desk mounted last wins, so a Bar route pushed
+/// over the dashboard beats POS under it.
 class ServiceModeDesk extends StatefulWidget {
   const ServiceModeDesk({
     super.key,
     required this.deskAdmin,
+    this.promptOpen,
     required this.child,
   });
 
   final FutureOr<bool?> Function() deskAdmin;
+  final bool Function()? promptOpen;
   final Widget child;
 
   @override
@@ -144,6 +148,9 @@ enum ServiceModeHotkeyRefusal {
 
   /// The person at the desk is not an admin.
   notAdmin,
+
+  /// The desk is asking for the manager PIN; switching would drop it.
+  promptOpen,
 }
 
 /// Whether the hotkey may switch now, judged on the desk on screen; null
@@ -158,7 +165,13 @@ Future<ServiceModeHotkeyRefusal?> serviceModeHotkeyRefusal() async {
     }
   }
   if (desk == null) return ServiceModeHotkeyRefusal.noDesk;
+  bool prompting() => desk!.widget.promptOpen?.call() ?? false;
+  if (prompting()) return ServiceModeHotkeyRefusal.promptOpen;
   final admin = await desk.widget.deskAdmin();
+  // The answer was for the desk as it was: a user switch or a page opened
+  // over it while the lookup ran leaves nobody it applies to.
+  if (!desk._onScreen) return ServiceModeHotkeyRefusal.noDesk;
+  if (prompting()) return ServiceModeHotkeyRefusal.promptOpen;
   if (admin == null) return ServiceModeHotkeyRefusal.signInFirst;
   return admin ? null : ServiceModeHotkeyRefusal.notAdmin;
 }
@@ -179,6 +192,15 @@ Future<bool?> posDeskAdmin() async {
   );
 }
 
+/// How the hotkey applies a mode; replaceable in tests.
+@visibleForTesting
+Future<bool> Function(ServiceMode mode) serviceModeHotkeyApply =
+    applyServiceMode;
+
+/// How the hotkey lands on a mode's surface; replaceable in tests.
+@visibleForTesting
+void Function(ServiceMode mode) serviceModeHotkeyOpen = openServiceModeShell;
+
 /// Moves this device to [nextServiceMode] and lands on that mode's surface.
 ///
 /// The pick itself is local to the terminal, but cycling onto a service the
@@ -197,12 +219,14 @@ Future<void> cycleServiceMode() async {
           FlipperL10n.current.serviceModeHotkeySignInFirst,
         ServiceModeHotkeyRefusal.notAdmin =>
           FlipperL10n.current.serviceModeAdminOnly,
+        ServiceModeHotkeyRefusal.promptOpen =>
+          FlipperL10n.current.serviceModeHotkeyPromptOpen,
       }, type: NotificationType.error);
       return;
     }
 
     final target = nextServiceMode(activeServiceMode);
-    if (!await applyServiceMode(target)) {
+    if (!await serviceModeHotkeyApply(target)) {
       // The switch rolled itself back, so the device is still on the old
       // surface — navigating there would strand it on a mode it is not in.
       _toast(
@@ -211,7 +235,7 @@ Future<void> cycleServiceMode() async {
       );
       return;
     }
-    openServiceModeShell(target);
+    serviceModeHotkeyOpen(target);
     _toast(
       FlipperL10n.current.serviceModeSwitched(
         target.label,

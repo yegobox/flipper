@@ -1,4 +1,8 @@
+import 'dart:async';
+
 import 'package:flipper_dashboard/features/service_mode_hotkey.dart';
+import 'package:flipper_dashboard/features/service_mode_shell.dart';
+import 'package:flipper_dashboard/features/service_mode_switch.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_services/constants.dart';
@@ -66,6 +70,41 @@ void main() {
       expect(await serviceModeHotkeyRefusal(), isNull);
     });
 
+    testWidgets('a desk gone while its admin lookup ran: nobody to judge', (
+      tester,
+    ) async {
+      final lookup = Completer<bool?>();
+      await _pump(
+        tester,
+        ServiceModeDesk(deskAdmin: () => lookup.future, child: const Text('')),
+      );
+      final refusal = serviceModeHotkeyRefusal();
+      // A POS user switch swaps the shell, disposing the desk.
+      await _pump(tester, const Text('LOCK'));
+      lookup.complete(true);
+      expect(await refusal, ServiceModeHotkeyRefusal.noDesk);
+    });
+
+    testWidgets('a manager PIN prompt open on the desk: no switch', (
+      tester,
+    ) async {
+      var prompting = true;
+      await _pump(
+        tester,
+        ServiceModeDesk(
+          deskAdmin: () => true,
+          promptOpen: () => prompting,
+          child: const SizedBox(),
+        ),
+      );
+      expect(
+        await serviceModeHotkeyRefusal(),
+        ServiceModeHotkeyRefusal.promptOpen,
+      );
+      prompting = false;
+      expect(await serviceModeHotkeyRefusal(), isNull);
+    });
+
     testWidgets('a page or dialog over the desk turns it off', (tester) async {
       await _pump(tester, _desk(true));
       final navigator = StackedService.navigatorKey!.currentState!;
@@ -120,6 +159,75 @@ void main() {
       );
       await tester.pumpAndSettle(const Duration(seconds: 5));
     });
+
+    testWidgets('a manager PIN prompt open: finish it first', (tester) async {
+      await press(
+        tester,
+        ServiceModeDesk(
+          deskAdmin: () => true,
+          promptOpen: () => true,
+          child: const SizedBox(),
+        ),
+      );
+      expect(
+        find.text(
+          'Finish or cancel the manager PIN first, then switch the service '
+          'mode.',
+        ),
+        findsOneWidget,
+      );
+      await tester.pumpAndSettle(const Duration(seconds: 5));
+    });
+
+    group('an admin at the desk', () {
+      late MockBox box;
+      late List<String> did;
+
+      setUp(() async {
+        await getIt.reset();
+        box = MockBox();
+        when(() => box.readBool(key: any(named: 'key'))).thenReturn(null);
+        when(() => box.readString(key: any(named: 'key'))).thenReturn(null);
+        getIt.registerSingleton<LocalStorage>(box);
+        did = [];
+        serviceModeHotkeyOpen = (mode) => did.add('open ${mode.name}');
+      });
+
+      tearDown(() async {
+        serviceModeHotkeyApply = applyServiceMode;
+        serviceModeHotkeyOpen = openServiceModeShell;
+        await getIt.reset();
+      });
+
+      testWidgets('switches to the next mode and lands on it', (tester) async {
+        serviceModeHotkeyApply = (mode) async {
+          did.add('apply ${mode.name}');
+          return true;
+        };
+        // A POS device with nothing picked goes to the Bar next.
+        expect(nextServiceMode(activeServiceMode), ServiceMode.bar);
+        await press(tester, _desk(true));
+        expect(did, ['apply bar', 'open bar']);
+        expect(find.textContaining('This device switched to'), findsOneWidget);
+        await tester.pumpAndSettle(const Duration(seconds: 5));
+      });
+
+      testWidgets('a switch that rolled back stays put and says so', (
+        tester,
+      ) async {
+        serviceModeHotkeyApply = (mode) async {
+          did.add('apply ${mode.name}');
+          return false;
+        };
+        await press(tester, _desk(true));
+        expect(did, ['apply bar']);
+        expect(
+          find.textContaining('the branch settings did not save'),
+          findsOneWidget,
+        );
+        await tester.pumpAndSettle(const Duration(seconds: 5));
+      });
+    });
   });
 
   group('posDeskAdmin', () {
@@ -149,6 +257,14 @@ void main() {
         () => db.isAdmin(userId: 'u-1', appFeature: AppFeature.Settings),
       ).thenAnswer((_) async => false);
       expect(await posDeskAdmin(), isFalse);
+    });
+
+    test('a Settings admin at the desk: admin', () async {
+      when(() => box.getUserId()).thenReturn('u-1');
+      when(
+        () => db.isAdmin(userId: 'u-1', appFeature: AppFeature.Settings),
+      ).thenAnswer((_) async => true);
+      expect(await posDeskAdmin(), isTrue);
     });
   });
 }

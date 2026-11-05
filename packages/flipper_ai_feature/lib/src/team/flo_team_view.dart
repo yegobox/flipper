@@ -149,6 +149,16 @@ final _quietButton = TextButton.styleFrom(
   ),
 );
 
+/// The customer who opened a support thread, named by their own posts: they
+/// are not a member, so [_who] would only call them "A teammate".
+String? _supportCustomer(FloTeamThread thread, List<FloTeamPost> posts) =>
+    thread.isSupport
+        ? posts
+            .where((p) => p.isCustomer && p.authorName != null)
+            .map((p) => p.authorName!)
+            .firstOrNull
+        : null;
+
 /// A person's name for display: their name when the server knows it,
 /// otherwise "You" or "A teammate" rather than a raw user id.
 String _who(BuildContext context, FloTeamState state, String? userId) {

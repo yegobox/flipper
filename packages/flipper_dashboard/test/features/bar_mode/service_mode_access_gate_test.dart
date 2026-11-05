@@ -64,6 +64,9 @@ class _Locked extends Notifier<bool> {
 
 final _lockedProvider = NotifierProvider<_Locked, bool>(_Locked.new);
 
+/// Stands in for "the manager PIN prompt is open".
+final _promptProvider = NotifierProvider<_Locked, bool>(_Locked.new);
+
 ServiceModeGrants _barGrantedTo(String userId) => ServiceModeGrants(
   byFeature: {
     AppFeature.BarMode: {userId},
@@ -422,18 +425,26 @@ void main() {
 
   group('ServiceModeClerkDesk', () {
     late List<Tenant> roster;
+    late int rosterReads;
 
     Future<ProviderContainer> pumpDesk(WidgetTester tester) async {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
             barServicesProvider.overrideWithValue(_Services(_Box(null))),
-            barStaffProvider.overrideWith((ref) async => roster),
+            barStaffProvider.overrideWith((ref) async {
+              rosterReads++;
+              return roster;
+            }),
+            serviceModeGrantsProvider.overrideWith(
+              (ref) async => const ServiceModeGrants(ownerUserId: 'u-owner'),
+            ),
           ],
           child: MaterialApp(
             home: ServiceModeClerkDesk(
               clerk: _clerkProvider,
               locked: _lockedProvider,
+              managerPrompt: _promptProvider,
               child: const Text('DESK'),
             ),
           ),
@@ -443,7 +454,10 @@ void main() {
       return ProviderScope.containerOf(tester.element(find.text('DESK')));
     }
 
-    setUp(() => roster = [_waiter, _cashier, _admin]);
+    setUp(() {
+      roster = [_waiter, _cashier, _admin];
+      rosterReads = 0;
+    });
 
     testWidgets('nobody signed in: sign in first', (tester) async {
       await pumpDesk(tester);
@@ -502,6 +516,80 @@ void main() {
       final c = await pumpDesk(tester);
       c.read(_clerkProvider.notifier).set(_admin);
       expect(await serviceModeHotkeyRefusal(), isNull);
+    });
+
+    testWidgets('an Admin demoted while the desk is open may not', (
+      tester,
+    ) async {
+      final c = await pumpDesk(tester);
+      c.read(_clerkProvider.notifier).set(_admin);
+      expect(await serviceModeHotkeyRefusal(), isNull);
+
+      roster = [
+        _waiter,
+        Tenant(id: 't-a', name: 'Boss', userId: 'u-a', type: 'Agent'),
+      ];
+      c.invalidate(barStaffProvider);
+      await tester.pumpAndSettle();
+      expect(
+        await serviceModeHotkeyRefusal(),
+        ServiceModeHotkeyRefusal.notAdmin,
+      );
+    });
+
+    testWidgets('a demotion nothing told the desk about: re-read, refused', (
+      tester,
+    ) async {
+      // Saved on another device: only `tenants` changed, so no realtime
+      // event invalidated the loaded roster.
+      final c = await pumpDesk(tester);
+      c.read(_clerkProvider.notifier).set(_admin);
+      roster = [
+        _waiter,
+        Tenant(id: 't-a', name: 'Boss', userId: 'u-a', type: 'Agent'),
+      ];
+      final reads = rosterReads;
+      expect(
+        await serviceModeHotkeyRefusal(),
+        ServiceModeHotkeyRefusal.notAdmin,
+      );
+      expect(rosterReads, reads + 1);
+    });
+
+    testWidgets('a refusal needs no fresh roster', (tester) async {
+      final c = await pumpDesk(tester);
+      c.read(_clerkProvider.notifier).set(_cashier);
+      final reads = rosterReads;
+      expect(
+        await serviceModeHotkeyRefusal(),
+        ServiceModeHotkeyRefusal.notAdmin,
+      );
+      expect(rosterReads, reads);
+    });
+
+    testWidgets("the owner may switch whatever their row's type", (
+      tester,
+    ) async {
+      final owner = Tenant(
+        id: 't-o',
+        name: 'Owner',
+        userId: 'u-owner',
+        type: 'Agent',
+      );
+      roster = [_waiter, owner];
+      final c = await pumpDesk(tester);
+      c.read(_clerkProvider.notifier).set(owner);
+      expect(await serviceModeHotkeyRefusal(), isNull);
+    });
+
+    testWidgets('the manager PIN prompt open: finish it first', (tester) async {
+      final c = await pumpDesk(tester);
+      c.read(_clerkProvider.notifier).set(_admin);
+      c.read(_promptProvider.notifier).set(true);
+      expect(
+        await serviceModeHotkeyRefusal(),
+        ServiceModeHotkeyRefusal.promptOpen,
+      );
     });
   });
 

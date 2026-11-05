@@ -25,10 +25,15 @@ class ServiceModeGrants {
     this.admins = const {},
     this.byFeature = const {},
     this.nextExpiry,
+    this.ownerUserId,
   });
 
   /// Owner plus every user whose access rows carry the Admin user type.
   final Set<String> admins;
+
+  /// The business owner's user id, when known (also in [admins]). The owner
+  /// is an admin whatever type their own staff row carries.
+  final String? ownerUserId;
 
   /// Active, unexpired grants per mode ([AppFeature.BarMode] /
   /// [AppFeature.HotelMode]), as user ids.
@@ -126,6 +131,7 @@ ServiceModeGrants serviceModeGrantsFromRows(
     admins: admins,
     byFeature: byFeature,
     nextExpiry: nextExpiry,
+    ownerUserId: owner == null || owner.isEmpty ? null : owner,
   );
 }
 
