@@ -1,4 +1,4 @@
-import 'package:flipper_ai_feature/flipper_ai_feature.dart';
+import 'package:flipper_dashboard/Ai.dart';
 import 'package:flipper_dashboard/books_module_navigation.dart';
 import 'package:flipper_dashboard/features/bar_mode/bar_mode_settings.dart';
 import 'package:flipper_dashboard/features/daily_report_files/daily_report_files_app.dart';
@@ -127,9 +127,10 @@ Future<void> navigateToDashboardAppPage({
       );
       break;
     case 'Chat':
+      // [Ai] rather than the bare screen: it checks the Flo grant.
       await Navigator.of(
         context,
-      ).push(MaterialPageRoute<void>(builder: (context) => const AiScreen()));
+      ).push(MaterialPageRoute<void>(builder: (context) => const Ai()));
       break;
     case 'ProductionOutput':
       await Navigator.of(context).push(

@@ -1,6 +1,8 @@
 import 'package:flipper_dashboard/ActiveBranch.dart';
 import 'package:flipper_dashboard/BranchSelectionMixin.dart';
 import 'package:flipper_dashboard/app_choice_dialog.dart';
+import 'package:flipper_dashboard/features/service_mode_access_gate.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_models/providers/branch_business_provider.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart'
     show branchSelectionProvider, businessesProvider, buttonIndexProvider;
@@ -144,7 +146,8 @@ class _EnhancedSideMenuState extends ConsumerState<EnhancedSideMenu>
         },
         tooltip: context.flipperL10n.sideMenuOverview,
       ),
-      if (!ref.watch(isLocalModeProvider))
+      if (!ref.watch(isLocalModeProvider) &&
+          signedInUserMayOpen(ref, AppFeature.Flo))
         _SideMenuItem(
           iconBuilder: (c) => _coloredSideMenuSvg(_SideMenuSvgs.aiChat, c),
           isSelected: selectedItem == 1,

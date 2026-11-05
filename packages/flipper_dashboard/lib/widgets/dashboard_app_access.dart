@@ -88,6 +88,32 @@ Future<bool> dashboardCanOpenHrNow(WidgetRef ref) async {
   }
 }
 
+/// Whether the signed-in user may open the POS / inventory catalog.
+///
+/// Browsing needs only view (read+) access: selling and product-management
+/// actions inside are gated on their own edit-access (canSellProvider /
+/// admin). Includes Inventory so an Inventory grant reveals the catalog.
+/// [listen] false reads without subscribing, for callers outside `build`.
+bool dashboardCanOpenPos(WidgetRef ref, {bool listen = true}) {
+  final uid = currentDashboardUserId();
+  bool view(String feature) {
+    final provider = featureViewAccessProvider(
+      userId: uid,
+      featureName: feature,
+    );
+    return listen ? ref.watch(provider) : ref.read(provider);
+  }
+
+  return posViewFeatures.any(view);
+}
+
+/// Any view grant on one of these opens the POS / inventory catalog.
+const posViewFeatures = [
+  AppFeature.Sales,
+  AppFeature.AddProduct,
+  AppFeature.Inventory,
+];
+
 /// Whether a dashboard app tile should be visible for the signed-in user.
 bool dashboardAppTileVisible(WidgetRef ref, DashboardAllAppTile tile) {
   if (hiddenInLocalMode(ref, tile.page)) return false;
@@ -112,34 +138,20 @@ bool dashboardAppTileVisible(WidgetRef ref, DashboardAllAppTile tile) {
     return ref.watch(showAgentCommissionNavProvider);
   }
 
+  if (tile.page == 'Accounting') {
+    return signedInUserMayOpen(ref, AppFeature.Books);
+  }
+  if (tile.page == 'Chat') return signedInUserMayOpen(ref, AppFeature.Flo);
+
   final uid = currentDashboardUserId();
   final feature = tile.feature;
   if (feature == null) return true;
 
-  // 'HR' is not an [AppFeature], so the generic check below would hide it
-  // from everyone.
+  // HR needs an Admin-level grant, which the generic check below does not.
   if (tile.page == 'HR') return dashboardCanOpenHr(ref);
 
   if (feature == 'Sales' || tile.page == 'POS' || tile.page == 'Inventory') {
-    // Browse the POS/inventory catalog under view (read+) access — selling and
-    // product-management actions inside are gated on their own edit-access
-    // (canSellProvider / admin). Includes Inventory so an Inventory grant
-    // reveals this screen (the tile is otherwise tagged feature: 'Sales').
-    return ref.watch(
-          featureViewAccessProvider(userId: uid, featureName: AppFeature.Sales),
-        ) ||
-        ref.watch(
-          featureViewAccessProvider(
-            userId: uid,
-            featureName: AppFeature.AddProduct,
-          ),
-        ) ||
-        ref.watch(
-          featureViewAccessProvider(
-            userId: uid,
-            featureName: AppFeature.Inventory,
-          ),
-        );
+    return dashboardCanOpenPos(ref);
   }
 
   // The Tickets screen also hosts the Review Queue and Record Handover

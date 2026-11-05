@@ -7714,6 +7714,10 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
       'Msimamizi pekee ndiye anaweza kubadilisha hali ya huduma ya kifaa hiki.';
 
   @override
+  String get serviceModeHotkeyNoMode =>
+      'Huna ruhusa ya kutumia POS, Baa au Hoteli. Muombe msimamizi akupe ruhusa katika Usimamizi wa Watumiaji.';
+
+  @override
   String get serviceModeHotkeyOpenDesk =>
       'Fungua POS, Baa au Hoteli ili kubadilisha hali ya huduma ya kifaa hiki.';
 

@@ -3,8 +3,10 @@
 export 'package:flipper_ai_feature/flipper_ai_feature.dart';
 
 import 'package:flipper_ai_feature/flipper_ai_feature.dart';
+import 'package:flipper_dashboard/features/service_mode_access_gate.dart';
 import 'package:flipper_dashboard/providers/navigation_providers.dart';
 import 'package:flipper_localize/flipper_localize.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
@@ -29,6 +31,10 @@ class Ai extends ConsumerWidget {
         ),
       );
     }
-    return const AiScreen();
+    return ModuleAccessGate(
+      feature: AppFeature.Flo,
+      label: (_) => 'Flo',
+      child: const AiScreen(),
+    );
   }
 }

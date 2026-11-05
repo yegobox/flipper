@@ -63,6 +63,14 @@ Future<void> serviceModeGrantsSettled(WidgetRef ref) async {
 bool signedInUserMayRun(WidgetRef ref, ServiceMode mode, {bool listen = true}) {
   final feature = serviceModeFeature(mode);
   if (feature == null) return true;
+  return signedInUserMayOpen(ref, feature, listen: listen);
+}
+
+/// Whether the user signed in to the app may open [feature], one of the
+/// grandfathered modules in `serviceModeFeatures` (Bar, Hotel, Books, Flo):
+/// open to all until anyone in the business holds it, then to the granted
+/// staff, admins and the owner. [listen] as for [currentServiceModeGrants].
+bool signedInUserMayOpen(WidgetRef ref, String feature, {bool listen = true}) {
   final grants = currentServiceModeGrants(ref, listen: listen);
   if (!grants.isRestricted(feature)) return true;
   final userId = ref.read(barServicesProvider).box.getUserId()?.trim();
@@ -281,18 +289,54 @@ class ServiceModeAccessGate extends ConsumerWidget {
   }
 }
 
-class ServiceModeNoAccess extends StatelessWidget {
-  const ServiceModeNoAccess({super.key, required this.mode});
+/// Shows [child] (Books, Flo) only to a signed-in user who may open
+/// [feature] ([signedInUserMayOpen]), and a "no access" notice to anyone else.
+/// A spinner while nothing is known yet (first fetch, no offline copy), so a
+/// user who is not granted the module never sees it, even for a frame.
+class ModuleAccessGate extends ConsumerWidget {
+  const ModuleAccessGate({
+    super.key,
+    required this.feature,
+    required this.label,
+    required this.child,
+  });
 
-  final ServiceMode mode;
+  final String feature;
+
+  /// The module's name in the notice.
+  final String Function(BuildContext context) label;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (knownServiceModeGrants(ref) == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (signedInUserMayOpen(ref, feature)) return child;
+    return ServiceModeNoAccess.module(module: label(context));
+  }
+}
+
+class ServiceModeNoAccess extends StatelessWidget {
+  const ServiceModeNoAccess({super.key, required ServiceMode this.mode})
+    : module = null;
+
+  /// The notice for a module with its own route (Books, Flo) rather than a
+  /// mode the device is pinned to.
+  const ServiceModeNoAccess.module({super.key, required String this.module})
+    : mode = null;
+
+  final ServiceMode? mode;
+  final String? module;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     // A phone opened the mode from its home, so Back returns there. A pinned
-    // desktop would only be sent straight back here by the shell guard.
+    // desktop would only be sent straight back here by the shell guard. A
+    // module was opened over something on every screen size.
     final canLeave =
-        isPhoneWidth(MediaQuery.sizeOf(context).width) &&
+        (module != null || isPhoneWidth(MediaQuery.sizeOf(context).width)) &&
         (ModalRoute.of(context)?.canPop ?? false);
     return Material(
       color: theme.colorScheme.surface,
@@ -311,7 +355,9 @@ class ServiceModeNoAccess extends StatelessWidget {
               ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 420),
                 child: Text(
-                  context.flipperL10n.serviceModeNoAccess(mode.label),
+                  context.flipperL10n.serviceModeNoAccess(
+                    module ?? mode!.label,
+                  ),
                   textAlign: TextAlign.center,
                   style: theme.textTheme.titleMedium,
                 ),

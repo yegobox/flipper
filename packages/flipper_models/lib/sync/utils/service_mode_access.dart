@@ -9,7 +9,8 @@ import 'package:supabase_flutter/supabase_flutter.dart'
 import 'package:supabase_models/brick/models/tenant.model.dart';
 import 'package:supabase_models/brick/repository/storage.dart';
 
-/// Who may run Bar Mode and Hotel Mode in a business.
+/// Who may run Bar Mode and Hotel Mode, and open Books and Flo, in a
+/// business.
 ///
 /// Bar and Hotel are device surfaces, and their lock screens sign in *other*
 /// staff on a shared register, whose access rows are not on this device. So
@@ -35,8 +36,8 @@ class ServiceModeGrants {
   /// is an admin whatever type their own staff row carries.
   final String? ownerUserId;
 
-  /// Active, unexpired grants per mode ([AppFeature.BarMode] /
-  /// [AppFeature.HotelMode]), as user ids.
+  /// Active, unexpired grants per module in [serviceModeFeatures], as user
+  /// ids.
   final Map<String, Set<String>> byFeature;
 
   /// When the first row counted here expires, so the holder can re-read the
@@ -58,10 +59,14 @@ class ServiceModeGrants {
       );
 }
 
-/// Bar Mode and Hotel Mode, the modules [ServiceModeGrants] covers.
+/// The modules [ServiceModeGrants] covers: Bar Mode and Hotel Mode, plus
+/// Books and Flo, which were open to all staff before they were grantable
+/// and so follow the same rollout rule.
 const List<String> serviceModeFeatures = [
   AppFeature.BarMode,
   AppFeature.HotelMode,
+  AppFeature.Books,
+  AppFeature.Flo,
 ];
 
 /// Whether [userId] may run a service mode whose grants are [grantedUserIds].

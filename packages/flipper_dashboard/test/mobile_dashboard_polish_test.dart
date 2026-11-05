@@ -10,6 +10,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
+import 'test_helpers/module_grants.dart';
+
 /// Phone-width layout guards for the mobile dashboard. `setSurfaceSize` is a
 /// no-op for these, so the view itself is sized to a 360dp-wide phone.
 void main() {
@@ -21,6 +23,7 @@ void main() {
 
   Widget host(Widget child, {double textScale = 1, Locale? locale}) {
     return ProviderScope(
+      overrides: moduleGrantsOverrides(),
       child: MaterialApp(
         locale: locale,
         localizationsDelegates: FlipperLocalizationDelegates.delegates,

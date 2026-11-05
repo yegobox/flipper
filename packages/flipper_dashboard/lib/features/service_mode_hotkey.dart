@@ -92,16 +92,30 @@ class _ServiceModeHotkeyScopeState extends State<ServiceModeHotkeyScope> {
 /// is asking for something (the manager PIN) that a switch would throw away.
 /// Nesting is harmless: the desk mounted last wins, so a Bar route pushed
 /// over the dashboard beats POS under it.
+///
+/// A surface that is not itself a mode (Books) passes [target] instead of
+/// [deskAdmin]: it picks the mode for the person using it, by their own
+/// grants ([pickPermittedServiceMode]), and [onLeave] closes the surface
+/// once the switch is saved so the mode does not open underneath it.
 class ServiceModeDesk extends StatefulWidget {
   const ServiceModeDesk({
     super.key,
-    required this.deskAdmin,
+    this.deskAdmin,
     this.promptOpen,
+    this.target,
+    this.onLeave,
     required this.child,
-  });
+  }) : assert(deskAdmin != null || target != null);
 
-  final FutureOr<bool?> Function() deskAdmin;
+  final FutureOr<bool?> Function()? deskAdmin;
   final bool Function()? promptOpen;
+
+  /// The mode the hotkey goes to from here; null when none is the user's to
+  /// open. Replaces the admin-only cycle.
+  final FutureOr<ServiceMode?> Function()? target;
+
+  /// Runs after the switch is saved, before the mode's surface opens.
+  final VoidCallback? onLeave;
   final Widget child;
 
   @override
@@ -151,12 +165,25 @@ enum ServiceModeHotkeyRefusal {
 
   /// The desk is asking for the manager PIN; switching would drop it.
   promptOpen,
+
+  /// From a [ServiceModeDesk.target] surface: the user may open none of
+  /// POS, Bar and Hotel.
+  noAllowedMode,
 }
 
-/// Whether the hotkey may switch now, judged on the desk on screen; null
-/// when it may.
-@visibleForTesting
-Future<ServiceModeHotkeyRefusal?> serviceModeHotkeyRefusal() async {
+/// What the hotkey does now: a [refusal], or the mode to go to (null: the
+/// next one in the cycle) and what to run before landing there.
+typedef _HotkeySwitch = ({
+  ServiceModeHotkeyRefusal? refusal,
+  ServiceMode? target,
+  VoidCallback? onLeave,
+});
+
+_HotkeySwitch _refuse(ServiceModeHotkeyRefusal refusal) =>
+    (refusal: refusal, target: null, onLeave: null);
+
+/// Judges the hotkey on the desk on screen.
+Future<_HotkeySwitch> _planHotkeySwitch() async {
   _ServiceModeDeskState? desk;
   for (final candidate in _ServiceModeDeskState._desks.reversed) {
     if (candidate._onScreen) {
@@ -164,16 +191,56 @@ Future<ServiceModeHotkeyRefusal?> serviceModeHotkeyRefusal() async {
       break;
     }
   }
-  if (desk == null) return ServiceModeHotkeyRefusal.noDesk;
-  bool prompting() => desk!.widget.promptOpen?.call() ?? false;
-  if (prompting()) return ServiceModeHotkeyRefusal.promptOpen;
-  final admin = await desk.widget.deskAdmin();
+  if (desk == null) return _refuse(ServiceModeHotkeyRefusal.noDesk);
+  final widget = desk.widget;
+  bool prompting() => widget.promptOpen?.call() ?? false;
+  if (prompting()) return _refuse(ServiceModeHotkeyRefusal.promptOpen);
+
+  final pick = widget.target;
+  if (pick != null) {
+    final target = await pick();
+    if (!desk._onScreen) return _refuse(ServiceModeHotkeyRefusal.noDesk);
+    if (target == null) return _refuse(ServiceModeHotkeyRefusal.noAllowedMode);
+    return (refusal: null, target: target, onLeave: widget.onLeave);
+  }
+
+  final admin = await widget.deskAdmin!();
   // The answer was for the desk as it was: a user switch or a page opened
   // over it while the lookup ran leaves nobody it applies to.
-  if (!desk._onScreen) return ServiceModeHotkeyRefusal.noDesk;
-  if (prompting()) return ServiceModeHotkeyRefusal.promptOpen;
-  if (admin == null) return ServiceModeHotkeyRefusal.signInFirst;
-  return admin ? null : ServiceModeHotkeyRefusal.notAdmin;
+  if (!desk._onScreen) return _refuse(ServiceModeHotkeyRefusal.noDesk);
+  if (prompting()) return _refuse(ServiceModeHotkeyRefusal.promptOpen);
+  if (admin == null) return _refuse(ServiceModeHotkeyRefusal.signInFirst);
+  if (!admin) return _refuse(ServiceModeHotkeyRefusal.notAdmin);
+  return (refusal: null, target: null, onLeave: widget.onLeave);
+}
+
+/// Whether the hotkey may switch now, judged on the desk on screen; null
+/// when it may.
+@visibleForTesting
+Future<ServiceModeHotkeyRefusal?> serviceModeHotkeyRefusal() async =>
+    (await _planHotkeySwitch()).refusal;
+
+/// The next mode after [current], in the hotkey's order, that the user may
+/// open: one they hold ([mayRun]) that the branch already offers ([offered]),
+/// or, for an admin ([isAdmin]), one it does not offer yet, since switching
+/// onto it turns it on for the whole branch. [current] comes last, so with
+/// nothing else allowed the hotkey still goes back to it. Null when none is.
+Future<ServiceMode?> pickPermittedServiceMode({
+  required ServiceMode current,
+  required bool Function(ServiceMode mode) mayRun,
+  required bool Function(ServiceMode mode) offered,
+  required FutureOr<bool?> Function() isAdmin,
+}) async {
+  bool? admin;
+  var mode = current;
+  for (var i = 0; i < ServiceMode.values.length; i++) {
+    mode = nextServiceMode(mode);
+    if (!mayRun(mode)) continue;
+    if (offered(mode)) return mode;
+    admin ??= await isAdmin() ?? false;
+    if (admin) return mode;
+  }
+  return null;
 }
 
 /// The POS desk's [ServiceModeDesk.deskAdmin]. POS runs as the account the
@@ -201,16 +268,18 @@ Future<bool> Function(ServiceMode mode) serviceModeHotkeyApply =
 @visibleForTesting
 void Function(ServiceMode mode) serviceModeHotkeyOpen = openServiceModeShell;
 
-/// Moves this device to [nextServiceMode] and lands on that mode's surface.
+/// Moves this device to the next mode and lands on that mode's surface.
 ///
 /// The pick itself is local to the terminal, but cycling onto a service the
 /// branch does not offer yet turns it on for the whole branch — so this is
-/// admin-only, judged on the person at the desk ([ServiceModeDesk]).
+/// admin-only, judged on the person at the desk ([ServiceModeDesk]). From
+/// Books it follows the user's own grants instead ([ServiceModeDesk.target]).
 Future<void> cycleServiceMode() async {
   if (_ServiceModeHotkeyScopeState._switching) return;
   _ServiceModeHotkeyScopeState._switching = true;
   try {
-    final refusal = await serviceModeHotkeyRefusal();
+    final plan = await _planHotkeySwitch();
+    final refusal = plan.refusal;
     if (refusal != null) {
       _toast(switch (refusal) {
         ServiceModeHotkeyRefusal.noDesk =>
@@ -221,12 +290,15 @@ Future<void> cycleServiceMode() async {
           FlipperL10n.current.serviceModeAdminOnly,
         ServiceModeHotkeyRefusal.promptOpen =>
           FlipperL10n.current.serviceModeHotkeyPromptOpen,
+        ServiceModeHotkeyRefusal.noAllowedMode =>
+          FlipperL10n.current.serviceModeHotkeyNoMode,
       }, type: NotificationType.error);
       return;
     }
 
-    final target = nextServiceMode(activeServiceMode);
-    if (!await serviceModeHotkeyApply(target)) {
+    final target = plan.target ?? nextServiceMode(activeServiceMode);
+    // Back to the mode the device already runs (from Books) needs no switch.
+    if (target != activeServiceMode && !await serviceModeHotkeyApply(target)) {
       // The switch rolled itself back, so the device is still on the old
       // surface — navigating there would strand it on a mode it is not in.
       _toast(
@@ -235,6 +307,7 @@ Future<void> cycleServiceMode() async {
       );
       return;
     }
+    plan.onLeave?.call();
     serviceModeHotkeyOpen(target);
     _toast(
       FlipperL10n.current.serviceModeSwitched(

@@ -1,7 +1,9 @@
 import 'package:flipper_dashboard/dashboard_quick_apps_navigation.dart';
+import 'package:flipper_dashboard/features/service_mode_access_gate.dart';
 import 'package:flipper_dashboard/providers/navigation_providers.dart';
 import 'package:flipper_dashboard/widgets/dashboard_all_apps_sheet.dart';
 import 'package:flipper_localize/flipper_localize.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flipper_dashboard/widgets/sms_review/sms_review_section.dart';
 import 'package:flutter/material.dart';
@@ -62,6 +64,8 @@ class DashboardMobileBottomNav extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final barPad = _barPad(context);
     final localMode = ref.watch(isLocalModeProvider);
+    final floAllowed = signedInUserMayOpen(ref, AppFeature.Flo);
+    final booksAllowed = signedInUserMayOpen(ref, AppFeature.Books);
 
     // The Stack is tall enough to contain the raised button. A child sticking
     // out of a Stack (negative top + Clip.none) still paints, but taps on the
@@ -109,9 +113,10 @@ class DashboardMobileBottomNav extends ConsumerWidget {
                     ),
                     // Sales and Inventory both landed on the POS the "+" button
                     // already opens; Flo and Books earn the slots instead.
-                    // Flo is unavailable in local mode. An empty slot of the
-                    // same width keeps the bar centred on the raised button.
-                    if (localMode)
+                    // Flo is unavailable in local mode and to staff not granted
+                    // it. An empty slot of the same width keeps the bar
+                    // centred on the raised button.
+                    if (localMode || !floAllowed)
                       const SizedBox(width: 64)
                     else
                       _NavItem(
@@ -128,20 +133,23 @@ class DashboardMobileBottomNav extends ConsumerWidget {
                         ),
                       ),
                     const SizedBox(width: 72),
-                    _NavItem(
-                      icon: FluentIcons.book_24_regular,
-                      label: context.flipperL10n.dashboardAppBooks,
-                      selected: activeTab == DashboardMobileTab.books,
-                      onTap: () => _openTab(
-                        DashboardMobileTab.books,
-                        () => navigateToDashboardAppPage(
-                          context: context,
-                          isBigScreen: false,
-                          page: 'Accounting',
-                          ref: ref,
+                    if (!booksAllowed)
+                      const SizedBox(width: 64)
+                    else
+                      _NavItem(
+                        icon: FluentIcons.book_24_regular,
+                        label: context.flipperL10n.dashboardAppBooks,
+                        selected: activeTab == DashboardMobileTab.books,
+                        onTap: () => _openTab(
+                          DashboardMobileTab.books,
+                          () => navigateToDashboardAppPage(
+                            context: context,
+                            isBigScreen: false,
+                            page: 'Accounting',
+                            ref: ref,
+                          ),
                         ),
                       ),
-                    ),
                     _NavItem(
                       icon: FluentIcons.grid_24_regular,
                       // New bank & MoMo SMS: the Cash Book is under More.

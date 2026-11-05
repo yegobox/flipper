@@ -8,9 +8,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
+import '../test_helpers/module_grants.dart';
+
 Widget _app(Widget home, {List<dynamic> overrides = const []}) {
   return ProviderScope(
-    overrides: [...overrides],
+    overrides: [...moduleGrantsOverrides(), ...overrides],
     child: MaterialApp(
       localizationsDelegates: FlipperLocalizationDelegates.delegates,
       supportedLocales: FlipperLocalizationDelegates.supportedLocales,

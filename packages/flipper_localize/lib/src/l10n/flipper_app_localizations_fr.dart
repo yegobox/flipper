@@ -7791,6 +7791,10 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
       'Seul un administrateur peut changer le mode de service de cet appareil.';
 
   @override
+  String get serviceModeHotkeyNoMode =>
+      'Vous n\'avez accès ni au POS, ni au Bar, ni à l\'Hôtel. Demandez à un administrateur de vous en accorder un dans la gestion des utilisateurs.';
+
+  @override
   String get serviceModeHotkeyOpenDesk =>
       'Ouvrez le POS, le Bar ou l\'Hôtel pour changer le mode de service de cet appareil.';
 
