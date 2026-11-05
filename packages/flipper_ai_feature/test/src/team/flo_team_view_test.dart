@@ -665,7 +665,7 @@ void main() {
         (tester) async {
       final repo = FakeFloTeamRepository(
         threads: [
-          idea('s1', 'Payment help · Shop', kind: 'support'),
+          idea('s1', 'Payment help · Shop', kind: 'support', author: 'cust'),
           idea('t3', 'Weekly chat', kind: 'discussion'),
         ],
         posts: [
@@ -722,6 +722,88 @@ void main() {
       await tester.pumpAndSettle();
       expect(repo.calls, contains('update(s1,{status: idea})'));
       expect(find.text(l10n.floTeamResolve), findsOneWidget);
+    });
+
+    testWidgets('a support card names only the customer who opened it',
+        (tester) async {
+      // Another customer of the same business wrote in the thread too; the
+      // opener's own posts carry no name, so the card must not borrow the
+      // other customer's.
+      final repo = FakeFloTeamRepository(
+        threads: [
+          idea('s1', 'Payment help · Shop', kind: 'support', author: 'cust'),
+        ],
+        posts: [
+          const FloTeamPost(
+              id: 'c1',
+              threadId: 's1',
+              isFlo: false,
+              isCustomer: true,
+              body: 'My payment failed',
+              authorUserId: 'cust'),
+          const FloTeamPost(
+              id: 'c2',
+              threadId: 's1',
+              isFlo: false,
+              isCustomer: true,
+              authorName: 'Eric · Shop',
+              body: 'Same here',
+              authorUserId: 'other'),
+        ],
+      );
+      await _pump(tester, repo);
+      await tester.tap(find.byKey(const Key('flo-team-filter-support')));
+      await tester.pumpAndSettle();
+      final card = find.byKey(const Key('flo-team-thread-s1'));
+      expect(card, findsOneWidget);
+      expect(find.descendant(of: card, matching: find.text('Eric · Shop')),
+          findsNothing);
+    });
+
+    testWidgets('a long customer name on a narrow board ends in an ellipsis',
+        (tester) async {
+      tester.view.physicalSize = const Size(320, 1600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+      const long = 'Jean-Baptiste Uwimana Nshimiyimana · '
+          'Kigali Central Wholesale Supplies Limited';
+      final repo = FakeFloTeamRepository(
+        threads: [
+          idea('s1', 'Payment help', kind: 'support', author: 'cust'),
+        ],
+        posts: [
+          const FloTeamPost(
+              id: 'c1',
+              threadId: 's1',
+              isFlo: false,
+              isCustomer: true,
+              authorName: long,
+              body: 'My payment failed',
+              authorUserId: 'cust'),
+        ],
+      );
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: _overrides(repo),
+          child: MaterialApp(
+            localizationsDelegates: FlipperLocalizationDelegates.delegates,
+            supportedLocales: FlipperLocalizationDelegates.supportedLocales,
+            home: const Scaffold(body: FloTeamView()),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester
+          .ensureVisible(find.byKey(const Key('flo-team-filter-support')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('flo-team-filter-support')));
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      final label = tester.widget<Text>(find.descendant(
+          of: find.byKey(const Key('flo-team-thread-s1')),
+          matching: find.text(long)));
+      expect(label.overflow, TextOverflow.ellipsis);
+      expect(label.maxLines, 1);
     });
 
     testWidgets('a business with no support threads has no Support tab',

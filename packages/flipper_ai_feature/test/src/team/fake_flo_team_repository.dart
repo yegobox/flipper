@@ -238,13 +238,14 @@ FloTeamThread idea(
   DateTime? due,
   String kind = 'idea',
   DateTime? updatedAt,
+  String author = 'u2',
 }) =>
     FloTeamThread(
       id: id,
       kind: kind,
       title: title,
       body: 'About $title',
-      authorUserId: 'u2',
+      authorUserId: author,
       status: status,
       votes: votes,
       voted: voted,

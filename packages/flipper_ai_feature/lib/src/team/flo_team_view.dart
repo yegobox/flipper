@@ -154,7 +154,10 @@ final _quietButton = TextButton.styleFrom(
 String? _supportCustomer(FloTeamThread thread, List<FloTeamPost> posts) =>
     thread.isSupport
         ? posts
-            .where((p) => p.isCustomer && p.authorName != null)
+            .where((p) =>
+                p.isCustomer &&
+                p.authorUserId == thread.authorUserId &&
+                p.authorName != null)
             .map((p) => p.authorName!)
             .firstOrNull
         : null;

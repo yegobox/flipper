@@ -449,13 +449,18 @@ class _ThreadCardState extends ConsumerState<_ThreadCard> {
                                   size: 20,
                                 ),
                                 const SizedBox(width: 6),
-                                Text(
-                                  customer ??
-                                      _who(context, state, thread.authorUserId),
-                                  style: const TextStyle(
-                                    fontSize: 12.5,
-                                    fontWeight: FontWeight.w600,
-                                    color: FloTheme.ink2,
+                                Flexible(
+                                  child: Text(
+                                    customer ??
+                                        _who(context, state,
+                                            thread.authorUserId),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      fontSize: 12.5,
+                                      fontWeight: FontWeight.w600,
+                                      color: FloTheme.ink2,
+                                    ),
                                   ),
                                 ),
                                 if (updated != null) ...[
