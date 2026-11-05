@@ -1,11 +1,10 @@
 import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
-import 'dart:ffi' as ffi;
 import 'dart:io';
 import 'dart:ui' show AppExitResponse;
 
-import 'package:ffi/ffi.dart' show calloc;
+import 'package:flipper_models/perf/windows_unbiased_ticks.dart';
 import 'package:flutter/widgets.dart' show AppLifecycleListener;
 
 /// Reports a diagnostic event (`ui_stall`, `ui_hang_killed`, `search_timeout`)
@@ -295,36 +294,13 @@ class UiStallWatchdog {
 /// [unbiasedTicks] (100ns units) replaces the Windows source in tests.
 Duration Function() awakeClock({int Function()? unbiasedTicks}) {
   final read =
-      unbiasedTicks ?? (Platform.isWindows ? _windowsUnbiasedTicks() : null);
+      unbiasedTicks ?? (Platform.isWindows ? windowsUnbiasedTicks() : null);
   if (read == null) {
     final stopwatch = Stopwatch()..start();
     return () => stopwatch.elapsed;
   }
   final start = read();
   return () => Duration(microseconds: (read() - start) ~/ 10);
-}
-
-typedef _QueryUnbiasedInterruptTimeC =
-    ffi.Int32 Function(ffi.Pointer<ffi.Uint64>);
-typedef _QueryUnbiasedInterruptTime = int Function(ffi.Pointer<ffi.Uint64>);
-
-/// `QueryUnbiasedInterruptTime` from kernel32, or null when it can't be read
-/// (the watchdog then falls back to `Stopwatch`).
-int Function()? _windowsUnbiasedTicks() {
-  try {
-    final query = ffi.DynamicLibrary.open('kernel32.dll')
-        .lookupFunction<
-          _QueryUnbiasedInterruptTimeC,
-          _QueryUnbiasedInterruptTime
-        >('QueryUnbiasedInterruptTime');
-    // One 8-byte slot for the life of the app; never freed.
-    final out = calloc<ffi.Uint64>();
-    int read() => query(out) == 0 ? 0 : out.value;
-    if (read() == 0) return null;
-    return read;
-  } catch (_) {
-    return null;
-  }
 }
 
 /// Append-only text log that rolls to `<name>.1` past [maxBytes], so support
