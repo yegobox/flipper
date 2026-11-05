@@ -6,12 +6,20 @@
 // Run from `flipper/packages/flipper_dashboard`:
 //   flutter test test/orders_badge_search_test.dart --dart-define=FLUTTER_TEST_ENV=true
 
+import 'dart:async';
+
 import 'package:flipper_dashboard/features/online_shop/online_shop_providers.dart';
 import 'package:flipper_dashboard/ribbon.dart';
 import 'package:flipper_dashboard/search_field.dart';
 import 'package:flipper_localize/flipper_localize.dart';
+import 'package:flipper_models/DatabaseSyncInterface.dart';
+import 'package:flipper_models/SyncStrategy.dart';
+import 'package:flipper_models/db_model_export.dart' show Branch;
+import 'package:flipper_models/providers/access_provider.dart';
+import 'package:flipper_models/providers/active_branch_provider.dart';
 import 'package:flipper_models/providers/orders_provider.dart';
 import 'package:flipper_models/providers/scan_mode_provider.dart';
+import 'package:flipper_models/sync/utils/pos_catalog_search.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/app_service.dart';
@@ -22,9 +30,11 @@ import 'package:flipper_services/setting_service.dart';
 import 'package:flipper_services/locator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_riverpod/misc.dart' show Override;
+import 'package:flutter_riverpod/misc.dart'
+    show Override, ProviderListenable, ProviderOrFamily;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:supabase_models/brick/models/inventory_request.model.dart';
 import 'package:supabase_models/brick/repository/storage.dart';
@@ -45,6 +55,7 @@ class _MockAppService extends Mock implements AppService {}
 
 class _FakeStockRequests extends StockRequests {
   static int builds = 0;
+  static String? lastStatus;
 
   @override
   Stream<List<InventoryRequest>> build({
@@ -52,6 +63,7 @@ class _FakeStockRequests extends StockRequests {
     String? search,
   }) {
     builds++;
+    lastStatus = status;
     return Stream.value([
       InventoryRequest(branchId: 'branch-1'),
       InventoryRequest(branchId: 'branch-1'),
@@ -59,10 +71,78 @@ class _FakeStockRequests extends StockRequests {
   }
 }
 
+/// Records which branch each stock-request stream was opened for, and which
+/// are still listened to.
+class _FakeCapella extends Fake implements DatabaseSyncInterface {
+  final openedFor = <String>[];
+  final live = <String>[];
+
+  Stream<List<InventoryRequest>> _open(String branchId) {
+    openedFor.add(branchId);
+    late final StreamController<List<InventoryRequest>> requests;
+    requests = StreamController<List<InventoryRequest>>(
+      onListen: () {
+        live.add(branchId);
+        requests.add([
+          InventoryRequest(id: 'req-$branchId', branchId: branchId),
+        ]);
+      },
+      onCancel: () => live.remove(branchId),
+    );
+    return requests.stream;
+  }
+
+  @override
+  Stream<List<InventoryRequest>> requestsStream({
+    required String branchId,
+    String filter = RequestStatus.pending,
+    String? search,
+    int limit = 50,
+  }) => _open(branchId);
+
+  @override
+  Stream<List<InventoryRequest>> requestsStreamOutgoing({
+    required String branchId,
+    String filter = RequestStatus.pending,
+    String? search,
+    int limit = 50,
+  }) => _open(branchId);
+}
+
+/// Incoming and outgoing requests take the same branch-switch path.
+typedef _Orders = ({
+  String name,
+  ProviderListenable<AsyncValue<List<InventoryRequest>>> watch,
+  ProviderListenable<Future<List<InventoryRequest>>> future,
+  ProviderOrFamily self,
+});
+
+final _ordersProviders = <_Orders>[
+  (
+    name: 'incoming',
+    watch: stockRequestsProvider(status: RequestStatus.pending),
+    future: stockRequestsProvider(status: RequestStatus.pending).future,
+    self: stockRequestsProvider(status: RequestStatus.pending),
+  ),
+  (
+    name: 'outgoing',
+    watch: outgoingStockRequestsProvider(status: RequestStatus.pending),
+    future: outgoingStockRequestsProvider(status: RequestStatus.pending).future,
+    self: outgoingStockRequestsProvider(status: RequestStatus.pending),
+  ),
+];
+
 const _terms = ['r', 'ri', 'ric', 'rice'];
+
+Future<void> _settle() async {
+  for (var i = 0; i < 10; i++) {
+    await Future<void>.delayed(Duration.zero);
+  }
+}
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+  setUpAll(() => registerFallbackValue(Strategy.capella));
 
   setUp(() async {
     await getIt.reset();
@@ -90,6 +170,7 @@ void main() {
     }
     locator.registerSingleton<RouterService>(_MockRouterService());
     _FakeStockRequests.builds = 0;
+    _FakeStockRequests.lastStatus = null;
   });
 
   tearDown(() async {
@@ -163,24 +244,105 @@ void main() {
     final controller = TextEditingController();
     addTearDown(controller.dispose);
 
-    final container = await pumpHost(
+    await pumpHost(
       tester,
       SearchField(
         controller: controller,
-        showOrderButton: false,
+        showOrderButton: true,
         showIncomingButton: false,
         showAddButton: false,
         showDatePicker: false,
         showNoticesButton: false,
       ),
-      // Every family member is faked, so a watch keyed by the term would
-      // build one per term.
-      overrides: [stockRequestsProvider.overrideWith(_FakeStockRequests.new)],
+      overrides: [
+        // Every family member is faked, so a watch keyed by the term would
+        // build one per term.
+        stockRequestsProvider.overrideWith(_FakeStockRequests.new),
+        featureAccessProvider(
+          featureName: AppFeature.Orders,
+          userId: '',
+        ).overrideWithValue(true),
+      ],
     );
+    await tester.pump();
+    expect(find.text('2'), findsOneWidget);
     expect(_FakeStockRequests.builds, 1);
+    expect(_FakeStockRequests.lastStatus, RequestStatus.pending);
 
-    await typeTerms(tester, container);
+    // Typed into the field, so its controller listener and debounce run.
+    for (final term in _terms) {
+      await tester.enterText(find.byType(TextField), term);
+      await tester.pump(posCatalogSearchDebounce * 2);
+    }
+    expect(controller.text, 'rice');
 
+    expect(find.text('2'), findsOneWidget);
     expect(_FakeStockRequests.builds, 1);
+    expect(_FakeStockRequests.lastStatus, RequestStatus.pending);
   });
+
+  ({_FakeCapella capella, MockBox box, ProviderContainer container})
+  ordersHarness(Stream<Branch> branch) {
+    // Already seen, so no order notification fires in the test.
+    SharedPreferences.setMockInitialValues({
+      'seen_inventory_requests': ['req-branch-1', 'req-branch-2'],
+    });
+    final box = getIt<LocalStorage>() as MockBox;
+    final strategy = MockSyncStrategy();
+    final capella = _FakeCapella();
+    getIt.registerSingleton<SyncStrategy>(strategy, instanceName: 'strategy');
+    when(() => strategy.getStrategy(any())).thenReturn(capella);
+    when(() => strategy.current).thenReturn(capella);
+    final container = ProviderContainer(
+      overrides: [activeBranchProvider.overrideWith((ref) => branch)],
+    );
+    addTearDown(container.dispose);
+    return (capella: capella, box: box, container: container);
+  }
+
+  for (final orders in _ordersProviders) {
+    test('a branch switch reopens the ${orders.name} requests for the new '
+        'branch', () async {
+      final branch = StreamController<Branch>();
+      addTearDown(branch.close);
+      final (:capella, :box, :container) = ordersHarness(branch.stream);
+      final sub = container.listen(orders.watch, (_, __) {});
+      addTearDown(sub.close);
+
+      branch.add(Branch(id: 'branch-1', name: 'One', businessId: 'b'));
+      await _settle();
+      await container.read(orders.future);
+      expect(capella.openedFor.last, 'branch-1');
+
+      when(() => box.getBranchId()).thenReturn('branch-2');
+      branch.add(Branch(id: 'branch-2', name: 'Two', businessId: 'b'));
+      await _settle();
+      final requests = await container.read(orders.future);
+
+      expect(capella.openedFor.last, 'branch-2');
+      expect(capella.live, ['branch-2']);
+      expect(requests.single.branchId, 'branch-2');
+    });
+
+    test('a ${orders.name} setup overtaken by a rebuild never opens its '
+        'branch', () async {
+      final (:capella, :box, :container) = ordersHarness(
+        const Stream<Branch>.empty(),
+      );
+      when(() => box.getBranchId()).thenReturn('branch-1');
+      final sub = container.listen(orders.watch, (_, __) {});
+      addTearDown(sub.close);
+
+      // Rebuilt for branch-2 while branch-1's setup is still awaiting.
+      when(() => box.getBranchId()).thenReturn('branch-2');
+      container.invalidate(orders.self);
+      container.read(orders.watch);
+      await _settle();
+      final requests = await container.read(orders.future);
+
+      expect(capella.openedFor, ['branch-2']);
+      expect(capella.live, ['branch-2']);
+      expect(requests.single.branchId, 'branch-2');
+    });
+  }
 }

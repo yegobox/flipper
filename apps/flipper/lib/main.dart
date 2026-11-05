@@ -50,6 +50,7 @@ import 'firebase_options.dart';
 import 'keyboard_pan.dart';
 import 'prefs_file_repair.dart';
 import 'touch_keyboard.dart';
+import 'ui_stall_monitoring.dart';
 import 'package:flipper_models/power_sync/supabase.dart';
 import 'package:flipper_services/GlobalLogError.dart';
 import 'package:flipper_services/FirebaseCrashlyticService.dart';
@@ -489,6 +490,11 @@ List<_InitStep> _buildInitSteps() => <_InitStep>[
         budget: const Duration(seconds: 5),
         run: () async {
           unawaited(PersonalGoalNotificationService.instance.initialize());
+          unawaited(
+            startUiStallMonitoring().catchError(
+              (Object e) => debugPrint('UI stall monitoring off: $e'),
+            ),
+          );
           // Register the on-device AI engine (no-op on Android/web → cloud only).
           // Flo is unavailable in local mode.
           if (!LocalMode.isOn) initLocalAi();

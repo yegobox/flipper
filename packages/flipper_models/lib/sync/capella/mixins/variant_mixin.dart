@@ -7,6 +7,7 @@ import 'package:flipper_models/sync/branch_catalog_cloud_sync.dart';
 import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:flipper_models/sync/interfaces/stock_interface.dart';
 import 'package:flipper_models/sync/models/paged_variants.dart';
+import 'package:flipper_models/perf/ui_stall_watchdog.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:flipper_models/sync/capella/capella_brick_mirror.dart';
@@ -455,23 +456,29 @@ mixin CapellaVariantMixin implements VariantInterface {
       int? totalCount;
 
       // Pull from Ditto cloud (e.g. data-connector bulk writes) before local query.
-      await ensureBranchCatalogCloudSubscriptions(
-        ditto: ditto,
-        branchId: branchId,
-        businessId: ProxyService.box.getBusinessId(),
+      await PerfOpTrail.instance.track(
+        'variants:subscribe',
+        () => ensureBranchCatalogCloudSubscriptions(
+          ditto: ditto,
+          branchId: branchId,
+          businessId: ProxyService.box.getBusinessId(),
+        ),
       );
 
       // Replication: broad branch subscription only. Filtered SELECT (search,
       // taxes, pagination) runs via execute below; Ditto 5 can reject complex
       // subscription predicates even after ORDER BY/LIMIT stripping.
 
+      // Timed into the perf trail with the row materialisation, which runs on
+      // the main isolate even though the query itself does not.
       Future<List<dynamic>> runExecute(
         String sql,
-        Map<String, dynamic> args,
-      ) async {
+        Map<String, dynamic> args, {
+        String label = 'variants:page',
+      }) => PerfOpTrail.instance.track(label, () async {
         final r = await ditto.store.execute(sql, arguments: args);
         return r.items.toList();
-      }
+      });
 
       // Stock filter (POS grid, not while searching). Stock lives in its own
       // collection and DQL has no joins, so the filter walks a light
@@ -490,21 +497,24 @@ mixin CapellaVariantMixin implements VariantInterface {
         final catalogRows = (await runExecute(
           stockFilterCatalogQuery(filterQuery, orderSuffix),
           catalogArgs,
+          label: 'variants:stock_catalog',
         )).map((doc) => Map<String, dynamic>.from(doc.value)).toList();
         final matching = variantIdsMatchingStock(
           rows: catalogRows,
-          qtyByStockId: await _stockQtyForCatalogRows(
-            ditto,
-            branchId,
-            catalogRows,
+          qtyByStockId: await PerfOpTrail.instance.track(
+            'variants:stock_qty',
+            () => _stockQtyForCatalogRows(ditto, branchId, catalogRows),
           ),
           inStock: inStock!,
         );
         totalCount = matching.length;
         stockFilteredOut = catalogRows.length - matching.length;
-        return _variantDocsInOrder(
-          ditto,
-          pageOfIds(matching, page: page, itemsPerPage: itemsPerPage),
+        return PerfOpTrail.instance.track(
+          'variants:stock_docs',
+          () => _variantDocsInOrder(
+            ditto,
+            pageOfIds(matching, page: page, itemsPerPage: itemsPerPage),
+          ),
         );
       }
 
@@ -528,7 +538,11 @@ mixin CapellaVariantMixin implements VariantInterface {
         final barcodeArgs = Map<String, dynamic>.from(arguments)
           ..['bcdExact'] = searchTerm;
         talker.info('Catalog barcode search (exact): $searchTerm');
-        items = await runExecute(barcodeQuery, barcodeArgs);
+        items = await runExecute(
+          barcodeQuery,
+          barcodeArgs,
+          label: 'variants:barcode',
+        );
         if (items.isEmpty) {
           final fallbackQuery = catalogBarcodeNameFallbackQuery(
             filterQuery,
@@ -537,7 +551,11 @@ mixin CapellaVariantMixin implements VariantInterface {
           final fallbackArgs = Map<String, dynamic>.from(arguments)
             ..['searchLike'] = '%$searchTerm%';
           talker.info('Catalog barcode fallback to name search: $searchTerm');
-          items = await runExecute(fallbackQuery, fallbackArgs);
+          items = await runExecute(
+            fallbackQuery,
+            fallbackArgs,
+            label: 'variants:barcode_name',
+          );
         }
       } else {
         items = await runPage();

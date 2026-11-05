@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'package:collection/collection.dart';
 import 'package:flipper_models/SyncStrategy.dart';
+import 'package:flipper_models/providers/active_branch_provider.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:supabase_models/brick/models/inventory_request.model.dart';
 import 'package:flipper_services/notifications/notification_handler.dart';
@@ -20,6 +22,9 @@ class StockRequests extends _$StockRequests {
   StreamSubscription<List<InventoryRequest>>? _subscription;
   StreamController<List<InventoryRequest>>? _controller;
 
+  /// Bumped per setup; see [_isLatestSetup].
+  int _setups = 0;
+
   @override
   Stream<List<InventoryRequest>> build({
     required String status,
@@ -27,6 +32,8 @@ class StockRequests extends _$StockRequests {
   }) {
     _status = status;
     _search = search;
+    // Rebuild on a branch switch: the requests below are this branch's.
+    ref.watch(activeBranchProvider.select((b) => b.value?.id));
 
     final branchId = ProxyService.box.getBranchId();
     if (branchId == null) {
@@ -47,11 +54,15 @@ class StockRequests extends _$StockRequests {
   }
 
   Future<void> _setupSubscription(String branchId) async {
+    final setup = ++_setups;
+    final controller = _controller;
     await _subscription?.cancel();
 
     // Load previously seen request IDs
     Set<String> seenRequestIds = await SeenRequestsStorage.getSeenRequests();
+    if (controller == null || !_isLatestSetup(setup, controller)) return;
 
+    unawaited(_subscription?.cancel());
     _subscription = ProxyService.getStrategy(Strategy.capella)
         .requestsStream(
           branchId: branchId,
@@ -62,7 +73,7 @@ class StockRequests extends _$StockRequests {
         .distinct(const ListEquality().equals)
         .listen(
           (requests) {
-            if (_controller == null || _controller!.isClosed) return;
+            if (controller.isClosed) return;
 
             // Notification logic
             for (final request in requests) {
@@ -76,14 +87,26 @@ class StockRequests extends _$StockRequests {
                 seenRequestIds.add(request.id);
               }
             }
-            _controller!.add(requests);
+            controller.add(requests);
           },
           onError: (error) {
-            if (_controller == null || _controller!.isClosed) return;
-            _controller!.addError(error);
+            if (controller.isClosed) return;
+            controller.addError(error);
           },
         );
   }
+
+  /// A rebuild (branch switch) or [loadMore] can start a setup while an older
+  /// one is still awaiting. Only the newest may install its subscription, or
+  /// the older one would stream another branch into the current list and
+  /// stay open for good.
+  bool _isLatestSetup(
+    int setup,
+    StreamController<List<InventoryRequest>> controller,
+  ) =>
+      setup == _setups &&
+      identical(controller, _controller) &&
+      !controller.isClosed;
 
   void loadMore() {
     _limit += 50;
@@ -105,6 +128,9 @@ class OutgoingStockRequests extends _$OutgoingStockRequests {
   StreamSubscription<List<InventoryRequest>>? _subscription;
   StreamController<List<InventoryRequest>>? _controller;
 
+  /// Bumped per setup; see [_isLatestSetup].
+  int _setups = 0;
+
   @override
   Stream<List<InventoryRequest>> build({
     required String status,
@@ -112,6 +138,8 @@ class OutgoingStockRequests extends _$OutgoingStockRequests {
   }) {
     _status = status;
     _search = search;
+    // Rebuild on a branch switch: the requests below are this branch's.
+    ref.watch(activeBranchProvider.select((b) => b.value?.id));
 
     final branchId = ProxyService.box.getBranchId();
     if (branchId == null) {
@@ -130,10 +158,14 @@ class OutgoingStockRequests extends _$OutgoingStockRequests {
   }
 
   Future<void> _setupSubscription(String branchId) async {
+    final setup = ++_setups;
+    final controller = _controller;
     await _subscription?.cancel();
 
     Set<String> seenRequestIds = await SeenRequestsStorage.getSeenRequests();
+    if (controller == null || !_isLatestSetup(setup, controller)) return;
 
+    unawaited(_subscription?.cancel());
     _subscription = ProxyService.getStrategy(Strategy.capella)
         .requestsStreamOutgoing(
           branchId: branchId,
@@ -144,7 +176,7 @@ class OutgoingStockRequests extends _$OutgoingStockRequests {
         .distinct(const ListEquality().equals)
         .listen(
           (requests) {
-            if (_controller == null || _controller!.isClosed) return;
+            if (controller.isClosed) return;
 
             // Destination branch: notify when a transfer / order for us arrives.
             for (final request in requests) {
@@ -165,14 +197,26 @@ class OutgoingStockRequests extends _$OutgoingStockRequests {
                 }
               }
             }
-            _controller!.add(requests);
+            controller.add(requests);
           },
           onError: (error) {
-            if (_controller == null || _controller!.isClosed) return;
-            _controller!.addError(error);
+            if (controller.isClosed) return;
+            controller.addError(error);
           },
         );
   }
+
+  /// A rebuild (branch switch) or [loadMore] can start a setup while an older
+  /// one is still awaiting. Only the newest may install its subscription, or
+  /// the older one would stream another branch into the current list and
+  /// stay open for good.
+  bool _isLatestSetup(
+    int setup,
+    StreamController<List<InventoryRequest>> controller,
+  ) =>
+      setup == _setups &&
+      identical(controller, _controller) &&
+      !controller.isClosed;
 
   void loadMore() {
     _limit += 50;

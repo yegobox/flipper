@@ -1,4 +1,5 @@
 import 'package:flipper_models/helperModels/talker.dart';
+import 'package:flipper_models/perf/ui_stall_watchdog.dart';
 
 /// How many live store observers there are, and what each wake-up costs.
 ///
@@ -16,8 +17,7 @@ class DittoObserverStats {
   final Map<String, int> _liveByCollection = <String, int>{};
   final Map<String, int> _openedByName = <String, int>{};
 
-  int get live =>
-      _liveByCollection.values.fold(0, (sum, count) => sum + count);
+  int get live => _liveByCollection.values.fold(0, (sum, count) => sum + count);
 
   Map<String, int> get liveByCollection =>
       Map<String, int>.unmodifiable(_liveByCollection);
@@ -103,6 +103,10 @@ TrackedDittoObserver registerTrackedObserver({
       } finally {
         final ms = sw.elapsedMilliseconds;
         if (ms >= kSlowObserverCallbackMs) {
+          PerfOpTrail.instance.note(
+            'obs:$name',
+            took: Duration(milliseconds: ms),
+          );
           int? rows;
           try {
             rows = (queryResult.items as Iterable).length;
