@@ -46,12 +46,20 @@ class KeyedSyncSubscriptions {
 /// An observer stream whose rows each may need a keyed sync subscription and
 /// an async lookup (e.g. the branch on each stock request).
 ///
-/// Only the newest emission is delivered and prunes subscriptions; an older
-/// one that finishes late is dropped, so it can neither replace a newer list
-/// nor drop a key the newer one still needs. Every key of an emission is
-/// subscribed before its first await, so a superseded emission never
-/// subscribes a key after a newer one pruned it. Closing the stream cancels
-/// the observer, the stream's own subscription and every keyed one.
+/// Lists are delivered in order: one that finishes after a newer list was
+/// delivered is dropped, so it can never replace it. Only the newest
+/// emission prunes subscriptions, so an older one cannot drop a key the newer
+/// one still needs. Every key of an emission is subscribed before its first
+/// await, so a superseded emission never subscribes a key after a newer one
+/// pruned it.
+///
+/// A superseded emission stops early, except the oldest one still running:
+/// it finishes and delivers, so changes arriving faster than the lookups
+/// still update the list once per pass instead of only when they stop. At
+/// most that one and the newest do lookups at a time.
+///
+/// Closing the stream cancels the observer, the stream's own subscription and
+/// every keyed one.
 class KeyedObserverFeed<T> {
   KeyedObserverFeed({
     required this.subscriptions,
@@ -75,6 +83,10 @@ class KeyedObserverFeed<T> {
   final void Function()? _cancelSubscription;
   final _controller = StreamController<List<T>>.broadcast();
   int _emission = 0;
+  int _delivered = 0;
+
+  /// Emissions still resolving, oldest first.
+  final _running = <int>[];
 
   /// Cancels the store observer feeding [emit]; set once it is registered.
   FutureOr<void> Function()? cancelObserver;
@@ -84,8 +96,6 @@ class KeyedObserverFeed<T> {
   /// One observer emission. [readRows] converts the raw result.
   Future<void> emit(List<T> Function() readRows) async {
     if (_controller.isClosed) return;
-    final thisEmission = ++_emission;
-    bool current() => thisEmission == _emission && !_controller.isClosed;
 
     final List<T> rows;
     final keys = <String>{};
@@ -96,31 +106,52 @@ class KeyedObserverFeed<T> {
         if (key != null) keys.add(key);
       }
     } catch (e) {
+      // Counted only once readable: a result that fails here must not
+      // supersede an older one that is still resolving.
       onError?.call(e);
       return;
     }
-    keys.forEach(subscriptions.ensure);
+
+    final thisEmission = ++_emission;
+    _running.add(thisEmission);
+    bool newest() => thisEmission == _emission && !_controller.isClosed;
+    bool worthFinishing() =>
+        !_controller.isClosed &&
+        thisEmission > _delivered &&
+        (newest() || _running.first == thisEmission);
 
     try {
+      keys.forEach(subscriptions.ensure);
       for (final row in rows) {
-        if (!current()) return;
+        if (!worthFinishing()) return;
         final key = keyOf(row);
         if (key != null) await resolve(row, key);
       }
-      if (!current()) return;
-      subscriptions.retainOnly(keys);
+      if (!worthFinishing()) return;
+      if (newest()) subscriptions.retainOnly(keys);
+      _delivered = thisEmission;
       _controller.add(rows);
     } catch (e) {
       // The keys are this emission's whole result, so pruning stays right.
-      if (current()) subscriptions.retainOnly(keys);
+      if (newest()) subscriptions.retainOnly(keys);
       onError?.call(e);
+    } finally {
+      _running.remove(thisEmission);
     }
   }
 
-  Future<void> close() async {
-    await cancelObserver?.call();
-    _cancelSubscription?.call();
-    subscriptions.cancelAll();
-    await _controller.close();
+  /// Runs once: closing the controller fires its `onCancel`, which is this.
+  Future<void> close() => _closing ??= _close();
+  Future<void>? _closing;
+
+  Future<void> _close() async {
+    try {
+      await cancelObserver?.call();
+    } finally {
+      // A failed observer cancel must not keep the rest registered.
+      _cancelSubscription?.call();
+      subscriptions.cancelAll();
+      await _controller.close();
+    }
   }
 }

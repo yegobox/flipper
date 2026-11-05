@@ -56,8 +56,12 @@ class PerfOpTrail {
 
   /// While a `critical` op runs, its label sits in [file]. A hang the user
   /// ends by killing the app leaves the file behind for the next start to
-  /// report (see [takeLeftoverMarker]).
-  void useMarkerFile(File? file) => _marker = file;
+  /// report (see [readLeftoverMarker]). A critical op already running when
+  /// the file is set is written at once, so a kill during it is not missed.
+  void useMarkerFile(File? file) {
+    _marker = file;
+    if (_critical.isNotEmpty) _writeMarker(_critical.last);
+  }
 
   void useReporter(PerfEventReporter? reporter) => _reporter = reporter;
 
@@ -157,18 +161,26 @@ class PerfOpTrail {
   }
 
   /// The op a previous run was in when it died, or null after a clean exit.
-  /// Deletes the marker so it is reported once.
-  static Map<String, Object?>? takeLeftoverMarker(File file) {
+  ///
+  /// Leaves the file in place: delete it with [clearLeftoverMarker] only once
+  /// the report is written, so a crash in between reports it again rather
+  /// than losing it.
+  static Map<String, Object?>? readLeftoverMarker(File file) {
     try {
       if (!file.existsSync()) return null;
-      final raw = file.readAsStringSync();
-      file.deleteSync();
-      final decoded = jsonDecode(raw);
+      final decoded = jsonDecode(file.readAsStringSync());
       if (decoded is Map) return Map<String, Object?>.from(decoded);
       return {'op': 'unknown'};
     } catch (_) {
       return {'op': 'unknown'};
     }
+  }
+
+  /// Deletes a marker [readLeftoverMarker] returned, once it is reported.
+  static void clearLeftoverMarker(File file) {
+    try {
+      if (file.existsSync()) file.deleteSync();
+    } catch (_) {}
   }
 }
 
@@ -300,7 +312,15 @@ Duration Function() awakeClock({int Function()? unbiasedTicks}) {
     return () => stopwatch.elapsed;
   }
   final start = read();
-  return () => Duration(microseconds: (read() - start) ~/ 10);
+  var last = start;
+  return () {
+    // A failed read gives 0. Keeping the last good value stops the clock
+    // jumping back, which would make the next tick look like a stall as long
+    // as the uptime.
+    final now = read();
+    if (now > last) last = now;
+    return Duration(microseconds: (last - start) ~/ 10);
+  };
 }
 
 /// Append-only text log that rolls to `<name>.1` past [maxBytes], so support

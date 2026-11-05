@@ -31,14 +31,12 @@ Future<void> startUiStallMonitoring() async {
 
   trail.useReporter((event, properties) {
     talker.warning('[perf] $event $properties');
-    unawaited(
-      log.append(
-          '${DateTime.now().toUtc().toIso8601String()} $event $properties'),
-    );
+    unawaited(log.append(_logLine(event, properties)));
     unawaited(sendStallTelemetry(event, properties));
   });
-  final leftover = PerfOpTrail.takeLeftoverMarker(marker);
-  if (leftover != null) trail.report('ui_hang_killed', leftover);
+  // Before the marker is handed to the trail, so a new op cannot overwrite
+  // the old one while it is being reported.
+  await reportKilledHang(marker, log);
   trail.useMarkerFile(marker);
   // A normal quit mid-search is not a hang. The binding keeps the listener.
   clearMarkerOnExitRequest(trail);
@@ -48,6 +46,27 @@ Future<void> startUiStallMonitoring() async {
     context: () => {'observers': dittoObserverStats.summary()},
   )..start();
 }
+
+/// Reports the op a killed previous run left in [marker] as `ui_hang_killed`.
+///
+/// The marker is deleted only after the log line is written: if the app dies
+/// in between, the next start reports it again instead of losing it.
+@visibleForTesting
+Future<void> reportKilledHang(
+  File marker,
+  PerfLogFile log, {
+  StallEventSender? send,
+}) async {
+  final leftover = PerfOpTrail.readLeftoverMarker(marker);
+  if (leftover == null) return;
+  talker.warning('[perf] ui_hang_killed $leftover');
+  unawaited(sendStallTelemetry('ui_hang_killed', leftover, send: send));
+  await log.append(_logLine('ui_hang_killed', leftover));
+  PerfOpTrail.clearLeftoverMarker(marker);
+}
+
+String _logLine(String event, Map<String, Object?> properties) =>
+    '${DateTime.now().toUtc().toIso8601String()} $event $properties';
 
 /// Sends [event] to analytics only once Local Mode is known to be off.
 ///

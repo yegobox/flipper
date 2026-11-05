@@ -800,14 +800,19 @@ jobs:
           echo "Previous production tag: ${prev:-<none>}"
           echo "tag=$prev" >> "$GITHUB_OUTPUT"
 
+      # Created as a draft and published only by the last step, once the msix
+      # is verified: a failed upload must not leave an empty release out. A
+      # draft gets its tag only when published, so pin it to this build's
+      # commit rather than wherever main is by then.
       - name: Create Production Release
         uses: softprops/action-gh-release@v3
         with:
           files: apps/flipper/build/windows/x64/runner/Release/flipper_rw.msix
           fail_on_unmatched_files: true
           tag_name: v${{ steps.get_version.outputs.version }}_windows_prod
+          target_commitish: ${{ github.sha }}
           name: Windows Production Release ${{ steps.get_version.outputs.version }}
-          draft: false
+          draft: true
           generate_release_notes: true
           previous_tag: ${{ steps.previous_tag.outputs.tag }}
           body: |
@@ -818,8 +823,9 @@ jobs:
       # The release step can report success with no msix attached: on
       # 2026-11-04 GitHub answered the create call with 502s, the retries left
       # an orphan draft, and the upload landed on neither release
-      # (v1.592.0.0_windows_prod shipped empty). Check the published release
-      # and re-upload until the asset is there with the right size.
+      # (v1.592.0.0_windows_prod shipped empty). Check the draft and re-upload
+      # until the asset is there with the right size; gh finds a draft by its
+      # pending tag name.
       - name: Verify msix is attached
         shell: bash
         env:
@@ -851,8 +857,19 @@ jobs:
             sleep $((attempt * 15))
           done
           if size=$(attached) && [ "$size" = "$want" ]; then exit 0; fi
-          echo "::error::flipper_rw.msix is still not attached to $TAG."
+          echo "::error::flipper_rw.msix is still not attached to $TAG; the release stays a draft."
           exit 1
+
+      # Only reached once the msix is verified. Publishing creates the tag
+      # the launcher waits for (scripts/ci/launcher_version.sh).
+      - name: Publish Production Release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: v${{ steps.get_version.outputs.version }}_windows_prod
+        run: |
+          set -euo pipefail
+          gh release edit "$TAG" --repo "$GITHUB_REPOSITORY" --draft=false
 
   # Store-format (--store) msix build off branches that ship without waiting for
   # main: the long-running migration branch and every hotfix-*. The artifact can

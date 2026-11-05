@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
 
 import 'package:flipper_models/DatabaseSyncInterface.dart';
 import 'package:flipper_models/SyncStrategy.dart';
@@ -98,6 +100,7 @@ void main() {
     container.dispose();
     OuterVariants.searchTimeout = defaultTimeout;
     PerfOpTrail.instance.useReporter(null);
+    PerfOpTrail.instance.useMarkerFile(null);
   });
 
   void useCapella(_FakeCapella capella) {
@@ -161,6 +164,169 @@ void main() {
     expect(container.read(provider).value!.map((v) => v.id), ['all0', 'all1']);
     sub.close();
   });
+
+  test('a pending search names itself in the kill marker', () async {
+    final dir = Directory.systemTemp.createTempSync('pos_search_marker_');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final marker = File('${dir.path}/inflight.json');
+    final held = Completer<PagedVariants>();
+    useCapella(
+      _FakeCapella(
+        (name, _) => name.isEmpty ? Future.value(_page('all')) : held.future,
+      ),
+    );
+    final provider = outerVariantsProvider('b1');
+    final sub = container.listen(provider, (_, __) {});
+    await container.read(provider.future);
+    PerfOpTrail.instance.useMarkerFile(marker);
+    // Earlier tests leave queries running; only this search may write it.
+    marker.deleteSync();
+
+    container.read(searchStringProvider.notifier).emitString(value: 'i');
+    await _settle();
+    expect(jsonDecode(marker.readAsStringSync())['op'], 'pos_search');
+
+    held.complete(_page('i'));
+    await _settle();
+    expect(container.read(provider).value!.single.id, 'i');
+    sub.close();
+  });
+
+  test('while a search is pending, paging leaves the grid alone, and a '
+      'timeout repaints it and drops the term\'s pages', () async {
+    OuterVariants.searchTimeout = const Duration(milliseconds: 30);
+    final held = <String, Completer<PagedVariants>>{};
+    final capella = _FakeCapella((name, page) {
+      if (name.isEmpty) return Future.value(_page('all$page', totalCount: 40));
+      return (held['$name@$page'] = Completer<PagedVariants>()).future;
+    });
+    useCapella(capella);
+    final provider = outerVariantsProvider('b1');
+    final sub = container.listen(provider, (_, __) {});
+    await container.read(provider.future);
+    final notifier = container.read(provider.notifier);
+
+    container.read(searchStringProvider.notifier).emitString(value: 'i');
+    await _settle();
+    await notifier.loadMore();
+    expect(capella.calls, ['@0', 'i@0']);
+
+    // A page tap for the pending term, still running at the timeout.
+    final tap = notifier.fetchPage(1);
+    await _settle();
+    expect(capella.calls, ['@0', 'i@0', 'i@1']);
+    await Future<void>.delayed(const Duration(milliseconds: 80));
+    expect(reported, ['search_timeout']);
+    expect(container.read(provider).value!.map((v) => v.id), ['all0']);
+
+    // Page 1 again is the restored catalog's, not the abandoned term's.
+    expect(await notifier.fetchPage(1), isTrue);
+    expect(capella.calls.last, '@1');
+    expect(container.read(provider).value!.map((v) => v.id), ['all1']);
+
+    held['i@1']!.complete(_page('term-row'));
+    await tap;
+    await _settle();
+    expect(container.read(provider).value!.map((v) => v.id), ['all1']);
+    expect(notifier.getPageItems(1).single.id, 'all1');
+    sub.close();
+  });
+
+  test('a timed-out term is cleared from the search, so typing it again '
+      'searches again', () async {
+    OuterVariants.searchTimeout = const Duration(milliseconds: 30);
+    var answer = false;
+    final capella = _FakeCapella((name, _) {
+      if (name.isEmpty) return Future.value(_page('all'));
+      return answer
+          ? Future.value(_page('rice'))
+          : Completer<PagedVariants>().future;
+    });
+    useCapella(capella);
+    final provider = outerVariantsProvider('b1');
+    final sub = container.listen(provider, (_, __) {});
+    await container.read(provider.future);
+
+    container.read(searchStringProvider.notifier).emitString(value: 'rice');
+    await Future<void>.delayed(const Duration(milliseconds: 80));
+    expect(reported, ['search_timeout']);
+    // The field's "unchanged term" check compares against this.
+    expect(container.read(searchStringProvider), '');
+
+    answer = true;
+    container.read(searchStringProvider.notifier).emitString(value: 'rice');
+    await _settle();
+    expect(capella.names, ['', 'rice', 'rice']);
+    expect(container.read(provider).value!.single.id, 'rice');
+    sub.close();
+  });
+
+  test('a term stuck behind a held slot gives up too', () async {
+    OuterVariants.searchTimeout = const Duration(milliseconds: 30);
+    final capella = _FakeCapella(
+      (name, _) => name.isEmpty
+          ? Future.value(_page('all'))
+          : Completer<PagedVariants>().future,
+    );
+    useCapella(capella);
+    final provider = outerVariantsProvider('b1');
+    final sub = container.listen(provider, (_, __) {});
+    await container.read(provider.future);
+    final search = container.read(searchStringProvider.notifier);
+
+    // 'a' is let go; 'ab' then times out with it still running and holds
+    // the slot for as long as its query never answers.
+    search.emitString(value: 'a');
+    await Future<void>.delayed(const Duration(milliseconds: 80));
+    search.emitString(value: 'ab');
+    await Future<void>.delayed(const Duration(milliseconds: 80));
+    expect(reported, ['search_timeout', 'search_timeout']);
+
+    search.emitString(value: 'abc');
+    await Future<void>.delayed(const Duration(milliseconds: 80));
+
+    expect(capella.names, ['', 'a', 'ab']);
+    expect(reported, hasLength(3));
+    expect(container.read(provider).value!.single.id, 'all');
+    expect(container.read(searchStringProvider), '');
+    sub.close();
+  });
+
+  test(
+    'a delete made while a search is pending survives its timeout',
+    () async {
+      OuterVariants.searchTimeout = const Duration(milliseconds: 30);
+      useCapella(
+        _FakeCapella(
+          (name, _) => name.isEmpty
+              ? Future.value(
+                  PagedVariants(
+                    variants: [
+                      Variant(id: 'keep', name: 'keep', branchId: 'b1'),
+                      Variant(id: 'gone', name: 'gone', branchId: 'b1'),
+                    ],
+                    totalCount: 2,
+                  ),
+                )
+              : Completer<PagedVariants>().future,
+        ),
+      );
+      final provider = outerVariantsProvider('b1');
+      final sub = container.listen(provider, (_, __) {});
+      await container.read(provider.future);
+      final notifier = container.read(provider.notifier);
+
+      container.read(searchStringProvider.notifier).emitString(value: 'k');
+      await _settle();
+      notifier.removeVariantById('gone');
+      await Future<void>.delayed(const Duration(milliseconds: 80));
+
+      expect(reported, ['search_timeout']);
+      expect(container.read(provider).value!.map((v) => v.id), ['keep']);
+      expect(notifier.totalCount, 1);
+      sub.close();
+    },
+  );
 
   test('a second timed-out query keeps the slot until it ends', () async {
     OuterVariants.searchTimeout = const Duration(milliseconds: 30);

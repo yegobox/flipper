@@ -30,7 +30,8 @@ import 'package:flipper_services/setting_service.dart';
 import 'package:flipper_services/locator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_riverpod/misc.dart' show Override;
+import 'package:flutter_riverpod/misc.dart'
+    show Override, ProviderListenable, ProviderOrFamily;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -70,9 +71,26 @@ class _FakeStockRequests extends StockRequests {
   }
 }
 
-/// Records which branch each stock-request stream was opened for.
+/// Records which branch each stock-request stream was opened for, and which
+/// are still listened to.
 class _FakeCapella extends Fake implements DatabaseSyncInterface {
   final openedFor = <String>[];
+  final live = <String>[];
+
+  Stream<List<InventoryRequest>> _open(String branchId) {
+    openedFor.add(branchId);
+    late final StreamController<List<InventoryRequest>> requests;
+    requests = StreamController<List<InventoryRequest>>(
+      onListen: () {
+        live.add(branchId);
+        requests.add([
+          InventoryRequest(id: 'req-$branchId', branchId: branchId),
+        ]);
+      },
+      onCancel: () => live.remove(branchId),
+    );
+    return requests.stream;
+  }
 
   @override
   Stream<List<InventoryRequest>> requestsStream({
@@ -80,13 +98,39 @@ class _FakeCapella extends Fake implements DatabaseSyncInterface {
     String filter = RequestStatus.pending,
     String? search,
     int limit = 50,
-  }) {
-    openedFor.add(branchId);
-    return Stream.value([
-      InventoryRequest(id: 'req-$branchId', branchId: branchId),
-    ]);
-  }
+  }) => _open(branchId);
+
+  @override
+  Stream<List<InventoryRequest>> requestsStreamOutgoing({
+    required String branchId,
+    String filter = RequestStatus.pending,
+    String? search,
+    int limit = 50,
+  }) => _open(branchId);
 }
+
+/// Incoming and outgoing requests take the same branch-switch path.
+typedef _Orders = ({
+  String name,
+  ProviderListenable<AsyncValue<List<InventoryRequest>>> watch,
+  ProviderListenable<Future<List<InventoryRequest>>> future,
+  ProviderOrFamily self,
+});
+
+final _ordersProviders = <_Orders>[
+  (
+    name: 'incoming',
+    watch: stockRequestsProvider(status: RequestStatus.pending),
+    future: stockRequestsProvider(status: RequestStatus.pending).future,
+    self: stockRequestsProvider(status: RequestStatus.pending),
+  ),
+  (
+    name: 'outgoing',
+    watch: outgoingStockRequestsProvider(status: RequestStatus.pending),
+    future: outgoingStockRequestsProvider(status: RequestStatus.pending).future,
+    self: outgoingStockRequestsProvider(status: RequestStatus.pending),
+  ),
+];
 
 const _terms = ['r', 'ri', 'ric', 'rice'];
 
@@ -237,28 +281,32 @@ void main() {
     expect(_FakeStockRequests.lastStatus, RequestStatus.pending);
   });
 
-  test(
-    'a branch switch reopens the Orders requests for the new branch',
-    () async {
-      // Already seen, so no order notification fires in the test.
-      SharedPreferences.setMockInitialValues({
-        'seen_inventory_requests': ['req-branch-1', 'req-branch-2'],
-      });
-      final box = getIt<LocalStorage>() as MockBox;
-      final strategy = MockSyncStrategy();
-      final capella = _FakeCapella();
-      getIt.registerSingleton<SyncStrategy>(strategy, instanceName: 'strategy');
-      when(() => strategy.getStrategy(any())).thenReturn(capella);
-      when(() => strategy.current).thenReturn(capella);
+  ({_FakeCapella capella, MockBox box, ProviderContainer container})
+  ordersHarness(Stream<Branch> branch) {
+    // Already seen, so no order notification fires in the test.
+    SharedPreferences.setMockInitialValues({
+      'seen_inventory_requests': ['req-branch-1', 'req-branch-2'],
+    });
+    final box = getIt<LocalStorage>() as MockBox;
+    final strategy = MockSyncStrategy();
+    final capella = _FakeCapella();
+    getIt.registerSingleton<SyncStrategy>(strategy, instanceName: 'strategy');
+    when(() => strategy.getStrategy(any())).thenReturn(capella);
+    when(() => strategy.current).thenReturn(capella);
+    final container = ProviderContainer(
+      overrides: [activeBranchProvider.overrideWith((ref) => branch)],
+    );
+    addTearDown(container.dispose);
+    return (capella: capella, box: box, container: container);
+  }
 
+  for (final orders in _ordersProviders) {
+    test('a branch switch reopens the ${orders.name} requests for the new '
+        'branch', () async {
       final branch = StreamController<Branch>();
       addTearDown(branch.close);
-      final container = ProviderContainer(
-        overrides: [activeBranchProvider.overrideWith((ref) => branch.stream)],
-      );
-      addTearDown(container.dispose);
-      final orders = stockRequestsProvider(status: RequestStatus.pending);
-      final sub = container.listen(orders, (_, __) {});
+      final (:capella, :box, :container) = ordersHarness(branch.stream);
+      final sub = container.listen(orders.watch, (_, __) {});
       addTearDown(sub.close);
 
       branch.add(Branch(id: 'branch-1', name: 'One', businessId: 'b'));
@@ -272,7 +320,29 @@ void main() {
       final requests = await container.read(orders.future);
 
       expect(capella.openedFor.last, 'branch-2');
+      expect(capella.live, ['branch-2']);
       expect(requests.single.branchId, 'branch-2');
-    },
-  );
+    });
+
+    test('a ${orders.name} setup overtaken by a rebuild never opens its '
+        'branch', () async {
+      final (:capella, :box, :container) = ordersHarness(
+        const Stream<Branch>.empty(),
+      );
+      when(() => box.getBranchId()).thenReturn('branch-1');
+      final sub = container.listen(orders.watch, (_, __) {});
+      addTearDown(sub.close);
+
+      // Rebuilt for branch-2 while branch-1's setup is still awaiting.
+      when(() => box.getBranchId()).thenReturn('branch-2');
+      container.invalidate(orders.self);
+      container.read(orders.watch);
+      await _settle();
+      final requests = await container.read(orders.future);
+
+      expect(capella.openedFor, ['branch-2']);
+      expect(capella.live, ['branch-2']);
+      expect(requests.single.branchId, 'branch-2');
+    });
+  }
 }

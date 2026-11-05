@@ -148,22 +148,46 @@ void main() {
       });
     });
 
-    test('a marker left by a killed run is reported once', () {
+    test('a marker left by a killed run stays until it is cleared', () {
       final marker = File('${tmp.path}/inflight.json')
         ..writeAsStringSync(jsonEncode({'op': 'pos_search'}));
 
-      expect(PerfOpTrail.takeLeftoverMarker(marker), {'op': 'pos_search'});
+      // Reading alone keeps it: the report may not be written yet.
+      expect(PerfOpTrail.readLeftoverMarker(marker), {'op': 'pos_search'});
+      expect(marker.existsSync(), isTrue);
+
+      PerfOpTrail.clearLeftoverMarker(marker);
       expect(marker.existsSync(), isFalse);
-      expect(PerfOpTrail.takeLeftoverMarker(marker), isNull);
+      expect(PerfOpTrail.readLeftoverMarker(marker), isNull);
+      // Clearing a missing marker is harmless.
+      PerfOpTrail.clearLeftoverMarker(marker);
+    });
+
+    test('a critical op already running when the marker is set is written '
+        'at once', () async {
+      final marker = File('${tmp.path}/inflight.json');
+      final held = Completer<void>();
+      final search = trail.track(
+        'pos_search',
+        () => held.future,
+        critical: true,
+      );
+
+      trail.useMarkerFile(marker);
+      expect(jsonDecode(marker.readAsStringSync())['op'], 'pos_search');
+
+      held.complete();
+      await search;
+      expect(marker.existsSync(), isFalse);
     });
 
     test('an unreadable marker still counts as a killed run', () {
       final marker = File('${tmp.path}/inflight.json')
         ..writeAsStringSync('not json');
-      expect(PerfOpTrail.takeLeftoverMarker(marker), {'op': 'unknown'});
+      expect(PerfOpTrail.readLeftoverMarker(marker), {'op': 'unknown'});
 
       final list = File('${tmp.path}/list.json')..writeAsStringSync('[1]');
-      expect(PerfOpTrail.takeLeftoverMarker(list), {'op': 'unknown'});
+      expect(PerfOpTrail.readLeftoverMarker(list), {'op': 'unknown'});
     });
 
     test('reports go to the reporter, and a failing one is swallowed', () {
@@ -266,6 +290,30 @@ void main() {
         expect(stalls.single.lag, const Duration(seconds: 3));
       },
     );
+
+    test('a failed clock read keeps the last good value', () {
+      // Uptime well past zero, as on a real till: falling back to 0 would
+      // read as a jump of ~1000s.
+      var ticks = 10000000000;
+      final clocked = UiStallWatchdog(
+        onStall: stalls.add,
+        trail: trail,
+        elapsed: awakeClock(unbiasedTicks: () => ticks),
+      )..start();
+      addTearDown(clocked.stop);
+
+      ticks += 2500000;
+      clocked.check();
+      final good = ticks;
+      ticks = 0; // QueryUnbiasedInterruptTime failed
+      clocked.check();
+      ticks = good + 2500000;
+      clocked.check();
+      ticks += 2500000;
+      clocked.check();
+
+      expect(stalls, isEmpty);
+    });
 
     test('the default clock and trail need no setup', () {
       final real = UiStallWatchdog(onStall: (_) {})..start();

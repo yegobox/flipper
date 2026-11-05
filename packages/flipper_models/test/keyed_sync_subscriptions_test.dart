@@ -142,6 +142,78 @@ void main() {
       },
     );
 
+    test(
+      'a newer result that cannot be read does not drop the older one',
+      () async {
+        held['r1:a'] = Completer<void>();
+        final older = feed.emit(() => ['r1:a']);
+        await feed.emit(() => throw const FormatException('bad row'));
+
+        held['r1:a']!.complete();
+        await older;
+        await Future<void>.delayed(Duration.zero);
+
+        expect(errors.single, isFormatException);
+        expect(emitted, [
+          ['r1:a'],
+        ]);
+      },
+    );
+
+    test('a failed registration goes to onError and still prunes', () async {
+      final failing = KeyedSyncSubscriptions((key) {
+        if (key == 'bad') throw StateError('subscribe failed');
+        registered.add(key);
+        return () => cancelled.add(key);
+      });
+      final local = KeyedObserverFeed<String>(
+        subscriptions: failing,
+        keyOf: keyOf,
+        resolve: (_, __) async {},
+        onError: errors.add,
+      );
+      addTearDown(local.close);
+
+      await local.emit(() => ['r1:a']);
+      // Must not escape: stock_mixin's observer callbacks drop this future.
+      await local.emit(() => ['r2:bad']);
+
+      expect(errors.single, isStateError);
+      expect(cancelled, ['a']);
+      expect(failing.keys, isEmpty);
+    });
+
+    test(
+      'changes faster than the lookups still deliver a list per pass',
+      () async {
+        held['r1:x'] = Completer<void>();
+        held['r2:x'] = Completer<void>();
+        held['r3:x'] = Completer<void>();
+        final first = feed.emit(() => ['r1:x']);
+        final second = feed.emit(() => ['r2:x']);
+        final third = feed.emit(() => ['r3:x']);
+
+        // The oldest pass finishes although newer ones arrived meanwhile.
+        held['r1:x']!.complete();
+        await first;
+        await Future<void>.delayed(Duration.zero);
+        expect(emitted, [
+          ['r1:x'],
+        ]);
+
+        // The newest wins over the middle one, which then never lands.
+        held['r3:x']!.complete();
+        await third;
+        held['r2:x']!.complete();
+        await second;
+        await Future<void>.delayed(Duration.zero);
+        expect(emitted, [
+          ['r1:x'],
+          ['r3:x'],
+        ]);
+      },
+    );
+
     test('rows without a key are delivered without a subscription', () async {
       await feed.emit(() => ['plain']);
       await Future<void>.delayed(Duration.zero);
@@ -161,6 +233,18 @@ void main() {
       expect(cancelled, unorderedEquals(['a', 'b']));
 
       // Late observer work after close is ignored.
+      await feed.emit(() => ['r3:c']);
+      expect(registered, ['a', 'b']);
+    });
+
+    test('a failing observer cancel still cancels everything else', () async {
+      await feed.emit(() => ['r1:a', 'r2:b']);
+      feed.cancelObserver = () => throw StateError('observer gone');
+
+      await expectLater(feed.close(), throwsStateError);
+
+      expect(streamCancels, 1);
+      expect(cancelled, unorderedEquals(['a', 'b']));
       await feed.emit(() => ['r3:c']);
       expect(registered, ['a', 'b']);
     });
