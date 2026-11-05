@@ -339,7 +339,8 @@ class _Meta extends StatelessWidget {
   }
 }
 
-/// Where a thread stands: idea, to do, doing, done, or a discussion.
+/// Where a thread stands: idea, to do, doing, done, a discussion, or a
+/// support request (open or resolved).
 class _StatusPill extends StatelessWidget {
   const _StatusPill({required this.thread});
 
@@ -348,39 +349,53 @@ class _StatusPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.flipperL10n;
-    final (IconData icon, String label, Color bg, Color fg) = !thread.isIdea
-        ? (
-            Icons.forum_outlined,
-            l10n.floTeamDiscussion,
-            FloTheme.violetTint,
-            FloTheme.violet
-          )
-        : switch (thread.status) {
-            FloTeamStatus.todo => (
-                Icons.radio_button_unchecked,
-                l10n.floTeamTodo,
-                FloTheme.surface2,
-                FloTheme.ink2
-              ),
-            FloTeamStatus.doing => (
-                Icons.timelapse,
-                l10n.floTeamDoing,
-                FloTheme.blueTint,
-                FloTheme.blueDeep
-              ),
-            FloTeamStatus.done => (
+    final (IconData icon, String label, Color bg, Color fg) = thread.isSupport
+        ? thread.status == FloTeamStatus.done
+            ? (
                 Icons.check_circle_outline,
-                l10n.floTeamDone,
+                l10n.floTeamResolved,
                 FloTheme.gainTint,
                 FloTheme.gainInk
-              ),
-            _ => (
-                Icons.lightbulb_outline,
-                l10n.floTeamIdea,
-                FloTheme.xpTint,
-                const Color(0xFFB45309)
-              ),
-          };
+              )
+            : (
+                Icons.support_agent,
+                l10n.floTeamSupport,
+                FloTheme.blueTint,
+                FloTheme.blueDeep
+              )
+        : !thread.isIdea
+            ? (
+                Icons.forum_outlined,
+                l10n.floTeamDiscussion,
+                FloTheme.violetTint,
+                FloTheme.violet
+              )
+            : switch (thread.status) {
+                FloTeamStatus.todo => (
+                    Icons.radio_button_unchecked,
+                    l10n.floTeamTodo,
+                    FloTheme.surface2,
+                    FloTheme.ink2
+                  ),
+                FloTeamStatus.doing => (
+                    Icons.timelapse,
+                    l10n.floTeamDoing,
+                    FloTheme.blueTint,
+                    FloTheme.blueDeep
+                  ),
+                FloTeamStatus.done => (
+                    Icons.check_circle_outline,
+                    l10n.floTeamDone,
+                    FloTheme.gainTint,
+                    FloTheme.gainInk
+                  ),
+                _ => (
+                    Icons.lightbulb_outline,
+                    l10n.floTeamIdea,
+                    FloTheme.xpTint,
+                    const Color(0xFFB45309)
+                  ),
+              };
     return Container(
       padding: const EdgeInsets.fromLTRB(8, 4, 10, 4),
       decoration: BoxDecoration(

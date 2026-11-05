@@ -21361,6 +21361,49 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   String get floTeamSomeone => 'Mugenzi wawe';
 
   @override
+  String get floTeamSupport => 'Ubufasha';
+
+  @override
+  String get floTeamResolve => 'Emeza ko byakemutse';
+
+  @override
+  String get floTeamReopen => 'Ongera ufungure';
+
+  @override
+  String get floTeamResolved => 'Byakemutse';
+
+  @override
+  String get floTeamSupportReplyHint =>
+      'Ibisubizo wandika hano byoherezwa umukiriya.';
+
+  @override
+  String get floSupportTitle => 'Vugana n\'ubufasha';
+
+  @override
+  String get floSupportSubtitle => 'Ubufasha bwa Flipper bugusubiza hano.';
+
+  @override
+  String get floSupportEmpty =>
+      'Tubwire ikibazo wahuye na cyo. Turagusubiza hano.';
+
+  @override
+  String get floSupportHint => 'Andika ubutumwa bwawe';
+
+  @override
+  String get floSupportSend => 'Ohereza';
+
+  @override
+  String get floSupportResolved =>
+      'Ubufasha bwemeje ko iki kibazo cyakemutse. Ongera wandike niba ugikeneye ubufasha.';
+
+  @override
+  String get floSupportError =>
+      'Ntitwashoboye kugera ku bufasha. Reba interineti yawe wongere ugerageze.';
+
+  @override
+  String get floSupportFallback => 'Koresha WhatsApp';
+
+  @override
   String get floTeamInviteFromStaff => 'Tumira abakozi bawe';
 
   @override

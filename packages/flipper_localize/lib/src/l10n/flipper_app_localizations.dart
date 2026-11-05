@@ -35168,6 +35168,84 @@ abstract class FlipperAppLocalizations {
   /// **'A teammate'**
   String get floTeamSomeone;
 
+  /// No description provided for @floTeamSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'Support'**
+  String get floTeamSupport;
+
+  /// No description provided for @floTeamResolve.
+  ///
+  /// In en, this message translates to:
+  /// **'Resolve'**
+  String get floTeamResolve;
+
+  /// No description provided for @floTeamReopen.
+  ///
+  /// In en, this message translates to:
+  /// **'Reopen'**
+  String get floTeamReopen;
+
+  /// No description provided for @floTeamResolved.
+  ///
+  /// In en, this message translates to:
+  /// **'Resolved'**
+  String get floTeamResolved;
+
+  /// No description provided for @floTeamSupportReplyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Replies here are sent to the customer.'**
+  String get floTeamSupportReplyHint;
+
+  /// No description provided for @floSupportTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat with support'**
+  String get floSupportTitle;
+
+  /// No description provided for @floSupportSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Flipper Support replies right here.'**
+  String get floSupportSubtitle;
+
+  /// No description provided for @floSupportEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Tell us what went wrong. We\'ll reply here.'**
+  String get floSupportEmpty;
+
+  /// No description provided for @floSupportHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Type your message'**
+  String get floSupportHint;
+
+  /// No description provided for @floSupportSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get floSupportSend;
+
+  /// No description provided for @floSupportResolved.
+  ///
+  /// In en, this message translates to:
+  /// **'Support marked this resolved. Write again if you still need help.'**
+  String get floSupportResolved;
+
+  /// No description provided for @floSupportError.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t reach support. Check your connection and try again.'**
+  String get floSupportError;
+
+  /// No description provided for @floSupportFallback.
+  ///
+  /// In en, this message translates to:
+  /// **'Use WhatsApp'**
+  String get floSupportFallback;
+
   /// No description provided for @floTeamInviteFromStaff.
   ///
   /// In en, this message translates to:

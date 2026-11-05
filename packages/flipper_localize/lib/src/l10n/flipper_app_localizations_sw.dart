@@ -21286,6 +21286,47 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   String get floTeamSomeone => 'Mwenzako';
 
   @override
+  String get floTeamSupport => 'Msaada';
+
+  @override
+  String get floTeamResolve => 'Tatua';
+
+  @override
+  String get floTeamReopen => 'Fungua tena';
+
+  @override
+  String get floTeamResolved => 'Imetatuliwa';
+
+  @override
+  String get floTeamSupportReplyHint => 'Majibu hapa yanatumwa kwa mteja.';
+
+  @override
+  String get floSupportTitle => 'Ongea na msaada';
+
+  @override
+  String get floSupportSubtitle => 'Msaada wa Flipper utakujibu hapa hapa.';
+
+  @override
+  String get floSupportEmpty => 'Tueleze tatizo lilivyo. Tutakujibu hapa.';
+
+  @override
+  String get floSupportHint => 'Andika ujumbe wako';
+
+  @override
+  String get floSupportSend => 'Tuma';
+
+  @override
+  String get floSupportResolved =>
+      'Msaada umeweka hili kama limetatuliwa. Andika tena kama bado unahitaji msaada.';
+
+  @override
+  String get floSupportError =>
+      'Imeshindwa kufikia msaada. Angalia muunganisho wako na ujaribu tena.';
+
+  @override
+  String get floSupportFallback => 'Tumia WhatsApp';
+
+  @override
   String get floTeamInviteFromStaff => 'Alika wafanyakazi wako';
 
   @override
