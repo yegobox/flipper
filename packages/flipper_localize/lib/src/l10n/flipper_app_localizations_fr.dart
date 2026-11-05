@@ -7795,6 +7795,11 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
       'Vous n\'avez accès ni au POS, ni au Bar, ni à l\'Hôtel. Demandez à un administrateur de vous en accorder un dans la gestion des utilisateurs.';
 
   @override
+  String serviceModeHotkeyModeOff(String mode) {
+    return '$mode : pas encore activé dans cette succursale. Demandez à un administrateur de l\'activer.';
+  }
+
+  @override
   String get serviceModeHotkeyOpenDesk =>
       'Ouvrez le POS, le Bar ou l\'Hôtel pour changer le mode de service de cet appareil.';
 

@@ -120,7 +120,8 @@ class BooksModeDesk extends ConsumerWidget {
     // Keeps what the pick reads loaded. Only this desk rebuilds; Books
     // itself is [child].
     ref.watch(serviceModeGrantsProvider);
-    final userId = ref.read(barServicesProvider).box.getUserId() ?? '';
+    // The id [dashboardCanOpenPos] reads.
+    final userId = currentDashboardUserId();
     for (final feature in posViewFeatures) {
       ref.watch(
         featureViewAccessProvider(userId: userId, featureName: feature),
@@ -128,22 +129,48 @@ class BooksModeDesk extends ConsumerWidget {
     }
     final navigator = Navigator.of(context, rootNavigator: true);
 
+    bool mayRun(ServiceMode mode) => mode == ServiceMode.pos
+        ? dashboardCanOpenPos(ref, listen: false)
+        : signedInUserMayRun(ref, mode, listen: false);
+    bool offered(ServiceMode mode) =>
+        ref.read(serviceModeOfferedProvider(mode));
+
     Future<ServiceMode?> target() async {
-      await serviceModeGrantsSettled(ref);
-      if (!context.mounted) return null;
-      return pickPermittedServiceMode(
-        current: activeServiceMode,
-        mayRun: (mode) => mode == ServiceMode.pos
-            ? dashboardCanOpenPos(ref, listen: false)
-            : signedInUserMayRun(ref, mode, listen: false),
-        offered: (mode) => ref.read(serviceModeOfferedProvider(mode)),
-        isAdmin: posDeskAdmin,
-      );
+      // POS reads the user's access rows, which say "no" while they load:
+      // wait for them as for the grants. Held while they load, though the
+      // build's watch above keeps them too.
+      final uid = currentDashboardUserId();
+      final rows = [
+        for (final feature in posViewFeatures)
+          userAccessesProvider(uid, featureName: feature),
+      ];
+      final held = [for (final p in rows) ref.listenManual(p, (_, _) {})];
+      try {
+        await Future.wait<void>([
+          serviceModeGrantsSettled(ref),
+          for (final p in rows)
+            ref.read(p.future).then<void>((_) {}, onError: (Object _) {}),
+        ]);
+        if (!context.mounted) return null;
+        return await pickPermittedServiceMode(
+          current: activeServiceMode,
+          mayRun: mayRun,
+          offered: offered,
+          isAdmin: posDeskAdmin,
+        );
+      } finally {
+        for (final subscription in held) {
+          subscription.close();
+        }
+      }
     }
 
     return ServiceModeHotkeyScope(
       child: ServiceModeDesk(
         target: target,
+        grantedModeOff: () => context.mounted
+            ? grantedServiceModeOff(mayRun: mayRun, offered: offered)
+            : null,
         onLeave: () => popBooksModuleIfOpen(navigator),
         child: child,
       ),

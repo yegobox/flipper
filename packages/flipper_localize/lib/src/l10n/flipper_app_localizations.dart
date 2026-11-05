@@ -13229,6 +13229,12 @@ abstract class FlipperAppLocalizations {
   /// **'You don\'t have access to POS, Bar or Hotel. Ask an admin to grant one in User Management.'**
   String get serviceModeHotkeyNoMode;
 
+  /// Service-mode hotkey pressed in Books by someone who holds Bar or Hotel, but the branch does not run it and only an admin may turn it on
+  ///
+  /// In en, this message translates to:
+  /// **'{mode} isn\'t turned on at this branch yet. Ask an admin to turn it on.'**
+  String serviceModeHotkeyModeOff(String mode);
+
   /// Service-mode hotkey pressed outside POS, Bar and Hotel
   ///
   /// In en, this message translates to:

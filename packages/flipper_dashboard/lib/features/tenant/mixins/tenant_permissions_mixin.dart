@@ -425,9 +425,10 @@ class TenantPermissionsMixin {
   }
 
   /// Keeps Access Level and Active in sync when the switch changes.
-  /// Turning Active on with "No Access" defaults the level to write (Admin
-  /// for HR, which opens on nothing less)
+  /// Turning Active on with "No Access" defaults the level to write
   /// (maps are often pre-filled with "No Access", so containsKey alone is wrong).
+  /// HR opens on nothing less than Admin, so turning it on makes any other
+  /// level Admin, including a Write kept from before HR offered only Admin.
   static void applyActiveToggle(
     String feature,
     bool active,
@@ -437,10 +438,12 @@ class TenantPermissionsMixin {
     activeFeatures[feature] = active;
     if (!active) return;
     final current = tenantAllowedFeatures[feature];
-    if (current == null || current == 'No Access') {
-      tenantAllowedFeatures[feature] = feature == AppFeature.HR
-          ? 'admin'
-          : 'write';
+    if (feature == AppFeature.HR) {
+      if (current?.toLowerCase() != AccessLevel.ADMIN) {
+        tenantAllowedFeatures[feature] = 'admin';
+      }
+    } else if (current == null || current == 'No Access') {
+      tenantAllowedFeatures[feature] = 'write';
     }
   }
 }

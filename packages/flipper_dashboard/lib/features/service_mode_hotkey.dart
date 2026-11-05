@@ -103,6 +103,7 @@ class ServiceModeDesk extends StatefulWidget {
     this.deskAdmin,
     this.promptOpen,
     this.target,
+    this.grantedModeOff,
     this.onLeave,
     required this.child,
   }) : assert(deskAdmin != null || target != null);
@@ -113,6 +114,11 @@ class ServiceModeDesk extends StatefulWidget {
   /// The mode the hotkey goes to from here; null when none is the user's to
   /// open. Replaces the admin-only cycle.
   final FutureOr<ServiceMode?> Function()? target;
+
+  /// Asked when [target] finds none: a mode the user holds that this branch
+  /// does not run ([grantedServiceModeOff]), so the refusal asks for the
+  /// branch to run it rather than for a grant they already have.
+  final ServiceMode? Function()? grantedModeOff;
 
   /// Runs after the switch is saved, before the mode's surface opens.
   final VoidCallback? onLeave;
@@ -169,18 +175,25 @@ enum ServiceModeHotkeyRefusal {
   /// From a [ServiceModeDesk.target] surface: the user may open none of
   /// POS, Bar and Hotel.
   noAllowedMode,
+
+  /// From a [ServiceModeDesk.target] surface: the user holds Bar or Hotel,
+  /// but this branch does not run it and only an admin may turn it on.
+  modeOffHere,
 }
 
 /// What the hotkey does now: a [refusal], or the mode to go to (null: the
 /// next one in the cycle) and what to run before landing there.
+///
+/// For [ServiceModeHotkeyRefusal.modeOffHere], [target] is the mode the
+/// branch does not run.
 typedef _HotkeySwitch = ({
   ServiceModeHotkeyRefusal? refusal,
   ServiceMode? target,
   VoidCallback? onLeave,
 });
 
-_HotkeySwitch _refuse(ServiceModeHotkeyRefusal refusal) =>
-    (refusal: refusal, target: null, onLeave: null);
+_HotkeySwitch _refuse(ServiceModeHotkeyRefusal refusal, {ServiceMode? mode}) =>
+    (refusal: refusal, target: mode, onLeave: null);
 
 /// Judges the hotkey on the desk on screen.
 Future<_HotkeySwitch> _planHotkeySwitch() async {
@@ -200,7 +213,12 @@ Future<_HotkeySwitch> _planHotkeySwitch() async {
   if (pick != null) {
     final target = await pick();
     if (!desk._onScreen) return _refuse(ServiceModeHotkeyRefusal.noDesk);
-    if (target == null) return _refuse(ServiceModeHotkeyRefusal.noAllowedMode);
+    if (target == null) {
+      final off = widget.grantedModeOff?.call();
+      return off == null
+          ? _refuse(ServiceModeHotkeyRefusal.noAllowedMode)
+          : _refuse(ServiceModeHotkeyRefusal.modeOffHere, mode: off);
+    }
     return (refusal: null, target: target, onLeave: widget.onLeave);
   }
 
@@ -239,6 +257,20 @@ Future<ServiceMode?> pickPermittedServiceMode({
     if (offered(mode)) return mode;
     admin ??= await isAdmin() ?? false;
     if (admin) return mode;
+  }
+  return null;
+}
+
+/// The first service (Bar, Hotel) the user holds ([mayRun]) that the branch
+/// does not run ([offered]); null when they hold none such. When
+/// [pickPermittedServiceMode] finds nothing for someone who is not an admin,
+/// this is what stands in their way.
+ServiceMode? grantedServiceModeOff({
+  required bool Function(ServiceMode mode) mayRun,
+  required bool Function(ServiceMode mode) offered,
+}) {
+  for (final mode in ServiceMode.values) {
+    if (mode != ServiceMode.pos && mayRun(mode) && !offered(mode)) return mode;
   }
   return null;
 }
@@ -292,6 +324,8 @@ Future<void> cycleServiceMode() async {
           FlipperL10n.current.serviceModeHotkeyPromptOpen,
         ServiceModeHotkeyRefusal.noAllowedMode =>
           FlipperL10n.current.serviceModeHotkeyNoMode,
+        ServiceModeHotkeyRefusal.modeOffHere =>
+          FlipperL10n.current.serviceModeHotkeyModeOff(plan.target!.label),
       }, type: NotificationType.error);
       return;
     }

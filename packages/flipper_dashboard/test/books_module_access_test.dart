@@ -11,6 +11,8 @@ import 'package:flipper_dashboard/features/tenant/mixins/tenant_permissions_mixi
 import 'package:flipper_dashboard/widgets/dashboard_all_apps_catalog.dart';
 import 'package:flipper_dashboard/widgets/dashboard_app_access.dart';
 import 'package:flipper_localize/flipper_localize.dart';
+import 'package:flipper_models/db_model_export.dart' show Access;
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/providers/access_provider.dart';
 import 'package:flipper_models/sync/utils/service_mode_access.dart';
 import 'package:flipper_services/constants.dart';
@@ -20,8 +22,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:supabase_models/brick/repository/storage.dart';
+
+import 'test_helpers/mocks.dart';
 
 const _me = 'u-1';
 
@@ -57,10 +62,11 @@ ServiceModeGrants _restricted(List<String> features, {String to = 'u-2'}) =>
 List<Override> _overrides({
   required ServiceModeGrants grants,
   bool pos = true,
+  bool barOffered = true,
 }) => [
   barServicesProvider.overrideWithValue(const _Services()),
   serviceModeGrantsProvider.overrideWith((ref) async => grants),
-  serviceModeOfferedProvider(ServiceMode.bar).overrideWithValue(true),
+  serviceModeOfferedProvider(ServiceMode.bar).overrideWithValue(barOffered),
   serviceModeOfferedProvider(ServiceMode.hotel).overrideWithValue(true),
   for (final feature in posViewFeatures)
     featureViewAccessProvider(
@@ -193,6 +199,73 @@ void main() {
         find.textContaining("You don't have access to POS, Bar or Hotel."),
         findsOneWidget,
       );
+      await tester.pumpAndSettle(const Duration(seconds: 5));
+    });
+
+    testWidgets('a held mode the branch does not run: asks to turn it on', (
+      tester,
+    ) async {
+      // Not an admin, so a mode the branch does not run stays off.
+      final db = MockDatabaseSync();
+      final strategy = MockSyncStrategy();
+      when(() => strategy.current).thenReturn(db);
+      when(
+        () => db.isAdmin(userId: _me, appFeature: AppFeature.Settings),
+      ).thenAnswer((_) async => false);
+      getIt.registerSingleton<SyncStrategy>(strategy, instanceName: 'strategy');
+      // Bar is granted to this user, but the branch does not run it; Hotel
+      // is someone else's.
+      await _openBooks(
+        tester,
+        _overrides(
+          grants: const ServiceModeGrants(
+            byFeature: {
+              AppFeature.BarMode: {_me},
+              AppFeature.HotelMode: {'u-2'},
+            },
+          ),
+          pos: false,
+          barOffered: false,
+        ),
+      );
+      await _pressHotkey(tester);
+      expect(did, isEmpty);
+      expect(find.text('BOOKS'), findsOneWidget);
+      expect(
+        find.textContaining("Bar Mode isn't turned on at this branch yet."),
+        findsOneWidget,
+      );
+      expect(find.textContaining("You don't have access"), findsNothing);
+      await tester.pumpAndSettle(const Duration(seconds: 5));
+    });
+
+    testWidgets('waits for the access rows before judging POS', (tester) async {
+      final rows = Completer<List<Access>>();
+      await _openBooks(tester, [
+        barServicesProvider.overrideWithValue(const _Services()),
+        serviceModeGrantsProvider.overrideWith(
+          (ref) async =>
+              _restricted([AppFeature.BarMode, AppFeature.HotelMode]),
+        ),
+        serviceModeOfferedProvider(ServiceMode.bar).overrideWithValue(true),
+        serviceModeOfferedProvider(ServiceMode.hotel).overrideWithValue(true),
+        allAccessesProvider(_me).overrideWith((ref) => rows.future),
+      ]);
+      // Pressed while the rows load: "not loaded" must not read as "no POS".
+      await _pressHotkey(tester);
+      expect(did, isEmpty);
+      rows.complete([
+        Access(
+          userId: _me,
+          businessId: 'biz-1',
+          featureName: AppFeature.Sales,
+          accessLevel: 'read',
+          status: 'active',
+        ),
+      ]);
+      await tester.pumpAndSettle();
+      expect(did, ['open pos']);
+      expect(find.textContaining("You don't have access"), findsNothing);
       await tester.pumpAndSettle(const Duration(seconds: 5));
     });
   });
@@ -350,6 +423,13 @@ void main() {
       expect(find.text('BOOKS'), findsOneWidget);
     });
 
+    testWidgets('the module gate lets a restricted grant holder in', (
+      tester,
+    ) async {
+      await pumpGate(tester, _restricted([AppFeature.Books], to: _me));
+      expect(find.text('BOOKS'), findsOneWidget);
+    });
+
     testWidgets('the module gate turns others back, on a desk too', (
       tester,
     ) async {
@@ -399,6 +479,36 @@ void main() {
         active,
       );
       expect(levels, {AppFeature.HR: 'admin', AppFeature.Flo: 'write'});
+    });
+
+    test('switching HR on makes a kept Write level Admin', () {
+      // HR shows Write as No Access, and canRunHr rejects it: left as is,
+      // the row would read Active and still not open HR.
+      for (final kept in ['write', 'read', 'Write']) {
+        final levels = {AppFeature.HR: kept, AppFeature.Books: kept};
+        final active = <String, bool>{};
+        TenantPermissionsMixin.applyActiveToggle(
+          AppFeature.HR,
+          true,
+          levels,
+          active,
+        );
+        TenantPermissionsMixin.applyActiveToggle(
+          AppFeature.Books,
+          true,
+          levels,
+          active,
+        );
+        expect(levels, {AppFeature.HR: 'admin', AppFeature.Books: kept});
+      }
+      final admin = {AppFeature.HR: 'Admin'};
+      TenantPermissionsMixin.applyActiveToggle(
+        AppFeature.HR,
+        true,
+        admin,
+        <String, bool>{},
+      );
+      expect(admin, {AppFeature.HR: 'Admin'});
     });
 
     testWidgets('the HR row offers Admin, and shows Write as No Access', (

@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:hooks_riverpod/misc.dart' show ProviderListenable;
 import 'package:supabase_models/brick/models/tenant.model.dart';
+import 'package:supabase_models/brick/repository/storage.dart';
 
 /// The module that grants [mode]; null for plain POS, which is gated on Sales.
 String? serviceModeFeature(ServiceMode mode) => switch (mode) {
@@ -29,15 +30,19 @@ ServiceModeGrants? knownServiceModeGrants(WidgetRef ref, {bool listen = true}) {
       : ref.read(serviceModeGrantsProvider);
   final loaded = state.value;
   if (loaded != null) return loaded;
-  final box = ref.read(barServicesProvider).box;
-  final businessId = box.getBusinessId();
-  final cached = businessId == null || businessId.isEmpty
-      ? null
-      : cachedServiceModeGrants(businessId: businessId, box: box);
+  final cached = offlineServiceModeGrants(ref.read(barServicesProvider).box);
   if (cached != null) return cached;
   // Settled with nothing (the fetch itself never throws, but be safe):
   // every mode open, as before grants existed.
   return state.isLoading ? null : const ServiceModeGrants();
+}
+
+/// The offline copy of the grants for the business signed in on [box]; null
+/// when there is none.
+ServiceModeGrants? offlineServiceModeGrants(LocalStorage box) {
+  final businessId = box.getBusinessId();
+  if (businessId == null || businessId.isEmpty) return null;
+  return cachedServiceModeGrants(businessId: businessId, box: box);
 }
 
 /// [knownServiceModeGrants], treating "not known yet" as no grants (open).
@@ -73,9 +78,19 @@ bool signedInUserMayRun(WidgetRef ref, ServiceMode mode, {bool listen = true}) {
 bool signedInUserMayOpen(WidgetRef ref, String feature, {bool listen = true}) {
   final grants = currentServiceModeGrants(ref, listen: listen);
   if (!grants.isRestricted(feature)) return true;
-  final userId = ref.read(barServicesProvider).box.getUserId()?.trim();
-  return grants.allows(feature, userId);
+  return userMayOpenModule(
+    grants,
+    feature,
+    ref.read(barServicesProvider).box.getUserId(),
+  );
 }
+
+/// [signedInUserMayOpen] on [grants] already in hand, for [userId].
+bool userMayOpenModule(
+  ServiceModeGrants grants,
+  String feature,
+  String? userId,
+) => !grants.isRestricted(feature) || grants.allows(feature, userId?.trim());
 
 /// Whether [clerk], signed in on a Bar or Hotel lock screen, is an Admin (or
 /// the owner) now.

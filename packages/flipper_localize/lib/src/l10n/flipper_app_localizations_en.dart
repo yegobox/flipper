@@ -7680,6 +7680,11 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
       'You don\'t have access to POS, Bar or Hotel. Ask an admin to grant one in User Management.';
 
   @override
+  String serviceModeHotkeyModeOff(String mode) {
+    return '$mode isn\'t turned on at this branch yet. Ask an admin to turn it on.';
+  }
+
+  @override
   String get serviceModeHotkeyOpenDesk =>
       'Open POS, Bar or Hotel to switch this device\'s service mode.';
 

@@ -226,6 +226,8 @@ Future<void> _pumpBooks(
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1.0;
   addTearDown(tester.view.reset);
+  // The mode hotkey reads the signed-in user's POS access.
+  registerModuleGrantsBox();
 
   await tester.pumpWidget(
     ProviderScope(

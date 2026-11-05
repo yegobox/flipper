@@ -106,6 +106,7 @@ void main() {
     ),
     List<Override> overrides = const [],
     ServiceModeGrants grants = const ServiceModeGrants(),
+    Future<ServiceModeGrants> Function()? loadGrants,
   }) async {
     await tester.binding.setSurfaceSize(const Size(1280, 900));
     addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -113,7 +114,11 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          ...moduleGrantsOverrides(grants: grants, userId: _userId),
+          ...moduleGrantsOverrides(
+            grants: grants,
+            userId: _userId,
+            load: loadGrants,
+          ),
           ...overrides,
         ],
         child: MaterialApp(
@@ -192,6 +197,49 @@ void main() {
     expect(find.text('Books'), findsNothing);
     expect(find.text('Flo'), findsNothing);
     expect(find.text('Default · POS'), findsOneWidget);
+  });
+
+  testWidgets('hides Books and Flo until the grants are known', (tester) async {
+    // No offline copy (the box has none), and the fetch is still out.
+    final grants = Completer<ServiceModeGrants>();
+    await pumpChooser(tester, loadGrants: () => grants.future);
+    expect(find.text('POS'), findsOneWidget);
+    expect(find.text('Books'), findsNothing);
+    expect(find.text('Flo'), findsNothing);
+    // Number 2 is not a hidden Books.
+    await tester.sendKeyEvent(LogicalKeyboardKey.digit2);
+    await _pumpSelection(tester);
+    expect(box.defaultApp, isNull);
+
+    grants.complete(const ServiceModeGrants());
+    await tester.pumpAndSettle();
+    expect(find.text('Books'), findsOneWidget);
+    expect(find.text('Flo'), findsOneWidget);
+  });
+
+  testWidgets('a tile its grant was taken from since the last build does '
+      'not open', (tester) async {
+    var grants = const ServiceModeGrants();
+    await pumpChooser(tester, loadGrants: () async => grants);
+    expect(find.text('Books'), findsOneWidget);
+
+    // The grants change, but the chooser has not rebuilt yet.
+    grants = const ServiceModeGrants(
+      byFeature: {
+        AppFeature.Books: {'someone-else'},
+      },
+    );
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(AppChoiceDialog)),
+    );
+    container.invalidate(serviceModeGrantsProvider);
+    await container.read(serviceModeGrantsProvider.future);
+    await tester.sendKeyEvent(LogicalKeyboardKey.digit2);
+    await _pumpSelection(tester);
+
+    expect(box.defaultApp, isNull);
+    expect(responses, isEmpty);
+    expect(find.text('Books'), findsNothing);
   });
 
   testWidgets('marks the stored default app', (tester) async {
@@ -580,6 +628,38 @@ void main() {
       expect(await resolve(tester, stored: 'Flo', overrides: open), 'Flo');
       expect(await resolve(tester, stored: 'Reports'), 'Reports');
       expect(await resolve(tester), isNull);
+    });
+
+    testWidgets('does not touch the login page once it is gone', (
+      tester,
+    ) async {
+      // Back can close the login page while the grants load.
+      final grants = Completer<ServiceModeGrants>();
+      box.defaultApp = 'Books';
+      Widget host(bool page) => ProviderScope(
+        overrides: [
+          serviceModeGrantsProvider.overrideWith((ref) => grants.future),
+        ],
+        child: page
+            ? Consumer(
+                builder: (context, ref, _) {
+                  capturedRef = ref;
+                  return const SizedBox();
+                },
+              )
+            : const SizedBox(),
+      );
+      await tester.pumpWidget(host(true));
+      final app = defaultAppToOpenAfterLogin(capturedRef);
+      await tester.pumpWidget(host(false));
+      grants.complete(
+        const ServiceModeGrants(
+          byFeature: {
+            AppFeature.Books: {'someone-else'},
+          },
+        ),
+      );
+      expect(await app, 'POS');
     });
 
     testWidgets('falls back to POS when Books or Flo is no longer theirs', (

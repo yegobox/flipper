@@ -119,6 +119,29 @@ void main() {
       expect(await serviceModeHotkeyRefusal(), isNull);
     });
 
+    testWidgets('a Books-style desk with a held mode the branch does not run', (
+      tester,
+    ) async {
+      ServiceMode? off = ServiceMode.hotel;
+      await _pump(
+        tester,
+        ServiceModeDesk(
+          target: () => null,
+          grantedModeOff: () => off,
+          child: const SizedBox(),
+        ),
+      );
+      expect(
+        await serviceModeHotkeyRefusal(),
+        ServiceModeHotkeyRefusal.modeOffHere,
+      );
+      off = null;
+      expect(
+        await serviceModeHotkeyRefusal(),
+        ServiceModeHotkeyRefusal.noAllowedMode,
+      );
+    });
+
     testWidgets('a Books-style desk gone while it picked: nobody to judge', (
       tester,
     ) async {
@@ -197,6 +220,25 @@ void main() {
         find.textContaining("You don't have access to POS, Bar or Hotel."),
         findsOneWidget,
       );
+      await tester.pumpAndSettle(const Duration(seconds: 5));
+    });
+
+    testWidgets('from Books with a held mode off here: asks to turn it on', (
+      tester,
+    ) async {
+      await press(
+        tester,
+        ServiceModeDesk(
+          target: () => null,
+          grantedModeOff: () => ServiceMode.hotel,
+          child: const SizedBox(),
+        ),
+      );
+      expect(
+        find.textContaining("Hotel Mode isn't turned on at this branch yet."),
+        findsOneWidget,
+      );
+      expect(find.textContaining("You don't have access"), findsNothing);
       await tester.pumpAndSettle(const Duration(seconds: 5));
     });
 
@@ -365,6 +407,28 @@ void main() {
 
     test('none allowed: null', () async {
       expect(await pick(mayRun: const {}), isNull);
+    });
+  });
+
+  group('grantedServiceModeOff', () {
+    ServiceMode? off({
+      Set<ServiceMode> mayRun = const {...ServiceMode.values},
+      Set<ServiceMode> offered = const {},
+    }) => grantedServiceModeOff(
+      mayRun: mayRun.contains,
+      offered: (mode) => mode == ServiceMode.pos || offered.contains(mode),
+    );
+
+    test('the first held service the branch does not run', () {
+      expect(off(), ServiceMode.bar);
+      expect(off(offered: {ServiceMode.bar}), ServiceMode.hotel);
+      expect(off(mayRun: {ServiceMode.hotel}), ServiceMode.hotel);
+    });
+
+    test('none when every held service runs, or none is held', () {
+      expect(off(offered: {ServiceMode.bar, ServiceMode.hotel}), isNull);
+      expect(off(mayRun: {ServiceMode.pos}), isNull);
+      expect(off(mayRun: const {}), isNull);
     });
   });
 
