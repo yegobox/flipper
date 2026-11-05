@@ -206,6 +206,33 @@ List<Tenant> decodeStaffRoster(String? raw) {
   }
 }
 
+/// [raw] (a roster written by [encodeStaffRoster]) without [removed], matched
+/// by row id or user id. Everyone else, PIN verifiers included, is kept as
+/// stored. Null when [raw] is unreadable or does not list [removed].
+String? removeFromStaffRoster(String? raw, Tenant removed) {
+  if (raw == null || raw.isEmpty) return null;
+  try {
+    final decoded = jsonDecode(raw);
+    if (decoded is! Map || decoded['v'] != _staffRosterCacheVersion) {
+      return null;
+    }
+    final staff = decoded['staff'];
+    if (staff is! List) return null;
+    final userId = removed.userId?.trim();
+    bool matches(Object? row) =>
+        row is Map &&
+        (row['id']?.toString() == removed.id ||
+            (userId != null &&
+                userId.isNotEmpty &&
+                row['user_id']?.toString() == userId));
+    final kept = staff.where((row) => !matches(row)).toList();
+    if (kept.length == staff.length) return null;
+    return jsonEncode({...decoded, 'staff': kept});
+  } catch (_) {
+    return null;
+  }
+}
+
 /// Whether [tenant] was restored from the cache with a PIN on record.
 bool staffRosterHasCachedPin(Tenant tenant) => _verifierOf[tenant] != null;
 

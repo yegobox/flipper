@@ -7676,6 +7676,18 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
       'Only an admin can switch this device\'s service mode.';
 
   @override
+  String get serviceModeHotkeyOpenDesk =>
+      'Open POS, Bar or Hotel to switch this device\'s service mode.';
+
+  @override
+  String get serviceModeHotkeyPromptOpen =>
+      'Finish or cancel the manager PIN first, then switch the service mode.';
+
+  @override
+  String get serviceModeHotkeySignInFirst =>
+      'Sign in at the desk first, then switch the service mode.';
+
+  @override
   String serviceModeNoAccess(String mode) {
     return 'You don\'t have access to $mode. Ask an admin to grant it in User Management.';
   }
@@ -21152,6 +21164,53 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
   String get floTeamSomeone => 'A teammate';
 
   @override
+  String get floTeamSupport => 'Support';
+
+  @override
+  String get floTeamResolve => 'Resolve';
+
+  @override
+  String get floTeamReopen => 'Reopen';
+
+  @override
+  String get floTeamResolved => 'Resolved';
+
+  @override
+  String get floTeamSupportReplyHint =>
+      'Replies here are sent to the customer.';
+
+  @override
+  String get floSupportTitle => 'Chat with support';
+
+  @override
+  String get floSupportSubtitle => 'Flipper Support replies right here.';
+
+  @override
+  String get floSupportEmpty => 'Tell us what went wrong. We\'ll reply here.';
+
+  @override
+  String get floSupportHint => 'Type your message';
+
+  @override
+  String get floSupportSend => 'Send';
+
+  @override
+  String get floSupportResolved =>
+      'Support marked this resolved. Write again if you still need help.';
+
+  @override
+  String get floSupportError =>
+      'Couldn\'t reach support. Check your connection and try again.';
+
+  @override
+  String paymentSupportWhatsAppFailed(String number) {
+    return 'Could not open WhatsApp. Message Flipper Support on +$number.';
+  }
+
+  @override
+  String get floSupportFallback => 'Use WhatsApp';
+
+  @override
   String get floTeamInviteFromStaff => 'Invite from your staff';
 
   @override
@@ -27710,4 +27769,17 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
   @override
   String get localModeSyncOnElsewhereBody =>
       'Cloud sync was turned on for this business from another device. Sign in again to upload this device\'s data and finish.';
+
+  @override
+  String tenantMgmtNoAccountToEdit(String name) {
+    return '$name has no sign-in account to edit yet. Add them as a new user to give them one.';
+  }
+
+  @override
+  String tenantMgmtNoLongerStaff(String name) {
+    return '$name is no longer on this business\'s staff.';
+  }
+
+  @override
+  String get tenantMgmtPinOnly => 'PIN only';
 }

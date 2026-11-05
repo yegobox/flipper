@@ -42,11 +42,13 @@ class FloTeamThread {
     this.updatedAt,
     this.votes = 0,
     this.voted = false,
+    this.requesterBusinessId,
   });
 
   factory FloTeamThread.fromJson(Map<String, dynamic> json) {
     final assignee = _str(json['assignee_user_id']);
     final due = _str(json['due_date']);
+    final requester = _str(json['requester_business_id']);
     return FloTeamThread(
       id: _str(json['id']),
       kind: _str(json['kind']),
@@ -60,12 +62,14 @@ class FloTeamThread {
       updatedAt: _time(json['updated_at']),
       votes: (json['votes'] as num?)?.toInt() ?? 0,
       voted: json['voted'] == true,
+      requesterBusinessId: requester.isEmpty ? null : requester,
     );
   }
 
   final String id;
 
-  /// `idea` or `discussion`.
+  /// `idea`, `discussion` or `support` (a customer of another business
+  /// asking the support team for help; replies reach the customer).
   final String kind;
   final String title;
   final String body;
@@ -78,7 +82,11 @@ class FloTeamThread {
   final int votes;
   final bool voted;
 
+  /// Support threads: the business that asked for help.
+  final String? requesterBusinessId;
+
   bool get isIdea => kind == 'idea';
+  bool get isSupport => kind == 'support';
 }
 
 class FloTeamPost {
@@ -90,6 +98,8 @@ class FloTeamPost {
     this.authorUserId,
     this.blocks = const [],
     this.createdAt,
+    this.isCustomer = false,
+    this.authorName,
   });
 
   factory FloTeamPost.fromJson(Map<String, dynamic> json) {
@@ -109,6 +119,9 @@ class FloTeamPost {
       authorUserId: author.isEmpty ? null : author,
       blocks: blocks,
       createdAt: _time(json['created_at']),
+      isCustomer: json['author_kind'] == 'customer',
+      authorName:
+          _str(json['author_name']).isEmpty ? null : _str(json['author_name']),
     );
   }
 
@@ -123,6 +136,12 @@ class FloTeamPost {
   /// Flo's answer blocks (`flo_v1`), rendered like Ask Flo.
   final List<Map<String, dynamic>> blocks;
   final DateTime? createdAt;
+
+  /// Written by the customer of a support thread, not a colleague.
+  final bool isCustomer;
+
+  /// The customer's name and business, as they were when they wrote.
+  final String? authorName;
 }
 
 /// An unread @mention of the signed-in user.
@@ -283,14 +302,19 @@ enum FloTeamFilter {
   todo,
   doing,
   done,
-  discussions;
+  discussions,
+
+  /// Customers asking for help (support businesses only), open or resolved.
+  support;
 
   bool includes(FloTeamThread t) => switch (this) {
         FloTeamFilter.ideas => t.isIdea && t.status == FloTeamStatus.idea,
-        FloTeamFilter.todo => t.status == FloTeamStatus.todo,
-        FloTeamFilter.doing => t.status == FloTeamStatus.doing,
-        FloTeamFilter.done => t.status == FloTeamStatus.done,
+        FloTeamFilter.todo => t.isIdea && t.status == FloTeamStatus.todo,
+        FloTeamFilter.doing => t.isIdea && t.status == FloTeamStatus.doing,
+        FloTeamFilter.done => t.isIdea && t.status == FloTeamStatus.done,
         FloTeamFilter.discussions =>
-          !t.isIdea && t.status != FloTeamStatus.archived,
+          t.kind == 'discussion' && t.status != FloTeamStatus.archived,
+        FloTeamFilter.support =>
+          t.isSupport && t.status != FloTeamStatus.archived,
       };
 }

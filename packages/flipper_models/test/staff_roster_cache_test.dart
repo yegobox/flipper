@@ -26,6 +26,27 @@ void main() {
     );
     final noPin = Tenant(id: 't-nopin', name: 'No Pin', userId: 'u-nopin');
 
+    test('removing someone keeps everyone else and their PINs', () {
+      final raw = encodeStaffRoster([ecobe, agent, noPin], iterations: 2);
+      final byUser = removeFromStaffRoster(
+        raw,
+        Tenant(id: 'u-agent', userId: 'u-agent'),
+      );
+      final left = decodeStaffRoster(byUser);
+      expect(left.map((t) => t.id), ['t-ecobe', 't-nopin']);
+      expect(staffRosterPinMatches(left.first, '123456'), isTrue);
+
+      final byId = decodeStaffRoster(
+        removeFromStaffRoster(raw, Tenant(id: 't-nopin')),
+      );
+      expect(byId.map((t) => t.id), ['t-ecobe', 't-agent']);
+
+      // Nobody to remove, or nothing readable: nothing to write.
+      expect(removeFromStaffRoster(raw, Tenant(id: 't-x')), isNull);
+      expect(removeFromStaffRoster('not json', agent), isNull);
+      expect(removeFromStaffRoster(null, agent), isNull);
+    });
+
     test('round-trips staff without writing plain PINs', () {
       final raw = encodeStaffRoster([ecobe, agent, noPin]);
       expect(raw, isNot(contains('123456')));

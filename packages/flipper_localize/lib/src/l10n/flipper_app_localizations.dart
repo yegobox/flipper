@@ -13223,6 +13223,24 @@ abstract class FlipperAppLocalizations {
   /// **'Only an admin can switch this device\'s service mode.'**
   String get serviceModeAdminOnly;
 
+  /// Service-mode hotkey pressed outside POS, Bar and Hotel
+  ///
+  /// In en, this message translates to:
+  /// **'Open POS, Bar or Hotel to switch this device\'s service mode.'**
+  String get serviceModeHotkeyOpenDesk;
+
+  /// Service-mode hotkey pressed while the Bar or Hotel manager PIN prompt is open
+  ///
+  /// In en, this message translates to:
+  /// **'Finish or cancel the manager PIN first, then switch the service mode.'**
+  String get serviceModeHotkeyPromptOpen;
+
+  /// Service-mode hotkey pressed on a Bar or Hotel lock screen
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in at the desk first, then switch the service mode.'**
+  String get serviceModeHotkeySignInFirst;
+
   /// Bar/Hotel host: the signed-in user holds no grant for this mode
   ///
   /// In en, this message translates to:
@@ -35156,6 +35174,90 @@ abstract class FlipperAppLocalizations {
   /// **'A teammate'**
   String get floTeamSomeone;
 
+  /// No description provided for @floTeamSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'Support'**
+  String get floTeamSupport;
+
+  /// No description provided for @floTeamResolve.
+  ///
+  /// In en, this message translates to:
+  /// **'Resolve'**
+  String get floTeamResolve;
+
+  /// No description provided for @floTeamReopen.
+  ///
+  /// In en, this message translates to:
+  /// **'Reopen'**
+  String get floTeamReopen;
+
+  /// No description provided for @floTeamResolved.
+  ///
+  /// In en, this message translates to:
+  /// **'Resolved'**
+  String get floTeamResolved;
+
+  /// No description provided for @floTeamSupportReplyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Replies here are sent to the customer.'**
+  String get floTeamSupportReplyHint;
+
+  /// No description provided for @floSupportTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat with support'**
+  String get floSupportTitle;
+
+  /// No description provided for @floSupportSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Flipper Support replies right here.'**
+  String get floSupportSubtitle;
+
+  /// No description provided for @floSupportEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Tell us what went wrong. We\'ll reply here.'**
+  String get floSupportEmpty;
+
+  /// No description provided for @floSupportHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Type your message'**
+  String get floSupportHint;
+
+  /// No description provided for @floSupportSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get floSupportSend;
+
+  /// No description provided for @floSupportResolved.
+  ///
+  /// In en, this message translates to:
+  /// **'Support marked this resolved. Write again if you still need help.'**
+  String get floSupportResolved;
+
+  /// No description provided for @floSupportError.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t reach support. Check your connection and try again.'**
+  String get floSupportError;
+
+  /// Payment help: the WhatsApp fallback could not open; shows the support number
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open WhatsApp. Message Flipper Support on +{number}.'**
+  String paymentSupportWhatsAppFailed(String number);
+
+  /// No description provided for @floSupportFallback.
+  ///
+  /// In en, this message translates to:
+  /// **'Use WhatsApp'**
+  String get floSupportFallback;
+
   /// No description provided for @floTeamInviteFromStaff.
   ///
   /// In en, this message translates to:
@@ -46366,6 +46468,24 @@ abstract class FlipperAppLocalizations {
   /// In en, this message translates to:
   /// **'Cloud sync was turned on for this business from another device. Sign in again to upload this device\'s data and finish.'**
   String get localModeSyncOnElsewhereBody;
+
+  /// User Management opened from a Bar staff row that has no sign-in account (no user id)
+  ///
+  /// In en, this message translates to:
+  /// **'{name} has no sign-in account to edit yet. Add them as a new user to give them one.'**
+  String tenantMgmtNoAccountToEdit(String name);
+
+  /// User Management opened from a Bar staff row whose person a fresh roster no longer lists
+  ///
+  /// In en, this message translates to:
+  /// **'{name} is no longer on this business\'s staff.'**
+  String tenantMgmtNoLongerStaff(String name);
+
+  /// User Management chip: this person signs in with a PIN but has no account permissions saved yet
+  ///
+  /// In en, this message translates to:
+  /// **'PIN only'**
+  String get tenantMgmtPinOnly;
 }
 
 class _FlipperAppLocalizationsDelegate

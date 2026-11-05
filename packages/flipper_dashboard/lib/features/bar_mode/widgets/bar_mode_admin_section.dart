@@ -158,10 +158,10 @@ class _BarModeAdminSectionState extends State<BarModeAdminSection> {
     }
   }
 
-  void _openUserManagement() {
+  void _openUserManagement(Tenant tenant) {
     showDialog(
       context: context,
-      builder: (_) => const TenantManagement(),
+      builder: (_) => TenantManagement(initialTenant: tenant),
     ).then((_) => _loadStaff());
   }
 
@@ -263,7 +263,7 @@ class _BarModeAdminSectionState extends State<BarModeAdminSection> {
                     showTopBorder: i > 0,
                     isDeleteLoading:
                         _deletingStaffKey == barStaffDeleteKey(_staff[i]),
-                    onEdit: _openUserManagement,
+                    onEdit: () => _openUserManagement(_staff[i]),
                     onDelete:
                         barStaffDeleteAllowed(
                           target: _staff[i],

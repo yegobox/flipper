@@ -11,10 +11,27 @@ import 'package:stacked_services/stacked_services.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:supabase_models/brick/repository/storage.dart' as storage;
+
+/// A staff roster and whether it is a fresh Supabase read ([fresh]) rather
+/// than the offline copy.
+typedef StaffRoster = ({List<Tenant> tenants, bool fresh});
 
 class FlipperBaseModel extends ReactiveViewModel {
+  static storage.LocalStorage get _box => ProxyService.box;
+
   List<Tenant> _tenants = [];
   List<Tenant> get tenants => _tenants;
+
+  /// Whether [tenants] came from Supabase just now, not the offline copy.
+  /// Only then does a person missing from it mean they were removed.
+  bool get tenantsFresh => _tenantsFresh;
+  bool _tenantsFresh = false;
+
+  /// Where [loadTenants] gets the roster; replaceable in tests.
+  @visibleForTesting
+  static Future<StaffRoster> Function({String? businessId}) staffRosterLoader =
+      fetchStaffRoster;
 
   void deleteTenantById(int tenantId) {
     _tenants.removeWhere((tenant) => tenant.id == tenantId);
@@ -33,11 +50,11 @@ class FlipperBaseModel extends ReactiveViewModel {
     return type == 'agent' && uid.isNotEmpty;
   }
 
-  /// Agent tenants for [businessId] via Supabase — same pipeline as [loadTenants].
+  /// Agent tenants for [businessId] via Supabase (`tenants` rows only).
   static Future<List<Tenant>> fetchAgentTenantsFromSupabase({
     String? businessId,
   }) async {
-    final id = businessId ?? ProxyService.box.getBusinessId();
+    final id = businessId ?? _box.getBusinessId();
     if (id == null || id.isEmpty) return const [];
 
     try {
@@ -150,32 +167,26 @@ class FlipperBaseModel extends ReactiveViewModel {
     return tenants;
   }
 
+  /// User Management list — the same roster as Bar Mode's Staff & PINs
+  /// ([fetchBarStaffTenants]), so PIN-only staff and the owner show up here
+  /// too and both screens list the same people.
   Future<void> loadTenants() async {
-    final businessId = ProxyService.box.getBusinessId();
+    final businessId = _box.getBusinessId();
     if (businessId == null || businessId.isEmpty) {
       _tenants = [];
+      _tenantsFresh = false;
       notifyListeners();
       return;
     }
 
-    List<Tenant> users;
-    try {
-      final businessUuid = await resolveBusinessUuidForTenants(businessId);
-      if (businessUuid == null || businessUuid.isEmpty) {
-        debugPrint('loadTenants: could not resolve business id "$businessId"');
-        users = [];
-      } else {
-        users = await fetchTenantsFromSupabase(businessUuid);
-        debugPrint(
-          'loadTenants: businessUuid=$businessUuid count=${users.length}',
-        );
-      }
-    } catch (e, s) {
-      debugPrint('loadTenants Supabase: $e\n$s');
-      users = [];
-    }
+    final roster = await staffRosterLoader(businessId: businessId);
+    debugPrint(
+      'loadTenants: businessId=$businessId count=${roster.tenants.length} '
+      'fresh=${roster.fresh}',
+    );
 
-    _tenants = dedupeTenantsForDisplay(users);
+    _tenants = List<Tenant>.from(roster.tenants);
+    _tenantsFresh = roster.fresh;
     notifyListeners();
   }
 
@@ -263,6 +274,87 @@ class FlipperBaseModel extends ReactiveViewModel {
     );
   }
 
+  /// The owner's own `tenants` row as a roster entry. Keeps the account name
+  /// User Management shows (not `users.name`), so both screens agree;
+  /// [fallbackName] (`users.name`) only stands in for a blank one.
+  static Tenant ownerStaffFromTenant(
+    Tenant tenant, {
+    required String businessUuid,
+    String? ownerPhone,
+    String? fallbackName,
+  }) {
+    final fallback = fallbackName?.trim();
+    return Tenant(
+      id: tenant.id,
+      name:
+          (tenant.name ?? '').trim().isEmpty &&
+              fallback != null &&
+              fallback.isNotEmpty
+          ? fallback
+          : tenant.name,
+      phoneNumber: tenant.phoneNumber ?? ownerPhone,
+      email: tenant.email,
+      nfcEnabled: tenant.nfcEnabled,
+      businessId: tenant.businessId ?? businessUuid,
+      userId: tenant.userId,
+      imageUrl: tenant.imageUrl,
+      lastTouched: tenant.lastTouched,
+      deletedAt: tenant.deletedAt,
+      pin: tenant.pin,
+      isDefault: tenant.isDefault,
+      sessionActive: tenant.sessionActive,
+      type: tenant.type ?? 'Owner',
+      allowBusinessLogin: true,
+    );
+  }
+
+  /// Staff who can sign in with a PIN but have no `tenants` row. Those rows
+  /// are built from `pins`/`users` and use the user id as their id; the
+  /// owner and signed-in-user stand-ins share that shape but may have no
+  /// PIN, so a PIN (or, offline, its cached verifier) is required too.
+  static bool isPinOnlyStaff(Tenant t) {
+    final uid = t.userId;
+    return uid != null &&
+        uid.isNotEmpty &&
+        t.id == uid &&
+        (t.pin != null || staffRosterHasCachedPin(t));
+  }
+
+  /// The roster row to open for editing: the loaded one for the same user
+  /// when there is one. Missing from a [fresh] roster means removed: null.
+  /// From the offline copy (it may predate them), [initial] as given.
+  static Tenant? resolveInitialEditTenant(
+    List<Tenant> loaded,
+    Tenant initial, {
+    bool fresh = false,
+  }) {
+    final uid = initial.userId;
+    if (uid == null || uid.isEmpty) return initial;
+    for (final t in loaded) {
+      if (t.userId == uid) return t;
+    }
+    return fresh && loaded.isNotEmpty ? null : initial;
+  }
+
+  /// The signed-in user's own `tenants` row among [rows] (newest first) for
+  /// [businessUuid]: one of this business, or a legacy one tied to none.
+  /// Never another business's row, as in [fetchTenantsFromSupabase].
+  static Map<String, dynamic>? selfTenantRowForBusiness(
+    List<dynamic> rows,
+    String businessUuid,
+  ) {
+    for (final item in rows) {
+      if (item is! Map) continue;
+      final rowBusinessId = item['business_id']?.toString();
+      if (rowBusinessId == null ||
+          rowBusinessId.isEmpty ||
+          rowBusinessId == businessUuid) {
+        return Map<String, dynamic>.from(item);
+      }
+    }
+    return null;
+  }
+
   /// Business creator — often in `users` + `pins` but not `tenants`.
   static Future<Tenant?> fetchBusinessOwnerStaffMember(
     String businessUuid,
@@ -298,32 +390,12 @@ class FlipperBaseModel extends ReactiveViewModel {
 
     if (tenantRows.isNotEmpty) {
       final row = Map<String, dynamic>.from(tenantRows.first as Map);
-      final tenant = withPinFromLookup(
-        tenantFromSupabaseRow(row),
-        pinsByUserId,
+      return ownerStaffFromTenant(
+        withPinFromLookup(tenantFromSupabaseRow(row), pinsByUserId),
+        businessUuid: businessUuid,
+        ownerPhone: ownerPhone,
+        fallbackName: ownerName,
       );
-      if (ownerName != null &&
-          ownerName.isNotEmpty &&
-          tenant.name != ownerName) {
-        return Tenant(
-          id: tenant.id,
-          name: ownerName,
-          phoneNumber: ownerPhone ?? tenant.phoneNumber,
-          email: tenant.email,
-          nfcEnabled: tenant.nfcEnabled,
-          businessId: tenant.businessId ?? businessUuid,
-          userId: tenant.userId,
-          imageUrl: tenant.imageUrl,
-          lastTouched: tenant.lastTouched,
-          deletedAt: tenant.deletedAt,
-          pin: tenant.pin,
-          isDefault: tenant.isDefault,
-          sessionActive: tenant.sessionActive,
-          type: tenant.type ?? 'Owner',
-          allowBusinessLogin: true,
-        );
-      }
-      return tenant;
     }
 
     return Tenant(
@@ -489,9 +561,19 @@ class FlipperBaseModel extends ReactiveViewModel {
   /// Offline-safe: each successful fetch is cached in the box (PINs hashed, see
   /// [encodeStaffRoster]); when Supabase fails, returns nothing, or is slower
   /// than [staffRosterRemoteTimeout], the cached roster is returned instead.
-  static Future<List<Tenant>> fetchBarStaffTenants({String? businessId}) async {
-    final id = businessId ?? ProxyService.box.getBusinessId();
-    if (id == null || id.isEmpty) return const [];
+  static Future<List<Tenant>> fetchBarStaffTenants({
+    String? businessId,
+  }) async => (await fetchStaffRoster(businessId: businessId)).tenants;
+
+  /// [fetchBarStaffTenants], saying whether the roster is a fresh Supabase
+  /// read or the offline copy.
+  static Future<StaffRoster> fetchStaffRoster({String? businessId}) async {
+    const none = (tenants: <Tenant>[], fresh: false);
+    StaffRoster cachedRoster(String id) =>
+        (tenants: _readStaffRosterCache(id), fresh: false);
+
+    final id = businessId ?? _box.getBusinessId();
+    if (id == null || id.isEmpty) return none;
 
     final remote = _fetchBarStaffTenantsRemote(id).then((tenants) {
       if (tenants.isNotEmpty) _writeStaffRosterCache(id, tenants);
@@ -500,23 +582,48 @@ class FlipperBaseModel extends ReactiveViewModel {
 
     try {
       final tenants = await remote.timeout(staffRosterRemoteTimeout);
-      if (tenants.isNotEmpty) return tenants;
-      return _readStaffRosterCache(id);
+      if (tenants.isNotEmpty) return (tenants: tenants, fresh: true);
+      return cachedRoster(id);
     } on TimeoutException {
       final cached = _readStaffRosterCache(id);
       if (cached.isNotEmpty) {
         unawaited(remote.then((_) {}, onError: (_) {}));
-        return cached;
+        return (tenants: cached, fresh: false);
       }
       try {
-        return await remote.timeout(staffRosterNoCacheTimeout);
+        final tenants = await remote.timeout(staffRosterNoCacheTimeout);
+        return (tenants: tenants, fresh: tenants.isNotEmpty);
       } catch (e, s) {
         debugPrint('fetchBarStaffTenants (slow, no cache): $e\n$s');
-        return const [];
+        return none;
       }
     } catch (e, s) {
       debugPrint('fetchBarStaffTenants: $e\n$s — using cached roster');
-      return _readStaffRosterCache(id);
+      return cachedRoster(id);
+    }
+  }
+
+  /// Drops [removed] from the offline roster of [businessId] (the box id)
+  /// once they are removed from the business, so a later fall back to the
+  /// cache cannot list them again. The others keep their PIN verifiers.
+  static Future<void> forgetStaffInRosterCache(
+    String businessId,
+    Tenant removed,
+  ) async {
+    // A write still encoding the old roster must not put them back, and the
+    // next fetch must write even an unchanged-looking roster.
+    _staffRosterWriteGen[businessId] =
+        (_staffRosterWriteGen[businessId] ?? 0) + 1;
+    _staffRosterWrittenFingerprint.remove(businessId);
+    final key = staffRosterCacheKey(businessId);
+    try {
+      final next = removeFromStaffRoster(_box.readString(key: key), removed);
+      if (next != null) {
+        await _box.writeString(key: key, value: next);
+      }
+    } catch (e) {
+      // The removal itself is done; a stale copy is the lesser harm.
+      debugPrint('staff roster cache: could not forget ${removed.id}: $e');
     }
   }
 
@@ -535,7 +642,7 @@ class FlipperBaseModel extends ReactiveViewModel {
         _staffRosterWriteGen[businessId] = gen;
         final raw = await encodeStaffRosterInBackground(tenants);
         if (_staffRosterWriteGen[businessId] != gen) return;
-        await ProxyService.box.writeString(
+        await _box.writeString(
           key: staffRosterCacheKey(businessId),
           value: raw,
         );
@@ -549,7 +656,7 @@ class FlipperBaseModel extends ReactiveViewModel {
   static List<Tenant> _readStaffRosterCache(String businessId) {
     try {
       return decodeStaffRoster(
-        ProxyService.box.readString(key: staffRosterCacheKey(businessId)),
+        _box.readString(key: staffRosterCacheKey(businessId)),
       );
     } catch (e) {
       debugPrint('staff roster cache read failed: $e');
@@ -588,20 +695,20 @@ class FlipperBaseModel extends ReactiveViewModel {
       ),
     ];
 
-    final currentUserId = ProxyService.box.getUserId();
+    final currentUserId = _box.getUserId();
     if (currentUserId != null &&
         !tenants.any((t) => t.userId == currentUserId)) {
       final rows = await Supabase.instance.client
           .from('tenants')
           .select()
           .eq('user_id', currentUserId)
+          .or('business_id.is.null,business_id.eq.$businessUuid')
           .isFilter('deleted_at', null)
           .order('last_touched', ascending: false)
           .limit(1);
-      if (rows.isNotEmpty) {
-        final self = tenantFromSupabaseRow(
-          Map<String, dynamic>.from(rows.first as Map),
-        );
+      final selfRow = selfTenantRowForBusiness(rows, businessUuid);
+      if (selfRow != null) {
+        final self = tenantFromSupabaseRow(selfRow);
         tenants = [...tenants, withPinFromLookup(self, pinsByUserId)];
       } else if (pinsByUserId.containsKey(currentUserId)) {
         tenants = [

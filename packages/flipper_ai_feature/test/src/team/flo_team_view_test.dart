@@ -660,6 +660,160 @@ void main() {
       expect(find.byKey(const Key('flo-team-task')), findsNothing);
     });
 
+    testWidgets(
+        'support threads get their own tab, carry the customer and can be resolved',
+        (tester) async {
+      final repo = FakeFloTeamRepository(
+        threads: [
+          idea('s1', 'Payment help · Shop', kind: 'support', author: 'cust'),
+          idea('t3', 'Weekly chat', kind: 'discussion'),
+        ],
+        posts: [
+          const FloTeamPost(
+              id: 'c1',
+              threadId: 's1',
+              isFlo: false,
+              isCustomer: true,
+              authorName: 'Aline · Shop',
+              body: 'My payment failed',
+              authorUserId: 'cust'),
+          const FloTeamPost(
+              id: 'r1',
+              threadId: 's1',
+              isFlo: false,
+              body: 'We are on it',
+              authorUserId: 'u2'),
+        ],
+      );
+      await _pump(tester, repo);
+      final l10n = tester.element(find.byType(FloTeamView)).flipperL10n;
+
+      // Support is not a discussion.
+      await tester.tap(find.byKey(const Key('flo-team-filter-discussions')));
+      await tester.pumpAndSettle();
+      expect(find.text('Weekly chat'), findsOneWidget);
+      expect(find.text('Payment help · Shop'), findsNothing);
+
+      await tester.tap(find.byKey(const Key('flo-team-filter-support')));
+      await tester.pumpAndSettle();
+      // The card names the customer too, not "A teammate".
+      final card = find.byKey(const Key('flo-team-thread-s1'));
+      expect(find.descendant(of: card, matching: find.text('Aline · Shop')),
+          findsOneWidget);
+      expect(
+          find.descendant(of: card, matching: find.text(l10n.floTeamSomeone)),
+          findsNothing);
+      await tester.tap(find.byKey(const Key('flo-team-thread-s1')));
+      await tester.pumpAndSettle();
+      expect(find.text(l10n.floTeamSupport), findsOneWidget);
+      expect(find.text('Aline · Shop'), findsOneWidget);
+      // The header names the customer, not "A teammate".
+      expect(find.textContaining('Aline · Shop · '), findsOneWidget);
+      expect(find.byKey(const Key('flo-team-support-hint')), findsOneWidget);
+      expect(find.byKey(const Key('flo-team-task')), findsNothing);
+
+      await tester.tap(find.byKey(const Key('flo-team-resolve')));
+      await tester.pumpAndSettle();
+      expect(repo.calls, contains('update(s1,{status: done})'));
+      expect(find.text(l10n.floTeamResolved), findsOneWidget);
+      expect(find.text(l10n.floTeamReopen), findsOneWidget);
+
+      await tester.tap(find.byKey(const Key('flo-team-resolve')));
+      await tester.pumpAndSettle();
+      expect(repo.calls, contains('update(s1,{status: idea})'));
+      expect(find.text(l10n.floTeamResolve), findsOneWidget);
+    });
+
+    testWidgets('a support card names only the customer who opened it',
+        (tester) async {
+      // Another customer of the same business wrote in the thread too; the
+      // opener's own posts carry no name, so the card must not borrow the
+      // other customer's.
+      final repo = FakeFloTeamRepository(
+        threads: [
+          idea('s1', 'Payment help · Shop', kind: 'support', author: 'cust'),
+        ],
+        posts: [
+          const FloTeamPost(
+              id: 'c1',
+              threadId: 's1',
+              isFlo: false,
+              isCustomer: true,
+              body: 'My payment failed',
+              authorUserId: 'cust'),
+          const FloTeamPost(
+              id: 'c2',
+              threadId: 's1',
+              isFlo: false,
+              isCustomer: true,
+              authorName: 'Eric · Shop',
+              body: 'Same here',
+              authorUserId: 'other'),
+        ],
+      );
+      await _pump(tester, repo);
+      await tester.tap(find.byKey(const Key('flo-team-filter-support')));
+      await tester.pumpAndSettle();
+      final card = find.byKey(const Key('flo-team-thread-s1'));
+      expect(card, findsOneWidget);
+      expect(find.descendant(of: card, matching: find.text('Eric · Shop')),
+          findsNothing);
+    });
+
+    testWidgets('a long customer name on a narrow board ends in an ellipsis',
+        (tester) async {
+      tester.view.physicalSize = const Size(320, 1600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+      const long = 'Jean-Baptiste Uwimana Nshimiyimana · '
+          'Kigali Central Wholesale Supplies Limited';
+      final repo = FakeFloTeamRepository(
+        threads: [
+          idea('s1', 'Payment help', kind: 'support', author: 'cust'),
+        ],
+        posts: [
+          const FloTeamPost(
+              id: 'c1',
+              threadId: 's1',
+              isFlo: false,
+              isCustomer: true,
+              authorName: long,
+              body: 'My payment failed',
+              authorUserId: 'cust'),
+        ],
+      );
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: _overrides(repo),
+          child: MaterialApp(
+            localizationsDelegates: FlipperLocalizationDelegates.delegates,
+            supportedLocales: FlipperLocalizationDelegates.supportedLocales,
+            home: const Scaffold(body: FloTeamView()),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester
+          .ensureVisible(find.byKey(const Key('flo-team-filter-support')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('flo-team-filter-support')));
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      final label = tester.widget<Text>(find.descendant(
+          of: find.byKey(const Key('flo-team-thread-s1')),
+          matching: find.text(long)));
+      expect(label.overflow, TextOverflow.ellipsis);
+      expect(label.maxLines, 1);
+    });
+
+    testWidgets('a business with no support threads has no Support tab',
+        (tester) async {
+      await _pump(tester, _team());
+      expect(find.byKey(const Key('flo-team-filter-support')), findsNothing);
+      expect(
+          find.byKey(const Key('flo-team-filter-discussions')), findsOneWidget);
+    });
+
     testWidgets('a member the server has no name for is shown as You',
         (tester) async {
       await _pump(

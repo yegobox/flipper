@@ -7714,6 +7714,18 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
       'Msimamizi pekee ndiye anaweza kubadilisha hali ya huduma ya kifaa hiki.';
 
   @override
+  String get serviceModeHotkeyOpenDesk =>
+      'Fungua POS, Baa au Hoteli ili kubadilisha hali ya huduma ya kifaa hiki.';
+
+  @override
+  String get serviceModeHotkeyPromptOpen =>
+      'Maliza au ghairi PIN ya meneja kwanza, kisha ubadilishe hali ya huduma.';
+
+  @override
+  String get serviceModeHotkeySignInFirst =>
+      'Ingia kwenye kituo kwanza, kisha ubadilishe hali ya huduma.';
+
+  @override
   String serviceModeNoAccess(String mode) {
     return 'Huna ruhusa ya kutumia $mode. Muombe msimamizi akupe ruhusa katika Usimamizi wa Watumiaji.';
   }
@@ -21278,6 +21290,52 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   String get floTeamSomeone => 'Mwenzako';
 
   @override
+  String get floTeamSupport => 'Msaada';
+
+  @override
+  String get floTeamResolve => 'Tatua';
+
+  @override
+  String get floTeamReopen => 'Fungua tena';
+
+  @override
+  String get floTeamResolved => 'Imetatuliwa';
+
+  @override
+  String get floTeamSupportReplyHint => 'Majibu hapa yanatumwa kwa mteja.';
+
+  @override
+  String get floSupportTitle => 'Ongea na msaada';
+
+  @override
+  String get floSupportSubtitle => 'Msaada wa Flipper utakujibu hapa hapa.';
+
+  @override
+  String get floSupportEmpty => 'Tueleze tatizo lilivyo. Tutakujibu hapa.';
+
+  @override
+  String get floSupportHint => 'Andika ujumbe wako';
+
+  @override
+  String get floSupportSend => 'Tuma';
+
+  @override
+  String get floSupportResolved =>
+      'Msaada umeweka hili kama limetatuliwa. Andika tena kama bado unahitaji msaada.';
+
+  @override
+  String get floSupportError =>
+      'Imeshindwa kufikia msaada. Angalia muunganisho wako na ujaribu tena.';
+
+  @override
+  String paymentSupportWhatsAppFailed(String number) {
+    return 'Imeshindikana kufungua WhatsApp. Mwandikie Flipper Support kwa +$number.';
+  }
+
+  @override
+  String get floSupportFallback => 'Tumia WhatsApp';
+
+  @override
   String get floTeamInviteFromStaff => 'Alika wafanyakazi wako';
 
   @override
@@ -27872,4 +27930,17 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   @override
   String get localModeSyncOnElsewhereBody =>
       'Usawazishaji wa wingu umewashwa kwa biashara hii kutoka kifaa kingine. Ingia tena ili kupakia data ya kifaa hiki na kumaliza.';
+
+  @override
+  String tenantMgmtNoAccountToEdit(String name) {
+    return '$name bado hana akaunti ya kuingia ya kuhariri. Mwongeze kama mtumiaji mpya ili apate moja.';
+  }
+
+  @override
+  String tenantMgmtNoLongerStaff(String name) {
+    return '$name si mfanyakazi wa biashara hii tena.';
+  }
+
+  @override
+  String get tenantMgmtPinOnly => 'PIN pekee';
 }

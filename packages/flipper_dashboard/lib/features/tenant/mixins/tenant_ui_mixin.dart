@@ -193,6 +193,28 @@ class TenantUIMixin {
     );
   }
 
+  /// Signs in with a PIN but has no `tenants` row yet; saving their
+  /// permissions here creates one.
+  static Widget _pinOnlyChip(BuildContext context) {
+    return Container(
+      key: const ValueKey('tenant_pin_only_chip'),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.grey.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.grey.withValues(alpha: 0.35)),
+      ),
+      child: Text(
+        context.flipperL10n.tenantMgmtPinOnly,
+        style: GoogleFonts.outfit(
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+          color: Colors.grey[700],
+        ),
+      ),
+    );
+  }
+
   static Widget _squareIconButton({
     required IconData icon,
     required Color iconColor,
@@ -295,6 +317,12 @@ class TenantUIMixin {
                         color: Colors.grey[600],
                       ),
                     ),
+                    // Under the name rather than beside the role, so a phone
+                    // row keeps room for the name and its buttons.
+                    if (FlipperBaseModel.isPinOnlyStaff(tenant)) ...[
+                      const SizedBox(height: 6),
+                      _pinOnlyChip(context),
+                    ],
                   ],
                 ),
               ),

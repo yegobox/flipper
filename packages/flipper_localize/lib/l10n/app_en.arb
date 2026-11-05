@@ -6519,6 +6519,18 @@
     "@serviceModeAdminOnly": {
         "description": "Service-mode hotkey: non-admin tried to switch"
     },
+    "serviceModeHotkeyOpenDesk": "Open POS, Bar or Hotel to switch this device's service mode.",
+    "@serviceModeHotkeyOpenDesk": {
+        "description": "Service-mode hotkey pressed outside POS, Bar and Hotel"
+    },
+    "serviceModeHotkeyPromptOpen": "Finish or cancel the manager PIN first, then switch the service mode.",
+    "@serviceModeHotkeyPromptOpen": {
+        "description": "Service-mode hotkey pressed while the Bar or Hotel manager PIN prompt is open"
+    },
+    "serviceModeHotkeySignInFirst": "Sign in at the desk first, then switch the service mode.",
+    "@serviceModeHotkeySignInFirst": {
+        "description": "Service-mode hotkey pressed on a Bar or Hotel lock screen"
+    },
     "serviceModeNoAccess": "You don't have access to {mode}. Ask an admin to grant it in User Management.",
     "@serviceModeNoAccess": {
         "description": "Bar/Hotel host: the signed-in user holds no grant for this mode",
@@ -16702,6 +16714,28 @@
     "floTeamDiscussion": "Discussion",
     "floTeamYou": "You",
     "floTeamSomeone": "A teammate",
+    "floTeamSupport": "Support",
+    "floTeamResolve": "Resolve",
+    "floTeamReopen": "Reopen",
+    "floTeamResolved": "Resolved",
+    "floTeamSupportReplyHint": "Replies here are sent to the customer.",
+    "floSupportTitle": "Chat with support",
+    "floSupportSubtitle": "Flipper Support replies right here.",
+    "floSupportEmpty": "Tell us what went wrong. We'll reply here.",
+    "floSupportHint": "Type your message",
+    "floSupportSend": "Send",
+    "floSupportResolved": "Support marked this resolved. Write again if you still need help.",
+    "floSupportError": "Couldn't reach support. Check your connection and try again.",
+    "paymentSupportWhatsAppFailed": "Could not open WhatsApp. Message Flipper Support on +{number}.",
+    "@paymentSupportWhatsAppFailed": {
+        "description": "Payment help: the WhatsApp fallback could not open; shows the support number",
+        "placeholders": {
+            "number": {
+                "type": "String"
+            }
+        }
+    },
+    "floSupportFallback": "Use WhatsApp",
     "floTeamInviteFromStaff": "Invite from your staff",
     "floNewConversation": "New conversation",
     "floChatWithFloAndCustomers": "Chat with Flo & customers",
@@ -20501,5 +20535,27 @@
     "localModeSyncOnElsewhereBody": "Cloud sync was turned on for this business from another device. Sign in again to upload this device's data and finish.",
     "@localModeSyncOnElsewhereBody": {
         "description": "Body: sign in again to finish switching this device to cloud sync"
+    },
+    "tenantMgmtNoAccountToEdit": "{name} has no sign-in account to edit yet. Add them as a new user to give them one.",
+    "@tenantMgmtNoAccountToEdit": {
+        "description": "User Management opened from a Bar staff row that has no sign-in account (no user id)",
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "tenantMgmtNoLongerStaff": "{name} is no longer on this business's staff.",
+    "@tenantMgmtNoLongerStaff": {
+        "description": "User Management opened from a Bar staff row whose person a fresh roster no longer lists",
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "tenantMgmtPinOnly": "PIN only",
+    "@tenantMgmtPinOnly": {
+        "description": "User Management chip: this person signs in with a PIN but has no account permissions saved yet"
     }
 }

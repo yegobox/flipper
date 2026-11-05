@@ -78,33 +78,155 @@ class _ServiceModeHotkeyScopeState extends State<ServiceModeHotkeyScope> {
   }
 }
 
+/// Marks [child] as a desk the hotkey may switch from: the POS sales pane, or
+/// the Bar or Hotel desk.
+///
+/// The hotkey acts for the person at the desk on screen, never for the
+/// account the app is signed in with: a shared register is usually signed in
+/// as an admin, so that account would let anyone at the till switch (and land
+/// a Bar-only waiter on POS). Anywhere else (Reports, a lock screen, a page
+/// or dialog pushed over the desk) there is nobody to judge, so no switch.
+///
+/// [deskAdmin] answers null while nobody is signed in at the desk, else
+/// whether that person is an admin. [promptOpen], when given, says the desk
+/// is asking for something (the manager PIN) that a switch would throw away.
+/// Nesting is harmless: the desk mounted last wins, so a Bar route pushed
+/// over the dashboard beats POS under it.
+class ServiceModeDesk extends StatefulWidget {
+  const ServiceModeDesk({
+    super.key,
+    required this.deskAdmin,
+    this.promptOpen,
+    required this.child,
+  });
+
+  final FutureOr<bool?> Function() deskAdmin;
+  final bool Function()? promptOpen;
+  final Widget child;
+
+  @override
+  State<ServiceModeDesk> createState() => _ServiceModeDeskState();
+}
+
+class _ServiceModeDeskState extends State<ServiceModeDesk> {
+  static final List<_ServiceModeDeskState> _desks = [];
+
+  ModalRoute<Object?>? _route;
+
+  /// Not under a page or dialog pushed over it.
+  bool get _onScreen => mounted && (_route?.isCurrent ?? true);
+
+  @override
+  void initState() {
+    super.initState();
+    _desks.add(this);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _route = ModalRoute.of(context);
+  }
+
+  @override
+  void dispose() {
+    _desks.remove(this);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
+}
+
+/// Why the hotkey did not switch.
+enum ServiceModeHotkeyRefusal {
+  /// Not on POS, Bar or Hotel (or something is open over the desk).
+  noDesk,
+
+  /// On a desk's lock: nobody signed in to judge.
+  signInFirst,
+
+  /// The person at the desk is not an admin.
+  notAdmin,
+
+  /// The desk is asking for the manager PIN; switching would drop it.
+  promptOpen,
+}
+
+/// Whether the hotkey may switch now, judged on the desk on screen; null
+/// when it may.
+@visibleForTesting
+Future<ServiceModeHotkeyRefusal?> serviceModeHotkeyRefusal() async {
+  _ServiceModeDeskState? desk;
+  for (final candidate in _ServiceModeDeskState._desks.reversed) {
+    if (candidate._onScreen) {
+      desk = candidate;
+      break;
+    }
+  }
+  if (desk == null) return ServiceModeHotkeyRefusal.noDesk;
+  bool prompting() => desk!.widget.promptOpen?.call() ?? false;
+  if (prompting()) return ServiceModeHotkeyRefusal.promptOpen;
+  final admin = await desk.widget.deskAdmin();
+  // The answer was for the desk as it was: a user switch or a page opened
+  // over it while the lookup ran leaves nobody it applies to.
+  if (!desk._onScreen) return ServiceModeHotkeyRefusal.noDesk;
+  if (prompting()) return ServiceModeHotkeyRefusal.promptOpen;
+  if (admin == null) return ServiceModeHotkeyRefusal.signInFirst;
+  return admin ? null : ServiceModeHotkeyRefusal.notAdmin;
+}
+
+/// The POS desk's [ServiceModeDesk.deskAdmin]. POS runs as the account the
+/// app is signed in with (the POS user switch changes it), so that is the
+/// person at the desk.
+///
+/// Admin means [AppFeature.Settings], the right the admin screen's master
+/// toggles need: cycling onto a service the branch does not offer yet turns
+/// it on for the whole branch.
+Future<bool?> posDeskAdmin() async {
+  final userId = ProxyService.box.getUserId();
+  if (userId == null) return null;
+  return ProxyService.strategy.isAdmin(
+    userId: userId,
+    appFeature: AppFeature.Settings,
+  );
+}
+
+/// How the hotkey applies a mode; replaceable in tests.
+@visibleForTesting
+Future<bool> Function(ServiceMode mode) serviceModeHotkeyApply =
+    applyServiceMode;
+
+/// How the hotkey lands on a mode's surface; replaceable in tests.
+@visibleForTesting
+void Function(ServiceMode mode) serviceModeHotkeyOpen = openServiceModeShell;
+
 /// Moves this device to [nextServiceMode] and lands on that mode's surface.
 ///
 /// The pick itself is local to the terminal, but cycling onto a service the
-/// branch does not offer yet turns it on for the whole branch — so this stays
-/// admin-gated on [AppFeature.Settings], the same right the admin screen's
-/// master toggles need.
+/// branch does not offer yet turns it on for the whole branch — so this is
+/// admin-only, judged on the person at the desk ([ServiceModeDesk]).
 Future<void> cycleServiceMode() async {
   if (_ServiceModeHotkeyScopeState._switching) return;
   _ServiceModeHotkeyScopeState._switching = true;
   try {
-    final userId = ProxyService.box.getUserId();
-    if (userId == null) return;
-
-    final allowed = await ProxyService.strategy.isAdmin(
-      userId: userId,
-      appFeature: AppFeature.Settings,
-    );
-    if (!allowed) {
-      _toast(
-        FlipperL10n.current.serviceModeAdminOnly,
-        type: NotificationType.error,
-      );
+    final refusal = await serviceModeHotkeyRefusal();
+    if (refusal != null) {
+      _toast(switch (refusal) {
+        ServiceModeHotkeyRefusal.noDesk =>
+          FlipperL10n.current.serviceModeHotkeyOpenDesk,
+        ServiceModeHotkeyRefusal.signInFirst =>
+          FlipperL10n.current.serviceModeHotkeySignInFirst,
+        ServiceModeHotkeyRefusal.notAdmin =>
+          FlipperL10n.current.serviceModeAdminOnly,
+        ServiceModeHotkeyRefusal.promptOpen =>
+          FlipperL10n.current.serviceModeHotkeyPromptOpen,
+      }, type: NotificationType.error);
       return;
     }
 
     final target = nextServiceMode(activeServiceMode);
-    if (!await applyServiceMode(target)) {
+    if (!await serviceModeHotkeyApply(target)) {
       // The switch rolled itself back, so the device is still on the old
       // surface — navigating there would strand it on a mode it is not in.
       _toast(
@@ -113,7 +235,7 @@ Future<void> cycleServiceMode() async {
       );
       return;
     }
-    openServiceModeShell(target);
+    serviceModeHotkeyOpen(target);
     _toast(
       FlipperL10n.current.serviceModeSwitched(
         target.label,

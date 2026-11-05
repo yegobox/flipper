@@ -233,7 +233,19 @@ class _HotelModeHostState extends ConsumerState<HotelModeHost> {
 
     return ServiceModeHotkeyScope(
       child: ServiceModePhoneShellSync(
-        child: ServiceModeAccessGate(mode: ServiceMode.hotel, child: desk),
+        child: ServiceModeAccessGate(
+          mode: ServiceMode.hotel,
+          child: ServiceModeClerkDesk(
+            clerk: hotelModeProvider.select((s) => s.activeClerk),
+            locked: hotelModeProvider.select(
+              (s) =>
+                  s.screen == HotelScreen.lock ||
+                  s.screen == HotelScreen.starting,
+            ),
+            managerPrompt: hotelModeProvider.select((s) => s.showManagerModal),
+            child: desk,
+          ),
+        ),
       ),
     );
   }

@@ -7739,6 +7739,18 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
       'Umuyobozi wenyine ni we ushobora guhindura uburyo bwa serivisi bw\'iki gikoresho.';
 
   @override
+  String get serviceModeHotkeyOpenDesk =>
+      'Fungura POS, Akabari cyangwa Hoteli kugira ngo uhindure uburyo bwa serivisi bw\'iki gikoresho.';
+
+  @override
+  String get serviceModeHotkeyPromptOpen =>
+      'Banza urangize cyangwa uhagarike PIN y\'umuyobozi, hanyuma uhindure uburyo bwa serivisi.';
+
+  @override
+  String get serviceModeHotkeySignInFirst =>
+      'Banza winjire, hanyuma uhindure uburyo bwa serivisi.';
+
+  @override
   String serviceModeNoAccess(String mode) {
     return 'Nta burenganzira ufite bwo gukoresha $mode. Saba umuyobozi kubuguha mu micungire y\'abakoresha.';
   }
@@ -21353,6 +21365,54 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   String get floTeamSomeone => 'Mugenzi wawe';
 
   @override
+  String get floTeamSupport => 'Ubufasha';
+
+  @override
+  String get floTeamResolve => 'Emeza ko byakemutse';
+
+  @override
+  String get floTeamReopen => 'Ongera ufungure';
+
+  @override
+  String get floTeamResolved => 'Byakemutse';
+
+  @override
+  String get floTeamSupportReplyHint =>
+      'Ibisubizo wandika hano byoherezwa umukiriya.';
+
+  @override
+  String get floSupportTitle => 'Vugana n\'ubufasha';
+
+  @override
+  String get floSupportSubtitle => 'Ubufasha bwa Flipper bugusubiza hano.';
+
+  @override
+  String get floSupportEmpty =>
+      'Tubwire ikibazo wahuye na cyo. Turagusubiza hano.';
+
+  @override
+  String get floSupportHint => 'Andika ubutumwa bwawe';
+
+  @override
+  String get floSupportSend => 'Ohereza';
+
+  @override
+  String get floSupportResolved =>
+      'Ubufasha bwemeje ko iki kibazo cyakemutse. Ongera wandike niba ugikeneye ubufasha.';
+
+  @override
+  String get floSupportError =>
+      'Ntitwashoboye kugera ku bufasha. Reba interineti yawe wongere ugerageze.';
+
+  @override
+  String paymentSupportWhatsAppFailed(String number) {
+    return 'Ntibyashobotse gufungura WhatsApp. Andikira ubufasha bwa Flipper kuri +$number.';
+  }
+
+  @override
+  String get floSupportFallback => 'Koresha WhatsApp';
+
+  @override
   String get floTeamInviteFromStaff => 'Tumira abakozi bawe';
 
   @override
@@ -27969,4 +28029,17 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   @override
   String get localModeSyncOnElsewhereBody =>
       'Guhuza na cloud byafunguwe kuri ubu bucuruzi bivuye ku kindi gikoresho. Ongera winjire kugira ngo wohereze amakuru y\'iki gikoresho urangize.';
+
+  @override
+  String tenantMgmtNoAccountToEdit(String name) {
+    return '$name nta konti yo kwinjira afite yo guhindura. Mwongere nk\'umukoresha mushya kugira ngo ayibone.';
+  }
+
+  @override
+  String tenantMgmtNoLongerStaff(String name) {
+    return '$name ntakiri mu bakozi b\'ubu bucuruzi.';
+  }
+
+  @override
+  String get tenantMgmtPinOnly => 'PIN gusa';
 }

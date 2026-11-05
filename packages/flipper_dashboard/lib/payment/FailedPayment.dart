@@ -20,6 +20,7 @@ import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_dashboard/payment/payment_format.dart';
+import 'package:flipper_dashboard/payment/payment_support.dart';
 import 'package:flipper_dashboard/payment/payment_tokens.dart';
 import 'package:flipper_dashboard/payment/payment_typography.dart';
 import 'package:flipper_dashboard/payment/widgets/payment_widgets.dart';
@@ -1685,7 +1686,18 @@ class _FailedPaymentState extends State<FailedPayment>
   Widget _buildHelpSection() {
     return PaymentHelpCard(
       onTap: () {
-        // Handle contact support
+        final plan = _plan;
+        // The plan a retry would charge (the switch selection when it
+        // differs from the saved plan), the amount shown, and the error on
+        // screen, all read at the tap.
+        openPaymentSupport(
+          context,
+          plan: plan == null ? null : _buildEffectivePlanForRetry(),
+          amount: plan == null
+              ? null
+              : formatPaymentTotal(_totalDisplayAmount(plan)),
+          error: _errorMessage,
+        );
       },
     );
   }
