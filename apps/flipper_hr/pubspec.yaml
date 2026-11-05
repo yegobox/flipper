@@ -14,6 +14,9 @@ dependencies:
   cupertino_icons: ^1.0.8
   flutter_riverpod: ^3.0.3
   flipper_design_system: any
+  # The desktop rail is the POS rail's own widgets (widgets/pos_side_rail.dart)
+  # so the two apps cannot drift. Already reached through flipper_web.
+  flipper_dashboard: any
   # Auth is shared with Books: HR reuses flipper_web's PIN login, signup and
   # business/branch selection so one account works in both apps.
   flipper_web: any
@@ -28,8 +31,6 @@ dependencies:
   # Payslips as PDF, shared from the phone or printed from the browser.
   pdf: ^3.13.0
   printing: ^5.15.0
-  # The sidebar's expanded/collapsed choice outlives a page reload.
-  shared_preferences: ^2.5.3
   supabase_flutter: ^2.12.0
 
 dev_dependencies:

@@ -22,11 +22,11 @@ import 'package:stacked_services/stacked_services.dart';
 import 'providers/navigation_providers.dart';
 import 'package:flipper_routing/app.dialogs.dart';
 import 'package:flipper_dashboard/dashboard_shell.dart';
-import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
 import 'package:flipper_dashboard/theme/pos_tokens.dart';
 import 'package:flipper_dashboard/mfa_setup_view.dart';
 import 'package:flipper_dashboard/widgets/dashboard_quick_access_svgs.dart';
 import 'package:flipper_dashboard/widgets/admin_dashboard_svgs.dart';
+import 'package:flipper_dashboard/widgets/pos_side_rail.dart';
 import 'package:flipper_dashboard/features/stock_value/stock_value_report_desktop_screen.dart';
 import 'package:flipper_dashboard/features/transaction_reports/transaction_reports_desktop_screen.dart';
 import 'package:flipper_localize/flipper_localize.dart';
@@ -132,8 +132,8 @@ class _EnhancedSideMenuState extends ConsumerState<EnhancedSideMenu>
     // Groups render with a hairline divider between non-empty groups:
     //   sell · operations · reports · (bottom) end shift.
     final sellGroup = <Widget>[
-      _SideMenuItem(
-        iconBuilder: (c) => _coloredSideMenuSvg(_SideMenuSvgs.appGrid, c),
+      PosRailItem(
+        iconBuilder: (c) => posRailSvg(PosRailSvgs.appGrid, c),
         isSelected: selectedItem == 0,
         onTap: () {
           ref.read(selectedMenuItemProvider.notifier).state = 0;
@@ -148,8 +148,8 @@ class _EnhancedSideMenuState extends ConsumerState<EnhancedSideMenu>
       ),
       if (!ref.watch(isLocalModeProvider) &&
           signedInUserMayOpen(ref, AppFeature.Flo))
-        _SideMenuItem(
-          iconBuilder: (c) => _coloredSideMenuSvg(_SideMenuSvgs.aiChat, c),
+        PosRailItem(
+          iconBuilder: (c) => posRailSvg(PosRailSvgs.aiChat, c),
           isSelected: selectedItem == 1,
           onTap: () {
             ref.read(selectedMenuItemProvider.notifier).state = 1;
@@ -161,7 +161,7 @@ class _EnhancedSideMenuState extends ConsumerState<EnhancedSideMenu>
 
     final operationsGroup = <Widget>[
       if (showLeads)
-        _SideMenuItem(
+        PosRailItem(
           iconBuilder: (c) => SvgPicture.string(
             AdminDashboardSvgs.leadsUsersMultiple,
             width: PosTokens.iconMd,
@@ -176,11 +176,9 @@ class _EnhancedSideMenuState extends ConsumerState<EnhancedSideMenu>
           tooltip: context.flipperL10n.leads,
         ),
       if (isDesktop)
-        _SideMenuItem(
-          iconBuilder: (c) => _coloredSideMenuSvg(
-            DashboardQuickAccessSvgs.drawerAuthShieldIcon(),
-            c,
-          ),
+        PosRailItem(
+          iconBuilder: (c) =>
+              posRailSvg(DashboardQuickAccessSvgs.drawerAuthShieldIcon(), c),
           isSelected: false,
           onTap: () {
             showDialog<void>(
@@ -212,8 +210,8 @@ class _EnhancedSideMenuState extends ConsumerState<EnhancedSideMenu>
           tooltip: context.flipperL10n.sideMenuAuthenticator,
         ),
       if (showItems)
-        _SideMenuItem(
-          iconBuilder: (c) => _coloredSideMenuSvg(_SideMenuSvgs.inventory, c),
+        PosRailItem(
+          iconBuilder: (c) => posRailSvg(PosRailSvgs.inventory, c),
           isSelected: selectedItem == 2,
           onTap: () {
             ref.read(selectedMenuItemProvider.notifier).state = 2;
@@ -223,7 +221,7 @@ class _EnhancedSideMenuState extends ConsumerState<EnhancedSideMenu>
           tooltip: context.flipperL10n.items,
         ),
       if (showKds)
-        _SideMenuItem(
+        PosRailItem(
           iconBuilder: (c) => Icon(Icons.restaurant_menu, color: c),
           isSelected: selectedItem == 3,
           onTap: () {
@@ -234,9 +232,8 @@ class _EnhancedSideMenuState extends ConsumerState<EnhancedSideMenu>
           tooltip: context.flipperL10n.sideMenuKitchenDisplay,
         ),
       if (showStockRecount)
-        _SideMenuItem(
-          iconBuilder: (c) =>
-              _coloredSideMenuSvg(_SideMenuSvgs.stockRecount, c),
+        PosRailItem(
+          iconBuilder: (c) => posRailSvg(PosRailSvgs.stockRecount, c),
           isSelected: selectedItem == 6,
           onTap: () {
             ref.read(selectedMenuItemProvider.notifier).state = 6;
@@ -246,7 +243,7 @@ class _EnhancedSideMenuState extends ConsumerState<EnhancedSideMenu>
           tooltip: context.flipperL10n.sideMenuStockRecount,
         ),
       if (showDelegations)
-        _SideMenuItem(
+        PosRailItem(
           iconBuilder: (c) => Icon(Icons.print_outlined, color: c),
           isSelected: selectedItem == 7,
           onTap: () {
@@ -257,8 +254,8 @@ class _EnhancedSideMenuState extends ConsumerState<EnhancedSideMenu>
           tooltip: context.flipperL10n.sideMenuDelegations,
         ),
       if (showIncomingOrders)
-        _SideMenuItem(
-          iconBuilder: (c) => _coloredSideMenuSvg(_SideMenuSvgs.inboxImport, c),
+        PosRailItem(
+          iconBuilder: (c) => posRailSvg(PosRailSvgs.inboxImport, c),
           isSelected: selectedItem == 8,
           onTap: () {
             ref.read(selectedMenuItemProvider.notifier).state = 8;
@@ -268,7 +265,7 @@ class _EnhancedSideMenuState extends ConsumerState<EnhancedSideMenu>
           tooltip: context.flipperL10n.sideMenuIncomingOrders,
         ),
       if (showIncomingOrders)
-        _SideMenuItem(
+        PosRailItem(
           iconBuilder: (c) => Icon(Icons.swap_horiz, color: c),
           isSelected: selectedItem == 14,
           onTap: () {
@@ -279,8 +276,8 @@ class _EnhancedSideMenuState extends ConsumerState<EnhancedSideMenu>
           tooltip: context.flipperL10n.sideMenuTransfersReport,
         ),
       if (showProduction)
-        _SideMenuItem(
-          iconBuilder: (c) => _coloredSideMenuSvg(_SideMenuSvgs.production, c),
+        PosRailItem(
+          iconBuilder: (c) => posRailSvg(PosRailSvgs.production, c),
           isSelected: selectedItem == 9,
           onTap: () {
             ref.read(selectedMenuItemProvider.notifier).state = 9;
@@ -293,7 +290,7 @@ class _EnhancedSideMenuState extends ConsumerState<EnhancedSideMenu>
 
     final reportsGroup = <Widget>[
       if (showDailyReportFiles)
-        _SideMenuItem(
+        PosRailItem(
           iconBuilder: (c) => DashboardQuickAccessSvgs.assetIcon(
             DashboardQuickAccessSvgs.chart,
             size: PosTokens.iconMd,
@@ -307,14 +304,14 @@ class _EnhancedSideMenuState extends ConsumerState<EnhancedSideMenu>
           },
           tooltip: context.flipperL10n.dailyReports,
         ),
-      _SideMenuItem(
+      PosRailItem(
         key: const Key('transactions_desktop'),
         iconBuilder: (c) => Icon(Icons.receipt_long_outlined, color: c),
         isSelected: false,
         onTap: () => _openTransactionsReport(),
         tooltip: context.flipperL10n.sideMenuTransactions,
       ),
-      _SideMenuItem(
+      PosRailItem(
         key: const Key('analytics_desktop'),
         iconBuilder: (c) => Icon(Icons.insights_outlined, color: c),
         isSelected: false,
@@ -322,8 +319,8 @@ class _EnhancedSideMenuState extends ConsumerState<EnhancedSideMenu>
         tooltip: context.flipperL10n.sideMenuAnalytics,
       ),
       if (showShiftHistory)
-        _SideMenuItem(
-          iconBuilder: (c) => _coloredSideMenuSvg(_SideMenuSvgs.history, c),
+        PosRailItem(
+          iconBuilder: (c) => posRailSvg(PosRailSvgs.history, c),
           isSelected: selectedItem == 5,
           onTap: () {
             ref.read(selectedMenuItemProvider.notifier).state = 5;
@@ -333,7 +330,7 @@ class _EnhancedSideMenuState extends ConsumerState<EnhancedSideMenu>
           tooltip: context.flipperL10n.sideMenuShiftHistory,
         ),
       if (showAgentCommission)
-        _SideMenuItem(
+        PosRailItem(
           iconBuilder: (c) => Icon(Icons.support_agent, color: c),
           isSelected: selectedItem == 12,
           onTap: () {
@@ -345,66 +342,38 @@ class _EnhancedSideMenuState extends ConsumerState<EnhancedSideMenu>
         ),
     ];
 
-    final endShiftItem = _SideMenuItem(
+    final endShiftItem = PosRailItem(
       key: const Key('eod_desktop'),
-      iconBuilder: (c) => _coloredSideMenuSvg(_SideMenuSvgs.logout, c),
+      iconBuilder: (c) => posRailSvg(PosRailSvgs.logout, c),
       isSelected: selectedItem == 4,
       onTap: () => _openEndOfShiftMenu(),
       tooltip: context.flipperL10n.sideMenuEndShift,
       isLogout: true,
     );
 
-    final groups = [
-      sellGroup,
-      operationsGroup,
-      reportsGroup,
-    ].where((g) => g.isNotEmpty).toList();
-    final menuItems = <Widget>[
-      for (var i = 0; i < groups.length; i++) ...[
-        if (i > 0) const _SideMenuDivider(),
-        ...groups[i],
-      ],
-    ];
-
     // Width, border, and header logo live in [DashboardLayout] so the logo shares
     // one row with [UnifiedTopBar] / FLIPPER.
-    return Column(
-      children: [
-        Expanded(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(vertical: 6),
-            child: Column(
-              children: [
-                for (final item in menuItems)
-                  item is _SideMenuDivider
-                      ? item
-                      : SizedBox(height: _SideMenuItem.slotHeight, child: item),
-              ],
-            ),
-          ),
-        ),
-        const _SideMenuDivider(),
-        SizedBox(height: _SideMenuItem.slotHeight, child: endShiftItem),
-        SizedBox(
-          height: _SideMenuItem.slotHeight,
-          child: _SideMenuItem(
-            iconBuilder: (c) => _coloredSideMenuSvg(_SideMenuSvgs.appGrid, c),
-            isSelected: false,
-            onTap: () {
-              showAppChoiceDialog(
-                dialogService: _dialogService,
-                variant: DialogType.appChoice,
-                title: context.flipperL10n.chooseYourDefaultApp,
-              );
-            },
-            tooltip: context.flipperL10n.chooseDefaultApp,
-          ),
-        ),
-        const Padding(
-          padding: EdgeInsets.fromLTRB(0, 6, 0, 12),
-          child: ActiveBranch(),
+    return PosRailColumn(
+      groups: [sellGroup, operationsGroup, reportsGroup],
+      bottom: [
+        endShiftItem,
+        PosRailItem(
+          iconBuilder: (c) => posRailSvg(PosRailSvgs.appGrid, c),
+          isSelected: false,
+          onTap: () {
+            showAppChoiceDialog(
+              dialogService: _dialogService,
+              variant: DialogType.appChoice,
+              title: context.flipperL10n.chooseYourDefaultApp,
+            );
+          },
+          tooltip: context.flipperL10n.chooseDefaultApp,
         ),
       ],
+      footer: const Padding(
+        padding: EdgeInsets.fromLTRB(0, 6, 0, 12),
+        child: ActiveBranch(),
+      ),
     );
   }
 
@@ -433,189 +402,6 @@ class _EnhancedSideMenuState extends ConsumerState<EnhancedSideMenu>
       MaterialPageRoute<void>(
         builder: (_) => const StockValueReportDesktopScreen(),
         fullscreenDialog: true,
-      ),
-    );
-  }
-}
-
-/// Hairline between rail groups.
-class _SideMenuDivider extends StatelessWidget {
-  const _SideMenuDivider();
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Center(
-        child: Container(width: 24, height: 1, color: PosTokens.line),
-      ),
-    );
-  }
-}
-
-class _SideMenuSvgs {
-  _SideMenuSvgs._();
-
-  static const inventory =
-      '''<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <path d="M12 2L2 7l10 5 10-5-10-5z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"/>
-  <path d="M2 17l10 5 10-5" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"/>
-  <path d="M2 12l10 5 10-5" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"/>
-</svg>''';
-
-  static const stockRecount =
-      '''<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-  <rect x="9" y="3" width="6" height="4" rx="1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M9 12h1M12 12h1M15 12h1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-  <path d="M9 15.5h1M12 15.5h1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-  <path d="M14.5 14.5l1.5 1.5-1.5 1.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-</svg>''';
-
-  static const inboxImport =
-      '''<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect x="2" y="4" width="20" height="16" rx="2" stroke="currentColor" stroke-width="1.7"/>
-  <path d="M2 9h20" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
-  <path d="M12 13v4M10 15l2 2 2-2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
-</svg>''';
-
-  static const history =
-      '''<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <path d="M20.5 12A8.5 8.5 0 1112 3.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
-  <path d="M12 3.5V7M9 5h6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
-  <path d="M12 8v4l3 2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
-</svg>''';
-
-  static const logout =
-      '''<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <path d="M9 4H5a1 1 0 00-1 1v14a1 1 0 001 1h4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
-  <path d="M15 16l4-4-4-4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M9 12h10" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
-</svg>''';
-
-  static const appGrid =
-      '''<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <circle cx="5" cy="5" r="1.5" fill="currentColor"/>
-  <circle cx="12" cy="5" r="1.5" fill="currentColor"/>
-  <circle cx="19" cy="5" r="1.5" fill="currentColor"/>
-  <circle cx="5" cy="12" r="1.5" fill="currentColor"/>
-  <circle cx="12" cy="12" r="1.5" fill="currentColor"/>
-  <circle cx="19" cy="12" r="1.5" fill="currentColor"/>
-  <circle cx="5" cy="19" r="1.5" fill="currentColor"/>
-  <circle cx="12" cy="19" r="1.5" fill="currentColor"/>
-  <circle cx="19" cy="19" r="1.5" fill="currentColor"/>
-</svg>''';
-
-  static const aiChat =
-      '''<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-  <circle cx="8.5" cy="11" r="1" fill="currentColor"/>
-  <circle cx="12" cy="11" r="1" fill="currentColor"/>
-  <circle cx="15.5" cy="11" r="1" fill="currentColor"/>
-</svg>''';
-
-  static const production =
-      '''<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect x="2" y="7" width="20" height="13" rx="2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M2 10h20" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
-  <path d="M6 4h12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
-  <rect x="5" y="14" width="3" height="2" rx="0.5" fill="currentColor"/>
-  <rect x="10" y="14" width="3" height="2" rx="0.5" fill="currentColor"/>
-  <rect x="15" y="14" width="4" height="2" rx="0.5" fill="currentColor"/>
-</svg>''';
-}
-
-Widget _coloredSideMenuSvg(String svg, Color color) {
-  return SvgPicture.string(
-    svg,
-    width: PosTokens.iconMd,
-    height: PosTokens.iconMd,
-    colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-  );
-}
-
-class _SideMenuItem extends StatelessWidget {
-  final Widget Function(Color iconColor) iconBuilder;
-  final bool isSelected;
-  final VoidCallback onTap;
-  final String tooltip;
-  final bool isLogout;
-
-  /// Row height per rail entry (40px hit target + breathing room).
-  static const double slotHeight = 44;
-  static const double hitSize = PosTokens.controlHeight;
-
-  const _SideMenuItem({
-    super.key,
-    required this.iconBuilder,
-    required this.isSelected,
-    required this.onTap,
-    required this.tooltip,
-    this.isLogout = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final accent = PosLayoutBreakpoints.posAccentBlue;
-    final color = isLogout
-        ? PosTokens.loss
-        : (isSelected ? accent : PosTokens.ink3);
-
-    final content = Center(
-      child: AnimatedContainer(
-        duration: PosTokens.hoverTransition,
-        curve: Curves.ease,
-        width: hitSize,
-        height: hitSize,
-        decoration: BoxDecoration(
-          color: isSelected
-              ? (isLogout ? PosTokens.lossTint : PosTokens.blueTint)
-              : null,
-          borderRadius: BorderRadius.circular(PosTokens.radiusSm),
-        ),
-        child: Center(
-          child: IconTheme.merge(
-            data: IconThemeData(size: PosTokens.iconMd, color: color),
-            child: iconBuilder(color),
-          ),
-        ),
-      ),
-    );
-
-    return Tooltip(
-      message: tooltip,
-      waitDuration: const Duration(milliseconds: 400),
-      child: Semantics(
-        button: true,
-        selected: isSelected,
-        label: tooltip,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(PosTokens.radiusSm),
-          hoverColor: isLogout ? PosTokens.lossTint : PosTokens.surface2,
-          focusColor: isLogout ? PosTokens.lossTint : PosTokens.blueTint,
-          child: Stack(
-            children: [
-              Positioned.fill(child: content),
-              if (isSelected)
-                Positioned(
-                  left: 0,
-                  top: (slotHeight - 20) / 2,
-                  child: Container(
-                    width: 3,
-                    height: 20,
-                    decoration: BoxDecoration(
-                      color: isLogout ? PosTokens.loss : accent,
-                      borderRadius: const BorderRadius.only(
-                        topRight: Radius.circular(3),
-                        bottomRight: Radius.circular(3),
-                      ),
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        ),
       ),
     );
   }

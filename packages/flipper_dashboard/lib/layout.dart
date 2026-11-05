@@ -24,6 +24,7 @@ import 'package:flipper_dashboard/logout/pos_user_switch_lock_screen.dart';
 import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
 import 'package:flipper_dashboard/theme/pos_tokens.dart';
 import 'package:flipper_dashboard/widgets/pos_handoff_icon.dart';
+import 'package:flipper_dashboard/widgets/pos_side_rail.dart';
 import 'package:flipper_dashboard/widgets/pos_system_status_strip.dart';
 import 'package:flipper_dashboard/widgets/unified_top_bar.dart';
 import 'package:flipper_services/proxy.dart';
@@ -129,21 +130,7 @@ class DashboardLayout extends HookConsumerWidget {
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            SizedBox(
-                              width: PosLayoutBreakpoints.sideMenuWidth,
-                              child: Container(
-                                decoration: const BoxDecoration(
-                                  color: PosTokens.posRail,
-                                  border: Border(
-                                    right: BorderSide(
-                                      color: PosTokens.line,
-                                      width: 1,
-                                    ),
-                                  ),
-                                ),
-                                child: const EnhancedSideMenu(),
-                              ),
-                            ),
+                            const PosRailFrame(child: EnhancedSideMenu()),
                             Expanded(child: selectedPageWidget),
                           ],
                         ),
