@@ -26,6 +26,7 @@ import 'package:talker/talker.dart';
 import 'package:uuid/uuid.dart';
 
 part 'hotel_mixin_mapping.dart';
+part 'hotel_mixin_stay_changes.dart';
 
 mixin CapellaHotelMixin implements HotelInterface {
   DittoService get dittoService;
@@ -442,6 +443,12 @@ mixin CapellaHotelMixin implements HotelInterface {
   }
 
   @override
+  Future<List<HotelStay>> hotelCheckedOutStays({
+    required String branchId,
+    required DateTime since,
+  }) => _hotelCheckedOutStays(this, branchId: branchId, since: since);
+
+  @override
   Future<void> saveHotelStay(HotelStay stay) async {
     final ditto = dittoHandle;
     if (ditto == null) throw StateError('Ditto not initialized');
@@ -451,6 +458,18 @@ mixin CapellaHotelMixin implements HotelInterface {
       arguments: {'doc': doc},
     );
   }
+
+  @override
+  Future<HotelStay> saveHotelAdvance({
+    required String stayId,
+    required HotelAdvance advance,
+  }) => _hotelSaveAdvance(this, stayId: stayId, advance: advance);
+
+  @override
+  Future<HotelStay> changeHotelStayDeparture({
+    required HotelStay stay,
+    required DateTime checkOutAt,
+  }) => _hotelChangeDeparture(this, stay: stay, checkOutAt: checkOutAt);
 
   @override
   Future<HotelStay> checkInGuest({
@@ -1176,6 +1195,9 @@ mixin CapellaHotelMixin implements HotelInterface {
     required String clerkTenantId,
     required String clerkName,
   }) async {
+    // Nights already on the folio are never billed twice, on any branch.
+    if (await _hotelTopUpBilledNights(this, stay)) return;
+
     // The room's own RRA item first: accommodation is a tourism-tax service,
     // and billing it against some other branch-level product would invoice it
     // as an ordinary good at VAT. The branch fallback only exists for rooms
@@ -1446,8 +1468,17 @@ mixin CapellaHotelMixin implements HotelInterface {
     });
     cartLineDocCache.forget(transaction.id);
 
+    await releaseHotelStay(stay: stay);
+    return settled;
+  }
+
+  @override
+  Future<void> releaseHotelStay({required HotelStay stay}) async {
     await saveHotelStay(
-      stay.copyWith(status: HotelStayStatus.checkedOut, checkedOutAt: now),
+      stay.copyWith(
+        status: HotelStayStatus.checkedOut,
+        checkedOutAt: DateTime.now().toUtc(),
+      ),
     );
 
     // Released to housekeeping, not straight back to sellable.
@@ -1456,7 +1487,5 @@ mixin CapellaHotelMixin implements HotelInterface {
       branchId: stay.branchId,
       housekeeping: HotelHousekeeping.dirty,
     );
-
-    return settled;
   }
 }

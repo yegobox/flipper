@@ -599,6 +599,7 @@ class CapellaSync extends AiStrategyImpl
     bool skipPersonalGoalAutoSweep = false,
     bool skipTransactionPersist = false,
     bool skipCashMutation = false,
+    bool updateShift = true,
   }) async {
     if (transaction == null) {
       throw Exception('transaction is null');
@@ -664,7 +665,7 @@ class CapellaSync extends AiStrategyImpl
 
       // Update shift totals in Ditto after [transaction.subTotal] is known.
       Future<void> updateOpenShiftTotals() async {
-        if (userId == null) return;
+        if (userId == null || !updateShift) return;
         try {
           final shiftOps = ShiftOperations();
           final currentShift = await shiftOps.getCurrentShift(userId: userId);
@@ -890,6 +891,7 @@ class CapellaSync extends AiStrategyImpl
     String? note,
     bool skipPersonalGoalAutoSweep = false,
     DateTime? occurredAt,
+    bool updateShift = true,
   }) async {
     // Resolve the variant before minting the pending row: failing after
     // [manageTransaction] left an orphan PENDING movement that the next one
@@ -972,6 +974,7 @@ class CapellaSync extends AiStrategyImpl
       preloadedLineItems: preloaded,
       isUtilityCashbookMovement: true,
       skipPersonalGoalAutoSweep: skipPersonalGoalAutoSweep,
+      updateShift: updateShift,
     );
     final movementReceipt = isIncome
         ? TransactionType.cashIn

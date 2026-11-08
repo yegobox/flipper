@@ -50,7 +50,7 @@ abstract final class HotelQuotationActions {
 
     return HotelQuotationPdf.build(
       quotation: quotation,
-      currency: ProxyService.box.defaultCurrency(),
+      currency: documentCurrency,
       issuer: issuer,
       // Settings come from the synchronous cache hydrated at login; the photo
       // is keyed out off the UI isolate and cached (warmUp primes it).
@@ -59,6 +59,29 @@ abstract final class HotelQuotationActions {
       ),
     );
   }
+
+  /// Who a hotel document is from, for documents other than quotations (the
+  /// guest folio): the letterhead [warmUp] prepared, else the local copies.
+  /// Offline and instant, like download and print.
+  static Future<HotelQuotationIssuer> documentIssuer(String? branchId) async {
+    final branch = (branchId ?? '').isNotEmpty ? branchId : _currentBranchId;
+    final issuer =
+        _cachedIssuer(branch) ??
+        await _resolveIssuer(branch, _lastFetchedNames);
+    unawaited(warmUp());
+    return issuer;
+  }
+
+  /// The currency hotel documents are priced in.
+  static String get documentCurrency => ProxyService.box.defaultCurrency();
+
+  /// The branch stamp, if the branch has one.
+  static Future<DocumentStamp?> documentStamp() =>
+      DocumentStamp.resolve(BranchDocumentSettingsService.current());
+
+  /// Shared with the folio document so every hotel PDF reaches the same save
+  /// dialog, print dialog and share sheet.
+  static PdfPresentationService get presenter => _presenter;
 
   /// Prepares the letterhead and stamp so the next document renders at once.
   ///

@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flipper_dashboard/features/bar_mode/bar_credit.dart';
 import 'package:flipper_dashboard/features/hotel_mode/hotel_desk_actions.dart';
+import 'package:flipper_dashboard/features/hotel_mode/services/hotel_folio_document_actions.dart';
 import 'package:flipper_dashboard/features/hotel_mode/hotel_mode_settings.dart';
 import 'package:flipper_dashboard/features/hotel_mode/providers/hotel_mode_providers.dart';
 import 'package:flipper_dashboard/features/hotel_mode/theme/hotel_layout_breakpoints.dart';
 import 'package:flipper_dashboard/features/hotel_mode/theme/hotel_tokens.dart';
+import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_advance_sheet.dart';
 import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_folio_widgets.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/models/hotel_stay.dart';
@@ -70,7 +73,12 @@ class _HotelFolioBody extends ConsumerWidget {
                     child: ListView(
                       padding: EdgeInsets.fromLTRB(pad, pad, pad, pad + 12),
                       children: [
-                        HotelFolioHeaderCard(stay: stay, compact: compact),
+                        HotelFolioHeaderCard(
+                          stay: stay,
+                          compact: compact,
+                          onChangeDeparture: () =>
+                              _changeDeparture(context, ref),
+                        ),
                         const SizedBox(height: 18),
                         Row(
                           children: [
@@ -92,9 +100,21 @@ class _HotelFolioBody extends ConsumerWidget {
                               ),
                             ),
                             const Spacer(),
-                            _roomChargeButton(context, ref),
+                            if (!compact) ...[
+                              _advanceButton(context, ref),
+                              _roomChargeButton(context, ref),
+                            ],
                           ],
                         ),
+                        // A phone has no room for both beside the title.
+                        if (compact)
+                          Wrap(
+                            alignment: WrapAlignment.end,
+                            children: [
+                              _advanceButton(context, ref),
+                              _roomChargeButton(context, ref),
+                            ],
+                          ),
                         const SizedBox(height: 10),
                         if (lines.isEmpty)
                           _emptyCharges(l10n)
@@ -124,7 +144,10 @@ class _HotelFolioBody extends ConsumerWidget {
                             const SizedBox(height: 8),
                           ],
                         const SizedBox(height: 14),
-                        HotelFolioTotals(lines: lines),
+                        HotelFolioTotals(
+                          lines: lines,
+                          advance: stay.advanceHeld,
+                        ),
                         if (!compact) ...[
                           const SizedBox(height: 18),
                           _actions(context, ref, lines),
@@ -203,6 +226,10 @@ class _HotelFolioBody extends ConsumerWidget {
               ],
             ),
           ),
+          const Spacer(),
+          // The guest's bill, any time before checkout: what they ask for
+          // before paying, and what a company paying for a stay wants.
+          HotelFolioDocumentMenu(stay: stay),
         ],
       ),
     );
@@ -338,6 +365,61 @@ class _HotelFolioBody extends ConsumerWidget {
     );
   }
 
+  Widget _advanceButton(BuildContext context, WidgetRef ref) {
+    return TextButton.icon(
+      key: const ValueKey('hotel-record-advance'),
+      onPressed: () => _recordAdvance(context, ref),
+      icon: const Icon(Icons.savings_outlined, size: 17),
+      label: Text(
+        context.flipperL10n.hotelAdvance,
+        style: GoogleFonts.outfit(fontSize: 13.5, fontWeight: FontWeight.w700),
+      ),
+    );
+  }
+
+  Future<void> _recordAdvance(BuildContext context, WidgetRef ref) async {
+    final clerk = ref.read(hotelModeProvider).activeClerk;
+    if (clerk == null) return;
+    final draft = await HotelAdvanceSheet.show(
+      context,
+      guestName: stay.guestName,
+    );
+    if (draft == null) return;
+    await HotelDeskActions.recordAdvance(
+      ref: ref,
+      stay: stay,
+      clerk: clerk,
+      amount: draft.amount,
+      paymentMethod: draft.paymentMethod,
+    );
+  }
+
+  /// Extend (or shorten) the stay. The room-night line follows, so the guest
+  /// still leaves with one invoice for every night.
+  Future<void> _changeDeparture(BuildContext context, WidgetRef ref) async {
+    final arrival = stay.checkInAt.toLocal();
+    final current = stay.expectedCheckOutAt.toLocal();
+    final first = DateTime(arrival.year, arrival.month, arrival.day + 1);
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: current.isBefore(first) ? first : current,
+      firstDate: first,
+      lastDate: first.add(const Duration(days: 365)),
+      helpText: context.flipperL10n.hotelChangeDeparture,
+    );
+    if (picked == null) return;
+    await HotelDeskActions.changeDeparture(
+      ref: ref,
+      stay: stay,
+      checkOutAt: DateTime(
+        picked.year,
+        picked.month,
+        picked.day,
+        HotelModeSettings.checkOutHour,
+      ),
+    );
+  }
+
   Future<void> _postRoomCharge(BuildContext context, WidgetRef ref) async {
     final clerk = ref.read(hotelModeProvider).activeClerk;
     if (clerk == null) return;
@@ -353,7 +435,36 @@ class _HotelFolioBody extends ConsumerWidget {
     WidgetRef ref,
     List<TransactionItem> lines,
   ) async {
-    if (lines.isNotEmpty) {
+    if (stay.hasHeldAdvance) {
+      final refund = await showDialog<bool>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: Text(
+            dialogContext.flipperL10n.hotelCancelStayQuestion(stay.guestName),
+            style: GoogleFonts.outfit(fontWeight: FontWeight.w700),
+          ),
+          content: Text(
+            dialogContext.flipperL10n.hotelCancelRefundsAdvance(
+              hotelMoney(stay.advanceHeld.round()),
+            ),
+            style: GoogleFonts.outfit(),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: Text(dialogContext.flipperL10n.hotelKeepStay),
+            ),
+            TextButton(
+              key: const ValueKey('hotel-cancel-refund'),
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              child: Text(dialogContext.flipperL10n.hotelRefundAndCancel),
+            ),
+          ],
+        ),
+      );
+      if (refund != true) return;
+    } else if (lines.isNotEmpty) {
       final confirmed = await showDialog<bool>(
         context: context,
         builder: (dialogContext) => AlertDialog(
@@ -443,8 +554,19 @@ class _HotelFolioBody extends ConsumerWidget {
     }
 
     if (!context.mounted) return;
-    final result = await HotelCheckOutDialog.show(context, total: amountDue);
+    final result = await HotelCheckOutDialog.show(
+      context,
+      total: amountDue,
+      advance: stay.advanceHeld,
+      allowCredit: true,
+    );
     if (result == null) return;
+
+    if (result.paymentType == HotelCheckOutDialog.creditTender) {
+      if (!context.mounted) return;
+      await _checkOutOnCredit(context, ref, folio);
+      return;
+    }
 
     // Re-checked after the dialog: it is awaited, so another tap could have
     // started settling this same folio while it was open.
@@ -462,6 +584,32 @@ class _HotelFolioBody extends ConsumerWidget {
     } catch (e) {
       notifier.endCheckOut();
       notifier.showToast(FlipperL10n.current.hotelCheckoutFailed('$e'));
+    }
+  }
+
+  /// The guest leaves owing the balance: who, and by when, then the folio
+  /// becomes a loan collected from the Credit list.
+  Future<void> _checkOutOnCredit(
+    BuildContext context,
+    WidgetRef ref,
+    ITransaction folio,
+  ) async {
+    final notifier = ref.read(hotelModeProvider.notifier);
+    final terms = await BarCredit.pickTerms(context, mobile: compact);
+    if (terms == null) return;
+    if (ref.read(hotelModeProvider).checkOutInFlight) return;
+    notifier.beginCheckOut();
+    try {
+      await HotelDeskActions.checkOutOnCredit(
+        ref: ref,
+        stay: stay,
+        folio: folio,
+        terms: terms,
+      );
+    } catch (e) {
+      notifier.endCheckOut();
+      final message = e is StateError ? e.message : '$e';
+      notifier.showToast(FlipperL10n.current.hotelCheckoutFailed(message));
     }
   }
 }

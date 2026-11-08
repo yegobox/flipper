@@ -8913,6 +8913,172 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   }
 
   @override
+  String get hotelNavBilling => 'Facturation';
+
+  @override
+  String get hotelAdvance => 'Acompte';
+
+  @override
+  String get hotelAdvances => 'Acomptes';
+
+  @override
+  String get hotelRecordAdvance => 'Enregistrer un acompte';
+
+  @override
+  String hotelRecordAdvanceAmount(String amount) {
+    return 'Enregistrer $amount';
+  }
+
+  @override
+  String hotelAdvanceHelp(String guest) {
+    return 'Argent versé par $guest avant la facturation du séjour. Il entre dans la caisse aujourd\'hui et sera déduit au départ.';
+  }
+
+  @override
+  String get hotelAdvanceAmount => 'Montant (RWF)';
+
+  @override
+  String get hotelAdvancePaidNowOptional =>
+      'Acompte versé maintenant (facultatif, RWF)';
+
+  @override
+  String get hotelTakeAdvance => 'Prendre un acompte';
+
+  @override
+  String hotelAdvanceRecorded(String amount, String guest) {
+    return 'Acompte de $amount enregistré pour $guest';
+  }
+
+  @override
+  String hotelAdvanceFailed(String error) {
+    return 'Acompte non enregistré : $error';
+  }
+
+  @override
+  String hotelAdvanceNotApplied(String guest) {
+    return 'Départ effectué, mais l\'acompte de $guest n\'a pas été déduit. Déduisez-le depuis Facturation.';
+  }
+
+  @override
+  String hotelAdvanceAppliedToast(String guest) {
+    return 'Acompte de $guest déduit';
+  }
+
+  @override
+  String get hotelApplyAdvance => 'Déduire l\'acompte';
+
+  @override
+  String get hotelAdvancePaid => 'Acompte versé';
+
+  @override
+  String get hotelAdvanceToRefund => 'À rembourser';
+
+  @override
+  String get hotelBalanceDue => 'Reste à payer';
+
+  @override
+  String get hotelAdvanceHeld => 'En attente';
+
+  @override
+  String get hotelAdvanceApplied => 'Déduit';
+
+  @override
+  String get hotelAdvanceRefunded => 'Remboursé';
+
+  @override
+  String hotelCancelRefundsAdvance(String amount) {
+    return 'Annuler rembourse l\'acompte de $amount au client. Le remboursement est enregistré dans la caisse.';
+  }
+
+  @override
+  String get hotelRefundAndCancel => 'Rembourser et annuler';
+
+  @override
+  String get hotelChangeDeparture => 'Modifier le départ';
+
+  @override
+  String hotelDepartureChanged(String room, String nights) {
+    return 'Chambre $room : départ modifié, $nights facturées';
+  }
+
+  @override
+  String get hotelPaymentCredit => 'Crédit';
+
+  @override
+  String get hotelPutOnCredit => 'Mettre à crédit';
+
+  @override
+  String hotelCheckedOutOnCredit(String room, String name, String amount) {
+    return 'Chambre $room libérée. $name doit $amount.';
+  }
+
+  @override
+  String get hotelCreditEmptyFolio =>
+      'Ce folio n\'a aucune charge à mettre à crédit.';
+
+  @override
+  String get hotelCreditNothingOwed =>
+      'L\'acompte couvre ce folio : faites un départ normal.';
+
+  @override
+  String get hotelCreditSection => 'Crédit (dû)';
+
+  @override
+  String get hotelNoCredit => 'Personne ne doit d\'argent.';
+
+  @override
+  String get hotelCheckedOutSection => 'Départs — 30 derniers jours';
+
+  @override
+  String get hotelNoCheckouts => 'Aucun départ ces 30 derniers jours.';
+
+  @override
+  String hotelCreditDue(String date) {
+    return 'échéance $date';
+  }
+
+  @override
+  String get hotelCollect => 'Encaisser';
+
+  @override
+  String get hotelFolioProformaTitle => 'FOLIO PRO FORMA';
+
+  @override
+  String get hotelFolioInvoiceTitle => 'FACTURE';
+
+  @override
+  String get hotelFolioNotTaxInvoice =>
+      'Pro forma : ce n\'est pas une facture fiscale. Le reçu fiscal est émis au départ.';
+
+  @override
+  String get hotelFolioThanks => 'Merci de votre séjour.';
+
+  @override
+  String hotelFolioReceiptNumber(String number) {
+    return 'Reçu n° $number';
+  }
+
+  @override
+  String get hotelFolioBalanceOwed => 'Solde dû';
+
+  @override
+  String get hotelFolioPaidInFull => 'Payé intégralement';
+
+  @override
+  String get hotelPreparingFolio => 'Préparation du folio…';
+
+  @override
+  String get hotelFolioDocument => 'Folio';
+
+  @override
+  String hotelFolioShareSubject(String room, String guest) {
+    return 'Folio chambre $room — $guest';
+  }
+
+  @override
+  String get hotelShare => 'Partager';
+
+  @override
   String get hotelFrontDeskSharedRegister => 'Réception · Caisse partagée';
 
   @override

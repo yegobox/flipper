@@ -71,6 +71,14 @@ abstract class HotelInterface {
 
   Future<HotelStay?> hotelStayById({required String id});
 
+  /// Stays checked out since [since], newest first — for reprinting a
+  /// guest's invoice after they have gone. Bounded by what this device holds
+  /// (the stays sync keeps every status for the branch).
+  Future<List<HotelStay>> hotelCheckedOutStays({
+    required String branchId,
+    required DateTime since,
+  });
+
   Future<void> saveHotelStay(HotelStay stay);
 
   /// Open a folio and put [guestName] in [room].
@@ -130,6 +138,29 @@ abstract class HotelInterface {
     required HotelStay stay,
     required String clerkTenantId,
     required String clerkName,
+  });
+
+  /// Moves [stay]'s departure to [checkOutAt] (extend or shorten).
+  ///
+  /// Re-checks availability for the new range against every other stay in
+  /// the room and throws [StateError] on a clash. When the folio already bills
+  /// the room nights, that line is resized to the new night count, so the
+  /// guest still leaves with one invoice for the whole stay.
+  Future<HotelStay> changeHotelStayDeparture({
+    required HotelStay stay,
+    required DateTime checkOutAt,
+  });
+
+  // --- Advances (money paid before the stay is invoiced) ---
+
+  /// Adds [advance] to the stay, or replaces the one with the same id.
+  ///
+  /// Reads the stay fresh and writes only its `advances` field, so a desk
+  /// holding an older copy of the stay can never undo another advance.
+  /// Throws [StateError] if the stay does not exist.
+  Future<HotelStay> saveHotelAdvance({
+    required String stayId,
+    required HotelAdvance advance,
   });
 
   // --- Charging other outlets to a room ---
@@ -239,6 +270,12 @@ abstract class HotelInterface {
   });
 
   Future<void> refreshFolioSubTotal({required String transactionId});
+
+  /// Close [stay] and drop its room to `dirty`, leaving the folio as it is.
+  ///
+  /// [checkOutGuest] ends with this. A folio put on credit uses it alone: the
+  /// folio has become a loan, but the guest has still left the room.
+  Future<void> releaseHotelStay({required HotelStay stay});
 
   /// Settle the folio, close the stay and drop the room to `dirty`.
   ///

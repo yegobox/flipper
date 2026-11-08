@@ -2358,6 +2358,7 @@ class CoreSync extends AiStrategyImpl
     bool skipPersonalGoalAutoSweep = false,
     bool skipTransactionPersist = false,
     bool skipCashMutation = false,
+    bool updateShift = true,
   }) async {
     if (transaction != null) {
       if (note != null) {
@@ -2434,7 +2435,9 @@ class CoreSync extends AiStrategyImpl
           transaction.customerTin = customerTin;
           transaction.customerChangeDue =
               cashReceived - (transaction.subTotal ?? 0);
-          final currentShift = await getCurrentShift(userId: userId);
+          final currentShift = updateShift
+              ? await getCurrentShift(userId: userId)
+              : null;
           if (currentShift != null) {
             num saleAmount = transaction.subTotal ?? 0.0;
             if (!isIncome) {
@@ -2573,6 +2576,7 @@ class CoreSync extends AiStrategyImpl
 
     /// Ignored by the legacy path; see [DatabaseSyncInterface.completeCashMovement].
     DateTime? occurredAt,
+    bool updateShift = true,
   }) async {
     final pending = await manageTransaction(
       branchId: branchId,
@@ -2642,6 +2646,7 @@ class CoreSync extends AiStrategyImpl
       preloadedLineItems: preloaded,
       isUtilityCashbookMovement: true,
       skipPersonalGoalAutoSweep: skipPersonalGoalAutoSweep,
+      updateShift: updateShift,
     );
     // Cash book: use receiptType so Transaction Reports Type column is Cash In / Out (not NS).
     txn.receiptType = isIncome

@@ -21,10 +21,14 @@ class HotelFolioHeaderCard extends StatelessWidget {
     super.key,
     required this.stay,
     this.compact = false,
+    this.onChangeDeparture,
   });
 
   final HotelStay stay;
   final bool compact;
+
+  /// When set, the departure date is tappable: extend or shorten the stay.
+  final VoidCallback? onChangeDeparture;
 
   @override
   Widget build(BuildContext context) {
@@ -96,34 +100,69 @@ class HotelFolioHeaderCard extends StatelessWidget {
                 ),
               ),
               Expanded(
-                child: _stat(
-                  l10n.hotelDeparture,
-                  DateFormat(
-                    'd MMM, HH:mm',
-                  ).format(stay.expectedCheckOutAt.toLocal()),
-                ),
+                child: onChangeDeparture == null
+                    ? _stat(
+                        l10n.hotelDeparture,
+                        DateFormat(
+                          'd MMM, HH:mm',
+                        ).format(stay.expectedCheckOutAt.toLocal()),
+                      )
+                    : InkWell(
+                        key: const ValueKey('hotel-change-departure'),
+                        onTap: onChangeDeparture,
+                        borderRadius: BorderRadius.circular(
+                          HotelTokens.radiusMd,
+                        ),
+                        // No Tooltip: under DevicePreview it trips a layout
+                        // assert in this app (see the quotation menu).
+                        child: Semantics(
+                          button: true,
+                          label: l10n.hotelChangeDeparture,
+                          child: _stat(
+                            l10n.hotelDeparture,
+                            DateFormat(
+                              'd MMM, HH:mm',
+                            ).format(stay.expectedCheckOutAt.toLocal()),
+                            trailing: Icons.edit_calendar_outlined,
+                          ),
+                        ),
+                      ),
               ),
               Expanded(
                 child: _stat(l10n.hotelRate, hotelMoney(stay.nightlyRate)),
               ),
             ],
           ),
+          if (stay.advances.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            HotelAdvanceList(advances: stay.advances),
+          ],
         ],
       ),
     );
   }
 
-  Widget _stat(String label, String value) {
+  Widget _stat(String label, String value, {IconData? trailing}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: GoogleFonts.outfit(
-            fontSize: 11,
-            fontWeight: FontWeight.w600,
-            color: HotelTokens.ink3,
-          ),
+        Row(
+          children: [
+            Flexible(
+              child: Text(
+                label,
+                style: GoogleFonts.outfit(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: HotelTokens.ink3,
+                ),
+              ),
+            ),
+            if (trailing != null) ...[
+              const SizedBox(width: 4),
+              Icon(trailing, size: 13, color: HotelTokens.blue),
+            ],
+          ],
         ),
         const SizedBox(height: 2),
         Text(
@@ -138,6 +177,94 @@ class HotelFolioHeaderCard extends StatelessWidget {
         ),
       ],
     );
+  }
+}
+
+/// Every advance on a stay: when, how, how much, and what became of it.
+class HotelAdvanceList extends StatelessWidget {
+  const HotelAdvanceList({super.key, required this.advances});
+
+  final List<HotelAdvance> advances;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          l10n.hotelAdvances,
+          style: GoogleFonts.outfit(
+            fontSize: 11,
+            fontWeight: FontWeight.w600,
+            color: HotelTokens.ink3,
+          ),
+        ),
+        for (final advance in advances)
+          Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    '${DateFormat('d MMM').format(advance.paidAt.toLocal())}'
+                    ' · ${hotelAdvanceMethodLabel(l10n, advance.paymentMethod)}'
+                    ' · ${hotelAdvanceStatusLabel(l10n, advance.status)}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.outfit(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w500,
+                      color: advance.isHeld
+                          ? HotelTokens.ink2
+                          : HotelTokens.ink3,
+                    ),
+                  ),
+                ),
+                Text(
+                  hotelMoney(advance.amount.round()),
+                  style: GoogleFonts.jetBrainsMono(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w700,
+                    color: advance.isHeld ? HotelTokens.ink1 : HotelTokens.ink3,
+                    decoration: advance.status == HotelAdvanceStatus.refunded
+                        ? TextDecoration.lineThrough
+                        : null,
+                  ),
+                ),
+              ],
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+/// Localized label of a tender wire value.
+String hotelAdvanceMethodLabel(FlipperAppLocalizations l10n, String method) {
+  switch (method) {
+    case 'Cash':
+      return l10n.cash;
+    case kMobileMoney:
+      return l10n.paymentMobileMoney;
+    case 'DEBIT&CREDIT CARD':
+      return l10n.hotelPaymentCard;
+    default:
+      return method;
+  }
+}
+
+String hotelAdvanceStatusLabel(
+  FlipperAppLocalizations l10n,
+  HotelAdvanceStatus status,
+) {
+  switch (status) {
+    case HotelAdvanceStatus.held:
+      return l10n.hotelAdvanceHeld;
+    case HotelAdvanceStatus.applied:
+      return l10n.hotelAdvanceApplied;
+    case HotelAdvanceStatus.refunded:
+      return l10n.hotelAdvanceRefunded;
   }
 }
 
@@ -306,11 +433,15 @@ class HotelFolioLineTile extends StatelessWidget {
   }
 }
 
-/// Subtotal / VAT / total block.
+/// Subtotal / VAT / total block, then advance and balance when the guest has
+/// paid ahead.
 class HotelFolioTotals extends StatelessWidget {
-  const HotelFolioTotals({super.key, required this.lines});
+  const HotelFolioTotals({super.key, required this.lines, this.advance = 0});
 
   final List<TransactionItem> lines;
+
+  /// Booking advances still held on the stay.
+  final double advance;
 
   @override
   Widget build(BuildContext context) {
@@ -337,6 +468,10 @@ class HotelFolioTotals extends StatelessWidget {
             child: Divider(height: 1, color: HotelTokens.line),
           ),
           _row(l10n.hotelFolioTotal, breakdown.total, emphasis: true),
+          if (advance > 0) ...[
+            const SizedBox(height: 10),
+            HotelAdvanceBalanceRows(total: breakdown.total, advance: advance),
+          ],
         ],
       ),
     );
@@ -367,6 +502,69 @@ class HotelFolioTotals extends StatelessWidget {
   }
 }
 
+/// "Advance paid −X" and "Balance due Y" (or "To refund" when the advance
+/// exceeds the folio). Shared by the folio totals and the checkout dialog, so
+/// both read the same figures.
+class HotelAdvanceBalanceRows extends StatelessWidget {
+  const HotelAdvanceBalanceRows({
+    super.key,
+    required this.total,
+    required this.advance,
+  });
+
+  final double total;
+  final double advance;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
+    final plan = HotelAdvanceSettlement.of(total: total, held: advance);
+    return Column(
+      children: [
+        _line(l10n.hotelAdvancePaid, '−${hotelMoney(advance.round())}'),
+        const SizedBox(height: 6),
+        if (plan.surplus > 0)
+          _line(
+            l10n.hotelAdvanceToRefund,
+            hotelMoney(plan.surplus.round()),
+            emphasis: true,
+          )
+        else
+          _line(
+            l10n.hotelBalanceDue,
+            hotelMoney(plan.balance.round()),
+            emphasis: true,
+          ),
+      ],
+    );
+  }
+
+  Widget _line(String label, String value, {bool emphasis = false}) {
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            label,
+            style: GoogleFonts.outfit(
+              fontSize: emphasis ? 14 : 13,
+              fontWeight: emphasis ? FontWeight.w800 : FontWeight.w600,
+              color: emphasis ? HotelTokens.ink1 : HotelTokens.ink3,
+            ),
+          ),
+        ),
+        Text(
+          value,
+          style: GoogleFonts.jetBrainsMono(
+            fontSize: emphasis ? 15 : 13.5,
+            fontWeight: FontWeight.w700,
+            color: HotelTokens.ink1,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 /// What the desk chose on the checkout dialog.
 class HotelCheckOutResult {
   const HotelCheckOutResult({
@@ -380,16 +578,31 @@ class HotelCheckOutResult {
   final double changeDue;
 }
 
-/// Payment capture at checkout. Cash requires a tender that covers the folio;
-/// the non-cash rails settle at exactly the folio total.
+/// Payment capture at checkout. Cash requires a tender that covers what is
+/// due; the non-cash rails settle at exactly that amount.
+///
+/// What is due is the folio less any [advance] the guest already paid. With
+/// [allowCredit] a fourth rail puts the balance on credit (ideni) instead.
 class HotelCheckOutDialog extends StatefulWidget {
   const HotelCheckOutDialog({
     super.key,
     required this.total,
     this.mobile = false,
+    this.advance = 0,
+    this.allowCredit = false,
   });
 
   final double total;
+
+  /// Paid before checkout (booking advances still held). Deducted, never
+  /// collected twice.
+  final double advance;
+
+  /// Offer the Credit rail.
+  final bool allowCredit;
+
+  /// Wire value the dialog returns when the balance goes on credit.
+  static const creditTender = 'CREDIT';
 
   /// Drawn as a phone bottom sheet: grab bar, top-only corners, the bar's
   /// blue selection rather than the desk's black one, and payment labels that
@@ -401,6 +614,8 @@ class HotelCheckOutDialog extends StatefulWidget {
   static Future<HotelCheckOutResult?> show(
     BuildContext context, {
     required double total,
+    double advance = 0,
+    bool allowCredit = false,
   }) {
     final mobile =
         HotelLayoutScope.maybeMobileOf(context) ??
@@ -417,7 +632,12 @@ class HotelCheckOutDialog extends StatefulWidget {
           padding: EdgeInsets.only(
             bottom: MediaQuery.viewInsetsOf(sheetContext).bottom,
           ),
-          child: HotelCheckOutDialog(total: total, mobile: true),
+          child: HotelCheckOutDialog(
+            total: total,
+            mobile: true,
+            advance: advance,
+            allowCredit: allowCredit,
+          ),
         ),
       );
     }
@@ -427,7 +647,11 @@ class HotelCheckOutDialog extends StatefulWidget {
         backgroundColor: Colors.transparent,
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 420),
-          child: HotelCheckOutDialog(total: total),
+          child: HotelCheckOutDialog(
+            total: total,
+            advance: advance,
+            allowCredit: allowCredit,
+          ),
         ),
       ),
     );
@@ -440,7 +664,13 @@ class HotelCheckOutDialog extends StatefulWidget {
 class _HotelCheckOutDialogState extends State<HotelCheckOutDialog> {
   /// Wire values: [_paymentType] is handed to the checkout as-is, so only the
   /// label in [_paymentLabel] is localized.
-  static const _paymentTypes = ['Cash', kMobileMoney, 'DEBIT&CREDIT CARD'];
+  static const _baseTypes = ['Cash', kMobileMoney, 'DEBIT&CREDIT CARD'];
+
+  /// Credit only when it is offered and there is a balance to owe.
+  List<String> get _paymentTypes => [
+    ..._baseTypes,
+    if (widget.allowCredit && _due > 0) HotelCheckOutDialog.creditTender,
+  ];
 
   String _paymentLabel(FlipperAppLocalizations l10n, String type) {
     switch (type) {
@@ -450,6 +680,8 @@ class _HotelCheckOutDialogState extends State<HotelCheckOutDialog> {
         return l10n.paymentMobileMoney;
       case 'DEBIT&CREDIT CARD':
         return l10n.hotelPaymentCard;
+      case HotelCheckOutDialog.creditTender:
+        return l10n.hotelPaymentCredit;
       default:
         return type;
     }
@@ -461,9 +693,7 @@ class _HotelCheckOutDialogState extends State<HotelCheckOutDialog> {
   @override
   void initState() {
     super.initState();
-    _tenderController = TextEditingController(
-      text: widget.total.round().toString(),
-    );
+    _tenderController = TextEditingController(text: _due.round().toString());
   }
 
   @override
@@ -472,16 +702,27 @@ class _HotelCheckOutDialogState extends State<HotelCheckOutDialog> {
     super.dispose();
   }
 
+  /// What the guest still owes once the advance is deducted.
+  double get _due => HotelAdvanceSettlement.of(
+    total: widget.total,
+    held: widget.advance,
+  ).balance;
+
+  bool get _onCredit => _paymentType == HotelCheckOutDialog.creditTender;
+
   double get _tender => _paymentType == 'Cash'
       ? (double.tryParse(_tenderController.text.replaceAll(',', '')) ?? 0)
-      : widget.total;
+      : _onCredit
+      ? 0
+      : _due;
 
   double get _change {
-    final change = _tender - widget.total;
+    if (_onCredit) return 0;
+    final change = _tender - _due;
     return change < 0 ? 0 : change;
   }
 
-  bool get _canSettle => _tender + 0.5 >= widget.total;
+  bool get _canSettle => _onCredit || _tender + 0.5 >= _due;
 
   /// Shrinks rather than wraps on the desk, where three rails share a
   /// 420-wide dialog. On a phone the label wraps and every rail grows to the
@@ -597,6 +838,13 @@ class _HotelCheckOutDialogState extends State<HotelCheckOutDialog> {
                 color: HotelTokens.ink3,
               ),
             ),
+            if (widget.advance > 0) ...[
+              const SizedBox(height: 10),
+              HotelAdvanceBalanceRows(
+                total: widget.total,
+                advance: widget.advance,
+              ),
+            ],
             const SizedBox(height: 16),
             _paymentRails(l10n),
             if (_paymentType == 'Cash') ...[
@@ -727,7 +975,9 @@ class _HotelCheckOutDialogState extends State<HotelCheckOutDialog> {
                           ),
                         ),
                         child: Text(
-                          l10n.hotelSettleAndRelease,
+                          _onCredit
+                              ? l10n.hotelPutOnCredit
+                              : l10n.hotelSettleAndRelease,
                           style: GoogleFonts.outfit(
                             fontSize: 15.5,
                             fontWeight: FontWeight.w800,

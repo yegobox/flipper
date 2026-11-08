@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flipper_dashboard/features/hotel_mode/hotel_desk_actions.dart';
 import 'package:flipper_dashboard/features/hotel_mode/providers/hotel_mode_providers.dart';
+import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_advance_sheet.dart';
 import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_check_in_sheet.dart';
 import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_housekeeping_sheet.dart';
 import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_shared_widgets.dart';
@@ -26,8 +27,25 @@ Future<void> hotelHandleRoomTap({
     // A reservation has no folio yet, so arriving is a check-in, not a resume.
     if (existing.status == HotelStayStatus.reserved) {
       if (clerk == null) return;
-      final confirmed = await _confirmArrival(context, existing);
-      if (!confirmed) return;
+      final choice = await _confirmArrival(context, existing);
+      if (choice == _ArrivalChoice.advance) {
+        // A deposit on a booking that has not arrived: the room stays held.
+        if (!context.mounted) return;
+        final draft = await HotelAdvanceSheet.show(
+          context,
+          guestName: existing.guestName,
+        );
+        if (draft == null) return;
+        await HotelDeskActions.recordAdvance(
+          ref: ref,
+          stay: existing,
+          clerk: clerk,
+          amount: draft.amount,
+          paymentMethod: draft.paymentMethod,
+        );
+        return;
+      }
+      if (choice != _ArrivalChoice.checkIn) return;
       await HotelDeskActions.checkInReservation(
         ref: ref,
         room: room,
@@ -105,9 +123,12 @@ Future<void> hotelShowHousekeepingMenu({
   await HotelDeskActions.setHousekeeping(room: room, housekeeping: choice);
 }
 
-/// Arriving a reservation opens a billable folio, so it asks first.
-Future<bool> _confirmArrival(BuildContext context, HotelStay stay) async {
-  final confirmed = await showDialog<bool>(
+enum _ArrivalChoice { checkIn, advance }
+
+/// Arriving a reservation opens a billable folio, so it asks first. The desk
+/// can also take an advance on the booking from here without checking in.
+Future<_ArrivalChoice?> _confirmArrival(BuildContext context, HotelStay stay) {
+  return showDialog<_ArrivalChoice>(
     context: context,
     builder: (dialogContext) => AlertDialog(
       title: Text(
@@ -120,15 +141,21 @@ Future<bool> _confirmArrival(BuildContext context, HotelStay stay) async {
       ),
       actions: [
         TextButton(
-          onPressed: () => Navigator.of(dialogContext).pop(false),
+          onPressed: () => Navigator.of(dialogContext).pop(),
           child: Text(dialogContext.flipperL10n.hotelNotYet),
         ),
         TextButton(
-          onPressed: () => Navigator.of(dialogContext).pop(true),
+          key: const ValueKey('hotel-arrival-advance'),
+          onPressed: () =>
+              Navigator.of(dialogContext).pop(_ArrivalChoice.advance),
+          child: Text(dialogContext.flipperL10n.hotelTakeAdvance),
+        ),
+        TextButton(
+          onPressed: () =>
+              Navigator.of(dialogContext).pop(_ArrivalChoice.checkIn),
           child: Text(dialogContext.flipperL10n.hotelCheckIn),
         ),
       ],
     ),
   );
-  return confirmed ?? false;
 }

@@ -14788,6 +14788,282 @@ abstract class FlipperAppLocalizations {
   /// **'Checkout failed: {error}'**
   String hotelCheckoutFailed(String error);
 
+  /// No description provided for @hotelNavBilling.
+  ///
+  /// In en, this message translates to:
+  /// **'Billing'**
+  String get hotelNavBilling;
+
+  /// No description provided for @hotelAdvance.
+  ///
+  /// In en, this message translates to:
+  /// **'Advance'**
+  String get hotelAdvance;
+
+  /// No description provided for @hotelAdvances.
+  ///
+  /// In en, this message translates to:
+  /// **'Advances'**
+  String get hotelAdvances;
+
+  /// No description provided for @hotelRecordAdvance.
+  ///
+  /// In en, this message translates to:
+  /// **'Record advance'**
+  String get hotelRecordAdvance;
+
+  /// No description provided for @hotelRecordAdvanceAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Record {amount}'**
+  String hotelRecordAdvanceAmount(String amount);
+
+  /// No description provided for @hotelAdvanceHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Money {guest} pays before the stay is invoiced. It counts in the Cash Book today and is deducted at checkout.'**
+  String hotelAdvanceHelp(String guest);
+
+  /// No description provided for @hotelAdvanceAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount (RWF)'**
+  String get hotelAdvanceAmount;
+
+  /// No description provided for @hotelAdvancePaidNowOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Advance paid now (optional, RWF)'**
+  String get hotelAdvancePaidNowOptional;
+
+  /// No description provided for @hotelTakeAdvance.
+  ///
+  /// In en, this message translates to:
+  /// **'Take advance'**
+  String get hotelTakeAdvance;
+
+  /// No description provided for @hotelAdvanceRecorded.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} advance recorded for {guest}'**
+  String hotelAdvanceRecorded(String amount, String guest);
+
+  /// No description provided for @hotelAdvanceFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Advance not recorded: {error}'**
+  String hotelAdvanceFailed(String error);
+
+  /// No description provided for @hotelAdvanceNotApplied.
+  ///
+  /// In en, this message translates to:
+  /// **'Checked out, but {guest}\'s advance was not applied. Apply it from Billing.'**
+  String hotelAdvanceNotApplied(String guest);
+
+  /// No description provided for @hotelAdvanceAppliedToast.
+  ///
+  /// In en, this message translates to:
+  /// **'{guest}\'s advance applied'**
+  String hotelAdvanceAppliedToast(String guest);
+
+  /// No description provided for @hotelApplyAdvance.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply advance'**
+  String get hotelApplyAdvance;
+
+  /// No description provided for @hotelAdvancePaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Advance paid'**
+  String get hotelAdvancePaid;
+
+  /// No description provided for @hotelAdvanceToRefund.
+  ///
+  /// In en, this message translates to:
+  /// **'To refund'**
+  String get hotelAdvanceToRefund;
+
+  /// No description provided for @hotelBalanceDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Balance due'**
+  String get hotelBalanceDue;
+
+  /// No description provided for @hotelAdvanceHeld.
+  ///
+  /// In en, this message translates to:
+  /// **'Held'**
+  String get hotelAdvanceHeld;
+
+  /// No description provided for @hotelAdvanceApplied.
+  ///
+  /// In en, this message translates to:
+  /// **'Applied'**
+  String get hotelAdvanceApplied;
+
+  /// No description provided for @hotelAdvanceRefunded.
+  ///
+  /// In en, this message translates to:
+  /// **'Refunded'**
+  String get hotelAdvanceRefunded;
+
+  /// No description provided for @hotelCancelRefundsAdvance.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelling hands the {amount} advance back to the guest. It is recorded in the Cash Book as a refund.'**
+  String hotelCancelRefundsAdvance(String amount);
+
+  /// No description provided for @hotelRefundAndCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Refund and cancel'**
+  String get hotelRefundAndCancel;
+
+  /// No description provided for @hotelChangeDeparture.
+  ///
+  /// In en, this message translates to:
+  /// **'Change departure'**
+  String get hotelChangeDeparture;
+
+  /// No description provided for @hotelDepartureChanged.
+  ///
+  /// In en, this message translates to:
+  /// **'Room {room}: departure moved, {nights} billed'**
+  String hotelDepartureChanged(String room, String nights);
+
+  /// No description provided for @hotelPaymentCredit.
+  ///
+  /// In en, this message translates to:
+  /// **'Credit'**
+  String get hotelPaymentCredit;
+
+  /// No description provided for @hotelPutOnCredit.
+  ///
+  /// In en, this message translates to:
+  /// **'Put on credit'**
+  String get hotelPutOnCredit;
+
+  /// No description provided for @hotelCheckedOutOnCredit.
+  ///
+  /// In en, this message translates to:
+  /// **'Room {room} checked out. {name} owes {amount}.'**
+  String hotelCheckedOutOnCredit(String room, String name, String amount);
+
+  /// No description provided for @hotelCreditEmptyFolio.
+  ///
+  /// In en, this message translates to:
+  /// **'This folio has no charges to put on credit.'**
+  String get hotelCreditEmptyFolio;
+
+  /// No description provided for @hotelCreditNothingOwed.
+  ///
+  /// In en, this message translates to:
+  /// **'The advance covers this folio: check out normally.'**
+  String get hotelCreditNothingOwed;
+
+  /// No description provided for @hotelCreditSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Credit (owed)'**
+  String get hotelCreditSection;
+
+  /// No description provided for @hotelNoCredit.
+  ///
+  /// In en, this message translates to:
+  /// **'Nobody owes money.'**
+  String get hotelNoCredit;
+
+  /// No description provided for @hotelCheckedOutSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Checked out — last 30 days'**
+  String get hotelCheckedOutSection;
+
+  /// No description provided for @hotelNoCheckouts.
+  ///
+  /// In en, this message translates to:
+  /// **'No guests checked out in the last 30 days.'**
+  String get hotelNoCheckouts;
+
+  /// No description provided for @hotelCreditDue.
+  ///
+  /// In en, this message translates to:
+  /// **'due {date}'**
+  String hotelCreditDue(String date);
+
+  /// No description provided for @hotelCollect.
+  ///
+  /// In en, this message translates to:
+  /// **'Collect'**
+  String get hotelCollect;
+
+  /// No description provided for @hotelFolioProformaTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'PRO-FORMA FOLIO'**
+  String get hotelFolioProformaTitle;
+
+  /// No description provided for @hotelFolioInvoiceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'INVOICE'**
+  String get hotelFolioInvoiceTitle;
+
+  /// No description provided for @hotelFolioNotTaxInvoice.
+  ///
+  /// In en, this message translates to:
+  /// **'Pro-forma: not a tax invoice. The fiscal receipt is issued at checkout.'**
+  String get hotelFolioNotTaxInvoice;
+
+  /// No description provided for @hotelFolioThanks.
+  ///
+  /// In en, this message translates to:
+  /// **'Thank you for staying with us.'**
+  String get hotelFolioThanks;
+
+  /// No description provided for @hotelFolioReceiptNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Receipt no. {number}'**
+  String hotelFolioReceiptNumber(String number);
+
+  /// No description provided for @hotelFolioBalanceOwed.
+  ///
+  /// In en, this message translates to:
+  /// **'Balance owed'**
+  String get hotelFolioBalanceOwed;
+
+  /// No description provided for @hotelFolioPaidInFull.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid in full'**
+  String get hotelFolioPaidInFull;
+
+  /// No description provided for @hotelPreparingFolio.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing folio…'**
+  String get hotelPreparingFolio;
+
+  /// No description provided for @hotelFolioDocument.
+  ///
+  /// In en, this message translates to:
+  /// **'Folio'**
+  String get hotelFolioDocument;
+
+  /// No description provided for @hotelFolioShareSubject.
+  ///
+  /// In en, this message translates to:
+  /// **'Room {room} folio — {guest}'**
+  String hotelFolioShareSubject(String room, String guest);
+
+  /// No description provided for @hotelShare.
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get hotelShare;
+
   /// No description provided for @hotelFrontDeskSharedRegister.
   ///
   /// In en, this message translates to:

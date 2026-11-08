@@ -35,6 +35,121 @@ HotelStayStatus hotelStayStatusFromString(String? raw) {
   }
 }
 
+/// Where an advance stands.
+///
+/// `held` until checkout or cancellation; then `applied` to the folio, or
+/// `refunded` to the guest. Nothing is ever deleted, so the desk can always see
+/// what a guest paid and what became of it.
+enum HotelAdvanceStatus { held, applied, refunded }
+
+HotelAdvanceStatus hotelAdvanceStatusFromString(String? raw) {
+  switch (raw?.trim()) {
+    case 'applied':
+      return HotelAdvanceStatus.applied;
+    case 'refunded':
+      return HotelAdvanceStatus.refunded;
+    default:
+      return HotelAdvanceStatus.held;
+  }
+}
+
+/// Money a guest paid towards a stay before it was invoiced — a booking
+/// deposit, or a part payment during a long stay.
+///
+/// It is recorded on the day it is paid as a Cash Book "Booking advance" Cash
+/// In ([cashMovementId]), so the drawer reconciles that day. It is not revenue:
+/// the stay is invoiced once, in full, at checkout, where the advance is
+/// applied and only the balance is collected.
+class HotelAdvance {
+  const HotelAdvance({
+    required this.id,
+    required this.amount,
+    required this.paymentMethod,
+    required this.paidAt,
+    this.status = HotelAdvanceStatus.held,
+    this.clerkTenantId,
+    this.clerkName,
+    this.cashMovementId,
+    this.settlementMovementId,
+  });
+
+  final String id;
+  final double amount;
+
+  /// Wire value of the tender (`Cash`, `MOBILE MONEY`, `DEBIT&CREDIT CARD`).
+  final String paymentMethod;
+  final DateTime paidAt;
+  final HotelAdvanceStatus status;
+  final String? clerkTenantId;
+  final String? clerkName;
+
+  /// The "Booking advance" Cash In that received the money.
+  final String? cashMovementId;
+
+  /// The Cash Out that applied it at checkout or refunded it. Set once that
+  /// movement is written, so a retried checkout never writes a second one.
+  final String? settlementMovementId;
+
+  bool get isHeld => status == HotelAdvanceStatus.held;
+
+  HotelAdvance copyWith({
+    HotelAdvanceStatus? status,
+    String? cashMovementId,
+    String? settlementMovementId,
+  }) {
+    return HotelAdvance(
+      id: id,
+      amount: amount,
+      paymentMethod: paymentMethod,
+      paidAt: paidAt,
+      status: status ?? this.status,
+      clerkTenantId: clerkTenantId,
+      clerkName: clerkName,
+      cashMovementId: cashMovementId ?? this.cashMovementId,
+      settlementMovementId: settlementMovementId ?? this.settlementMovementId,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'amount': amount,
+    'paymentMethod': paymentMethod,
+    'paidAt': paidAt.toUtc().toIso8601String(),
+    'status': status.name,
+    if (clerkTenantId != null) 'clerkTenantId': clerkTenantId,
+    if (clerkName != null) 'clerkName': clerkName,
+    if (cashMovementId != null) 'cashMovementId': cashMovementId,
+    if (settlementMovementId != null)
+      'settlementMovementId': settlementMovementId,
+  };
+
+  /// Null for an entry too damaged to trust (no id or no positive amount):
+  /// skipping it beats inventing money the guest never paid.
+  static HotelAdvance? fromJson(Object? raw) {
+    if (raw is! Map) return null;
+    final id = raw['id']?.toString().trim() ?? '';
+    final amountRaw = raw['amount'];
+    final amount = amountRaw is num
+        ? amountRaw.toDouble()
+        : double.tryParse(amountRaw?.toString() ?? '') ?? 0;
+    if (id.isEmpty || amount <= 0) return null;
+    final paidAt =
+        DateTime.tryParse(raw['paidAt']?.toString() ?? '') ??
+        DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
+    return HotelAdvance(
+      id: id,
+      amount: amount,
+      paymentMethod: (raw['paymentMethod'] ?? 'Cash').toString(),
+      paidAt: paidAt,
+      status: hotelAdvanceStatusFromString(raw['status']?.toString()),
+      clerkTenantId: raw['clerkTenantId']?.toString(),
+      clerkName: raw['clerkName']?.toString(),
+      cashMovementId: raw['cashMovementId']?.toString(),
+      settlementMovementId: raw['settlementMovementId']?.toString(),
+    );
+  }
+}
+
 /// A guest's stay in a room (Ditto `hotel_stays` collection).
 ///
 /// The stay is the hotel domain object; the money lives on a PARKED
@@ -64,6 +179,7 @@ class HotelStay {
     this.note,
     this.createdAt,
     this.updatedAt,
+    this.advances = const [],
   });
 
   final String id;
@@ -101,6 +217,16 @@ class HotelStay {
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
+  /// Every advance paid towards this stay, whatever became of it.
+  final List<HotelAdvance> advances;
+
+  /// Advances still held — what checkout deducts from the folio.
+  double get advanceHeld => advances
+      .where((a) => a.isHeld)
+      .fold<double>(0, (sum, a) => sum + a.amount);
+
+  bool get hasHeldAdvance => advances.any((a) => a.isHeld);
+
   /// A reservation holds no folio until the guest arrives, so the billing
   /// transaction is only created at check-in.
   bool get hasFolio => transactionId.isNotEmpty;
@@ -136,6 +262,7 @@ class HotelStay {
     String? note,
     DateTime? createdAt,
     DateTime? updatedAt,
+    List<HotelAdvance>? advances,
   }) {
     return HotelStay(
       id: id ?? this.id,
@@ -158,6 +285,7 @@ class HotelStay {
       note: note ?? this.note,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      advances: advances ?? this.advances,
     );
   }
 
@@ -189,8 +317,17 @@ class HotelStay {
       if (note != null) 'note': note,
       if (createdAt != null) 'createdAt': createdAt!.toUtc().toIso8601String(),
       if (updatedAt != null) 'updatedAt': updatedAt!.toUtc().toIso8601String(),
+      // [advances] is deliberately absent: the upsert leaves omitted fields
+      // untouched, so a save from a stay read before an advance was taken
+      // (checkout, an edit, an older build) can never wipe it. Advances are
+      // written on their own, from a fresh read — see [advancesJson].
     };
   }
+
+  /// The `advances` field, written by its own UPDATE (never by [toJson]).
+  List<Map<String, dynamic>> advancesJson() => [
+    for (final a in advances) a.toJson(),
+  ];
 
   static HotelStay fromJson(Map<String, dynamic> raw) {
     int toInt(dynamic v, {int fallback = 0}) {
@@ -236,6 +373,11 @@ class HotelStay {
       note: raw['note']?.toString(),
       createdAt: toDate(raw['createdAt']),
       updatedAt: toDate(raw['updatedAt']),
+      advances: [
+        if (raw['advances'] is List)
+          for (final entry in raw['advances'] as List)
+            ?HotelAdvance.fromJson(entry),
+      ],
     );
   }
 }

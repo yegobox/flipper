@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flipper_dashboard/features/hotel_mode/hotel_mode_settings.dart';
 import 'package:flipper_dashboard/features/hotel_mode/services/hotel_quotation_actions.dart';
 import 'package:flipper_dashboard/features/hotel_mode/providers/hotel_mode_providers.dart';
+import 'package:flipper_dashboard/features/hotel_mode/screens/hotel_billing_screen.dart';
 import 'package:flipper_dashboard/features/hotel_mode/screens/hotel_folio_screen.dart';
 import 'package:flipper_dashboard/features/hotel_mode/screens/hotel_calendar_screen.dart';
 import 'package:flipper_dashboard/features/hotel_mode/screens/hotel_dashboard_screen.dart';
@@ -184,6 +185,7 @@ class _HotelModeHostState extends ConsumerState<HotelModeHost> {
             HotelScreen.calendar => const HotelCalendarScreen(),
             HotelScreen.quotes => const HotelQuotationsScreen(),
             HotelScreen.folio => const HotelFolioScreen(),
+            HotelScreen.billing => const HotelBillingScreen(),
           };
 
           final stack = HotelLayoutScope(

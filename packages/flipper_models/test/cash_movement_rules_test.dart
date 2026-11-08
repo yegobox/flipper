@@ -105,4 +105,24 @@ void main() {
       expect(classify(categoryName: ' Rent ')['transactionType'], 'Rent');
     });
   });
+
+  group('isBookingAdvanceMovement', () {
+    bool adv(String? type, String? receipt) =>
+        isBookingAdvanceMovement(transactionType: type, receiptType: receipt);
+
+    test('matches the three hotel advance movements, any case', () {
+      expect(adv(kBookingAdvance, 'Cash In'), isTrue);
+      expect(adv(kBookingAdvanceApplied, 'Cash Out'), isTrue);
+      expect(adv(' booking advance refunded ', 'Cash Out'), isTrue);
+    });
+
+    test('ignores the wrong direction, other categories and sales', () {
+      expect(adv(kBookingAdvance, 'Cash Out'), isFalse);
+      expect(adv(kBookingAdvanceApplied, 'Cash In'), isFalse);
+      expect(adv('Owner deposit', 'Cash In'), isFalse);
+      expect(adv('Rent', 'Cash Out'), isFalse);
+      expect(adv(kBookingAdvance, 'NS'), isFalse);
+      expect(adv(null, null), isFalse);
+    });
+  });
 }

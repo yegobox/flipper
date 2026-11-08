@@ -26,7 +26,18 @@ import 'package:supabase_models/brick/models/transactionItem.model.dart';
 /// PIN until branch settings have hydrated, and showing the lock before that
 /// makes a security gate flash up and then dismiss itself, which reads as the
 /// desk letting anyone in.
-enum HotelScreen { starting, lock, dashboard, rooms, calendar, quotes, folio }
+enum HotelScreen {
+  starting,
+  lock,
+  dashboard,
+  rooms,
+  calendar,
+  quotes,
+  folio,
+
+  /// Credit to collect and invoices to reprint, once guests have left.
+  billing,
+}
 
 /// The screen actually drawn for [screen].
 ///
@@ -124,18 +135,18 @@ class HotelModeNotifier extends Notifier<HotelModeState> {
         return;
       }
     });
-    // Only the room name is taken from the stream: the folio updates the
-    // stay optimistically, and a lagging stream copy must not undo that.
+    // The folio updates the stay optimistically, and a lagging stream copy
+    // must not undo that — but an advance or a new departure saved on another
+    // terminal must still reach this one. See hotelStayWithLiveDetails.
     ref.listen(hotelStaysProvider, (_, next) {
       final active = state.activeStay;
       final stays = next.value;
       if (active == null || stays == null) return;
       for (final live in stays) {
         if (live.id != active.id) continue;
-        if (live.roomName != active.roomName) {
-          state = state.copyWith(
-            activeStay: active.copyWith(roomName: live.roomName),
-          );
+        final merged = hotelStayWithLiveDetails(active, live);
+        if (!identical(merged, active)) {
+          state = state.copyWith(activeStay: merged);
         }
         return;
       }
@@ -263,6 +274,13 @@ class HotelModeNotifier extends Notifier<HotelModeState> {
       clearFolio: folio == null,
       screen: HotelScreen.folio,
     );
+  }
+
+  /// Replaces the open stay with [stay] after the desk saved it (an advance,
+  /// a new departure). Ignored when another stay is open by then.
+  void updateActiveStay(HotelStay stay) {
+    if (state.activeStay?.id != stay.id) return;
+    state = state.copyWith(activeStay: stay);
   }
 
   void bindFolio(ITransaction folio) {
@@ -535,3 +553,17 @@ bool hotelTenantIsAdmin(Tenant tenant) {
       return (ink: HotelTokens.blockedInk, tint: HotelTokens.blockedTint);
   }
 }
+
+/// Guests who left in the last 30 days, newest first — the Billing screen's
+/// reprint list. Re-read each time the screen opens (auto-disposed).
+final hotelCheckedOutStaysProvider =
+    FutureProvider.autoDispose<List<HotelStay>>((ref) {
+      // Re-read when this terminal checks a guest out while the list is open.
+      ref.watch(hotelStaysProvider);
+      final branchId = ProxyService.box.getBranchId();
+      if (branchId == null) return Future.value(const <HotelStay>[]);
+      return ProxyService.getStrategy(Strategy.capella).hotelCheckedOutStays(
+        branchId: branchId,
+        since: DateTime.now().subtract(const Duration(days: 30)),
+      );
+    });

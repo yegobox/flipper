@@ -56,3 +56,36 @@ Map<String, Object?> cashMovementClassification({
     'receiptType': receiptType,
   };
 }
+
+/// Cash Book categories Hotel Mode stamps on the movements around a guest's
+/// booking advance. Fixed strings, never a user category: the data-connector
+/// routes them to 2400 Customer Deposits (`semantics::is_booking_advance`), so
+/// keep the two in step.
+const String kBookingAdvance = 'Booking advance';
+
+/// The advance used against the folio at checkout. No money moves.
+const String kBookingAdvanceApplied = 'Booking advance applied';
+
+/// The advance handed back to the guest (cancelled or overpaid booking).
+const String kBookingAdvanceRefunded = 'Booking advance refunded';
+
+/// Whether a Cash In / Cash Out row is a booking-advance movement.
+///
+/// These move money between the drawer and what the business owes its guests,
+/// so they belong in the Cash Book and the drawer count but never in revenue,
+/// expenses or profit: the stay is invoiced once, in full, at checkout.
+bool isBookingAdvanceMovement({
+  required String? transactionType,
+  required String? receiptType,
+}) {
+  final kind = transactionType?.trim().toLowerCase();
+  switch (receiptType?.trim()) {
+    case 'Cash In':
+      return kind == kBookingAdvance.toLowerCase();
+    case 'Cash Out':
+      return kind == kBookingAdvanceApplied.toLowerCase() ||
+          kind == kBookingAdvanceRefunded.toLowerCase();
+    default:
+      return false;
+  }
+}

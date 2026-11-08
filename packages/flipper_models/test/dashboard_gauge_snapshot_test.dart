@@ -1,4 +1,5 @@
 import 'package:flipper_models/providers/transactions_provider.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -28,6 +29,43 @@ void main() {
       expect(snap.hasRevenue, isTrue);
       expect(snap.hasActivity, isTrue);
       expect(snap.hasDeductions, isFalse);
+    });
+  });
+
+  group('isBookingAdvanceTransaction', () {
+    ITransaction tx(String? type, String? receipt) => ITransaction(
+      id: 't',
+      agentId: 'a',
+      branchId: 'b',
+      status: 'completed',
+      transactionType: type,
+      receiptType: receipt,
+      paymentType: 'Cash',
+      cashReceived: 0,
+      customerChangeDue: 0,
+      updatedAt: DateTime(2026),
+      isIncome: receipt == 'Cash In',
+      isExpense: receipt == 'Cash Out',
+    );
+
+    test('a hotel advance is kept out of revenue and expenses', () {
+      expect(
+        isBookingAdvanceTransaction(tx('Booking advance', 'Cash In')),
+        isTrue,
+      );
+      expect(
+        isBookingAdvanceTransaction(tx('Booking advance applied', 'Cash Out')),
+        isTrue,
+      );
+    });
+
+    test('other movements and sales still count', () {
+      expect(
+        isBookingAdvanceTransaction(tx('Owner deposit', 'Cash In')),
+        isFalse,
+      );
+      expect(isBookingAdvanceTransaction(tx('Rent', 'Cash Out')), isFalse);
+      expect(isBookingAdvanceTransaction(tx('Sale', 'NS')), isFalse);
     });
   });
 }

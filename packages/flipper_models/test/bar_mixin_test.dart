@@ -255,6 +255,41 @@ void main() {
       expect(stored['note'], 'Bar · T1 · Opened by Richie');
     });
 
+    test('a hotel folio opens owing only what its advance left', () async {
+      final tab = await beerTab();
+      await sync.parkBarTabAsLoan(
+        transaction: tab,
+        lines: await sync.barTabLines(transactionId: tab.id),
+        customerId: 'cust-1',
+        customerName: 'Aline',
+        dueDate: DateTime.utc(2026, 11, 9),
+        note: 'Hotel · Room 101 · 2026-01-10 → 2026-01-12',
+        alreadyPaid: 1200,
+      );
+
+      final stored = ditto.store.collections['transactions']![tab.id]!;
+      expect(stored['subTotal'], 3000);
+      expect(stored['originalLoanAmount'], 3000);
+      expect(stored['cashReceived'], 1200);
+      expect(stored['remainingBalance'], 1800);
+      expect(stored['note'], 'Hotel · Room 101 · 2026-01-10 → 2026-01-12');
+    });
+
+    test('an advance above the bill never opens a negative loan', () async {
+      final tab = await beerTab();
+      await sync.parkBarTabAsLoan(
+        transaction: tab,
+        lines: await sync.barTabLines(transactionId: tab.id),
+        customerId: 'cust-1',
+        customerName: 'Aline',
+        dueDate: DateTime.utc(2026, 11, 9),
+        alreadyPaid: 9000,
+      );
+      final stored = ditto.store.collections['transactions']![tab.id]!;
+      expect(stored['cashReceived'], 3000);
+      expect(stored['remainingBalance'], 0);
+    });
+
     test('the table frees up and the loan joins the credit list', () async {
       final tab = await beerTab();
       await putOnCredit(tab);

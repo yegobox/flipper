@@ -253,6 +253,10 @@ abstract class DatabaseSyncInterface extends AiStrategy
     /// When true with [skipTransactionPersist], only runs shift / goal side effects;
     /// [cashReceived] must already be set on [transaction] (Quick Selling hot path).
     bool skipCashMutation = false,
+
+    /// False when no money crosses the drawer, so the open shift's expected
+    /// cash must not move (a booking advance applied to a hotel folio).
+    bool updateShift = true,
   });
 
   /// Cash book fast path: one pending txn, one utility line, then completion.
@@ -280,6 +284,9 @@ abstract class DatabaseSyncInterface extends AiStrategy
     /// When the money actually moved, for a movement recorded after the fact
     /// (a bank SMS confirmed from the Cash Book review queue). Null means now.
     DateTime? occurredAt,
+
+    /// See [collectPayment]'s `updateShift`.
+    bool updateShift = true,
   });
 
   Future<Setting?> getSetting({required String businessId});

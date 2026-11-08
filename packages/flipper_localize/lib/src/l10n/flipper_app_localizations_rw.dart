@@ -8857,6 +8857,172 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   }
 
   @override
+  String get hotelNavBilling => 'Fagitire';
+
+  @override
+  String get hotelAdvance => 'Avance';
+
+  @override
+  String get hotelAdvances => 'Avance zatanzwe';
+
+  @override
+  String get hotelRecordAdvance => 'Andika avance';
+
+  @override
+  String hotelRecordAdvanceAmount(String amount) {
+    return 'Andika $amount';
+  }
+
+  @override
+  String hotelAdvanceHelp(String guest) {
+    return 'Amafaranga $guest yishyuye mbere yo gukorerwa fagitire. Yandikwa mu gitabo cy\'amafaranga uyu munsi, akazakurwa ku yo agomba kwishyura igihe cyo gusezerera.';
+  }
+
+  @override
+  String get hotelAdvanceAmount => 'Amafaranga (RWF)';
+
+  @override
+  String get hotelAdvancePaidNowOptional =>
+      'Avance yishyuwe ubu (si ngombwa, RWF)';
+
+  @override
+  String get hotelTakeAdvance => 'Fata avance';
+
+  @override
+  String hotelAdvanceRecorded(String amount, String guest) {
+    return 'Avance ya $amount ya $guest yanditswe';
+  }
+
+  @override
+  String hotelAdvanceFailed(String error) {
+    return 'Avance ntiyanditswe: $error';
+  }
+
+  @override
+  String hotelAdvanceNotApplied(String guest) {
+    return 'Yasezerewe, ariko avance ya $guest ntiyakuweho. Yikureho muri Fagitire.';
+  }
+
+  @override
+  String hotelAdvanceAppliedToast(String guest) {
+    return 'Avance ya $guest yakuweho';
+  }
+
+  @override
+  String get hotelApplyAdvance => 'Kuraho avance';
+
+  @override
+  String get hotelAdvancePaid => 'Avance yishyuwe';
+
+  @override
+  String get hotelAdvanceToRefund => 'Ayo gusubiza';
+
+  @override
+  String get hotelBalanceDue => 'Asigaye kwishyurwa';
+
+  @override
+  String get hotelAdvanceHeld => 'Iracyabitswe';
+
+  @override
+  String get hotelAdvanceApplied => 'Yakuweho';
+
+  @override
+  String get hotelAdvanceRefunded => 'Yasubijwe';
+
+  @override
+  String hotelCancelRefundsAdvance(String amount) {
+    return 'Guhagarika bisubiza umukiriya avance ya $amount. Byandikwa mu gitabo cy\'amafaranga nk\'amafaranga yasubijwe.';
+  }
+
+  @override
+  String get hotelRefundAndCancel => 'Subiza uhagarike';
+
+  @override
+  String get hotelChangeDeparture => 'Hindura itariki yo gutaha';
+
+  @override
+  String hotelDepartureChanged(String room, String nights) {
+    return 'Icyumba $room: itariki yo gutaha yahinduwe, $nights kuri fagitire';
+  }
+
+  @override
+  String get hotelPaymentCredit => 'Ideni';
+
+  @override
+  String get hotelPutOnCredit => 'Shyira ku ideni';
+
+  @override
+  String hotelCheckedOutOnCredit(String room, String name, String amount) {
+    return 'Icyumba $room cyasezerewe. $name afite ideni rya $amount.';
+  }
+
+  @override
+  String get hotelCreditEmptyFolio =>
+      'Iyi fagitire nta kintu kiriho cyo gushyira ku ideni.';
+
+  @override
+  String get hotelCreditNothingOwed =>
+      'Avance yishyura iyi fagitire yose: sezerera umukiriya bisanzwe.';
+
+  @override
+  String get hotelCreditSection => 'Ideni';
+
+  @override
+  String get hotelNoCredit => 'Nta muntu ufite ideni.';
+
+  @override
+  String get hotelCheckedOutSection => 'Abasezerewe — iminsi 30 ishize';
+
+  @override
+  String get hotelNoCheckouts => 'Nta mukiriya wasezerewe mu minsi 30 ishize.';
+
+  @override
+  String hotelCreditDue(String date) {
+    return 'azishyura $date';
+  }
+
+  @override
+  String get hotelCollect => 'Kwishyuza';
+
+  @override
+  String get hotelFolioProformaTitle => 'PROFORMA Y\'ICYUMBA';
+
+  @override
+  String get hotelFolioInvoiceTitle => 'FAGITIRE';
+
+  @override
+  String get hotelFolioNotTaxInvoice =>
+      'Proforma: si fagitire y\'umusoro. Inyemezabwishyu ya EBM itangwa igihe cyo gusezerera.';
+
+  @override
+  String get hotelFolioThanks => 'Murakoze kutugana.';
+
+  @override
+  String hotelFolioReceiptNumber(String number) {
+    return 'Inyemezabwishyu no. $number';
+  }
+
+  @override
+  String get hotelFolioBalanceOwed => 'Ideni risigaye';
+
+  @override
+  String get hotelFolioPaidInFull => 'Byishyuwe byose';
+
+  @override
+  String get hotelPreparingFolio => 'Gutegura fagitire…';
+
+  @override
+  String get hotelFolioDocument => 'Fagitire';
+
+  @override
+  String hotelFolioShareSubject(String room, String guest) {
+    return 'Fagitire y\'icyumba $room — $guest';
+  }
+
+  @override
+  String get hotelShare => 'Sangiza';
+
+  @override
   String get hotelFrontDeskSharedRegister => 'Iyakira · Kasi isangiwe';
 
   @override

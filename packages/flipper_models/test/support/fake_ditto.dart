@@ -210,7 +210,12 @@ class FakeDittoStore {
       // Real Ditto rejects a duplicate _id without ON ID CONFLICT.
       throw StateError('duplicate _id $id in $collection');
     }
-    store[id] = doc;
+    // Like real Ditto, DO UPDATE writes the fields it was given and leaves
+    // the rest of the stored document alone; production code relies on it
+    // (hotel stays never carry `advances` in their upsert).
+    store[id] = store.containsKey(id) && onConflict == 'UPDATE'
+        ? {...store[id]!, ...doc}
+        : doc;
     _notify();
     return FakeDittoResult(const []);
   }

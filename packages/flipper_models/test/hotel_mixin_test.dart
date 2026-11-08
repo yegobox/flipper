@@ -754,6 +754,16 @@ void main() {
         strategy.ebmFetchRemoteCalls.clear();
 
         for (var i = 0; i < 3; i++) {
+          // Cleared between charges: a folio already billing its nights now
+          // refuses a second set, and this test is about the lookup.
+          for (final line in await sync.hotelFolioLines(
+            transactionId: stay.transactionId,
+          )) {
+            await sync.deleteFolioLine(
+              lineId: line.id,
+              transactionId: stay.transactionId,
+            );
+          }
           await sync.postRoomCharge(
             stay: stay,
             clerkTenantId: 'c1',
@@ -1009,6 +1019,300 @@ void main() {
         );
 
         expect(await sync.hotelOpenFolios(branchId: _branch), isEmpty);
+      },
+    );
+  });
+
+  group('advances, departure and credit', () {
+    setUp(() async {
+      await getIt.reset();
+      getIt.registerSingleton<LocalStorage>(_FakeBox());
+      final strategy = _FakeStrategy(const {});
+      getIt.registerSingleton<SyncStrategy>(
+        SyncStrategy(capella: strategy, cloudSync: strategy),
+        instanceName: 'strategy',
+      );
+      ITransactionDittoAdapter.instance.overrideBranchIdProvider(() => _branch);
+      ITransactionDittoAdapter.instance.overrideBusinessIdProvider(
+        () => 'biz1',
+      );
+      HotelRraCapability.invalidate();
+    });
+
+    tearDown(() async {
+      ITransactionDittoAdapter.instance.resetOverrides();
+      HotelRraCapability.invalidate();
+      await getIt.reset();
+    });
+
+    HotelAdvance advance(
+      String id, {
+      double amount = 20000,
+      HotelAdvanceStatus status = HotelAdvanceStatus.held,
+    }) => HotelAdvance(
+      id: id,
+      amount: amount,
+      paymentMethod: 'MOBILE MONEY',
+      paidAt: DateTime.utc(2026, 1, 5, 9),
+      status: status,
+      cashMovementId: 'cm-$id',
+    );
+
+    Future<HotelStay> checkedIn({DateTime? out}) async {
+      final room = _room();
+      await sync.saveHotelRoom(room);
+      return sync.checkInGuest(
+        branchId: _branch,
+        room: room,
+        guestName: 'Aline Uwase',
+        checkInAt: DateTime.utc(2026, 1, 10, 14),
+        expectedCheckOutAt: out ?? DateTime.utc(2026, 1, 12, 11),
+        nightlyRate: 50000,
+        clerkTenantId: 'c1',
+        clerkName: 'Richie',
+      );
+    }
+
+    test('an advance is appended, then replaced by id', () async {
+      await sync.saveHotelStay(_stay(status: HotelStayStatus.reserved));
+
+      var stay = await sync.saveHotelAdvance(
+        stayId: 's1',
+        advance: advance('a1'),
+      );
+      stay = await sync.saveHotelAdvance(
+        stayId: 's1',
+        advance: advance('a2', amount: 5000),
+      );
+      expect(stay.advanceHeld, 25000);
+
+      await sync.saveHotelAdvance(
+        stayId: 's1',
+        advance: advance('a1', status: HotelAdvanceStatus.refunded),
+      );
+      final stored = (await sync.hotelStayById(id: 's1'))!;
+      expect(stored.advances.map((a) => a.id), ['a1', 'a2']);
+      expect(stored.advances.first.status, HotelAdvanceStatus.refunded);
+      expect(stored.advanceHeld, 5000);
+    });
+
+    test('an advance on a stay that does not exist is refused', () async {
+      expect(
+        () => sync.saveHotelAdvance(stayId: 'nope', advance: advance('a1')),
+        throwsStateError,
+      );
+    });
+
+    test('saving a stale copy of the stay never wipes its advances', () async {
+      // The desk holds the stay from before the advance; checkout, an edit
+      // or an older build then saves that copy.
+      final stale = _stay();
+      await sync.saveHotelStay(stale);
+      await sync.saveHotelAdvance(stayId: 's1', advance: advance('a1'));
+
+      await sync.saveHotelStay(
+        stale.copyWith(status: HotelStayStatus.checkedOut),
+      );
+
+      final stored = (await sync.hotelStayById(id: 's1'))!;
+      expect(stored.status, HotelStayStatus.checkedOut);
+      expect(stored.advanceHeld, 20000);
+    });
+
+    test('a second room charge does not bill the nights again', () async {
+      final stay = await checkedIn();
+      await sync.postRoomCharge(
+        stay: stay,
+        clerkTenantId: 'c1',
+        clerkName: 'Richie',
+      );
+
+      await expectLater(
+        sync.postRoomCharge(stay: stay, clerkTenantId: 'c2', clerkName: 'Ana'),
+        throwsStateError,
+      );
+
+      final lines = await sync.hotelFolioLines(
+        transactionId: stay.transactionId,
+      );
+      expect(lines, hasLength(1));
+      expect(lines.single.qty, 2);
+    });
+
+    test('extending the stay resizes and renames the room line', () async {
+      final stay = await checkedIn();
+      await sync.postRoomCharge(
+        stay: stay,
+        clerkTenantId: 'c1',
+        clerkName: 'Richie',
+      );
+
+      final extended = await sync.changeHotelStayDeparture(
+        stay: stay,
+        checkOutAt: DateTime.utc(2026, 1, 14, 11),
+      );
+
+      expect(extended.nights, 4);
+      expect(
+        (await sync.hotelStayById(id: stay.id))!.expectedCheckOutAt,
+        DateTime.utc(2026, 1, 14, 11),
+      );
+      final lines = await sync.hotelFolioLines(
+        transactionId: stay.transactionId,
+      );
+      expect(lines, hasLength(1));
+      expect(lines.single.qty, 4);
+      expect(lines.single.name, 'Room 101 · 4 nights');
+      final folio = await sync.hotelFolio(transactionId: stay.transactionId);
+      expect(folio?.subTotal, 200000);
+    });
+
+    test('shortening the stay bills fewer nights', () async {
+      final stay = await checkedIn(out: DateTime.utc(2026, 1, 14, 11));
+      await sync.postRoomCharge(
+        stay: stay,
+        clerkTenantId: 'c1',
+        clerkName: 'Richie',
+      );
+
+      await sync.changeHotelStayDeparture(
+        stay: stay,
+        checkOutAt: DateTime.utc(2026, 1, 11, 11),
+      );
+
+      final lines = await sync.hotelFolioLines(
+        transactionId: stay.transactionId,
+      );
+      expect(lines.single.qty, 1);
+      expect(lines.single.name, 'Room 101 · 1 night');
+    });
+
+    test('a room charge after a manual extension tops the line up', () async {
+      final stay = await checkedIn();
+      await sync.postRoomCharge(
+        stay: stay,
+        clerkTenantId: 'c1',
+        clerkName: 'Richie',
+      );
+      // Extended on another terminal without its folio being resized.
+      final longer = stay.copyWith(
+        expectedCheckOutAt: DateTime.utc(2026, 1, 13, 11),
+      );
+
+      await sync.postRoomCharge(
+        stay: longer,
+        clerkTenantId: 'c1',
+        clerkName: 'Richie',
+      );
+
+      final lines = await sync.hotelFolioLines(
+        transactionId: stay.transactionId,
+      );
+      expect(lines, hasLength(1));
+      expect(lines.single.qty, 3);
+    });
+
+    test('extending into another booking is refused', () async {
+      final stay = await checkedIn();
+      await sync.saveHotelStay(
+        _stay(
+          id: 'next',
+          transactionId: '',
+          status: HotelStayStatus.reserved,
+          checkIn: DateTime.utc(2026, 1, 13, 14),
+          checkOut: DateTime.utc(2026, 1, 15, 11),
+        ),
+      );
+
+      await expectLater(
+        sync.changeHotelStayDeparture(
+          stay: stay,
+          checkOutAt: DateTime.utc(2026, 1, 14, 11),
+        ),
+        throwsStateError,
+      );
+      // Up to the next arrival is fine: nights are half-open.
+      final ok = await sync.changeHotelStayDeparture(
+        stay: stay,
+        checkOutAt: DateTime.utc(2026, 1, 13, 11),
+      );
+      expect(ok.nights, 3);
+    });
+
+    test('departure before arrival is refused', () async {
+      final stay = await checkedIn();
+      expect(
+        () => sync.changeHotelStayDeparture(
+          stay: stay,
+          checkOutAt: DateTime.utc(2026, 1, 9, 11),
+        ),
+        throwsStateError,
+      );
+    });
+
+    test('a closed stay cannot change departure', () async {
+      expect(
+        () => sync.changeHotelStayDeparture(
+          stay: _stay(status: HotelStayStatus.checkedOut),
+          checkOutAt: DateTime.utc(2026, 1, 14, 11),
+        ),
+        throwsStateError,
+      );
+    });
+
+    test('a reservation moves its dates without a folio', () async {
+      await sync.saveHotelStay(
+        _stay(transactionId: '', status: HotelStayStatus.reserved),
+      );
+      final moved = await sync.changeHotelStayDeparture(
+        stay: _stay(transactionId: '', status: HotelStayStatus.reserved),
+        checkOutAt: DateTime.utc(2026, 1, 13, 11),
+      );
+      expect(moved.nights, 3);
+    });
+
+    test('releasing a stay closes it and leaves the folio alone', () async {
+      final stay = await checkedIn();
+
+      await sync.releaseHotelStay(stay: stay);
+
+      final stored = (await sync.hotelStayById(id: stay.id))!;
+      expect(stored.status, HotelStayStatus.checkedOut);
+      expect(stored.checkedOutAt, isNotNull);
+      final rooms = await sync.hotelRooms(branchId: _branch);
+      expect(rooms.single.housekeeping, HotelHousekeeping.dirty);
+      final folio = await sync.hotelFolio(transactionId: stay.transactionId);
+      expect(folio?.status, PARKED);
+    });
+
+    test(
+      'checked-out stays are listed newest first, within the window',
+      () async {
+        await sync.saveHotelStay(
+          _stay(
+            id: 'old',
+            status: HotelStayStatus.checkedOut,
+          ).copyWith(checkedOutAt: DateTime.utc(2025, 11, 1)),
+        );
+        await sync.saveHotelStay(
+          _stay(
+            id: 'a',
+            status: HotelStayStatus.checkedOut,
+          ).copyWith(checkedOutAt: DateTime.utc(2026, 1, 11)),
+        );
+        await sync.saveHotelStay(
+          _stay(
+            id: 'b',
+            status: HotelStayStatus.checkedOut,
+          ).copyWith(checkedOutAt: DateTime.utc(2026, 1, 12)),
+        );
+        await sync.saveHotelStay(_stay(id: 'open'));
+
+        final listed = await sync.hotelCheckedOutStays(
+          branchId: _branch,
+          since: DateTime.utc(2026, 1, 1),
+        );
+        expect(listed.map((s) => s.id), ['b', 'a']);
       },
     );
   });

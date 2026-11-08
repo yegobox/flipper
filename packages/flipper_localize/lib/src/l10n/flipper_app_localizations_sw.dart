@@ -8831,6 +8831,172 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   }
 
   @override
+  String get hotelNavBilling => 'Malipo';
+
+  @override
+  String get hotelAdvance => 'Malipo ya awali';
+
+  @override
+  String get hotelAdvances => 'Malipo ya awali';
+
+  @override
+  String get hotelRecordAdvance => 'Rekodi malipo ya awali';
+
+  @override
+  String hotelRecordAdvanceAmount(String amount) {
+    return 'Rekodi $amount';
+  }
+
+  @override
+  String hotelAdvanceHelp(String guest) {
+    return 'Pesa $guest analipa kabla ya ankara ya kukaa. Inahesabiwa kwenye Daftari la Fedha leo na itakatwa wakati wa kuondoka.';
+  }
+
+  @override
+  String get hotelAdvanceAmount => 'Kiasi (RWF)';
+
+  @override
+  String get hotelAdvancePaidNowOptional =>
+      'Malipo ya awali sasa (si lazima, RWF)';
+
+  @override
+  String get hotelTakeAdvance => 'Pokea malipo ya awali';
+
+  @override
+  String hotelAdvanceRecorded(String amount, String guest) {
+    return 'Malipo ya awali $amount ya $guest yamerekodiwa';
+  }
+
+  @override
+  String hotelAdvanceFailed(String error) {
+    return 'Malipo ya awali hayajarekodiwa: $error';
+  }
+
+  @override
+  String hotelAdvanceNotApplied(String guest) {
+    return 'Ameondoka, lakini malipo ya awali ya $guest hayajatumika. Yatumie kutoka Malipo.';
+  }
+
+  @override
+  String hotelAdvanceAppliedToast(String guest) {
+    return 'Malipo ya awali ya $guest yametumika';
+  }
+
+  @override
+  String get hotelApplyAdvance => 'Tumia malipo ya awali';
+
+  @override
+  String get hotelAdvancePaid => 'Malipo ya awali';
+
+  @override
+  String get hotelAdvanceToRefund => 'Ya kurejesha';
+
+  @override
+  String get hotelBalanceDue => 'Salio la kulipa';
+
+  @override
+  String get hotelAdvanceHeld => 'Imeshikiliwa';
+
+  @override
+  String get hotelAdvanceApplied => 'Imetumika';
+
+  @override
+  String get hotelAdvanceRefunded => 'Imerejeshwa';
+
+  @override
+  String hotelCancelRefundsAdvance(String amount) {
+    return 'Kughairi kunamrudishia mgeni malipo ya awali ya $amount. Inarekodiwa kwenye Daftari la Fedha kama marejesho.';
+  }
+
+  @override
+  String get hotelRefundAndCancel => 'Rejesha na ughairi';
+
+  @override
+  String get hotelChangeDeparture => 'Badilisha tarehe ya kuondoka';
+
+  @override
+  String hotelDepartureChanged(String room, String nights) {
+    return 'Chumba $room: tarehe ya kuondoka imebadilishwa, $nights kwenye ankara';
+  }
+
+  @override
+  String get hotelPaymentCredit => 'Mkopo';
+
+  @override
+  String get hotelPutOnCredit => 'Weka kwenye mkopo';
+
+  @override
+  String hotelCheckedOutOnCredit(String room, String name, String amount) {
+    return 'Chumba $room kimeachwa. $name anadaiwa $amount.';
+  }
+
+  @override
+  String get hotelCreditEmptyFolio =>
+      'Folio hii haina gharama za kuweka kwenye mkopo.';
+
+  @override
+  String get hotelCreditNothingOwed =>
+      'Malipo ya awali yanalipa folio hii: ondoka kawaida.';
+
+  @override
+  String get hotelCreditSection => 'Mkopo (deni)';
+
+  @override
+  String get hotelNoCredit => 'Hakuna anayedaiwa.';
+
+  @override
+  String get hotelCheckedOutSection => 'Walioondoka — siku 30 zilizopita';
+
+  @override
+  String get hotelNoCheckouts => 'Hakuna mgeni aliyeondoka siku 30 zilizopita.';
+
+  @override
+  String hotelCreditDue(String date) {
+    return 'inalipwa $date';
+  }
+
+  @override
+  String get hotelCollect => 'Kusanya';
+
+  @override
+  String get hotelFolioProformaTitle => 'FOLIO YA AWALI';
+
+  @override
+  String get hotelFolioInvoiceTitle => 'ANKARA';
+
+  @override
+  String get hotelFolioNotTaxInvoice =>
+      'Ya awali: si ankara ya kodi. Risiti ya kodi inatolewa wakati wa kuondoka.';
+
+  @override
+  String get hotelFolioThanks => 'Asante kwa kukaa nasi.';
+
+  @override
+  String hotelFolioReceiptNumber(String number) {
+    return 'Risiti na. $number';
+  }
+
+  @override
+  String get hotelFolioBalanceOwed => 'Salio linalodaiwa';
+
+  @override
+  String get hotelFolioPaidInFull => 'Imelipwa kikamilifu';
+
+  @override
+  String get hotelPreparingFolio => 'Inaandaa folio…';
+
+  @override
+  String get hotelFolioDocument => 'Folio';
+
+  @override
+  String hotelFolioShareSubject(String room, String guest) {
+    return 'Folio ya chumba $room — $guest';
+  }
+
+  @override
+  String get hotelShare => 'Shiriki';
+
+  @override
   String get hotelFrontDeskSharedRegister => 'Mapokezi · Kaunta ya pamoja';
 
   @override

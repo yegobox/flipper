@@ -98,6 +98,24 @@ class HotelDashboardScreen extends ConsumerWidget {
             children: [
               HotelDeskNav(compact: compact),
               const Spacer(),
+              // Phones have Billing in the nav; the desk's nav has no room.
+              if (!compact) ...[
+                TextButton.icon(
+                  key: const ValueKey('hotel-open-billing'),
+                  onPressed: () => ref
+                      .read(hotelModeProvider.notifier)
+                      .setScreen(HotelScreen.billing),
+                  icon: const Icon(Icons.receipt_long_outlined, size: 18),
+                  label: Text(
+                    l10n.hotelNavBilling,
+                    style: GoogleFonts.outfit(
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+              ],
               Text(
                 DateFormat('EEEE d MMMM').format(DateTime.now()),
                 style: GoogleFonts.outfit(

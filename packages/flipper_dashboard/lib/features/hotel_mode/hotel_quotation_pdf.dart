@@ -376,7 +376,7 @@ abstract final class HotelQuotationPdf {
           mainAxisAlignment: pw.MainAxisAlignment.end,
           crossAxisAlignment: pw.CrossAxisAlignment.center,
           children: [
-            if (stamp != null) ...[_stampImage(stamp), pw.SizedBox(width: 16)],
+            if (stamp != null) ...[stampImage(stamp), pw.SizedBox(width: 16)],
             pw.Text(
               '${l10n.hotelTotal}  ',
               style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 12),
@@ -467,8 +467,8 @@ abstract final class HotelQuotationPdf {
 
   static pw.Widget _stampWidget(DocumentStamp stamp) {
     return pw.Align(
-      alignment: _stampAlignment(stamp.placement),
-      child: _stampImage(stamp),
+      alignment: stampAlignment(stamp.placement),
+      child: stampImage(stamp),
     );
   }
 
@@ -476,7 +476,7 @@ abstract final class HotelQuotationPdf {
   /// separates "stamped" from "pasted".
   static const double _stampTiltRadians = -0.07; // about -4°
 
-  static pw.Widget _stampImage(DocumentStamp stamp) {
+  static pw.Widget stampImage(DocumentStamp stamp) {
     return pw.Transform.rotate(
       angle: _stampTiltRadians,
       child: pw.Opacity(
@@ -490,7 +490,7 @@ abstract final class HotelQuotationPdf {
     );
   }
 
-  static pw.Alignment _stampAlignment(DocumentStampPlacement placement) {
+  static pw.Alignment stampAlignment(DocumentStampPlacement placement) {
     switch (placement) {
       case DocumentStampPlacement.bottomLeft:
         return pw.Alignment.centerLeft;

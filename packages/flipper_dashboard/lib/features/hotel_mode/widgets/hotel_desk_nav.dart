@@ -16,8 +16,9 @@ class HotelDeskNav extends ConsumerWidget {
   final bool compact;
 
   static List<(HotelScreen, String, IconData)> _tabs(
-    FlipperAppLocalizations l10n,
-  ) => [
+    FlipperAppLocalizations l10n, {
+    required bool mobile,
+  }) => [
     (HotelScreen.dashboard, l10n.hotelNavToday, Icons.insights_outlined),
     (HotelScreen.rooms, l10n.hotelNavRooms, Icons.grid_view_rounded),
     (
@@ -26,6 +27,10 @@ class HotelDeskNav extends ConsumerWidget {
       Icons.calendar_month_outlined,
     ),
     (HotelScreen.quotes, l10n.hotelNavQuotes, Icons.request_quote_outlined),
+    // Phones only: the desk's headers have no room for a fifth tab (the
+    // calendar overflowed at 1000px), so the desk reaches Billing from Today.
+    if (mobile)
+      (HotelScreen.billing, l10n.hotelNavBilling, Icons.receipt_long_outlined),
   ];
 
   @override
@@ -52,7 +57,10 @@ class HotelDeskNav extends ConsumerWidget {
       child: Row(
         mainAxisSize: segmented ? MainAxisSize.max : MainAxisSize.min,
         children: [
-          for (final (screen, label, icon) in _tabs(context.flipperL10n))
+          for (final (screen, label, icon) in _tabs(
+            context.flipperL10n,
+            mobile: mobile,
+          ))
             // No Today tab on a phone: it would only redraw Rooms.
             if (!mobile || screen != HotelScreen.dashboard)
               segmented
@@ -79,6 +87,7 @@ class HotelDeskNav extends ConsumerWidget {
     // compact tabs scaled to fit rather than an overflow.
     final segments = _tabs(
       context.flipperL10n,
+      mobile: mobile,
     ).where((tab) => tab.$1 != HotelScreen.dashboard).length;
     final segmentedMinWidth = segments * _phoneTabMinWidth + 2 * 4 + 2 * 1;
     return LayoutBuilder(

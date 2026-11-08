@@ -1,5 +1,6 @@
 import 'dart:math' show min;
 
+import 'package:flipper_models/helpers/cash_movement_rules.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/helperModels/transaction_payment_sums.dart';
 import 'package:flipper_models/helperModels/transaction_report_snapshot.dart';
@@ -459,6 +460,9 @@ Future<TransactionReportKpiTotals> transactionReportKpiTotals(Ref ref) async {
     );
 
     for (final tx in scoped) {
+      // Hotel booking advances move money owed to a guest: not a sale, an
+      // expense or Cash In profit. The stay is counted once, at checkout.
+      if (isBookingAdvanceTransaction(tx)) continue;
       if (tx.isExpense == true) {
         periodExpense += tx.subTotal ?? 0.0;
         continue;
@@ -861,19 +865,31 @@ final dashboardGaugeSnapshotProvider = StreamProvider.autoDispose
               .map(
                 (all) => all
                     .where(
-                      (tx) => tx.isExpense != true && tx.status == COMPLETE,
+                      (tx) =>
+                          tx.isExpense != true &&
+                          tx.status == COMPLETE &&
+                          !isBookingAdvanceTransaction(tx),
                     )
                     .toList(),
               )
               .startWith(const <ITransaction>[]);
 
-      final expenseTxStream = expensesStream(
-        ref,
-        startDate: start,
-        endDate: end,
-        branchId: branchId,
-        forceRealData: true,
-      ).startWith(const <ITransaction>[]);
+      // A hotel booking advance (received, applied or refunded) moves money
+      // the business owes its guest: neither revenue nor an expense.
+      final expenseTxStream =
+          expensesStream(
+                ref,
+                startDate: start,
+                endDate: end,
+                branchId: branchId,
+                forceRealData: true,
+              )
+              .map(
+                (all) => all
+                    .where((tx) => !isBookingAdvanceTransaction(tx))
+                    .toList(),
+              )
+              .startWith(const <ITransaction>[]);
 
       return Rx.combineLatest3<
         List<TransactionItem>,
@@ -1019,3 +1035,10 @@ final dashboardPreviousGaugeSnapshotProvider = StreamProvider.autoDispose
         );
       });
     });
+
+/// A hotel booking-advance movement (received, applied or refunded): money
+/// owed to a guest, kept out of revenue, expenses and profit.
+bool isBookingAdvanceTransaction(ITransaction tx) => isBookingAdvanceMovement(
+  transactionType: tx.transactionType,
+  receiptType: tx.receiptType,
+);

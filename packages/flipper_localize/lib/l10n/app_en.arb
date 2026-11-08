@@ -7839,6 +7839,151 @@
             }
         }
     },
+    "hotelNavBilling": "Billing",
+    "hotelAdvance": "Advance",
+    "hotelAdvances": "Advances",
+    "hotelRecordAdvance": "Record advance",
+    "hotelRecordAdvanceAmount": "Record {amount}",
+    "@hotelRecordAdvanceAmount": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
+    "hotelAdvanceHelp": "Money {guest} pays before the stay is invoiced. It counts in the Cash Book today and is deducted at checkout.",
+    "@hotelAdvanceHelp": {
+        "placeholders": {
+            "guest": {
+                "type": "String"
+            }
+        }
+    },
+    "hotelAdvanceAmount": "Amount (RWF)",
+    "hotelAdvancePaidNowOptional": "Advance paid now (optional, RWF)",
+    "hotelTakeAdvance": "Take advance",
+    "hotelAdvanceRecorded": "{amount} advance recorded for {guest}",
+    "@hotelAdvanceRecorded": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            },
+            "guest": {
+                "type": "String"
+            }
+        }
+    },
+    "hotelAdvanceFailed": "Advance not recorded: {error}",
+    "@hotelAdvanceFailed": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "hotelAdvanceNotApplied": "Checked out, but {guest}'s advance was not applied. Apply it from Billing.",
+    "@hotelAdvanceNotApplied": {
+        "placeholders": {
+            "guest": {
+                "type": "String"
+            }
+        }
+    },
+    "hotelAdvanceAppliedToast": "{guest}'s advance applied",
+    "@hotelAdvanceAppliedToast": {
+        "placeholders": {
+            "guest": {
+                "type": "String"
+            }
+        }
+    },
+    "hotelApplyAdvance": "Apply advance",
+    "hotelAdvancePaid": "Advance paid",
+    "hotelAdvanceToRefund": "To refund",
+    "hotelBalanceDue": "Balance due",
+    "hotelAdvanceHeld": "Held",
+    "hotelAdvanceApplied": "Applied",
+    "hotelAdvanceRefunded": "Refunded",
+    "hotelCancelRefundsAdvance": "Cancelling hands the {amount} advance back to the guest. It is recorded in the Cash Book as a refund.",
+    "@hotelCancelRefundsAdvance": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
+    "hotelRefundAndCancel": "Refund and cancel",
+    "hotelChangeDeparture": "Change departure",
+    "hotelDepartureChanged": "Room {room}: departure moved, {nights} billed",
+    "@hotelDepartureChanged": {
+        "placeholders": {
+            "room": {
+                "type": "String"
+            },
+            "nights": {
+                "type": "String"
+            }
+        }
+    },
+    "hotelPaymentCredit": "Credit",
+    "hotelPutOnCredit": "Put on credit",
+    "hotelCheckedOutOnCredit": "Room {room} checked out. {name} owes {amount}.",
+    "@hotelCheckedOutOnCredit": {
+        "placeholders": {
+            "room": {
+                "type": "String"
+            },
+            "name": {
+                "type": "String"
+            },
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
+    "hotelCreditEmptyFolio": "This folio has no charges to put on credit.",
+    "hotelCreditNothingOwed": "The advance covers this folio: check out normally.",
+    "hotelCreditSection": "Credit (owed)",
+    "hotelNoCredit": "Nobody owes money.",
+    "hotelCheckedOutSection": "Checked out — last 30 days",
+    "hotelNoCheckouts": "No guests checked out in the last 30 days.",
+    "hotelCreditDue": "due {date}",
+    "@hotelCreditDue": {
+        "placeholders": {
+            "date": {
+                "type": "String"
+            }
+        }
+    },
+    "hotelCollect": "Collect",
+    "hotelFolioProformaTitle": "PRO-FORMA FOLIO",
+    "hotelFolioInvoiceTitle": "INVOICE",
+    "hotelFolioNotTaxInvoice": "Pro-forma: not a tax invoice. The fiscal receipt is issued at checkout.",
+    "hotelFolioThanks": "Thank you for staying with us.",
+    "hotelFolioReceiptNumber": "Receipt no. {number}",
+    "@hotelFolioReceiptNumber": {
+        "placeholders": {
+            "number": {
+                "type": "String"
+            }
+        }
+    },
+    "hotelFolioBalanceOwed": "Balance owed",
+    "hotelFolioPaidInFull": "Paid in full",
+    "hotelPreparingFolio": "Preparing folio…",
+    "hotelFolioDocument": "Folio",
+    "hotelFolioShareSubject": "Room {room} folio — {guest}",
+    "@hotelFolioShareSubject": {
+        "placeholders": {
+            "room": {
+                "type": "String"
+            },
+            "guest": {
+                "type": "String"
+            }
+        }
+    },
+    "hotelShare": "Share",
     "hotelFrontDeskSharedRegister": "Front desk · Shared register",
     "hotelLockHintEnterPin": "Enter your 6-digit PIN to open the desk",
     "hotelWhosOnDeskEyebrow": "WHO'S ON THE DESK?",

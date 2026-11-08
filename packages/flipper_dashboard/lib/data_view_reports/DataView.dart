@@ -1393,7 +1393,7 @@ class DataViewState extends ConsumerState<DataView>
         exportSales,
       );
       final expenses = await Expense.fromTransactions(
-        expenseTransactions,
+        exportExpenseTransactionsOnly(expenseTransactions),
         sales: exportSales,
       );
       final cashIn = exportCashInTransactionsOnly(
