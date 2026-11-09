@@ -16,9 +16,26 @@ class FakeDitto {
 class FakeDittoSync {
   final registered = <({String dql, Map<String, dynamic>? arguments})>[];
 
-  void registerSubscription(String dql, {Map<String, dynamic>? arguments}) {
+  /// Subscriptions registered and not cancelled yet; a leak grows this.
+  final live = <FakeDittoSubscription>{};
+
+  FakeDittoSubscription registerSubscription(
+    String dql, {
+    Map<String, dynamic>? arguments,
+  }) {
     registered.add((dql: dql, arguments: arguments));
+    late final FakeDittoSubscription subscription;
+    subscription = FakeDittoSubscription(() => live.remove(subscription));
+    live.add(subscription);
+    return subscription;
   }
+}
+
+class FakeDittoSubscription {
+  FakeDittoSubscription(this._onCancel);
+  final void Function() _onCancel;
+
+  void cancel() => _onCancel();
 }
 
 class FakeDittoItem {
@@ -54,6 +71,9 @@ class FakeDittoStore {
   final Map<String, Map<String, Map<String, dynamic>>> collections = {};
 
   final List<_Registered> _observers = [];
+
+  /// Observers registered and not cancelled yet.
+  int get liveObserverCount => _observers.length;
 
   /// Every statement executed, in order — lets a test assert that a code path
   /// did not, say, hydrate a model it did not need.

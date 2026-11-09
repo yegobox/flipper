@@ -21,6 +21,11 @@ mixin CapellaStockMixin implements StockInterface {
   Talker get talker;
   DittoService get dittoService => DittoService.instance;
 
+  /// The Ditto instance the stock watchers use. [dittoService] is typed to the
+  /// real `Ditto`, which a unit test cannot build, so tests override this with
+  /// an in-memory store.
+  dynamic get dittoHandle => dittoService.dittoInstance;
+
   @override
   Future<String> createStockRequest(
     List<TransactionItem> items, {
@@ -1163,7 +1168,7 @@ mixin CapellaStockMixin implements StockInterface {
     }
 
     try {
-      final ditto = dittoService.dittoInstance;
+      final ditto = dittoHandle;
       if (ditto == null) {
         talker.error('Ditto not initialized watchStocksByIds');
         return Stream.value(const {});
@@ -1185,7 +1190,7 @@ mixin CapellaStockMixin implements StockInterface {
       dynamic observer;
 
       final prepared = prepareDqlSyncSubscription(query, arguments);
-      ditto.sync.registerSubscription(
+      final subscription = ditto.sync.registerSubscription(
         prepared.dql,
         arguments: prepared.arguments,
       );
@@ -1211,6 +1216,9 @@ mixin CapellaStockMixin implements StockInterface {
       );
 
       controller.onCancel = () async {
+        // The grid rebuilds this on every search, so a subscription left
+        // behind would pile up for Ditto's sync to evaluate.
+        subscription?.cancel();
         await observer?.cancel();
         await controller.close();
       };
@@ -1225,7 +1233,7 @@ mixin CapellaStockMixin implements StockInterface {
   @override
   Stream<Stock?> watchStockByVariantId({required String stockId}) {
     try {
-      final ditto = dittoService.dittoInstance;
+      final ditto = dittoHandle;
       if (ditto == null) {
         talker.error('Ditto not initialized:8');
         return Stream.value(null);
@@ -1237,7 +1245,7 @@ mixin CapellaStockMixin implements StockInterface {
       final preparedStockId = prepareDqlSyncSubscription(stockQuery, {
         'id': stockId,
       });
-      ditto.sync.registerSubscription(
+      final subscription = ditto.sync.registerSubscription(
         preparedStockId.dql,
         arguments: preparedStockId.arguments,
       );
@@ -1260,6 +1268,7 @@ mixin CapellaStockMixin implements StockInterface {
       );
 
       controller.onCancel = () async {
+        subscription?.cancel();
         await observer?.cancel();
         await controller.close();
       };

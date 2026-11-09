@@ -69,6 +69,15 @@ class RowItem extends StatefulHookConsumerWidget {
   /// Pre-loaded from [stocksForVisibleVariantsProvider]; skips per-row Ditto watch.
   final Stock? liveStock;
 
+  /// The grid feeds [liveStock] from one batched observer, so this row never
+  /// opens its own. While the batch reloads (every search keystroke) or lacks
+  /// this row's stock, the row shows [stock], the catalog's own value.
+  ///
+  /// A per-row observer is a synchronous Ditto call on the UI thread. A grid
+  /// of them on each search waited for Ditto, which froze the till for minutes
+  /// whenever Ditto was busy.
+  final bool stockFromBatch;
+
   const RowItem({
     Key? key,
     required this.color,
@@ -91,6 +100,7 @@ class RowItem extends StatefulHookConsumerWidget {
     required this.isComposite,
     required this.isOrdering,
     this.liveStock,
+    this.stockFromBatch = false,
   }) : super(key: key);
 
   static _defaultFunction(String? id, String type) {
@@ -140,6 +150,11 @@ class _RowItemState extends ConsumerState<RowItem>
   int _physicalStockValue(WidgetRef ref) {
     if (widget.liveStock != null) {
       final raw = widget.liveStock!.currentStock ?? widget.stock;
+      return raw is int ? raw as int : raw.floor().toInt();
+    }
+    if (widget.stockFromBatch) {
+      // The ordering grid passes [stock] as 0, so read the variant's own.
+      final raw = widget.variant?.stock?.currentStock ?? widget.stock;
       return raw is int ? raw as int : raw.floor().toInt();
     }
     final stockId = widget.variant?.stockId ?? '';
