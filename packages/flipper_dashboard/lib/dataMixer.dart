@@ -70,6 +70,9 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       stock: isOrdering ? 0.0 : variant.stock?.currentStock ?? 0.0,
       isOrdering: isOrdering,
       liveStock: stocksById?[stockId],
+      // A grid that hands in [stocksById] batches the stock observer, so a
+      // row must never open its own (see [RowItem.stockFromBatch]).
+      stockFromBatch: stocksById != null,
     );
   }
 
@@ -177,6 +180,7 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     bool forceListView = false,
     bool usePosCatalogTile = false,
     Stock? liveStock,
+    bool stockFromBatch = false,
   }) {
     // Product/asset are optional enrichment only. Variant already has name,
     // price, and usually image — never block the row on per-item DB fetches
@@ -216,6 +220,7 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       color: variant.color ?? "#673AB7",
       stock: stock,
       liveStock: liveStock,
+      stockFromBatch: stockFromBatch,
       model: model,
       variant: variant,
       product: product,
