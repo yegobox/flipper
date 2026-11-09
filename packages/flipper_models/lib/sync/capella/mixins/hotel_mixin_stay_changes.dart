@@ -57,33 +57,31 @@ Future<HotelStay> _hotelChangeDeparture(
   required HotelStay stay,
   required DateTime checkOutAt,
 }) async {
-  if (!stay.isOpen) {
+  // Everything below is judged on the stay as stored, not the screen's copy:
+  // another terminal may have checked the guest out (a receipted folio must
+  // not be resized) or checked a reservation in on a different arrival.
+  final fresh = await sync.hotelStayById(id: stay.id) ?? stay;
+  if (!fresh.isOpen) {
     throw StateError('This stay is already closed.');
   }
-  if (!checkOutAt.isAfter(stay.checkInAt)) {
+  if (!checkOutAt.isAfter(fresh.checkInAt)) {
     throw StateError('Departure must be after arrival.');
   }
-  final nights = hotelCalendarNights(stay.checkInAt, checkOutAt);
+  final nights = hotelCalendarNights(fresh.checkInAt, checkOutAt);
 
   // Another booking may already hold the nights being added.
   final others = (await sync.hotelStaysInRange(
-    branchId: stay.branchId,
-    from: stay.checkInAt,
+    branchId: fresh.branchId,
+    from: fresh.checkInAt,
     to: checkOutAt,
-  )).where((other) => other.id != stay.id && other.roomId == stay.roomId);
+  )).where((other) => other.id != fresh.id && other.roomId == fresh.roomId);
   if (others.isNotEmpty) {
     throw StateError(
-      'Room ${stay.roomName} is booked by ${others.first.guestName} '
+      'Room ${fresh.roomName} is booked by ${others.first.guestName} '
       'for some of those nights.',
     );
   }
 
-  final fresh = await sync.hotelStayById(id: stay.id) ?? stay;
-  // The screen's copy can be stale: another terminal may have checked the
-  // guest out, and a receipted folio must not be resized.
-  if (!fresh.isOpen) {
-    throw StateError('This stay is already closed.');
-  }
   // Stamped with the write's time, so a stream copy from before this change
   // is older and cannot put the old departure back on the folio screen.
   final updated = fresh.copyWith(
@@ -176,7 +174,19 @@ Future<void> _hotelApplyRoomNights(
   final line = plan.line;
   // A line posted without tax codes (a branch off EBM whose room item could
   // not be made) keeps none: repricing it would assume 18% VAT it never had.
+  // Whatever amounts it does store are scaled with it, so they never
+  // describe the old night count.
   final unfiscalised = line.taxTyCd == null;
+  final scale = line.qty == 0 ? 1 : plan.qty / line.qty;
+  final scaled = <String, num>{
+    if (unfiscalised)
+      for (final (field, value) in [
+        ('taxAmt', line.taxAmt),
+        ('taxblAmt', line.taxblAmt),
+        ('totAmt', line.totAmt),
+      ])
+        if (value != null) field: value * scale,
+  };
   if (!unfiscalised) {
     await sync.setFolioLineQty(
       lineId: line.id,
@@ -187,7 +197,9 @@ Future<void> _hotelApplyRoomNights(
   }
   await ditto.store.execute(
     'UPDATE transaction_items SET name = :name, '
-    '${unfiscalised ? 'qty = :qty, ' : ''}updatedAt = :updatedAt '
+    '${unfiscalised ? 'qty = :qty, ' : ''}'
+    '${scaled.keys.map((f) => '$f = :$f, ').join()}'
+    'updatedAt = :updatedAt '
     'WHERE _id = :id',
     arguments: {
       'id': line.id,
@@ -196,6 +208,7 @@ Future<void> _hotelApplyRoomNights(
         nights: plan.qty.toInt(),
       ),
       if (unfiscalised) 'qty': plan.qty,
+      ...scaled,
       'updatedAt': DateTime.now().toUtc().toIso8601String(),
     },
   );

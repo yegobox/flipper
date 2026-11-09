@@ -616,6 +616,10 @@ abstract final class HotelDeskActions {
             stay: live,
             total: total,
             tender: tender,
+            only: {
+              for (final a in live.advances)
+                if (a.isHeld) a.id,
+            },
           )
         : null;
 
@@ -725,6 +729,7 @@ abstract final class HotelDeskActions {
             stay: live,
             total: total,
             tender: null,
+            only: {for (final a in held) a.id},
           )
         : null;
 
@@ -845,13 +850,22 @@ abstract final class HotelDeskActions {
     required HotelStay stay,
     required double total,
     required String? tender,
+
+    /// The advances a checkout netted its balance against. One taken on
+    /// another terminal after that read was not deducted from what the guest
+    /// paid, so it is left held (and listed in Billing) rather than applied
+    /// to a sale already settled in full.
+    Set<String>? only,
   }) async {
     var current = await _sync.hotelStayById(id: stay.id) ?? stay;
-    final held = current.advances.where((a) => a.isHeld).toList();
+    final held = [
+      for (final a in current.advances)
+        if (a.isHeld && (only == null || only.contains(a.id))) a,
+    ];
     if (held.isEmpty) return current;
     final plan = HotelAdvanceSettlement.of(
       total: total,
-      held: current.advanceHeld,
+      held: held.fold<double>(0, (sum, a) => sum + a.amount),
     );
 
     final settledBy = <String, String>{};
@@ -868,11 +882,16 @@ abstract final class HotelDeskActions {
           settledBy[advance.id] = movement.id;
         }
       } else {
-        // Only reached with balance > 0, so every advance is used in full.
+        // Each advance in its own method, oldest first, and never more than
+        // the folio: what exceeds it is the surplus refunded below.
+        var left = plan.applied;
         for (final advance in held) {
+          if (left < 0.5) break;
+          final amount = advance.amount < left ? advance.amount : left;
+          left -= amount;
           final movement = await _advanceMovement(
             stay: current,
-            amount: advance.amount,
+            amount: amount,
             kind: kBookingAdvanceApplied,
             paymentMethod: advance.paymentMethod,
             updateShift: false,
@@ -922,9 +941,15 @@ abstract final class HotelDeskActions {
     required HotelStay stay,
     required double total,
     required String? tender,
+    required Set<String> only,
   }) async {
     try {
-      await settleHeldAdvances(stay: stay, total: total, tender: tender);
+      await settleHeldAdvances(
+        stay: stay,
+        total: total,
+        tender: tender,
+        only: only,
+      );
       return null;
     } catch (e, st) {
       talker.error(

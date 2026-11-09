@@ -307,6 +307,52 @@ void main() {
       ]);
     });
 
+    test('an advance the checkout did not net is left held', () async {
+      stored = _stay(
+        advances: [
+          _advance('a1', 30000, method: 'Cash'),
+          // Taken on another terminal after checkout read the stay.
+          _advance('late', 20000, method: 'Cash'),
+        ],
+      );
+
+      await HotelDeskActions.settleHeldAdvances(
+        stay: stored,
+        total: 100000,
+        tender: 'Cash',
+        only: {'a1'},
+      );
+
+      expect(movements.map((m) => (m.kind, m.amount)), [
+        (kBookingAdvanceApplied, 30000),
+      ]);
+      expect(stored.advances.map((a) => a.status), [
+        HotelAdvanceStatus.applied,
+        HotelAdvanceStatus.held,
+      ]);
+    });
+
+    test('a credit folio applies no more than its total', () async {
+      stored = _stay(
+        advances: [
+          _advance('a1', 70000),
+          _advance('a2', 50000, method: 'Cash'),
+        ],
+      );
+
+      await HotelDeskActions.settleHeldAdvances(
+        stay: stored,
+        total: 100000,
+        tender: null,
+      );
+
+      expect(movements.map((m) => (m.kind, m.amount, m.method)), [
+        (kBookingAdvanceApplied, 70000, 'MOBILE MONEY'),
+        (kBookingAdvanceApplied, 30000, 'Cash'),
+        (kBookingAdvanceRefunded, 20000, 'Cash'),
+      ]);
+    });
+
     test('a settlement marks every advance in one write', () async {
       stored = _stay(advances: [_advance('a1', 30000), _advance('a2', 10000)]);
 

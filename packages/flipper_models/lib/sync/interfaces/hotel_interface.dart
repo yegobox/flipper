@@ -74,6 +74,10 @@ abstract class HotelInterface {
   /// Stays checked out since [since], newest first — for reprinting a
   /// guest's invoice after they have gone. Bounded by what this device holds
   /// (the stays sync keeps every status for the branch).
+  ///
+  /// A stay still holding an advance is listed however long ago it left,
+  /// since [since] only bounds the reprint list: Billing's Apply action must
+  /// stay reachable until that money is accounted for.
   Future<List<HotelStay>> hotelCheckedOutStays({
     required String branchId,
     required DateTime since,

@@ -408,6 +408,32 @@ void main() {
       });
     }
 
+    test(
+      'an invoice whose surplus is not yet refunded still renders',
+      () async {
+        final bytes = await HotelFolioPdf.build(
+          // Settlement failed after checkout: the advance is still held.
+          stay: _stay(advances: [_advance('a1', 120000)]),
+          lines: [_line('Room 101 · 2 nights', 2, 50000)],
+          folio: ITransaction(
+            id: 't1',
+            agentId: 'c1',
+            branchId: 'b1',
+            status: COMPLETE,
+            transactionType: 'sale',
+            paymentType: 'Cash',
+            cashReceived: 100000,
+            customerChangeDue: 0,
+            updatedAt: DateTime(2026),
+            isIncome: true,
+            isExpense: false,
+          ),
+          currency: 'RWF',
+        );
+        expect(String.fromCharCodes(bytes.take(4)), '%PDF');
+      },
+    );
+
     test('a folio still syncing down is not printed', () {
       final open = _stay();
       final gone = _stay().copyWith(status: HotelStayStatus.checkedOut);

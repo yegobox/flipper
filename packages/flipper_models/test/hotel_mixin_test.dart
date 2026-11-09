@@ -1456,6 +1456,8 @@ void main() {
         ),
         'taxTyCd': 'B',
         'taxPercentage': 18,
+        // Two nights' VAT already stored: it must be recomputed, not kept.
+        'taxAmt': 15254.24,
       });
 
       await sync.changeHotelStayDeparture(
@@ -1468,7 +1470,8 @@ void main() {
       )).single;
       expect(line.qty, 3);
       expect(line.name, 'Room 101 · 3 nights');
-      expect(line.taxAmt, greaterThan(0));
+      // 150,000 VAT-inclusive at 18%.
+      expect(line.taxAmt, closeTo(22881.36, 0.01));
 
       // The plain line a branch off EBM falls back to has no tax codes, and
       // must not gain any.
@@ -1498,6 +1501,66 @@ void main() {
       expect(line.taxAmt ?? 0, 0);
       final folio = await sync.hotelFolio(transactionId: stay.transactionId);
       expect(folio?.subTotal, 200000);
+
+      // A plain line whose quantity a clerk edited stores amounts (but still
+      // no tax code): they follow the new night count, still with no code.
+      ditto.store.collections['transaction_items']!.clear();
+      ditto.store.seed('transaction_items', {
+        ..._lineDoc(
+          id: 'edited',
+          transactionId: stay.transactionId,
+          name: 'Room 101 · 4 nights',
+          qty: '4',
+          price: '50000',
+        ),
+        'taxAmt': 30508.48,
+        'totAmt': 200000,
+      });
+
+      await sync.changeHotelStayDeparture(
+        stay: stay,
+        checkOutAt: DateTime.utc(2026, 1, 12, 11),
+      );
+
+      line = (await sync.hotelFolioLines(
+        transactionId: stay.transactionId,
+      )).single;
+      expect(line.qty, 2);
+      expect(line.taxTyCd, isNull);
+      expect(line.taxAmt, closeTo(15254.24, 0.01));
+      expect(line.totAmt, 100000);
+    });
+
+    test('departure is judged on the stay as stored, not the screen', () async {
+      final stay = await checkedIn();
+      // Checked in on another terminal on a later arrival than this screen
+      // still shows.
+      await sync.saveHotelStay(
+        (await sync.hotelStayById(id: stay.id))!.copyWith(
+          checkInAt: DateTime.utc(2026, 1, 12, 14),
+          expectedCheckOutAt: DateTime.utc(2026, 1, 14, 11),
+        ),
+      );
+
+      await expectLater(
+        sync.changeHotelStayDeparture(
+          stay: stay,
+          checkOutAt: DateTime.utc(2026, 1, 11, 11),
+        ),
+        throwsA(
+          isA<StateError>().having(
+            (e) => e.message,
+            'message',
+            contains('after arrival'),
+          ),
+        ),
+      );
+      final moved = await sync.changeHotelStayDeparture(
+        stay: stay,
+        checkOutAt: DateTime.utc(2026, 1, 15, 11),
+      );
+      // Nights from the stored arrival: 12th to 15th.
+      expect(moved.nights, 3);
     });
   });
 

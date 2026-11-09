@@ -555,7 +555,8 @@ bool hotelTenantIsAdmin(Tenant tenant) {
 }
 
 /// Guests who left in the last 30 days, newest first — the Billing screen's
-/// reprint list. Re-read each time the screen opens (auto-disposed).
+/// reprint list — plus any older stay still holding an advance, so its Apply
+/// action stays reachable. Re-read each time the screen opens (auto-disposed).
 final hotelCheckedOutStaysProvider =
     FutureProvider.autoDispose<List<HotelStay>>((ref) {
       // Re-read when this terminal checks a guest out while the list is open.

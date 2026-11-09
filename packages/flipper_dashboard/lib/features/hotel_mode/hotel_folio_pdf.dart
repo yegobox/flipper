@@ -122,6 +122,7 @@ abstract final class HotelFolioPdf {
             total: breakdown.total,
             advanced: advanced,
             amount: amount,
+            refundPending: kept.any((a) => a.isHeld),
           ),
           pw.SizedBox(height: 18),
           pw.Text(
@@ -386,6 +387,7 @@ abstract final class HotelFolioPdf {
     required double total,
     required double advanced,
     required String Function(num) amount,
+    bool refundPending = false,
   }) {
     final l10n = FlipperL10n.current;
     switch (kind) {
@@ -420,7 +422,14 @@ abstract final class HotelFolioPdf {
         if (surplus <= 0) return paid;
         return pw.Column(
           children: [
-            _totalRow(l10n.hotelAdvanceRefunded, amount(surplus)),
+            _totalRow(
+              // Refunded only once the settlement went through; an advance
+              // still held means the refund is still owed.
+              refundPending
+                  ? l10n.hotelAdvanceToRefund
+                  : l10n.hotelAdvanceRefunded,
+              amount(surplus),
+            ),
             paid,
           ],
         );
