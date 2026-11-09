@@ -2,8 +2,10 @@ import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_derive.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_models.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_providers.dart';
+import 'package:flipper_web/modules/accounting/routing/accounting_route.dart';
 import 'package:flipper_web/modules/accounting/views/desktop/journal_view.dart';
 import 'package:flipper_web/modules/accounting/views/desktop/other_desktop_views.dart';
+import 'package:flipper_web/modules/accounting/widgets/accounting_page_header.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -58,6 +60,7 @@ Future<void> _pump(
   Widget view, {
   required List<JournalEntry> journal,
   String code = '1010',
+  bool loading = false,
 }) async {
   tester.view.physicalSize = const Size(1400, 900);
   tester.view.devicePixelRatio = 1.0;
@@ -88,7 +91,7 @@ Future<void> _pump(
           _bank,
         ]),
         accountingCurrencyProvider.overrideWithValue('RWF'),
-        accountingLoadingProvider.overrideWithValue(false),
+        accountingLoadingProvider.overrideWithValue(loading),
         ledgerAccountCodeProvider.overrideWith((ref) => code),
       ],
       child: MaterialApp(
@@ -102,6 +105,9 @@ Future<void> _pump(
 }
 
 int _rowsBuilt() => find.textContaining('Sale · ').evaluate().length;
+
+ProviderContainer _container(WidgetTester tester, Type view) =>
+    ProviderScope.containerOf(tester.element(find.byType(view)));
 
 void main() {
   group('General ledger', () {
@@ -156,6 +162,24 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
+    testWidgets('picking another account shows its postings', (tester) async {
+      await _pump(
+        tester,
+        const AccountingGeneralLedgerView(),
+        journal: _journal(3),
+      );
+
+      await tester.tap(find.byType(DropdownButton<String>));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('4010 · Sales Revenue').last);
+      await tester.pumpAndSettle();
+
+      final container = _container(tester, AccountingGeneralLedgerView);
+      expect(container.read(ledgerAccountCodeProvider), '4010');
+      expect(_rowsBuilt(), 3);
+      expect(tester.takeException(), isNull);
+    });
+
     test('postings follow the selected account', () {
       final container = ProviderContainer(
         overrides: [
@@ -195,6 +219,61 @@ void main() {
       expect(find.text('Sale · 0'), findsOneWidget);
     });
 
+    testWidgets('the header filters by status and source', (tester) async {
+      final journal = [
+        ..._journal(3),
+        const JournalEntry(
+          id: 'JE-M',
+          date: 'Nov 2',
+          memo: 'Manual · rent',
+          ref: 'M1',
+          status: JournalStatus.pending,
+          src: 'Manual',
+          lines: [
+            JournalLine(ac: '1010', cr: 50),
+            JournalLine(ac: '4010', dr: 50),
+          ],
+        ),
+      ];
+      await _pump(
+        tester,
+        AccountingJournalView(onNewEntry: () {}, onRecordExpense: () {}),
+        journal: journal,
+        loading: true,
+      );
+      final l10n = tester
+          .element(find.byType(AccountingJournalView))
+          .flipperL10n;
+      final container = _container(tester, AccountingJournalView);
+
+      expect(find.byType(LinearProgressIndicator), findsOneWidget);
+      expect(find.text(l10n.booksEntriesAwaitingApproval(1)), findsOneWidget);
+
+      // Status chips.
+      await tester.tap(find.text('${l10n.booksFilterPending} (1)'));
+      await tester.pump();
+      expect(container.read(journalFilterProvider), JournalFilter.pending);
+      expect(_rowsBuilt(), 0);
+      expect(find.text('Manual · rent'), findsOneWidget);
+
+      // Source menu. The progress bar never settles, so pump a while.
+      await tester.tap(find.text(l10n.booksFilter));
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(find.text(l10n.booksAllSources), findsOneWidget);
+      expect(find.byType(PopupMenuItem<String?>), findsNWidgets(3));
+      // A tap on the open menu's item misses its hit test here, so choose
+      // through the button's own callback.
+      tester
+          .widget<PopupMenuButton<String?>>(
+            find.byType(PopupMenuButton<String?>),
+          )
+          .onSelected!('POS');
+      await tester.pump();
+      expect(container.read(journalSourceFilterProvider), 'POS');
+      expect(find.text('Manual · rent'), findsNothing);
+      expect(tester.takeException(), isNull);
+    });
+
     testWidgets('an empty journal still says nothing matches', (tester) async {
       await _pump(
         tester,
@@ -208,5 +287,17 @@ void main() {
       expect(find.text(l10n.booksNoEntriesMatchFilter), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
+  });
+
+  testWidgets('a loading button shows a spinner', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: AccountingButton(label: 'Save', primary: true, isLoading: true),
+        ),
+      ),
+    );
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    expect(find.text('Save'), findsNothing);
   });
 }
