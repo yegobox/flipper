@@ -39,142 +39,164 @@ class AccountingGeneralLedgerView extends ConsumerWidget {
     final l10n = context.flipperL10n;
     final code = ref.watch(ledgerAccountCodeProvider);
     final accounts = ref.watch(accountingAccountsProvider);
-    final journal = ref.watch(accountingJournalProvider);
     final currency = ref.watch(accountingCurrencyProvider);
     final accountMap = {for (final a in accounts) a.code: a};
     final account = accountMap[code];
-    final postings = account == null
-        ? <GlPosting>[]
-        : generalLedgerPostings(code, journal, accounts);
+    final postings = ref.watch(generalLedgerPostingsProvider);
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(28, 24, 28, 40),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          AccountingPageHeader(
-            eyebrow: l10n.booksDaybook,
-            title: l10n.booksGeneralLedger,
-            subtitle: l10n.booksAccountPostingHistory(currency),
-            actions: [
-              DropdownButton<String>(
-                value: code,
-                items: [
-                  for (final a in accounts)
-                    DropdownMenuItem(
-                      value: a.code,
-                      child: Text('${a.code} · ${a.name}'),
-                    ),
-                ],
-                onChanged: (v) {
-                  if (v != null) {
-                    ref.read(ledgerAccountCodeProvider.notifier).state = v;
-                  }
-                },
-              ),
-            ],
-          ),
-          if (account != null)
-            AccountingCard(
-              padding: const EdgeInsets.all(20),
-              child: Row(
-                children: [
-                  Text(
-                    account.code,
-                    style: AccountingTokens.mono(
-                      fontSize: 14,
-                      color: AccountingTokens.ink3,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      account.name,
-                      style: AccountingTokens.sans(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  AccountTypePill(type: account.type),
-                  const SizedBox(width: 12),
-                  Text(
-                    l10n.booksClosingBalance(money(account.bal)),
-                    style: AccountingTokens.mono(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          const SizedBox(height: 16),
-          AccountingCard(
-            child: Column(
-              children: [
-                for (final p in postings)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 12,
-                    ),
-                    child: Row(
-                      children: [
-                        SizedBox(
-                          width: 80,
-                          child: Text(
-                            p.date,
-                            style: AccountingTokens.sans(
-                              fontSize: 13,
-                              color: AccountingTokens.ink3,
-                            ),
-                          ),
-                        ),
-                        Expanded(
-                          child: Text(
-                            p.memo,
-                            style: AccountingTokens.sans(fontSize: 13.5),
-                          ),
-                        ),
-                        SizedBox(
-                          width: 90,
-                          child: Text(
-                            p.debit > 0 ? money(p.debit) : '—',
-                            style: AccountingTokens.mono(
-                              fontSize: 13,
-                              color: AccountingTokens.drInk,
-                            ),
-                            textAlign: TextAlign.right,
-                          ),
-                        ),
-                        SizedBox(
-                          width: 90,
-                          child: Text(
-                            p.credit > 0 ? money(p.credit) : '—',
-                            style: AccountingTokens.mono(
-                              fontSize: 13,
-                              color: AccountingTokens.crInk,
-                            ),
-                            textAlign: TextAlign.right,
-                          ),
-                        ),
-                        SizedBox(
-                          width: 100,
-                          child: Text(
-                            money(p.balance),
-                            style: AccountingTokens.mono(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w700,
-                            ),
-                            textAlign: TextAlign.right,
-                          ),
+    // A busy till's Cash on Hand has thousands of postings: build only the
+    // rows on screen.
+    return CustomScrollView(
+      slivers: [
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(28, 24, 28, 40),
+          sliver: SliverMainAxisGroup(
+            slivers: [
+              SliverToBoxAdapter(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    AccountingPageHeader(
+                      eyebrow: l10n.booksDaybook,
+                      title: l10n.booksGeneralLedger,
+                      subtitle: l10n.booksAccountPostingHistory(currency),
+                      actions: [
+                        DropdownButton<String>(
+                          value: code,
+                          items: [
+                            for (final a in accounts)
+                              DropdownMenuItem(
+                                value: a.code,
+                                child: Text('${a.code} · ${a.name}'),
+                              ),
+                          ],
+                          onChanged: (v) {
+                            if (v != null) {
+                              ref
+                                      .read(ledgerAccountCodeProvider.notifier)
+                                      .state =
+                                  v;
+                            }
+                          },
                         ),
                       ],
                     ),
+                    if (account != null)
+                      AccountingCard(
+                        padding: const EdgeInsets.all(20),
+                        child: Row(
+                          children: [
+                            Text(
+                              account.code,
+                              style: AccountingTokens.mono(
+                                fontSize: 14,
+                                color: AccountingTokens.ink3,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                account.name,
+                                style: AccountingTokens.sans(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            AccountTypePill(type: account.type),
+                            const SizedBox(width: 12),
+                            Text(
+                              l10n.booksClosingBalance(money(account.bal)),
+                              style: AccountingTokens.mono(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    const SizedBox(height: 16),
+                  ],
+                ),
+              ),
+              if (postings.isEmpty)
+                const SliverToBoxAdapter(
+                  child: AccountingCard(child: Column(children: [])),
+                )
+              else
+                SliverAccountingCard(
+                  sliver: SliverList.builder(
+                    itemCount: postings.length,
+                    itemBuilder: (context, i) =>
+                        _GlPostingRow(posting: postings[i]),
                   ),
-              ],
+                ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _GlPostingRow extends StatelessWidget {
+  const _GlPostingRow({required this.posting});
+
+  final GlPosting posting;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = posting;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 80,
+            child: Text(
+              p.date,
+              style: AccountingTokens.sans(
+                fontSize: 13,
+                color: AccountingTokens.ink3,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(p.memo, style: AccountingTokens.sans(fontSize: 13.5)),
+          ),
+          SizedBox(
+            width: 90,
+            child: Text(
+              p.debit > 0 ? money(p.debit) : '—',
+              style: AccountingTokens.mono(
+                fontSize: 13,
+                color: AccountingTokens.drInk,
+              ),
+              textAlign: TextAlign.right,
+            ),
+          ),
+          SizedBox(
+            width: 90,
+            child: Text(
+              p.credit > 0 ? money(p.credit) : '—',
+              style: AccountingTokens.mono(
+                fontSize: 13,
+                color: AccountingTokens.crInk,
+              ),
+              textAlign: TextAlign.right,
+            ),
+          ),
+          SizedBox(
+            width: 100,
+            child: Text(
+              money(p.balance),
+              style: AccountingTokens.mono(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+              ),
+              textAlign: TextAlign.right,
             ),
           ),
         ],
