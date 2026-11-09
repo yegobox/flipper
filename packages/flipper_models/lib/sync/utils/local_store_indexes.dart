@@ -61,7 +61,10 @@ Future<void> ensureLocalStoreIndexes({required dynamic ditto}) async {
       // `IF NOT EXISTS` may not be accepted by every SDK version; a rejected
       // statement leaves the field unindexed and the failure silent, so try
       // the plain form before giving up on it.
-      final plain = statement.replaceFirst('CREATE INDEX IF NOT EXISTS ', 'CREATE INDEX ');
+      final plain = statement.replaceFirst(
+        'CREATE INDEX IF NOT EXISTS ',
+        'CREATE INDEX ',
+      );
       try {
         await ditto.store.execute(plain);
         created++;

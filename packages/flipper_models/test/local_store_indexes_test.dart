@@ -6,8 +6,11 @@ void main() {
     for (final statement in localStoreIndexStatements()) {
       expect(statement, startsWith('CREATE INDEX IF NOT EXISTS '));
       expect(statement, contains(' ON '));
-      expect(RegExp(r'\(\w+\)$').hasMatch(statement), isTrue,
-          reason: 'one field per index — composite needs SDK 5.1.0: $statement');
+      expect(
+        RegExp(r'\(\w+\)$').hasMatch(statement),
+        isTrue,
+        reason: 'one field per index — composite needs SDK 5.1.0: $statement',
+      );
     }
   });
 
@@ -43,8 +46,11 @@ void main() {
 
   test('a collection is never indexed on the same field twice', () {
     for (final entry in kLocalStoreIndexedFields.entries) {
-      expect(entry.value.toSet().length, entry.value.length,
-          reason: '${entry.key} repeats a field');
+      expect(
+        entry.value.toSet().length,
+        entry.value.length,
+        reason: '${entry.key} repeats a field',
+      );
     }
   });
 }

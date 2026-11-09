@@ -30,24 +30,21 @@ class FakeAccountingDittoStore implements AccountingDittoStore {
     String collection,
     String query,
     Map<String, dynamic> args,
-  ) async =>
-      [];
+  ) async => [];
 
   @override
   Stream<List<Map<String, dynamic>>> watchCollection(
     String collection,
     String query,
     Map<String, dynamic> args,
-  ) =>
-      const Stream.empty();
+  ) => const Stream.empty();
 
   @override
   Stream<void> watchChanges(
     String collection,
     String query,
     Map<String, dynamic> args,
-  ) =>
-      const Stream.empty();
+  ) => const Stream.empty();
 
   @override
   Future<void> upsertChartOfAccount(
@@ -99,8 +96,7 @@ class FakeAccountingDittoStore implements AccountingDittoStore {
     Map<String, dynamic> data, {
     required String extraWhere,
     Map<String, dynamic> extraArgs = const {},
-  }) async =>
-      true;
+  }) async => true;
 
   @override
   Future<void> upsertAccountingDocument(
