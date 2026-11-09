@@ -32,6 +32,82 @@ class _FakePaths extends Fake
 /// The accounting store alone, without DittoService's sync setup.
 class _AccountingStore extends DittoCore with AccountingMixin {}
 
+// Ditto, Sync and Store are final classes, so the code under test takes
+// them as `dynamic`; these fakes stand in where no native library is loaded
+// (CI).
+
+class _FakeSubscription {
+  _FakeSubscription({this.failCancel = false});
+  final bool failCancel;
+  var cancelled = false;
+  void cancel() {
+    if (failCancel) throw StateError('ditto closed');
+    cancelled = true;
+  }
+}
+
+class _FakeSync {
+  final registered = <String, _FakeSubscription>{};
+
+  /// Registering a query containing this throws.
+  String? failOn;
+  var failCancel = false;
+
+  _FakeSubscription registerSubscription(
+    String dql, {
+    Map<String, dynamic> arguments = const {},
+  }) {
+    if (failOn != null && dql.contains(failOn!)) {
+      throw StateError('not allowed: $dql');
+    }
+    return registered[dql] = _FakeSubscription(failCancel: failCancel);
+  }
+}
+
+class _FakeObserver {
+  var cancelled = false;
+  Future<void> cancel() async => cancelled = true;
+}
+
+class _FakeStore {
+  final executed = <(String, Map<String, dynamic>)>[];
+  Object? executeError;
+  Object? observerError;
+  _FakeObserver? observer;
+  void Function(dynamic)? onChange;
+
+  Future<void> execute(
+    String dql, {
+    Map<String, dynamic> arguments = const {},
+  }) async {
+    if (executeError != null) throw executeError!;
+    executed.add((dql, arguments));
+  }
+
+  _FakeObserver registerObserver(
+    String query, {
+    Map<String, dynamic> arguments = const {},
+    void Function(dynamic)? onChange,
+  }) {
+    if (observerError != null) throw observerError!;
+    this.onChange = onChange;
+    return observer = _FakeObserver();
+  }
+}
+
+class _FakeDitto {
+  final sync = _FakeSync();
+  final store = _FakeStore();
+}
+
+/// [AccountingMixin.watchChanges] over a fake store.
+class _FakeFeedStore extends DittoCore with AccountingMixin {
+  _FakeFeedStore(this.fake);
+  final _FakeStore fake;
+  @override
+  dynamic get changeFeedStore => fake;
+}
+
 const _biz = '89ed8709-172d-4524-bab8-5f9d31f98657';
 const _other = '0b9c6c8e-1111-4222-8333-944455556666';
 
@@ -75,6 +151,172 @@ void main() {
         businessId: _biz,
       ).map((s) => s.key);
       expect(keys.where((k) => k.startsWith('transactions|')), isEmpty);
+    });
+  });
+
+  group('with a fake Ditto', () {
+    var n = 0;
+    late String biz;
+    late _FakeDitto ditto;
+
+    setUp(() {
+      // Subscriptions and evictions are remembered per process.
+      biz = 'fake-biz-${n++}';
+      ditto = _FakeDitto();
+      resetAccountingCloudSubscriptionKeys();
+    });
+
+    List<String> evictedFor(_FakeDitto d) => [
+      for (final (dql, args) in d.store.executed)
+        if (dql == evictOtherBusinessesJournalLinesDql)
+          args['businessId'] as String,
+    ];
+
+    test('subscribes once per key, then evicts other businesses', () async {
+      await ensureAccountingCloudSubscriptions(
+        ditto: ditto,
+        businessId: biz,
+        branchId: 'br-1',
+      );
+      final specs = accountingCloudSubscriptionSpecs(
+        businessId: biz,
+        branchId: 'br-1',
+      );
+      expect(ditto.sync.registered, hasLength(specs.length));
+      expect(evictedFor(ditto), [biz]);
+
+      // Already registered and evicted: nothing more.
+      await ensureAccountingCloudSubscriptions(
+        ditto: ditto,
+        businessId: biz,
+        branchId: 'br-1',
+      );
+      expect(ditto.sync.registered, hasLength(specs.length));
+      expect(evictedFor(ditto), [biz]);
+    });
+
+    test('a failed subscription is retried on the next call', () async {
+      ditto.sync.failOn = 'FROM journal_lines';
+      await ensureAccountingCloudSubscriptions(ditto: ditto, businessId: biz);
+      expect(
+        ditto.sync.registered.keys.where((q) => q.contains('journal_lines')),
+        isEmpty,
+      );
+
+      ditto.sync.failOn = null;
+      await ensureAccountingCloudSubscriptions(ditto: ditto, businessId: biz);
+      expect(
+        ditto.sync.registered.keys.where((q) => q.contains('journal_lines')),
+        hasLength(1),
+      );
+    });
+
+    test('an empty business subscribes to nothing', () async {
+      await ensureAccountingCloudSubscriptions(ditto: ditto, businessId: '');
+      await evictOtherBusinessesJournalLines(ditto: ditto, businessId: '');
+      expect(ditto.sync.registered, isEmpty);
+      expect(ditto.store.executed, isEmpty);
+    });
+
+    test('switching business cancels the previous journal lines '
+        'subscription before evicting', () async {
+      _FakeSubscription linesSub(_FakeDitto d) => d.sync.registered.entries
+          .singleWhere((e) => e.key.contains('FROM journal_lines'))
+          .value;
+
+      await ensureAccountingCloudSubscriptions(ditto: ditto, businessId: biz);
+      final first = linesSub(ditto);
+
+      // A manual refresh re-registers the same business: kept.
+      resetAccountingCloudSubscriptionKeys();
+      final again = _FakeDitto();
+      await ensureAccountingCloudSubscriptions(ditto: again, businessId: biz);
+      expect(first.cancelled, isFalse);
+
+      // Another business: the previous lines subscription goes.
+      final second = _FakeDitto();
+      final other = '$biz-other';
+      await ensureAccountingCloudSubscriptions(
+        ditto: second,
+        businessId: other,
+      );
+      expect(linesSub(again).cancelled, isTrue);
+      expect(linesSub(second).cancelled, isFalse);
+      expect(evictedFor(second), [other]);
+
+      // Back to the first business: subscribed again, not skipped.
+      final third = _FakeDitto();
+      await ensureAccountingCloudSubscriptions(ditto: third, businessId: biz);
+      expect(linesSub(third).cancelled, isFalse);
+      expect(linesSub(second).cancelled, isTrue);
+    });
+
+    test('a failed cancel does not stop the new subscription', () async {
+      ditto.sync.failCancel = true;
+      await ensureAccountingCloudSubscriptions(ditto: ditto, businessId: biz);
+      final next = _FakeDitto();
+      await ensureAccountingCloudSubscriptions(
+        ditto: next,
+        businessId: '$biz-next',
+      );
+      expect(
+        next.sync.registered.keys.where((q) => q.contains('journal_lines')),
+        hasLength(1),
+      );
+    });
+
+    test('a failed eviction is tried again', () async {
+      ditto.store.executeError = StateError('busy');
+      await evictOtherBusinessesJournalLines(ditto: ditto, businessId: biz);
+      expect(evictedFor(ditto), isEmpty);
+
+      ditto.store.executeError = null;
+      await evictOtherBusinessesJournalLines(ditto: ditto, businessId: biz);
+      expect(evictedFor(ditto), [biz]);
+    });
+
+    test('the eviction is scoped to this business', () {
+      expect(
+        evictOtherBusinessesJournalLinesDql,
+        startsWith('EVICT FROM journal_lines WHERE '),
+      );
+      expect(evictOtherBusinessesJournalLinesDql, contains(':businessId'));
+    });
+  });
+
+  group('watchChanges over a fake store', () {
+    test('fires on change and stops when cancelled', () async {
+      final fake = _FakeStore();
+      final store = _FakeFeedStore(fake);
+      var fired = 0;
+      final sub = store
+          .watchChanges('journal_entries', 'SELECT * FROM journal_entries', {})
+          .listen((_) => fired++);
+      await pumpEventQueue();
+      final onChange = fake.onChange!;
+
+      onChange(null);
+      onChange(null);
+      await pumpEventQueue();
+      expect(fired, 2);
+
+      await sub.cancel();
+      expect(fake.observer!.cancelled, isTrue);
+      onChange(null);
+      await pumpEventQueue();
+      expect(fired, 2);
+    });
+
+    test('a failed registration is an error on the stream', () async {
+      final fake = _FakeStore()..observerError = StateError('strict mode');
+      final store = _FakeFeedStore(fake);
+      final errors = <Object>[];
+      final sub = store
+          .watchChanges('journal_lines', 'SELECT * FROM journal_lines', {})
+          .listen((_) {}, onError: errors.add);
+      await pumpEventQueue();
+      expect(errors, [isA<StateError>()]);
+      await sub.cancel();
     });
   });
 
@@ -131,7 +373,31 @@ void main() {
         'businessId': _other,
         'business_id': _other,
       });
+      await insert('journal_lines', {
+        '_id': 'theirs_snake',
+        'business_id': _other,
+      });
+      await insert('journal_lines', {
+        '_id': 'theirs_snake_empty',
+        'businessId': '',
+        'business_id': _other,
+      });
+      await insert('journal_lines', {
+        '_id': 'theirs_snake_null',
+        'businessId': null,
+        'business_id': _other,
+      });
+      await insert('journal_lines', {
+        '_id': 'mine_snake_empty',
+        'businessId': '',
+        'business_id': _biz,
+      });
       await insert('journal_lines', {'_id': 'unknown', 'journalEntryId': 'x'});
+      await insert('journal_lines', {
+        '_id': 'unknown_both_empty',
+        'businessId': '',
+        'business_id': '',
+      });
       await insert('journal_lines', {
         '_id': 'unknown_null',
         'businessId': null,
@@ -144,7 +410,9 @@ void main() {
         'mine',
         'mine_mixed',
         'mine_snake',
+        'mine_snake_empty',
         'unknown',
+        'unknown_both_empty',
         'unknown_empty',
         'unknown_null',
       ]);

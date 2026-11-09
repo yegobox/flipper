@@ -24,6 +24,9 @@ typedef StallEventSender = Future<void> Function(
 /// cashier ends by killing the app is reported on the next start.
 Future<void> startUiStallMonitoring() async {
   if (kIsWeb || _watchdog != null) return;
+  // First, before any await: Books may start a ledger refresh meanwhile.
+  // The trail holds it until the marker file is handed over below.
+  installPerfTrackHook(PerfOpTrail.instance);
   final dir = await getApplicationSupportDirectory();
   final perfDir = '${dir.path}${Platform.pathSeparator}perf';
   final log = PerfLogFile(File('$perfDir${Platform.pathSeparator}perf.log'));
@@ -41,13 +44,20 @@ Future<void> startUiStallMonitoring() async {
   trail.useMarkerFile(marker);
   // A normal quit mid-search is not a hang. The binding keeps the listener.
   clearMarkerOnExitRequest(trail);
-  // Shared packages (Books' ledger) time their heavy work through this hook.
-  PerfTrack.track = trail.track;
 
   _watchdog = UiStallWatchdog(
     onStall: (stall) => trail.report('ui_stall', stall.toProperties()),
     context: () => {'observers': dittoObserverStats.summary()},
   )..start();
+}
+
+/// Points [PerfTrack] at [trail], so shared packages (Books' ledger) time
+/// their heavy work there. The work is critical: a kill during it leaves the
+/// in-flight marker, so the next start reports it as `ui_hang_killed`.
+@visibleForTesting
+void installPerfTrackHook(PerfOpTrail trail) {
+  PerfTrack.track = <T>(String label, Future<T> Function() body) =>
+      trail.track<T>(label, body, critical: true);
 }
 
 /// Reports the op a killed previous run left in [marker] as `ui_hang_killed`.

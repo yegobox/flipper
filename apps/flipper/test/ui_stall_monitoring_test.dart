@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flipper_models/perf/perf_track.dart';
 import 'package:flipper_models/perf/ui_stall_watchdog.dart';
 import 'package:flipper_rw/ui_stall_monitoring.dart';
 import 'package:flipper_web/core/local_mode/local_mode.dart';
@@ -108,6 +109,32 @@ void main() {
     // Nothing left: the next start reports nothing.
     await reportKilledHang(marker, log, send: send);
     expect(log.lines, hasLength(1));
+  });
+
+  test('the ledger refresh is a critical op on the desktop trail', () async {
+    addTearDown(() => PerfTrack.track = PerfTrack.untracked);
+    final dir = Directory.systemTemp.createTempSync('ui_track_');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final marker = File('${dir.path}/inflight.json');
+    final trail = PerfOpTrail();
+    installPerfTrackHook(trail);
+
+    // Started before the marker is handed over, as at startup.
+    final body = Completer<int>();
+    final refresh = PerfTrack.track('books.ledger_refresh', () => body.future);
+    trail.useMarkerFile(marker);
+
+    expect(trail.running().single, startsWith('books.ledger_refresh'));
+    // A kill now is reported on the next start.
+    expect(
+      PerfOpTrail.readLeftoverMarker(marker)?['op'],
+      'books.ledger_refresh',
+    );
+
+    body.complete(7);
+    expect(await refresh, 7);
+    expect(marker.existsSync(), isFalse);
+    expect(trail.recent().single, startsWith('books.ledger_refresh'));
   });
 
   test('a failing sender never escapes', () async {

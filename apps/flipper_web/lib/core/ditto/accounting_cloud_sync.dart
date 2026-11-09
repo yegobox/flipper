@@ -12,10 +12,17 @@ void resetAccountingCloudSubscriptionKeys() {
   debugPrint('[Accounting] cloud subscription keys cleared');
 }
 
+/// The journal_lines subscription in force. A business switch cancels it,
+/// so the previous business's lines stop syncing before they are evicted.
+({String key, dynamic subscription})? _journalLinesSubscription;
+
 /// Cloud pull subscriptions for GL + POS collections (mirrors
 /// [ensureBranchCatalogCloudSubscriptions] for catalog data).
+///
+/// [ditto] is a [Ditto]; it is `dynamic` only so tests can pass a fake, as
+/// [Ditto] is a final class.
 Future<void> ensureAccountingCloudSubscriptions({
-  required Ditto ditto,
+  required dynamic ditto,
   required String businessId,
   String? branchId,
 }) async {
@@ -28,11 +35,14 @@ Future<void> ensureAccountingCloudSubscriptions({
     if (!_accountingSubscriptionKeys.add(entry.key)) continue;
     try {
       final prepared = prepareDqlSyncSubscription(entry.sql, entry.args);
-      await ditto.sync.registerSubscription(
+      final subscription = ditto.sync.registerSubscription(
         prepared.dql,
         arguments: prepared.arguments,
       );
       debugPrint('[Accounting] cloud subscription registered ${entry.key}');
+      if (entry.key.startsWith('journal_lines|')) {
+        _replaceJournalLinesSubscription(entry.key, subscription);
+      }
     } catch (e, st) {
       _accountingSubscriptionKeys.remove(entry.key);
       debugPrint(
@@ -44,6 +54,20 @@ Future<void> ensureAccountingCloudSubscriptions({
   }
 
   await evictOtherBusinessesJournalLines(ditto: ditto, businessId: businessId);
+}
+
+void _replaceJournalLinesSubscription(String key, dynamic subscription) {
+  final previous = _journalLinesSubscription;
+  _journalLinesSubscription = (key: key, subscription: subscription);
+  // The same key again (a manual refresh) keeps the earlier subscription.
+  if (previous == null || previous.key == key) return;
+  _accountingSubscriptionKeys.remove(previous.key);
+  try {
+    previous.subscription.cancel();
+    debugPrint('[Accounting] cloud subscription cancelled ${previous.key}');
+  } catch (e) {
+    debugPrint('[Accounting] cloud subscription cancel failed: $e');
+  }
 }
 
 /// What [ensureAccountingCloudSubscriptions] subscribes to.
@@ -152,19 +176,26 @@ accountingCloudSubscriptionSpecs({
 final Set<String> _journalLinesEvictedFor = {};
 
 /// Removes, from this device only, the journal lines an older build synced
-/// for other businesses. Lines without a business id stay: they are not
-/// known to belong elsewhere. Runs once per business per process; the
-/// scoped subscription keeps them from coming back.
+/// for other businesses: those whose `businessId`, or failing that
+/// `business_id`, names another business, unless the other field names this
+/// one. Lines with neither stay: they are not known to belong elsewhere.
+/// Runs once per business per process; the scoped subscription keeps them
+/// from coming back.
 @visibleForTesting
 const evictOtherBusinessesJournalLinesDql =
     'EVICT FROM journal_lines '
-    'WHERE businessId IS NOT MISSING AND businessId IS NOT NULL '
-    "AND businessId != '' AND businessId != :businessId "
+    'WHERE ((businessId IS NOT MISSING AND businessId IS NOT NULL '
+    "AND businessId != '' AND businessId != :businessId) "
+    "OR ((businessId IS MISSING OR businessId IS NULL OR businessId = '') "
+    'AND business_id IS NOT MISSING AND business_id IS NOT NULL '
+    "AND business_id != '')) "
     'AND (business_id IS MISSING OR business_id IS NULL '
     'OR business_id != :businessId)';
 
+/// [ditto] is a [Ditto], `dynamic` for tests (see
+/// [ensureAccountingCloudSubscriptions]).
 Future<void> evictOtherBusinessesJournalLines({
-  required Ditto ditto,
+  required dynamic ditto,
   required String businessId,
 }) async {
   if (businessId.isEmpty || !_journalLinesEvictedFor.add(businessId)) return;
