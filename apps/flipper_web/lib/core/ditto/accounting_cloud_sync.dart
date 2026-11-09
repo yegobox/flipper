@@ -14,9 +14,10 @@ void resetAccountingCloudSubscriptionKeys() {
   debugPrint('[Accounting] cloud subscription keys cleared');
 }
 
-/// The journal_lines subscription in force. A business switch cancels it,
-/// so the previous business's lines stop syncing before they are evicted.
-({String key, dynamic subscription})? _journalLinesSubscription;
+/// The journal_lines subscriptions in force, all for one business (a manual
+/// refresh registers the same query again). A business switch cancels them,
+/// so the previous business's lines stop syncing.
+({String key, List<dynamic> subscriptions})? _journalLinesSubscription;
 
 /// Cloud pull subscriptions for GL + POS collections (mirrors
 /// [ensureBranchCatalogCloudSubscriptions] for catalog data).
@@ -67,15 +68,22 @@ Future<void> ensureAccountingCloudSubscriptions({
 
 void _replaceJournalLinesSubscription(String key, dynamic subscription) {
   final previous = _journalLinesSubscription;
-  _journalLinesSubscription = (key: key, subscription: subscription);
-  // The same key again (a manual refresh) keeps the earlier subscription.
-  if (previous == null || previous.key == key) return;
+  // The same key again (a manual refresh): keep both, so a switch cancels
+  // every one of them.
+  if (previous != null && previous.key == key) {
+    previous.subscriptions.add(subscription);
+    return;
+  }
+  _journalLinesSubscription = (key: key, subscriptions: [subscription]);
+  if (previous == null) return;
   _accountingSubscriptionKeys.remove(previous.key);
-  try {
-    previous.subscription.cancel();
-    debugPrint('[Accounting] cloud subscription cancelled ${previous.key}');
-  } catch (e) {
-    debugPrint('[Accounting] cloud subscription cancel failed: $e');
+  for (final old in previous.subscriptions) {
+    try {
+      old.cancel();
+      debugPrint('[Accounting] cloud subscription cancelled ${previous.key}');
+    } catch (e) {
+      debugPrint('[Accounting] cloud subscription cancel failed: $e');
+    }
   }
 }
 

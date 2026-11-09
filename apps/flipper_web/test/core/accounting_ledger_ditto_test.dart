@@ -43,11 +43,18 @@ class _FakeSubscription {
   void cancel() {
     if (failCancel) throw StateError('ditto closed');
     cancelled = true;
+    _ops.add('cancel');
   }
 }
 
+/// Subscription cancels and evictions, in the order they ran.
+final _ops = <String>[];
+
 class _FakeSync {
   final registered = <String, _FakeSubscription>{};
+
+  /// Every registerSubscription call, repeats included.
+  var registrations = 0;
 
   /// Registering a query containing this throws.
   String? failOn;
@@ -57,6 +64,7 @@ class _FakeSync {
     String dql, {
     Map<String, dynamic> arguments = const {},
   }) {
+    registrations++;
     if (failOn != null && dql.contains(failOn!)) {
       throw StateError('not allowed: $dql');
     }
@@ -101,6 +109,7 @@ class _FakeStore {
     }
     if (executeError != null) throw executeError!;
     executed.add((dql, arguments));
+    if (dql.startsWith('EVICT')) _ops.add('evict');
     return _FakeResult([]);
   }
 
@@ -232,6 +241,7 @@ void main() {
         userId: _user,
       );
       expect(ditto.sync.registered, hasLength(specs.length));
+      expect(ditto.sync.registrations, specs.length);
       expect(evictedFor(ditto), hasLength(1));
     });
 
@@ -283,7 +293,7 @@ void main() {
       );
       final first = linesSub(ditto);
 
-      // A manual refresh re-registers the same business: kept.
+      // A manual refresh re-registers the same business: both kept.
       resetAccountingCloudSubscriptionKeys();
       final again = _FakeDitto();
       await ensureAccountingCloudSubscriptions(
@@ -293,14 +303,18 @@ void main() {
       );
       expect(first.cancelled, isFalse);
 
-      // Another business: the previous lines subscription goes.
+      // Another business: every previous lines subscription goes, before
+      // the eviction runs.
       final other = '$biz-other';
       final second = _FakeDitto(userBusinesses: [biz]);
+      _ops.clear();
       await ensureAccountingCloudSubscriptions(
         ditto: second,
         businessId: other,
         userId: _user,
       );
+      expect(_ops, ['cancel', 'cancel', 'evict']);
+      expect(first.cancelled, isTrue);
       expect(linesSub(again).cancelled, isTrue);
       expect(linesSub(second).cancelled, isFalse);
       // The user's businesses are kept, the open one included.
