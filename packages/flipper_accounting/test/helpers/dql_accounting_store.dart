@@ -35,11 +35,18 @@ class DqlAccountingStore implements AccountingDittoStore {
     }
   }
 
-  void failChangeFeeds(Object error) {
+  /// Sends [error] down every change feed, or only [collection]'s.
+  void failChangeFeeds(Object error, {String? collection}) {
     for (final f in List.of(_feeds)) {
-      f.controller.addError(error);
+      if (collection == null || f.collection == collection) {
+        f.controller.addError(error);
+      }
     }
   }
+
+  /// Change feeds currently open on [collection].
+  int changeFeedsOn(String collection) =>
+      _feeds.where((f) => f.collection == collection).length;
 
   static final _select = RegExp(r'^SELECT \* FROM (\w+) WHERE (.+)$');
   static final _term = RegExp(r'^(\w+) (=|IN) :(\w+)$');

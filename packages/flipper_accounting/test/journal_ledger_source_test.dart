@@ -337,18 +337,103 @@ void main() {
       },
     );
 
-    test('a change feed error is logged, not fatal', () async {
+    test(
+      'a late listener after a failed read gets a fresh read, not silence',
+      () async {
+        final store = _seed(entries: 20, orphans: 0);
+        var fail = true;
+        store.beforeQuery = (q) async {
+          if (fail && q.contains('FROM journal_entries WHERE businessId')) {
+            throw StateError('ditto closed');
+          }
+        };
+        final repo = DittoAccountingLedgerRepository(store);
+        final first = repo
+            .watchJournalEntries(businessId: _biz)
+            .listen((_) {}, onError: (_) {});
+        await pumpEventQueue();
+        expect(store.queriesOf('journal_entries', 'businessId'), 1);
+
+        // Ditto recovers, but nothing changes: the period switch alone must
+        // bring the ledger.
+        fail = false;
+        final late = await repo
+            .watchJournalEntries(
+              businessId: _biz,
+              startDate: DateTime(2026, 1, 1),
+              endDate: DateTime(2026, 12, 31),
+            )
+            .first
+            .timeout(const Duration(seconds: 2));
+        expect(late, isNotEmpty);
+        expect(store.queriesOf('journal_entries', 'businessId'), 2);
+        await first.cancel();
+      },
+    );
+
+    test('a change feed error reaches listeners and only that feed is '
+        're-registered', () async {
+      final saved = DittoAccountingLedgerRepository.changeFeedRetry;
+      DittoAccountingLedgerRepository.changeFeedRetry = const Duration(
+        milliseconds: 50,
+      );
+      addTearDown(
+        () => DittoAccountingLedgerRepository.changeFeedRetry = saved,
+      );
       final store = _seed(entries: 5, orphans: 0);
       final repo = DittoAccountingLedgerRepository(store);
       final emitted = <List<JournalEntry>>[];
+      final errors = <Object>[];
       final sub = repo
           .watchJournalEntries(businessId: _biz)
-          .listen(emitted.add);
+          .listen(emitted.add, onError: errors.add);
+      await pumpEventQueue();
+      final reads = store.queriesOf('journal_entries', 'businessId');
+
+      store.failChangeFeeds(
+        StateError('observer gone'),
+        collection: 'journal_lines',
+      );
+      await pumpEventQueue();
+      expect(errors, [isA<StateError>()]);
+      expect(emitted, hasLength(1));
+      expect(store.changeFeedsOn('journal_lines'), 0);
+      expect(store.changeFeedsOn('journal_entries'), 1);
+
+      // Registered again, and what it may have missed is read once.
+      await Future<void>.delayed(const Duration(milliseconds: 400));
+      expect(store.changeFeedsOn('journal_lines'), 1);
+      expect(store.changeFeedsOn('journal_entries'), 1);
+      expect(store.queriesOf('journal_entries', 'businessId'), reads + 1);
+      expect(emitted, hasLength(2));
+
+      // The new feed works.
+      store.notifyChange('journal_lines');
+      await Future<void>.delayed(const Duration(milliseconds: 400));
+      expect(emitted, hasLength(3));
+      await sub.cancel();
+      expect(store.activeChangeFeeds, 0);
+    });
+
+    test('cancelling before a feed retry stops it', () async {
+      final saved = DittoAccountingLedgerRepository.changeFeedRetry;
+      DittoAccountingLedgerRepository.changeFeedRetry = const Duration(
+        milliseconds: 50,
+      );
+      addTearDown(
+        () => DittoAccountingLedgerRepository.changeFeedRetry = saved,
+      );
+      final store = _seed(entries: 5, orphans: 0);
+      final repo = DittoAccountingLedgerRepository(store);
+      final sub = repo
+          .watchJournalEntries(businessId: _biz)
+          .listen((_) {}, onError: (_) {});
       await pumpEventQueue();
       store.failChangeFeeds(StateError('observer gone'));
       await pumpEventQueue();
-      expect(emitted, hasLength(1));
       await sub.cancel();
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+      expect(store.activeChangeFeeds, 0);
     });
 
     test('every refresh is reported to the perf trail', () async {

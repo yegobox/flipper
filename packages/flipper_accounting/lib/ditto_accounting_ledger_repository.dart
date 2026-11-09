@@ -179,6 +179,11 @@ class DittoAccountingLedgerRepository implements AccountingLedgerRepository {
   @visibleForTesting
   int get ledgerSourceCount => _ledgerSources.length;
 
+  /// How long a failed ledger change feed waits before it is registered
+  /// again.
+  @visibleForTesting
+  static Duration changeFeedRetry = const Duration(seconds: 5);
+
   @override
   Stream<List<JournalEntry>> watchJournalEntries({
     required String businessId,
@@ -204,6 +209,9 @@ class DittoAccountingLedgerRepository implements AccountingLedgerRepository {
         final latest = s.latest;
         if (latest != null) out.add(pick(latest));
         s.start();
+        // A listener that attaches after a failed read would otherwise wait
+        // for the next change with neither data nor an error.
+        s.retryIfFailed();
       },
       onCancel: () async {
         await sub?.cancel();
@@ -578,36 +586,57 @@ class _JournalLedgerSource {
 
   final _out = StreamController<_JournalLedgerSnapshot>.broadcast();
   final _changes = <StreamSubscription<void>>[];
+  final _feedRetries = <Timer>[];
   Timer? _timer;
   var _started = false;
   var _disposed = false;
   var _loading = false;
   var _dirty = false;
+  var _failed = false;
 
   Stream<_JournalLedgerSnapshot> get snapshots => _out.stream;
 
   void start() {
     if (_started) return;
     _started = true;
-    final args = {'businessId': businessId};
     // Lines can land after their header: watch both, so an entry's lines
     // show up without waiting for the next header change.
-    _changes
-      ..add(
-        _ditto
-            .watchChanges('journal_entries', _entriesQuery, args)
-            .listen((_) => _schedule(), onError: _reportChangeError),
-      )
-      ..add(
-        _ditto
-            .watchChanges('journal_lines', _linesQuery, args)
-            .listen((_) => _schedule(), onError: _reportChangeError),
-      );
+    _watch('journal_entries', _entriesQuery);
+    _watch('journal_lines', _linesQuery);
     unawaited(_refresh());
   }
 
-  void _reportChangeError(Object e) {
-    debugPrint('[Accounting] ledger change feed error: $e');
+  /// Reads again if the last read failed.
+  void retryIfFailed() {
+    if (_failed) _schedule();
+  }
+
+  void _watch(String collection, String query) {
+    StreamSubscription<void>? sub;
+    sub = _ditto
+        .watchChanges(collection, query, {'businessId': businessId})
+        .listen(
+          (_) => _schedule(),
+          onError: (Object e, StackTrace st) {
+            debugPrint('[Accounting] ledger change feed error: $e');
+            if (_disposed) return;
+            // The feed may be dead (a failed observer registration sends
+            // nothing more): tell the listeners, then register it again and
+            // re-read what it may have missed. The other feed is untouched.
+            _out.addError(e, st);
+            _changes.remove(sub);
+            unawaited(sub?.cancel());
+            late final Timer retry;
+            retry = Timer(DittoAccountingLedgerRepository.changeFeedRetry, () {
+              _feedRetries.remove(retry);
+              if (_disposed) return;
+              _watch(collection, query);
+              _schedule();
+            });
+            _feedRetries.add(retry);
+          },
+        );
+    _changes.add(sub);
   }
 
   /// Gathers changes for [coalesce], then refreshes once. Never pushed back
@@ -635,8 +664,10 @@ class _JournalLedgerSource {
       );
       if (_disposed) return;
       latest = snap;
+      _failed = false;
       _out.add(snap);
     } catch (e, st) {
+      _failed = true;
       if (!_disposed) _out.addError(e, st);
     } finally {
       _loading = false;
@@ -648,7 +679,11 @@ class _JournalLedgerSource {
     _disposed = true;
     _timer?.cancel();
     _timer = null;
-    for (final c in _changes) {
+    for (final t in _feedRetries) {
+      t.cancel();
+    }
+    _feedRetries.clear();
+    for (final c in List.of(_changes)) {
       await c.cancel();
     }
     _changes.clear();

@@ -258,6 +258,11 @@ mixin AccountingMixin on DittoCore {
     return controller.stream;
   }
 
+  /// The store [watchChanges] observes. `dynamic` so tests can swap in a
+  /// fake, as Ditto's `Store` is a final class.
+  @visibleForTesting
+  dynamic get changeFeedStore => dittoInstance?.store;
+
   /// Like [watchCollection] but carries no rows: the observer's items are
   /// never read, so Ditto never decodes them on this isolate.
   Stream<void> watchChanges(
@@ -265,8 +270,8 @@ mixin AccountingMixin on DittoCore {
     String query,
     Map<String, dynamic> args,
   ) {
-    final ditto = dittoInstance;
-    if (ditto == null) return const Stream<void>.empty();
+    final store = changeFeedStore;
+    if (store == null) return const Stream<void>.empty();
 
     dynamic observer;
     var cancelled = false;
@@ -274,7 +279,7 @@ mixin AccountingMixin on DittoCore {
     controller = StreamController<void>(
       onListen: () {
         try {
-          observer = ditto.store.registerObserver(
+          observer = store.registerObserver(
             query,
             arguments: args,
             onChange: (_) {
