@@ -1,7 +1,9 @@
 import 'dart:async';
 
 import 'package:ditto_live/ditto_live.dart';
+import 'package:flipper_models/sync/ditto_observer_utils.dart';
 import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
+import 'package:flipper_web/core/utils/ditto_singleton.dart';
 import 'package:flutter/foundation.dart';
 
 final Set<String> _accountingSubscriptionKeys = {};
@@ -12,15 +14,86 @@ void resetAccountingCloudSubscriptionKeys() {
   debugPrint('[Accounting] cloud subscription keys cleared');
 }
 
+/// The journal_lines subscriptions in force, all for one business (a manual
+/// refresh registers the same query again). A business switch cancels them,
+/// so the previous business's lines stop syncing.
+({String key, List<dynamic> subscriptions})? _journalLinesSubscription;
+
 /// Cloud pull subscriptions for GL + POS collections (mirrors
 /// [ensureBranchCatalogCloudSubscriptions] for catalog data).
+///
+/// [ditto] is a [Ditto]; it is `dynamic` only so tests can pass a fake, as
+/// [Ditto] is a final class. [userId] is the signed-in user, whose
+/// businesses' journal lines are never evicted; it defaults to the user the
+/// store was opened for.
 Future<void> ensureAccountingCloudSubscriptions({
-  required Ditto ditto,
+  required dynamic ditto,
   required String businessId,
   String? branchId,
+  String? userId,
 }) async {
   if (businessId.isEmpty) return;
 
+  for (final entry in accountingCloudSubscriptionSpecs(
+    businessId: businessId,
+    branchId: branchId,
+  )) {
+    if (!_accountingSubscriptionKeys.add(entry.key)) continue;
+    try {
+      final prepared = prepareDqlSyncSubscription(entry.sql, entry.args);
+      final subscription = ditto.sync.registerSubscription(
+        prepared.dql,
+        arguments: prepared.arguments,
+      );
+      debugPrint('[Accounting] cloud subscription registered ${entry.key}');
+      if (entry.key.startsWith('journal_lines|')) {
+        _replaceJournalLinesSubscription(entry.key, subscription);
+      }
+    } catch (e, st) {
+      _accountingSubscriptionKeys.remove(entry.key);
+      debugPrint(
+        '[Accounting] cloud subscription failed ${entry.key}: $e\n'
+        '${describeDqlSyncSubscriptionAttempt(entry.sql, entry.args)}\n'
+        '$st',
+      );
+    }
+  }
+
+  await evictOtherBusinessesJournalLines(
+    ditto: ditto,
+    businessId: businessId,
+    userId: userId ?? DittoSingleton.persistenceUserId,
+  );
+}
+
+void _replaceJournalLinesSubscription(String key, dynamic subscription) {
+  final previous = _journalLinesSubscription;
+  // The same key again (a manual refresh): keep both, so a switch cancels
+  // every one of them.
+  if (previous != null && previous.key == key) {
+    previous.subscriptions.add(subscription);
+    return;
+  }
+  _journalLinesSubscription = (key: key, subscriptions: [subscription]);
+  if (previous == null) return;
+  _accountingSubscriptionKeys.remove(previous.key);
+  for (final old in previous.subscriptions) {
+    try {
+      old.cancel();
+      debugPrint('[Accounting] cloud subscription cancelled ${previous.key}');
+    } catch (e) {
+      debugPrint('[Accounting] cloud subscription cancel failed: $e');
+    }
+  }
+}
+
+/// What [ensureAccountingCloudSubscriptions] subscribes to.
+@visibleForTesting
+List<({String key, String sql, Map<String, dynamic> args})>
+accountingCloudSubscriptionSpecs({
+  required String businessId,
+  String? branchId,
+}) {
   final entries = <({String key, String sql, Map<String, dynamic> args})>[
     (
       key: 'chart_of_accounts|$businessId',
@@ -36,11 +109,16 @@ Future<void> ensureAccountingCloudSubscriptions({
           'WHERE businessId = :businessId OR business_id = :businessId',
       args: {'businessId': businessId},
     ),
-    // Lines lack businessId in Supabase; replicate all and join via entry id.
+    // This business's lines only. Every writer stamps businessId on a line
+    // (data-connector backfilled the older ones), and an unscoped
+    // subscription copied every business's lines to every till: Books then
+    // scanned the whole platform's ledger on each refresh and froze.
     (
-      key: 'journal_lines|all',
-      sql: 'SELECT * FROM journal_lines',
-      args: const <String, dynamic>{},
+      key: 'journal_lines|$businessId',
+      sql:
+          'SELECT * FROM journal_lines '
+          'WHERE businessId = :businessId OR business_id = :businessId',
+      args: {'businessId': businessId},
     ),
     (
       key: 'bank_statement_lines|$businessId',
@@ -109,23 +187,90 @@ Future<void> ensureAccountingCloudSubscriptions({
     ));
   }
 
-  for (final entry in entries) {
-    if (!_accountingSubscriptionKeys.add(entry.key)) continue;
-    try {
-      final prepared = prepareDqlSyncSubscription(entry.sql, entry.args);
-      await ditto.sync.registerSubscription(
-        prepared.dql,
-        arguments: prepared.arguments,
-      );
-      debugPrint('[Accounting] cloud subscription registered ${entry.key}');
-    } catch (e, st) {
-      _accountingSubscriptionKeys.remove(entry.key);
-      debugPrint(
-        '[Accounting] cloud subscription failed ${entry.key}: $e\n'
-        '${describeDqlSyncSubscriptionAttempt(entry.sql, entry.args)}\n'
-        '$st',
-      );
-    }
+  return entries;
+}
+
+final Set<String> _journalLinesEvictedFor = {};
+
+/// Removes, from this device only, the journal lines an older build synced
+/// for businesses the signed-in user does not belong to: those whose
+/// `businessId`, or failing that `business_id`, names such a business,
+/// unless the other field names one of theirs. Lines with neither stay: they
+/// are not known to belong elsewhere. EVICT is local only, so a line not yet
+/// uploaded would be lost; this device only writes lines for its user's
+/// businesses, and those are never evicted.
+@visibleForTesting
+const evictOtherBusinessesJournalLinesDql =
+    'EVICT FROM journal_lines '
+    'WHERE ((businessId IS NOT MISSING AND businessId IS NOT NULL '
+    "AND businessId != '' AND NOT (businessId IN :businessIds)) "
+    "OR ((businessId IS MISSING OR businessId IS NULL OR businessId = '') "
+    'AND business_id IS NOT MISSING AND business_id IS NOT NULL '
+    "AND business_id != '')) "
+    'AND (business_id IS MISSING OR business_id IS NULL '
+    'OR NOT (business_id IN :businessIds))';
+
+/// The businesses [userId] belongs to, from the local `user_access` doc the
+/// business switcher reads. Null when it cannot be read.
+Future<Set<String>?> _userBusinessIds(dynamic ditto, String? userId) async {
+  if (userId == null || userId.isEmpty) return null;
+  try {
+    final rows = dittoQueryRows(
+      await ditto.store.execute(
+        'SELECT * FROM user_access WHERE _id = :id',
+        arguments: {'id': userId},
+      ),
+    );
+    final businesses = rows.isEmpty ? null : rows.first['businesses'];
+    if (businesses is! List) return null;
+    final ids = <String>{
+      for (final b in businesses)
+        if (b is Map && '${b['id'] ?? ''}'.isNotEmpty) '${b['id']}',
+    };
+    return ids.isEmpty ? null : ids;
+  } catch (e) {
+    debugPrint('[Accounting] user businesses unreadable: $e');
+    return null;
+  }
+}
+
+/// Runs once per business per process; the scoped subscription keeps the
+/// evicted lines from coming back. Evicts nothing while [userId]'s
+/// businesses are unknown.
+///
+/// [ditto] is a [Ditto], `dynamic` for tests (see
+/// [ensureAccountingCloudSubscriptions]).
+Future<void> evictOtherBusinessesJournalLines({
+  required dynamic ditto,
+  required String businessId,
+  required String? userId,
+}) async {
+  if (businessId.isEmpty || _journalLinesEvictedFor.contains(businessId)) {
+    return;
+  }
+  final keep = await _userBusinessIds(ditto, userId);
+  if (keep == null) {
+    debugPrint(
+      '[Accounting] journal line eviction skipped: '
+      'the user\'s businesses are unknown',
+    );
+    return;
+  }
+  if (!_journalLinesEvictedFor.add(businessId)) return;
+  keep.add(businessId);
+  final sw = Stopwatch()..start();
+  try {
+    await ditto.store.execute(
+      evictOtherBusinessesJournalLinesDql,
+      arguments: {'businessIds': keep.toList()},
+    );
+    debugPrint(
+      '[Accounting] evicted other businesses\' journal lines '
+      'in ${sw.elapsedMilliseconds}ms',
+    );
+  } catch (e) {
+    _journalLinesEvictedFor.remove(businessId);
+    debugPrint('[Accounting] journal line eviction failed: $e');
   }
 }
 

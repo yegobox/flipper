@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flipper_accounting/accounting_models.dart';
 import 'package:flipper_accounting/default_chart_of_accounts_seed.dart';
@@ -6,6 +8,7 @@ import 'package:flipper_accounting/accounting_ledger_repository.dart';
 import 'package:flipper_accounting/accounting_ditto_store.dart';
 import 'package:flipper_accounting/journal_entry_id.dart';
 import 'package:flipper_accounting/liquid_accounts.dart';
+import 'package:flipper_models/perf/perf_track.dart';
 import 'package:intl/intl.dart';
 
 class DittoAccountingLedgerRepository implements AccountingLedgerRepository {
@@ -167,115 +170,66 @@ class DittoAccountingLedgerRepository implements AccountingLedgerRepository {
   static bool _isCanonicalCoaRow(Map<String, dynamic> row) =>
       (row['_id'] ?? row['id'] ?? '').toString().startsWith('coa_');
 
+  /// One ledger source per business, shared by every [watchJournalEntries]
+  /// caller: the period and the through-period-end streams read the same
+  /// rows once and differ only in the date filter applied to them.
+  final Map<String, _JournalLedgerSource> _ledgerSources = {};
+
+  /// Live ledger sources, one per watched business.
+  @visibleForTesting
+  int get ledgerSourceCount => _ledgerSources.length;
+
+  /// How long a failed ledger change feed waits before it is registered
+  /// again.
+  @visibleForTesting
+  static Duration changeFeedRetry = const Duration(seconds: 5);
+
+  /// How long a failed ledger read waits before it is tried again.
+  @visibleForTesting
+  static Duration readRetry = const Duration(seconds: 5);
+
   @override
   Stream<List<JournalEntry>> watchJournalEntries({
     required String businessId,
     DateTime? startDate,
     DateTime? endDate,
   }) {
-    // Date filter in Dart — Ditto rows may use entryDate ISO or entry_date strings.
-    const entriesQuery =
-        'SELECT * FROM journal_entries '
-        'WHERE businessId = :businessId OR business_id = :businessId';
-    final args = <String, dynamic>{'businessId': businessId};
-
-    return _ditto.watchCollection('journal_entries', entriesQuery, args).asyncMap((
-      entries,
-    ) async {
-      final headerById = <String, Map<String, dynamic>>{};
-      for (final row in entries) {
-        final entryId = (row['id'] ?? row['_id']).toString();
-        if (entryId.isNotEmpty) headerById[entryId] = row;
-      }
-
-      // Lines replicate globally; headers are business-scoped. Join lines to
-      // headers by entry id and heal missing headers (orphan lines after sync).
-      final businessLines = await _ditto.queryCollection(
-        'journal_lines',
-        'SELECT * FROM journal_lines '
-            'WHERE businessId = :businessId OR business_id = :businessId',
-        args,
-      );
-      final linesByEntry = <String, List<Map<String, dynamic>>>{};
-      for (final line in businessLines) {
-        final entryId =
-            (line['journalEntryId'] ?? line['journal_entry_id'] ?? '')
-                .toString();
-        if (entryId.isEmpty) continue;
-        linesByEntry.putIfAbsent(entryId, () => []).add(line);
-      }
-
-      for (final entryId in linesByEntry.keys) {
-        if (headerById.containsKey(entryId)) continue;
-        final hdr = await _ditto.queryCollection(
-          'journal_entries',
-          'SELECT * FROM journal_entries WHERE _id = :id OR id = :id',
-          {'id': entryId},
+    _JournalLedgerSource? source;
+    StreamSubscription<_JournalLedgerSnapshot>? sub;
+    late final StreamController<List<JournalEntry>> out;
+    out = StreamController<List<JournalEntry>>(
+      onListen: () {
+        final s = source = _ledgerSources.putIfAbsent(
+          businessId,
+          () => _JournalLedgerSource(_ditto, businessId),
         );
-        if (hdr.isNotEmpty) {
-          headerById[entryId] = hdr.first;
-          continue;
-        }
-        headerById[entryId] = _syntheticHeaderFromEntryId(entryId, businessId);
-      }
-
-      final inRangeHeaders = headerById.values.where((row) {
-        return _entryInDateRange(row, startDate: startDate, endDate: endDate);
-      }).toList();
-      if (inRangeHeaders.isEmpty) return <JournalEntry>[];
-
-      // Sort on the raw entry_date, newest first. Sorting the mapped display
-      // string ("Jul 7") would order entries alphabetically by month name.
-      inRangeHeaders.sort((a, b) {
-        final da = _entrySortKey(a, startDate: startDate, endDate: endDate);
-        final db = _entrySortKey(b, startDate: startDate, endDate: endDate);
-        final byDate = db.compareTo(da);
-        if (byDate != 0) return byDate;
-        // List.sort is not stable, so same-day rows would reshuffle between
-        // refreshes. Break ties on the entry id to keep a consistent order.
-        final ida = (a['id'] ?? a['_id'] ?? '').toString();
-        final idb = (b['id'] ?? b['_id'] ?? '').toString();
-        return ida.compareTo(idb);
-      });
-
-      final result = <JournalEntry>[];
-      for (final row in inRangeHeaders) {
-        final entryId = (row['id'] ?? row['_id']).toString();
-        var lines = linesByEntry[entryId] ?? [];
-        if (lines.isEmpty) {
-          lines = await _ditto.queryCollection(
-            'journal_lines',
-            'SELECT * FROM journal_lines WHERE journalEntryId = :entryId',
-            {'entryId': entryId},
-          );
-          if (lines.isEmpty) {
-            lines = await _ditto.queryCollection(
-              'journal_lines',
-              'SELECT * FROM journal_lines WHERE journal_entry_id = :entryId',
-              {'entryId': entryId},
-            );
+        s.listeners++;
+        List<JournalEntry> pick(_JournalLedgerSnapshot snap) =>
+            snap.entriesIn(startDate: startDate, endDate: endDate);
+        sub = s.snapshots.listen(
+          (snap) => out.add(pick(snap)),
+          onError: out.addError,
+        );
+        final latest = s.latest;
+        if (latest != null) out.add(pick(latest));
+        s.start();
+        // A listener that attaches after a failed read would otherwise wait
+        // for the next change with neither data nor an error.
+        s.retryIfFailed();
+      },
+      onCancel: () async {
+        await sub?.cancel();
+        final s = source;
+        source = null;
+        if (s != null && --s.listeners == 0) {
+          if (identical(_ledgerSources[businessId], s)) {
+            _ledgerSources.remove(businessId);
           }
+          await s.dispose();
         }
-        result.add(
-          LedgerRowMapper.entryFromRow(
-            row,
-            lines.map(LedgerRowMapper.lineFromRow).toList(),
-          ),
-        );
-      }
-      return result;
-    });
-  }
-
-  /// Chronological sort key for a journal entry row; unparseable dates sort last.
-  static DateTime _entrySortKey(
-    Map<String, dynamic> row, {
-    DateTime? startDate,
-    DateTime? endDate,
-  }) {
-    final parsed = _parseEntryRowDate(row['entry_date'] ?? row['entryDate']);
-    if (parsed == null) return DateTime(1900);
-    return _entryCalendarDay(parsed, startDate: startDate, endDate: endDate);
+      },
+    );
+    return out.stream;
   }
 
   /// Minimal header when lines replicated but `journal_entries` header is absent
@@ -337,13 +291,14 @@ class DittoAccountingLedgerRepository implements AccountingLedgerRepository {
     return null;
   }
 
-  static bool _entryInDateRange(
-    Map<String, dynamic> row, {
+  /// Whether an entry dated [parsed] falls in the range. Undated entries
+  /// always do.
+  static bool _dateInRange(
+    DateTime? parsed, {
     DateTime? startDate,
     DateTime? endDate,
   }) {
     if (startDate == null && endDate == null) return true;
-    final parsed = _parseEntryRowDate(row['entry_date'] ?? row['entryDate']);
     if (parsed == null) return true;
     final day = _entryCalendarDay(
       parsed,
@@ -599,5 +554,325 @@ class DittoAccountingLedgerRepository implements AccountingLedgerRepository {
     if (v == null) return 0;
     if (v is num) return v.round();
     return int.tryParse(v.toString()) ?? 0;
+  }
+}
+
+/// A business's journal (headers joined to lines), refreshed at most once per
+/// burst of changes and shared by every caller watching that business.
+///
+/// Before this, every caller ran its own observer. Each observer change
+/// decoded every header, re-read every line and ran one more query per orphan
+/// line group and per header with no lines; `asyncMap` then queued one such
+/// rebuild per change. On a busy till that froze Books.
+class _JournalLedgerSource {
+  _JournalLedgerSource(this._ditto, this.businessId);
+
+  /// How long changes are gathered before one refresh reads them all.
+  static const coalesce = Duration(milliseconds: 250);
+
+  /// Ids per `IN :ids` query.
+  static const idsPerQuery = 1000;
+
+  static const _entriesQuery =
+      'SELECT * FROM journal_entries '
+      'WHERE businessId = :businessId OR business_id = :businessId';
+  static const _linesQuery =
+      'SELECT * FROM journal_lines '
+      'WHERE businessId = :businessId OR business_id = :businessId';
+
+  final AccountingDittoStore _ditto;
+  final String businessId;
+
+  /// Callers currently listening; maintained by the repository.
+  int listeners = 0;
+
+  _JournalLedgerSnapshot? latest;
+
+  final _out = StreamController<_JournalLedgerSnapshot>.broadcast();
+  final _changes = <StreamSubscription<void>>[];
+  final _feedRetries = <Timer>[];
+  Timer? _timer;
+  Timer? _readRetry;
+  var _started = false;
+  var _disposed = false;
+  var _loading = false;
+  var _dirty = false;
+  var _failed = false;
+
+  Stream<_JournalLedgerSnapshot> get snapshots => _out.stream;
+
+  void start() {
+    if (_started) return;
+    _started = true;
+    // Lines can land after their header: watch both, so an entry's lines
+    // show up without waiting for the next header change.
+    _watch('journal_entries', _entriesQuery);
+    _watch('journal_lines', _linesQuery);
+    unawaited(_refresh());
+  }
+
+  /// Reads again if the last read failed.
+  void retryIfFailed() {
+    if (_failed) _schedule();
+  }
+
+  void _watch(String collection, String query) {
+    StreamSubscription<void>? sub;
+    sub = _ditto
+        .watchChanges(collection, query, {'businessId': businessId})
+        .listen(
+          (_) => _schedule(),
+          onError: (Object e, StackTrace st) {
+            debugPrint('[Accounting] ledger change feed error: $e');
+            if (_disposed) return;
+            // The feed may be dead (a failed observer registration sends
+            // nothing more): tell the listeners, then register it again and
+            // re-read what it may have missed. The other feed is untouched.
+            _out.addError(e, st);
+            _changes.remove(sub);
+            unawaited(sub?.cancel());
+            late final Timer retry;
+            retry = Timer(DittoAccountingLedgerRepository.changeFeedRetry, () {
+              _feedRetries.remove(retry);
+              if (_disposed) return;
+              _watch(collection, query);
+              _schedule();
+            });
+            _feedRetries.add(retry);
+          },
+        );
+    _changes.add(sub);
+  }
+
+  /// Gathers changes for [coalesce], then refreshes once. Never pushed back
+  /// by later changes, so a steady stream of them cannot starve the ledger.
+  void _schedule() {
+    if (_disposed) return;
+    if (_loading) {
+      _dirty = true;
+      return;
+    }
+    _timer ??= Timer(coalesce, () {
+      _timer = null;
+      unawaited(_refresh());
+    });
+  }
+
+  Future<void> _refresh() async {
+    if (_disposed || _loading) return;
+    _loading = true;
+    _dirty = false;
+    try {
+      final snap = await PerfTrack.track(
+        'books.ledger_refresh',
+        () => _load(_ditto, businessId),
+      );
+      if (_disposed) return;
+      latest = snap;
+      _failed = false;
+      _out.add(snap);
+    } catch (e, st) {
+      _failed = true;
+      if (!_disposed) {
+        _out.addError(e, st);
+        // Recovery alone fires no change: read again while anyone listens
+        // (the source is disposed with its last listener).
+        _readRetry?.cancel();
+        _readRetry = Timer(DittoAccountingLedgerRepository.readRetry, () {
+          _readRetry = null;
+          retryIfFailed();
+        });
+      }
+    } finally {
+      _loading = false;
+      if (_dirty) _schedule();
+    }
+  }
+
+  Future<void> dispose() async {
+    _disposed = true;
+    _timer?.cancel();
+    _timer = null;
+    _readRetry?.cancel();
+    _readRetry = null;
+    for (final t in _feedRetries) {
+      t.cancel();
+    }
+    _feedRetries.clear();
+    for (final c in List.of(_changes)) {
+      await c.cancel();
+    }
+    _changes.clear();
+    await _out.close();
+  }
+
+  /// Reads the business's ledger with a fixed number of queries per refresh
+  /// (plus one per [idsPerQuery] ids when healing).
+  static Future<_JournalLedgerSnapshot> _load(
+    AccountingDittoStore ditto,
+    String businessId,
+  ) async {
+    final args = <String, dynamic>{'businessId': businessId};
+    final entries = await ditto.queryCollection(
+      'journal_entries',
+      _entriesQuery,
+      args,
+    );
+    final headerById = <String, Map<String, dynamic>>{};
+    for (final row in entries) {
+      final entryId = (row['id'] ?? row['_id']).toString();
+      if (entryId.isNotEmpty) headerById[entryId] = row;
+    }
+
+    // Lines are joined to headers by entry id.
+    final businessLines = await ditto.queryCollection(
+      'journal_lines',
+      _linesQuery,
+      args,
+    );
+    final linesByEntry = <String, List<Map<String, dynamic>>>{};
+    for (final line in businessLines) {
+      final entryId = (line['journalEntryId'] ?? line['journal_entry_id'] ?? '')
+          .toString();
+      if (entryId.isEmpty) continue;
+      linesByEntry.putIfAbsent(entryId, () => []).add(line);
+    }
+
+    // Orphan lines (header not under this business yet): find the header by
+    // id, else make a minimal one from the deterministic entry id.
+    final orphanIds = [
+      for (final id in linesByEntry.keys)
+        if (!headerById.containsKey(id)) id,
+    ];
+    if (orphanIds.isNotEmpty) {
+      final found = <String, Map<String, dynamic>>{};
+      for (final chunk in _chunks(orphanIds)) {
+        final rows = await ditto.queryCollection(
+          'journal_entries',
+          'SELECT * FROM journal_entries WHERE _id IN :ids OR id IN :ids',
+          {'ids': chunk},
+        );
+        for (final row in rows) {
+          for (final key in [row['_id'], row['id']]) {
+            if (key != null) found.putIfAbsent(key.toString(), () => row);
+          }
+        }
+      }
+      for (final id in orphanIds) {
+        headerById[id] =
+            found[id] ??
+            DittoAccountingLedgerRepository._syntheticHeaderFromEntryId(
+              id,
+              businessId,
+            );
+      }
+    }
+
+    // Headers whose lines carry no business id: look the lines up by entry,
+    // camelCase first, then snake_case for the ones still empty.
+    final noLines = [
+      for (final id in headerById.keys)
+        if (linesByEntry[id]?.isNotEmpty != true) id,
+    ];
+    for (final field in ['journalEntryId', 'journal_entry_id']) {
+      final still = [
+        for (final id in noLines)
+          if (linesByEntry[id]?.isNotEmpty != true) id,
+      ];
+      if (still.isEmpty) break;
+      for (final chunk in _chunks(still)) {
+        final rows = await ditto.queryCollection(
+          'journal_lines',
+          'SELECT * FROM journal_lines WHERE $field IN :ids',
+          {'ids': chunk},
+        );
+        for (final line in rows) {
+          final entryId = (line[field] ?? '').toString();
+          if (entryId.isEmpty) continue;
+          linesByEntry.putIfAbsent(entryId, () => []).add(line);
+        }
+      }
+    }
+
+    final rows = <_LedgerRow>[];
+    for (final entry in headerById.entries) {
+      final row = entry.value;
+      rows.add(
+        _LedgerRow(
+          sortId: (row['id'] ?? row['_id'] ?? '').toString(),
+          date: DittoAccountingLedgerRepository._parseEntryRowDate(
+            row['entry_date'] ?? row['entryDate'],
+          ),
+          entry: LedgerRowMapper.entryFromRow(
+            row,
+            (linesByEntry[entry.key] ?? const [])
+                .map(LedgerRowMapper.lineFromRow)
+                .toList(),
+          ),
+        ),
+      );
+    }
+    return _JournalLedgerSnapshot(rows);
+  }
+
+  static Iterable<List<String>> _chunks(List<String> ids) sync* {
+    for (var i = 0; i < ids.length; i += idsPerQuery) {
+      yield ids.sublist(
+        i,
+        i + idsPerQuery > ids.length ? ids.length : i + idsPerQuery,
+      );
+    }
+  }
+}
+
+class _LedgerRow {
+  const _LedgerRow({
+    required this.sortId,
+    required this.date,
+    required this.entry,
+  });
+
+  /// Tie-break for entries on the same day.
+  final String sortId;
+
+  /// Parsed once per refresh; `null` when the row has no usable date.
+  final DateTime? date;
+  final JournalEntry entry;
+}
+
+class _JournalLedgerSnapshot {
+  _JournalLedgerSnapshot(this.rows);
+
+  final List<_LedgerRow> rows;
+
+  /// Entries in the range, newest first; same-day entries by id.
+  List<JournalEntry> entriesIn({DateTime? startDate, DateTime? endDate}) {
+    final picked = <(DateTime, _LedgerRow)>[];
+    for (final r in rows) {
+      if (!DittoAccountingLedgerRepository._dateInRange(
+        r.date,
+        startDate: startDate,
+        endDate: endDate,
+      )) {
+        continue;
+      }
+      final day = r.date == null
+          ? DateTime(1900)
+          : DittoAccountingLedgerRepository._entryCalendarDay(
+              r.date!,
+              startDate: startDate,
+              endDate: endDate,
+            );
+      picked.add((day, r));
+    }
+    // Sort on the raw entry date, newest first. Sorting the display string
+    // ("Jul 7") would order entries alphabetically by month name. List.sort
+    // is not stable, so ties break on the entry id.
+    picked.sort((a, b) {
+      final byDate = b.$1.compareTo(a.$1);
+      if (byDate != 0) return byDate;
+      return a.$2.sortId.compareTo(b.$2.sortId);
+    });
+    return [for (final p in picked) p.$2.entry];
   }
 }

@@ -25,6 +25,10 @@ const Map<String, List<String>> kLocalStoreIndexedFields = {
   // Resolved per tap before a line is written.
   'variants': ['productId', 'branchId'],
   'stocks': ['variantId', 'branchId'],
+  // Books reads a business's ledger with `businessId = :b OR business_id = :b`
+  // (an OR needs both fields indexed) and heals lines by entry id.
+  'journal_entries': ['businessId', 'business_id'],
+  'journal_lines': ['businessId', 'business_id', 'journalEntryId'],
 };
 
 /// `CREATE INDEX IF NOT EXISTS` statements for [kLocalStoreIndexedFields].
@@ -57,7 +61,10 @@ Future<void> ensureLocalStoreIndexes({required dynamic ditto}) async {
       // `IF NOT EXISTS` may not be accepted by every SDK version; a rejected
       // statement leaves the field unindexed and the failure silent, so try
       // the plain form before giving up on it.
-      final plain = statement.replaceFirst('CREATE INDEX IF NOT EXISTS ', 'CREATE INDEX ');
+      final plain = statement.replaceFirst(
+        'CREATE INDEX IF NOT EXISTS ',
+        'CREATE INDEX ',
+      );
       try {
         await ditto.store.execute(plain);
         created++;

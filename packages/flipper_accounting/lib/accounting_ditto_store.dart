@@ -24,6 +24,17 @@ abstract class AccountingDittoStore {
     Map<String, dynamic> args,
   );
 
+  /// Fires whenever the result of [query] may have changed, without the rows.
+  ///
+  /// Use it when the listener re-reads anyway: no row is decoded on the
+  /// calling isolate, so a burst of changes to a large collection costs the
+  /// UI thread nothing until the listener decides to read.
+  Stream<void> watchChanges(
+    String collection,
+    String query,
+    Map<String, dynamic> args,
+  );
+
   Future<void> upsertChartOfAccount(
     String businessId,
     Account account, {

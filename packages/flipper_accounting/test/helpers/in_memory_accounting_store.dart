@@ -84,6 +84,13 @@ class InMemoryAccountingStore implements AccountingDittoStore {
   ) => Stream.fromFuture(queryCollection(collection, query, args));
 
   @override
+  Stream<void> watchChanges(
+    String collection,
+    String query,
+    Map<String, dynamic> args,
+  ) => Stream<void>.value(null);
+
+  @override
   Future<void> upsertChartOfAccount(
     String businessId,
     Account account, {
