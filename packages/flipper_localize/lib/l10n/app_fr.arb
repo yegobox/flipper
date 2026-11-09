@@ -2349,6 +2349,7 @@
     "barAdminFloorTables": "Salle et tables",
     "barAdminStaffPins": "Personnel et PIN",
     "barNoStaffYet": "Aucun personnel pour l'instant. Ajoutez des utilisateurs dans la gestion des utilisateurs — ils apparaissent ici avec leur PIN.",
+    "barLockNoStaff": "Personne ne peut encore se connecter. Si cet appareil est hors ligne ou si la connexion est lente, vérifiez-la puis touchez Réessayer. Sinon, ajoutez des utilisateurs dans la gestion des utilisateurs — ils apparaissent ici avec leur PIN.",
     "barOpenPosWithBarMode": "Ouvrir le POS en mode bar",
     "barTableServiceTitle": "Service à table (mode bar)",
     "barModeDescription": "Transforme la caisse en terminal de bar partagé : le personnel tient une note ouverte par table, enregistre les tournées sous son propre PIN et passe le relais entre caissiers sans perdre l'addition. Laissez désactivé pour l'encaissement standard. Au clavier, {hotkey} alterne Bar → Hôtel → POS sans revenir ici.",

@@ -8315,6 +8315,10 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
       'Bado hakuna wafanyakazi. Ongeza watumiaji kwenye Usimamizi wa Watumiaji — wataonekana hapa na PIN zao.';
 
   @override
+  String get barLockNoStaff =>
+      'Bado hakuna wa kuingia. Ikiwa kifaa hiki hakiko mtandaoni au mtandao ni wa polepole, kiangalie kisha gusa Jaribu tena. Vinginevyo, ongeza watumiaji kwenye Usimamizi wa Watumiaji — wataonekana hapa na PIN zao.';
+
+  @override
   String get barOpenPosWithBarMode => 'Fungua POS kwa hali ya baa';
 
   @override

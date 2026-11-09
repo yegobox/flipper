@@ -7364,6 +7364,10 @@
     "barAdminFloorTables": "Floor & tables",
     "barAdminStaffPins": "Staff & PINs",
     "barNoStaffYet": "No staff yet. Add users in User Management — they appear here with their PINs.",
+    "barLockNoStaff": "No one to sign in yet. If this device is offline or the connection is slow, check it and tap Retry. Otherwise add users in User Management — they appear here with their PINs.",
+    "@barLockNoStaff": {
+        "description": "Bar desktop lock screen, no staff listed: the roster may not be readable yet (offline or slow), or the business has no users; a Retry button follows"
+    },
     "barOpenPosWithBarMode": "Open POS with Bar Mode",
     "barTableServiceTitle": "Table Service (Bar Mode)",
     "barModeDescription": "Turns the register into a shared bar terminal: staff keep a running tab per table, log rounds under their own PIN, and hand off between cashiers without losing the bill. Leave off for standard retail checkout. On a keyboard, {hotkey} cycles Bar → Hotel → POS without coming back here.",

@@ -14086,6 +14086,12 @@ abstract class FlipperAppLocalizations {
   /// **'No staff yet. Add users in User Management — they appear here with their PINs.'**
   String get barNoStaffYet;
 
+  /// Bar desktop lock screen, no staff listed: the roster may not be readable yet (offline or slow), or the business has no users; a Retry button follows
+  ///
+  /// In en, this message translates to:
+  /// **'No one to sign in yet. If this device is offline or the connection is slow, check it and tap Retry. Otherwise add users in User Management — they appear here with their PINs.'**
+  String get barLockNoStaff;
+
   /// No description provided for @barOpenPosWithBarMode.
   ///
   /// In en, this message translates to:

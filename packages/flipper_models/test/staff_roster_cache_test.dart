@@ -209,5 +209,101 @@ void main() {
         expect(staffRosterChanged([a], [aCached], bothLive: true), isTrue);
       });
     });
+
+    group('staffRosterCachedPinsChanged', () {
+      Tenant aline({int? pin}) =>
+          Tenant(id: 't1', name: 'Aline', userId: 'u1', pin: pin);
+      final bosco = Tenant(id: 't2', name: 'Bosco', userId: 'u2');
+      // One round, so the checks stay inline.
+      List<Tenant> cached(List<Tenant> live) =>
+          decodeStaffRoster(encodeStaffRoster(live, iterations: 1));
+
+      test('the PIN the copy was saved with is no change', () async {
+        final shown = cached([aline(pin: 111111), bosco]);
+        expect(
+          await staffRosterCachedPinsChanged(shown, [
+            aline(pin: 111111),
+            bosco,
+          ]),
+          isFalse,
+        );
+      });
+
+      test('a PIN rotated or removed since the copy is a change', () async {
+        final shown = cached([aline(pin: 111111)]);
+        expect(
+          await staffRosterCachedPinsChanged(shown, [aline(pin: 222222)]),
+          isTrue,
+        );
+        expect(await staffRosterCachedPinsChanged(shown, [aline()]), isTrue);
+        expect(
+          await staffRosterCachedPinsChanged(shown, [aline(pin: 0)]),
+          isTrue,
+        );
+      });
+
+      test(
+        'a newer offline copy counts only when its verifier differs',
+        () async {
+          final raw = encodeStaffRoster([aline(pin: 111111)], iterations: 1);
+          final shown = decodeStaffRoster(raw);
+          expect(
+            await staffRosterCachedPinsChanged(shown, decodeStaffRoster(raw)),
+            isFalse,
+          );
+          expect(
+            await staffRosterCachedPinsChanged(
+              shown,
+              cached([aline(pin: 111111)]),
+            ),
+            isTrue,
+            reason: 'rewritten with a new salt',
+          );
+        },
+      );
+
+      test('no cached verifier unlocks nothing, so only verifiers count; '
+          'newcomers and live rows are left to staffRosterChanged', () async {
+        expect(
+          await staffRosterCachedPinsChanged(cached([aline()]), [
+            aline(pin: 111111),
+          ]),
+          isFalse,
+          reason: 'a PIN set since: the server check covers it',
+        );
+        expect(
+          await staffRosterCachedPinsChanged(
+            cached([aline()]),
+            cached([aline(pin: 111111)]),
+          ),
+          isFalse,
+        );
+        expect(
+          await staffRosterCachedPinsChanged(cached([aline()]), [bosco]),
+          isFalse,
+        );
+        expect(
+          await staffRosterCachedPinsChanged(
+            [aline(pin: 111111)],
+            [aline(pin: 222222)],
+          ),
+          isFalse,
+        );
+      });
+
+      test('full-strength verifiers are checked off the UI isolate', () async {
+        final shown = decodeStaffRoster(
+          encodeStaffRoster([aline(pin: 111111)]),
+        );
+        expect(
+          await staffRosterCachedPinsChanged(shown, [aline(pin: 111111)]),
+          isFalse,
+        );
+        expect(
+          await staffRosterCachedPinsChanged(shown, [aline(pin: 222222)]),
+          isTrue,
+        );
+      });
+    });
   });
 }

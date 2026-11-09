@@ -8395,6 +8395,10 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
       'Aucun personnel pour l\'instant. Ajoutez des utilisateurs dans la gestion des utilisateurs — ils apparaissent ici avec leur PIN.';
 
   @override
+  String get barLockNoStaff =>
+      'Personne ne peut encore se connecter. Si cet appareil est hors ligne ou si la connexion est lente, vérifiez-la puis touchez Réessayer. Sinon, ajoutez des utilisateurs dans la gestion des utilisateurs — ils apparaissent ici avec leur PIN.';
+
+  @override
   String get barOpenPosWithBarMode => 'Ouvrir le POS en mode bar';
 
   @override
