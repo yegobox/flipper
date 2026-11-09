@@ -3942,6 +3942,7 @@
   "barAdminFloorTables": "Ukumbi na meza",
   "barAdminStaffPins": "Wafanyakazi na PIN",
   "barNoStaffYet": "Bado hakuna wafanyakazi. Ongeza watumiaji kwenye Usimamizi wa Watumiaji — wataonekana hapa na PIN zao.",
+  "barLockNoStaff": "Bado hakuna wa kuingia. Ikiwa kifaa hiki hakiko mtandaoni au mtandao ni wa polepole, kiangalie kisha gusa Jaribu tena. Vinginevyo, ongeza watumiaji kwenye Usimamizi wa Watumiaji — wataonekana hapa na PIN zao.",
   "barOpenPosWithBarMode": "Fungua POS kwa hali ya baa",
   "barTableServiceTitle": "Huduma ya mezani (hali ya baa)",
   "barModeDescription": "Hugeuza kaunta kuwa kituo cha baa cha pamoja: wafanyakazi huweka bili inayoendelea kwa kila meza, hurekodi oda kwa PIN zao wenyewe, na hupokezana kati ya keshia bila kupoteza bili. Acha imezimwa kwa mauzo ya kawaida. Kwenye kibodi, {hotkey} hubadilisha Baa → Hoteli → POS bila kurudi hapa.",

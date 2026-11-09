@@ -8339,6 +8339,10 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
       'Nta bakozi barabaho. Ongeramo abakoresha mu Icungamakoresha — bazagaragara hano bafite PIN zabo.';
 
   @override
+  String get barLockNoStaff =>
+      'Nta muntu urashobora kwinjira. Niba iki gikoresho kidafite murandasi cyangwa murandasi itinda, yigenzure hanyuma ukande Ongera ugerageze. Bitabaye ibyo, ongeramo abakoresha mu Icungamakoresha — bazagaragara hano bafite PIN zabo.';
+
+  @override
   String get barOpenPosWithBarMode => 'Fungura POS mu buryo bw\'akabari';
 
   @override

@@ -2,9 +2,15 @@ import 'dart:async';
 
 import 'package:flipper_dashboard/features/bar_mode/providers/bar_mode_providers.dart';
 import 'package:flipper_dashboard/features/bar_mode/screens/bar_lock_desktop.dart';
+import 'package:flipper_dashboard/features/bar_mode/widgets/bar_keypad.dart';
+import 'package:flipper_dashboard/features/hotel_mode/providers/hotel_mode_providers.dart';
+import 'package:flipper_dashboard/features/hotel_mode/screens/hotel_lock_desktop.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/providers/active_branch_provider.dart';
+import 'package:flipper_models/sync/utils/bar_mode_utils.dart'
+    show barPinMatchesTenant;
 import 'package:flipper_models/sync/utils/service_mode_access.dart';
+import 'package:flipper_models/sync/utils/staff_roster_cache.dart';
 import 'package:flipper_models/view_models/flipperBaseModel.dart'
     show StaffRoster;
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart'
@@ -25,6 +31,11 @@ StaffRoster _fresh(List<Tenant> t) => (tenants: t, fresh: true);
 StaffRoster _cached(List<Tenant> t) => (tenants: t, fresh: false);
 const StaffRoster _none = (tenants: <Tenant>[], fresh: false);
 
+/// [live] as the offline copy restores it: no PINs, only their verifiers
+/// (one KDF round, so checking them stays cheap).
+StaffRoster _offlineCopy(List<Tenant> live) =>
+    _cached(decodeStaffRoster(encodeStaffRoster(live, iterations: 1)));
+
 /// Answers each read with the next queued roster (the last one repeats), or
 /// throws when that entry is an [Exception].
 class _Loader {
@@ -42,8 +53,9 @@ class _Loader {
 }
 
 /// A container with [loader] and a controllable connectivity stream.
+/// Counts grants reads in [grantReads] when given.
 ({ProviderContainer container, StreamController<bool> online, List<int> builds})
-_harness(_Loader loader, {Stream<Branch>? branch}) {
+_harness(_Loader loader, {Stream<Branch>? branch, List<int>? grantReads}) {
   final online = StreamController<bool>();
   final container = ProviderContainer(
     overrides: [
@@ -52,8 +64,16 @@ _harness(_Loader loader, {Stream<Branch>? branch}) {
       activeBranchProvider.overrideWith(
         (ref) => branch ?? const Stream<Branch>.empty(),
       ),
+      if (grantReads != null)
+        serviceModeGrantsProvider.overrideWith((ref) async {
+          grantReads.add(1);
+          return const ServiceModeGrants();
+        }),
     ],
   );
+  if (grantReads != null) {
+    container.listen(serviceModeGrantsProvider, (_, __) {});
+  }
   final builds = <int>[];
   // A rebuild shows as a loading state; count them.
   container.listen(barStaffProvider, (previous, next) {
@@ -217,6 +237,43 @@ void main() {
       expect(loader.calls, hasLength(2));
     });
 
+    testWidgets('a PIN changed since the offline copy stops the old one, and '
+        'the grants are read again with the new roster', (tester) async {
+      final rotated = Tenant(id: 't1', name: 'Aline', userId: 'u1', pin: 3);
+      final loader = _Loader([
+        _offlineCopy([_aline]),
+        _fresh([_aline]),
+        _fresh([rotated]),
+      ]);
+      final grantReads = <int>[];
+      final h = _harness(loader, grantReads: grantReads);
+      addTearDown(h.container.dispose);
+
+      final first = await _settle(tester, h.container);
+      expect(first.single.pin, isNull);
+      expect(barPinMatchesTenant(first.single, '111111'), isTrue);
+      expect(grantReads, hasLength(1));
+
+      // Live with the PIN the copy was saved with: kept, no rebuild.
+      await tester.pump(staffRosterCachedRefreshDelay);
+      await tester.pump();
+      expect(loader.calls, hasLength(2));
+      expect(h.builds, hasLength(1));
+      expect(grantReads, hasLength(1));
+
+      // Back online, the PIN was rotated: the copy's verifier must go.
+      h.online.add(false);
+      await tester.pump();
+      h.online.add(true);
+      final now = await _settle(tester, h.container);
+      expect(loader.calls, hasLength(3));
+      expect(barPinMatchesTenant(now.single, '111111'), isFalse);
+      expect(barPinMatchesTenant(now.single, '3'), isTrue);
+      // Riverpod refreshes the listened grants on its next tick.
+      await tester.pump(const Duration(milliseconds: 1));
+      expect(grantReads, hasLength(2));
+    });
+
     testWidgets('disposing stops the background reads', (tester) async {
       final loader = _Loader([_none]);
       final h = _harness(loader);
@@ -262,13 +319,118 @@ void main() {
       await tester.pumpAndSettle();
 
       final l10n = lookupFlipperAppLocalizations(const Locale('en'));
-      expect(find.text(l10n.barNoStaffYet), findsOneWidget);
+      expect(find.text(l10n.barLockNoStaff), findsOneWidget);
       await tester.tap(find.text(l10n.retry));
       await tester.pumpAndSettle();
 
       expect(loader.calls, hasLength(2));
-      expect(find.text(l10n.barNoStaffYet), findsNothing);
+      expect(find.text(l10n.barLockNoStaff), findsNothing);
       expect(find.text('Aline'), findsOneWidget);
     });
+  });
+
+  group('desktop locks after a refresh', () {
+    /// Online at first; [online] drives the reconnect that re-reads.
+    Future<StreamController<bool>> pumpLock(
+      WidgetTester tester,
+      _Loader loader,
+      Widget lock,
+    ) async {
+      tester.view.physicalSize = const Size(1440, 912);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      final online = StreamController<bool>();
+      addTearDown(online.close);
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            staffRosterLoaderProvider.overrideWithValue(loader.call),
+            connectivityStreamProvider.overrideWith((ref) => online.stream),
+            activeBranchProvider.overrideWith(
+              (ref) => const Stream<Branch>.empty(),
+            ),
+            serviceModeGrantsProvider.overrideWith(
+              (ref) async => const ServiceModeGrants(),
+            ),
+            barTablesProvider.overrideWith((ref) => const Stream.empty()),
+            hotelRoomsProvider.overrideWith((ref) => const Stream.empty()),
+            hotelStaysProvider.overrideWith((ref) => const Stream.empty()),
+          ],
+          child: MaterialApp(
+            localizationsDelegates: FlipperLocalizationDelegates.delegates,
+            supportedLocales: FlipperLocalizationDelegates.supportedLocales,
+            home: Scaffold(body: lock),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      return online;
+    }
+
+    Future<void> reconnect(
+      WidgetTester tester,
+      StreamController<bool> online,
+    ) async {
+      online.add(false);
+      await tester.pump();
+      online.add(true);
+      await tester.pumpAndSettle();
+    }
+
+    BarKeypad keypad(WidgetTester tester) =>
+        tester.widget<BarKeypad>(find.byType(BarKeypad));
+
+    for (final desk in ['Bar', 'Hotel']) {
+      testWidgets('$desk: someone the refresh removed cannot sign in with '
+          'their cached PIN', (tester) async {
+        final loader = _Loader([
+          _offlineCopy([_aline, _bosco]),
+          _fresh([_bosco]),
+        ]);
+        final online = await pumpLock(
+          tester,
+          loader,
+          desk == 'Bar'
+              ? const BarLockDesktopScreen()
+              : const HotelLockDesktopScreen(),
+        );
+        final container = ProviderScope.containerOf(
+          tester.element(find.byType(Scaffold)),
+        );
+        Tenant? signedIn() => desk == 'Bar'
+            ? container.read(barModeProvider).activeCashier
+            : container.read(hotelModeProvider).activeClerk;
+
+        await tester.tap(find.text('Aline'));
+        await tester.pump();
+        expect(keypad(tester).enabled, isTrue);
+        // Verified from the offline copy, then removed before the login.
+        expect(await keypad(tester).verifyPin!('111111'), isTrue);
+
+        await reconnect(tester, online);
+        expect(loader.calls, hasLength(2));
+        expect(find.text('Aline'), findsNothing);
+        expect(keypad(tester).enabled, isFalse);
+        expect(keypad(tester).title, '—');
+        keypad(tester).onSubmit('111111');
+        expect(signedIn(), isNull);
+        expect(await keypad(tester).verifyPin!('111111'), isFalse);
+
+        // Someone still on the roster signs in with their live record.
+        await tester.tap(find.text('Bosco'));
+        await tester.pump();
+        expect(await keypad(tester).verifyPin!('222222'), isTrue);
+        keypad(tester).onSubmit('222222');
+        expect(signedIn(), same(_bosco));
+      });
+    }
+  });
+
+  test('the Bar lock empty state is translated', () {
+    final en = lookupFlipperAppLocalizations(const Locale('en'));
+    for (final code in ['fr', 'rw', 'sw']) {
+      final l10n = lookupFlipperAppLocalizations(Locale(code));
+      expect(l10n.barLockNoStaff, isNot(en.barLockNoStaff), reason: code);
+    }
   });
 }

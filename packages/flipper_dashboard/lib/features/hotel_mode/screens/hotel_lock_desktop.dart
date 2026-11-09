@@ -3,6 +3,8 @@ import 'package:flipper_dashboard/features/bar_mode/providers/bar_mode_providers
     show barStaffProvider, serviceModeGrantsProvider;
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_admin_widgets.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_keypad.dart';
+import 'package:flipper_dashboard/features/bar_mode/widgets/bar_mobile_people_strip.dart'
+    show barPickInRoster;
 import 'package:flipper_dashboard/features/hotel_mode/providers/hotel_mode_providers.dart';
 import 'package:flipper_dashboard/features/hotel_mode/theme/hotel_tokens.dart';
 import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_shared_widgets.dart';
@@ -36,6 +38,8 @@ class _HotelLockDesktopScreenState
   Widget build(BuildContext context) {
     final staffAsync = ref.watch(hotelStaffProvider);
     final l10n = context.flipperL10n;
+    // Dropped once a refresh removes them from the roster.
+    final selected = barPickInRoster(_selected, staffAsync.value);
 
     return Container(
       color: HotelTokens.bg,
@@ -86,31 +90,41 @@ class _HotelLockDesktopScreenState
                       child: Padding(
                         padding: const EdgeInsets.all(30),
                         child: BarKeypad(
-                          enabled: _selected != null,
-                          title: _selected?.name ?? '—',
-                          hint: _selected == null
+                          enabled: selected != null,
+                          title: selected?.name ?? '—',
+                          hint: selected == null
                               ? l10n.barLockHintTapLeft
                               : l10n.hotelLockHintEnterPin,
-                          avatarLabel: _selected == null
+                          avatarLabel: selected == null
                               ? null
-                              : hotelClerkInitials(_selected!.name),
-                          avatarColor: _selected == null
+                              : hotelClerkInitials(selected.name),
+                          avatarColor: selected == null
                               ? null
                               : HotelTokens.occupiedInk,
-                          // The tenant is captured at verification time and
+                          // Checked against the roster as it is now (a refresh
+                          // may have removed them or changed their PIN), and
                           // signed in from that capture: the people list stays
                           // tappable while the PIN check awaits, so re-reading
-                          // _selected here could sign in someone else on a
+                          // _selected later could sign in someone else on a
                           // valid PIN.
                           verifyPin: (pin) async {
-                            final selected = _selected;
-                            if (selected == null) return false;
-                            final ok = await barVerifyStaffPin(selected, pin);
-                            _verified = ok ? selected : null;
+                            final current = barPickInRoster(
+                              _selected,
+                              ref.read(hotelStaffProvider).value,
+                            );
+                            _verified = null;
+                            if (current == null) return false;
+                            final ok = await barVerifyStaffPin(current, pin);
+                            _verified = ok ? current : null;
                             return ok;
                           },
                           onSubmit: (_) {
-                            final verified = _verified;
+                            // Still on the roster: it may have refreshed
+                            // while the PIN check awaited.
+                            final verified = barPickInRoster(
+                              _verified,
+                              ref.read(hotelStaffProvider).value,
+                            );
                             if (verified != null) {
                               ref
                                   .read(hotelModeProvider.notifier)

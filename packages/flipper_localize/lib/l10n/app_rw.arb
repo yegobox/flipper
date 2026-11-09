@@ -3934,6 +3934,7 @@
   "barAdminFloorTables": "Icyumba n'ameza",
   "barAdminStaffPins": "Abakozi na PIN",
   "barNoStaffYet": "Nta bakozi barabaho. Ongeramo abakoresha mu Icungamakoresha — bazagaragara hano bafite PIN zabo.",
+  "barLockNoStaff": "Nta muntu urashobora kwinjira. Niba iki gikoresho kidafite murandasi cyangwa murandasi itinda, yigenzure hanyuma ukande Ongera ugerageze. Bitabaye ibyo, ongeramo abakoresha mu Icungamakoresha — bazagaragara hano bafite PIN zabo.",
   "barOpenPosWithBarMode": "Fungura POS mu buryo bw'akabari",
   "barTableServiceTitle": "Serivisi ku meza (uburyo bw'akabari)",
   "barModeDescription": "Ihindura kasi ikaba mashini y'akabari isangiwe: abakozi bafungurira buri meza konti, bandika ibyo batanze bakoresheje PIN zabo, kandi basimburana batabuze fagitire. Bireke bifunze ku igurisha risanzwe. Kuri clavier, {hotkey} ihinduranya Bar → Hoteli → POS utagarutse hano.",

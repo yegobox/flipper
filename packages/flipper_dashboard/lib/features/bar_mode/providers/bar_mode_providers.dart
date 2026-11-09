@@ -10,7 +10,7 @@ import 'package:flipper_models/providers/active_branch_provider.dart';
 import 'package:flipper_models/sync/utils/bar_mode_utils.dart';
 import 'package:flipper_models/sync/utils/service_mode_access.dart';
 import 'package:flipper_models/sync/utils/staff_roster_cache.dart'
-    show staffRosterChanged;
+    show staffRosterCachedPinsChanged, staffRosterChanged;
 import 'package:flipper_models/view_models/flipperBaseModel.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart'
     show connectivityStreamProvider;
@@ -263,24 +263,33 @@ final barStaffProvider = FutureProvider<List<Tenant>>((ref) async {
     if (disposed || checking || roster == null) return;
     checking = true;
     StaffRoster? next;
+    var changed = false;
     try {
       next = await load(businessId);
+      changed =
+          next.tenants.isNotEmpty &&
+          (staffRosterChanged(
+                roster.tenants,
+                next.tenants,
+                bothLive: roster.fresh && next.fresh,
+              ) ||
+              // The offline copy holds PIN verifiers, not PINs: a PIN
+              // changed or removed since must not keep unlocking.
+              await staffRosterCachedPinsChanged(roster.tenants, next.tenants));
     } catch (e) {
       debugPrint('barStaffProvider: background re-read failed: $e');
     } finally {
       checking = false;
     }
     if (disposed) return;
-    if (next != null &&
-        next.tenants.isNotEmpty &&
-        staffRosterChanged(
-          roster.tenants,
-          next.tenants,
-          bothLive: roster.fresh && next.fresh,
-        )) {
+    if (changed) {
       handoffs
         ..clear()
-        ..add((businessId: businessId, roster: next, at: DateTime.now()));
+        ..add((businessId: businessId, roster: next!, at: DateTime.now()));
+      // The sign-in lists filter this roster with the grants. A desk that
+      // could not read them fell back to "open to all", so read them again
+      // with the roster rather than expose it under that fallback.
+      ref.invalidate(serviceModeGrantsProvider);
       ref.invalidateSelf();
       return;
     }

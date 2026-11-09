@@ -3,6 +3,8 @@ import 'package:flipper_dashboard/features/bar_mode/providers/bar_mode_providers
 import 'package:flipper_dashboard/features/bar_mode/theme/bar_tokens.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_admin_widgets.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_keypad.dart';
+import 'package:flipper_dashboard/features/bar_mode/widgets/bar_mobile_people_strip.dart'
+    show barPickInRoster;
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_shared_widgets.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/sync/utils/bar_mode_utils.dart';
@@ -21,10 +23,15 @@ class BarLockDesktopScreen extends ConsumerStatefulWidget {
 class _BarLockDesktopScreenState extends ConsumerState<BarLockDesktopScreen> {
   Tenant? _selected;
 
+  /// Who passed the PIN check, captured at verification time.
+  Tenant? _verified;
+
   @override
   Widget build(BuildContext context) {
     final staffAsync = ref.watch(barSignInStaffProvider);
     final l10n = context.flipperL10n;
+    // Dropped once a refresh removes them from the roster.
+    final selected = barPickInRoster(_selected, staffAsync.value);
 
     return Container(
       color: BarTokens.bg,
@@ -75,30 +82,47 @@ class _BarLockDesktopScreenState extends ConsumerState<BarLockDesktopScreen> {
                       child: Padding(
                         padding: const EdgeInsets.all(30),
                         child: BarKeypad(
-                          enabled: _selected != null,
-                          title: _selected?.name ?? '—',
-                          hint: _selected == null
+                          enabled: selected != null,
+                          title: selected?.name ?? '—',
+                          hint: selected == null
                               ? l10n.barLockHintTapLeft
                               : l10n.barLockHintEnterPin,
-                          avatarLabel: _selected == null
+                          avatarLabel: selected == null
                               ? null
-                              : barTenantInitials(_selected!.name),
-                          avatarColor: _selected == null
+                              : barTenantInitials(selected.name),
+                          avatarColor: selected == null
                               ? null
                               : barColorForTenant(
-                                  _selected!.id,
+                                  selected.id,
                                   staffAsync.value ?? [],
                                 ),
+                          // Checked against the roster as it is now, not the
+                          // tenant captured at the tap: a refresh may have
+                          // removed them or changed their PIN. Signed in from
+                          // that check, so a tap on someone else while it
+                          // awaits signs in nobody but the one who verified.
                           verifyPin: (pin) async {
-                            final selected = _selected;
-                            if (selected == null) return false;
-                            return barVerifyStaffPin(selected, pin);
+                            final current = barPickInRoster(
+                              _selected,
+                              ref.read(barSignInStaffProvider).value,
+                            );
+                            _verified = null;
+                            if (current == null) return false;
+                            final ok = await barVerifyStaffPin(current, pin);
+                            _verified = ok ? current : null;
+                            return ok;
                           },
                           onSubmit: (_) {
-                            if (_selected != null) {
+                            // Still on the roster: it may have refreshed
+                            // while the PIN check awaited.
+                            final verified = barPickInRoster(
+                              _verified,
+                              ref.read(barSignInStaffProvider).value,
+                            );
+                            if (verified != null) {
                               ref
                                   .read(barModeProvider.notifier)
-                                  .login(_selected!);
+                                  .login(verified);
                             }
                           },
                         ),
@@ -143,7 +167,7 @@ class _BarLockDesktopScreenState extends ConsumerState<BarLockDesktopScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                l10n.barNoStaffYet,
+                l10n.barLockNoStaff,
                 style: GoogleFonts.outfit(fontSize: 13, color: BarTokens.ink3),
               ),
               const SizedBox(height: 10),
@@ -170,7 +194,10 @@ class _BarLockDesktopScreenState extends ConsumerState<BarLockDesktopScreen> {
                 color: selected ? BarTokens.blueTint : BarTokens.surface,
                 borderRadius: BorderRadius.circular(BarTokens.radiusMd),
                 child: InkWell(
-                  onTap: () => setState(() => _selected = person),
+                  onTap: () => setState(() {
+                    _selected = person;
+                    _verified = null;
+                  }),
                   borderRadius: BorderRadius.circular(BarTokens.radiusMd),
                   child: Container(
                     padding: const EdgeInsets.symmetric(
