@@ -257,4 +257,40 @@ mixin AccountingMixin on DittoCore {
 
     return controller.stream;
   }
+
+  /// Like [watchCollection] but carries no rows: the observer's items are
+  /// never read, so Ditto never decodes them on this isolate.
+  Stream<void> watchChanges(
+    String collection,
+    String query,
+    Map<String, dynamic> args,
+  ) {
+    final ditto = dittoInstance;
+    if (ditto == null) return const Stream<void>.empty();
+
+    dynamic observer;
+    var cancelled = false;
+    late final StreamController<void> controller;
+    controller = StreamController<void>(
+      onListen: () {
+        try {
+          observer = ditto.store.registerObserver(
+            query,
+            arguments: args,
+            onChange: (_) {
+              if (!cancelled && !controller.isClosed) controller.add(null);
+            },
+          );
+        } catch (e) {
+          debugPrint('watchChanges($collection): $e');
+          controller.addError(e);
+        }
+      },
+      onCancel: () async {
+        cancelled = true;
+        await cancelDittoStoreObserver(observer);
+      },
+    );
+    return controller.stream;
+  }
 }

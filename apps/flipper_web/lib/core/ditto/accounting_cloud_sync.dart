@@ -21,6 +21,38 @@ Future<void> ensureAccountingCloudSubscriptions({
 }) async {
   if (businessId.isEmpty) return;
 
+  for (final entry in accountingCloudSubscriptionSpecs(
+    businessId: businessId,
+    branchId: branchId,
+  )) {
+    if (!_accountingSubscriptionKeys.add(entry.key)) continue;
+    try {
+      final prepared = prepareDqlSyncSubscription(entry.sql, entry.args);
+      await ditto.sync.registerSubscription(
+        prepared.dql,
+        arguments: prepared.arguments,
+      );
+      debugPrint('[Accounting] cloud subscription registered ${entry.key}');
+    } catch (e, st) {
+      _accountingSubscriptionKeys.remove(entry.key);
+      debugPrint(
+        '[Accounting] cloud subscription failed ${entry.key}: $e\n'
+        '${describeDqlSyncSubscriptionAttempt(entry.sql, entry.args)}\n'
+        '$st',
+      );
+    }
+  }
+
+  await evictOtherBusinessesJournalLines(ditto: ditto, businessId: businessId);
+}
+
+/// What [ensureAccountingCloudSubscriptions] subscribes to.
+@visibleForTesting
+List<({String key, String sql, Map<String, dynamic> args})>
+accountingCloudSubscriptionSpecs({
+  required String businessId,
+  String? branchId,
+}) {
   final entries = <({String key, String sql, Map<String, dynamic> args})>[
     (
       key: 'chart_of_accounts|$businessId',
@@ -36,11 +68,16 @@ Future<void> ensureAccountingCloudSubscriptions({
           'WHERE businessId = :businessId OR business_id = :businessId',
       args: {'businessId': businessId},
     ),
-    // Lines lack businessId in Supabase; replicate all and join via entry id.
+    // This business's lines only. Every writer stamps businessId on a line
+    // (data-connector backfilled the older ones), and an unscoped
+    // subscription copied every business's lines to every till: Books then
+    // scanned the whole platform's ledger on each refresh and froze.
     (
-      key: 'journal_lines|all',
-      sql: 'SELECT * FROM journal_lines',
-      args: const <String, dynamic>{},
+      key: 'journal_lines|$businessId',
+      sql:
+          'SELECT * FROM journal_lines '
+          'WHERE businessId = :businessId OR business_id = :businessId',
+      args: {'businessId': businessId},
     ),
     (
       key: 'bank_statement_lines|$businessId',
@@ -109,23 +146,41 @@ Future<void> ensureAccountingCloudSubscriptions({
     ));
   }
 
-  for (final entry in entries) {
-    if (!_accountingSubscriptionKeys.add(entry.key)) continue;
-    try {
-      final prepared = prepareDqlSyncSubscription(entry.sql, entry.args);
-      await ditto.sync.registerSubscription(
-        prepared.dql,
-        arguments: prepared.arguments,
-      );
-      debugPrint('[Accounting] cloud subscription registered ${entry.key}');
-    } catch (e, st) {
-      _accountingSubscriptionKeys.remove(entry.key);
-      debugPrint(
-        '[Accounting] cloud subscription failed ${entry.key}: $e\n'
-        '${describeDqlSyncSubscriptionAttempt(entry.sql, entry.args)}\n'
-        '$st',
-      );
-    }
+  return entries;
+}
+
+final Set<String> _journalLinesEvictedFor = {};
+
+/// Removes, from this device only, the journal lines an older build synced
+/// for other businesses. Lines without a business id stay: they are not
+/// known to belong elsewhere. Runs once per business per process; the
+/// scoped subscription keeps them from coming back.
+@visibleForTesting
+const evictOtherBusinessesJournalLinesDql =
+    'EVICT FROM journal_lines '
+    'WHERE businessId IS NOT MISSING AND businessId IS NOT NULL '
+    "AND businessId != '' AND businessId != :businessId "
+    'AND (business_id IS MISSING OR business_id IS NULL '
+    'OR business_id != :businessId)';
+
+Future<void> evictOtherBusinessesJournalLines({
+  required Ditto ditto,
+  required String businessId,
+}) async {
+  if (businessId.isEmpty || !_journalLinesEvictedFor.add(businessId)) return;
+  final sw = Stopwatch()..start();
+  try {
+    await ditto.store.execute(
+      evictOtherBusinessesJournalLinesDql,
+      arguments: {'businessId': businessId},
+    );
+    debugPrint(
+      '[Accounting] evicted other businesses\' journal lines '
+      'in ${sw.elapsedMilliseconds}ms',
+    );
+  } catch (e) {
+    _journalLinesEvictedFor.remove(businessId);
+    debugPrint('[Accounting] journal line eviction failed: $e');
   }
 }
 

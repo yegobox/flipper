@@ -42,6 +42,14 @@ class FakeAccountingDittoStore implements AccountingDittoStore {
       const Stream.empty();
 
   @override
+  Stream<void> watchChanges(
+    String collection,
+    String query,
+    Map<String, dynamic> args,
+  ) =>
+      const Stream.empty();
+
+  @override
   Future<void> upsertChartOfAccount(
     String businessId,
     Account account, {

@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flipper_analytics/flipper_analytics.dart';
 import 'package:flipper_models/helperModels/talker.dart';
+import 'package:flipper_models/perf/perf_track.dart';
 import 'package:flipper_models/perf/ui_stall_watchdog.dart';
 import 'package:flipper_models/sync/ditto_observer_registry.dart';
 import 'package:flipper_web/core/local_mode/local_mode.dart';
@@ -40,6 +41,8 @@ Future<void> startUiStallMonitoring() async {
   trail.useMarkerFile(marker);
   // A normal quit mid-search is not a hang. The binding keeps the listener.
   clearMarkerOnExitRequest(trail);
+  // Shared packages (Books' ledger) time their heavy work through this hook.
+  PerfTrack.track = trail.track;
 
   _watchdog = UiStallWatchdog(
     onStall: (stall) => trail.report('ui_stall', stall.toProperties()),

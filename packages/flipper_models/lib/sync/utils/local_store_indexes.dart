@@ -25,6 +25,10 @@ const Map<String, List<String>> kLocalStoreIndexedFields = {
   // Resolved per tap before a line is written.
   'variants': ['productId', 'branchId'],
   'stocks': ['variantId', 'branchId'],
+  // Books reads a business's ledger with `businessId = :b OR business_id = :b`
+  // (an OR needs both fields indexed) and heals lines by entry id.
+  'journal_entries': ['businessId', 'business_id'],
+  'journal_lines': ['businessId', 'business_id', 'journalEntryId'],
 };
 
 /// `CREATE INDEX IF NOT EXISTS` statements for [kLocalStoreIndexedFields].

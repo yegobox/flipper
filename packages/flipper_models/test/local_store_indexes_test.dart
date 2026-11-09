@@ -6,7 +6,7 @@ void main() {
     for (final statement in localStoreIndexStatements()) {
       expect(statement, startsWith('CREATE INDEX IF NOT EXISTS '));
       expect(statement, contains(' ON '));
-      expect(RegExp(r'\([a-zA-Z]+\)$').hasMatch(statement), isTrue,
+      expect(RegExp(r'\(\w+\)$').hasMatch(statement), isTrue,
           reason: 'one field per index — composite needs SDK 5.1.0: $statement');
     }
   });
@@ -19,6 +19,17 @@ void main() {
     expect(statements, contains('ON transactions (branchId)'));
     expect(statements, contains('ON transactions (status)'));
     expect(statements, contains('ON transactions (createdAt)'));
+  });
+
+  test('covers both keys Books reads a ledger by, and the line join', () {
+    final statements = localStoreIndexStatements().join('\n');
+
+    // An OR only uses indexes when every side of it has one.
+    for (final c in ['journal_entries', 'journal_lines']) {
+      expect(statements, contains('ON $c (businessId)'));
+      expect(statements, contains('ON $c (business_id)'));
+    }
+    expect(statements, contains('ON journal_lines (journalEntryId)'));
   });
 
   test('index names are unique per collection and field', () {
