@@ -156,6 +156,89 @@ Future<String> encodeStaffRosterInBackground(List<Tenant> tenants) => compute(
 String staffRosterFingerprint(List<Tenant> tenants) =>
     sha256.convert(utf8.encode(jsonEncode(_rowsOf(tenants)))).toString();
 
+/// Whether a re-read roster differs from the one on screen enough to swap it
+/// in: someone joined or left, or a name, role or user changed, or a PIN
+/// changed. Set [bothLive] when both rosters are fresh Supabase reads, so a
+/// PIN removed since counts too.
+///
+/// A cached tenant carries no PIN (only its verifier), so going from the
+/// offline copy to the same people read live is not a change: swapping would
+/// reload the lock screen and drop a PIN being typed, for nothing new.
+bool staffRosterChanged(
+  List<Tenant> previous,
+  List<Tenant> next, {
+  bool bothLive = false,
+}) {
+  if (previous.length != next.length) return true;
+  final byId = {for (final t in previous) t.id: t};
+  for (final t in next) {
+    final old = byId[t.id];
+    if (old == null ||
+        old.userId != t.userId ||
+        old.name != t.name ||
+        old.type != t.type ||
+        old.allowBusinessLogin != t.allowBusinessLogin ||
+        ((bothLive || (old.pin != null && t.pin != null)) &&
+            old.pin != t.pin)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/// One cached verifier checked against the PIN a re-read has for that tenant.
+typedef _PinCheck = ({String salt, String hash, int iterations, String pin});
+
+/// Up to this many KDF rounds in total are checked inline; more go to a
+/// background isolate (a real roster costs one 10,000-round KDF per PIN).
+const int _inlinePinCheckIterations = 1000;
+
+bool _anyPinCheckFails(List<_PinCheck> checks) => checks.any(
+  (c) => hashStaffPin(c.salt, c.pin, iterations: c.iterations) != c.hash,
+);
+
+/// Whether a tenant in [previous] restored from the offline copy still
+/// unlocks with a PIN [next] no longer has for them: the verifier does not
+/// match the PIN read live, the PIN was removed since, or a newer copy holds
+/// another verifier. [staffRosterChanged] cannot see this, as a cached
+/// tenant carries no PIN; without it, the old PIN kept unlocking the desk
+/// after a live read.
+///
+/// A cached tenant with no verifier unlocks with nothing locally (the server
+/// check covers a PIN set since), so it is no change.
+Future<bool> staffRosterCachedPinsChanged(
+  List<Tenant> previous,
+  List<Tenant> next,
+) async {
+  final byId = {for (final t in previous) t.id: t};
+  final checks = <_PinCheck>[];
+  for (final t in next) {
+    final old = byId[t.id];
+    if (old == null || old.pin != null) continue;
+    final was = _verifierOf[old];
+    if (was == null) continue;
+    final now = _verifierOf[t];
+    final livePin = t.pin != null && t.pin != 0 ? t.pin.toString() : null;
+    if (now != null) {
+      if (now != was) return true;
+    } else if (livePin == null) {
+      return true;
+    } else {
+      checks.add((
+        salt: was.salt,
+        hash: was.hash,
+        iterations: was.iterations,
+        pin: livePin,
+      ));
+    }
+  }
+  if (checks.isEmpty) return false;
+  final rounds = checks.fold<int>(0, (sum, c) => sum + c.iterations);
+  return rounds <= _inlinePinCheckIterations
+      ? _anyPinCheckFails(checks)
+      : compute(_anyPinCheckFails, checks);
+}
+
 /// Restores a roster written by [encodeStaffRoster] and attaches its PIN
 /// verifiers for [staffRosterPinMatches]. Returns `[]` for missing/corrupt data.
 List<Tenant> decodeStaffRoster(String? raw) {

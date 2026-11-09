@@ -8269,6 +8269,10 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
       'No staff yet. Add users in User Management — they appear here with their PINs.';
 
   @override
+  String get barLockNoStaff =>
+      'No one to sign in yet. If this device is offline or the connection is slow, check it and tap Retry. Otherwise add users in User Management — they appear here with their PINs.';
+
+  @override
   String get barOpenPosWithBarMode => 'Open POS with Bar Mode';
 
   @override
