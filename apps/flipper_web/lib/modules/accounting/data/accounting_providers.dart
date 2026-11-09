@@ -679,6 +679,17 @@ final accountingAccountsProvider = Provider<List<Account>>((ref) {
   );
 });
 
+/// The General ledger's rows for the selected account, oldest first with a
+/// running balance. Recomputed only when the account, the chart or the
+/// journal changes, not on every rebuild of the view.
+final generalLedgerPostingsProvider = Provider<List<GlPosting>>((ref) {
+  return generalLedgerPostings(
+    ref.watch(ledgerAccountCodeProvider),
+    ref.watch(accountingJournalProvider),
+    ref.watch(accountingAccountsProvider),
+  );
+});
+
 final accountingIncomeStatementProvider = Provider<IncomeStatementResult>(
   (ref) => incomeStatement(ref.watch(accountingAccountsProvider)),
 );

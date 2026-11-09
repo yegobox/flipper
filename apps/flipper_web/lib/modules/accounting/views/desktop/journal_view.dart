@@ -28,7 +28,9 @@ class AccountingJournalView extends ConsumerWidget {
     final isLoading = ref.watch(accountingLoadingProvider);
 
     final journal = ref.watch(accountingJournalProvider);
-    final sources = journal.map((e) => e.src).toSet().toList()..sort();
+    final sources =
+        journal.map((e) => e.src).where((s) => s.isNotEmpty).toSet().toList()
+          ..sort();
     final currency = ref.watch(accountingCurrencyProvider);
     final accountMap = {
       for (final a in ref.watch(accountingAccountsProvider)) a.code: a,
@@ -45,124 +47,152 @@ class AccountingJournalView extends ConsumerWidget {
       return statusOk && sourceOk;
     }).toList();
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(28, 24, 28, 40),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          AccountingPageHeader(
-            eyebrow: l10n.booksDaybook,
-            title: l10n.booksJournalEntries,
-            subtitle: l10n.booksJournalSubtitle(currency),
-            actions: [
-              PopupMenuButton<String?>(
-                tooltip: l10n.booksFilterBySource,
-                offset: const Offset(0, 40),
-                onSelected: (src) =>
-                    ref.read(journalSourceFilterProvider.notifier).state = src,
-                itemBuilder: (context) => [
-                  PopupMenuItem<String?>(
-                    value: null,
-                    child: Text(l10n.booksAllSources),
-                  ),
-                  for (final src in sources)
-                    PopupMenuItem(value: src, child: Text(src)),
-                ],
-                child: AccountingButton(
-                  label: sourceFilter ?? l10n.booksFilter,
-                  icon: Icons.filter_list,
-                  small: true,
-                ),
-              ),
-              AccountingButton(
-                label: l10n.booksRecordExpense,
-                icon: Icons.account_balance_wallet_outlined,
-                small: true,
-                onPressed: onRecordExpense,
-              ),
-              AccountingButton(
-                label: l10n.booksNewJournalEntry,
-                icon: Icons.add,
-                primary: true,
-                onPressed: onNewEntry,
-              ),
-            ],
-          ),
-          if (isLoading)
-            const Padding(
-              padding: EdgeInsets.only(bottom: 8),
-              child: LinearProgressIndicator(),
-            ),
-          Wrap(
-            spacing: 6,
-            runSpacing: 8,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              ...JournalFilter.values.map((f) {
-                final label = switch (f) {
-                  JournalFilter.all => l10n.booksFilterAll,
-                  JournalFilter.posted => l10n.booksFilterPosted,
-                  JournalFilter.pending => l10n.booksFilterPending,
-                  JournalFilter.draft => l10n.booksFilterDrafts,
-                };
-                final on = filter == f;
-                return ChoiceChip(
-                  label: Text(
-                    f == JournalFilter.pending && pending > 0
-                        ? '$label ($pending)'
-                        : label,
-                    style: AccountingTokens.sans(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: on
-                          ? AccountingTokens.accent
-                          : AccountingTokens.ink2,
+    // A busy business has thousands of entries a month: build only the rows
+    // on screen.
+    return CustomScrollView(
+      slivers: [
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(28, 24, 28, 40),
+          sliver: SliverMainAxisGroup(
+            slivers: [
+              SliverToBoxAdapter(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    AccountingPageHeader(
+                      eyebrow: l10n.booksDaybook,
+                      title: l10n.booksJournalEntries,
+                      subtitle: l10n.booksJournalSubtitle(currency),
+                      actions: [
+                        // A null item value reads as "menu dismissed" and
+                        // never reaches onSelected, so All sources uses ''.
+                        PopupMenuButton<String>(
+                          tooltip: l10n.booksFilterBySource,
+                          offset: const Offset(0, 40),
+                          onSelected: (src) =>
+                              ref
+                                  .read(journalSourceFilterProvider.notifier)
+                                  .state = src.isEmpty
+                              ? null
+                              : src,
+                          itemBuilder: (context) => [
+                            PopupMenuItem<String>(
+                              value: '',
+                              child: Text(l10n.booksAllSources),
+                            ),
+                            for (final src in sources)
+                              PopupMenuItem(value: src, child: Text(src)),
+                          ],
+                          child: AccountingButton(
+                            label: sourceFilter ?? l10n.booksFilter,
+                            icon: Icons.filter_list,
+                            small: true,
+                          ),
+                        ),
+                        AccountingButton(
+                          label: l10n.booksRecordExpense,
+                          icon: Icons.account_balance_wallet_outlined,
+                          small: true,
+                          onPressed: onRecordExpense,
+                        ),
+                        AccountingButton(
+                          label: l10n.booksNewJournalEntry,
+                          icon: Icons.add,
+                          primary: true,
+                          onPressed: onNewEntry,
+                        ),
+                      ],
                     ),
-                  ),
-                  selected: on,
-                  onSelected: (_) =>
-                      ref.read(journalFilterProvider.notifier).state = f,
-                  selectedColor: AccountingTokens.accentTint,
-                  backgroundColor: AccountingTokens.surface,
-                  side: BorderSide(
-                    color: on ? AccountingTokens.accent : AccountingTokens.line,
-                  ),
-                );
-              }),
-              if (pending > 0)
-                Text(
-                  l10n.booksEntriesAwaitingApproval(pending),
-                  style: AccountingTokens.sans(
-                    fontSize: 13,
-                    color: AccountingTokens.warnAmber,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          AccountingCard(
-            child: Column(
-              children: [
-                if (list.isEmpty)
-                  Padding(
-                    padding: const EdgeInsets.all(32),
-                    child: Text(
-                      l10n.booksNoEntriesMatchFilter,
-                      style: AccountingTokens.sans(
-                        fontSize: 13.5,
-                        color: AccountingTokens.ink3,
+                    if (isLoading)
+                      const Padding(
+                        padding: EdgeInsets.only(bottom: 8),
+                        child: LinearProgressIndicator(),
                       ),
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 8,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        ...JournalFilter.values.map((f) {
+                          final label = switch (f) {
+                            JournalFilter.all => l10n.booksFilterAll,
+                            JournalFilter.posted => l10n.booksFilterPosted,
+                            JournalFilter.pending => l10n.booksFilterPending,
+                            JournalFilter.draft => l10n.booksFilterDrafts,
+                          };
+                          final on = filter == f;
+                          return ChoiceChip(
+                            label: Text(
+                              f == JournalFilter.pending && pending > 0
+                                  ? '$label ($pending)'
+                                  : label,
+                              style: AccountingTokens.sans(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: on
+                                    ? AccountingTokens.accent
+                                    : AccountingTokens.ink2,
+                              ),
+                            ),
+                            selected: on,
+                            onSelected: (_) =>
+                                ref.read(journalFilterProvider.notifier).state =
+                                    f,
+                            selectedColor: AccountingTokens.accentTint,
+                            backgroundColor: AccountingTokens.surface,
+                            side: BorderSide(
+                              color: on
+                                  ? AccountingTokens.accent
+                                  : AccountingTokens.line,
+                            ),
+                          );
+                        }),
+                        if (pending > 0)
+                          Text(
+                            l10n.booksEntriesAwaitingApproval(pending),
+                            style: AccountingTokens.sans(
+                              fontSize: 13,
+                              color: AccountingTokens.warnAmber,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                      ],
                     ),
-                  )
-                else
-                  for (final e in list)
-                    _JournalRow(entry: e, accountMap: accountMap),
-              ],
-            ),
+                    const SizedBox(height: 16),
+                  ],
+                ),
+              ),
+              if (list.isEmpty)
+                SliverToBoxAdapter(
+                  child: AccountingCard(
+                    child: Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(32),
+                          child: Text(
+                            l10n.booksNoEntriesMatchFilter,
+                            style: AccountingTokens.sans(
+                              fontSize: 13.5,
+                              color: AccountingTokens.ink3,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              else
+                SliverAccountingCard(
+                  sliver: SliverList.builder(
+                    itemCount: list.length,
+                    itemBuilder: (context, i) =>
+                        _JournalRow(entry: list[i], accountMap: accountMap),
+                  ),
+                ),
+            ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

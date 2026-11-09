@@ -25,7 +25,13 @@ class AccountingPageHeader extends StatelessWidget {
         const SizedBox(height: 6),
         Text(title, style: AccountingTokens.pageH1),
         const SizedBox(height: 4),
-        Text(subtitle, style: AccountingTokens.sans(fontSize: 13.5, color: AccountingTokens.ink3)),
+        Text(
+          subtitle,
+          style: AccountingTokens.sans(
+            fontSize: 13.5,
+            color: AccountingTokens.ink3,
+          ),
+        ),
       ],
     );
 
@@ -112,10 +118,7 @@ class AccountingButton extends StatelessWidget {
         return SizedBox(
           width: small ? 15 : 18,
           height: small ? 15 : 18,
-          child: CircularProgressIndicator(
-            strokeWidth: 2,
-            color: spinnerColor,
-          ),
+          child: CircularProgressIndicator(strokeWidth: 2, color: spinnerColor),
         );
       }
 
@@ -124,8 +127,8 @@ class AccountingButton extends StatelessWidget {
       final iconWidget = accIcon != null
           ? AccountingIcon(icon: accIcon!, size: iconSize, color: iconColor)
           : icon != null
-              ? Icon(icon, size: iconSize, color: iconColor)
-              : null;
+          ? Icon(icon, size: iconSize, color: iconColor)
+          : null;
 
       if (iconOnly && iconWidget != null) return iconWidget;
 
@@ -153,15 +156,21 @@ class AccountingButton extends StatelessWidget {
     final buttonStyle = primary
         ? FilledButton.styleFrom(
             backgroundColor: AccountingTokens.accent,
-            disabledBackgroundColor: AccountingTokens.accent.withValues(alpha: 0.5),
+            disabledBackgroundColor: AccountingTokens.accent.withValues(
+              alpha: 0.5,
+            ),
             padding: EdgeInsets.symmetric(horizontal: hPad),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(11)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(11),
+            ),
           )
         : OutlinedButton.styleFrom(
             foregroundColor: AccountingTokens.ink1,
             side: const BorderSide(color: AccountingTokens.line),
             padding: EdgeInsets.symmetric(horizontal: hPad),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(11)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(11),
+            ),
           );
 
     return SizedBox(
@@ -207,18 +216,40 @@ class AccountingCard extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry? padding;
 
+  /// The card's chrome, shared with [SliverAccountingCard].
+  static final BoxDecoration decoration = BoxDecoration(
+    color: AccountingTokens.surface,
+    borderRadius: BorderRadius.circular(AccountingTokens.radiusLg),
+    border: Border.all(color: AccountingTokens.line),
+    boxShadow: const [
+      BoxShadow(color: Color(0x0A0B1220), blurRadius: 8, offset: Offset(0, 2)),
+    ],
+  );
+
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(
-        color: AccountingTokens.surface,
-        borderRadius: BorderRadius.circular(AccountingTokens.radiusLg),
-        border: Border.all(color: AccountingTokens.line),
-        boxShadow: const [BoxShadow(color: Color(0x0A0B1220), blurRadius: 8, offset: Offset(0, 2))],
-      ),
-      child: Padding(
-        padding: padding ?? EdgeInsets.zero,
-        child: child,
+      decoration: decoration,
+      child: Padding(padding: padding ?? EdgeInsets.zero, child: child),
+    );
+  }
+}
+
+/// An [AccountingCard] around a sliver, so a long list inside it builds only
+/// the rows on screen. Insets the content by the border, as [Container] does
+/// for the plain card.
+class SliverAccountingCard extends StatelessWidget {
+  const SliverAccountingCard({super.key, required this.sliver});
+
+  final Widget sliver;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedSliver(
+      decoration: AccountingCard.decoration,
+      sliver: SliverPadding(
+        padding: AccountingCard.decoration.padding,
+        sliver: sliver,
       ),
     );
   }
@@ -249,7 +280,13 @@ class AccountingCardHeader extends StatelessWidget {
                 Text(title, style: AccountingTokens.cardTitle),
                 if (subtitle != null) ...[
                   const SizedBox(height: 2),
-                  Text(subtitle!, style: AccountingTokens.sans(fontSize: 12.5, color: AccountingTokens.ink3)),
+                  Text(
+                    subtitle!,
+                    style: AccountingTokens.sans(
+                      fontSize: 12.5,
+                      color: AccountingTokens.ink3,
+                    ),
+                  ),
                 ],
               ],
             ),
