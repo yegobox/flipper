@@ -184,6 +184,10 @@ class DittoAccountingLedgerRepository implements AccountingLedgerRepository {
   @visibleForTesting
   static Duration changeFeedRetry = const Duration(seconds: 5);
 
+  /// How long a failed ledger read waits before it is tried again.
+  @visibleForTesting
+  static Duration readRetry = const Duration(seconds: 5);
+
   @override
   Stream<List<JournalEntry>> watchJournalEntries({
     required String businessId,
@@ -588,6 +592,7 @@ class _JournalLedgerSource {
   final _changes = <StreamSubscription<void>>[];
   final _feedRetries = <Timer>[];
   Timer? _timer;
+  Timer? _readRetry;
   var _started = false;
   var _disposed = false;
   var _loading = false;
@@ -668,7 +673,16 @@ class _JournalLedgerSource {
       _out.add(snap);
     } catch (e, st) {
       _failed = true;
-      if (!_disposed) _out.addError(e, st);
+      if (!_disposed) {
+        _out.addError(e, st);
+        // Recovery alone fires no change: read again while anyone listens
+        // (the source is disposed with its last listener).
+        _readRetry?.cancel();
+        _readRetry = Timer(DittoAccountingLedgerRepository.readRetry, () {
+          _readRetry = null;
+          retryIfFailed();
+        });
+      }
     } finally {
       _loading = false;
       if (_dirty) _schedule();
@@ -679,6 +693,8 @@ class _JournalLedgerSource {
     _disposed = true;
     _timer?.cancel();
     _timer = null;
+    _readRetry?.cancel();
+    _readRetry = null;
     for (final t in _feedRetries) {
       t.cancel();
     }

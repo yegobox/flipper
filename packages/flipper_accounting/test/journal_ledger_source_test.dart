@@ -415,6 +415,63 @@ void main() {
       expect(store.activeChangeFeeds, 0);
     });
 
+    test(
+      'a failed read is retried with no change and no new listener',
+      () async {
+        final saved = DittoAccountingLedgerRepository.readRetry;
+        DittoAccountingLedgerRepository.readRetry = const Duration(
+          milliseconds: 50,
+        );
+        addTearDown(() => DittoAccountingLedgerRepository.readRetry = saved);
+        final store = _seed(entries: 20, orphans: 0);
+        var failures = 2;
+        store.beforeQuery = (q) async {
+          if (failures > 0 &&
+              q.contains('FROM journal_entries WHERE businessId')) {
+            failures--;
+            throw StateError('ditto closed');
+          }
+        };
+        final repo = DittoAccountingLedgerRepository(store);
+        final errors = <Object>[];
+        final emitted = <List<JournalEntry>>[];
+        final sub = repo
+            .watchJournalEntries(businessId: _biz)
+            .listen(emitted.add, onError: errors.add);
+
+        // Fails twice, then reads on its own.
+        await Future<void>.delayed(const Duration(milliseconds: 1000));
+        expect(errors, hasLength(2));
+        expect(emitted.single, hasLength(20));
+        final reads = store.queriesOf('journal_entries', 'businessId');
+        await Future<void>.delayed(const Duration(milliseconds: 400));
+        expect(store.queriesOf('journal_entries', 'businessId'), reads);
+        await sub.cancel();
+      },
+    );
+
+    test('cancelling stops a pending read retry', () async {
+      final saved = DittoAccountingLedgerRepository.readRetry;
+      DittoAccountingLedgerRepository.readRetry = const Duration(
+        milliseconds: 50,
+      );
+      addTearDown(() => DittoAccountingLedgerRepository.readRetry = saved);
+      final store = _seed(entries: 5, orphans: 0);
+      store.beforeQuery = (q) async {
+        if (q.contains('FROM journal_entries WHERE businessId')) {
+          throw StateError('ditto closed');
+        }
+      };
+      final repo = DittoAccountingLedgerRepository(store);
+      final sub = repo
+          .watchJournalEntries(businessId: _biz)
+          .listen((_) {}, onError: (_) {});
+      await pumpEventQueue();
+      await sub.cancel();
+      await Future<void>.delayed(const Duration(milliseconds: 400));
+      expect(store.queriesOf('journal_entries', 'businessId'), 1);
+    });
+
     test('cancelling before a feed retry stops it', () async {
       final saved = DittoAccountingLedgerRepository.changeFeedRetry;
       DittoAccountingLedgerRepository.changeFeedRetry = const Duration(
