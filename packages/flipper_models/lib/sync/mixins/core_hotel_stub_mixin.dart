@@ -75,8 +75,7 @@ mixin CoreHotelStubMixin implements HotelInterface {
   Future<void> deleteHotelRoom({
     required String id,
     required String branchId,
-  }) async =>
-      _warn('deleteHotelRoom');
+  }) async => _warn('deleteHotelRoom');
 
   @override
   Future<void> seedDefaultRooms({required String branchId}) async =>
@@ -87,8 +86,7 @@ mixin CoreHotelStubMixin implements HotelInterface {
     required String roomId,
     required String branchId,
     required HotelHousekeeping housekeeping,
-  }) async =>
-      _warn('setHotelRoomHousekeeping');
+  }) async => _warn('setHotelRoomHousekeeping');
 
   @override
   Stream<List<HotelStay>> hotelStaysStream({required String branchId}) {
@@ -225,8 +223,7 @@ mixin CoreHotelStubMixin implements HotelInterface {
   Future<void> deleteHotelQuotation({
     required String id,
     required String branchId,
-  }) async =>
-      _warn('deleteHotelQuotation');
+  }) async => _warn('deleteHotelQuotation');
 
   @override
   Future<HotelStay> convertQuotationToReservation({
@@ -246,17 +243,13 @@ mixin CoreHotelStubMixin implements HotelInterface {
   }
 
   @override
-  Future<List<ITransaction>> hotelOpenFolios({
-    required String branchId,
-  }) async {
+  Future<List<ITransaction>> hotelOpenFolios({required String branchId}) async {
     _warn('hotelOpenFolios');
     return [];
   }
 
   @override
-  Stream<List<ITransaction>> hotelOpenFoliosStream({
-    required String branchId,
-  }) {
+  Stream<List<ITransaction>> hotelOpenFoliosStream({required String branchId}) {
     _warn('hotelOpenFoliosStream');
     return Stream.value(const <ITransaction>[]);
   }
@@ -290,16 +283,50 @@ mixin CoreHotelStubMixin implements HotelInterface {
     num qty = 1,
     String? color,
     String? sku,
-  }) async =>
-      _warn('addChargeToFolio');
+  }) async => _warn('addChargeToFolio');
+
+  @override
+  Future<List<HotelStay>> hotelCheckedOutStays({
+    required String branchId,
+    required DateTime since,
+  }) async {
+    _warn('hotelCheckedOutStays');
+    return const [];
+  }
+
+  @override
+  Future<HotelStay> changeHotelStayDeparture({
+    required HotelStay stay,
+    required DateTime checkOutAt,
+  }) async {
+    _warn('changeHotelStayDeparture');
+    throw UnsupportedError('Hotel Mode requires Capella strategy');
+  }
+
+  @override
+  Future<HotelStay> saveHotelAdvance({
+    required String stayId,
+    required HotelAdvance advance,
+  }) async {
+    _warn('saveHotelAdvance');
+    throw UnsupportedError('Hotel Mode requires Capella strategy');
+  }
+
+  @override
+  Future<HotelStay> saveHotelAdvances({
+    required String stayId,
+    required List<HotelAdvance> advances,
+  }) async {
+    _warn('saveHotelAdvances');
+    throw UnsupportedError('Hotel Mode requires Capella strategy');
+  }
 
   @override
   Future<void> postRoomCharge({
     required HotelStay stay,
     required String clerkTenantId,
     required String clerkName,
-  }) async =>
-      _warn('postRoomCharge');
+  }) async => _warn('postRoomCharge');
 
   @override
   Future<void> setFolioLineQty({
@@ -307,27 +334,28 @@ mixin CoreHotelStubMixin implements HotelInterface {
     required String transactionId,
     required num qty,
     required num stockCap,
-  }) async =>
-      _warn('setFolioLineQty');
+  }) async => _warn('setFolioLineQty');
 
   @override
   Future<void> setFolioLinePrice({
     required String lineId,
     required String transactionId,
     required num price,
-  }) async =>
-      _warn('setFolioLinePrice');
+  }) async => _warn('setFolioLinePrice');
 
   @override
   Future<void> deleteFolioLine({
     required String lineId,
     required String transactionId,
-  }) async =>
-      _warn('deleteFolioLine');
+  }) async => _warn('deleteFolioLine');
 
   @override
   Future<void> refreshFolioSubTotal({required String transactionId}) async =>
       _warn('refreshFolioSubTotal');
+
+  @override
+  Future<void> releaseHotelStay({required HotelStay stay}) async =>
+      _warn('releaseHotelStay');
 
   @override
   Future<ITransaction> checkOutGuest({

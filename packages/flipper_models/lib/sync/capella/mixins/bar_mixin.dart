@@ -770,6 +770,8 @@ mixin CapellaBarMixin implements BarInterface {
     required String customerName,
     String? customerPhone,
     required DateTime dueDate,
+    String? note,
+    double alreadyPaid = 0,
   }) async {
     final ditto = dittoHandle;
     if (ditto == null) throw StateError('Ditto not initialized');
@@ -781,6 +783,10 @@ mixin CapellaBarMixin implements BarInterface {
       throw StateError('Cannot put an empty tab on credit');
     }
 
+    // Never more than the total: a loan cannot open owing a negative amount.
+    final paid = alreadyPaid <= 0
+        ? 0.0
+        : (alreadyPaid > total ? total : alreadyPaid);
     final nowIso = DateTime.now().toUtc().toIso8601String();
     final saleDate = serviceModeReportDate(DateTime.parse(nowIso));
     final opened = (transaction.note ?? '').trim();
@@ -795,12 +801,14 @@ mixin CapellaBarMixin implements BarInterface {
       // The POS loan list names a ticket by its ticketName, and the table is
       // about to go to the next guest — so the debtor names it now.
       ticketName: customerName,
-      note: barCreditNote(tableName: transaction.ticketName, opened: opened),
+      note:
+          note ??
+          barCreditNote(tableName: transaction.ticketName, opened: opened),
       paymentType: 'CREDIT',
-      cashReceived: 0,
+      cashReceived: paid,
       customerChangeDue: 0,
       originalLoanAmount: total,
-      remainingBalance: total,
+      remainingBalance: total - paid,
       isOriginalTransaction: true,
       createdAt: saleDate,
       updatedAt: DateTime.parse(nowIso),

@@ -151,6 +151,8 @@ mixin CoreBarStubMixin implements BarInterface {
     required String customerName,
     String? customerPhone,
     required DateTime dueDate,
+    String? note,
+    double alreadyPaid = 0,
   }) async {
     _warn('parkBarTabAsLoan');
     throw UnsupportedError('Bar Mode requires Capella strategy');

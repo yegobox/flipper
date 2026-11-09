@@ -1,4 +1,5 @@
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/helpers/cash_movement_rules.dart';
 import 'package:flipper_services/constants.dart';
 
 /// Whether [tx] should drive **sales** Excel/PDF (summary + PLU), not the Expenses sheet.
@@ -24,12 +25,38 @@ List<ITransaction> exportSalesTransactionsOnly(
 
 /// Cash Book money-in rows of the report, for the export's Cash In sheet.
 /// The same rows the Net Profit card adds (`periodCashIn`), so the exported
-/// Final Net Profit and the screen agree.
+/// Final Net Profit and the screen agree. Hotel booking advances are left
+/// out, as there: money owed to a guest is not profit.
 List<ITransaction> exportCashInTransactionsOnly(
   List<ITransaction> reportTransactions,
 ) {
   return reportTransactions
-      .where((tx) => tx.receiptType == TransactionType.cashIn)
+      .where(
+        (tx) =>
+            tx.receiptType == TransactionType.cashIn &&
+            !isBookingAdvanceMovement(
+              transactionType: tx.transactionType,
+              receiptType: tx.receiptType,
+              categoryId: tx.categoryId,
+            ),
+      )
+      .toList();
+}
+
+/// The expense rows the export lists and totals: every expense except a hotel
+/// booking advance applied or refunded, which pays back money owed to a guest
+/// rather than spending any.
+List<ITransaction> exportExpenseTransactionsOnly(
+  List<ITransaction> expenseTransactions,
+) {
+  return expenseTransactions
+      .where(
+        (tx) => !isBookingAdvanceMovement(
+          transactionType: tx.transactionType,
+          receiptType: tx.receiptType,
+          categoryId: tx.categoryId,
+        ),
+      )
       .toList();
 }
 
@@ -95,4 +122,22 @@ List<TransactionItem> exportPluItemsSalesOnly(
     ordered.addAll(sortTransactionItemLinesNewestFirst(lines));
   }
   return ordered;
+}
+
+/// The Transaction Report summary footer: every row of the page, expenses
+/// counted negative. Hotel booking advances keep their rows but stay out of
+/// the total, as they stay out of the Total Sales card: money owed to a guest
+/// is not a sale, and the stay is counted once, at checkout.
+double reportSummaryFooterTotal(Iterable<ITransaction> transactions) {
+  return transactions.fold<double>(0.0, (sum, t) {
+    if (isBookingAdvanceMovement(
+      transactionType: t.transactionType,
+      receiptType: t.receiptType,
+      categoryId: t.categoryId,
+    )) {
+      return sum;
+    }
+    final st = t.subTotal ?? 0.0;
+    return sum + (t.isExpense == true ? -st.abs() : st);
+  });
 }

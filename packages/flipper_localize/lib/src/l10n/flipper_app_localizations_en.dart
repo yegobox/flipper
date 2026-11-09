@@ -8782,6 +8782,183 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
   }
 
   @override
+  String get hotelNavBilling => 'Billing';
+
+  @override
+  String get hotelAdvance => 'Advance';
+
+  @override
+  String get hotelAdvances => 'Advances';
+
+  @override
+  String get hotelRecordAdvance => 'Record advance';
+
+  @override
+  String hotelRecordAdvanceAmount(String amount) {
+    return 'Record $amount';
+  }
+
+  @override
+  String hotelAdvanceHelp(String guest) {
+    return 'Money $guest pays before the stay is invoiced. It counts in the Cash Book today and is deducted at checkout.';
+  }
+
+  @override
+  String get hotelAdvanceAmount => 'Amount (RWF)';
+
+  @override
+  String get hotelAdvancePaidNowOptional => 'Advance paid now (optional, RWF)';
+
+  @override
+  String get hotelTakeAdvance => 'Take advance';
+
+  @override
+  String hotelAdvanceRecorded(String amount, String guest) {
+    return '$amount advance recorded for $guest';
+  }
+
+  @override
+  String hotelAdvanceFailed(String error) {
+    return 'Advance not recorded: $error';
+  }
+
+  @override
+  String hotelAdvanceNotApplied(String guest) {
+    return 'Checked out, but $guest\'s advance was not applied. Apply it from Billing.';
+  }
+
+  @override
+  String hotelAdvanceAppliedToast(String guest) {
+    return '$guest\'s advance applied';
+  }
+
+  @override
+  String get hotelApplyAdvance => 'Apply advance';
+
+  @override
+  String get hotelAdvancePaid => 'Advance paid';
+
+  @override
+  String get hotelAdvanceToRefund => 'To refund';
+
+  @override
+  String get hotelAdvanceChangedReconfirm =>
+      'An advance on this stay changed on another device. Check the new balance and check out again.';
+
+  @override
+  String get hotelAdvanceStayClosed =>
+      'This stay is already closed, so no advance was taken.';
+
+  @override
+  String get hotelFolioStillSyncing =>
+      'This folio is still syncing. Try again in a moment.';
+
+  @override
+  String get hotelBalanceDue => 'Balance due';
+
+  @override
+  String get hotelAdvanceHeld => 'Held';
+
+  @override
+  String get hotelAdvanceApplied => 'Applied';
+
+  @override
+  String get hotelAdvanceRefunded => 'Refunded';
+
+  @override
+  String hotelCancelRefundsAdvance(String amount) {
+    return 'Cancelling hands the $amount advance back to the guest. It is recorded in the Cash Book as a refund.';
+  }
+
+  @override
+  String get hotelRefundAndCancel => 'Refund and cancel';
+
+  @override
+  String get hotelChangeDeparture => 'Change departure';
+
+  @override
+  String hotelDepartureChanged(String room, String nights) {
+    return 'Room $room: departure moved, $nights billed';
+  }
+
+  @override
+  String get hotelPaymentCredit => 'Credit';
+
+  @override
+  String get hotelPutOnCredit => 'Put on credit';
+
+  @override
+  String hotelCheckedOutOnCredit(String room, String name, String amount) {
+    return 'Room $room checked out. $name owes $amount.';
+  }
+
+  @override
+  String get hotelCreditEmptyFolio =>
+      'This folio has no charges to put on credit.';
+
+  @override
+  String get hotelCreditNothingOwed =>
+      'The advance covers this folio: check out normally.';
+
+  @override
+  String get hotelCreditSection => 'Credit (owed)';
+
+  @override
+  String get hotelNoCredit => 'Nobody owes money.';
+
+  @override
+  String get hotelCheckedOutSection => 'Checked out — last 30 days';
+
+  @override
+  String get hotelNoCheckouts => 'No guests checked out in the last 30 days.';
+
+  @override
+  String hotelCreditDue(String date) {
+    return 'due $date';
+  }
+
+  @override
+  String get hotelCollect => 'Collect';
+
+  @override
+  String get hotelFolioProformaTitle => 'PRO-FORMA FOLIO';
+
+  @override
+  String get hotelFolioInvoiceTitle => 'INVOICE';
+
+  @override
+  String get hotelFolioNotTaxInvoice =>
+      'Pro-forma: not a tax invoice. The fiscal receipt is issued at checkout.';
+
+  @override
+  String get hotelFolioThanks => 'Thank you for staying with us.';
+
+  @override
+  String hotelFolioReceiptNumber(String number) {
+    return 'Receipt no. $number';
+  }
+
+  @override
+  String get hotelFolioBalanceOwed => 'Balance owed';
+
+  @override
+  String get hotelFolioPaidInFull => 'Paid in full';
+
+  @override
+  String get hotelPreparingFolio => 'Preparing folio…';
+
+  @override
+  String get hotelFolioDocument => 'Folio';
+
+  @override
+  String hotelFolioShareSubject(String room, String guest) {
+    return 'Room $room folio — $guest';
+  }
+
+  @override
+  String get hotelShare => 'Share';
+
+  @override
   String get hotelFrontDeskSharedRegister => 'Front desk · Shared register';
 
   @override

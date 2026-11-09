@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flipper_dashboard/features/hotel_mode/hotel_desk_actions.dart';
 import 'package:flipper_dashboard/features/hotel_mode/theme/hotel_tokens.dart';
+import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_folio_widgets.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/models/hotel_room.dart';
 import 'package:flipper_models/models/hotel_stay.dart';
@@ -20,6 +22,8 @@ class HotelReservationDraft {
     required this.checkOutAt,
     required this.nightlyRate,
     required this.note,
+    this.advanceAmount = 0,
+    this.advancePaymentMethod = 'Cash',
   });
 
   final String guestName;
@@ -33,6 +37,12 @@ class HotelReservationDraft {
   final DateTime checkOutAt;
   final double nightlyRate;
   final String? note;
+
+  /// Paid at booking (avance); zero when the guest paid nothing yet.
+  final double advanceAmount;
+
+  /// How the advance was paid, one of [HotelDeskActions.advanceMethods].
+  final String advancePaymentMethod;
 
   int get nights => hotelNightsBetween(checkInAt, checkOutAt);
   double get roomTotal => nightlyRate * nights;
@@ -104,6 +114,8 @@ class _HotelReservationSheetState extends State<HotelReservationSheet> {
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
   final _emailController = TextEditingController();
+  final _advanceController = TextEditingController();
+  String _advanceMethod = HotelDeskActions.advanceMethods.first;
   String? _emailError;
   late final TextEditingController _rateController;
 
@@ -127,11 +139,15 @@ class _HotelReservationSheetState extends State<HotelReservationSheet> {
     _nameController.dispose();
     _phoneController.dispose();
     _emailController.dispose();
+    _advanceController.dispose();
     _rateController.dispose();
     super.dispose();
   }
 
   DateTime get _checkOut => _checkIn.add(Duration(days: _nights));
+
+  double get _advance =>
+      double.tryParse(_advanceController.text.replaceAll(',', '')) ?? 0;
 
   double get _rate =>
       double.tryParse(_rateController.text.replaceAll(',', '')) ??
@@ -193,6 +209,8 @@ class _HotelReservationSheetState extends State<HotelReservationSheet> {
         checkOutAt: _checkOut.add(const Duration(hours: 11)),
         nightlyRate: _rate,
         note: null,
+        advanceAmount: _advance,
+        advancePaymentMethod: _advanceMethod,
       ),
     );
   }
@@ -307,6 +325,32 @@ class _HotelReservationSheetState extends State<HotelReservationSheet> {
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               onChanged: (_) => setState(() {}),
             ),
+            const SizedBox(height: 12),
+            HotelSheetField(
+              key: const ValueKey('hotel-reservation-advance'),
+              label: l10n.hotelAdvancePaidNowOptional,
+              controller: _advanceController,
+              hint: '0',
+              keyboardType: TextInputType.number,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              onChanged: (_) => setState(() {}),
+            ),
+            if (_advance > 0) ...[
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  for (final method in HotelDeskActions.advanceMethods)
+                    ChoiceChip(
+                      label: Text(hotelAdvanceMethodLabel(l10n, method)),
+                      selected: _advanceMethod == method,
+                      onSelected: (_) =>
+                          setState(() => _advanceMethod = method),
+                    ),
+                ],
+              ),
+            ],
             const SizedBox(height: 16),
             if (_clashes) _clashNotice() else _summary(),
             const SizedBox(height: 18),

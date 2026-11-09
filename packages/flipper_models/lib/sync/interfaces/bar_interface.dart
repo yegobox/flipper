@@ -107,6 +107,14 @@ abstract class BarInterface {
     required String customerName,
     String? customerPhone,
     required DateTime dueDate,
+
+    /// The loan's note; defaults to Bar's "Bar · <table> · …". Hotel Mode
+    /// passes its own, as its folios carry no table.
+    String? note,
+
+    /// Already paid towards the total (a hotel guest's booking advance): the
+    /// loan opens owing the rest. Zero for a bar tab.
+    double alreadyPaid = 0,
   });
 
   /// Every open loan in the branch, bar or POS: a debt is collected wherever

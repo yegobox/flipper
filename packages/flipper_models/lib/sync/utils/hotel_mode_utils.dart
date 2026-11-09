@@ -138,6 +138,25 @@ bool hotelFolioHasRoomCharge(HotelStay stay, Iterable<TransactionItem> lines) {
   return lines.any((line) => line.name.startsWith(prefix));
 }
 
+/// [stay]'s room-night lines on its folio, oldest first as stored.
+List<TransactionItem> hotelRoomChargeLines(
+  HotelStay stay,
+  Iterable<TransactionItem> lines,
+) {
+  final prefix = 'Room ${stay.roomName} · ';
+  return [
+    for (final line in lines)
+      if (line.name.startsWith(prefix)) line,
+  ];
+}
+
+/// How many room nights [lines] already bill for [stay].
+int hotelBilledNights(HotelStay stay, Iterable<TransactionItem> lines) =>
+    hotelRoomChargeLines(
+      stay,
+      lines,
+    ).fold<num>(0, (sum, line) => sum + line.qty).round();
+
 /// Whether a stay's departure has already passed (due out / overstay).
 bool hotelStayIsDue(HotelStay stay, {DateTime? now}) {
   final at = now ?? DateTime.now().toUtc();
@@ -478,4 +497,146 @@ bool hotelIsPlausibleEmail(String? value) {
 String? hotelNormalizeEmail(String? value) {
   final trimmed = value?.trim();
   return (trimmed == null || trimmed.isEmpty) ? null : trimmed;
+}
+
+/// The Cash Book note on a stay's advance movements, so the desk can tell
+/// which guest a "Booking advance" line belongs to.
+String hotelAdvanceNote(HotelStay stay) =>
+    'Room ${stay.roomName} · ${stay.guestName}';
+
+/// How a folio of [total] is paid when the guest already advanced [held].
+///
+/// The advance is applied first, up to the folio; the guest pays the
+/// [balance]; anything the advance exceeds the folio by is the [surplus],
+/// handed back. Amounts within half a franc are treated as settled, the same
+/// tolerance the checkout dialog uses.
+class HotelAdvanceSettlement {
+  const HotelAdvanceSettlement._({
+    required this.applied,
+    required this.balance,
+    required this.surplus,
+  });
+
+  factory HotelAdvanceSettlement.of({
+    required double total,
+    required double held,
+  }) {
+    final safeTotal = total < 0 ? 0.0 : total;
+    final safeHeld = held < 0 ? 0.0 : held;
+    final applied = safeHeld < safeTotal ? safeHeld : safeTotal;
+    final balance = safeTotal - applied;
+    final surplus = safeHeld - applied;
+    return HotelAdvanceSettlement._(
+      applied: applied,
+      balance: balance < 0.5 ? 0 : balance,
+      surplus: surplus < 0.5 ? 0 : surplus,
+    );
+  }
+
+  /// Taken from the advance towards the folio.
+  final double applied;
+
+  /// Still to collect from the guest.
+  final double balance;
+
+  /// Advance left over once the folio is paid, owed back to the guest.
+  final double surplus;
+}
+
+/// How the [surplus] of [held] advances over the folio goes back: the latest
+/// advances are the ones not needed, so it is taken from the end, and each
+/// part is refunded in the method it was paid with. One entry per method, in
+/// the order reached, naming the advances that fund it.
+List<({String method, double amount, List<String> advanceIds})>
+hotelAdvanceSurplusByMethod(List<HotelAdvance> held, double surplus) {
+  final amounts = <String, double>{};
+  final ids = <String, List<String>>{};
+  var left = surplus;
+  for (final advance in held.reversed) {
+    if (left <= 0) break;
+    final take = advance.amount < left ? advance.amount : left;
+    amounts.update(
+      advance.paymentMethod,
+      (sum) => sum + take,
+      ifAbsent: () => take,
+    );
+    ids.putIfAbsent(advance.paymentMethod, () => []).add(advance.id);
+    left -= take;
+  }
+  return [
+    for (final method in amounts.keys)
+      (method: method, amount: amounts[method]!, advanceIds: ids[method]!),
+  ];
+}
+
+/// Whether [paymentMethod] is cash in the drawer (wire value `Cash`).
+bool hotelTenderIsCash(String paymentMethod) =>
+    paymentMethod.trim().toUpperCase() == 'CASH';
+
+/// [active] (the stay the folio screen holds) brought up to date from [live]
+/// (the stays stream).
+///
+/// The room name always follows the stream. Departure and advances follow it
+/// only when the stream's copy is at least as new: the desk updates the stay
+/// optimistically after its own writes, and an emission from before that
+/// write must not undo it — but an advance taken on another terminal must
+/// still reach this one.
+HotelStay hotelStayWithLiveDetails(HotelStay active, HotelStay live) {
+  if (live.id != active.id) return active;
+  final activeAt = active.updatedAt;
+  final liveAt = live.updatedAt;
+  final liveIsNewer =
+      liveAt != null && (activeAt == null || !liveAt.isBefore(activeAt));
+  if (!liveIsNewer) {
+    return live.roomName == active.roomName
+        ? active
+        : active.copyWith(roomName: live.roomName);
+  }
+  final unchanged =
+      live.roomName == active.roomName &&
+      live.expectedCheckOutAt == active.expectedCheckOutAt &&
+      _sameAdvances(live.advances, active.advances);
+  // Same instance back, so the screen does not rebuild for nothing.
+  if (unchanged) return active;
+  return active.copyWith(
+    roomName: live.roomName,
+    expectedCheckOutAt: live.expectedCheckOutAt,
+    advances: live.advances,
+    updatedAt: liveAt,
+  );
+}
+
+bool _sameAdvances(List<HotelAdvance> a, List<HotelAdvance> b) {
+  if (a.length != b.length) return false;
+  for (var i = 0; i < a.length; i++) {
+    final x = a[i];
+    final y = b[i];
+    // Every field the folio and its documents show, so a correction made on
+    // another terminal (say, the method) reaches this one too.
+    if (x.id != y.id ||
+        x.amount != y.amount ||
+        x.status != y.status ||
+        x.paymentMethod != y.paymentMethod ||
+        x.paidAt != y.paidAt ||
+        x.clerkTenantId != y.clerkTenantId ||
+        x.clerkName != y.clerkName ||
+        x.cashMovementId != y.cashMovementId ||
+        x.settlementMovementId != y.settlementMovementId) {
+      return false;
+    }
+  }
+  return true;
+}
+
+/// The note on a folio put on credit. The loan list names the debtor; this
+/// says which stay the debt is for once the room has a new guest.
+String hotelCreditNote(HotelStay stay) {
+  String day(DateTime at) {
+    final local = at.toLocal();
+    return '${local.year}-${local.month.toString().padLeft(2, '0')}-'
+        '${local.day.toString().padLeft(2, '0')}';
+  }
+
+  return 'Hotel · Room ${stay.roomName} · '
+      '${day(stay.checkInAt)} → ${day(stay.expectedCheckOutAt)}';
 }
