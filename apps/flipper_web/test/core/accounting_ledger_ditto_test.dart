@@ -69,19 +69,39 @@ class _FakeObserver {
   Future<void> cancel() async => cancelled = true;
 }
 
+class _FakeItem {
+  _FakeItem(this.value);
+  final Map<String, dynamic> value;
+}
+
+class _FakeResult {
+  _FakeResult(this.items);
+  final List<_FakeItem> items;
+}
+
 class _FakeStore {
   final executed = <(String, Map<String, dynamic>)>[];
+
+  /// `user_access` docs by user id.
+  final userAccess = <String, Map<String, dynamic>>{};
   Object? executeError;
+  Object? userAccessError;
   Object? observerError;
   _FakeObserver? observer;
   void Function(dynamic)? onChange;
 
-  Future<void> execute(
+  Future<_FakeResult> execute(
     String dql, {
     Map<String, dynamic> arguments = const {},
   }) async {
+    if (dql.contains('FROM user_access')) {
+      if (userAccessError != null) throw userAccessError!;
+      final doc = userAccess[arguments['id']];
+      return _FakeResult([if (doc != null) _FakeItem(doc)]);
+    }
     if (executeError != null) throw executeError!;
     executed.add((dql, arguments));
+    return _FakeResult([]);
   }
 
   _FakeObserver registerObserver(
@@ -96,9 +116,21 @@ class _FakeStore {
 }
 
 class _FakeDitto {
+  _FakeDitto({List<String>? userBusinesses}) {
+    if (userBusinesses != null) {
+      store.userAccess[_user] = {
+        '_id': _user,
+        'businesses': [
+          for (final id in userBusinesses) {'id': id, 'name': 'B $id'},
+        ],
+      };
+    }
+  }
   final sync = _FakeSync();
   final store = _FakeStore();
 }
+
+const _user = 'user-1';
 
 /// [AccountingMixin.watchChanges] over a fake store.
 class _FakeFeedStore extends DittoCore with AccountingMixin {
@@ -110,6 +142,9 @@ class _FakeFeedStore extends DittoCore with AccountingMixin {
 
 const _biz = '89ed8709-172d-4524-bab8-5f9d31f98657';
 const _other = '0b9c6c8e-1111-4222-8333-944455556666';
+
+/// Another business of the signed-in user.
+const _own = '5d1f2a3b-7777-4888-9999-aaaabbbbcccc';
 
 void main() {
   final hasDitto = Platform.environment['LIBDITTOFFI_PATH'] != null;
@@ -162,14 +197,15 @@ void main() {
     setUp(() {
       // Subscriptions and evictions are remembered per process.
       biz = 'fake-biz-${n++}';
-      ditto = _FakeDitto();
+      ditto = _FakeDitto(userBusinesses: [biz]);
       resetAccountingCloudSubscriptionKeys();
     });
 
-    List<String> evictedFor(_FakeDitto d) => [
+    /// The businesses each eviction kept, in order.
+    List<Set<String>> evictedFor(_FakeDitto d) => [
       for (final (dql, args) in d.store.executed)
         if (dql == evictOtherBusinessesJournalLinesDql)
-          args['businessId'] as String,
+          {...(args['businessIds'] as List).cast<String>()},
     ];
 
     test('subscribes once per key, then evicts other businesses', () async {
@@ -177,34 +213,46 @@ void main() {
         ditto: ditto,
         businessId: biz,
         branchId: 'br-1',
+        userId: _user,
       );
       final specs = accountingCloudSubscriptionSpecs(
         businessId: biz,
         branchId: 'br-1',
       );
       expect(ditto.sync.registered, hasLength(specs.length));
-      expect(evictedFor(ditto), [biz]);
+      expect(evictedFor(ditto), [
+        {biz},
+      ]);
 
       // Already registered and evicted: nothing more.
       await ensureAccountingCloudSubscriptions(
         ditto: ditto,
         businessId: biz,
         branchId: 'br-1',
+        userId: _user,
       );
       expect(ditto.sync.registered, hasLength(specs.length));
-      expect(evictedFor(ditto), [biz]);
+      expect(evictedFor(ditto), hasLength(1));
     });
 
     test('a failed subscription is retried on the next call', () async {
       ditto.sync.failOn = 'FROM journal_lines';
-      await ensureAccountingCloudSubscriptions(ditto: ditto, businessId: biz);
+      await ensureAccountingCloudSubscriptions(
+        ditto: ditto,
+        businessId: biz,
+        userId: _user,
+      );
       expect(
         ditto.sync.registered.keys.where((q) => q.contains('journal_lines')),
         isEmpty,
       );
 
       ditto.sync.failOn = null;
-      await ensureAccountingCloudSubscriptions(ditto: ditto, businessId: biz);
+      await ensureAccountingCloudSubscriptions(
+        ditto: ditto,
+        businessId: biz,
+        userId: _user,
+      );
       expect(
         ditto.sync.registered.keys.where((q) => q.contains('journal_lines')),
         hasLength(1),
@@ -213,7 +261,11 @@ void main() {
 
     test('an empty business subscribes to nothing', () async {
       await ensureAccountingCloudSubscriptions(ditto: ditto, businessId: '');
-      await evictOtherBusinessesJournalLines(ditto: ditto, businessId: '');
+      await evictOtherBusinessesJournalLines(
+        ditto: ditto,
+        businessId: '',
+        userId: _user,
+      );
       expect(ditto.sync.registered, isEmpty);
       expect(ditto.store.executed, isEmpty);
     });
@@ -224,40 +276,61 @@ void main() {
           .singleWhere((e) => e.key.contains('FROM journal_lines'))
           .value;
 
-      await ensureAccountingCloudSubscriptions(ditto: ditto, businessId: biz);
+      await ensureAccountingCloudSubscriptions(
+        ditto: ditto,
+        businessId: biz,
+        userId: _user,
+      );
       final first = linesSub(ditto);
 
       // A manual refresh re-registers the same business: kept.
       resetAccountingCloudSubscriptionKeys();
       final again = _FakeDitto();
-      await ensureAccountingCloudSubscriptions(ditto: again, businessId: biz);
+      await ensureAccountingCloudSubscriptions(
+        ditto: again,
+        businessId: biz,
+        userId: _user,
+      );
       expect(first.cancelled, isFalse);
 
       // Another business: the previous lines subscription goes.
-      final second = _FakeDitto();
       final other = '$biz-other';
+      final second = _FakeDitto(userBusinesses: [biz]);
       await ensureAccountingCloudSubscriptions(
         ditto: second,
         businessId: other,
+        userId: _user,
       );
       expect(linesSub(again).cancelled, isTrue);
       expect(linesSub(second).cancelled, isFalse);
-      expect(evictedFor(second), [other]);
+      // The user's businesses are kept, the open one included.
+      expect(evictedFor(second), [
+        {biz, other},
+      ]);
 
       // Back to the first business: subscribed again, not skipped.
       final third = _FakeDitto();
-      await ensureAccountingCloudSubscriptions(ditto: third, businessId: biz);
+      await ensureAccountingCloudSubscriptions(
+        ditto: third,
+        businessId: biz,
+        userId: _user,
+      );
       expect(linesSub(third).cancelled, isFalse);
       expect(linesSub(second).cancelled, isTrue);
     });
 
     test('a failed cancel does not stop the new subscription', () async {
       ditto.sync.failCancel = true;
-      await ensureAccountingCloudSubscriptions(ditto: ditto, businessId: biz);
+      await ensureAccountingCloudSubscriptions(
+        ditto: ditto,
+        businessId: biz,
+        userId: _user,
+      );
       final next = _FakeDitto();
       await ensureAccountingCloudSubscriptions(
         ditto: next,
         businessId: '$biz-next',
+        userId: _user,
       );
       expect(
         next.sync.registered.keys.where((q) => q.contains('journal_lines')),
@@ -267,20 +340,81 @@ void main() {
 
     test('a failed eviction is tried again', () async {
       ditto.store.executeError = StateError('busy');
-      await evictOtherBusinessesJournalLines(ditto: ditto, businessId: biz);
+      await evictOtherBusinessesJournalLines(
+        ditto: ditto,
+        businessId: biz,
+        userId: _user,
+      );
       expect(evictedFor(ditto), isEmpty);
 
       ditto.store.executeError = null;
-      await evictOtherBusinessesJournalLines(ditto: ditto, businessId: biz);
-      expect(evictedFor(ditto), [biz]);
+      await evictOtherBusinessesJournalLines(
+        ditto: ditto,
+        businessId: biz,
+        userId: _user,
+      );
+      expect(evictedFor(ditto), [
+        {biz},
+      ]);
     });
 
-    test('the eviction is scoped to this business', () {
+    test('every business of the user is kept, not only the open one', () async {
+      final mine = _FakeDitto(userBusinesses: ['$biz-a', '$biz-b', '']);
+      await evictOtherBusinessesJournalLines(
+        ditto: mine,
+        businessId: biz,
+        userId: _user,
+      );
+      expect(evictedFor(mine), [
+        {biz, '$biz-a', '$biz-b'},
+      ]);
+    });
+
+    test(
+      'nothing is evicted while the user\'s businesses are unknown',
+      () async {
+        Future<List<Set<String>>> evict(_FakeDitto d, String? userId) async {
+          await evictOtherBusinessesJournalLines(
+            ditto: d,
+            businessId: biz,
+            userId: userId,
+          );
+          return evictedFor(d);
+        }
+
+        // No signed-in user (also the default outside the app).
+        await ensureAccountingCloudSubscriptions(ditto: ditto, businessId: biz);
+        expect(evictedFor(ditto), isEmpty);
+        expect(await evict(ditto, ''), isEmpty);
+        // No user_access doc for them.
+        expect(await evict(_FakeDitto(), _user), isEmpty);
+        // A doc without a business list, or with an empty one.
+        final noList = _FakeDitto()..store.userAccess[_user] = {'_id': _user};
+        expect(await evict(noList, _user), isEmpty);
+        expect(await evict(_FakeDitto(userBusinesses: []), _user), isEmpty);
+        final junk = _FakeDitto()
+          ..store.userAccess[_user] = {
+            'businesses': ['x', null, <String, dynamic>{}],
+          };
+        expect(await evict(junk, _user), isEmpty);
+        // The doc cannot be read.
+        final unreadable = _FakeDitto(userBusinesses: [biz])
+          ..store.userAccessError = StateError('store closed');
+        expect(await evict(unreadable, _user), isEmpty);
+
+        // Once the list is readable, the eviction runs.
+        expect(await evict(_FakeDitto(userBusinesses: [biz]), _user), [
+          {biz},
+        ]);
+      },
+    );
+
+    test('the eviction keeps the businesses it is given', () {
       expect(
         evictOtherBusinessesJournalLinesDql,
         startsWith('EVICT FROM journal_lines WHERE '),
       );
-      expect(evictOtherBusinessesJournalLinesDql, contains(':businessId'));
+      expect(evictOtherBusinessesJournalLinesDql, contains(':businessIds'));
     });
   });
 
@@ -359,72 +493,116 @@ void main() {
       await dir.delete(recursive: true);
     });
 
-    test('eviction drops only lines known to be another business\'s', () async {
-      await insert('journal_lines', {'_id': 'mine', 'businessId': _biz});
-      await insert('journal_lines', {'_id': 'mine_snake', 'business_id': _biz});
-      await insert('journal_lines', {
-        '_id': 'mine_mixed',
-        'businessId': 'legacy',
-        'business_id': _biz,
-      });
-      await insert('journal_lines', {'_id': 'theirs', 'businessId': _other});
-      await insert('journal_lines', {
-        '_id': 'theirs_both',
-        'businessId': _other,
-        'business_id': _other,
-      });
-      await insert('journal_lines', {
-        '_id': 'theirs_snake',
-        'business_id': _other,
-      });
-      await insert('journal_lines', {
-        '_id': 'theirs_snake_empty',
-        'businessId': '',
-        'business_id': _other,
-      });
-      await insert('journal_lines', {
-        '_id': 'theirs_snake_null',
-        'businessId': null,
-        'business_id': _other,
-      });
-      await insert('journal_lines', {
-        '_id': 'mine_snake_empty',
-        'businessId': '',
-        'business_id': _biz,
-      });
-      await insert('journal_lines', {'_id': 'unknown', 'journalEntryId': 'x'});
-      await insert('journal_lines', {
-        '_id': 'unknown_both_empty',
-        'businessId': '',
-        'business_id': '',
-      });
-      await insert('journal_lines', {
-        '_id': 'unknown_null',
-        'businessId': null,
-      });
-      await insert('journal_lines', {'_id': 'unknown_empty', 'businessId': ''});
+    test(
+      'eviction drops only lines of businesses the user is not in',
+      () async {
+        await insert('journal_lines', {'_id': 'mine', 'businessId': _biz});
+        await insert('journal_lines', {
+          '_id': 'mine_snake',
+          'business_id': _biz,
+        });
+        await insert('journal_lines', {
+          '_id': 'mine_mixed',
+          'businessId': 'legacy',
+          'business_id': _biz,
+        });
+        await insert('journal_lines', {'_id': 'theirs', 'businessId': _other});
+        await insert('journal_lines', {
+          '_id': 'theirs_both',
+          'businessId': _other,
+          'business_id': _other,
+        });
+        await insert('journal_lines', {
+          '_id': 'theirs_snake',
+          'business_id': _other,
+        });
+        await insert('journal_lines', {
+          '_id': 'theirs_snake_empty',
+          'businessId': '',
+          'business_id': _other,
+        });
+        await insert('journal_lines', {
+          '_id': 'theirs_snake_null',
+          'businessId': null,
+          'business_id': _other,
+        });
+        await insert('journal_lines', {
+          '_id': 'mine_snake_empty',
+          'businessId': '',
+          'business_id': _biz,
+        });
+        await insert('journal_lines', {
+          '_id': 'unknown',
+          'journalEntryId': 'x',
+        });
+        await insert('journal_lines', {
+          '_id': 'unknown_both_empty',
+          'businessId': '',
+          'business_id': '',
+        });
+        await insert('journal_lines', {
+          '_id': 'unknown_null',
+          'businessId': null,
+        });
+        await insert('journal_lines', {
+          '_id': 'unknown_empty',
+          'businessId': '',
+        });
 
-      await evictOtherBusinessesJournalLines(ditto: ditto, businessId: _biz);
+        await insert('journal_lines', {'_id': 'own_other', 'businessId': _own});
+        await insert('journal_lines', {
+          '_id': 'own_other_snake',
+          'business_id': _own,
+        });
+        await insert('user_access', {
+          '_id': _user,
+          'businesses': [
+            {'id': _biz},
+            {'id': _own},
+          ],
+        });
 
-      expect(await lineIds(), [
-        'mine',
-        'mine_mixed',
-        'mine_snake',
-        'mine_snake_empty',
-        'unknown',
-        'unknown_both_empty',
-        'unknown_empty',
-        'unknown_null',
-      ]);
+        // Without the user's businesses nothing goes.
+        await evictOtherBusinessesJournalLines(
+          ditto: ditto,
+          businessId: _biz,
+          userId: 'nobody',
+        );
+        expect(await lineIds(), contains('theirs'));
 
-      // Once per business per process.
-      await insert('journal_lines', {
-        '_id': 'theirs_late',
-        'businessId': _other,
-      });
-      await evictOtherBusinessesJournalLines(ditto: ditto, businessId: _biz);
-      expect(await lineIds(), contains('theirs_late'));
-    }, skip: skip);
+        await evictOtherBusinessesJournalLines(
+          ditto: ditto,
+          businessId: _biz,
+          userId: _user,
+        );
+
+        expect(await lineIds(), [
+          'mine',
+          'mine_mixed',
+          'mine_snake',
+          'mine_snake_empty',
+          'own_other',
+          'own_other_snake',
+          'unknown',
+          'unknown_both_empty',
+          'unknown_empty',
+          'unknown_null',
+        ]);
+
+        // Once per business per process.
+        await insert('journal_lines', {
+          '_id': 'theirs_late',
+          'businessId': _other,
+        });
+        await evictOtherBusinessesJournalLines(
+          ditto: ditto,
+          businessId: _biz,
+          userId: _user,
+        );
+        expect(await lineIds(), contains('theirs_late'));
+      },
+      skip: skip,
+    );
 
     test('the journal indexes are created', () async {
       for (final statement in localStoreIndexStatements()) {

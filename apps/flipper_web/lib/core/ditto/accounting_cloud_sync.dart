@@ -1,7 +1,9 @@
 import 'dart:async';
 
 import 'package:ditto_live/ditto_live.dart';
+import 'package:flipper_models/sync/ditto_observer_utils.dart';
 import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
+import 'package:flipper_web/core/utils/ditto_singleton.dart';
 import 'package:flutter/foundation.dart';
 
 final Set<String> _accountingSubscriptionKeys = {};
@@ -20,11 +22,14 @@ void resetAccountingCloudSubscriptionKeys() {
 /// [ensureBranchCatalogCloudSubscriptions] for catalog data).
 ///
 /// [ditto] is a [Ditto]; it is `dynamic` only so tests can pass a fake, as
-/// [Ditto] is a final class.
+/// [Ditto] is a final class. [userId] is the signed-in user, whose
+/// businesses' journal lines are never evicted; it defaults to the user the
+/// store was opened for.
 Future<void> ensureAccountingCloudSubscriptions({
   required dynamic ditto,
   required String businessId,
   String? branchId,
+  String? userId,
 }) async {
   if (businessId.isEmpty) return;
 
@@ -53,7 +58,11 @@ Future<void> ensureAccountingCloudSubscriptions({
     }
   }
 
-  await evictOtherBusinessesJournalLines(ditto: ditto, businessId: businessId);
+  await evictOtherBusinessesJournalLines(
+    ditto: ditto,
+    businessId: businessId,
+    userId: userId ?? DittoSingleton.persistenceUserId,
+  );
 }
 
 void _replaceJournalLinesSubscription(String key, dynamic subscription) {
@@ -176,34 +185,76 @@ accountingCloudSubscriptionSpecs({
 final Set<String> _journalLinesEvictedFor = {};
 
 /// Removes, from this device only, the journal lines an older build synced
-/// for other businesses: those whose `businessId`, or failing that
-/// `business_id`, names another business, unless the other field names this
-/// one. Lines with neither stay: they are not known to belong elsewhere.
-/// Runs once per business per process; the scoped subscription keeps them
-/// from coming back.
+/// for businesses the signed-in user does not belong to: those whose
+/// `businessId`, or failing that `business_id`, names such a business,
+/// unless the other field names one of theirs. Lines with neither stay: they
+/// are not known to belong elsewhere. EVICT is local only, so a line not yet
+/// uploaded would be lost; this device only writes lines for its user's
+/// businesses, and those are never evicted.
 @visibleForTesting
 const evictOtherBusinessesJournalLinesDql =
     'EVICT FROM journal_lines '
     'WHERE ((businessId IS NOT MISSING AND businessId IS NOT NULL '
-    "AND businessId != '' AND businessId != :businessId) "
+    "AND businessId != '' AND NOT (businessId IN :businessIds)) "
     "OR ((businessId IS MISSING OR businessId IS NULL OR businessId = '') "
     'AND business_id IS NOT MISSING AND business_id IS NOT NULL '
     "AND business_id != '')) "
     'AND (business_id IS MISSING OR business_id IS NULL '
-    'OR business_id != :businessId)';
+    'OR NOT (business_id IN :businessIds))';
 
+/// The businesses [userId] belongs to, from the local `user_access` doc the
+/// business switcher reads. Null when it cannot be read.
+Future<Set<String>?> _userBusinessIds(dynamic ditto, String? userId) async {
+  if (userId == null || userId.isEmpty) return null;
+  try {
+    final rows = dittoQueryRows(
+      await ditto.store.execute(
+        'SELECT * FROM user_access WHERE _id = :id',
+        arguments: {'id': userId},
+      ),
+    );
+    final businesses = rows.isEmpty ? null : rows.first['businesses'];
+    if (businesses is! List) return null;
+    final ids = <String>{
+      for (final b in businesses)
+        if (b is Map && '${b['id'] ?? ''}'.isNotEmpty) '${b['id']}',
+    };
+    return ids.isEmpty ? null : ids;
+  } catch (e) {
+    debugPrint('[Accounting] user businesses unreadable: $e');
+    return null;
+  }
+}
+
+/// Runs once per business per process; the scoped subscription keeps the
+/// evicted lines from coming back. Evicts nothing while [userId]'s
+/// businesses are unknown.
+///
 /// [ditto] is a [Ditto], `dynamic` for tests (see
 /// [ensureAccountingCloudSubscriptions]).
 Future<void> evictOtherBusinessesJournalLines({
   required dynamic ditto,
   required String businessId,
+  required String? userId,
 }) async {
-  if (businessId.isEmpty || !_journalLinesEvictedFor.add(businessId)) return;
+  if (businessId.isEmpty || _journalLinesEvictedFor.contains(businessId)) {
+    return;
+  }
+  final keep = await _userBusinessIds(ditto, userId);
+  if (keep == null) {
+    debugPrint(
+      '[Accounting] journal line eviction skipped: '
+      'the user\'s businesses are unknown',
+    );
+    return;
+  }
+  if (!_journalLinesEvictedFor.add(businessId)) return;
+  keep.add(businessId);
   final sw = Stopwatch()..start();
   try {
     await ditto.store.execute(
       evictOtherBusinessesJournalLinesDql,
-      arguments: {'businessId': businessId},
+      arguments: {'businessIds': keep.toList()},
     );
     debugPrint(
       '[Accounting] evicted other businesses\' journal lines '
