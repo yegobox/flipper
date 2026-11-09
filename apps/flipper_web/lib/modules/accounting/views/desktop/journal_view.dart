@@ -28,7 +28,9 @@ class AccountingJournalView extends ConsumerWidget {
     final isLoading = ref.watch(accountingLoadingProvider);
 
     final journal = ref.watch(accountingJournalProvider);
-    final sources = journal.map((e) => e.src).toSet().toList()..sort();
+    final sources =
+        journal.map((e) => e.src).where((s) => s.isNotEmpty).toSet().toList()
+          ..sort();
     final currency = ref.watch(accountingCurrencyProvider);
     final accountMap = {
       for (final a in ref.watch(accountingAccountsProvider)) a.code: a,
@@ -62,19 +64,20 @@ class AccountingJournalView extends ConsumerWidget {
                       title: l10n.booksJournalEntries,
                       subtitle: l10n.booksJournalSubtitle(currency),
                       actions: [
-                        PopupMenuButton<String?>(
+                        // A null item value reads as "menu dismissed" and
+                        // never reaches onSelected, so All sources uses ''.
+                        PopupMenuButton<String>(
                           tooltip: l10n.booksFilterBySource,
                           offset: const Offset(0, 40),
                           onSelected: (src) =>
                               ref
-                                      .read(
-                                        journalSourceFilterProvider.notifier,
-                                      )
-                                      .state =
-                                  src,
+                                  .read(journalSourceFilterProvider.notifier)
+                                  .state = src.isEmpty
+                              ? null
+                              : src,
                           itemBuilder: (context) => [
-                            PopupMenuItem<String?>(
-                              value: null,
+                            PopupMenuItem<String>(
+                              value: '',
                               child: Text(l10n.booksAllSources),
                             ),
                             for (final src in sources)

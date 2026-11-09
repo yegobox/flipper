@@ -260,17 +260,33 @@ void main() {
       await tester.tap(find.text(l10n.booksFilter));
       await tester.pump(const Duration(milliseconds: 500));
       expect(find.text(l10n.booksAllSources), findsOneWidget);
-      expect(find.byType(PopupMenuItem<String?>), findsNWidgets(3));
+      expect(find.byType(PopupMenuItem<String>), findsNWidgets(3));
+      // All sources must carry a non-null value: PopupMenuButton treats a
+      // null result as a dismissal and never calls onSelected.
+      expect(
+        tester
+            .widgetList<PopupMenuItem<String>>(
+              find.byType(PopupMenuItem<String>),
+            )
+            .first
+            .value,
+        '',
+      );
       // A tap on the open menu's item misses its hit test here, so choose
       // through the button's own callback.
-      tester
-          .widget<PopupMenuButton<String?>>(
-            find.byType(PopupMenuButton<String?>),
-          )
-          .onSelected!('POS');
+      final menu = tester.widget<PopupMenuButton<String>>(
+        find.byType(PopupMenuButton<String>),
+      );
+      menu.onSelected!('POS');
       await tester.pump();
       expect(container.read(journalSourceFilterProvider), 'POS');
       expect(find.text('Manual · rent'), findsNothing);
+
+      // All sources clears the filter and the excluded entry returns.
+      menu.onSelected!('');
+      await tester.pump();
+      expect(container.read(journalSourceFilterProvider), isNull);
+      expect(find.text('Manual · rent'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
 
