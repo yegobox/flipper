@@ -14884,6 +14884,24 @@ abstract class FlipperAppLocalizations {
   /// **'To refund'**
   String get hotelAdvanceToRefund;
 
+  /// No description provided for @hotelAdvanceChangedReconfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'An advance on this stay changed on another device. Check the new balance and check out again.'**
+  String get hotelAdvanceChangedReconfirm;
+
+  /// No description provided for @hotelAdvanceStayClosed.
+  ///
+  /// In en, this message translates to:
+  /// **'This stay is already closed, so no advance was taken.'**
+  String get hotelAdvanceStayClosed;
+
+  /// No description provided for @hotelFolioStillSyncing.
+  ///
+  /// In en, this message translates to:
+  /// **'This folio is still syncing. Try again in a moment.'**
+  String get hotelFolioStillSyncing;
+
   /// No description provided for @hotelBalanceDue.
   ///
   /// In en, this message translates to:

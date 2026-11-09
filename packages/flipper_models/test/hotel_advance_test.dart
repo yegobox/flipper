@@ -79,6 +79,12 @@ void main() {
       expect(HotelAdvance.fromJson({'amount': 100}), isNull);
       expect(HotelAdvance.fromJson({'id': 'a', 'amount': 0}), isNull);
       expect(HotelAdvance.fromJson({'id': 'a', 'amount': 'junk'}), isNull);
+      // Non-finite money would throw on formatting and poison settlement.
+      expect(HotelAdvance.fromJson({'id': 'a', 'amount': 'NaN'}), isNull);
+      expect(
+        HotelAdvance.fromJson({'id': 'a', 'amount': double.infinity}),
+        isNull,
+      );
     });
 
     test('unknown status reads as held', () {
@@ -256,10 +262,85 @@ void main() {
       );
     });
 
+    test('a corrected method or clerk on an advance counts as a change', () {
+      final original = _advance('a1');
+      final active = _stay(updatedAt: t0, advances: [original]);
+      HotelAdvance with_({
+        String method = 'Cash',
+        DateTime? paidAt,
+        String? clerkTenantId = 'c1',
+        String? clerkName = 'Richie',
+        String? cashMovementId = 'cm-a1',
+      }) => HotelAdvance(
+        id: 'a1',
+        amount: original.amount,
+        paymentMethod: method,
+        paidAt: paidAt ?? original.paidAt,
+        clerkTenantId: clerkTenantId,
+        clerkName: clerkName,
+        cashMovementId: cashMovementId,
+      );
+      for (final changed in [
+        with_(method: 'MOBILE MONEY'),
+        with_(paidAt: DateTime.utc(2026, 1, 6)),
+        with_(clerkTenantId: 'c2'),
+        with_(clerkName: 'Aline'),
+        with_(cashMovementId: 'cm-other'),
+      ]) {
+        final live = _stay(updatedAt: t1, advances: [changed]);
+        final merged = hotelStayWithLiveDetails(active, live);
+        expect(identical(merged, active), isFalse);
+        expect(merged.advances.single, same(changed));
+      }
+    });
+
     test('an active stay with no timestamp takes the stream copy', () {
       final active = _stay();
       final live = _stay(updatedAt: t0, advances: [_advance('a1')]);
       expect(hotelStayWithLiveDetails(active, live).advanceHeld, 20000);
     });
+  });
+
+  group('hotelAdvanceSurplusByMethod', () {
+    HotelAdvance paid(String id, double amount, String method) => HotelAdvance(
+      id: id,
+      amount: amount,
+      paymentMethod: method,
+      paidAt: DateTime.utc(2026, 1, 5),
+    );
+
+    test('takes the surplus from the latest advances, per method', () {
+      final held = [
+        paid('a1', 90000, 'Cash'),
+        paid('a2', 10000, 'DEBIT&CREDIT CARD'),
+      ];
+      // RWF 100,000 held against a RWF 20,000 folio: 80,000 goes back.
+      final parts = hotelAdvanceSurplusByMethod(held, 80000);
+      expect(parts.map((p) => (p.method, p.amount, p.advanceIds.join(','))), [
+        ('DEBIT&CREDIT CARD', 10000, 'a2'),
+        ('Cash', 70000, 'a1'),
+      ]);
+    });
+
+    test('advances of one method share one refund', () {
+      final held = [
+        paid('a1', 30000, 'Cash'),
+        paid('a2', 30000, 'Cash'),
+        paid('a3', 30000, 'MOBILE MONEY'),
+      ];
+      final parts = hotelAdvanceSurplusByMethod(held, 50000);
+      expect(parts.map((p) => (p.method, p.amount, p.advanceIds.join(','))), [
+        ('MOBILE MONEY', 30000, 'a3'),
+        ('Cash', 20000, 'a2'),
+      ]);
+      expect(hotelAdvanceSurplusByMethod(held, 0), isEmpty);
+    });
+  });
+
+  test('hotelTenderIsCash', () {
+    expect(hotelTenderIsCash('Cash'), isTrue);
+    expect(hotelTenderIsCash(' CASH '), isTrue);
+    expect(hotelTenderIsCash('MOBILE MONEY'), isFalse);
+    expect(hotelTenderIsCash('DEBIT&CREDIT CARD'), isFalse);
   });
 }

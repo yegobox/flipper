@@ -292,7 +292,7 @@ class _CheckedOutTile extends ConsumerWidget {
         total: (folio.subTotal ?? 0).toDouble(),
         // A loan's advances were written as payment rows in their own
         // methods; a paid folio's under the sale's tender.
-        tender: folio.isLoan == true ? null : folio.paymentType,
+        tender: HotelDeskActions.advanceTenderFor(folio),
       );
       ref.invalidate(hotelCheckedOutStaysProvider);
       notifier.showToast(

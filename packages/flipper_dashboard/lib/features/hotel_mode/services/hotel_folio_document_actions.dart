@@ -33,6 +33,9 @@ abstract final class HotelFolioDocumentActions {
       HotelQuotationActions.documentIssuer(stay.branchId),
       HotelQuotationActions.documentStamp(),
     ).wait;
+    if (hotelFolioStillSyncing(stay: stay, folio: folio, lines: lines)) {
+      throw StateError(FlipperL10n.current.hotelFolioStillSyncing);
+    }
     return HotelFolioPdf.build(
       stay: stay,
       lines: lines,

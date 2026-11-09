@@ -8892,6 +8892,18 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   String get hotelAdvanceToRefund => 'Ya kurejesha';
 
   @override
+  String get hotelAdvanceChangedReconfirm =>
+      'Malipo ya awali ya ukaaji huu yamebadilika kwenye kifaa kingine. Angalia salio jipya, kisha umwondoe mgeni tena.';
+
+  @override
+  String get hotelAdvanceStayClosed =>
+      'Ukaaji huu tayari umefungwa: hakuna malipo ya awali yaliyopokelewa.';
+
+  @override
+  String get hotelFolioStillSyncing =>
+      'Bili hii bado inasawazishwa. Jaribu tena baada ya muda mfupi.';
+
+  @override
   String get hotelBalanceDue => 'Salio la kulipa';
 
   @override

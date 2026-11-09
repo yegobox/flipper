@@ -107,13 +107,30 @@ void main() {
   });
 
   group('isBookingAdvanceMovement', () {
-    bool adv(String? type, String? receipt) =>
-        isBookingAdvanceMovement(transactionType: type, receiptType: receipt);
+    bool adv(String? type, String? receipt, {String? categoryId}) =>
+        isBookingAdvanceMovement(
+          transactionType: type,
+          receiptType: receipt,
+          categoryId: categoryId,
+        );
 
     test('matches the three hotel advance movements, any case', () {
       expect(adv(kBookingAdvance, 'Cash In'), isTrue);
       expect(adv(kBookingAdvanceApplied, 'Cash Out'), isTrue);
       expect(adv(' booking advance refunded ', 'Cash Out'), isTrue);
+      // Padded receipt types still match, in both directions.
+      expect(adv(kBookingAdvance, ' Cash In '), isTrue);
+      expect(adv(kBookingAdvanceApplied, ' Cash Out '), isTrue);
+      // An empty category id is no category at all.
+      expect(adv(kBookingAdvance, 'Cash In', categoryId: ' '), isTrue);
+    });
+
+    test("an owner's category of the same name is ordinary money", () {
+      expect(adv(kBookingAdvance, 'Cash In', categoryId: 'cat-1'), isFalse);
+      expect(
+        adv(kBookingAdvanceRefunded, 'Cash Out', categoryId: 'cat-2'),
+        isFalse,
+      );
     });
 
     test('ignores the wrong direction, other categories and sales', () {

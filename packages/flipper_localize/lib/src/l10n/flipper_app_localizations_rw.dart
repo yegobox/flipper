@@ -8918,6 +8918,18 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   String get hotelAdvanceToRefund => 'Ayo gusubiza';
 
   @override
+  String get hotelAdvanceChangedReconfirm =>
+      'Avance y\'uku kurara yahinduwe ku kindi gikoresho. Reba amafaranga asigaye mashya, hanyuma wongere usezerere umushyitsi.';
+
+  @override
+  String get hotelAdvanceStayClosed =>
+      'Uku kurara kwamaze gufungwa: nta avance yakiriwe.';
+
+  @override
+  String get hotelFolioStillSyncing =>
+      'Iyi fagitire iracyahuzwa. Ongera ugerageze mu kanya gato.';
+
+  @override
   String get hotelBalanceDue => 'Asigaye kwishyurwa';
 
   @override

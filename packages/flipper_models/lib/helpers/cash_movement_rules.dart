@@ -74,10 +74,16 @@ const String kBookingAdvanceRefunded = 'Booking advance refunded';
 /// These move money between the drawer and what the business owes its guests,
 /// so they belong in the Cash Book and the drawer count but never in revenue,
 /// expenses or profit: the stay is invoiced once, in full, at checkout.
+///
+/// Hotel Mode never files these under a Cash Book category, while a movement
+/// the owner files under one always carries its [categoryId]. So a category
+/// the owner happens to name "Booking advance" stays ordinary money.
 bool isBookingAdvanceMovement({
   required String? transactionType,
   required String? receiptType,
+  required String? categoryId,
 }) {
+  if ((categoryId?.trim() ?? '').isNotEmpty) return false;
   final kind = transactionType?.trim().toLowerCase();
   switch (receiptType?.trim()) {
     case 'Cash In':

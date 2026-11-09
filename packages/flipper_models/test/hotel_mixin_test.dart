@@ -1315,6 +1315,190 @@ void main() {
         expect(listed.map((s) => s.id), ['b', 'a']);
       },
     );
+
+    test('a held advance keeps its stay listed past the window', () async {
+      await sync.saveHotelStay(
+        _stay(
+          id: 'old',
+          status: HotelStayStatus.checkedOut,
+        ).copyWith(checkedOutAt: DateTime.utc(2025, 11, 1)),
+      );
+      await sync.saveHotelAdvance(stayId: 'old', advance: advance('a1'));
+      await sync.saveHotelStay(
+        _stay(
+          id: 'older',
+          status: HotelStayStatus.checkedOut,
+        ).copyWith(checkedOutAt: DateTime.utc(2025, 10, 1)),
+      );
+
+      final listed = await sync.hotelCheckedOutStays(
+        branchId: _branch,
+        since: DateTime.utc(2026, 1, 1),
+      );
+      expect(listed.map((s) => s.id), ['old']);
+    });
+
+    test('several advances are settled in one write', () async {
+      await sync.saveHotelStay(_stay());
+      await sync.saveHotelAdvance(stayId: 's1', advance: advance('a1'));
+      await sync.saveHotelAdvance(stayId: 's1', advance: advance('a2'));
+      final before = ditto.store.executed.length;
+
+      final stay = await sync.saveHotelAdvances(
+        stayId: 's1',
+        advances: [
+          advance('a1', status: HotelAdvanceStatus.applied),
+          advance('a2', status: HotelAdvanceStatus.applied),
+          advance('a3', amount: 1000),
+        ],
+      );
+
+      final writes = ditto.store.executed
+          .skip(before)
+          .where((sql) => sql.startsWith('UPDATE hotel_stays'));
+      expect(writes, hasLength(1));
+      expect(stay.advances.map((a) => a.id), ['a1', 'a2', 'a3']);
+      final stored = (await sync.hotelStayById(id: 's1'))!;
+      expect(stored.advanceHeld, 1000);
+    });
+
+    test('an advance reaches a stay whose _id is not its id', () async {
+      // A document written by another client, keyed differently.
+      ditto.store.seed('hotel_stays', {..._stay().toJson(), '_id': 'doc-1'});
+
+      await sync.saveHotelAdvance(stayId: 's1', advance: advance('a1'));
+
+      final stored = (await sync.hotelStayById(id: 's1'))!;
+      expect(stored.advanceHeld, 20000);
+    });
+
+    test('a stay checked out elsewhere keeps its folio', () async {
+      final stay = await checkedIn();
+      await sync.postRoomCharge(
+        stay: stay,
+        clerkTenantId: 'c1',
+        clerkName: 'Richie',
+      );
+      // Another terminal checks the guest out; this screen still holds the
+      // open copy.
+      await sync.releaseHotelStay(stay: stay);
+
+      await expectLater(
+        sync.changeHotelStayDeparture(
+          stay: stay,
+          checkOutAt: DateTime.utc(2026, 1, 14, 11),
+        ),
+        throwsStateError,
+      );
+      final lines = await sync.hotelFolioLines(
+        transactionId: stay.transactionId,
+      );
+      expect(lines.single.qty, 2);
+    });
+
+    test('a new departure is stamped newer than any earlier copy', () async {
+      final stay = await checkedIn();
+      // Strictly after the check-in write, so a stale timestamp shows.
+      await Future<void>.delayed(const Duration(milliseconds: 5));
+      final writeStarted = DateTime.now().toUtc();
+
+      final moved = await sync.changeHotelStayDeparture(
+        stay: stay,
+        checkOutAt: DateTime.utc(2026, 1, 13, 11),
+      );
+
+      expect(moved.updatedAt!.isBefore(writeStarted), isFalse);
+    });
+
+    test(
+      'a departure the folio cannot take leaves the stay as it was',
+      () async {
+        final stay = await checkedIn(out: DateTime.utc(2026, 1, 14, 11));
+        await sync.postRoomCharge(
+          stay: stay,
+          clerkTenantId: 'c1',
+          clerkName: 'Richie',
+        );
+        // A second room line billing the other nights.
+        ditto.store.seed(
+          'transaction_items',
+          _lineDoc(
+            id: 'extra',
+            transactionId: stay.transactionId,
+            name: 'Room 101 · 4 nights',
+            qty: '4',
+            price: '50000',
+          ),
+        );
+
+        await expectLater(
+          sync.changeHotelStayDeparture(
+            stay: stay,
+            checkOutAt: DateTime.utc(2026, 1, 11, 11),
+          ),
+          throwsStateError,
+        );
+        final stored = (await sync.hotelStayById(id: stay.id))!;
+        expect(stored.expectedCheckOutAt, DateTime.utc(2026, 1, 14, 11));
+      },
+    );
+
+    test('resizing a taxed room line reprices it; a plain one stays '
+        'untaxed', () async {
+      final stay = await checkedIn();
+      ditto.store.seed('transaction_items', {
+        ..._lineDoc(
+          id: 'taxed',
+          transactionId: stay.transactionId,
+          name: 'Room 101 · 2 nights',
+          qty: '2',
+          price: '50000',
+        ),
+        'taxTyCd': 'B',
+        'taxPercentage': 18,
+      });
+
+      await sync.changeHotelStayDeparture(
+        stay: stay,
+        checkOutAt: DateTime.utc(2026, 1, 13, 11),
+      );
+
+      var line = (await sync.hotelFolioLines(
+        transactionId: stay.transactionId,
+      )).single;
+      expect(line.qty, 3);
+      expect(line.name, 'Room 101 · 3 nights');
+      expect(line.taxAmt, greaterThan(0));
+
+      // The plain line a branch off EBM falls back to has no tax codes, and
+      // must not gain any.
+      ditto.store.collections['transaction_items']!.clear();
+      ditto.store.seed(
+        'transaction_items',
+        _lineDoc(
+          id: 'plain',
+          transactionId: stay.transactionId,
+          name: 'Room 101 · 3 nights',
+          qty: '3',
+          price: '50000',
+        ),
+      );
+
+      await sync.changeHotelStayDeparture(
+        stay: stay,
+        checkOutAt: DateTime.utc(2026, 1, 14, 11),
+      );
+
+      line = (await sync.hotelFolioLines(
+        transactionId: stay.transactionId,
+      )).single;
+      expect(line.qty, 4);
+      expect(line.name, 'Room 101 · 4 nights');
+      expect(line.taxTyCd, isNull);
+      expect(line.taxAmt ?? 0, 0);
+      final folio = await sync.hotelFolio(transactionId: stay.transactionId);
+      expect(folio?.subTotal, 200000);
+    });
   });
 
   group('default ditto handle', () {

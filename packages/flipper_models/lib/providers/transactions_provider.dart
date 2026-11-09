@@ -986,19 +986,31 @@ final dashboardPreviousGaugeSnapshotProvider = StreamProvider.autoDispose
               .map(
                 (all) => all
                     .where(
-                      (tx) => tx.isExpense != true && tx.status == COMPLETE,
+                      (tx) =>
+                          tx.isExpense != true &&
+                          tx.status == COMPLETE &&
+                          !isBookingAdvanceTransaction(tx),
                     )
                     .toList(),
               )
               .startWith(const <ITransaction>[]);
 
-      final expenseTxStream = expensesStream(
-        ref,
-        startDate: prevStart,
-        endDate: prevEnd,
-        branchId: branchId,
-        forceRealData: true,
-      ).startWith(const <ITransaction>[]);
+      // As the current period: a booking advance is neither revenue nor an
+      // expense, so the change against last period must not count one.
+      final expenseTxStream =
+          expensesStream(
+                ref,
+                startDate: prevStart,
+                endDate: prevEnd,
+                branchId: branchId,
+                forceRealData: true,
+              )
+              .map(
+                (all) => all
+                    .where((tx) => !isBookingAdvanceTransaction(tx))
+                    .toList(),
+              )
+              .startWith(const <ITransaction>[]);
 
       return Rx.combineLatest3<
         List<TransactionItem>,
@@ -1041,4 +1053,5 @@ final dashboardPreviousGaugeSnapshotProvider = StreamProvider.autoDispose
 bool isBookingAdvanceTransaction(ITransaction tx) => isBookingAdvanceMovement(
   transactionType: tx.transactionType,
   receiptType: tx.receiptType,
+  categoryId: tx.categoryId,
 );

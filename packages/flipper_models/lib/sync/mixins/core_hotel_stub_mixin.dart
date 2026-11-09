@@ -313,6 +313,15 @@ mixin CoreHotelStubMixin implements HotelInterface {
   }
 
   @override
+  Future<HotelStay> saveHotelAdvances({
+    required String stayId,
+    required List<HotelAdvance> advances,
+  }) async {
+    _warn('saveHotelAdvances');
+    throw UnsupportedError('Hotel Mode requires Capella strategy');
+  }
+
+  @override
   Future<void> postRoomCharge({
     required HotelStay stay,
     required String clerkTenantId,

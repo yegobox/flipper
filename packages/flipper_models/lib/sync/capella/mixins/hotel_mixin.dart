@@ -466,6 +466,12 @@ mixin CapellaHotelMixin implements HotelInterface {
   }) => _hotelSaveAdvance(this, stayId: stayId, advance: advance);
 
   @override
+  Future<HotelStay> saveHotelAdvances({
+    required String stayId,
+    required List<HotelAdvance> advances,
+  }) => _hotelSaveAdvances(this, stayId: stayId, advances: advances);
+
+  @override
   Future<HotelStay> changeHotelStayDeparture({
     required HotelStay stay,
     required DateTime checkOutAt,

@@ -163,6 +163,14 @@ abstract class HotelInterface {
     required HotelAdvance advance,
   });
 
+  /// [saveHotelAdvance] for several advances in one write: a settlement marks
+  /// all of a stay's advances together, so a failure cannot leave some
+  /// settled and the rest held for a retry to settle a second time.
+  Future<HotelStay> saveHotelAdvances({
+    required String stayId,
+    required List<HotelAdvance> advances,
+  });
+
   // --- Charging other outlets to a room ---
 
   /// In-house stays whose folio can take a charge, for a "charge to room"

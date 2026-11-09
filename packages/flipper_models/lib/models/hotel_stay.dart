@@ -123,8 +123,8 @@ class HotelAdvance {
       'settlementMovementId': settlementMovementId,
   };
 
-  /// Null for an entry too damaged to trust (no id or no positive amount):
-  /// skipping it beats inventing money the guest never paid.
+  /// Null for an entry too damaged to trust (no id, or no finite positive
+  /// amount): skipping it beats inventing money the guest never paid.
   static HotelAdvance? fromJson(Object? raw) {
     if (raw is! Map) return null;
     final id = raw['id']?.toString().trim() ?? '';
@@ -132,7 +132,7 @@ class HotelAdvance {
     final amount = amountRaw is num
         ? amountRaw.toDouble()
         : double.tryParse(amountRaw?.toString() ?? '') ?? 0;
-    if (id.isEmpty || amount <= 0) return null;
+    if (id.isEmpty || !amount.isFinite || amount <= 0) return null;
     final paidAt =
         DateTime.tryParse(raw['paidAt']?.toString() ?? '') ??
         DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);

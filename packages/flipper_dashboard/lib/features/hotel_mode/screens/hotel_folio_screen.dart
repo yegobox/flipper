@@ -583,7 +583,8 @@ class _HotelFolioBody extends ConsumerWidget {
       );
     } catch (e) {
       notifier.endCheckOut();
-      notifier.showToast(FlipperL10n.current.hotelCheckoutFailed('$e'));
+      final message = e is StateError ? e.message : '$e';
+      notifier.showToast(FlipperL10n.current.hotelCheckoutFailed(message));
     }
   }
 

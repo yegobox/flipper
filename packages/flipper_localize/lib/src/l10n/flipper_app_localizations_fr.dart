@@ -8974,6 +8974,18 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   String get hotelAdvanceToRefund => 'À rembourser';
 
   @override
+  String get hotelAdvanceChangedReconfirm =>
+      'Un acompte de ce séjour a changé sur un autre appareil. Vérifiez le nouveau solde et refaites le départ.';
+
+  @override
+  String get hotelAdvanceStayClosed =>
+      'Ce séjour est déjà clôturé : aucun acompte n\'a été pris.';
+
+  @override
+  String get hotelFolioStillSyncing =>
+      'Ce folio est encore en cours de synchronisation. Réessayez dans un instant.';
+
+  @override
   String get hotelBalanceDue => 'Reste à payer';
 
   @override

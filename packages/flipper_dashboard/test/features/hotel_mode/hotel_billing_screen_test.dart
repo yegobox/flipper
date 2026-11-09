@@ -2,12 +2,22 @@ import 'package:flipper_dashboard/features/bar_mode/providers/bar_mode_providers
 import 'package:flipper_dashboard/features/hotel_mode/providers/hotel_mode_providers.dart';
 import 'package:flipper_dashboard/features/hotel_mode/screens/hotel_billing_screen.dart';
 import 'package:flipper_localize/flipper_localize.dart';
+import 'package:flipper_models/DatabaseSyncInterface.dart';
+import 'package:flipper_models/SyncStrategy.dart';
+import 'package:flipper_models/helpers/cash_movement_rules.dart';
 import 'package:flipper_models/models/hotel_stay.dart';
 import 'package:flipper_services/constants.dart';
+import 'package:flipper_services/locator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:supabase_models/brick/models/transaction.model.dart';
+import 'package:supabase_models/brick/repository/storage.dart';
+
+import '../../test_helpers/mocks.dart';
+
+class _MockSync extends Mock implements DatabaseSyncInterface {}
 
 // flutter test test/features/hotel_mode/hotel_billing_screen_test.dart
 
@@ -32,28 +42,29 @@ ITransaction _loan() => ITransaction(
   dueDate: DateTime(2026, 2, 1),
 );
 
-HotelStay _gone({bool heldAdvance = false}) => HotelStay(
-  id: 's1',
-  branchId: 'b1',
-  roomId: 'r1',
-  roomName: '101',
-  transactionId: 't1',
-  guestName: 'Bosco',
-  checkInAt: DateTime(2026, 1, 10, 14),
-  expectedCheckOutAt: DateTime(2026, 1, 12, 11),
-  checkedOutAt: DateTime(2026, 1, 12, 10),
-  status: HotelStayStatus.checkedOut,
-  nightlyRate: 50000,
-  advances: [
-    if (heldAdvance)
-      HotelAdvance(
-        id: 'a1',
-        amount: 20000,
-        paymentMethod: 'Cash',
-        paidAt: DateTime(2026, 1, 5),
-      ),
-  ],
-);
+HotelStay _gone({bool heldAdvance = false, String method = 'Cash'}) =>
+    HotelStay(
+      id: 's1',
+      branchId: 'b1',
+      roomId: 'r1',
+      roomName: '101',
+      transactionId: 't1',
+      guestName: 'Bosco',
+      checkInAt: DateTime(2026, 1, 10, 14),
+      expectedCheckOutAt: DateTime(2026, 1, 12, 11),
+      checkedOutAt: DateTime(2026, 1, 12, 10),
+      status: HotelStayStatus.checkedOut,
+      nightlyRate: 50000,
+      advances: [
+        if (heldAdvance)
+          HotelAdvance(
+            id: 'a1',
+            amount: 20000,
+            paymentMethod: method,
+            paidAt: DateTime(2026, 1, 5),
+          ),
+      ],
+    );
 
 Future<void> _pump(
   WidgetTester tester, {
@@ -113,6 +124,112 @@ void main() {
     expect(
       find.byKey(const ValueKey('hotel-apply-advance-s1')),
       findsOneWidget,
+    );
+  });
+
+  testWidgets('Apply advance books a paid-off credit folio by method', (
+    tester,
+  ) async {
+    registerFallbackValue(<HotelAdvance>[]);
+    await getIt.reset();
+    addTearDown(getIt.reset);
+    final sync = _MockSync();
+    final box = MockBox();
+    when(() => box.bhfId()).thenAnswer((_) async => '00');
+    when(() => box.isProformaMode()).thenReturn(false);
+    when(() => box.isTrainingMode()).thenReturn(false);
+    getIt.registerSingleton<LocalStorage>(box);
+    final strategy = MockSyncStrategy();
+    when(() => strategy.getStrategy(any())).thenReturn(sync);
+    getIt.registerSingleton<SyncStrategy>(strategy, instanceName: 'strategy');
+
+    var stay = _gone(heldAdvance: true, method: 'MOBILE MONEY');
+    // The credit folio after its loan was paid off in cash: no longer a
+    // loan, filed under the last installment's tender.
+    when(() => sync.hotelFolio(transactionId: 't1')).thenAnswer(
+      (_) async => ITransaction(
+        id: 't1',
+        agentId: 'c1',
+        branchId: 'b1',
+        status: COMPLETE,
+        transactionType: 'sale',
+        paymentType: 'Cash',
+        cashReceived: 100000,
+        customerChangeDue: 0,
+        updatedAt: DateTime(2026, 1, 20),
+        isIncome: true,
+        isExpense: false,
+        subTotal: 100000,
+        dueDate: DateTime(2026, 2, 1),
+      ),
+    );
+    when(() => sync.hotelStayById(id: 's1')).thenAnswer((_) async => stay);
+    final methods = <String>[];
+    when(
+      () => sync.completeCashMovement(
+        branchId: any(named: 'branchId'),
+        bhfId: any(named: 'bhfId'),
+        cashReceived: any(named: 'cashReceived'),
+        isIncome: any(named: 'isIncome'),
+        utilityVariantName: any(named: 'utilityVariantName'),
+        paymentType: any(named: 'paymentType'),
+        discount: any(named: 'discount'),
+        countryCode: any(named: 'countryCode'),
+        isProformaMode: any(named: 'isProformaMode'),
+        isTrainingMode: any(named: 'isTrainingMode'),
+        transactionTypeForRecord: any(named: 'transactionTypeForRecord'),
+        categoryId: any(named: 'categoryId'),
+        note: any(named: 'note'),
+        skipPersonalGoalAutoSweep: any(named: 'skipPersonalGoalAutoSweep'),
+        occurredAt: any(named: 'occurredAt'),
+        updateShift: any(named: 'updateShift'),
+      ),
+    ).thenAnswer((inv) async {
+      expect(
+        inv.namedArguments[#transactionTypeForRecord],
+        kBookingAdvanceApplied,
+      );
+      methods.add(inv.namedArguments[#paymentType] as String);
+      return ITransaction(
+        id: 'cm-1',
+        agentId: 'c1',
+        branchId: 'b1',
+        status: COMPLETE,
+        transactionType: kBookingAdvanceApplied,
+        paymentType: 'MOBILE MONEY',
+        cashReceived: 20000,
+        customerChangeDue: 0,
+        updatedAt: DateTime(2026),
+        isIncome: false,
+        isExpense: true,
+      );
+    });
+    when(
+      () => sync.saveHotelAdvances(
+        stayId: 's1',
+        advances: any(named: 'advances'),
+      ),
+    ).thenAnswer((inv) async {
+      stay = stay.copyWith(
+        advances: inv.namedArguments[#advances] as List<HotelAdvance>,
+      );
+      return stay;
+    });
+
+    await _pump(tester, stays: [stay]);
+    await tester.tap(find.byKey(const ValueKey('hotel-apply-advance-s1')));
+    await tester.pumpAndSettle();
+
+    // Netted against the MoMo payment row the credit checkout wrote, not
+    // the cash that later paid the loan off.
+    expect(methods, ['MOBILE MONEY']);
+    expect(stay.advances.single.status, HotelAdvanceStatus.applied);
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(HotelBillingScreen)),
+    );
+    expect(
+      container.read(hotelModeProvider).toastMessage,
+      contains('advance applied'),
     );
   });
 

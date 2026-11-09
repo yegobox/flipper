@@ -544,6 +544,14 @@ abstract final class HotelDeskActions {
     // Advances as stored now: one may have been taken on another terminal
     // since this folio was opened.
     final live = await _sync.hotelStayById(id: stay.id) ?? stay;
+    // The dialog asked for the balance net of [stay]'s advances. If they have
+    // changed since, the tender and change it confirmed are for another
+    // amount: show the desk the new balance and let it confirm again, before
+    // anything is filed.
+    if ((live.advanceHeld - stay.advanceHeld).abs() >= 0.5) {
+      ref.read(hotelModeProvider.notifier).updateActiveStay(live);
+      throw StateError(FlipperL10n.current.hotelAdvanceChangedReconfirm);
+    }
     final hasAdvance = live.hasHeldAdvance;
     final total = (fresh.subTotal ?? 0).toDouble();
     final plan = HotelAdvanceSettlement.of(
@@ -556,11 +564,17 @@ abstract final class HotelDeskActions {
         ? paymentType
         : live.advances.firstWhere((a) => a.isHeld).paymentMethod;
 
+    // What the sale was paid with: today's tender plus the advance applied
+    // to it, so a folio the advance part-paid reads as paid in full (and can
+    // be refunded like any paid sale). Today's money is still only the
+    // tender: the payment rows below carry the balance alone.
+    final received = cashReceived + (hasAdvance ? plan.applied : 0);
+
     // What the receipt is filed against: the folio carries the room and its
     // extras, but the tender only exists at the desk.
     final invoiced = fresh.copyWith(
       paymentType: tender,
-      cashReceived: cashReceived,
+      cashReceived: received,
       customerChangeDue: customerChangeDue,
     );
 
@@ -592,19 +606,18 @@ abstract final class HotelDeskActions {
         transaction: booked,
         lines: lines,
         paymentType: tender,
-        cashReceived: cashReceived,
+        cashReceived: received,
         customerChangeDue: customerChangeDue,
       ),
     );
 
-    if (hasAdvance) {
-      await _applyAdvancesAfterSettle(
-        ref: ref,
-        stay: live,
-        total: total,
-        tender: tender,
-      );
-    }
+    final warning = hasAdvance
+        ? await _applyAdvancesAfterSettle(
+            stay: live,
+            total: total,
+            tender: tender,
+          )
+        : null;
 
     talker.info(
       'hotel: folio ${stay.transactionId} invoiced and settled for '
@@ -614,7 +627,10 @@ abstract final class HotelDeskActions {
     ref
         .read(hotelModeProvider.notifier)
         .afterCheckOut(
-          message: FlipperL10n.current.hotelRoomCheckedOut(stay.roomName),
+          // A failed application outranks the success line: it is the only
+          // place the desk learns the advance still waits in Billing.
+          message:
+              warning ?? FlipperL10n.current.hotelRoomCheckedOut(stay.roomName),
           autoLogout: HotelModeSettings.autoLogout,
         );
   }
@@ -704,14 +720,13 @@ abstract final class HotelDeskActions {
       },
     );
 
-    if (held.isNotEmpty) {
-      await _applyAdvancesAfterSettle(
-        ref: ref,
-        stay: live,
-        total: total,
-        tender: null,
-      );
-    }
+    final warning = held.isNotEmpty
+        ? await _applyAdvancesAfterSettle(
+            stay: live,
+            total: total,
+            tender: null,
+          )
+        : null;
 
     talker.info(
       'hotel: folio ${stay.transactionId} put on credit for '
@@ -720,11 +735,13 @@ abstract final class HotelDeskActions {
     ref
         .read(hotelModeProvider.notifier)
         .afterCheckOut(
-          message: FlipperL10n.current.hotelCheckedOutOnCredit(
-            stay.roomName,
-            terms.customerName,
-            hotelMoney(plan.balance.round()),
-          ),
+          message:
+              warning ??
+              FlipperL10n.current.hotelCheckedOutOnCredit(
+                stay.roomName,
+                terms.customerName,
+                hotelMoney(plan.balance.round()),
+              ),
           autoLogout: HotelModeSettings.autoLogout,
         );
   }
@@ -746,6 +763,13 @@ abstract final class HotelDeskActions {
     final notifier = ref.read(hotelModeProvider.notifier);
     if (amount <= 0) return null;
     try {
+      // Checked before any money is recorded: the sheet may have stayed open
+      // while another terminal cancelled the booking or checked the guest
+      // out, and an advance on a closed stay is never applied or refunded.
+      final live = await _sync.hotelStayById(id: stay.id);
+      if (live == null || !live.isOpen) {
+        throw StateError(FlipperL10n.current.hotelAdvanceStayClosed);
+      }
       final movement = await _advanceMovement(
         stay: stay,
         amount: amount,
@@ -774,7 +798,11 @@ abstract final class HotelDeskActions {
       return updated;
     } catch (e, st) {
       talker.error('hotel: advance for ${stay.roomName} failed', e, st);
-      notifier.showToast(FlipperL10n.current.hotelAdvanceFailed('$e'));
+      notifier.showToast(
+        FlipperL10n.current.hotelAdvanceFailed(
+          e is StateError ? e.message : '$e',
+        ),
+      );
       return null;
     }
   }
@@ -853,55 +881,70 @@ abstract final class HotelDeskActions {
         }
       }
     }
-    if (plan.surplus > 0) {
+    // The surplus goes back the way it came: the latest advances are the
+    // ones not needed, each refunded in the method it was paid with.
+    for (final part in hotelAdvanceSurplusByMethod(held, plan.surplus)) {
       final refund = await _advanceMovement(
         stay: current,
-        amount: plan.surplus,
+        amount: part.amount,
         kind: kBookingAdvanceRefunded,
-        paymentMethod: held.last.paymentMethod,
+        paymentMethod: part.method,
       );
-      settledBy.putIfAbsent(held.last.id, () => refund.id);
+      for (final id in part.advanceIds) {
+        settledBy.putIfAbsent(id, () => refund.id);
+      }
     }
 
     // Nothing to apply it to (a folio of zero): it all went back.
     final status = plan.applied > 0
         ? HotelAdvanceStatus.applied
         : HotelAdvanceStatus.refunded;
-    for (final advance in held) {
-      current = await _sync.saveHotelAdvance(
-        stayId: current.id,
-        advance: advance.copyWith(
-          status: status,
-          settlementMovementId: settledBy[advance.id],
-        ),
-      );
-    }
-    return current;
+    // One write for all of them: a retry after a failure here finds them all
+    // still held, never some settled and the rest settled a second time.
+    return _sync.saveHotelAdvances(
+      stayId: current.id,
+      advances: [
+        for (final advance in held)
+          advance.copyWith(
+            status: status,
+            settlementMovementId: settledBy[advance.id],
+          ),
+      ],
+    );
   }
 
   /// [settleHeldAdvances] after a checkout that already went through. A
   /// failure here must not look like a failed checkout — the guest has paid
-  /// and left — so it is logged and the desk told to apply it from the
-  /// Checked-out list.
-  static Future<void> _applyAdvancesAfterSettle({
-    required WidgetRef ref,
+  /// and left — so it is logged and returned as the warning the checkout
+  /// shows instead of its success line, telling the desk to apply it from
+  /// Billing. Null when the advances were applied.
+  static Future<String?> _applyAdvancesAfterSettle({
     required HotelStay stay,
     required double total,
     required String? tender,
   }) async {
-    final notifier = ref.read(hotelModeProvider.notifier);
     try {
       await settleHeldAdvances(stay: stay, total: total, tender: tender);
+      return null;
     } catch (e, st) {
       talker.error(
         'hotel: advances on ${stay.roomName} not applied after checkout',
         e,
         st,
       );
-      notifier.showToast(
-        FlipperL10n.current.hotelAdvanceNotApplied(stay.guestName),
-      );
+      return FlipperL10n.current.hotelAdvanceNotApplied(stay.guestName);
     }
+  }
+
+  /// The tender [settleHeldAdvances] books a settled [folio]'s advances
+  /// under: the sale's own for a paid checkout; none for a credit checkout,
+  /// whose advances were payment rows in their own methods. A credit folio
+  /// stays a credit checkout after the loan is paid off (when `isLoan` is
+  /// cleared and the last installment's tender replaces `CREDIT`): its due
+  /// date, which only a loan is given, still says so.
+  static String? advanceTenderFor(ITransaction folio) {
+    final wasCredit = folio.isLoan == true || folio.dueDate != null;
+    return wasCredit ? null : folio.paymentType;
   }
 
   static Future<ITransaction> _advanceMovement({
@@ -927,7 +970,12 @@ abstract final class HotelDeskActions {
       isTrainingMode: _box.isTrainingMode(),
       transactionTypeForRecord: kind,
       note: hotelAdvanceNote(stay),
-      updateShift: updateShift,
+      // A deposit owed back to the guest until checkout, not income.
+      skipPersonalGoalAutoSweep: true,
+      // The drawer only moves for cash: close-shift deducts non-cash tenders
+      // from sales alone, so a card or MoMo advance counted here would be
+      // expected in the drawer.
+      updateShift: updateShift && hotelTenderIsCash(paymentMethod),
     );
   }
 

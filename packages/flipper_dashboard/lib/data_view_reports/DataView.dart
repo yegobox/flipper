@@ -837,10 +837,7 @@ class DataViewState extends ConsumerState<DataView>
     BuildContext context,
     List<ITransaction> txs,
   ) {
-    final total = txs.fold<double>(0.0, (sum, t) {
-      final st = t.subTotal ?? 0.0;
-      return sum + (t.isExpense == true ? -st.abs() : st);
-    });
+    final total = reportSummaryFooterTotal(txs);
     final denomCount =
         widget.serverSidePaging &&
             widget.serverSideTotalRowCount != null &&

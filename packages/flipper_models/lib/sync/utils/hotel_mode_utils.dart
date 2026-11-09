@@ -543,6 +543,36 @@ class HotelAdvanceSettlement {
   final double surplus;
 }
 
+/// How the [surplus] of [held] advances over the folio goes back: the latest
+/// advances are the ones not needed, so it is taken from the end, and each
+/// part is refunded in the method it was paid with. One entry per method, in
+/// the order reached, naming the advances that fund it.
+List<({String method, double amount, List<String> advanceIds})>
+hotelAdvanceSurplusByMethod(List<HotelAdvance> held, double surplus) {
+  final amounts = <String, double>{};
+  final ids = <String, List<String>>{};
+  var left = surplus;
+  for (final advance in held.reversed) {
+    if (left <= 0) break;
+    final take = advance.amount < left ? advance.amount : left;
+    amounts.update(
+      advance.paymentMethod,
+      (sum) => sum + take,
+      ifAbsent: () => take,
+    );
+    ids.putIfAbsent(advance.paymentMethod, () => []).add(advance.id);
+    left -= take;
+  }
+  return [
+    for (final method in amounts.keys)
+      (method: method, amount: amounts[method]!, advanceIds: ids[method]!),
+  ];
+}
+
+/// Whether [paymentMethod] is cash in the drawer (wire value `Cash`).
+bool hotelTenderIsCash(String paymentMethod) =>
+    paymentMethod.trim().toUpperCase() == 'CASH';
+
 /// [active] (the stay the folio screen holds) brought up to date from [live]
 /// (the stays stream).
 ///
@@ -581,9 +611,16 @@ bool _sameAdvances(List<HotelAdvance> a, List<HotelAdvance> b) {
   for (var i = 0; i < a.length; i++) {
     final x = a[i];
     final y = b[i];
+    // Every field the folio and its documents show, so a correction made on
+    // another terminal (say, the method) reaches this one too.
     if (x.id != y.id ||
         x.amount != y.amount ||
         x.status != y.status ||
+        x.paymentMethod != y.paymentMethod ||
+        x.paidAt != y.paidAt ||
+        x.clerkTenantId != y.clerkTenantId ||
+        x.clerkName != y.clerkName ||
+        x.cashMovementId != y.cashMovementId ||
         x.settlementMovementId != y.settlementMovementId) {
       return false;
     }

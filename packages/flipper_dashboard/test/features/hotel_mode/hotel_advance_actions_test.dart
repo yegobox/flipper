@@ -28,6 +28,7 @@ class _Movement {
       kind = a[#transactionTypeForRecord] as String,
       method = a[#paymentType] as String,
       note = a[#note] as String?,
+      skipGoalSweep = (a[#skipPersonalGoalAutoSweep] as bool?) ?? false,
       updateShift = (a[#updateShift] as bool?) ?? true;
 
   final double amount;
@@ -35,6 +36,7 @@ class _Movement {
   final String kind;
   final String method;
   final String? note;
+  final bool skipGoalSweep;
   final bool updateShift;
 }
 
@@ -71,6 +73,7 @@ void main() {
 
   setUpAll(() {
     registerFallbackValue(_advance('fallback', 1));
+    registerFallbackValue(<HotelAdvance>[]);
     registerFallbackValue(_stay());
     registerFallbackValue(DateTime.utc(2026));
   });
@@ -148,6 +151,21 @@ void main() {
       return stored;
     });
     when(
+      () => sync.saveHotelAdvances(
+        stayId: any(named: 'stayId'),
+        advances: any(named: 'advances'),
+      ),
+    ).thenAnswer((inv) async {
+      final list = [...stored.advances];
+      for (final advance
+          in inv.namedArguments[#advances] as List<HotelAdvance>) {
+        final at = list.indexWhere((a) => a.id == advance.id);
+        at >= 0 ? list[at] = advance : list.add(advance);
+      }
+      stored = stored.copyWith(advances: list);
+      return stored;
+    });
+    when(
       () => sync.hotelStaysStream(branchId: any(named: 'branchId')),
     ).thenAnswer((_) => Stream.value(const <HotelStay>[]));
     when(
@@ -198,7 +216,8 @@ void main() {
 
       expect(movements.map((m) => (m.kind, m.amount, m.updateShift)), [
         (kBookingAdvanceApplied, 100000, false),
-        (kBookingAdvanceRefunded, 20000, true),
+        // Back onto the card: no drawer cash moves.
+        (kBookingAdvanceRefunded, 20000, false),
       ]);
       expect(movements.last.method, 'DEBIT&CREDIT CARD');
       expect(stored.advanceHeld, 0);
@@ -252,6 +271,63 @@ void main() {
           advance: any(named: 'advance'),
         ),
       );
+      verifyNever(
+        () => sync.saveHotelAdvances(
+          stayId: any(named: 'stayId'),
+          advances: any(named: 'advances'),
+        ),
+      );
+    });
+
+    test('the surplus goes back in the methods it came in by', () async {
+      stored = _stay(
+        advances: [
+          _advance('a1', 90000, method: 'Cash'),
+          _advance('a2', 10000, method: 'DEBIT&CREDIT CARD'),
+        ],
+      );
+
+      await HotelDeskActions.settleHeldAdvances(
+        stay: stored,
+        total: 20000,
+        tender: 'Cash',
+      );
+
+      expect(
+        movements.map((m) => (m.kind, m.amount, m.method, m.updateShift)),
+        [
+          (kBookingAdvanceApplied, 20000, 'Cash', false),
+          (kBookingAdvanceRefunded, 10000, 'DEBIT&CREDIT CARD', false),
+          (kBookingAdvanceRefunded, 70000, 'Cash', true),
+        ],
+      );
+      expect(stored.advances.map((a) => a.status), [
+        HotelAdvanceStatus.applied,
+        HotelAdvanceStatus.applied,
+      ]);
+    });
+
+    test('a settlement marks every advance in one write', () async {
+      stored = _stay(advances: [_advance('a1', 30000), _advance('a2', 10000)]);
+
+      await HotelDeskActions.settleHeldAdvances(
+        stay: stored,
+        total: 100000,
+        tender: 'Cash',
+      );
+
+      verify(
+        () => sync.saveHotelAdvances(
+          stayId: 's1',
+          advances: any(named: 'advances'),
+        ),
+      ).called(1);
+      verifyNever(
+        () => sync.saveHotelAdvance(
+          stayId: any(named: 'stayId'),
+          advance: any(named: 'advance'),
+        ),
+      );
     });
 
     test('a free folio refunds the whole advance', () async {
@@ -287,7 +363,8 @@ void main() {
       expect(
         movements.map((m) => (m.kind, m.amount, m.method, m.updateShift)),
         [
-          (kBookingAdvanceRefunded, 30000, 'MOBILE MONEY', true),
+          // MoMo goes back by MoMo: only the cash one leaves the drawer.
+          (kBookingAdvanceRefunded, 30000, 'MOBILE MONEY', false),
           (kBookingAdvanceRefunded, 7000, 'Cash', true),
         ],
       );
@@ -334,11 +411,99 @@ void main() {
       expect(m.income, isTrue);
       expect(m.amount, 25000);
       expect(m.method, 'MOBILE MONEY');
-      expect(m.updateShift, isTrue);
+      expect(m.updateShift, isFalse, reason: 'MoMo never reaches the drawer');
+      expect(m.skipGoalSweep, isTrue, reason: 'a deposit is not income');
       expect(updated!.advances.single.cashMovementId, 'cm-1');
       expect(updated.advances.single.clerkName, 'Richie');
       expect(updated.advanceHeld, 25000);
       expect(ref.read(hotelModeProvider).toastMessage, contains('25,000'));
+    });
+
+    testWidgets('a cash advance counts in the drawer', (tester) async {
+      final ref = await pumpRef(tester);
+      await HotelDeskActions.recordAdvance(
+        ref: ref,
+        stay: stored,
+        clerk: Tenant(id: 'c1', name: 'Richie'),
+        amount: 10000,
+        paymentMethod: 'Cash',
+      );
+      expect(movements.single.updateShift, isTrue);
+    });
+
+    testWidgets('no money is taken for a stay closed elsewhere', (
+      tester,
+    ) async {
+      final ref = await pumpRef(tester);
+      // Cancelled on another terminal while this sheet was open.
+      stored = _stay().copyWith(status: HotelStayStatus.cancelled);
+
+      final updated = await HotelDeskActions.recordAdvance(
+        ref: ref,
+        stay: _stay(),
+        clerk: Tenant(id: 'c1', name: 'Richie'),
+        amount: 10000,
+        paymentMethod: 'Cash',
+      );
+
+      expect(updated, isNull);
+      expect(movements, isEmpty);
+      expect(
+        ref.read(hotelModeProvider).toastMessage,
+        contains('already closed'),
+      );
+    });
+
+    testWidgets('checkout stops when an advance changed since the dialog', (
+      tester,
+    ) async {
+      final ref = await pumpRef(tester);
+      final folio = ITransaction(
+        id: 't1',
+        agentId: 'c1',
+        branchId: 'b1',
+        status: PARKED,
+        transactionType: 'sale',
+        paymentType: 'Cash',
+        cashReceived: 0,
+        customerChangeDue: 0,
+        updatedAt: DateTime.utc(2026),
+        isIncome: true,
+        isExpense: false,
+        subTotal: 100000,
+      );
+      when(
+        () => sync.refreshFolioSubTotal(
+          transactionId: any(named: 'transactionId'),
+        ),
+      ).thenAnswer((_) async {});
+      when(
+        () => sync.hotelFolio(transactionId: any(named: 'transactionId')),
+      ).thenAnswer((_) async => folio);
+      when(
+        () => sync.hotelFolioLines(transactionId: any(named: 'transactionId')),
+      ).thenAnswer((_) async => const []);
+      // Another terminal took RWF 30,000 while the dialog asked for 100,000.
+      stored = _stay(advances: [_advance('a1', 30000)]);
+
+      await expectLater(
+        HotelDeskActions.checkOut(
+          ref: ref,
+          stay: _stay(),
+          folio: folio,
+          paymentType: 'Cash',
+          cashReceived: 100000,
+          customerChangeDue: 0,
+        ),
+        throwsA(
+          isA<StateError>().having(
+            (e) => e.message,
+            'message',
+            contains('changed on another device'),
+          ),
+        ),
+      );
+      expect(movements, isEmpty);
     });
 
     testWidgets('nothing is recorded for zero', (tester) async {
@@ -373,6 +538,49 @@ void main() {
 
       expect(updated, isNull);
       expect(ref.read(hotelModeProvider).toastMessage, contains('disk full'));
+    });
+
+    test('advances follow the checkout type, even after a loan is paid', () {
+      ITransaction folio({
+        bool isLoan = false,
+        DateTime? dueDate,
+        String paymentType = 'Cash',
+      }) => ITransaction(
+        id: 't1',
+        agentId: 'c1',
+        branchId: 'b1',
+        status: COMPLETE,
+        transactionType: 'sale',
+        paymentType: paymentType,
+        cashReceived: 0,
+        customerChangeDue: 0,
+        updatedAt: DateTime.utc(2026),
+        isIncome: true,
+        isExpense: false,
+        isLoan: isLoan,
+        dueDate: dueDate,
+        subTotal: 100000,
+      );
+
+      expect(HotelDeskActions.advanceTenderFor(folio()), 'Cash');
+      expect(
+        HotelDeskActions.advanceTenderFor(
+          folio(
+            isLoan: true,
+            dueDate: DateTime.utc(2026, 2),
+            paymentType: 'CREDIT',
+          ),
+        ),
+        isNull,
+      );
+      // Paid off in cash: still a credit checkout, so each advance keeps
+      // its own method.
+      expect(
+        HotelDeskActions.advanceTenderFor(
+          folio(dueDate: DateTime.utc(2026, 2)),
+        ),
+        isNull,
+      );
     });
 
     testWidgets('cancelling refunds the advance before the stay goes', (

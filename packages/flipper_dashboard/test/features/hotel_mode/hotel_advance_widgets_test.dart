@@ -1,7 +1,11 @@
+import 'dart:convert';
+
 import 'package:flipper_dashboard/features/hotel_mode/hotel_folio_pdf.dart';
+import 'package:flipper_dashboard/features/hotel_mode/hotel_quotation_pdf.dart';
 import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_advance_sheet.dart';
 import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_folio_widgets.dart';
 import 'package:flipper_localize/flipper_localize.dart';
+import 'package:flipper_models/models/branch_document_settings.dart';
 import 'package:flipper_models/models/hotel_stay.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flutter/material.dart';
@@ -364,6 +368,89 @@ void main() {
         expect(String.fromCharCodes(bytes.take(4)), '%PDF');
       });
     }
+
+    for (final placement in DocumentStampPlacement.values) {
+      test('an invoice billed to a company, stamped ${placement.name}', () async {
+        final bytes = await HotelFolioPdf.build(
+          // RWF 120,000 against a RWF 100,000 stay: 20,000 went back.
+          stay: _stay(
+            advances: [
+              _advance('a1', 120000, status: HotelAdvanceStatus.applied),
+            ],
+          ),
+          lines: [_line('Room 101 · 2 nights', 2, 50000)],
+          folio: ITransaction(
+            id: 't1',
+            agentId: 'c1',
+            branchId: 'b1',
+            status: COMPLETE,
+            transactionType: 'sale',
+            paymentType: 'Cash',
+            cashReceived: 100000,
+            customerChangeDue: 0,
+            updatedAt: DateTime(2026),
+            isIncome: true,
+            isExpense: false,
+            customerName: 'Acme Ltd',
+            receiptNumber: 42,
+          ),
+          currency: 'RWF',
+          stamp: DocumentStamp(
+            // A 1x1 PNG.
+            bytes: base64Decode(
+              'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQ'
+              'DwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
+            ),
+            placement: placement,
+          ),
+        );
+        expect(String.fromCharCodes(bytes.take(4)), '%PDF');
+      });
+    }
+
+    test('a folio still syncing down is not printed', () {
+      final open = _stay();
+      final gone = _stay().copyWith(status: HotelStayStatus.checkedOut);
+      ITransaction folio(double subTotal) => ITransaction(
+        id: 't1',
+        agentId: 'c1',
+        branchId: 'b1',
+        status: COMPLETE,
+        transactionType: 'sale',
+        paymentType: 'Cash',
+        cashReceived: 0,
+        customerChangeDue: 0,
+        updatedAt: DateTime(2026),
+        isIncome: true,
+        isExpense: false,
+        subTotal: subTotal,
+      );
+      final room = [_line('Room 101 · 2 nights', 2, 50000)];
+
+      // Checked out, but the folio has not arrived: not a pro-forma.
+      expect(
+        hotelFolioStillSyncing(stay: gone, folio: null, lines: const []),
+        isTrue,
+      );
+      // Billed, but its lines have not arrived: not an invoice for nothing.
+      expect(
+        hotelFolioStillSyncing(stay: gone, folio: folio(100000), lines: []),
+        isTrue,
+      );
+      // Complete, an open stay's pro-forma, or a genuinely empty folio.
+      expect(
+        hotelFolioStillSyncing(stay: gone, folio: folio(100000), lines: room),
+        isFalse,
+      );
+      expect(
+        hotelFolioStillSyncing(stay: open, folio: null, lines: const []),
+        isFalse,
+      );
+      expect(
+        hotelFolioStillSyncing(stay: gone, folio: folio(0), lines: const []),
+        isFalse,
+      );
+    });
 
     test('an advance above the folio renders the refund line', () async {
       final bytes = await HotelFolioPdf.build(

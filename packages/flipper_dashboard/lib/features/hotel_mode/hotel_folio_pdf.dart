@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:flipper_dashboard/features/hotel_mode/hotel_quotation_pdf.dart';
 import 'package:flipper_dashboard/services/pdf_assets.dart';
 import 'package:flipper_localize/flipper_localize.dart';
+import 'package:flipper_models/models/branch_document_settings.dart';
 import 'package:flipper_models/models/hotel_stay.dart';
 import 'package:flipper_models/sync/utils/hotel_mode_utils.dart';
 import 'package:flipper_services/constants.dart';
@@ -30,6 +31,19 @@ HotelFolioDocumentKind hotelFolioDocumentKind(ITransaction? folio) {
   if (folio.isLoan == true) return HotelFolioDocumentKind.credit;
   if (folio.status == COMPLETE) return HotelFolioDocumentKind.invoice;
   return HotelFolioDocumentKind.proforma;
+}
+
+/// Whether [stay]'s folio has not fully synced down yet, so a document now
+/// would be wrong: a checked-out stay without its folio would print as a
+/// pro-forma, and a billed folio without its lines as an invoice for nothing.
+/// An open stay may simply have no folio yet; that is a pro-forma, not a gap.
+bool hotelFolioStillSyncing({
+  required HotelStay stay,
+  required ITransaction? folio,
+  required List<TransactionItem> lines,
+}) {
+  if (folio == null) return stay.hasFolio && !stay.isOpen;
+  return (folio.subTotal ?? 0) > 0 && lines.isEmpty;
 }
 
 /// The guest's folio as an A4 page: every night and every extra on one
@@ -84,13 +98,19 @@ abstract final class HotelFolioPdf {
             issued: issued,
           ),
           pw.SizedBox(height: 18),
-          _stayBlock(stay),
+          _stayBlock(stay, billedTo: _billedTo(stay, folio)),
           pw.SizedBox(height: 18),
           _linesTable(lines, amount),
           pw.SizedBox(height: 10),
           _totalRow(l10n.subtotal, amount(breakdown.subtotal)),
           _totalRow(l10n.hotelTaxIncl, amount(breakdown.tax)),
-          _totalRow(l10n.hotelTotal, amount(breakdown.total), bold: true),
+          _withStamp(
+            _totalRow(l10n.hotelTotal, amount(breakdown.total), bold: true),
+            // "Beside the total" draws it here; every other placement below.
+            stamp?.placement == DocumentStampPlacement.besideTotals
+                ? stamp
+                : null,
+          ),
           if (kept.isNotEmpty) ...[
             pw.SizedBox(height: 12),
             _advances(kept, amount),
@@ -110,7 +130,8 @@ abstract final class HotelFolioPdf {
                 : l10n.hotelFolioThanks,
             style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600),
           ),
-          if (stamp != null) ...[
+          if (stamp != null &&
+              stamp.placement != DocumentStampPlacement.besideTotals) ...[
             pw.SizedBox(height: 16),
             pw.Align(
               alignment: HotelQuotationPdf.stampAlignment(stamp.placement),
@@ -206,7 +227,27 @@ abstract final class HotelFolioPdf {
     );
   }
 
-  static pw.Widget _stayBlock(HotelStay stay) {
+  /// Who the invoice is billed to when that is not the guest: the customer
+  /// a credit checkout put the folio on (an employer, a travel agency).
+  static String? _billedTo(HotelStay stay, ITransaction? folio) {
+    final name = folio?.customerName?.trim() ?? '';
+    if (name.isEmpty || name == stay.guestName.trim()) return null;
+    return name;
+  }
+
+  static pw.Widget _withStamp(pw.Widget row, DocumentStamp? stamp) {
+    if (stamp == null) return row;
+    return pw.Row(
+      crossAxisAlignment: pw.CrossAxisAlignment.center,
+      children: [
+        HotelQuotationPdf.stampImage(stamp),
+        pw.SizedBox(width: 16),
+        pw.Expanded(child: row),
+      ],
+    );
+  }
+
+  static pw.Widget _stayBlock(HotelStay stay, {String? billedTo}) {
     final l10n = FlipperL10n.current;
     final day = DateFormat('dd MMM yyyy');
     pw.Widget field(String label, String value) => pw.Expanded(
@@ -238,6 +279,10 @@ abstract final class HotelFolioPdf {
             field(l10n.hotelRoom, stay.roomName),
           ],
         ),
+        if (billedTo != null) ...[
+          pw.SizedBox(height: 10),
+          pw.Row(children: [field(l10n.customer, billedTo)]),
+        ],
         pw.SizedBox(height: 10),
         pw.Row(
           children: [
@@ -361,7 +406,24 @@ abstract final class HotelFolioPdf {
           bold: true,
         );
       case HotelFolioDocumentKind.invoice:
-        return _totalRow(l10n.hotelFolioPaidInFull, amount(total), bold: true);
+        // An advance above the folio was handed back at checkout: the rows
+        // above list it whole, so say what went back.
+        final surplus = HotelAdvanceSettlement.of(
+          total: total,
+          held: advanced,
+        ).surplus;
+        final paid = _totalRow(
+          l10n.hotelFolioPaidInFull,
+          amount(total),
+          bold: true,
+        );
+        if (surplus <= 0) return paid;
+        return pw.Column(
+          children: [
+            _totalRow(l10n.hotelAdvanceRefunded, amount(surplus)),
+            paid,
+          ],
+        );
     }
   }
 

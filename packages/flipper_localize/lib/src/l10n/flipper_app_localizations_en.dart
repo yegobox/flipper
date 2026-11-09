@@ -8842,6 +8842,18 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
   String get hotelAdvanceToRefund => 'To refund';
 
   @override
+  String get hotelAdvanceChangedReconfirm =>
+      'An advance on this stay changed on another device. Check the new balance and check out again.';
+
+  @override
+  String get hotelAdvanceStayClosed =>
+      'This stay is already closed, so no advance was taken.';
+
+  @override
+  String get hotelFolioStillSyncing =>
+      'This folio is still syncing. Try again in a moment.';
+
+  @override
   String get hotelBalanceDue => 'Balance due';
 
   @override
