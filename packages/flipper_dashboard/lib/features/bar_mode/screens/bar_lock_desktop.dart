@@ -138,6 +138,26 @@ class _BarLockDesktopScreenState extends ConsumerState<BarLockDesktopScreen> {
           ),
         ),
         const SizedBox(height: 18),
+        if (staff.isEmpty)
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                l10n.barNoStaffYet,
+                style: GoogleFonts.outfit(fontSize: 13, color: BarTokens.ink3),
+              ),
+              const SizedBox(height: 10),
+              TextButton(
+                onPressed: () {
+                  // Grants too: a desk that started offline fell back to
+                  // "open to all" and should pick up the real ones.
+                  ref.invalidate(serviceModeGrantsProvider);
+                  ref.invalidate(barStaffProvider);
+                },
+                child: Text(l10n.retry),
+              ),
+            ],
+          ),
         Expanded(
           child: ListView.separated(
             itemCount: staff.length,

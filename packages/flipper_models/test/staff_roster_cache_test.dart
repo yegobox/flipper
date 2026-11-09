@@ -161,5 +161,53 @@ void main() {
     test('cache key is per business', () {
       expect(staffRosterCacheKey('biz-1'), 'staff_roster_biz-1');
     });
+
+    group('staffRosterChanged', () {
+      final a = Tenant(id: 't1', name: 'Aline', userId: 'u1', pin: 111111);
+      final b = Tenant(id: 't2', name: 'Bosco', userId: 'u2', pin: 222222);
+      final aCached = Tenant(id: 't1', name: 'Aline', userId: 'u1');
+
+      test('the same people read live after the offline copy is no change', () {
+        expect(staffRosterChanged([aCached], [a]), isFalse);
+        expect(staffRosterChanged([a, b], [b, a]), isFalse);
+      });
+
+      test('someone joining, leaving or being replaced is a change', () {
+        expect(staffRosterChanged([a], [a, b]), isTrue);
+        expect(staffRosterChanged([a, b], [a]), isTrue);
+        expect(staffRosterChanged([a], [b]), isTrue);
+      });
+
+      test('a new name, role, user or login right is a change', () {
+        Tenant edit({
+          String? name,
+          String? type,
+          String? userId,
+          bool? login,
+        }) => Tenant(
+          id: 't1',
+          name: name ?? 'Aline',
+          userId: userId ?? 'u1',
+          pin: 111111,
+          type: type ?? 'Agent',
+          allowBusinessLogin: login ?? false,
+        );
+        final base = edit();
+        expect(staffRosterChanged([base], [edit(name: 'Aline M')]), isTrue);
+        expect(staffRosterChanged([base], [edit(type: 'Admin')]), isTrue);
+        expect(staffRosterChanged([base], [edit(userId: 'u9')]), isTrue);
+        expect(staffRosterChanged([base], [edit(login: true)]), isTrue);
+      });
+
+      test('a PIN both copies know changing is a change', () {
+        final newPin = Tenant(id: 't1', name: 'Aline', userId: 'u1', pin: 9);
+        expect(staffRosterChanged([a], [newPin]), isTrue);
+      });
+
+      test('a removed PIN counts only between two live reads', () {
+        expect(staffRosterChanged([a], [aCached]), isFalse);
+        expect(staffRosterChanged([a], [aCached], bothLive: true), isTrue);
+      });
+    });
   });
 }

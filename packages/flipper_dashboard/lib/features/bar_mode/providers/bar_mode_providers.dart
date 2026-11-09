@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart' show mapEquals;
+import 'package:flutter/foundation.dart' show debugPrint, mapEquals;
 import 'package:flutter/material.dart' show Color;
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/DatabaseSyncInterface.dart';
@@ -9,6 +9,8 @@ import 'package:flipper_models/models/bar_table.dart';
 import 'package:flipper_models/providers/active_branch_provider.dart';
 import 'package:flipper_models/sync/utils/bar_mode_utils.dart';
 import 'package:flipper_models/sync/utils/service_mode_access.dart';
+import 'package:flipper_models/sync/utils/staff_roster_cache.dart'
+    show staffRosterChanged;
 import 'package:flipper_models/view_models/flipperBaseModel.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart'
     show connectivityStreamProvider;
@@ -192,13 +194,131 @@ final barModeProvider = NotifierProvider<BarModeNotifier, BarModeState>(
   BarModeNotifier.new,
 );
 
+/// Loads the shared-register roster for a business (the box business when
+/// null). Tests override it; the app reads Supabase with an offline copy.
+final staffRosterLoaderProvider =
+    Provider<Future<StaffRoster> Function(String? businessId)>(
+      (ref) =>
+          (businessId) =>
+              FlipperBaseModel.fetchStaffRoster(businessId: businessId),
+    );
+
+/// How long an empty roster waits before [barStaffProvider] reads it again.
+const Duration staffRosterEmptyRetryDelay = Duration(seconds: 15);
+
+/// How long the offline copy is shown before [barStaffProvider] asks
+/// Supabase again for the live roster.
+const Duration staffRosterCachedRefreshDelay = Duration(seconds: 60);
+
+/// A roster [barStaffProvider] read in the background and hands to its own
+/// next build, so that build does not read it again.
+typedef _StaffRosterHandoff = ({
+  String? businessId,
+  StaffRoster roster,
+  DateTime at,
+});
+
+/// Holds at most one [_StaffRosterHandoff] per container.
+final _staffRosterHandoffProvider = Provider<List<_StaffRosterHandoff>>(
+  (ref) => [],
+);
+
+/// The business roster behind every shared-register lock (Bar, Hotel, the
+/// POS user switch).
+///
+/// A business always has at least its owner, so an empty roster means it
+/// could not be read yet (slow or no network and no offline copy), never
+/// "no staff". While it is empty or only the offline copy, it reads again in
+/// the background (every [staffRosterEmptyRetryDelay] /
+/// [staffRosterCachedRefreshDelay], and at once when the device comes back
+/// online), so a desk never stays empty until someone taps Retry.
+///
+/// A background read only rebuilds this provider when the people changed:
+/// a rebuild reloads the lock screens and drops a PIN being typed.
 final barStaffProvider = FutureProvider<List<Tenant>>((ref) async {
   // Re-read on a business switch, as [serviceModeGrantsProvider] does: the
   // Bar and Hotel sign-in lists filter this roster with those grants.
   final businessId = ref.watch(
     activeBranchProvider.select((branch) => branch.value?.businessId),
   );
-  return FlipperBaseModel.fetchBarStaffTenants(businessId: businessId);
+  final load = ref.read(staffRosterLoaderProvider);
+  final handoffs = ref.read(_staffRosterHandoffProvider);
+
+  // Registered before the first await: a business switch during the read
+  // disposes this build, and a disposed ref may not be used.
+  var disposed = false;
+  var checking = false;
+  Timer? timer;
+  ref.onDispose(() {
+    disposed = true;
+    timer?.cancel();
+  });
+
+  /// What this build shows; null until the first read lands.
+  StaffRoster? shown;
+  late void Function(StaffRoster current) schedule;
+
+  Future<void> recheck() async {
+    final roster = shown;
+    if (disposed || checking || roster == null) return;
+    checking = true;
+    StaffRoster? next;
+    try {
+      next = await load(businessId);
+    } catch (e) {
+      debugPrint('barStaffProvider: background re-read failed: $e');
+    } finally {
+      checking = false;
+    }
+    if (disposed) return;
+    if (next != null &&
+        next.tenants.isNotEmpty &&
+        staffRosterChanged(
+          roster.tenants,
+          next.tenants,
+          bothLive: roster.fresh && next.fresh,
+        )) {
+      handoffs
+        ..clear()
+        ..add((businessId: businessId, roster: next, at: DateTime.now()));
+      ref.invalidateSelf();
+      return;
+    }
+    // Same people (or still nothing): keep the screen as it is and only
+    // read again if this copy is still empty or offline.
+    schedule(next != null && next.tenants.isNotEmpty ? next : roster);
+  }
+
+  schedule = (current) {
+    timer?.cancel();
+    timer = null;
+    if (disposed) return;
+    if (current.tenants.isEmpty) {
+      debugPrint(
+        'barStaffProvider: roster for ${businessId ?? 'box business'} is '
+        'empty (not reachable, no offline copy) — reading again in '
+        '${staffRosterEmptyRetryDelay.inSeconds}s',
+      );
+      timer = Timer(staffRosterEmptyRetryDelay, recheck);
+    } else if (!current.fresh) {
+      timer = Timer(staffRosterCachedRefreshDelay, recheck);
+    }
+  };
+
+  ref.listen(connectivityStreamProvider, (previous, next) {
+    if (previous?.value == false && next.value == true) unawaited(recheck());
+  });
+
+  final handoff = handoffs.isEmpty ? null : handoffs.removeLast();
+  final roster =
+      handoff != null &&
+          handoff.businessId == businessId &&
+          DateTime.now().difference(handoff.at) < staffRosterCachedRefreshDelay
+      ? handoff.roster
+      : await load(businessId);
+  shown = roster;
+  schedule(roster);
+  return roster.tenants;
 });
 
 /// Who may run Bar Mode / Hotel Mode in this business (see [ServiceModeGrants]).
