@@ -77,6 +77,7 @@ import 'package:flutter/foundation.dart'
 
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/payment_methods.dart';
+import 'package:supabase_models/sync/shared_sync_subscriptions.dart';
 
 String? _nonEmptyCustomerField(String? value) {
   final trimmed = value?.trim();
@@ -468,7 +469,8 @@ class CapellaSync extends AiStrategyImpl
         "SELECT * FROM business_analytics WHERE branchId = :branchId",
         {'branchId': branchId},
       );
-      ditto.sync.registerSubscription(
+      SharedSyncSubscriptions.register(
+        ditto,
         preparedBa.dql,
         arguments: preparedBa.arguments,
       );
@@ -1429,7 +1431,8 @@ class CapellaSync extends AiStrategyImpl
     () async {
       try {
         final prepared = prepareDqlSyncSubscription(query, arguments);
-        await ditto.sync.registerSubscription(
+        SharedSyncSubscriptions.register(
+          ditto,
           prepared.dql,
           arguments: prepared.arguments,
         );
@@ -1791,7 +1794,8 @@ class CapellaSync extends AiStrategyImpl
       // same subscription every call leaks subscriptions and stalls Ditto sync.
       if (_capellaTaxEnabledSubscribed.add('$businessId|$branchId')) {
         final preparedEbm = prepareDqlSyncSubscription(query, arguments);
-        await ditto.sync.registerSubscription(
+        SharedSyncSubscriptions.register(
+          ditto,
           preparedEbm.dql,
           arguments: preparedEbm.arguments,
         );

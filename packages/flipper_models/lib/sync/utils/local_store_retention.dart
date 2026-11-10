@@ -25,10 +25,24 @@ const Set<String> kWindowedHistoryCollections = {
   'transaction_items',
 };
 
-/// Start of the retained window.
+/// Start of the retained window: midnight, [kLocalHistoryRetentionDays] days
+/// before [now].
+///
+/// Whole days, so every subscription made on the same day carries the same
+/// `historyWindowStart`. To the microsecond, each call made a new, distinct
+/// branch-wide subscription. They were never cancelled, so Ditto's sync kept
+/// evaluating hundreds of them, and every synchronous Ditto call on the UI
+/// thread waited behind that work (the POS search freezes of 2026-11-09).
+///
+/// Calendar days, not 30 × 24 hours: across a daylight-saving change the
+/// hours would land on a different local date late or early in the day, so
+/// the cutoff (and the subscription) would change within one day.
 DateTime localHistoryWindowStart({DateTime? now}) {
-  final from = now ?? DateTime.now();
-  return from.subtract(const Duration(days: kLocalHistoryRetentionDays));
+  final at = now ?? DateTime.now();
+  final day = at.day - kLocalHistoryRetentionDays;
+  return at.isUtc
+      ? DateTime.utc(at.year, at.month, day)
+      : DateTime(at.year, at.month, day);
 }
 
 /// A subscription query, possibly narrowed to the retained window.
@@ -158,9 +172,6 @@ bool _pinsASingleRow(String lowerDql) {
 
 String _withWhere(String dql) {
   final trimmed = dql.trimRight();
-  final hasWhere = RegExp(
-    r'\bwhere\b',
-    caseSensitive: false,
-  ).hasMatch(trimmed);
+  final hasWhere = RegExp(r'\bwhere\b', caseSensitive: false).hasMatch(trimmed);
   return hasWhere ? '$trimmed AND ' : '$trimmed WHERE ';
 }

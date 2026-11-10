@@ -1,5 +1,6 @@
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
+import 'package:supabase_models/sync/shared_sync_subscriptions.dart';
 
 /// Ditto collection for tender lines / partial payments on a sale.
 ///
@@ -28,7 +29,8 @@ void ensureTransactionPaymentRecordsSyncSubscription(dynamic ditto) {
       kTransactionPaymentRecordsAllSql,
       null,
     );
-    ditto.sync.registerSubscription(
+    SharedSyncSubscriptions.register(
+      ditto,
       prepared.dql,
       arguments: prepared.arguments,
     );

@@ -10,6 +10,7 @@ import 'package:flipper_web/services/ditto_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:talker/talker.dart';
+import 'package:supabase_models/sync/shared_sync_subscriptions.dart';
 
 /// Branches whose EBM Ditto subscription is already registered this session.
 /// Guards [CapellaEbmMixin.ebm] against re-subscribing + re-delaying on every
@@ -24,21 +25,21 @@ mixin CapellaEbmMixin implements EbmInterface {
 
   /// Ditto document for an EBM row, keyed `_id == id`.
   static Map<String, dynamic> _ebmToDittoDoc(Ebm ebm) => {
-        '_id': ebm.id,
-        'id': ebm.id,
-        'mrc': ebm.mrc,
-        'bhfId': ebm.bhfId,
-        'tinNumber': ebm.tinNumber,
-        'dvcSrlNo': ebm.dvcSrlNo,
-        'userId': ebm.userId,
-        'taxServerUrl': ebm.taxServerUrl,
-        'businessId': ebm.businessId,
-        'branchId': ebm.branchId,
-        'vatEnabled': ebm.vatEnabled,
-        'tourismTaxEnabled': ebm.tourismTaxEnabled,
-        'remoteServerUrl': ebm.remoteServerUrl,
-        'dataConnectorUrl': ebm.dataConnectorUrl,
-      };
+    '_id': ebm.id,
+    'id': ebm.id,
+    'mrc': ebm.mrc,
+    'bhfId': ebm.bhfId,
+    'tinNumber': ebm.tinNumber,
+    'dvcSrlNo': ebm.dvcSrlNo,
+    'userId': ebm.userId,
+    'taxServerUrl': ebm.taxServerUrl,
+    'businessId': ebm.businessId,
+    'branchId': ebm.branchId,
+    'vatEnabled': ebm.vatEnabled,
+    'tourismTaxEnabled': ebm.tourismTaxEnabled,
+    'remoteServerUrl': ebm.remoteServerUrl,
+    'dataConnectorUrl': ebm.dataConnectorUrl,
+  };
 
   /// Accepts both shapes: Ditto docs carry the Dart names, Supabase rows are
   /// snake_case.
@@ -54,22 +55,23 @@ mixin CapellaEbmMixin implements EbmInterface {
       bhfId: (data['bhfId'] ?? data['bhf_id'])?.toString() ?? '',
       tinNumber: tinNumber,
       dvcSrlNo: (data['dvcSrlNo'] ?? data['dvc_srl_no'])?.toString() ?? '',
-      userId: (data['userId'] ?? data['user_id'])?.toString() ??
+      userId:
+          (data['userId'] ?? data['user_id'])?.toString() ??
           ProxyService.box.getUserId(),
       taxServerUrl:
           (data['taxServerUrl'] ?? data['tax_server_url'])?.toString() ?? '',
-      businessId: (data['businessId'] ?? data['business_id'])?.toString() ??
+      businessId:
+          (data['businessId'] ?? data['business_id'])?.toString() ??
           ProxyService.box.getBusinessId() ??
           '',
-      branchId:
-          (data['branchId'] ?? data['branch_id'])?.toString() ?? branchId,
+      branchId: (data['branchId'] ?? data['branch_id'])?.toString() ?? branchId,
       vatEnabled: (data['vatEnabled'] ?? data['vat_enabled']) as bool?,
       tourismTaxEnabled:
           (data['tourismTaxEnabled'] ?? data['tourism_tax_enabled']) as bool?,
-      remoteServerUrl:
-          (data['remoteServerUrl'] ?? data['remote_server_url'])?.toString(),
-      dataConnectorUrl:
-          (data['dataConnectorUrl'] ?? data['data_connector_url'])?.toString(),
+      remoteServerUrl: (data['remoteServerUrl'] ?? data['remote_server_url'])
+          ?.toString(),
+      dataConnectorUrl: (data['dataConnectorUrl'] ?? data['data_connector_url'])
+          ?.toString(),
     );
   }
 
@@ -93,7 +95,8 @@ mixin CapellaEbmMixin implements EbmInterface {
         // bulk import leaks subscriptions and stalls Ditto sync mid-batch.
         if (_capellaEbmSubscribedBranches.add(branchId)) {
           final prepared = prepareDqlSyncSubscription(dittoQuery, arguments);
-          await ditto.sync.registerSubscription(
+          SharedSyncSubscriptions.register(
+            ditto,
             prepared.dql,
             arguments: prepared.arguments,
           );
@@ -163,8 +166,7 @@ mixin CapellaEbmMixin implements EbmInterface {
 
   @override
   Future<Product?> findProductByTenantId({required String tenantId}) async {
-    final query =
-        Query(where: [Where('bindedToTenantId').isExactly(tenantId)]);
+    final query = Query(where: [Where('bindedToTenantId').isExactly(tenantId)]);
     final result = await repository.get<Product>(query: query);
     return result.firstOrNull;
   }
@@ -180,8 +182,9 @@ mixin CapellaEbmMixin implements EbmInterface {
     String? dataConnectorUrl,
   }) async {
     try {
-      final business = await ProxyService.strategy
-          .getBusiness(businessId: ProxyService.box.getBusinessId()!);
+      final business = await ProxyService.strategy.getBusiness(
+        businessId: ProxyService.box.getBusinessId()!,
+      );
 
       if (business == null) {
         throw Exception('Business not found');
@@ -199,8 +202,10 @@ mixin CapellaEbmMixin implements EbmInterface {
           ? null
           : _ebmFromMap(Map<String, dynamic>.from(existingRow), branchId);
 
-      final resolvedTin =
-          (await effectiveTin(business: business, branchId: branchId));
+      final resolvedTin = (await effectiveTin(
+        business: business,
+        branchId: branchId,
+      ));
 
       if (resolvedTin == null) {
         throw Exception(
@@ -208,7 +213,8 @@ mixin CapellaEbmMixin implements EbmInterface {
         );
       }
 
-      var updatedEbm = existingEbm ??
+      var updatedEbm =
+          existingEbm ??
           Ebm(
             mrc: mrc,
             bhfId: bhFId,

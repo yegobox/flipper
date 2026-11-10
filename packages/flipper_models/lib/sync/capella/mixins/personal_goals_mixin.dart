@@ -11,6 +11,7 @@ import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:supabase_models/brick/models/transactionItem.model.dart';
 import 'package:talker/talker.dart';
+import 'package:supabase_models/sync/shared_sync_subscriptions.dart';
 
 mixin CapellaPersonalGoalsMixin {
   DittoService get dittoService;
@@ -49,8 +50,7 @@ mixin CapellaPersonalGoalsMixin {
   List<PersonalGoal> _goalsForBranchFromAllRows(
     List<PersonalGoal> all,
     String branchId,
-  ) =>
-      all.where((g) => _branchIdsMatch(g.branchId, branchId)).toList();
+  ) => all.where((g) => _branchIdsMatch(g.branchId, branchId)).toList();
 
   void _cacheBranchGoals(String branchId, List<PersonalGoal> goals) {
     if (branchId.isEmpty || goals.isEmpty) return;
@@ -63,7 +63,8 @@ mixin CapellaPersonalGoalsMixin {
     if (_collectionWideSubscriptionRegistered) return;
     final prepared = prepareDqlSyncSubscription(_personalGoalsAllSql, null);
     try {
-      await ditto.sync.registerSubscription(
+      SharedSyncSubscriptions.register(
+        ditto,
         prepared.dql,
         arguments: prepared.arguments,
       );
@@ -86,9 +87,13 @@ mixin CapellaPersonalGoalsMixin {
   ) async {
     await _registerPersonalGoalsCollectionSubscription(ditto);
     final arguments = {'branchId': branchId};
-    final prepared = prepareDqlSyncSubscription(_personalGoalsBroadSql, arguments);
+    final prepared = prepareDqlSyncSubscription(
+      _personalGoalsBroadSql,
+      arguments,
+    );
     try {
-      await ditto.sync.registerSubscription(
+      SharedSyncSubscriptions.register(
+        ditto,
         prepared.dql,
         arguments: prepared.arguments,
       );
@@ -316,10 +321,7 @@ mixin CapellaPersonalGoalsMixin {
       arguments: {'doc': doc},
     );
     PersonalGoalsBranchCache.upsertGoal(
-      goal.copyWith(
-        updatedAt: now,
-        createdAt: goal.createdAt ?? now,
-      ),
+      goal.copyWith(updatedAt: now, createdAt: goal.createdAt ?? now),
     );
   }
 
@@ -345,6 +347,7 @@ mixin CapellaPersonalGoalsMixin {
     required String branchId,
     required double amount,
     String? transactionId,
+
     /// When true (auto-sweep), skip goals at target and cap credits to [remainingToTarget].
     bool enforceTargetCap = false,
   }) async {
@@ -580,10 +583,12 @@ mixin CapellaPersonalGoalsMixin {
           transactionId: transactionId,
           enforceTargetCap: true,
         );
-        final goalName = goals
-            .where((g) => g.id == c.goalId)
-            .map((g) => g.name)
-            .firstOrNull ?? c.goalId;
+        final goalName =
+            goals
+                .where((g) => g.id == c.goalId)
+                .map((g) => g.name)
+                .firstOrNull ??
+            c.goalId;
         unawaited(
           PersonalGoalContributionEvent.publish(
             branchId: branchId,
@@ -620,10 +625,7 @@ mixin CapellaPersonalGoalsMixin {
     if (!saleEligible && !utilityCashInEligible) return;
     if (await _transactionPersonalGoalSweepApplied(transactionId)) return;
 
-    const delays = <Duration>[
-      Duration(seconds: 3),
-      Duration(seconds: 8),
-    ];
+    const delays = <Duration>[Duration(seconds: 3), Duration(seconds: 8)];
     for (final d in delays) {
       await Future<void>.delayed(d);
       if (await _transactionPersonalGoalSweepApplied(transactionId)) return;
@@ -651,10 +653,12 @@ mixin CapellaPersonalGoalsMixin {
             transactionId: transactionId,
             enforceTargetCap: true,
           );
-          final goalName = goals
-              .where((g) => g.id == c.goalId)
-              .map((g) => g.name)
-              .firstOrNull ?? c.goalId;
+          final goalName =
+              goals
+                  .where((g) => g.id == c.goalId)
+                  .map((g) => g.name)
+                  .firstOrNull ??
+              c.goalId;
           unawaited(
             PersonalGoalContributionEvent.publish(
               branchId: branchId,

@@ -6,6 +6,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as models;
 import 'package:uuid/uuid.dart';
+import 'package:supabase_models/sync/shared_sync_subscriptions.dart';
 
 /// Ditto-backed shift reads/writes (no Brick/SQLite path).
 ///
@@ -43,7 +44,8 @@ class ShiftOperations {
     if (_syncSubscriptionKeys.contains(key)) return;
     try {
       final prepared = prepareDqlSyncSubscription(sql, args);
-      ditto.sync.registerSubscription(
+      SharedSyncSubscriptions.register(
+        ditto,
         prepared.dql,
         arguments: prepared.arguments,
       );

@@ -15,6 +15,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:talker/talker.dart';
+import 'package:supabase_models/sync/shared_sync_subscriptions.dart';
 
 mixin CapellaStockMixin implements StockInterface {
   Repository get repository;
@@ -258,7 +259,8 @@ mixin CapellaStockMixin implements StockInterface {
 
           // Subscribe to ensure we have the latest data from Ditto mesh
           final prepared = prepareDqlSyncSubscription(query, arguments);
-          await ditto.sync.registerSubscription(
+          SharedSyncSubscriptions.register(
+            ditto,
             prepared.dql,
             arguments: prepared.arguments,
           );

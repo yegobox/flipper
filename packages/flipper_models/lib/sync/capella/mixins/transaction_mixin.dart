@@ -32,6 +32,7 @@ import 'package:flipper_models/sync/utils/sale_line_pricing.dart';
 import 'package:flipper_models/sync/utils/ticket_reference_sequence.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:flipper_models/helpers/sale_exchange.dart';
+import 'package:supabase_models/sync/shared_sync_subscriptions.dart';
 
 /// Serialize pending-cart ensure for a single (branch, type, expense) slot.
 final Map<String, Lock> _pendingCartScopeLocks = {};
@@ -238,7 +239,8 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         "SELECT * FROM transactions WHERE branchId = :branchId",
         {'branchId': branchId},
       );
-      ditto.sync.registerSubscription(
+      SharedSyncSubscriptions.register(
+        ditto,
         preparedTx.dql,
         arguments: preparedTx.arguments,
       );
@@ -468,7 +470,8 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         'SELECT * FROM transactions WHERE branchId = :branchId',
         {'branchId': branchId},
       );
-      ditto.sync.registerSubscription(
+      SharedSyncSubscriptions.register(
+        ditto,
         preparedTx.dql,
         arguments: preparedTx.arguments,
       );
@@ -637,7 +640,8 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         'SELECT * FROM transactions WHERE branchId = :branchId',
         {'branchId': branchId},
       );
-      ditto.sync.registerSubscription(
+      SharedSyncSubscriptions.register(
+        ditto,
         preparedTx.dql,
         arguments: preparedTx.arguments,
       );
@@ -908,7 +912,8 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         );
         if (prepared == null) return;
         try {
-          await ditto.sync.registerSubscription(
+          SharedSyncSubscriptions.register(
+            ditto,
             prepared.dql,
             arguments: prepared.arguments,
           );
@@ -935,7 +940,8 @@ mixin CapellaTransactionMixin implements TransactionInterface {
           attributedAgentUserId: attributedAgentUserId,
         );
         if (syncSubscription != null) {
-          ditto.sync.registerSubscription(
+          SharedSyncSubscriptions.register(
+            ditto,
             syncSubscription.dql,
             arguments: syncSubscription.arguments,
           );
@@ -3017,7 +3023,8 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         'SELECT * FROM transactions WHERE branchId = :branchId',
         {'branchId': branchId},
       );
-      ditto.sync.registerSubscription(
+      SharedSyncSubscriptions.register(
+        ditto,
         preparedBranch.dql,
         arguments: preparedBranch.arguments,
       );
@@ -3425,7 +3432,8 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       kitchenOrdersBranchSubscriptionDql,
       {'branchId': branchId},
     );
-    ditto.sync.registerSubscription(
+    SharedSyncSubscriptions.register(
+      ditto,
       prepared.dql,
       arguments: prepared.arguments,
     );
@@ -3454,7 +3462,8 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         'SELECT * FROM transactions WHERE branchId = :branchId',
         {'branchId': branchId},
       );
-      ditto.sync.registerSubscription(
+      SharedSyncSubscriptions.register(
+        ditto,
         preparedTx.dql,
         arguments: preparedTx.arguments,
       );
@@ -4288,7 +4297,8 @@ mixin CapellaTransactionMixin implements TransactionInterface {
           }
 
           final preparedPending = prepareDqlSyncSubscription(query, arguments);
-          activeDitto.sync.registerSubscription(
+          SharedSyncSubscriptions.register(
+            activeDitto,
             preparedPending.dql,
             arguments: preparedPending.arguments,
           );
@@ -4302,7 +4312,8 @@ mixin CapellaTransactionMixin implements TransactionInterface {
             {'branchId': branchId},
           );
           try {
-            activeDitto.sync.registerSubscription(
+            SharedSyncSubscriptions.register(
+              activeDitto,
               preparedBranch.dql,
               arguments: preparedBranch.arguments,
             );

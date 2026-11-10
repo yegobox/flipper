@@ -5,6 +5,7 @@ import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_models/sync/shared_sync_subscriptions.dart';
 
 final leadsStreamProvider = StreamProvider.autoDispose<List<Lead>>((ref) {
   final branchId = ProxyService.box.getBranchId();
@@ -25,7 +26,8 @@ final leadsStreamProvider = StreamProvider.autoDispose<List<Lead>>((ref) {
   // Ditto returns a SyncSubscription; just register once (deduped internally).
   try {
     final preparedLeads = prepareDqlSyncSubscription(query, args);
-    ditto.sync.registerSubscription(
+    SharedSyncSubscriptions.register(
+      ditto,
       preparedLeads.dql,
       arguments: preparedLeads.arguments,
     );
@@ -85,7 +87,9 @@ final leadsStatsProvider = Provider.autoDispose<AsyncValue<LeadsStats>>((ref) {
   final leadsAsync = ref.watch(leadsStreamProvider);
   return leadsAsync.whenData((leads) {
     final total = leads.length;
-    final converted = leads.where((l) => l.status == LeadStatus.converted).length;
+    final converted = leads
+        .where((l) => l.status == LeadStatus.converted)
+        .length;
     final fromGmail = leads.where((l) => l.source == LeadSource.gmail).length;
     final pipeline = leads.fold<double>(0.0, (a, b) {
       final v = b.estimatedValue;
@@ -102,4 +106,3 @@ final leadsStatsProvider = Provider.autoDispose<AsyncValue<LeadsStats>>((ref) {
     );
   });
 });
-

@@ -4,7 +4,9 @@ import 'package:flipper_models/helpers/daily_goal_rules.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/models/engagement.dart';
 import 'package:flipper_models/sync/ditto_observer_registry.dart';
+import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:flipper_services/constants.dart';
+import 'package:supabase_models/sync/shared_sync_subscriptions.dart';
 
 /// Ditto reads and writes for "Today's goal".
 ///
@@ -33,7 +35,12 @@ class EngagementStore {
       onListen: () {
         try {
           if (subscribe) {
-            ditto.sync.registerSubscription(query, arguments: arguments);
+            final prepared = prepareDqlSyncSubscription(query, arguments);
+            SharedSyncSubscriptions.register(
+              ditto,
+              prepared.dql,
+              arguments: prepared.arguments,
+            );
           }
           observer = registerTrackedObserver(
             ditto: ditto,

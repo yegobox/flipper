@@ -6,6 +6,7 @@ import 'package:flipper_models/sms_review/sms_review_providers.dart'
 import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:flipper_services/constants.dart' show COMPLETE;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_models/sync/shared_sync_subscriptions.dart';
 
 const _ordersQuery =
     'SELECT * FROM $kOnlineOrdersCollection WHERE branchId = :branchId '
@@ -28,7 +29,8 @@ final onlineOrdersProvider = StreamProvider.autoDispose
           'SELECT * FROM $kOnlineOrdersCollection WHERE branchId = :branchId',
           args,
         );
-        ditto.sync.registerSubscription(
+        SharedSyncSubscriptions.register(
+          ditto,
           prepared.dql,
           arguments: prepared.arguments,
         );

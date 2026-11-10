@@ -28,6 +28,7 @@ import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/sync/shift_sync.dart';
 import 'package:flipper_services/Miscellaneous.dart';
 import 'package:flipper_services/business_features_loader.dart';
+import 'package:supabase_models/sync/shared_sync_subscriptions.dart';
 
 const socialApp = "socials";
 
@@ -525,7 +526,7 @@ class AppService with ListenableServiceMixin {
       if (ditto != null) {
         try {
           // Belt-and-suspenders: receive any events doc the phone publishes.
-          ditto.sync.registerSubscription('SELECT * FROM events');
+          SharedSyncSubscriptions.register(ditto, 'SELECT * FROM events');
         } catch (e) {
           print('⚠️ QR-login broad events subscription: $e');
         }

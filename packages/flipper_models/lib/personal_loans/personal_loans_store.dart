@@ -10,6 +10,7 @@ import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meta/meta.dart' show visibleForTesting;
+import 'package:supabase_models/sync/shared_sync_subscriptions.dart';
 
 /// Writes loans and repayments. Tests override [personalLoansStoreProvider].
 abstract interface class PersonalLoansStore {
@@ -106,7 +107,8 @@ Stream<List<Map<String, dynamic>>> _observe(
   final args = {'businessId': businessId};
   try {
     final prepared = prepareDqlSyncSubscription(query, args);
-    ditto.sync.registerSubscription(
+    SharedSyncSubscriptions.register(
+      ditto,
       prepared.dql,
       arguments: prepared.arguments,
     );

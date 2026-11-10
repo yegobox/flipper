@@ -15,6 +15,7 @@ import 'package:ditto_live/ditto_live.dart' show Ditto;
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_models/sync/shared_sync_subscriptions.dart';
 
 const _pendingQuery =
     'SELECT * FROM ${SmsReviewItem.collection} '
@@ -85,7 +86,8 @@ final smsReviewItemsProvider = StreamProvider.autoDispose
       final args = {'branchId': branchId, 'status': SmsReviewItem.pending};
       try {
         final prepared = prepareDqlSyncSubscription(_pendingQuery, args);
-        ditto.sync.registerSubscription(
+        SharedSyncSubscriptions.register(
+          ditto,
           prepared.dql,
           arguments: prepared.arguments,
         );

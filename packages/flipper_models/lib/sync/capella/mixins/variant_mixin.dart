@@ -23,6 +23,7 @@ import 'package:flipper_services/log_service.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:talker/talker.dart';
+import 'package:supabase_models/sync/shared_sync_subscriptions.dart';
 
 mixin CapellaVariantMixin implements VariantInterface {
   DittoService get dittoService => DittoService.instance;
@@ -1036,7 +1037,8 @@ mixin CapellaVariantMixin implements VariantInterface {
 
       try {
         final preparedGetVariant = prepareDqlSyncSubscription(query, arguments);
-        await ditto.sync.registerSubscription(
+        SharedSyncSubscriptions.register(
+          ditto,
           preparedGetVariant.dql,
           arguments: preparedGetVariant.arguments,
         );
@@ -1681,7 +1683,8 @@ mixin CapellaVariantMixin implements VariantInterface {
       // Subscribe to ensure we have the latest data
       try {
         final preparedByStock = prepareDqlSyncSubscription(query, arguments);
-        await ditto.sync.registerSubscription(
+        SharedSyncSubscriptions.register(
+          ditto,
           preparedByStock.dql,
           arguments: preparedByStock.arguments,
         );

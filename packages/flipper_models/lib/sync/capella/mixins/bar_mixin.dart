@@ -22,6 +22,7 @@ import 'package:flipper_models/sync/utils/bar_credit_utils.dart';
 import 'package:flipper_models/sync/utils/sale_accounting_fields.dart';
 import 'package:flipper_models/sync/utils/service_mode_sale_date.dart';
 import 'package:flipper_models/helpers/default_sale_receipt_type.dart';
+import 'package:supabase_models/sync/shared_sync_subscriptions.dart';
 
 TransactionItem? _barFindLine(List<TransactionItem> lines, String lineId) {
   for (final line in lines) {
@@ -60,7 +61,8 @@ mixin CapellaBarMixin implements BarInterface {
     if (_barSyncSubscriptionKeys.contains(key)) return;
     try {
       final prepared = prepareDqlSyncSubscription(sql, args);
-      ditto.sync.registerSubscription(
+      SharedSyncSubscriptions.register(
+        ditto,
         prepared.dql,
         arguments: prepared.arguments,
       );
