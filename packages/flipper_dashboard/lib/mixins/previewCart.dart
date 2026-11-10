@@ -1797,6 +1797,9 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
 
               // Mark as processing
               _isProcessingPayment = true;
+              // Set once the sale is recorded as complete. A failure before
+              // that leaves a paid sale without its receipt.
+              var saleMarkedComplete = false;
 
               talker.info(
                 "✅ Payment CONFIRMED by user - Status: ${newRecord['paymentStatus']}",
@@ -1884,6 +1887,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
                   deferPaymentPersist: true,
                   overrideAlreadyPaid: overrideAlreadyPaid,
                 );
+                saleMarkedComplete = true;
 
                 final deferredPayments = mark.deferredPayments;
                 if (deferredPayments != null && deferredPayments.isNotEmpty) {
@@ -1939,12 +1943,11 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
                 );
                 _isProcessingPayment = false; // Reset flag on error
                 _paymentTimeout?.cancel(); // Cancel timeout on error
-                // Completion died after the customer paid: the sale is no
-                // longer in flight, so release the lock that otherwise makes
-                // every later cart tap a silent no-op.
-                ProxyService.box.writeBool(
-                  key: 'transactionCompleting',
-                  value: false,
+                endPaidSaleAfterError(
+                  transactionId: transaction.id,
+                  paymentAttempt: paymentAttempt,
+                  saleMarkedComplete: saleMarkedComplete,
+                  retryReceipt: () => onPaymentRow(payload),
                 );
                 onPaymentFailed?.call(
                   e.toString().replaceAll('Exception: ', ''),
@@ -2006,6 +2009,32 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       backgroundColor: Colors.orange,
       duration: const Duration(seconds: 10),
       showCloseButton: true,
+    );
+  }
+
+  /// Completion failed after MoMo confirmed the payment.
+  ///
+  /// Once the sale is recorded as complete, only follow-up work failed: the
+  /// sale is no longer in flight, so the lock is released (left set, every
+  /// later cart tap is a silent no-op). Before that, the customer has paid
+  /// and has no receipt, so the sale is held exactly as a cancelled purchase
+  /// code is, and the next Pay retries [retryReceipt]. This also covers a
+  /// retry from Pay that fails: it is held again rather than lost.
+  @visibleForTesting
+  void endPaidSaleAfterError({
+    required String transactionId,
+    required int paymentAttempt,
+    required bool saleMarkedComplete,
+    required Future<void> Function() retryReceipt,
+  }) {
+    if (saleMarkedComplete) {
+      ProxyService.box.writeBool(key: 'transactionCompleting', value: false);
+      return;
+    }
+    holdPaidSaleForReceipt(
+      transactionId: transactionId,
+      paymentAttempt: paymentAttempt,
+      issueReceipt: retryReceipt,
     );
   }
 

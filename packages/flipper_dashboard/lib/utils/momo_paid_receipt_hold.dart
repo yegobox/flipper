@@ -30,8 +30,9 @@ class MomoPaidReceiptHold {
   /// as a payment confirmation would. Returns false when nothing is held for
   /// that ticket.
   ///
-  /// The hold is released first. If the cashier cancels again, the receipt
-  /// step holds the ticket again.
+  /// The hold is released first. If the cashier cancels again, or the step
+  /// fails before the sale is complete, the receipt step holds the ticket
+  /// again, so the next Pay can retry.
   bool resume(
     String transactionId, {
     required void Function(Object error, StackTrace stack) onError,

@@ -208,6 +208,71 @@ void main() {
       await tester.pump(const Duration(seconds: 11));
     });
 
+    testWidgets('a retry that fails stays paid, and the next Pay retries', (
+      tester,
+    ) async {
+      final host = await pumpHost(tester);
+      var attempts = 0;
+
+      // Mirrors the payment callback: a failure before the sale is marked
+      // complete goes through endPaidSaleAfterError, then rethrows.
+      Future<void> issueReceipt() async {
+        attempts++;
+        if (attempts == 1) {
+          host.endPaidSaleAfterError(
+            transactionId: 'tx-1',
+            paymentAttempt: 0,
+            saleMarkedComplete: false,
+            retryReceipt: issueReceipt,
+          );
+          throw StateError('tax server down');
+        }
+      }
+
+      host.holdPaidSaleForReceipt(
+        transactionId: 'tx-1',
+        paymentAttempt: 0,
+        issueReceipt: issueReceipt,
+      );
+
+      expect(await tester.runAsync(() => pay(host)), isTrue);
+      await tester.runAsync(pumpEventQueue);
+      expect(attempts, 1);
+      // Still paid and locked: the failure did not turn it into an unpaid
+      // sale that could be edited or charged again.
+      verifyNever(
+        () => box.writeBool(key: 'transactionCompleting', value: false),
+      );
+
+      expect(await tester.runAsync(() => pay(host)), isTrue);
+      await tester.runAsync(pumpEventQueue);
+      expect(attempts, 2);
+
+      await tester.pump(const Duration(seconds: 11));
+    });
+
+    testWidgets('a failure after the sale is complete releases the lock', (
+      tester,
+    ) async {
+      final host = await pumpHost(tester);
+
+      host.endPaidSaleAfterError(
+        transactionId: 'tx-1',
+        paymentAttempt: 0,
+        saleMarkedComplete: true,
+        retryReceipt: () async => fail('a completed sale is not retried'),
+      );
+
+      verify(
+        () => box.writeBool(key: 'transactionCompleting', value: false),
+      ).called(1);
+      // Nothing is held for Pay to resume.
+      expect(
+        find.text(FlipperL10n.current.cartPaymentReceivedReceiptPending),
+        findsNothing,
+      );
+    });
+
     testWidgets('a disposed till releases the lock instead', (tester) async {
       final host = await pumpHost(tester);
       await tester.pumpWidget(const SizedBox.shrink());
