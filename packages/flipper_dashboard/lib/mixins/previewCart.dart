@@ -1730,8 +1730,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
         // The sale is no longer in flight: release the completion lock (else
         // every later cart tap is silently dropped by [PosCartAddService]) and
         // drop the Pay spinner, which is otherwise never cleared on this path.
-        ProxyService.box.writeBool(key: 'transactionCompleting', value: false);
-        ProxyService.box.writeBool(key: 'transactionInProgress', value: false);
+        _releaseDigitalSaleLock();
         if (mounted) {
           ref.read(payButtonStateProvider.notifier).stopLoading();
         }
@@ -1794,6 +1793,8 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
               if (!mounted) {
                 talker.warning("Widget disposed, skipping payment completion");
                 _isProcessingPayment = false;
+                _paymentTimeout?.cancel();
+                _releaseDigitalSaleLock();
                 return;
               }
 
@@ -1836,6 +1837,13 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
                   );
                   _isProcessingPayment = false;
                   _paymentTimeout?.cancel();
+                  // As on the cash path, a cancelled purchase code ends the
+                  // sale attempt. Left set, the lock drops every later cart
+                  // tap and the Pay spinner never stops.
+                  _releaseDigitalSaleLock();
+                  if (mounted) {
+                    ref.read(payButtonStateProvider.notifier).stopLoading();
+                  }
                   return;
                 }
 
@@ -1937,6 +1945,13 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       talker.error("Error in digital payment processing: $e");
       rethrow;
     }
+  }
+
+  /// Ends a digital sale attempt that will not complete: grid taps work
+  /// again (see [PosCartAddService]) and a new Pay can start.
+  void _releaseDigitalSaleLock() {
+    ProxyService.box.writeBool(key: 'transactionCompleting', value: false);
+    ProxyService.box.writeBool(key: 'transactionInProgress', value: false);
   }
 
   Future<bool> _finalStepInCompletingTransaction({
