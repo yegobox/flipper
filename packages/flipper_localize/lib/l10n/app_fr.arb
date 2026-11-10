@@ -4911,6 +4911,7 @@
     "cartSentForReview": "Envoyé pour vérification",
     "cartPaymentSuccessful": "Paiement réussi",
     "cartPaymentConfirmationTimeout": "Délai de confirmation du paiement dépassé. Veuillez réessayer.",
+    "cartPaymentReceivedReceiptPending": "Paiement reçu, mais le reçu n'a pas été émis. Appuyez sur Payer pour l'émettre. Le client ne sera pas débité à nouveau.",
     "errorUnableToSaveData": "Impossible d'enregistrer les données. Redémarrez l'application et réessayez.",
     "errorDatabaseBusy": "La base de données est occupée. Patientez un instant et réessayez.",
     "errorNoInternet": "Pas de connexion Internet. Vérifiez votre réseau et réessayez.",

@@ -17744,6 +17744,10 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
       'Payment confirmation timeout. Please try again.';
 
   @override
+  String get cartPaymentReceivedReceiptPending =>
+      'Payment received, but the receipt was not issued. Tap Pay to issue it. The customer will not be charged again.';
+
+  @override
   String get errorUnableToSaveData =>
       'Unable to save data. Please restart the app and try again.';
 

@@ -6504,6 +6504,7 @@
   "cartSentForReview": "Imetumwa kwa ukaguzi",
   "cartPaymentSuccessful": "Malipo Yamefanikiwa",
   "cartPaymentConfirmationTimeout": "Muda wa kuthibitisha malipo umeisha. Tafadhali jaribu tena.",
+  "cartPaymentReceivedReceiptPending": "Malipo yamepokelewe, lakini risiti haikutolewa. Bonyeza Lipa ili uitoe. Mteja hatatozwa tena.",
   "errorUnableToSaveData": "Imeshindwa kuhifadhi data. Tafadhali anzisha upya programu kisha jaribu tena.",
   "errorDatabaseBusy": "Hifadhidata ina shughuli. Tafadhali subiri kidogo kisha jaribu tena.",
   "errorNoInternet": "Hakuna muunganisho wa intaneti. Tafadhali angalia mtandao wako kisha jaribu tena.",

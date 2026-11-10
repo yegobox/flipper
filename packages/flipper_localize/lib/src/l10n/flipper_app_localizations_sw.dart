@@ -17855,6 +17855,10 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
       'Muda wa kuthibitisha malipo umeisha. Tafadhali jaribu tena.';
 
   @override
+  String get cartPaymentReceivedReceiptPending =>
+      'Malipo yamepokelewe, lakini risiti haikutolewa. Bonyeza Lipa ili uitoe. Mteja hatatozwa tena.';
+
+  @override
   String get errorUnableToSaveData =>
       'Imeshindwa kuhifadhi data. Tafadhali anzisha upya programu kisha jaribu tena.';
 

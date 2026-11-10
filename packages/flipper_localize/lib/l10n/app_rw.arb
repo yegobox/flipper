@@ -6496,6 +6496,7 @@
   "cartSentForReview": "Byoherejwe kugenzurwa",
   "cartPaymentSuccessful": "Kwishyura byagenze neza",
   "cartPaymentConfirmationTimeout": "Igihe cyo kwemeza ubwishyu cyarangiye. Ongera ugerageze.",
+  "cartPaymentReceivedReceiptPending": "Ubwishyu bwakiriwe, ariko inyemezabwishyu ntiyatanzwe. Kanda Ishyura kugira ngo uyitange. Umukiriya ntazongera kwishyuzwa.",
   "errorUnableToSaveData": "Ntibyashobotse kubika amakuru. Ongera ufungure porogaramu wongere ugerageze.",
   "errorDatabaseBusy": "Ububiko bw'amakuru buhuze. Tegereza akanya wongere ugerageze.",
   "errorNoInternet": "Nta interineti. Reba umuyoboro wawe wongere ugerageze.",
