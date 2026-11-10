@@ -6,6 +6,8 @@ import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../http/timeout_http_client.dart';
+
 /// Establishes a fresh Supabase session (refresh, or full sign-in from
 /// whatever credentials the app has on hand) and returns an access token, or
 /// `null` if none could be obtained. Kept as an injected function rather than
@@ -171,10 +173,8 @@ class EnqueuedUserStampClient extends http.BaseClient {
   final http.Client _inner;
   final AccessTokenSource _tokenSource;
 
-  EnqueuedUserStampClient(
-    this._inner, {
-    AccessTokenSource? tokenSource,
-  }) : _tokenSource = tokenSource ?? SupabaseAccessTokenSource();
+  EnqueuedUserStampClient(this._inner, {AccessTokenSource? tokenSource})
+      : _tokenSource = tokenSource ?? SupabaseAccessTokenSource();
 
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) async {
@@ -217,6 +217,10 @@ class EnqueuedUserStampClient extends http.BaseClient {
 ///   list, so the job is dropped. Without this, a write parked by user A would
 ///   be committed under user B's identity after a handover on a shared device,
 ///   which no RLS policy can catch because the credentials really are B's.
+///
+/// Every request it sends has [TimeoutHttpClient]'s time limit (60 seconds by
+/// default, 5 minutes for Storage uploads). A server that never answers would
+/// otherwise hang the caller and block the serial offline queue.
 class AuthRefreshingClient extends http.BaseClient {
   /// Retryable status used when there is no session to authenticate with.
   /// Must be present in the queue's `reattemptForStatusCodes`.
@@ -232,11 +236,13 @@ class AuthRefreshingClient extends http.BaseClient {
   final Logger _logger;
 
   AuthRefreshingClient(
-    this._inner, {
+    http.Client inner, {
     required String anonKey,
     AccessTokenSource? tokenSource,
     Logger? logger,
-  })  : _anonKey = anonKey,
+    Duration requestTimeout = TimeoutHttpClient.defaultTimeout,
+  })  : _inner = TimeoutHttpClient(inner, timeout: requestTimeout),
+        _anonKey = anonKey,
         _logger = logger ?? Logger('AuthRefreshingClient'),
         _tokenSource = tokenSource ?? SupabaseAccessTokenSource();
 

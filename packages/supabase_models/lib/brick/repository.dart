@@ -30,7 +30,6 @@ export 'package:brick_core/query.dart'
     show And, Or, Query, QueryAction, Where, WherePhrase, Compare, OrderBy;
 
 import 'repository/auth_refreshing_client.dart';
-import '../http/timeout_http_client.dart';
 import 'repository/local_mode_hold_client.dart';
 import 'repository/database_manager.dart';
 import 'repository/legacy_database_migration.dart';
@@ -314,8 +313,7 @@ class Repository extends OfflineFirstWithSupabaseRepository {
       // Local mode holds writes in front of it, after the queue has logged
       // them, so they upload only once the owner opts in to cloud sync.
       innerClient: LocalModeHoldClient(AuthRefreshingClient(
-        // A stuck request would hang its caller and block the serial queue.
-        TimeoutHttpClient(http.Client()),
+        http.Client(),
         anonKey: supabaseAnonKey,
         // Lets the transport itself sign back in (not just refresh) when a
         // request finds no active session — see auth_refreshing_client.dart.

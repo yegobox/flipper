@@ -29475,6 +29475,18 @@ abstract class FlipperAppLocalizations {
   /// **'Payment confirmation timeout. Please try again.'**
   String get cartPaymentConfirmationTimeout;
 
+  /// No description provided for @cartPaymentReceivedReceiptPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment received, but the receipt was not issued. Tap Pay to issue it. The customer will not be charged again.'**
+  String get cartPaymentReceivedReceiptPending;
+
+  /// No description provided for @cartPaymentReceivedSaleNotSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment received and receipt issued, but the sale was not saved. Tap Pay to finish it. The customer will not be charged again.'**
+  String get cartPaymentReceivedSaleNotSaved;
+
   /// No description provided for @errorUnableToSaveData.
   ///
   /// In en, this message translates to:

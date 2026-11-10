@@ -38,13 +38,23 @@ class TimeoutHttpClient extends http.BaseClient {
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) {
     final limit = limitFor(request);
-    return _inner.send(request).timeout(
-          limit,
-          onTimeout: () => throw TimeoutException(
-            'No response from ${request.url.host} after ${limit.inSeconds}s',
-            limit,
-          ),
+    final pending = _inner.send(request);
+    return pending.timeout(
+      limit,
+      onTimeout: () {
+        // The timeout does not cancel the request. If the answer still
+        // arrives, read and drop it so its connection is released.
+        unawaited(
+          pending
+              .then((response) => response.stream.drain<void>())
+              .catchError((Object _) {}),
         );
+        throw TimeoutException(
+          'No response from ${request.url.host} after ${limit.inSeconds}s',
+          limit,
+        );
+      },
+    );
   }
 
   @override

@@ -463,7 +463,7 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
       unawaited(
         StartupRouteLog.record('timed out twice, no session', e, stackTrace),
       );
-      _routerService.navigateTo(LoginRoute());
+      _routerService.clearStackAndShow(LoginRoute());
       return;
     } else {
       if (await _keepsCachedSessionAfter(e)) {
