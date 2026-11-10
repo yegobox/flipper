@@ -49,3 +49,11 @@ class MomoPaidReceiptHold {
     _issueReceipt = null;
   }
 }
+
+/// Which steps of completing a paid MoMo sale have succeeded. It lasts as
+/// long as one payment attempt, so a retry from Pay can skip them. The
+/// receipt is a fiscal document and must not be issued twice.
+class MomoPaidSaleProgress {
+  bool receiptIssued = false;
+  bool saleMarkedComplete = false;
+}

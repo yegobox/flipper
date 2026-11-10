@@ -208,36 +208,116 @@ void main() {
       await tester.pump(const Duration(seconds: 11));
     });
 
-    testWidgets('a retry that fails stays paid, and the next Pay retries', (
+    /// Runs [PreviewCartMixin.completePaidSale] the way the payment callback
+    /// does, with each step counted. `retry` (what Pay runs for a held sale)
+    /// comes back with the same progress, as `onPaymentRow` does.
+    ({
+      Future<void> Function() run,
+      List<String> calls,
+      MomoPaidSaleProgress progress,
+    })
+    paidSale(
+      _HostState host, {
+      Future<bool> Function(int attempt)? receipt,
+      Future<int> Function(int attempt)? mark,
+      Future<void> Function(int mark)? finish,
+      bool hostCompleteThrows = false,
+    }) {
+      final calls = <String>[];
+      final progress = MomoPaidSaleProgress();
+      var receipts = 0;
+      var marks = 0;
+      late Future<void> Function() run;
+      run = () => host.completePaidSale<int>(
+        transactionId: 'tx-1',
+        paymentAttempt: 0,
+        progress: progress,
+        issueReceipt: () async {
+          calls.add('receipt');
+          return receipt == null ? true : receipt(++receipts);
+        },
+        markComplete: () async {
+          calls.add('mark');
+          return mark == null ? 42 : mark(++marks);
+        },
+        finishSale: (m) async {
+          calls.add('finish $m');
+          if (finish != null) await finish(m);
+        },
+        completeTransaction: () {
+          calls.add('complete');
+          if (hostCompleteThrows) throw StateError('sheet already closed');
+        },
+        retry: () => run(),
+        onPaymentFailed: (message) => calls.add('failed: $message'),
+      );
+      return (run: run, calls: calls, progress: progress);
+    }
+
+    testWidgets('a paid sale completes in order', (tester) async {
+      final host = await pumpHost(tester);
+      final sale = paidSale(host);
+
+      await tester.runAsync(sale.run);
+
+      expect(sale.calls, ['receipt', 'mark', 'finish 42', 'complete']);
+      expect(sale.progress.saleMarkedComplete, isTrue);
+    });
+
+    testWidgets('a host that fails to close does not fail a completed sale', (
       tester,
     ) async {
       final host = await pumpHost(tester);
-      var attempts = 0;
+      final sale = paidSale(host, hostCompleteThrows: true);
 
-      // Mirrors the payment callback: a failure before the sale is marked
-      // complete goes through endPaidSaleAfterError, then rethrows.
-      Future<void> issueReceipt() async {
-        attempts++;
-        if (attempts == 1) {
-          host.endPaidSaleAfterError(
-            transactionId: 'tx-1',
-            paymentAttempt: 0,
-            saleMarkedComplete: false,
-            retryReceipt: issueReceipt,
-          );
-          throw StateError('tax server down');
-        }
-      }
+      await tester.runAsync(sale.run);
 
-      host.holdPaidSaleForReceipt(
-        transactionId: 'tx-1',
-        paymentAttempt: 0,
-        issueReceipt: issueReceipt,
+      expect(sale.calls, ['receipt', 'mark', 'finish 42', 'complete']);
+      verifyNever(
+        () => box.writeBool(key: 'transactionCompleting', value: false),
+      );
+    });
+
+    testWidgets('a cancelled receipt is held, and Pay issues it', (
+      tester,
+    ) async {
+      final host = await pumpHost(tester);
+      final sale = paidSale(host, receipt: (attempt) async => attempt > 1);
+
+      await tester.runAsync(sale.run);
+      await tester.pump();
+      expect(sale.calls, ['receipt']);
+      expect(
+        find.text(FlipperL10n.current.cartPaymentReceivedReceiptPending),
+        findsOneWidget,
       );
 
       expect(await tester.runAsync(() => pay(host)), isTrue);
       await tester.runAsync(pumpEventQueue);
-      expect(attempts, 1);
+      expect(sale.calls, [
+        'receipt',
+        'receipt',
+        'mark',
+        'finish 42',
+        'complete',
+      ]);
+
+      await tester.pump(const Duration(seconds: 11));
+    });
+
+    testWidgets('a receipt that fails stays paid, and the next Pay retries', (
+      tester,
+    ) async {
+      final host = await pumpHost(tester);
+      final sale = paidSale(
+        host,
+        receipt: (attempt) async =>
+            attempt == 1 ? throw StateError('tax server down') : true,
+      );
+
+      await tester.runAsync(
+        () => expectLater(sale.run(), throwsA(isA<StateError>())),
+      );
       // Still paid and locked: the failure did not turn it into an unpaid
       // sale that could be edited or charged again.
       verifyNever(
@@ -246,7 +326,56 @@ void main() {
 
       expect(await tester.runAsync(() => pay(host)), isTrue);
       await tester.runAsync(pumpEventQueue);
-      expect(attempts, 2);
+      expect(sale.calls, [
+        'receipt',
+        'failed: Bad state: tax server down',
+        'receipt',
+        'mark',
+        'finish 42',
+        'complete',
+      ]);
+
+      await tester.pump(const Duration(seconds: 11));
+    });
+
+    testWidgets('receipt issued but sale not saved: Pay finishes it without '
+        'a second receipt', (tester) async {
+      final host = await pumpHost(tester);
+      final sale = paidSale(
+        host,
+        mark: (attempt) async =>
+            attempt == 1 ? throw StateError('database busy') : 42,
+      );
+
+      await tester.runAsync(
+        () => expectLater(sale.run(), throwsA(isA<StateError>())),
+      );
+      await tester.pump();
+      expect(sale.calls, [
+        'receipt',
+        'mark',
+        'failed: Bad state: database busy',
+      ]);
+      expect(sale.progress.receiptIssued, isTrue);
+      expect(
+        find.text(FlipperL10n.current.cartPaymentReceivedSaleNotSaved),
+        findsOneWidget,
+      );
+      verifyNever(
+        () => box.writeBool(key: 'transactionCompleting', value: false),
+      );
+
+      expect(await tester.runAsync(() => pay(host)), isTrue);
+      await tester.runAsync(pumpEventQueue);
+      // One receipt only: the fiscal receipt is not issued again.
+      expect(sale.calls, [
+        'receipt',
+        'mark',
+        'failed: Bad state: database busy',
+        'mark',
+        'finish 42',
+        'complete',
+      ]);
 
       await tester.pump(const Duration(seconds: 11));
     });
@@ -255,13 +384,15 @@ void main() {
       tester,
     ) async {
       final host = await pumpHost(tester);
-
-      host.endPaidSaleAfterError(
-        transactionId: 'tx-1',
-        paymentAttempt: 0,
-        saleMarkedComplete: true,
-        retryReceipt: () async => fail('a completed sale is not retried'),
+      final sale = paidSale(
+        host,
+        finish: (_) async => throw StateError('stock write failed'),
       );
+
+      await tester.runAsync(
+        () => expectLater(sale.run(), throwsA(isA<StateError>())),
+      );
+      await tester.pump();
 
       verify(
         () => box.writeBool(key: 'transactionCompleting', value: false),
@@ -269,6 +400,10 @@ void main() {
       // Nothing is held for Pay to resume.
       expect(
         find.text(FlipperL10n.current.cartPaymentReceivedReceiptPending),
+        findsNothing,
+      );
+      expect(
+        find.text(FlipperL10n.current.cartPaymentReceivedSaleNotSaved),
         findsNothing,
       );
     });

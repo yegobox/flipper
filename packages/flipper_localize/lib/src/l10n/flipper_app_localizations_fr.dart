@@ -18035,6 +18035,10 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
       'Paiement reçu, mais le reçu n\'a pas été émis. Appuyez sur Payer pour l\'émettre. Le client ne sera pas débité à nouveau.';
 
   @override
+  String get cartPaymentReceivedSaleNotSaved =>
+      'Paiement reçu et reçu émis, mais la vente n\'a pas été enregistrée. Appuyez sur Payer pour la terminer. Le client ne sera pas débité à nouveau.';
+
+  @override
   String get errorUnableToSaveData =>
       'Impossible d\'enregistrer les données. Redémarrez l\'application et réessayez.';
 

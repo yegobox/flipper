@@ -1762,6 +1762,9 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       // Named so a cancelled receipt step can run again from Pay (see
       // [holdPaidSaleForReceipt]) with the payment that was confirmed.
       late final Future<void> Function(PostgresChangePayload) onPaymentRow;
+      // Which completion steps this attempt has done. A retry from Pay skips
+      // them, so a receipt is never issued twice.
+      final saleProgress = MomoPaidSaleProgress();
 
       // Create channel with callback
       final channel = Supabase.instance.client
@@ -1797,9 +1800,6 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
 
               // Mark as processing
               _isProcessingPayment = true;
-              // Set once the sale is recorded as complete. A failure before
-              // that leaves a paid sale without its receipt.
-              var saleMarkedComplete = false;
 
               talker.info(
                 "✅ Payment CONFIRMED by user - Status: ${newRecord['paymentStatus']}",
@@ -1817,67 +1817,38 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
                 return;
               }
 
-              try {
-                // Call the onPaymentConfirmed callback to update UI
-                onPaymentConfirmed?.call();
+              await completePaidSale(
+                transactionId: transaction.id,
+                paymentAttempt: paymentAttempt,
+                progress: saleProgress,
+                issueReceipt: () {
+                  // Call the onPaymentConfirmed callback to update UI
+                  onPaymentConfirmed?.call();
 
-                talker.info(
-                  "🧾 Starting receipt generation after payment confirmation...",
-                );
-                final bool
-                didComplete = await _finalStepInCompletingTransaction(
-                  customer: customer,
-                  transaction: transaction,
-                  amount: amount,
-                  discount: discount,
-                  paymentMethods: paymentMethods,
-                  paymentType: paymentType,
-                  ticketName: ticketName,
-                  preloadedLineItemsForCollectPayment: transactionItems,
-                  skipCollectPaymentTransactionPersist: false,
-                  completeTransaction: () {
-                    // For digital payments, don't call completeTransaction yet
-                    // We'll call it after this succeeds
-                    talker.info(
-                      "✅ Receipt generation completed for digital payment",
-                    );
-                    talker.info("📄 Receipt successfully saved and synced");
-                  },
-                );
-                // Execution reaches here AFTER _finalStepInCompletingTransaction completes
-                talker.info(
-                  "🏁 _finalStepInCompletingTransaction returned successfully",
-                );
-
-                if (!didComplete) {
-                  // User cancelled or receipt generation did not complete.
                   talker.info(
-                    "ℹ️ Receipt generation did not complete; not closing bottom sheet",
+                    "🧾 Starting receipt generation after payment confirmation...",
                   );
-                  _isProcessingPayment = false;
-                  // The customer has paid, so this is not a cancelled sale.
-                  // The cart stays locked and Pay issues the receipt.
-                  holdPaidSaleForReceipt(
-                    transactionId: transaction.id,
-                    paymentAttempt: paymentAttempt,
-                    issueReceipt: () => onPaymentRow(payload),
+                  return _finalStepInCompletingTransaction(
+                    customer: customer,
+                    transaction: transaction,
+                    amount: amount,
+                    discount: discount,
+                    paymentMethods: paymentMethods,
+                    paymentType: paymentType,
+                    ticketName: ticketName,
+                    preloadedLineItemsForCollectPayment: transactionItems,
+                    skipCollectPaymentTransactionPersist: false,
+                    completeTransaction: () {
+                      // For digital payments, don't call completeTransaction yet
+                      // We'll call it after this succeeds
+                      talker.info(
+                        "✅ Receipt generation completed for digital payment",
+                      );
+                      talker.info("📄 Receipt successfully saved and synced");
+                    },
                   );
-                  return;
-                }
-
-                // Digital payment confirmed and receipt generated successfully
-                // NOW we can call the actual completeTransaction callback
-                talker.info(
-                  "✅ Digital payment completed successfully - Closing bottom sheet",
-                );
-                talker.info(
-                  "⏰ Receipt generation took: ${DateTime.now().toIso8601String()}",
-                );
-                talker.info(
-                  "🔄 Calling completeTransaction callback to close bottom sheet...",
-                );
-
-                final mark = await markTransactionAsCompleted(
+                },
+                markComplete: () => markTransactionAsCompleted(
                   transaction: transaction,
                   finalSubTotal: finalSubTotal,
                   paymentMethods: paymentMethods,
@@ -1886,74 +1857,44 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
                   lineItemsForAgentCommission: transactionItems,
                   deferPaymentPersist: true,
                   overrideAlreadyPaid: overrideAlreadyPaid,
-                );
-                saleMarkedComplete = true;
+                ),
+                finishSale: (mark) async {
+                  final deferredPayments = mark.deferredPayments;
+                  if (deferredPayments != null && deferredPayments.isNotEmpty) {
+                    final capellaStrategy = ProxyService.getStrategy(
+                      Strategy.capella,
+                    );
+                    await _persistSalePaymentLines(
+                      capella: capellaStrategy,
+                      transactionId: transaction.id,
+                      payments: deferredPayments,
+                      replacePriorRows: mark.replacesPriorPayments,
+                    );
+                  }
 
-                final deferredPayments = mark.deferredPayments;
-                if (deferredPayments != null && deferredPayments.isNotEmpty) {
-                  final capellaStrategy = ProxyService.getStrategy(
-                    Strategy.capella,
-                  );
-                  await _persistSalePaymentLines(
-                    capella: capellaStrategy,
-                    transactionId: transaction.id,
-                    payments: deferredPayments,
-                    replacePriorRows: mark.replacesPriorPayments,
-                  );
-                }
-
-                // Ticket Review + Handover workflow: keep parity with the cash
-                // path (`_finalStepInCompletingTransaction` above) — stock
-                // deduction (local + RRA) is deferred to the Stock Manager's
-                // handover step for a fully-paid digital-payment sale too.
-                final reviewWorkflowDefersStock =
-                    ProxyService.settings.enableTicketReviewWorkflow &&
-                    !mark.wasLoan;
-                if (!reviewWorkflowDefersStock) {
-                  await runLocalStockDeductionThenScheduleRra(
-                    transactionItems: transactionItems,
-                    allowSellingBelowStock: allowSellingBelowStock,
-                    isProformaOrTraining: isProformaOrTraining,
-                    transactionId: transaction.id,
-                    transaction: transaction,
-                    receiptType: receiptTypeForStock,
-                    sarTyCd: stockIoSarTyCd,
-                  );
-                }
-
-                _isProcessingPayment = false;
-                _paymentTimeout?.cancel(); // Cancel timeout on success
-
-                _clearSaleCustomerContextAfterSale();
-                // Await cart clear so taps cannot land on the paid ticket while
-                // the old lines are still visible (same race as cash path).
-                try {
-                  await _invokeCompleteTransactionCallback(completeTransaction);
-                } catch (e) {
-                  talker.error("Error in completeTransaction callback: $e");
-                }
-                _resetDigitalReceiptToggleAfterSale();
-
-                talker.info(
-                  "✅ completeTransaction callback executed - Bottom sheet should now close",
-                );
-              } catch (e) {
-                talker.error(
-                  "❌ Error completing transaction after payment: $e",
-                );
-                _isProcessingPayment = false; // Reset flag on error
-                _paymentTimeout?.cancel(); // Cancel timeout on error
-                endPaidSaleAfterError(
-                  transactionId: transaction.id,
-                  paymentAttempt: paymentAttempt,
-                  saleMarkedComplete: saleMarkedComplete,
-                  retryReceipt: () => onPaymentRow(payload),
-                );
-                onPaymentFailed?.call(
-                  e.toString().replaceAll('Exception: ', ''),
-                );
-                rethrow;
-              }
+                  // Ticket Review + Handover workflow: keep parity with the cash
+                  // path (`_finalStepInCompletingTransaction` above) — stock
+                  // deduction (local + RRA) is deferred to the Stock Manager's
+                  // handover step for a fully-paid digital-payment sale too.
+                  final reviewWorkflowDefersStock =
+                      ProxyService.settings.enableTicketReviewWorkflow &&
+                      !mark.wasLoan;
+                  if (!reviewWorkflowDefersStock) {
+                    await runLocalStockDeductionThenScheduleRra(
+                      transactionItems: transactionItems,
+                      allowSellingBelowStock: allowSellingBelowStock,
+                      isProformaOrTraining: isProformaOrTraining,
+                      transactionId: transaction.id,
+                      transaction: transaction,
+                      receiptType: receiptTypeForStock,
+                      sarTyCd: stockIoSarTyCd,
+                    );
+                  }
+                },
+                completeTransaction: completeTransaction,
+                retry: () => onPaymentRow(payload),
+                onPaymentFailed: onPaymentFailed,
+              );
             },
           );
 
@@ -1972,7 +1913,9 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     ProxyService.box.writeBool(key: 'transactionInProgress', value: false);
   }
 
-  /// MoMo confirmed the payment but the receipt step was cancelled.
+  /// MoMo confirmed the payment but the sale did not complete: the receipt
+  /// step was cancelled or failed, or the receipt was issued
+  /// ([receiptIssued]) but the sale could not be saved.
   ///
   /// The wait for the payment ends: the timer stops and the listener is
   /// unsubscribed, so a later update to the payment row cannot complete the
@@ -1984,6 +1927,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     required String transactionId,
     required int paymentAttempt,
     required Future<void> Function() issueReceipt,
+    bool receiptIssued = false,
   }) {
     // Only retire the timer and listener if they still belong to this attempt.
     if (paymentAttempt == _digitalPaymentAttempt) {
@@ -2005,7 +1949,9 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     ref.read(payButtonStateProvider.notifier).stopLoading();
     showCustomSnackBarUtil(
       context,
-      FlipperL10n.current.cartPaymentReceivedReceiptPending,
+      receiptIssued
+          ? FlipperL10n.current.cartPaymentReceivedSaleNotSaved
+          : FlipperL10n.current.cartPaymentReceivedReceiptPending,
       backgroundColor: Colors.orange,
       duration: const Duration(seconds: 10),
       showCloseButton: true,
@@ -2017,17 +1963,18 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
   /// Once the sale is recorded as complete, only follow-up work failed: the
   /// sale is no longer in flight, so the lock is released (left set, every
   /// later cart tap is a silent no-op). Before that, the customer has paid
-  /// and has no receipt, so the sale is held exactly as a cancelled purchase
-  /// code is, and the next Pay retries [retryReceipt]. This also covers a
-  /// retry from Pay that fails: it is held again rather than lost.
+  /// and the sale is not saved, so it is held exactly as a cancelled purchase
+  /// code is, and the next Pay runs [retryReceipt], which skips the steps in
+  /// [progress] that already succeeded. A retry from Pay that fails is held
+  /// again rather than lost.
   @visibleForTesting
   void endPaidSaleAfterError({
     required String transactionId,
     required int paymentAttempt,
-    required bool saleMarkedComplete,
+    required MomoPaidSaleProgress progress,
     required Future<void> Function() retryReceipt,
   }) {
-    if (saleMarkedComplete) {
+    if (progress.saleMarkedComplete) {
       ProxyService.box.writeBool(key: 'transactionCompleting', value: false);
       return;
     }
@@ -2035,7 +1982,88 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       transactionId: transactionId,
       paymentAttempt: paymentAttempt,
       issueReceipt: retryReceipt,
+      receiptIssued: progress.receiptIssued,
     );
+  }
+
+  /// Completes a MoMo sale once the payment is confirmed: the receipt, then
+  /// the sale is recorded as complete, then [finishSale] (payment rows,
+  /// stock) and the host's [completeTransaction].
+  ///
+  /// [progress] lasts as long as the payment attempt, and [retry] (what Pay
+  /// runs for a held sale) comes back here with it. Steps that already
+  /// succeeded are skipped, so an issued receipt, a fiscal document, is never
+  /// issued a second time.
+  @visibleForTesting
+  Future<void> completePaidSale<M>({
+    required String transactionId,
+    required int paymentAttempt,
+    required MomoPaidSaleProgress progress,
+    required Future<bool> Function() issueReceipt,
+    required Future<M> Function() markComplete,
+    required Future<void> Function(M mark) finishSale,
+    required Function completeTransaction,
+    required Future<void> Function() retry,
+    Function(String)? onPaymentFailed,
+  }) async {
+    try {
+      if (!progress.receiptIssued) {
+        if (!await issueReceipt()) {
+          // User cancelled or receipt generation did not complete.
+          talker.info(
+            "ℹ️ Receipt generation did not complete; not closing bottom sheet",
+          );
+          _isProcessingPayment = false;
+          // The customer has paid, so this is not a cancelled sale.
+          // The cart stays locked and Pay issues the receipt.
+          holdPaidSaleForReceipt(
+            transactionId: transactionId,
+            paymentAttempt: paymentAttempt,
+            issueReceipt: retry,
+          );
+          return;
+        }
+        progress.receiptIssued = true;
+      }
+
+      // Digital payment confirmed and receipt generated successfully
+      // NOW we can call the actual completeTransaction callback
+      talker.info(
+        "✅ Digital payment completed successfully - Closing bottom sheet",
+      );
+      final mark = await markComplete();
+      progress.saleMarkedComplete = true;
+      await finishSale(mark);
+
+      _isProcessingPayment = false;
+      _paymentTimeout?.cancel(); // Cancel timeout on success
+
+      _clearSaleCustomerContextAfterSale();
+      // Await cart clear so taps cannot land on the paid ticket while
+      // the old lines are still visible (same race as cash path).
+      try {
+        await _invokeCompleteTransactionCallback(completeTransaction);
+      } catch (e) {
+        talker.error("Error in completeTransaction callback: $e");
+      }
+      _resetDigitalReceiptToggleAfterSale();
+
+      talker.info(
+        "✅ completeTransaction callback executed - Bottom sheet should now close",
+      );
+    } catch (e) {
+      talker.error("❌ Error completing transaction after payment: $e");
+      _isProcessingPayment = false; // Reset flag on error
+      _paymentTimeout?.cancel(); // Cancel timeout on error
+      endPaidSaleAfterError(
+        transactionId: transactionId,
+        paymentAttempt: paymentAttempt,
+        progress: progress,
+        retryReceipt: retry,
+      );
+      onPaymentFailed?.call(e.toString().replaceAll('Exception: ', ''));
+      rethrow;
+    }
   }
 
   /// Runs the held receipt step when [transactionId] is a paid MoMo ticket.

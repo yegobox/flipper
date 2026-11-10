@@ -14507,6 +14507,7 @@
     "cartPaymentSuccessful": "Payment Successful",
     "cartPaymentConfirmationTimeout": "Payment confirmation timeout. Please try again.",
     "cartPaymentReceivedReceiptPending": "Payment received, but the receipt was not issued. Tap Pay to issue it. The customer will not be charged again.",
+    "cartPaymentReceivedSaleNotSaved": "Payment received and receipt issued, but the sale was not saved. Tap Pay to finish it. The customer will not be charged again.",
     "errorUnableToSaveData": "Unable to save data. Please restart the app and try again.",
     "errorDatabaseBusy": "Database is busy. Please wait a moment and try again.",
     "errorNoInternet": "No internet connection. Please check your network and try again.",

@@ -17748,6 +17748,10 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
       'Payment received, but the receipt was not issued. Tap Pay to issue it. The customer will not be charged again.';
 
   @override
+  String get cartPaymentReceivedSaleNotSaved =>
+      'Payment received and receipt issued, but the sale was not saved. Tap Pay to finish it. The customer will not be charged again.';
+
+  @override
   String get errorUnableToSaveData =>
       'Unable to save data. Please restart the app and try again.';
 

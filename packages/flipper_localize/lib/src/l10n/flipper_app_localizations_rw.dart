@@ -17915,6 +17915,10 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
       'Ubwishyu bwakiriwe, ariko inyemezabwishyu ntiyatanzwe. Kanda Ishyura kugira ngo uyitange. Umukiriya ntazongera kwishyuzwa.';
 
   @override
+  String get cartPaymentReceivedSaleNotSaved =>
+      'Ubwishyu bwakiriwe kandi inyemezabwishyu yatanzwe, ariko igurisha ntiryabitswe. Kanda Ishyura kugira ngo urirangize. Umukiriya ntazongera kwishyuzwa.';
+
+  @override
   String get errorUnableToSaveData =>
       'Ntibyashobotse kubika amakuru. Ongera ufungure porogaramu wongere ugerageze.';
 
