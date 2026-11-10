@@ -23,6 +23,7 @@ import 'package:flutter/foundation.dart'
 import 'package:flutter/gestures.dart' show PointerDeviceKind;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flipper_login/pin_login_optimistic_signin.dart';
 import 'package:flipper_login/pin_login_signin_text.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
@@ -530,8 +531,17 @@ class _PinLoginState extends State<PinLogin>
     IPin pinRecord, {
     required bool forceOffline,
   }) async {
-    _markSignInSuccess();
-    await _withLoginPipelineTimeout(
+    await signInOptimistically(
+      setSignedIn: (signedIn) {
+        if (mounted) setState(() => _isDone = signedIn);
+      },
+      login: () => _loginPipeline(pinRecord, forceOffline: forceOffline),
+    );
+    if (!forceOffline) _mfa.cacheSecretAfterOnlineLogin(pinRecord);
+  }
+
+  Future<void> _loginPipeline(IPin pinRecord, {required bool forceOffline}) {
+    return _withLoginPipelineTimeout(
       ProxyService.strategy.login(
         userPhone: pinRecord.phoneNumber,
         isInSignUpProgress: false,
@@ -549,7 +559,6 @@ class _PinLoginState extends State<PinLogin>
         flipperHttpClient: ProxyService.http,
       ),
     );
-    if (!forceOffline) _mfa.cacheSecretAfterOnlineLogin(pinRecord);
   }
 
   Future<void> _handleLoginError(dynamic e, StackTrace s) async {

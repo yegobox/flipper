@@ -455,7 +455,15 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
           StartupRouteLog.record('kept the cached session', e, stackTrace),
         );
         await _handleInitialPaymentVerification();
+        return;
       }
+      // Nothing cached to enter with (a first launch, a new device). Staying
+      // put left the startup screen up forever; at the login screen the user
+      // can try again once the network is back.
+      unawaited(
+        StartupRouteLog.record('timed out twice, no session', e, stackTrace),
+      );
+      _routerService.clearStackAndShow(LoginRoute());
       return;
     } else {
       if (await _keepsCachedSessionAfter(e)) {

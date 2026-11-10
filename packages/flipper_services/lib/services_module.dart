@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:supabase_models/http/timeout_http_client.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flipper_analytics/flipper_analytics.dart';
 import 'package:flipper_models/local_mode_tax_guard.dart';
@@ -236,7 +237,12 @@ abstract class ServicesModule {
     if ((const bool.fromEnvironment('FLUTTER_TEST_ENV') == true)) {
       https = MockHttpClient();
     } else {
-      https = DefaultFlipperHttpClient(httP.Client(), Repository());
+      // A server that never answers would otherwise hang every caller, e.g.
+      // the MoMo Pay spinner and the PIN login OTP request.
+      https = DefaultFlipperHttpClient(
+        TimeoutHttpClient(httP.Client()),
+        Repository(),
+      );
     }
     return https;
   }
