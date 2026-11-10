@@ -755,7 +755,7 @@ jobs:
           ./scripts/ci/prefetch-pdfium.ps1
           ./scripts/ci/patch-windows-plugins.ps1
           Set-Location apps/flipper
-          flutter build windows -v --dart-define=GA4_WINDOWS_API_SECRET=${{ secrets.GA4_WINDOWS_API_SECRET }}
+          flutter build windows -v --dart-define=GA4_WINDOWS_API_SECRET=${{ secrets.GA4_WINDOWS_API_SECRET }} --dart-define=FLIPPER_RELEASE_VERSION=${{ steps.get_version.outputs.version }} --dart-define=FLIPPER_RELEASE_COMMIT=${{ github.sha }}
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           Set-Location ../..
           ./scripts/ci/bundle-native-assets.ps1
@@ -1004,7 +1004,7 @@ jobs:
           ./scripts/ci/prefetch-pdfium.ps1
           ./scripts/ci/patch-windows-plugins.ps1
           Set-Location apps/flipper
-          flutter build windows -v --dart-define=GA4_WINDOWS_API_SECRET=${{ secrets.GA4_WINDOWS_API_SECRET }}
+          flutter build windows -v --dart-define=GA4_WINDOWS_API_SECRET=${{ secrets.GA4_WINDOWS_API_SECRET }} --dart-define=FLIPPER_RELEASE_VERSION=${{ steps.get_version.outputs.version }} --dart-define=FLIPPER_RELEASE_COMMIT=${{ github.sha }}
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           Set-Location ../..
           ./scripts/ci/bundle-native-assets.ps1
