@@ -162,7 +162,7 @@ jobs:
           ./scripts/ci/prefetch-pdfium.ps1
           ./scripts/ci/patch-windows-plugins.ps1
           Set-Location apps/flipper
-          flutter build windows --release -v --dart-define=GA4_WINDOWS_API_SECRET=${{ secrets.GA4_WINDOWS_API_SECRET }}
+          flutter build windows --release -v --dart-define=GA4_WINDOWS_API_SECRET=${{ secrets.GA4_WINDOWS_API_SECRET }} --dart-define=FLIPPER_RELEASE_COMMIT=${{ github.sha }}
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           Set-Location ../..
           ./scripts/ci/bundle-native-assets.ps1
@@ -266,7 +266,7 @@ jobs:
           FLUTTER_XCODE_CODE_SIGN_STYLE: Manual
           FLUTTER_XCODE_CODE_SIGNING_REQUIRED: "NO"
           FLUTTER_XCODE_CODE_SIGNING_ALLOWED: "NO"
-        run: flutter build macos --release -v
+        run: flutter build macos --release -v --dart-define=FLIPPER_RELEASE_COMMIT=${{ github.sha }}
       - name: Sign, notarize, staple
         env:
           APPLE_ID: ${{ secrets.APPLE_ID }}
@@ -366,7 +366,7 @@ jobs:
           AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
       - name: Build
         working-directory: apps/flipper
-        run: flutter build linux --release -v
+        run: flutter build linux --release -v --dart-define=FLIPPER_RELEASE_COMMIT=${{ github.sha }}
       - name: Archive
         run: |
           BUNDLE="apps/flipper/build/linux/x64/release/bundle"

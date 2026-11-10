@@ -27,6 +27,7 @@ import 'package:flipper_models/helperModels/business_type.dart' as helper;
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/sync/shift_sync.dart';
 import 'package:flipper_services/Miscellaneous.dart';
+import 'package:flipper_services/app_build_info.dart';
 import 'package:flipper_services/business_features_loader.dart';
 import 'package:supabase_models/sync/shared_sync_subscriptions.dart';
 
@@ -83,6 +84,11 @@ class AppService with ListenableServiceMixin {
   }
 
   Future<String> version() async {
+    // The Store version CI stamped in, so Settings shows the same number as
+    // the GitHub release (pubspec's `version:` never matches it).
+    if (AppBuildInfo.releaseVersion.isNotEmpty) {
+      return AppBuildInfo.releaseVersion;
+    }
     final packageInfo = await PackageInfo.fromPlatform();
     print("ExpectedVersion${packageInfo.version}+${packageInfo.buildNumber}");
 

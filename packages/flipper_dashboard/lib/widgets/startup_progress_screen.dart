@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import 'package:flipper_design_system/flipper_design_system.dart'
     show FlipperColors;
+import 'package:flipper_services/app_build_info.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
@@ -18,9 +19,17 @@ import 'package:flutter/scheduler.dart';
 /// number that counts 0, 1, 2, 3 … so the screen never looks stuck on a round
 /// number.
 class StartupProgressScreen extends StatelessWidget {
-  const StartupProgressScreen({super.key, required this.progress});
+  const StartupProgressScreen({
+    super.key,
+    required this.progress,
+    this.loadBuildLabel = AppBuildInfo.label,
+  });
 
   final double progress;
+
+  /// Resolves the build line under the status row (`v1.605.0.0 · 0a9a65f`),
+  /// so a till can be matched to its GitHub release. Null hides it.
+  final Future<String?> Function() loadBuildLabel;
 
   /// Column width. Wide enough for the tagline on two lines, narrow enough that
   /// the bar stays a detail rather than a banner on desktop.
@@ -114,6 +123,7 @@ class StartupProgressScreen extends StatelessWidget {
                             ink: ink,
                             muted: muted,
                           ),
+                          _BuildLabel(load: loadBuildLabel, color: muted),
                         ],
                       ),
                     );
@@ -427,6 +437,63 @@ class _StatusLine extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// The release this binary came from, in small mono type under the status row,
+/// so "which version is this till on?" has an answer before anyone logs in.
+///
+/// Resolved once: the counter above rebuilds the column every frame, and this
+/// state survives those rebuilds, so the lookup is not repeated.
+class _BuildLabel extends StatefulWidget {
+  const _BuildLabel({required this.load, required this.color});
+
+  final Future<String?> Function() load;
+  final Color color;
+
+  @override
+  State<_BuildLabel> createState() => _BuildLabelState();
+}
+
+class _BuildLabelState extends State<_BuildLabel> {
+  String? _label;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.load().then(
+      (label) {
+        if (mounted && label != null) setState(() => _label = label);
+      },
+      // No label is better than a broken boot screen.
+      onError: (Object _) {},
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final label = _label;
+    if (label == null) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(top: 22),
+      child: SelectableText(
+        label,
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          fontFamily: 'packages/flipper_dashboard/Geist Mono',
+          fontFamilyFallback: const [
+            'Menlo',
+            'SF Mono',
+            'Roboto Mono',
+            'Courier New',
+            'monospace',
+          ],
+          fontSize: 11,
+          letterSpacing: 0.2,
+          color: widget.color.withValues(alpha: 0.8),
+        ),
+      ),
     );
   }
 }
