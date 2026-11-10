@@ -70,6 +70,24 @@ mixin PlanMixin on DittoCore {
     ];
   }
 
+  /// [execDocs] then [observed], one per document id. A document that
+  /// arrives during the catch-up and stays is in both; read twice, an addon
+  /// was listed twice. A document without an id cannot be matched, so each
+  /// one is kept.
+  List<Map<String, dynamic>> _mergeDocs(
+    List<Map<String, dynamic>> execDocs,
+    List<Map<String, dynamic>>? observed,
+  ) {
+    final seen = <String>{};
+    final merged = <Map<String, dynamic>>[];
+    for (final doc in [...execDocs, ...?observed]) {
+      final id = (doc['_id'] ?? doc['id'])?.toString();
+      if (id != null && !seen.add(id)) continue;
+      merged.add(doc);
+    }
+    return merged;
+  }
+
   /// Get the payment plan for a business from Ditto.
   /// Returns server-synced plan data, available even when offline.
   /// Returns null if Ditto is not ready or no plan exists for the business.
@@ -111,7 +129,7 @@ mixin PlanMixin on DittoCore {
       final execResult = await ditto.store.execute(_planQuery, arguments: args);
       execDocs = _mapsFromQueryResult(execResult);
 
-      final merged = <Map<String, dynamic>>[...execDocs, ...?observerSnapshot];
+      final merged = _mergeDocs(execDocs, observerSnapshot);
       if (merged.isEmpty) return null;
 
       final doc = _selectCanonicalPlanDocument(merged);
@@ -158,7 +176,7 @@ mixin PlanMixin on DittoCore {
         arguments: args,
       );
       final execDocs = _mapsFromQueryResult(execResult);
-      final merged = <Map<String, dynamic>>[...execDocs, ...?observerSnapshot];
+      final merged = _mergeDocs(execDocs, observerSnapshot);
 
       return merged.map(PlanAddon.fromDittoDocument).toList(growable: false);
     } catch (e) {

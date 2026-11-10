@@ -192,6 +192,9 @@ void main() {
       ];
       ditto.store.docs['addons'] = [
         {'_id': 'addon-1', 'planId': 'plan-a', 'addonName': 'Tax'},
+        // No id: nothing to match on, so each is its own addon.
+        {'planId': 'plan-a', 'addonName': 'Note A'},
+        {'planId': 'plan-a', 'addonName': 'Note B'},
       ];
       final probe = _Probe(ditto);
 
@@ -200,8 +203,17 @@ void main() {
 
       expect(plan?.id, 'plan-a');
       expect(plan?.selectedPlan, 'Mobile');
-      expect(plan?.addons?.map((a) => a.addonName), ['Tax', 'Tax']);
+      // The catch-up observer and the read both return what is in the store;
+      // a document with an id is listed once.
+      final names = plan?.addons?.map((a) => a.addonName).toList();
+      expect(names?.where((n) => n == 'Tax'), hasLength(1));
+      expect(names, containsAll(['Note A', 'Note B']));
       expect(again?.id, 'plan-a');
+      expect(again?.addons?.map((a) => a.addonName), [
+        'Tax',
+        'Note A',
+        'Note B',
+      ]);
       expect(ditto.sync.registered.map((r) => r.dql).toList(), [
         'SELECT * FROM plans WHERE businessId = :businessId',
         'SELECT * FROM addons WHERE planId = :planId',
