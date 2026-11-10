@@ -26,7 +26,8 @@ final leadsStreamProvider = StreamProvider.autoDispose<List<Lead>>((ref) {
   // Ditto returns a SyncSubscription; just register once (deduped internally).
   try {
     final preparedLeads = prepareDqlSyncSubscription(query, args);
-    SharedSyncSubscriptions.register(ditto, 
+    SharedSyncSubscriptions.register(
+      ditto,
       preparedLeads.dql,
       arguments: preparedLeads.arguments,
     );
@@ -86,7 +87,9 @@ final leadsStatsProvider = Provider.autoDispose<AsyncValue<LeadsStats>>((ref) {
   final leadsAsync = ref.watch(leadsStreamProvider);
   return leadsAsync.whenData((leads) {
     final total = leads.length;
-    final converted = leads.where((l) => l.status == LeadStatus.converted).length;
+    final converted = leads
+        .where((l) => l.status == LeadStatus.converted)
+        .length;
     final fromGmail = leads.where((l) => l.source == LeadSource.gmail).length;
     final pipeline = leads.fold<double>(0.0, (a, b) {
       final v = b.estimatedValue;
@@ -103,4 +106,3 @@ final leadsStatsProvider = Provider.autoDispose<AsyncValue<LeadsStats>>((ref) {
     );
   });
 });
-

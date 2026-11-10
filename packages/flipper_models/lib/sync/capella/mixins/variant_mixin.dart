@@ -1037,7 +1037,8 @@ mixin CapellaVariantMixin implements VariantInterface {
 
       try {
         final preparedGetVariant = prepareDqlSyncSubscription(query, arguments);
-        SharedSyncSubscriptions.register(ditto, 
+        SharedSyncSubscriptions.register(
+          ditto,
           preparedGetVariant.dql,
           arguments: preparedGetVariant.arguments,
         );
@@ -1682,7 +1683,8 @@ mixin CapellaVariantMixin implements VariantInterface {
       // Subscribe to ensure we have the latest data
       try {
         final preparedByStock = prepareDqlSyncSubscription(query, arguments);
-        SharedSyncSubscriptions.register(ditto, 
+        SharedSyncSubscriptions.register(
+          ditto,
           preparedByStock.dql,
           arguments: preparedByStock.arguments,
         );

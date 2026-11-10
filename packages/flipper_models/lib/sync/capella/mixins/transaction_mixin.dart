@@ -239,7 +239,8 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         "SELECT * FROM transactions WHERE branchId = :branchId",
         {'branchId': branchId},
       );
-      SharedSyncSubscriptions.register(ditto, 
+      SharedSyncSubscriptions.register(
+        ditto,
         preparedTx.dql,
         arguments: preparedTx.arguments,
       );
@@ -469,7 +470,8 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         'SELECT * FROM transactions WHERE branchId = :branchId',
         {'branchId': branchId},
       );
-      SharedSyncSubscriptions.register(ditto, 
+      SharedSyncSubscriptions.register(
+        ditto,
         preparedTx.dql,
         arguments: preparedTx.arguments,
       );
@@ -638,7 +640,8 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         'SELECT * FROM transactions WHERE branchId = :branchId',
         {'branchId': branchId},
       );
-      SharedSyncSubscriptions.register(ditto, 
+      SharedSyncSubscriptions.register(
+        ditto,
         preparedTx.dql,
         arguments: preparedTx.arguments,
       );
@@ -909,7 +912,8 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         );
         if (prepared == null) return;
         try {
-          SharedSyncSubscriptions.register(ditto, 
+          SharedSyncSubscriptions.register(
+            ditto,
             prepared.dql,
             arguments: prepared.arguments,
           );
@@ -936,7 +940,8 @@ mixin CapellaTransactionMixin implements TransactionInterface {
           attributedAgentUserId: attributedAgentUserId,
         );
         if (syncSubscription != null) {
-          SharedSyncSubscriptions.register(ditto, 
+          SharedSyncSubscriptions.register(
+            ditto,
             syncSubscription.dql,
             arguments: syncSubscription.arguments,
           );
@@ -3018,7 +3023,8 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         'SELECT * FROM transactions WHERE branchId = :branchId',
         {'branchId': branchId},
       );
-      SharedSyncSubscriptions.register(ditto, 
+      SharedSyncSubscriptions.register(
+        ditto,
         preparedBranch.dql,
         arguments: preparedBranch.arguments,
       );
@@ -3426,7 +3432,8 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       kitchenOrdersBranchSubscriptionDql,
       {'branchId': branchId},
     );
-    SharedSyncSubscriptions.register(ditto, 
+    SharedSyncSubscriptions.register(
+      ditto,
       prepared.dql,
       arguments: prepared.arguments,
     );
@@ -3455,7 +3462,8 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         'SELECT * FROM transactions WHERE branchId = :branchId',
         {'branchId': branchId},
       );
-      SharedSyncSubscriptions.register(ditto, 
+      SharedSyncSubscriptions.register(
+        ditto,
         preparedTx.dql,
         arguments: preparedTx.arguments,
       );
@@ -4289,7 +4297,8 @@ mixin CapellaTransactionMixin implements TransactionInterface {
           }
 
           final preparedPending = prepareDqlSyncSubscription(query, arguments);
-          SharedSyncSubscriptions.register(activeDitto, 
+          SharedSyncSubscriptions.register(
+            activeDitto,
             preparedPending.dql,
             arguments: preparedPending.arguments,
           );
@@ -4303,7 +4312,8 @@ mixin CapellaTransactionMixin implements TransactionInterface {
             {'branchId': branchId},
           );
           try {
-            SharedSyncSubscriptions.register(activeDitto, 
+            SharedSyncSubscriptions.register(
+              activeDitto,
               preparedBranch.dql,
               arguments: preparedBranch.arguments,
             );

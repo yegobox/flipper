@@ -106,7 +106,8 @@ class PersonalGoalNotificationService with WidgetsBindingObserver {
       final prepared = prepareDqlSyncSubscription(_eventsQuery, {
         'channel': eventChannel,
       });
-      SharedSyncSubscriptions.register(ditto, 
+      SharedSyncSubscriptions.register(
+        ditto,
         prepared.dql,
         arguments: prepared.arguments,
       );
@@ -170,7 +171,8 @@ class PersonalGoalNotificationService with WidgetsBindingObserver {
     const allSql = 'SELECT * FROM personal_goals';
     try {
       final preparedAll = prepareDqlSyncSubscription(allSql, null);
-      SharedSyncSubscriptions.register(ditto, 
+      SharedSyncSubscriptions.register(
+        ditto,
         preparedAll.dql,
         arguments: preparedAll.arguments,
       );
@@ -180,7 +182,8 @@ class PersonalGoalNotificationService with WidgetsBindingObserver {
       'branchId': branchId,
     });
     try {
-      SharedSyncSubscriptions.register(ditto, 
+      SharedSyncSubscriptions.register(
+        ditto,
         prepared.dql,
         arguments: prepared.arguments,
       );

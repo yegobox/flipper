@@ -86,7 +86,8 @@ final smsReviewItemsProvider = StreamProvider.autoDispose
       final args = {'branchId': branchId, 'status': SmsReviewItem.pending};
       try {
         final prepared = prepareDqlSyncSubscription(_pendingQuery, args);
-        SharedSyncSubscriptions.register(ditto, 
+        SharedSyncSubscriptions.register(
+          ditto,
           prepared.dql,
           arguments: prepared.arguments,
         );

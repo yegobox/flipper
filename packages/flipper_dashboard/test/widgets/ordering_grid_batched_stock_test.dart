@@ -59,9 +59,7 @@ void main() {
 
   tearDown(() => env.restore());
 
-  testWidgets('one observer for the whole grid, none per card', (
-    tester,
-  ) async {
+  testWidgets('one observer for the whole grid, none per card', (tester) async {
     tester.view.physicalSize = const Size(1400, 900);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);

@@ -624,7 +624,8 @@ LIMIT 1
     () async {
       try {
         final prepared = prepareDqlSyncSubscription(query, arguments);
-        SharedSyncSubscriptions.register(ditto, 
+        SharedSyncSubscriptions.register(
+          ditto,
           prepared.dql,
           arguments: prepared.arguments,
         );

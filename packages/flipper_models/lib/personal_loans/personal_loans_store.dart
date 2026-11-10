@@ -107,7 +107,8 @@ Stream<List<Map<String, dynamic>>> _observe(
   final args = {'businessId': businessId};
   try {
     final prepared = prepareDqlSyncSubscription(query, args);
-    SharedSyncSubscriptions.register(ditto, 
+    SharedSyncSubscriptions.register(
+      ditto,
       prepared.dql,
       arguments: prepared.arguments,
     );

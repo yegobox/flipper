@@ -6,6 +6,11 @@ import 'ditto_core_mixin.dart';
 import 'package:supabase_models/sync/shared_sync_subscriptions.dart';
 
 mixin PlanMixin on DittoCore {
+  /// [dittoInstance], untyped: this mixin only calls its `sync` and `store`.
+  /// `Ditto` is a final class a unit test cannot stand in for, so tests
+  /// override this with an in-memory store.
+  dynamic get dittoHandle => dittoInstance;
+
   /// Registered [businessId]s for which we already installed a
   /// [Sync.registerSubscription] for the `plans` collection.
   static final Set<String> _planReplicationSubscriptions = {};
@@ -25,12 +30,14 @@ mixin PlanMixin on DittoCore {
   ///
   /// Returns `true` the first time we register for this [businessId].
   bool _ensurePlanReplicationSubscription(String businessId) {
-    if (dittoInstance == null) return false;
+    final ditto = dittoHandle;
+    if (ditto == null) return false;
     if (_planReplicationSubscriptions.contains(businessId)) return false;
     final prepared = prepareDqlSyncSubscription(_planQuery, {
       'businessId': businessId,
     });
-    SharedSyncSubscriptions.register(dittoInstance!, 
+    SharedSyncSubscriptions.register(
+      ditto,
       prepared.dql,
       arguments: prepared.arguments,
     );
@@ -40,12 +47,14 @@ mixin PlanMixin on DittoCore {
 
   /// Returns `true` the first time we register for this [planId].
   bool _ensureAddonReplicationSubscription(String planId) {
-    if (dittoInstance == null) return false;
+    final ditto = dittoHandle;
+    if (ditto == null) return false;
     if (_addonReplicationSubscriptions.contains(planId)) return false;
     final prepared = prepareDqlSyncSubscription(_addonQuery, {
       'planId': planId,
     });
-    SharedSyncSubscriptions.register(dittoInstance!, 
+    SharedSyncSubscriptions.register(
+      ditto,
       prepared.dql,
       arguments: prepared.arguments,
     );
@@ -53,17 +62,20 @@ mixin PlanMixin on DittoCore {
     return true;
   }
 
-  List<Map<String, dynamic>> _mapsFromQueryResult(QueryResult result) {
-    return result.items
-        .map((item) => Map<String, dynamic>.from(item.value))
-        .toList();
+  /// [result] is a Ditto `QueryResult` (untyped: see [dittoHandle]).
+  List<Map<String, dynamic>> _mapsFromQueryResult(dynamic result) {
+    return [
+      for (final item in result.items as Iterable)
+        Map<String, dynamic>.from(item.value as Map),
+    ];
   }
 
   /// Get the payment plan for a business from Ditto.
   /// Returns server-synced plan data, available even when offline.
   /// Returns null if Ditto is not ready or no plan exists for the business.
   Future<Plan?> getPaymentPlanFromDitto(String businessId) async {
-    if (dittoInstance == null) {
+    final ditto = dittoHandle;
+    if (ditto == null) {
       return handleNotInitializedAndReturn('getPaymentPlanFromDitto', null);
     }
 
@@ -80,8 +92,7 @@ mixin PlanMixin on DittoCore {
       if (isNewReplicationSub) {
         // First time for this business: observe while replication catches up
         // ([Store.execute] does not wait for sync — Ditto docs).
-        late final StoreObserver observer;
-        observer = dittoInstance!.store.registerObserver(
+        final dynamic observer = ditto.store.registerObserver(
           _planQuery,
           arguments: args,
           onChange: (result) {
@@ -97,10 +108,7 @@ mixin PlanMixin on DittoCore {
         }
       }
 
-      final execResult = await dittoInstance!.store.execute(
-        _planQuery,
-        arguments: args,
-      );
+      final execResult = await ditto.store.execute(_planQuery, arguments: args);
       execDocs = _mapsFromQueryResult(execResult);
 
       final merged = <Map<String, dynamic>>[...execDocs, ...?observerSnapshot];
@@ -120,7 +128,8 @@ mixin PlanMixin on DittoCore {
   }
 
   Future<List<PlanAddon>> _addonsForPlanFromDitto(String planId) async {
-    if (dittoInstance == null) return const [];
+    final ditto = dittoHandle;
+    if (ditto == null) return const [];
 
     final args = {'planId': planId};
     try {
@@ -128,8 +137,7 @@ mixin PlanMixin on DittoCore {
       List<Map<String, dynamic>>? observerSnapshot;
 
       if (isNew) {
-        late final StoreObserver observer;
-        observer = dittoInstance!.store.registerObserver(
+        final dynamic observer = ditto.store.registerObserver(
           _addonQuery,
           arguments: args,
           onChange: (result) {
@@ -145,7 +153,7 @@ mixin PlanMixin on DittoCore {
         }
       }
 
-      final execResult = await dittoInstance!.store.execute(
+      final execResult = await ditto.store.execute(
         _addonQuery,
         arguments: args,
       );

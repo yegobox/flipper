@@ -43,8 +43,8 @@ mixin CapellaDelegationMixin implements DelegationInterface {
       '  syncArgs=$syncArgs',
       '  compare SQL:',
       "    SELECT * FROM $_collectionName WHERE branchId = '$branchId'"
-      "${status != null ? " AND status = '$status'" : ''}"
-      " AND selectedDelegationDeviceId = '$onDeviceId'",
+          "${status != null ? " AND status = '$status'" : ''}"
+          " AND selectedDelegationDeviceId = '$onDeviceId'",
     ];
 
     if (branchId == null) {
@@ -134,15 +134,15 @@ mixin CapellaDelegationMixin implements DelegationInterface {
       // Use DQL INSERT with conflict resolution (upsert)
       await ditto.store.execute(
         "INSERT INTO $_collectionName DOCUMENTS (:delegation) ON ID CONFLICT DO UPDATE",
-        arguments: {
-          "delegation": delegationData,
-        },
+        arguments: {"delegation": delegationData},
       );
 
       debugPrint(
-          '✅ Delegation created in Ditto: $transactionId (status: delegated)');
+        '✅ Delegation created in Ditto: $transactionId (status: delegated)',
+      );
       debugPrint(
-          '   Branch: $branchId, Receipt: $receiptType, From: $deviceId, Target deviceId: $selectedDelegationDeviceId');
+        '   Branch: $branchId, Receipt: $receiptType, From: $deviceId, Target deviceId: $selectedDelegationDeviceId',
+      );
     } catch (e) {
       debugPrint('❌ Error creating delegation: $e');
       rethrow;
@@ -186,8 +186,9 @@ mixin CapellaDelegationMixin implements DelegationInterface {
       whereParts.add('selectedDelegationDeviceId = :onDeviceId');
       arguments['onDeviceId'] = onDeviceId;
 
-      final whereClause =
-          whereParts.isNotEmpty ? 'WHERE ${whereParts.join(' AND ')}' : '';
+      final whereClause = whereParts.isNotEmpty
+          ? 'WHERE ${whereParts.join(' AND ')}'
+          : '';
 
       final query = 'SELECT * FROM $_collectionName $whereClause';
 
@@ -216,7 +217,8 @@ mixin CapellaDelegationMixin implements DelegationInterface {
           }
 
           final preparedDel = prepareDqlSyncSubscription(syncQuery, syncArgs);
-          SharedSyncSubscriptions.register(ditto, 
+          SharedSyncSubscriptions.register(
+            ditto,
             preparedDel.dql,
             arguments: preparedDel.arguments,
           );
@@ -302,10 +304,7 @@ mixin CapellaDelegationMixin implements DelegationInterface {
       }
 
       final now = DateTime.now().toIso8601String();
-      final updateData = <String, dynamic>{
-        'status': status,
-        'updatedAt': now,
-      };
+      final updateData = <String, dynamic>{'status': status, 'updatedAt': now};
       if (errorMessage != null) {
         updateData['errorMessage'] = errorMessage;
       }
@@ -317,17 +316,15 @@ mixin CapellaDelegationMixin implements DelegationInterface {
         updateData['processingDevice'] = ditto.deviceName;
       }
 
-      final setFields =
-          updateData.keys.map((key) => '$key = :$key').join(', ');
+      final setFields = updateData.keys.map((key) => '$key = :$key').join(', ');
       await ditto.store.execute(
         'UPDATE $_collectionName SET $setFields WHERE _id = :transactionId',
-        arguments: {
-          'transactionId': transactionId,
-          ...updateData,
-        },
+        arguments: {'transactionId': transactionId, ...updateData},
       );
 
-      debugPrint('✅ Delegation status updated in Ditto: $transactionId → $status');
+      debugPrint(
+        '✅ Delegation status updated in Ditto: $transactionId → $status',
+      );
     } catch (e) {
       debugPrint('❌ Error updating delegation status: $e');
       rethrow;

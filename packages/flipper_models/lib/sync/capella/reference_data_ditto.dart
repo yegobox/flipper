@@ -43,7 +43,8 @@ Future<void> ensureReferenceSubscription(
       'SELECT * FROM $collection WHERE branchId = :branchId',
       {'branchId': branchId},
     );
-    SharedSyncSubscriptions.register(ditto, 
+    SharedSyncSubscriptions.register(
+      ditto,
       prepared.dql,
       arguments: prepared.arguments,
     );
@@ -67,48 +68,48 @@ bool _boolOrFalse(dynamic value) {
 }
 
 Map<String, dynamic> colorToDittoDoc(PColor color) => {
-      '_id': color.id,
-      'id': color.id,
-      'name': color.name,
-      'branchId': color.branchId,
-      'active': color.active,
-      'lastTouched': color.lastTouched?.toIso8601String(),
-      'deletedAt': color.deletedAt?.toIso8601String(),
-    };
+  '_id': color.id,
+  'id': color.id,
+  'name': color.name,
+  'branchId': color.branchId,
+  'active': color.active,
+  'lastTouched': color.lastTouched?.toIso8601String(),
+  'deletedAt': color.deletedAt?.toIso8601String(),
+};
 
 PColor colorFromDittoDoc(Map<String, dynamic> doc) => PColor(
-      id: (doc['id'] ?? doc['_id'])?.toString(),
-      name: doc['name']?.toString(),
-      branchId: doc['branchId']?.toString(),
-      active: _boolOrFalse(doc['active']),
-      lastTouched: _dateOrNull(doc['lastTouched']),
-      deletedAt: _dateOrNull(doc['deletedAt']),
-    );
+  id: (doc['id'] ?? doc['_id'])?.toString(),
+  name: doc['name']?.toString(),
+  branchId: doc['branchId']?.toString(),
+  active: _boolOrFalse(doc['active']),
+  lastTouched: _dateOrNull(doc['lastTouched']),
+  deletedAt: _dateOrNull(doc['deletedAt']),
+);
 
 Map<String, dynamic> unitToDittoDoc(IUnit unit) => {
-      '_id': unit.id,
-      'id': unit.id,
-      'branchId': unit.branchId,
-      'name': unit.name,
-      'value': unit.value,
-      'active': unit.active,
-      'code': unit.code,
-      'description': unit.description,
-      'lastTouched': unit.lastTouched?.toIso8601String(),
-      'createdAt': unit.createdAt,
-    };
+  '_id': unit.id,
+  'id': unit.id,
+  'branchId': unit.branchId,
+  'name': unit.name,
+  'value': unit.value,
+  'active': unit.active,
+  'code': unit.code,
+  'description': unit.description,
+  'lastTouched': unit.lastTouched?.toIso8601String(),
+  'createdAt': unit.createdAt,
+};
 
 IUnit unitFromDittoDoc(Map<String, dynamic> doc) => IUnit(
-      id: (doc['id'] ?? doc['_id'])?.toString(),
-      branchId: doc['branchId']?.toString(),
-      name: doc['name']?.toString(),
-      value: doc['value']?.toString(),
-      active: doc['active'] == null ? null : _boolOrFalse(doc['active']),
-      code: doc['code']?.toString(),
-      description: doc['description']?.toString(),
-      lastTouched: _dateOrNull(doc['lastTouched']),
-      createdAt: doc['createdAt']?.toString(),
-    );
+  id: (doc['id'] ?? doc['_id'])?.toString(),
+  branchId: doc['branchId']?.toString(),
+  name: doc['name']?.toString(),
+  value: doc['value']?.toString(),
+  active: doc['active'] == null ? null : _boolOrFalse(doc['active']),
+  code: doc['code']?.toString(),
+  description: doc['description']?.toString(),
+  lastTouched: _dateOrNull(doc['lastTouched']),
+  createdAt: doc['createdAt']?.toString(),
+);
 
 Future<void> upsertReferenceDoc(
   Ditto ditto,
@@ -147,9 +148,12 @@ Future<void> ensureGlobalReferenceSubscription(
   final key = '${identityHashCode(ditto)}|$collection';
   if (!_globalReferenceSubscribed.add(key)) return;
   try {
-    final prepared =
-        prepareDqlSyncSubscription('SELECT * FROM $collection', null);
-    SharedSyncSubscriptions.register(ditto, 
+    final prepared = prepareDqlSyncSubscription(
+      'SELECT * FROM $collection',
+      null,
+    );
+    SharedSyncSubscriptions.register(
+      ditto,
       prepared.dql,
       arguments: prepared.arguments,
     );
@@ -170,29 +174,29 @@ num _numOrZero(dynamic value) {
 }
 
 Country countryFromSupabaseRow(Map<String, dynamic> row) => Country(
-      id: row['id']?.toString(),
-      name: row['name']?.toString() ?? '',
-      sortOrder: _intOrZero(row['sort_order']),
-      description: row['description']?.toString() ?? '',
-      code: row['code']?.toString() ?? '',
-    );
+  id: row['id']?.toString(),
+  name: row['name']?.toString() ?? '',
+  sortOrder: _intOrZero(row['sort_order']),
+  description: row['description']?.toString() ?? '',
+  code: row['code']?.toString() ?? '',
+);
 
 Map<String, dynamic> countryToDittoDoc(Country country) => {
-      '_id': country.id,
-      'id': country.id,
-      'name': country.name,
-      'sortOrder': country.sortOrder,
-      'description': country.description,
-      'code': country.code,
-    };
+  '_id': country.id,
+  'id': country.id,
+  'name': country.name,
+  'sortOrder': country.sortOrder,
+  'description': country.description,
+  'code': country.code,
+};
 
 Country countryFromDittoDoc(Map<String, dynamic> doc) => Country(
-      id: (doc['id'] ?? doc['_id'])?.toString(),
-      name: doc['name']?.toString() ?? '',
-      sortOrder: _intOrZero(doc['sortOrder']),
-      description: doc['description']?.toString() ?? '',
-      code: doc['code']?.toString() ?? '',
-    );
+  id: (doc['id'] ?? doc['_id'])?.toString(),
+  name: doc['name']?.toString() ?? '',
+  sortOrder: _intOrZero(doc['sortOrder']),
+  description: doc['description']?.toString() ?? '',
+  code: doc['code']?.toString() ?? '',
+);
 
 FinanceProvider financeProviderFromSupabaseRow(Map<String, dynamic> row) =>
     FinanceProvider(
@@ -204,13 +208,13 @@ FinanceProvider financeProviderFromSupabaseRow(Map<String, dynamic> row) =>
     );
 
 Map<String, dynamic> financeProviderToDittoDoc(FinanceProvider provider) => {
-      '_id': provider.id,
-      'id': provider.id,
-      'name': provider.name,
-      'interestRate': provider.interestRate,
-      'suppliersThatAcceptThisFinanceFacility':
-          provider.suppliersThatAcceptThisFinanceFacility,
-    };
+  '_id': provider.id,
+  'id': provider.id,
+  'name': provider.name,
+  'interestRate': provider.interestRate,
+  'suppliersThatAcceptThisFinanceFacility':
+      provider.suppliersThatAcceptThisFinanceFacility,
+};
 
 FinanceProvider financeProviderFromDittoDoc(Map<String, dynamic> doc) =>
     FinanceProvider(
@@ -245,13 +249,13 @@ Configurations configurationFromSupabaseRow(Map<String, dynamic> row) =>
     );
 
 Map<String, dynamic> configurationToDittoDoc(Configurations config) => {
-      '_id': config.id,
-      'id': config.id,
-      'taxType': config.taxType,
-      'taxPercentage': config.taxPercentage,
-      'businessId': config.businessId,
-      'branchId': config.branchId,
-    };
+  '_id': config.id,
+  'id': config.id,
+  'taxType': config.taxType,
+  'taxPercentage': config.taxPercentage,
+  'businessId': config.businessId,
+  'branchId': config.branchId,
+};
 
 Configurations configurationFromDittoDoc(Map<String, dynamic> doc) =>
     Configurations(

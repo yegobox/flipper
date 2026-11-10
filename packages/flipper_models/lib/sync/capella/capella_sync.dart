@@ -469,7 +469,8 @@ class CapellaSync extends AiStrategyImpl
         "SELECT * FROM business_analytics WHERE branchId = :branchId",
         {'branchId': branchId},
       );
-      SharedSyncSubscriptions.register(ditto, 
+      SharedSyncSubscriptions.register(
+        ditto,
         preparedBa.dql,
         arguments: preparedBa.arguments,
       );
@@ -1430,7 +1431,8 @@ class CapellaSync extends AiStrategyImpl
     () async {
       try {
         final prepared = prepareDqlSyncSubscription(query, arguments);
-        SharedSyncSubscriptions.register(ditto, 
+        SharedSyncSubscriptions.register(
+          ditto,
           prepared.dql,
           arguments: prepared.arguments,
         );
@@ -1792,7 +1794,8 @@ class CapellaSync extends AiStrategyImpl
       // same subscription every call leaks subscriptions and stalls Ditto sync.
       if (_capellaTaxEnabledSubscribed.add('$businessId|$branchId')) {
         final preparedEbm = prepareDqlSyncSubscription(query, arguments);
-        SharedSyncSubscriptions.register(ditto, 
+        SharedSyncSubscriptions.register(
+          ditto,
           preparedEbm.dql,
           arguments: preparedEbm.arguments,
         );

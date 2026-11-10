@@ -4,12 +4,17 @@ import 'ditto_core_mixin.dart';
 import 'package:supabase_models/sync/shared_sync_subscriptions.dart';
 
 mixin EventMixin on DittoCore {
+  /// [dittoInstance], untyped: this mixin only calls its `sync` and `store`.
+  /// `Ditto` is a final class a unit test cannot stand in for, so tests
+  /// override this with an in-memory store.
+  dynamic get dittoHandle => dittoInstance;
+
   /// Save an event to the events collection (P2P and/or Ditto Cloud).
   ///
   /// Offline: local write only — replicates to desktop over LAN (P2P).
   /// Online: [executeUpsert] pushes to Ditto Cloud (Big Peer) when authenticated.
   Future<void> saveEvent(Map<String, dynamic> eventData, String eventId) async {
-    if (dittoInstance == null) return handleNotInitialized('saveEvent');
+    if (dittoHandle == null) return handleNotInitialized('saveEvent');
     final channel = _eventChannel(eventData, eventId);
     await ensureEventsChannelSubscription(channel);
     await ensureBroadEventsCloudSubscription();
@@ -21,16 +26,14 @@ mixin EventMixin on DittoCore {
       );
     } else {
       await executeUpsertLocal('events', eventId, flattened);
-      debugPrint(
-        'Saved event with ID: $eventId (channel: $channel, p2p-only)',
-      );
+      debugPrint('Saved event with ID: $eventId (channel: $channel, p2p-only)');
     }
   }
 
   /// Belt-and-suspenders: active subscription on `events` is required for
   /// Ditto to push local writes up to the Big Peer (see data-connector GL subs).
   Future<void> ensureBroadEventsCloudSubscription() async {
-    final ditto = dittoInstance;
+    final ditto = dittoHandle;
     if (ditto == null) return;
     try {
       SharedSyncSubscriptions.register(ditto, 'SELECT * FROM events');
@@ -42,7 +45,7 @@ mixin EventMixin on DittoCore {
   /// Register replication for [channel] so cloud peers (e.g. desktop QR login)
   /// receive events published from a phone.
   Future<void> ensureEventsChannelSubscription(String channel) async {
-    final ditto = dittoInstance;
+    final ditto = dittoHandle;
     if (ditto == null || channel.isEmpty) return;
 
     final prepared = prepareDqlSyncSubscription(
@@ -50,7 +53,8 @@ mixin EventMixin on DittoCore {
       {'channel': channel},
     );
     try {
-      SharedSyncSubscriptions.register(ditto, 
+      SharedSyncSubscriptions.register(
+        ditto,
         prepared.dql,
         arguments: prepared.arguments,
       );

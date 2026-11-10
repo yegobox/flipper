@@ -34,17 +34,20 @@ mixin EbmMixin implements EbmInterface {
     String? dataConnectorUrl,
   }) async {
     try {
-      final business = await ProxyService.legacyStrategy
-          .getBusiness(businessId: ProxyService.box.getBusinessId()!);
+      final business = await ProxyService.legacyStrategy.getBusiness(
+        businessId: ProxyService.box.getBusinessId()!,
+      );
 
       if (business == null) {
         throw Exception("Business not found");
       }
 
-      final query = Query(where: [
-        Where('branchId').isExactly(branchId),
-        Where('bhfId').isExactly(bhFId),
-      ]);
+      final query = Query(
+        where: [
+          Where('branchId').isExactly(branchId),
+          Where('bhfId').isExactly(bhFId),
+        ],
+      );
 
       final ebm = await repository.get<Ebm>(
         query: query,
@@ -53,16 +56,20 @@ mixin EbmMixin implements EbmInterface {
 
       final existingEbm = ebm.firstOrNull;
 
-      final resolvedTin =
-          (await effectiveTin(business: business, branchId: branchId));
+      final resolvedTin = (await effectiveTin(
+        business: business,
+        branchId: branchId,
+      ));
 
       // Check if resolvedTin is null to avoid runtime exception
       if (resolvedTin == null) {
         throw Exception(
-            "Could not resolve TIN number for EBM creation. Business or branch may not have a valid TIN.");
+          "Could not resolve TIN number for EBM creation. Business or branch may not have a valid TIN.",
+        );
       }
 
-      Ebm updatedEbm = existingEbm ??
+      Ebm updatedEbm =
+          existingEbm ??
           Ebm(
             mrc: mrc,
             bhfId: bhFId,
@@ -115,9 +122,7 @@ mixin EbmMixin implements EbmInterface {
   Future<Ebm?> ebm({required String branchId, bool fetchRemote = true}) async {
     try {
       // First try to get from local repository with offline-first approach
-      final query = Query(
-        where: [Where('branchId').isExactly(branchId)],
-      );
+      final query = Query(where: [Where('branchId').isExactly(branchId)]);
 
       // Select policy based on fetchRemote parameter
       final policy = fetchRemote
@@ -141,9 +146,12 @@ mixin EbmMixin implements EbmInterface {
           // bulk imports (many ebm() calls), eventually stalls Ditto sync.
           final firstSubscription = _ebmSubscribedBranches.add(branchId);
           if (firstSubscription) {
-            final preparedEbmFetch =
-                prepareDqlSyncSubscription(dittoQuery, arguments);
-            SharedSyncSubscriptions.register(ditto, 
+            final preparedEbmFetch = prepareDqlSyncSubscription(
+              dittoQuery,
+              arguments,
+            );
+            SharedSyncSubscriptions.register(
+              ditto,
               preparedEbmFetch.dql,
               arguments: preparedEbmFetch.arguments,
             );
@@ -153,8 +161,10 @@ mixin EbmMixin implements EbmInterface {
           }
 
           // Execute query directly
-          final result =
-              await ditto.store.execute(dittoQuery, arguments: arguments);
+          final result = await ditto.store.execute(
+            dittoQuery,
+            arguments: arguments,
+          );
           final items = result.items.toList();
 
           if (items.isNotEmpty) {
@@ -163,34 +173,44 @@ mixin EbmMixin implements EbmInterface {
             final ebm = Ebm(
               id: ebmData['id'] as String? ?? ebmData['_id'] as String?,
               mrc: ebmData['mrc'] as String? ?? '',
-              bhfId: ebmData['bhfId'] as String? ??
+              bhfId:
+                  ebmData['bhfId'] as String? ??
                   ebmData['bhf_id'] as String? ??
                   '',
-              tinNumber: ebmData['tinNumber'] as int? ??
+              tinNumber:
+                  ebmData['tinNumber'] as int? ??
                   ebmData['tin_number'] as int? ??
                   0,
-              dvcSrlNo: ebmData['dvcSrlNo'] as String? ??
+              dvcSrlNo:
+                  ebmData['dvcSrlNo'] as String? ??
                   ebmData['dvc_srl_no'] as String? ??
                   "",
-              userId: ebmData['userId'] as String? ??
+              userId:
+                  ebmData['userId'] as String? ??
                   ebmData['user_id'] as String? ??
                   ProxyService.box.getUserId() ??
                   "",
-              taxServerUrl: ebmData['taxServerUrl'] as String? ??
+              taxServerUrl:
+                  ebmData['taxServerUrl'] as String? ??
                   ebmData['tax_server_url'] as String? ??
                   '',
-              businessId: ebmData['businessId'] as String? ??
+              businessId:
+                  ebmData['businessId'] as String? ??
                   ebmData['business_id'] as String? ??
                   ProxyService.box.getBusinessId() ??
                   "",
-              branchId: ebmData['branchId'] as String? ??
+              branchId:
+                  ebmData['branchId'] as String? ??
                   ebmData['branch_id'] as String? ??
                   branchId,
-              vatEnabled: ebmData['vatEnabled'] as bool? ??
+              vatEnabled:
+                  ebmData['vatEnabled'] as bool? ??
                   ebmData['vat_enabled'] as bool?,
-              remoteServerUrl: ebmData['remoteServerUrl'] as String? ??
+              remoteServerUrl:
+                  ebmData['remoteServerUrl'] as String? ??
                   ebmData['remote_server_url'] as String?,
-              dataConnectorUrl: ebmData['dataConnectorUrl'] as String? ??
+              dataConnectorUrl:
+                  ebmData['dataConnectorUrl'] as String? ??
                   ebmData['data_connector_url'] as String?,
             );
 

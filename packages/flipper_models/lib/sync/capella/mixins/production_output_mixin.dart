@@ -76,7 +76,8 @@ mixin CapellaProductionOutputMixin implements ProductionOutputInterface {
 
       // Subscribe to keep data synced
       final preparedPo = prepareDqlSyncSubscription(query, arguments);
-      SharedSyncSubscriptions.register(ditto, 
+      SharedSyncSubscriptions.register(
+        ditto,
         preparedPo.dql,
         arguments: preparedPo.arguments,
       );
@@ -116,7 +117,9 @@ mixin CapellaProductionOutputMixin implements ProductionOutputInterface {
       arguments: {'id': variantId},
     );
     if (variantResult.items.isNotEmpty) {
-      final variant = Map<String, dynamic>.from(variantResult.items.first.value);
+      final variant = Map<String, dynamic>.from(
+        variantResult.items.first.value,
+      );
       effectiveVariantName ??= variant['name'] as String?;
       unitOfMeasure = variant['unit'] as String?;
     }
@@ -223,7 +226,8 @@ mixin CapellaProductionOutputMixin implements ProductionOutputInterface {
           "SELECT * FROM actual_outputs WHERE ${whereClauses.join(' AND ')}";
 
       final preparedAo = prepareDqlSyncSubscription(query, arguments);
-      SharedSyncSubscriptions.register(ditto, 
+      SharedSyncSubscriptions.register(
+        ditto,
         preparedAo.dql,
         arguments: preparedAo.arguments,
       );
@@ -300,7 +304,11 @@ mixin CapellaProductionOutputMixin implements ProductionOutputInterface {
       await txn.execute(
         'UPDATE work_orders SET actualQuantity = :quantity, lastTouched = :lastTouched '
         'WHERE _id = :id OR id = :id',
-        arguments: {'quantity': total, 'lastTouched': nowIso, 'id': workOrderId},
+        arguments: {
+          'quantity': total,
+          'lastTouched': nowIso,
+          'id': workOrderId,
+        },
       );
     });
 
@@ -449,7 +457,8 @@ mixin CapellaProductionOutputMixin implements ProductionOutputInterface {
     () async {
       try {
         final prepared = prepareDqlSyncSubscription(query, arguments);
-        SharedSyncSubscriptions.register(ditto, 
+        SharedSyncSubscriptions.register(
+          ditto,
           prepared.dql,
           arguments: prepared.arguments,
         );

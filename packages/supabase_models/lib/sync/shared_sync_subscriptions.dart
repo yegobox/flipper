@@ -13,9 +13,7 @@ import 'dart:convert';
 ///
 /// Use [register] wherever the subscription is not kept and cancelled. A call
 /// site that cancels its own subscription keeps calling Ditto directly.
-class SharedSyncSubscriptions {
-  SharedSyncSubscriptions._();
-
+abstract final class SharedSyncSubscriptions {
   /// Arguments that move with time. A newer value replaces the subscription
   /// made with the older one instead of adding a second.
   static const Set<String> movingArguments = {'historyWindowStart'};

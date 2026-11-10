@@ -151,7 +151,8 @@ class QrLoginScanHandler {
       'SELECT * FROM events WHERE channel = :channel',
       {'channel': responseChannel},
     );
-    SharedSyncSubscriptions.register(ditto, 
+    SharedSyncSubscriptions.register(
+      ditto,
       preparedEv.dql,
       arguments: preparedEv.arguments,
     );

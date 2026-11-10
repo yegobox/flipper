@@ -36,14 +36,13 @@ Future<void> ensureBranchCounterCloudSubscription({
 
   try {
     final prepared = prepareDqlSyncSubscription(sql, args);
-    SharedSyncSubscriptions.register(ditto, 
+    SharedSyncSubscriptions.register(
+      ditto,
       prepared.dql,
       arguments: prepared.arguments,
     );
     if (kDebugMode) {
-      debugPrint(
-        'ensureBranchCounterCloudSubscription: registered $key',
-      );
+      debugPrint('ensureBranchCounterCloudSubscription: registered $key');
     }
   } catch (e, st) {
     _branchCounterSubscriptionKeys.remove(key);
@@ -73,14 +72,13 @@ Future<void> ensureBranchSarCloudSubscription({
 
   try {
     final prepared = prepareDqlSyncSubscription(sql, args);
-    SharedSyncSubscriptions.register(ditto, 
+    SharedSyncSubscriptions.register(
+      ditto,
       prepared.dql,
       arguments: prepared.arguments,
     );
     if (kDebugMode) {
-      debugPrint(
-        'ensureBranchSarCloudSubscription: registered $key',
-      );
+      debugPrint('ensureBranchSarCloudSubscription: registered $key');
     }
   } catch (e, st) {
     _branchSarSubscriptionKeys.remove(key);
@@ -112,14 +110,13 @@ Future<void> ensureBranchDelegationCloudSubscription({
 
   try {
     final prepared = prepareDqlSyncSubscription(sql, args);
-    SharedSyncSubscriptions.register(ditto, 
+    SharedSyncSubscriptions.register(
+      ditto,
       prepared.dql,
       arguments: prepared.arguments,
     );
     if (kDebugMode) {
-      debugPrint(
-        'ensureBranchDelegationCloudSubscription: registered $key',
-      );
+      debugPrint('ensureBranchDelegationCloudSubscription: registered $key');
     }
   } catch (e, st) {
     _branchDelegationSubscriptionKeys.remove(key);
@@ -181,7 +178,8 @@ Future<void> ensureBranchCatalogCloudSubscriptions({
     }
     try {
       final prepared = prepareDqlSyncSubscription(entry.sql, entry.args);
-      SharedSyncSubscriptions.register(ditto, 
+      SharedSyncSubscriptions.register(
+        ditto,
         prepared.dql,
         arguments: prepared.arguments,
       );
@@ -209,10 +207,7 @@ Future<bool> waitForVariantNamesInDitto({
   required List<String> names,
   Duration timeout = const Duration(seconds: 25),
 }) async {
-  final wanted = names
-      .map((n) => n.trim())
-      .where((n) => n.isNotEmpty)
-      .toSet();
+  final wanted = names.map((n) => n.trim()).where((n) => n.isNotEmpty).toSet();
   if (branchId.isEmpty || wanted.isEmpty) return true;
 
   const pollInterval = Duration(milliseconds: 800);
@@ -225,10 +220,7 @@ Future<bool> waitForVariantNamesInDitto({
         final result = await ditto.store.execute(
           'SELECT id FROM variants WHERE branchId = :branchId '
           'AND LOWER(COALESCE(name, \'\')) = :name LIMIT 1',
-          arguments: {
-            'branchId': branchId,
-            'name': name.toLowerCase(),
-          },
+          arguments: {'branchId': branchId, 'name': name.toLowerCase()},
         );
         if (result.items.isNotEmpty) {
           found.add(name);
@@ -265,14 +257,13 @@ Future<void> ensureDailyReportFilesCloudSubscription({
 
   try {
     final prepared = prepareDqlSyncSubscription(sql, args);
-    SharedSyncSubscriptions.register(ditto, 
+    SharedSyncSubscriptions.register(
+      ditto,
       prepared.dql,
       arguments: prepared.arguments,
     );
     if (kDebugMode) {
-      debugPrint(
-        'ensureDailyReportFilesCloudSubscription: registered $key',
-      );
+      debugPrint('ensureDailyReportFilesCloudSubscription: registered $key');
     }
   } catch (e, st) {
     _branchCatalogSubscriptionKeys.remove(key);
@@ -327,7 +318,8 @@ Future<void> ensurePurchaseCloudSubscriptions({
     if (!_purchaseSubscriptionKeys.add(entry.key)) continue;
     try {
       final prepared = prepareDqlSyncSubscription(entry.sql, entry.args);
-      SharedSyncSubscriptions.register(ditto, 
+      SharedSyncSubscriptions.register(
+        ditto,
         prepared.dql,
         arguments: prepared.arguments,
       );

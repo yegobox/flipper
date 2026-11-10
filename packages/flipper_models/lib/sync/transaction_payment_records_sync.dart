@@ -29,7 +29,8 @@ void ensureTransactionPaymentRecordsSyncSubscription(dynamic ditto) {
       kTransactionPaymentRecordsAllSql,
       null,
     );
-    SharedSyncSubscriptions.register(ditto, 
+    SharedSyncSubscriptions.register(
+      ditto,
       prepared.dql,
       arguments: prepared.arguments,
     );

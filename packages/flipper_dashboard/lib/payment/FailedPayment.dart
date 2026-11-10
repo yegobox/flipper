@@ -16,7 +16,6 @@ import 'package:flipper_models/models/subscription_plan.dart';
 import 'package:flipper_models/models/subscription_plan_template.dart';
 import 'package:flipper_payments/flipper_payments.dart'
     show BillingCadence, defaultPaymentsHttpClient;
-import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_dashboard/payment/payment_format.dart';
@@ -31,7 +30,6 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flipper_models/sync/capella/mixins/settings_mixin.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:supabase_models/sync/shared_sync_subscriptions.dart';
 
 class FailedPayment extends StatefulWidget {
   const FailedPayment({Key? key}) : super(key: key);
@@ -289,19 +287,6 @@ class _FailedPaymentState extends State<FailedPayment>
           });
         }
         return;
-      }
-
-      // Register for realtime updates
-      final ditto = dittoService.dittoInstance;
-      if (ditto != null) {
-        final preparedSkip = prepareDqlSyncSubscription(
-          'SELECT * FROM payment_skip_settings WHERE businessId = :businessId',
-          {'businessId': businessId},
-        );
-        SharedSyncSubscriptions.register(ditto, 
-          preparedSkip.dql,
-          arguments: preparedSkip.arguments,
-        );
       }
 
       final settings = await getPaymentSkipSettings(businessId: businessId);

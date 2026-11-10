@@ -26,6 +26,11 @@ mixin CapellaSettingsMixin {
   Talker get talker;
   DittoService get dittoService;
 
+  /// The Ditto instance [getPaymentSkipSettings] uses. [dittoService] is typed
+  /// to the real `Ditto`, which a unit test cannot build, so tests override
+  /// this with an in-memory store.
+  dynamic get dittoHandle => dittoService.dittoInstance;
+
   DateTime _settingLastTouched(Map<String, dynamic> data) {
     final value =
         data['lastTouched'] ??
@@ -53,7 +58,8 @@ mixin CapellaSettingsMixin {
         "SELECT * FROM settings WHERE businessId = :businessId",
         {'businessId': businessId},
       );
-      SharedSyncSubscriptions.register(ditto, 
+      SharedSyncSubscriptions.register(
+        ditto,
         preparedSettings.dql,
         arguments: preparedSettings.arguments,
       );
@@ -102,7 +108,7 @@ mixin CapellaSettingsMixin {
     required String businessId,
   }) async {
     try {
-      final ditto = dittoService.dittoInstance;
+      final ditto = dittoHandle;
       if (ditto == null) {
         talker.error('Ditto not initialized in getPaymentSkipSettings');
         return PaymentSkipSettings(
@@ -111,6 +117,18 @@ mixin CapellaSettingsMixin {
           maxSkipsAllowed: 5,
         );
       }
+
+      // Keeps the business's skip count replicating (the paywall reads it on
+      // every visit). Shared, so repeat reads add no subscription.
+      final preparedSkip = prepareDqlSyncSubscription(
+        'SELECT * FROM payment_skip_settings WHERE businessId = :businessId',
+        {'businessId': businessId},
+      );
+      SharedSyncSubscriptions.register(
+        ditto,
+        preparedSkip.dql,
+        arguments: preparedSkip.arguments,
+      );
 
       final result = await ditto.store.execute(
         'SELECT * FROM payment_skip_settings WHERE businessId = :businessId LIMIT 1',

@@ -10,10 +10,7 @@ Variant _v(String? stockId) =>
 /// observer keyed by [stockIdsKey], instead of one observer per row.
 void main() {
   test('the key is the rows\' stock ids, sorted and without repeats', () {
-    expect(
-      stockIdsKey([_v('b'), _v(' a '), _v('b'), _v(null), _v('')]),
-      'a,b',
-    );
+    expect(stockIdsKey([_v('b'), _v(' a '), _v('b'), _v(null), _v('')]), 'a,b');
     expect(stockIdsKey([_v('a'), _v('b')]), stockIdsKey([_v('b'), _v('a')]));
   });
 

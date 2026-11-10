@@ -27,7 +27,8 @@ final performanceDataProvider = FutureProvider<PerformanceData>((ref) async {
     "SELECT * FROM transactions WHERE branchId = :branchId AND isIncome = true",
     {"branchId": selectedBranch.serverId},
   );
-  SharedSyncSubscriptions.register(dittoService.dittoInstance!, 
+  SharedSyncSubscriptions.register(
+    dittoService.dittoInstance!,
     preparedTxPerf.dql,
     arguments: preparedTxPerf.arguments,
   );
@@ -36,7 +37,8 @@ final performanceDataProvider = FutureProvider<PerformanceData>((ref) async {
     "SELECT * FROM transaction_items WHERE branchId = :branchId",
     {"branchId": selectedBranch.serverId},
   );
-  SharedSyncSubscriptions.register(dittoService.dittoInstance!, 
+  SharedSyncSubscriptions.register(
+    dittoService.dittoInstance!,
     preparedTiPerf.dql,
     arguments: preparedTiPerf.arguments,
   );

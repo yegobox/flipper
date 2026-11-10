@@ -27,7 +27,8 @@ Future<int> nextTicketReferenceNumber({
       'SELECT * FROM ticket_sequences WHERE branchId = :branchId',
       {'branchId': branchId},
     );
-    SharedSyncSubscriptions.register(ditto, 
+    SharedSyncSubscriptions.register(
+      ditto,
       prepared.dql,
       arguments: prepared.arguments,
     );

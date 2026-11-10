@@ -69,7 +69,8 @@ mixin CapellaHotelMixin implements HotelInterface {
     if (registered.contains(key)) return;
     try {
       final prepared = prepareDqlSyncSubscription(sql, args);
-      SharedSyncSubscriptions.register(ditto, 
+      SharedSyncSubscriptions.register(
+        ditto,
         prepared.dql,
         arguments: prepared.arguments,
       );

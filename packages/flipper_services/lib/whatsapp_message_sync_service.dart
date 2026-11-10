@@ -35,7 +35,8 @@ class RealDittoObserverRunner implements DittoObserverRunner {
       throw Exception('Ditto not initialized:20');
     }
     final preparedWa = prepareDqlSyncSubscription(query, arguments);
-    SharedSyncSubscriptions.register(ditto, 
+    SharedSyncSubscriptions.register(
+      ditto,
       preparedWa.dql,
       arguments: preparedWa.arguments,
     );
@@ -68,8 +69,9 @@ class WhatsAppMessageSyncService {
   WhatsAppMessageSyncService({
     DittoService? dittoService,
     DittoObserverRunner? runner,
-  }) : _runner = runner ??
-            RealDittoObserverRunner(dittoService ?? DittoService.instance);
+  }) : _runner =
+           runner ??
+           RealDittoObserverRunner(dittoService ?? DittoService.instance);
 
   bool _isProcessing = false; // Flag to prevent concurrent processing
 
@@ -108,8 +110,9 @@ class WhatsAppMessageSyncService {
         onChange: (queryResult) async {
           // Wait if there's a current processing in progress to prevent concurrent execution
           while (_isProcessing) {
-            await Future.delayed(const Duration(
-                milliseconds: 50)); // Small delay to prevent tight loop
+            await Future.delayed(
+              const Duration(milliseconds: 50),
+            ); // Small delay to prevent tight loop
           }
 
           _isProcessing = true;
@@ -153,7 +156,8 @@ class WhatsAppMessageSyncService {
     String branchId,
   ) async {
     try {
-      final messageId = doc['messageId']?.toString() ??
+      final messageId =
+          doc['messageId']?.toString() ??
           doc['_id']?.toString() ??
           doc['id']?.toString() ??
           '';
@@ -164,9 +168,8 @@ class WhatsAppMessageSyncService {
       final contactName = doc['contactName']?.toString();
       final phoneNumberId = doc['phoneNumberId']?.toString() ?? '';
       final messageType = doc['messageType']?.toString() ?? 'text';
-      final timestampRaw = doc['createdAt']?.toString() ??
-          doc['timestamp']?.toString() ??
-          '';
+      final timestampRaw =
+          doc['createdAt']?.toString() ?? doc['timestamp']?.toString() ?? '';
 
       // Skip empty non-media stubs; allow captioned media.
       if (messageBody.isEmpty &&
@@ -316,8 +319,4 @@ class WhatsAppSyncState {
       WhatsAppSyncState._(WhatsAppSyncStatus.error, message);
 }
 
-enum WhatsAppSyncStatus {
-  idle,
-  syncing,
-  error,
-}
+enum WhatsAppSyncStatus { idle, syncing, error }

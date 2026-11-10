@@ -2882,7 +2882,8 @@ class CoreSync extends AiStrategyImpl
       // same subscription every call leaks subscriptions and stalls Ditto sync.
       if (_taxEnabledSubscribed.add('$businessId|$branchId')) {
         final preparedEbm = prepareDqlSyncSubscription(query, arguments);
-        SharedSyncSubscriptions.register(ditto, 
+        SharedSyncSubscriptions.register(
+          ditto,
           preparedEbm.dql,
           arguments: preparedEbm.arguments,
         );

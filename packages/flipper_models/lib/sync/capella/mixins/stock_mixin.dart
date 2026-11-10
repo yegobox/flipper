@@ -259,7 +259,8 @@ mixin CapellaStockMixin implements StockInterface {
 
           // Subscribe to ensure we have the latest data from Ditto mesh
           final prepared = prepareDqlSyncSubscription(query, arguments);
-          SharedSyncSubscriptions.register(ditto, 
+          SharedSyncSubscriptions.register(
+            ditto,
             prepared.dql,
             arguments: prepared.arguments,
           );

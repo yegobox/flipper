@@ -39,7 +39,8 @@ mixin CapellaProductMixin implements ProductInterface {
         'SELECT * FROM products WHERE branchId = :branchId',
         {'branchId': branchId},
       );
-      SharedSyncSubscriptions.register(ditto, 
+      SharedSyncSubscriptions.register(
+        ditto,
         preparedProd.dql,
         arguments: preparedProd.arguments,
       );
@@ -51,7 +52,8 @@ mixin CapellaProductMixin implements ProductInterface {
         'SELECT * FROM products WHERE branchId = :branchId AND businessId = :businessId',
         {'branchId': branchId, 'businessId': businessId},
       );
-      SharedSyncSubscriptions.register(ditto, 
+      SharedSyncSubscriptions.register(
+        ditto,
         preparedProdBiz.dql,
         arguments: preparedProdBiz.arguments,
       );
@@ -87,9 +89,9 @@ mixin CapellaProductMixin implements ProductInterface {
         arguments: {'id': variantId},
       );
       if (result.items.isEmpty) return 0.0;
-      final stockId =
-          Map<String, dynamic>.from(result.items.first.value)['stockId']
-              ?.toString();
+      final stockId = Map<String, dynamic>.from(
+        result.items.first.value,
+      )['stockId']?.toString();
       return qtyForStockId(stockId);
     }
 
@@ -100,8 +102,9 @@ mixin CapellaProductMixin implements ProductInterface {
       );
       var total = 0.0;
       for (final item in result.items) {
-        final stockId =
-            Map<String, dynamic>.from(item.value)['stockId']?.toString();
+        final stockId = Map<String, dynamic>.from(
+          item.value,
+        )['stockId']?.toString();
         total += await qtyForStockId(stockId);
       }
       return total;
@@ -524,8 +527,9 @@ mixin CapellaProductMixin implements ProductInterface {
 
             try {
               // The variant itself was already written to Ditto by addVariant.
-              final doc = await PurchaseDittoAdapter.instance
-                  .toDittoDocument(purchase);
+              final doc = await PurchaseDittoAdapter.instance.toDittoDocument(
+                purchase,
+              );
               await ditto.store.execute(
                 'INSERT INTO purchases DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE',
                 arguments: {'doc': doc},
@@ -546,8 +550,9 @@ mixin CapellaProductMixin implements ProductInterface {
         }
       }
       if (purchase != null) {
-        final doc =
-            await PurchaseDittoAdapter.instance.toDittoDocument(purchase);
+        final doc = await PurchaseDittoAdapter.instance.toDittoDocument(
+          purchase,
+        );
         await ditto.store.execute(
           'INSERT INTO purchases DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE',
           arguments: {'doc': doc},
@@ -617,7 +622,9 @@ mixin CapellaProductMixin implements ProductInterface {
     // Determine tax type code - explicit taxTyCd, then taxTypes map, then EBM VAT default.
     final vatEnabled = await isVatEnabledForBranch(branchId: branchId);
     String finalTaxTyCd =
-        taxTyCd ?? taxTypes?[product?.barCode] ?? defaultTaxTyCdForVat(vatEnabled);
+        taxTyCd ??
+        taxTypes?[product?.barCode] ??
+        defaultTaxTyCdForVat(vatEnabled);
 
     // Get tax percentage based on the tax type code
     double finalTaxPercentage = taxType?.taxPercentage ?? 18.0;
@@ -816,10 +823,7 @@ mixin CapellaProductMixin implements ProductInterface {
   Future<void> hydrateSars({required String branchId}) async {
     final ditto = dittoService.dittoInstance;
     if (ditto == null) return;
-    await ensureBranchSarCloudSubscription(
-      ditto: ditto,
-      branchId: branchId,
-    );
+    await ensureBranchSarCloudSubscription(ditto: ditto, branchId: branchId);
   }
 
   @override

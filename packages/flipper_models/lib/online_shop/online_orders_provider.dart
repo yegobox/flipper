@@ -29,7 +29,8 @@ final onlineOrdersProvider = StreamProvider.autoDispose
           'SELECT * FROM $kOnlineOrdersCollection WHERE branchId = :branchId',
           args,
         );
-        SharedSyncSubscriptions.register(ditto, 
+        SharedSyncSubscriptions.register(
+          ditto,
           prepared.dql,
           arguments: prepared.arguments,
         );

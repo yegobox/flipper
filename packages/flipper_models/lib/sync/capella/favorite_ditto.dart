@@ -21,23 +21,23 @@ DateTime? _dateOrNull(dynamic value) {
 }
 
 Map<String, dynamic> favoriteToDittoDoc(Favorite favorite) => {
-      '_id': favorite.id,
-      'id': favorite.id,
-      'favIndex': favorite.favIndex,
-      'productId': favorite.productId,
-      'branchId': favorite.branchId,
-      'lastTouched': favorite.lastTouched?.toIso8601String(),
-      'deletedAt': favorite.deletedAt?.toIso8601String(),
-    };
+  '_id': favorite.id,
+  'id': favorite.id,
+  'favIndex': favorite.favIndex,
+  'productId': favorite.productId,
+  'branchId': favorite.branchId,
+  'lastTouched': favorite.lastTouched?.toIso8601String(),
+  'deletedAt': favorite.deletedAt?.toIso8601String(),
+};
 
 Favorite favoriteFromDittoDoc(Map<String, dynamic> doc) => Favorite(
-      id: (doc['id'] ?? doc['_id'])?.toString(),
-      favIndex: doc['favIndex']?.toString(),
-      productId: doc['productId']?.toString(),
-      branchId: doc['branchId']?.toString(),
-      lastTouched: _dateOrNull(doc['lastTouched']),
-      deletedAt: _dateOrNull(doc['deletedAt']),
-    );
+  id: (doc['id'] ?? doc['_id'])?.toString(),
+  favIndex: doc['favIndex']?.toString(),
+  productId: doc['productId']?.toString(),
+  branchId: doc['branchId']?.toString(),
+  lastTouched: _dateOrNull(doc['lastTouched']),
+  deletedAt: _dateOrNull(doc['deletedAt']),
+);
 
 /// `dittoInstance|branchId` pairs already subscribed — registering per read
 /// leaks subscriptions until sync stalls. Keyed by instance so a recreated
@@ -52,7 +52,8 @@ Future<void> ensureFavoritesSubscription(Ditto ditto, String branchId) async {
       'SELECT * FROM $favoritesCollection WHERE branchId = :branchId',
       {'branchId': branchId},
     );
-    SharedSyncSubscriptions.register(ditto, 
+    SharedSyncSubscriptions.register(
+      ditto,
       prepared.dql,
       arguments: prepared.arguments,
     );
