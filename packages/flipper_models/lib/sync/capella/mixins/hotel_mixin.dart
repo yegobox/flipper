@@ -24,6 +24,7 @@ import 'package:supabase_models/brick/models/transaction.model.dart';
 import 'package:supabase_models/brick/models/transactionItem.model.dart';
 import 'package:talker/talker.dart';
 import 'package:uuid/uuid.dart';
+import 'package:supabase_models/sync/shared_sync_subscriptions.dart';
 
 part 'hotel_mixin_mapping.dart';
 part 'hotel_mixin_stay_changes.dart';
@@ -68,7 +69,7 @@ mixin CapellaHotelMixin implements HotelInterface {
     if (registered.contains(key)) return;
     try {
       final prepared = prepareDqlSyncSubscription(sql, args);
-      ditto.sync.registerSubscription(
+      SharedSyncSubscriptions.register(ditto, 
         prepared.dql,
         arguments: prepared.arguments,
       );

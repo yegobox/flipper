@@ -10,6 +10,7 @@ import 'package:supabase_models/brick/repository.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/ebm_helper.dart';
+import 'package:supabase_models/sync/shared_sync_subscriptions.dart';
 
 /// Branches whose EBM Ditto subscription has already been registered this
 /// session. `ebm()` is called many times per bulk import; without this guard
@@ -142,7 +143,7 @@ mixin EbmMixin implements EbmInterface {
           if (firstSubscription) {
             final preparedEbmFetch =
                 prepareDqlSyncSubscription(dittoQuery, arguments);
-            await ditto.sync.registerSubscription(
+            SharedSyncSubscriptions.register(ditto, 
               preparedEbmFetch.dql,
               arguments: preparedEbmFetch.arguments,
             );

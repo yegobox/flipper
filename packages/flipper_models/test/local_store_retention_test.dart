@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   final now = DateTime.utc(2026, 9, 4, 12);
-  final cutoff = DateTime.utc(2026, 8, 5, 12).toIso8601String();
+  final cutoff = DateTime.utc(2026, 8, 5).toIso8601String();
 
   group('windowing an open-ended history subscription', () {
     test('adds a floor to a branch-wide transactions subscription', () {
@@ -127,11 +127,28 @@ void main() {
     });
   });
 
-  test('the window is the documented retention period', () {
+  test('the window is the documented retention period, in whole days', () {
     expect(kLocalHistoryRetentionDays, 30);
+    expect(localHistoryWindowStart(now: now), DateTime.utc(2026, 8, 5));
     expect(
-      localHistoryWindowStart(now: now),
-      DateTime.utc(2026, 8, 5, 12),
+      localHistoryWindowStart(now: DateTime(2026, 9, 4, 23, 59)),
+      DateTime(2026, 8, 5),
     );
+  });
+
+  test('every subscription made on the same day is the same subscription', () {
+    // To the microsecond, each call was a new, distinct subscription that
+    // Ditto's sync had to evaluate on its own.
+    final morning = applyLocalHistoryWindow(
+      'SELECT * FROM transactions WHERE branchId = :branchId',
+      {'branchId': 'b1'},
+      now: DateTime.utc(2026, 9, 4, 8, 0, 0, 1),
+    );
+    final evening = applyLocalHistoryWindow(
+      'SELECT * FROM transactions WHERE branchId = :branchId',
+      {'branchId': 'b1'},
+      now: DateTime.utc(2026, 9, 4, 21, 30, 5, 999),
+    );
+    expect(evening.arguments, morning.arguments);
   });
 }

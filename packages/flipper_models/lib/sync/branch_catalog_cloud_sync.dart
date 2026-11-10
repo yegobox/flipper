@@ -4,6 +4,7 @@ import 'package:ditto_live/ditto_live.dart';
 import 'package:flipper_models/models/daily_report_file.dart';
 import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:flutter/foundation.dart';
+import 'package:supabase_models/sync/shared_sync_subscriptions.dart';
 
 /// Ditto cloud subscriptions for catalog collections (data-connector bulk writes).
 final Set<String> _branchCatalogSubscriptionKeys = {};
@@ -35,7 +36,7 @@ Future<void> ensureBranchCounterCloudSubscription({
 
   try {
     final prepared = prepareDqlSyncSubscription(sql, args);
-    await ditto.sync.registerSubscription(
+    SharedSyncSubscriptions.register(ditto, 
       prepared.dql,
       arguments: prepared.arguments,
     );
@@ -72,7 +73,7 @@ Future<void> ensureBranchSarCloudSubscription({
 
   try {
     final prepared = prepareDqlSyncSubscription(sql, args);
-    await ditto.sync.registerSubscription(
+    SharedSyncSubscriptions.register(ditto, 
       prepared.dql,
       arguments: prepared.arguments,
     );
@@ -111,7 +112,7 @@ Future<void> ensureBranchDelegationCloudSubscription({
 
   try {
     final prepared = prepareDqlSyncSubscription(sql, args);
-    await ditto.sync.registerSubscription(
+    SharedSyncSubscriptions.register(ditto, 
       prepared.dql,
       arguments: prepared.arguments,
     );
@@ -180,7 +181,7 @@ Future<void> ensureBranchCatalogCloudSubscriptions({
     }
     try {
       final prepared = prepareDqlSyncSubscription(entry.sql, entry.args);
-      await ditto.sync.registerSubscription(
+      SharedSyncSubscriptions.register(ditto, 
         prepared.dql,
         arguments: prepared.arguments,
       );
@@ -264,7 +265,7 @@ Future<void> ensureDailyReportFilesCloudSubscription({
 
   try {
     final prepared = prepareDqlSyncSubscription(sql, args);
-    await ditto.sync.registerSubscription(
+    SharedSyncSubscriptions.register(ditto, 
       prepared.dql,
       arguments: prepared.arguments,
     );
@@ -326,7 +327,7 @@ Future<void> ensurePurchaseCloudSubscriptions({
     if (!_purchaseSubscriptionKeys.add(entry.key)) continue;
     try {
       final prepared = prepareDqlSyncSubscription(entry.sql, entry.args);
-      await ditto.sync.registerSubscription(
+      SharedSyncSubscriptions.register(ditto, 
         prepared.dql,
         arguments: prepared.arguments,
       );

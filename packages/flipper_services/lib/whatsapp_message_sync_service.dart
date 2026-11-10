@@ -5,6 +5,7 @@ import 'package:flipper_web/services/ditto_service.dart';
 import 'package:supabase_models/brick/models/message.model.dart';
 import 'package:supabase_models/brick/models/conversation.model.dart';
 import 'package:supabase_models/brick/repository.dart';
+import 'package:supabase_models/sync/shared_sync_subscriptions.dart';
 
 /// abstract facade for testing
 abstract class DittoObserverRunner {
@@ -34,7 +35,7 @@ class RealDittoObserverRunner implements DittoObserverRunner {
       throw Exception('Ditto not initialized:20');
     }
     final preparedWa = prepareDqlSyncSubscription(query, arguments);
-    await ditto.sync.registerSubscription(
+    SharedSyncSubscriptions.register(ditto, 
       preparedWa.dql,
       arguments: preparedWa.arguments,
     );

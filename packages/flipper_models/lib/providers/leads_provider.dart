@@ -5,6 +5,7 @@ import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_models/sync/shared_sync_subscriptions.dart';
 
 final leadsStreamProvider = StreamProvider.autoDispose<List<Lead>>((ref) {
   final branchId = ProxyService.box.getBranchId();
@@ -25,7 +26,7 @@ final leadsStreamProvider = StreamProvider.autoDispose<List<Lead>>((ref) {
   // Ditto returns a SyncSubscription; just register once (deduped internally).
   try {
     final preparedLeads = prepareDqlSyncSubscription(query, args);
-    ditto.sync.registerSubscription(
+    SharedSyncSubscriptions.register(ditto, 
       preparedLeads.dql,
       arguments: preparedLeads.arguments,
     );

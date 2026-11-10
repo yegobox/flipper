@@ -18,6 +18,7 @@ import 'package:supabase_models/brick/repository.dart';
 import 'package:talker/talker.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:uuid/uuid.dart';
+import 'package:supabase_models/sync/shared_sync_subscriptions.dart';
 
 /// Ditto sync subscriptions registered once per scope (branch / branch+business).
 final Set<String> _productSyncSubscriptionKeys = {};
@@ -38,7 +39,7 @@ mixin CapellaProductMixin implements ProductInterface {
         'SELECT * FROM products WHERE branchId = :branchId',
         {'branchId': branchId},
       );
-      ditto.sync.registerSubscription(
+      SharedSyncSubscriptions.register(ditto, 
         preparedProd.dql,
         arguments: preparedProd.arguments,
       );
@@ -50,7 +51,7 @@ mixin CapellaProductMixin implements ProductInterface {
         'SELECT * FROM products WHERE branchId = :branchId AND businessId = :businessId',
         {'branchId': branchId, 'businessId': businessId},
       );
-      ditto.sync.registerSubscription(
+      SharedSyncSubscriptions.register(ditto, 
         preparedProdBiz.dql,
         arguments: preparedProdBiz.arguments,
       );

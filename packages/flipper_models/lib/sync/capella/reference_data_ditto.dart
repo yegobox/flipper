@@ -14,6 +14,7 @@ library;
 import 'package:ditto_live/ditto_live.dart';
 import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:supabase_models/brick/models/all_models.dart';
+import 'package:supabase_models/sync/shared_sync_subscriptions.dart';
 
 const String colorsCollection = 'colors';
 const String unitsCollection = 'units';
@@ -42,7 +43,7 @@ Future<void> ensureReferenceSubscription(
       'SELECT * FROM $collection WHERE branchId = :branchId',
       {'branchId': branchId},
     );
-    await ditto.sync.registerSubscription(
+    SharedSyncSubscriptions.register(ditto, 
       prepared.dql,
       arguments: prepared.arguments,
     );
@@ -148,7 +149,7 @@ Future<void> ensureGlobalReferenceSubscription(
   try {
     final prepared =
         prepareDqlSyncSubscription('SELECT * FROM $collection', null);
-    await ditto.sync.registerSubscription(
+    SharedSyncSubscriptions.register(ditto, 
       prepared.dql,
       arguments: prepared.arguments,
     );

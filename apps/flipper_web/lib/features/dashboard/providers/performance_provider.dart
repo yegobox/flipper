@@ -4,6 +4,7 @@ import 'package:flipper_web/services/ditto_service.dart';
 import 'package:flipper_web/features/business_selection/business_branch_selector.dart';
 import 'package:flipper_web/features/dashboard/models/performance_data.dart';
 import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
+import 'package:supabase_models/sync/shared_sync_subscriptions.dart';
 
 final performanceDataProvider = FutureProvider<PerformanceData>((ref) async {
   final dittoService = ref.watch(dittoServiceProvider);
@@ -26,7 +27,7 @@ final performanceDataProvider = FutureProvider<PerformanceData>((ref) async {
     "SELECT * FROM transactions WHERE branchId = :branchId AND isIncome = true",
     {"branchId": selectedBranch.serverId},
   );
-  dittoService.dittoInstance!.sync.registerSubscription(
+  SharedSyncSubscriptions.register(dittoService.dittoInstance!, 
     preparedTxPerf.dql,
     arguments: preparedTxPerf.arguments,
   );
@@ -35,7 +36,7 @@ final performanceDataProvider = FutureProvider<PerformanceData>((ref) async {
     "SELECT * FROM transaction_items WHERE branchId = :branchId",
     {"branchId": selectedBranch.serverId},
   );
-  dittoService.dittoInstance!.sync.registerSubscription(
+  SharedSyncSubscriptions.register(dittoService.dittoInstance!, 
     preparedTiPerf.dql,
     arguments: preparedTiPerf.arguments,
   );

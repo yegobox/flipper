@@ -2,6 +2,7 @@ import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/outer_variant_provider.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart' show StreamProvider;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'visible_stocks_provider.g.dart';
@@ -33,3 +34,31 @@ Stream<Map<String, Stock?>> stocksForVisibleVariants(
 
   return ProxyService.getStrategy(Strategy.capella).watchStocksByIds(stockIds);
 }
+
+/// The key [stocksByIdsProvider] is read with: the stock ids of a list's
+/// rows, sorted, so the same rows in another order share one observer.
+String stockIdsKey(Iterable<Variant> variants) {
+  final ids =
+      variants
+          .map((v) => v.stockId?.trim() ?? '')
+          .where((id) => id.isNotEmpty)
+          .toSet()
+          .toList()
+        ..sort();
+  return ids.join(',');
+}
+
+/// One Ditto observer for the stock of every row in a list that is not the
+/// POS catalog (the ordering grid, the Items dialog). Read it with
+/// [stockIdsKey].
+///
+/// Each row used to open its own observer, a synchronous Ditto call on the UI
+/// thread, again on every search keystroke. While Ditto was busy that froze
+/// the till (2026-11-09).
+final stocksByIdsProvider = StreamProvider.autoDispose
+    .family<Map<String, Stock?>, String>((ref, key) {
+      if (key.isEmpty) return Stream.value(const <String, Stock?>{});
+      return ProxyService.getStrategy(
+        Strategy.capella,
+      ).watchStocksByIds(key.split(','));
+    });

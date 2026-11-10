@@ -31,6 +31,7 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flipper_models/sync/capella/mixins/settings_mixin.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:supabase_models/sync/shared_sync_subscriptions.dart';
 
 class FailedPayment extends StatefulWidget {
   const FailedPayment({Key? key}) : super(key: key);
@@ -297,7 +298,7 @@ class _FailedPaymentState extends State<FailedPayment>
           'SELECT * FROM payment_skip_settings WHERE businessId = :businessId',
           {'businessId': businessId},
         );
-        ditto.sync.registerSubscription(
+        SharedSyncSubscriptions.register(ditto, 
           preparedSkip.dql,
           arguments: preparedSkip.arguments,
         );

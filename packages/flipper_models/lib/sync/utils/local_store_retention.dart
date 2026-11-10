@@ -25,10 +25,21 @@ const Set<String> kWindowedHistoryCollections = {
   'transaction_items',
 };
 
-/// Start of the retained window.
+/// Start of the retained window: midnight, [kLocalHistoryRetentionDays] days
+/// before [now].
+///
+/// Whole days, so every subscription made on the same day carries the same
+/// `historyWindowStart`. To the microsecond, each call made a new, distinct
+/// branch-wide subscription. They were never cancelled, so Ditto's sync kept
+/// evaluating hundreds of them, and every synchronous Ditto call on the UI
+/// thread waited behind that work (the POS search freezes of 2026-11-09).
 DateTime localHistoryWindowStart({DateTime? now}) {
-  final from = now ?? DateTime.now();
-  return from.subtract(const Duration(days: kLocalHistoryRetentionDays));
+  final from = (now ?? DateTime.now()).subtract(
+    const Duration(days: kLocalHistoryRetentionDays),
+  );
+  return from.isUtc
+      ? DateTime.utc(from.year, from.month, from.day)
+      : DateTime(from.year, from.month, from.day);
 }
 
 /// A subscription query, possibly narrowed to the retained window.

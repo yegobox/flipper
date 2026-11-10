@@ -9,6 +9,7 @@ import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:flutter/widgets.dart';
+import 'package:supabase_models/sync/shared_sync_subscriptions.dart';
 
 /// Watches Ditto for personal-goal credits from other devices and shows system
 /// notifications. Uses both `personal_goals` replication and `events` mesh
@@ -105,7 +106,7 @@ class PersonalGoalNotificationService with WidgetsBindingObserver {
       final prepared = prepareDqlSyncSubscription(_eventsQuery, {
         'channel': eventChannel,
       });
-      await ditto.sync.registerSubscription(
+      SharedSyncSubscriptions.register(ditto, 
         prepared.dql,
         arguments: prepared.arguments,
       );
@@ -169,7 +170,7 @@ class PersonalGoalNotificationService with WidgetsBindingObserver {
     const allSql = 'SELECT * FROM personal_goals';
     try {
       final preparedAll = prepareDqlSyncSubscription(allSql, null);
-      await ditto.sync.registerSubscription(
+      SharedSyncSubscriptions.register(ditto, 
         preparedAll.dql,
         arguments: preparedAll.arguments,
       );
@@ -179,7 +180,7 @@ class PersonalGoalNotificationService with WidgetsBindingObserver {
       'branchId': branchId,
     });
     try {
-      await ditto.sync.registerSubscription(
+      SharedSyncSubscriptions.register(ditto, 
         prepared.dql,
         arguments: prepared.arguments,
       );

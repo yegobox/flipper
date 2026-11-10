@@ -17,6 +17,7 @@ import 'package:supabase_models/brick/models/variant.model.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:talker/talker.dart';
 import 'package:uuid/uuid.dart';
+import 'package:supabase_models/sync/shared_sync_subscriptions.dart';
 
 /// Ditto-backed stock recount (Capella). Overrides [StockRecountMixin] SQLite/B-repository reads so mesh state is authoritative.
 mixin CapellaStockRecountMixin implements StockRecountInterface {
@@ -623,7 +624,7 @@ LIMIT 1
     () async {
       try {
         final prepared = prepareDqlSyncSubscription(query, arguments);
-        await ditto.sync.registerSubscription(
+        SharedSyncSubscriptions.register(ditto, 
           prepared.dql,
           arguments: prepared.arguments,
         );

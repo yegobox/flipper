@@ -8,6 +8,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:flipper_services/log_service.dart';
 import 'package:talker/talker.dart';
+import 'package:supabase_models/sync/shared_sync_subscriptions.dart';
 
 mixin CapellaCustomerMixin implements CustomerInterface {
   DittoService get dittoService => DittoService.instance;
@@ -353,7 +354,7 @@ mixin CapellaCustomerMixin implements CustomerInterface {
             prepareDqlSyncSubscription("SELECT * FROM customers WHERE branchId = :branchId", {
           'branchId': branchId,
         });
-        ditto.sync.registerSubscription(
+        SharedSyncSubscriptions.register(ditto, 
           preparedBranch.dql,
           arguments: preparedBranch.arguments,
         );
@@ -440,7 +441,7 @@ mixin CapellaCustomerMixin implements CustomerInterface {
         );
       }
       final preparedCustomers = prepareDqlSyncSubscription(query, arguments);
-      await ditto.sync.registerSubscription(
+      SharedSyncSubscriptions.register(ditto, 
         preparedCustomers.dql,
         arguments: preparedCustomers.arguments,
       );
@@ -664,7 +665,7 @@ mixin CapellaCustomerMixin implements CustomerInterface {
           "SELECT * FROM customers WHERE branchId = :branchId",
           {'branchId': branchId},
         );
-        ditto.sync.registerSubscription(
+        SharedSyncSubscriptions.register(ditto, 
           preparedBranch.dql,
           arguments: preparedBranch.arguments,
         );
@@ -673,7 +674,7 @@ mixin CapellaCustomerMixin implements CustomerInterface {
           "SELECT * FROM customers WHERE id = :id",
           {'id': id},
         );
-        ditto.sync.registerSubscription(
+        SharedSyncSubscriptions.register(ditto, 
           preparedId.dql,
           arguments: preparedId.arguments,
         );
@@ -685,7 +686,7 @@ mixin CapellaCustomerMixin implements CustomerInterface {
 
       // Subscribe to ensure we have the latest data from Ditto mesh
       final preparedById = prepareDqlSyncSubscription(query, arguments);
-      await ditto.sync.registerSubscription(
+      SharedSyncSubscriptions.register(ditto, 
         preparedById.dql,
         arguments: preparedById.arguments,
       );
@@ -847,7 +848,7 @@ mixin CapellaCustomerMixin implements CustomerInterface {
       "SELECT * FROM customers WHERE branchId = :branchId",
       {'branchId': branchId},
     );
-    ditto.sync.registerSubscription(
+    SharedSyncSubscriptions.register(ditto, 
       preparedBranch.dql,
       arguments: preparedBranch.arguments,
     );

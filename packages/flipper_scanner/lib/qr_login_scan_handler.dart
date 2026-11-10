@@ -10,6 +10,7 @@ import 'package:flipper_scanner/scanner_actions.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/ditto_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_models/sync/shared_sync_subscriptions.dart';
 
 /// Shared phone-side QR desktop login flow (dashboard + auth scanners).
 class QrLoginScanHandler {
@@ -150,7 +151,7 @@ class QrLoginScanHandler {
       'SELECT * FROM events WHERE channel = :channel',
       {'channel': responseChannel},
     );
-    ditto.sync.registerSubscription(
+    SharedSyncSubscriptions.register(ditto, 
       preparedEv.dql,
       arguments: preparedEv.arguments,
     );

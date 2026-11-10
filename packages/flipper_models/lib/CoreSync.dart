@@ -87,6 +87,7 @@ import 'package:uuid/uuid.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:flipper_web/core/local_mode/local_mode.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:supabase_models/sync/shared_sync_subscriptions.dart';
 
 /// A cloud sync that uses different sync provider such as powersync+ superbase, firesore and can easy add
 /// anotherone to acheive sync for flipper app
@@ -2881,7 +2882,7 @@ class CoreSync extends AiStrategyImpl
       // same subscription every call leaks subscriptions and stalls Ditto sync.
       if (_taxEnabledSubscribed.add('$businessId|$branchId')) {
         final preparedEbm = prepareDqlSyncSubscription(query, arguments);
-        await ditto.sync.registerSubscription(
+        SharedSyncSubscriptions.register(ditto, 
           preparedEbm.dql,
           arguments: preparedEbm.arguments,
         );

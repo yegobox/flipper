@@ -10,6 +10,7 @@ library;
 import 'package:ditto_live/ditto_live.dart';
 import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:supabase_models/brick/models/all_models.dart';
+import 'package:supabase_models/sync/shared_sync_subscriptions.dart';
 
 const String favoritesCollection = 'favorites';
 
@@ -51,7 +52,7 @@ Future<void> ensureFavoritesSubscription(Ditto ditto, String branchId) async {
       'SELECT * FROM $favoritesCollection WHERE branchId = :branchId',
       {'branchId': branchId},
     );
-    await ditto.sync.registerSubscription(
+    SharedSyncSubscriptions.register(ditto, 
       prepared.dql,
       arguments: prepared.arguments,
     );

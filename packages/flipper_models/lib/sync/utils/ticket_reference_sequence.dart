@@ -1,6 +1,7 @@
 import 'package:ditto_live/ditto_live.dart';
 import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:supabase_models/brick/models/ticket_sequence.model.dart';
+import 'package:supabase_models/sync/shared_sync_subscriptions.dart';
 
 /// Per-branch, best-effort sequential ticket reference number (starts at 1),
 /// distinct from a transaction's Ditto `id`. Deliberately Ditto-only — no
@@ -26,7 +27,7 @@ Future<int> nextTicketReferenceNumber({
       'SELECT * FROM ticket_sequences WHERE branchId = :branchId',
       {'branchId': branchId},
     );
-    ditto.sync.registerSubscription(
+    SharedSyncSubscriptions.register(ditto, 
       prepared.dql,
       arguments: prepared.arguments,
     );

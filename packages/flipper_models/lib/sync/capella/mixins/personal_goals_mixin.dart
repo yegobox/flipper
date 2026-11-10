@@ -11,6 +11,7 @@ import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:supabase_models/brick/models/transactionItem.model.dart';
 import 'package:talker/talker.dart';
+import 'package:supabase_models/sync/shared_sync_subscriptions.dart';
 
 mixin CapellaPersonalGoalsMixin {
   DittoService get dittoService;
@@ -63,7 +64,7 @@ mixin CapellaPersonalGoalsMixin {
     if (_collectionWideSubscriptionRegistered) return;
     final prepared = prepareDqlSyncSubscription(_personalGoalsAllSql, null);
     try {
-      await ditto.sync.registerSubscription(
+      SharedSyncSubscriptions.register(ditto, 
         prepared.dql,
         arguments: prepared.arguments,
       );
@@ -88,7 +89,7 @@ mixin CapellaPersonalGoalsMixin {
     final arguments = {'branchId': branchId};
     final prepared = prepareDqlSyncSubscription(_personalGoalsBroadSql, arguments);
     try {
-      await ditto.sync.registerSubscription(
+      SharedSyncSubscriptions.register(ditto, 
         prepared.dql,
         arguments: prepared.arguments,
       );

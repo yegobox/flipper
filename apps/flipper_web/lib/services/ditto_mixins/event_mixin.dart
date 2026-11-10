@@ -1,6 +1,7 @@
 import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:flutter/foundation.dart' hide Category;
 import 'ditto_core_mixin.dart';
+import 'package:supabase_models/sync/shared_sync_subscriptions.dart';
 
 mixin EventMixin on DittoCore {
   /// Save an event to the events collection (P2P and/or Ditto Cloud).
@@ -32,7 +33,7 @@ mixin EventMixin on DittoCore {
     final ditto = dittoInstance;
     if (ditto == null) return;
     try {
-      ditto.sync.registerSubscription('SELECT * FROM events');
+      SharedSyncSubscriptions.register(ditto, 'SELECT * FROM events');
     } catch (e) {
       debugPrint('ensureBroadEventsCloudSubscription: $e');
     }
@@ -49,7 +50,7 @@ mixin EventMixin on DittoCore {
       {'channel': channel},
     );
     try {
-      ditto.sync.registerSubscription(
+      SharedSyncSubscriptions.register(ditto, 
         prepared.dql,
         arguments: prepared.arguments,
       );

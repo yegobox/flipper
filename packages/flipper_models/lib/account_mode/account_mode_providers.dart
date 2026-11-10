@@ -5,6 +5,7 @@ import 'package:flipper_models/account_mode/account_mode_store.dart';
 import 'package:flipper_models/sms_review/sms_review_providers.dart'
     show usableDittoProvider;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_models/sync/shared_sync_subscriptions.dart';
 
 final accountModeStoreProvider = Provider<AccountModeStore>(
   (ref) => AccountModeStore.instance,
@@ -39,7 +40,7 @@ final accountModeProvider = StreamProvider.family<AccountModeReading, String>((
   const query = 'SELECT * FROM $kAccountModesCollection WHERE _id = :id';
   final args = {'id': id};
   try {
-    ditto.sync.registerSubscription(query, arguments: args);
+    SharedSyncSubscriptions.register(ditto, query, arguments: args);
   } catch (_) {
     // The observer still reads what is already on this device.
   }

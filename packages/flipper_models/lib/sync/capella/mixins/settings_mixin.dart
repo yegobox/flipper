@@ -3,6 +3,7 @@ import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:talker/talker.dart';
 import 'package:flipper_web/services/ditto_service.dart';
+import 'package:supabase_models/sync/shared_sync_subscriptions.dart';
 
 class PaymentSkipSettings {
   final String businessId;
@@ -52,7 +53,7 @@ mixin CapellaSettingsMixin {
         "SELECT * FROM settings WHERE businessId = :businessId",
         {'businessId': businessId},
       );
-      ditto.sync.registerSubscription(
+      SharedSyncSubscriptions.register(ditto, 
         preparedSettings.dql,
         arguments: preparedSettings.arguments,
       );

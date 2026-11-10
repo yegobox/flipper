@@ -5,10 +5,20 @@ Agent rule: `.cursor/rules/flipper-riverpod-perf.mdc` (also in workspace `yego-p
 ## Quick checklist for new code
 
 1. Can this widget use `select()` instead of watching the full async value?
-2. Can list data be **batched** in one provider instead of N family streams per row?
+2. Can list data be **batched** in one provider instead of N family streams per row? (See "Ditto calls on the UI thread".)
 3. Does a paged UI scope streams/queries to the **current page** (not full date range)?
 4. Are side effects (`cache`, `reconciliation`) wired with `ref.listen`, not `watch`?
 5. After cart changes, run `pos_cart_tap_sync_perf_test.dart`.
+
+## Ditto calls on the UI thread
+
+`store.registerObserver` and `sync.registerSubscription` are synchronous calls on the UI thread. Each one waits for Ditto, and while Ditto's sync is busy that can mean minutes: the POS search froze for 46 s to 4 min on 2026-11-09. `store.execute` runs off the UI thread and is safe.
+
+- **Never open an observer per list row.** Batch at list level (`stocksForVisibleVariantsProvider`, `ticketsPaymentSumsProvider`). A row that gets a batched value must not fall back to its own observer while the batch reloads (`RowItem.stockFromBatch`, flipper #885).
+- **A subscription you don't keep goes through `SharedSyncSubscriptions.register`.** It registers each query and arguments once per Ditto session. Calling Ditto directly on every stream rebuild left hundreds of identical branch-wide subscriptions for sync to evaluate. CI enforces this: `documented_rules_check.py`, rule `unshared_sync_subscriptions`.
+- **A subscription you do keep is cancelled in `onCancel`**, next to the observer (`KeyedSyncSubscriptions` for per-key ones).
+- **Arguments must repeat.** A value that changes on every call (such as `DateTime.now()`) makes every registration a new subscription. `localHistoryWindowStart` is whole days for this reason.
+- **New observers use `registerTrackedObserver`**, which counts live observers and names slow callbacks in `perf.log`. Rule `untracked_store_observers` is a ratchet on the direct calls.
 
 ## Perf budgets
 

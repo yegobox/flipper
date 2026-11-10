@@ -11,6 +11,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:flutter/foundation.dart' hide Category;
 import 'package:supabase_models/brick/models/all_models.dart';
+import 'package:supabase_models/sync/shared_sync_subscriptions.dart';
 
 mixin CapellaDelegationMixin implements DelegationInterface {
   DittoService get dittoService => DittoService.instance;
@@ -215,7 +216,7 @@ mixin CapellaDelegationMixin implements DelegationInterface {
           }
 
           final preparedDel = prepareDqlSyncSubscription(syncQuery, syncArgs);
-          await ditto.sync.registerSubscription(
+          SharedSyncSubscriptions.register(ditto, 
             preparedDel.dql,
             arguments: preparedDel.arguments,
           );

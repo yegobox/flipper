@@ -6,6 +6,7 @@ import 'package:flipper_web/services/ditto_service.dart';
 import 'package:uuid/uuid.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:supabase_models/sync/shared_sync_subscriptions.dart';
 
 /// Capella (Ditto) implementation of ProductionOutputInterface.
 ///
@@ -75,7 +76,7 @@ mixin CapellaProductionOutputMixin implements ProductionOutputInterface {
 
       // Subscribe to keep data synced
       final preparedPo = prepareDqlSyncSubscription(query, arguments);
-      ditto.sync.registerSubscription(
+      SharedSyncSubscriptions.register(ditto, 
         preparedPo.dql,
         arguments: preparedPo.arguments,
       );
@@ -222,7 +223,7 @@ mixin CapellaProductionOutputMixin implements ProductionOutputInterface {
           "SELECT * FROM actual_outputs WHERE ${whereClauses.join(' AND ')}";
 
       final preparedAo = prepareDqlSyncSubscription(query, arguments);
-      ditto.sync.registerSubscription(
+      SharedSyncSubscriptions.register(ditto, 
         preparedAo.dql,
         arguments: preparedAo.arguments,
       );
@@ -448,7 +449,7 @@ mixin CapellaProductionOutputMixin implements ProductionOutputInterface {
     () async {
       try {
         final prepared = prepareDqlSyncSubscription(query, arguments);
-        await ditto.sync.registerSubscription(
+        SharedSyncSubscriptions.register(ditto, 
           prepared.dql,
           arguments: prepared.arguments,
         );

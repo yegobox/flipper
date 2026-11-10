@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart' hide Category;
 import 'package:flipper_models/models/subscription_plan.dart';
 import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'ditto_core_mixin.dart';
+import 'package:supabase_models/sync/shared_sync_subscriptions.dart';
 
 mixin PlanMixin on DittoCore {
   /// Registered [businessId]s for which we already installed a
@@ -29,7 +30,7 @@ mixin PlanMixin on DittoCore {
     final prepared = prepareDqlSyncSubscription(_planQuery, {
       'businessId': businessId,
     });
-    dittoInstance!.sync.registerSubscription(
+    SharedSyncSubscriptions.register(dittoInstance!, 
       prepared.dql,
       arguments: prepared.arguments,
     );
@@ -44,7 +45,7 @@ mixin PlanMixin on DittoCore {
     final prepared = prepareDqlSyncSubscription(_addonQuery, {
       'planId': planId,
     });
-    dittoInstance!.sync.registerSubscription(
+    SharedSyncSubscriptions.register(dittoInstance!, 
       prepared.dql,
       arguments: prepared.arguments,
     );

@@ -7,8 +7,8 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/outer_variant_provider.dart';
+import 'package:flipper_models/providers/visible_stocks_provider.dart';
 import 'package:flipper_models/sync/branch_catalog_cloud_sync.dart';
-import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:flutter/material.dart';
@@ -376,6 +376,13 @@ class _ItemsDialogState extends ConsumerState<ItemsDialog> {
                           );
                         }
 
+                        // One observer for the stock of every row. Keyed by
+                        // all rows, not the filtered ones, so typing in the
+                        // search box does not open a new one per keystroke.
+                        final stocks = ref.watch(
+                          stocksByIdsProvider(stockIdsKey(variants)),
+                        );
+
                         return ListView.builder(
                           itemCount: filteredVariants.length,
                           itemBuilder: (context, index) {
@@ -410,29 +417,21 @@ class _ItemsDialogState extends ConsumerState<ItemsDialog> {
                                     children: [
                                       if (variant.stockId != null &&
                                           variant.stockId!.isNotEmpty)
-                                        ref
-                                            .watch(
-                                              stockByVariantProvider(
-                                                variant.stockId!,
-                                              ),
-                                            )
-                                            .when(
-                                              data: (stock) => Text(
-                                                context.flipperL10n.itemsStockValue(
-                                                  '${stock?.currentStock ?? 0}',
-                                                ),
-                                              ),
-                                              loading: () => Text(
-                                                context
-                                                    .flipperL10n
-                                                    .itemsStockLoading,
-                                              ),
-                                              error: (err, stack) => Text(
-                                                context
-                                                    .flipperL10n
-                                                    .itemsStockError,
-                                              ),
-                                            )
+                                        stocks.when(
+                                          data: (byId) => Text(
+                                            context.flipperL10n.itemsStockValue(
+                                              '${byId[variant.stockId!.trim()]?.currentStock ?? variant.stock?.currentStock ?? 0}',
+                                            ),
+                                          ),
+                                          loading: () => Text(
+                                            context
+                                                .flipperL10n
+                                                .itemsStockLoading,
+                                          ),
+                                          error: (err, stack) => Text(
+                                            context.flipperL10n.itemsStockError,
+                                          ),
+                                        )
                                       else
                                         Text(
                                           context.flipperL10n.itemsStockValue(

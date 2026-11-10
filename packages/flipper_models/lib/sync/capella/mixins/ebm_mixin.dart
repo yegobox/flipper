@@ -10,6 +10,7 @@ import 'package:flipper_web/services/ditto_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:talker/talker.dart';
+import 'package:supabase_models/sync/shared_sync_subscriptions.dart';
 
 /// Branches whose EBM Ditto subscription is already registered this session.
 /// Guards [CapellaEbmMixin.ebm] against re-subscribing + re-delaying on every
@@ -93,7 +94,7 @@ mixin CapellaEbmMixin implements EbmInterface {
         // bulk import leaks subscriptions and stalls Ditto sync mid-batch.
         if (_capellaEbmSubscribedBranches.add(branchId)) {
           final prepared = prepareDqlSyncSubscription(dittoQuery, arguments);
-          await ditto.sync.registerSubscription(
+          SharedSyncSubscriptions.register(ditto, 
             prepared.dql,
             arguments: prepared.arguments,
           );

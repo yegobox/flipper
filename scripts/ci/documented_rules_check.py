@@ -15,6 +15,10 @@ Each rule below is one of those, turned into something the build can check.
     RULE 2  LocalStorage writes must use an allow-listed key   [ratchet]
     RULE 3  Report/export builders should not use              [ratchet]
             ProxyService.strategy
+    RULE 4  A Ditto sync subscription nobody keeps goes        [hard failure]
+            through SharedSyncSubscriptions
+    RULE 5  Store observers are registered through             [ratchet]
+            registerTrackedObserver
 
 "Hard failure" means the rule holds today with zero exceptions, so any
 violation is new and is rejected outright. "Ratchet" means there are known
@@ -180,6 +184,65 @@ def rule_report_strategy():
     return sorted(offenders)
 
 
+# --------------------------------------------------------------- RULE 4
+def _statement_prefix(text, at):
+    """The text of the statement that `at` sits in, up to `at`."""
+    start = max(text.rfind(";", 0, at), text.rfind("{", 0, at), text.rfind("}", 0, at))
+    return text[start + 1:at]
+
+
+def rule_unshared_sync_subscriptions():
+    """A sync subscription that is not kept must go through SharedSyncSubscriptions.
+
+    `registerSubscription` is a synchronous call on the UI thread that waits
+    for Ditto. Call sites that dropped the returned subscription registered a
+    new one every time they ran (each cart rebuild, customer lookup, report)
+    and never cancelled any. Hundreds piled up, Ditto's sync evaluated them
+    all, and the till froze for minutes (2026-11-09). SharedSyncSubscriptions
+    registers each query and arguments once. A call site that keeps its
+    subscription and cancels it may still call Ditto directly.
+    See docs/riverpod_perf.md, "Ditto calls on the UI thread".
+    """
+    call = re.compile(r"\.\s*sync\s*\.\s*registerSubscription\s*\(")
+    offenders = []
+    for path in dart_files(include_tests=False):
+        if path.endswith("shared_sync_subscriptions.dart"):
+            continue
+        text = strip_comments(read(path))
+        for m in call.finditer(text):
+            prefix = _statement_prefix(text, m.start())
+            kept = (re.search(r"(^|[^=!<>])=($|[^=>])", prefix)
+                    or re.search(r"\breturn\b", prefix) or "=>" in prefix)
+            if kept:
+                continue
+            line = text[:m.start()].count("\n") + 1
+            offenders.append(f"{rel(path)}:{line}")
+    return sorted(offenders)
+
+
+# --------------------------------------------------------------- RULE 5
+def rule_untracked_store_observers():
+    """Store observers should be registered through registerTrackedObserver.
+
+    `registerObserver` is also a synchronous call on the UI thread. One per
+    grid card on every search keystroke froze the till (flipper #885), and the
+    stall report could not say which observer it was. registerTrackedObserver
+    counts live observers per call site and names slow callbacks in perf.log.
+    A ratchet: existing direct calls stay until they are moved; new ones need
+    a reviewed reason.
+    """
+    call = re.compile(r"\.\s*store\s*\.\s*registerObserver(?:WithSignalNext)?\s*\(")
+    offenders = []
+    for path in dart_files(include_tests=False):
+        if path.endswith("ditto_observer_registry.dart"):
+            continue
+        text = strip_comments(read(path))
+        for m in call.finditer(text):
+            line = text[:m.start()].count("\n") + 1
+            offenders.append(f"{rel(path)}:{line}")
+    return sorted(offenders)
+
+
 RULES = [
     ("sarno_in_update_counters", "updateCounters must not write Sar.sarNo",
      rule_sarno, "hard"),
@@ -187,6 +250,12 @@ RULES = [
      rule_localstorage_keys, "ratchet"),
     ("report_uses_default_strategy", "Report/export builders should use Strategy.capella",
      rule_report_strategy, "ratchet"),
+    ("unshared_sync_subscriptions",
+     "A Ditto sync subscription nobody keeps goes through SharedSyncSubscriptions",
+     rule_unshared_sync_subscriptions, "hard"),
+    ("untracked_store_observers",
+     "Store observers are registered through registerTrackedObserver",
+     rule_untracked_store_observers, "ratchet"),
 ]
 
 
