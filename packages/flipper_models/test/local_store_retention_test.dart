@@ -70,8 +70,9 @@ void main() {
       const dql =
           'SELECT * FROM transaction_items WHERE transactionId = :transactionId';
 
-      final out = applyLocalHistoryWindow(dql, {'transactionId': 't1'},
-          now: now);
+      final out = applyLocalHistoryWindow(dql, {
+        'transactionId': 't1',
+      }, now: now);
 
       expect(out.dql, dql);
     });
@@ -134,6 +135,33 @@ void main() {
       localHistoryWindowStart(now: DateTime(2026, 9, 4, 23, 59)),
       DateTime(2026, 8, 5),
     );
+  });
+
+  test('local time counts calendar days, so daylight saving cannot move it', () {
+    // 30 × 24 hours back from late on 2025-11-30 in America/New_York lands on
+    // 2025-11-01 (the hour gained on 2 November), early in the day on
+    // 2025-10-31. The cutoff then changed within one day. Walking every day of
+    // two years at both ends of the day catches that in whatever zone the test
+    // runs; the expected date comes from UTC, which has no daylight saving.
+    for (
+      var date = DateTime.utc(2025, 1, 1);
+      date.isBefore(DateTime.utc(2027, 1, 1));
+      date = date.add(const Duration(days: 1))
+    ) {
+      final expected = DateTime.utc(date.year, date.month, date.day - 30);
+      for (final at in [
+        DateTime(date.year, date.month, date.day, 0, 0, 0, 1),
+        DateTime(date.year, date.month, date.day, 23, 59, 59),
+      ]) {
+        final start = localHistoryWindowStart(now: at);
+        expect(start.isUtc, isFalse, reason: '$at');
+        expect(
+          [start.year, start.month, start.day],
+          [expected.year, expected.month, expected.day],
+          reason: 'cutoff for $at',
+        );
+      }
+    }
   });
 
   test('every subscription made on the same day is the same subscription', () {

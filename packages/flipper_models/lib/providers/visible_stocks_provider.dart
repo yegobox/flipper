@@ -37,6 +37,10 @@ Stream<Map<String, Stock?>> stocksForVisibleVariants(
 
 /// The key [stocksByIdsProvider] is read with: the stock ids of a list's
 /// rows, sorted, so the same rows in another order share one observer.
+///
+/// Comma-joined, and split on commas again by [stocksByIdsProvider], so it
+/// relies on stock ids (UUIDs) never containing a comma. A string key keeps
+/// the family's value equality trivial; a `List` key would not.
 String stockIdsKey(Iterable<Variant> variants) {
   final ids =
       variants

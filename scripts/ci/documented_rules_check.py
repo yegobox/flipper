@@ -202,6 +202,11 @@ def rule_unshared_sync_subscriptions():
     registers each query and arguments once. A call site that keeps its
     subscription and cancels it may still call Ditto directly.
     See docs/riverpod_perf.md, "Ditto calls on the UI thread".
+
+    "Kept" is a heuristic: any assignment, `return` or `=>` before the call
+    passes, even when the handle is later dropped and never cancelled. The
+    rule catches the bare statement that leaked here; a reviewer still checks
+    that a directly registered subscription is cancelled.
     """
     call = re.compile(r"\.\s*sync\s*\.\s*registerSubscription\s*\(")
     offenders = []

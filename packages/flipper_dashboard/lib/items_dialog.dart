@@ -417,19 +417,13 @@ class _ItemsDialogState extends ConsumerState<ItemsDialog> {
                                     children: [
                                       if (variant.stockId != null &&
                                           variant.stockId!.isNotEmpty)
-                                        stocks.when(
-                                          data: (byId) => Text(
-                                            context.flipperL10n.itemsStockValue(
-                                              '${byId[variant.stockId!.trim()]?.currentStock ?? variant.stock?.currentStock ?? 0}',
-                                            ),
-                                          ),
-                                          loading: () => Text(
-                                            context
-                                                .flipperL10n
-                                                .itemsStockLoading,
-                                          ),
-                                          error: (err, stack) => Text(
-                                            context.flipperL10n.itemsStockError,
+                                        // The row's own stock until the
+                                        // batch has a value, so a new batch
+                                        // (the list changed) or a failed one
+                                        // never blanks the count.
+                                        Text(
+                                          context.flipperL10n.itemsStockValue(
+                                            '${stocks.value?[variant.stockId!.trim()]?.currentStock ?? variant.stock?.currentStock ?? 0}',
                                           ),
                                         )
                                       else

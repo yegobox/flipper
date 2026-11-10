@@ -14,6 +14,11 @@ mixin CapellaCustomerMixin implements CustomerInterface {
   DittoService get dittoService => DittoService.instance;
   Talker get talker;
 
+  /// The Ditto instance [customersStream] uses. [dittoService] is typed to the
+  /// real `Ditto`, which a unit test cannot build, so tests override this with
+  /// an in-memory store.
+  dynamic get dittoHandle => dittoService.dittoInstance;
+
   Customer _customerFromDittoMap(Map<String, dynamic> item) {
     return Customer(
       id: item['id']?.toString(),
@@ -58,8 +63,8 @@ mixin CapellaCustomerMixin implements CustomerInterface {
       'telNo': customer.telNo,
       'adrs': customer.adrs,
       'branchId': branchId,
-      'updatedAt':
-          (customer.updatedAt ?? DateTime.now().toUtc()).toIso8601String(),
+      'updatedAt': (customer.updatedAt ?? DateTime.now().toUtc())
+          .toIso8601String(),
       'custNo': customer.custNo,
       'custTin': customer.custTin,
       'regrNm': customer.regrNm,
@@ -104,8 +109,9 @@ mixin CapellaCustomerMixin implements CustomerInterface {
 
     final now = DateTime.now().toUtc().toIso8601String();
     final tin = customer.custTin?.trim() ?? '';
-    final tinClause =
-        tin.isEmpty ? 'customerTin = NULL' : 'customerTin = :customerTin';
+    final tinClause = tin.isEmpty
+        ? 'customerTin = NULL'
+        : 'customerTin = :customerTin';
     final arguments = <String, dynamic>{
       'customerId': customerId,
       'customerName': customer.custNm,
@@ -159,8 +165,9 @@ mixin CapellaCustomerMixin implements CustomerInterface {
 
     final now = DateTime.now().toUtc().toIso8601String();
     final tin = customer.custTin?.trim() ?? '';
-    final tinClause =
-        tin.isEmpty ? 'customerTin = NULL' : 'customerTin = :customerTin';
+    final tinClause = tin.isEmpty
+        ? 'customerTin = NULL'
+        : 'customerTin = :customerTin';
     final arguments = <String, dynamic>{
       'id': transactionId,
       'customerId': customerId,
@@ -235,10 +242,7 @@ mixin CapellaCustomerMixin implements CustomerInterface {
           'UPPER(telNo) LIKE UPPER(:searchKey)';
       final result = await ditto.store.execute(
         query,
-        arguments: {
-          'branchId': branchId,
-          'searchKey': searchKey,
-        },
+        arguments: {'branchId': branchId, 'searchKey': searchKey},
       );
       return parseItems(result.items);
     }
@@ -350,11 +354,12 @@ mixin CapellaCustomerMixin implements CustomerInterface {
       /// there is open issue on ditto https://support.ditto.live/hc/en-us/requests/2648?page=1
       ///
       if (branchId != null && branchId.isNotEmpty) {
-        final preparedBranch =
-            prepareDqlSyncSubscription("SELECT * FROM customers WHERE branchId = :branchId", {
-          'branchId': branchId,
-        });
-        SharedSyncSubscriptions.register(ditto, 
+        final preparedBranch = prepareDqlSyncSubscription(
+          "SELECT * FROM customers WHERE branchId = :branchId",
+          {'branchId': branchId},
+        );
+        SharedSyncSubscriptions.register(
+          ditto,
           preparedBranch.dql,
           arguments: preparedBranch.arguments,
         );
@@ -441,7 +446,8 @@ mixin CapellaCustomerMixin implements CustomerInterface {
         );
       }
       final preparedCustomers = prepareDqlSyncSubscription(query, arguments);
-      SharedSyncSubscriptions.register(ditto, 
+      SharedSyncSubscriptions.register(
+        ditto,
         preparedCustomers.dql,
         arguments: preparedCustomers.arguments,
       );
@@ -665,7 +671,8 @@ mixin CapellaCustomerMixin implements CustomerInterface {
           "SELECT * FROM customers WHERE branchId = :branchId",
           {'branchId': branchId},
         );
-        SharedSyncSubscriptions.register(ditto, 
+        SharedSyncSubscriptions.register(
+          ditto,
           preparedBranch.dql,
           arguments: preparedBranch.arguments,
         );
@@ -674,7 +681,8 @@ mixin CapellaCustomerMixin implements CustomerInterface {
           "SELECT * FROM customers WHERE id = :id",
           {'id': id},
         );
-        SharedSyncSubscriptions.register(ditto, 
+        SharedSyncSubscriptions.register(
+          ditto,
           preparedId.dql,
           arguments: preparedId.arguments,
         );
@@ -686,7 +694,8 @@ mixin CapellaCustomerMixin implements CustomerInterface {
 
       // Subscribe to ensure we have the latest data from Ditto mesh
       final preparedById = prepareDqlSyncSubscription(query, arguments);
-      SharedSyncSubscriptions.register(ditto, 
+      SharedSyncSubscriptions.register(
+        ditto,
         preparedById.dql,
         arguments: preparedById.arguments,
       );
@@ -773,17 +782,13 @@ mixin CapellaCustomerMixin implements CustomerInterface {
     if (key != null && key.isNotEmpty) {
       return Stream.fromFuture(
         Future(() async {
-          final list = await customers(
-            branchId: branchId,
-            key: key,
-            id: id,
-          );
+          final list = await customers(branchId: branchId, key: key, id: id);
           return List<Customer>.from(list);
         }),
       );
     }
 
-    final ditto = dittoService.dittoInstance;
+    final ditto = dittoHandle;
     if (ditto == null) {
       talker.error('Ditto not initialized: customersStream');
       return Stream.value([]);
@@ -848,18 +853,16 @@ mixin CapellaCustomerMixin implements CustomerInterface {
       "SELECT * FROM customers WHERE branchId = :branchId",
       {'branchId': branchId},
     );
-    SharedSyncSubscriptions.register(ditto, 
+    // The shared subscription is the only one: a second, direct registration
+    // of the same query here doubled Ditto's sync work for every stream.
+    SharedSyncSubscriptions.register(
+      ditto,
       preparedBranch.dql,
       arguments: preparedBranch.arguments,
     );
 
     final query = 'SELECT * FROM customers WHERE branchId = :branchId';
     final arguments = <String, dynamic>{'branchId': branchId};
-    final prepared = prepareDqlSyncSubscription(query, arguments);
-    final subscription = ditto.sync.registerSubscription(
-      prepared.dql,
-      arguments: prepared.arguments,
-    );
 
     final controller = StreamController<List<Customer>>.broadcast();
     dynamic observer;
@@ -870,9 +873,7 @@ mixin CapellaCustomerMixin implements CustomerInterface {
       for (final doc in queryResult.items) {
         try {
           customers.add(
-            _customerFromDittoMap(
-              Map<String, dynamic>.from(doc.value as Map),
-            ),
+            _customerFromDittoMap(Map<String, dynamic>.from(doc.value as Map)),
           );
         } catch (e) {
           talker.error('Error converting customer in stream: $e');
@@ -896,7 +897,6 @@ mixin CapellaCustomerMixin implements CustomerInterface {
 
     controller.onCancel = () async {
       await observer?.cancel();
-      subscription.cancel();
       await controller.close();
     };
 
