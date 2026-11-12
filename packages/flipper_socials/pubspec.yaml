@@ -13,7 +13,6 @@ dependencies:
   cupertino_icons: ^1.0.2
   stacked: ^3.5.0
   stacked_services: ^1.6.0
-  responsive_builder: ^0.7.0
   flutter_animate: ^4.1.0
 
   google_fonts: ^6.1.0
@@ -22,13 +21,9 @@ dependencies:
   flipper_routing: ^1.0.0
 
   fluentui_system_icons: ^1.1.273
-  animated_icon_button: ^1.0.2
-  pip_view: ^0.9.7
-  getwidget: ^6.0.0
   timeago: ^3.4.0
   fast_cached_network_image: ^1.1.1
   # custom_floating_action_button: ^0.0.3
-  flutter_chat_ui: ^1.6.10
   #TODO: added flipper_dashboard here only becase we need customAppBar
   # may be it is time to create utils package and move everything shareble
   # in all packages or use flipper_ui package
