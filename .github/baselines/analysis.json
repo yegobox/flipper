@@ -28,7 +28,7 @@
     },
     "apps/flipper_web": {
       "error": 0,
-      "info": 32,
+      "info": 33,
       "warning": 10
     },
     "packages/brick_ditto": {
@@ -49,7 +49,7 @@
     "packages/desktop_webview_auth": {
       "error": 0,
       "info": 0,
-      "warning": 0
+      "warning": 1
     },
     "packages/flipper_accounting": {
       "error": 0,
@@ -73,8 +73,8 @@
     },
     "packages/flipper_dashboard": {
       "error": 0,
-      "info": 64,
-      "warning": 41
+      "info": 74,
+      "warning": 42
     },
     "packages/flipper_design_system": {
       "error": 0,
@@ -114,7 +114,7 @@
     "packages/flipper_models": {
       "error": 0,
       "info": 31,
-      "warning": 37
+      "warning": 41
     },
     "packages/flipper_payments": {
       "error": 0,
@@ -134,11 +134,11 @@
     "packages/flipper_services": {
       "error": 0,
       "info": 8,
-      "warning": 14
+      "warning": 18
     },
     "packages/flipper_socials": {
       "error": 0,
-      "info": 0,
+      "info": 1,
       "warning": 1
     },
     "packages/flipper_ui": {
@@ -158,7 +158,7 @@
     },
     "packages/supabase_models": {
       "error": 0,
-      "info": 188,
+      "info": 195,
       "warning": 91
     }
   }
