@@ -134,7 +134,7 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
       if (result.items.isEmpty) return null;
 
       final doc = Map<String, dynamic>.from(result.items.first.value);
-      return TransactionItemDittoAdapter.instance.fromDittoDocument(doc);
+      return await TransactionItemDittoAdapter.instance.fromDittoDocument(doc);
     } catch (e, s) {
       talker.error('Capella getTransactionItem: $e', s);
       return null;

@@ -208,6 +208,9 @@ mixin CapellaBranchMixin implements BranchInterface {
       if (branches.isEmpty &&
           !localOnly &&
           _branchesEmptyFallbackAttempted.add(businessId ?? '')) {
+        // Deliberately not awaited: the catch below would run this same Brick
+        // fallback a second time, so a failing fallback propagates instead.
+        // ignore: unawaited_return_in_try_block
         return _branchesFromBrick(
           businessId: businessId,
           active: active,
@@ -297,6 +300,9 @@ mixin CapellaBranchMixin implements BranchInterface {
       if (businesses.isEmpty &&
           fetchOnline &&
           _businessesEmptyFallbackAttempted.add(userId ?? '')) {
+        // Deliberately not awaited: the catch below would run this same Brick
+        // fallback a second time, so a failing fallback propagates instead.
+        // ignore: unawaited_return_in_try_block
         return _businessesFromBrick(userId: userId, active: active);
       }
       return businesses;

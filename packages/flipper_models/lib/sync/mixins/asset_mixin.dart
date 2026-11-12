@@ -73,7 +73,7 @@ mixin AssetMixin implements AssetInterface {
       // Case 1: Single asset download
       if (assetName != null) {
         talker.info("Downloading single asset: $assetName");
-        return downloadAsset(
+        return await downloadAsset(
           branchId: branchId,
           assetName: assetName,
           subPath: subPath ?? "branch",

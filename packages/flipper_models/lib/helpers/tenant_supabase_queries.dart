@@ -166,7 +166,7 @@ abstract final class TenantSupabaseQueries {
         }
       }
 
-      return firstForBusiness(businessId);
+      return await firstForBusiness(businessId);
     } catch (e, s) {
       debugPrint('TenantSupabaseQueries.defaultForBusiness: $e\n$s');
       return null;
