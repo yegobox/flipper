@@ -36,7 +36,7 @@ MODE="${1:-apply}"
 # The dwds release this patch was derived and verified against. --ci fails when
 # the resolved version drifts, which is the signal to re-verify the call site
 # and bump this line. Do not bump it without re-testing `flutter run -d chrome`.
-EXPECTED_DWDS="dwds-26.2.5"
+EXPECTED_DWDS="dwds-27.1.2"
 
 die() { printf 'patch_dwds_timeout: %s\n' "$*" >&2; exit 1; }
 info() { printf 'patch_dwds_timeout: %s\n' "$*"; }
