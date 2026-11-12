@@ -484,7 +484,7 @@ SPEC CHECKSUMS:
   flutter_gemma: b7c86902cf69f6c9a1eea947f1f23a9fe8ce82ba
   flutter_local_notifications: 14e285ca39907db50704f7f46c9ab7a526bd7ead
   flutter_localization: 98afcba7642d9909fd5bfc62b62d4cc2cd15727b
-  FlutterMacOS: d0db08ddef1a9af05a5ec4b724367152bb0500b1
+  FlutterMacOS: c232990155153907050900a2e175c7773903ba4e
   geolocator_apple: 66b711889fd333205763b83c9dcf0a57a28c7afd
   google_sign_in_ios: 7411fab6948df90490dc4620ecbcabdc3ca04017
   GoogleAppMeasurement: 3b4687de50ab25ee2d4d541849f10ca8df862a12

@@ -1,1 +1,5 @@
+analyzer:
+  exclude:
+    - android/**
+    - ios/**
 include: ../flipper_auth/analysis_options.yaml

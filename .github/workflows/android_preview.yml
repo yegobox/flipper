@@ -22,7 +22,7 @@ permissions:
   pull-requests: read
 
 env:
-  FLUTTER_VERSION: "3.44.6"
+  FLUTTER_VERSION: "3.47.9" # keep in step with release.yml
 
 jobs:
   preview:
@@ -254,7 +254,7 @@ jobs:
         run: |
           set -uo pipefail
           for _ in 1 2 3 4 5; do
-            if shorebird release android -v -- --no-android-gradle-daemon 2>&1 | tee /tmp/shorebird-release.log; then
+            if shorebird release android --flutter-version="$FLUTTER_VERSION" -v -- --no-android-gradle-daemon 2>&1 | tee /tmp/shorebird-release.log; then
               # No `set -e` here (the loop reads failures), so exit with
               # test's status: a release without an AAB must fail the step.
               test -f build/app/outputs/bundle/release/app-release.aab

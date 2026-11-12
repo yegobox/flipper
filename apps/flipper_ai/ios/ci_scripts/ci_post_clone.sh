@@ -74,7 +74,8 @@ cd "$CI_PRIMARY_REPOSITORY_PATH" || exit 1
 pwd
 
 echo "--- Installing Flutter ---"
-git clone https://github.com/flutter/flutter.git --depth 1 -b stable "$HOME/flutter"
+# Pinned, not "stable": keep in step with .github/workflows/release.yml.
+git clone https://github.com/flutter/flutter.git --depth 1 -b 3.47.9 "$HOME/flutter"
 export PATH="$HOME/flutter/bin:$PATH"
 flutter --version
 

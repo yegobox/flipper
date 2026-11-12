@@ -46,14 +46,15 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  # 3.44.6, matching release.yml -- NOT web_ci.yml's 3.44.9.
+  # 3.47.9, matching release.yml and every other workflow.
   #
-  # These suites and the analyzer baseline are both known-good at 3.44.6: it is
-  # what release.yml runs them on and what the repo is developed against. Golden
-  # and layout tests are sensitive to Flutter patch versions, so pinning to the
-  # version the tests were written against keeps this job measuring the code
-  # rather than the toolchain. web_ci.yml stays on 3.44.9 for the web build.
-  FLUTTER_VERSION: "3.44.6"
+  # These suites and the analyzer baseline are pinned to the version release.yml
+  # builds with and the repo is developed against. Golden and layout tests are
+  # sensitive to Flutter patch versions, so pinning to the version the tests
+  # were written against keeps this job measuring the code rather than the
+  # toolchain. Change it only together with release.yml, and refresh the
+  # analyzer baseline (refresh_baseline) in the same PR.
+  FLUTTER_VERSION: "3.47.9"
   FLUTTER_TEST_CI: true
 
 jobs:

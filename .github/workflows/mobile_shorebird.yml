@@ -33,7 +33,7 @@ on:
       - main
 
 env:
-  FLUTTER_VERSION: "3.44.2" # flutter_gemma >=1.0.0 requires Dart SDK >=3.12.0
+  FLUTTER_VERSION: "3.47.9" # keep in step with release.yml
   SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
 
 jobs:
@@ -159,6 +159,10 @@ jobs:
           if [[ "$action" == "patch" ]]; then
             release_version="${{ github.event.inputs.release_version || 'latest' }}"
             args+=(--release-version "$release_version")
+          else
+            # Pin the release to our Flutter, not Shorebird's moving default.
+            # Patches inherit their release's Flutter, so they take no flag.
+            args+=(--flutter-version="$FLUTTER_VERSION")
           fi
 
           apps/flipper/tool/shorebird_mobile.sh "$action" "$platform" "${args[@]}"

@@ -28,7 +28,7 @@ on:
         default: "main"
 
 env:
-  FLUTTER_VERSION: "3.44.6"
+  FLUTTER_VERSION: "3.47.9" # keep in step with release.yml
   # Branch the screenshots PR targets: the dispatch input, else the pushed
   # branch, else main (tag pushes have no branch).
   BASE_BRANCH: ${{ github.event.inputs.base || (github.ref_type == 'branch' && github.ref_name) || 'main' }}

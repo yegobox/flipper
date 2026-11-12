@@ -54,7 +54,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  FLUTTER_VERSION: "3.44.6" # keep in step with release.yml
+  FLUTTER_VERSION: "3.47.9" # keep in step with release.yml
   MANIFEST_TAG: launcher-manifest
   # A push has no inputs: stable, every platform.
   CHANNEL: ${{ inputs.channel || 'stable' }}
@@ -297,6 +297,13 @@ jobs:
           APP_DIR="apps/flipper/build/macos/Build/Products/Release"
           ARCHS="$(lipo -archs "$APP_DIR/flipper.app/Contents/MacOS/flipper")"
           echo "flipper.app architectures: $ARCHS"
+          # Intel Macs are still supported. Flutter plans to make macOS release
+          # builds arm64-only by default (flutter.dev/go/macos-intel-deprecation);
+          # fail here instead of silently dropping the darwin-x86_64 key.
+          if [[ " $ARCHS " != *" x86_64 "* || " $ARCHS " != *" arm64 "* ]]; then
+            echo "::error::flipper.app must be universal (x86_64 + arm64), got: $ARCHS"
+            exit 1
+          fi
           KEYS=""
           [[ " $ARCHS " == *" arm64 "* ]] && KEYS="darwin-aarch64"
           [[ " $ARCHS " == *" x86_64 "* ]] && KEYS="${KEYS:+$KEYS,}darwin-x86_64"
