@@ -236,6 +236,12 @@ jobs:
             ./scripts/ci/analysis_ratchet.sh
           fi
 
+      # No new dependency built on the legacy flutter/material library: each
+      # one blocks the material_ui switch (docs/flutter_version.md). Needs the
+      # package_config.json files that bootstrap wrote above.
+      - name: material_ui readiness ratchet
+        run: python3 scripts/ci/material_ui_readiness.py
+
   # ---------------------------------------------------------------------
   # The test suites that release.yml runs, but on pull requests, where they
   # can actually stop a regression. flipper_web and flipper_hr are left out

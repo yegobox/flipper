@@ -1,0 +1,208 @@
+{
+  "legacy_material_dependencies": [
+    {
+      "name": "animations",
+      "kind": "pub"
+    },
+    {
+      "name": "badges",
+      "kind": "pub"
+    },
+    {
+      "name": "cached_network_image",
+      "kind": "pub"
+    },
+    {
+      "name": "community_charts_flutter",
+      "kind": "pub"
+    },
+    {
+      "name": "country_code_picker",
+      "kind": "pub"
+    },
+    {
+      "name": "desktop_drop",
+      "kind": "pub"
+    },
+    {
+      "name": "device_preview_plus",
+      "kind": "vendored"
+    },
+    {
+      "name": "dropdown_search",
+      "kind": "pub"
+    },
+    {
+      "name": "fl_chart",
+      "kind": "pub"
+    },
+    {
+      "name": "flex_color_picker",
+      "kind": "pub"
+    },
+    {
+      "name": "flutter_form_bloc",
+      "kind": "vendored"
+    },
+    {
+      "name": "flutter_hooks",
+      "kind": "pub"
+    },
+    {
+      "name": "flutter_map",
+      "kind": "pub"
+    },
+    {
+      "name": "flutter_riverpod",
+      "kind": "pub"
+    },
+    {
+      "name": "flutter_settings_ui",
+      "kind": "pub"
+    },
+    {
+      "name": "flutter_slidable",
+      "kind": "vendored"
+    },
+    {
+      "name": "flutter_text_drawable",
+      "kind": "pub"
+    },
+    {
+      "name": "flutter_typeahead",
+      "kind": "pub"
+    },
+    {
+      "name": "get",
+      "kind": "pub"
+    },
+    {
+      "name": "go_router",
+      "kind": "pub"
+    },
+    {
+      "name": "google_fonts",
+      "kind": "pub"
+    },
+    {
+      "name": "google_sign_in",
+      "kind": "pub"
+    },
+    {
+      "name": "hooks_riverpod",
+      "kind": "pub"
+    },
+    {
+      "name": "ionicons",
+      "kind": "pub"
+    },
+    {
+      "name": "loading_animation_widget",
+      "kind": "pub"
+    },
+    {
+      "name": "loading_indicator",
+      "kind": "pub"
+    },
+    {
+      "name": "markdown_widget",
+      "kind": "pub"
+    },
+    {
+      "name": "mobile_scanner",
+      "kind": "pub"
+    },
+    {
+      "name": "modal_bottom_sheet",
+      "kind": "pub"
+    },
+    {
+      "name": "overlay_support",
+      "kind": "pub"
+    },
+    {
+      "name": "pin_code_fields",
+      "kind": "pub"
+    },
+    {
+      "name": "pinput",
+      "kind": "pub"
+    },
+    {
+      "name": "posthog_flutter",
+      "kind": "pub"
+    },
+    {
+      "name": "printing",
+      "kind": "pub"
+    },
+    {
+      "name": "qr_flutter",
+      "kind": "vendored"
+    },
+    {
+      "name": "receipt",
+      "kind": "vendored"
+    },
+    {
+      "name": "sentry_flutter",
+      "kind": "pub"
+    },
+    {
+      "name": "shimmer",
+      "kind": "pub"
+    },
+    {
+      "name": "sign_in_with_apple",
+      "kind": "pub"
+    },
+    {
+      "name": "speech_to_text",
+      "kind": "pub"
+    },
+    {
+      "name": "stacked",
+      "kind": "pub"
+    },
+    {
+      "name": "stacked_services",
+      "kind": "pub"
+    },
+    {
+      "name": "styled_widget",
+      "kind": "pub"
+    },
+    {
+      "name": "supabase_flutter",
+      "kind": "pub"
+    },
+    {
+      "name": "syncfusion_flutter_core",
+      "kind": "pub"
+    },
+    {
+      "name": "syncfusion_flutter_datagrid",
+      "kind": "pub"
+    },
+    {
+      "name": "syncfusion_flutter_datagrid_export",
+      "kind": "pub"
+    },
+    {
+      "name": "talker_flutter",
+      "kind": "pub"
+    },
+    {
+      "name": "window_manager",
+      "kind": "pub"
+    },
+    {
+      "name": "wolt_modal_sheet",
+      "kind": "pub"
+    },
+    {
+      "name": "wolt_responsive_layout_grid",
+      "kind": "pub"
+    }
+  ]
+}
