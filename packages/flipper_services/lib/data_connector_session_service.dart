@@ -413,14 +413,14 @@ class DataConnectorSessionService {
 
       if (refresh is String && refresh.isNotEmpty) {
         await env.write(_refreshTokenKey, refresh);
-        if (generation != _generation) return _abandon();
+        if (generation != _generation) return await _abandon();
       }
       final deviceId = decoded['deviceId'];
       if (deviceId is String && deviceId.isNotEmpty) {
         // Not cleared by `_abandon`: the device id identifies the install,
         // not the session, and survives reset by design.
         await env.write(_deviceIdKey, deviceId);
-        if (generation != _generation) return _abandon();
+        if (generation != _generation) return await _abandon();
       }
 
       final ttlSeconds = expiresIn is int
@@ -431,9 +431,9 @@ class DataConnectorSessionService {
           .millisecondsSinceEpoch;
 
       await env.write(_accessTokenKey, access);
-      if (generation != _generation) return _abandon();
+      if (generation != _generation) return await _abandon();
       await env.write(_accessExpiryKey, '$expiresAt');
-      if (generation != _generation) return _abandon();
+      if (generation != _generation) return await _abandon();
       return access;
     } catch (e) {
       talker.warning('data-connector: could not parse token response: $e');

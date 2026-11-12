@@ -134,6 +134,11 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
       if (result.items.isEmpty) return null;
 
       final doc = Map<String, dynamic>.from(result.items.first.value);
+      // Deliberately not awaited: a decode failure must reach the caller, not
+      // the catch below. Callers read null as "no such item" (addTransactionItems
+      // would then add a duplicate row for an item that exists but failed to
+      // decode), so only query errors may become null here.
+      // ignore: unawaited_return_in_try_block
       return TransactionItemDittoAdapter.instance.fromDittoDocument(doc);
     } catch (e, s) {
       talker.error('Capella getTransactionItem: $e', s);

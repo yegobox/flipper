@@ -1040,7 +1040,7 @@ mixin TransactionMixinOld {
       }
       match ??= pickAutoReceiptPrinter(printers);
       if (match == null)
-        return _printOnBuiltinPrinter(bytes, probeSerial: true);
+        return await _printOnBuiltinPrinter(bytes, probeSerial: true);
       await Printing.directPrintPdf(
         printer: match,
         onLayout: (PdfPageFormat format) async => bytes,
