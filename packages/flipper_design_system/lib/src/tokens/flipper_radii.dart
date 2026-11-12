@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 
 /// Corner radii (formerly `Corners` in flipper_infra).
 class Corners {
