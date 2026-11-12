@@ -43,7 +43,11 @@ def build_release_bundle
       )
     end
 
-    sh "cd .. && #{shorebird_cmd} release android -v -- --no-android-gradle-daemon"
+    # Pin to the workflow's Flutter (docs/flutter_version.md); without it
+    # Shorebird uses its own moving default.
+    flutter_version = ENV['FLUTTER_VERSION'].to_s.strip
+    version_arg = flutter_version.empty? ? '' : " --flutter-version=#{flutter_version}"
+    sh "cd .. && #{shorebird_cmd} release android#{version_arg} -v -- --no-android-gradle-daemon"
   else
     sh "cd .. && flutter build appbundle -- --no-android-gradle-daemon"
   end

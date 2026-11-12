@@ -28,7 +28,7 @@ Every Android and iOS release goes through `shorebird release`. Shorebird runs i
 git ls-remote https://github.com/shorebirdtech/flutter.git | grep -oE 'flutter_release/[0-9.]+$' | sort -V | tail
 ```
 
-`shorebird release` is passed `--flutter-version="$FLUTTER_VERSION"`. Without it, Shorebird uses its own default, which moves without warning. Until 3.47.9, Android shipped on Shorebird's 3.47.9 while CI tested on 3.44.6. `shorebird patch` takes no flag, because a patch always uses its release's Flutter. A Flutter bump therefore has to ship as a new store release, never as a patch.
+`shorebird release` is passed `--flutter-version="$FLUTTER_VERSION"` in the workflows. The fallback in `apps/flipper/android/fastlane/Fastfile` (used when the AAB is not prebuilt) passes it too, whenever `FLUTTER_VERSION` is set in the environment. Set it when releasing from a local machine. Without it, Shorebird uses its own default, which moves without warning. Until 3.47.9, Android shipped on Shorebird's 3.47.9 while CI tested on 3.44.6. `shorebird patch` takes no flag, because a patch always uses its release's Flutter. A Flutter bump therefore has to ship as a new store release, never as a patch.
 
 ## Bumping
 
