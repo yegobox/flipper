@@ -54,6 +54,9 @@ flutter:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  # Tests import package:test directly. It used to arrive implicitly through
+  # riverpod 3.0's dependency on it; riverpod 3.5 dropped that dependency.
+  test: ^1.26.2
   flutter_lints: ^4.0.0
   shared_preferences: any
   brick_sqlite_generators: ^4.0.0

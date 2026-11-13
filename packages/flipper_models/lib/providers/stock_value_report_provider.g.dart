@@ -10,7 +10,7 @@ part of 'stock_value_report_provider.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(stockValueReport)
-const stockValueReportProvider = StockValueReportProvider._();
+final stockValueReportProvider = StockValueReportProvider._();
 
 final class StockValueReportProvider
     extends
@@ -22,7 +22,7 @@ final class StockValueReportProvider
     with
         $FutureModifier<StockValueReportData>,
         $FutureProvider<StockValueReportData> {
-  const StockValueReportProvider._()
+  StockValueReportProvider._()
     : super(
         from: null,
         argument: null,
@@ -48,10 +48,10 @@ final class StockValueReportProvider
   }
 }
 
-String _$stockValueReportHash() => r'126d50003af6b7d90658d63a36307bc015e7bbaf';
+String _$stockValueReportHash() => r'760bbef051f93d3022237ccbfb0df7239a10e348';
 
 @ProviderFor(stockValueSummary)
-const stockValueSummaryProvider = StockValueSummaryProvider._();
+final stockValueSummaryProvider = StockValueSummaryProvider._();
 
 final class StockValueSummaryProvider
     extends
@@ -63,7 +63,7 @@ final class StockValueSummaryProvider
     with
         $FutureModifier<StockValueSummaryData>,
         $FutureProvider<StockValueSummaryData> {
-  const StockValueSummaryProvider._()
+  StockValueSummaryProvider._()
     : super(
         from: null,
         argument: null,

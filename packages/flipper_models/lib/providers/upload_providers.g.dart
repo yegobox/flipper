@@ -10,11 +10,11 @@ part of 'upload_providers.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(UploadProgress)
-const uploadProgressProvider = UploadProgressProvider._();
+final uploadProgressProvider = UploadProgressProvider._();
 
 final class UploadProgressProvider
     extends $NotifierProvider<UploadProgress, double> {
-  const UploadProgressProvider._()
+  UploadProgressProvider._()
     : super(
         from: null,
         argument: null,
@@ -47,8 +47,7 @@ abstract class _$UploadProgress extends $Notifier<double> {
   double build();
   @$mustCallSuper
   @override
-  void runBuild() {
-    final created = build();
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<double, double>;
     final element =
         ref.element
@@ -58,6 +57,6 @@ abstract class _$UploadProgress extends $Notifier<double> {
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    return element.handleCreate(ref, build);
   }
 }

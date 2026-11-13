@@ -10,7 +10,7 @@ part of 'variants_provider.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(variant)
-const variantProvider = VariantFamily._();
+final variantProvider = VariantFamily._();
 
 final class VariantProvider
     extends
@@ -20,7 +20,7 @@ final class VariantProvider
           FutureOr<List<Variant>>
         >
     with $FutureModifier<List<Variant>>, $FutureProvider<List<Variant>> {
-  const VariantProvider._({
+  VariantProvider._({
     required VariantFamily super.from,
     required ({
       String branchId,
@@ -96,7 +96,7 @@ final class VariantFamily extends $Family
             bool forPurchaseScreen,
           })
         > {
-  const VariantFamily._()
+  VariantFamily._()
     : super(
         retry: null,
         name: r'variantProvider',
@@ -125,7 +125,7 @@ final class VariantFamily extends $Family
 }
 
 @ProviderFor(purchaseVariant)
-const purchaseVariantProvider = PurchaseVariantFamily._();
+final purchaseVariantProvider = PurchaseVariantFamily._();
 
 final class PurchaseVariantProvider
     extends
@@ -135,7 +135,7 @@ final class PurchaseVariantProvider
           FutureOr<List<Variant>>
         >
     with $FutureModifier<List<Variant>>, $FutureProvider<List<Variant>> {
-  const PurchaseVariantProvider._({
+  PurchaseVariantProvider._({
     required PurchaseVariantFamily super.from,
     required ({String branchId, String? purchaseId}) super.argument,
   }) : super(
@@ -191,7 +191,7 @@ final class PurchaseVariantFamily extends $Family
           FutureOr<List<Variant>>,
           ({String branchId, String? purchaseId})
         > {
-  const PurchaseVariantFamily._()
+  PurchaseVariantFamily._()
     : super(
         retry: null,
         name: r'purchaseVariantProvider',
@@ -213,12 +213,12 @@ final class PurchaseVariantFamily extends $Family
 }
 
 @ProviderFor(stockById)
-const stockByIdProvider = StockByIdFamily._();
+final stockByIdProvider = StockByIdFamily._();
 
 final class StockByIdProvider
     extends $FunctionalProvider<AsyncValue<Stock?>, Stock?, FutureOr<Stock?>>
     with $FutureModifier<Stock?>, $FutureProvider<Stock?> {
-  const StockByIdProvider._({
+  StockByIdProvider._({
     required StockByIdFamily super.from,
     required String super.argument,
   }) : super(
@@ -265,7 +265,7 @@ String _$stockByIdHash() => r'0656c9babb20066f9f25c8b657359d6112ff8428';
 
 final class StockByIdFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<Stock?>, String> {
-  const StockByIdFamily._()
+  StockByIdFamily._()
     : super(
         retry: null,
         name: r'stockByIdProvider',

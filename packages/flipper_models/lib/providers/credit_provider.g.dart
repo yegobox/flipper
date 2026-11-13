@@ -10,12 +10,12 @@ part of 'credit_provider.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(creditStream)
-const creditStreamProvider = CreditStreamFamily._();
+final creditStreamProvider = CreditStreamFamily._();
 
 final class CreditStreamProvider
     extends $FunctionalProvider<AsyncValue<Credit?>, Credit?, Stream<Credit?>>
     with $FutureModifier<Credit?>, $StreamProvider<Credit?> {
-  const CreditStreamProvider._({
+  CreditStreamProvider._({
     required CreditStreamFamily super.from,
     required String super.argument,
   }) : super(
@@ -62,7 +62,7 @@ String _$creditStreamHash() => r'f0ab6f8f1d50f8175daac68ce1562a17b4fa5277';
 
 final class CreditStreamFamily extends $Family
     with $FunctionalFamilyOverride<Stream<Credit?>, String> {
-  const CreditStreamFamily._()
+  CreditStreamFamily._()
     : super(
         retry: null,
         name: r'creditStreamProvider',

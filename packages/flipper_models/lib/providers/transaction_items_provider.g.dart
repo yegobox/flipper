@@ -10,7 +10,7 @@ part of 'transaction_items_provider.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(transactionItems)
-const transactionItemsProvider = TransactionItemsFamily._();
+final transactionItemsProvider = TransactionItemsFamily._();
 
 final class TransactionItemsProvider
     extends
@@ -22,7 +22,7 @@ final class TransactionItemsProvider
     with
         $FutureModifier<List<TransactionItem>>,
         $FutureProvider<List<TransactionItem>> {
-  const TransactionItemsProvider._({
+  TransactionItemsProvider._({
     required TransactionItemsFamily super.from,
     required ({
       String? transactionId,
@@ -102,7 +102,7 @@ final class TransactionItemsFamily extends $Family
             bool doneWithTransaction,
           })
         > {
-  const TransactionItemsFamily._()
+  TransactionItemsFamily._()
     : super(
         retry: null,
         name: r'transactionItemsProvider',
@@ -133,7 +133,7 @@ final class TransactionItemsFamily extends $Family
 }
 
 @ProviderFor(transactionItemsStream)
-const transactionItemsStreamProvider = TransactionItemsStreamFamily._();
+final transactionItemsStreamProvider = TransactionItemsStreamFamily._();
 
 final class TransactionItemsStreamProvider
     extends
@@ -145,7 +145,7 @@ final class TransactionItemsStreamProvider
     with
         $FutureModifier<List<TransactionItem>>,
         $StreamProvider<List<TransactionItem>> {
-  const TransactionItemsStreamProvider._({
+  TransactionItemsStreamProvider._({
     required TransactionItemsStreamFamily super.from,
     required ({
       String? transactionId,
@@ -231,7 +231,7 @@ final class TransactionItemsStreamFamily extends $Family
             bool forceRealData,
           })
         > {
-  const TransactionItemsStreamFamily._()
+  TransactionItemsStreamFamily._()
     : super(
         retry: null,
         name: r'transactionItemsStreamProvider',

@@ -10,7 +10,7 @@ part of 'counter_provider.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(counters)
-const countersProvider = CountersFamily._();
+final countersProvider = CountersFamily._();
 
 final class CountersProvider
     extends
@@ -20,7 +20,7 @@ final class CountersProvider
           Stream<List<Counter>>
         >
     with $FutureModifier<List<Counter>>, $StreamProvider<List<Counter>> {
-  const CountersProvider._({
+  CountersProvider._({
     required CountersFamily super.from,
     required String super.argument,
   }) : super(
@@ -68,7 +68,7 @@ String _$countersHash() => r'26d951ec86bc6daa2bcede94bf201b3f39e90d9f';
 
 final class CountersFamily extends $Family
     with $FunctionalFamilyOverride<Stream<List<Counter>>, String> {
-  const CountersFamily._()
+  CountersFamily._()
     : super(
         retry: null,
         name: r'countersProvider',
@@ -85,11 +85,11 @@ final class CountersFamily extends $Family
 }
 
 @ProviderFor(highestCounter)
-const highestCounterProvider = HighestCounterFamily._();
+final highestCounterProvider = HighestCounterFamily._();
 
 final class HighestCounterProvider extends $FunctionalProvider<int, int, int>
     with $Provider<int> {
-  const HighestCounterProvider._({
+  HighestCounterProvider._({
     required HighestCounterFamily super.from,
     required String super.argument,
   }) : super(
@@ -144,7 +144,7 @@ String _$highestCounterHash() => r'6ce633bf4243d74650b3f11a48a9ef16c05fad03';
 
 final class HighestCounterFamily extends $Family
     with $FunctionalFamilyOverride<int, String> {
-  const HighestCounterFamily._()
+  HighestCounterFamily._()
     : super(
         retry: null,
         name: r'highestCounterProvider',

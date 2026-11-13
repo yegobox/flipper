@@ -13,7 +13,7 @@ part of 'category_provider.dart';
 /// (e.g. cashbook Row) reflects the selection immediately. Cleared when the stream matches.
 
 @ProviderFor(OptimisticFocusedCategory)
-const optimisticFocusedCategoryProvider = OptimisticFocusedCategoryProvider._();
+final optimisticFocusedCategoryProvider = OptimisticFocusedCategoryProvider._();
 
 /// After updating focus flags, [categoryProvider]'s underlying stream can
 /// emit slightly later; set this synchronously when the user confirms a category so UI
@@ -23,7 +23,7 @@ final class OptimisticFocusedCategoryProvider
   /// After updating focus flags, [categoryProvider]'s underlying stream can
   /// emit slightly later; set this synchronously when the user confirms a category so UI
   /// (e.g. cashbook Row) reflects the selection immediately. Cleared when the stream matches.
-  const OptimisticFocusedCategoryProvider._()
+  OptimisticFocusedCategoryProvider._()
     : super(
         from: null,
         argument: null,
@@ -61,8 +61,7 @@ abstract class _$OptimisticFocusedCategory extends $Notifier<Category?> {
   Category? build();
   @$mustCallSuper
   @override
-  void runBuild() {
-    final created = build();
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<Category?, Category?>;
     final element =
         ref.element
@@ -72,12 +71,12 @@ abstract class _$OptimisticFocusedCategory extends $Notifier<Category?> {
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    return element.handleCreate(ref, build);
   }
 }
 
 @ProviderFor(category)
-const categoryProvider = CategoryProvider._();
+final categoryProvider = CategoryProvider._();
 
 final class CategoryProvider
     extends
@@ -87,7 +86,7 @@ final class CategoryProvider
           Stream<List<Category>>
         >
     with $FutureModifier<List<Category>>, $StreamProvider<List<Category>> {
-  const CategoryProvider._()
+  CategoryProvider._()
     : super(
         from: null,
         argument: null,
@@ -116,7 +115,7 @@ final class CategoryProvider
 String _$categoryHash() => r'078d28b9faa37937a91462d2216464d98605ede6';
 
 @ProviderFor(categories)
-const categoriesProvider = CategoriesFamily._();
+final categoriesProvider = CategoriesFamily._();
 
 final class CategoriesProvider
     extends
@@ -126,7 +125,7 @@ final class CategoriesProvider
           Stream<List<Category>>
         >
     with $FutureModifier<List<Category>>, $StreamProvider<List<Category>> {
-  const CategoriesProvider._({
+  CategoriesProvider._({
     required CategoriesFamily super.from,
     required String super.argument,
   }) : super(
@@ -174,7 +173,7 @@ String _$categoriesHash() => r'2cc09d31f52b7081bc5f2e94cbb6fecc59eb2c4d';
 
 final class CategoriesFamily extends $Family
     with $FunctionalFamilyOverride<Stream<List<Category>>, String> {
-  const CategoriesFamily._()
+  CategoriesFamily._()
     : super(
         retry: null,
         name: r'categoriesProvider',
@@ -194,7 +193,7 @@ final class CategoriesFamily extends $Family
 /// default Brick cloudSync category subscription on native.
 
 @ProviderFor(capellaCategories)
-const capellaCategoriesProvider = CapellaCategoriesFamily._();
+final capellaCategoriesProvider = CapellaCategoriesFamily._();
 
 /// Ditto-backed category list (Capella). Prefer for screens that should not rely on the
 /// default Brick cloudSync category subscription on native.
@@ -209,7 +208,7 @@ final class CapellaCategoriesProvider
     with $FutureModifier<List<Category>>, $StreamProvider<List<Category>> {
   /// Ditto-backed category list (Capella). Prefer for screens that should not rely on the
   /// default Brick cloudSync category subscription on native.
-  const CapellaCategoriesProvider._({
+  CapellaCategoriesProvider._({
     required CapellaCategoriesFamily super.from,
     required String super.argument,
   }) : super(
@@ -260,7 +259,7 @@ String _$capellaCategoriesHash() => r'38faeb7e50dbd4bd9becb751d2404699b930a827';
 
 final class CapellaCategoriesFamily extends $Family
     with $FunctionalFamilyOverride<Stream<List<Category>>, String> {
-  const CapellaCategoriesFamily._()
+  CapellaCategoriesFamily._()
     : super(
         retry: null,
         name: r'capellaCategoriesProvider',

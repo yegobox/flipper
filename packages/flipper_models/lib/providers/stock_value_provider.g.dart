@@ -10,12 +10,12 @@ part of 'stock_value_provider.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(StockValue)
-const stockValueProvider = StockValueFamily._();
+final stockValueProvider = StockValueFamily._();
 
 final class StockValueProvider
     extends $FunctionalProvider<AsyncValue<double>, double, FutureOr<double>>
     with $FutureModifier<double>, $FutureProvider<double> {
-  const StockValueProvider._({
+  StockValueProvider._({
     required StockValueFamily super.from,
     required String super.argument,
   }) : super(
@@ -62,7 +62,7 @@ String _$stockValueHash() => r'0abf0dde6b1eb11f79faa1efc61b1bfc98599676';
 
 final class StockValueFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<double>, String> {
-  const StockValueFamily._()
+  StockValueFamily._()
     : super(
         retry: null,
         name: r'stockValueProvider',

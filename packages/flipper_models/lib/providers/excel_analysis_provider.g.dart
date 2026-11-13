@@ -10,11 +10,11 @@ part of 'excel_analysis_provider.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(ExcelAnalysis)
-const excelAnalysisProvider = ExcelAnalysisProvider._();
+final excelAnalysisProvider = ExcelAnalysisProvider._();
 
 final class ExcelAnalysisProvider
     extends $NotifierProvider<ExcelAnalysis, ExcelAnalysisState> {
-  const ExcelAnalysisProvider._()
+  ExcelAnalysisProvider._()
     : super(
         from: null,
         argument: null,
@@ -47,8 +47,7 @@ abstract class _$ExcelAnalysis extends $Notifier<ExcelAnalysisState> {
   ExcelAnalysisState build();
   @$mustCallSuper
   @override
-  void runBuild() {
-    final created = build();
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<ExcelAnalysisState, ExcelAnalysisState>;
     final element =
         ref.element
@@ -58,6 +57,6 @@ abstract class _$ExcelAnalysis extends $Notifier<ExcelAnalysisState> {
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    return element.handleCreate(ref, build);
   }
 }

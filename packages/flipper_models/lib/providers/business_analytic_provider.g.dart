@@ -10,7 +10,7 @@ part of 'business_analytic_provider.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(fetchStockPerformance)
-const fetchStockPerformanceProvider = FetchStockPerformanceFamily._();
+final fetchStockPerformanceProvider = FetchStockPerformanceFamily._();
 
 final class FetchStockPerformanceProvider
     extends
@@ -22,7 +22,7 @@ final class FetchStockPerformanceProvider
     with
         $FutureModifier<List<BusinessAnalytic>>,
         $FutureProvider<List<BusinessAnalytic>> {
-  const FetchStockPerformanceProvider._({
+  FetchStockPerformanceProvider._({
     required FetchStockPerformanceFamily super.from,
     required String super.argument,
   }) : super(
@@ -71,7 +71,7 @@ String _$fetchStockPerformanceHash() =>
 
 final class FetchStockPerformanceFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<List<BusinessAnalytic>>, String> {
-  const FetchStockPerformanceFamily._()
+  FetchStockPerformanceFamily._()
     : super(
         retry: null,
         name: r'fetchStockPerformanceProvider',
