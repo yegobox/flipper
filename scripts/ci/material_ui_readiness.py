@@ -130,9 +130,11 @@ def current_list():
         sys.exit("material_ui_readiness: no package_config.json found -- run `melos bootstrap` first")
     legacy, unresolved = [], []
     for name in sorted(used_packages(own)):
-        found = sorted(r for r in roots.get(name, ()) if os.path.isdir(r))
-        if not found:
-            unresolved.append(name)
+        found = sorted(roots.get(name, ()))
+        missing = [r for r in found if not os.path.isdir(r)]
+        # A missing root could be the legacy version, so never skip it.
+        if not found or missing:
+            unresolved.append(f"{name} ({', '.join(missing) or 'no source root'})")
             continue
         legacy_roots = [r for r in found if is_legacy(r)]
         if legacy_roots:
