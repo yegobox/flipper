@@ -44,3 +44,21 @@ git ls-remote https://github.com/shorebirdtech/flutter.git | grep -oE 'flutter_r
 Flutter is deprecating Intel Macs as a *build host*: a future version will need an Apple Silicon Mac to build. CI already builds macOS on `macos-14`, which runs on Apple Silicon.
 
 Shops running on Intel Macs are a separate matter. Release builds are still universal (`x86_64` and `arm64`), but Flutter plans to make arm64-only the default (`flutter config --enable-macos-arm64-only`; see flutter.dev/go/macos-intel-deprecation). The macOS job in `desktop_launcher_release.yml` fails if the app is not universal, so that change cannot silently drop Intel shops.
+
+## material_ui readiness
+
+Flutter 3.50 deprecates `package:flutter/material.dart` and `cupertino.dart` in favour of the `material_ui` and `cupertino_ui` packages. Those are a **separate copy** of Material with distinct types, so the switch has to happen in one step, once the packages we render through have moved too.
+
+`MaterialUiCompatibilityBridge` carries only `colorScheme`, `textTheme`, `visualDensity` and `platform` across. Widgets still on the legacy library would lose:
+- our component themes (HR, Books) and `FlipperThemeExtension`
+- their legacy `Material`/`ScaffoldMessenger` ancestors
+- go_router's exact-type `MaterialApp` check
+
+`scripts/ci/material_ui_readiness.py` lists every third-party or vendored package that our `lib/` code imports and that still imports the legacy libraries. The list lives in `.github/baselines/material_ui.json`, and quality.yml fails a PR that adds a new one. When it is empty, or the remaining entries are low-exposure enough to bridge, the switch can happen (`dart fix --apply --code=migrate_design_widgets`).
+
+```sh
+python3 scripts/ci/material_ui_readiness.py --list    # what still blocks the switch
+python3 scripts/ci/material_ui_readiness.py --update  # lock in an improvement
+```
+
+The check works at the import level, so it is coarse. Some entries touch Material only lightly, such as a `Colors` constant. Treat the list as the inventory to work through, not a measure of effort.
