@@ -8189,6 +8189,12 @@ abstract class FlipperAppLocalizations {
   /// **'VAT credit (from your ledger)'**
   String get booksVatCreditLedger;
 
+  /// No description provided for @booksVatLedgerUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'VAT payable could not be read from your ledger right now.'**
+  String get booksVatLedgerUnavailable;
+
   /// No description provided for @booksVatNotRegistered.
   ///
   /// In en, this message translates to:
@@ -8248,6 +8254,12 @@ abstract class FlipperAppLocalizations {
   /// In en, this message translates to:
   /// **'VAT setting saved'**
   String get booksVatSettingSaved;
+
+  /// No description provided for @booksVatSettingFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save the VAT setting. Try again.'**
+  String get booksVatSettingFailed;
 
   /// No description provided for @booksLoanOpeningTitle.
   ///
@@ -40640,7 +40652,7 @@ abstract class FlipperAppLocalizations {
   /// No description provided for @booksBillEditorSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Record a supplier bill — Flipper posts the expense and input VAT.'**
+  /// **'Record a supplier bill — Flipper posts the expense, and the input VAT if you are registered for VAT.'**
   String get booksBillEditorSubtitle;
 
   /// No description provided for @booksSelectCustomer.

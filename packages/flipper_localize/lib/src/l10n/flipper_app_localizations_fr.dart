@@ -4760,6 +4760,10 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   String get booksVatCreditLedger => 'Crédit de TVA (selon vos comptes)';
 
   @override
+  String get booksVatLedgerUnavailable =>
+      'La TVA à payer n\'a pas pu être lue dans vos comptes pour le moment.';
+
+  @override
   String get booksVatNotRegistered =>
       'Non assujetti à la TVA : vous ne devez rien';
 
@@ -4796,6 +4800,10 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
 
   @override
   String get booksVatSettingSaved => 'Paramètre TVA enregistré';
+
+  @override
+  String get booksVatSettingFailed =>
+      'Impossible d\'enregistrer le paramètre TVA. Réessayez.';
 
   @override
   String get booksLoanOpeningTitle =>
@@ -24767,7 +24775,7 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
 
   @override
   String get booksBillEditorSubtitle =>
-      'Enregistrez une facture fournisseur — Flipper comptabilise la charge et la TVA déductible.';
+      'Enregistrez une facture fournisseur — Flipper comptabilise la charge, et la TVA déductible si vous êtes assujetti à la TVA.';
 
   @override
   String get booksSelectCustomer => 'Choisir un client…';

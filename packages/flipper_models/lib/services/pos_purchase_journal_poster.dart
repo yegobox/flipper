@@ -68,19 +68,16 @@ class PosPurchaseJournalPoster {
 
   /// Whether this business cannot reclaim purchase VAT: the branch has no
   /// EBM with VAT on and Books does not say it is registered for VAT. When
-  /// the EBM cannot be read, purchases keep booking VAT to 2100 as before.
+  /// the EBM or the setting cannot be read, purchases keep booking VAT to
+  /// 2100 as before.
   static Future<bool> purchaseVatIsCost(
     DittoService ditto,
     String businessId,
-  ) async {
-    final branchVatEnabled = await tryVatEnabledFromEbm();
-    if (branchVatEnabled == null) return false;
-    final settings = await AccountingSettingsStore(ditto).read(businessId);
-    return capitalizesPurchaseVat(
-      branchVatEnabled: branchVatEnabled,
-      settings: settings,
-    );
-  }
+  ) async => resolvePurchaseVatIsCost(
+    branchVatEnabled: await tryVatEnabledFromEbm(),
+    store: AccountingSettingsStore(ditto),
+    businessId: businessId,
+  );
 
   /// Never throws — purchase persistence must not depend on GL success.
   ///

@@ -55,18 +55,23 @@ void main() {
       lines: [DocLine(desc: 'Rice', qty: 2, price: 10000)],
     );
 
-    Future<List<JournalLine>> post({required bool capitalizeVat}) async {
+    Future<List<JournalLine>> post({
+      required bool capitalizeVat,
+      List<Account> chart = defaultChartOfAccountsSeed,
+    }) async {
       final repo = FakeAccountingLedgerRepository();
-      await DocumentJournalPoster(
-        repo,
-        defaultChartOfAccountsSeed,
-      ).postBillRecorded(
+      await DocumentJournalPoster(repo, chart).postBillRecorded(
         businessId: 'biz',
         doc: bill,
         capitalizeVat: capitalizeVat,
       );
-      return repo.entries.single.lines;
+      return repo.entries.isEmpty ? const [] : repo.entries.single.lines;
     }
+
+    final withoutVatAccount = [
+      for (final a in defaultChartOfAccountsSeed)
+        if (a.code != '2100') a,
+    ];
 
     int dr(List<JournalLine> lines, String ac) =>
         lines.where((l) => l.ac == ac).fold(0, (s, l) => s + l.dr);
@@ -75,6 +80,21 @@ void main() {
       final lines = await post(capitalizeVat: false);
       expect(dr(lines, '1200'), 20000);
       expect(dr(lines, '2100'), 3600);
+    });
+
+    test(
+      'no VAT Payable account: nothing posts while VAT is reclaimable',
+      () async {
+        expect(
+          await post(capitalizeVat: false, chart: withoutVatAccount),
+          isEmpty,
+        );
+      },
+    );
+
+    test('no VAT Payable account is fine when the VAT is stock cost', () async {
+      final lines = await post(capitalizeVat: true, chart: withoutVatAccount);
+      expect(dr(lines, '1200'), 23600);
     });
 
     test('business not registered for VAT carries it as stock', () async {

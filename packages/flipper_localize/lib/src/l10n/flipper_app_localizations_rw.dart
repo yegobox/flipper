@@ -4738,12 +4738,16 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   String get booksVatCreditLedger => 'TVA wasubizwa (ukurikije ibitabo byawe)';
 
   @override
+  String get booksVatLedgerUnavailable =>
+      'TVA wishyura ntiyabashije gusomwa mu bitabo byawe ubu.';
+
+  @override
   String get booksVatNotRegistered =>
       'Ntiwanditse muri TVA: nta TVA ugomba kwishyura';
 
   @override
   String get booksVatEstimateSales =>
-      'TVA iri mu bicuruzwa by\'uku kwezi (igereranyo)';
+      'TVA iri mu byacurujwe uku kwezi (igereranyo)';
 
   @override
   String get booksVatPaidPurchases => 'TVA wishyuye ku byo waguze uku kwezi';
@@ -4774,6 +4778,10 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
 
   @override
   String get booksVatSettingSaved => 'Igenamiterere rya TVA ryabitswe';
+
+  @override
+  String get booksVatSettingFailed =>
+      'Igenamiterere rya TVA ntiryabitswe. Ongera ugerageze.';
 
   @override
   String get booksLoanOpeningTitle =>
@@ -24627,7 +24635,7 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
 
   @override
   String get booksBillEditorSubtitle =>
-      'Andika fagitire y\'utanga ibicuruzwa — Flipper yandika ibyakoreshejwe na TVA yishyuwe.';
+      'Andika fagitire y\'utanga ibicuruzwa — Flipper yandika ibyakoreshejwe, na TVA yishyuwe niba wanditswe muri TVA.';
 
   @override
   String get booksSelectCustomer => 'Hitamo umukiriya…';

@@ -4699,6 +4699,10 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
   String get booksVatCreditLedger => 'VAT credit (from your ledger)';
 
   @override
+  String get booksVatLedgerUnavailable =>
+      'VAT payable could not be read from your ledger right now.';
+
+  @override
   String get booksVatNotRegistered => 'Not registered for VAT: you owe none';
 
   @override
@@ -4733,6 +4737,10 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
 
   @override
   String get booksVatSettingSaved => 'VAT setting saved';
+
+  @override
+  String get booksVatSettingFailed =>
+      'Could not save the VAT setting. Try again.';
 
   @override
   String get booksLoanOpeningTitle => 'Record your loan\'s opening balance';
@@ -24367,7 +24375,7 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
 
   @override
   String get booksBillEditorSubtitle =>
-      'Record a supplier bill — Flipper posts the expense and input VAT.';
+      'Record a supplier bill — Flipper posts the expense, and the input VAT if you are registered for VAT.';
 
   @override
   String get booksSelectCustomer => 'Select customer…';

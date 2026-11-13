@@ -129,6 +129,11 @@ final booksVatPositionProvider = FutureProvider.autoDispose<BooksVatPosition?>((
   }
 });
 
+/// Books' per-business accounting settings in Ditto.
+final accountingSettingsStoreProvider = Provider<AccountingSettingsStore>(
+  (ref) => AccountingSettingsStore(ref.watch(dittoServiceProvider)),
+);
+
 /// Saves Books' "Registered for VAT" setting for the business (Ditto
 /// `accounting_settings/as_<businessId>`), then refreshes the position.
 final setBooksVatRegisteredProvider = Provider<Future<void> Function(bool)>((
@@ -136,9 +141,9 @@ final setBooksVatRegisteredProvider = Provider<Future<void> Function(bool)>((
 ) {
   return (registered) async {
     final businessId = ref.read(accountingBusinessIdProvider);
-    await AccountingSettingsStore(
-      ref.read(dittoServiceProvider),
-    ).setVatRegistered(businessId: businessId, registered: registered);
+    await ref
+        .read(accountingSettingsStoreProvider)
+        .setVatRegistered(businessId: businessId, registered: registered);
     ref.invalidate(booksVatPositionProvider);
   };
 });

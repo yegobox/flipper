@@ -4724,6 +4724,10 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   String get booksVatCreditLedger => 'Salio la VAT (kwa vitabu vyako)';
 
   @override
+  String get booksVatLedgerUnavailable =>
+      'VAT inayodaiwa haikuweza kusomwa kwenye vitabu vyako kwa sasa.';
+
+  @override
   String get booksVatNotRegistered => 'Hujasajiliwa kwa VAT: hudaiwi chochote';
 
   @override
@@ -4759,6 +4763,10 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
 
   @override
   String get booksVatSettingSaved => 'Mpangilio wa VAT umehifadhiwa';
+
+  @override
+  String get booksVatSettingFailed =>
+      'Imeshindikana kuhifadhi mpangilio wa VAT. Jaribu tena.';
 
   @override
   String get booksLoanOpeningTitle => 'Weka salio la mwanzo la mkopo wako';
@@ -24528,7 +24536,7 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
 
   @override
   String get booksBillEditorSubtitle =>
-      'Rekodi bili ya msambazaji — Flipper huingiza matumizi na VAT ya manunuzi.';
+      'Rekodi bili ya msambazaji — Flipper huingiza matumizi, na VAT ya manunuzi kama umesajiliwa kwa VAT.';
 
   @override
   String get booksSelectCustomer => 'Chagua mteja…';

@@ -3965,6 +3965,7 @@
     "booksVatTitle": "VAT",
     "booksVatOwedLedger": "VAT payable (from your ledger)",
     "booksVatCreditLedger": "VAT credit (from your ledger)",
+    "booksVatLedgerUnavailable": "VAT payable could not be read from your ledger right now.",
     "booksVatNotRegistered": "Not registered for VAT: you owe none",
     "booksVatEstimateSales": "VAT in this month's sales (estimate)",
     "booksVatPaidPurchases": "VAT paid on purchases this month",
@@ -3986,6 +3987,7 @@
     "booksVatRegisteredSetting": "Registered for VAT",
     "booksVatRegisteredSettingHint": "Turn on only if you are registered for VAT with RRA and file VAT returns. New sales then carry VAT in Books.",
     "booksVatSettingSaved": "VAT setting saved",
+    "booksVatSettingFailed": "Could not save the VAT setting. Try again.",
     "booksLoanOpeningTitle": "Record your loan's opening balance",
     "booksLoanOpeningBody": "Bank Loan shows {amount} more repaid than received. Record what the business owed when it started using Books.",
     "@booksLoanOpeningBody": {
@@ -18769,7 +18771,7 @@
         }
     },
     "booksInvoiceEditorSubtitle": "Bill a customer — Flipper posts the sale and VAT automatically.",
-    "booksBillEditorSubtitle": "Record a supplier bill — Flipper posts the expense and input VAT.",
+    "booksBillEditorSubtitle": "Record a supplier bill — Flipper posts the expense, and the input VAT if you are registered for VAT.",
     "booksSelectCustomer": "Select customer…",
     "booksSelectSupplier": "Select supplier…",
     "booksIssueDate": "Issue date",

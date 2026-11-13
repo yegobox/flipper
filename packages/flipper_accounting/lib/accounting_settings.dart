@@ -46,6 +46,27 @@ bool capitalizesPurchaseVat({
   required AccountingSettings settings,
 }) => !branchVatEnabled && !settings.vatRegistered;
 
+/// [capitalizesPurchaseVat] for a purchase being posted. An unknown EBM state
+/// ([branchVatEnabled] `null`) or a settings read that fails keeps the VAT on
+/// 2100 as before, so the purchase still posts.
+Future<bool> resolvePurchaseVatIsCost({
+  required bool? branchVatEnabled,
+  required AccountingSettingsStore store,
+  required String businessId,
+}) async {
+  if (branchVatEnabled == null) return false;
+  final AccountingSettings settings;
+  try {
+    settings = await store.read(businessId);
+  } catch (_) {
+    return false;
+  }
+  return capitalizesPurchaseVat(
+    branchVatEnabled: branchVatEnabled,
+    settings: settings,
+  );
+}
+
 /// Reads and writes [AccountingSettings].
 class AccountingSettingsStore {
   AccountingSettingsStore(this._ditto);
@@ -79,12 +100,17 @@ class AccountingSettingsStore {
 
   /// Records whether the business is registered for VAT. Only these fields
   /// are written; the seeded defaults in the same document stay as they are.
+  ///
+  /// Throws [StateError] when nothing can be saved (no business, or the store
+  /// is not ready), so the caller can say so and the old setting stands.
   Future<void> setVatRegistered({
     required String businessId,
     required bool registered,
     DateTime? now,
   }) async {
-    if (businessId.isEmpty || !_ditto.isReady()) return;
+    if (businessId.isEmpty || !_ditto.isReady()) {
+      throw StateError('Accounting settings cannot be saved right now');
+    }
     final at = (now ?? DateTime.now()).toUtc().toIso8601String();
     await _ditto.upsertPartyDoc(
       AccountingSettings.collection,

@@ -65,6 +65,17 @@ class _RegisteredBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.flipperL10n;
+    // Without the ledger figure, vatOwed is only the default 0: say so
+    // instead of showing "VAT payable 0".
+    if (!position.hasEstimate) {
+      return Text(
+        l10n.booksVatLedgerUnavailable,
+        style: AccountingTokens.sans(
+          fontSize: 12.5,
+          color: AccountingTokens.ink3,
+        ),
+      );
+    }
     final credit = position.vatOwed < 0;
     return _Figure(
       label: credit ? l10n.booksVatCreditLedger : l10n.booksVatOwedLedger,
@@ -225,6 +236,15 @@ class _RegisteredSettingState extends ConsumerState<_RegisteredSetting> {
           context,
           context.flipperL10n.booksVatSettingSaved,
           tone: AccountingToastTone.success,
+        );
+      }
+    } catch (e) {
+      debugPrint('Books: VAT setting not saved: $e');
+      if (mounted) {
+        showAccountingToast(
+          context,
+          context.flipperL10n.booksVatSettingFailed,
+          tone: AccountingToastTone.warn,
         );
       }
     } finally {

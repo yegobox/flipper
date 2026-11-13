@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flipper_accounting/accounting_settings.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_models.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_providers.dart';
@@ -13,6 +14,36 @@ import 'package:flutter_riverpod/misc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+
+import '../../../helpers/fake_accounting_ditto_store.dart';
+
+/// Records the settings documents Books writes.
+class _SettingsDitto extends FakeAccountingDittoStore {
+  final writes = <String, Map<String, dynamic>>{};
+
+  @override
+  Future<void> upsertPartyDoc(
+    String collection,
+    String docId,
+    Map<String, dynamic> data,
+  ) async {
+    writes['$collection/$docId'] = data;
+  }
+}
+
+/// Counts reads, so a refresh after saving the setting shows.
+class _CountingVatPositionService extends VatPositionService {
+  _CountingVatPositionService()
+    : super(client: MockClient((_) async => http.Response('', 500)));
+
+  int reads = 0;
+
+  @override
+  Future<BooksVatPosition?> position() async {
+    reads++;
+    return null;
+  }
+}
 
 /// Answers [position] with a canned value, or throws when [error] is set.
 class _FakeVatPositionService extends VatPositionService {
@@ -106,12 +137,32 @@ void main() {
           hasEbmBranch: true,
           settingRegistered: false,
           vatOwed: 54000,
+          hasEstimate: true,
         ),
       );
       expect(find.text('VAT payable (from your ledger)'), findsOneWidget);
       expect(find.text('54,000'), findsOneWidget);
       expect(find.byType(AccountingSwitch), findsNothing);
       expect(find.text('Not registered for VAT: you owe none'), findsNothing);
+    });
+
+    testWidgets('registered, ledger figure unavailable: no made-up zero', (
+      tester,
+    ) async {
+      await _pumpCard(
+        tester,
+        const BooksVatPosition(
+          registered: true,
+          hasEbmBranch: true,
+          settingRegistered: false,
+        ),
+      );
+      expect(
+        find.text('VAT payable could not be read from your ledger right now.'),
+        findsOneWidget,
+      );
+      expect(find.text('VAT payable (from your ledger)'), findsNothing);
+      expect(find.text('0'), findsNothing);
     });
 
     testWidgets('registered by the setting with a credit: credit, switch on', (
@@ -124,6 +175,7 @@ void main() {
           hasEbmBranch: false,
           settingRegistered: true,
           vatOwed: -1200,
+          hasEstimate: true,
         ),
       );
       expect(find.text('VAT credit (from your ledger)'), findsOneWidget);
@@ -259,6 +311,40 @@ void main() {
     });
   });
 
+  testWidgets('a setting that cannot be saved says so and can be retried', (
+    tester,
+  ) async {
+    var calls = 0;
+    await _pumpCard(
+      tester,
+      _notRegistered,
+      overrides: [
+        setBooksVatRegisteredProvider.overrideWithValue((registered) async {
+          calls++;
+          throw StateError('not ready');
+        }),
+      ],
+    );
+    final toggle = find.byType(AccountingSwitch);
+    tester.widget<AccountingSwitch>(toggle).onChanged(true);
+    await tester.pump();
+    await tester.pump();
+    expect(
+      find.text('Could not save the VAT setting. Try again.'),
+      findsOneWidget,
+    );
+    expect(find.text('VAT setting saved'), findsNothing);
+    await tester.pump(const Duration(seconds: 10));
+    await tester.pumpAndSettle();
+    // Not stuck saving: a second try goes through to the provider.
+    tester.widget<AccountingSwitch>(toggle).onChanged(true);
+    await tester.pump();
+    await tester.pump();
+    expect(calls, 2);
+    await tester.pump(const Duration(seconds: 10));
+    await tester.pumpAndSettle();
+  });
+
   group('BooksLoanOpeningPrompt', () {
     test('overRepaid is the Bank Loan debit balance only', () {
       expect(
@@ -343,6 +429,73 @@ void main() {
     );
   });
 
+  group('setBooksVatRegisteredProvider', () {
+    test(
+      'writes the setting to as_<businessId> and re-reads the position',
+      () async {
+        final ditto = _SettingsDitto();
+        final service = _CountingVatPositionService();
+        final container = ProviderContainer(
+          overrides: [
+            accountingBusinessIdProvider.overrideWithValue('biz'),
+            accountingSettingsStoreProvider.overrideWithValue(
+              AccountingSettingsStore(ditto),
+            ),
+            vatPositionServiceProvider.overrideWithValue(service),
+          ],
+        );
+        addTearDown(container.dispose);
+        final sub = container.listen(booksVatPositionProvider, (_, _) {});
+        addTearDown(sub.close);
+        await container.read(booksVatPositionProvider.future);
+        expect(service.reads, 1);
+
+        await container.read(setBooksVatRegisteredProvider)(true);
+
+        final doc = ditto.writes['accounting_settings/as_biz']!;
+        expect(doc['vatRegistered'], isTrue);
+        expect(doc['businessId'], 'biz');
+        await container.read(booksVatPositionProvider.future);
+        expect(service.reads, 2);
+      },
+    );
+
+    test(
+      'a failed save leaves the position alone and reaches the caller',
+      () async {
+        final service = _CountingVatPositionService();
+        final container = ProviderContainer(
+          overrides: [
+            accountingBusinessIdProvider.overrideWithValue('biz'),
+            accountingSettingsStoreProvider.overrideWithValue(
+              AccountingSettingsStore(FakeAccountingDittoStore(ready: false)),
+            ),
+            vatPositionServiceProvider.overrideWithValue(service),
+          ],
+        );
+        addTearDown(container.dispose);
+        final sub = container.listen(booksVatPositionProvider, (_, _) {});
+        addTearDown(sub.close);
+        await container.read(booksVatPositionProvider.future);
+        await expectLater(
+          container.read(setBooksVatRegisteredProvider)(true),
+          throwsStateError,
+        );
+        await container.read(booksVatPositionProvider.future);
+        expect(service.reads, 1);
+      },
+    );
+
+    test('the default store is backed by the app Ditto service', () {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      expect(
+        container.read(accountingSettingsStoreProvider),
+        isA<AccountingSettingsStore>(),
+      );
+    });
+  });
+
   group('VatPositionService', () {
     test('reads the position from the connector', () async {
       late Uri asked;
@@ -370,6 +523,15 @@ void main() {
       );
       expect(p?.threshold, VatThreshold.near);
       expect(p?.turnover12m, 17000000);
+    });
+
+    test('the app provider builds the connector-backed service', () {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      expect(
+        container.read(vatPositionServiceProvider),
+        isA<VatPositionService>(),
+      );
     });
 
     test('any other status reads as unknown', () async {
