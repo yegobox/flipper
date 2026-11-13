@@ -16,7 +16,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
-import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 // import 'apple_logo_painter.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
@@ -665,9 +664,9 @@ class _AuthState extends State<Auth> {
                   Container(
                     color: Colors.black.withValues(alpha: 0.3),
                     child: Center(
-                      child: LoadingAnimationWidget.fallingDot(
-                        color: Colors.white,
-                        size: 60,
+                      child: const SizedBox.square(
+                        dimension: 60,
+                        child: CircularProgressIndicator(color: Colors.white),
                       ),
                     ),
                   ),

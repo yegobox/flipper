@@ -5,7 +5,6 @@ import 'package:async/async.dart';
 import 'package:flipper_design_system/flipper_design_system.dart';
 import 'package:flipper_ui/widget/mouse_hover_builder.dart';
 import 'package:flutter/material.dart';
-import 'package:styled_widget/styled_widget.dart';
 
 class StyledScrollbar extends StatefulWidget {
   const StyledScrollbar({
@@ -124,59 +123,65 @@ class ScrollbarState extends State<StyledScrollbar> {
                 ? AFThemeExtension.of(context).lightGreyHover
                 : AFThemeExtension.of(context).greyHover);
 
-        // Layout the stack, it just contains a child, and
-        return Stack(
-          children: [
-            /// TRACK, thin strip, aligned along the end of the parent
-            if (widget.showTrack)
-              Align(
-                alignment: const Alignment(1, 1),
-                child: Container(
-                  color: trackColor,
-                  width: widget.axis == Axis.vertical
-                      ? widget.size
-                      : double.infinity,
-                  height: widget.axis == Axis.horizontal
-                      ? widget.size
-                      : double.infinity,
+        // Layout the stack, it just contains a child, and. The handle fades
+        // in and out over 250ms (ease-out).
+        return AnimatedOpacity(
+          opacity: showHandle ? 1.0 : 0.0,
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeOut,
+          child: Stack(
+            children: [
+              /// TRACK, thin strip, aligned along the end of the parent
+              if (widget.showTrack)
+                Align(
+                  alignment: const Alignment(1, 1),
+                  child: Container(
+                    color: trackColor,
+                    width: widget.axis == Axis.vertical
+                        ? widget.size
+                        : double.infinity,
+                    height: widget.axis == Axis.horizontal
+                        ? widget.size
+                        : double.infinity,
+                  ),
                 ),
-              ),
 
-            /// HANDLE - Clickable shape that changes scrollController when dragged
-            Align(
-              // Use calculated alignment to position handle from -1 to 1, let Alignment do the rest of the work
-              alignment: Alignment(
-                widget.axis == Axis.vertical ? 1 : handleAlignment,
-                widget.axis == Axis.horizontal ? 1 : handleAlignment,
-              ),
-              child: GestureDetector(
-                onVerticalDragUpdate: _handleVerticalDrag,
-                onHorizontalDragUpdate: _handleHorizontalDrag,
-                // HANDLE SHAPE
-                child: MouseHoverBuilder(
-                  builder: (_, isHovered) {
-                    final handleColor =
-                        Theme.of(context).scrollbarTheme.thumbColor?.resolve(
-                              isHovered ? {WidgetState.dragged} : {},
-                            );
-                    return Container(
-                      width: widget.axis == Axis.vertical
-                          ? widget.size
-                          : handleExtent,
-                      height: widget.axis == Axis.horizontal
-                          ? widget.size
-                          : handleExtent,
-                      decoration: BoxDecoration(
-                        color: handleColor,
-                        borderRadius: Corners.s3Border,
-                      ),
-                    );
-                  },
+              /// HANDLE - Clickable shape that changes scrollController when dragged
+              Align(
+                // Use calculated alignment to position handle from -1 to 1, let Alignment do the rest of the work
+                alignment: Alignment(
+                  widget.axis == Axis.vertical ? 1 : handleAlignment,
+                  widget.axis == Axis.horizontal ? 1 : handleAlignment,
                 ),
-              ),
-            )
-          ],
-        ).opacity(showHandle ? 1.0 : 0.0, animate: true);
+                child: GestureDetector(
+                  onVerticalDragUpdate: _handleVerticalDrag,
+                  onHorizontalDragUpdate: _handleHorizontalDrag,
+                  // HANDLE SHAPE
+                  child: MouseHoverBuilder(
+                    builder: (_, isHovered) {
+                      final handleColor =
+                          Theme.of(context).scrollbarTheme.thumbColor?.resolve(
+                                isHovered ? {WidgetState.dragged} : {},
+                              );
+                      return Container(
+                        width: widget.axis == Axis.vertical
+                            ? widget.size
+                            : handleExtent,
+                        height: widget.axis == Axis.horizontal
+                            ? widget.size
+                            : handleExtent,
+                        decoration: BoxDecoration(
+                          color: handleColor,
+                          borderRadius: Corners.s3Border,
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              )
+            ],
+          ),
+        );
       },
     );
   }
@@ -275,9 +280,7 @@ class ScrollbarListStack extends StatelessWidget {
             autoHideScrollbar: autoHideScrollbar,
             showTrack: showTrack,
           ),
-        )
-            // The animate will be used by the children that are using styled_widget.
-            .animate(const Duration(milliseconds: 250), Curves.easeOut),
+        ),
       ],
     );
   }

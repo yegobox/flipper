@@ -1981,14 +1981,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.2"
-  lint:
-    dependency: transitive
-    description:
-      name: lint
-      sha256: "4a539aa34ec5721a2c7574ae2ca0336738ea4adc2a34887d54b7596310b33c85"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.10.0"
   lints:
     dependency: transitive
     description:
@@ -2005,14 +1997,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.1"
-  loading_animation_widget:
-    dependency: "direct main"
-    description:
-      name: loading_animation_widget
-      sha256: "9fe23381f3096e902f39e87e487648ff7f74925e86234353fa885bb9f6c98004"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.3.0"
   loading_indicator:
     dependency: transitive
     description:
@@ -2149,14 +2133,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "5.6.4"
-  modal_bottom_sheet:
-    dependency: "direct main"
-    description:
-      name: modal_bottom_sheet
-      sha256: eac66ef8cb0461bf069a38c5eb0fa728cee525a531a8304bd3f7b2185407c67e
-      url: "https://pub.dev"
-    source: hosted
-    version: "3.0.0"
   msix:
     dependency: "direct dev"
     description:
@@ -3213,14 +3189,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.4.1"
-  styled_widget:
-    dependency: transitive
-    description:
-      name: styled_widget
-      sha256: "4d439802919b6ccf10d1488798656da8804633b03012682dd1c8ca70a084aa84"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.4.1"
   supabase:
     dependency: transitive
     description:
@@ -3675,14 +3643,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.11.0"
-  wolt_responsive_layout_grid:
-    dependency: transitive
-    description:
-      name: wolt_responsive_layout_grid
-      sha256: bfcc215af79e7afc5e6370c1a242662a1f80e1144ac3f364bc650cdce65c6e66
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.0.3"
   worker_bee:
     dependency: transitive
     description:

@@ -48,7 +48,6 @@ dependencies:
   flutter_native_splash: ^2.3.2
   permission_handler: ^12.0.3
   flutter_svg: ^2.0.0
-  modal_bottom_sheet: ^3.0.0-pre
   flipper_ui: ^1.0.3
   flipper_design_system: any
   fluentui_system_icons: ^1.1.273
@@ -63,7 +62,6 @@ dependencies:
   rxdart: ^0.28.0
   badges: ^3.1.2
   dropdown_search: ^6.0.2
-  loading_animation_widget: ^1.2.0+4
   syncfusion_flutter_datagrid: ^33.2.7
   syncfusion_flutter_xlsio: ^33.2.7
   syncfusion_flutter_datagrid_export: ^33.2.7

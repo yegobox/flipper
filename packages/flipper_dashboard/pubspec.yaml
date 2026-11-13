@@ -49,7 +49,6 @@ dependencies:
   flutter_map: ^8.3.2
   latlong2: ^0.10.1
   flutter_svg: ^2.0.0
-  modal_bottom_sheet: ^3.0.0-pre
   flipper_ui: any
   flipper_design_system: any
   flipper_ai_feature: any
@@ -70,7 +69,6 @@ dependencies:
   badges: ^3.1.2
 
   dropdown_search: ^6.0.2
-  loading_animation_widget: ^1.2.0+4
   #TODO: because this is community package, I have applied for community licence
   #  the licence is for company less than 1M in revenue and have not received 3M in outside source
   # Meaning I am using this package for now to speed up the process of development
