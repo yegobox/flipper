@@ -13,10 +13,6 @@
       "kind": "pub"
     },
     {
-      "name": "community_charts_flutter",
-      "kind": "pub"
-    },
-    {
       "name": "country_code_picker",
       "kind": "pub"
     },
@@ -53,20 +49,12 @@
       "kind": "pub"
     },
     {
-      "name": "flutter_riverpod",
-      "kind": "pub"
-    },
-    {
       "name": "flutter_settings_ui",
       "kind": "pub"
     },
     {
       "name": "flutter_slidable",
       "kind": "vendored"
-    },
-    {
-      "name": "flutter_text_drawable",
-      "kind": "pub"
     },
     {
       "name": "flutter_typeahead",
@@ -86,10 +74,6 @@
     },
     {
       "name": "google_sign_in",
-      "kind": "pub"
-    },
-    {
-      "name": "hooks_riverpod",
       "kind": "pub"
     },
     {

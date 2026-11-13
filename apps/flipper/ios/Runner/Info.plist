@@ -49,8 +49,6 @@
 	</array>
 	<key>NSCameraUsageDescription</key>
 	<string>We need access to your camera for scanning and capturing images.</string>
-	<key>NSContactsUsageDescription</key>
-	<string>We need access to your contacts to select recipients for mobile money payments.</string>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>Uses WiFi to connect and sync with nearby devices</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
