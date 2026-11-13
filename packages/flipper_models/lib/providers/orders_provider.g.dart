@@ -10,11 +10,11 @@ part of 'orders_provider.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(StockRequests)
-const stockRequestsProvider = StockRequestsFamily._();
+final stockRequestsProvider = StockRequestsFamily._();
 
 final class StockRequestsProvider
     extends $StreamNotifierProvider<StockRequests, List<InventoryRequest>> {
-  const StockRequestsProvider._({
+  StockRequestsProvider._({
     required StockRequestsFamily super.from,
     required ({String status, String? search}) super.argument,
   }) : super(
@@ -50,7 +50,7 @@ final class StockRequestsProvider
   }
 }
 
-String _$stockRequestsHash() => r'3edaa277bb52d4122a36fc384b00b873a129101f';
+String _$stockRequestsHash() => r'5042c2b3d8ac2681932f3d328d2c5422668a5305';
 
 final class StockRequestsFamily extends $Family
     with
@@ -61,7 +61,7 @@ final class StockRequestsFamily extends $Family
           Stream<List<InventoryRequest>>,
           ({String status, String? search})
         > {
-  const StockRequestsFamily._()
+  StockRequestsFamily._()
     : super(
         retry: null,
         name: r'stockRequestsProvider',
@@ -91,8 +91,7 @@ abstract class _$StockRequests extends $StreamNotifier<List<InventoryRequest>> {
   });
   @$mustCallSuper
   @override
-  void runBuild() {
-    final created = build(status: _$args.status, search: _$args.search);
+  WhenComplete runBuild() {
     final ref =
         this.ref
             as $Ref<AsyncValue<List<InventoryRequest>>, List<InventoryRequest>>;
@@ -107,7 +106,10 @@ abstract class _$StockRequests extends $StreamNotifier<List<InventoryRequest>> {
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    return element.handleCreate(
+      ref,
+      () => build(status: _$args.status, search: _$args.search),
+    );
   }
 }
 
@@ -116,7 +118,7 @@ abstract class _$StockRequests extends $StreamNotifier<List<InventoryRequest>> {
 /// Used by Incoming Orders "Outgoing" tab and POS transfer destination alerts.
 
 @ProviderFor(OutgoingStockRequests)
-const outgoingStockRequestsProvider = OutgoingStockRequestsFamily._();
+final outgoingStockRequestsProvider = OutgoingStockRequestsFamily._();
 
 /// Outgoing / destination-side stock requests (this branch is [subBranchId]).
 ///
@@ -127,7 +129,7 @@ final class OutgoingStockRequestsProvider
   /// Outgoing / destination-side stock requests (this branch is [subBranchId]).
   ///
   /// Used by Incoming Orders "Outgoing" tab and POS transfer destination alerts.
-  const OutgoingStockRequestsProvider._({
+  OutgoingStockRequestsProvider._({
     required OutgoingStockRequestsFamily super.from,
     required ({String status, String? search}) super.argument,
   }) : super(
@@ -164,7 +166,7 @@ final class OutgoingStockRequestsProvider
 }
 
 String _$outgoingStockRequestsHash() =>
-    r'6f814a4330d3bb4d9bbeb9acfcf8b12c9f7ae0fd';
+    r'e9ea047bf7dc0f5e1c3eafdea1564f530196c6a6';
 
 /// Outgoing / destination-side stock requests (this branch is [subBranchId]).
 ///
@@ -179,7 +181,7 @@ final class OutgoingStockRequestsFamily extends $Family
           Stream<List<InventoryRequest>>,
           ({String status, String? search})
         > {
-  const OutgoingStockRequestsFamily._()
+  OutgoingStockRequestsFamily._()
     : super(
         retry: null,
         name: r'outgoingStockRequestsProvider',
@@ -220,8 +222,7 @@ abstract class _$OutgoingStockRequests
   });
   @$mustCallSuper
   @override
-  void runBuild() {
-    final created = build(status: _$args.status, search: _$args.search);
+  WhenComplete runBuild() {
     final ref =
         this.ref
             as $Ref<AsyncValue<List<InventoryRequest>>, List<InventoryRequest>>;
@@ -236,6 +237,9 @@ abstract class _$OutgoingStockRequests
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    return element.handleCreate(
+      ref,
+      () => build(status: _$args.status, search: _$args.search),
+    );
   }
 }

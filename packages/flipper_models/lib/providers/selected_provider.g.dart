@@ -10,11 +10,11 @@ part of 'selected_provider.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(SelectedSupplier)
-const selectedSupplierProvider = SelectedSupplierProvider._();
+final selectedSupplierProvider = SelectedSupplierProvider._();
 
 final class SelectedSupplierProvider
     extends $NotifierProvider<SelectedSupplier, Branch?> {
-  const SelectedSupplierProvider._()
+  SelectedSupplierProvider._()
     : super(
         from: null,
         argument: null,
@@ -47,8 +47,7 @@ abstract class _$SelectedSupplier extends $Notifier<Branch?> {
   Branch? build();
   @$mustCallSuper
   @override
-  void runBuild() {
-    final created = build();
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<Branch?, Branch?>;
     final element =
         ref.element
@@ -58,6 +57,6 @@ abstract class _$SelectedSupplier extends $Notifier<Branch?> {
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    return element.handleCreate(ref, build);
   }
 }

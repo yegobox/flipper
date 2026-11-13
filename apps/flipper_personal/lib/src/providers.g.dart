@@ -10,13 +10,13 @@ part of 'providers.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(locationService)
-const locationServiceProvider = LocationServiceProvider._();
+final locationServiceProvider = LocationServiceProvider._();
 
 final class LocationServiceProvider
     extends
         $FunctionalProvider<LocationService, LocationService, LocationService>
     with $Provider<LocationService> {
-  const LocationServiceProvider._()
+  LocationServiceProvider._()
     : super(
         from: null,
         argument: null,
@@ -52,12 +52,12 @@ final class LocationServiceProvider
 String _$locationServiceHash() => r'38d15292e1d1d4553c8f07a36b00411aa0a8d30e';
 
 @ProviderFor(challengeService)
-const challengeServiceProvider = ChallengeServiceProvider._();
+final challengeServiceProvider = ChallengeServiceProvider._();
 
 final class ChallengeServiceProvider
     extends $FunctionalProvider<DittoService, DittoService, DittoService>
     with $Provider<DittoService> {
-  const ChallengeServiceProvider._()
+  ChallengeServiceProvider._()
     : super(
         from: null,
         argument: null,
@@ -93,11 +93,11 @@ final class ChallengeServiceProvider
 String _$challengeServiceHash() => r'39dcf2dd22b6a1909ec09d3635a1fad8c94c44a2';
 
 @ProviderFor(ChallengeClaim)
-const challengeClaimProvider = ChallengeClaimProvider._();
+final challengeClaimProvider = ChallengeClaimProvider._();
 
 final class ChallengeClaimProvider
     extends $NotifierProvider<ChallengeClaim, AsyncValue<bool>> {
-  const ChallengeClaimProvider._()
+  ChallengeClaimProvider._()
     : super(
         from: null,
         argument: null,
@@ -130,8 +130,7 @@ abstract class _$ChallengeClaim extends $Notifier<AsyncValue<bool>> {
   AsyncValue<bool> build();
   @$mustCallSuper
   @override
-  void runBuild() {
-    final created = build();
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<AsyncValue<bool>, AsyncValue<bool>>;
     final element =
         ref.element
@@ -141,17 +140,17 @@ abstract class _$ChallengeClaim extends $Notifier<AsyncValue<bool>> {
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    return element.handleCreate(ref, build);
   }
 }
 
 @ProviderFor(ChallengeFinder)
-const challengeFinderProvider = ChallengeFinderProvider._();
+final challengeFinderProvider = ChallengeFinderProvider._();
 
 final class ChallengeFinderProvider
     extends
         $NotifierProvider<ChallengeFinder, AsyncValue<List<ChallengeCode>>> {
-  const ChallengeFinderProvider._()
+  ChallengeFinderProvider._()
     : super(
         from: null,
         argument: null,
@@ -180,15 +179,14 @@ final class ChallengeFinderProvider
   }
 }
 
-String _$challengeFinderHash() => r'ee76820c7657af702a2f934f68fdd132584fb695';
+String _$challengeFinderHash() => r'529b8daefe9ff970965ce6d6f0c2e003081f2550';
 
 abstract class _$ChallengeFinder
     extends $Notifier<AsyncValue<List<ChallengeCode>>> {
   AsyncValue<List<ChallengeCode>> build();
   @$mustCallSuper
   @override
-  void runBuild() {
-    final created = build();
+  WhenComplete runBuild() {
     final ref =
         this.ref
             as $Ref<
@@ -206,6 +204,6 @@ abstract class _$ChallengeFinder
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    return element.handleCreate(ref, build);
   }
 }

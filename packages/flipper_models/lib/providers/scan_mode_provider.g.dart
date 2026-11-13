@@ -10,10 +10,10 @@ part of 'scan_mode_provider.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(ScanningMode)
-const scanningModeProvider = ScanningModeProvider._();
+final scanningModeProvider = ScanningModeProvider._();
 
 final class ScanningModeProvider extends $NotifierProvider<ScanningMode, bool> {
-  const ScanningModeProvider._()
+  ScanningModeProvider._()
     : super(
         from: null,
         argument: null,
@@ -46,8 +46,7 @@ abstract class _$ScanningMode extends $Notifier<bool> {
   bool build();
   @$mustCallSuper
   @override
-  void runBuild() {
-    final created = build();
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<bool, bool>;
     final element =
         ref.element
@@ -57,16 +56,16 @@ abstract class _$ScanningMode extends $Notifier<bool> {
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    return element.handleCreate(ref, build);
   }
 }
 
 @ProviderFor(AutoAddSearch)
-const autoAddSearchProvider = AutoAddSearchProvider._();
+final autoAddSearchProvider = AutoAddSearchProvider._();
 
 final class AutoAddSearchProvider
     extends $NotifierProvider<AutoAddSearch, bool> {
-  const AutoAddSearchProvider._()
+  AutoAddSearchProvider._()
     : super(
         from: null,
         argument: null,
@@ -99,8 +98,7 @@ abstract class _$AutoAddSearch extends $Notifier<bool> {
   bool build();
   @$mustCallSuper
   @override
-  void runBuild() {
-    final created = build();
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<bool, bool>;
     final element =
         ref.element
@@ -110,16 +108,16 @@ abstract class _$AutoAddSearch extends $Notifier<bool> {
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    return element.handleCreate(ref, build);
   }
 }
 
 @ProviderFor(SearchString)
-const searchStringProvider = SearchStringProvider._();
+final searchStringProvider = SearchStringProvider._();
 
 final class SearchStringProvider
     extends $NotifierProvider<SearchString, String> {
-  const SearchStringProvider._()
+  SearchStringProvider._()
     : super(
         from: null,
         argument: null,
@@ -152,8 +150,7 @@ abstract class _$SearchString extends $Notifier<String> {
   String build();
   @$mustCallSuper
   @override
-  void runBuild() {
-    final created = build();
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<String, String>;
     final element =
         ref.element
@@ -163,6 +160,6 @@ abstract class _$SearchString extends $Notifier<String> {
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    return element.handleCreate(ref, build);
   }
 }

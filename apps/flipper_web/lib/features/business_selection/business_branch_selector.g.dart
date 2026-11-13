@@ -10,11 +10,11 @@ part of 'business_branch_selector.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(SelectedBusiness)
-const selectedBusinessProvider = SelectedBusinessProvider._();
+final selectedBusinessProvider = SelectedBusinessProvider._();
 
 final class SelectedBusinessProvider
     extends $NotifierProvider<SelectedBusiness, Business?> {
-  const SelectedBusinessProvider._()
+  SelectedBusinessProvider._()
     : super(
         from: null,
         argument: null,
@@ -47,8 +47,7 @@ abstract class _$SelectedBusiness extends $Notifier<Business?> {
   Business? build();
   @$mustCallSuper
   @override
-  void runBuild() {
-    final created = build();
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<Business?, Business?>;
     final element =
         ref.element
@@ -58,16 +57,16 @@ abstract class _$SelectedBusiness extends $Notifier<Business?> {
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    return element.handleCreate(ref, build);
   }
 }
 
 @ProviderFor(SelectedBranch)
-const selectedBranchProvider = SelectedBranchProvider._();
+final selectedBranchProvider = SelectedBranchProvider._();
 
 final class SelectedBranchProvider
     extends $NotifierProvider<SelectedBranch, Branch?> {
-  const SelectedBranchProvider._()
+  SelectedBranchProvider._()
     : super(
         from: null,
         argument: null,
@@ -100,8 +99,7 @@ abstract class _$SelectedBranch extends $Notifier<Branch?> {
   Branch? build();
   @$mustCallSuper
   @override
-  void runBuild() {
-    final created = build();
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<Branch?, Branch?>;
     final element =
         ref.element
@@ -111,6 +109,6 @@ abstract class _$SelectedBranch extends $Notifier<Branch?> {
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    return element.handleCreate(ref, build);
   }
 }

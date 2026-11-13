@@ -15,8 +15,8 @@ dependencies:
   cupertino_icons: ^1.0.8
 
   # State management
-  flutter_riverpod: ^3.0.3
-  riverpod: ^3.0.3
+  flutter_riverpod: ^3.5.0
+  riverpod: ^3.5.0
 
   # Ditto for offline sync
   ditto_live: 5.0.3
@@ -33,7 +33,7 @@ dependencies:
   uuid: ^4.5.1
   flipper_models: ^0.0.1-dev.7
   ditto: ^0.0.1
-  riverpod_annotation: ^3.0.3
+  riverpod_annotation: ^4.0.8
   flipper_ui: any
 
 dependency_overrides:
@@ -59,7 +59,7 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^5.0.0
-  riverpod_generator: ^3.0.3
+  riverpod_generator: ^4.0.10
   build_runner: ^2.10.4
 
 flutter:

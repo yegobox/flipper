@@ -11,7 +11,7 @@ part of 'payment_verification_provider.dart';
 /// Provider for the payment verification service
 
 @ProviderFor(paymentVerification)
-const paymentVerificationProvider = PaymentVerificationProvider._();
+final paymentVerificationProvider = PaymentVerificationProvider._();
 
 /// Provider for the payment verification service
 
@@ -24,7 +24,7 @@ final class PaymentVerificationProvider
         >
     with $Provider<PaymentVerificationService> {
   /// Provider for the payment verification service
-  const PaymentVerificationProvider._()
+  PaymentVerificationProvider._()
     : super(
         from: null,
         argument: null,
@@ -64,7 +64,7 @@ String _$paymentVerificationHash() =>
 /// Provider for manually triggering payment verification
 
 @ProviderFor(verifyPayment)
-const verifyPaymentProvider = VerifyPaymentProvider._();
+final verifyPaymentProvider = VerifyPaymentProvider._();
 
 /// Provider for manually triggering payment verification
 
@@ -79,7 +79,7 @@ final class VerifyPaymentProvider
         $FutureModifier<PaymentVerificationResponse>,
         $FutureProvider<PaymentVerificationResponse> {
   /// Provider for manually triggering payment verification
-  const VerifyPaymentProvider._()
+  VerifyPaymentProvider._()
     : super(
         from: null,
         argument: null,
@@ -110,7 +110,7 @@ String _$verifyPaymentHash() => r'463b7d0bab65e08288e436d021f283cfa124fdc5';
 /// Provider for forcing payment verification (verify only, no navigation).
 
 @ProviderFor(forcePaymentVerification)
-const forcePaymentVerificationProvider = ForcePaymentVerificationProvider._();
+final forcePaymentVerificationProvider = ForcePaymentVerificationProvider._();
 
 /// Provider for forcing payment verification (verify only, no navigation).
 
@@ -125,7 +125,7 @@ final class ForcePaymentVerificationProvider
         $FutureModifier<PaymentVerificationResponse>,
         $FutureProvider<PaymentVerificationResponse> {
   /// Provider for forcing payment verification (verify only, no navigation).
-  const ForcePaymentVerificationProvider._()
+  ForcePaymentVerificationProvider._()
     : super(
         from: null,
         argument: null,

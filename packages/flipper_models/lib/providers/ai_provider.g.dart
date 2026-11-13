@@ -10,7 +10,7 @@ part of 'ai_provider.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(availableModels)
-const availableModelsProvider = AvailableModelsProvider._();
+final availableModelsProvider = AvailableModelsProvider._();
 
 final class AvailableModelsProvider
     extends
@@ -20,7 +20,7 @@ final class AvailableModelsProvider
           FutureOr<List<AIModel>>
         >
     with $FutureModifier<List<AIModel>>, $FutureProvider<List<AIModel>> {
-  const AvailableModelsProvider._()
+  AvailableModelsProvider._()
     : super(
         from: null,
         argument: null,
@@ -51,13 +51,13 @@ String _$availableModelsHash() => r'2b70b51b1251cf90be53ed3408e3d0f499cc368f';
 /// Providers
 
 @ProviderFor(GeminiResponse)
-const geminiResponseProvider = GeminiResponseFamily._();
+final geminiResponseProvider = GeminiResponseFamily._();
 
 /// Providers
 final class GeminiResponseProvider
     extends $AsyncNotifierProvider<GeminiResponse, String> {
   /// Providers
-  const GeminiResponseProvider._({
+  GeminiResponseProvider._({
     required GeminiResponseFamily super.from,
     required (UnifiedAIInput, AIModel?) super.argument,
   }) : super(
@@ -106,7 +106,7 @@ final class GeminiResponseFamily extends $Family
           FutureOr<String>,
           (UnifiedAIInput, AIModel?)
         > {
-  const GeminiResponseFamily._()
+  GeminiResponseFamily._()
     : super(
         retry: null,
         name: r'geminiResponseProvider',
@@ -134,8 +134,7 @@ abstract class _$GeminiResponse extends $AsyncNotifier<String> {
   FutureOr<String> build(UnifiedAIInput input, AIModel? aiModel);
   @$mustCallSuper
   @override
-  void runBuild() {
-    final created = build(_$args.$1, _$args.$2);
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<AsyncValue<String>, String>;
     final element =
         ref.element
@@ -145,16 +144,16 @@ abstract class _$GeminiResponse extends $AsyncNotifier<String> {
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    return element.handleCreate(ref, () => build(_$args.$1, _$args.$2));
   }
 }
 
 @ProviderFor(GeminiBusinessAnalytics)
-const geminiBusinessAnalyticsProvider = GeminiBusinessAnalyticsFamily._();
+final geminiBusinessAnalyticsProvider = GeminiBusinessAnalyticsFamily._();
 
 final class GeminiBusinessAnalyticsProvider
     extends $AsyncNotifierProvider<GeminiBusinessAnalytics, String> {
-  const GeminiBusinessAnalyticsProvider._({
+  GeminiBusinessAnalyticsProvider._({
     required GeminiBusinessAnalyticsFamily super.from,
     required (
       String,
@@ -220,7 +219,7 @@ final class GeminiBusinessAnalyticsFamily extends $Family
             String? connectedExternalDataContext,
           })
         > {
-  const GeminiBusinessAnalyticsFamily._()
+  GeminiBusinessAnalyticsFamily._()
     : super(
         retry: null,
         name: r'geminiBusinessAnalyticsProvider',
@@ -288,16 +287,7 @@ abstract class _$GeminiBusinessAnalytics extends $AsyncNotifier<String> {
   });
   @$mustCallSuper
   @override
-  void runBuild() {
-    final created = build(
-      _$args.$1,
-      _$args.$2,
-      filePath: _$args.filePath,
-      history: _$args.history,
-      aiModel: _$args.aiModel,
-      useCase: _$args.useCase,
-      connectedExternalDataContext: _$args.connectedExternalDataContext,
-    );
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<AsyncValue<String>, String>;
     final element =
         ref.element
@@ -307,17 +297,28 @@ abstract class _$GeminiBusinessAnalytics extends $AsyncNotifier<String> {
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    return element.handleCreate(
+      ref,
+      () => build(
+        _$args.$1,
+        _$args.$2,
+        filePath: _$args.filePath,
+        history: _$args.history,
+        aiModel: _$args.aiModel,
+        useCase: _$args.useCase,
+        connectedExternalDataContext: _$args.connectedExternalDataContext,
+      ),
+    );
   }
 }
 
 @ProviderFor(geminiSummary)
-const geminiSummaryProvider = GeminiSummaryFamily._();
+final geminiSummaryProvider = GeminiSummaryFamily._();
 
 final class GeminiSummaryProvider
     extends $FunctionalProvider<AsyncValue<String>, String, FutureOr<String>>
     with $FutureModifier<String>, $FutureProvider<String> {
-  const GeminiSummaryProvider._({
+  GeminiSummaryProvider._({
     required GeminiSummaryFamily super.from,
     required (String, {AIModel? aiModel}) super.argument,
   }) : super(
@@ -368,7 +369,7 @@ final class GeminiSummaryFamily extends $Family
           FutureOr<String>,
           (String, {AIModel? aiModel})
         > {
-  const GeminiSummaryFamily._()
+  GeminiSummaryFamily._()
     : super(
         retry: null,
         name: r'geminiSummaryProvider',
@@ -385,7 +386,7 @@ final class GeminiSummaryFamily extends $Family
 }
 
 @ProviderFor(streamedBusinessAnalytics)
-const streamedBusinessAnalyticsProvider = StreamedBusinessAnalyticsFamily._();
+final streamedBusinessAnalyticsProvider = StreamedBusinessAnalyticsFamily._();
 
 final class StreamedBusinessAnalyticsProvider
     extends
@@ -397,7 +398,7 @@ final class StreamedBusinessAnalyticsProvider
     with
         $FutureModifier<List<models.BusinessAnalytic>>,
         $StreamProvider<List<models.BusinessAnalytic>> {
-  const StreamedBusinessAnalyticsProvider._({
+  StreamedBusinessAnalyticsProvider._({
     required StreamedBusinessAnalyticsFamily super.from,
     required String super.argument,
   }) : super(
@@ -451,7 +452,7 @@ final class StreamedBusinessAnalyticsFamily extends $Family
           Stream<List<models.BusinessAnalytic>>,
           String
         > {
-  const StreamedBusinessAnalyticsFamily._()
+  StreamedBusinessAnalyticsFamily._()
     : super(
         retry: null,
         name: r'streamedBusinessAnalyticsProvider',

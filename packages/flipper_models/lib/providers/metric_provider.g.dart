@@ -10,7 +10,7 @@ part of 'metric_provider.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(fetchMetrics)
-const fetchMetricsProvider = FetchMetricsFamily._();
+final fetchMetricsProvider = FetchMetricsFamily._();
 
 final class FetchMetricsProvider
     extends
@@ -20,7 +20,7 @@ final class FetchMetricsProvider
           FutureOr<List<Metric>>
         >
     with $FutureModifier<List<Metric>>, $FutureProvider<List<Metric>> {
-  const FetchMetricsProvider._({
+  FetchMetricsProvider._({
     required FetchMetricsFamily super.from,
     required String super.argument,
   }) : super(
@@ -68,7 +68,7 @@ String _$fetchMetricsHash() => r'c97ec630cef0f8b1ab4d4f3918b7c572a5b316a2';
 
 final class FetchMetricsFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<List<Metric>>, String> {
-  const FetchMetricsFamily._()
+  FetchMetricsFamily._()
     : super(
         retry: null,
         name: r'fetchMetricsProvider',

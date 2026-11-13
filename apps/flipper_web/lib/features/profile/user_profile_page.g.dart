@@ -12,7 +12,7 @@ part of 'user_profile_page.dart';
 /// to fetch and save user profiles from the API and Ditto
 
 @ProviderFor(UserProfileController)
-const userProfileControllerProvider = UserProfileControllerProvider._();
+final userProfileControllerProvider = UserProfileControllerProvider._();
 
 /// Example controller that demonstrates how to use the UserRepository
 /// to fetch and save user profiles from the API and Ditto
@@ -20,7 +20,7 @@ final class UserProfileControllerProvider
     extends $NotifierProvider<UserProfileController, AsyncValue<UserProfile?>> {
   /// Example controller that demonstrates how to use the UserRepository
   /// to fetch and save user profiles from the API and Ditto
-  const UserProfileControllerProvider._()
+  UserProfileControllerProvider._()
     : super(
         from: null,
         argument: null,
@@ -58,8 +58,7 @@ abstract class _$UserProfileController
   AsyncValue<UserProfile?> build();
   @$mustCallSuper
   @override
-  void runBuild() {
-    final created = build();
+  WhenComplete runBuild() {
     final ref =
         this.ref as $Ref<AsyncValue<UserProfile?>, AsyncValue<UserProfile?>>;
     final element =
@@ -70,6 +69,6 @@ abstract class _$UserProfileController
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    return element.handleCreate(ref, build);
   }
 }

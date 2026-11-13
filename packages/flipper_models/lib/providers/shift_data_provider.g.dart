@@ -10,7 +10,7 @@ part of 'shift_data_provider.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(shiftData)
-const shiftDataProvider = ShiftDataProvider._();
+final shiftDataProvider = ShiftDataProvider._();
 
 final class ShiftDataProvider
     extends
@@ -20,7 +20,7 @@ final class ShiftDataProvider
           FutureOr<ShiftData>
         >
     with $FutureModifier<ShiftData>, $FutureProvider<ShiftData> {
-  const ShiftDataProvider._()
+  ShiftDataProvider._()
     : super(
         from: null,
         argument: null,

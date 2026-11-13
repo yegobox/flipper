@@ -10,12 +10,12 @@ part of 'branch_by_id_provider.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(branchById)
-const branchByIdProvider = BranchByIdFamily._();
+final branchByIdProvider = BranchByIdFamily._();
 
 final class BranchByIdProvider
     extends $FunctionalProvider<AsyncValue<Branch?>, Branch?, Stream<Branch?>>
     with $FutureModifier<Branch?>, $StreamProvider<Branch?> {
-  const BranchByIdProvider._({
+  BranchByIdProvider._({
     required BranchByIdFamily super.from,
     required String? super.argument,
   }) : super(
@@ -62,7 +62,7 @@ String _$branchByIdHash() => r'fad8f6dd66498578a4ccb008f0e58db2b3524b2f';
 
 final class BranchByIdFamily extends $Family
     with $FunctionalFamilyOverride<Stream<Branch?>, String?> {
-  const BranchByIdFamily._()
+  BranchByIdFamily._()
     : super(
         retry: null,
         name: r'branchByIdProvider',

@@ -10,7 +10,7 @@ part of 'signup_providers.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(businessTypes)
-const businessTypesProvider = BusinessTypesProvider._();
+final businessTypesProvider = BusinessTypesProvider._();
 
 final class BusinessTypesProvider
     extends
@@ -20,7 +20,7 @@ final class BusinessTypesProvider
           List<BusinessType>
         >
     with $Provider<List<BusinessType>> {
-  const BusinessTypesProvider._()
+  BusinessTypesProvider._()
     : super(
         from: null,
         argument: null,
@@ -57,12 +57,12 @@ final class BusinessTypesProvider
 String _$businessTypesHash() => r'002848af2bef84f87d547596fc1561c9a0811707';
 
 @ProviderFor(countries)
-const countriesProvider = CountriesProvider._();
+final countriesProvider = CountriesProvider._();
 
 final class CountriesProvider
     extends $FunctionalProvider<List<String>, List<String>, List<String>>
     with $Provider<List<String>> {
-  const CountriesProvider._()
+  CountriesProvider._()
     : super(
         from: null,
         argument: null,
@@ -98,11 +98,11 @@ final class CountriesProvider
 String _$countriesHash() => r'445e9a33585deb1523d0b8858c757d1af494a295';
 
 @ProviderFor(SignupForm)
-const signupFormProvider = SignupFormProvider._();
+final signupFormProvider = SignupFormProvider._();
 
 final class SignupFormProvider
     extends $NotifierProvider<SignupForm, SignupFormState> {
-  const SignupFormProvider._()
+  SignupFormProvider._()
     : super(
         from: null,
         argument: null,
@@ -129,14 +129,13 @@ final class SignupFormProvider
   }
 }
 
-String _$signupFormHash() => r'f4f51dab1f9d00b70b731fb7dc3ad487ffd628d9';
+String _$signupFormHash() => r'16941dfcff4930501d78362d25cdf7ed0445ee76';
 
 abstract class _$SignupForm extends $Notifier<SignupFormState> {
   SignupFormState build();
   @$mustCallSuper
   @override
-  void runBuild() {
-    final created = build();
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<SignupFormState, SignupFormState>;
     final element =
         ref.element
@@ -146,6 +145,6 @@ abstract class _$SignupForm extends $Notifier<SignupFormState> {
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    return element.handleCreate(ref, build);
   }
 }
