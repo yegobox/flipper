@@ -57,7 +57,10 @@ env:
   FLUTTER_VERSION: "3.47.9" # keep in step with release.yml
   MANIFEST_TAG: launcher-manifest
   # A push has no inputs: stable, every platform.
-  CHANNEL: ${{ inputs.channel || 'stable' }}
+  # Not "CHANNEL": subosito/flutter-action's setup.sh reads $CHANNEL as the
+  # Flutter SDK channel, so CHANNEL=beta made it look for 3.47.9 on Flutter's
+  # beta channel and every beta build failed before it started.
+  LAUNCHER_CHANNEL: ${{ inputs.channel || 'stable' }}
   PLATFORMS: ${{ inputs.platforms || 'windows,macos,linux' }}
 
 jobs:
@@ -92,7 +95,7 @@ jobs:
           echo "build=true" >> "$GITHUB_OUTPUT"
       - name: Check channel
         run: |
-          if [[ "$CHANNEL" == stable && "$GITHUB_REF" != refs/heads/main ]]; then
+          if [[ "$LAUNCHER_CHANNEL" == stable && "$GITHUB_REF" != refs/heads/main ]]; then
             echo "::error::stable releases only run from main (got $GITHUB_REF)"; exit 1
           fi
 
@@ -415,9 +418,10 @@ jobs:
         # grows, so each run sorts above the last even when N stays put.
         # Beta adds -beta. Resolved here, not before the builds, because the
         # Store job tags its version while those builds run; the builds don't
-        # use the version. See the script.
+        # use the version. See the script, which reads the channel as CHANNEL
+        # (scoped to this call so it can't reach flutter-action).
         run: |
-          VERSION="$(./scripts/ci/launcher_version.sh)"
+          VERSION="$(CHANNEL="$LAUNCHER_CHANNEL" ./scripts/ci/launcher_version.sh)"
           TAG="desktop-v$VERSION"
           if gh release view "$TAG" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             # Only a re-run of an already published run gets here.
@@ -425,7 +429,7 @@ jobs:
           fi
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
           echo "TAG=$TAG" >> "$GITHUB_ENV"
-          echo "Publishing $TAG to $CHANNEL"
+          echo "Publishing $TAG to $LAUNCHER_CHANNEL"
       - uses: actions/download-artifact@v4
         with:
           pattern: desktop-*
@@ -447,9 +451,9 @@ jobs:
           ls -la dist
       - name: Create release
         run: |
-          PRE=""; [[ "$CHANNEL" == beta ]] && PRE="--prerelease"
+          PRE=""; [[ "$LAUNCHER_CHANNEL" == beta ]] && PRE="--prerelease"
           gh release create "$TAG" -R "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" $PRE --latest=false \
-            --title "Flipper desktop $VERSION ($CHANNEL)" \
+            --title "Flipper desktop $VERSION ($LAUNCHER_CHANNEL)" \
             --notes-file apps/flipper/distribution/whatsnew/whatsnew-en-US
           shopt -s nullglob
           gh release upload "$TAG" -R "$GITHUB_REPOSITORY" dist/*.zip dist/*.tar.gz dist/*.sig
@@ -472,10 +476,10 @@ jobs:
             --website "https://yegobox.com" \
             --accent "#00C2E8" \
             --play-package rw.flipper \
-            --channel "$CHANNEL" --version "$VERSION" \
+            --channel "$LAUNCHER_CHANNEL" --version "$VERSION" \
             --notes-file apps/flipper/distribution/whatsnew/whatsnew-en-US \
             --base-url "https://github.com/${GITHUB_REPOSITORY}/releases/download/$TAG" \
             "${ARGS[@]}"
           gh release upload "$MANIFEST_TAG" -R "$GITHUB_REPOSITORY" apps.json --clobber
-          echo "### $TAG → $CHANNEL" >> "$GITHUB_STEP_SUMMARY"
+          echo "### $TAG → $LAUNCHER_CHANNEL" >> "$GITHUB_STEP_SUMMARY"
           echo "Manifest: https://github.com/${GITHUB_REPOSITORY}/releases/download/$MANIFEST_TAG/apps.json" >> "$GITHUB_STEP_SUMMARY"
