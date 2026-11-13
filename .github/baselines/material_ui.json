@@ -81,10 +81,6 @@
       "kind": "pub"
     },
     {
-      "name": "loading_animation_widget",
-      "kind": "pub"
-    },
-    {
       "name": "loading_indicator",
       "kind": "pub"
     },
@@ -94,10 +90,6 @@
     },
     {
       "name": "mobile_scanner",
-      "kind": "pub"
-    },
-    {
-      "name": "modal_bottom_sheet",
       "kind": "pub"
     },
     {
@@ -153,10 +145,6 @@
       "kind": "pub"
     },
     {
-      "name": "styled_widget",
-      "kind": "pub"
-    },
-    {
       "name": "supabase_flutter",
       "kind": "pub"
     },
@@ -182,10 +170,6 @@
     },
     {
       "name": "wolt_modal_sheet",
-      "kind": "pub"
-    },
-    {
-      "name": "wolt_responsive_layout_grid",
       "kind": "pub"
     }
   ]
