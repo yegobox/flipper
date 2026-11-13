@@ -213,6 +213,9 @@ class SignupForm extends _$SignupForm {
 
     // Wait a short time to avoid excessive API calls while typing
     await Future.delayed(const Duration(milliseconds: 500));
+    // The form may have closed (auto-dispose) during the wait; writing state
+    // to a disposed notifier throws UnmountedRefException.
+    if (!ref.mounted) return;
 
     // If there's been a newer change or we've already checked this username, don't proceed
     if (_lastUsernameChange != changeTime || _lastCheckedUsername == username)
@@ -229,7 +232,7 @@ class SignupForm extends _$SignupForm {
       );
 
       // Only update if this is still the latest check
-      if (_lastCheckedUsername == username) {
+      if (ref.mounted && _lastCheckedUsername == username) {
         state = state.copyWith(
           isCheckingUsername: false,
           isUsernameAvailable: isAvailable,
@@ -239,7 +242,7 @@ class SignupForm extends _$SignupForm {
       // Handle error while checking username. A failed check says nothing
       // about the username, so leave availability unknown rather than
       // showing "Username is not available".
-      if (_lastCheckedUsername == username) {
+      if (ref.mounted && _lastCheckedUsername == username) {
         // Allow a retry on the next keystroke / submit.
         _lastCheckedUsername = null;
         state = state.copyWith(
