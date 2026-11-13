@@ -290,8 +290,9 @@ class SignupForm extends _$SignupForm {
       final ippisService = IppisService();
       final business = await ippisService.getBusinessDetails(tinToValidate);
 
-      // Before applying the result, check if the TIN hasn't changed
-      if (state.tinNumber != tinToValidate) {
+      // Before applying the result, check the form is still open (it may
+      // auto-dispose during the request) and the TIN hasn't changed.
+      if (!ref.mounted || state.tinNumber != tinToValidate) {
         // User has typed a new TIN while this request was in-flight. Ignore stale result.
         return;
       }
@@ -305,21 +306,12 @@ class SignupForm extends _$SignupForm {
           tinError: FlipperL10n.current.webSignupNoTinData,
         );
       }
-    } on IppisUnavailableException {
-      // Could not reach IPPIS at all — on web that is every call, since
-      // ippis.rw refuses browser origins. Relax instead of blocking signup,
-      // matching the mobile form's `setTinRelaxed`.
-      if (state.tinNumber != tinToValidate) return;
-      state = state.copyWith(
-        isValidatingTin: false,
-        tinError: null,
-        isTinValidationRelaxed: true,
-      );
     } catch (e) {
-      // Before applying the error, also check if the TIN has changed
-      if (state.tinNumber != tinToValidate) {
-        return; // Ignore error from a stale request
-      }
+      // Could not reach IPPIS at all (IppisUnavailableException) — on web that
+      // is every call, since ippis.rw refuses browser origins — or any other
+      // failure. Relax instead of blocking signup, matching the mobile form's
+      // `setTinRelaxed`. Drop it if the form closed or the TIN changed.
+      if (!ref.mounted || state.tinNumber != tinToValidate) return;
       state = state.copyWith(
         isValidatingTin: false,
         tinError: null,

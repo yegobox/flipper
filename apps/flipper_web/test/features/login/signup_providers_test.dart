@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flipper_web/features/login/signup_providers.dart';
 import 'package:flipper_web/repositories/signup_repository.dart';
@@ -628,6 +630,67 @@ void main() {
       gate.complete();
       expect(await first, equals(true));
       expect(mockRepository.registerCallCount, equals(1));
+    });
+  });
+
+  group('validateTin after the form closes', () {
+    /// IPPIS stand-in: authenticate succeeds, and the TIN lookup waits on
+    /// [gate] and then answers with [lookup].
+    MockClient ippis(
+      Completer<void> gate,
+      Future<http.Response> Function() lookup,
+    ) => MockClient((request) async {
+      if (request.url.path.endsWith('/authenticate')) {
+        return http.Response('{"token":"t"}', 200);
+      }
+      await gate.future;
+      return lookup();
+    });
+
+    /// Starts a TIN check, closes the form while IPPIS is still answering,
+    /// then lets IPPIS answer. Returns the check's future.
+    Future<void> checkThenClose(Future<http.Response> Function() lookup) async {
+      final gate = Completer<void>();
+      final local = ProviderContainer(
+        overrides: [
+          signupRepositoryProvider.overrideWithValue(MockSignupRepository()),
+        ],
+      );
+      final sub = local.listen(signupFormProvider, (previous, next) {});
+      final notifier = local.read(signupFormProvider.notifier);
+      late Future<void> pending;
+      http.runWithClient(() {
+        notifier.updateTinNumber('123456789');
+        pending = notifier.validateTin('123456789');
+      }, () => ippis(gate, lookup));
+
+      sub.close();
+      local.dispose();
+      gate.complete();
+      return pending;
+    }
+
+    test('an answer from IPPIS is dropped without throwing', () async {
+      await expectLater(
+        checkThenClose(() async => http.Response('', 404)),
+        completes,
+      );
+    });
+
+    test('an unreachable IPPIS is dropped without throwing', () async {
+      await expectLater(
+        checkThenClose(() async => throw http.ClientException('down')),
+        completes,
+      );
+    });
+
+    test('while the form is open, an unknown TIN still settles', () async {
+      final gate = Completer<void>()..complete();
+      await http.runWithClient(
+        () => notifier.validateTin(''),
+        () => ippis(gate, () async => http.Response('', 404)),
+      );
+      expect(notifier.state.isValidatingTin, isFalse);
     });
   });
 
