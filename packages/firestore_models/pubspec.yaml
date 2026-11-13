@@ -13,7 +13,6 @@ dependencies:
   permission_handler: ^12.0.3
   json_annotation: ^4.9.0
   build_runner: ^2.4.15
-  riverpod_lint: ^3.0.0
   dart_mappable_builder: ^4.4.0
   mockito: ^5.4.4
   json_serializable: ^6.9.4

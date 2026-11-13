@@ -62,11 +62,11 @@ dependencies:
   tray_manager: ^0.5.3
   pinput: ^6.0.0
   local_auth: ^3.0.0
-  flutter_riverpod: ^3.0.3
-  riverpod_annotation: ^3.0.3
+  flutter_riverpod: ^3.5.0
+  riverpod_annotation: ^4.0.8
   flutter_hooks:
-  riverpod: ^3.0.3
-  hooks_riverpod: ^3.0.3
+  riverpod: ^3.5.0
+  hooks_riverpod: ^3.5.0
   rxdart: ^0.28.0
   badges: ^3.1.2
   community_charts_flutter: ^1.0.2
@@ -193,7 +193,6 @@ dev_dependencies:
     sdk: flutter
   nock: ^1.2.3
   build_runner: ^2.4.15
-  riverpod_lint: ^3.0.3  # Updated to be compatible with flutter_riverpod ^3.0.3
   mockito: ^5.4.4
   test:
 msix_config:

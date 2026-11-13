@@ -10,12 +10,12 @@ part of 'active_branch_provider.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(activeBranch)
-const activeBranchProvider = ActiveBranchProvider._();
+final activeBranchProvider = ActiveBranchProvider._();
 
 final class ActiveBranchProvider
     extends $FunctionalProvider<AsyncValue<Branch>, Branch, Stream<Branch>>
     with $FutureModifier<Branch>, $StreamProvider<Branch> {
-  const ActiveBranchProvider._()
+  ActiveBranchProvider._()
     : super(
         from: null,
         argument: null,
@@ -40,4 +40,4 @@ final class ActiveBranchProvider
   }
 }
 
-String _$activeBranchHash() => r'a7bc8cca7ed986fab9321b5e013e389caaec5dd7';
+String _$activeBranchHash() => r'af2b081d3da7b49c4357695b1f2428e02010b938';

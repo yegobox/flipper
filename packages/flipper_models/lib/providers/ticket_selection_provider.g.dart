@@ -10,11 +10,11 @@ part of 'ticket_selection_provider.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(TicketSelection)
-const ticketSelectionProvider = TicketSelectionProvider._();
+final ticketSelectionProvider = TicketSelectionProvider._();
 
 final class TicketSelectionProvider
     extends $NotifierProvider<TicketSelection, Set<String>> {
-  const TicketSelectionProvider._()
+  TicketSelectionProvider._()
     : super(
         from: null,
         argument: null,
@@ -47,8 +47,7 @@ abstract class _$TicketSelection extends $Notifier<Set<String>> {
   Set<String> build();
   @$mustCallSuper
   @override
-  void runBuild() {
-    final created = build();
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<Set<String>, Set<String>>;
     final element =
         ref.element
@@ -58,6 +57,6 @@ abstract class _$TicketSelection extends $Notifier<Set<String>> {
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    return element.handleCreate(ref, build);
   }
 }

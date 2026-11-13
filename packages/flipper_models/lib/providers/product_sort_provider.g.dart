@@ -10,11 +10,11 @@ part of 'product_sort_provider.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(ProductSort)
-const productSortProvider = ProductSortProvider._();
+final productSortProvider = ProductSortProvider._();
 
 final class ProductSortProvider
     extends $NotifierProvider<ProductSort, ProductSortOption> {
-  const ProductSortProvider._()
+  ProductSortProvider._()
     : super(
         from: null,
         argument: null,
@@ -47,8 +47,7 @@ abstract class _$ProductSort extends $Notifier<ProductSortOption> {
   ProductSortOption build();
   @$mustCallSuper
   @override
-  void runBuild() {
-    final created = build();
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<ProductSortOption, ProductSortOption>;
     final element =
         ref.element
@@ -58,6 +57,6 @@ abstract class _$ProductSort extends $Notifier<ProductSortOption> {
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    return element.handleCreate(ref, build);
   }
 }

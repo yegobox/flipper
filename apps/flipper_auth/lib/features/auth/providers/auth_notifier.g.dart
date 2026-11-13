@@ -10,11 +10,11 @@ part of 'auth_notifier.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(AuthNotifier)
-const authProvider = AuthNotifierProvider._();
+final authProvider = AuthNotifierProvider._();
 
 final class AuthNotifierProvider
     extends $NotifierProvider<AuthNotifier, AuthState> {
-  const AuthNotifierProvider._()
+  AuthNotifierProvider._()
       : super(
           from: null,
           argument: null,
@@ -41,17 +41,16 @@ final class AuthNotifierProvider
   }
 }
 
-String _$authNotifierHash() => r'd23b6cb830a26c861c764cdccd5106dc43c8359c';
+String _$authNotifierHash() => r'3c6b60f2a28d3895ab328831f85affd98a45e2e9';
 
 abstract class _$AuthNotifier extends $Notifier<AuthState> {
   AuthState build();
   @$mustCallSuper
   @override
-  void runBuild() {
-    final created = build();
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<AuthState, AuthState>;
     final element = ref.element as $ClassProviderElement<
         AnyNotifier<AuthState, AuthState>, AuthState, Object?, Object?>;
-    element.handleValue(ref, created);
+    return element.handleCreate(ref, build);
   }
 }

@@ -11,7 +11,7 @@ part of 'inventory_provider.dart';
 /// Service provider for inventory operations
 
 @ProviderFor(inventoryService)
-const inventoryServiceProvider = InventoryServiceProvider._();
+final inventoryServiceProvider = InventoryServiceProvider._();
 
 /// Service provider for inventory operations
 
@@ -24,7 +24,7 @@ final class InventoryServiceProvider
         >
     with $Provider<InventoryService> {
   /// Service provider for inventory operations
-  const InventoryServiceProvider._()
+  InventoryServiceProvider._()
     : super(
         from: null,
         argument: null,
@@ -62,7 +62,7 @@ String _$inventoryServiceHash() => r'4bf9182ae0cc65223faa5ae6b9ed2943665b626f';
 /// Provider for expired items
 
 @ProviderFor(expiredItems)
-const expiredItemsProvider = ExpiredItemsFamily._();
+final expiredItemsProvider = ExpiredItemsFamily._();
 
 /// Provider for expired items
 
@@ -77,7 +77,7 @@ final class ExpiredItemsProvider
         $FutureModifier<List<InventoryItem>>,
         $FutureProvider<List<InventoryItem>> {
   /// Provider for expired items
-  const ExpiredItemsProvider._({
+  ExpiredItemsProvider._({
     required ExpiredItemsFamily super.from,
     required ExpiredItemsParams super.argument,
   }) : super(
@@ -131,7 +131,7 @@ final class ExpiredItemsFamily extends $Family
           FutureOr<List<InventoryItem>>,
           ExpiredItemsParams
         > {
-  const ExpiredItemsFamily._()
+  ExpiredItemsFamily._()
     : super(
         retry: null,
         name: r'expiredItemsProvider',
@@ -152,7 +152,7 @@ final class ExpiredItemsFamily extends $Family
 /// Provider for near expiry items
 
 @ProviderFor(nearExpiryItems)
-const nearExpiryItemsProvider = NearExpiryItemsFamily._();
+final nearExpiryItemsProvider = NearExpiryItemsFamily._();
 
 /// Provider for near expiry items
 
@@ -167,7 +167,7 @@ final class NearExpiryItemsProvider
         $FutureModifier<List<InventoryItem>>,
         $FutureProvider<List<InventoryItem>> {
   /// Provider for near expiry items
-  const NearExpiryItemsProvider._({
+  NearExpiryItemsProvider._({
     required NearExpiryItemsFamily super.from,
     required NearExpiryItemsParams super.argument,
   }) : super(
@@ -221,7 +221,7 @@ final class NearExpiryItemsFamily extends $Family
           FutureOr<List<InventoryItem>>,
           NearExpiryItemsParams
         > {
-  const NearExpiryItemsFamily._()
+  NearExpiryItemsFamily._()
     : super(
         retry: null,
         name: r'nearExpiryItemsProvider',
@@ -242,7 +242,7 @@ final class NearExpiryItemsFamily extends $Family
 /// Provider for total items count and trend
 
 @ProviderFor(totalItems)
-const totalItemsProvider = TotalItemsProvider._();
+final totalItemsProvider = TotalItemsProvider._();
 
 /// Provider for total items count and trend
 
@@ -255,7 +255,7 @@ final class TotalItemsProvider
         >
     with $FutureModifier<TotalItemsData>, $FutureProvider<TotalItemsData> {
   /// Provider for total items count and trend
-  const TotalItemsProvider._()
+  TotalItemsProvider._()
     : super(
         from: null,
         argument: null,
@@ -286,7 +286,7 @@ String _$totalItemsHash() => r'3d36cdd6d4b8ca46faa8f2a62eeb6c60182a1766';
 /// Provider for low stock items count and trend
 
 @ProviderFor(lowStockItems)
-const lowStockItemsProvider = LowStockItemsProvider._();
+final lowStockItemsProvider = LowStockItemsProvider._();
 
 /// Provider for low stock items count and trend
 
@@ -299,7 +299,7 @@ final class LowStockItemsProvider
         >
     with $FutureModifier<TotalItemsData>, $FutureProvider<TotalItemsData> {
   /// Provider for low stock items count and trend
-  const LowStockItemsProvider._()
+  LowStockItemsProvider._()
     : super(
         from: null,
         argument: null,
@@ -330,7 +330,7 @@ String _$lowStockItemsHash() => r'96f26e1f9862510aae8297905c4e2a675064a1b4';
 /// Provider for pending orders count and trend
 
 @ProviderFor(pendingOrders)
-const pendingOrdersProvider = PendingOrdersProvider._();
+final pendingOrdersProvider = PendingOrdersProvider._();
 
 /// Provider for pending orders count and trend
 
@@ -343,7 +343,7 @@ final class PendingOrdersProvider
         >
     with $FutureModifier<TotalItemsData>, $FutureProvider<TotalItemsData> {
   /// Provider for pending orders count and trend
-  const PendingOrdersProvider._()
+  PendingOrdersProvider._()
     : super(
         from: null,
         argument: null,

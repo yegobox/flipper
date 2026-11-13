@@ -11,7 +11,7 @@ part of 'ebm_provider.dart';
 /// Provider that fetches the VAT enabled status from the EBM configuration
 
 @ProviderFor(ebmVatEnabled)
-const ebmVatEnabledProvider = EbmVatEnabledProvider._();
+final ebmVatEnabledProvider = EbmVatEnabledProvider._();
 
 /// Provider that fetches the VAT enabled status from the EBM configuration
 
@@ -19,7 +19,7 @@ final class EbmVatEnabledProvider
     extends $FunctionalProvider<AsyncValue<bool>, bool, FutureOr<bool>>
     with $FutureModifier<bool>, $FutureProvider<bool> {
   /// Provider that fetches the VAT enabled status from the EBM configuration
-  const EbmVatEnabledProvider._()
+  EbmVatEnabledProvider._()
     : super(
         from: null,
         argument: null,
@@ -44,4 +44,4 @@ final class EbmVatEnabledProvider
   }
 }
 
-String _$ebmVatEnabledHash() => r'2d5b48f5f6b8fa0ded9b652a48a9652baab49f5c';
+String _$ebmVatEnabledHash() => r'808a8832c3d4d84c57f9f2ee92f1d140e5488fbf';

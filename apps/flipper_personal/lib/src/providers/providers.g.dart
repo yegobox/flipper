@@ -10,12 +10,12 @@ part of 'providers.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(dittoService)
-const dittoServiceProvider = DittoServiceProvider._();
+final dittoServiceProvider = DittoServiceProvider._();
 
 final class DittoServiceProvider
     extends $FunctionalProvider<DittoService, DittoService, DittoService>
     with $Provider<DittoService> {
-  const DittoServiceProvider._()
+  DittoServiceProvider._()
     : super(
         from: null,
         argument: null,
@@ -51,7 +51,7 @@ final class DittoServiceProvider
 String _$dittoServiceHash() => r'9ae7d6fb5e98559e4ad9dead57463595001728d2';
 
 @ProviderFor(challengeService)
-const challengeServiceProvider = ChallengeServiceProvider._();
+final challengeServiceProvider = ChallengeServiceProvider._();
 
 final class ChallengeServiceProvider
     extends
@@ -61,7 +61,7 @@ final class ChallengeServiceProvider
           ChallengeService
         >
     with $Provider<ChallengeService> {
-  const ChallengeServiceProvider._()
+  ChallengeServiceProvider._()
     : super(
         from: null,
         argument: null,
@@ -97,7 +97,7 @@ final class ChallengeServiceProvider
 String _$challengeServiceHash() => r'9ab71acf0a4d9de1e85d323824e5ee17df9c2c3b';
 
 @ProviderFor(availableChallengeCodes)
-const availableChallengeCodesProvider = AvailableChallengeCodesProvider._();
+final availableChallengeCodesProvider = AvailableChallengeCodesProvider._();
 
 final class AvailableChallengeCodesProvider
     extends
@@ -109,7 +109,7 @@ final class AvailableChallengeCodesProvider
     with
         $FutureModifier<List<ChallengeCode>>,
         $StreamProvider<List<ChallengeCode>> {
-  const AvailableChallengeCodesProvider._()
+  AvailableChallengeCodesProvider._()
     : super(
         from: null,
         argument: null,
@@ -139,7 +139,7 @@ String _$availableChallengeCodesHash() =>
     r'2ae92806fa2877e1bc7d410384592ddff2366b43';
 
 @ProviderFor(userClaims)
-const userClaimsProvider = UserClaimsFamily._();
+final userClaimsProvider = UserClaimsFamily._();
 
 final class UserClaimsProvider
     extends
@@ -149,7 +149,7 @@ final class UserClaimsProvider
           FutureOr<List<Claim>>
         >
     with $FutureModifier<List<Claim>>, $FutureProvider<List<Claim>> {
-  const UserClaimsProvider._({
+  UserClaimsProvider._({
     required UserClaimsFamily super.from,
     required String super.argument,
   }) : super(
@@ -197,7 +197,7 @@ String _$userClaimsHash() => r'7b04f1be17088970be5b6b81319d43fac05b362e';
 
 final class UserClaimsFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<List<Claim>>, String> {
-  const UserClaimsFamily._()
+  UserClaimsFamily._()
     : super(
         retry: null,
         name: r'userClaimsProvider',
@@ -214,7 +214,7 @@ final class UserClaimsFamily extends $Family
 }
 
 @ProviderFor(businessChallengeCodes)
-const businessChallengeCodesProvider = BusinessChallengeCodesFamily._();
+final businessChallengeCodesProvider = BusinessChallengeCodesFamily._();
 
 final class BusinessChallengeCodesProvider
     extends
@@ -226,7 +226,7 @@ final class BusinessChallengeCodesProvider
     with
         $FutureModifier<List<ChallengeCode>>,
         $FutureProvider<List<ChallengeCode>> {
-  const BusinessChallengeCodesProvider._({
+  BusinessChallengeCodesProvider._({
     required BusinessChallengeCodesFamily super.from,
     required String super.argument,
   }) : super(
@@ -276,7 +276,7 @@ String _$businessChallengeCodesHash() =>
 
 final class BusinessChallengeCodesFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<List<ChallengeCode>>, String> {
-  const BusinessChallengeCodesFamily._()
+  BusinessChallengeCodesFamily._()
     : super(
         retry: null,
         name: r'businessChallengeCodesProvider',
@@ -293,11 +293,11 @@ final class BusinessChallengeCodesFamily extends $Family
 }
 
 @ProviderFor(ChallengeClaim)
-const challengeClaimProvider = ChallengeClaimProvider._();
+final challengeClaimProvider = ChallengeClaimProvider._();
 
 final class ChallengeClaimProvider
     extends $NotifierProvider<ChallengeClaim, AsyncValue<bool>> {
-  const ChallengeClaimProvider._()
+  ChallengeClaimProvider._()
     : super(
         from: null,
         argument: null,
@@ -330,8 +330,7 @@ abstract class _$ChallengeClaim extends $Notifier<AsyncValue<bool>> {
   AsyncValue<bool> build();
   @$mustCallSuper
   @override
-  void runBuild() {
-    final created = build();
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<AsyncValue<bool>, AsyncValue<bool>>;
     final element =
         ref.element
@@ -341,16 +340,16 @@ abstract class _$ChallengeClaim extends $Notifier<AsyncValue<bool>> {
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    return element.handleCreate(ref, build);
   }
 }
 
 @ProviderFor(dittoReady)
-const dittoReadyProvider = DittoReadyProvider._();
+final dittoReadyProvider = DittoReadyProvider._();
 
 final class DittoReadyProvider extends $FunctionalProvider<bool, bool, bool>
     with $Provider<bool> {
-  const DittoReadyProvider._()
+  DittoReadyProvider._()
     : super(
         from: null,
         argument: null,

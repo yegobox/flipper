@@ -11,13 +11,13 @@ part of 'date_range_provider.dart';
 /// A provider for managing date range state.
 
 @ProviderFor(DateRange)
-const dateRangeProvider = DateRangeProvider._();
+final dateRangeProvider = DateRangeProvider._();
 
 /// A provider for managing date range state.
 final class DateRangeProvider
     extends $NotifierProvider<DateRange, DateRangeModel> {
   /// A provider for managing date range state.
-  const DateRangeProvider._()
+  DateRangeProvider._()
     : super(
         from: null,
         argument: null,
@@ -52,8 +52,7 @@ abstract class _$DateRange extends $Notifier<DateRangeModel> {
   DateRangeModel build();
   @$mustCallSuper
   @override
-  void runBuild() {
-    final created = build();
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<DateRangeModel, DateRangeModel>;
     final element =
         ref.element
@@ -63,6 +62,6 @@ abstract class _$DateRange extends $Notifier<DateRangeModel> {
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    return element.handleCreate(ref, build);
   }
 }

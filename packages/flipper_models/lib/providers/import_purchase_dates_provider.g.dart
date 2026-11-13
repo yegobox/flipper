@@ -11,7 +11,7 @@ part of 'import_purchase_dates_provider.dart';
 /// Provider to fetch the last import/purchase date for a given branch and request type
 
 @ProviderFor(importPurchaseDates)
-const importPurchaseDatesProvider = ImportPurchaseDatesFamily._();
+final importPurchaseDatesProvider = ImportPurchaseDatesFamily._();
 
 /// Provider to fetch the last import/purchase date for a given branch and request type
 
@@ -24,7 +24,7 @@ final class ImportPurchaseDatesProvider
         >
     with $FutureModifier<DateTime?>, $FutureProvider<DateTime?> {
   /// Provider to fetch the last import/purchase date for a given branch and request type
-  const ImportPurchaseDatesProvider._({
+  ImportPurchaseDatesProvider._({
     required ImportPurchaseDatesFamily super.from,
     required ({String branchId, String requestType}) super.argument,
   }) : super(
@@ -82,7 +82,7 @@ final class ImportPurchaseDatesFamily extends $Family
           FutureOr<DateTime?>,
           ({String branchId, String requestType})
         > {
-  const ImportPurchaseDatesFamily._()
+  ImportPurchaseDatesFamily._()
     : super(
         retry: null,
         name: r'importPurchaseDatesProvider',

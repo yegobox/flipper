@@ -14,7 +14,7 @@ part of 'visible_stocks_provider.dart';
 /// watches another page's stock rows.
 
 @ProviderFor(stocksForVisibleVariants)
-const stocksForVisibleVariantsProvider = StocksForVisibleVariantsFamily._();
+final stocksForVisibleVariantsProvider = StocksForVisibleVariantsFamily._();
 
 /// One Ditto observer for all stock rows on the current catalog page (max ~15).
 ///
@@ -35,7 +35,7 @@ final class StocksForVisibleVariantsProvider
   ///
   /// [stockFilter] must match the catalog the grid renders, or the observer
   /// watches another page's stock rows.
-  const StocksForVisibleVariantsProvider._({
+  StocksForVisibleVariantsProvider._({
     required StocksForVisibleVariantsFamily super.from,
     required (String, {PosStockFilter stockFilter}) super.argument,
   }) : super(
@@ -98,7 +98,7 @@ final class StocksForVisibleVariantsFamily extends $Family
           Stream<Map<String, Stock?>>,
           (String, {PosStockFilter stockFilter})
         > {
-  const StocksForVisibleVariantsFamily._()
+  StocksForVisibleVariantsFamily._()
     : super(
         retry: null,
         name: r'stocksForVisibleVariantsProvider',

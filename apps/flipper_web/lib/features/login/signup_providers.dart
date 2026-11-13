@@ -213,6 +213,9 @@ class SignupForm extends _$SignupForm {
 
     // Wait a short time to avoid excessive API calls while typing
     await Future.delayed(const Duration(milliseconds: 500));
+    // The form may have closed (auto-dispose) during the wait; writing state
+    // to a disposed notifier throws UnmountedRefException.
+    if (!ref.mounted) return;
 
     // If there's been a newer change or we've already checked this username, don't proceed
     if (_lastUsernameChange != changeTime || _lastCheckedUsername == username)
@@ -229,7 +232,7 @@ class SignupForm extends _$SignupForm {
       );
 
       // Only update if this is still the latest check
-      if (_lastCheckedUsername == username) {
+      if (ref.mounted && _lastCheckedUsername == username) {
         state = state.copyWith(
           isCheckingUsername: false,
           isUsernameAvailable: isAvailable,
@@ -239,7 +242,7 @@ class SignupForm extends _$SignupForm {
       // Handle error while checking username. A failed check says nothing
       // about the username, so leave availability unknown rather than
       // showing "Username is not available".
-      if (_lastCheckedUsername == username) {
+      if (ref.mounted && _lastCheckedUsername == username) {
         // Allow a retry on the next keystroke / submit.
         _lastCheckedUsername = null;
         state = state.copyWith(
@@ -287,8 +290,9 @@ class SignupForm extends _$SignupForm {
       final ippisService = IppisService();
       final business = await ippisService.getBusinessDetails(tinToValidate);
 
-      // Before applying the result, check if the TIN hasn't changed
-      if (state.tinNumber != tinToValidate) {
+      // Before applying the result, check the form is still open (it may
+      // auto-dispose during the request) and the TIN hasn't changed.
+      if (!ref.mounted || state.tinNumber != tinToValidate) {
         // User has typed a new TIN while this request was in-flight. Ignore stale result.
         return;
       }
@@ -302,21 +306,12 @@ class SignupForm extends _$SignupForm {
           tinError: FlipperL10n.current.webSignupNoTinData,
         );
       }
-    } on IppisUnavailableException {
-      // Could not reach IPPIS at all — on web that is every call, since
-      // ippis.rw refuses browser origins. Relax instead of blocking signup,
-      // matching the mobile form's `setTinRelaxed`.
-      if (state.tinNumber != tinToValidate) return;
-      state = state.copyWith(
-        isValidatingTin: false,
-        tinError: null,
-        isTinValidationRelaxed: true,
-      );
     } catch (e) {
-      // Before applying the error, also check if the TIN has changed
-      if (state.tinNumber != tinToValidate) {
-        return; // Ignore error from a stale request
-      }
+      // Could not reach IPPIS at all (IppisUnavailableException) — on web that
+      // is every call, since ippis.rw refuses browser origins — or any other
+      // failure. Relax instead of blocking signup, matching the mobile form's
+      // `setTinRelaxed`. Drop it if the form closed or the TIN changed.
+      if (!ref.mounted || state.tinNumber != tinToValidate) return;
       state = state.copyWith(
         isValidatingTin: false,
         tinError: null,
