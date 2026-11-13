@@ -10,7 +10,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_models/db_model_export.dart';
-import 'package:overlay_support/overlay_support.dart';
+import 'package:flipper_overlay/flipper_overlay.dart';
 
 // Create cached providers to reduce network requests
 final productProvider = FutureProvider.family.autoDispose<Product?, String>((

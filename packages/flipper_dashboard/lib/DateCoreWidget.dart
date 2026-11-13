@@ -7,7 +7,7 @@ import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
 import 'package:flipper_models/providers/date_range_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:overlay_support/overlay_support.dart';
+import 'package:flipper_overlay/flipper_overlay.dart';
 
 /// Slate / report chrome (aligned with transaction report cards).
 const Color _kChromeBorder = Color(0xFFE5E7EB);

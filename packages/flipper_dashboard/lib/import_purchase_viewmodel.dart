@@ -19,7 +19,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:http/http.dart' as http;
-import 'package:overlay_support/overlay_support.dart';
+import 'package:flipper_overlay/flipper_overlay.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as model;
 
 final importsPurchasesClientProvider = FutureProvider<ImportsPurchasesClient>((

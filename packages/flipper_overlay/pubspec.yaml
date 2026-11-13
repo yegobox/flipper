@@ -1,0 +1,18 @@
+name: flipper_overlay
+description: Toasts and in-app notifications. A vendored copy of overlay_support 2.1.0 (Apache-2.0); upstream has not released since 2022.
+version: 2.1.0
+publish_to: none
+
+environment:
+  # Upstream said 2.14, but overlay_animation.dart uses a 2.15 API (sdk_version_since).
+  # 2.15 only adds language features, so behaviour is unchanged.
+  sdk: '>=2.15.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  async: ^2.8.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:overlay_support/overlay_support.dart';
+import 'package:flipper_overlay/flipper_overlay.dart';
 
 class FlipperDialogs {
   static showSuccessDialog(BuildContext context, String type, String message) {

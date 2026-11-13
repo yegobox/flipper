@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 
-import 'package:overlay_support/overlay_support.dart';
+import 'package:flipper_overlay/flipper_overlay.dart';
 
 class SignUpLoginButton extends StatefulWidget {
   const SignUpLoginButton(
@@ -58,8 +58,7 @@ class _SignUpLoginButtonState extends State<SignUpLoginButton> {
                   onTap: () {
                     if (!widget.isSystemTimeSet) {
                       showSimpleNotification(
-                          Text(
-                              context.flipperL10n.setDeviceTimeAutomatic),
+                          Text(context.flipperL10n.setDeviceTimeAutomatic),
                           background: Colors.green,
                           duration: const Duration(minutes: 2));
                     } else {
@@ -83,8 +82,8 @@ class _SignUpLoginButtonState extends State<SignUpLoginButton> {
                         onTap: () {
                           if (!widget.isSystemTimeSet) {
                             showSimpleNotification(
-                                Text(context.flipperL10n
-                                    .setDeviceTimeAutomatic),
+                                Text(
+                                    context.flipperL10n.setDeviceTimeAutomatic),
                                 background: Colors.green,
                                 duration: const Duration(minutes: 2));
                           } else {

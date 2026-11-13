@@ -6,7 +6,7 @@ import 'package:stacked/stacked.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:ionicons/ionicons.dart';
 import 'package:flipper_models/db_model_export.dart';
-import 'package:overlay_support/overlay_support.dart';
+import 'package:flipper_overlay/flipper_overlay.dart';
 import 'package:flutter_settings_ui/flutter_settings_ui.dart';
 
 import 'package:flipper_login/update_email.dart';

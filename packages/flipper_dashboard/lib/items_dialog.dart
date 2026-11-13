@@ -14,7 +14,7 @@ import 'package:flipper_web/services/ditto_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:overlay_support/overlay_support.dart';
+import 'package:flipper_overlay/flipper_overlay.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 

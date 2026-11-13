@@ -16,7 +16,7 @@ dependencies:
   flipper_dashboard: any
   universal_platform: ^1.0.0+1
   country_code_picker: ^3.0.0
-  overlay_support: ^2.1.0
+  flipper_overlay: any
   flutter_settings_ui: ^3.0.1
   stacked: ^3.5.0
   google_fonts: ^6.1.0
