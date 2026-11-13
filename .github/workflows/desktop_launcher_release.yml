@@ -418,9 +418,10 @@ jobs:
         # grows, so each run sorts above the last even when N stays put.
         # Beta adds -beta. Resolved here, not before the builds, because the
         # Store job tags its version while those builds run; the builds don't
-        # use the version. See the script.
+        # use the version. See the script, which reads the channel as CHANNEL
+        # (scoped to this call so it can't reach flutter-action).
         run: |
-          VERSION="$(./scripts/ci/launcher_version.sh)"
+          VERSION="$(CHANNEL="$LAUNCHER_CHANNEL" ./scripts/ci/launcher_version.sh)"
           TAG="desktop-v$VERSION"
           if gh release view "$TAG" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             # Only a re-run of an already published run gets here.
