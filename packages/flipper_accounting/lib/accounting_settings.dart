@@ -39,22 +39,24 @@ class AccountingSettings {
   }
 }
 
-/// Whether a purchase's VAT goes into the stock cost instead of 2100: the
-/// branch has no EBM with VAT on and the business is not registered.
+/// Whether a purchase's VAT goes into the stock cost instead of 2100: no
+/// EBM branch of the business has VAT on ([businessHasVatEbm], business-wide
+/// like data-connector's `hasEbmBranch`) and Books does not say the business
+/// is registered.
 bool capitalizesPurchaseVat({
-  required bool branchVatEnabled,
+  required bool businessHasVatEbm,
   required AccountingSettings settings,
-}) => !branchVatEnabled && !settings.vatRegistered;
+}) => !businessHasVatEbm && !settings.vatRegistered;
 
 /// [capitalizesPurchaseVat] for a purchase being posted. An unknown EBM state
-/// ([branchVatEnabled] `null`) or a settings read that fails keeps the VAT on
-/// 2100 as before, so the purchase still posts.
+/// ([businessHasVatEbm] `null`) or a settings read that fails keeps the VAT
+/// on 2100 as before, so the purchase still posts.
 Future<bool> resolvePurchaseVatIsCost({
-  required bool? branchVatEnabled,
+  required bool? businessHasVatEbm,
   required AccountingSettingsStore store,
   required String businessId,
 }) async {
-  if (branchVatEnabled == null) return false;
+  if (businessHasVatEbm == null) return false;
   final AccountingSettings settings;
   try {
     settings = await store.read(businessId);
@@ -62,7 +64,7 @@ Future<bool> resolvePurchaseVatIsCost({
     return false;
   }
   return capitalizesPurchaseVat(
-    branchVatEnabled: branchVatEnabled,
+    businessHasVatEbm: businessHasVatEbm,
     settings: settings,
   );
 }

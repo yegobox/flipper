@@ -2961,7 +2961,7 @@
   "booksVatOwedLedger": "VAT inayodaiwa (kwa vitabu vyako)",
   "booksVatCreditLedger": "Salio la VAT (kwa vitabu vyako)",
   "booksVatLedgerUnavailable": "VAT inayodaiwa haikuweza kusomwa kwenye vitabu vyako kwa sasa.",
-  "booksVatNotRegistered": "Hujasajiliwa kwa VAT: hudaiwi chochote",
+  "booksVatNotRegistered": "Hujasajiliwa kwa VAT: mauzo yako hayana VAT.",
   "booksVatEstimateSales": "VAT katika mauzo ya mwezi huu (makadirio)",
   "booksVatPaidPurchases": "VAT uliyolipa kwa manunuzi ya mwezi huu",
   "booksVatTurnover12m": "Mauzo ya miezi 12 iliyopita: {amount} kati ya kiwango cha usajili cha {threshold}",

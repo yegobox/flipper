@@ -4765,7 +4765,7 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
 
   @override
   String get booksVatNotRegistered =>
-      'Non assujetti à la TVA : vous ne devez rien';
+      'Non assujetti à la TVA : vos ventes ne portent pas de TVA.';
 
   @override
   String get booksVatEstimateSales =>

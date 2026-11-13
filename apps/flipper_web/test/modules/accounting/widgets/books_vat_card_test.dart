@@ -143,7 +143,10 @@ void main() {
       expect(find.text('VAT payable (from your ledger)'), findsOneWidget);
       expect(find.text('54,000'), findsOneWidget);
       expect(find.byType(AccountingSwitch), findsNothing);
-      expect(find.text('Not registered for VAT: you owe none'), findsNothing);
+      expect(
+        find.text('Not registered for VAT: your sales carry no VAT.'),
+        findsNothing,
+      );
     });
 
     testWidgets('registered, ledger figure unavailable: no made-up zero', (
@@ -192,7 +195,7 @@ void main() {
       (tester) async {
         await _pumpCard(tester, _notRegistered);
         expect(
-          find.text('Not registered for VAT: you owe none'),
+          find.text('Not registered for VAT: your sales carry no VAT.'),
           findsOneWidget,
         );
         expect(
@@ -283,7 +286,10 @@ void main() {
           settingRegistered: false,
         ),
       );
-      expect(find.text('Not registered for VAT: you owe none'), findsOneWidget);
+      expect(
+        find.text('Not registered for VAT: your sales carry no VAT.'),
+        findsOneWidget,
+      );
       expect(find.byType(LinearProgressIndicator), findsNothing);
       expect(find.text("VAT in this month's sales (estimate)"), findsNothing);
     });

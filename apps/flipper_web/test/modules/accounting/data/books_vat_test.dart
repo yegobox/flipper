@@ -4,8 +4,48 @@ import 'package:flipper_web/modules/accounting/data/accounting_v3_models.dart';
 import 'package:flipper_web/modules/accounting/data/services/vat_position_service.dart';
 import 'package:flipper_web/modules/accounting/data/default_chart_of_accounts_seed.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 
+import '../../../helpers/fake_accounting_ditto_store.dart';
 import '../../../helpers/fake_accounting_ledger_repository.dart';
+
+/// Ditto holding only Books' accounting settings document.
+class _SettingsDitto extends FakeAccountingDittoStore {
+  _SettingsDitto({this.vatRegistered});
+
+  final bool? vatRegistered;
+
+  @override
+  Future<List<Map<String, dynamic>>> queryCollection(
+    String collection,
+    String query,
+    Map<String, dynamic> args,
+  ) async => [
+    if (vatRegistered != null) {'vatRegistered': vatRegistered},
+  ];
+}
+
+/// The connector's business-wide answer, or a failure.
+class _Positions extends VatPositionService {
+  _Positions({this.hasEbmBranch, this.error})
+    : super(client: MockClient((_) async => http.Response('', 500)));
+
+  final bool? hasEbmBranch;
+  final Object? error;
+
+  @override
+  Future<BooksVatPosition?> position() async {
+    if (error != null) throw error!;
+    final ebm = hasEbmBranch;
+    if (ebm == null) return null;
+    return BooksVatPosition(
+      registered: ebm,
+      hasEbmBranch: ebm,
+      settingRegistered: false,
+    );
+  }
+}
 
 void main() {
   group('BooksVatPosition', () {
@@ -104,6 +144,39 @@ void main() {
       final debits = lines.fold(0, (s, l) => s + l.dr);
       final credits = lines.fold(0, (s, l) => s + l.cr);
       expect(debits, credits);
+    });
+  });
+
+  group('purchaseVatIsCost (POS purchases)', () {
+    Future<bool> isCost(_Positions positions, {bool? vatRegistered}) =>
+        purchaseVatIsCost(
+          ditto: _SettingsDitto(vatRegistered: vatRegistered),
+          businessId: 'biz',
+          positions: positions,
+        );
+
+    test('another branch has EBM with VAT on: VAT to 2100', () async {
+      // The selected branch may have no EBM; the business is registered.
+      expect(await isCost(_Positions(hasEbmBranch: true)), isFalse);
+    });
+
+    test('no EBM branch and not registered in Books: capitalized', () async {
+      expect(await isCost(_Positions(hasEbmBranch: false)), isTrue);
+    });
+
+    test('no EBM branch but registered in Books: VAT to 2100', () async {
+      expect(
+        await isCost(_Positions(hasEbmBranch: false), vatRegistered: true),
+        isFalse,
+      );
+    });
+
+    test('position unreadable: VAT stays on 2100', () async {
+      expect(await isCost(_Positions()), isFalse);
+    });
+
+    test('connector failure: VAT stays on 2100', () async {
+      expect(await isCost(_Positions(error: Exception('offline'))), isFalse);
     });
   });
 }

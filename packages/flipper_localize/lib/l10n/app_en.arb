@@ -3966,7 +3966,7 @@
     "booksVatOwedLedger": "VAT payable (from your ledger)",
     "booksVatCreditLedger": "VAT credit (from your ledger)",
     "booksVatLedgerUnavailable": "VAT payable could not be read from your ledger right now.",
-    "booksVatNotRegistered": "Not registered for VAT: you owe none",
+    "booksVatNotRegistered": "Not registered for VAT: your sales carry no VAT.",
     "booksVatEstimateSales": "VAT in this month's sales (estimate)",
     "booksVatPaidPurchases": "VAT paid on purchases this month",
     "booksVatTurnover12m": "Sales in the last 12 months: {amount} of the {threshold} registration threshold",

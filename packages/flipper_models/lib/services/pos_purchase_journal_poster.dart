@@ -1,14 +1,14 @@
+import 'package:flipper_accounting/accounting_ditto_store.dart';
 import 'package:flipper_accounting/accounting_models.dart';
-import 'package:flipper_accounting/accounting_settings.dart';
 import 'package:flipper_accounting/audit_trail_recorder.dart';
 import 'package:flipper_accounting/default_chart_of_accounts_seed.dart';
 import 'package:flipper_accounting/ditto_accounting_ledger_repository.dart';
 import 'package:flipper_accounting/purchase_journal_poster.dart';
 import 'package:flipper_accounting/purchase_posting_input.dart';
 import 'package:flipper_models/db_model_export.dart';
-import 'package:flipper_models/providers/ebm_provider.dart'
-    show tryVatEnabledFromEbm;
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_web/modules/accounting/data/services/vat_position_service.dart'
+    as vat;
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:talker/talker.dart';
 
@@ -66,18 +66,12 @@ class PosPurchaseJournalPoster {
         );
   }
 
-  /// Whether this business cannot reclaim purchase VAT: the branch has no
-  /// EBM with VAT on and Books does not say it is registered for VAT. When
-  /// the EBM or the setting cannot be read, purchases keep booking VAT to
-  /// 2100 as before.
+  /// Whether this business cannot reclaim purchase VAT, by the same
+  /// business-wide rule as Books bills (see [vat.purchaseVatIsCost]).
   static Future<bool> purchaseVatIsCost(
-    DittoService ditto,
+    AccountingDittoStore ditto,
     String businessId,
-  ) async => resolvePurchaseVatIsCost(
-    branchVatEnabled: await tryVatEnabledFromEbm(),
-    store: AccountingSettingsStore(ditto),
-    businessId: businessId,
-  );
+  ) => vat.purchaseVatIsCost(ditto: ditto, businessId: businessId);
 
   /// Never throws — purchase persistence must not depend on GL success.
   ///

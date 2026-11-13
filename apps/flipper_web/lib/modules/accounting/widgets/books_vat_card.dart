@@ -13,9 +13,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 ///
 /// - Registered (EBM branch, or "Registered for VAT" on): VAT Payable from
 ///   the ledger.
-/// - Not registered: it owes none; an estimate of the VAT in its sales, the
-///   VAT it paid on purchases, and its turnover against RRA's registration
-///   threshold. None of that is in the ledger.
+/// - Not registered: its sales carry no VAT; an estimate of the VAT in its
+///   sales, the VAT it paid on purchases, and its turnover against RRA's
+///   registration threshold. None of that is in the ledger.
 ///
 /// Without an EBM branch the card also holds the "Registered for VAT"
 /// setting. Nothing shows while the position cannot be read.

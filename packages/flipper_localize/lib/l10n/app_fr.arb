@@ -1368,7 +1368,7 @@
     "booksVatOwedLedger": "TVA à payer (selon vos comptes)",
     "booksVatCreditLedger": "Crédit de TVA (selon vos comptes)",
     "booksVatLedgerUnavailable": "La TVA à payer n'a pas pu être lue dans vos comptes pour le moment.",
-    "booksVatNotRegistered": "Non assujetti à la TVA : vous ne devez rien",
+    "booksVatNotRegistered": "Non assujetti à la TVA : vos ventes ne portent pas de TVA.",
     "booksVatEstimateSales": "TVA dans les ventes du mois (estimation)",
     "booksVatPaidPurchases": "TVA payée sur les achats du mois",
     "booksVatTurnover12m": "Ventes des 12 derniers mois : {amount} sur le seuil d'assujettissement de {threshold}",

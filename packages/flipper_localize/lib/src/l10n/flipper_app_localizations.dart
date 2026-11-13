@@ -8198,7 +8198,7 @@ abstract class FlipperAppLocalizations {
   /// No description provided for @booksVatNotRegistered.
   ///
   /// In en, this message translates to:
-  /// **'Not registered for VAT: you owe none'**
+  /// **'Not registered for VAT: your sales carry no VAT.'**
   String get booksVatNotRegistered;
 
   /// No description provided for @booksVatEstimateSales.

@@ -72,7 +72,7 @@ void main() {
   group('resolvePurchaseVatIsCost', () {
     Future<bool> resolve(bool? ebm, InMemoryAccountingStore store) =>
         resolvePurchaseVatIsCost(
-          branchVatEnabled: ebm,
+          businessHasVatEbm: ebm,
           store: AccountingSettingsStore(store),
           businessId: biz,
         );
@@ -102,19 +102,19 @@ void main() {
     const off = AccountingSettings();
     const on = AccountingSettings(vatRegistered: true);
     expect(
-      capitalizesPurchaseVat(branchVatEnabled: false, settings: off),
+      capitalizesPurchaseVat(businessHasVatEbm: false, settings: off),
       isTrue,
     );
     expect(
-      capitalizesPurchaseVat(branchVatEnabled: false, settings: on),
+      capitalizesPurchaseVat(businessHasVatEbm: false, settings: on),
       isFalse,
     );
     expect(
-      capitalizesPurchaseVat(branchVatEnabled: true, settings: off),
+      capitalizesPurchaseVat(businessHasVatEbm: true, settings: off),
       isFalse,
     );
     expect(
-      capitalizesPurchaseVat(branchVatEnabled: true, settings: on),
+      capitalizesPurchaseVat(businessHasVatEbm: true, settings: on),
       isFalse,
     );
   });

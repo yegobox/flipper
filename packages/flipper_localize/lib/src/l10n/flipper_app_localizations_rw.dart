@@ -4743,7 +4743,7 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
 
   @override
   String get booksVatNotRegistered =>
-      'Ntiwanditse muri TVA: nta TVA ugomba kwishyura';
+      'Ntiwanditse muri TVA: ibyo ucuruza ntibigira TVA.';
 
   @override
   String get booksVatEstimateSales =>

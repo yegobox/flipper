@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:flipper_accounting/accounting_ditto_store.dart';
+import 'package:flipper_accounting/accounting_settings.dart';
 import 'package:flipper_models/data_connector_client.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
@@ -107,4 +109,27 @@ class VatPositionService {
       jsonDecode(response.body) as Map<String, dynamic>,
     );
   }
+}
+
+/// Whether a purchase's VAT is part of what the stock cost, by the
+/// business-wide rule Books bills use: no EBM branch **of the business** has
+/// VAT on (the connector's `hasEbmBranch`, not just the selected branch) and
+/// Books' "Registered for VAT" is off. When the position or the setting
+/// cannot be read, the VAT stays on 2100 as before.
+Future<bool> purchaseVatIsCost({
+  required AccountingDittoStore ditto,
+  required String businessId,
+  VatPositionService? positions,
+}) async {
+  BooksVatPosition? position;
+  try {
+    position = await (positions ?? VatPositionService()).position();
+  } catch (_) {
+    position = null;
+  }
+  return resolvePurchaseVatIsCost(
+    businessHasVatEbm: position?.hasEbmBranch,
+    store: AccountingSettingsStore(ditto),
+    businessId: businessId,
+  );
 }

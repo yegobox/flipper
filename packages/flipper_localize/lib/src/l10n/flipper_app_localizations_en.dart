@@ -4703,7 +4703,8 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
       'VAT payable could not be read from your ledger right now.';
 
   @override
-  String get booksVatNotRegistered => 'Not registered for VAT: you owe none';
+  String get booksVatNotRegistered =>
+      'Not registered for VAT: your sales carry no VAT.';
 
   @override
   String get booksVatEstimateSales => 'VAT in this month\'s sales (estimate)';

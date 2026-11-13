@@ -4728,7 +4728,8 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
       'VAT inayodaiwa haikuweza kusomwa kwenye vitabu vyako kwa sasa.';
 
   @override
-  String get booksVatNotRegistered => 'Hujasajiliwa kwa VAT: hudaiwi chochote';
+  String get booksVatNotRegistered =>
+      'Hujasajiliwa kwa VAT: mauzo yako hayana VAT.';
 
   @override
   String get booksVatEstimateSales =>
