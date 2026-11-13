@@ -208,7 +208,8 @@ void main() {
         tinNumber: '123456789',
         country: 'Rwanda',
         isUsernameAvailable: true,
-        tinDetails: IppisBusiness( // Add valid tinDetails to satisfy validation
+        tinDetails: IppisBusiness(
+          // Add valid tinDetails to satisfy validation
           tin: '123456789',
           taxPayerName: 'Test Business',
           registrationDate: '2023-01-01',
@@ -369,6 +370,44 @@ void main() {
       expect(notifier.state.isUsernameAvailable, equals(true));
     });
 
+    test('a failed username check leaves availability unknown and allows a '
+        'retry', () async {
+      mockRepository.errorMessage = 'network down';
+
+      await notifier.updateUsername('testuser');
+
+      expect(notifier.state.isCheckingUsername, isFalse);
+      expect(notifier.state.isUsernameAvailable, isNull);
+
+      // The failed check is forgotten, so the same name is checked again.
+      mockRepository.errorMessage = null;
+      await notifier.updateUsername('testuser');
+
+      expect(
+        mockRepository.checkedUsernames.where((u) => u == 'testuser'),
+        hasLength(2),
+      );
+      expect(notifier.state.isUsernameAvailable, isTrue);
+    });
+
+    test('closing the form during the debounce wait does not throw', () async {
+      final repo = MockSignupRepository();
+      final local = ProviderContainer(
+        overrides: [signupRepositoryProvider.overrideWithValue(repo)],
+      );
+      final sub = local.listen(signupFormProvider, (previous, next) {});
+      final pending = local
+          .read(signupFormProvider.notifier)
+          .updateUsername('testuser');
+
+      // Dispose while the 500 ms debounce is still waiting.
+      sub.close();
+      local.dispose();
+
+      await expectLater(pending, completes);
+      expect(repo.checkedUsernames, isEmpty);
+    });
+
     test('updateFullName updates the state', () {
       notifier.updateFullName('Test User');
       expect(notifier.state.fullName, equals('Test User'));
@@ -443,7 +482,8 @@ void main() {
           tinNumber: '123456789',
           country: 'Rwanda',
           isUsernameAvailable: true,
-          tinDetails: IppisBusiness( // Add valid tinDetails to satisfy validation
+          tinDetails: IppisBusiness(
+            // Add valid tinDetails to satisfy validation
             tin: '123456789',
             taxPayerName: 'Test Business',
             registrationDate: '2023-01-01',
@@ -518,7 +558,8 @@ void main() {
         tinNumber: '123456789',
         country: 'Rwanda',
         isUsernameAvailable: true,
-        tinDetails: IppisBusiness( // Add valid tinDetails to satisfy validation
+        tinDetails: IppisBusiness(
+          // Add valid tinDetails to satisfy validation
           tin: '123456789',
           taxPayerName: 'Test Business',
           registrationDate: '2023-01-01',
@@ -578,8 +619,11 @@ void main() {
       final first = notifier.submitForm();
       await Future<void>.delayed(Duration.zero);
 
-      expect(await notifier.submitForm(), equals(false),
-          reason: 'second submit must be refused while the first is running');
+      expect(
+        await notifier.submitForm(),
+        equals(false),
+        reason: 'second submit must be refused while the first is running',
+      );
 
       gate.complete();
       expect(await first, equals(true));
@@ -619,8 +663,10 @@ void main() {
     });
 
     test('relaxation does not waive the TIN length requirement', () {
-      expect(retailerState(tinNumber: '1234', relaxed: true).isValid,
-          equals(false));
+      expect(
+        retailerState(tinNumber: '1234', relaxed: true).isValid,
+        equals(false),
+      );
     });
   });
 
@@ -640,13 +686,13 @@ void main() {
     tearDown(() => container.dispose());
 
     SignupFormState readyState() => SignupFormState(
-          username: 'testuser',
-          fullName: 'Test User',
-          businessType: BusinessType(id: '2', typeName: 'Individual'),
-          country: 'Rwanda',
-          isUsernameAvailable: true,
-          phoneNumber: '+250788517078',
-        );
+      username: 'testuser',
+      fullName: 'Test User',
+      businessType: BusinessType(id: '2', typeName: 'Individual'),
+      country: 'Rwanda',
+      isUsernameAvailable: true,
+      phoneNumber: '+250788517078',
+    );
 
     test('requestOtp creates the user before asking for a code', () async {
       notifier.updatePhoneNumber('788517078');
@@ -660,23 +706,28 @@ void main() {
       expect(notifier.state.isOtpRequested, isTrue);
     });
 
-    test('a rejected contact surfaces the error and enables no code field',
-        () async {
-      mockRepository.sendOtpError = 'Contact already exists';
-      notifier.updatePhoneNumber('788517078');
+    test(
+      'a rejected contact surfaces the error and enables no code field',
+      () async {
+        mockRepository.sendOtpError = 'Contact already exists';
+        notifier.updatePhoneNumber('788517078');
 
-      expect(await notifier.requestOtp(), isFalse);
-      expect(notifier.state.otpError, equals('Contact already exists'));
-      expect(notifier.state.isOtpRequested, isFalse);
-    });
+        expect(await notifier.requestOtp(), isFalse);
+        expect(notifier.state.otpError, equals('Contact already exists'));
+        expect(notifier.state.isOtpRequested, isFalse);
+      },
+    );
 
     test('a complete code verifies itself', () async {
       notifier.updatePhoneNumber('788517078');
       await notifier.requestOtp();
 
       await notifier.updateOtpCode('12345');
-      expect(mockRepository.verifiedOtps, isEmpty,
-          reason: 'a partial code must not be sent');
+      expect(
+        mockRepository.verifiedOtps,
+        isEmpty,
+        reason: 'a partial code must not be sent',
+      );
 
       await notifier.updateOtpCode('123456');
 
@@ -707,17 +758,19 @@ void main() {
       expect(notifier.state.otpCode, equals(''));
     });
 
-    test('switching country re-applies the dial code and drops verification',
-        () async {
-      notifier.updatePhoneNumber('788517078');
-      await notifier.requestOtp();
-      await notifier.verifyOtp('123456');
+    test(
+      'switching country re-applies the dial code and drops verification',
+      () async {
+        notifier.updatePhoneNumber('788517078');
+        await notifier.requestOtp();
+        await notifier.verifyOtp('123456');
 
-      notifier.updateCountry('Kenya');
+        notifier.updateCountry('Kenya');
 
-      expect(notifier.state.phoneNumber, equals('+254788517078'));
-      expect(notifier.state.isPhoneVerified, isFalse);
-    });
+        expect(notifier.state.phoneNumber, equals('+254788517078'));
+        expect(notifier.state.isPhoneVerified, isFalse);
+      },
+    );
 
     test('an unverified contact is not a valid form', () {
       final state = readyState();
@@ -739,12 +792,13 @@ void main() {
     });
 
     test('submitForm registers once the contact is verified', () async {
-      notifier.state =
-          readyState().copyWith(verifiedContact: '+250788517078');
+      notifier.state = readyState().copyWith(verifiedContact: '+250788517078');
 
       expect(await notifier.submitForm(), isTrue);
-      expect(mockRepository.registeredUsers.single.phoneNumber,
-          equals('+250788517078'));
+      expect(
+        mockRepository.registeredUsers.single.phoneNumber,
+        equals('+250788517078'),
+      );
       expect(mockRepository.registeredUsers.single.userId, equals('user-1'));
     });
   });
@@ -765,8 +819,10 @@ void main() {
     test('omits businessTypeId, as CoreSync.signup does', () {
       // Sending it made web businesses land on business_type_id = 2, which
       // skips the subscription check AuthMixin waives for individuals.
-      expect(payloadFor('1', '107148510').containsKey('businessTypeId'),
-          isFalse);
+      expect(
+        payloadFor('1', '107148510').containsKey('businessTypeId'),
+        isFalse,
+      );
     });
 
     test("sends the literal type 'Business' mobile sends", () {
