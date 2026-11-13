@@ -2,7 +2,7 @@ import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supab
 import 'package:brick_sqlite/brick_sqlite.dart';
 import 'package:brick_supabase/brick_supabase.dart';
 import 'package:uuid/uuid.dart';
-import 'package:brick_ditto_generators/ditto_sync_adapter.dart';
+import 'package:brick_ditto/ditto_sync_adapter.dart';
 import 'package:supabase_models/sync/ditto_sync_adapter.dart';
 import 'package:supabase_models/sync/ditto_sync_generated.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';

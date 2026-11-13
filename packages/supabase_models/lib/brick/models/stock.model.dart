@@ -2,7 +2,7 @@ import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
 import 'package:brick_sqlite/brick_sqlite.dart';
 import 'package:brick_supabase/brick_supabase.dart';
-import 'package:brick_ditto_generators/ditto_sync_adapter.dart';
+import 'package:brick_ditto/ditto_sync_adapter.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/foundation.dart' hide Category;
 import 'package:supabase_models/brick/repository.dart';
