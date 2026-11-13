@@ -4,11 +4,10 @@
 
 list(APPEND FLUTTER_PLUGIN_LIST
   amplify_db_common
+  app_links_linux
   desktop_drop
   file_selector_linux
   flutter_gemma
-  flutter_localization
-  gtk
   pasteboard
   printing
   record_linux

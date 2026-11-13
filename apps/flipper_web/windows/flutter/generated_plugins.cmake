@@ -11,9 +11,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   firebase_auth
   firebase_core
   flutter_gemma
-  flutter_localization
   geolocator_windows
-  local_auth_windows
   pasteboard
   permission_handler_windows
   printing

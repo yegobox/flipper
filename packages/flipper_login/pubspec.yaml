@@ -25,7 +25,6 @@ dependencies:
   connectivity_plus: ^7.0.0
   flipper_localize: ^1.0.0-dev
   flutter_svg: ^2.0.0
-  gap: ^2.0.0
   qr_flutter: ^4.1.0
   flipper_ui: ^1.0.3
   flipper_socials: 1.0.0+1
@@ -36,7 +35,6 @@ dependencies:
   riverpod: ^3.5.0
   hooks_riverpod: ^3.5.0
   loading_animation_widget: ^1.2.0+4
-  sentry: ^9.8.0
   sentry_flutter: ^9.18.0
   flipper_models: any
   google_sign_in: ^6.2.2
