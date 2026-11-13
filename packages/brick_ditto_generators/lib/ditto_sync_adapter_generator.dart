@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:brick_ditto_generators/ditto_sync_adapter.dart';
+import 'package:brick_ditto/ditto_sync_adapter.dart';
 import 'package:brick_ditto_generators/import_validator.dart';
 import 'package:build/build.dart';
 import 'package:source_gen/source_gen.dart';

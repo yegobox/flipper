@@ -313,13 +313,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.2"
-  brick_build:
-    dependency: "direct overridden"
-    description:
-      path: "../../open-sources/brick/packages/brick_build"
-      relative: true
-    source: path
-    version: "4.1.0"
   brick_core:
     dependency: "direct overridden"
     description:
@@ -331,13 +324,6 @@ packages:
     dependency: "direct overridden"
     description:
       path: "../../packages/brick_ditto"
-      relative: true
-    source: path
-    version: "1.0.0"
-  brick_ditto_generators:
-    dependency: "direct overridden"
-    description:
-      path: "../../packages/brick_ditto_generators"
       relative: true
     source: path
     version: "1.0.0"

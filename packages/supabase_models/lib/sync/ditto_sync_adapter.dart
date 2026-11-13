@@ -1,7 +1,7 @@
 import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
 import 'package:supabase_models/brick/repository.dart';
-import 'package:brick_ditto_generators/ditto_sync_adapter.dart';
+import 'package:brick_ditto/ditto_sync_adapter.dart';
 
 /// Represents a Ditto query definition (SQL + optional arguments).
 class DittoSyncQuery {

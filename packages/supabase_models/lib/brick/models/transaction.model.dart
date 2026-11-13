@@ -7,7 +7,7 @@ import 'package:flipper_models/helperModels/random.dart';
 import 'package:supabase_models/brick/models/transactionItem.model.dart';
 import 'package:supabase_models/brick/models/transaction_payment_record.model.dart';
 import 'package:uuid/uuid.dart';
-import 'package:brick_ditto_generators/ditto_sync_adapter.dart';
+import 'package:brick_ditto/ditto_sync_adapter.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/foundation.dart' hide Category;
 import 'package:supabase_models/sync/ditto_sync_adapter.dart';
