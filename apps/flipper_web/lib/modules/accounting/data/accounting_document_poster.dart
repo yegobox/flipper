@@ -41,15 +41,22 @@ class DocumentJournalPoster {
     );
   }
 
+  /// [capitalizeVat]: the business is not registered for VAT, so it cannot
+  /// reclaim the bill's VAT. The whole total is then stock (or expense) and
+  /// nothing goes to 2100 VAT Payable.
   Future<void> postBillRecorded({
     required String businessId,
     required AccountingDocument doc,
+    bool capitalizeVat = false,
   }) async {
     final totals = docTotals(doc.lines);
     final inventory = _roles.inventory ?? _roles.operatingExpense;
     final vat = _roles.vatPayable;
     final ap = _roles.payable;
-    if (inventory == null || vat == null || ap == null) return;
+    final vatDebit = capitalizeVat ? 0 : totals.vat;
+    if (inventory == null || (vat == null && vatDebit > 0) || ap == null) {
+      return;
+    }
 
     await _post(
       businessId: businessId,
@@ -58,8 +65,8 @@ class DocumentJournalPoster {
         memo: 'Bill ${doc.id} — ${doc.who}',
         src: 'Bill',
         lines: [
-          JournalLine(ac: inventory, dr: totals.subtotal),
-          JournalLine(ac: vat, dr: totals.vat),
+          JournalLine(ac: inventory, dr: totals.total - vatDebit),
+          if (vatDebit > 0) JournalLine(ac: vat!, dr: vatDebit),
           JournalLine(ac: ap, cr: totals.total),
         ],
       ),

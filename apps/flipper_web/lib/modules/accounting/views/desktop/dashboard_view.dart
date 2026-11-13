@@ -7,6 +7,7 @@ import 'package:flipper_web/modules/accounting/data/services/books_file_saver.da
 import 'package:flipper_web/modules/accounting/data/services/books_overview_export.dart';
 import 'package:flipper_web/modules/accounting/theme/accounting_tokens.dart';
 import 'package:flipper_web/modules/accounting/widgets/accounting_icon.dart';
+import 'package:flipper_web/modules/accounting/widgets/books_vat_card.dart';
 import 'package:flipper_web/modules/accounting/widgets/accounting_kpi_card.dart';
 import 'package:flipper_web/modules/accounting/widgets/accounting_page_header.dart';
 import 'package:flipper_web/modules/accounting/widgets/accounting_toast.dart';
@@ -155,6 +156,10 @@ class AccountingDashboardView extends ConsumerWidget {
               ),
             ],
           ),
+          // VAT owed (registered) or the estimate (not registered), and the
+          // "Registered for VAT" setting for businesses without EBM.
+          const BooksVatCard(),
+          BooksLoanOpeningPrompt(onRecord: onNewEntry),
           const SizedBox(height: 16),
           LayoutBuilder(
             builder: (context, c) {

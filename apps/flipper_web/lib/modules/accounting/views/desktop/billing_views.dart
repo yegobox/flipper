@@ -93,7 +93,13 @@ class AccountingBillingPanelHost extends ConsumerWidget {
         if (isInvoice) {
           await poster.postInvoiceSent(businessId: businessId, doc: doc);
         } else {
-          await poster.postBillRecorded(businessId: businessId, doc: doc);
+          // Unknown position keeps booking the VAT to 2100, as before.
+          final vat = await ref.read(booksVatPositionProvider.future);
+          await poster.postBillRecorded(
+            businessId: businessId,
+            doc: doc,
+            capitalizeVat: vat?.vatIsCost ?? false,
+          );
         }
         appendAuditLog(
           ref,

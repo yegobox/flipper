@@ -4684,6 +4684,68 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
   String get cashbookSuggestRepairs => 'Repairs';
 
   @override
+  String get cashbookSuggestLoanRepayment => 'Loan repayment';
+
+  @override
+  String get cashbookSuggestLoanInterest => 'Loan interest';
+
+  @override
+  String get booksVatTitle => 'VAT';
+
+  @override
+  String get booksVatOwedLedger => 'VAT payable (from your ledger)';
+
+  @override
+  String get booksVatCreditLedger => 'VAT credit (from your ledger)';
+
+  @override
+  String get booksVatNotRegistered => 'Not registered for VAT: you owe none';
+
+  @override
+  String get booksVatEstimateSales => 'VAT in this month\'s sales (estimate)';
+
+  @override
+  String get booksVatPaidPurchases => 'VAT paid on purchases this month';
+
+  @override
+  String booksVatTurnover12m(String amount, String threshold) {
+    return 'Sales in the last 12 months: $amount of the $threshold registration threshold';
+  }
+
+  @override
+  String get booksVatThresholdNear =>
+      'You are getting close to RRA\'s VAT registration threshold.';
+
+  @override
+  String get booksVatThresholdCrossed =>
+      'You are past RRA\'s VAT registration threshold. Talk to RRA or your accountant about registering for VAT.';
+
+  @override
+  String get booksVatEstimateNote =>
+      'Estimates at the standard 18% rate. They are not in your books and nothing is sent to RRA.';
+
+  @override
+  String get booksVatRegisteredSetting => 'Registered for VAT';
+
+  @override
+  String get booksVatRegisteredSettingHint =>
+      'Turn on only if you are registered for VAT with RRA and file VAT returns. New sales then carry VAT in Books.';
+
+  @override
+  String get booksVatSettingSaved => 'VAT setting saved';
+
+  @override
+  String get booksLoanOpeningTitle => 'Record your loan\'s opening balance';
+
+  @override
+  String booksLoanOpeningBody(String amount) {
+    return 'Bank Loan shows $amount more repaid than received. Record what the business owed when it started using Books.';
+  }
+
+  @override
+  String get booksLoanOpeningAction => 'Record opening balance';
+
+  @override
   String get shiftStartSubtitle =>
       'Initialize your cash drawer and begin operations';
 

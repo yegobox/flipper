@@ -10,6 +10,7 @@ import 'package:flipper_web/modules/accounting/data/services/journal_approval_se
 import 'package:flipper_web/modules/accounting/data/accounting_session_actions.dart';
 import 'package:flipper_web/modules/accounting/routing/accounting_route.dart';
 import 'package:flipper_web/modules/accounting/theme/accounting_tokens.dart';
+import 'package:flipper_web/modules/accounting/widgets/books_vat_card.dart';
 import 'package:flipper_web/modules/accounting/widgets/accounting_icon.dart';
 import 'package:flipper_web/modules/accounting/widgets/accounting_toast.dart';
 import 'package:flipper_web/modules/accounting/widgets/journal_approval_card.dart';
@@ -89,6 +90,7 @@ class AccountingSnapshotTab extends ConsumerWidget {
         // "Cash & bank" above is three accounts; the strip shows each.
         const SizedBox(height: 10),
         _MoneyAccountsStrip(balances: liquidBalances),
+        const BooksVatCard(),
         if (pending > 0) ...[
           const SizedBox(height: 12),
           Material(

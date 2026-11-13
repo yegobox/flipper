@@ -8159,6 +8159,114 @@ abstract class FlipperAppLocalizations {
   /// **'Repairs'**
   String get cashbookSuggestRepairs;
 
+  /// Cash Book category suggestion. data-connector routes it to 2200 Bank Loan (semantics::LOAN_REPAYMENT_NAMES); keep translations in step
+  ///
+  /// In en, this message translates to:
+  /// **'Loan repayment'**
+  String get cashbookSuggestLoanRepayment;
+
+  /// Cash Book category suggestion for interest paid on a loan (an expense)
+  ///
+  /// In en, this message translates to:
+  /// **'Loan interest'**
+  String get cashbookSuggestLoanInterest;
+
+  /// No description provided for @booksVatTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'VAT'**
+  String get booksVatTitle;
+
+  /// No description provided for @booksVatOwedLedger.
+  ///
+  /// In en, this message translates to:
+  /// **'VAT payable (from your ledger)'**
+  String get booksVatOwedLedger;
+
+  /// No description provided for @booksVatCreditLedger.
+  ///
+  /// In en, this message translates to:
+  /// **'VAT credit (from your ledger)'**
+  String get booksVatCreditLedger;
+
+  /// No description provided for @booksVatNotRegistered.
+  ///
+  /// In en, this message translates to:
+  /// **'Not registered for VAT: you owe none'**
+  String get booksVatNotRegistered;
+
+  /// No description provided for @booksVatEstimateSales.
+  ///
+  /// In en, this message translates to:
+  /// **'VAT in this month\'s sales (estimate)'**
+  String get booksVatEstimateSales;
+
+  /// No description provided for @booksVatPaidPurchases.
+  ///
+  /// In en, this message translates to:
+  /// **'VAT paid on purchases this month'**
+  String get booksVatPaidPurchases;
+
+  /// Books VAT tile: turnover against RRA's VAT registration threshold
+  ///
+  /// In en, this message translates to:
+  /// **'Sales in the last 12 months: {amount} of the {threshold} registration threshold'**
+  String booksVatTurnover12m(String amount, String threshold);
+
+  /// No description provided for @booksVatThresholdNear.
+  ///
+  /// In en, this message translates to:
+  /// **'You are getting close to RRA\'s VAT registration threshold.'**
+  String get booksVatThresholdNear;
+
+  /// No description provided for @booksVatThresholdCrossed.
+  ///
+  /// In en, this message translates to:
+  /// **'You are past RRA\'s VAT registration threshold. Talk to RRA or your accountant about registering for VAT.'**
+  String get booksVatThresholdCrossed;
+
+  /// No description provided for @booksVatEstimateNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimates at the standard 18% rate. They are not in your books and nothing is sent to RRA.'**
+  String get booksVatEstimateNote;
+
+  /// No description provided for @booksVatRegisteredSetting.
+  ///
+  /// In en, this message translates to:
+  /// **'Registered for VAT'**
+  String get booksVatRegisteredSetting;
+
+  /// No description provided for @booksVatRegisteredSettingHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on only if you are registered for VAT with RRA and file VAT returns. New sales then carry VAT in Books.'**
+  String get booksVatRegisteredSettingHint;
+
+  /// No description provided for @booksVatSettingSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'VAT setting saved'**
+  String get booksVatSettingSaved;
+
+  /// No description provided for @booksLoanOpeningTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Record your loan\'s opening balance'**
+  String get booksLoanOpeningTitle;
+
+  /// Books dashboard: Bank Loan (2200) has a debit balance because repayments were recorded for a loan Books never saw
+  ///
+  /// In en, this message translates to:
+  /// **'Bank Loan shows {amount} more repaid than received. Record what the business owed when it started using Books.'**
+  String booksLoanOpeningBody(String amount);
+
+  /// No description provided for @booksLoanOpeningAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Record opening balance'**
+  String get booksLoanOpeningAction;
+
   /// No description provided for @shiftStartSubtitle.
   ///
   /// In en, this message translates to:

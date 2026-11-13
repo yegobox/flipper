@@ -3,6 +3,8 @@ import 'package:flipper_dashboard/cashbook_form_rules.dart'
 import 'package:flipper_dashboard/features/branch_location/branch_services.dart';
 import 'package:flipper_dashboard/features/personal_finance/personal_finance_data.dart'
     show kPersonalExpenseCategories, kPersonalIncomeCategories;
+import 'package:flipper_models/personal_loans/personal_loan.dart'
+    show kLoanRepaymentCategory;
 import 'package:flipper_models/db_model_export.dart' show Category;
 import 'package:flipper_models/providers/category_provider.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -18,7 +20,10 @@ const kSmsIncomeCategories = [
   'Other income',
 ];
 
-/// What money leaving a business account usually pays for.
+/// What money leaving a business account usually pays for. "Loan
+/// repayment" (the principal) goes to 2200 Bank Loan in Books, not to
+/// expenses; "Loan interest" stays an expense (data-connector
+/// `semantics::LOAN_REPAYMENT_NAMES`).
 const kSmsExpenseCategories = [
   'Salary',
   'Rent',
@@ -27,7 +32,12 @@ const kSmsExpenseCategories = [
   'Utilities',
   'Airtime',
   'Bank charges',
+  kLoanRepaymentCategory,
+  kLoanInterestCategory,
 ];
+
+/// Interest paid on a business loan: an expense, unlike the repayment.
+const kLoanInterestCategory = 'Loan interest';
 
 /// Product-catalogue defaults that never describe a bank movement.
 const _productDefaults = {'main', 'uncategorized'};

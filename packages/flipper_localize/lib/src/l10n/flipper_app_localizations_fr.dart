@@ -4745,6 +4745,71 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   String get cashbookSuggestRepairs => 'Réparations';
 
   @override
+  String get cashbookSuggestLoanRepayment => 'Remboursement de prêt';
+
+  @override
+  String get cashbookSuggestLoanInterest => 'Intérêts du prêt';
+
+  @override
+  String get booksVatTitle => 'TVA';
+
+  @override
+  String get booksVatOwedLedger => 'TVA à payer (selon vos comptes)';
+
+  @override
+  String get booksVatCreditLedger => 'Crédit de TVA (selon vos comptes)';
+
+  @override
+  String get booksVatNotRegistered =>
+      'Non assujetti à la TVA : vous ne devez rien';
+
+  @override
+  String get booksVatEstimateSales =>
+      'TVA dans les ventes du mois (estimation)';
+
+  @override
+  String get booksVatPaidPurchases => 'TVA payée sur les achats du mois';
+
+  @override
+  String booksVatTurnover12m(String amount, String threshold) {
+    return 'Ventes des 12 derniers mois : $amount sur le seuil d\'assujettissement de $threshold';
+  }
+
+  @override
+  String get booksVatThresholdNear =>
+      'Vous approchez du seuil d\'assujettissement à la TVA de la RRA.';
+
+  @override
+  String get booksVatThresholdCrossed =>
+      'Vous avez dépassé le seuil d\'assujettissement à la TVA de la RRA. Parlez à la RRA ou à votre comptable de l\'immatriculation à la TVA.';
+
+  @override
+  String get booksVatEstimateNote =>
+      'Estimations au taux normal de 18 %. Elles ne sont pas dans vos comptes et rien n\'est envoyé à la RRA.';
+
+  @override
+  String get booksVatRegisteredSetting => 'Assujetti à la TVA';
+
+  @override
+  String get booksVatRegisteredSettingHint =>
+      'À activer seulement si vous êtes immatriculé à la TVA auprès de la RRA et déposez des déclarations de TVA. Les nouvelles ventes portent alors la TVA dans Books.';
+
+  @override
+  String get booksVatSettingSaved => 'Paramètre TVA enregistré';
+
+  @override
+  String get booksLoanOpeningTitle =>
+      'Saisissez le solde d\'ouverture de votre prêt';
+
+  @override
+  String booksLoanOpeningBody(String amount) {
+    return 'Le prêt bancaire montre $amount de plus remboursé que reçu. Saisissez ce que l\'entreprise devait quand elle a commencé à utiliser Books.';
+  }
+
+  @override
+  String get booksLoanOpeningAction => 'Saisir le solde d\'ouverture';
+
+  @override
   String get shiftStartSubtitle =>
       'Initialisez votre tiroir-caisse et commencez';
 

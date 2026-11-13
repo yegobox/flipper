@@ -4709,6 +4709,69 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   String get cashbookSuggestRepairs => 'Matengenezo';
 
   @override
+  String get cashbookSuggestLoanRepayment => 'Marejesho ya mkopo';
+
+  @override
+  String get cashbookSuggestLoanInterest => 'Riba ya mkopo';
+
+  @override
+  String get booksVatTitle => 'VAT';
+
+  @override
+  String get booksVatOwedLedger => 'VAT inayodaiwa (kwa vitabu vyako)';
+
+  @override
+  String get booksVatCreditLedger => 'Salio la VAT (kwa vitabu vyako)';
+
+  @override
+  String get booksVatNotRegistered => 'Hujasajiliwa kwa VAT: hudaiwi chochote';
+
+  @override
+  String get booksVatEstimateSales =>
+      'VAT katika mauzo ya mwezi huu (makadirio)';
+
+  @override
+  String get booksVatPaidPurchases => 'VAT uliyolipa kwa manunuzi ya mwezi huu';
+
+  @override
+  String booksVatTurnover12m(String amount, String threshold) {
+    return 'Mauzo ya miezi 12 iliyopita: $amount kati ya kiwango cha usajili cha $threshold';
+  }
+
+  @override
+  String get booksVatThresholdNear =>
+      'Unakaribia kiwango cha RRA cha usajili wa VAT.';
+
+  @override
+  String get booksVatThresholdCrossed =>
+      'Umepita kiwango cha RRA cha usajili wa VAT. Zungumza na RRA au mhasibu wako kuhusu kusajiliwa kwa VAT.';
+
+  @override
+  String get booksVatEstimateNote =>
+      'Makadirio kwa kiwango cha kawaida cha 18%. Hayamo kwenye vitabu vyako na hakuna kinachotumwa RRA.';
+
+  @override
+  String get booksVatRegisteredSetting => 'Nimesajiliwa kwa VAT';
+
+  @override
+  String get booksVatRegisteredSettingHint =>
+      'Washa tu kama umesajiliwa kwa VAT na RRA na unawasilisha ritani za VAT. Mauzo mapya yatabeba VAT kwenye Books.';
+
+  @override
+  String get booksVatSettingSaved => 'Mpangilio wa VAT umehifadhiwa';
+
+  @override
+  String get booksLoanOpeningTitle => 'Weka salio la mwanzo la mkopo wako';
+
+  @override
+  String booksLoanOpeningBody(String amount) {
+    return 'Mkopo wa benki unaonyesha $amount zaidi uliorejeshwa kuliko uliopokelewa. Weka kiasi biashara ilichodaiwa ilipoanza kutumia Books.';
+  }
+
+  @override
+  String get booksLoanOpeningAction => 'Weka salio la mwanzo';
+
+  @override
   String get shiftStartSubtitle => 'Andaa droo ya fedha na uanze kazi';
 
   @override

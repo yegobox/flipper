@@ -14,8 +14,10 @@ Future<bool> ebmVatEnabled(Ref ref) async {
 
     // Try to get EBM from local cache first, but also attempt remote fetch
     // to ensure we have the latest data even if this is the first time on a device
-    final ebm =
-        await ProxyService.strategy.ebm(branchId: branchId, fetchRemote: true);
+    final ebm = await ProxyService.strategy.ebm(
+      branchId: branchId,
+      fetchRemote: true,
+    );
     // Return the VAT enabled status, default to false if ebm is null
     final vatEnabled = ebm?.vatEnabled ?? false;
     await ProxyService.box.writeBool(key: 'vatEnabled', value: vatEnabled);
@@ -41,15 +43,22 @@ Future<bool> ebmVatEnabled(Ref ref) async {
 /// Synchronous helper to get VAT enabled status from EBM configuration
 /// This is used in non-widget contexts where providers can't be used
 /// Returns a Future that resolves to the VAT enabled status
-Future<bool> getVatEnabledFromEbm() async {
+Future<bool> getVatEnabledFromEbm() async =>
+    (await tryVatEnabledFromEbm()) ?? false;
+
+/// [getVatEnabledFromEbm], but `null` when the EBM could not be read, so a
+/// caller can keep its old behaviour instead of assuming "no VAT".
+Future<bool?> tryVatEnabledFromEbm() async {
   try {
     final branchId = ProxyService.box.getBranchId();
-    if (branchId == null) return false;
+    if (branchId == null) return null;
 
     // Try to get EBM from local cache first, but also attempt remote fetch
     // to ensure we have the latest data even if this is the first time on a device
-    final ebm =
-        await ProxyService.strategy.ebm(branchId: branchId, fetchRemote: true);
+    final ebm = await ProxyService.strategy.ebm(
+      branchId: branchId,
+      fetchRemote: true,
+    );
     final vatEnabled = ebm?.vatEnabled ?? false;
     await ProxyService.box.writeBool(key: 'vatEnabled', value: vatEnabled);
     if (ProxyService.box.getUserLoggingEnabled() ?? false) {
@@ -66,6 +75,6 @@ Future<bool> getVatEnabledFromEbm() async {
     }
     return vatEnabled;
   } catch (e) {
-    return false;
+    return null;
   }
 }
