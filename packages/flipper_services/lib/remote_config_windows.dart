@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'abstractions/remote.dart';
 
 class RemoteConfigWindows implements Remote {

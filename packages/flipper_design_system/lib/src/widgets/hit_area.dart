@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 
 /// Grows the touch target of a small control (a 34–44dp icon circle) to
 /// [size] without changing how it looks.

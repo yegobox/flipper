@@ -1,6 +1,6 @@
 import 'package:flipper_infra/theme.dart';
 import 'package:flipper_infra/utils/color_converter.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 import 'dandelion.dart';
