@@ -76,7 +76,12 @@ def own_packages():
 
 
 def package_roots():
-    """Package name -> source root, from every bootstrapped package_config."""
+    """Package name -> every source root it resolves to, across all configs.
+
+    Each package resolves its own dependencies (no pub workspace), so two
+    packages can resolve the same name to different versions. Keep them all:
+    a legacy version must not hide behind a migrated one.
+    """
     roots = {}
     configs = glob.glob("apps/*/.dart_tool/package_config.json") + glob.glob(
         "packages/*/.dart_tool/package_config.json"
@@ -91,7 +96,7 @@ def package_roots():
                 path = unquote(urlparse(uri).path)
             else:
                 path = os.path.normpath(os.path.join(base, unquote(uri)))
-            roots.setdefault(pkg["name"], path)
+            roots.setdefault(pkg["name"], set()).add(path)
     return roots, len(configs)
 
 
@@ -125,13 +130,14 @@ def current_list():
         sys.exit("material_ui_readiness: no package_config.json found -- run `melos bootstrap` first")
     legacy, unresolved = [], []
     for name in sorted(used_packages(own)):
-        root = roots.get(name)
-        if root is None or not os.path.isdir(root):
+        found = sorted(r for r in roots.get(name, ()) if os.path.isdir(r))
+        if not found:
             unresolved.append(name)
             continue
-        if is_legacy(root):
-            kind = "vendored" if os.path.abspath(root).startswith(ROOT + os.sep) else "pub"
-            legacy.append({"name": name, "kind": kind})
+        legacy_roots = [r for r in found if is_legacy(r)]
+        if legacy_roots:
+            vendored = any(os.path.abspath(r).startswith(ROOT + os.sep) for r in legacy_roots)
+            legacy.append({"name": name, "kind": "vendored" if vendored else "pub"})
     if unresolved:
         sys.exit(
             "material_ui_readiness: imported but not resolved by any package_config.json "
