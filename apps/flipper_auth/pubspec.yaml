@@ -3,7 +3,7 @@ description: "A new Flutter project."
 publish_to: 'none'  # Remove this line if you wish to publish to pub.dev
 
 
-version: 1.0.773+1867
+version: 1.0.775+1869
 
 
 environment:
@@ -57,6 +57,8 @@ dependency_overrides:
   cbor: 6.5.1 # 6.5.2 needs Dart 3.13; overrides skip the SDK check
   jni: ^0.14.2
   path_provider_android: ">=2.2.5 <2.3.0"
+  # 2.5.0+ depends on jni ^1.1; keep in sync with flipper/melos.yaml
+  shared_preferences_android: ">=2.4.23 <2.5.0"
   meta: ^1.16.0
 
 dev_dependencies:
