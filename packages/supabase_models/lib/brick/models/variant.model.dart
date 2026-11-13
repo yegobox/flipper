@@ -10,7 +10,7 @@ import 'package:supabase_models/sync/ditto_sync_coordinator.dart';
 import 'package:supabase_models/sync/ditto_sync_generated.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:supabase_models/brick/repository.dart';
-import 'package:brick_ditto_generators/ditto_sync_adapter.dart';
+import 'package:brick_ditto/ditto_sync_adapter.dart';
 import 'package:flutter/foundation.dart' hide Category;
 
 part 'variant.model.ditto_sync_adapter.g.dart';
@@ -438,9 +438,8 @@ class Variant extends OfflineFirstWithSupabaseModel {
             ?.toDouble(),
         avgCostSource:
             (json['avgCostSource'] ?? json['avg_cost_source']) as String?,
-        lastAvgCostReceiptRef:
-            (json['lastAvgCostReceiptRef'] ?? json['last_avg_cost_receipt_ref'])
-                as String?,
+        lastAvgCostReceiptRef: (json['lastAvgCostReceiptRef'] ??
+            json['last_avg_cost_receipt_ref']) as String?,
         rrp: (parseNum(json['rrp']) ?? parseNum(json['RRP']))?.toDouble(),
         rrpEffectiveDt: (json['rrpEffectiveDt'] != null)
             ? DateTime.tryParse(json['rrpEffectiveDt'] as String)

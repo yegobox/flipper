@@ -28,7 +28,9 @@ dependencies:
   sqlite3: ^3.3.1
   ditto_live: 5.0.3
   flipper_web: any
-  brick_ditto_generators: any
+  # Runtime annotations (@DittoAdapter). The generator below is dev-only so its
+  # analyzer pin never reaches the apps' runtime resolution.
+  brick_ditto: any
 dependency_overrides:
   xml: ^7.0.1
   smithy:
@@ -56,5 +58,6 @@ dev_dependencies:
   shared_preferences: any
   brick_sqlite_generators: ^4.0.0
   brick_offline_first_with_supabase_build: ^2.0.0
+  brick_ditto_generators: any
   build_runner: ^2.4.15
   source_gen: ">=3.0.0 <5.0.0"
