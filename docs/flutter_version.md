@@ -61,4 +61,27 @@ python3 scripts/ci/material_ui_readiness.py --list    # what still blocks the sw
 python3 scripts/ci/material_ui_readiness.py --update  # lock in an improvement
 ```
 
+### Upgrade order: migrated packages wait for the switch
+
+Many entries already have a release that moved to `material_ui`. On 2026-11-13 these included:
+- badges 4
+- shimmer 4
+- pinput 7
+- pin_code_fields 10
+- flex_color_picker 4
+- animations 3
+- cached_network_image 4
+- google_fonts 9
+- go_router 18
+- dropdown_search 8
+- wolt_modal_sheet 0.12
+- syncfusion 35
+
+**Do not bump them before our own switch.** These releases target apps that already use `material_ui`. In an app still on `package:flutter/material.dart` they lose our theme, because the bridge only works the other way: badges 4 falls back to the default text style. Their Material-ancestor checks also change. pin_code_fields 10 says so directly: "If your app is still on `package:flutter/material.dart`, stay on `^9.4.0`."
+
+So the switch PR bumps them in the same step. Before the switch, only these are safe:
+- removing packages, and replacing abandoned ones (#899, #900, #901)
+- narrowing imports to `widgets.dart`
+- building the `material_ui` themes alongside the current ones
+
 The check works at the import level, so it is coarse. Some entries touch Material only lightly, such as a `Colors` constant. Treat the list as the inventory to work through, not a measure of effort.
