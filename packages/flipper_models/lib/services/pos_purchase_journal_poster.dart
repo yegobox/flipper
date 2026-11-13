@@ -1,3 +1,4 @@
+import 'package:flipper_accounting/accounting_ditto_store.dart';
 import 'package:flipper_accounting/accounting_models.dart';
 import 'package:flipper_accounting/audit_trail_recorder.dart';
 import 'package:flipper_accounting/default_chart_of_accounts_seed.dart';
@@ -6,6 +7,8 @@ import 'package:flipper_accounting/purchase_journal_poster.dart';
 import 'package:flipper_accounting/purchase_posting_input.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_web/modules/accounting/data/services/vat_position_service.dart'
+    as vat;
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:talker/talker.dart';
 
@@ -20,9 +23,11 @@ class PosPurchaseJournalPoster {
     String? supplierId,
     double? paidUpfront,
     DateTime? dueDate,
+    bool capitalizeVat = false,
   }) {
     final lines = purchase.variants ?? const <Variant>[];
     return PurchasePostingInput(
+      capitalizeVat: capitalizeVat,
       purchaseId: purchase.id,
       supplierName: purchase.spplrNm,
       supplierTin: purchase.spplrTin,
@@ -61,6 +66,13 @@ class PosPurchaseJournalPoster {
         );
   }
 
+  /// Whether this business cannot reclaim purchase VAT, by the same
+  /// business-wide rule as Books bills (see [vat.purchaseVatIsCost]).
+  static Future<bool> purchaseVatIsCost(
+    AccountingDittoStore ditto,
+    String businessId,
+  ) => vat.purchaseVatIsCost(ditto: ditto, businessId: businessId);
+
   /// Never throws — purchase persistence must not depend on GL success.
   ///
   /// [paidUpfront] and [dueDate] are the credit terms entered on the form;
@@ -79,6 +91,7 @@ class PosPurchaseJournalPoster {
       if (!ditto.isReady()) return;
 
       final accounts = await chartOfAccounts(ditto, businessId);
+      final capitalizeVat = await purchaseVatIsCost(ditto, businessId);
 
       await PurchaseJournalPoster(
         ditto,
@@ -90,6 +103,7 @@ class PosPurchaseJournalPoster {
           supplierId: supplierId,
           paidUpfront: paidUpfront,
           dueDate: dueDate,
+          capitalizeVat: capitalizeVat,
         ),
         accounts: accounts,
         postToLedger: postToLedger,

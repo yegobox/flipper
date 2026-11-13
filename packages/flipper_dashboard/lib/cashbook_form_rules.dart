@@ -105,6 +105,8 @@ List<String> get cashbookExpenseCategorySuggestions {
     l10n.cashbookSuggestAirtime,
     l10n.cashbookSuggestFood,
     l10n.cashbookSuggestRepairs,
+    l10n.cashbookSuggestLoanRepayment,
+    l10n.cashbookSuggestLoanInterest,
   ];
 }
 

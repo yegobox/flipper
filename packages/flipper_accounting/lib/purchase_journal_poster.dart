@@ -59,8 +59,9 @@ class PurchaseJournalPoster {
     final settleAc = purchase.pmtTyCd == '03'
         ? roles.cashOnHand
         : roles.purchaseCreditAccount(purchase.pmtTyCd);
+    // A capitalized purchase writes no VAT line, so it needs no 2100.
     if (inventory == null ||
-        vat == null ||
+        (vat == null && purchase.vatDebit > 0) ||
         settleAc == null ||
         (purchase.isOnCredit && ap == null)) {
       debugPrint(
@@ -120,6 +121,10 @@ class PurchaseJournalPoster {
       'purchase_id': purchase.purchaseId,
       'purchaseId': purchase.purchaseId,
       'source': 'purchase',
+      // VAT on the supplier's invoice, kept even when it is capitalized so
+      // the VAT position can still show what was paid.
+      'vat_paid': purchase.vat,
+      'vatPaid': purchase.vat,
       if (purchase.supplierId != null) 'supplier_id': purchase.supplierId,
       ...balance.toBillFields(),
       // A waiting purchase's bill is a draft, but re-saving never demotes a
@@ -150,8 +155,8 @@ class PurchaseJournalPoster {
       status: JournalStatus.posted,
       src: 'Purchase',
       lines: [
-        JournalLine(ac: inventory, dr: purchase.netInventory),
-        JournalLine(ac: vat, dr: purchase.vat),
+        JournalLine(ac: inventory, dr: purchase.inventoryDebit),
+        if (purchase.vatDebit > 0) JournalLine(ac: vat!, dr: purchase.vatDebit),
         if (owed > 0) JournalLine(ac: ap!, cr: owed),
         if (paidUpfront > 0) JournalLine(ac: settleAc, cr: paidUpfront),
       ],

@@ -4723,6 +4723,79 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   String get cashbookSuggestRepairs => 'Gusana';
 
   @override
+  String get cashbookSuggestLoanRepayment => 'Kwishyura inguzanyo';
+
+  @override
+  String get cashbookSuggestLoanInterest => 'Inyungu ku nguzanyo';
+
+  @override
+  String get booksVatTitle => 'TVA';
+
+  @override
+  String get booksVatOwedLedger => 'TVA wishyura (ukurikije ibitabo byawe)';
+
+  @override
+  String get booksVatCreditLedger => 'TVA wasubizwa (ukurikije ibitabo byawe)';
+
+  @override
+  String get booksVatLedgerUnavailable =>
+      'TVA wishyura ntiyabashije gusomwa mu bitabo byawe ubu.';
+
+  @override
+  String get booksVatNotRegistered =>
+      'Ntiwanditse muri TVA: ibyo ucuruza ntibigira TVA.';
+
+  @override
+  String get booksVatEstimateSales =>
+      'TVA iri mu byacurujwe uku kwezi (igereranyo)';
+
+  @override
+  String get booksVatPaidPurchases => 'TVA wishyuye ku byo waguze uku kwezi';
+
+  @override
+  String booksVatTurnover12m(String amount, String threshold) {
+    return 'Ibyacurujwe mu mezi 12 ashize: $amount kuri $threshold by\'igipimo cyo kwiyandikisha';
+  }
+
+  @override
+  String get booksVatThresholdNear =>
+      'Uri hafi kugera ku gipimo cya RRA cyo kwiyandikisha muri TVA.';
+
+  @override
+  String get booksVatThresholdCrossed =>
+      'Warenze igipimo cya RRA cyo kwiyandikisha muri TVA. Vugana na RRA cyangwa umucungamari wawe ku bijyanye no kwiyandikisha muri TVA.';
+
+  @override
+  String get booksVatEstimateNote =>
+      'Ibi ni ibigereranyo ku gipimo cya 18%. Ntibiri mu bitabo byawe kandi nta kintu cyoherezwa kuri RRA.';
+
+  @override
+  String get booksVatRegisteredSetting => 'Nanditswe muri TVA';
+
+  @override
+  String get booksVatRegisteredSettingHint =>
+      'Bifungure gusa niba wanditswe muri TVA kuri RRA kandi utanga imenyekanisha rya TVA. Ibicuruzwa bishya bizajya bigira TVA muri Books.';
+
+  @override
+  String get booksVatSettingSaved => 'Igenamiterere rya TVA ryabitswe';
+
+  @override
+  String get booksVatSettingFailed =>
+      'Igenamiterere rya TVA ntiryabitswe. Ongera ugerageze.';
+
+  @override
+  String get booksLoanOpeningTitle =>
+      'Andika umwenda w\'inguzanyo watangiranye';
+
+  @override
+  String booksLoanOpeningBody(String amount) {
+    return 'Inguzanyo ya banki yerekana $amount wishyuye birenze ibyo wakiriye. Andika umwenda ikigo cyari gifite gitangira gukoresha Books.';
+  }
+
+  @override
+  String get booksLoanOpeningAction => 'Andika umwenda watangiranye';
+
+  @override
   String get shiftStartSubtitle =>
       'Tegura agasanduku k\'amafaranga utangire akazi';
 
@@ -24562,7 +24635,7 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
 
   @override
   String get booksBillEditorSubtitle =>
-      'Andika fagitire y\'utanga ibicuruzwa — Flipper yandika ibyakoreshejwe na TVA yishyuwe.';
+      'Andika fagitire y\'utanga ibicuruzwa — Flipper yandika ibyakoreshejwe, na TVA yishyuwe niba wanditswe muri TVA.';
 
   @override
   String get booksSelectCustomer => 'Hitamo umukiriya…';

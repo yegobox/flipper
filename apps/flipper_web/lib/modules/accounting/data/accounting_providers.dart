@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:flipper_accounting/accounting_settings.dart';
+
 import 'package:flipper_web/core/analytics/analytics_provider.dart';
 import 'package:flipper_web/core/ditto/accounting_cloud_sync.dart';
 import 'package:flipper_web/core/supabase_provider.dart';
@@ -31,6 +33,7 @@ import 'package:flipper_web/modules/accounting/data/services/accounting_bootstra
 import 'package:flipper_web/modules/accounting/data/services/bank_balance_service.dart';
 import 'package:flipper_web/modules/accounting/data/services/bank_statement_service.dart';
 import 'package:flipper_web/modules/accounting/data/services/journal_approval_service.dart';
+import 'package:flipper_web/modules/accounting/data/services/vat_position_service.dart';
 import 'package:flipper_web/modules/accounting/routing/accounting_route.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:flutter/foundation.dart';
@@ -105,6 +108,44 @@ final smsBankBalancesProvider = FutureProvider.autoDispose<SmsBalances?>((
     debugPrint('Books: bank SMS balances unavailable: $e');
     return null;
   }
+});
+
+final vatPositionServiceProvider = Provider<VatPositionService>(
+  (ref) => VatPositionService(),
+);
+
+/// Where the business stands on VAT (data-connector): registered or not, and
+/// the ledger figure or the estimate. `null` when it cannot be read; the VAT
+/// tile then does not show and bills keep booking VAT to 2100 as before.
+final booksVatPositionProvider = FutureProvider.autoDispose<BooksVatPosition?>((
+  ref,
+) async {
+  ref.watch(accountingBusinessIdProvider);
+  try {
+    return await ref.watch(vatPositionServiceProvider).position();
+  } catch (e) {
+    debugPrint('Books: VAT position unavailable: $e');
+    return null;
+  }
+});
+
+/// Books' per-business accounting settings in Ditto.
+final accountingSettingsStoreProvider = Provider<AccountingSettingsStore>(
+  (ref) => AccountingSettingsStore(ref.watch(dittoServiceProvider)),
+);
+
+/// Saves Books' "Registered for VAT" setting for the business (Ditto
+/// `accounting_settings/as_<businessId>`), then refreshes the position.
+final setBooksVatRegisteredProvider = Provider<Future<void> Function(bool)>((
+  ref,
+) {
+  return (registered) async {
+    final businessId = ref.read(accountingBusinessIdProvider);
+    await ref
+        .read(accountingSettingsStoreProvider)
+        .setVatRegistered(businessId: businessId, registered: registered);
+    ref.invalidate(booksVatPositionProvider);
+  };
 });
 
 /// Low-balance alert levels by account code (owner or Admin only).

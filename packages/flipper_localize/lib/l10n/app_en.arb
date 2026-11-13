@@ -3954,6 +3954,51 @@
     "cashbookSuggestAirtime": "Airtime",
     "cashbookSuggestFood": "Food",
     "cashbookSuggestRepairs": "Repairs",
+    "cashbookSuggestLoanRepayment": "Loan repayment",
+    "@cashbookSuggestLoanRepayment": {
+        "description": "Cash Book category suggestion. data-connector routes it to 2200 Bank Loan (semantics::LOAN_REPAYMENT_NAMES); keep translations in step"
+    },
+    "cashbookSuggestLoanInterest": "Loan interest",
+    "@cashbookSuggestLoanInterest": {
+        "description": "Cash Book category suggestion for interest paid on a loan (an expense)"
+    },
+    "booksVatTitle": "VAT",
+    "booksVatOwedLedger": "VAT payable (from your ledger)",
+    "booksVatCreditLedger": "VAT credit (from your ledger)",
+    "booksVatLedgerUnavailable": "VAT payable could not be read from your ledger right now.",
+    "booksVatNotRegistered": "Not registered for VAT: your sales carry no VAT.",
+    "booksVatEstimateSales": "VAT in this month's sales (estimate)",
+    "booksVatPaidPurchases": "VAT paid on purchases this month",
+    "booksVatTurnover12m": "Sales in the last 12 months: {amount} of the {threshold} registration threshold",
+    "@booksVatTurnover12m": {
+        "description": "Books VAT tile: turnover against RRA's VAT registration threshold",
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            },
+            "threshold": {
+                "type": "String"
+            }
+        }
+    },
+    "booksVatThresholdNear": "You are getting close to RRA's VAT registration threshold.",
+    "booksVatThresholdCrossed": "You are past RRA's VAT registration threshold. Talk to RRA or your accountant about registering for VAT.",
+    "booksVatEstimateNote": "Estimates at the standard 18% rate. They are not in your books and nothing is sent to RRA.",
+    "booksVatRegisteredSetting": "Registered for VAT",
+    "booksVatRegisteredSettingHint": "Turn on only if you are registered for VAT with RRA and file VAT returns. New sales then carry VAT in Books.",
+    "booksVatSettingSaved": "VAT setting saved",
+    "booksVatSettingFailed": "Could not save the VAT setting. Try again.",
+    "booksLoanOpeningTitle": "Record your loan's opening balance",
+    "booksLoanOpeningBody": "Bank Loan shows {amount} more repaid than received. Record what the business owed when it started using Books.",
+    "@booksLoanOpeningBody": {
+        "description": "Books dashboard: Bank Loan (2200) has a debit balance because repayments were recorded for a loan Books never saw",
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
+    "booksLoanOpeningAction": "Record opening balance",
     "shiftStartSubtitle": "Initialize your cash drawer and begin operations",
     "shiftDetails": "Shift Details",
     "shiftStartTime": "Start time: {time}",
@@ -18726,7 +18771,7 @@
         }
     },
     "booksInvoiceEditorSubtitle": "Bill a customer — Flipper posts the sale and VAT automatically.",
-    "booksBillEditorSubtitle": "Record a supplier bill — Flipper posts the expense and input VAT.",
+    "booksBillEditorSubtitle": "Record a supplier bill — Flipper posts the expense, and the input VAT if you are registered for VAT.",
     "booksSelectCustomer": "Select customer…",
     "booksSelectSupplier": "Select supplier…",
     "booksIssueDate": "Issue date",

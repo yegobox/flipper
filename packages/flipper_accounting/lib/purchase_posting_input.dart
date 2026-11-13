@@ -13,6 +13,7 @@ class PurchasePostingInput {
     this.purchaseDate,
     this.paidUpfront,
     this.dueDate,
+    this.capitalizeVat = false,
   });
 
   final String purchaseId;
@@ -36,8 +37,22 @@ class PurchasePostingInput {
   /// due date", falling back to 30 days after the purchase.
   final DateTime? dueDate;
 
+  /// The business is not registered for VAT (no EBM branch with VAT on, and
+  /// Books' "Registered for VAT" off), so it cannot reclaim the VAT on this
+  /// invoice: it is part of what the stock cost. The purchase then debits
+  /// the whole total to Inventory and nothing to 2100 VAT Payable, which
+  /// otherwise only ever collects debits for such a business.
+  final bool capitalizeVat;
+
   int get netInventory => (totAmt - totTaxAmt).round();
   int get vat => totTaxAmt.round();
+
+  /// Debit to Inventory: net of VAT when the VAT is reclaimable, else the
+  /// whole total.
+  int get inventoryDebit => capitalizeVat ? total : netInventory;
+
+  /// Debit to 2100 VAT Payable (0 when the VAT is capitalized).
+  int get vatDebit => capitalizeVat ? 0 : vat;
   int get total => totAmt.round();
 
   /// True when some of the purchase is bought on credit (`02`, `03`).
