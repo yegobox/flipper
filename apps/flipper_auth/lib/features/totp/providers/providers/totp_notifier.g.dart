@@ -10,11 +10,11 @@ part of 'totp_notifier.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(TOTPNotifier)
-const tOTPProvider = TOTPNotifierProvider._();
+final tOTPProvider = TOTPNotifierProvider._();
 
 final class TOTPNotifierProvider
     extends $NotifierProvider<TOTPNotifier, TOTPState> {
-  const TOTPNotifierProvider._()
+  TOTPNotifierProvider._()
       : super(
           from: null,
           argument: null,
@@ -47,11 +47,10 @@ abstract class _$TOTPNotifier extends $Notifier<TOTPState> {
   TOTPState build();
   @$mustCallSuper
   @override
-  void runBuild() {
-    final created = build();
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<TOTPState, TOTPState>;
     final element = ref.element as $ClassProviderElement<
         AnyNotifier<TOTPState, TOTPState>, TOTPState, Object?, Object?>;
-    element.handleValue(ref, created);
+    return element.handleCreate(ref, build);
   }
 }

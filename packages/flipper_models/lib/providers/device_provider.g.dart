@@ -10,18 +10,20 @@ part of 'device_provider.dart';
 // ignore_for_file: type=lint, type=warning
 /// Branch devices for delegation target pickers.
 ///
-/// Always reads via [Strategy.cloudSync] (Brick → Supabase), **not** Capella/Ditto.
-/// Ditto `devices` can lag behind or keep stale rows after reinstall; Supabase is
-/// the source of truth for the picker list.
+/// TODO(ditto-migration): deliberately still on Brick → Supabase, **not**
+/// Ditto. Ditto `devices` can lag behind or keep stale rows after reinstall;
+/// Supabase is the source of truth for the picker list. Porting this needs the
+/// staleness handled first — see docs/DITTO_ONLY_MIGRATION.md.
 
 @ProviderFor(devicesForBranch)
-const devicesForBranchProvider = DevicesForBranchFamily._();
+final devicesForBranchProvider = DevicesForBranchFamily._();
 
 /// Branch devices for delegation target pickers.
 ///
-/// Always reads via [Strategy.cloudSync] (Brick → Supabase), **not** Capella/Ditto.
-/// Ditto `devices` can lag behind or keep stale rows after reinstall; Supabase is
-/// the source of truth for the picker list.
+/// TODO(ditto-migration): deliberately still on Brick → Supabase, **not**
+/// Ditto. Ditto `devices` can lag behind or keep stale rows after reinstall;
+/// Supabase is the source of truth for the picker list. Porting this needs the
+/// staleness handled first — see docs/DITTO_ONLY_MIGRATION.md.
 
 final class DevicesForBranchProvider
     extends
@@ -33,10 +35,11 @@ final class DevicesForBranchProvider
     with $FutureModifier<List<Device>>, $FutureProvider<List<Device>> {
   /// Branch devices for delegation target pickers.
   ///
-  /// Always reads via [Strategy.cloudSync] (Brick → Supabase), **not** Capella/Ditto.
-  /// Ditto `devices` can lag behind or keep stale rows after reinstall; Supabase is
-  /// the source of truth for the picker list.
-  const DevicesForBranchProvider._({
+  /// TODO(ditto-migration): deliberately still on Brick → Supabase, **not**
+  /// Ditto. Ditto `devices` can lag behind or keep stale rows after reinstall;
+  /// Supabase is the source of truth for the picker list. Porting this needs the
+  /// staleness handled first — see docs/DITTO_ONLY_MIGRATION.md.
+  DevicesForBranchProvider._({
     required DevicesForBranchFamily super.from,
     required String super.argument,
   }) : super(
@@ -80,17 +83,18 @@ final class DevicesForBranchProvider
   }
 }
 
-String _$devicesForBranchHash() => r'4fcc826894e5ce66a809440d2925f6424306bead';
+String _$devicesForBranchHash() => r'31ed21d523900d21ffd6c6b6cfcebcbbdcdc0275';
 
 /// Branch devices for delegation target pickers.
 ///
-/// Always reads via [Strategy.cloudSync] (Brick → Supabase), **not** Capella/Ditto.
-/// Ditto `devices` can lag behind or keep stale rows after reinstall; Supabase is
-/// the source of truth for the picker list.
+/// TODO(ditto-migration): deliberately still on Brick → Supabase, **not**
+/// Ditto. Ditto `devices` can lag behind or keep stale rows after reinstall;
+/// Supabase is the source of truth for the picker list. Porting this needs the
+/// staleness handled first — see docs/DITTO_ONLY_MIGRATION.md.
 
 final class DevicesForBranchFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<List<Device>>, String> {
-  const DevicesForBranchFamily._()
+  DevicesForBranchFamily._()
     : super(
         retry: null,
         name: r'devicesForBranchProvider',
@@ -101,9 +105,10 @@ final class DevicesForBranchFamily extends $Family
 
   /// Branch devices for delegation target pickers.
   ///
-  /// Always reads via [Strategy.cloudSync] (Brick → Supabase), **not** Capella/Ditto.
-  /// Ditto `devices` can lag behind or keep stale rows after reinstall; Supabase is
-  /// the source of truth for the picker list.
+  /// TODO(ditto-migration): deliberately still on Brick → Supabase, **not**
+  /// Ditto. Ditto `devices` can lag behind or keep stale rows after reinstall;
+  /// Supabase is the source of truth for the picker list. Porting this needs the
+  /// staleness handled first — see docs/DITTO_ONLY_MIGRATION.md.
 
   DevicesForBranchProvider call({required String branchId}) =>
       DevicesForBranchProvider._(argument: branchId, from: this);

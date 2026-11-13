@@ -10,12 +10,12 @@ part of 'transactions_provider.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(TransactionReportPageIndex)
-const transactionReportPageIndexProvider =
+final transactionReportPageIndexProvider =
     TransactionReportPageIndexProvider._();
 
 final class TransactionReportPageIndexProvider
     extends $NotifierProvider<TransactionReportPageIndex, int> {
-  const TransactionReportPageIndexProvider._()
+  TransactionReportPageIndexProvider._()
     : super(
         from: null,
         argument: null,
@@ -49,8 +49,7 @@ abstract class _$TransactionReportPageIndex extends $Notifier<int> {
   int build();
   @$mustCallSuper
   @override
-  void runBuild() {
-    final created = build();
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<int, int>;
     final element =
         ref.element
@@ -60,12 +59,12 @@ abstract class _$TransactionReportPageIndex extends $Notifier<int> {
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    return element.handleCreate(ref, build);
   }
 }
 
 @ProviderFor(coreTransactionsStream)
-const coreTransactionsStreamProvider = CoreTransactionsStreamFamily._();
+final coreTransactionsStreamProvider = CoreTransactionsStreamFamily._();
 
 final class CoreTransactionsStreamProvider
     extends
@@ -77,7 +76,7 @@ final class CoreTransactionsStreamProvider
     with
         $FutureModifier<List<ITransaction>>,
         $StreamProvider<List<ITransaction>> {
-  const CoreTransactionsStreamProvider._({
+  CoreTransactionsStreamProvider._({
     required CoreTransactionsStreamFamily super.from,
     required ({
       DateTime startDate,
@@ -159,7 +158,7 @@ final class CoreTransactionsStreamFamily extends $Family
             bool includeParked,
           })
         > {
-  const CoreTransactionsStreamFamily._()
+  CoreTransactionsStreamFamily._()
     : super(
         retry: null,
         name: r'coreTransactionsStreamProvider',
@@ -193,7 +192,7 @@ final class CoreTransactionsStreamFamily extends $Family
 /// rolling 30-day window, completed transactions only.
 
 @ProviderFor(cashbookRecentTransactions)
-const cashbookRecentTransactionsProvider =
+final cashbookRecentTransactionsProvider =
     CashbookRecentTransactionsProvider._();
 
 /// Recent Cash Book list: same Capella [coreTransactionsStream] source as dashboard KPIs,
@@ -211,7 +210,7 @@ final class CashbookRecentTransactionsProvider
         $StreamProvider<List<ITransaction>> {
   /// Recent Cash Book list: same Capella [coreTransactionsStream] source as dashboard KPIs,
   /// rolling 30-day window, completed transactions only.
-  const CashbookRecentTransactionsProvider._()
+  CashbookRecentTransactionsProvider._()
     : super(
         from: null,
         argument: null,
@@ -244,7 +243,7 @@ String _$cashbookRecentTransactionsHash() =>
 /// [dateRangeProvider] window (aligned with Cash Book / dashboard analytics).
 
 @ProviderFor(transactionsScreenTransactions)
-const transactionsScreenTransactionsProvider =
+final transactionsScreenTransactionsProvider =
     TransactionsScreenTransactionsProvider._();
 
 /// Transactions screen list: Capella [coreTransactionsStream] for the global
@@ -262,7 +261,7 @@ final class TransactionsScreenTransactionsProvider
         $StreamProvider<List<ITransaction>> {
   /// Transactions screen list: Capella [coreTransactionsStream] for the global
   /// [dateRangeProvider] window (aligned with Cash Book / dashboard analytics).
-  const TransactionsScreenTransactionsProvider._()
+  TransactionsScreenTransactionsProvider._()
     : super(
         from: null,
         argument: null,
@@ -292,7 +291,7 @@ String _$transactionsScreenTransactionsHash() =>
     r'd7ab2497ab5474b87f990111c7ed976861edd754';
 
 @ProviderFor(transactionReportSnapshot)
-const transactionReportSnapshotProvider = TransactionReportSnapshotFamily._();
+final transactionReportSnapshotProvider = TransactionReportSnapshotFamily._();
 
 final class TransactionReportSnapshotProvider
     extends
@@ -304,7 +303,7 @@ final class TransactionReportSnapshotProvider
     with
         $FutureModifier<TransactionReportSnapshot>,
         $FutureProvider<TransactionReportSnapshot> {
-  const TransactionReportSnapshotProvider._({
+  TransactionReportSnapshotProvider._({
     required TransactionReportSnapshotFamily super.from,
     required bool super.argument,
   }) : super(
@@ -354,7 +353,7 @@ String _$transactionReportSnapshotHash() =>
 
 final class TransactionReportSnapshotFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<TransactionReportSnapshot>, bool> {
-  const TransactionReportSnapshotFamily._()
+  TransactionReportSnapshotFamily._()
     : super(
         retry: null,
         name: r'transactionReportSnapshotProvider',
@@ -371,7 +370,7 @@ final class TransactionReportSnapshotFamily extends $Family
 }
 
 @ProviderFor(transactionList)
-const transactionListProvider = TransactionListFamily._();
+final transactionListProvider = TransactionListFamily._();
 
 final class TransactionListProvider
     extends
@@ -383,7 +382,7 @@ final class TransactionListProvider
     with
         $FutureModifier<List<ITransaction>>,
         $FutureProvider<List<ITransaction>> {
-  const TransactionListProvider._({
+  TransactionListProvider._({
     required TransactionListFamily super.from,
     required bool super.argument,
   }) : super(
@@ -431,7 +430,7 @@ String _$transactionListHash() => r'bb8963a4d23c42628b3a924b5e5fb7552536c4a6';
 
 final class TransactionListFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<List<ITransaction>>, bool> {
-  const TransactionListFamily._()
+  TransactionListFamily._()
     : super(
         retry: null,
         name: r'transactionListProvider',
@@ -448,7 +447,7 @@ final class TransactionListFamily extends $Family
 }
 
 @ProviderFor(transactions)
-const transactionsProvider = TransactionsFamily._();
+final transactionsProvider = TransactionsFamily._();
 
 final class TransactionsProvider
     extends
@@ -460,7 +459,7 @@ final class TransactionsProvider
     with
         $FutureModifier<List<ITransaction>>,
         $StreamProvider<List<ITransaction>> {
-  const TransactionsProvider._({
+  TransactionsProvider._({
     required TransactionsFamily super.from,
     required bool super.argument,
   }) : super(
@@ -508,7 +507,7 @@ String _$transactionsHash() => r'e7bdac77e49e750203974771e4eec3e4aa2af7de';
 
 final class TransactionsFamily extends $Family
     with $FunctionalFamilyOverride<Stream<List<ITransaction>>, bool> {
-  const TransactionsFamily._()
+  TransactionsFamily._()
     : super(
         retry: null,
         name: r'transactionsProvider',
@@ -525,7 +524,7 @@ final class TransactionsFamily extends $Family
 }
 
 @ProviderFor(transactionItemList)
-const transactionItemListProvider = TransactionItemListProvider._();
+final transactionItemListProvider = TransactionItemListProvider._();
 
 final class TransactionItemListProvider
     extends
@@ -537,7 +536,7 @@ final class TransactionItemListProvider
     with
         $FutureModifier<List<TransactionItem>>,
         $StreamProvider<List<TransactionItem>> {
-  const TransactionItemListProvider._()
+  TransactionItemListProvider._()
     : super(
         from: null,
         argument: null,
@@ -567,7 +566,7 @@ String _$transactionItemListHash() =>
     r'a92a56eb487bbf334c9b8022177e1bc50df7372d';
 
 @ProviderFor(transactionReportKpiTotals)
-const transactionReportKpiTotalsProvider =
+final transactionReportKpiTotalsProvider =
     TransactionReportKpiTotalsProvider._();
 
 final class TransactionReportKpiTotalsProvider
@@ -580,7 +579,7 @@ final class TransactionReportKpiTotalsProvider
     with
         $FutureModifier<TransactionReportKpiTotals>,
         $FutureProvider<TransactionReportKpiTotals> {
-  const TransactionReportKpiTotalsProvider._()
+  TransactionReportKpiTotalsProvider._()
     : super(
         from: null,
         argument: null,
@@ -607,10 +606,10 @@ final class TransactionReportKpiTotalsProvider
 }
 
 String _$transactionReportKpiTotalsHash() =>
-    r'aea2b58196013229f995d84f56aaf27811b48721';
+    r'837056285f207ba58261eb11549bd18526b89c03';
 
 @ProviderFor(expensesStream)
-const expensesStreamProvider = ExpensesStreamFamily._();
+final expensesStreamProvider = ExpensesStreamFamily._();
 
 final class ExpensesStreamProvider
     extends
@@ -622,7 +621,7 @@ final class ExpensesStreamProvider
     with
         $FutureModifier<List<ITransaction>>,
         $StreamProvider<List<ITransaction>> {
-  const ExpensesStreamProvider._({
+  ExpensesStreamProvider._({
     required ExpensesStreamFamily super.from,
     required ({
       DateTime startDate,
@@ -698,7 +697,7 @@ final class ExpensesStreamFamily extends $Family
             bool forceRealData,
           })
         > {
-  const ExpensesStreamFamily._()
+  ExpensesStreamFamily._()
     : super(
         retry: null,
         name: r'expensesStreamProvider',
@@ -727,12 +726,12 @@ final class ExpensesStreamFamily extends $Family
 }
 
 @ProviderFor(grossProfitStream)
-const grossProfitStreamProvider = GrossProfitStreamFamily._();
+final grossProfitStreamProvider = GrossProfitStreamFamily._();
 
 final class GrossProfitStreamProvider
     extends $FunctionalProvider<AsyncValue<double>, double, Stream<double>>
     with $FutureModifier<double>, $StreamProvider<double> {
-  const GrossProfitStreamProvider._({
+  GrossProfitStreamProvider._({
     required GrossProfitStreamFamily super.from,
     required ({
       DateTime startDate,
@@ -794,7 +793,7 @@ final class GrossProfitStreamProvider
   }
 }
 
-String _$grossProfitStreamHash() => r'12c26b454d540ce8b5a8a81cb56b76ec7b8ccc30';
+String _$grossProfitStreamHash() => r'53ed32d1a19e88155ae016a6e81252ebdc697f41';
 
 final class GrossProfitStreamFamily extends $Family
     with
@@ -807,7 +806,7 @@ final class GrossProfitStreamFamily extends $Family
             bool forceRealData,
           })
         > {
-  const GrossProfitStreamFamily._()
+  GrossProfitStreamFamily._()
     : super(
         retry: null,
         name: r'grossProfitStreamProvider',
@@ -836,12 +835,12 @@ final class GrossProfitStreamFamily extends $Family
 }
 
 @ProviderFor(netProfitStream)
-const netProfitStreamProvider = NetProfitStreamFamily._();
+final netProfitStreamProvider = NetProfitStreamFamily._();
 
 final class NetProfitStreamProvider
     extends $FunctionalProvider<AsyncValue<double>, double, Stream<double>>
     with $FutureModifier<double>, $StreamProvider<double> {
-  const NetProfitStreamProvider._({
+  NetProfitStreamProvider._({
     required NetProfitStreamFamily super.from,
     required ({
       DateTime startDate,
@@ -903,7 +902,7 @@ final class NetProfitStreamProvider
   }
 }
 
-String _$netProfitStreamHash() => r'd934af19fc3c25ee0bc16ec46bd1a633a71fb3b8';
+String _$netProfitStreamHash() => r'15db4b9f5f9928621c8c529904061bf7bec94186';
 
 final class NetProfitStreamFamily extends $Family
     with
@@ -916,7 +915,7 @@ final class NetProfitStreamFamily extends $Family
             bool forceRealData,
           })
         > {
-  const NetProfitStreamFamily._()
+  NetProfitStreamFamily._()
     : super(
         retry: null,
         name: r'netProfitStreamProvider',
@@ -945,12 +944,12 @@ final class NetProfitStreamFamily extends $Family
 }
 
 @ProviderFor(totalIncomeStream)
-const totalIncomeStreamProvider = TotalIncomeStreamFamily._();
+final totalIncomeStreamProvider = TotalIncomeStreamFamily._();
 
 final class TotalIncomeStreamProvider
     extends $FunctionalProvider<AsyncValue<double>, double, Stream<double>>
     with $FutureModifier<double>, $StreamProvider<double> {
-  const TotalIncomeStreamProvider._({
+  TotalIncomeStreamProvider._({
     required TotalIncomeStreamFamily super.from,
     required ({
       DateTime startDate,
@@ -1012,7 +1011,7 @@ final class TotalIncomeStreamProvider
   }
 }
 
-String _$totalIncomeStreamHash() => r'fd22078d57b4afb9391c246c2ee5b397e81f0413';
+String _$totalIncomeStreamHash() => r'1eb7897404873714c65b157dd7192829edf198df';
 
 final class TotalIncomeStreamFamily extends $Family
     with
@@ -1025,7 +1024,7 @@ final class TotalIncomeStreamFamily extends $Family
             bool forceRealData,
           })
         > {
-  const TotalIncomeStreamFamily._()
+  TotalIncomeStreamFamily._()
     : super(
         retry: null,
         name: r'totalIncomeStreamProvider',
@@ -1054,7 +1053,7 @@ final class TotalIncomeStreamFamily extends $Family
 }
 
 @ProviderFor(pendingTransactionStream)
-const pendingTransactionStreamProvider = PendingTransactionStreamFamily._();
+final pendingTransactionStreamProvider = PendingTransactionStreamFamily._();
 
 final class PendingTransactionStreamProvider
     extends
@@ -1064,7 +1063,7 @@ final class PendingTransactionStreamProvider
           Stream<ITransaction>
         >
     with $FutureModifier<ITransaction>, $StreamProvider<ITransaction> {
-  const PendingTransactionStreamProvider._({
+  PendingTransactionStreamProvider._({
     required PendingTransactionStreamFamily super.from,
     required ({bool isExpense, bool forceRealData}) super.argument,
   }) : super(
@@ -1122,7 +1121,7 @@ final class PendingTransactionStreamFamily extends $Family
           Stream<ITransaction>,
           ({bool isExpense, bool forceRealData})
         > {
-  const PendingTransactionStreamFamily._()
+  PendingTransactionStreamFamily._()
     : super(
         retry: null,
         name: r'pendingTransactionStreamProvider',
@@ -1144,7 +1143,7 @@ final class PendingTransactionStreamFamily extends $Family
 }
 
 @ProviderFor(transactionById)
-const transactionByIdProvider = TransactionByIdFamily._();
+final transactionByIdProvider = TransactionByIdFamily._();
 
 final class TransactionByIdProvider
     extends
@@ -1154,7 +1153,7 @@ final class TransactionByIdProvider
           Stream<ITransaction?>
         >
     with $FutureModifier<ITransaction?>, $StreamProvider<ITransaction?> {
-  const TransactionByIdProvider._({
+  TransactionByIdProvider._({
     required TransactionByIdFamily super.from,
     required String super.argument,
   }) : super(
@@ -1202,7 +1201,7 @@ String _$transactionByIdHash() => r'124d18cb457c1e0e1b9fb2f9e3c2eb1624290c4f';
 
 final class TransactionByIdFamily extends $Family
     with $FunctionalFamilyOverride<Stream<ITransaction?>, String> {
-  const TransactionByIdFamily._()
+  TransactionByIdFamily._()
     : super(
         retry: null,
         name: r'transactionByIdProvider',

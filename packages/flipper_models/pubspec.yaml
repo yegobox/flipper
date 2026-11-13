@@ -35,11 +35,11 @@ dependencies:
   open_filex: ^4.7.0
   http: ^1.2.2
   html_unescape: ^2.0.0
-  flutter_riverpod: ^3.0.3
-  riverpod_annotation: ^3.0.3
+  flutter_riverpod: ^3.5.0
+  riverpod_annotation: ^4.0.8
   flutter_hooks: ^0.21.0
-  riverpod: ^3.0.3
-  hooks_riverpod: ^3.0.3
+  riverpod: ^3.5.0
+  hooks_riverpod: ^3.5.0
   freezed_annotation: any
   dart_mappable: ^4.2.1
   dio: ^5.4.3+1
@@ -116,8 +116,7 @@ dev_dependencies:
   json_serializable: ^6.9.4
   # cloud_firestore_odm_generator: ^1.0.0-dev.89
   mocktail: ^1.0.4
-  riverpod_generator: ^3.0.0  # Updated to support riverpod_annotation ^3.0.3
-  riverpod_lint: ^3.0.3  # Updated to be compatible with riverpod ^3.0.3
+  riverpod_generator: ^4.0.10
   test: ^1.26.2
   # cloud_firestore_odm_generator: ^1.0.0-dev.88
 flutter:

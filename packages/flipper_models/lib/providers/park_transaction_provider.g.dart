@@ -11,13 +11,13 @@ part of 'park_transaction_provider.dart';
 /// Riverpod wrapper for [ParkTransactionService] with explicit loading state.
 
 @ProviderFor(ParkTransaction)
-const parkTransactionProvider = ParkTransactionProvider._();
+final parkTransactionProvider = ParkTransactionProvider._();
 
 /// Riverpod wrapper for [ParkTransactionService] with explicit loading state.
 final class ParkTransactionProvider
     extends $AsyncNotifierProvider<ParkTransaction, void> {
   /// Riverpod wrapper for [ParkTransactionService] with explicit loading state.
-  const ParkTransactionProvider._()
+  ParkTransactionProvider._()
     : super(
         from: null,
         argument: null,
@@ -36,7 +36,7 @@ final class ParkTransactionProvider
   ParkTransaction create() => ParkTransaction();
 }
 
-String _$parkTransactionHash() => r'6e488e2c3ca2f0b96ab69e2ebcacf05102e7ada2';
+String _$parkTransactionHash() => r'c54d5759ff6191c1c7f797746a97df015af4f1d0';
 
 /// Riverpod wrapper for [ParkTransactionService] with explicit loading state.
 
@@ -44,8 +44,7 @@ abstract class _$ParkTransaction extends $AsyncNotifier<void> {
   FutureOr<void> build();
   @$mustCallSuper
   @override
-  void runBuild() {
-    build();
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<AsyncValue<void>, void>;
     final element =
         ref.element
@@ -55,6 +54,6 @@ abstract class _$ParkTransaction extends $AsyncNotifier<void> {
               Object?,
               Object?
             >;
-    element.handleValue(ref, null);
+    return element.handleCreate(ref, build);
   }
 }

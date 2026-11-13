@@ -15,7 +15,7 @@ part of 'tickets_provider.dart';
 /// re-emit when only tender lines sync).
 
 @ProviderFor(ticketsPaymentSums)
-const ticketsPaymentSumsProvider = TicketsPaymentSumsProvider._();
+final ticketsPaymentSumsProvider = TicketsPaymentSumsProvider._();
 
 /// Batch payment sums for all visible tickets.
 ///
@@ -38,7 +38,7 @@ final class TicketsPaymentSumsProvider
   /// Streams so peer machines refresh PAID / Partial when
   /// `transaction_payment_records` arrive via Ditto (ticket rows alone do not
   /// re-emit when only tender lines sync).
-  const TicketsPaymentSumsProvider._()
+  TicketsPaymentSumsProvider._()
     : super(
         from: null,
         argument: null,
@@ -78,7 +78,7 @@ String _$ticketsPaymentSumsHash() =>
 /// cross-device parked tickets for the whole session).
 
 @ProviderFor(ticketsStream)
-const ticketsStreamProvider = TicketsStreamProvider._();
+final ticketsStreamProvider = TicketsStreamProvider._();
 
 /// Branch-wide open tickets stream (PARKED / WAITING / IN_PROGRESS).
 ///
@@ -109,7 +109,7 @@ final class TicketsStreamProvider
   /// Watches [activeBranchProvider] and waits for [branchId] so the Ditto sync
   /// subscription is never registered with a null branch (which would miss
   /// cross-device parked tickets for the whole session).
-  const TicketsStreamProvider._()
+  TicketsStreamProvider._()
     : super(
         from: null,
         argument: null,
@@ -135,14 +135,14 @@ final class TicketsStreamProvider
   }
 }
 
-String _$ticketsStreamHash() => r'7570cb66baca53bc8c7b66f4a72d6799293a28f0';
+String _$ticketsStreamHash() => r'9e854319ac87f61e68fb38b737d32e60a872e658';
 
 /// Ticket Review + Handover workflow: branch-wide tickets awaiting reviewer
 /// sign-off (`pendingReview`). Deliberately separate from [ticketsStream] —
 /// these tickets do not appear in the normal Tickets list.
 
 @ProviderFor(reviewQueueStream)
-const reviewQueueStreamProvider = ReviewQueueStreamProvider._();
+final reviewQueueStreamProvider = ReviewQueueStreamProvider._();
 
 /// Ticket Review + Handover workflow: branch-wide tickets awaiting reviewer
 /// sign-off (`pendingReview`). Deliberately separate from [ticketsStream] —
@@ -161,7 +161,7 @@ final class ReviewQueueStreamProvider
   /// Ticket Review + Handover workflow: branch-wide tickets awaiting reviewer
   /// sign-off (`pendingReview`). Deliberately separate from [ticketsStream] —
   /// these tickets do not appear in the normal Tickets list.
-  const ReviewQueueStreamProvider._()
+  ReviewQueueStreamProvider._()
     : super(
         from: null,
         argument: null,

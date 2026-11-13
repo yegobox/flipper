@@ -10,11 +10,11 @@ part of 'pay_button_provider.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(PayButtonState)
-const payButtonStateProvider = PayButtonStateProvider._();
+final payButtonStateProvider = PayButtonStateProvider._();
 
 final class PayButtonStateProvider
     extends $NotifierProvider<PayButtonState, Map<ButtonType, bool>> {
-  const PayButtonStateProvider._()
+  PayButtonStateProvider._()
     : super(
         from: null,
         argument: null,
@@ -47,8 +47,7 @@ abstract class _$PayButtonState extends $Notifier<Map<ButtonType, bool>> {
   Map<ButtonType, bool> build();
   @$mustCallSuper
   @override
-  void runBuild() {
-    final created = build();
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<Map<ButtonType, bool>, Map<ButtonType, bool>>;
     final element =
         ref.element
@@ -58,16 +57,16 @@ abstract class _$PayButtonState extends $Notifier<Map<ButtonType, bool>> {
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    return element.handleCreate(ref, build);
   }
 }
 
 @ProviderFor(SelectedButtonType)
-const selectedButtonTypeProvider = SelectedButtonTypeProvider._();
+final selectedButtonTypeProvider = SelectedButtonTypeProvider._();
 
 final class SelectedButtonTypeProvider
     extends $NotifierProvider<SelectedButtonType, ButtonType> {
-  const SelectedButtonTypeProvider._()
+  SelectedButtonTypeProvider._()
     : super(
         from: null,
         argument: null,
@@ -101,8 +100,7 @@ abstract class _$SelectedButtonType extends $Notifier<ButtonType> {
   ButtonType build();
   @$mustCallSuper
   @override
-  void runBuild() {
-    final created = build();
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<ButtonType, ButtonType>;
     final element =
         ref.element
@@ -112,6 +110,6 @@ abstract class _$SelectedButtonType extends $Notifier<ButtonType> {
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    return element.handleCreate(ref, build);
   }
 }

@@ -8,9 +8,22 @@ part of 'country_provider.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
+/// Countries for the origin pickers, ordered with the default first.
+///
+/// Falls back to the bundled CSV when the `countries` table has no rows (it is
+/// remote-only, so a backend without that reference data leaves the dropdown
+/// empty and unusable) or when the active strategy cannot serve it at all —
+/// CapellaSync.countries() throws UnimplementedError, which is the web path.
 
 @ProviderFor(countries)
-const countriesProvider = CountriesProvider._();
+final countriesProvider = CountriesProvider._();
+
+/// Countries for the origin pickers, ordered with the default first.
+///
+/// Falls back to the bundled CSV when the `countries` table has no rows (it is
+/// remote-only, so a backend without that reference data leaves the dropdown
+/// empty and unusable) or when the active strategy cannot serve it at all —
+/// CapellaSync.countries() throws UnimplementedError, which is the web path.
 
 final class CountriesProvider
     extends
@@ -20,7 +33,13 @@ final class CountriesProvider
           FutureOr<List<Country>>
         >
     with $FutureModifier<List<Country>>, $FutureProvider<List<Country>> {
-  const CountriesProvider._()
+  /// Countries for the origin pickers, ordered with the default first.
+  ///
+  /// Falls back to the bundled CSV when the `countries` table has no rows (it is
+  /// remote-only, so a backend without that reference data leaves the dropdown
+  /// empty and unusable) or when the active strategy cannot serve it at all —
+  /// CapellaSync.countries() throws UnimplementedError, which is the web path.
+  CountriesProvider._()
     : super(
         from: null,
         argument: null,
@@ -46,4 +65,4 @@ final class CountriesProvider
   }
 }
 
-String _$countriesHash() => r'f78014e20a80f10280b316f8bd4d847ebb52c815';
+String _$countriesHash() => r'fa61bab2de6552ab8d3c1aba4fce9dc48ccec846';

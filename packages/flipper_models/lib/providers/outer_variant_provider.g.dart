@@ -12,7 +12,7 @@ part of 'outer_variant_provider.dart';
 /// session; a search always lists everything regardless (see [PosStockFilter]).
 
 @ProviderFor(PosCatalogStockFilter)
-const posCatalogStockFilterProvider = PosCatalogStockFilterProvider._();
+final posCatalogStockFilterProvider = PosCatalogStockFilterProvider._();
 
 /// The stock view the POS grid is showing. Starts on in-stock items every
 /// session; a search always lists everything regardless (see [PosStockFilter]).
@@ -20,7 +20,7 @@ final class PosCatalogStockFilterProvider
     extends $NotifierProvider<PosCatalogStockFilter, PosStockFilter> {
   /// The stock view the POS grid is showing. Starts on in-stock items every
   /// session; a search always lists everything regardless (see [PosStockFilter]).
-  const PosCatalogStockFilterProvider._()
+  PosCatalogStockFilterProvider._()
     : super(
         from: null,
         argument: null,
@@ -57,8 +57,7 @@ abstract class _$PosCatalogStockFilter extends $Notifier<PosStockFilter> {
   PosStockFilter build();
   @$mustCallSuper
   @override
-  void runBuild() {
-    final created = build();
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<PosStockFilter, PosStockFilter>;
     final element =
         ref.element
@@ -68,16 +67,16 @@ abstract class _$PosCatalogStockFilter extends $Notifier<PosStockFilter> {
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    return element.handleCreate(ref, build);
   }
 }
 
 @ProviderFor(OuterVariants)
-const outerVariantsProvider = OuterVariantsFamily._();
+final outerVariantsProvider = OuterVariantsFamily._();
 
 final class OuterVariantsProvider
     extends $AsyncNotifierProvider<OuterVariants, List<Variant>> {
-  const OuterVariantsProvider._({
+  OuterVariantsProvider._({
     required OuterVariantsFamily super.from,
     required (String, {PosStockFilter stockFilter}) super.argument,
   }) : super(
@@ -113,7 +112,7 @@ final class OuterVariantsProvider
   }
 }
 
-String _$outerVariantsHash() => r'207a4d80f7c6c08769e33588f6a19ef796073f3c';
+String _$outerVariantsHash() => r'6efe586af61706d35793120898018ebc43f507d6';
 
 final class OuterVariantsFamily extends $Family
     with
@@ -124,7 +123,7 @@ final class OuterVariantsFamily extends $Family
           FutureOr<List<Variant>>,
           (String, {PosStockFilter stockFilter})
         > {
-  const OuterVariantsFamily._()
+  OuterVariantsFamily._()
     : super(
         retry: null,
         name: r'outerVariantsProvider',
@@ -156,8 +155,7 @@ abstract class _$OuterVariants extends $AsyncNotifier<List<Variant>> {
   });
   @$mustCallSuper
   @override
-  void runBuild() {
-    final created = build(_$args.$1, stockFilter: _$args.stockFilter);
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<AsyncValue<List<Variant>>, List<Variant>>;
     final element =
         ref.element
@@ -167,16 +165,19 @@ abstract class _$OuterVariants extends $AsyncNotifier<List<Variant>> {
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    return element.handleCreate(
+      ref,
+      () => build(_$args.$1, stockFilter: _$args.stockFilter),
+    );
   }
 }
 
 @ProviderFor(Products)
-const productsProvider = ProductsFamily._();
+final productsProvider = ProductsFamily._();
 
 final class ProductsProvider
     extends $AsyncNotifierProvider<Products, List<Product>> {
-  const ProductsProvider._({
+  ProductsProvider._({
     required ProductsFamily super.from,
     required String super.argument,
   }) : super(
@@ -223,7 +224,7 @@ final class ProductsFamily extends $Family
           FutureOr<List<Product>>,
           String
         > {
-  const ProductsFamily._()
+  ProductsFamily._()
     : super(
         retry: null,
         name: r'productsProvider',
@@ -246,8 +247,7 @@ abstract class _$Products extends $AsyncNotifier<List<Product>> {
   FutureOr<List<Product>> build(String branchId);
   @$mustCallSuper
   @override
-  void runBuild() {
-    final created = build(_$args);
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<AsyncValue<List<Product>>, List<Product>>;
     final element =
         ref.element
@@ -257,6 +257,6 @@ abstract class _$Products extends $AsyncNotifier<List<Product>> {
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    return element.handleCreate(ref, () => build(_$args));
   }
 }

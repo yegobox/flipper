@@ -15,7 +15,7 @@ part of 'branch_business_provider.dart';
 /// never add branches the user cannot access.
 
 @ProviderFor(branches)
-const branchesProvider = BranchesFamily._();
+final branchesProvider = BranchesFamily._();
 
 /// Branches the current user may access for [businessId].
 ///
@@ -36,7 +36,7 @@ final class BranchesProvider
   /// Same source as [LoginChoices] (`Ditto user_access` via `getBranches`).
   /// Local Brick rows only enrich fields (e.g. `isDefault`) for those ids —
   /// never add branches the user cannot access.
-  const BranchesProvider._({
+  BranchesProvider._({
     required BranchesFamily super.from,
     required String? super.argument,
   }) : super(
@@ -90,7 +90,7 @@ String _$branchesHash() => r'68602e9497e5f8f5b3ad33807fb6cf4da891eab6';
 
 final class BranchesFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<List<Branch>>, String?> {
-  const BranchesFamily._()
+  BranchesFamily._()
     : super(
         retry: null,
         name: r'branchesProvider',
@@ -115,7 +115,7 @@ final class BranchesFamily extends $Family
 /// Every branch row synced for [businessId] (admin screens, e.g. Add Branch).
 
 @ProviderFor(allBusinessBranches)
-const allBusinessBranchesProvider = AllBusinessBranchesFamily._();
+final allBusinessBranchesProvider = AllBusinessBranchesFamily._();
 
 /// Every branch row synced for [businessId] (admin screens, e.g. Add Branch).
 
@@ -128,7 +128,7 @@ final class AllBusinessBranchesProvider
         >
     with $FutureModifier<List<Branch>>, $FutureProvider<List<Branch>> {
   /// Every branch row synced for [businessId] (admin screens, e.g. Add Branch).
-  const AllBusinessBranchesProvider._({
+  AllBusinessBranchesProvider._({
     required AllBusinessBranchesFamily super.from,
     required String? super.argument,
   }) : super(
@@ -179,7 +179,7 @@ String _$allBusinessBranchesHash() =>
 
 final class AllBusinessBranchesFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<List<Branch>>, String?> {
-  const AllBusinessBranchesFamily._()
+  AllBusinessBranchesFamily._()
     : super(
         retry: null,
         name: r'allBusinessBranchesProvider',

@@ -10,12 +10,12 @@ part of 'access_provider.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(isAdmin)
-const isAdminProvider = IsAdminFamily._();
+final isAdminProvider = IsAdminFamily._();
 
 final class IsAdminProvider
     extends $FunctionalProvider<AsyncValue<bool>, bool, FutureOr<bool>>
     with $FutureModifier<bool>, $FutureProvider<bool> {
-  const IsAdminProvider._({
+  IsAdminProvider._({
     required IsAdminFamily super.from,
     required (String, {String featureName}) super.argument,
   }) : super(
@@ -66,7 +66,7 @@ final class IsAdminFamily extends $Family
           FutureOr<bool>,
           (String, {String featureName})
         > {
-  const IsAdminFamily._()
+  IsAdminFamily._()
     : super(
         retry: null,
         name: r'isAdminProvider',
@@ -86,7 +86,7 @@ final class IsAdminFamily extends $Family
 }
 
 @ProviderFor(userAccesses)
-const userAccessesProvider = UserAccessesFamily._();
+final userAccessesProvider = UserAccessesFamily._();
 
 final class UserAccessesProvider
     extends
@@ -96,7 +96,7 @@ final class UserAccessesProvider
           FutureOr<List<Access>>
         >
     with $FutureModifier<List<Access>>, $FutureProvider<List<Access>> {
-  const UserAccessesProvider._({
+  UserAccessesProvider._({
     required UserAccessesFamily super.from,
     required (String, {String featureName}) super.argument,
   }) : super(
@@ -140,7 +140,7 @@ final class UserAccessesProvider
   }
 }
 
-String _$userAccessesHash() => r'bdee75c10ced4deea1d09af69517ba79518899f7';
+String _$userAccessesHash() => r'633f504f91f6b81f4eeeb3bb5476abfec39ebbdd';
 
 final class UserAccessesFamily extends $Family
     with
@@ -148,7 +148,7 @@ final class UserAccessesFamily extends $Family
           FutureOr<List<Access>>,
           (String, {String featureName})
         > {
-  const UserAccessesFamily._()
+  UserAccessesFamily._()
     : super(
         retry: null,
         name: r'userAccessesProvider',
@@ -168,7 +168,7 @@ final class UserAccessesFamily extends $Family
 }
 
 @ProviderFor(allAccesses)
-const allAccessesProvider = AllAccessesFamily._();
+final allAccessesProvider = AllAccessesFamily._();
 
 final class AllAccessesProvider
     extends
@@ -178,7 +178,7 @@ final class AllAccessesProvider
           FutureOr<List<Access>>
         >
     with $FutureModifier<List<Access>>, $FutureProvider<List<Access>> {
-  const AllAccessesProvider._({
+  AllAccessesProvider._({
     required AllAccessesFamily super.from,
     required String super.argument,
   }) : super(
@@ -226,7 +226,7 @@ String _$allAccessesHash() => r'fd7365d30cdb76a733b716498c120cf7201d0964';
 
 final class AllAccessesFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<List<Access>>, String> {
-  const AllAccessesFamily._()
+  AllAccessesFamily._()
     : super(
         retry: null,
         name: r'allAccessesProvider',
@@ -243,12 +243,12 @@ final class AllAccessesFamily extends $Family
 }
 
 @ProviderFor(tenant)
-const tenantProvider = TenantFamily._();
+final tenantProvider = TenantFamily._();
 
 final class TenantProvider
     extends $FunctionalProvider<AsyncValue<Tenant?>, Tenant?, FutureOr<Tenant?>>
     with $FutureModifier<Tenant?>, $FutureProvider<Tenant?> {
-  const TenantProvider._({
+  TenantProvider._({
     required TenantFamily super.from,
     required String super.argument,
   }) : super(
@@ -295,7 +295,7 @@ String _$tenantHash() => r'055c38c0a9dce197cee9721713664d3941718f97';
 
 final class TenantFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<Tenant?>, String> {
-  const TenantFamily._()
+  TenantFamily._()
     : super(
         retry: null,
         name: r'tenantProvider',
@@ -312,11 +312,11 @@ final class TenantFamily extends $Family
 }
 
 @ProviderFor(featureAccess)
-const featureAccessProvider = FeatureAccessFamily._();
+final featureAccessProvider = FeatureAccessFamily._();
 
 final class FeatureAccessProvider extends $FunctionalProvider<bool, bool, bool>
     with $Provider<bool> {
-  const FeatureAccessProvider._({
+  FeatureAccessProvider._({
     required FeatureAccessFamily super.from,
     required ({String userId, String featureName}) super.argument,
   }) : super(
@@ -371,12 +371,12 @@ final class FeatureAccessProvider extends $FunctionalProvider<bool, bool, bool>
   }
 }
 
-String _$featureAccessHash() => r'9f759d7b4c0017caf929a1cc449d01ea0cdb6de3';
+String _$featureAccessHash() => r'f1640df776a403bb60e20df2a82b69ba4377cfe5';
 
 final class FeatureAccessFamily extends $Family
     with
         $FunctionalFamilyOverride<bool, ({String userId, String featureName})> {
-  const FeatureAccessFamily._()
+  FeatureAccessFamily._()
     : super(
         retry: null,
         name: r'featureAccessProvider',
@@ -406,7 +406,7 @@ final class FeatureAccessFamily extends $Family
 /// Fails closed (denies view) on error so a lookup failure never leaks a screen.
 
 @ProviderFor(featureViewAccess)
-const featureViewAccessProvider = FeatureViewAccessFamily._();
+final featureViewAccessProvider = FeatureViewAccessFamily._();
 
 /// True when the user has ANY active, non-expired grant for [featureName]
 /// (read / read_write / write / admin) — i.e. the user may VIEW the feature.
@@ -426,7 +426,7 @@ final class FeatureViewAccessProvider
   /// feature's tile/screen *visibility* on this so read-only staff can see it;
   /// every mutating action inside that screen must still gate on [featureAccess].
   /// Fails closed (denies view) on error so a lookup failure never leaks a screen.
-  const FeatureViewAccessProvider._({
+  FeatureViewAccessProvider._({
     required FeatureViewAccessFamily super.from,
     required ({String userId, String featureName}) super.argument,
   }) : super(
@@ -481,7 +481,7 @@ final class FeatureViewAccessProvider
   }
 }
 
-String _$featureViewAccessHash() => r'70cc6486a2921c73fb09ba8d2b1ffaf50dc16f75';
+String _$featureViewAccessHash() => r'3c8fdb73b4ce9b33d4664f5cec92f36de8804104';
 
 /// True when the user has ANY active, non-expired grant for [featureName]
 /// (read / read_write / write / admin) — i.e. the user may VIEW the feature.
@@ -494,7 +494,7 @@ String _$featureViewAccessHash() => r'70cc6486a2921c73fb09ba8d2b1ffaf50dc16f75';
 final class FeatureViewAccessFamily extends $Family
     with
         $FunctionalFamilyOverride<bool, ({String userId, String featureName})> {
-  const FeatureViewAccessFamily._()
+  FeatureViewAccessFamily._()
     : super(
         retry: null,
         name: r'featureViewAccessProvider',
@@ -528,7 +528,7 @@ final class FeatureViewAccessFamily extends $Family
 /// to whatever he is trying to access
 
 @ProviderFor(featureAccessLevel)
-const featureAccessLevelProvider = FeatureAccessLevelFamily._();
+final featureAccessLevelProvider = FeatureAccessLevelFamily._();
 
 /// this check if a user has one accessLevel required to grant him access regardles of the feature
 /// e.g if a fature Requires Write, or Admin it will check if a user has these permission in one of the feature and grant them access
@@ -540,7 +540,7 @@ final class FeatureAccessLevelProvider
   /// this check if a user has one accessLevel required to grant him access regardles of the feature
   /// e.g if a fature Requires Write, or Admin it will check if a user has these permission in one of the feature and grant them access
   /// to whatever he is trying to access
-  const FeatureAccessLevelProvider._({
+  FeatureAccessLevelProvider._({
     required FeatureAccessLevelFamily super.from,
     required ({String userId, String accessLevel}) super.argument,
   }) : super(
@@ -596,7 +596,7 @@ final class FeatureAccessLevelProvider
 }
 
 String _$featureAccessLevelHash() =>
-    r'5d9bcd555536730a1c4f3167f2a3be6a3e440dc6';
+    r'38352e6fd9ba1c8cb64587d1376468d334cc3d49';
 
 /// this check if a user has one accessLevel required to grant him access regardles of the feature
 /// e.g if a fature Requires Write, or Admin it will check if a user has these permission in one of the feature and grant them access
@@ -605,7 +605,7 @@ String _$featureAccessLevelHash() =>
 final class FeatureAccessLevelFamily extends $Family
     with
         $FunctionalFamilyOverride<bool, ({String userId, String accessLevel})> {
-  const FeatureAccessLevelFamily._()
+  FeatureAccessLevelFamily._()
     : super(
         retry: null,
         name: r'featureAccessLevelProvider',

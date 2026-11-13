@@ -10,10 +10,10 @@ part of 'profit_provider.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(Profit)
-const profitProvider = ProfitFamily._();
+final profitProvider = ProfitFamily._();
 
 final class ProfitProvider extends $AsyncNotifierProvider<Profit, double> {
-  const ProfitProvider._({
+  ProfitProvider._({
     required ProfitFamily super.from,
     required String super.argument,
   }) : super(
@@ -60,7 +60,7 @@ final class ProfitFamily extends $Family
           FutureOr<double>,
           String
         > {
-  const ProfitFamily._()
+  ProfitFamily._()
     : super(
         retry: null,
         name: r'profitProvider',
@@ -83,8 +83,7 @@ abstract class _$Profit extends $AsyncNotifier<double> {
   FutureOr<double> build(String branchId);
   @$mustCallSuper
   @override
-  void runBuild() {
-    final created = build(_$args);
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<AsyncValue<double>, double>;
     final element =
         ref.element
@@ -94,6 +93,6 @@ abstract class _$Profit extends $AsyncNotifier<double> {
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    return element.handleCreate(ref, () => build(_$args));
   }
 }

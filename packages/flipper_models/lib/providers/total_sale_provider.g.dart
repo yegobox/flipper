@@ -10,12 +10,12 @@ part of 'total_sale_provider.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(TotalSale)
-const totalSaleProvider = TotalSaleFamily._();
+final totalSaleProvider = TotalSaleFamily._();
 
 final class TotalSaleProvider
     extends $FunctionalProvider<AsyncValue<double>, double, FutureOr<double>>
     with $FutureModifier<double>, $FutureProvider<double> {
-  const TotalSaleProvider._({
+  TotalSaleProvider._({
     required TotalSaleFamily super.from,
     required String super.argument,
   }) : super(
@@ -62,7 +62,7 @@ String _$totalSaleHash() => r'ca4aeafa03a148bd15abf3aaa937e077254d2abb';
 
 final class TotalSaleFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<double>, String> {
-  const TotalSaleFamily._()
+  TotalSaleFamily._()
     : super(
         retry: null,
         name: r'totalSaleProvider',

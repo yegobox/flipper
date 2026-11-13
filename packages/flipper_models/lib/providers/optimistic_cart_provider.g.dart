@@ -10,11 +10,11 @@ part of 'optimistic_cart_provider.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(OptimisticCart)
-const optimisticCartProvider = OptimisticCartProvider._();
+final optimisticCartProvider = OptimisticCartProvider._();
 
 final class OptimisticCartProvider
     extends $NotifierProvider<OptimisticCart, OptimisticCartState> {
-  const OptimisticCartProvider._()
+  OptimisticCartProvider._()
     : super(
         from: null,
         argument: null,
@@ -41,14 +41,13 @@ final class OptimisticCartProvider
   }
 }
 
-String _$optimisticCartHash() => r'ee41545c804aa9b6d99d77cd49d335db71c416ed';
+String _$optimisticCartHash() => r'4590f3e642dcf5ab69a97c35467f7e54440c77f7';
 
 abstract class _$OptimisticCart extends $Notifier<OptimisticCartState> {
   OptimisticCartState build();
   @$mustCallSuper
   @override
-  void runBuild() {
-    final created = build();
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<OptimisticCartState, OptimisticCartState>;
     final element =
         ref.element
@@ -58,6 +57,6 @@ abstract class _$OptimisticCart extends $Notifier<OptimisticCartState> {
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    return element.handleCreate(ref, build);
   }
 }

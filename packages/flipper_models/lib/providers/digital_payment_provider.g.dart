@@ -10,12 +10,12 @@ part of 'digital_payment_provider.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(isDigitalPaymentEnabled)
-const isDigitalPaymentEnabledProvider = IsDigitalPaymentEnabledProvider._();
+final isDigitalPaymentEnabledProvider = IsDigitalPaymentEnabledProvider._();
 
 final class IsDigitalPaymentEnabledProvider
     extends $FunctionalProvider<AsyncValue<bool>, bool, FutureOr<bool>>
     with $FutureModifier<bool>, $FutureProvider<bool> {
-  const IsDigitalPaymentEnabledProvider._()
+  IsDigitalPaymentEnabledProvider._()
     : super(
         from: null,
         argument: null,

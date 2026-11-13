@@ -10,11 +10,11 @@ part of 'side_nav_bar.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(SideNavCollapsed)
-const sideNavCollapsedProvider = SideNavCollapsedProvider._();
+final sideNavCollapsedProvider = SideNavCollapsedProvider._();
 
 final class SideNavCollapsedProvider
     extends $NotifierProvider<SideNavCollapsed, bool> {
-  const SideNavCollapsedProvider._()
+  SideNavCollapsedProvider._()
     : super(
         from: null,
         argument: null,
@@ -47,8 +47,7 @@ abstract class _$SideNavCollapsed extends $Notifier<bool> {
   bool build();
   @$mustCallSuper
   @override
-  void runBuild() {
-    final created = build();
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<bool, bool>;
     final element =
         ref.element
@@ -58,16 +57,16 @@ abstract class _$SideNavCollapsed extends $Notifier<bool> {
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    return element.handleCreate(ref, build);
   }
 }
 
 @ProviderFor(SelectedNavIndex)
-const selectedNavIndexProvider = SelectedNavIndexProvider._();
+final selectedNavIndexProvider = SelectedNavIndexProvider._();
 
 final class SelectedNavIndexProvider
     extends $NotifierProvider<SelectedNavIndex, int> {
-  const SelectedNavIndexProvider._()
+  SelectedNavIndexProvider._()
     : super(
         from: null,
         argument: null,
@@ -100,8 +99,7 @@ abstract class _$SelectedNavIndex extends $Notifier<int> {
   int build();
   @$mustCallSuper
   @override
-  void runBuild() {
-    final created = build();
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<int, int>;
     final element =
         ref.element
@@ -111,6 +109,6 @@ abstract class _$SelectedNavIndex extends $Notifier<int> {
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    return element.handleCreate(ref, build);
   }
 }

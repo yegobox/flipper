@@ -10,7 +10,7 @@ part of 'notice_provider.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(notices)
-const noticesProvider = NoticesProvider._();
+final noticesProvider = NoticesProvider._();
 
 final class NoticesProvider
     extends
@@ -20,7 +20,7 @@ final class NoticesProvider
           FutureOr<List<Notice>>
         >
     with $FutureModifier<List<Notice>>, $FutureProvider<List<Notice>> {
-  const NoticesProvider._()
+  NoticesProvider._()
     : super(
         from: null,
         argument: null,
