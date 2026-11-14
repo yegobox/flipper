@@ -61,7 +61,7 @@ jobs:
 
       # Checkout flipper code
       - name: Checkout main with every branch
-        uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           ref: main
           fetch-depth: 0
