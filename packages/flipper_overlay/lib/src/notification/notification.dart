@@ -50,8 +50,10 @@ class SlideDismissible extends StatelessWidget {
 
   final DismissDirection direction;
 
+  /// [key] is required: the inner [Dismissible] needs one (local change, see
+  /// README).
   SlideDismissible({
-    Key? key,
+    required Key key,
     required this.child,
     @Deprecated('use directions instead.') bool enable = true,
     DismissDirection? direction,
@@ -62,7 +64,7 @@ class SlideDismissible extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Dismissible(
-      key: key!,
+      key: key!, // non-null: the constructor requires it
       direction: direction,
       onDismissed: (direction) {
         OverlaySupportEntry.of(context)!.dismiss(animate: false);

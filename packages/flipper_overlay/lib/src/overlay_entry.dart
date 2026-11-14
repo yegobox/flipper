@@ -92,6 +92,12 @@ class _OverlaySupportEntryImpl implements OverlaySupportEntry {
     }
 
     void animateRemove() {
+      // Local change (see README): a later dismiss(animate: false) may have
+      // removed the entry before it ever mounted; stop retrying then, or this
+      // re-schedules a frame forever.
+      if (_dismissed) {
+        return;
+      }
       if (_stateKey.currentState != null) {
         _stateKey.currentState!.hide().whenComplete(() {
           _dismissEntry();

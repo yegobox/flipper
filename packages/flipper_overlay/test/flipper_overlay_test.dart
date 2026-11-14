@@ -57,4 +57,24 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Sync failed'), findsNothing);
   });
+
+  testWidgets(
+      'dismissing before the entry mounts, then removing it, stops scheduling '
+      'frames', (tester) async {
+    await tester.pumpWidget(host());
+
+    final entry = showSimpleNotification(
+      const Text('Gone'),
+      autoDismiss: false,
+    );
+    // Not mounted yet: the animated dismiss waits for a frame...
+    entry.dismiss();
+    // ...but the entry is removed before that frame.
+    entry.dismiss(animate: false);
+
+    await tester.pump();
+    await tester.pump();
+    expect(find.text('Gone'), findsNothing);
+    expect(tester.binding.hasScheduledFrame, isFalse);
+  });
 }
