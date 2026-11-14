@@ -1,5 +1,6 @@
 import 'package:flipper_localize/flipper_localize.dart';
 
+import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
 import 'package:flipper_dashboard/providers/customer_phone_provider.dart';
 import 'package:flipper_dashboard/providers/mpos_customer_actions_provider.dart';
 import 'package:flipper_dashboard/theme/mpos_tokens.dart';
@@ -21,6 +22,9 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 ///
 /// Two taps at most: open the sheet, then tap a recent/matching customer or
 /// the add button. A new customer needs only a phone; the name is optional.
+///
+/// On a phone it is a bottom sheet. On a wider window it is a centred dialog
+/// instead: a sheet stretched across a desktop read as phone UI.
 class MposCustomerSheet {
   static Future<void> show({
     required BuildContext context,
@@ -28,11 +32,12 @@ class MposCustomerSheet {
     required ITransaction transaction,
     VoidCallback? onAttached,
   }) {
-    return showMposAnimatedSheet<void>(
-      context: context,
-      builder: (ctx) => MposCustomerSheetBody(
+    return _present<void>(
+      context,
+      (dialog) => MposCustomerSheetBody(
         transaction: transaction,
         onAttached: onAttached,
+        dialog: dialog,
       ),
     );
   }
@@ -41,9 +46,39 @@ class MposCustomerSheet {
   /// (or [CustomerPick] with null for "remove") and writes nothing to a sale.
   /// A quick-added customer is saved, since the ticket needs its id.
   static Future<CustomerPick?> pick(BuildContext context, {Customer? current}) {
-    return showMposAnimatedSheet<CustomerPick>(
+    return _present<CustomerPick>(
+      context,
+      (dialog) => MposCustomerSheetBody(current: current, dialog: dialog),
+    );
+  }
+
+  /// Widest the dialog grows on a desktop.
+  static const double dialogMaxWidth = 520;
+
+  static Future<T?> _present<T>(
+    BuildContext context,
+    Widget Function(bool dialog) body,
+  ) {
+    final wide =
+        MediaQuery.sizeOf(context).width >=
+        PosLayoutBreakpoints.mobileLayoutMaxWidth;
+    if (!wide) {
+      return showMposAnimatedSheet<T>(
+        context: context,
+        builder: (ctx) => body(false),
+      );
+    }
+    return showDialog<T>(
       context: context,
-      builder: (ctx) => MposCustomerSheetBody(current: current),
+      builder: (ctx) => Dialog(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        insetPadding: const EdgeInsets.all(24),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: dialogMaxWidth),
+          child: body(true),
+        ),
+      ),
     );
   }
 }
@@ -55,7 +90,12 @@ class MposCustomerSheetBody extends ConsumerStatefulWidget {
     this.transaction,
     this.onAttached,
     this.current,
+    this.dialog = false,
   });
+
+  /// Drawn as a centred desktop dialog: all corners rounded, no grab bar, a
+  /// shorter list, and the phone field focused so the desk can type at once.
+  final bool dialog;
 
   /// Sale to attach to. Null puts the sheet in pick mode: it pops with a
   /// [CustomerPick] instead of writing.
@@ -169,10 +209,15 @@ class _MposCustomerSheetBodyState extends ConsumerState<MposCustomerSheetBody> {
   Widget build(BuildContext context) {
     final l10n = context.flipperL10n;
     final media = MediaQuery.of(context);
-    final maxH = (media.size.height * 0.88).clamp(
-      0.0,
-      media.size.height - media.padding.top - media.viewInsets.bottom - 16,
-    );
+    final maxH = widget.dialog
+        ? (media.size.height * 0.8).clamp(0.0, 640.0)
+        : (media.size.height * 0.88).clamp(
+            0.0,
+            media.size.height -
+                media.padding.top -
+                media.viewInsets.bottom -
+                16,
+          );
 
     final all =
         ref.watch(customersProvider).asData?.value ?? const <Customer>[];
@@ -200,26 +245,34 @@ class _MposCustomerSheetBodyState extends ConsumerState<MposCustomerSheetBody> {
       buttonLabel = l10n.mposEnterCustomerPhone;
     }
 
+    final canSubmit = existing != null || phoneComplete;
+
     return Material(
       color: PosTokens.surface,
-      borderRadius: const BorderRadius.vertical(
-        top: Radius.circular(MposTokens.sheetRadius),
-      ),
+      borderRadius: widget.dialog
+          ? BorderRadius.circular(MposTokens.radiusLg)
+          : const BorderRadius.vertical(
+              top: Radius.circular(MposTokens.sheetRadius),
+            ),
       clipBehavior: Clip.antiAlias,
       child: ConstrainedBox(
         constraints: BoxConstraints(maxHeight: maxH),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const SizedBox(height: 10),
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: PosTokens.lineStrong,
-                borderRadius: BorderRadius.circular(999),
+            if (widget.dialog)
+              const SizedBox(height: 12)
+            else ...[
+              const SizedBox(height: 10),
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: PosTokens.lineStrong,
+                  borderRadius: BorderRadius.circular(999),
+                ),
               ),
-            ),
+            ],
             Padding(
               padding: const EdgeInsets.fromLTRB(18, 8, 12, 12),
               child: Row(
@@ -266,14 +319,18 @@ class _MposCustomerSheetBodyState extends ConsumerState<MposCustomerSheetBody> {
                       hint: l10n.mposCustomerPhoneHint,
                       // Picking for a ticket is mostly a tap on a recent
                       // customer; the keyboard would cover that list.
-                      autofocus: !_pickMode,
+                      autofocus: widget.dialog || !_pickMode,
                       keyboardType: TextInputType.phone,
                       textInputAction: TextInputAction.next,
                       inputFormatters: [
                         FilteringTextInputFormatter.allow(RegExp(r'[0-9+ ]')),
                       ],
                       onChanged: (_) => setState(() => _error = null),
-                      onSubmitted: (_) => _nameFocus.requestFocus(),
+                      // At a desk, Enter on a known or complete number is
+                      // the primary action; the name stays optional.
+                      onSubmitted: (_) => widget.dialog && canSubmit
+                          ? _submit(all)
+                          : _nameFocus.requestFocus(),
                     ),
                     const Divider(height: 1, color: PosTokens.line),
                     _FieldRow(
@@ -367,9 +424,7 @@ class _MposCustomerSheetBodyState extends ConsumerState<MposCustomerSheetBody> {
                         ? Icons.person_rounded
                         : Icons.add_rounded,
                     loading: _saving,
-                    onPressed: existing != null || phoneComplete
-                        ? () => _submit(all)
-                        : null,
+                    onPressed: canSubmit ? () => _submit(all) : null,
                   ),
                 ],
               ),
