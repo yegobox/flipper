@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
+import 'package:flipper_dashboard/widgets/pos_handoff_icon.dart';
 import 'package:flipper_dashboard/widgets/pos_side_rail.dart';
 import 'package:flipper_design_system/flipper_design_system.dart'
     show CustomAppBar;
@@ -904,15 +905,8 @@ class _BrandMark extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 28,
-      height: 28,
-      decoration: const BoxDecoration(
-        gradient: HrTokens.brandGradient,
-        borderRadius: BorderRadius.all(Radius.circular(8)),
-      ),
-      child: const Icon(Icons.groups, color: Colors.white, size: 16),
-    );
+    // The same Flipper logo the POS shows above its rail.
+    return PosHandoffIcons.svg('flipper-logo', size: 26);
   }
 }
 
