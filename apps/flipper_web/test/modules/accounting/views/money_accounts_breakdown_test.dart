@@ -105,16 +105,122 @@ void main() {
           ),
           isEmpty,
         );
-        expect(find.byType(MoneyAccountsBreakdown), findsOneWidget);
-        _expectBreakdown(tester);
+        // Folded by default: the bar and "3 accounts" show, the rows don't.
+        expect(find.byKey(const Key('money-accounts-bar')), findsOneWidget);
+        expect(find.text('3 accounts'), findsOneWidget);
+        expect(find.byType(MoneyAccountsBreakdown), findsNothing);
         // The total is unchanged, and the old "across 3 accounts" is gone.
         expect(
           find.textContaining('12,340,678', findRichText: true),
           findsOneWidget,
         );
         expect(find.textContaining('across'), findsNothing);
+
+        await tester.tap(find.byKey(const Key('money-accounts-toggle')));
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+        expect(find.byType(MoneyAccountsBreakdown), findsOneWidget);
+        _expectBreakdown(tester);
+        expect(find.text('Hide details'), findsOneWidget);
+
+        await tester.tap(find.byKey(const Key('money-accounts-toggle')));
+        await tester.pumpAndSettle();
+        expect(find.byType(MoneyAccountsBreakdown), findsNothing);
       });
     }
+  });
+
+  group('folded breakdown', () {
+    Future<void> pumpFolded(
+      WidgetTester tester,
+      List<MoneyAccountBalance> balances,
+    ) async {
+      _useSize(tester, const Size(400, 300));
+      await _pump(
+        tester,
+        Center(
+          child: SizedBox(
+            width: 180,
+            child: CollapsibleMoneyAccounts(balances: balances),
+          ),
+        ),
+      );
+      expect(tester.takeException(), isNull);
+    }
+
+    testWidgets('bar has a segment only for accounts holding money', (
+      tester,
+    ) async {
+      await pumpFolded(tester, _balances);
+      expect(
+        find.byKey(const Key('money-accounts-segment-1010')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const Key('money-accounts-segment-1030')),
+        findsNothing,
+      );
+      expect(
+        find.byKey(const Key('money-accounts-segment-1020')),
+        findsNothing,
+      );
+    });
+
+    testWidgets('a negative account shows a red dot while folded', (
+      tester,
+    ) async {
+      await pumpFolded(tester, _balances);
+      final dot = find.byKey(const Key('money-accounts-negative-dot'));
+      expect(dot, findsOneWidget);
+      // Open, the red amount itself says it; the dot goes.
+      await tester.tap(find.byKey(const Key('money-accounts-toggle')));
+      await tester.pumpAndSettle();
+      expect(dot, findsNothing);
+      _expectBreakdown(tester);
+    });
+
+    testWidgets('no dot when every account is zero or above', (tester) async {
+      await pumpFolded(tester, const [
+        (code: '1010', bal: 3000),
+        (code: '1030', bal: 1000),
+        (code: '1020', bal: 0),
+      ]);
+      expect(
+        find.byKey(const Key('money-accounts-negative-dot')),
+        findsNothing,
+      );
+      expect(
+        find.byKey(const Key('money-accounts-segment-1030')),
+        findsOneWidget,
+      );
+      // 3:1 split.
+      final cash = tester.getSize(
+        find.byKey(const Key('money-accounts-segment-1010')),
+      );
+      final momo = tester.getSize(
+        find.byKey(const Key('money-accounts-segment-1030')),
+      );
+      expect(cash.width / momo.width, closeTo(3, 0.1));
+      expect(cash.height, 6);
+    });
+
+    testWidgets('bar is an empty track when no account holds money', (
+      tester,
+    ) async {
+      await pumpFolded(tester, const [
+        (code: '1010', bal: 0),
+        (code: '1030', bal: -200),
+        (code: '1020', bal: 0),
+      ]);
+      expect(
+        tester.getSize(find.byKey(const Key('money-accounts-bar'))),
+        const Size(180, 6),
+      );
+      expect(
+        find.byKey(const Key('money-accounts-negative-dot')),
+        findsOneWidget,
+      );
+    });
   });
 
   // Narrower than any card the 4-column grid lays out (~180px of content).

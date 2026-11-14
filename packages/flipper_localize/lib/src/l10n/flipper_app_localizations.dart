@@ -40061,6 +40061,24 @@ abstract class FlipperAppLocalizations {
   /// **'Cash & bank'**
   String get booksCashAndBank;
 
+  /// No description provided for @booksAccountsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 account} other{{count} accounts}}'**
+  String booksAccountsCount(int count);
+
+  /// No description provided for @booksHideDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide details'**
+  String get booksHideDetails;
+
+  /// No description provided for @booksAccountBelowZero.
+  ///
+  /// In en, this message translates to:
+  /// **'An account is below zero'**
+  String get booksAccountBelowZero;
+
   /// No description provided for @booksAcrossAccounts.
   ///
   /// In en, this message translates to:
