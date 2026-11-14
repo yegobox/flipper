@@ -18512,6 +18512,16 @@
     "booksCsvRawLedger": "CSV (raw ledger)",
     "booksVsPriorPeriod": "vs prior period",
     "booksCashAndBank": "Cash & bank",
+    "booksAccountsCount": "{count, plural, =1{1 account} other{{count} accounts}}",
+    "@booksAccountsCount": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "booksHideDetails": "Hide details",
+    "booksAccountBelowZero": "An account is below zero",
     "booksAcrossAccounts": "{count, plural, =1{across 1 account} other{across {count} accounts}}",
     "@booksAcrossAccounts": {
         "placeholders": {

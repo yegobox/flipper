@@ -129,9 +129,10 @@ class AccountingDashboardView extends ConsumerWidget {
                 icon: AccIcon.wallet,
                 tone: KpiTone.blue,
                 delta: cashDelta,
-                // The total is three accounts; show each so cash is never
-                // mistaken for the whole.
-                detail: MoneyAccountsBreakdown(balances: liquidBalances),
+                // The total is three accounts. The bar hints at the split and
+                // the exact amounts open on request, so cash is never mistaken
+                // for the whole without crowding the card.
+                detail: CollapsibleMoneyAccounts(balances: liquidBalances),
               ),
               AccountingKpiCard(
                 label: l10n.booksReceivable,
