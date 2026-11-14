@@ -319,6 +319,11 @@ class _AppChoiceDialogState extends ConsumerState<AppChoiceDialog>
     // the curtain when the destination is up. Everything else navigates here.
     if (awaitsExternalNavigation) return;
 
+    // Opened from inside Books (its desktop apps button): every other app
+    // lives on the dashboard under Books or opens over it, so Books closes
+    // first. A no-op when the chooser was opened from the dashboard.
+    if (choice.id != 'Books') popBooksModuleIfOpen(navigator);
+
     // Navigator-only entry points: this State is deactivated by the pop above,
     // so nothing here may touch `context` or `ref`.
     var settle = AppLaunchOverlay.routeSettle;
