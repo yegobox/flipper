@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/app_choice_dialog.dart';
+import 'package:flipper_dashboard/books_module_entry.dart';
 import 'package:flipper_dashboard/dashboard_shell.dart';
 import 'package:flipper_dashboard/features/bar_mode/providers/bar_mode_providers.dart';
 import 'package:flipper_dashboard/hr_module_entry.dart';
@@ -433,6 +434,88 @@ void main() {
     await _pumpSelection(tester);
 
     expect(container.read(selectedPageProvider), DashboardPage.inventory);
+  });
+
+  group('opened from Books', () {
+    /// Dashboard → Books → the chooser, the stack Books' desktop apps button
+    /// gives. The completer pops the chooser as DialogService does.
+    Future<void> pumpOverBooks(
+      WidgetTester tester, {
+      List<Override> overrides = const [],
+    }) async {
+      await tester.binding.setSurfaceSize(const Size(1280, 900));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      final navigatorKey = GlobalKey<NavigatorState>();
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...moduleGrantsOverrides(userId: _userId),
+            ...overrides,
+          ],
+          child: MaterialApp(
+            navigatorKey: navigatorKey,
+            localizationsDelegates: FlipperLocalizationDelegates.delegates,
+            supportedLocales: FlipperLocalizationDelegates.supportedLocales,
+            home: const Text('dashboard'),
+          ),
+        ),
+      );
+      final navigator = navigatorKey.currentState!;
+      unawaited(
+        navigator.push<void>(
+          MaterialPageRoute<void>(
+            settings: const RouteSettings(name: BooksModuleEntry.routeName),
+            builder: (_) => const Text('books'),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      unawaited(
+        navigator.push<void>(
+          MaterialPageRoute<void>(
+            builder: (_) => AppChoiceDialog(
+              request: DialogRequest<AppChoiceDialogRequest>(
+                data: const AppChoiceDialogRequest(
+                  branchName: 'Kigali Heights',
+                ),
+              ),
+              completer: (response) {
+                responses.add(response);
+                navigator.pop();
+              },
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('choosing POS closes Books onto the dashboard', (tester) async {
+      await pumpOverBooks(tester);
+
+      await tester.tap(find.text('POS'));
+      await _pumpSelection(tester);
+      await tester.pumpAndSettle();
+
+      expect(box.defaultApp, 'POS');
+      expect(find.text('books', skipOffstage: false), findsNothing);
+      expect(find.text('dashboard'), findsOneWidget);
+    });
+
+    testWidgets('choosing HR opens it over the dashboard, not over Books', (
+      tester,
+    ) async {
+      await pumpOverBooks(tester, overrides: _hrOverrides());
+
+      await tester.tap(find.text('HR & Payroll'));
+      for (var i = 0; i < 10; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+
+      expect(find.byType(HrModuleEntry), findsOneWidget);
+      expect(find.text('books', skipOffstage: false), findsNothing);
+    });
   });
 
   group('HR', () {
