@@ -1,3 +1,4 @@
+import 'package:flipper_dashboard/app_choice_dialog.dart';
 import 'package:flipper_dashboard/books_module_navigation.dart';
 import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flipper_dashboard/features/bar_mode/providers/bar_mode_providers.dart';
@@ -9,6 +10,8 @@ import 'package:flipper_dashboard/widgets/dashboard_all_apps_sheet.dart';
 import 'package:flipper_dashboard/widgets/dashboard_app_access.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/providers/access_provider.dart';
+import 'package:flipper_routing/app.dialogs.dart';
+import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_web/features/login/signin_styles.dart';
 import 'package:flipper_web/features/module_launcher/app_launcher_host.dart';
@@ -17,9 +20,11 @@ import 'package:flipper_web/modules/accounting/routing/accounting_route.dart';
 import 'package:flipper_web/modules/accounting/accounting_module.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:stacked_services/stacked_services.dart';
 
 /// Native host for Flipper Books — wraps [AccountingModuleScreen] and wires the
-/// desktop topbar apps button to the dashboard All apps sheet.
+/// topbar apps button to the dashboard's launcher: the All apps sheet on a
+/// phone, the POS app chooser on a computer.
 class BooksModuleEntry extends ConsumerStatefulWidget {
   const BooksModuleEntry({super.key});
 
@@ -60,7 +65,15 @@ class _BooksModuleEntryState extends ConsumerState<BooksModuleEntry> {
           label: (context) => context.flipperL10n.dashboardAppBooks,
           child: BooksModeDesk(
             child: AppLauncherHost(
-              onOpenLauncher: () => DashboardAllAppsSheet.show(context, ref),
+              // A phone gets the More tab's All apps sheet; a computer the
+              // same app chooser POS opens from its rail (POS, Books, HR, Flo).
+              onOpenLauncher: mobile
+                  ? () => DashboardAllAppsSheet.show(context, ref)
+                  : () => showAppChoiceDialog(
+                      dialogService: locator<DialogService>(),
+                      variant: DialogType.appChoice,
+                      title: context.flipperL10n.chooseYourDefaultApp,
+                    ),
               hostProvidesHeader: mobile,
               child: const AccountingModuleScreen(),
             ),

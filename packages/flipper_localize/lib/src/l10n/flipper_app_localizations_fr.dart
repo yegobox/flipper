@@ -24413,6 +24413,23 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   String get booksCashAndBank => 'Caisse et banque';
 
   @override
+  String booksAccountsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count comptes',
+      one: '1 compte',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get booksHideDetails => 'Masquer le détail';
+
+  @override
+  String get booksAccountBelowZero => 'Un compte est en négatif';
+
+  @override
   String booksAcrossAccounts(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

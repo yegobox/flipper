@@ -1,4 +1,6 @@
 import 'package:flipper_dashboard/books_module_entry.dart';
+import 'package:flipper_routing/app.dialogs.dart';
+import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flipper_models/sync/utils/service_mode_access.dart';
 import 'package:flipper_services/constants.dart';
@@ -19,9 +21,43 @@ import 'package:flipper_web/modules/accounting/widgets/books_brand_row.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:stacked_services/stacked_services.dart';
 
 import 'TestApp.dart';
 import 'test_helpers/module_grants.dart';
+
+/// Records the custom dialogs Books asks for instead of showing them.
+class _RecordingDialogService extends Fake implements DialogService {
+  final variants = <Object?>[];
+
+  @override
+  Future<DialogResponse<T>?> showCustomDialog<T, R>({
+    dynamic variant,
+    String? title,
+    String? description,
+    bool hasImage = false,
+    String? imageUrl,
+    bool showIconInMainButton = false,
+    String? mainButtonTitle,
+    bool showIconInSecondaryButton = false,
+    String? secondaryButtonTitle,
+    bool showIconInAdditionalButton = false,
+    String? additionalButtonTitle,
+    bool takesInput = false,
+    Color barrierColor = Colors.black54,
+    bool barrierDismissible = false,
+    String barrierLabel = '',
+    bool useSafeArea = true,
+    RouteSettings? routeSettings,
+    GlobalKey<NavigatorState>? navigatorKey,
+    RouteTransitionsBuilder? transitionBuilder,
+    dynamic customData,
+    R? data,
+  }) async {
+    variants.add(variant);
+    return null;
+  }
+}
 
 final _testBusiness = Business(
   id: 'biz-test',
@@ -148,6 +184,25 @@ void main() {
 
     expect(find.byType(CustomAppBar), findsNothing);
     expect(find.byType(AccountingMobileShell), findsNothing);
+  });
+
+  testWidgets('on a computer the apps button opens the POS app chooser', (
+    tester,
+  ) async {
+    final dialogs = _RecordingDialogService();
+    if (locator.isRegistered<DialogService>()) {
+      locator.unregister<DialogService>();
+    }
+    locator.registerSingleton<DialogService>(dialogs);
+    addTearDown(() => locator.unregister<DialogService>());
+
+    await _pumpBooks(tester, const Size(1400, 900));
+    await tester.tap(find.byKey(const Key('books-topbar-apps')));
+    await tester.pumpAndSettle();
+
+    // The desktop chooser (POS, Books, HR, Flo), not the phone's sheet.
+    expect(dialogs.variants, [DialogType.appChoice]);
+    expect(find.byType(BottomSheet), findsNothing);
   });
 
   testWidgets('a report on a phone: one header, and back steps out of it', (

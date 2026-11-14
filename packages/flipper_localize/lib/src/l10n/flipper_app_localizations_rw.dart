@@ -24272,6 +24272,23 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   String get booksCashAndBank => 'Amafaranga n\'ari kuri banki';
 
   @override
+  String booksAccountsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Konti $count',
+      one: 'Konti 1',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get booksHideDetails => 'Hisha ibisobanuro';
+
+  @override
+  String get booksAccountBelowZero => 'Hari konti iri munsi ya zeru';
+
+  @override
   String booksAcrossAccounts(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
