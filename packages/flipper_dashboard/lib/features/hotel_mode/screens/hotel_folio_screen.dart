@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flipper_design_system/flipper_design_system.dart'
+    show CLOSEBUTTON, CustomAppBar;
 import 'package:flipper_dashboard/features/bar_mode/bar_credit.dart';
 import 'package:flipper_dashboard/features/hotel_mode/hotel_desk_actions.dart';
 import 'package:flipper_dashboard/features/hotel_mode/services/hotel_folio_document_actions.dart';
@@ -18,11 +20,18 @@ import 'package:supabase_models/brick/models/transactionItem.model.dart';
 
 /// The guest folio: every charge posted against a stay, and checkout.
 ///
-/// Desktop and mobile share one body — the layouts differ only in density, so
-/// splitting them into two files would duplicate the settle logic, which is
-/// the one thing that must not drift between them.
+/// Desktop and mobile share one widget, so the settle logic, the one thing
+/// that must not drift between them, is written once. The phone stacks
+/// everything in one column. The desk puts the charges in a table beside a
+/// summary panel that stays in view, rather than stretching phone cards
+/// across a wide window.
 class HotelFolioScreen extends ConsumerWidget {
   const HotelFolioScreen({super.key});
+
+  /// Narrowest pane that fits the desk folio: 28 + 28 padding, the 24 gap,
+  /// the 360 summary and about 520 for charges (a charge row needs 332
+  /// before the item name gets any room).
+  static const double deskMinWidth = 960;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -37,9 +46,12 @@ class HotelFolioScreen extends ConsumerWidget {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final compact = HotelLayoutBreakpoints.isHotelMobileLayout(
-          constraints.maxWidth,
-        );
+        // The desk's two columns need [deskMinWidth]; a narrower pane (a
+        // tablet, a resized window) keeps the stacked folio so no charge
+        // row is clipped.
+        final compact =
+            HotelLayoutBreakpoints.isHotelMobileLayout(constraints.maxWidth) ||
+            constraints.maxWidth < deskMinWidth;
         return _HotelFolioBody(stay: stay, compact: compact);
       },
     );
@@ -55,121 +67,19 @@ class _HotelFolioBody extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final linesAsync = ref.watch(hotelFolioLinesProvider(stay.transactionId));
-    final pad = compact ? 16.0 : 30.0;
-    final l10n = context.flipperL10n;
 
     return Container(
       color: HotelTokens.posBg,
       child: Column(
         children: [
-          _bar(context, ref),
+          _appBar(context, ref),
           Expanded(
             child: linesAsync.when(
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (e, _) => Center(child: Text('$e')),
-              data: (lines) => Column(
-                children: [
-                  Expanded(
-                    child: ListView(
-                      padding: EdgeInsets.fromLTRB(pad, pad, pad, pad + 12),
-                      children: [
-                        HotelFolioHeaderCard(
-                          stay: stay,
-                          compact: compact,
-                          onChangeDeparture: () =>
-                              _changeDeparture(context, ref),
-                        ),
-                        const SizedBox(height: 18),
-                        Row(
-                          children: [
-                            Text(
-                              l10n.hotelCharges,
-                              style: GoogleFonts.outfit(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w800,
-                                color: HotelTokens.ink1,
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            Text(
-                              l10n.hotelItemsCount(hotelFolioItemCount(lines)),
-                              style: GoogleFonts.jetBrainsMono(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: HotelTokens.ink3,
-                              ),
-                            ),
-                            const Spacer(),
-                            if (!compact) ...[
-                              _advanceButton(context, ref),
-                              _roomChargeButton(context, ref),
-                            ],
-                          ],
-                        ),
-                        // A phone has no room for both beside the title.
-                        if (compact)
-                          Wrap(
-                            alignment: WrapAlignment.end,
-                            children: [
-                              _advanceButton(context, ref),
-                              _roomChargeButton(context, ref),
-                            ],
-                          ),
-                        const SizedBox(height: 10),
-                        if (lines.isEmpty)
-                          _emptyCharges(l10n)
-                        else
-                          for (final line in lines) ...[
-                            HotelFolioLineTile(
-                              key: ValueKey('hotel-folio-line-${line.id}'),
-                              line: line,
-                              onIncrement: () => HotelDeskActions.changeQty(
-                                ref: ref,
-                                stay: stay,
-                                line: line,
-                                delta: 1,
-                              ),
-                              onDecrement: () => HotelDeskActions.changeQty(
-                                ref: ref,
-                                stay: stay,
-                                line: line,
-                                delta: -1,
-                              ),
-                              onDelete: () => HotelDeskActions.deleteLine(
-                                ref: ref,
-                                stay: stay,
-                                line: line,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                          ],
-                        const SizedBox(height: 14),
-                        HotelFolioTotals(
-                          lines: lines,
-                          advance: stay.advanceHeld,
-                        ),
-                        if (!compact) ...[
-                          const SizedBox(height: 18),
-                          _actions(context, ref, lines),
-                        ],
-                      ],
-                    ),
-                  ),
-                  // A phone keeps Check out under the thumb instead of below
-                  // the fold, as the bar's settle screen does.
-                  if (compact)
-                    Container(
-                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-                      decoration: const BoxDecoration(
-                        color: HotelTokens.surface,
-                        border: Border(
-                          top: BorderSide(color: HotelTokens.line),
-                        ),
-                      ),
-                      child: _actions(context, ref, lines),
-                    ),
-                ],
-              ),
+              data: (lines) => compact
+                  ? _phoneBody(context, ref, lines)
+                  : _deskBody(context, ref, lines),
             ),
           ),
         ],
@@ -177,59 +87,296 @@ class _HotelFolioBody extends ConsumerWidget {
     );
   }
 
-  Widget _bar(BuildContext context, WidgetRef ref) {
+  /// The shared navigation bar: back to rooms, the room and who opened the
+  /// folio, and the guest's bill.
+  Widget _appBar(BuildContext context, WidgetRef ref) {
     final l10n = context.flipperL10n;
-    return Container(
-      height: compact ? 62 : 76,
-      padding: EdgeInsets.symmetric(horizontal: compact ? 12 : 24),
-      decoration: const BoxDecoration(
-        color: HotelTokens.surface,
-        border: Border(bottom: BorderSide(color: HotelTokens.line)),
+    return CustomAppBar(
+      key: const ValueKey('hotel-folio-app-bar'),
+      title: l10n.hotelRoomNamed(stay.roomName),
+      subtitle: l10n.hotelFolioOpenedBy(
+        stay.openedByName ?? l10n.hotelFrontDesk,
       ),
-      child: Row(
-        children: [
-          IconButton(
-            onPressed: () => ref.read(hotelModeProvider.notifier).backToRooms(),
-            icon: const Icon(Icons.arrow_back, color: HotelTokens.ink2),
-            tooltip: l10n.hotelBackToRooms,
+      closeButton: CLOSEBUTTON.ICON,
+      icon: Icons.arrow_back,
+      onPop: () => ref.read(hotelModeProvider.notifier).backToRooms(),
+      barBackgroundColor: HotelTokens.surface,
+      bottomSpacer: compact ? 64 : 72,
+      // The guest's bill, any time before checkout: what they ask for
+      // before paying, and what a company paying for a stay wants.
+      customTrailingWidget: HotelFolioDocumentMenu(stay: stay),
+    );
+  }
+
+  Widget _chargesTitle(
+    FlipperAppLocalizations l10n,
+    List<TransactionItem> lines,
+  ) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          l10n.hotelCharges,
+          style: GoogleFonts.outfit(
+            fontSize: 15,
+            fontWeight: FontWeight.w800,
+            color: HotelTokens.ink1,
           ),
-          const SizedBox(width: 4),
-          // Flexible + ellipsis: a long room or clerk name overflowed a phone.
-          Flexible(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
+        ),
+        const SizedBox(width: 10),
+        Text(
+          l10n.hotelItemsCount(hotelFolioItemCount(lines)),
+          style: GoogleFonts.jetBrainsMono(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: HotelTokens.ink3,
+          ),
+        ),
+      ],
+    );
+  }
+
+  HotelFolioLineTile _lineTile(
+    WidgetRef ref,
+    TransactionItem line, {
+    bool flat = false,
+  }) {
+    return HotelFolioLineTile(
+      key: ValueKey('hotel-folio-line-${line.id}'),
+      line: line,
+      flat: flat,
+      onIncrement: () => HotelDeskActions.changeQty(
+        ref: ref,
+        stay: stay,
+        line: line,
+        delta: 1,
+      ),
+      onDecrement: () => HotelDeskActions.changeQty(
+        ref: ref,
+        stay: stay,
+        line: line,
+        delta: -1,
+      ),
+      onDelete: () =>
+          HotelDeskActions.deleteLine(ref: ref, stay: stay, line: line),
+    );
+  }
+
+  /// A phone: one scrolling column, with Check out pinned under the thumb.
+  Widget _phoneBody(
+    BuildContext context,
+    WidgetRef ref,
+    List<TransactionItem> lines,
+  ) {
+    final l10n = context.flipperL10n;
+    return Column(
+      children: [
+        Expanded(
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 28),
+            children: [
+              HotelFolioHeaderCard(
+                stay: stay,
+                compact: true,
+                onChangeDeparture: () => _changeDeparture(context, ref),
+              ),
+              const SizedBox(height: 18),
+              _chargesTitle(l10n, lines),
+              // A phone has no room for both beside the title.
+              Wrap(
+                alignment: WrapAlignment.end,
+                children: [
+                  _advanceButton(context, ref),
+                  _roomChargeButton(context, ref),
+                ],
+              ),
+              const SizedBox(height: 10),
+              if (lines.isEmpty)
+                _emptyCharges(l10n)
+              else
+                for (final line in lines) ...[
+                  _lineTile(ref, line),
+                  const SizedBox(height: 8),
+                ],
+              const SizedBox(height: 14),
+              HotelFolioTotals(lines: lines, advance: stay.advanceHeld),
+            ],
+          ),
+        ),
+        // A phone keeps Check out under the thumb instead of below the fold,
+        // as the bar's settle screen does.
+        Container(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+          decoration: const BoxDecoration(
+            color: HotelTokens.surface,
+            border: Border(top: BorderSide(color: HotelTokens.line)),
+          ),
+          child: _actions(context, ref, lines),
+        ),
+      ],
+    );
+  }
+
+  /// The desk: the guest and a charges table on the left, a summary panel
+  /// with checkout on the right, capped in width so a wide monitor does not
+  /// stretch a single row across the screen.
+  Widget _deskBody(
+    BuildContext context,
+    WidgetRef ref,
+    List<TransactionItem> lines,
+  ) {
+    final l10n = context.flipperL10n;
+    return Align(
+      alignment: Alignment.topCenter,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: _deskMaxWidth),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(28, 24, 28, 0),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: ListView(
+                  padding: const EdgeInsets.only(bottom: 28),
+                  children: [
+                    HotelFolioHeaderCard(
+                      stay: stay,
+                      onChangeDeparture: () => _changeDeparture(context, ref),
+                    ),
+                    const SizedBox(height: 20),
+                    _deskChargesCard(context, ref, lines, l10n),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 24),
+              SizedBox(
+                width: _deskSummaryWidth,
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.only(bottom: 28),
+                  child: _deskSummary(context, ref, lines),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  static const double _deskMaxWidth = 1280;
+  static const double _deskSummaryWidth = 360;
+  static const double _deskButtonHeight = 48;
+
+  Widget _deskChargesCard(
+    BuildContext context,
+    WidgetRef ref,
+    List<TransactionItem> lines,
+    FlipperAppLocalizations l10n,
+  ) {
+    return Container(
+      key: const ValueKey('hotel-folio-charges-card'),
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        color: HotelTokens.surface,
+        borderRadius: BorderRadius.circular(HotelTokens.radiusLg),
+        border: Border.all(color: HotelTokens.line),
+        boxShadow: HotelTokens.shadow1,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 12, 12, 12),
+            child: Row(
               children: [
-                Text(
-                  l10n.hotelRoomNamed(stay.roomName),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.outfit(
-                    fontSize: compact ? 17 : 20,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: -0.4,
-                    color: HotelTokens.ink1,
-                  ),
-                ),
-                Text(
-                  l10n.hotelFolioOpenedBy(
-                    stay.openedByName ?? l10n.hotelFrontDesk,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.outfit(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                    color: HotelTokens.ink3,
-                  ),
-                ),
+                _chargesTitle(l10n, lines),
+                const Spacer(),
+                _advanceButton(context, ref),
+                const SizedBox(width: 4),
+                _roomChargeButton(context, ref),
               ],
             ),
           ),
-          const Spacer(),
-          // The guest's bill, any time before checkout: what they ask for
-          // before paying, and what a company paying for a stay wants.
-          HotelFolioDocumentMenu(stay: stay),
+          const Divider(height: 1, color: HotelTokens.line),
+          if (lines.isEmpty)
+            _deskEmptyCharges(l10n)
+          else ...[
+            const HotelFolioLineHeader(),
+            for (final line in lines) ...[
+              const Divider(height: 1, color: HotelTokens.line),
+              _lineTile(ref, line, flat: true),
+            ],
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _deskEmptyCharges(FlipperAppLocalizations l10n) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
+      child: Column(
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: const BoxDecoration(
+              color: HotelTokens.surface2,
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.receipt_long_outlined,
+              size: 22,
+              color: HotelTokens.ink3,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            // The reason belongs on screen, not only in a toast that has
+            // already gone by the time anyone wonders why the folio is empty.
+            HotelModeSettings.autoPostRoomCharge
+                ? l10n.hotelNoChargesYet
+                : l10n.hotelAutoRoomChargeOffHelp,
+            textAlign: TextAlign.center,
+            style: GoogleFonts.outfit(
+              fontSize: 13.5,
+              fontWeight: FontWeight.w500,
+              height: 1.45,
+              color: HotelTokens.ink3,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Totals, then checkout, then the way out: the order the desk reads them.
+  Widget _deskSummary(
+    BuildContext context,
+    WidgetRef ref,
+    List<TransactionItem> lines,
+  ) {
+    return Container(
+      key: const ValueKey('hotel-folio-summary'),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: HotelTokens.surface,
+        borderRadius: BorderRadius.circular(HotelTokens.radiusLg),
+        border: Border.all(color: HotelTokens.line),
+        boxShadow: HotelTokens.shadow1,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          HotelFolioTotals(
+            lines: lines,
+            advance: stay.advanceHeld,
+            framed: false,
+          ),
+          const SizedBox(height: 20),
+          _checkOutButton(context, ref, lines, height: _deskButtonHeight),
+          const SizedBox(height: 10),
+          _cancelStayButton(context, ref, lines, height: 44),
         ],
       ),
     );
@@ -265,75 +412,96 @@ class _HotelFolioBody extends ConsumerWidget {
     WidgetRef ref,
     List<TransactionItem> lines,
   ) {
-    final total = hotelFolioTotal(lines);
-    final settling = ref.watch(
-      hotelModeProvider.select((state) => state.checkOutInFlight),
-    );
-    final l10n = context.flipperL10n;
     return Row(
       children: [
         Expanded(
-          child: TextButton(
-            // Always live: with the room charge auto-posted at check-in, a
-            // button gated on an empty folio was dead for nearly every stay
-            // while still looking tappable. Charges are confirmed instead.
-            onPressed: settling ? null : () => _cancelStay(context, ref, lines),
-            style: TextButton.styleFrom(
-              minimumSize: const Size.fromHeight(
-                HotelTokens.mobilePrimaryButtonHeight,
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(HotelTokens.radiusMd),
-                side: const BorderSide(
-                  color: HotelTokens.dangerBorder,
-                  width: 1.5,
-                ),
-              ),
-            ),
-            child: Text(
-              l10n.hotelCancelStay,
-              style: GoogleFonts.outfit(
-                fontSize: 15,
-                fontWeight: FontWeight.w700,
-                color: HotelTokens.lossInk,
-              ),
-            ),
+          child: _cancelStayButton(
+            context,
+            ref,
+            lines,
+            height: HotelTokens.mobilePrimaryButtonHeight,
           ),
         ),
         const SizedBox(width: 12),
         Expanded(
           flex: 2,
-          child: Opacity(
-            opacity: settling ? 0.6 : 1,
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: HotelTokens.gradBtn,
-                borderRadius: BorderRadius.circular(HotelTokens.radiusMd),
-              ),
-              child: TextButton(
-                onPressed: settling
-                    ? null
-                    : () => _checkOut(context, ref, total),
-                style: TextButton.styleFrom(
-                  minimumSize: const Size.fromHeight(
-                    HotelTokens.mobilePrimaryButtonHeight,
-                  ),
-                ),
-                child: Text(
-                  settling
-                      ? l10n.hotelSettling
-                      : l10n.hotelCheckOutAmount(hotelMoney(total.round())),
-                  style: GoogleFonts.outfit(
-                    fontSize: 15.5,
-                    fontWeight: FontWeight.w800,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ),
+          child: _checkOutButton(
+            context,
+            ref,
+            lines,
+            height: HotelTokens.mobilePrimaryButtonHeight,
           ),
         ),
       ],
+    );
+  }
+
+  Widget _cancelStayButton(
+    BuildContext context,
+    WidgetRef ref,
+    List<TransactionItem> lines, {
+    required double height,
+  }) {
+    final settling = ref.watch(
+      hotelModeProvider.select((state) => state.checkOutInFlight),
+    );
+    return TextButton(
+      // Always live: with the room charge auto-posted at check-in, a
+      // button gated on an empty folio was dead for nearly every stay
+      // while still looking tappable. Charges are confirmed instead.
+      onPressed: settling ? null : () => _cancelStay(context, ref, lines),
+      style: TextButton.styleFrom(
+        minimumSize: Size.fromHeight(height),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(HotelTokens.radiusMd),
+          side: const BorderSide(color: HotelTokens.dangerBorder, width: 1.5),
+        ),
+      ),
+      child: Text(
+        context.flipperL10n.hotelCancelStay,
+        style: GoogleFonts.outfit(
+          fontSize: 15,
+          fontWeight: FontWeight.w700,
+          color: HotelTokens.lossInk,
+        ),
+      ),
+    );
+  }
+
+  Widget _checkOutButton(
+    BuildContext context,
+    WidgetRef ref,
+    List<TransactionItem> lines, {
+    required double height,
+  }) {
+    final total = hotelFolioTotal(lines);
+    final settling = ref.watch(
+      hotelModeProvider.select((state) => state.checkOutInFlight),
+    );
+    final l10n = context.flipperL10n;
+    return Opacity(
+      opacity: settling ? 0.6 : 1,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: HotelTokens.gradBtn,
+          borderRadius: BorderRadius.circular(HotelTokens.radiusMd),
+        ),
+        child: TextButton(
+          key: const ValueKey('hotel-folio-check-out'),
+          onPressed: settling ? null : () => _checkOut(context, ref, total),
+          style: TextButton.styleFrom(minimumSize: Size.fromHeight(height)),
+          child: Text(
+            settling
+                ? l10n.hotelSettling
+                : l10n.hotelCheckOutAmount(hotelMoney(total.round())),
+            style: GoogleFonts.outfit(
+              fontSize: 15.5,
+              fontWeight: FontWeight.w800,
+              color: Colors.white,
+            ),
+          ),
+        ),
+      ),
     );
   }
 

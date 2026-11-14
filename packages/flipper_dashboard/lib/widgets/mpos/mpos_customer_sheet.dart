@@ -1,5 +1,6 @@
 import 'package:flipper_localize/flipper_localize.dart';
 
+import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
 import 'package:flipper_dashboard/providers/customer_phone_provider.dart';
 import 'package:flipper_dashboard/providers/mpos_customer_actions_provider.dart';
 import 'package:flipper_dashboard/theme/mpos_tokens.dart';
@@ -21,6 +22,9 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 ///
 /// Two taps at most: open the sheet, then tap a recent/matching customer or
 /// the add button. A new customer needs only a phone; the name is optional.
+///
+/// On a phone it is a bottom sheet. On a wider window it is a centred dialog
+/// instead: a sheet stretched across a desktop read as phone UI.
 class MposCustomerSheet {
   static Future<void> show({
     required BuildContext context,
@@ -28,11 +32,12 @@ class MposCustomerSheet {
     required ITransaction transaction,
     VoidCallback? onAttached,
   }) {
-    return showMposAnimatedSheet<void>(
-      context: context,
-      builder: (ctx) => MposCustomerSheetBody(
+    return _present<void>(
+      context,
+      (dialog) => MposCustomerSheetBody(
         transaction: transaction,
         onAttached: onAttached,
+        dialog: dialog,
       ),
     );
   }
@@ -41,9 +46,39 @@ class MposCustomerSheet {
   /// (or [CustomerPick] with null for "remove") and writes nothing to a sale.
   /// A quick-added customer is saved, since the ticket needs its id.
   static Future<CustomerPick?> pick(BuildContext context, {Customer? current}) {
-    return showMposAnimatedSheet<CustomerPick>(
+    return _present<CustomerPick>(
+      context,
+      (dialog) => MposCustomerSheetBody(current: current, dialog: dialog),
+    );
+  }
+
+  /// Widest the dialog grows on a desktop.
+  static const double dialogMaxWidth = 520;
+
+  static Future<T?> _present<T>(
+    BuildContext context,
+    Widget Function(bool dialog) body,
+  ) {
+    final wide =
+        MediaQuery.sizeOf(context).width >=
+        PosLayoutBreakpoints.mobileLayoutMaxWidth;
+    if (!wide) {
+      return showMposAnimatedSheet<T>(
+        context: context,
+        builder: (ctx) => body(false),
+      );
+    }
+    return showDialog<T>(
       context: context,
-      builder: (ctx) => MposCustomerSheetBody(current: current),
+      builder: (ctx) => Dialog(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        insetPadding: const EdgeInsets.all(24),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: dialogMaxWidth),
+          child: body(true),
+        ),
+      ),
     );
   }
 }
@@ -55,7 +90,12 @@ class MposCustomerSheetBody extends ConsumerStatefulWidget {
     this.transaction,
     this.onAttached,
     this.current,
+    this.dialog = false,
   });
+
+  /// Drawn as a centred desktop dialog: all corners rounded, no grab bar, a
+  /// shorter list, and the phone field focused so the desk can type at once.
+  final bool dialog;
 
   /// Sale to attach to. Null puts the sheet in pick mode: it pops with a
   /// [CustomerPick] instead of writing.
@@ -169,10 +209,15 @@ class _MposCustomerSheetBodyState extends ConsumerState<MposCustomerSheetBody> {
   Widget build(BuildContext context) {
     final l10n = context.flipperL10n;
     final media = MediaQuery.of(context);
-    final maxH = (media.size.height * 0.88).clamp(
-      0.0,
-      media.size.height - media.padding.top - media.viewInsets.bottom - 16,
-    );
+    final maxH = widget.dialog
+        ? (media.size.height * 0.8).clamp(0.0, 640.0)
+        : (media.size.height * 0.88).clamp(
+            0.0,
+            media.size.height -
+                media.padding.top -
+                media.viewInsets.bottom -
+                16,
+          );
 
     final all =
         ref.watch(customersProvider).asData?.value ?? const <Customer>[];
@@ -200,185 +245,228 @@ class _MposCustomerSheetBodyState extends ConsumerState<MposCustomerSheetBody> {
       buttonLabel = l10n.mposEnterCustomerPhone;
     }
 
+    final canSubmit = existing != null || phoneComplete;
+
     return Material(
       color: PosTokens.surface,
-      borderRadius: const BorderRadius.vertical(
-        top: Radius.circular(MposTokens.sheetRadius),
-      ),
+      borderRadius: widget.dialog
+          ? BorderRadius.circular(MposTokens.radiusLg)
+          : const BorderRadius.vertical(
+              top: Radius.circular(MposTokens.sheetRadius),
+            ),
       clipBehavior: Clip.antiAlias,
       child: ConstrainedBox(
         constraints: BoxConstraints(maxHeight: maxH),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(height: 10),
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: PosTokens.lineStrong,
-                borderRadius: BorderRadius.circular(999),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(18, 8, 12, 12),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      _pickMode
-                          ? l10n.uiTicketAttachCustomer
-                          : l10n.addCustomer,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                        color: PosTokens.ink1,
-                      ),
+        child: LayoutBuilder(
+          builder: (context, box) {
+            // Too short for the header, fields and button plus a list (a
+            // short window with the keyboard up): the whole form scrolls,
+            // or the fixed parts would overflow and be clipped.
+            final roomy = box.maxHeight >= _roomyFormHeight;
+            final form = Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (widget.dialog)
+                  const SizedBox(height: 12)
+                else ...[
+                  const SizedBox(height: 10),
+                  Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: PosTokens.lineStrong,
+                      borderRadius: BorderRadius.circular(999),
                     ),
-                  ),
-                  IconButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    tooltip: MaterialLocalizations.of(
-                      context,
-                    ).closeButtonTooltip,
-                    style: IconButton.styleFrom(
-                      backgroundColor: PosTokens.surface2,
-                    ),
-                    icon: const Icon(Icons.close_rounded, size: 18),
                   ),
                 ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 18),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: PosTokens.surface2,
-                  borderRadius: BorderRadius.circular(MposTokens.radiusMd),
-                  border: Border.all(color: PosTokens.line, width: 1.5),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(18, 8, 12, 12),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          _pickMode
+                              ? l10n.uiTicketAttachCustomer
+                              : l10n.addCustomer,
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                            color: PosTokens.ink1,
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        tooltip: MaterialLocalizations.of(
+                          context,
+                        ).closeButtonTooltip,
+                        style: IconButton.styleFrom(
+                          backgroundColor: PosTokens.surface2,
+                        ),
+                        icon: const Icon(Icons.close_rounded, size: 18),
+                      ),
+                    ],
+                  ),
                 ),
-                child: Column(
-                  children: [
-                    _FieldRow(
-                      key: const ValueKey('mposCustomerPhoneField'),
-                      icon: Icons.phone_outlined,
-                      controller: _phoneController,
-                      hint: l10n.mposCustomerPhoneHint,
-                      // Picking for a ticket is mostly a tap on a recent
-                      // customer; the keyboard would cover that list.
-                      autofocus: !_pickMode,
-                      keyboardType: TextInputType.phone,
-                      textInputAction: TextInputAction.next,
-                      inputFormatters: [
-                        FilteringTextInputFormatter.allow(RegExp(r'[0-9+ ]')),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 18),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: PosTokens.surface2,
+                      borderRadius: BorderRadius.circular(MposTokens.radiusMd),
+                      border: Border.all(color: PosTokens.line, width: 1.5),
+                    ),
+                    child: Column(
+                      children: [
+                        _FieldRow(
+                          key: const ValueKey('mposCustomerPhoneField'),
+                          icon: Icons.phone_outlined,
+                          controller: _phoneController,
+                          hint: l10n.mposCustomerPhoneHint,
+                          // Picking for a ticket is mostly a tap on a recent
+                          // customer; the keyboard would cover that list.
+                          autofocus: widget.dialog || !_pickMode,
+                          keyboardType: TextInputType.phone,
+                          textInputAction: TextInputAction.next,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.allow(
+                              RegExp(r'[0-9+ ]'),
+                            ),
+                          ],
+                          onChanged: (_) => setState(() => _error = null),
+                          // At a desk, Enter on a known or complete number is
+                          // the primary action; the name stays optional.
+                          onSubmitted: (_) => widget.dialog && canSubmit
+                              ? _submit(all)
+                              : _nameFocus.requestFocus(),
+                        ),
+                        const Divider(height: 1, color: PosTokens.line),
+                        _FieldRow(
+                          key: const ValueKey('mposCustomerNameField'),
+                          icon: Icons.person_outline_rounded,
+                          controller: _nameController,
+                          focusNode: _nameFocus,
+                          hint: l10n.mposCustomerNameOptionalHint,
+                          textCapitalization: TextCapitalization.words,
+                          textInputAction: TextInputAction.done,
+                          onChanged: (_) => setState(() => _error = null),
+                          onSubmitted: (_) => _submit(all),
+                        ),
                       ],
-                      onChanged: (_) => setState(() => _error = null),
-                      onSubmitted: (_) => _nameFocus.requestFocus(),
                     ),
-                    const Divider(height: 1, color: PosTokens.line),
-                    _FieldRow(
-                      key: const ValueKey('mposCustomerNameField'),
-                      icon: Icons.person_outline_rounded,
-                      controller: _nameController,
-                      focusNode: _nameFocus,
-                      hint: l10n.mposCustomerNameOptionalHint,
-                      textCapitalization: TextCapitalization.words,
-                      textInputAction: TextInputAction.done,
-                      onChanged: (_) => setState(() => _error = null),
-                      onSubmitted: (_) => _submit(all),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            Flexible(
-              child: ListView(
-                shrinkWrap: true,
-                keyboardDismissBehavior:
-                    ScrollViewKeyboardDismissBehavior.onDrag,
-                padding: const EdgeInsets.fromLTRB(18, 16, 18, 4),
-                children: [
-                  if (matches.isNotEmpty) ...[
-                    MposSectionLabel(
-                      typing
-                          ? l10n.mposMatchingCustomers
-                          : l10n.mposRecentCustomers,
-                    ),
-                    const SizedBox(height: 4),
-                    for (final c in matches)
-                      _CustomerRow(
-                        customer: c,
-                        fallbackName: l10n.customer,
-                        selected: c.id == current?.id,
-                        onTap: _saving ? null : () => _attach(c),
-                      ),
-                  ] else if (typing)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      child: Text(
-                        l10n.mposNoCustomerMatches,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          color: PosTokens.ink3,
-                        ),
-                      ),
-                    ),
-                  if (_pickMode && current != null)
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: TextButton.icon(
-                        key: const ValueKey('mposCustomerRemove'),
-                        onPressed: _saving ? null : () => _pick(null),
-                        style: TextButton.styleFrom(
-                          foregroundColor: PosTokens.lossInk,
-                          minimumSize: const Size(0, 44),
-                        ),
-                        icon: const Icon(
-                          Icons.person_remove_outlined,
-                          size: 18,
-                        ),
-                        label: Text(l10n.ticketRemoveCustomer),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(18, 8, 18, 14),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  if (_error != null) ...[
-                    Text(
-                      _error!,
-                      maxLines: 3,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 12.5,
-                        color: PosTokens.lossInk,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                  ],
-                  _SubmitButton(
-                    label: buttonLabel,
-                    icon: existing != null
-                        ? Icons.person_rounded
-                        : Icons.add_rounded,
-                    loading: _saving,
-                    onPressed: existing != null || phoneComplete
-                        ? () => _submit(all)
-                        : null,
                   ),
-                ],
+                ),
+                _listSlot(
+                  roomy,
+                  ListView(
+                    shrinkWrap: true,
+                    physics: roomy
+                        ? null
+                        : const NeverScrollableScrollPhysics(),
+                    keyboardDismissBehavior:
+                        ScrollViewKeyboardDismissBehavior.onDrag,
+                    padding: const EdgeInsets.fromLTRB(18, 16, 18, 4),
+                    children: [
+                      if (matches.isNotEmpty) ...[
+                        MposSectionLabel(
+                          typing
+                              ? l10n.mposMatchingCustomers
+                              : l10n.mposRecentCustomers,
+                        ),
+                        const SizedBox(height: 4),
+                        for (final c in matches)
+                          _CustomerRow(
+                            customer: c,
+                            fallbackName: l10n.customer,
+                            selected: c.id == current?.id,
+                            onTap: _saving ? null : () => _attach(c),
+                          ),
+                      ] else if (typing)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          child: Text(
+                            l10n.mposNoCustomerMatches,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: PosTokens.ink3,
+                            ),
+                          ),
+                        ),
+                      if (_pickMode && current != null)
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: TextButton.icon(
+                            key: const ValueKey('mposCustomerRemove'),
+                            onPressed: _saving ? null : () => _pick(null),
+                            style: TextButton.styleFrom(
+                              foregroundColor: PosTokens.lossInk,
+                              minimumSize: const Size(0, 44),
+                            ),
+                            icon: const Icon(
+                              Icons.person_remove_outlined,
+                              size: 18,
+                            ),
+                            label: Text(l10n.ticketRemoveCustomer),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(18, 8, 18, 14),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      if (_error != null) ...[
+                        Text(
+                          _error!,
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 12.5,
+                            color: PosTokens.lossInk,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                      ],
+                      _SubmitButton(
+                        label: buttonLabel,
+                        icon: existing != null
+                            ? Icons.person_rounded
+                            : Icons.add_rounded,
+                        loading: _saving,
+                        onPressed: canSubmit ? () => _submit(all) : null,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            );
+            // One tree in both modes: swapping the root's type would rebuild
+            // the fields, so the focused phone field would lose focus and
+            // the keyboard could close as the form tips into scrolling.
+            // Roomy, the box keeps the height bounded for the list's
+            // Flexible and nothing scrolls.
+            return SingleChildScrollView(
+              physics: roomy ? const NeverScrollableScrollPhysics() : null,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxHeight: roomy ? box.maxHeight : double.infinity,
+                ),
+                child: form,
               ),
-            ),
-          ],
+            );
+          },
         ),
       ),
     );
   }
+
+  static const double _roomyFormHeight = 320;
+
+  static Widget _listSlot(bool roomy, Widget list) =>
+      roomy ? Flexible(child: list) : list;
 }
 
 class _FieldRow extends StatelessWidget {
