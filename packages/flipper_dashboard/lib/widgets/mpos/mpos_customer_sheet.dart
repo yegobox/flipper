@@ -257,183 +257,203 @@ class _MposCustomerSheetBodyState extends ConsumerState<MposCustomerSheetBody> {
       clipBehavior: Clip.antiAlias,
       child: ConstrainedBox(
         constraints: BoxConstraints(maxHeight: maxH),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (widget.dialog)
-              const SizedBox(height: 12)
-            else ...[
-              const SizedBox(height: 10),
-              Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: PosTokens.lineStrong,
-                  borderRadius: BorderRadius.circular(999),
-                ),
-              ),
-            ],
-            Padding(
-              padding: const EdgeInsets.fromLTRB(18, 8, 12, 12),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      _pickMode
-                          ? l10n.uiTicketAttachCustomer
-                          : l10n.addCustomer,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                        color: PosTokens.ink1,
-                      ),
+        child: LayoutBuilder(
+          builder: (context, box) {
+            // Too short for the header, fields and button plus a list (a
+            // short window with the keyboard up): the whole form scrolls,
+            // or the fixed parts would overflow and be clipped.
+            final roomy = box.maxHeight >= _roomyFormHeight;
+            final form = Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (widget.dialog)
+                  const SizedBox(height: 12)
+                else ...[
+                  const SizedBox(height: 10),
+                  Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: PosTokens.lineStrong,
+                      borderRadius: BorderRadius.circular(999),
                     ),
-                  ),
-                  IconButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    tooltip: MaterialLocalizations.of(
-                      context,
-                    ).closeButtonTooltip,
-                    style: IconButton.styleFrom(
-                      backgroundColor: PosTokens.surface2,
-                    ),
-                    icon: const Icon(Icons.close_rounded, size: 18),
                   ),
                 ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 18),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: PosTokens.surface2,
-                  borderRadius: BorderRadius.circular(MposTokens.radiusMd),
-                  border: Border.all(color: PosTokens.line, width: 1.5),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(18, 8, 12, 12),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          _pickMode
+                              ? l10n.uiTicketAttachCustomer
+                              : l10n.addCustomer,
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                            color: PosTokens.ink1,
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        tooltip: MaterialLocalizations.of(
+                          context,
+                        ).closeButtonTooltip,
+                        style: IconButton.styleFrom(
+                          backgroundColor: PosTokens.surface2,
+                        ),
+                        icon: const Icon(Icons.close_rounded, size: 18),
+                      ),
+                    ],
+                  ),
                 ),
-                child: Column(
-                  children: [
-                    _FieldRow(
-                      key: const ValueKey('mposCustomerPhoneField'),
-                      icon: Icons.phone_outlined,
-                      controller: _phoneController,
-                      hint: l10n.mposCustomerPhoneHint,
-                      // Picking for a ticket is mostly a tap on a recent
-                      // customer; the keyboard would cover that list.
-                      autofocus: widget.dialog || !_pickMode,
-                      keyboardType: TextInputType.phone,
-                      textInputAction: TextInputAction.next,
-                      inputFormatters: [
-                        FilteringTextInputFormatter.allow(RegExp(r'[0-9+ ]')),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 18),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: PosTokens.surface2,
+                      borderRadius: BorderRadius.circular(MposTokens.radiusMd),
+                      border: Border.all(color: PosTokens.line, width: 1.5),
+                    ),
+                    child: Column(
+                      children: [
+                        _FieldRow(
+                          key: const ValueKey('mposCustomerPhoneField'),
+                          icon: Icons.phone_outlined,
+                          controller: _phoneController,
+                          hint: l10n.mposCustomerPhoneHint,
+                          // Picking for a ticket is mostly a tap on a recent
+                          // customer; the keyboard would cover that list.
+                          autofocus: widget.dialog || !_pickMode,
+                          keyboardType: TextInputType.phone,
+                          textInputAction: TextInputAction.next,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.allow(
+                              RegExp(r'[0-9+ ]'),
+                            ),
+                          ],
+                          onChanged: (_) => setState(() => _error = null),
+                          // At a desk, Enter on a known or complete number is
+                          // the primary action; the name stays optional.
+                          onSubmitted: (_) => widget.dialog && canSubmit
+                              ? _submit(all)
+                              : _nameFocus.requestFocus(),
+                        ),
+                        const Divider(height: 1, color: PosTokens.line),
+                        _FieldRow(
+                          key: const ValueKey('mposCustomerNameField'),
+                          icon: Icons.person_outline_rounded,
+                          controller: _nameController,
+                          focusNode: _nameFocus,
+                          hint: l10n.mposCustomerNameOptionalHint,
+                          textCapitalization: TextCapitalization.words,
+                          textInputAction: TextInputAction.done,
+                          onChanged: (_) => setState(() => _error = null),
+                          onSubmitted: (_) => _submit(all),
+                        ),
                       ],
-                      onChanged: (_) => setState(() => _error = null),
-                      // At a desk, Enter on a known or complete number is
-                      // the primary action; the name stays optional.
-                      onSubmitted: (_) => widget.dialog && canSubmit
-                          ? _submit(all)
-                          : _nameFocus.requestFocus(),
                     ),
-                    const Divider(height: 1, color: PosTokens.line),
-                    _FieldRow(
-                      key: const ValueKey('mposCustomerNameField'),
-                      icon: Icons.person_outline_rounded,
-                      controller: _nameController,
-                      focusNode: _nameFocus,
-                      hint: l10n.mposCustomerNameOptionalHint,
-                      textCapitalization: TextCapitalization.words,
-                      textInputAction: TextInputAction.done,
-                      onChanged: (_) => setState(() => _error = null),
-                      onSubmitted: (_) => _submit(all),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            Flexible(
-              child: ListView(
-                shrinkWrap: true,
-                keyboardDismissBehavior:
-                    ScrollViewKeyboardDismissBehavior.onDrag,
-                padding: const EdgeInsets.fromLTRB(18, 16, 18, 4),
-                children: [
-                  if (matches.isNotEmpty) ...[
-                    MposSectionLabel(
-                      typing
-                          ? l10n.mposMatchingCustomers
-                          : l10n.mposRecentCustomers,
-                    ),
-                    const SizedBox(height: 4),
-                    for (final c in matches)
-                      _CustomerRow(
-                        customer: c,
-                        fallbackName: l10n.customer,
-                        selected: c.id == current?.id,
-                        onTap: _saving ? null : () => _attach(c),
-                      ),
-                  ] else if (typing)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      child: Text(
-                        l10n.mposNoCustomerMatches,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          color: PosTokens.ink3,
-                        ),
-                      ),
-                    ),
-                  if (_pickMode && current != null)
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: TextButton.icon(
-                        key: const ValueKey('mposCustomerRemove'),
-                        onPressed: _saving ? null : () => _pick(null),
-                        style: TextButton.styleFrom(
-                          foregroundColor: PosTokens.lossInk,
-                          minimumSize: const Size(0, 44),
-                        ),
-                        icon: const Icon(
-                          Icons.person_remove_outlined,
-                          size: 18,
-                        ),
-                        label: Text(l10n.ticketRemoveCustomer),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(18, 8, 18, 14),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  if (_error != null) ...[
-                    Text(
-                      _error!,
-                      maxLines: 3,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 12.5,
-                        color: PosTokens.lossInk,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                  ],
-                  _SubmitButton(
-                    label: buttonLabel,
-                    icon: existing != null
-                        ? Icons.person_rounded
-                        : Icons.add_rounded,
-                    loading: _saving,
-                    onPressed: canSubmit ? () => _submit(all) : null,
                   ),
-                ],
-              ),
-            ),
-          ],
+                ),
+                _listSlot(
+                  roomy,
+                  ListView(
+                    shrinkWrap: true,
+                    physics: roomy
+                        ? null
+                        : const NeverScrollableScrollPhysics(),
+                    keyboardDismissBehavior:
+                        ScrollViewKeyboardDismissBehavior.onDrag,
+                    padding: const EdgeInsets.fromLTRB(18, 16, 18, 4),
+                    children: [
+                      if (matches.isNotEmpty) ...[
+                        MposSectionLabel(
+                          typing
+                              ? l10n.mposMatchingCustomers
+                              : l10n.mposRecentCustomers,
+                        ),
+                        const SizedBox(height: 4),
+                        for (final c in matches)
+                          _CustomerRow(
+                            customer: c,
+                            fallbackName: l10n.customer,
+                            selected: c.id == current?.id,
+                            onTap: _saving ? null : () => _attach(c),
+                          ),
+                      ] else if (typing)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          child: Text(
+                            l10n.mposNoCustomerMatches,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: PosTokens.ink3,
+                            ),
+                          ),
+                        ),
+                      if (_pickMode && current != null)
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: TextButton.icon(
+                            key: const ValueKey('mposCustomerRemove'),
+                            onPressed: _saving ? null : () => _pick(null),
+                            style: TextButton.styleFrom(
+                              foregroundColor: PosTokens.lossInk,
+                              minimumSize: const Size(0, 44),
+                            ),
+                            icon: const Icon(
+                              Icons.person_remove_outlined,
+                              size: 18,
+                            ),
+                            label: Text(l10n.ticketRemoveCustomer),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(18, 8, 18, 14),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      if (_error != null) ...[
+                        Text(
+                          _error!,
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 12.5,
+                            color: PosTokens.lossInk,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                      ],
+                      _SubmitButton(
+                        label: buttonLabel,
+                        icon: existing != null
+                            ? Icons.person_rounded
+                            : Icons.add_rounded,
+                        loading: _saving,
+                        onPressed: canSubmit ? () => _submit(all) : null,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            );
+            return roomy ? form : SingleChildScrollView(child: form);
+          },
         ),
       ),
     );
   }
+
+  static const double _roomyFormHeight = 320;
+
+  static Widget _listSlot(bool roomy, Widget list) =>
+      roomy ? Flexible(child: list) : list;
 }
 
 class _FieldRow extends StatelessWidget {

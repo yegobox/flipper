@@ -186,6 +186,18 @@ void main() {
     expect(find.byKey(const ValueKey('hotel-folio-check-out')), findsOneWidget);
   });
 
+  testWidgets('a pane too narrow for both desk columns keeps one column', (
+    tester,
+  ) async {
+    // Past the 600 phone breakpoint but under the desk's minimum: two
+    // columns would leave the charges about 160 wide and clip each row.
+    await _pumpFolio(tester, size: const Size(800, 900));
+
+    expect(tester.takeException(), isNull);
+    expect(find.byKey(const ValueKey('hotel-folio-summary')), findsNothing);
+    expect(find.byKey(const ValueKey('hotel-folio-check-out')), findsOneWidget);
+  });
+
   testWidgets('desk check-out: 480 wide, full-size tender labels, Enter '
       'settles', (tester) async {
     Object? result;
@@ -264,6 +276,32 @@ void main() {
     );
     final rect = tester.getRect(body);
     expect(rect.center.dx, closeTo(desk.width / 2, 1));
+  });
+
+  testWidgets('customer dialog scrolls when the keyboard leaves it short', (
+    tester,
+  ) async {
+    // A short, wide touch screen: 800x400 with a 250 keyboard leaves the
+    // dialog about 100 high, less than the fields alone.
+    tester.view.viewInsets = const FakeViewPadding(bottom: 250);
+    await _pumpLauncher(
+      tester,
+      size: const Size(800, 400),
+      open: (context) => MposCustomerSheet.pick(context),
+    );
+
+    expect(tester.takeException(), isNull);
+    expect(find.byType(Dialog), findsOneWidget);
+    final form = find.descendant(
+      of: find.byType(MposCustomerSheetBody),
+      matching: find.byType(SingleChildScrollView),
+    );
+    expect(form, findsOneWidget);
+    await tester.dragUntilVisible(
+      find.byKey(const ValueKey('mposCustomerNameField')),
+      form,
+      const Offset(0, -40),
+    );
   });
 
   testWidgets('customer picker stays a bottom sheet on a phone', (

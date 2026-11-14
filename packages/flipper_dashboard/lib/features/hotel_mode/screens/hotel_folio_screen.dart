@@ -28,6 +28,11 @@ import 'package:supabase_models/brick/models/transactionItem.model.dart';
 class HotelFolioScreen extends ConsumerWidget {
   const HotelFolioScreen({super.key});
 
+  /// Narrowest pane that fits the desk folio: 28 + 28 padding, the 24 gap,
+  /// the 360 summary and about 520 for charges (a charge row needs 332
+  /// before the item name gets any room).
+  static const double deskMinWidth = 960;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final stay = ref.watch(
@@ -41,9 +46,12 @@ class HotelFolioScreen extends ConsumerWidget {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final compact = HotelLayoutBreakpoints.isHotelMobileLayout(
-          constraints.maxWidth,
-        );
+        // The desk's two columns need [deskMinWidth]; a narrower pane (a
+        // tablet, a resized window) keeps the stacked folio so no charge
+        // row is clipped.
+        final compact =
+            HotelLayoutBreakpoints.isHotelMobileLayout(constraints.maxWidth) ||
+            constraints.maxWidth < deskMinWidth;
         return _HotelFolioBody(stay: stay, compact: compact);
       },
     );
