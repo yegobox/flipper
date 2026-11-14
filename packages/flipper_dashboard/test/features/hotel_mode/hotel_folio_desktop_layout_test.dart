@@ -304,6 +304,31 @@ void main() {
     );
   });
 
+  testWidgets('the phone field keeps focus when the keyboard tips the form '
+      'into scrolling', (tester) async {
+    await _pumpLauncher(
+      tester,
+      size: const Size(390, 600),
+      open: (context) => MposCustomerSheet.pick(context),
+    );
+    final phoneField = find.descendant(
+      of: find.byKey(const ValueKey('mposCustomerPhoneField')),
+      matching: find.byType(EditableText),
+    );
+    await tester.tap(phoneField);
+    await tester.pump();
+    final state = tester.state(phoneField);
+    expect(tester.widget<EditableText>(phoneField).focusNode.hasFocus, isTrue);
+
+    // A 300 keyboard leaves the sheet 284 high, under the roomy minimum.
+    tester.view.viewInsets = const FakeViewPadding(bottom: 300);
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(tester.state(phoneField), same(state));
+    expect(tester.widget<EditableText>(phoneField).focusNode.hasFocus, isTrue);
+  });
+
   testWidgets('customer picker stays a bottom sheet on a phone', (
     tester,
   ) async {

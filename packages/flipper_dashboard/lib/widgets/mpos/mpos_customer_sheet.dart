@@ -443,7 +443,20 @@ class _MposCustomerSheetBodyState extends ConsumerState<MposCustomerSheetBody> {
                 ),
               ],
             );
-            return roomy ? form : SingleChildScrollView(child: form);
+            // One tree in both modes: swapping the root's type would rebuild
+            // the fields, so the focused phone field would lose focus and
+            // the keyboard could close as the form tips into scrolling.
+            // Roomy, the box keeps the height bounded for the list's
+            // Flexible and nothing scrolls.
+            return SingleChildScrollView(
+              physics: roomy ? const NeverScrollableScrollPhysics() : null,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxHeight: roomy ? box.maxHeight : double.infinity,
+                ),
+                child: form,
+              ),
+            );
           },
         ),
       ),
