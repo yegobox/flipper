@@ -4770,6 +4770,15 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
       'Imeshindikana kuhifadhi mpangilio wa VAT. Jaribu tena.';
 
   @override
+  String get booksVatPillRegistered => 'Imesajiliwa';
+
+  @override
+  String get booksVatPillNotRegistered => 'Haijasajiliwa';
+
+  @override
+  String get booksVatThresholdLabel => 'Kiwango cha usajili';
+
+  @override
   String get booksLoanOpeningTitle => 'Weka salio la mwanzo la mkopo wako';
 
   @override

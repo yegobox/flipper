@@ -4784,6 +4784,15 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
       'Igenamiterere rya TVA ntiryabitswe. Ongera ugerageze.';
 
   @override
+  String get booksVatPillRegistered => 'Yanditswe kuri TVA';
+
+  @override
+  String get booksVatPillNotRegistered => 'Ntiyanditswe kuri TVA';
+
+  @override
+  String get booksVatThresholdLabel => 'Igipimo cyo kwiyandikisha';
+
+  @override
   String get booksLoanOpeningTitle =>
       'Andika umwenda w\'inguzanyo watangiranye';
 

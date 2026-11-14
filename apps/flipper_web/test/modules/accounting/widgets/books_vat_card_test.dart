@@ -64,8 +64,9 @@ Future<void> _pump(
   WidgetTester tester,
   Widget child, {
   List<Override> overrides = const [],
+  Size size = const Size(1200, 1600),
 }) async {
-  tester.view.physicalSize = const Size(1200, 1600);
+  tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1.0;
   addTearDown(tester.view.reset);
   await tester.pumpWidget(
@@ -88,9 +89,11 @@ Future<void> _pumpCard(
   WidgetTester tester,
   BooksVatPosition? position, {
   List<Override> overrides = const [],
+  Size size = const Size(1200, 1600),
 }) => _pump(
   tester,
   const BooksVatCard(),
+  size: size,
   overrides: [
     booksVatPositionProvider.overrideWith((ref) async => position),
     ...overrides,
@@ -107,6 +110,9 @@ const _notRegistered = BooksVatPosition(
   threshold: VatThreshold.near,
   hasEstimate: true,
 );
+
+const _salesLabel = "VAT in this month's sales (estimate)";
+const _purchasesLabel = 'VAT paid on purchases this month';
 
 Account _loan(int bal) => Account(
   code: '2200',
@@ -141,7 +147,8 @@ void main() {
         ),
       );
       expect(find.text('VAT payable (from your ledger)'), findsOneWidget);
-      expect(find.text('54,000'), findsOneWidget);
+      expect(find.text('RWF 54,000', findRichText: true), findsOneWidget);
+      expect(find.text('Registered'), findsOneWidget);
       expect(find.byType(AccountingSwitch), findsNothing);
       expect(
         find.text('Not registered for VAT: your sales carry no VAT.'),
@@ -182,7 +189,11 @@ void main() {
         ),
       );
       expect(find.text('VAT credit (from your ledger)'), findsOneWidget);
-      final amount = tester.widget<Text>(find.text('1,200'));
+      final amount = tester.widget<Text>(
+        find.byWidgetPredicate(
+          (w) => w is Text && w.textSpan?.toPlainText() == 'RWF 1,200',
+        ),
+      );
       expect(amount.style?.color, AccountingTokens.gainInk);
       expect(
         tester.widget<AccountingSwitch>(find.byType(AccountingSwitch)).value,
@@ -202,11 +213,13 @@ void main() {
           find.text("VAT in this month's sales (estimate)"),
           findsOneWidget,
         );
-        expect(find.text('180,000'), findsOneWidget);
-        expect(find.text('90,000'), findsOneWidget);
+        expect(find.text('Not registered'), findsOneWidget);
+        expect(find.text('RWF 180,000', findRichText: true), findsOneWidget);
+        expect(find.text('RWF 90,000', findRichText: true), findsOneWidget);
+        expect(find.text('85%'), findsOneWidget);
         expect(
           find.text(
-            'Sales in the last 12 months: 17,000,000 of the 20,000,000 registration threshold',
+            'Sales in the last 12 months: RWF 17,000,000 of the RWF 20,000,000 registration threshold',
           ),
           findsOneWidget,
         );
@@ -251,6 +264,8 @@ void main() {
       );
       expect(bar.value, 1.0);
       expect(bar.color, AccountingTokens.loss);
+      // The chip says how far past it is; only the bar stops at full.
+      expect(find.text('130%'), findsOneWidget);
     });
 
     testWidgets('well under the threshold: no warning', (tester) async {
@@ -292,6 +307,36 @@ void main() {
       );
       expect(find.byType(LinearProgressIndicator), findsNothing);
       expect(find.text("VAT in this month's sales (estimate)"), findsNothing);
+    });
+
+    testWidgets('estimate tiles sit side by side on desktop', (tester) async {
+      await _pumpCard(tester, _notRegistered);
+      expect(
+        tester.getTopLeft(find.text(_salesLabel)).dy,
+        tester.getTopLeft(find.text(_purchasesLabel)).dy,
+      );
+    });
+
+    testWidgets('estimate tiles stack on a phone', (tester) async {
+      await _pumpCard(tester, _notRegistered, size: const Size(390, 1600));
+      expect(
+        tester.getTopLeft(find.text(_purchasesLabel)).dy,
+        greaterThan(tester.getBottomLeft(find.text(_salesLabel)).dy),
+      );
+    });
+
+    testWidgets('amounts carry the business currency', (tester) async {
+      await _pumpCard(
+        tester,
+        _notRegistered,
+        overrides: [accountingCurrencyProvider.overrideWithValue('USD')],
+      );
+      expect(find.text('USD 180,000', findRichText: true), findsOneWidget);
+      expect(
+        find.textContaining('USD 17,000,000 of the USD 20,000,000'),
+        findsOneWidget,
+      );
+      expect(find.textContaining('RWF'), findsNothing);
     });
 
     testWidgets('turning the setting on saves it and confirms', (tester) async {

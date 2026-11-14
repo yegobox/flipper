@@ -4806,6 +4806,15 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
       'Impossible d\'enregistrer le paramètre TVA. Réessayez.';
 
   @override
+  String get booksVatPillRegistered => 'Assujetti';
+
+  @override
+  String get booksVatPillNotRegistered => 'Non assujetti';
+
+  @override
+  String get booksVatThresholdLabel => 'Seuil d\'assujettissement';
+
+  @override
   String get booksLoanOpeningTitle =>
       'Saisissez le solde d\'ouverture de votre prêt';
 

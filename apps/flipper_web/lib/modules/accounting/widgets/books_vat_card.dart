@@ -3,6 +3,7 @@ import 'package:flipper_web/modules/accounting/data/accounting_derive.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_providers.dart';
 import 'package:flipper_web/modules/accounting/data/services/vat_position_service.dart';
 import 'package:flipper_web/modules/accounting/theme/accounting_tokens.dart';
+import 'package:flipper_web/modules/accounting/widgets/accounting_icon.dart';
 import 'package:flipper_web/modules/accounting/widgets/accounting_page_header.dart';
 import 'package:flipper_web/modules/accounting/widgets/accounting_switch.dart';
 import 'package:flipper_web/modules/accounting/widgets/accounting_toast.dart';
@@ -17,8 +18,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 ///   sales, the VAT it paid on purchases, and its turnover against RRA's
 ///   registration threshold. None of that is in the ledger.
 ///
-/// Without an EBM branch the card also holds the "Registered for VAT"
-/// setting. Nothing shows while the position cannot be read.
+/// Every amount carries the business currency. Without an EBM branch the
+/// card also holds the "Registered for VAT" setting. Nothing shows while the
+/// position cannot be read.
 class BooksVatCard extends ConsumerWidget {
   const BooksVatCard({super.key});
 
@@ -26,6 +28,7 @@ class BooksVatCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final position = ref.watch(booksVatPositionProvider).value;
     if (position == null) return const SizedBox.shrink();
+    final currency = ref.watch(accountingCurrencyProvider);
     final l10n = context.flipperL10n;
     return Padding(
       padding: const EdgeInsets.only(top: 16),
@@ -33,18 +36,22 @@ class BooksVatCard extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            AccountingCardHeader(title: l10n.booksVatTitle),
+            AccountingCardHeader(
+              title: l10n.booksVatTitle,
+              subtitle: position.registered ? null : l10n.booksVatNotRegistered,
+              trailing: _StatusPill(registered: position.registered),
+            ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 18),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   if (position.registered)
-                    _RegisteredBody(position: position)
+                    _RegisteredBody(position: position, currency: currency)
                   else
-                    _EstimateBody(position: position),
+                    _EstimateBody(position: position, currency: currency),
                   if (!position.hasEbmBranch) ...[
-                    const Divider(height: 24, color: AccountingTokens.line),
+                    const Divider(height: 28, color: AccountingTokens.line),
                     _RegisteredSetting(position: position),
                   ],
                 ],
@@ -57,10 +64,124 @@ class BooksVatCard extends ConsumerWidget {
   }
 }
 
+/// "Registered" / "Not registered", in the dot-and-label pill style of
+/// the journal status pills.
+class _StatusPill extends StatelessWidget {
+  const _StatusPill({required this.registered});
+
+  final bool registered;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
+    final (bg, fg, label) = registered
+        ? (
+            AccountingTokens.accentTint,
+            AccountingTokens.accent,
+            l10n.booksVatPillRegistered,
+          )
+        : (
+            AccountingTokens.gainTint,
+            AccountingTokens.gainInk,
+            l10n.booksVatPillNotRegistered,
+          );
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 6,
+            height: 6,
+            decoration: BoxDecoration(color: fg, shape: BoxShape.circle),
+          ),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: AccountingTokens.sans(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: fg,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// An amount with the currency in front, smaller and muted, the way the
+/// dashboard KPI cards show money: "RWF 54,000".
+class _Amount extends StatelessWidget {
+  const _Amount({
+    required this.currency,
+    required this.value,
+    this.fontSize = 20,
+    this.color,
+  });
+
+  final String currency;
+  final int value;
+  final double fontSize;
+  final Color? color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text.rich(
+      TextSpan(
+        children: [
+          TextSpan(
+            text: '$currency ',
+            style: AccountingTokens.mono(
+              fontSize: fontSize * 0.55,
+              fontWeight: FontWeight.w600,
+              color: AccountingTokens.ink3,
+            ),
+          ),
+          TextSpan(text: money(value)),
+        ],
+      ),
+      style: AccountingTokens.mono(
+        fontSize: fontSize,
+        fontWeight: FontWeight.w800,
+        color: color ?? AccountingTokens.ink1,
+      ),
+    );
+  }
+}
+
+/// A rounded square holding an icon, on a tint.
+class _IconChip extends StatelessWidget {
+  const _IconChip({required this.icon, required this.bg, required this.fg});
+
+  final AccIcon icon;
+  final Color bg;
+  final Color fg;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 38,
+      height: 38,
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(11),
+      ),
+      alignment: Alignment.center,
+      child: AccountingIcon(icon: icon, size: 20, color: fg),
+    );
+  }
+}
+
 class _RegisteredBody extends StatelessWidget {
-  const _RegisteredBody({required this.position});
+  const _RegisteredBody({required this.position, required this.currency});
 
   final BooksVatPosition position;
+  final String currency;
 
   @override
   Widget build(BuildContext context) {
@@ -77,139 +198,269 @@ class _RegisteredBody extends StatelessWidget {
       );
     }
     final credit = position.vatOwed < 0;
-    return _Figure(
-      label: credit ? l10n.booksVatCreditLedger : l10n.booksVatOwedLedger,
-      value: money(position.vatOwed.abs()),
-      color: credit ? AccountingTokens.gainInk : AccountingTokens.ink1,
+    final (tint, ink, icon) = credit
+        ? (AccountingTokens.gainTint, AccountingTokens.gainInk, AccIcon.wallet)
+        : (
+            AccountingTokens.accentTint,
+            AccountingTokens.accent,
+            AccIcon.receipt,
+          );
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: tint,
+        borderRadius: BorderRadius.circular(AccountingTokens.radiusMd),
+      ),
+      child: Row(
+        children: [
+          _IconChip(icon: icon, bg: AccountingTokens.surface, fg: ink),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  credit ? l10n.booksVatCreditLedger : l10n.booksVatOwedLedger,
+                  style: AccountingTokens.sans(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w600,
+                    color: AccountingTokens.ink2,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                _Amount(
+                  currency: currency,
+                  value: position.vatOwed.abs(),
+                  fontSize: 28,
+                  color: credit
+                      ? AccountingTokens.gainInk
+                      : AccountingTokens.ink1,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
 
 class _EstimateBody extends StatelessWidget {
-  const _EstimateBody({required this.position});
+  const _EstimateBody({required this.position, required this.currency});
 
   final BooksVatPosition position;
+  final String currency;
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.flipperL10n;
-    final share = position.annualThreshold <= 0
+    // Nothing to show past the status in the header.
+    if (!position.hasEstimate) return const SizedBox.shrink();
+    final ratio = position.annualThreshold <= 0
         ? 0.0
-        : (position.turnover12m / position.annualThreshold).clamp(0.0, 1.0);
-    final (Color barColor, String? warning) = switch (position.threshold) {
+        : position.turnover12m / position.annualThreshold;
+    final (
+      Color barColor,
+      Color barTint,
+      String? warning,
+    ) = switch (position.threshold) {
       VatThreshold.crossed => (
         AccountingTokens.loss,
+        AccountingTokens.lossTint,
         l10n.booksVatThresholdCrossed,
       ),
       VatThreshold.near => (
         AccountingTokens.warnAmber,
+        AccountingTokens.warnTint,
         l10n.booksVatThresholdNear,
       ),
-      VatThreshold.none => (AccountingTokens.accent, null),
+      VatThreshold.none => (
+        AccountingTokens.accent,
+        AccountingTokens.accentTint,
+        null,
+      ),
     };
+    // Darker ink for the red callout text, so it reads on its tint.
+    final warnInk = position.threshold == VatThreshold.crossed
+        ? AccountingTokens.lossInk
+        : barColor;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          l10n.booksVatNotRegistered,
-          style: AccountingTokens.sans(
-            fontSize: 14,
-            fontWeight: FontWeight.w700,
-            color: AccountingTokens.gainInk,
-          ),
+        LayoutBuilder(
+          builder: (context, c) {
+            // Side by side when there is room, stacked on phones.
+            final tileWidth = c.maxWidth >= 460
+                ? (c.maxWidth - 12) / 2
+                : c.maxWidth;
+            return Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              children: [
+                SizedBox(
+                  width: tileWidth,
+                  child: _StatTile(
+                    icon: AccIcon.arrowUpRight,
+                    iconBg: AccountingTokens.accentTint,
+                    iconFg: AccountingTokens.accent,
+                    label: l10n.booksVatEstimateSales,
+                    currency: currency,
+                    value: position.monthEstimatedOutputVat,
+                  ),
+                ),
+                SizedBox(
+                  width: tileWidth,
+                  child: _StatTile(
+                    icon: AccIcon.truck,
+                    iconBg: AccountingTokens.warnTint,
+                    iconFg: AccountingTokens.warnAmber,
+                    label: l10n.booksVatPaidPurchases,
+                    currency: currency,
+                    value: position.monthPurchaseVat,
+                  ),
+                ),
+              ],
+            );
+          },
         ),
-        if (position.hasEstimate) ...[
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 24,
-            runSpacing: 12,
-            children: [
-              _Figure(
-                label: l10n.booksVatEstimateSales,
-                value: money(position.monthEstimatedOutputVat),
+        const SizedBox(height: 18),
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                l10n.booksVatThresholdLabel.toUpperCase(),
+                style: AccountingTokens.eyebrow,
               ),
-              _Figure(
-                label: l10n.booksVatPaidPurchases,
-                value: money(position.monthPurchaseVat),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                color: barTint,
+                borderRadius: BorderRadius.circular(999),
               ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          Text(
-            l10n.booksVatTurnover12m(
-              money(position.turnover12m),
-              money(position.annualThreshold),
-            ),
-            style: AccountingTokens.sans(
-              fontSize: 12.5,
-              color: AccountingTokens.ink2,
-            ),
-          ),
-          const SizedBox(height: 6),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: LinearProgressIndicator(
-              value: share,
-              minHeight: 6,
-              color: barColor,
-              backgroundColor: AccountingTokens.surface2,
-            ),
-          ),
-          if (warning != null) ...[
-            const SizedBox(height: 10),
-            Text(
-              warning,
-              style: AccountingTokens.sans(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: barColor,
+              child: Text(
+                '${(ratio * 100).round()}%',
+                style: AccountingTokens.mono(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: barColor,
+                ),
               ),
             ),
           ],
-          const SizedBox(height: 10),
-          Text(
-            l10n.booksVatEstimateNote,
-            style: AccountingTokens.sans(
-              fontSize: 12,
-              color: AccountingTokens.ink3,
-            ),
+        ),
+        const SizedBox(height: 8),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(999),
+          child: LinearProgressIndicator(
+            value: ratio.clamp(0.0, 1.0),
+            minHeight: 10,
+            color: barColor,
+            backgroundColor: AccountingTokens.surface2,
           ),
-        ],
-      ],
-    );
-  }
-}
-
-class _Figure extends StatelessWidget {
-  const _Figure({required this.label, required this.value, this.color});
-
-  final String label;
-  final String value;
-  final Color? color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: [
+        ),
+        const SizedBox(height: 8),
         Text(
-          label,
+          l10n.booksVatTurnover12m(
+            '$currency ${money(position.turnover12m)}',
+            '$currency ${money(position.annualThreshold)}',
+          ),
           style: AccountingTokens.sans(
             fontSize: 12.5,
             color: AccountingTokens.ink2,
           ),
         ),
-        const SizedBox(height: 2),
+        if (warning != null) ...[
+          const SizedBox(height: 12),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: barTint,
+              borderRadius: BorderRadius.circular(AccountingTokens.radiusSm),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                AccountingIcon(icon: AccIcon.warn, size: 18, color: barColor),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    warning,
+                    style: AccountingTokens.sans(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: warnInk,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+        const SizedBox(height: 12),
         Text(
-          value,
-          style: AccountingTokens.mono(
-            fontSize: 19,
-            fontWeight: FontWeight.w800,
-            color: color ?? AccountingTokens.ink1,
+          l10n.booksVatEstimateNote,
+          style: AccountingTokens.sans(
+            fontSize: 12,
+            color: AccountingTokens.ink3,
           ),
         ),
       ],
+    );
+  }
+}
+
+/// One estimate figure: an icon chip, its label and the amount.
+class _StatTile extends StatelessWidget {
+  const _StatTile({
+    required this.icon,
+    required this.iconBg,
+    required this.iconFg,
+    required this.label,
+    required this.currency,
+    required this.value,
+  });
+
+  final AccIcon icon;
+  final Color iconBg;
+  final Color iconFg;
+  final String label;
+  final String currency;
+  final int value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AccountingTokens.surface2,
+        borderRadius: BorderRadius.circular(AccountingTokens.radiusMd),
+      ),
+      child: Row(
+        children: [
+          _IconChip(icon: icon, bg: iconBg, fg: iconFg),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: AccountingTokens.sans(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: AccountingTokens.ink2,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                _Amount(currency: currency, value: value),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

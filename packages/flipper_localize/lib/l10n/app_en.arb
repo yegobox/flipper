@@ -3988,6 +3988,9 @@
     "booksVatRegisteredSettingHint": "Turn on only if you are registered for VAT with RRA and file VAT returns. New sales then carry VAT in Books.",
     "booksVatSettingSaved": "VAT setting saved",
     "booksVatSettingFailed": "Could not save the VAT setting. Try again.",
+    "booksVatPillRegistered": "Registered",
+    "booksVatPillNotRegistered": "Not registered",
+    "booksVatThresholdLabel": "Registration threshold",
     "booksLoanOpeningTitle": "Record your loan's opening balance",
     "booksLoanOpeningBody": "Bank Loan shows {amount} more repaid than received. Record what the business owed when it started using Books.",
     "@booksLoanOpeningBody": {
