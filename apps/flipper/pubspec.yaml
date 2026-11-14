@@ -4,7 +4,7 @@ publish_to: "none"
 #  ios : 1.184
 # macos : 1.181
 
-version: 1.566.0+1756530053
+version: 1.567.0+1756530054
 
 
 
@@ -136,6 +136,8 @@ dependency_overrides:
   jni: ^0.14.2
   # 2.3.0+ requires jni ^1.0; keep in sync with flipper/melos.yaml
   path_provider_android: ">=2.2.5 <2.3.0"
+  # 2.5.0+ depends on jni ^1.1; keep in sync with flipper/melos.yaml
+  shared_preferences_android: ">=2.4.23 <2.5.0"
   http: ^1.2.2
   meta: ^1.16.0
   web: ^1.1.0
@@ -183,7 +185,7 @@ msix_config:
   identity_name: yegobox.yegoboxflipper
   # identity_name: yegobox.yegoboxflipper_6y224vs1dg1rr
   # Store package identity — pre-commit bumps Minor each time (1.185.0.0 → 1.186.0.0).
-  msix_version: 1.570.0.0
+  msix_version: 1.571.0.0
 
   publisher: CN=B0F98A1E-8AE8-4B2B-BD1B-F494D4F791AE
   # publisher: CN=B0F334A1E-8AET-4B2C-BD1B-F239D4F791AE
