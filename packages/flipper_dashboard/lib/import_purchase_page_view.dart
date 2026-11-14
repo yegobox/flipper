@@ -13,7 +13,7 @@ import 'package:flipper_services/kafka_service.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:overlay_support/overlay_support.dart';
+import 'package:flipper_overlay/flipper_overlay.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 /// Full-page wrapper around [ImportPurchasePage], shown as a dashboard page

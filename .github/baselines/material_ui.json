@@ -93,10 +93,6 @@
       "kind": "pub"
     },
     {
-      "name": "overlay_support",
-      "kind": "pub"
-    },
-    {
       "name": "pin_code_fields",
       "kind": "pub"
     },

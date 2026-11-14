@@ -37,7 +37,7 @@ import 'package:flipper_services/payments_host.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/analytics/repository_analytics_event_store.dart';
 import 'package:flipper_design_system/flipper_design_system.dart';
-import 'package:overlay_support/overlay_support.dart';
+import 'package:flipper_overlay/flipper_overlay.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show Clipboard, ClipboardData;

@@ -2,7 +2,7 @@ import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/db_model_export.dart';
-import 'package:overlay_support/overlay_support.dart';
+import 'package:flipper_overlay/flipper_overlay.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:uuid/uuid.dart';

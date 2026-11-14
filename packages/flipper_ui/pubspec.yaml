@@ -20,7 +20,7 @@ dependencies:
   flutter:
     sdk: flutter
   flipper_loading: ^2.0.0
-  overlay_support: ^2.1.0
+  flipper_overlay: any
   # adding this because I need constants from it,
   # maybe it is time to move all constants to its own package
   flipper_services: any

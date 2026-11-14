@@ -23,7 +23,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:overlay_support/overlay_support.dart';
+import 'package:flipper_overlay/flipper_overlay.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 
 abstract final class _PreviewColors {

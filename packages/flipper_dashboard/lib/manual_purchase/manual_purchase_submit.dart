@@ -6,7 +6,7 @@ import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/services/purchase_approval_deps.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:overlay_support/overlay_support.dart';
+import 'package:flipper_overlay/flipper_overlay.dart';
 
 /// Saves the purchase held by [manualPurchaseProvider], shared by the desktop
 /// form and the mobile screen. Returns true when the purchase was saved (the

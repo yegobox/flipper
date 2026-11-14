@@ -1,0 +1,4 @@
+# Vendored code (overlay_support 2.1.0): keep it as upstream wrote it.
+analyzer:
+  exclude:
+    - build/**
