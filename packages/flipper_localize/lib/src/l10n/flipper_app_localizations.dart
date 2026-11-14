@@ -8261,6 +8261,24 @@ abstract class FlipperAppLocalizations {
   /// **'Could not save the VAT setting. Try again.'**
   String get booksVatSettingFailed;
 
+  /// No description provided for @booksVatPillRegistered.
+  ///
+  /// In en, this message translates to:
+  /// **'Registered'**
+  String get booksVatPillRegistered;
+
+  /// No description provided for @booksVatPillNotRegistered.
+  ///
+  /// In en, this message translates to:
+  /// **'Not registered'**
+  String get booksVatPillNotRegistered;
+
+  /// No description provided for @booksVatThresholdLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Registration threshold'**
+  String get booksVatThresholdLabel;
+
   /// No description provided for @booksLoanOpeningTitle.
   ///
   /// In en, this message translates to:

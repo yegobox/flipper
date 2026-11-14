@@ -141,7 +141,8 @@ void main() {
         ),
       );
       expect(find.text('VAT payable (from your ledger)'), findsOneWidget);
-      expect(find.text('54,000'), findsOneWidget);
+      expect(find.text('RWF 54,000', findRichText: true), findsOneWidget);
+      expect(find.text('Registered'), findsOneWidget);
       expect(find.byType(AccountingSwitch), findsNothing);
       expect(
         find.text('Not registered for VAT: your sales carry no VAT.'),
@@ -182,7 +183,11 @@ void main() {
         ),
       );
       expect(find.text('VAT credit (from your ledger)'), findsOneWidget);
-      final amount = tester.widget<Text>(find.text('1,200'));
+      final amount = tester.widget<Text>(
+        find.byWidgetPredicate(
+          (w) => w is Text && w.textSpan?.toPlainText() == 'RWF 1,200',
+        ),
+      );
       expect(amount.style?.color, AccountingTokens.gainInk);
       expect(
         tester.widget<AccountingSwitch>(find.byType(AccountingSwitch)).value,
@@ -202,11 +207,13 @@ void main() {
           find.text("VAT in this month's sales (estimate)"),
           findsOneWidget,
         );
-        expect(find.text('180,000'), findsOneWidget);
-        expect(find.text('90,000'), findsOneWidget);
+        expect(find.text('Not registered'), findsOneWidget);
+        expect(find.text('RWF 180,000', findRichText: true), findsOneWidget);
+        expect(find.text('RWF 90,000', findRichText: true), findsOneWidget);
+        expect(find.text('85%'), findsOneWidget);
         expect(
           find.text(
-            'Sales in the last 12 months: 17,000,000 of the 20,000,000 registration threshold',
+            'Sales in the last 12 months: RWF 17,000,000 of the RWF 20,000,000 registration threshold',
           ),
           findsOneWidget,
         );
@@ -251,6 +258,8 @@ void main() {
       );
       expect(bar.value, 1.0);
       expect(bar.color, AccountingTokens.loss);
+      // The chip says how far past it is; only the bar stops at full.
+      expect(find.text('130%'), findsOneWidget);
     });
 
     testWidgets('well under the threshold: no warning', (tester) async {
@@ -292,6 +301,20 @@ void main() {
       );
       expect(find.byType(LinearProgressIndicator), findsNothing);
       expect(find.text("VAT in this month's sales (estimate)"), findsNothing);
+    });
+
+    testWidgets('amounts carry the business currency', (tester) async {
+      await _pumpCard(
+        tester,
+        _notRegistered,
+        overrides: [accountingCurrencyProvider.overrideWithValue('USD')],
+      );
+      expect(find.text('USD 180,000', findRichText: true), findsOneWidget);
+      expect(
+        find.textContaining('USD 17,000,000 of the USD 20,000,000'),
+        findsOneWidget,
+      );
+      expect(find.textContaining('RWF'), findsNothing);
     });
 
     testWidgets('turning the setting on saves it and confirms', (tester) async {

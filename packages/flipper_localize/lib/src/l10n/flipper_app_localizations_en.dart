@@ -4744,6 +4744,15 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
       'Could not save the VAT setting. Try again.';
 
   @override
+  String get booksVatPillRegistered => 'Registered';
+
+  @override
+  String get booksVatPillNotRegistered => 'Not registered';
+
+  @override
+  String get booksVatThresholdLabel => 'Registration threshold';
+
+  @override
   String get booksLoanOpeningTitle => 'Record your loan\'s opening balance';
 
   @override
