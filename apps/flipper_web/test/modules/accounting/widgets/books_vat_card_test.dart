@@ -64,8 +64,9 @@ Future<void> _pump(
   WidgetTester tester,
   Widget child, {
   List<Override> overrides = const [],
+  Size size = const Size(1200, 1600),
 }) async {
-  tester.view.physicalSize = const Size(1200, 1600);
+  tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1.0;
   addTearDown(tester.view.reset);
   await tester.pumpWidget(
@@ -88,9 +89,11 @@ Future<void> _pumpCard(
   WidgetTester tester,
   BooksVatPosition? position, {
   List<Override> overrides = const [],
+  Size size = const Size(1200, 1600),
 }) => _pump(
   tester,
   const BooksVatCard(),
+  size: size,
   overrides: [
     booksVatPositionProvider.overrideWith((ref) async => position),
     ...overrides,
@@ -107,6 +110,9 @@ const _notRegistered = BooksVatPosition(
   threshold: VatThreshold.near,
   hasEstimate: true,
 );
+
+const _salesLabel = "VAT in this month's sales (estimate)";
+const _purchasesLabel = 'VAT paid on purchases this month';
 
 Account _loan(int bal) => Account(
   code: '2200',
@@ -301,6 +307,22 @@ void main() {
       );
       expect(find.byType(LinearProgressIndicator), findsNothing);
       expect(find.text("VAT in this month's sales (estimate)"), findsNothing);
+    });
+
+    testWidgets('estimate tiles sit side by side on desktop', (tester) async {
+      await _pumpCard(tester, _notRegistered);
+      expect(
+        tester.getTopLeft(find.text(_salesLabel)).dy,
+        tester.getTopLeft(find.text(_purchasesLabel)).dy,
+      );
+    });
+
+    testWidgets('estimate tiles stack on a phone', (tester) async {
+      await _pumpCard(tester, _notRegistered, size: const Size(390, 1600));
+      expect(
+        tester.getTopLeft(find.text(_purchasesLabel)).dy,
+        greaterThan(tester.getBottomLeft(find.text(_salesLabel)).dy),
+      );
     });
 
     testWidgets('amounts carry the business currency', (tester) async {
