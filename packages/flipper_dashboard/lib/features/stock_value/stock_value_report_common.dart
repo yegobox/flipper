@@ -229,7 +229,7 @@ class StockValueLowCriticalList extends StatelessWidget {
                   children: [
                     Text(
                       context.flipperL10n.stockValueUnitsValue(
-                        item.currentStock.toStringAsFixed(0),
+                        formatStockQty(item.currentStock),
                       ),
                       style: FlipperFonts.mono(
                         fontSize: 16,
@@ -242,7 +242,7 @@ class StockValueLowCriticalList extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(
                       context.flipperL10n.stockValueMinValue(
-                        item.minStock.toStringAsFixed(0),
+                        formatStockQty(item.minStock),
                       ),
                       style: GoogleFonts.outfit(
                         fontSize: 12,
