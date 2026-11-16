@@ -22,7 +22,10 @@ import 'package:flipper_dashboard/export/models/expense.dart';
 import 'package:flipper_dashboard/export/models/payment_summary.dart';
 import 'package:flipper_dashboard/export/utils/excel_utils.dart';
 import 'package:flipper_dashboard/export/utils/plu_excel_formula_builder.dart';
-import 'package:flipper_dashboard/features/config/widgets/currency_options.dart';
+import 'package:flipper_dashboard/export/report_export_config.dart';
+
+// Moved out of this file; re-exported so existing importers keep working.
+export 'package:flipper_dashboard/export/report_export_config.dart';
 
 /// PLU line amounts in Excel (manual export + footer sums); keep in sync with [ManualNumericStyle].
 const String _excelPluAmountNumberFormat = '#,##0.00';
@@ -507,6 +510,13 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
               netProfitColIndex0 != null;
 
           for (int rowIndex = 0; rowIndex < manualData.length; rowIndex++) {
+            // Building cells is synchronous: on a big report this loop used to
+            // hold the UI isolate for the whole sheet, and Windows marks the
+            // till "Not Responding" after ~5 s. Yield so frames and the
+            // window's messages keep flowing.
+            if (rowIndex > 0 && rowIndex % _exportRowsPerYield == 0) {
+              await Future<void>.delayed(Duration.zero);
+            }
             final item = manualData[rowIndex];
             Map<String, dynamic> rowData;
 
@@ -1451,49 +1461,5 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   };
 }
 
-class ExcelStyler {
-  final excel.Workbook workbook;
-  int _styleCounter = 0;
-
-  ExcelStyler(this.workbook);
-
-  excel.Style createStyle({
-    required String fontColor,
-    required String backColor,
-    required double fontSize,
-  }) {
-    final styleName = 'customStyle${_styleCounter++}';
-    final style = workbook.styles.add(styleName);
-    style.fontName = 'Calibri';
-    style.bold = true;
-    style.fontSize = fontSize;
-    style.fontColor = fontColor;
-    style.backColor = backColor;
-    style.hAlign = excel.HAlignType.center;
-    style.vAlign = excel.VAlignType.center;
-    return style;
-  }
-}
-
-class ExportConfig {
-  DateTime? startDate;
-  DateTime? endDate;
-  double? grossProfit;
-  double? netProfit;
-  double? cogs;
-  String currencyCode;
-  String currencySymbol;
-  String currencyFormat;
-  final List<ITransaction> transactions;
-  ExportConfig({
-    this.startDate,
-    this.endDate,
-    this.grossProfit,
-    this.netProfit,
-    this.cogs,
-    this.currencyCode = 'RWF',
-    required this.transactions,
-  }) : currencySymbol = CurrencyOptions.getSymbolForCurrency(currencyCode),
-       currencyFormat =
-           '${CurrencyOptions.getSymbolForCurrency(currencyCode)}#,##0.00_);${CurrencyOptions.getSymbolForCurrency(currencyCode)}#,##0.00;${CurrencyOptions.getSymbolForCurrency(currencyCode)} 0.00';
-}
+/// Rows written between yields to the event loop while building a sheet.
+const int _exportRowsPerYield = 250;
