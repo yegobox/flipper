@@ -965,33 +965,56 @@ const double _kColStatus = 104;
 const double _kMinProductWidth = 120;
 const double _kMinCategoryWidth = 80;
 
-/// Which columns the product table shows at a given width. Value and Status
-/// always stay; below what everything needs, BCD goes first, then Unit price,
-/// Category and Stock, so Product never shrinks to nothing. The header and
-/// the rows ask with the same width, so they line up.
+/// Narrowest the Value column gets before it is hidden.
+const double _kMinValueWidth = 48;
+
+/// Which columns the product table shows at a given width. Below what
+/// everything needs, BCD goes first, then Unit price, Category, Stock and
+/// Status; on a pane narrower still, Value narrows and finally goes, so
+/// Product never shrinks to nothing and the fixed columns never overflow
+/// ([fixedWidth] <= width at any width). The header and the rows ask with
+/// the same width, so they line up.
 @visibleForTesting
 class StockValueTableColumns {
   final bool bcd;
   final bool unitPrice;
   final bool category;
   final bool stock;
+  final bool status;
+
+  /// Width of the Value column; 0 when it is hidden.
+  final double valueWidth;
 
   const StockValueTableColumns({
     required this.bcd,
     required this.unitPrice,
     required this.category,
     required this.stock,
+    required this.status,
+    required this.valueWidth,
   });
+
+  bool get value => valueWidth > 0;
+
+  /// Width of the fixed-width columns shown; the rest goes to Product (and
+  /// Category).
+  double get fixedWidth =>
+      (bcd ? _kColBcd : 0) +
+      (unitPrice ? _kColPrice : 0) +
+      (stock ? _kColStock : 0) +
+      valueWidth +
+      (status ? _kColStatus : 0);
 
   factory StockValueTableColumns.forWidth(double width) {
     var bcd = true, unitPrice = true, category = true, stock = true;
+    var status = true;
     bool fits() {
       final fixed =
           (bcd ? _kColBcd : 0) +
           (unitPrice ? _kColPrice : 0) +
           (stock ? _kColStock : 0) +
           _kColValue +
-          _kColStatus;
+          (status ? _kColStatus : 0);
       final flexible = _kMinProductWidth + (category ? _kMinCategoryWidth : 0);
       return width - fixed >= flexible;
     }
@@ -1000,11 +1023,17 @@ class StockValueTableColumns {
     if (!fits()) unitPrice = false;
     if (!fits()) category = false;
     if (!fits()) stock = false;
+    if (!fits()) status = false;
+    // Only Product and Value left: Value takes what Product leaves, and goes
+    // once that is too narrow for an amount.
+    final room = (width - _kMinProductWidth).clamp(0.0, _kColValue);
     return StockValueTableColumns(
       bcd: bcd,
       unitPrice: unitPrice,
       category: category,
       stock: stock,
+      status: status,
+      valueWidth: room < _kMinValueWidth ? 0 : room,
     );
   }
 }
@@ -1101,22 +1130,24 @@ class _ProductTableHeader extends StatelessWidget {
                   width: _kColStock,
                   child: sortable(l10n.stockValueColStock, _SortKey.stock),
                 ),
-              SizedBox(
-                width: _kColValue,
-                child: sortable(
-                  l10n.stockValueColValue,
-                  _SortKey.value,
-                  alignEnd: true,
+              if (cols.value)
+                SizedBox(
+                  width: cols.valueWidth,
+                  child: sortable(
+                    l10n.stockValueColValue,
+                    _SortKey.value,
+                    alignEnd: true,
+                  ),
                 ),
-              ),
-              SizedBox(
-                width: _kColStatus,
-                child: Text(
-                  l10n.stockValueColStatus,
-                  textAlign: TextAlign.right,
-                  style: style,
+              if (cols.status)
+                SizedBox(
+                  width: _kColStatus,
+                  child: Text(
+                    l10n.stockValueColStatus,
+                    textAlign: TextAlign.right,
+                    style: style,
+                  ),
                 ),
-              ),
             ],
           );
         },
@@ -1259,45 +1290,47 @@ class _ProductDataRow extends StatelessWidget {
                       ],
                     ),
                   ),
-                SizedBox(
-                  width: _kColValue,
-                  child: Text(
-                    'RWF ${formatNumber(line.lineValue)}',
-                    textAlign: TextAlign.right,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: FlipperFonts.mono(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
+                if (cols.value)
+                  SizedBox(
+                    width: cols.valueWidth,
+                    child: Text(
+                      'RWF ${formatNumber(line.lineValue)}',
+                      textAlign: TextAlign.right,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: FlipperFonts.mono(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                   ),
-                ),
-                SizedBox(
-                  width: _kColStatus,
-                  child: Align(
-                    alignment: Alignment.centerRight,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: bg,
-                        borderRadius: BorderRadius.circular(999),
-                      ),
-                      child: Text(
-                        label,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.outfit(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                          color: fg,
+                if (cols.status)
+                  SizedBox(
+                    width: _kColStatus,
+                    child: Align(
+                      alignment: Alignment.centerRight,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: bg,
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        child: Text(
+                          label,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.outfit(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: fg,
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
               ],
             );
           },

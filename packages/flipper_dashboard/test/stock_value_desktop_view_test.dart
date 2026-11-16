@@ -217,14 +217,27 @@ void main() {
         if (c.bcd) 'bcd',
         if (c.unitPrice) 'price',
         if (c.stock) 'stock',
+        if (c.status) 'status',
+        if (c.value) 'value',
       ].join(',');
     }
 
-    expect(shown(800), 'category,bcd,price,stock');
-    expect(shown(650), 'category,price,stock');
-    expect(shown(560), 'category,stock');
-    expect(shown(460), 'stock');
-    expect(shown(300), '');
+    expect(shown(800), 'category,bcd,price,stock,status,value');
+    expect(shown(650), 'category,price,stock,status,value');
+    expect(shown(560), 'category,stock,status,value');
+    expect(shown(460), 'stock,status,value');
+    expect(shown(400), 'status,value');
+    expect(shown(300), 'value');
+    // Value narrows to what Product leaves, then goes.
+    expect(StockValueTableColumns.forWidth(200).valueWidth, 80);
+    expect(shown(150), '');
+  });
+
+  test('the fixed columns never overflow, however narrow the table', () {
+    for (var w = 0.0; w <= 1200; w += 2) {
+      final c = StockValueTableColumns.forWidth(w);
+      expect(c.fixedWidth, lessThanOrEqualTo(w), reason: 'width $w');
+    }
   });
 
   testWidgets('a narrow view keeps the table on screen without overflow', (
