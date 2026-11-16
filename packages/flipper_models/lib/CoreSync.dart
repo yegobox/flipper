@@ -2889,34 +2889,15 @@ class CoreSync extends AiStrategyImpl
         );
       }
 
-      // Use registerObserver to wait for data
-      final completer = Completer<List<dynamic>>();
-      final observer = ditto.store.registerObserver(
+      // One-shot local read. An observer reports the current local result
+      // immediately (proved on a real store, 2026-11-16), so waiting on its
+      // first callback was this same read plus a synchronous
+      // `registerObserver` FFI call on the UI thread, which blocks while
+      // Ditto is busy.
+      final List<dynamic> items = (await ditto.store.execute(
         query,
         arguments: arguments,
-        onChange: (result) {
-          if (!completer.isCompleted) {
-            completer.complete(result.items.toList());
-          }
-        },
-      );
-
-      List<dynamic> items = [];
-      try {
-        // Wait for data or timeout
-        items = await completer.future.timeout(
-          const Duration(seconds: 10),
-          onTimeout: () {
-            if (!completer.isCompleted) {
-              talker.warning('Timeout waiting for ebms data');
-              completer.complete([]);
-            }
-            return [];
-          },
-        );
-      } finally {
-        observer.cancel();
-      }
+      )).items.toList();
 
       // Check if any EBM configuration exists and if VAT is enabled
       if (items.isNotEmpty) {

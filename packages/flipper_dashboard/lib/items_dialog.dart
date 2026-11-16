@@ -111,21 +111,9 @@ class _ItemsDialogState extends ConsumerState<ItemsDialog> {
       }
     }
 
-    for (final sid in stockIds) {
-      if (!stocksById.containsKey(sid)) {
-        try {
-          final loaded = await capella.getStockById(id: sid);
-          if (loaded != null) {
-            stocksById[sid] = loaded;
-          } else {
-            incompleteSync = true;
-          }
-        } catch (_) {
-          incompleteSync = true;
-        }
-      }
-    }
-
+    // No per-id retry: getStockById uses the same `_id OR id` predicate as
+    // the batch, so it cannot find what the batch missed. It only added one
+    // sequential full scan per unsynced stock.
     if (stockIds.any((id) => !stocksById.containsKey(id))) {
       incompleteSync = true;
     }
