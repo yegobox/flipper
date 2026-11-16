@@ -21849,6 +21849,30 @@ abstract class FlipperAppLocalizations {
   /// **'Low'**
   String get stockValueStatusLow;
 
+  /// Stock value report: stock status: nothing on hand
+  ///
+  /// In en, this message translates to:
+  /// **'Out of stock'**
+  String get stockValueStatusOut;
+
+  /// Stock value report: out-of-stock card subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'no units on hand'**
+  String get stockValueNoUnitsOnHand;
+
+  /// Stock value report: total card subtitle: stock value at purchase price and the potential margin
+  ///
+  /// In en, this message translates to:
+  /// **'Cost {cost} · margin {margin}'**
+  String stockValueCostAndMargin(String cost, String margin);
+
+  /// Stock value report: products shown after search and filters, out of all products
+  ///
+  /// In en, this message translates to:
+  /// **'{shown} of {total}'**
+  String stockValueRowsShown(String shown, String total);
+
   /// Stock value report: stock status: enough stock
   ///
   /// In en, this message translates to:

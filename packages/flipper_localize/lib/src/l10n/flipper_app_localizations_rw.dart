@@ -13169,6 +13169,22 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   String get stockValueStatusLow => 'Bike';
 
   @override
+  String get stockValueStatusOut => 'Byashize';
+
+  @override
+  String get stockValueNoUnitsOnHand => 'nta gicuruzwa gisigaye';
+
+  @override
+  String stockValueCostAndMargin(String cost, String margin) {
+    return 'Igiciro cyo kugura $cost · inyungu $margin';
+  }
+
+  @override
+  String stockValueRowsShown(String shown, String total) {
+    return '$shown kuri $total';
+  }
+
+  @override
   String get stockValueStatusOk => 'Bihagije';
 
   @override
