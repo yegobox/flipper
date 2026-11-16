@@ -295,20 +295,26 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
   }) async {
     final ditto = dittoService.dittoInstance;
     if (ditto == null) return [];
-    final query =
-        'SELECT * FROM transaction_items WHERE branchId = :branchId AND '
-        'createdAt >= :startDate AND createdAt <= :endDate '
-        'ORDER BY createdAt DESC';
-    final result = await ditto.store.execute(
-      query,
-      arguments: {
-        'branchId': branchId,
-        'startDate': localStartDate.toIso8601String(),
-        'endDate': localEndDate.toIso8601String(),
-      },
+    final arguments = {
+      'branchId': branchId,
+      'startDate': localStartDate.toIso8601String(),
+      'endDate': localEndDate.toIso8601String(),
+    };
+    // Both spellings of the branch link, same window. A non-empty result here
+    // ends the report scope, so lines written with only `branch_id` used to be
+    // dropped whenever any `branchId` line existed (a sale mixing the two
+    // was undercounted).
+    final camel = await ditto.store.execute(
+      reportScopeItemsByBranchIdDql,
+      arguments: arguments,
     );
-    return _parseTransactionItemQuery(
-      result,
+    final snake = await ditto.store.execute(
+      reportScopeItemsByBranchSnakeDql,
+      arguments: arguments,
+    );
+    return mergeTransactionItemsById(
+      _parseTransactionItemQuery(camel),
+      _parseTransactionItemQuery(snake),
     ).where((i) => _reportItemBranchMatches(i, branchId)).toList();
   }
 
@@ -371,10 +377,14 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
 
   /// All PLU rows for Transaction Reports in [startDate]…[endDate] (branch-scoped).
   /// Restores pre-regression stream loading; callers filter to sale ids as needed.
+  ///
+  /// A failed read returns `[]`, like an empty day, unless [rethrowErrors]:
+  /// then it throws, so a caller can keep what it had and retry.
   Future<List<TransactionItem>> fetchTransactionItemsReportScope({
     required DateTime startDate,
     required DateTime endDate,
     required String branchId,
+    bool rethrowErrors = false,
   }) async {
     try {
       final localStartDate = DateTime(
@@ -417,6 +427,7 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
       return [];
     } catch (e, s) {
       talker.error('fetchTransactionItemsReportScope: $e', s);
+      if (rethrowErrors) rethrow;
       return [];
     }
   }
@@ -821,4 +832,31 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
       talker.error('Error updating transaction item: $e');
     }
   }
+}
+
+/// Report scope, first tier: lines linked by `branchId` in the window
+/// (Ditto Playground–verified).
+const String reportScopeItemsByBranchIdDql =
+    'SELECT * FROM transaction_items WHERE branchId = :branchId AND '
+    'createdAt >= :startDate AND createdAt <= :endDate '
+    'ORDER BY createdAt DESC';
+
+/// The same window for lines linked only by the snake_case `branch_id`.
+const String reportScopeItemsByBranchSnakeDql =
+    'SELECT * FROM transaction_items WHERE branch_id = :branchId AND '
+    'createdAt >= :startDate AND createdAt <= :endDate '
+    'ORDER BY createdAt DESC';
+
+/// [first] then the lines of [second] not already in it, by id. A line
+/// carrying both branch spellings comes back from both queries once.
+List<TransactionItem> mergeTransactionItemsById(
+  List<TransactionItem> first,
+  List<TransactionItem> second,
+) {
+  final seen = {for (final item in first) item.id};
+  return [
+    ...first,
+    for (final item in second)
+      if (seen.add(item.id)) item,
+  ];
 }

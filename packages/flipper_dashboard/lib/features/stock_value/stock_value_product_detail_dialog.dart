@@ -318,7 +318,7 @@ class _ProductDetailDialogBodyState extends State<_ProductDetailDialogBody> {
                       const SizedBox(width: 6),
                       Text(
                         context.flipperL10n.stockValueInStock(
-                          line.currentStock.toStringAsFixed(0),
+                          formatStockQty(line.currentStock),
                         ),
                         style: GoogleFonts.outfit(
                           color: const Color(0xFF16A34A),
@@ -373,7 +373,7 @@ class _ProductDetailDialogBodyState extends State<_ProductDetailDialogBody> {
             valueText: 'RWF ${_formatCompact(stockValue)}',
             valueColor: const Color(0xFF1F6FEB),
             caption: l10n.stockValueUnitsTimesPrice(
-              line.currentStock.toStringAsFixed(0),
+              formatStockQty(line.currentStock),
               'RWF ${formatNumber(unit)}',
             ),
           ),
