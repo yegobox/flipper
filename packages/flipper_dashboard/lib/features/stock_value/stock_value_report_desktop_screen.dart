@@ -1,5 +1,6 @@
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_design_system/flipper_design_system.dart';
+
 import 'dart:async' show Timer, unawaited;
 
 import 'package:flipper_models/providers/stock_value_report_provider.dart';
@@ -251,7 +252,9 @@ class _StockValueLoadingShell extends StatelessWidget {
   }
 }
 
-enum _ProductFilter { all, ok, low, critical, out }
+/// [restock] is the restock-alert list itself ("View all"): every line whose
+/// min-stock alert fired, whatever its status, out of stock included.
+enum _ProductFilter { all, ok, low, critical, out, restock }
 
 enum _SortKey { name, category, unitPrice, stock, value }
 
@@ -299,6 +302,9 @@ class _StockValueDesktopViewState extends State<StockValueDesktopView> {
   /// entry, built once per report rather than on every keystroke.
   List<String> _haystack = const [];
 
+  /// Variant ids in [StockValueReportData.lowAndCriticalItems].
+  Set<String> _restockIds = const {};
+
   /// Rows after search, category, status filter and sort.
   List<StockValueProductLine> _rows = const [];
 
@@ -337,6 +343,7 @@ class _StockValueDesktopViewState extends State<StockValueDesktopView> {
       for (final p in report.allProducts)
         '${p.name} ${p.categoryName} ${p.bcd ?? ''}'.toLowerCase(),
     ];
+    _restockIds = {for (final i in report.lowAndCriticalItems) i.variantId};
     if (_category != null &&
         !report.valueByCategory.any((c) => c.categoryName == _category)) {
       _category = null;
@@ -344,7 +351,8 @@ class _StockValueDesktopViewState extends State<StockValueDesktopView> {
     _recompute();
   }
 
-  bool _passesFilter(StockValueLineStatus status) {
+  bool _passesFilter(StockValueProductLine line) {
+    final status = line.status;
     switch (_filter) {
       case _ProductFilter.all:
         return true;
@@ -356,6 +364,8 @@ class _StockValueDesktopViewState extends State<StockValueDesktopView> {
         return status == StockValueLineStatus.critical;
       case _ProductFilter.out:
         return status == StockValueLineStatus.out;
+      case _ProductFilter.restock:
+        return _restockIds.contains(line.variantId);
     }
   }
 
@@ -370,7 +380,7 @@ class _StockValueDesktopViewState extends State<StockValueDesktopView> {
       if (_query.isNotEmpty && !_haystack[i].contains(_query)) continue;
       matching++;
       counts[p.status] = (counts[p.status] ?? 0) + 1;
-      if (_passesFilter(p.status)) rows.add(p);
+      if (_passesFilter(p)) rows.add(p);
     }
     rows.sort(_compare);
     _rows = rows;
@@ -420,6 +430,18 @@ class _StockValueDesktopViewState extends State<StockValueDesktopView> {
   }
 
   void _setFilter(_ProductFilter filter) => _update(() => _filter = filter);
+
+  /// "View all" on the restock panel: every alert, so the search and the
+  /// category that may hide some of them are cleared too.
+  void _showAllRestockAlerts() {
+    _searchDebounce?.cancel();
+    _search.clear();
+    _update(() {
+      _filter = _ProductFilter.restock;
+      _category = null;
+      _query = '';
+    });
+  }
 
   void _toggleCategory(String category) =>
       _update(() => _category = _category == category ? null : category);
@@ -477,11 +499,7 @@ class _StockValueDesktopViewState extends State<StockValueDesktopView> {
                     count: report.needsRestockCount,
                     items: report.lowAndCriticalItems,
                     onOpen: _openLine,
-                    onViewAll: () => _setFilter(
-                      report.criticalCount > 0
-                          ? _ProductFilter.critical
-                          : _ProductFilter.low,
-                    ),
+                    onViewAll: _showAllRestockAlerts,
                   ),
                 ];
 
@@ -708,7 +726,8 @@ class _StockValueDesktopViewState extends State<StockValueDesktopView> {
               badge: l10n.stockValueReviewAlerts,
               selected:
                   _filter == _ProductFilter.low ||
-                  _filter == _ProductFilter.critical,
+                  _filter == _ProductFilter.critical ||
+                  _filter == _ProductFilter.restock,
               onTap: attention == 0
                   ? null
                   : () => _setFilter(
@@ -828,6 +847,19 @@ class _StockValueDesktopViewState extends State<StockValueDesktopView> {
                               onDeleted: () => _update(() => _category = null),
                             ),
                           ],
+                          if (_filter == _ProductFilter.restock) ...[
+                            const SizedBox(width: 8),
+                            InputChip(
+                              key: const Key('stockValueRestockChip'),
+                              label: Text(
+                                l10n.stockValueRestockAlerts,
+                                style: GoogleFonts.outfit(fontSize: 12),
+                              ),
+                              visualDensity: VisualDensity.compact,
+                              deleteButtonTooltipMessage: l10n.clear,
+                              onDeleted: () => _setFilter(_ProductFilter.all),
+                            ),
+                          ],
                         ],
                       ),
                       Wrap(
@@ -928,6 +960,55 @@ const double _kColStock = 120;
 const double _kColValue = 110;
 const double _kColStatus = 104;
 
+/// Narrowest the flexible Product and Category columns may get before a
+/// fixed column is dropped.
+const double _kMinProductWidth = 120;
+const double _kMinCategoryWidth = 80;
+
+/// Which columns the product table shows at a given width. Value and Status
+/// always stay; below what everything needs, BCD goes first, then Unit price,
+/// Category and Stock, so Product never shrinks to nothing. The header and
+/// the rows ask with the same width, so they line up.
+@visibleForTesting
+class StockValueTableColumns {
+  final bool bcd;
+  final bool unitPrice;
+  final bool category;
+  final bool stock;
+
+  const StockValueTableColumns({
+    required this.bcd,
+    required this.unitPrice,
+    required this.category,
+    required this.stock,
+  });
+
+  factory StockValueTableColumns.forWidth(double width) {
+    var bcd = true, unitPrice = true, category = true, stock = true;
+    bool fits() {
+      final fixed =
+          (bcd ? _kColBcd : 0) +
+          (unitPrice ? _kColPrice : 0) +
+          (stock ? _kColStock : 0) +
+          _kColValue +
+          _kColStatus;
+      final flexible = _kMinProductWidth + (category ? _kMinCategoryWidth : 0);
+      return width - fixed >= flexible;
+    }
+
+    if (!fits()) bcd = false;
+    if (!fits()) unitPrice = false;
+    if (!fits()) category = false;
+    if (!fits()) stock = false;
+    return StockValueTableColumns(
+      bcd: bcd,
+      unitPrice: unitPrice,
+      category: category,
+      stock: stock,
+    );
+  }
+}
+
 class _ProductTableHeader extends StatelessWidget {
   final _SortKey sortKey;
   final bool ascending;
@@ -986,44 +1067,59 @@ class _ProductTableHeader extends StatelessWidget {
           bottom: BorderSide(color: Colors.black.withValues(alpha: 0.12)),
         ),
       ),
-      child: Row(
-        children: [
-          Expanded(
-            flex: 2,
-            child: sortable(l10n.stockValueColProduct, _SortKey.name),
-          ),
-          Expanded(
-            child: sortable(l10n.stockValueColCategory, _SortKey.category),
-          ),
-          SizedBox(
-            width: _kColBcd,
-            child: Text('BCD', style: style),
-          ),
-          SizedBox(
-            width: _kColPrice,
-            child: sortable(l10n.stockValueColUnitPrice, _SortKey.unitPrice),
-          ),
-          SizedBox(
-            width: _kColStock,
-            child: sortable(l10n.stockValueColStock, _SortKey.stock),
-          ),
-          SizedBox(
-            width: _kColValue,
-            child: sortable(
-              l10n.stockValueColValue,
-              _SortKey.value,
-              alignEnd: true,
-            ),
-          ),
-          SizedBox(
-            width: _kColStatus,
-            child: Text(
-              l10n.stockValueColStatus,
-              textAlign: TextAlign.right,
-              style: style,
-            ),
-          ),
-        ],
+      child: LayoutBuilder(
+        builder: (context, box) {
+          final cols = StockValueTableColumns.forWidth(box.maxWidth);
+          return Row(
+            children: [
+              Expanded(
+                flex: 2,
+                child: sortable(l10n.stockValueColProduct, _SortKey.name),
+              ),
+              if (cols.category)
+                Expanded(
+                  child: sortable(
+                    l10n.stockValueColCategory,
+                    _SortKey.category,
+                  ),
+                ),
+              if (cols.bcd)
+                SizedBox(
+                  width: _kColBcd,
+                  child: Text('BCD', style: style),
+                ),
+              if (cols.unitPrice)
+                SizedBox(
+                  width: _kColPrice,
+                  child: sortable(
+                    l10n.stockValueColUnitPrice,
+                    _SortKey.unitPrice,
+                  ),
+                ),
+              if (cols.stock)
+                SizedBox(
+                  width: _kColStock,
+                  child: sortable(l10n.stockValueColStock, _SortKey.stock),
+                ),
+              SizedBox(
+                width: _kColValue,
+                child: sortable(
+                  l10n.stockValueColValue,
+                  _SortKey.value,
+                  alignEnd: true,
+                ),
+              ),
+              SizedBox(
+                width: _kColStatus,
+                child: Text(
+                  l10n.stockValueColStatus,
+                  textAlign: TextAlign.right,
+                  style: style,
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -1079,118 +1175,132 @@ class _ProductDataRow extends StatelessWidget {
       child: InkWell(
         onTap: () => showStockValueProductDetailDialog(context, line: line),
         hoverColor: kStockValueAccentBlue.withValues(alpha: 0.06),
-        child: Row(
-          children: [
-            Expanded(
-              flex: 2,
-              child: Text(
-                line.name,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: GoogleFonts.outfit(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 14,
-                ),
-              ),
-            ),
-            Expanded(
-              child: Text(
-                line.categoryName,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: GoogleFonts.outfit(fontSize: 13, color: Colors.black54),
-              ),
-            ),
-            SizedBox(
-              width: _kColBcd,
-              child: Text(
-                (line.bcd == null || line.bcd!.isEmpty) ? '—' : line.bcd!,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: FlipperFonts.mono(fontSize: 12),
-              ),
-            ),
-            SizedBox(
-              width: _kColPrice,
-              child: Text(
-                'RWF ${formatNumber(line.unitPrice)}',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: FlipperFonts.mono(fontSize: 12),
-              ),
-            ),
-            SizedBox(
-              width: _kColStock,
-              child: Row(
-                children: [
-                  Expanded(
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(4),
-                      child: LinearProgressIndicator(
-                        value: progress,
-                        minHeight: 6,
-                        backgroundColor: Colors.black.withValues(alpha: 0.08),
-                        valueColor: AlwaysStoppedAnimation<Color>(fg),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  SizedBox(
-                    width: 40,
-                    child: Text(
-                      line.currentStock.toStringAsFixed(0),
-                      textAlign: TextAlign.right,
-                      maxLines: 1,
-                      style: FlipperFonts.mono(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: negative ? const Color(0xFFB91C1C) : null,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(
-              width: _kColValue,
-              child: Text(
-                'RWF ${formatNumber(line.lineValue)}',
-                textAlign: TextAlign.right,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: FlipperFonts.mono(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
-            SizedBox(
-              width: _kColStatus,
-              child: Align(
-                alignment: Alignment.centerRight,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: bg,
-                    borderRadius: BorderRadius.circular(999),
-                  ),
+        child: LayoutBuilder(
+          builder: (context, box) {
+            final cols = StockValueTableColumns.forWidth(box.maxWidth);
+            return Row(
+              children: [
+                Expanded(
+                  flex: 2,
                   child: Text(
-                    label,
+                    line.name,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.outfit(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      color: fg,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
                     ),
                   ),
                 ),
-              ),
-            ),
-          ],
+                if (cols.category)
+                  Expanded(
+                    child: Text(
+                      line.categoryName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.outfit(
+                        fontSize: 13,
+                        color: Colors.black54,
+                      ),
+                    ),
+                  ),
+                if (cols.bcd)
+                  SizedBox(
+                    width: _kColBcd,
+                    child: Text(
+                      (line.bcd == null || line.bcd!.isEmpty) ? '—' : line.bcd!,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: FlipperFonts.mono(fontSize: 12),
+                    ),
+                  ),
+                if (cols.unitPrice)
+                  SizedBox(
+                    width: _kColPrice,
+                    child: Text(
+                      'RWF ${formatNumber(line.unitPrice)}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: FlipperFonts.mono(fontSize: 12),
+                    ),
+                  ),
+                if (cols.stock)
+                  SizedBox(
+                    width: _kColStock,
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(4),
+                            child: LinearProgressIndicator(
+                              value: progress,
+                              minHeight: 6,
+                              backgroundColor: Colors.black.withValues(
+                                alpha: 0.08,
+                              ),
+                              valueColor: AlwaysStoppedAnimation<Color>(fg),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        SizedBox(
+                          width: 40,
+                          child: Text(
+                            line.currentStock.toStringAsFixed(0),
+                            textAlign: TextAlign.right,
+                            maxLines: 1,
+                            style: FlipperFonts.mono(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: negative ? const Color(0xFFB91C1C) : null,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                SizedBox(
+                  width: _kColValue,
+                  child: Text(
+                    'RWF ${formatNumber(line.lineValue)}',
+                    textAlign: TextAlign.right,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: FlipperFonts.mono(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  width: _kColStatus,
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: bg,
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: Text(
+                        label,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.outfit(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: fg,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
         ),
       ),
     );

@@ -37,8 +37,33 @@ StockValueReportData _report(int count) {
   );
 }
 
-Future<void> _pump(WidgetTester tester, StockValueReportData report) async {
-  tester.view.physicalSize = const Size(1440, 900);
+/// [count] products, all out of stock with a min-stock alert: every alert
+/// is `out`, none `low` or `critical`.
+StockValueReportData _allOut(int count) => buildStockValueReport(
+  branchId: 'b1',
+  variants: [
+    for (var i = 0; i < count; i++)
+      Variant(
+        id: 'o$i',
+        name: 'Empty $i',
+        branchId: 'b1',
+        stockId: 'so$i',
+        retailPrice: 100,
+        categoryName: i.isEven ? 'Drinks' : 'Snacks',
+      ),
+  ],
+  stockById: {
+    for (var i = 0; i < count; i++)
+      'so$i': {'currentStock': 0.0, 'lowStock': 5.0, 'showLowStockAlert': true},
+  },
+);
+
+Future<void> _pump(
+  WidgetTester tester,
+  StockValueReportData report, {
+  Size size = const Size(1440, 900),
+}) async {
+  tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1.0;
   addTearDown(tester.view.reset);
   await tester.pumpWidget(
@@ -137,5 +162,85 @@ void main() {
     );
     await tester.pump();
     expect(_rowsShown(tester), '40 of 40');
+  });
+
+  testWidgets('View all lists every restock alert, out of stock included', (
+    tester,
+  ) async {
+    await _pump(tester, _allOut(9));
+    // Narrowed first: View all must not leave alerts hidden.
+    await tester.tap(find.byKey(const Key('stockValueCategory_Snacks')));
+    await tester.enterText(find.byKey(const Key('stockValueSearch')), 'x');
+    await tester.pump();
+
+    final viewAll = find.text('View all →');
+    await tester.ensureVisible(viewAll);
+    await tester.tap(viewAll);
+    await tester.pump(const Duration(milliseconds: 250));
+
+    expect(_rowsShown(tester), '9 of 9');
+    expect(find.byKey(const Key('stockValueCategoryChip')), findsNothing);
+    final search = tester.widget<TextField>(
+      find.byKey(const Key('stockValueSearch')),
+    );
+    expect(search.controller!.text, isEmpty);
+
+    final chip = find.byKey(const Key('stockValueRestockChip'));
+    expect(chip, findsOneWidget);
+    await tester.tap(
+      find.descendant(of: chip, matching: find.byTooltip('Clear')),
+    );
+    await tester.pump();
+    expect(find.byKey(const Key('stockValueRestockChip')), findsNothing);
+    expect(_rowsShown(tester), '9 of 9');
+  });
+
+  testWidgets('View all on a mixed catalogue shows low, critical and out', (
+    tester,
+  ) async {
+    final report = _report(100);
+    await _pump(tester, report);
+
+    final viewAll = find.text('View all →');
+    await tester.ensureVisible(viewAll);
+    await tester.tap(viewAll);
+    await tester.pump();
+
+    expect(_rowsShown(tester), '${report.lowAndCriticalItems.length} of 100');
+  });
+
+  test('the table drops low-priority columns as it narrows', () {
+    String shown(double w) {
+      final c = StockValueTableColumns.forWidth(w);
+      return [
+        if (c.category) 'category',
+        if (c.bcd) 'bcd',
+        if (c.unitPrice) 'price',
+        if (c.stock) 'stock',
+      ].join(',');
+    }
+
+    expect(shown(800), 'category,bcd,price,stock');
+    expect(shown(650), 'category,price,stock');
+    expect(shown(560), 'category,stock');
+    expect(shown(460), 'stock');
+    expect(shown(300), '');
+  });
+
+  testWidgets('a narrow view keeps the table on screen without overflow', (
+    tester,
+  ) async {
+    await _pump(tester, _report(20), size: const Size(520, 900));
+
+    // Below 1100 the insights sit above the table: scroll down to the rows.
+    await tester.dragUntilVisible(
+      find.text('Item 0019'),
+      find.byType(CustomScrollView),
+      const Offset(0, -300),
+    );
+
+    expect(tester.takeException(), isNull);
+    expect(find.text('BCD'), findsNothing);
+    expect(find.text('Item 0019'), findsOneWidget);
   });
 }
