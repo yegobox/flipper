@@ -71,6 +71,23 @@ void main() {
       expect(_showMore(), findsNothing);
     });
 
+    testWidgets('a custom page size labels and reveals that many rows', (
+      tester,
+    ) async {
+      await _pump(tester, table(50, pageSize: 20));
+
+      expect(find.text('row 19'), findsOneWidget);
+      expect(find.text('row 20'), findsNothing);
+      expect(_showMoreLabel(tester), 'Show 20 more');
+
+      await tester.ensureVisible(_showMore());
+      await tester.tap(_showMore());
+      await tester.pump();
+      expect(find.text('row 39'), findsOneWidget);
+      expect(find.text('row 40'), findsNothing);
+      expect(_showMoreLabel(tester), 'Show 10 more');
+    });
+
     testWidgets('a short table has no button; row taps keep their index', (
       tester,
     ) async {

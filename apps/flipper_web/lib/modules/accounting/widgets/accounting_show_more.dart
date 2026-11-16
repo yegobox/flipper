@@ -15,16 +15,18 @@ class AccountingShowMore extends StatelessWidget {
     super.key,
     required this.remaining,
     required this.onPressed,
+    this.pageSize = kAccountingTablePageSize,
   });
 
   final int remaining;
   final VoidCallback onPressed;
 
+  /// Rows one tap reveals; the label never promises more than this.
+  final int pageSize;
+
   @override
   Widget build(BuildContext context) {
-    final next = remaining < kAccountingTablePageSize
-        ? remaining
-        : kAccountingTablePageSize;
+    final next = remaining < pageSize ? remaining : pageSize;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Center(
