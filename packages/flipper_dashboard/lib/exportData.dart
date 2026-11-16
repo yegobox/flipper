@@ -23,6 +23,7 @@ import 'package:flipper_dashboard/export/models/payment_summary.dart';
 import 'package:flipper_dashboard/export/utils/excel_utils.dart';
 import 'package:flipper_dashboard/export/utils/plu_excel_formula_builder.dart';
 import 'package:flipper_dashboard/export/report_export_config.dart';
+import 'package:flipper_dashboard/export/large_pdf_export_prompt.dart';
 
 // Moved out of this file; re-exported so existing importers keep working.
 export 'package:flipper_dashboard/export/report_export_config.dart';
@@ -293,12 +294,27 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       );
 
       print('📊 EXPORT: Config updated, fetching business info...');
+      // A very large PDF freezes the app (see kLargePdfExportRowLimit), so
+      // offer Excel first. No grid (headless export) means no count: no ask.
+      var asPdf = ProxyService.box.exportAsPdf();
+      final gridRowCount =
+          workBookKey.currentState?.widget.source.effectiveRows.length;
+      if (mounted &&
+          shouldOfferExcelForPdf(asPdf: asPdf, rowCount: gridRowCount)) {
+        final choice = await showLargePdfExportPrompt(
+          context,
+          rowCount: gridRowCount!,
+        );
+        if (choice == LargePdfExportChoice.cancel) return null;
+        asPdf = choice == LargePdfExportChoice.pdf;
+      }
+
       // RESTORE ORIGINAL IMPLEMENTATION WITH WORKBOOK KEY
       ref.read(isProcessingProvider.notifier).startProcessing();
       final business = await businessFuture;
       print('📊 EXPORT: Business fetched: ${business?.name}');
 
-      if (ProxyService.box.exportAsPdf()) {
+      if (asPdf) {
         print('📊 EXPORT: Exporting as PDF...');
         final PdfDocument document = workBookKey.currentState!
             .exportToPdfDocument(

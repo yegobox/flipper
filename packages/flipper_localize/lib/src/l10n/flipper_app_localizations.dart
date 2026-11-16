@@ -27724,6 +27724,30 @@ abstract class FlipperAppLocalizations {
   /// **'Report'**
   String get reportTitleReport;
 
+  /// Report export: title of the dialog offered before a very large PDF
+  ///
+  /// In en, this message translates to:
+  /// **'Large report'**
+  String get reportLargePdfTitle;
+
+  /// Report export: why Excel is offered instead of a very large PDF
+  ///
+  /// In en, this message translates to:
+  /// **'This report has {count} rows. A PDF this large can take a long time to make, and the app may stop responding until it is done. Export it as Excel instead?'**
+  String reportLargePdfBody(String count);
+
+  /// Report export: button that exports the large report as Excel
+  ///
+  /// In en, this message translates to:
+  /// **'Export Excel'**
+  String get reportLargePdfUseExcel;
+
+  /// Report export: button that still makes the large PDF
+  ///
+  /// In en, this message translates to:
+  /// **'PDF anyway'**
+  String get reportLargePdfAnyway;
+
   /// No description provided for @reportTitleStockRecount.
   ///
   /// In en, this message translates to:
