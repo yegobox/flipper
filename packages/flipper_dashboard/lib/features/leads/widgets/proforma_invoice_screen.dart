@@ -1858,6 +1858,20 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
     required DateTime issueDate,
     required DateTime validUntil,
   }) async {
+    // Process the stamp photo off the UI isolate first. _drawCompanyStamp
+    // then reads it from inkifyStamp's cache (same bytes, same output)
+    // instead of decoding a phone photo synchronously for seconds.
+    final stampSettings = BranchDocumentSettingsService.current();
+    if (stampSettings.hasStamp) {
+      try {
+        await inkifyStampInBackground(
+          base64Decode(stampSettings.stampImageBase64!),
+        );
+      } catch (_) {
+        // _drawCompanyStamp keeps its own fail-soft handling.
+      }
+    }
+
     final subTotal = _lines.fold<double>(
       0.0,
       (a, b) => a + (b.unitPrice * b.qty),

@@ -65,4 +65,26 @@ void main() {
     final first = inkifyStamp(bytes);
     expect(inkifyStamp(Uint8List.fromList(bytes)), same(first));
   });
+
+  test('off the UI isolate gives the same bytes as on it', () async {
+    final png = _photographedStamp();
+    final jpg = _photographedStamp(jpeg: true);
+
+    final background = await inkifyStampInBackground(png);
+    // Process another stamp so the next call cannot come from the cache.
+    inkifyStamp(jpg);
+    final onUi = inkifyStamp(Uint8List.fromList(png));
+
+    expect(background, isNot(same(onUi)));
+    expect(background, orderedEquals(onUi));
+  });
+
+  test('cachedInkifiedStamp is the processed stamp once ready', () async {
+    final png = _photographedStamp();
+    inkifyStamp(_photographedStamp(jpeg: true)); // evict png
+    expect(cachedInkifiedStamp(png), isNull);
+
+    final ready = await inkifyStampInBackground(png);
+    expect(cachedInkifiedStamp(Uint8List.fromList(png)), same(ready));
+  });
 }
