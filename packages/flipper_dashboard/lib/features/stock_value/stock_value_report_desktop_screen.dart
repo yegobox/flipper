@@ -1301,7 +1301,7 @@ class _ProductDataRow extends StatelessWidget {
                         SizedBox(
                           width: 40,
                           child: Text(
-                            line.currentStock.toStringAsFixed(0),
+                            formatStockQty(line.currentStock),
                             textAlign: TextAlign.right,
                             maxLines: 1,
                             style: FlipperFonts.mono(

@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:ditto_live/ditto_live.dart' show Ditto;
+import 'package:ditto_live/ditto_live.dart' show Ditto, PresenceGraph;
 import 'package:flipper_models/providers/ditto_presence_provider.dart';
 import 'package:flipper_models/providers/ebm_provider.dart';
 import 'package:flipper_models/providers/scan_mode_provider.dart';
@@ -126,13 +126,45 @@ Future<StockValueReportData> stockValueReport(Ref ref) async {
     };
   }
 
-  return buildStockValueReport(
+  final report = buildStockValueReport(
     branchId: branchId,
     variants: variants,
     stockById: stockById,
     categoryNames: await categoryNames,
     isPossiblyIncomplete: await presenceMissing,
   );
+  // Computed before Ditto presence was up (a fresh start, sync not landed):
+  // rerun once when it arrives, so a mounted dashboard tile does not keep
+  // pre-sync totals. Only once: the rerun sees presence and stops listening,
+  // so presence ticking never rebuilds the report again.
+  if (report.isPossiblyIncomplete && ref.mounted) {
+    invalidateSelfOnceReady<PresenceGraph?>(
+      ref,
+      dittoPresenceProvider,
+      (graph) => graph != null,
+    );
+  }
+  return report;
+}
+
+/// Reruns the provider owning [ref] once [source] holds a value that is
+/// [ready]. Checks the current value too, so readiness that arrived before
+/// the listen is not missed.
+void invalidateSelfOnceReady<T>(
+  Ref ref,
+  ProviderListenable<AsyncValue<T>> source,
+  bool Function(T value) ready,
+) {
+  var fired = false;
+  ref.listen<AsyncValue<T>>(source, (_, next) {
+    final value = next.asData;
+    if (fired || value == null || !ready(value.value)) return;
+    fired = true;
+    // Not synchronously: with fireImmediately this runs inside build.
+    Future.microtask(() {
+      if (ref.mounted) ref.invalidateSelf();
+    });
+  }, fireImmediately: true);
 }
 
 @riverpod
