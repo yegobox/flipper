@@ -371,10 +371,14 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
 
   /// All PLU rows for Transaction Reports in [startDate]…[endDate] (branch-scoped).
   /// Restores pre-regression stream loading; callers filter to sale ids as needed.
+  ///
+  /// A failed read returns `[]`, like an empty day, unless [rethrowErrors]:
+  /// then it throws, so a caller can keep what it had and retry.
   Future<List<TransactionItem>> fetchTransactionItemsReportScope({
     required DateTime startDate,
     required DateTime endDate,
     required String branchId,
+    bool rethrowErrors = false,
   }) async {
     try {
       final localStartDate = DateTime(
@@ -417,6 +421,7 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
       return [];
     } catch (e, s) {
       talker.error('fetchTransactionItemsReportScope: $e', s);
+      if (rethrowErrors) rethrow;
       return [];
     }
   }

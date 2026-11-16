@@ -197,4 +197,75 @@ void main() {
     await sub.cancel();
     await sales.close();
   });
+
+  group('dashboardGaugeLinesWithRetry', () {
+    TransactionItem line(String tid) => TransactionItem(
+      name: 'Item',
+      qty: 1,
+      price: 100,
+      discount: 0,
+      prc: 100,
+      ttCatCd: 'B',
+      transactionId: tid,
+    );
+    Duration noWait(int _) => Duration.zero;
+
+    test(
+      'a failed read emits nothing (keeps the last lines) and retries',
+      () async {
+        var calls = 0;
+        final out = await dashboardGaugeLinesWithRetry(
+          fetch: () async => ++calls < 3 ? null : [line('s1')],
+          saleIds: {'s1'},
+          backoff: noWait,
+        ).toList();
+        expect(calls, 3);
+        expect(out, hasLength(1));
+        expect(out.single.single.transactionId, 's1');
+      },
+    );
+
+    test('a sale whose lines have not synced yet is read again', () async {
+      var calls = 0;
+      final out = await dashboardGaugeLinesWithRetry(
+        fetch: () async =>
+            ++calls == 1 ? [line('s1')] : [line('s1'), line('s2')],
+        saleIds: {'s1', 's2'},
+        backoff: noWait,
+      ).toList();
+      expect(calls, 2);
+      expect(out.map((l) => l.length), [
+        1,
+        2,
+      ], reason: 'partial shown, then full');
+    });
+
+    test('gives up after the last attempt', () async {
+      var calls = 0;
+      final out = await dashboardGaugeLinesWithRetry(
+        fetch: () async {
+          calls++;
+          return null;
+        },
+        saleIds: {'s1'},
+        maxAttempts: 3,
+        backoff: noWait,
+      ).toList();
+      expect(calls, 3);
+      expect(out, isEmpty);
+    });
+
+    test('a complete first read stops at once', () async {
+      var calls = 0;
+      await dashboardGaugeLinesWithRetry(
+        fetch: () async {
+          calls++;
+          return [line('s1')];
+        },
+        saleIds: {'s1'},
+        backoff: noWait,
+      ).toList();
+      expect(calls, 1);
+    });
+  });
 }
