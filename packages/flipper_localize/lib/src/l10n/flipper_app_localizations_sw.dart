@@ -24437,6 +24437,11 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   }
 
   @override
+  String booksShowMoreRows(String count) {
+    return 'Onyesha $count zaidi';
+  }
+
+  @override
   String get booksContact => 'Mawasiliano';
 
   @override

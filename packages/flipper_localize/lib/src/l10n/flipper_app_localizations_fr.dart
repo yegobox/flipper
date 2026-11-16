@@ -24676,6 +24676,11 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   }
 
   @override
+  String booksShowMoreRows(String count) {
+    return 'Afficher $count de plus';
+  }
+
+  @override
   String get booksContact => 'Contact';
 
   @override

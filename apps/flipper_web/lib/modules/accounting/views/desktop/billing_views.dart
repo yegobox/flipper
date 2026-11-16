@@ -1,4 +1,5 @@
 import 'package:flipper_localize/flipper_localize.dart';
+import 'package:flipper_web/modules/accounting/widgets/accounting_show_more.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_backend_config.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_derive.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_document_math.dart';
@@ -257,6 +258,9 @@ class AccountingDocListView extends ConsumerStatefulWidget {
 }
 
 class _AccountingDocListViewState extends ConsumerState<AccountingDocListView> {
+  /// Rows shown; grows a page per "Show more" tap (see [AccountingShowMore]).
+  int _shown = kAccountingTablePageSize;
+
   bool get _isInvoice => widget.kind == DocKind.invoice;
 
   List<AccountingDocument> get _docs => _isInvoice
@@ -441,7 +445,7 @@ class _AccountingDocListViewState extends ConsumerState<AccountingDocListView> {
                         const DataColumn(label: Text('')),
                       ],
                       rows: [
-                        for (final d in list)
+                        for (final d in list.take(_shown))
                           DataRow(
                             onSelectChanged: (_) => _openBilling(
                               BillingUiState(kind: widget.kind, preview: d),
@@ -522,6 +526,12 @@ class _AccountingDocListViewState extends ConsumerState<AccountingDocListView> {
                     ),
                   ),
           ),
+          if (list.length > _shown)
+            AccountingShowMore(
+              remaining: list.length - _shown,
+              onPressed: () =>
+                  setState(() => _shown += kAccountingTablePageSize),
+            ),
         ],
       ),
     );

@@ -8335,6 +8335,7 @@
   "booksNoCustomersYet": "Nta bakiriya barahari.",
   "booksNoSuppliersYet": "Nta batanga ibicuruzwa barahari.",
   "booksNoMatchesFor": "Nta bihuye na “{query}”.",
+  "booksShowMoreRows": "Erekana {count} bindi",
   "booksContact": "Uwo kuvugisha",
   "booksTerms": "Amasezerano",
   "booksOwesYou": "Akurimo",

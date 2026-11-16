@@ -18707,6 +18707,15 @@
             }
         }
     },
+    "booksShowMoreRows": "Show {count} more",
+    "@booksShowMoreRows": {
+        "description": "Books tables: button under a long table that shows the next rows",
+        "placeholders": {
+            "count": {
+                "type": "String"
+            }
+        }
+    },
     "booksContact": "Contact",
     "booksTerms": "Terms",
     "booksOwesYou": "Owes you",
