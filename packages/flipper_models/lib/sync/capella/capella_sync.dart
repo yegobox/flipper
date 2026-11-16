@@ -1801,38 +1801,19 @@ class CapellaSync extends AiStrategyImpl
         );
       }
 
-      // Use registerObserver to wait for data
-      final completer = Completer<List<dynamic>>();
-      final observer = ditto.store.registerObserver(
+      // A one-shot local read. This used to open a store observer and wait
+      // for its first callback, but an observer reports the current local
+      // result immediately (proved on a real store, 2026-11-16), so it was
+      // the same read with a synchronous `registerObserver` FFI call on the
+      // UI thread, on every Pay. That call blocks whenever Ditto is busy.
+      final items = (await ditto.store.execute(
         query,
         arguments: arguments,
-        onChange: (result) {
-          if (!completer.isCompleted) {
-            completer.complete(result.items.toList());
-          }
-        },
-      );
-
-      List<dynamic> items = [];
-      try {
-        // Wait for data or timeout
-        items = await completer.future.timeout(
-          const Duration(seconds: 10),
-          onTimeout: () {
-            if (!completer.isCompleted) {
-              talker.warning('Timeout waiting for ebms data');
-              completer.complete([]);
-            }
-            return [];
-          },
-        );
-      } finally {
-        observer.cancel();
-      }
+      )).items.toList();
 
       // Check if any EBM configuration exists and if VAT is enabled
       if (items.isNotEmpty) {
-        final ebmData = items.first.value as Map<String, dynamic>;
+        final ebmData = items.first.value;
         final vatEnabled = ebmData['vatEnabled'] as bool?;
         final taxServerUrl = ebmData['taxServerUrl'] as String?;
 

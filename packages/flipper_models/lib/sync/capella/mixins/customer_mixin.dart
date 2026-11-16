@@ -469,88 +469,15 @@ mixin CapellaCustomerMixin implements CustomerInterface {
           extra: {'query_metadata': 'redacted', 'args_count': arguments.length},
         );
       }
-      final completer = Completer<List<dynamic>>();
-      final observer = ditto.store.registerObserver(
+      // One-shot local read. An observer reports the current local result
+      // immediately (proved on a real store, 2026-11-16), so waiting on its
+      // first callback was this same read plus a synchronous
+      // `registerObserver` FFI call on the UI thread, which blocks while
+      // Ditto is busy.
+      final List<dynamic> items = (await ditto.store.execute(
         query,
         arguments: arguments,
-        onChange: (result) {
-          if (!completer.isCompleted) {
-            final itemCount = result.items.length;
-            // Complete the completer immediately to avoid hanging
-            completer.complete(result.items.toList());
-            // Log asynchronously without waiting for completion
-            if (ProxyService.box.getUserLoggingEnabled() ?? false) {
-              logService.logException(
-                'Observer onChange triggered with $itemCount items',
-                type: 'business_fetch',
-                tags: {
-                  'userId':
-                      (ProxyService.box
-                          .getUserId()
-                          ?.toString()
-                          .hashCode
-                          .toString()) ??
-                      'unknown',
-                  'method': 'customers',
-                  'branchId': branchId?.toString() ?? 'null',
-                  'itemCount': itemCount.toString(),
-                },
-              );
-            }
-          }
-        },
-      );
-
-      List<dynamic> items = [];
-      if (ProxyService.box.getUserLoggingEnabled() ?? false) {
-        await logService.logException(
-          'Waiting for observer data',
-          type: 'business_fetch',
-          tags: {
-            'userId':
-                (ProxyService.box
-                    .getUserId()
-                    ?.toString()
-                    .hashCode
-                    .toString()) ??
-                'unknown',
-            'method': 'customers',
-            'branchId': branchId?.toString() ?? 'null',
-          },
-        );
-      }
-      try {
-        // Wait for data or timeout
-        items = await completer.future.timeout(
-          const Duration(seconds: 10),
-          onTimeout: () {
-            if (!completer.isCompleted) {
-              talker.warning('Timeout waiting for customers list');
-              if (ProxyService.box.getUserLoggingEnabled() ?? false) {
-                logService.logException(
-                  'Observer timeout waiting for customers',
-                  type: 'business_fetch',
-                  tags: {
-                    'userId':
-                        (ProxyService.box
-                            .getUserId()
-                            ?.toString()
-                            .hashCode
-                            .toString()) ??
-                        'unknown',
-                    'method': 'customers',
-                    'branchId': branchId?.toString() ?? 'null',
-                  },
-                );
-              }
-              completer.complete([]);
-            }
-            return [];
-          },
-        );
-      } finally {
-        observer.cancel();
-      }
+      )).items.toList();
 
       if (ProxyService.box.getUserLoggingEnabled() ?? false) {
         await logService.logException(
@@ -700,34 +627,15 @@ mixin CapellaCustomerMixin implements CustomerInterface {
         arguments: preparedById.arguments,
       );
 
-      // Use registerObserver to wait for data
-      final completer = Completer<List<dynamic>>();
-      final observer = ditto.store.registerObserver(
+      // One-shot local read. An observer reports the current local result
+      // immediately (proved on a real store, 2026-11-16), so waiting on its
+      // first callback was this same read plus a synchronous
+      // `registerObserver` FFI call on the UI thread, which blocks while
+      // Ditto is busy.
+      final List<dynamic> items = (await ditto.store.execute(
         query,
         arguments: arguments,
-        onChange: (result) {
-          if (!completer.isCompleted) {
-            completer.complete(result.items.toList());
-          }
-        },
-      );
-
-      List<dynamic> items = [];
-      try {
-        // Wait for data or timeout
-        items = await completer.future.timeout(
-          const Duration(seconds: 10),
-          onTimeout: () {
-            if (!completer.isCompleted) {
-              talker.warning('Timeout waiting for customer by ID');
-              completer.complete([]);
-            }
-            return [];
-          },
-        );
-      } finally {
-        observer.cancel();
-      }
+      )).items.toList();
 
       if (items.isEmpty) return null;
 
