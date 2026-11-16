@@ -704,20 +704,15 @@ mixin CapellaVariantMixin implements VariantInterface {
           .where((id) => id.trim().isNotEmpty)
           .toSet()
           .toList();
+      // One batched read. There is deliberately no per-id retry afterwards:
+      // `getStockById` runs the same `_id = :id OR id = :id` predicate, so it
+      // can only return what the batch already returned (or nothing), and the
+      // batch falls back to per-id reads itself when it fails. The old retry
+      // loop ran one sequential full scan per variant whose stock had not
+      // synced, which made unpaged callers (Stock Value) take seconds.
       final stocksById = stockIds.isEmpty
           ? <String, Stock>{}
           : await (this as StockInterface).batchGetStocksByIds(stockIds);
-
-      for (final id in stockIds) {
-        if (stocksById.containsKey(id) &&
-            (stocksById[id]?.branchId.trim().isNotEmpty ?? false)) {
-          continue;
-        }
-        final stock = await (this as StockInterface).getStockById(id: id);
-        if (stock != null && stock.branchId.trim().isNotEmpty) {
-          stocksById[id] = stock;
-        }
-      }
 
       // Parse results
       final pagedVariants = <Variant>[];

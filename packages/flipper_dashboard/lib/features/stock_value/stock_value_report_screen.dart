@@ -35,6 +35,7 @@ class StockValueReportScreen extends ConsumerWidget {
         ),
         actions: [
           reportAsync.when(
+            skipLoadingOnReload: true,
             data: (r) => Padding(
               padding: const EdgeInsets.only(right: 12),
               child: Center(
@@ -64,6 +65,8 @@ class StockValueReportScreen extends ConsumerWidget {
         ],
       ),
       body: reportAsync.when(
+        // Keep the loaded report on screen while it reloads.
+        skipLoadingOnReload: true,
         loading: () => const SingleChildScrollView(
           physics: NeverScrollableScrollPhysics(),
           padding: EdgeInsets.fromLTRB(16, 12, 16, 24),

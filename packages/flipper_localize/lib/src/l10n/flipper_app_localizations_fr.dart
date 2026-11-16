@@ -13246,6 +13246,22 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   String get stockValueStatusLow => 'Faible';
 
   @override
+  String get stockValueStatusOut => 'Rupture de stock';
+
+  @override
+  String get stockValueNoUnitsOnHand => 'aucune unité en stock';
+
+  @override
+  String stockValueCostAndMargin(String cost, String margin) {
+    return 'Coût $cost · marge $margin';
+  }
+
+  @override
+  String stockValueRowsShown(String shown, String total) {
+    return '$shown sur $total';
+  }
+
+  @override
   String get stockValueStatusOk => 'OK';
 
   @override

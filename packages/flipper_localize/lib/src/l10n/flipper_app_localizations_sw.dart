@@ -13124,6 +13124,22 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   String get stockValueStatusLow => 'Chini';
 
   @override
+  String get stockValueStatusOut => 'Imeisha';
+
+  @override
+  String get stockValueNoUnitsOnHand => 'hakuna kilichobaki';
+
+  @override
+  String stockValueCostAndMargin(String cost, String margin) {
+    return 'Gharama $cost · faida $margin';
+  }
+
+  @override
+  String stockValueRowsShown(String shown, String total) {
+    return '$shown kati ya $total';
+  }
+
+  @override
   String get stockValueStatusOk => 'Sawa';
 
   @override

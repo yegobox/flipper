@@ -11164,6 +11164,38 @@
     "@stockValueStatusLow": {
         "description": "Stock value report: stock status"
     },
+    "stockValueStatusOut": "Out of stock",
+    "@stockValueStatusOut": {
+        "description": "Stock value report: stock status: nothing on hand"
+    },
+    "stockValueNoUnitsOnHand": "no units on hand",
+    "@stockValueNoUnitsOnHand": {
+        "description": "Stock value report: out-of-stock card subtitle"
+    },
+    "stockValueCostAndMargin": "Cost {cost} · margin {margin}",
+    "@stockValueCostAndMargin": {
+        "description": "Stock value report: total card subtitle: stock value at purchase price and the potential margin",
+        "placeholders": {
+            "cost": {
+                "type": "String"
+            },
+            "margin": {
+                "type": "String"
+            }
+        }
+    },
+    "stockValueRowsShown": "{shown} of {total}",
+    "@stockValueRowsShown": {
+        "description": "Stock value report: products shown after search and filters, out of all products",
+        "placeholders": {
+            "shown": {
+                "type": "String"
+            },
+            "total": {
+                "type": "String"
+            }
+        }
+    },
     "stockValueStatusOk": "OK",
     "@stockValueStatusOk": {
         "description": "Stock value report: stock status: enough stock"
