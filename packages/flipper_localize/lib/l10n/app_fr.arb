@@ -6750,6 +6750,7 @@
     "booksNoCustomersYet": "Aucun client pour l'instant.",
     "booksNoSuppliersYet": "Aucun fournisseur pour l'instant.",
     "booksNoMatchesFor": "Aucun résultat pour « {query} ».",
+    "booksShowMoreRows": "Afficher {count} de plus",
     "booksContact": "Contact",
     "booksTerms": "Conditions",
     "booksOwesYou": "Vous doit",

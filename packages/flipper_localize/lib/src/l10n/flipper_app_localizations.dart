@@ -40475,6 +40475,12 @@ abstract class FlipperAppLocalizations {
   /// **'No matches for “{query}”.'**
   String booksNoMatchesFor(String query);
 
+  /// Books tables: button under a long table that shows the next rows
+  ///
+  /// In en, this message translates to:
+  /// **'Show {count} more'**
+  String booksShowMoreRows(String count);
+
   /// No description provided for @booksContact.
   ///
   /// In en, this message translates to:

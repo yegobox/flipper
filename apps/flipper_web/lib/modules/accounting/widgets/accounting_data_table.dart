@@ -1,6 +1,7 @@
 import 'package:flipper_web/modules/accounting/theme/accounting_tokens.dart';
 import 'package:flipper_web/modules/accounting/widgets/accounting_icon.dart';
 import 'package:flipper_web/modules/accounting/widgets/accounting_page_header.dart';
+import 'package:flipper_web/modules/accounting/widgets/accounting_show_more.dart';
 import 'package:flutter/material.dart';
 
 class AccountingTableColumn {
@@ -15,7 +16,9 @@ class AccountingTableColumn {
   final double? width;
 }
 
-class AccountingDataTable extends StatelessWidget {
+/// A Books table. It shows [pageSize] rows, then a "Show more" button that
+/// adds another page, so a long list never lays out every row at once.
+class AccountingDataTable extends StatefulWidget {
   const AccountingDataTable({
     super.key,
     required this.columns,
@@ -23,6 +26,7 @@ class AccountingDataTable extends StatelessWidget {
     this.mutedRow,
     this.onRowTap,
     this.rowTapExcludeTrailingColumns = 0,
+    this.pageSize = kAccountingTablePageSize,
   });
 
   final List<AccountingTableColumn> columns;
@@ -33,9 +37,26 @@ class AccountingDataTable extends StatelessWidget {
   /// Trailing columns (e.g. row menu) that should not trigger [onRowTap].
   final int rowTapExcludeTrailingColumns;
 
+  /// Rows shown at first and added per "Show more" tap.
+  final int pageSize;
+
+  @override
+  State<AccountingDataTable> createState() => _AccountingDataTableState();
+}
+
+class _AccountingDataTableState extends State<AccountingDataTable> {
+  late int _shown = widget.pageSize;
+
   @override
   Widget build(BuildContext context) {
-    return AccountingCard(
+    final columns = widget.columns;
+    final allRows = widget.rows;
+    final shown = allRows.length < _shown ? allRows.length : _shown;
+    final rows = allRows.sublist(0, shown);
+    final mutedRow = widget.mutedRow;
+    final onRowTap = widget.onRowTap;
+    final rowTapExcludeTrailingColumns = widget.rowTapExcludeTrailingColumns;
+    final table = AccountingCard(
       child: ClipRRect(
         borderRadius: BorderRadius.circular(AccountingTokens.radiusLg),
         child: LayoutBuilder(
@@ -82,7 +103,9 @@ class AccountingDataTable extends StatelessWidget {
                             bottom: BorderSide(
                               color: ri == rows.length - 1
                                   ? Colors.transparent
-                                  : AccountingTokens.line.withValues(alpha: 0.65),
+                                  : AccountingTokens.line.withValues(
+                                      alpha: 0.65,
+                                    ),
                             ),
                           ),
                         ),
@@ -90,12 +113,13 @@ class AccountingDataTable extends StatelessWidget {
                           for (var ci = 0; ci < rows[ri].length; ci++)
                             _Cell(
                               muted: mutedRow?.call(ri) ?? false,
-                              onTap: onRowTap == null ||
+                              onTap:
+                                  onRowTap == null ||
                                       ci >=
                                           columns.length -
                                               rowTapExcludeTrailingColumns
                                   ? null
-                                  : () => onRowTap!(ri),
+                                  : () => onRowTap(ri),
                               align: columns[ci].align,
                               child: rows[ri][ci],
                             ),
@@ -108,6 +132,19 @@ class AccountingDataTable extends StatelessWidget {
           },
         ),
       ),
+    );
+    if (shown >= allRows.length) return table;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        table,
+        AccountingShowMore(
+          remaining: allRows.length - shown,
+          pageSize: widget.pageSize,
+          onPressed: () => setState(() => _shown += widget.pageSize),
+        ),
+      ],
     );
   }
 }
@@ -167,7 +204,11 @@ class RecurringIconBox extends StatelessWidget {
         borderRadius: BorderRadius.circular(9),
       ),
       alignment: Alignment.center,
-      child: AccountingIcon(icon: icon, size: 17, color: AccountingTokens.accent),
+      child: AccountingIcon(
+        icon: icon,
+        size: 17,
+        color: AccountingTokens.accent,
+      ),
     );
   }
 }

@@ -8343,6 +8343,7 @@
   "booksNoCustomersYet": "Bado hakuna wateja.",
   "booksNoSuppliersYet": "Bado hakuna wasambazaji.",
   "booksNoMatchesFor": "Hakuna kinacholingana na “{query}”.",
+  "booksShowMoreRows": "Onyesha {count} zaidi",
   "booksContact": "Mawasiliano",
   "booksTerms": "Masharti",
   "booksOwesYou": "Anakudai",

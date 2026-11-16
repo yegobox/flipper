@@ -24536,6 +24536,11 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   }
 
   @override
+  String booksShowMoreRows(String count) {
+    return 'Erekana $count bindi';
+  }
+
+  @override
   String get booksContact => 'Uwo kuvugisha';
 
   @override
