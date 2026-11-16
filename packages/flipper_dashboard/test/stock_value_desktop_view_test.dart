@@ -253,6 +253,8 @@ void main() {
     );
 
     expect(tester.takeException(), isNull);
+    // The top bar's actions moved under the title instead of crushing it.
+    expect(find.byKey(const Key('stockValueTopBarActions')), findsOneWidget);
     expect(find.text('BCD'), findsNothing);
     expect(find.text('Item 0019'), findsOneWidget);
   });

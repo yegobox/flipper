@@ -80,51 +80,75 @@ class _StockValueTopBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(8, 8, 16, 8),
-      child: Row(
-        children: [
-          SizedBox(
-            width: 56,
-            child: Center(
-              child: AppBarRoundIconButton(
-                icon: Icons.close,
-                onPressed: onClose,
+    final lead = <Widget>[
+      SizedBox(
+        width: 56,
+        child: Center(
+          child: AppBarRoundIconButton(icon: Icons.close, onPressed: onClose),
+        ),
+      ),
+      Expanded(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              context.flipperL10n.stockValueTitle,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: GoogleFonts.outfit(
+                fontSize: 22,
+                fontWeight: FontWeight.w700,
+                color: Colors.black87,
               ),
             ),
-          ),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  context.flipperL10n.stockValueTitle,
-                  style: GoogleFonts.outfit(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.black87,
-                  ),
+            if (subtitle != null) ...[
+              const SizedBox(height: 2),
+              Text(
+                subtitle!,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.outfit(fontSize: 13, color: Colors.black54),
+              ),
+            ],
+          ],
+        ),
+      ),
+    ];
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(8, 8, 16, 8),
+      child: LayoutBuilder(
+        builder: (context, box) {
+          if (actions.isEmpty || box.maxWidth >= _kTopBarInlineMinWidth) {
+            return Row(children: [...lead, ...actions]);
+          }
+          // Too narrow for the title and the actions on one line: the
+          // actions go underneath and scroll sideways rather than squeeze
+          // the title to nothing.
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(children: lead),
+              const SizedBox(height: 8),
+              Align(
+                alignment: Alignment.centerRight,
+                child: SingleChildScrollView(
+                  key: const Key('stockValueTopBarActions'),
+                  scrollDirection: Axis.horizontal,
+                  child: Row(children: actions),
                 ),
-                if (subtitle != null) ...[
-                  const SizedBox(height: 2),
-                  Text(
-                    subtitle!,
-                    style: GoogleFonts.outfit(
-                      fontSize: 13,
-                      color: Colors.black54,
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
-          ...actions,
-        ],
+              ),
+            ],
+          );
+        },
       ),
     );
   }
 }
+
+/// Narrowest top bar that fits the title beside the search, refresh,
+/// export and restock actions.
+const double _kTopBarInlineMinWidth = 900;
 
 /// Skeleton shown while the report loads: real header + grey placeholder
 /// cards mirroring the loaded layout, so the shell is visible immediately.
