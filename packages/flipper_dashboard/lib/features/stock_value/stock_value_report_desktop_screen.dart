@@ -1298,8 +1298,10 @@ class _ProductDataRow extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(width: 8),
+                        // Seven 12px mono characters, e.g. -12.345 or
+                        // 123.456; the bar keeps the rest of the column.
                         SizedBox(
-                          width: 40,
+                          width: 56,
                           child: Text(
                             formatStockQty(line.currentStock),
                             textAlign: TextAlign.right,
