@@ -5,6 +5,8 @@ import 'dart:io';
 
 import 'package:ditto_live/ditto_live.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
+import 'package:flipper_models/sync/capella/mixins/transaction_item_mixin.dart'
+    show reportScopeItemsByBranchIdDql, reportScopeItemsByBranchSnakeDql;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
@@ -73,6 +75,24 @@ void main() {
         arguments: args,
       );
       expect(rows.items.map((i) => i.value['_id']).toSet(), {'in', 'snake'});
+      // Report scope, first tier: the camelCase and snake_case queries with
+      // the same window together find every in-window line once.
+      final window = {
+        'branchId': 'b1',
+        'startDate': DateTime(2026, 11, 9).toIso8601String(),
+        'endDate': DateTime(2026, 11, 12, 23, 59, 59, 999).toIso8601String(),
+      };
+      final camel = await store.execute(
+        reportScopeItemsByBranchIdDql,
+        arguments: window,
+      );
+      final snake = await store.execute(
+        reportScopeItemsByBranchSnakeDql,
+        arguments: window,
+      );
+      expect(camel.items.map((i) => i.value['_id']).toSet(), {'in'});
+      expect(snake.items.map((i) => i.value['_id']).toSet(), {'snake'});
+
       // The same DQL registers as a sync subscription without complaint.
       final sub = ditto.sync.registerSubscription(
         dashboardGaugeLineSyncDql,

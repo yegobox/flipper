@@ -2,6 +2,8 @@ import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'dart:async';
 
+import 'package:flipper_models/sync/capella/mixins/transaction_item_mixin.dart'
+    show mergeTransactionItemsById;
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -238,6 +240,35 @@ void main() {
         1,
         2,
       ], reason: 'partial shown, then full');
+    });
+
+    test('recovers after the fifth failure with no new sale', () async {
+      var calls = 0;
+      final out = await dashboardGaugeLinesWithRetry(
+        fetch: () async => ++calls <= 5 ? null : [line('s1')],
+        saleIds: {'s1'},
+        backoff: noWait,
+      ).toList();
+      expect(calls, 6, reason: 'no attempt limit by default');
+      expect(out.single.single.transactionId, 's1');
+    });
+
+    test('mergeTransactionItemsById keeps one copy per line', () {
+      TransactionItem withId(String id, String tid) => TransactionItem(
+        id: id,
+        name: 'Item',
+        qty: 1,
+        price: 100,
+        discount: 0,
+        prc: 100,
+        ttCatCd: 'B',
+        transactionId: tid,
+      );
+      final merged = mergeTransactionItemsById(
+        [withId('a', 's1'), withId('b', 's1')],
+        [withId('b', 's1'), withId('c', 's1')],
+      );
+      expect(merged.map((i) => i.id), ['a', 'b', 'c']);
     });
 
     test('gives up after the last attempt', () async {
