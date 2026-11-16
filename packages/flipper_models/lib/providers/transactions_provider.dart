@@ -828,11 +828,100 @@ DateTime dashboardPeriodStart(String period) {
   return DateTime(now.year - 1, now.month, d);
 }
 
-// autoDispose: this opens a branch-wide transaction_items observer (no
-// transactionId filter). Kept alive, it outlives the dashboard and then wakes on
-// every POS cart write, converting every transaction item in the branch to Dart
-// objects on the UI isolate — which is what dragged a 60-line cart down to about
-// one saved row every few seconds after a visit to the dashboard.
+/// Completed, non-expense sales in a gauge window. A hotel booking advance
+/// (received, applied or refunded) is money owed to a guest, not revenue.
+List<ITransaction> dashboardGaugeSales(List<ITransaction> all) => all
+    .where(
+      (tx) =>
+          tx.isExpense != true &&
+          tx.status == COMPLETE &&
+          !isBookingAdvanceTransaction(tx),
+    )
+    .toList();
+
+/// Expenses in a gauge window, booking advances excluded as for sales.
+List<ITransaction> dashboardGaugeExpenses(List<ITransaction> all) => all
+    .where((tx) => tx.isExpense == true && !isBookingAdvanceTransaction(tx))
+    .toList();
+
+/// The gauge numbers for one window. Line [items] count only when they
+/// belong to one of [sales].
+DashboardGaugeSnapshot dashboardGaugeSnapshotFrom({
+  required List<TransactionItem> items,
+  required List<ITransaction> sales,
+  required List<ITransaction> expenses,
+}) {
+  final allowed = sales.map((t) => t.id.toString()).toSet();
+  var gross = 0.0;
+  var tax = 0.0;
+  for (final i in items) {
+    final tid = i.transactionId?.toString();
+    if (tid == null || !allowed.contains(tid)) continue;
+    gross += TransactionItemPluMetrics.profitMade(i);
+    tax += TransactionItemPluMetrics.taxPayable(i);
+  }
+  final expSum = expenses.fold<double>(0.0, (s, e) => s + (e.subTotal ?? 0.0));
+  final revenue = sales.fold<double>(0.0, (s, t) => s + (t.subTotal ?? 0.0));
+  return DashboardGaugeSnapshot(
+    grossProfit: gross,
+    deductions: tax + expSum,
+    revenue: revenue,
+    transactionCount: sales.length,
+  );
+}
+
+/// Line items for the gauge: a one-shot `execute` read (the Transaction
+/// Reports scope), never a store observer.
+Future<List<TransactionItem>> _gaugeLineItems({
+  required DateTime start,
+  required DateTime end,
+  required String branchId,
+}) async {
+  try {
+    final capella = ProxyService.getStrategy(Strategy.capella) as CapellaSync;
+    return await capella.fetchTransactionItemsReportScope(
+      startDate: start,
+      endDate: end,
+      branchId: branchId,
+    );
+  } catch (e) {
+    talker.warning('dashboard gauge line items: $e');
+    return const <TransactionItem>[];
+  }
+}
+
+/// The ids of the completed sales, to tell a new sale from a cart edit.
+Set<String> _saleIds(List<ITransaction> sales) =>
+    sales.map((t) => t.id.toString()).toSet();
+
+bool _sameIds(Set<String> a, Set<String> b) =>
+    a.length == b.length && a.containsAll(b);
+
+/// When the gauge re-reads line items: once at start, then only when the set
+/// of completed sales changes (a cart edit changes no sale id), at most once
+/// per [window].
+Stream<void> dashboardGaugeLineRefreshes(
+  Stream<List<ITransaction>> sales, {
+  Duration window = const Duration(seconds: 2),
+}) => sales
+    .map(_saleIds)
+    .distinct(_sameIds)
+    .throttleTime(window, leading: true, trailing: true)
+    // The trailing edge repeats the leading value after a lone change.
+    .distinct(_sameIds)
+    .map((_) {});
+
+// Live gauge for the current period. One transaction observer feeds both
+// sales and expenses (expensesStream is the same query filtered, so the gauge
+// used to open it twice).
+//
+// Line items are NOT observed. A branch-wide transaction_items observer fired
+// on every cart tap on any till (pending lines fall inside the period) and
+// re-decoded every line of the period on the UI isolate: a year of rows per
+// tap on "This Year". Lines are now read once, again only when the set of
+// completed sales changes, at most every 2 s.
+//
+// autoDispose: nothing here should outlive the dashboard.
 final dashboardGaugeSnapshotProvider = StreamProvider.autoDispose
     .family<DashboardGaugeSnapshot, String>((ref, period) {
       final start = dashboardPeriodStart(period);
@@ -844,87 +933,34 @@ final dashboardGaugeSnapshotProvider = StreamProvider.autoDispose
         );
       }
 
-      final itemStream = ProxyService.getStrategy(Strategy.capella)
-          .transactionItemsStreams(
-            startDate: start,
-            endDate: end,
-            branchId: branchId,
-            branchIdString: branchId,
-            fetchRemote: false,
-          )
-          .startWith(const <TransactionItem>[]);
+      final all = coreTransactionsStream(
+        ref,
+        startDate: start,
+        endDate: end,
+        branchId: branchId,
+        forceRealData: true,
+      ).shareReplay(maxSize: 1);
+      final sales = all.map(dashboardGaugeSales).shareReplay(maxSize: 1);
+      final expenses = all.map(dashboardGaugeExpenses);
 
-      final completedSalesStream =
-          coreTransactionsStream(
-                ref,
-                startDate: start,
-                endDate: end,
-                branchId: branchId,
-                forceRealData: true,
-              )
-              .map(
-                (all) => all
-                    .where(
-                      (tx) =>
-                          tx.isExpense != true &&
-                          tx.status == COMPLETE &&
-                          !isBookingAdvanceTransaction(tx),
-                    )
-                    .toList(),
-              )
-              .startWith(const <ITransaction>[]);
-
-      // A hotel booking advance (received, applied or refunded) moves money
-      // the business owes its guest: neither revenue nor an expense.
-      final expenseTxStream =
-          expensesStream(
-                ref,
-                startDate: start,
-                endDate: end,
-                branchId: branchId,
-                forceRealData: true,
-              )
-              .map(
-                (all) => all
-                    .where((tx) => !isBookingAdvanceTransaction(tx))
-                    .toList(),
-              )
-              .startWith(const <ITransaction>[]);
+      final items = dashboardGaugeLineRefreshes(sales).switchMap(
+        (_) => Stream.fromFuture(
+          _gaugeLineItems(start: start, end: end, branchId: branchId),
+        ),
+      );
 
       return Rx.combineLatest3<
         List<TransactionItem>,
         List<ITransaction>,
         List<ITransaction>,
         DashboardGaugeSnapshot
-      >(itemStream, completedSalesStream, expenseTxStream, (items, txs, exps) {
-        final allowed = txs.map((t) => t.id.toString()).toSet();
-        final filtered = items.where((i) {
-          final tid = i.transactionId?.toString();
-          return tid != null && allowed.contains(tid);
-        }).toList();
-        final gross = filtered.fold<double>(
-          0.0,
-          (s, i) => s + TransactionItemPluMetrics.profitMade(i),
-        );
-        final tax = filtered.fold<double>(
-          0.0,
-          (s, i) => s + TransactionItemPluMetrics.taxPayable(i),
-        );
-        final expSum = exps.fold<double>(
-          0.0,
-          (s, e) => s + (e.subTotal ?? 0.0),
-        );
-        final revenue = txs.fold<double>(
-          0.0,
-          (s, t) => s + (t.subTotal ?? 0.0),
-        );
-        return DashboardGaugeSnapshot(
-          grossProfit: gross,
-          deductions: tax + expSum,
-          revenue: revenue,
-          transactionCount: txs.length,
-        );
-      });
+      >(
+        items.startWith(const <TransactionItem>[]),
+        sales.startWith(const <ITransaction>[]),
+        expenses.startWith(const <ITransaction>[]),
+        (i, s, e) =>
+            dashboardGaugeSnapshotFrom(items: i, sales: s, expenses: e),
+      );
     });
 
 /// Inclusive start of the window immediately before [period]'s current window.
@@ -952,8 +988,11 @@ DateTime dashboardPreviousPeriodStart(String period) {
   return DateTime(current.year - 1, current.month, d);
 }
 
-/// Stream gauge snapshot for the period window before [period].
-// autoDispose for the same reason as [dashboardGaugeSnapshotProvider].
+/// Gauge snapshot for the window before [period], read once.
+///
+/// That window has already closed, so it is computed once instead of keeping
+/// three live observers (two transaction, one branch-wide line item) that
+/// re-decoded it on every write. Pull-to-refresh invalidates it.
 final dashboardPreviousGaugeSnapshotProvider = StreamProvider.autoDispose
     .family<DashboardGaugeSnapshot, String>((ref, period) {
       final prevStart = dashboardPreviousPeriodStart(period);
@@ -965,87 +1004,35 @@ final dashboardPreviousGaugeSnapshotProvider = StreamProvider.autoDispose
         );
       }
 
-      final itemStream = ProxyService.getStrategy(Strategy.capella)
-          .transactionItemsStreams(
-            startDate: prevStart,
-            endDate: prevEnd,
-            branchId: branchId,
-            branchIdString: branchId,
-            fetchRemote: true,
-          )
-          .startWith(const <TransactionItem>[]);
-
-      final completedSalesStream =
-          coreTransactionsStream(
-                ref,
-                startDate: prevStart,
-                endDate: prevEnd,
+      Future<DashboardGaugeSnapshot> load() async {
+        // `.first` closes the stream (and its observer) after one result.
+        final all =
+            await coreTransactionsStream(
+              ref,
+              startDate: prevStart,
+              endDate: prevEnd,
+              branchId: branchId,
+              forceRealData: true,
+            ).first.timeout(
+              const Duration(seconds: 10),
+              onTimeout: () => const <ITransaction>[],
+            );
+        final sales = dashboardGaugeSales(all);
+        final items = sales.isEmpty
+            ? const <TransactionItem>[]
+            : await _gaugeLineItems(
+                start: prevStart,
+                end: prevEnd,
                 branchId: branchId,
-                forceRealData: true,
-              )
-              .map(
-                (all) => all
-                    .where(
-                      (tx) =>
-                          tx.isExpense != true &&
-                          tx.status == COMPLETE &&
-                          !isBookingAdvanceTransaction(tx),
-                    )
-                    .toList(),
-              )
-              .startWith(const <ITransaction>[]);
+              );
+        return dashboardGaugeSnapshotFrom(
+          items: items,
+          sales: sales,
+          expenses: dashboardGaugeExpenses(all),
+        );
+      }
 
-      // As the current period: a booking advance is neither revenue nor an
-      // expense, so the change against last period must not count one.
-      final expenseTxStream =
-          expensesStream(
-                ref,
-                startDate: prevStart,
-                endDate: prevEnd,
-                branchId: branchId,
-                forceRealData: true,
-              )
-              .map(
-                (all) => all
-                    .where((tx) => !isBookingAdvanceTransaction(tx))
-                    .toList(),
-              )
-              .startWith(const <ITransaction>[]);
-
-      return Rx.combineLatest3<
-        List<TransactionItem>,
-        List<ITransaction>,
-        List<ITransaction>,
-        DashboardGaugeSnapshot
-      >(itemStream, completedSalesStream, expenseTxStream, (items, txs, exps) {
-        final allowed = txs.map((t) => t.id.toString()).toSet();
-        final filtered = items.where((i) {
-          final tid = i.transactionId?.toString();
-          return tid != null && allowed.contains(tid);
-        }).toList();
-        final gross = filtered.fold<double>(
-          0.0,
-          (s, i) => s + TransactionItemPluMetrics.profitMade(i),
-        );
-        final tax = filtered.fold<double>(
-          0.0,
-          (s, i) => s + TransactionItemPluMetrics.taxPayable(i),
-        );
-        final expSum = exps.fold<double>(
-          0.0,
-          (s, e) => s + (e.subTotal ?? 0.0),
-        );
-        final revenue = txs.fold<double>(
-          0.0,
-          (s, t) => s + (t.subTotal ?? 0.0),
-        );
-        return DashboardGaugeSnapshot(
-          grossProfit: gross,
-          deductions: tax + expSum,
-          revenue: revenue,
-          transactionCount: txs.length,
-        );
-      });
+      return Stream.fromFuture(load());
     });
 
 /// A hotel booking-advance movement (received, applied or refunded): money
