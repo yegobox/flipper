@@ -1,6 +1,8 @@
 import 'package:flipper_accounting/accounting_models.dart';
 
 /// Zero-balance COA templates used for seeding and tests only — not runtime demo data.
+// One account per line reads as a table; keep it that way.
+// dart format off
 const defaultChartOfAccountsSeed = <Account>[
   Account(code: '1010', name: 'Cash on Hand', type: AccountType.asset, sub: 'Current assets', normal: AccountNormal.debit, bal: 0),
   Account(code: '1020', name: 'Bank', type: AccountType.asset, sub: 'Current assets', normal: AccountNormal.debit, bal: 0),
@@ -31,3 +33,4 @@ const defaultChartOfAccountsSeed = <Account>[
   Account(code: '6050', name: 'Marketing', type: AccountType.expense, sub: 'Operating expenses', normal: AccountNormal.debit, bal: 0),
   Account(code: '6900', name: 'Depreciation Expense', type: AccountType.expense, sub: 'Operating expenses', normal: AccountNormal.debit, bal: 0),
 ];
+// dart format on
