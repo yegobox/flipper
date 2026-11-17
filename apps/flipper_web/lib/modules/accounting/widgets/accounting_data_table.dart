@@ -141,6 +141,7 @@ class _AccountingDataTableState extends State<AccountingDataTable> {
         table,
         AccountingShowMore(
           remaining: allRows.length - shown,
+          pageSize: widget.pageSize,
           onPressed: () => setState(() => _shown += widget.pageSize),
         ),
       ],

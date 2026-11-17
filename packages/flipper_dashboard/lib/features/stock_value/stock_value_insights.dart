@@ -464,8 +464,8 @@ class StockValueRestockPanel extends StatelessWidget {
                   ),
                   Text(
                     context.flipperL10n.stockValueUnitsMin(
-                      item.currentStock.toStringAsFixed(0),
-                      item.minStock.toStringAsFixed(0),
+                      formatStockQty(item.currentStock),
+                      formatStockQty(item.minStock),
                     ),
                     style: GoogleFonts.outfit(
                       fontSize: 12,

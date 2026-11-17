@@ -17,6 +17,14 @@ enum LargePdfExportChoice { excel, pdf, cancel }
 bool shouldOfferExcelForPdf({required bool asPdf, required int? rowCount}) =>
     asPdf && rowCount != null && rowCount > kLargePdfExportRowLimit;
 
+/// Whether the grid's data source was replaced while the prompt was open.
+///
+/// A parent rebuild can swap in another source (e.g. a paginated one), and
+/// exporting it would drop rows the user agreed to export. No source before
+/// (headless export) is never a change.
+bool gridSourceReplaced(Object? before, Object? after) =>
+    before != null && !identical(before, after);
+
 /// Asks whether to export a [rowCount]-row report as Excel instead of PDF.
 /// Dismissing the dialog cancels the export.
 Future<LargePdfExportChoice> showLargePdfExportPrompt(
@@ -51,4 +59,12 @@ Future<LargePdfExportChoice> showLargePdfExportPrompt(
     ),
   );
   return choice ?? LargePdfExportChoice.cancel;
+}
+
+/// Tells the user an export stopped because the report changed while the
+/// prompt was open (see [gridSourceReplaced]), so they export again.
+void showReportExportChangedNotice(BuildContext context) {
+  ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+    SnackBar(content: Text(context.flipperL10n.reportExportChanged)),
+  );
 }

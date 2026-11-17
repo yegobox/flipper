@@ -178,6 +178,16 @@ class StockValueSummaryData {
   });
 }
 
+/// A stock quantity for display: up to three decimals (the `currentStockMilli`
+/// resolution), trailing zeros removed. Whole numbers read as before
+/// (`5`, not `5.000`); fractional stock is no longer rounded away
+/// (0.4 units used to read `0`).
+String formatStockQty(double qty) {
+  final fixed = qty.toStringAsFixed(3);
+  if (!fixed.contains('.')) return fixed;
+  return fixed.replaceFirst(RegExp(r'\.?0+$'), '');
+}
+
 double _asDouble(dynamic v) {
   if (v == null) return 0;
   if (v is num) return v.toDouble();

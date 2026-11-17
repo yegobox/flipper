@@ -13962,6 +13962,10 @@
     "@reportLargePdfAnyway": {
         "description": "Report export: button that still makes the large PDF"
     },
+    "reportExportChanged": "The report changed while you were choosing. Export again to include every row.",
+    "@reportExportChanged": {
+        "description": "Report export: snackbar when the report changed while the large-PDF prompt was open, so the export stopped"
+    },
     "reportTitleStockRecount": "Stock Recount",
     "reportTotalGrossProfit": "Total Gross Profit",
     "reportClosingBalance": "Closing balance",
