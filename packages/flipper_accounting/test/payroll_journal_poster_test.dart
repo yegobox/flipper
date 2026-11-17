@@ -1,5 +1,6 @@
 import 'package:flipper_accounting/accounting_models.dart';
 import 'package:flipper_accounting/payroll_journal_poster.dart';
+import 'package:flipper_accounting/statutory_accounts.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'helpers/in_memory_accounting_store.dart';
@@ -14,6 +15,7 @@ PayrollPayslipRecord _payslip({
   String id = 'slip-1',
   DateTime? createdAt,
   DateTime? voidedAt,
+  int otherDeductions = 0,
 }) => PayrollPayslipRecord(
   id: id,
   createdAt: createdAt ?? _after,
@@ -23,6 +25,7 @@ PayrollPayslipRecord _payslip({
   employeeRssb: 33400,
   employerRssb: 41500,
   advanceRecovery: 20000,
+  otherDeductions: otherDeductions,
   voidedAt: voidedAt,
 );
 
@@ -70,7 +73,7 @@ void main() {
       _expectBalanced(lines);
     });
 
-    test('other deductions stay in net pay owed, and it still balances', () {
+    test('an odd franc still balances', () {
       final p = PayrollPayslipRecord(
         id: 's',
         createdAt: null,
@@ -82,6 +85,16 @@ void main() {
         advanceRecovery: 0,
       );
       _expectBalanced(PayrollJournalPoster.payslipLines(p));
+    });
+
+    test('other deductions go to 2330, not net pay owed', () {
+      final lines = PayrollJournalPoster.payslipLines(
+        _payslip(otherDeductions: 10000),
+      );
+      expect(_cr(lines, '2330'), 10000);
+      // Net pay: 500,000 - 87,000 - 33,400 - 10,000 - 20,000.
+      expect(_cr(lines, '2300'), 349600);
+      _expectBalanced(lines);
     });
   });
 
@@ -166,6 +179,39 @@ void main() {
       expect(plan, isEmpty);
     });
 
+    test('payments and write-offs each get their own entry and memo', () {
+      final plan = PayrollJournalPoster.plan(
+        businessId: 'biz',
+        payments: [
+          _payment(id: 'a', kind: PayrollPaymentKind.advance),
+          _payment(id: 'r', kind: PayrollPaymentKind.reimbursement),
+          _payment(id: 'o', kind: PayrollPaymentKind.other),
+          // Nothing paid: nothing to post.
+          _payment(id: 'zero', amount: 0),
+        ],
+        writeOffs: [
+          PayrollWriteOffRecord(
+            advanceId: 'adv-9',
+            createdAt: _after,
+            writtenOffAt: DateTime(2026, 12, 5),
+            amount: 15000,
+          ),
+        ],
+      );
+      expect(plan.map((p) => p.memo), [
+        'Salary advance given',
+        'Staff reimbursement',
+        'Staff payment',
+        'Salary advance written off',
+      ]);
+      final writeOff = plan.last;
+      expect(writeOff.entryId, 'je_biz_advwo_adv-9');
+      // The advance staff can no longer repay becomes a salary cost.
+      expect(_dr(writeOff.lines, '6020'), 15000);
+      expect(_cr(writeOff.lines, '1150'), 15000);
+      _expectBalanced(writeOff.lines);
+    });
+
     test('memos never carry who was paid', () {
       final plan = PayrollJournalPoster.plan(
         businessId: 'biz',
@@ -201,6 +247,51 @@ void main() {
       expect(store.creditBalance('2320'), 74900);
     });
 
+    test(
+      'paying the net pay of a slip with other deductions clears 2300',
+      () async {
+        final store = InMemoryAccountingStore();
+        await PayrollJournalPoster(store).sync(
+          businessId: 'biz',
+          payslips: [_payslip(otherDeductions: 10000)],
+          payments: [_payment(amount: 349600)],
+        );
+        expect(store.creditBalance('2300'), 0);
+        expect(store.creditBalance('2330'), 10000);
+        // ensureChartAccounts adds 2330 to an older chart from the seed.
+        expect(
+          seedAccount(otherPayrollDeductionsCode)?.type,
+          AccountType.liability,
+        );
+      },
+    );
+
+    test('an entry cut short after its header is completed, once', () async {
+      final store = InMemoryAccountingStore();
+      const entryId = 'je_biz_payslip_slip-1';
+      // A crash left the header and one line of six.
+      await store.upsertJournalEntryHeader('biz', {
+        'id': entryId,
+        'businessId': 'biz',
+        'status': 'posted',
+      }, entryId);
+      await store.upsertJournalLine(
+        'biz',
+        entryId,
+        const JournalLine(ac: '6020', dr: 500000),
+      );
+      final poster = PayrollJournalPoster(store);
+
+      expect(await poster.sync(businessId: 'biz', payslips: [_payslip()]), 1);
+      expect(store.linesOf(entryId), hasLength(6));
+      expect(store.creditBalance('2300'), 359600);
+      expect(store.all('journal_entries'), hasLength(1));
+
+      // Complete now: nothing more is written.
+      expect(await poster.sync(businessId: 'biz', payslips: [_payslip()]), 0);
+      expect(store.linesOf(entryId), hasLength(6));
+    });
+
     test('a void posted later cancels the original', () async {
       final store = InMemoryAccountingStore();
       final poster = PayrollJournalPoster(store);
@@ -215,6 +306,30 @@ void main() {
       for (final ac in ['2300', '2310', '2320', '1150', '6020', '6025']) {
         expect(store.creditBalance(ac), 0, reason: ac);
       }
+    });
+
+    test('one record that fails to write does not stop the rest', () async {
+      final store = _FailingLineStore('je_biz_payslip_slip-1');
+      final poster = PayrollJournalPoster(store);
+      final written = await poster.sync(
+        businessId: 'biz',
+        payslips: [_payslip()],
+        payments: [_payment()],
+      );
+      expect(written, 1);
+      expect(store.linesOf('je_biz_hrpay_pay-1'), hasLength(2));
+
+      // Once the store recovers, the next sync completes the failed one.
+      store.failFor = null;
+      expect(
+        await poster.sync(
+          businessId: 'biz',
+          payslips: [_payslip()],
+          payments: [_payment()],
+        ),
+        1,
+      );
+      expect(store.linesOf('je_biz_payslip_slip-1'), hasLength(6));
     });
 
     test('checks what is posted in one query, not one per record', () async {
@@ -241,5 +356,23 @@ class _CountingStore extends InMemoryAccountingStore {
   ) {
     if (collection == 'journal_entries') journalEntryQueries++;
     return super.queryCollection(collection, query, args);
+  }
+}
+
+/// Fails every line write of one entry, after its header is written.
+class _FailingLineStore extends InMemoryAccountingStore {
+  _FailingLineStore(this.failFor);
+
+  String? failFor;
+
+  @override
+  Future<void> upsertJournalLine(
+    String businessId,
+    String journalEntryId,
+    JournalLine line, {
+    String? id,
+  }) async {
+    if (journalEntryId == failFor) throw StateError('write failed');
+    return super.upsertJournalLine(businessId, journalEntryId, line, id: id);
   }
 }

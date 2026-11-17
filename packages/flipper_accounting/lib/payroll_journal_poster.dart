@@ -7,7 +7,7 @@
 ///
 /// | Record | Debit | Credit |
 /// |---|---|---|
-/// | Payslip | 6020 gross, 6025 employer RSSB | 2310 PAYE, 2320 all RSSB, 1150 advance recovered, 2300 the rest |
+/// | Payslip | 6020 gross, 6025 employer RSSB | 2310 PAYE, 2320 all RSSB, 2330 other deductions, 1150 advance recovered, 2300 net pay |
 /// | Salary paid | 2300 | cash / MoMo / bank |
 /// | Advance given | 1150 | cash / MoMo / bank |
 /// | Other or reimbursement paid | 6000 | cash / MoMo / bank |
@@ -16,7 +16,9 @@
 ///
 /// Ids are deterministic, so posting is idempotent: [PayrollJournalPoster.sync]
 /// can run after every pay action and on every Pay page load, from any device,
-/// and each record is posted once.
+/// and each record is posted once. An entry counts as posted only once its
+/// header and every one of its lines are in the ledger; one cut short (the
+/// header is written first) is written again, over the same ids.
 ///
 /// Only records created on or after [payrollLedgerStart] are posted: anything
 /// older may already be in Books by hand, and posting it would count it twice.
@@ -53,6 +55,7 @@ class PayrollPayslipRecord {
     required this.employeeRssb,
     required this.employerRssb,
     required this.advanceRecovery,
+    this.otherDeductions = 0,
     this.voidedAt,
   });
 
@@ -69,6 +72,9 @@ class PayrollPayslipRecord {
   /// Pension, maternity and occupational hazards the employer adds.
   final int employerRssb;
   final int advanceRecovery;
+
+  /// Withheld for anything else (a staff loan, a fine): not net pay.
+  final int otherDeductions;
 }
 
 /// Money handed over from the pay book.
@@ -157,18 +163,22 @@ class PayrollJournalPoster {
 
   /// The accrual: what the period cost and who is owed it.
   ///
-  /// Net pay owed (2300) is whatever balances the entry, so it absorbs any
-  /// other deduction and the entry can never be off by a rounding franc.
+  /// Net pay owed (2300) is whatever balances the entry: gross less PAYE,
+  /// employee RSSB, other deductions and the advance recovered, which is the
+  /// payslip's net pay. Paying that net pay then clears 2300 exactly, and the
+  /// entry can never be off by a rounding franc.
   static List<JournalLine> payslipLines(PayrollPayslipRecord p) {
     final debit = p.gross + p.employerRssb;
     final rssb = p.employeeRssb + p.employerRssb;
-    final wages = debit - p.paye - rssb - p.advanceRecovery;
+    final wages = debit - p.paye - rssb - p.otherDeductions - p.advanceRecovery;
     return [
       if (p.gross > 0) JournalLine(ac: salariesCode, dr: p.gross),
       if (p.employerRssb > 0)
         JournalLine(ac: employerRssbCode, dr: p.employerRssb),
       if (p.paye > 0) JournalLine(ac: payePayableCode, cr: p.paye),
       if (rssb > 0) JournalLine(ac: rssbPayableCode, cr: rssb),
+      if (p.otherDeductions > 0)
+        JournalLine(ac: otherPayrollDeductionsCode, cr: p.otherDeductions),
       if (p.advanceRecovery > 0)
         JournalLine(ac: staffAdvancesCode, cr: p.advanceRecovery),
       if (wages > 0) JournalLine(ac: wagesPayableCode, cr: wages),
@@ -283,9 +293,9 @@ class PayrollJournalPoster {
   /// Posts whatever [plan] wants that the ledger does not hold yet. Returns
   /// how many entries were written.
   ///
-  /// Two reads however many records there are: one for the entries already
-  /// posted and one for the chart, so a long pay book costs no per-record
-  /// Ditto round trip.
+  /// Three reads however many records there are: the entries' headers, their
+  /// lines and the chart, so a long pay book costs no per-record Ditto round
+  /// trip.
   Future<int> sync({
     required String businessId,
     Iterable<PayrollPayslipRecord> payslips = const [],
@@ -301,17 +311,30 @@ class PayrollJournalPoster {
     );
     if (wanted.isEmpty) return 0;
 
-    final posted = await _ditto.queryCollection(
+    final ids = [for (final p in wanted) p.entryId];
+    final headers = await _ditto.queryCollection(
       'journal_entries',
       'SELECT _id FROM journal_entries WHERE _id IN :ids',
-      {
-        'ids': [for (final p in wanted) p.entryId],
-      },
+      {'ids': ids},
     );
-    final have = {for (final r in posted) (r['_id'] ?? r['id']).toString()};
+    // createJournalEntry writes the header, then each line, with no
+    // transaction: a header without all its lines is an entry cut short, not
+    // a posted one. Line ids are `<entryId>_<accountCode>`, so writing the
+    // entry again completes it without duplicating anything.
+    final lines = await _ditto.queryCollection(
+      'journal_lines',
+      'SELECT _id FROM journal_lines WHERE journalEntryId IN :ids',
+      {'ids': ids},
+    );
+    String docId(Map<String, dynamic> r) => (r['_id'] ?? r['id']).toString();
+    final haveHeaders = {for (final r in headers) docId(r)};
+    final haveLines = {for (final r in lines) docId(r)};
+    bool complete(PayrollPosting p) =>
+        haveHeaders.contains(p.entryId) &&
+        p.lines.every((l) => haveLines.contains('${p.entryId}_${l.ac}'));
     final missing = [
       for (final p in wanted)
-        if (!have.contains(p.entryId)) p,
+        if (!complete(p)) p,
     ];
     if (missing.isEmpty) return 0;
 
