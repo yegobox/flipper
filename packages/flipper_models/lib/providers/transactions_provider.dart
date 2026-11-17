@@ -1,3 +1,4 @@
+import 'dart:async' show TimeoutException;
 import 'dart:math' show min;
 
 import 'package:flipper_models/helpers/cash_movement_rules.dart';
@@ -1072,6 +1073,43 @@ DateTime dashboardPreviousPeriodStart(String period) {
   return DateTime(current.year - 1, current.month, d);
 }
 
+/// The previous-period gauge read before the store was up, or timed out.
+///
+/// An `Exception` (not an `Error`), so Riverpod retries the provider.
+class DashboardPreviousPeriodUnavailable implements Exception {
+  const DashboardPreviousPeriodUnavailable(this.reason);
+
+  final String reason;
+
+  @override
+  String toString() => 'DashboardPreviousPeriodUnavailable: $reason';
+}
+
+/// The previous window's transactions, read once from [read].
+///
+/// Fails instead of answering empty when the store is not up yet
+/// (`transactionsStream` then answers `[]` at once) or no result arrives in
+/// [timeout]. An empty answer would be cached as a zero baseline that looks
+/// like a period with no sales; a failure leaves the comparison out and lets
+/// the provider retry. The timeout sits on the stream, so `.first` cancels
+/// the observer when it fires.
+Future<List<ITransaction>> dashboardPreviousPeriodTransactions({
+  required bool storeReady,
+  required Stream<List<ITransaction>> Function() read,
+  Duration timeout = const Duration(seconds: 10),
+}) async {
+  if (!storeReady) {
+    throw const DashboardPreviousPeriodUnavailable('store not ready');
+  }
+  try {
+    return await read().timeout(timeout).first;
+  } on TimeoutException {
+    throw const DashboardPreviousPeriodUnavailable('timed out');
+  } on StateError {
+    throw const DashboardPreviousPeriodUnavailable('closed without a result');
+  }
+}
+
 /// Gauge snapshot for the window before [period], read once.
 ///
 /// That window has already closed, so it is computed once instead of keeping
@@ -1089,26 +1127,16 @@ final dashboardPreviousGaugeSnapshotProvider = StreamProvider.autoDispose
       }
 
       Future<DashboardGaugeSnapshot> load() async {
-        // The timeout sits on the stream, so when it fires the stream closes
-        // and `.first` cancels the observer instead of leaving it subscribed.
-        List<ITransaction> all;
-        try {
-          all =
-              await coreTransactionsStream(
-                    ref,
-                    startDate: prevStart,
-                    endDate: prevEnd,
-                    branchId: branchId,
-                    forceRealData: true,
-                  )
-                  .timeout(
-                    const Duration(seconds: 10),
-                    onTimeout: (sink) => sink.close(),
-                  )
-                  .first;
-        } on StateError {
-          all = const <ITransaction>[]; // timed out before the first result
-        }
+        final all = await dashboardPreviousPeriodTransactions(
+          storeReady: DittoService.instance.dittoInstance != null,
+          read: () => coreTransactionsStream(
+            ref,
+            startDate: prevStart,
+            endDate: prevEnd,
+            branchId: branchId,
+            forceRealData: true,
+          ),
+        );
         final sales = dashboardGaugeSales(all);
         var items = const <TransactionItem>[];
         if (sales.isNotEmpty) {
