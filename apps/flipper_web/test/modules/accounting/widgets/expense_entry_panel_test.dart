@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../../helpers/accounting_unit_test_overrides.dart';
 import '../../../helpers/fake_accounting_ledger_repository.dart';
 
 /// A chart seeded before PAYE / RSSB Payable existed, with VAT owed.
@@ -43,25 +44,65 @@ List<Account> _chartOwingPaye(int bal) => [
         : a,
 ];
 
+/// A ledger that honours the date range like the real repositories.
+class _DatedLedger extends FakeAccountingLedgerRepository {
+  _DatedLedger({required super.coa, this.dated = const {}})
+    : super(entries: dated.keys.toList());
+
+  final Map<JournalEntry, DateTime> dated;
+
+  @override
+  Stream<List<JournalEntry>> watchJournalEntries({
+    required String businessId,
+    DateTime? startDate,
+    DateTime? endDate,
+  }) => Stream.value([
+    for (final MapEntry(key: e, value: d) in dated.entries)
+      if ((startDate == null || !d.isBefore(startDate)) &&
+          (endDate == null || !d.isAfter(endDate)))
+        e,
+  ]);
+}
+
+JournalEntry _paye(String id, JournalStatus status, {int dr = 0, int cr = 0}) =>
+    JournalEntry(
+      id: id,
+      date: '',
+      memo: id,
+      ref: id,
+      status: status,
+      src: 'Manual',
+      lines: [
+        JournalLine(ac: '2310', dr: dr, cr: cr),
+        JournalLine(ac: '1010', dr: cr, cr: dr),
+      ],
+    );
+
 Future<FakeAccountingLedgerRepository> _pump(
   WidgetTester tester, {
   BooksVatPosition? position,
   Future<BooksVatPosition?>? positionFuture,
   List<Account>? accounts,
-  List<JournalEntry> journal = const [],
+  Map<JournalEntry, DateTime> dated = const {},
 }) async {
   tester.view.physicalSize = const Size(1400, 1000);
   tester.view.devicePixelRatio = 1.0;
   addTearDown(tester.view.reset);
   final chart = accounts ?? _oldChart;
-  final ledger = FakeAccountingLedgerRepository(coa: List.of(chart));
+  final ledger = _DatedLedger(coa: List.of(chart), dated: dated);
+  final now = DateTime.now();
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
+        ...accountingUnitTestOverrides(),
         accountingBusinessIdProvider.overrideWithValue('biz'),
         accountingCurrencyProvider.overrideWithValue('RWF'),
+        accountingCoaProvider.overrideWithValue(chart),
         accountingAccountsProvider.overrideWithValue(chart),
-        accountingJournalProvider.overrideWithValue(journal),
+        // Books shows this month.
+        accountingDateRangeProvider.overrideWith(
+          (ref) => (DateTime(now.year, now.month), now),
+        ),
         accountingLedgerRepositoryProvider.overrideWithValue(ledger),
         booksVatPositionProvider.overrideWith(
           (ref) => positionFuture ?? Future.value(position),
@@ -212,27 +253,44 @@ void main() {
       final ledger = await _pump(
         tester,
         accounts: _chartOwingPaye(80000),
-        journal: const [
-          JournalEntry(
-            id: 'JE-1',
-            date: '1 Nov 2026',
-            memo: 'PAYE paid to RRA',
-            ref: 'JE-1',
-            status: JournalStatus.pending,
-            src: 'Manual',
-            lines: [
-              JournalLine(ac: '2310', dr: 60000),
-              JournalLine(ac: '1010', cr: 60000),
-            ],
-          ),
-        ],
+        dated: {
+          _paye('JE-1', JournalStatus.pending, dr: 60000): DateTime.now(),
+        },
       );
       await _choose(tester, 'PAYE paid to RRA');
-      // 80,000 posted, 60,000 of it already being paid.
+      // 80,000 owed, 60,000 of it already being paid.
       expect(find.textContaining('RWF 20,000'), findsOneWidget);
       await _enterAmount(tester, '50000');
       await _submit(tester);
-      final lines = ledger.entries.single.lines;
+      final lines = ledger.entries.last.lines;
+      expect(_dr(lines, '2310'), 20000);
+      expect(_dr(lines, '6020'), 30000);
+    });
+
+    testWidgets('a payment still pending from last month is not owed twice, '
+        'though Books shows this month', (tester) async {
+      final now = DateTime.now();
+      final lastMonth = DateTime(now.year, now.month - 1, 15);
+      final ledger = await _pump(
+        tester,
+        // The chart's opening is 0: what is owed comes from the ledger.
+        accounts: _chartOwingPaye(0),
+        dated: {
+          // Last month's payroll accrued 80,000 and 60,000 was paid but is
+          // still waiting for approval.
+          _paye('JE-accrual', JournalStatus.posted, cr: 80000): lastMonth,
+          _paye('JE-paid', JournalStatus.pending, dr: 60000): lastMonth,
+          // Dated after the payment: not owed yet.
+          _paye('JE-next', JournalStatus.posted, cr: 10000): now.add(
+            const Duration(days: 40),
+          ),
+        },
+      );
+      await _choose(tester, 'PAYE paid to RRA');
+      expect(find.textContaining('RWF 20,000'), findsOneWidget);
+      await _enterAmount(tester, '50000');
+      await _submit(tester);
+      final lines = ledger.entries.last.lines;
       expect(_dr(lines, '2310'), 20000);
       expect(_dr(lines, '6020'), 30000);
     });

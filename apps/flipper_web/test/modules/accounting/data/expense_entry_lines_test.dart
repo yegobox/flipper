@@ -1,11 +1,36 @@
 import 'package:flipper_accounting/statutory_accounts.dart';
+import 'package:flipper_web/modules/accounting/data/accounting_backend_config.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_models.dart';
+import 'package:flipper_web/modules/accounting/data/accounting_providers.dart';
 import 'package:flipper_web/modules/accounting/data/chart_account_resolver.dart';
 import 'package:flipper_web/modules/accounting/data/default_chart_of_accounts_seed.dart';
 import 'package:flipper_web/modules/accounting/data/expense_entry_posting.dart';
+import 'package:flipper_web/services/ditto_service.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../../helpers/accounting_unit_test_overrides.dart';
 import '../../../helpers/fake_accounting_ledger_repository.dart';
+
+/// Honours the date range like the real repositories.
+class _DatedLedger extends FakeAccountingLedgerRepository {
+  _DatedLedger(this.dated);
+
+  final Map<JournalEntry, DateTime> dated;
+
+  @override
+  Stream<List<JournalEntry>> watchJournalEntries({
+    required String businessId,
+    DateTime? startDate,
+    DateTime? endDate,
+  }) => Stream.value([
+    for (final MapEntry(key: e, value: d) in dated.entries)
+      if ((startDate == null || !d.isBefore(startDate)) &&
+          (endDate == null || !d.isAfter(endDate)))
+        e,
+  ]);
+}
 
 int _dr(List<JournalLine> lines, String ac) =>
     lines.where((l) => l.ac == ac).fold(0, (s, l) => s + l.dr);
@@ -128,37 +153,46 @@ void main() {
       bal: bal,
     );
 
-    JournalEntry entry(JournalStatus status, int dr) => JournalEntry(
-      id: 'JE-$dr',
-      date: '1 Nov 2026',
-      memo: 'PAYE paid to RRA',
-      ref: 'JE-$dr',
-      status: status,
-      src: 'Manual',
-      lines: [
-        JournalLine(ac: payePayableCode, dr: dr),
-        JournalLine(ac: '1010', cr: dr),
-      ],
-    );
+    JournalEntry entry(JournalStatus status, {int dr = 0, int cr = 0}) =>
+        JournalEntry(
+          id: 'JE-$dr-$cr',
+          date: '1 Nov 2026',
+          memo: 'PAYE',
+          ref: 'JE-$dr-$cr',
+          status: status,
+          src: 'Manual',
+          lines: [
+            JournalLine(ac: payePayableCode, dr: dr, cr: cr),
+            JournalLine(ac: '1010', dr: cr, cr: dr),
+          ],
+        );
 
-    test('is the posted balance when nothing waits for approval', () {
+    test('is the opening plus what is posted up to the payment date', () {
       expect(
         statutoryOwed(
-          accounts: [paye(80000)],
-          journal: [entry(JournalStatus.posted, 30000)],
+          chart: [paye(50000)],
+          throughPaymentDate: [
+            entry(JournalStatus.posted, dr: 30000),
+            entry(JournalStatus.posted, cr: 40000),
+            // Pending entries in this list are counted from [pending] only.
+            entry(JournalStatus.pending, dr: 10000),
+          ],
+          pending: const [],
           liabilityCode: payePayableCode,
         ),
-        80000,
+        60000,
       );
     });
 
     test('takes off payments to the liability waiting for approval', () {
       expect(
         statutoryOwed(
-          accounts: [paye(80000)],
-          journal: [
-            entry(JournalStatus.pending, 60000),
-            entry(JournalStatus.draft, 10000),
+          chart: [paye(80000)],
+          throughPaymentDate: const [],
+          pending: [
+            entry(JournalStatus.pending, dr: 60000),
+            // Not pending: ignored.
+            entry(JournalStatus.draft, dr: 10000),
           ],
           liabilityCode: payePayableCode,
         ),
@@ -169,14 +203,105 @@ void main() {
     test('is zero less pending payments when the chart lacks the account', () {
       expect(
         statutoryOwed(
-          accounts: defaultChartOfAccountsSeed
+          chart: defaultChartOfAccountsSeed
               .where((a) => a.code != payePayableCode)
               .toList(),
-          journal: [entry(JournalStatus.pending, 5000)],
+          throughPaymentDate: const [],
+          pending: [entry(JournalStatus.pending, dr: 5000)],
           liabilityCode: payePayableCode,
         ),
         -5000,
       );
+    });
+  });
+
+  group('ledger reads for what is owed', () {
+    final now = DateTime.now();
+    final lastMonth = DateTime(now.year, now.month - 1, 15);
+    final nextMonth = DateTime(now.year, now.month + 1, 15);
+    JournalEntry je(String id, JournalStatus status) => JournalEntry(
+      id: id,
+      date: '',
+      memo: id,
+      ref: id,
+      status: status,
+      src: 'Manual',
+      lines: const [],
+    );
+    final ledger = _DatedLedger({
+      je('old-posted', JournalStatus.posted): lastMonth,
+      je('old-pending', JournalStatus.pending): lastMonth,
+      je('today-posted', JournalStatus.posted): now,
+      je('later-posted', JournalStatus.posted): nextMonth,
+      je('later-pending', JournalStatus.pending): nextMonth,
+    });
+
+    ProviderContainer container(List<Override> overrides) {
+      final c = ProviderContainer(
+        overrides: [
+          accountingLedgerRepositoryProvider.overrideWithValue(ledger),
+          // Books shows this month only.
+          accountingDateRangeProvider.overrideWith(
+            (ref) => (DateTime(now.year, now.month), now),
+          ),
+          ...overrides,
+        ],
+      );
+      addTearDown(c.dispose);
+      return c;
+    }
+
+    Future<List<String>> ids(
+      ProviderContainer c,
+      StreamProvider<List<JournalEntry>> p,
+    ) async {
+      c.listen(p, (_, _) {});
+      return [for (final e in await c.read(p.future)) e.id];
+    }
+
+    test(
+      'through today: every period up to today, whatever is shown',
+      () async {
+        final c = container([
+          ...accountingUnitTestOverrides(),
+          accountingBusinessIdProvider.overrideWithValue('biz'),
+        ]);
+        expect(await ids(c, journalEntriesThroughTodayProvider), [
+          'old-posted',
+          'old-pending',
+          'today-posted',
+        ]);
+      },
+    );
+
+    test('pending: from every period, including last month', () async {
+      final c = container([
+        ...accountingUnitTestOverrides(),
+        accountingBusinessIdProvider.overrideWithValue('biz'),
+      ]);
+      expect(await ids(c, pendingJournalEntriesProvider), [
+        'old-pending',
+        'later-pending',
+      ]);
+    });
+
+    test('stay empty until Ditto is ready', () async {
+      final c = container([
+        accountingBackendStrategyProvider.overrideWithValue(
+          AccountingBackendStrategy.ditto,
+        ),
+        dittoReadyProvider.overrideWith((ref) => false),
+        accountingBusinessIdProvider.overrideWithValue('biz'),
+      ]);
+      expect(await ids(c, pendingJournalEntriesProvider), isEmpty);
+    });
+
+    test('stay empty without a business', () async {
+      final c = container([
+        ...accountingUnitTestOverrides(),
+        accountingBusinessIdProvider.overrideWithValue(''),
+      ]);
+      expect(await ids(c, journalEntriesThroughTodayProvider), isEmpty);
     });
   });
 

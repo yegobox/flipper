@@ -664,6 +664,44 @@ final journalEntriesThroughPeriodEndProvider =
           .watchJournalEntries(businessId: businessId, endDate: end);
     });
 
+/// The business's journal entries dated up to [endDate] (every one when it is
+/// null), whatever period Books shows. Empty until Ditto is ready.
+Stream<List<JournalEntry>> _unscopedJournalEntries(
+  Ref ref, {
+  DateTime? endDate,
+}) {
+  if (ref.watch(accountingBackendStrategyProvider) ==
+          AccountingBackendStrategy.ditto &&
+      !ref.watch(dittoReadyProvider)) {
+    return _accountingEmptyStream<JournalEntry>();
+  }
+  final businessId = ref.watch(accountingBusinessIdProvider);
+  if (businessId.isEmpty) return _accountingEmptyStream<JournalEntry>();
+  return ref
+      .watch(accountingLedgerRepositoryProvider)
+      .watchJournalEntries(businessId: businessId, endDate: endDate);
+}
+
+/// Every journal entry dated up to today, whatever period is selected: the
+/// ledger as of the day Record expense posts a PAYE or RSSB payment.
+final journalEntriesThroughTodayProvider =
+    StreamProvider.autoDispose<List<JournalEntry>>(
+      (ref) => _unscopedJournalEntries(ref, endDate: DateTime.now()),
+    );
+
+/// Entries waiting for approval, from every period. Record expense nets the
+/// PAYE / RSSB payments among them out of what is owed, so one still pending
+/// from an earlier month is not paid again.
+final pendingJournalEntriesProvider =
+    StreamProvider.autoDispose<List<JournalEntry>>(
+      (ref) => _unscopedJournalEntries(ref).map(
+        (all) => [
+          for (final e in all)
+            if (e.status == JournalStatus.pending) e,
+        ],
+      ),
+    );
+
 final bankLinesStreamProvider = StreamProvider<List<BankLine>>((ref) {
   final businessId = ref.watch(accountingBusinessIdProvider);
   if (businessId.isEmpty) return _accountingEmptyStream<BankLine>();
