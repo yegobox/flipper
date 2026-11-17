@@ -196,13 +196,19 @@ class PayActions {
     _ref.invalidate(branchPayBookProvider(e.branchId));
     _ref.invalidate(employeePayBookProvider(e.id));
     _ref.invalidate(myPayBookProvider);
-    if (ledger) unawaited(_postToBooks(e.branchId));
+    if (ledger) unawaited(_postToBooks(e.businessId, e.branchId));
   }
 
-  Future<void> _postToBooks(String branchId) async {
+  /// Posts [branchId]'s book to [businessId], the business that owns the
+  /// employee: taken when the action ran, never re-read after the book loads,
+  /// so switching business meanwhile cannot post one business's pay into
+  /// another's ledger.
+  Future<void> _postToBooks(String businessId, String branchId) async {
     try {
       final book = await _ref.read(branchPayBookProvider(branchId).future);
-      await _ref.read(payrollLedgerSyncProvider).syncBook(book);
+      await _ref
+          .read(payrollLedgerSyncProvider)
+          .syncBook(book, businessId: businessId);
     } catch (_) {
       // The book could not be read; the Pay page's next load posts it.
     }

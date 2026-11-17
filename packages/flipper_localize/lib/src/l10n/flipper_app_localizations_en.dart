@@ -26967,8 +26967,9 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
   }
 
   @override
-  String get hrPayPostedToBooks =>
-      'Books gets this payroll automatically: the salary cost, and the PAYE and RSSB owed. Don\'t record salaries there again. Record what you pay RRA and RSSB under Record expense → Taxes & RSSB.';
+  String hrPayPostedToBooks(String date) {
+    return 'Payroll created from $date on goes to Books automatically: the salary cost, and the PAYE and RSSB owed. Don\'t record those salaries there again. Payroll from before $date is not in Books: record it there yourself if you haven\'t. Record what you pay RRA and RSSB under Record expense → Taxes & RSSB.';
+  }
 
   @override
   String get hrPayReturnsRra => 'To RRA';

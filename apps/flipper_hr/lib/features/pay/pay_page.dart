@@ -1,3 +1,4 @@
+import 'package:flipper_accounting/payroll_journal_poster.dart';
 import 'package:flipper_hr/features/branding/hr_tokens.dart';
 import 'package:flipper_hr/features/pay/data/pay_models.dart';
 import 'package:flipper_hr/features/pay/data/pay_period.dart';
@@ -15,6 +16,7 @@ import 'package:flipper_hr/features/ui/hr_l10n.dart';
 import 'package:flipper_hr/features/ui/hr_ui.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_web/features/business_selection/business_selection_providers.dart';
+import 'package:flipper_web/services/ditto_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -45,19 +47,33 @@ class PayPage extends ConsumerStatefulWidget {
 class _PayPageState extends ConsumerState<PayPage> {
   late PayTab _tab = widget.initialTab;
 
+  /// Whether this visit has sent the book to Books with Ditto up.
+  bool _caughtUp = false;
+
   @override
   void initState() {
     super.initState();
     // Catch Books up once per visit: anything a pay action could not post
     // (Ditto not ready yet, offline, another device) goes now. Later changes
-    // are posted by the pay actions themselves.
-    var posted = false;
-    ref.listenManual(branchPayBookProvider(widget.branchId), (_, next) {
-      final book = next.value;
-      if (posted || book == null) return;
-      posted = true;
-      ref.read(payrollLedgerSyncProvider).syncBook(book);
-    }, fireImmediately: true);
+    // are posted by the pay actions themselves. It waits for both the book
+    // and Ditto, whichever comes last, and counts as done only once it ran
+    // with Ditto up: a sync before that writes nothing.
+    ref.listenManual(
+      branchPayBookProvider(widget.branchId),
+      (_, _) => _catchUpBooks(),
+      fireImmediately: true,
+    );
+    ref.listenManual(dittoReadyProvider, (_, _) => _catchUpBooks());
+  }
+
+  void _catchUpBooks() {
+    if (_caughtUp || !ref.read(dittoReadyProvider)) return;
+    final book = ref.read(branchPayBookProvider(widget.branchId)).value;
+    if (book == null) return;
+    _caughtUp = true;
+    ref
+        .read(payrollLedgerSyncProvider)
+        .syncBook(book, businessId: widget.businessId);
   }
 
   void _refresh() {
@@ -1061,7 +1077,11 @@ class _ReturnsTabState extends ConsumerState<_ReturnsTab> {
           HrCallout(
             key: const Key('hr-returns-books-note'),
             icon: Icons.menu_book_outlined,
-            message: l10n.hrPayPostedToBooks,
+            // Only payroll from the start date on is posted (older payroll
+            // may already be in Books by hand), and the note says so.
+            message: l10n.hrPayPostedToBooks(
+              formatShortDate(payrollLedgerStart),
+            ),
           ),
           HrSubheading(l10n.hrPayReturnsRra),
           HrAmountRow(

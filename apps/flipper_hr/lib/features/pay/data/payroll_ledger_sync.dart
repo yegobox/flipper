@@ -11,7 +11,6 @@ import 'package:flipper_accounting/payroll_journal_poster.dart';
 import 'package:flipper_hr/features/pay/data/pay_models.dart';
 import 'package:flipper_hr/features/pay/data/pay_repository.dart';
 import 'package:flipper_hr/features/people/data/employee.dart';
-import 'package:flipper_web/features/business_selection/business_branch_selector.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -40,6 +39,7 @@ PayrollPayslipRecord payslipRecord(Payslip p) => PayrollPayslipRecord(
   employeeRssb: _francs(p.pensionEmployee + p.maternityEmployee + p.cbhi),
   employerRssb: _francs(p.employerContributions),
   advanceRecovery: _francs(p.advanceRecovery),
+  otherDeductions: _francs(p.otherDeductions),
   voidedAt: p.isVoid ? (p.voidedAt ?? p.createdAt ?? p.periodEnd) : null,
 );
 
@@ -105,9 +105,10 @@ class PayrollLedgerSync {
 
   final Ref _ref;
 
-  /// Posts what [book] holds that the ledger does not. Never throws.
-  Future<int> syncBook(PayBook book) async {
-    final businessId = _ref.read(selectedBusinessProvider)?.id ?? '';
+  /// Posts what [book] holds that [businessId]'s ledger does not. The caller
+  /// names the business that owns the book; the current selection is never
+  /// read, as it may have changed while the book loaded. Never throws.
+  Future<int> syncBook(PayBook book, {required String businessId}) async {
     if (businessId.isEmpty) return 0;
     try {
       return await _ref.read(payrollLedgerPosterProvider)(

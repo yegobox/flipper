@@ -8,6 +8,7 @@ import 'package:flipper_hr/features/people/data/people_providers.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_web/features/business_selection/business_branch_selector.dart';
 import 'package:flipper_web/models/user_profile.dart';
+import 'package:flipper_web/services/ditto_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -175,9 +176,13 @@ void main() {
       tester,
       pay: pay,
       overrides: [
+        // Another business is selected: the pay book still posts to the
+        // business that owns it (the employee's and the page's), never to
+        // whatever happens to be selected when the book finishes loading.
         selectedBusinessProvider.overrideWithValue(
-          Business.fromJson({'id': 'biz-1', 'name': 'Demo Shop'}),
+          Business.fromJson({'id': 'biz-2', 'name': 'Other Shop'}),
         ),
+        dittoReadyProvider.overrideWith((ref) => true),
         payrollLedgerPosterProvider.overrideWithValue(({
           required businessId,
           required payslips,
@@ -217,6 +222,47 @@ void main() {
       last.pays.where((p) => p.kind == PayrollPaymentKind.salary).single.amount,
       132583,
     );
+  });
+
+  testWidgets('the page-load catch-up waits for Ditto, then runs once', (
+    tester,
+  ) async {
+    var posts = 0;
+    await _pump(
+      tester,
+      pay: FakePayRepository(
+        advances: [_advance()],
+        payments: [_advancePayout()],
+      ),
+      overrides: [
+        payrollLedgerPosterProvider.overrideWithValue(({
+          required businessId,
+          required payslips,
+          required payments,
+          required writeOffs,
+        }) async {
+          posts++;
+          return 0;
+        }),
+      ],
+    );
+    // The book is loaded but Ditto is not up: nothing would be written, so
+    // the visit has not caught up yet.
+    expect(posts, 0);
+
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(PayPage)),
+    );
+    container.read(dittoReadyProvider.notifier).state = true;
+    await tester.pumpAndSettle();
+    expect(posts, 1);
+
+    // Once done, the visit does not post again on its own.
+    container.read(dittoReadyProvider.notifier).state = false;
+    await tester.pumpAndSettle();
+    container.read(dittoReadyProvider.notifier).state = true;
+    await tester.pumpAndSettle();
+    expect(posts, 1);
   });
 
   testWidgets('recovery is capped at half of pay after tax and RSSB', (
@@ -348,6 +394,11 @@ void main() {
     expect(find.text('RWF 30,017'), findsOneWidget);
     // Payroll reaches Books on its own: no one should enter salaries twice.
     expect(find.byKey(const Key('hr-returns-books-note')), findsOneWidget);
+    // It says which payroll Books gets: from the start date on.
+    expect(
+      find.textContaining('Payroll created from 17 Nov 2026 on'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('a load failure offers to try again', (tester) async {

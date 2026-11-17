@@ -27137,8 +27137,9 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   }
 
   @override
-  String get hrPayPostedToBooks =>
-      'Books inapokea mishahara hii yenyewe: gharama ya mishahara, na PAYE na RSSB mnazodaiwa. Msirekodi mishahara huko tena. Rekodi mnacholipa RRA na RSSB kwenye Rekodi matumizi → Kodi na RSSB.';
+  String hrPayPostedToBooks(String date) {
+    return 'Mishahara iliyoandaliwa kuanzia $date inaingia kwenye Books yenyewe: gharama ya mishahara, na PAYE na RSSB mnazodaiwa. Msiirekodi mishahara hiyo huko tena. Mishahara ya kabla ya $date haimo kwenye Books: iandikeni huko wenyewe kama bado hamjafanya hivyo. Rekodi mnacholipa RRA na RSSB kwenye Rekodi matumizi → Kodi na RSSB.';
+  }
 
   @override
   String get hrPayReturnsRra => 'Kwa RRA';
