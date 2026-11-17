@@ -403,7 +403,7 @@ void main() {
     );
     addTearDown(container.dispose);
     // Start elsewhere so the assertion cannot pass on the provider's default.
-    container.read(selectedPageProvider.notifier).state = DashboardPage.reports;
+    container.read(selectedPageProvider.notifier).state = DashboardPage.orders;
 
     await tester.binding.setSurfaceSize(const Size(1280, 900));
     addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -991,7 +991,7 @@ void main() {
 
   test('a stored default app opens on its dashboard tab', () {
     expect(dashboardPageForDefaultApp('Flo'), DashboardPage.ai);
-    expect(dashboardPageForDefaultApp('Reports'), DashboardPage.reports);
+    expect(dashboardPageForDefaultApp('Reports'), DashboardPage.inventory);
     expect(dashboardPageForDefaultApp('Orders'), DashboardPage.orders);
     for (final app in ['POS', 'Inventory', 'Books', 'HR', 'unknown']) {
       expect(

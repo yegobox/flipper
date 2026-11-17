@@ -4,7 +4,6 @@ enum DashboardPage {
   inventory,
   ai,
   leads,
-  reports,
   kitchen,
   orders,
   stockRecount,

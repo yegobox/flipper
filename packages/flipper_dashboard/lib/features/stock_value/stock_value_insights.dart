@@ -8,8 +8,9 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'stock_value_report_common.dart';
 
-/// Side widgets of the desktop Stock Value page: KPI cards, the
-/// value-by-category donut (its legend filters the table) and restock alerts.
+/// Side widgets of the desktop Stock Health page: KPI cards, the
+/// value-by-category donut (its legend filters the table), restock alerts
+/// and expiry alerts.
 
 class StockValueKpiCard extends StatelessWidget {
   final Color borderColor;
@@ -21,6 +22,7 @@ class StockValueKpiCard extends StatelessWidget {
   final VoidCallback? onTap;
 
   const StockValueKpiCard({
+    super.key,
     required this.borderColor,
     required this.title,
     required this.value,
@@ -471,6 +473,200 @@ class StockValueRestockPanel extends StatelessWidget {
                       fontSize: 12,
                       color: const Color(0xFFB91C1C),
                     ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+const Color _kExpiredFg = Color(0xFFB91C1C);
+const Color _kExpiringFg = Color(0xFFB45309);
+
+/// A line's expiry date, coloured by how urgent it is: red once expired,
+/// amber when it expires within [kStockExpiringSoonDays], grey otherwise.
+class StockValueExpiryText extends StatelessWidget {
+  final StockValueProductLine line;
+
+  const StockValueExpiryText({super.key, required this.line});
+
+  @override
+  Widget build(BuildContext context) {
+    final date = line.expiryDate;
+    final Color color;
+    switch (line.expiryState) {
+      case StockExpiryState.expired:
+        color = _kExpiredFg;
+        break;
+      case StockExpiryState.soon:
+        color = _kExpiringFg;
+        break;
+      case StockExpiryState.ok:
+      case StockExpiryState.none:
+        color = Colors.black54;
+        break;
+    }
+    return Text(
+      date == null
+          ? '—'
+          : MaterialLocalizations.of(context).formatShortDate(date.toLocal()),
+      textAlign: TextAlign.right,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      style: FlipperFonts.mono(
+        fontSize: 12,
+        fontWeight: line.hasExpiryAlert ? FontWeight.w700 : FontWeight.w400,
+        color: color,
+      ),
+    );
+  }
+}
+
+/// Expired and soon-to-expire stock still on hand, soonest first.
+class StockValueExpiryPanel extends StatelessWidget {
+  static const int _maxShown = 8;
+
+  final List<StockValueProductLine> items;
+  final ValueChanged<String> onOpen;
+  final VoidCallback onViewAll;
+
+  const StockValueExpiryPanel({
+    super.key,
+    required this.items,
+    required this.onOpen,
+    required this.onViewAll,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
+    return Container(
+      key: const Key('stockValueExpiryPanel'),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Text(
+                l10n.stockValueExpiryAlerts,
+                style: GoogleFonts.outfit(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const Spacer(),
+              if (items.isNotEmpty)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFEF3C7),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text(
+                    '${items.length}',
+                    style: GoogleFonts.outfit(
+                      color: _kExpiringFg,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          if (items.isEmpty)
+            Text(
+              l10n.stockValueNoExpiryAlerts,
+              style: GoogleFonts.outfit(color: Colors.black54, fontSize: 13),
+            )
+          else ...[
+            for (var i = 0; i < items.length && i < _maxShown; i++) ...[
+              if (i > 0) const Divider(height: 1),
+              _row(context, items[i]),
+            ],
+            if (items.length > _maxShown)
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  key: const Key('stockValueExpiryViewAll'),
+                  onPressed: onViewAll,
+                  child: Text(
+                    l10n.stockValueViewAllArrow,
+                    style: GoogleFonts.outfit(fontWeight: FontWeight.w700),
+                  ),
+                ),
+              ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _row(BuildContext context, StockValueProductLine line) {
+    final l10n = context.flipperL10n;
+    final expired = line.expiryState == StockExpiryState.expired;
+    final color = expired ? _kExpiredFg : _kExpiringFg;
+    final date = MaterialLocalizations.of(
+      context,
+    ).formatShortDate(line.expiryDate!.toLocal());
+    return InkWell(
+      onTap: () => onOpen(line.variantId),
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(
+              expired ? Icons.event_busy_outlined : Icons.schedule_outlined,
+              size: 18,
+              color: color,
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    line.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.outfit(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                    ),
+                  ),
+                  Text(
+                    '${formatStockQty(line.currentStock)} · '
+                    'RWF ${formatNumber(line.lineValue)}',
+                    style: GoogleFonts.outfit(
+                      fontSize: 11,
+                      color: Colors.black54,
+                    ),
+                  ),
+                  Text(
+                    expired
+                        ? l10n.stockValueExpiredOn(date)
+                        : l10n.stockValueExpiresOn(date),
+                    style: GoogleFonts.outfit(fontSize: 12, color: color),
                   ),
                 ],
               ),

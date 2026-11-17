@@ -1,5 +1,6 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
+
 import 'flipper_app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -11002,8 +11003,7 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
       locale: localeName,
       other:
           '$count tickets ignorés car ils ne peuvent pas être supprimés (paiements partiels ou révisés)',
-      one:
-          '1 ticket ignoré car il ne peut pas être supprimé (paiements partiels ou révisé)',
+      one: '1 ticket ignoré car il ne peut pas être supprimé (paiements partiels ou révisé)',
     );
     return '$_temp0';
   }
@@ -13249,6 +13249,46 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   String get stockValueStatusOut => 'Rupture de stock';
 
   @override
+  String get stockValueColExpiry => 'Péremption';
+
+  @override
+  String stockValueExpiredCount(int count) {
+    return '$count périmé(s)';
+  }
+
+  @override
+  String stockValueExpiringWithin(int count, int days) {
+    return '$count expirent dans $days jours';
+  }
+
+  @override
+  String stockValueExpiredValue(String value) {
+    return '$value de stock périmé';
+  }
+
+  @override
+  String get stockValueFilterExpired => 'Périmé';
+
+  @override
+  String get stockValueFilterExpiring => 'Bientôt périmé';
+
+  @override
+  String get stockValueExpiryAlerts => 'Alertes de péremption';
+
+  @override
+  String stockValueExpiredOn(String date) {
+    return 'Périmé le $date';
+  }
+
+  @override
+  String stockValueExpiresOn(String date) {
+    return 'Expire le $date';
+  }
+
+  @override
+  String get stockValueNoExpiryAlerts => 'Rien de périmé ni bientôt périmé';
+
+  @override
   String get stockValueNoUnitsOnHand => 'aucune unité en stock';
 
   @override
@@ -13268,7 +13308,7 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   String get stockValueTitleMobile => 'Valeurs du stock';
 
   @override
-  String get stockValueTitle => 'Valeur du stock';
+  String get stockValueTitle => 'Santé du stock';
 
   @override
   String stockValueProductsCount(int count) {
@@ -14770,8 +14810,7 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
       locale: localeName,
       other:
           '$count articles ont besoin d\'un prix d\'achat et de vente, ou d\'un lien vers l\'un de vos produits',
-      one:
-          '1 article a besoin d\'un prix d\'achat et de vente, ou d\'un lien vers l\'un de vos produits',
+      one: '1 article a besoin d\'un prix d\'achat et de vente, ou d\'un lien vers l\'un de vos produits',
     );
     return '$_temp0';
   }
@@ -19325,8 +19364,7 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
       locale: localeName,
       other:
           '$count personnes lui rendent compte : elle approuvera leurs congés quel que soit le rôle choisi. Le rôle de responsable ajoute l\'effectif et la paie de tous.',
-      one:
-          '1 personne lui rend compte : elle approuvera ses congés quel que soit le rôle choisi. Le rôle de responsable ajoute l\'effectif et la paie de tous.',
+      one: '1 personne lui rend compte : elle approuvera ses congés quel que soit le rôle choisi. Le rôle de responsable ajoute l\'effectif et la paie de tous.',
     );
     return '$_temp0';
   }
@@ -28396,8 +28434,7 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
       locale: localeName,
       other:
           '$count enregistrements seront définitivement supprimés de toutes les succursales, avec leurs écritures comptables. Cette action est irréversible.',
-      one:
-          '1 enregistrement sera définitivement supprimé de toutes les succursales, avec ses écritures comptables. Cette action est irréversible.',
+      one: '1 enregistrement sera définitivement supprimé de toutes les succursales, avec ses écritures comptables. Cette action est irréversible.',
     );
     return '$_temp0';
   }

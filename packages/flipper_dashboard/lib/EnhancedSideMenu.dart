@@ -19,7 +19,9 @@ import 'package:supabase_models/brick/models/branch.model.dart';
 
 import 'package:flipper_routing/app.locator.dart';
 import 'package:stacked_services/stacked_services.dart';
+
 import 'providers/navigation_providers.dart';
+
 import 'package:flipper_routing/app.dialogs.dart';
 import 'package:flipper_dashboard/dashboard_shell.dart';
 import 'package:flipper_dashboard/theme/pos_tokens.dart';
@@ -119,7 +121,6 @@ class _EnhancedSideMenuState extends ConsumerState<EnhancedSideMenu>
 
     final menu = ref.watch(sideMenuVisibilityProvider);
     final showKds = menu.kds;
-    final showItems = menu.items;
     final showDailyReportFiles = menu.dailyReportFiles;
     final showStockRecount = menu.stockRecount;
     final showIncomingOrders = menu.incomingOrders;
@@ -208,17 +209,6 @@ class _EnhancedSideMenuState extends ConsumerState<EnhancedSideMenu>
             );
           },
           tooltip: context.flipperL10n.sideMenuAuthenticator,
-        ),
-      if (showItems)
-        PosRailItem(
-          iconBuilder: (c) => posRailSvg(PosRailSvgs.inventory, c),
-          isSelected: selectedItem == 2,
-          onTap: () {
-            ref.read(selectedMenuItemProvider.notifier).state = 2;
-            ref.read(selectedPageProvider.notifier).state =
-                DashboardPage.reports;
-          },
-          tooltip: context.flipperL10n.items,
         ),
       if (showKds)
         PosRailItem(
@@ -313,10 +303,10 @@ class _EnhancedSideMenuState extends ConsumerState<EnhancedSideMenu>
       ),
       PosRailItem(
         key: const Key('analytics_desktop'),
-        iconBuilder: (c) => Icon(Icons.insights_outlined, color: c),
+        iconBuilder: (c) => posRailSvg(PosRailSvgs.inventory, c),
         isSelected: false,
         onTap: () => _openAnalyticsReport(),
-        tooltip: context.flipperL10n.sideMenuAnalytics,
+        tooltip: context.flipperL10n.stockValueTitle,
       ),
       if (showShiftHistory)
         PosRailItem(
@@ -391,8 +381,8 @@ class _EnhancedSideMenuState extends ConsumerState<EnhancedSideMenu>
     );
   }
 
-  /// Stock-value analytics — moved here from the top-bar ribbon; legacy
-  /// ribbon index 3.
+  /// Stock Health (stock value, restock and expiry) — the one rail entry for
+  /// stock; it replaced the old Items dashboard. Legacy ribbon index 3.
   Future<void> _openAnalyticsReport() async {
     final ok = await _verifyAdminPinIfRequired(context);
     if (!ok || !mounted) return;

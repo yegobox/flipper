@@ -1,5 +1,6 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
+
 import 'flipper_app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -10939,8 +10940,7 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
       locale: localeName,
       other:
           'Amatike $count adashobora gusibwa yasimbutswe (yishyuwe igice cyangwa yagenzuwe)',
-      one:
-          'Itike 1 itashobora gusibwa yasimbutswe (yishyuwe igice cyangwa yagenzuwe)',
+      one: 'Itike 1 itashobora gusibwa yasimbutswe (yishyuwe igice cyangwa yagenzuwe)',
     );
     return '$_temp0';
   }
@@ -13172,6 +13172,47 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   String get stockValueStatusOut => 'Byashize';
 
   @override
+  String get stockValueColExpiry => 'Itariki yo kurangira';
+
+  @override
+  String stockValueExpiredCount(int count) {
+    return '$count byarangiye';
+  }
+
+  @override
+  String stockValueExpiringWithin(int count, int days) {
+    return '$count bizarangira mu minsi $days';
+  }
+
+  @override
+  String stockValueExpiredValue(String value) {
+    return '$value by\'ibyarangiye';
+  }
+
+  @override
+  String get stockValueFilterExpired => 'Byarangiye';
+
+  @override
+  String get stockValueFilterExpiring => 'Bigiye kurangira';
+
+  @override
+  String get stockValueExpiryAlerts => 'Imenyesha ry\'irangira';
+
+  @override
+  String stockValueExpiredOn(String date) {
+    return 'Byarangiye $date';
+  }
+
+  @override
+  String stockValueExpiresOn(String date) {
+    return 'Bizarangira $date';
+  }
+
+  @override
+  String get stockValueNoExpiryAlerts =>
+      'Nta cyarangiye cyangwa kigiye kurangira';
+
+  @override
   String get stockValueNoUnitsOnHand => 'nta gicuruzwa gisigaye';
 
   @override
@@ -13191,7 +13232,7 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   String get stockValueTitleMobile => 'Agaciro k\'ububiko';
 
   @override
-  String get stockValueTitle => 'Agaciro k\'ububiko';
+  String get stockValueTitle => 'Uko ububiko bwifashe';
 
   @override
   String stockValueProductsCount(int count) {
@@ -14679,8 +14720,7 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
       locale: localeName,
       other:
           'Ibicuruzwa $count bikeneye ikiranguzo n\'igiciro cyo kugurisha, cyangwa guhuzwa n\'igicuruzwa cyawe',
-      one:
-          'Igicuruzwa 1 gikeneye ikiranguzo n\'igiciro cyo kugurisha, cyangwa guhuzwa n\'igicuruzwa cyawe',
+      one: 'Igicuruzwa 1 gikeneye ikiranguzo n\'igiciro cyo kugurisha, cyangwa guhuzwa n\'igicuruzwa cyawe',
     );
     return '$_temp0';
   }
@@ -19202,8 +19242,7 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
       locale: localeName,
       other:
           'Abantu $count bayoborwa na we, bityo azemeza ibiruhuko byabo uko uruhare wahitamo rwaba ruri kose. Uruhare rw\'umuyobozi rwongeraho urutonde rw\'abakozi n\'imishahara ya bose.',
-      one:
-          'Umuntu 1 ayoborwa na we, bityo azemeza ikiruhuko cye uko uruhare wahitamo rwaba ruri kose. Uruhare rw\'umuyobozi rwongeraho urutonde rw\'abakozi n\'imishahara ya bose.',
+      one: 'Umuntu 1 ayoborwa na we, bityo azemeza ikiruhuko cye uko uruhare wahitamo rwaba ruri kose. Uruhare rw\'umuyobozi rwongeraho urutonde rw\'abakozi n\'imishahara ya bose.',
     );
     return '$_temp0';
   }

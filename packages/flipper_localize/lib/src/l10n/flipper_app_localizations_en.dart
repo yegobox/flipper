@@ -1,5 +1,6 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
+
 import 'flipper_app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -10840,8 +10841,7 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
       locale: localeName,
       other:
           'Skipped $count tickets that cannot be deleted (partial payments or reviewed)',
-      one:
-          'Skipped 1 ticket that cannot be deleted (partial payments or reviewed)',
+      one: 'Skipped 1 ticket that cannot be deleted (partial payments or reviewed)',
     );
     return '$_temp0';
   }
@@ -13052,6 +13052,46 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
   String get stockValueStatusOut => 'Out of stock';
 
   @override
+  String get stockValueColExpiry => 'Expiry';
+
+  @override
+  String stockValueExpiredCount(int count) {
+    return '$count expired';
+  }
+
+  @override
+  String stockValueExpiringWithin(int count, int days) {
+    return '$count expire within $days days';
+  }
+
+  @override
+  String stockValueExpiredValue(String value) {
+    return '$value expired stock';
+  }
+
+  @override
+  String get stockValueFilterExpired => 'Expired';
+
+  @override
+  String get stockValueFilterExpiring => 'Expiring soon';
+
+  @override
+  String get stockValueExpiryAlerts => 'Expiry alerts';
+
+  @override
+  String stockValueExpiredOn(String date) {
+    return 'Expired $date';
+  }
+
+  @override
+  String stockValueExpiresOn(String date) {
+    return 'Expires $date';
+  }
+
+  @override
+  String get stockValueNoExpiryAlerts => 'Nothing expired or expiring soon';
+
+  @override
   String get stockValueNoUnitsOnHand => 'no units on hand';
 
   @override
@@ -13071,7 +13111,7 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
   String get stockValueTitleMobile => 'Stock Values';
 
   @override
-  String get stockValueTitle => 'Stock Value';
+  String get stockValueTitle => 'Stock Health';
 
   @override
   String stockValueProductsCount(int count) {
@@ -14546,8 +14586,7 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
       locale: localeName,
       other:
           '$count items need a supply and retail price, or a link to one of your products',
-      one:
-          '1 item needs a supply and retail price, or a link to one of your products',
+      one: '1 item needs a supply and retail price, or a link to one of your products',
     );
     return '$_temp0';
   }
@@ -19021,8 +19060,7 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
       locale: localeName,
       other:
           '$count people report to them, so they will approve that leave whichever role you pick. The roster and everyone else\'s pay is what the manager role adds.',
-      one:
-          '1 person reports to them, so they will approve that leave whichever role you pick. The roster and everyone else\'s pay is what the manager role adds.',
+      one: '1 person reports to them, so they will approve that leave whichever role you pick. The roster and everyone else\'s pay is what the manager role adds.',
     );
     return '$_temp0';
   }
@@ -27957,8 +27995,7 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
       locale: localeName,
       other:
           '$count records will be permanently deleted from every branch, together with their ledger entries. This cannot be undone.',
-      one:
-          '1 record will be permanently deleted from every branch, together with its ledger entries. This cannot be undone.',
+      one: '1 record will be permanently deleted from every branch, together with its ledger entries. This cannot be undone.',
     );
     return '$_temp0';
   }
