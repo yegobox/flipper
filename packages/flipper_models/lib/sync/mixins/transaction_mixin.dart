@@ -1157,6 +1157,7 @@ mixin TransactionMixin implements TransactionInterface {
     bool includeParked = false,
     required bool skipOriginalTransactionCheck,
     bool includeZeroSubTotal = false,
+    bool rethrowErrors = false,
   }) {
     if (!forceRealData) {
       return Stream.value(

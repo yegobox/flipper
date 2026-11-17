@@ -373,6 +373,47 @@ void main() {
       );
     });
 
+    test('a failed read fails, it is not a quiet period', () async {
+      await expectLater(
+        dashboardPreviousPeriodTransactions(
+          storeReady: true,
+          read: () => Stream<List<ITransaction>>.error(StateError('setup')),
+        ),
+        throwsA(isA<DashboardPreviousPeriodUnavailable>()),
+      );
+    });
+
+    test('a read that throws before streaming fails too', () async {
+      await expectLater(
+        dashboardPreviousPeriodTransactions(
+          storeReady: true,
+          read: () => throw Exception('no strategy'),
+        ),
+        throwsA(isA<DashboardPreviousPeriodUnavailable>()),
+      );
+    });
+
+    test('keeps retrying while unavailable, backing off to a minute', () {
+      const unavailable = DashboardPreviousPeriodUnavailable('x');
+      expect([
+        for (var i = 0; i < 7; i++) dashboardPreviousGaugeRetry(i, unavailable),
+      ], [2, 4, 8, 16, 32, 60, 60].map((s) => Duration(seconds: s)).toList());
+      expect(
+        dashboardPreviousGaugeRetry(1000, unavailable),
+        const Duration(seconds: 60),
+        reason: 'no attempt limit',
+      );
+    });
+
+    test('other errors keep the default retry policy', () {
+      expect(
+        dashboardPreviousGaugeRetry(0, Exception('x')),
+        const Duration(milliseconds: 200),
+      );
+      expect(dashboardPreviousGaugeRetry(10, Exception('x')), isNull);
+      expect(dashboardPreviousGaugeRetry(0, StateError('x')), isNull);
+    });
+
     test('the failure is an Exception, so Riverpod retries it', () {
       expect(const DashboardPreviousPeriodUnavailable('x'), isA<Exception>());
     });

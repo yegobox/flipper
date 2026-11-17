@@ -142,6 +142,7 @@ Stream<List<ITransaction>> coreTransactionsStream(
   required String branchId,
   bool forceRealData = true,
   bool includeParked = false,
+  bool rethrowErrors = false,
 }) {
   talker.debug(
     'coreTransactionsStream: $startDate → $endDate  branch=$branchId '
@@ -157,6 +158,7 @@ Stream<List<ITransaction>> coreTransactionsStream(
     includeParked: includeParked,
     // isCashOut intentionally omitted → returns both income and expense.
     forceRealData: forceRealData,
+    rethrowErrors: rethrowErrors,
   );
 }
 
@@ -1087,12 +1089,14 @@ class DashboardPreviousPeriodUnavailable implements Exception {
 
 /// The previous window's transactions, read once from [read].
 ///
-/// Fails instead of answering empty when the store is not up yet
-/// (`transactionsStream` then answers `[]` at once) or no result arrives in
-/// [timeout]. An empty answer would be cached as a zero baseline that looks
-/// like a period with no sales; a failure leaves the comparison out and lets
-/// the provider retry. The timeout sits on the stream, so `.first` cancels
-/// the observer when it fires.
+/// Fails instead of answering empty when the store is not up yet, the read
+/// fails (pass a `rethrowErrors` read, or `transactionsStream` swallows the
+/// failure as `[]`), or no result arrives in [timeout]. An empty answer
+/// would be cached as a zero baseline that looks like a period with no
+/// sales; a failure leaves the comparison out and the provider retries (see
+/// [dashboardPreviousGaugeRetry]). A successful empty read is still `[]`.
+/// The timeout sits on the stream, so `.first` cancels the observer when it
+/// fires.
 Future<List<ITransaction>> dashboardPreviousPeriodTransactions({
   required bool storeReady,
   required Stream<List<ITransaction>> Function() read,
@@ -1105,9 +1109,23 @@ Future<List<ITransaction>> dashboardPreviousPeriodTransactions({
     return await read().timeout(timeout).first;
   } on TimeoutException {
     throw const DashboardPreviousPeriodUnavailable('timed out');
-  } on StateError {
-    throw const DashboardPreviousPeriodUnavailable('closed without a result');
+  } catch (e) {
+    // `.first` on a stream that closed empty is a StateError; anything else
+    // is the read failing. Both are retried, so neither may be an `Error`.
+    throw DashboardPreviousPeriodUnavailable('read failed: $e');
   }
+}
+
+/// Retry for the previous-period gauge: while the read is unavailable it
+/// keeps trying (2, 4, 8, 16, 32 s, then once a minute) for as long as the
+/// dashboard watches it, so the comparison appears once Ditto is up without a
+/// pull-to-refresh. Riverpod's default gives up after 10 tries (~40 s).
+/// Other errors keep the default policy.
+Duration? dashboardPreviousGaugeRetry(int retryCount, Object error) {
+  if (error is DashboardPreviousPeriodUnavailable) {
+    return Duration(seconds: retryCount >= 5 ? 60 : 2 << retryCount);
+  }
+  return ProviderContainer.defaultRetry(retryCount, error);
 }
 
 /// Gauge snapshot for the window before [period], read once.
@@ -1135,6 +1153,7 @@ final dashboardPreviousGaugeSnapshotProvider = StreamProvider.autoDispose
             endDate: prevEnd,
             branchId: branchId,
             forceRealData: true,
+            rethrowErrors: true,
           ),
         );
         final sales = dashboardGaugeSales(all);
@@ -1161,7 +1180,7 @@ final dashboardPreviousGaugeSnapshotProvider = StreamProvider.autoDispose
       }
 
       return Stream.fromFuture(load());
-    });
+    }, retry: dashboardPreviousGaugeRetry);
 
 /// A hotel booking-advance movement (received, applied or refunded): money
 /// owed to a guest, kept out of revenue, expenses and profit.
