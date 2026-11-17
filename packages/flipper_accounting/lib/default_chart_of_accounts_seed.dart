@@ -17,6 +17,7 @@ const defaultChartOfAccountsSeed = <Account>[
   Account(code: '2300', name: 'Wages Payable', type: AccountType.liability, sub: 'Current liabilities', normal: AccountNormal.credit, bal: 0),
   Account(code: '2310', name: 'PAYE Payable', type: AccountType.liability, sub: 'Current liabilities', normal: AccountNormal.credit, bal: 0),
   Account(code: '2320', name: 'RSSB Payable', type: AccountType.liability, sub: 'Current liabilities', normal: AccountNormal.credit, bal: 0),
+  Account(code: '2330', name: 'Other Payroll Deductions', type: AccountType.liability, sub: 'Current liabilities', normal: AccountNormal.credit, bal: 0),
   Account(code: '2200', name: 'Bank Loan', type: AccountType.liability, sub: 'Long-term liabilities', normal: AccountNormal.credit, bal: 0),
   Account(code: '3010', name: "Owner's Capital", type: AccountType.equity, sub: 'Equity', normal: AccountNormal.credit, bal: 0),
   Account(code: '3020', name: 'Retained Earnings', type: AccountType.equity, sub: 'Equity', normal: AccountNormal.credit, bal: 0, note: 'Opening'),

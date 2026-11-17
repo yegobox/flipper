@@ -74,6 +74,7 @@ class Payslip {
     this.workedMinutes,
     this.note,
     this.voidReason,
+    this.voidedAt,
     this.createdAt,
   });
 
@@ -105,6 +106,7 @@ class Payslip {
     workedMinutes: (row['worked_minutes'] as num?)?.toInt(),
     note: _strOrNull(row['note']),
     voidReason: _strOrNull(row['void_reason']),
+    voidedAt: _ts(row['voided_at']),
     createdAt: _ts(row['created_at']),
   );
 
@@ -135,6 +137,7 @@ class Payslip {
   final int? workedMinutes;
   final String? note;
   final String? voidReason;
+  final DateTime? voidedAt;
   final DateTime? createdAt;
 
   bool get isVoid => status == PayslipStatus.voided;
@@ -184,6 +187,7 @@ class PayPayment {
     this.advanceId,
     this.voided = false,
     this.voidReason,
+    this.voidedAt,
     this.createdAt,
   });
 
@@ -201,6 +205,7 @@ class PayPayment {
     advanceId: _strOrNull(row['advance_id']),
     voided: row['voided_at'] != null,
     voidReason: _strOrNull(row['void_reason']),
+    voidedAt: _ts(row['voided_at']),
     createdAt: _ts(row['created_at']),
   );
 
@@ -217,6 +222,7 @@ class PayPayment {
   final String? advanceId;
   final bool voided;
   final String? voidReason;
+  final DateTime? voidedAt;
   final DateTime? createdAt;
 }
 
@@ -259,6 +265,7 @@ class Advance {
     this.installmentAmount,
     this.writeOffReason,
     this.voidReason,
+    this.writtenOffAt,
     this.createdAt,
   });
 
@@ -278,6 +285,7 @@ class Advance {
     ),
     writeOffReason: _strOrNull(row['write_off_reason']),
     voidReason: _strOrNull(row['void_reason']),
+    writtenOffAt: _ts(row['written_off_at']),
     createdAt: _ts(row['created_at']),
   );
 
@@ -296,6 +304,7 @@ class Advance {
   final double? installmentAmount;
   final String? writeOffReason;
   final String? voidReason;
+  final DateTime? writtenOffAt;
   final DateTime? createdAt;
 
   bool get isOpen => status == AdvanceStatus.open;

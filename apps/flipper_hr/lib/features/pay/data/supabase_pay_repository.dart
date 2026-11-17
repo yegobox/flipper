@@ -68,6 +68,54 @@ class SupabasePayRepository implements PayRepository {
   });
 
   @override
+  Future<PayBook> fetchForLedger({
+    required String branchId,
+    required DateTime createdSince,
+  }) => _guard(FlipperL10n.current.hrPayErrorLoad, () async {
+    final since = createdSince.toUtc().toIso8601String();
+    final results = await Future.wait([
+      for (final table in ['hr_payslips', 'hr_payments', 'hr_advances'])
+        _allCreatedSince(table, branchId, since),
+    ]);
+    return PayBook(
+      payslips: [for (final r in results[0]) Payslip.fromRow(r)],
+      payments: [for (final r in results[1]) PayPayment.fromRow(r)],
+      advances: [for (final r in results[2]) Advance.fromRow(r)],
+    );
+  });
+
+  /// Rows asked for per page by [fetchForLedger]: under PostgREST's default
+  /// max-rows of 1000.
+  static const ledgerPageSize = 500;
+
+  /// Every row of [table] for [branchId] created at or after [since].
+  ///
+  /// PostgREST caps each response (max-rows), so the rows come a page at a
+  /// time in a stable order (created_at, then id). Each page starts where
+  /// the rows received so far end, and the read stops at an empty page: a
+  /// server cap below [ledgerPageSize] then shortens pages but never drops
+  /// rows.
+  Future<List<Map<String, dynamic>>> _allCreatedSince(
+    String table,
+    String branchId,
+    String since,
+  ) async {
+    final rows = <Map<String, dynamic>>[];
+    while (true) {
+      final page = await _client
+          .from(table)
+          .select()
+          .eq('branch_id', branchId)
+          .gte('created_at', since)
+          .order('created_at', ascending: true)
+          .order('id', ascending: true)
+          .range(rows.length, rows.length + ledgerPageSize - 1);
+      if (page.isEmpty) return rows;
+      rows.addAll(page);
+    }
+  }
+
+  @override
   Future<PayBook> fetchForEmployee({required String employeeId}) =>
       _guard(FlipperL10n.current.hrPayErrorLoad, () async {
         final results = await Future.wait([

@@ -1,8 +1,10 @@
+import 'package:flipper_accounting/payroll_journal_poster.dart';
 import 'package:flipper_hr/features/branding/hr_tokens.dart';
 import 'package:flipper_hr/features/pay/data/pay_models.dart';
 import 'package:flipper_hr/features/pay/data/pay_period.dart';
 import 'package:flipper_hr/features/pay/data/pay_providers.dart';
 import 'package:flipper_hr/features/pay/data/pay_repository.dart';
+import 'package:flipper_hr/features/pay/data/payroll_ledger_sync.dart';
 import 'package:flipper_hr/features/pay/widgets/advance_sheet.dart';
 import 'package:flipper_hr/features/pay/widgets/pay_sheet.dart';
 import 'package:flipper_hr/features/pay/widgets/pay_ui.dart';
@@ -14,6 +16,7 @@ import 'package:flipper_hr/features/ui/hr_l10n.dart';
 import 'package:flipper_hr/features/ui/hr_ui.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_web/features/business_selection/business_selection_providers.dart';
+import 'package:flipper_web/services/ditto_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -43,6 +46,43 @@ class PayPage extends ConsumerStatefulWidget {
 
 class _PayPageState extends ConsumerState<PayPage> {
   late PayTab _tab = widget.initialTab;
+
+  /// Whether this visit has sent this branch's pay to Books with Ditto up.
+  bool _caughtUp = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Catch Books up once per visit: anything a pay action could not post
+    // (Ditto not ready yet, offline, another device) goes now. Later changes
+    // are posted by the pay actions themselves. It counts as done only once
+    // it ran with Ditto up: a sync before that writes nothing.
+    ref.listenManual(
+      dittoReadyProvider,
+      (_, _) => _catchUpBooks(),
+      fireImmediately: true,
+    );
+  }
+
+  @override
+  void didUpdateWidget(PayPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // The router reuses this State when another branch is picked: that
+    // branch has not been caught up yet.
+    if (oldWidget.branchId != widget.branchId ||
+        oldWidget.businessId != widget.businessId) {
+      _caughtUp = false;
+      _catchUpBooks();
+    }
+  }
+
+  void _catchUpBooks() {
+    if (_caughtUp || !ref.read(dittoReadyProvider)) return;
+    _caughtUp = true;
+    ref
+        .read(payrollLedgerSyncProvider)
+        .syncBranch(businessId: widget.businessId, branchId: widget.branchId);
+  }
 
   void _refresh() {
     ref.invalidate(rosterProvider(widget.branchId));
@@ -1041,6 +1081,15 @@ class _ReturnsTabState extends ConsumerState<_ReturnsTab> {
           HrCallout(
             icon: Icons.event_note_outlined,
             message: l10n.hrPayReturnsDeadline(formatShortDate(deadline)),
+          ),
+          HrCallout(
+            key: const Key('hr-returns-books-note'),
+            icon: Icons.menu_book_outlined,
+            // Only payroll from the start date on is posted (older payroll
+            // may already be in Books by hand), and the note says so.
+            message: l10n.hrPayPostedToBooks(
+              formatShortDate(payrollLedgerStartDay),
+            ),
           ),
           HrSubheading(l10n.hrPayReturnsRra),
           HrAmountRow(

@@ -45059,6 +45059,12 @@ abstract class FlipperAppLocalizations {
   /// **'Declare and pay PAYE and RSSB contributions by {date}.'**
   String hrPayReturnsDeadline(String date);
 
+  /// No description provided for @hrPayPostedToBooks.
+  ///
+  /// In en, this message translates to:
+  /// **'Payroll created on or after {date} (Rwanda time) goes to Books automatically: the salary cost, and the PAYE and RSSB owed. Don\'t record those salaries there again. Payroll from before {date} is not in Books: record it there yourself if you haven\'t. Record what you pay RRA and RSSB under Record expense → Taxes & RSSB.'**
+  String hrPayPostedToBooks(String date);
+
   /// No description provided for @hrPayReturnsRra.
   ///
   /// In en, this message translates to:

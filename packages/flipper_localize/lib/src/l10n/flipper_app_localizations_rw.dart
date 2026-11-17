@@ -27234,6 +27234,11 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   }
 
   @override
+  String hrPayPostedToBooks(String date) {
+    return 'Imishahara yakozwe guhera ku wa $date (isaha yo mu Rwanda) yinjira muri Books ubwayo: ikiguzi cy\'imishahara, na PAYE na RSSB mubereyemo. Ntimwongere kuyandika muri Books. Imishahara yo mbere ya $date ntiri muri Books: muyandike ubwanyu niba mutarabikora. Ibyo mwishyura RRA na RSSB mubyandike muri Andika ibyakoreshejwe → Imisoro na RSSB.';
+  }
+
+  @override
   String get hrPayReturnsRra => 'Kuri RRA';
 
   @override

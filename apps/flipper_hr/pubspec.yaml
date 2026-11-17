@@ -2,7 +2,7 @@ name: flipper_hr
 description: "Flipper HR — web app served at hr.useflipper.com."
 publish_to: 'none'
 
-version: 1.0.23+24
+version: 1.0.24+25
 
 environment:
   sdk: ^3.9.2
@@ -17,6 +17,8 @@ dependencies:
   # The desktop rail is the POS rail's own widgets (widgets/pos_side_rail.dart)
   # so the two apps cannot drift. Already reached through flipper_web.
   flipper_dashboard: any
+  # Payroll posts to the Books ledger (features/pay/data/payroll_ledger_sync.dart).
+  flipper_accounting: any
   # Auth is shared with Books: HR reuses flipper_web's PIN login, signup and
   # business/branch selection so one account works in both apps.
   flipper_web: any

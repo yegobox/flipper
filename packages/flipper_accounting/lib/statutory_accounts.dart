@@ -11,6 +11,11 @@ const staffAdvancesCode = '1150';
 const wagesPayableCode = '2300';
 const payePayableCode = '2310';
 const rssbPayableCode = '2320';
+
+/// Other deductions withheld from pay (a staff loan, a fine the contract
+/// allows). HR does not say what each one is for, so they wait here until the
+/// bookkeeper moves them to where they belong.
+const otherPayrollDeductionsCode = '2330';
 const salariesCode = '6020';
 const employerRssbCode = '6025';
 

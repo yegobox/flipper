@@ -9149,6 +9149,7 @@
     "hrPayNoRequests": "Hakuna maombi ya malipo ya awali. Mtu akiomba kwenye programu, yanafika hapa.",
     "hrPayNoPayslipsThisMonth": "Hakuna hati inayoishia mwezi huu.",
     "hrPayReturnsDeadline": "Tangaza na ulipe PAYE na michango ya RSSB kabla ya {date}.",
+    "hrPayPostedToBooks": "Mishahara iliyoandaliwa kuanzia {date} (saa za Rwanda) inaingia kwenye Books yenyewe: gharama ya mishahara, na PAYE na RSSB mnazodaiwa. Msiirekodi mishahara hiyo huko tena. Mishahara ya kabla ya {date} haimo kwenye Books: iandikeni huko wenyewe kama bado hamjafanya hivyo. Rekodi mnacholipa RRA na RSSB kwenye Rekodi matumizi → Kodi na RSSB.",
     "hrPayReturnsRra": "Kwa RRA",
     "hrPayReturnsRssb": "Kwa RSSB",
     "hrPayPensionBothSides": "Pensheni (mfanyakazi + mwajiri)",

@@ -3,7 +3,8 @@ import 'package:flipper_accounting/accounting_models.dart';
 import 'package:flipper_accounting/ledger_row_mapper.dart';
 
 /// In-memory [AccountingDittoStore] that keeps every collection as a map of
-/// documents. Queries support the `field = :arg` conditions (joined by AND)
+/// documents. Queries support the `field = :arg`, `field IN :list` and
+/// `NOT (field IN :list)` conditions (joined by AND)
 /// the posters use; that is all these tests need.
 class InMemoryAccountingStore implements AccountingDittoStore {
   InMemoryAccountingStore({bool seedChart = true}) {
@@ -65,10 +66,16 @@ class InMemoryAccountingStore implements AccountingDittoStore {
     Map<String, dynamic> args,
   ) async {
     final conditions = RegExp(r'(\w+) = :(\w+)').allMatches(query);
+    final inLists = RegExp(r'(NOT \()?(\w+) IN :(\w+)').allMatches(query);
     return _col(collection).values
         .where((row) {
           for (final c in conditions) {
             if (row[c.group(1)!] != args[c.group(2)!]) return false;
+          }
+          for (final c in inLists) {
+            final list = args[c.group(3)!] as List;
+            final hit = list.contains(row[c.group(2)!]);
+            if (hit == (c.group(1) != null)) return false;
           }
           return true;
         })

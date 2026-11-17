@@ -62,6 +62,25 @@ class FakePayRepository implements PayRepository {
     return _book((_) => true);
   }
 
+  /// Branches [fetchForLedger] was asked for, in order.
+  final List<String> ledgerReads = [];
+
+  /// Every record, as the ledger read has no display window.
+  @override
+  Future<PayBook> fetchForLedger({
+    required String branchId,
+    required DateTime createdSince,
+  }) async {
+    _check();
+    ledgerReads.add(branchId);
+    final all = _book((_) => true);
+    return PayBook(
+      payslips: all.payslips,
+      payments: all.payments,
+      advances: all.advances,
+    );
+  }
+
   @override
   Future<PayBook> fetchForEmployee({required String employeeId}) async {
     _check();
