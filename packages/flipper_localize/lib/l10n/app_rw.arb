@@ -6209,6 +6209,7 @@
   "reportLargePdfBody": "Iyi raporo ifite imirongo {count}. PDF ingana gutya ishobora gutinda gukorwa, kandi porogaramu ishobora guhagarara kugeza irangiye. Ese uyohereze nka Excel aho?",
   "reportLargePdfUseExcel": "Ohereza Excel",
   "reportLargePdfAnyway": "PDF uko byagenda kose",
+  "reportExportChanged": "Raporo yahindutse mu gihe wahitagamo. Ongera uyohereze kugira ngo imirongo yose ijyemo.",
   "reportTitleStockRecount": "Kongera kubara stock",
   "reportTotalGrossProfit": "Inyungu mbumbe yose",
   "reportClosingBalance": "Amafaranga asigaye ku musozo",

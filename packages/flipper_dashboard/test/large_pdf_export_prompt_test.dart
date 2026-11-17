@@ -97,4 +97,46 @@ void main() {
       );
     });
   });
+
+  group('gridSourceReplaced', () {
+    test('only a swapped source counts', () {
+      final a = Object();
+      expect(gridSourceReplaced(a, a), isFalse);
+      expect(gridSourceReplaced(a, Object()), isTrue);
+      expect(gridSourceReplaced(a, null), isTrue, reason: 'grid went away');
+      expect(
+        gridSourceReplaced(null, a),
+        isFalse,
+        reason: 'no grid before (headless export) is never a change',
+      );
+    });
+  });
+
+  testWidgets('the changed-report notice tells the user to export again', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        localizationsDelegates: FlipperLocalizationDelegates.delegates,
+        supportedLocales: FlipperLocalizationDelegates.supportedLocales,
+        home: Scaffold(
+          body: Builder(
+            builder: (context) => TextButton(
+              onPressed: () => showReportExportChangedNotice(context),
+              child: const Text('notify'),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('notify'));
+    await tester.pump();
+    expect(
+      find.text(
+        'The report changed while you were choosing. Export again to '
+        'include every row.',
+      ),
+      findsOneWidget,
+    );
+  });
 }

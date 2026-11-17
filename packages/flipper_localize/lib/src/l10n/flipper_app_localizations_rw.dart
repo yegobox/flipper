@@ -16885,6 +16885,10 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   String get reportLargePdfAnyway => 'PDF uko byagenda kose';
 
   @override
+  String get reportExportChanged =>
+      'Raporo yahindutse mu gihe wahitagamo. Ongera uyohereze kugira ngo imirongo yose ijyemo.';
+
+  @override
   String get reportTitleStockRecount => 'Kongera kubara stock';
 
   @override

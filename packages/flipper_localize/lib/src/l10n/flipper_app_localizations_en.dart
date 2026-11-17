@@ -16731,6 +16731,10 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
   String get reportLargePdfAnyway => 'PDF anyway';
 
   @override
+  String get reportExportChanged =>
+      'The report changed while you were choosing. Export again to include every row.';
+
+  @override
   String get reportTitleStockRecount => 'Stock Recount';
 
   @override
