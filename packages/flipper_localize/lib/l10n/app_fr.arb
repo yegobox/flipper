@@ -7556,6 +7556,7 @@
     "hrPayNoRequests": "Aucune demande d'avance. Quand quelqu'un demande une avance dans l'application, elle arrive ici.",
     "hrPayNoPayslipsThisMonth": "Aucun bulletin ne se termine ce mois-ci.",
     "hrPayReturnsDeadline": "Déclarez et payez l'IPR et les cotisations RSSB avant le {date}.",
+    "hrPayPostedToBooks": "Cette paie passe automatiquement dans Books : le coût des salaires, l'IPR et la RSSB dus. N'y saisissez plus les salaires. Enregistrez ce que vous payez à la RRA et à la RSSB dans Enregistrer une dépense → Impôts et RSSB.",
     "hrPayReturnsRra": "À la RRA",
     "hrPayReturnsRssb": "À la RSSB",
     "hrPayPensionBothSides": "Pension (salarié + employeur)",

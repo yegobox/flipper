@@ -20191,6 +20191,7 @@
     "hrPayNoPayslipsThisMonth": "No payslips end in this month.",
     "hrPayReturnsDeadline": "Declare and pay PAYE and RSSB contributions by {date}.",
     "@hrPayReturnsDeadline": {"placeholders": {"date": {"type": "String"}}},
+    "hrPayPostedToBooks": "Books gets this payroll automatically: the salary cost, and the PAYE and RSSB owed. Don't record salaries there again. Record what you pay RRA and RSSB under Record expense → Taxes & RSSB.",
     "hrPayReturnsRra": "To RRA",
     "hrPayReturnsRssb": "To RSSB",
     "hrPayPensionBothSides": "Pension (employee + employer)",

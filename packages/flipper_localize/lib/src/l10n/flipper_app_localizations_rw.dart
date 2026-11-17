@@ -27234,6 +27234,10 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   }
 
   @override
+  String get hrPayPostedToBooks =>
+      'Iyi mishahara yinjira muri Books ubwayo: ikiguzi cy\'imishahara, na PAYE na RSSB mubereyemo. Ntimwongere kwandika imishahara muri Books. Ibyo mwishyura RRA na RSSB mubyandike muri Andika ibyakoreshejwe → Imisoro na RSSB.';
+
+  @override
   String get hrPayReturnsRra => 'Kuri RRA';
 
   @override

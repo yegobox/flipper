@@ -9141,6 +9141,7 @@
     "hrPayNoRequests": "Nta busabe bwa avansi. Umukozi nasaba avansi muri porogaramu, bizagera hano.",
     "hrPayNoPayslipsThisMonth": "Nta fishi irangirira muri uku kwezi.",
     "hrPayReturnsDeadline": "Menyekanisha kandi wishyure PAYE n'imisanzu ya RSSB bitarenze {date}.",
+    "hrPayPostedToBooks": "Iyi mishahara yinjira muri Books ubwayo: ikiguzi cy'imishahara, na PAYE na RSSB mubereyemo. Ntimwongere kwandika imishahara muri Books. Ibyo mwishyura RRA na RSSB mubyandike muri Andika ibyakoreshejwe → Imisoro na RSSB.",
     "hrPayReturnsRra": "Kuri RRA",
     "hrPayReturnsRssb": "Kuri RSSB",
     "hrPayPensionBothSides": "Pansiyo (umukozi + umukoresha)",

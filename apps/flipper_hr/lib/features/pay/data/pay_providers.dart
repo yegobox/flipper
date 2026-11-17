@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flipper_hr/features/attendance/data/attendance_providers.dart';
 import 'package:flipper_hr/features/pay/data/pay_models.dart';
 import 'package:flipper_hr/features/pay/data/pay_period.dart';
 import 'package:flipper_hr/features/pay/data/pay_repository.dart';
+import 'package:flipper_hr/features/pay/data/payroll_ledger_sync.dart';
 import 'package:flipper_hr/features/pay/data/rwanda_payroll.dart';
 import 'package:flipper_hr/features/pay/data/supabase_pay_repository.dart';
 import 'package:flipper_hr/features/people/data/employee.dart';
@@ -186,10 +189,23 @@ class PayActions {
 
   PayRepository get _repo => _ref.read(payRepositoryProvider);
 
-  void _refresh(Employee e) {
+  /// Re-reads what [e]'s change touched. With [ledger] (every manager
+  /// action that moves money or a debt), the branch's book then goes to
+  /// Books, in the background: posting never delays or fails the action.
+  void _refresh(Employee e, {bool ledger = true}) {
     _ref.invalidate(branchPayBookProvider(e.branchId));
     _ref.invalidate(employeePayBookProvider(e.id));
     _ref.invalidate(myPayBookProvider);
+    if (ledger) unawaited(_postToBooks(e.branchId));
+  }
+
+  Future<void> _postToBooks(String branchId) async {
+    try {
+      final book = await _ref.read(branchPayBookProvider(branchId).future);
+      await _ref.read(payrollLedgerSyncProvider).syncBook(book);
+    } catch (_) {
+      // The book could not be read; the Pay page's next load posts it.
+    }
   }
 
   Future<Payslip> pay({
@@ -326,7 +342,7 @@ class PayActions {
         reason: reason,
       );
     } finally {
-      _refresh(me);
+      _refresh(me, ledger: false);
     }
   }
 
@@ -334,7 +350,7 @@ class PayActions {
     try {
       await _repo.cancelAdvanceRequest(id: r.id);
     } finally {
-      _refresh(me);
+      _refresh(me, ledger: false);
     }
   }
 
@@ -372,7 +388,7 @@ class PayActions {
         note: note,
       );
     } finally {
-      _refresh(e);
+      _refresh(e, ledger: false);
     }
   }
 }

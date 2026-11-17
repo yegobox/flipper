@@ -1,9 +1,13 @@
+import 'package:flipper_accounting/payroll_journal_poster.dart';
 import 'package:flipper_hr/features/pay/data/pay_models.dart';
 import 'package:flipper_hr/features/pay/data/pay_providers.dart';
+import 'package:flipper_hr/features/pay/data/payroll_ledger_sync.dart';
 import 'package:flipper_hr/features/pay/pay_page.dart';
 import 'package:flipper_hr/features/people/data/employee.dart';
 import 'package:flipper_hr/features/people/data/people_providers.dart';
 import 'package:flipper_localize/flipper_localize.dart';
+import 'package:flipper_web/features/business_selection/business_branch_selector.dart';
+import 'package:flipper_web/models/user_profile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -57,6 +61,7 @@ Future<void> _pump(
   List<Employee>? people,
   Size size = const Size(400, 860),
   PayTab tab = PayTab.people,
+  List overrides = const [],
 }) async {
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1.0;
@@ -70,6 +75,7 @@ Future<void> _pump(
         ),
         payRepositoryProvider.overrideWithValue(pay),
         hrClockProvider.overrideWithValue(() => _today),
+        ...overrides,
       ],
       child: MaterialApp(
         localizationsDelegates: FlipperLocalizationDelegates.delegates,
@@ -153,6 +159,65 @@ void main() {
       expect(find.text('Paid Aline Uwase for October 2026'), findsOneWidget);
     },
   );
+
+  testWidgets('paying sends the new payslip and payment to Books', (
+    tester,
+  ) async {
+    final posted =
+        <
+          ({List<PayrollPayslipRecord> slips, List<PayrollPaymentRecord> pays})
+        >[];
+    final pay = FakePayRepository(
+      advances: [_advance()],
+      payments: [_advancePayout()],
+    );
+    await _pump(
+      tester,
+      pay: pay,
+      overrides: [
+        selectedBusinessProvider.overrideWithValue(
+          Business.fromJson({'id': 'biz-1', 'name': 'Demo Shop'}),
+        ),
+        payrollLedgerPosterProvider.overrideWithValue(({
+          required businessId,
+          required payslips,
+          required payments,
+          required writeOffs,
+        }) async {
+          expect(businessId, 'biz-1');
+          posted.add((slips: payslips, pays: payments));
+          return 0;
+        }),
+      ],
+    );
+    // Opening the page catches Books up once.
+    expect(posted, hasLength(1));
+    expect(posted.single.pays.single.kind, PayrollPaymentKind.advance);
+
+    await tester.ensureVisible(find.byKey(const Key('hr-pay-person-e-1')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('hr-pay-person-e-1')));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.byKey(const Key('hr-pay-confirm')));
+    await tester.tap(find.byKey(const Key('hr-pay-confirm')));
+    await tester.pumpAndSettle();
+
+    final last = posted.last;
+    final slip = last.slips.single;
+    expect(slip.gross, 200000);
+    expect(slip.advanceRecovery, 30000);
+    expect(
+      PayrollJournalPoster.payslipLines(
+        slip,
+      ).where((l) => l.ac == '2300').single.cr,
+      132583,
+      reason: 'net pay owed matches the payslip',
+    );
+    expect(
+      last.pays.where((p) => p.kind == PayrollPaymentKind.salary).single.amount,
+      132583,
+    );
+  });
 
   testWidgets('recovery is capped at half of pay after tax and RSSB', (
     tester,
@@ -281,6 +346,8 @@ void main() {
     // PAYE 24,000; RSSB = 12,000 + 12,000 + 600 + 600 + 4,000 + 817.
     expect(find.text('RWF 24,000'), findsWidgets);
     expect(find.text('RWF 30,017'), findsOneWidget);
+    // Payroll reaches Books on its own: no one should enter salaries twice.
+    expect(find.byKey(const Key('hr-returns-books-note')), findsOneWidget);
   });
 
   testWidgets('a load failure offers to try again', (tester) async {

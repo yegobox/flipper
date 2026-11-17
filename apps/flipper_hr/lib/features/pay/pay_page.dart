@@ -3,6 +3,7 @@ import 'package:flipper_hr/features/pay/data/pay_models.dart';
 import 'package:flipper_hr/features/pay/data/pay_period.dart';
 import 'package:flipper_hr/features/pay/data/pay_providers.dart';
 import 'package:flipper_hr/features/pay/data/pay_repository.dart';
+import 'package:flipper_hr/features/pay/data/payroll_ledger_sync.dart';
 import 'package:flipper_hr/features/pay/widgets/advance_sheet.dart';
 import 'package:flipper_hr/features/pay/widgets/pay_sheet.dart';
 import 'package:flipper_hr/features/pay/widgets/pay_ui.dart';
@@ -43,6 +44,21 @@ class PayPage extends ConsumerStatefulWidget {
 
 class _PayPageState extends ConsumerState<PayPage> {
   late PayTab _tab = widget.initialTab;
+
+  @override
+  void initState() {
+    super.initState();
+    // Catch Books up once per visit: anything a pay action could not post
+    // (Ditto not ready yet, offline, another device) goes now. Later changes
+    // are posted by the pay actions themselves.
+    var posted = false;
+    ref.listenManual(branchPayBookProvider(widget.branchId), (_, next) {
+      final book = next.value;
+      if (posted || book == null) return;
+      posted = true;
+      ref.read(payrollLedgerSyncProvider).syncBook(book);
+    }, fireImmediately: true);
+  }
 
   void _refresh() {
     ref.invalidate(rosterProvider(widget.branchId));
@@ -1041,6 +1057,11 @@ class _ReturnsTabState extends ConsumerState<_ReturnsTab> {
           HrCallout(
             icon: Icons.event_note_outlined,
             message: l10n.hrPayReturnsDeadline(formatShortDate(deadline)),
+          ),
+          HrCallout(
+            key: const Key('hr-returns-books-note'),
+            icon: Icons.menu_book_outlined,
+            message: l10n.hrPayPostedToBooks,
           ),
           HrSubheading(l10n.hrPayReturnsRra),
           HrAmountRow(

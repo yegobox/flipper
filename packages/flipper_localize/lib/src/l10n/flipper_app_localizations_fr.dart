@@ -27398,6 +27398,10 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   }
 
   @override
+  String get hrPayPostedToBooks =>
+      'Cette paie passe automatiquement dans Books : le coût des salaires, l\'IPR et la RSSB dus. N\'y saisissez plus les salaires. Enregistrez ce que vous payez à la RRA et à la RSSB dans Enregistrer une dépense → Impôts et RSSB.';
+
+  @override
   String get hrPayReturnsRra => 'À la RRA';
 
   @override
