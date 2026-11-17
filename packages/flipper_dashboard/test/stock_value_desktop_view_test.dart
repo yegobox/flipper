@@ -82,6 +82,37 @@ Future<void> _pump(
   await tester.pump();
 }
 
+/// [count] products with stock on hand: the first [expired] are past their
+/// expiry date, the next [soon] expire within days, the rest carry no date.
+StockValueReportData _withExpiry(int count, {int expired = 2, int soon = 3}) {
+  final now = DateTime.now();
+  final variants = <Variant>[];
+  final stocks = <String, Map<String, dynamic>>{};
+  for (var i = 0; i < count; i++) {
+    final id = 'e$i';
+    final v = Variant(
+      id: id,
+      name: 'Batch ${i.toString().padLeft(3, '0')}',
+      branchId: 'b1',
+      stockId: 's$id',
+      retailPrice: 100,
+      categoryName: 'Dairy',
+    );
+    if (i < expired) {
+      v.expirationDate = now.subtract(Duration(days: i + 1));
+    } else if (i < expired + soon) {
+      v.expirationDate = now.add(Duration(days: i + 1));
+    }
+    variants.add(v);
+    stocks['s$id'] = {'currentStock': 10.0, 'lowStock': 0.0};
+  }
+  return buildStockValueReport(
+    branchId: 'b1',
+    variants: variants,
+    stockById: stocks,
+  );
+}
+
 String _rowsShown(WidgetTester tester) =>
     tester.widget<Text>(find.byKey(const Key('stockValueRowsShown'))).data!;
 
@@ -257,5 +288,70 @@ void main() {
     expect(find.byKey(const Key('stockValueTopBarActions')), findsOneWidget);
     expect(find.text('BCD'), findsNothing);
     expect(find.text('Item 0019'), findsOneWidget);
+  });
+
+  testWidgets('a shop without expiry dates sees no expiry card or chips', (
+    tester,
+  ) async {
+    await _pump(tester, _report(20));
+
+    expect(find.byKey(const Key('stockValueExpiryCard')), findsNothing);
+    expect(find.byKey(const Key('stockValueFilter_expired')), findsNothing);
+    expect(find.byKey(const Key('stockValueExpiryPanel')), findsNothing);
+    expect(find.text('Healthy stock'), findsOneWidget);
+    expect(find.text('Expiry'), findsNothing);
+  });
+
+  testWidgets('expiry card, chips, column and panel find expiring stock', (
+    tester,
+  ) async {
+    final report = _withExpiry(20);
+    await _pump(tester, report);
+
+    expect(find.byKey(const Key('stockValueExpiryCard')), findsOneWidget);
+    expect(find.text('2 expired'), findsOneWidget);
+    expect(find.text('3 expire within 30 days'), findsOneWidget);
+    expect(find.byKey(const Key('stockValueExpiryPanel')), findsOneWidget);
+    // Header of the Expiry column plus the card title.
+    expect(find.text('Expiry'), findsNWidgets(2));
+
+    // The card opens the expired lines.
+    await tester.tap(find.byKey(const Key('stockValueExpiryCard')));
+    await tester.pump();
+    expect(_rowsShown(tester), '2 of 20');
+
+    await tester.tap(find.byKey(const Key('stockValueFilter_expiring')));
+    await tester.pump();
+    expect(_rowsShown(tester), '3 of 20');
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('View all on the expiry panel lists every expiry alert', (
+    tester,
+  ) async {
+    await _pump(tester, _withExpiry(40, expired: 5, soon: 7));
+
+    final viewAll = find.byKey(const Key('stockValueExpiryViewAll'));
+    await tester.ensureVisible(viewAll);
+    await tester.tap(viewAll);
+    await tester.pump();
+
+    expect(_rowsShown(tester), '12 of 40');
+    expect(find.byKey(const Key('stockValueExpiryChip')), findsOneWidget);
+  });
+
+  test('the Expiry column is the first to go as the table narrows', () {
+    final wide = StockValueTableColumns.forWidth(820, withExpiry: true);
+    expect(wide.expiry, isTrue);
+    expect(wide.bcd, isTrue);
+
+    final narrower = StockValueTableColumns.forWidth(800, withExpiry: true);
+    expect(narrower.expiry, isFalse);
+    expect(narrower.bcd, isTrue);
+
+    for (var w = 0.0; w <= 1200; w += 2) {
+      final c = StockValueTableColumns.forWidth(w, withExpiry: true);
+      expect(c.fixedWidth, lessThanOrEqualTo(w), reason: 'width $w');
+    }
   });
 }

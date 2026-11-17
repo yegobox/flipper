@@ -12,8 +12,6 @@ DashboardPage? dashboardPageFromPendingName(String name) {
       return DashboardPage.delegations;
     case 'orders':
       return DashboardPage.orders;
-    case 'reports':
-      return DashboardPage.reports;
     case 'inventory':
       return DashboardPage.inventory;
     default:
@@ -41,7 +39,9 @@ void usePendingDashboardPageNavigation(WidgetRef ref) {
       applyPendingDashboardPage(ref);
     });
 
-    final subscription = EventBus().on<OpenDashboardPageEvent>().listen((event) {
+    final subscription = EventBus().on<OpenDashboardPageEvent>().listen((
+      event,
+    ) {
       openDashboardPage(ref, event.page);
     });
 

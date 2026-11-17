@@ -1,5 +1,6 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
+
 import 'flipper_app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -10903,8 +10904,7 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
       locale: localeName,
       other:
           'Tiketi $count zisizoweza kufutwa zimerukwa (malipo ya sehemu au zimekaguliwa)',
-      one:
-          'Tiketi 1 isiyoweza kufutwa imerukwa (malipo ya sehemu au imekaguliwa)',
+      one: 'Tiketi 1 isiyoweza kufutwa imerukwa (malipo ya sehemu au imekaguliwa)',
     );
     return '$_temp0';
   }
@@ -13127,6 +13127,47 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   String get stockValueStatusOut => 'Imeisha';
 
   @override
+  String get stockValueColExpiry => 'Mwisho wa matumizi';
+
+  @override
+  String stockValueExpiredCount(int count) {
+    return '$count zimeisha muda';
+  }
+
+  @override
+  String stockValueExpiringWithin(int count, int days) {
+    return '$count zitaisha muda ndani ya siku $days';
+  }
+
+  @override
+  String stockValueExpiredValue(String value) {
+    return '$value ya bidhaa zilizoisha muda';
+  }
+
+  @override
+  String get stockValueFilterExpired => 'Zimeisha muda';
+
+  @override
+  String get stockValueFilterExpiring => 'Zinakaribia kuisha muda';
+
+  @override
+  String get stockValueExpiryAlerts => 'Arifa za kuisha muda';
+
+  @override
+  String stockValueExpiredOn(String date) {
+    return 'Ilisha muda $date';
+  }
+
+  @override
+  String stockValueExpiresOn(String date) {
+    return 'Itaisha muda $date';
+  }
+
+  @override
+  String get stockValueNoExpiryAlerts =>
+      'Hakuna iliyoisha au inayokaribia kuisha muda';
+
+  @override
   String get stockValueNoUnitsOnHand => 'hakuna kilichobaki';
 
   @override
@@ -13146,7 +13187,7 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   String get stockValueTitleMobile => 'Thamani za hisa';
 
   @override
-  String get stockValueTitle => 'Thamani ya hisa';
+  String get stockValueTitle => 'Hali ya hisa';
 
   @override
   String stockValueProductsCount(int count) {
@@ -14631,8 +14672,7 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
       locale: localeName,
       other:
           'Bidhaa $count zinahitaji bei ya kununua na ya kuuza, au kuunganishwa na mojawapo ya bidhaa zako',
-      one:
-          'Bidhaa 1 inahitaji bei ya kununua na ya kuuza, au kuunganishwa na mojawapo ya bidhaa zako',
+      one: 'Bidhaa 1 inahitaji bei ya kununua na ya kuuza, au kuunganishwa na mojawapo ya bidhaa zako',
     );
     return '$_temp0';
   }
@@ -19159,8 +19199,7 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
       locale: localeName,
       other:
           'Watu $count wanaripoti kwake, hivyo ataidhinisha likizo zao kwa jukumu lolote utakalochagua. Jukumu la meneja linaongeza orodha na mishahara ya wote.',
-      one:
-          'Mtu 1 anaripoti kwake, hivyo ataidhinisha likizo yake kwa jukumu lolote utakalochagua. Jukumu la meneja linaongeza orodha na mishahara ya wote.',
+      one: 'Mtu 1 anaripoti kwake, hivyo ataidhinisha likizo yake kwa jukumu lolote utakalochagua. Jukumu la meneja linaongeza orodha na mishahara ya wote.',
     );
     return '$_temp0';
   }

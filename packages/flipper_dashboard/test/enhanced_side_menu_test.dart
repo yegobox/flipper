@@ -28,7 +28,6 @@ class _MockDialogService extends Mock implements DialogService {}
 
 const _allVisible = SideMenuVisibility(
   kds: true,
-  items: true,
   dailyReportFiles: true,
   stockRecount: true,
   incomingOrders: true,
@@ -41,7 +40,6 @@ const _allVisible = SideMenuVisibility(
 
 const _noneVisible = SideMenuVisibility(
   kds: false,
-  items: false,
   dailyReportFiles: false,
   stockRecount: false,
   incomingOrders: false,
@@ -128,7 +126,7 @@ void main() {
         'Overview',
         'Chat',
         'Transactions',
-        'Analytics',
+        'Stock Health',
         'Daily Reports',
         'End shift',
         'Choose default app',

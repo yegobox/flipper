@@ -3,7 +3,6 @@ import 'package:flipper_dashboard/global_dashboard_keyboard_scope.dart';
 import 'package:flipper_dashboard/Ai.dart';
 import 'package:flipper_dashboard/EnhancedSideMenu.dart';
 import 'package:flipper_dashboard/inventory_app.dart';
-import 'package:flipper_dashboard/features/inventory_dashboard/inventory_dashboard_app.dart';
 import 'package:flipper_dashboard/kitchen_display.dart';
 import 'package:flipper_dashboard/orders_app.dart';
 import 'package:flipper_dashboard/mobile_view.dart';
@@ -38,10 +37,10 @@ import 'package:stacked/stacked.dart';
 
 /// The dashboard tab a stored `defaultApp` opens on. Books and HR are their
 /// own routes and older builds stored inner pages (Inventory, Reports,
-/// Orders), so anything without a tab of its own lands on POS.
+/// Orders), so anything without a tab of its own lands on POS. Reports was
+/// the old Items dashboard, now the Stock Health report behind the rail.
 DashboardPage dashboardPageForDefaultApp(String defaultApp) =>
     switch (defaultApp) {
-      'Reports' => DashboardPage.reports,
       'Orders' => DashboardPage.orders,
       // Local Mode has no Flo (cloud AI): a stored Flo default opens POS.
       'Flo' when !LocalMode.isOn => DashboardPage.ai,
@@ -158,8 +157,6 @@ class DashboardLayout extends HookConsumerWidget {
         return const Ai();
       case DashboardPage.leads:
         return const LeadsDesktopScreen();
-      case DashboardPage.reports:
-        return const InventoryDashboardApp();
       case DashboardPage.kitchen:
         return const KitchenDisplay();
       case DashboardPage.orders:

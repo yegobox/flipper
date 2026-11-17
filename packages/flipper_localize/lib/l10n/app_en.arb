@@ -11168,6 +11168,74 @@
     "@stockValueStatusOut": {
         "description": "Stock value report: stock status: nothing on hand"
     },
+    "stockValueColExpiry": "Expiry",
+    "@stockValueColExpiry": {
+        "description": "Stock health: expiry column header and KPI card title"
+    },
+    "stockValueExpiredCount": "{count} expired",
+    "@stockValueExpiredCount": {
+        "description": "Stock health: expiry card value: on-hand products past their expiry date",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "stockValueExpiringWithin": "{count} expire within {days} days",
+    "@stockValueExpiringWithin": {
+        "description": "Stock health: expiry card subtitle: on-hand products expiring within the next {days} days",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            },
+            "days": {
+                "type": "int"
+            }
+        }
+    },
+    "stockValueExpiredValue": "{value} expired stock",
+    "@stockValueExpiredValue": {
+        "description": "Stock health: expiry card badge: retail value of expired stock",
+        "placeholders": {
+            "value": {
+                "type": "String"
+            }
+        }
+    },
+    "stockValueFilterExpired": "Expired",
+    "@stockValueFilterExpired": {
+        "description": "Stock health: filter chip for expired products"
+    },
+    "stockValueFilterExpiring": "Expiring soon",
+    "@stockValueFilterExpiring": {
+        "description": "Stock health: filter chip for products expiring soon"
+    },
+    "stockValueExpiryAlerts": "Expiry alerts",
+    "@stockValueExpiryAlerts": {
+        "description": "Stock health: side panel title listing expired and expiring products"
+    },
+    "stockValueExpiredOn": "Expired {date}",
+    "@stockValueExpiredOn": {
+        "description": "Stock health: expiry alert row: the date the product expired",
+        "placeholders": {
+            "date": {
+                "type": "String"
+            }
+        }
+    },
+    "stockValueExpiresOn": "Expires {date}",
+    "@stockValueExpiresOn": {
+        "description": "Stock health: expiry alert row: the date the product will expire",
+        "placeholders": {
+            "date": {
+                "type": "String"
+            }
+        }
+    },
+    "stockValueNoExpiryAlerts": "Nothing expired or expiring soon",
+    "@stockValueNoExpiryAlerts": {
+        "description": "Stock health: expiry alerts panel when nothing needs action"
+    },
     "stockValueNoUnitsOnHand": "no units on hand",
     "@stockValueNoUnitsOnHand": {
         "description": "Stock value report: out-of-stock card subtitle"
@@ -11204,7 +11272,7 @@
     "@stockValueTitleMobile": {
         "description": "Stock value report: mobile app bar title"
     },
-    "stockValueTitle": "Stock Value",
+    "stockValueTitle": "Stock Health",
     "@stockValueTitle": {
         "description": "Stock value report: desktop title"
     },

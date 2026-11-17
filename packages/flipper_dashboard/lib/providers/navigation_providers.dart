@@ -72,13 +72,6 @@ bool userHasFeatureWriteAccess(Ref ref, String featureName) {
   );
 }
 
-/// Branch has subscription capability **and** user has a matching module permission.
-final sideMenuShowItemsProvider = Provider<bool>((ref) {
-  if (!ref.watch(hasFeatureProvider('INVENTORY'))) return false;
-  return userHasFeatureWriteAccess(ref, AppFeature.Reports) ||
-      userHasFeatureWriteAccess(ref, AppFeature.Inventory);
-});
-
 final sideMenuShowKdsProvider = Provider<bool>((ref) {
   if (!ref.watch(hasFeatureProvider('KDS'))) return false;
   return userHasFeatureWriteAccess(ref, AppFeature.Tickets);
@@ -129,7 +122,6 @@ final sideMenuShowDailyReportFilesProvider = Provider<bool>((ref) {
 class SideMenuVisibility {
   const SideMenuVisibility({
     required this.kds,
-    required this.items,
     required this.dailyReportFiles,
     required this.stockRecount,
     required this.incomingOrders,
@@ -141,7 +133,6 @@ class SideMenuVisibility {
   });
 
   final bool kds;
-  final bool items;
   final bool dailyReportFiles;
   final bool stockRecount;
   final bool incomingOrders;
@@ -156,7 +147,6 @@ final sideMenuVisibilityProvider = Provider<SideMenuVisibility>((ref) {
   final uid = ProxyService.box.getUserId() ?? '';
   return SideMenuVisibility(
     kds: ref.watch(sideMenuShowKdsProvider),
-    items: ref.watch(sideMenuShowItemsProvider),
     dailyReportFiles: ref.watch(sideMenuShowDailyReportFilesProvider),
     stockRecount: ref.watch(sideMenuShowStockRecountProvider),
     incomingOrders: ref.watch(sideMenuShowIncomingOrdersProvider),

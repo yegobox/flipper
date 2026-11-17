@@ -171,4 +171,79 @@ void main() {
     expect(r.allProducts.map((l) => l.variantId), ['big', 'mid', 'small']);
     expect(r.topByLineValue?.name, 'big');
   });
+
+  group('expiry', () {
+    final now = DateTime.utc(2026, 11, 17, 12);
+    Variant expiring(String id, DateTime? at, {double retail = 10}) {
+      final v = _variant(id, retail: retail);
+      v.expirationDate = at;
+      return v;
+    }
+
+    StockValueReportData build(
+      List<Variant> variants,
+      Map<String, Map<String, dynamic>> stocks,
+    ) => buildStockValueReport(
+      branchId: 'b1',
+      variants: variants,
+      stockById: {for (final e in stocks.entries) 's_${e.key}': e.value},
+      now: now,
+    );
+
+    test('a catalogue without dates does not track expiry', () {
+      final r = build([_variant('a')], {'a': _stock(3)});
+
+      expect(r.tracksExpiry, isFalse);
+      expect(r.expiredCount, 0);
+      expect(r.expiryAlerts, isEmpty);
+      expect(_line(r, 'a').expiryState, StockExpiryState.none);
+    });
+
+    test('past dates are expired, the next 30 days are soon', () {
+      final r = build(
+        [
+          expiring('past', now.subtract(const Duration(days: 2))),
+          expiring(
+            'edge',
+            now.add(const Duration(days: kStockExpiringSoonDays)),
+          ),
+          expiring('later', now.add(const Duration(days: 31))),
+          expiring('soon', now.add(const Duration(days: 3))),
+          _variant('none'),
+        ],
+        {
+          'past': _stock(4),
+          'edge': _stock(1),
+          'later': _stock(1),
+          'soon': _stock(1),
+          'none': _stock(1),
+        },
+      );
+
+      expect(r.tracksExpiry, isTrue);
+      expect(_line(r, 'past').expiryState, StockExpiryState.expired);
+      expect(_line(r, 'soon').expiryState, StockExpiryState.soon);
+      expect(_line(r, 'edge').expiryState, StockExpiryState.soon);
+      expect(_line(r, 'later').expiryState, StockExpiryState.ok);
+      expect(_line(r, 'none').expiryState, StockExpiryState.none);
+      expect(r.expiredCount, 1);
+      expect(r.expiredValue, 40); // 4 units x 10
+      expect(r.expiringSoonCount, 2);
+      // Expired first, then soonest.
+      expect(r.expiryAlerts.map((l) => l.variantId), ['past', 'soon', 'edge']);
+    });
+
+    test('an expired date on an empty shelf needs no action', () {
+      final r = build(
+        [expiring('gone', now.subtract(const Duration(days: 9)))],
+        {'gone': _stock(0)},
+      );
+
+      expect(r.tracksExpiry, isTrue);
+      expect(_line(r, 'gone').expiryState, StockExpiryState.ok);
+      expect(_line(r, 'gone').expiryDate, isNotNull);
+      expect(r.expiredCount, 0);
+      expect(r.expiryAlerts, isEmpty);
+    });
+  });
 }

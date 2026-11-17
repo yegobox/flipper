@@ -21855,6 +21855,66 @@ abstract class FlipperAppLocalizations {
   /// **'Out of stock'**
   String get stockValueStatusOut;
 
+  /// Stock health: expiry column header and KPI card title
+  ///
+  /// In en, this message translates to:
+  /// **'Expiry'**
+  String get stockValueColExpiry;
+
+  /// Stock health: expiry card value: on-hand products past their expiry date
+  ///
+  /// In en, this message translates to:
+  /// **'{count} expired'**
+  String stockValueExpiredCount(int count);
+
+  /// Stock health: expiry card subtitle: on-hand products expiring within the next {days} days
+  ///
+  /// In en, this message translates to:
+  /// **'{count} expire within {days} days'**
+  String stockValueExpiringWithin(int count, int days);
+
+  /// Stock health: expiry card badge: retail value of expired stock
+  ///
+  /// In en, this message translates to:
+  /// **'{value} expired stock'**
+  String stockValueExpiredValue(String value);
+
+  /// Stock health: filter chip for expired products
+  ///
+  /// In en, this message translates to:
+  /// **'Expired'**
+  String get stockValueFilterExpired;
+
+  /// Stock health: filter chip for products expiring soon
+  ///
+  /// In en, this message translates to:
+  /// **'Expiring soon'**
+  String get stockValueFilterExpiring;
+
+  /// Stock health: side panel title listing expired and expiring products
+  ///
+  /// In en, this message translates to:
+  /// **'Expiry alerts'**
+  String get stockValueExpiryAlerts;
+
+  /// Stock health: expiry alert row: the date the product expired
+  ///
+  /// In en, this message translates to:
+  /// **'Expired {date}'**
+  String stockValueExpiredOn(String date);
+
+  /// Stock health: expiry alert row: the date the product will expire
+  ///
+  /// In en, this message translates to:
+  /// **'Expires {date}'**
+  String stockValueExpiresOn(String date);
+
+  /// Stock health: expiry alerts panel when nothing needs action
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing expired or expiring soon'**
+  String get stockValueNoExpiryAlerts;
+
   /// Stock value report: out-of-stock card subtitle
   ///
   /// In en, this message translates to:
@@ -21888,7 +21948,7 @@ abstract class FlipperAppLocalizations {
   /// Stock value report: desktop title
   ///
   /// In en, this message translates to:
-  /// **'Stock Value'**
+  /// **'Stock Health'**
   String get stockValueTitle;
 
   /// Stock value report: product count

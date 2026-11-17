@@ -14,6 +14,9 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'stock_value_insights.dart';
 import 'stock_value_product_detail_dialog.dart';
 import 'stock_value_report_common.dart';
+import 'stock_value_table.dart';
+
+export 'stock_value_table.dart' show StockValueTableColumns;
 
 class StockValueReportDesktopScreen extends ConsumerWidget {
   const StockValueReportDesktopScreen({super.key});
@@ -278,9 +281,18 @@ class _StockValueLoadingShell extends StatelessWidget {
 
 /// [restock] is the restock-alert list itself ("View all"): every line whose
 /// min-stock alert fired, whatever its status, out of stock included.
-enum _ProductFilter { all, ok, low, critical, out, restock }
-
-enum _SortKey { name, category, unitPrice, stock, value }
+/// [expiryAlerts] is the expiry panel's "View all": expired and expiring soon.
+enum _ProductFilter {
+  all,
+  ok,
+  low,
+  critical,
+  out,
+  restock,
+  expired,
+  expiring,
+  expiryAlerts,
+}
 
 /// Height of one product row. Fixed so the list is laid out lazily: only the
 /// rows on screen are built, however big the catalogue is.
@@ -318,7 +330,7 @@ class _StockValueDesktopViewState extends State<StockValueDesktopView> {
   String _query = '';
   _ProductFilter _filter = _ProductFilter.all;
   String? _category;
-  _SortKey _sortKey = _SortKey.value;
+  StockValueSortKey _sortKey = StockValueSortKey.value;
   bool _sortAscending = false;
   var _refreshedAt = DateTime.now();
 
@@ -335,6 +347,7 @@ class _StockValueDesktopViewState extends State<StockValueDesktopView> {
   /// Rows per status after search and category (not the status filter), so
   /// each chip says how many rows choosing it would show.
   Map<StockValueLineStatus, int> _statusCounts = const {};
+  Map<StockExpiryState, int> _expiryCounts = const {};
   int _matchingCount = 0;
 
   @override
@@ -390,12 +403,19 @@ class _StockValueDesktopViewState extends State<StockValueDesktopView> {
         return status == StockValueLineStatus.out;
       case _ProductFilter.restock:
         return _restockIds.contains(line.variantId);
+      case _ProductFilter.expired:
+        return line.expiryState == StockExpiryState.expired;
+      case _ProductFilter.expiring:
+        return line.expiryState == StockExpiryState.soon;
+      case _ProductFilter.expiryAlerts:
+        return line.hasExpiryAlert;
     }
   }
 
   void _recompute() {
     final all = widget.report.allProducts;
     final counts = <StockValueLineStatus, int>{};
+    final expiry = <StockExpiryState, int>{};
     var matching = 0;
     final rows = <StockValueProductLine>[];
     for (var i = 0; i < all.length; i++) {
@@ -404,34 +424,49 @@ class _StockValueDesktopViewState extends State<StockValueDesktopView> {
       if (_query.isNotEmpty && !_haystack[i].contains(_query)) continue;
       matching++;
       counts[p.status] = (counts[p.status] ?? 0) + 1;
+      expiry[p.expiryState] = (expiry[p.expiryState] ?? 0) + 1;
       if (_passesFilter(p)) rows.add(p);
     }
     rows.sort(_compare);
     _rows = rows;
     _statusCounts = counts;
+    _expiryCounts = expiry;
     _matchingCount = matching;
   }
 
   int _compare(StockValueProductLine a, StockValueProductLine b) {
     int byName() => a.name.toLowerCase().compareTo(b.name.toLowerCase());
+    if (_sortKey == StockValueSortKey.expiry) {
+      // Lines without a date sit at the bottom whichever way the dates run.
+      final ea = a.expiryDate, eb = b.expiryDate;
+      if (ea == null || eb == null) {
+        if (ea != eb) return ea == null ? 1 : -1;
+        return byName();
+      }
+      final byDate = _sortAscending ? ea.compareTo(eb) : eb.compareTo(ea);
+      return byDate != 0 ? byDate : byName();
+    }
     final int primary;
     switch (_sortKey) {
-      case _SortKey.name:
+      case StockValueSortKey.name:
         primary = byName();
         break;
-      case _SortKey.category:
+      case StockValueSortKey.category:
         primary = a.categoryName.toLowerCase().compareTo(
           b.categoryName.toLowerCase(),
         );
         break;
-      case _SortKey.unitPrice:
+      case StockValueSortKey.unitPrice:
         primary = a.unitPrice.compareTo(b.unitPrice);
         break;
-      case _SortKey.stock:
+      case StockValueSortKey.stock:
         primary = a.currentStock.compareTo(b.currentStock);
         break;
-      case _SortKey.value:
+      case StockValueSortKey.value:
         primary = a.lineValue.compareTo(b.lineValue);
+        break;
+      case StockValueSortKey.expiry:
+        primary = 0; // Handled above.
         break;
     }
     final directed = _sortAscending ? primary : -primary;
@@ -467,16 +502,32 @@ class _StockValueDesktopViewState extends State<StockValueDesktopView> {
     });
   }
 
+  /// "View all" on the expiry panel: every expired or expiring line.
+  void _showAllExpiryAlerts() {
+    _searchDebounce?.cancel();
+    _search.clear();
+    _update(() {
+      _filter = _ProductFilter.expiryAlerts;
+      _category = null;
+      _query = '';
+      _sortKey = StockValueSortKey.expiry;
+      _sortAscending = true;
+    });
+  }
+
   void _toggleCategory(String category) =>
       _update(() => _category = _category == category ? null : category);
 
-  void _sortBy(_SortKey key) => _update(() {
+  void _sortBy(StockValueSortKey key) => _update(() {
     if (_sortKey == key) {
       _sortAscending = !_sortAscending;
     } else {
       _sortKey = key;
-      // Text reads A→Z; numbers read biggest first.
-      _sortAscending = key == _SortKey.name || key == _SortKey.category;
+      // Text reads A→Z, dates soonest first; numbers read biggest first.
+      _sortAscending =
+          key == StockValueSortKey.name ||
+          key == StockValueSortKey.category ||
+          key == StockValueSortKey.expiry;
     }
   });
 
@@ -525,6 +576,14 @@ class _StockValueDesktopViewState extends State<StockValueDesktopView> {
                     onOpen: _openLine,
                     onViewAll: _showAllRestockAlerts,
                   ),
+                  if (report.tracksExpiry) ...[
+                    const SizedBox(height: 16),
+                    StockValueExpiryPanel(
+                      items: report.expiryAlerts,
+                      onOpen: _openLine,
+                      onViewAll: _showAllExpiryAlerts,
+                    ),
+                  ],
                 ];
 
                 final main = Scrollbar(
@@ -608,11 +667,15 @@ class _StockValueDesktopViewState extends State<StockValueDesktopView> {
         l10n.stockValueCsvStock,
         l10n.stockValueCsvLineValue,
         l10n.stockValueCsvStatus,
+        l10n.stockValueColExpiry,
       ].map(_csv).join(','),
     );
     for (final p in rows) {
+      final expiry = p.expiryDate == null
+          ? ''
+          : p.expiryDate!.toLocal().toIso8601String().substring(0, 10);
       buf.writeln(
-        '${_csv(p.name)},${_csv(p.categoryName)},${_csv(p.bcd ?? '')},${p.unitPrice},${p.currentStock},${p.lineValue},${p.status.name}',
+        '${_csv(p.name)},${_csv(p.categoryName)},${_csv(p.bcd ?? '')},${p.unitPrice},${p.currentStock},${p.lineValue},${p.status.name},$expiry',
       );
     }
     unawaited(Clipboard.setData(ClipboardData(text: buf.toString())));
@@ -731,17 +794,45 @@ class _StockValueDesktopViewState extends State<StockValueDesktopView> {
                 _category = null;
               }),
             ),
-            StockValueKpiCard(
-              borderColor: const Color(0xFF16A34A),
-              title: l10n.stockValueHealthyStock,
-              value: '${report.healthyStockCount}',
-              subtitle: l10n.stockValueWellStocked,
-              badge: l10n.stockValuePercentOfCatalogue(
-                pct(report.healthyStockCount).toString(),
+            if (report.tracksExpiry)
+              StockValueKpiCard(
+                key: const Key('stockValueExpiryCard'),
+                borderColor: report.expiredCount > 0
+                    ? const Color(0xFFB91C1C)
+                    : const Color(0xFFF59E0B),
+                title: l10n.stockValueColExpiry,
+                value: l10n.stockValueExpiredCount(report.expiredCount),
+                subtitle: l10n.stockValueExpiringWithin(
+                  report.expiringSoonCount,
+                  kStockExpiringSoonDays,
+                ),
+                badge: l10n.stockValueExpiredValue(
+                  'RWF ${formatNumber(report.expiredValue)}',
+                ),
+                selected:
+                    _filter == _ProductFilter.expired ||
+                    _filter == _ProductFilter.expiring ||
+                    _filter == _ProductFilter.expiryAlerts,
+                onTap: report.expiryAlerts.isEmpty
+                    ? null
+                    : () => _setFilter(
+                        report.expiredCount > 0
+                            ? _ProductFilter.expired
+                            : _ProductFilter.expiring,
+                      ),
+              )
+            else
+              StockValueKpiCard(
+                borderColor: const Color(0xFF16A34A),
+                title: l10n.stockValueHealthyStock,
+                value: '${report.healthyStockCount}',
+                subtitle: l10n.stockValueWellStocked,
+                badge: l10n.stockValuePercentOfCatalogue(
+                  pct(report.healthyStockCount).toString(),
+                ),
+                selected: _filter == _ProductFilter.ok,
+                onTap: () => _setFilter(_ProductFilter.ok),
               ),
-              selected: _filter == _ProductFilter.ok,
-              onTap: () => _setFilter(_ProductFilter.ok),
-            ),
             StockValueKpiCard(
               borderColor: const Color(0xFFDC2626),
               title: l10n.stockValueCriticalLow,
@@ -884,6 +975,19 @@ class _StockValueDesktopViewState extends State<StockValueDesktopView> {
                               onDeleted: () => _setFilter(_ProductFilter.all),
                             ),
                           ],
+                          if (_filter == _ProductFilter.expiryAlerts) ...[
+                            const SizedBox(width: 8),
+                            InputChip(
+                              key: const Key('stockValueExpiryChip'),
+                              label: Text(
+                                l10n.stockValueExpiryAlerts,
+                                style: GoogleFonts.outfit(fontSize: 12),
+                              ),
+                              visualDensity: VisualDensity.compact,
+                              deleteButtonTooltipMessage: l10n.clear,
+                              onDeleted: () => _setFilter(_ProductFilter.all),
+                            ),
+                          ],
                         ],
                       ),
                       Wrap(
@@ -915,6 +1019,18 @@ class _StockValueDesktopViewState extends State<StockValueDesktopView> {
                             _ProductFilter.out,
                             count(StockValueLineStatus.out),
                           ),
+                          if (report.tracksExpiry) ...[
+                            chip(
+                              l10n.stockValueFilterExpired,
+                              _ProductFilter.expired,
+                              _expiryCounts[StockExpiryState.expired] ?? 0,
+                            ),
+                            chip(
+                              l10n.stockValueFilterExpiring,
+                              _ProductFilter.expiring,
+                              _expiryCounts[StockExpiryState.soon] ?? 0,
+                            ),
+                          ],
                         ],
                       ),
                     ],
@@ -952,7 +1068,8 @@ class _StockValueDesktopViewState extends State<StockValueDesktopView> {
                 color: Colors.white,
                 child: Padding(
                   padding: hPad,
-                  child: _ProductTableHeader(
+                  child: StockValueTableHeader(
+                    showExpiry: report.tracksExpiry,
                     sortKey: _sortKey,
                     ascending: _sortAscending,
                     onSort: _sortBy,
@@ -965,402 +1082,16 @@ class _StockValueDesktopViewState extends State<StockValueDesktopView> {
               sliver: SliverFixedExtentList(
                 itemExtent: _kRowExtent,
                 delegate: SliverChildBuilderDelegate(
-                  (context, i) => _ProductDataRow(line: rows[i]),
+                  (context, i) => StockValueProductRow(
+                    line: rows[i],
+                    showExpiry: report.tracksExpiry,
+                  ),
                   childCount: rows.length,
                 ),
               ),
             ),
           ],
         ],
-      ),
-    );
-  }
-}
-
-// Shared column widths so the header and the rows line up.
-const double _kColBcd = 80;
-const double _kColPrice = 100;
-const double _kColStock = 120;
-const double _kColValue = 110;
-const double _kColStatus = 104;
-
-/// Narrowest the flexible Product and Category columns may get before a
-/// fixed column is dropped.
-const double _kMinProductWidth = 120;
-const double _kMinCategoryWidth = 80;
-
-/// Narrowest the Value column gets before it is hidden.
-const double _kMinValueWidth = 48;
-
-/// Which columns the product table shows at a given width. Below what
-/// everything needs, BCD goes first, then Unit price, Category, Stock and
-/// Status; on a pane narrower still, Value narrows and finally goes, so
-/// Product never shrinks to nothing and the fixed columns never overflow
-/// ([fixedWidth] <= width at any width). The header and the rows ask with
-/// the same width, so they line up.
-@visibleForTesting
-class StockValueTableColumns {
-  final bool bcd;
-  final bool unitPrice;
-  final bool category;
-  final bool stock;
-  final bool status;
-
-  /// Width of the Value column; 0 when it is hidden.
-  final double valueWidth;
-
-  const StockValueTableColumns({
-    required this.bcd,
-    required this.unitPrice,
-    required this.category,
-    required this.stock,
-    required this.status,
-    required this.valueWidth,
-  });
-
-  bool get value => valueWidth > 0;
-
-  /// Width of the fixed-width columns shown; the rest goes to Product (and
-  /// Category).
-  double get fixedWidth =>
-      (bcd ? _kColBcd : 0) +
-      (unitPrice ? _kColPrice : 0) +
-      (stock ? _kColStock : 0) +
-      valueWidth +
-      (status ? _kColStatus : 0);
-
-  factory StockValueTableColumns.forWidth(double width) {
-    var bcd = true, unitPrice = true, category = true, stock = true;
-    var status = true;
-    bool fits() {
-      final fixed =
-          (bcd ? _kColBcd : 0) +
-          (unitPrice ? _kColPrice : 0) +
-          (stock ? _kColStock : 0) +
-          _kColValue +
-          (status ? _kColStatus : 0);
-      final flexible = _kMinProductWidth + (category ? _kMinCategoryWidth : 0);
-      return width - fixed >= flexible;
-    }
-
-    if (!fits()) bcd = false;
-    if (!fits()) unitPrice = false;
-    if (!fits()) category = false;
-    if (!fits()) stock = false;
-    if (!fits()) status = false;
-    // Only Product and Value left: Value takes what Product leaves, and goes
-    // once that is too narrow for an amount.
-    final room = (width - _kMinProductWidth).clamp(0.0, _kColValue);
-    return StockValueTableColumns(
-      bcd: bcd,
-      unitPrice: unitPrice,
-      category: category,
-      stock: stock,
-      status: status,
-      valueWidth: room < _kMinValueWidth ? 0 : room,
-    );
-  }
-}
-
-class _ProductTableHeader extends StatelessWidget {
-  final _SortKey sortKey;
-  final bool ascending;
-  final ValueChanged<_SortKey> onSort;
-
-  const _ProductTableHeader({
-    required this.sortKey,
-    required this.ascending,
-    required this.onSort,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.flipperL10n;
-    final style = GoogleFonts.outfit(
-      fontSize: 11,
-      fontWeight: FontWeight.w800,
-      color: Colors.black45,
-    );
-
-    Widget sortable(String label, _SortKey key, {bool alignEnd = false}) {
-      final active = key == sortKey;
-      final text = Text(
-        label,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: active ? style.copyWith(color: Colors.black87) : style,
-      );
-      return InkWell(
-        key: Key('stockValueSort_${key.name}'),
-        onTap: () => onSort(key),
-        borderRadius: BorderRadius.circular(4),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 6),
-          child: Row(
-            mainAxisAlignment: alignEnd
-                ? MainAxisAlignment.end
-                : MainAxisAlignment.start,
-            children: [
-              Flexible(child: text),
-              if (active)
-                Icon(
-                  ascending ? Icons.arrow_upward : Icons.arrow_downward,
-                  size: 12,
-                  color: Colors.black87,
-                ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(color: Colors.black.withValues(alpha: 0.12)),
-        ),
-      ),
-      child: LayoutBuilder(
-        builder: (context, box) {
-          final cols = StockValueTableColumns.forWidth(box.maxWidth);
-          return Row(
-            children: [
-              Expanded(
-                flex: 2,
-                child: sortable(l10n.stockValueColProduct, _SortKey.name),
-              ),
-              if (cols.category)
-                Expanded(
-                  child: sortable(
-                    l10n.stockValueColCategory,
-                    _SortKey.category,
-                  ),
-                ),
-              if (cols.bcd)
-                SizedBox(
-                  width: _kColBcd,
-                  child: Text('BCD', style: style),
-                ),
-              if (cols.unitPrice)
-                SizedBox(
-                  width: _kColPrice,
-                  child: sortable(
-                    l10n.stockValueColUnitPrice,
-                    _SortKey.unitPrice,
-                  ),
-                ),
-              if (cols.stock)
-                SizedBox(
-                  width: _kColStock,
-                  child: sortable(l10n.stockValueColStock, _SortKey.stock),
-                ),
-              if (cols.value)
-                SizedBox(
-                  width: cols.valueWidth,
-                  child: sortable(
-                    l10n.stockValueColValue,
-                    _SortKey.value,
-                    alignEnd: true,
-                  ),
-                ),
-              if (cols.status)
-                SizedBox(
-                  width: _kColStatus,
-                  child: Text(
-                    l10n.stockValueColStatus,
-                    textAlign: TextAlign.right,
-                    style: style,
-                  ),
-                ),
-            ],
-          );
-        },
-      ),
-    );
-  }
-}
-
-class _ProductDataRow extends StatelessWidget {
-  final StockValueProductLine line;
-
-  const _ProductDataRow({required this.line});
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.flipperL10n;
-    final String label;
-    final Color fg;
-    final Color bg;
-    switch (line.status) {
-      case StockValueLineStatus.ok:
-        label = l10n.stockValueStatusOk;
-        fg = const Color(0xFF16A34A);
-        bg = const Color(0xFFDCFCE7);
-        break;
-      case StockValueLineStatus.low:
-        label = l10n.stockValueStatusLow;
-        fg = const Color(0xFF92400E);
-        bg = const Color(0xFFFEF3C7);
-        break;
-      case StockValueLineStatus.critical:
-        label = l10n.stockValueStatusCritical;
-        fg = const Color(0xFFB91C1C);
-        bg = const Color(0xFFFEE2E2);
-        break;
-      case StockValueLineStatus.out:
-        label = l10n.stockValueStatusOut;
-        fg = const Color(0xFF475569);
-        bg = const Color(0xFFE2E8F0);
-        break;
-    }
-
-    final denom = line.minStock > 0 ? (line.minStock * 2) : 1.0;
-    var progress = (line.currentStock / denom).clamp(0.0, 1.0);
-    if (line.minStock <= 0) {
-      progress = line.currentStock > 0 ? 1.0 : 0.0;
-    }
-    final negative = line.currentStock < 0;
-
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(color: Colors.black.withValues(alpha: 0.06)),
-        ),
-      ),
-      child: InkWell(
-        onTap: () => showStockValueProductDetailDialog(context, line: line),
-        hoverColor: kStockValueAccentBlue.withValues(alpha: 0.06),
-        child: LayoutBuilder(
-          builder: (context, box) {
-            final cols = StockValueTableColumns.forWidth(box.maxWidth);
-            return Row(
-              children: [
-                Expanded(
-                  flex: 2,
-                  child: Text(
-                    line.name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.outfit(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 14,
-                    ),
-                  ),
-                ),
-                if (cols.category)
-                  Expanded(
-                    child: Text(
-                      line.categoryName,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.outfit(
-                        fontSize: 13,
-                        color: Colors.black54,
-                      ),
-                    ),
-                  ),
-                if (cols.bcd)
-                  SizedBox(
-                    width: _kColBcd,
-                    child: Text(
-                      (line.bcd == null || line.bcd!.isEmpty) ? '—' : line.bcd!,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: FlipperFonts.mono(fontSize: 12),
-                    ),
-                  ),
-                if (cols.unitPrice)
-                  SizedBox(
-                    width: _kColPrice,
-                    child: Text(
-                      'RWF ${formatNumber(line.unitPrice)}',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: FlipperFonts.mono(fontSize: 12),
-                    ),
-                  ),
-                if (cols.stock)
-                  SizedBox(
-                    width: _kColStock,
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(4),
-                            child: LinearProgressIndicator(
-                              value: progress,
-                              minHeight: 6,
-                              backgroundColor: Colors.black.withValues(
-                                alpha: 0.08,
-                              ),
-                              valueColor: AlwaysStoppedAnimation<Color>(fg),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        // Seven 12px mono characters, e.g. -12.345 or
-                        // 123.456; the bar keeps the rest of the column.
-                        SizedBox(
-                          width: 56,
-                          child: Text(
-                            formatStockQty(line.currentStock),
-                            textAlign: TextAlign.right,
-                            maxLines: 1,
-                            style: FlipperFonts.mono(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: negative ? const Color(0xFFB91C1C) : null,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                if (cols.value)
-                  SizedBox(
-                    width: cols.valueWidth,
-                    child: Text(
-                      'RWF ${formatNumber(line.lineValue)}',
-                      textAlign: TextAlign.right,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: FlipperFonts.mono(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                if (cols.status)
-                  SizedBox(
-                    width: _kColStatus,
-                    child: Align(
-                      alignment: Alignment.centerRight,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: bg,
-                          borderRadius: BorderRadius.circular(999),
-                        ),
-                        child: Text(
-                          label,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: GoogleFonts.outfit(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                            color: fg,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
-            );
-          },
-        ),
       ),
     );
   }

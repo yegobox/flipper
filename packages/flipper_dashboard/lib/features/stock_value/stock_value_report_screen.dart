@@ -213,6 +213,21 @@ class _StockValueReportBodyState extends ConsumerState<_StockValueReportBody> {
                 ),
               ],
             ),
+            if (report.tracksExpiry) ...[
+              const SizedBox(height: 12),
+              StockValueSummaryTile(
+                key: const Key('stockValueMobileExpiryTile'),
+                title: l10n.stockValueColExpiry.toUpperCase(),
+                value: l10n.stockValueExpiredCount(report.expiredCount),
+                subtitle: l10n.stockValueExpiringWithin(
+                  report.expiringSoonCount,
+                  kStockExpiringSoonDays,
+                ),
+                valueColor: report.expiredCount > 0
+                    ? const Color(0xFFB91C1C)
+                    : const Color(0xFF16A34A),
+              ),
+            ],
             if (report.isPossiblyIncomplete) ...[
               const SizedBox(height: 10),
               Text(

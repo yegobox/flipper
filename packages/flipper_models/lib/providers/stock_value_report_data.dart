@@ -16,6 +16,13 @@ const String kStockValueOtherCategory = 'Other';
 /// RRA item type for services: they have no stock to value.
 const String kServiceItemTyCd = '3';
 
+/// How far ahead an expiry date counts as "expiring soon".
+const int kStockExpiringSoonDays = 30;
+
+/// Where a line's expiry date stands. Only stock still on hand can be
+/// [expired] or [soon]: an expired date on an empty shelf needs no action.
+enum StockExpiryState { none, ok, soon, expired }
+
 class StockValueProductLine {
   final String variantId;
   final String name;
@@ -36,6 +43,10 @@ class StockValueProductLine {
   final double costValue;
   final StockValueLineStatus status;
 
+  /// The variant's expiry date, if it has one.
+  final DateTime? expiryDate;
+  final StockExpiryState expiryState;
+
   const StockValueProductLine({
     required this.variantId,
     required this.name,
@@ -48,7 +59,13 @@ class StockValueProductLine {
     required this.lineValue,
     this.costValue = 0,
     required this.status,
+    this.expiryDate,
+    this.expiryState = StockExpiryState.none,
   });
+
+  bool get hasExpiryAlert =>
+      expiryState == StockExpiryState.expired ||
+      expiryState == StockExpiryState.soon;
 }
 
 class StockValueTopItem {
@@ -122,6 +139,20 @@ class StockValueReportData {
   final int lowCount;
   final int criticalCount;
   final int outOfStockCount;
+
+  /// On-hand lines past their expiry date, and their value at retail.
+  final int expiredCount;
+  final double expiredValue;
+
+  /// On-hand lines expiring within [kStockExpiringSoonDays].
+  final int expiringSoonCount;
+
+  /// Whether any product carries an expiry date at all. Shops that do not
+  /// track expiry never see the expiry card, chips or column.
+  final bool tracksExpiry;
+
+  /// Expired then expiring-soon lines, soonest date first.
+  final List<StockValueProductLine> expiryAlerts;
   final List<StockValueProductLine> allProducts;
   final StockValueTopItem? topByLineValue;
   final List<StockValueLowItem> lowAndCriticalItems;
@@ -139,6 +170,11 @@ class StockValueReportData {
     this.lowCount = 0,
     this.criticalCount = 0,
     this.outOfStockCount = 0,
+    this.expiredCount = 0,
+    this.expiredValue = 0,
+    this.expiringSoonCount = 0,
+    this.tracksExpiry = false,
+    this.expiryAlerts = const [],
     required this.allProducts,
     this.topByLineValue,
     required this.lowAndCriticalItems,
@@ -258,14 +294,17 @@ String resolveStockValueCategory(
 ///
 /// [stockById] maps a variant's `stockId` to its raw `stocks` document.
 /// [categoryNames] maps category ids to names. Services are left out: they
-/// have no stock to value.
+/// have no stock to value. [now] is the clock expiry is judged against.
 StockValueReportData buildStockValueReport({
   required String branchId,
   required Iterable<Variant> variants,
   required Map<String, Map<String, dynamic>> stockById,
   Map<String, String> categoryNames = const {},
   bool isPossiblyIncomplete = false,
+  DateTime? now,
 }) {
+  final clock = (now ?? DateTime.now()).toUtc();
+  final soonLimit = clock.add(const Duration(days: kStockExpiringSoonDays));
   double totalValue = 0;
   double totalCostValue = 0;
   double marginValue = 0;
@@ -273,6 +312,11 @@ StockValueReportData buildStockValueReport({
   int lowCount = 0;
   int criticalCount = 0;
   int outCount = 0;
+  int expiredCount = 0;
+  double expiredValue = 0;
+  int expiringSoonCount = 0;
+  bool tracksExpiry = false;
+  final expiryAlerts = <StockValueProductLine>[];
   final lowCritical = <StockValueLowItem>[];
   final allLines = <StockValueProductLine>[];
   final categoryValue = <String, double>{};
@@ -318,21 +362,42 @@ StockValueReportData buildStockValueReport({
       status = StockValueLineStatus.ok;
     }
 
-    allLines.add(
-      StockValueProductLine(
-        variantId: v.id,
-        name: v.name,
-        categoryName: category,
-        bcd: v.bcd,
-        unitPrice: unitPrice,
-        supplyPrice: supplyPrice,
-        currentStock: currentStock,
-        minStock: minStock,
-        lineValue: value,
-        costValue: cost,
-        status: status,
-      ),
+    final expiryDate = v.expirationDate;
+    var expiryState = StockExpiryState.none;
+    if (expiryDate != null) {
+      tracksExpiry = true;
+      final at = expiryDate.toUtc();
+      if (currentStock <= 0) {
+        expiryState = StockExpiryState.ok;
+      } else if (!at.isAfter(clock)) {
+        expiryState = StockExpiryState.expired;
+        expiredCount += 1;
+        expiredValue += value;
+      } else if (!at.isAfter(soonLimit)) {
+        expiryState = StockExpiryState.soon;
+        expiringSoonCount += 1;
+      } else {
+        expiryState = StockExpiryState.ok;
+      }
+    }
+
+    final line = StockValueProductLine(
+      variantId: v.id,
+      name: v.name,
+      categoryName: category,
+      bcd: v.bcd,
+      unitPrice: unitPrice,
+      supplyPrice: supplyPrice,
+      currentStock: currentStock,
+      minStock: minStock,
+      lineValue: value,
+      costValue: cost,
+      status: status,
+      expiryDate: expiryDate,
+      expiryState: expiryState,
     );
+    allLines.add(line);
+    if (line.hasExpiryAlert) expiryAlerts.add(line);
 
     if (severity != null) {
       needsRestockCount += 1;
@@ -368,6 +433,8 @@ StockValueReportData buildStockValueReport({
     return a.currentStock.compareTo(b.currentStock);
   });
 
+  expiryAlerts.sort((a, b) => a.expiryDate!.compareTo(b.expiryDate!));
+
   final valueByCategory = categoryValue.entries.map((e) {
     final percent = totalValue <= 0 ? 0.0 : (e.value / totalValue);
     return StockValueCategoryBreakdown(
@@ -389,6 +456,11 @@ StockValueReportData buildStockValueReport({
     lowCount: lowCount,
     criticalCount: criticalCount,
     outOfStockCount: outCount,
+    expiredCount: expiredCount,
+    expiredValue: expiredValue,
+    expiringSoonCount: expiringSoonCount,
+    tracksExpiry: tracksExpiry,
+    expiryAlerts: expiryAlerts,
     allProducts: allLines,
     topByLineValue: top == null
         ? null
