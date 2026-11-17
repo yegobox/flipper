@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_models.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_providers.dart';
@@ -8,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../../helpers/accounting_unit_test_overrides.dart';
 import '../../../helpers/fake_accounting_ledger_repository.dart';
 
 /// A chart seeded before PAYE / RSSB Payable existed, with VAT owed.
@@ -26,22 +29,84 @@ final _oldChart = [
           : a,
 ];
 
+/// The current chart with [bal] posted to PAYE Payable.
+List<Account> _chartOwingPaye(int bal) => [
+  for (final a in defaultChartOfAccountsSeed)
+    a.code == '2310'
+        ? Account(
+            code: a.code,
+            name: a.name,
+            type: a.type,
+            sub: a.sub,
+            normal: a.normal,
+            bal: bal,
+          )
+        : a,
+];
+
+/// A ledger that honours the date range like the real repositories.
+class _DatedLedger extends FakeAccountingLedgerRepository {
+  _DatedLedger({required super.coa, this.dated = const {}})
+    : super(entries: dated.keys.toList());
+
+  final Map<JournalEntry, DateTime> dated;
+
+  @override
+  Stream<List<JournalEntry>> watchJournalEntries({
+    required String businessId,
+    DateTime? startDate,
+    DateTime? endDate,
+  }) => Stream.value([
+    for (final MapEntry(key: e, value: d) in dated.entries)
+      if ((startDate == null || !d.isBefore(startDate)) &&
+          (endDate == null || !d.isAfter(endDate)))
+        e,
+  ]);
+}
+
+JournalEntry _paye(String id, JournalStatus status, {int dr = 0, int cr = 0}) =>
+    JournalEntry(
+      id: id,
+      date: '',
+      memo: id,
+      ref: id,
+      status: status,
+      src: 'Manual',
+      lines: [
+        JournalLine(ac: '2310', dr: dr, cr: cr),
+        JournalLine(ac: '1010', dr: cr, cr: dr),
+      ],
+    );
+
 Future<FakeAccountingLedgerRepository> _pump(
   WidgetTester tester, {
   BooksVatPosition? position,
+  Future<BooksVatPosition?>? positionFuture,
+  List<Account>? accounts,
+  Map<JournalEntry, DateTime> dated = const {},
 }) async {
   tester.view.physicalSize = const Size(1400, 1000);
   tester.view.devicePixelRatio = 1.0;
   addTearDown(tester.view.reset);
-  final ledger = FakeAccountingLedgerRepository(coa: List.of(_oldChart));
+  final chart = accounts ?? _oldChart;
+  final ledger = _DatedLedger(coa: List.of(chart), dated: dated);
+  final now = DateTime.now();
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
+        ...accountingUnitTestOverrides(),
         accountingBusinessIdProvider.overrideWithValue('biz'),
         accountingCurrencyProvider.overrideWithValue('RWF'),
-        accountingAccountsProvider.overrideWithValue(_oldChart),
+        accountingCoaProvider.overrideWithValue(chart),
+        accountingAccountsProvider.overrideWithValue(chart),
+        // Books shows this month.
+        accountingDateRangeProvider.overrideWith(
+          (ref) => (DateTime(now.year, now.month), now),
+        ),
         accountingLedgerRepositoryProvider.overrideWithValue(ledger),
-        booksVatPositionProvider.overrideWith((ref) async => position),
+        booksVatPositionProvider.overrideWith(
+          (ref) => positionFuture ?? Future.value(position),
+        ),
       ],
       child: MaterialApp(
         localizationsDelegates: FlipperLocalizationDelegates.delegates,
@@ -59,20 +124,38 @@ Future<void> _openCategories(WidgetTester tester) async {
   await tester.pumpAndSettle();
 }
 
+Future<void> _choose(WidgetTester tester, String choice) async {
+  await _openCategories(tester);
+  await tester.tap(find.text(choice).last);
+  await tester.pumpAndSettle();
+}
+
+Future<void> _enterAmount(WidgetTester tester, String amount) async {
+  await tester.enterText(find.byType(TextField).first, amount);
+  await tester.pumpAndSettle();
+}
+
+Future<void> _submit(WidgetTester tester) async {
+  await tester.tap(find.text('Submit for approval'));
+  await tester.pumpAndSettle();
+}
+
 Future<List<JournalLine>> _pay(
   WidgetTester tester,
   FakeAccountingLedgerRepository ledger,
   String choice,
 ) async {
-  await _openCategories(tester);
-  await tester.tap(find.text(choice).last);
-  await tester.pumpAndSettle();
-  await tester.enterText(find.byType(TextField).first, '50000');
-  await tester.pumpAndSettle();
-  await tester.tap(find.text('Submit for approval'));
-  await tester.pumpAndSettle();
+  await _choose(tester, choice);
+  await _enterAmount(tester, '50000');
+  await _submit(tester);
   return ledger.entries.single.lines;
 }
+
+/// The memo field (the last text field; the amount is the first).
+Finder get _memoField => find.byType(TextField).last;
+
+String _memoText(WidgetTester tester) =>
+    tester.widget<TextField>(_memoField).controller!.text;
 
 int _dr(List<JournalLine> lines, String ac) =>
     lines.where((l) => l.ac == ac).fold(0, (s, l) => s + l.dr);
@@ -124,6 +207,125 @@ void main() {
       await _openCategories(tester);
       expect(find.text('VAT paid to RRA'), findsNothing);
       expect(find.text('PAYE paid to RRA'), findsWidgets);
+    });
+
+    testWidgets('VAT picked before the position loads is dropped once it '
+        'shows the business is not registered', (tester) async {
+      final position = Completer<BooksVatPosition?>();
+      final ledger = await _pump(tester, positionFuture: position.future);
+      await _choose(tester, 'VAT paid to RRA');
+      await _enterAmount(tester, '50000');
+      expect(_memoText(tester), 'VAT paid to RRA');
+      expect(find.text('Journal preview'), findsOneWidget);
+
+      position.complete(
+        const BooksVatPosition(
+          registered: false,
+          hasEbmBranch: false,
+          settingRegistered: false,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // The choice and the memo it filled in are gone, and nothing posts.
+      expect(_memoText(tester), isEmpty);
+      expect(find.text('Journal preview'), findsNothing);
+      await _submit(tester);
+      expect(ledger.entries, isEmpty);
+    });
+
+    testWidgets('RSSB adds Employer RSSB to an old chart and previews it', (
+      tester,
+    ) async {
+      final ledger = await _pump(tester);
+      await _choose(tester, 'RSSB contributions');
+      await _enterAmount(tester, '50000');
+      // The preview names the account the chart gets on submit.
+      expect(find.text('Employer RSSB Contributions'), findsOneWidget);
+      await _submit(tester);
+      expect(_dr(ledger.entries.single.lines, '6025'), 50000);
+      expect(ledger.lastCreatedAccount?.code, '6025');
+    });
+
+    testWidgets('a PAYE payment awaiting approval is not owed twice', (
+      tester,
+    ) async {
+      final ledger = await _pump(
+        tester,
+        accounts: _chartOwingPaye(80000),
+        dated: {
+          _paye('JE-1', JournalStatus.pending, dr: 60000): DateTime.now(),
+        },
+      );
+      await _choose(tester, 'PAYE paid to RRA');
+      // 80,000 owed, 60,000 of it already being paid.
+      expect(find.textContaining('RWF 20,000'), findsOneWidget);
+      await _enterAmount(tester, '50000');
+      await _submit(tester);
+      final lines = ledger.entries.last.lines;
+      expect(_dr(lines, '2310'), 20000);
+      expect(_dr(lines, '6020'), 30000);
+    });
+
+    testWidgets('a payment still pending from last month is not owed twice, '
+        'though Books shows this month', (tester) async {
+      final now = DateTime.now();
+      final lastMonth = DateTime(now.year, now.month - 1, 15);
+      final ledger = await _pump(
+        tester,
+        // The chart's opening is 0: what is owed comes from the ledger.
+        accounts: _chartOwingPaye(0),
+        dated: {
+          // Last month's payroll accrued 80,000 and 60,000 was paid but is
+          // still waiting for approval.
+          _paye('JE-accrual', JournalStatus.posted, cr: 80000): lastMonth,
+          _paye('JE-paid', JournalStatus.pending, dr: 60000): lastMonth,
+          // Dated after the payment: not owed yet.
+          _paye('JE-next', JournalStatus.posted, cr: 10000): now.add(
+            const Duration(days: 40),
+          ),
+        },
+      );
+      await _choose(tester, 'PAYE paid to RRA');
+      expect(find.textContaining('RWF 20,000'), findsOneWidget);
+      await _enterAmount(tester, '50000');
+      await _submit(tester);
+      final lines = ledger.entries.last.lines;
+      expect(_dr(lines, '2310'), 20000);
+      expect(_dr(lines, '6020'), 30000);
+    });
+  });
+
+  group('Record expense: memo', () {
+    testWidgets('a memo the user typed is kept when the choice changes', (
+      tester,
+    ) async {
+      final ledger = await _pump(tester);
+      await tester.enterText(_memoField, 'March PAYE');
+      await _choose(tester, 'PAYE paid to RRA');
+      expect(_memoText(tester), 'March PAYE');
+      await _enterAmount(tester, '50000');
+      await _submit(tester);
+      expect(ledger.entries.single.memo, 'March PAYE');
+    });
+
+    testWidgets('a cleared memo falls back to the payment name', (
+      tester,
+    ) async {
+      final ledger = await _pump(tester);
+      await _choose(tester, 'RSSB contributions');
+      await tester.enterText(_memoField, '');
+      await _enterAmount(tester, '50000');
+      await _submit(tester);
+      expect(ledger.entries.single.memo, 'RSSB contributions');
+    });
+
+    testWidgets('an ordinary expense with no memo', (tester) async {
+      final ledger = await _pump(tester);
+      await _enterAmount(tester, '12000');
+      await _submit(tester);
+      expect(ledger.entries.single.memo, 'Expense payment');
+      expect(_dr(ledger.entries.single.lines, '6000'), 12000);
     });
   });
 }

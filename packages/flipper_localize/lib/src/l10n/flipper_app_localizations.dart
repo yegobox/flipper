@@ -41354,7 +41354,7 @@ abstract class FlipperAppLocalizations {
   /// No description provided for @booksPayStatutoryHint.
   ///
   /// In en, this message translates to:
-  /// **'Clears what payroll says you owe ({owed}). Anything above that is recorded as a cost.'**
+  /// **'Clears what Books shows you owe ({owed}). Anything above that is recorded as a cost.'**
   String booksPayStatutoryHint(String owed);
 
   /// No description provided for @booksPaidVia.

@@ -25177,7 +25177,7 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
 
   @override
   String booksPayStatutoryHint(String owed) {
-    return 'Solde ce que la paie indique comme dû ($owed). Le surplus est enregistré comme une charge.';
+    return 'Solde ce que Books indique comme dû ($owed). Le surplus est enregistré comme une charge.';
   }
 
   @override

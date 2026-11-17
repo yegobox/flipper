@@ -8481,7 +8481,7 @@
   "booksPayPayeRra": "PAYE yishyuwe RRA",
   "booksPayRssb": "Imisanzu ya RSSB",
   "booksPayVatHint": "Bigabanya VAT mufitiye RRA. Si ikiguzi.",
-  "booksPayStatutoryHint": "Bishyura ibyo imishahara igaragaza ko mubereyemo ({owed}). Ibirenzeho byandikwa nk'ikiguzi.",
+  "booksPayStatutoryHint": "Bishyura ibyo Books igaragaza ko mubereyemo ({owed}). Ibirenzeho byandikwa nk'ikiguzi.",
   "booksPaidVia": "Byishyuwe hakoreshejwe",
   "booksMemoDescription": "Icyitonderwa / ibisobanuro",
   "booksExpenseMemoHint": "Ibi byakoreshejwe byari iby'iki?",

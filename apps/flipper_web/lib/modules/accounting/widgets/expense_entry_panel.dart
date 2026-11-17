@@ -27,6 +27,17 @@ const _statutoryValues = {
 /// Upper bound for showing what is owed (a negative balance shows as 0).
 const _owedCap = 1 << 52;
 
+/// What [statutoryOwed] reads: the chart's opening balances, every entry up
+/// to today and every entry waiting for approval.
+typedef _OwedLedger = ({
+  List<Account> chart,
+  List<JournalEntry> throughToday,
+  List<JournalEntry> pending,
+});
+
+/// For choices that never split by what is owed (expenses and VAT).
+const _OwedLedger _noLedger = (chart: [], throughToday: [], pending: []);
+
 String _statutoryValue(StatutoryPayment p) =>
     _statutoryValues.entries.firstWhere((e) => e.value == p).key;
 
@@ -91,25 +102,46 @@ class _ExpenseEntryPanelState extends ConsumerState<ExpenseEntryPanel> {
       int.tryParse(_amountCtrl.text.replaceAll(RegExp(r'[^\d]'), '')) ?? 0;
 
   bool get _canSubmit =>
-      _amount > 0 && _expenseCode != null && _expenseCode!.isNotEmpty;
+      _amount > 0 &&
+      _expenseCode != null &&
+      _expenseCode!.isNotEmpty &&
+      _choiceAvailable;
+
+  /// False when VAT is picked but the business turned out not to be
+  /// registered for VAT (the choice is no longer offered).
+  bool get _choiceAvailable =>
+      _statutory != StatutoryPayment.vat ||
+      ref.read(booksVatPositionProvider).value?.registered != false;
 
   /// The tax or RSSB payment picked, or null for an ordinary expense.
   StatutoryPayment? get _statutory => _statutoryValues[_expenseCode];
 
-  /// What the ledger shows owed on the liability [payment] settles.
+  /// PAYE and RSSB split by what is owed; VAT and expenses do not.
+  bool get _needsOwed =>
+      _statutory != null && _statutory != StatutoryPayment.vat;
+
+  /// What is owed on the liability [payment] settles, as of today and net of
+  /// payments still waiting for approval (see [statutoryOwed]). The preview
+  /// and the submitted entry both use it, so they always split the same way.
   static int _owed(
-    List<Account> accounts,
+    _OwedLedger ledger,
     ChartAccountResolver roles,
     StatutoryPayment payment,
-  ) {
-    final code = statutoryLiabilityCode(roles, payment);
-    for (final a in accounts) {
-      if (a.code == code) return a.bal;
-    }
-    return 0;
-  }
+  ) => statutoryOwed(
+    chart: ledger.chart,
+    throughPaymentDate: ledger.throughToday,
+    pending: ledger.pending,
+    liabilityCode: statutoryLiabilityCode(roles, payment),
+  );
 
-  List<JournalLine> _lines(List<Account> accounts) {
+  /// The ledger [_owed] needs, once both reads have loaded.
+  Future<_OwedLedger> _readLedger() async => (
+    chart: ref.read(accountingCoaProvider),
+    throughToday: await ref.read(journalEntriesThroughTodayProvider.future),
+    pending: await ref.read(pendingJournalEntriesProvider.future),
+  );
+
+  List<JournalLine> _lines(List<Account> accounts, _OwedLedger ledger) {
     final roles = ChartAccountResolver(accounts);
     final fundingCode = fundingCodeForPaymentMethod(roles, _paymentMethod);
     final statutory = _statutory;
@@ -125,7 +157,7 @@ class _ExpenseEntryPanelState extends ConsumerState<ExpenseEntryPanel> {
       roles: roles,
       fundingCode: fundingCode,
       amount: _amount,
-      owed: _owed(accounts, roles, statutory),
+      owed: _owed(ledger, roles, statutory),
     );
   }
 
@@ -168,7 +200,6 @@ class _ExpenseEntryPanelState extends ConsumerState<ExpenseEntryPanel> {
     setState(() => _isSubmitting = true);
 
     final accounts = ref.read(accountingAccountsProvider);
-    final lines = _lines(accounts);
     final refText = _nextEntryRef();
     final statutory = _statutory;
     final memo = _memoCtrl.text.trim().isNotEmpty
@@ -177,17 +208,20 @@ class _ExpenseEntryPanelState extends ConsumerState<ExpenseEntryPanel> {
         ? _statutoryLabel(statutory)
         : 'Expense payment';
 
-    final entry = JournalEntry(
-      id: refText,
-      date: _dateLabel,
-      memo: memo,
-      ref: refText,
-      status: JournalStatus.pending,
-      src: 'Manual',
-      lines: lines,
-    );
-
     try {
+      final lines = _lines(
+        accounts,
+        _needsOwed ? await _readLedger() : _noLedger,
+      );
+      final entry = JournalEntry(
+        id: refText,
+        date: _dateLabel,
+        memo: memo,
+        ref: refText,
+        status: JournalStatus.pending,
+        src: 'Manual',
+        lines: lines,
+      );
       final repo = ref.read(accountingLedgerRepositoryProvider);
       // A chart seeded before PAYE / RSSB Payable existed gets them now, so
       // no leg of the entry points at a missing account.
@@ -323,6 +357,23 @@ class _ExpenseEntryPanelState extends ConsumerState<ExpenseEntryPanel> {
     // an unknown position keeps it, as bills keep booking VAT to 2100.
     final vatRegistered =
         ref.watch(booksVatPositionProvider).value?.registered != false;
+    // VAT picked while the position was still loading, and the business
+    // turns out not to be registered: drop the choice, so no VAT entry is
+    // built from a choice the dropdown no longer offers.
+    ref.listen(booksVatPositionProvider, (_, next) {
+      if (next.value?.registered == false &&
+          _statutory == StatutoryPayment.vat) {
+        _select(null);
+      }
+    });
+    final _OwedLedger ledger = _needsOwed
+        ? (
+            chart: ref.watch(accountingCoaProvider),
+            throughToday:
+                ref.watch(journalEntriesThroughTodayProvider).value ?? const [],
+            pending: ref.watch(pendingJournalEntriesProvider).value ?? const [],
+          )
+        : _noLedger;
     final statutoryChoices = [
       if (vatRegistered) StatutoryPayment.vat,
       StatutoryPayment.paye,
@@ -331,7 +382,10 @@ class _ExpenseEntryPanelState extends ConsumerState<ExpenseEntryPanel> {
     final statutory = _statutory;
     final owed = statutory == null
         ? 0
-        : _owed(accounts, roles, statutory).clamp(0, _owedCap);
+        : _owed(ledger, roles, statutory).clamp(0, _owedCap);
+    final previewLines = _canSubmit
+        ? _lines(accounts, ledger)
+        : const <JournalLine>[];
 
     final dropdownValue =
         _expenseCode != null &&
@@ -545,12 +599,12 @@ class _ExpenseEntryPanelState extends ConsumerState<ExpenseEntryPanel> {
                 if (_canSubmit) ...[
                   const SizedBox(height: 20),
                   _PostPreview(
-                    lines: _lines(accounts),
+                    lines: previewLines,
                     amount: _amount,
                     accountMap: {
                       for (final a in accounts) a.code: a,
                       // Accounts the chart gets when this entry is submitted.
-                      for (final l in _lines(accounts))
+                      for (final l in previewLines)
                         if (!accounts.any((a) => a.code == l.ac))
                           if (seedAccount(l.ac) case final seeded?)
                             l.ac: seeded,

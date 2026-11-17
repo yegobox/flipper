@@ -24776,7 +24776,7 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
 
   @override
   String booksPayStatutoryHint(String owed) {
-    return 'Clears what payroll says you owe ($owed). Anything above that is recorded as a cost.';
+    return 'Clears what Books shows you owe ($owed). Anything above that is recorded as a cost.';
   }
 
   @override
