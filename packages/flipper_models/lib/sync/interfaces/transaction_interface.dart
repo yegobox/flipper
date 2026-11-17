@@ -60,6 +60,9 @@ abstract class TransactionInterface {
     bool forceRealData = true,
   });
 
+  /// With [rethrowErrors], a store that is not ready or a failed setup is
+  /// an error on the stream instead of an empty list, so a caller can tell
+  /// "could not read" from "no transactions".
   Stream<List<ITransaction>> transactionsStream({
     String? status,
     String? transactionType,
@@ -75,6 +78,7 @@ abstract class TransactionInterface {
     bool includeParked = false,
     required bool skipOriginalTransactionCheck,
     bool includeZeroSubTotal = false,
+    bool rethrowErrors = false,
   });
 
   /// WAITING + PARKED + IN_PROGRESS for the POS tickets screen (single observer).

@@ -1,3 +1,4 @@
+import 'dart:async' show TimeoutException;
 import 'dart:math' show min;
 
 import 'package:flipper_models/helpers/cash_movement_rules.dart';
@@ -141,6 +142,7 @@ Stream<List<ITransaction>> coreTransactionsStream(
   required String branchId,
   bool forceRealData = true,
   bool includeParked = false,
+  bool rethrowErrors = false,
 }) {
   talker.debug(
     'coreTransactionsStream: $startDate → $endDate  branch=$branchId '
@@ -156,6 +158,7 @@ Stream<List<ITransaction>> coreTransactionsStream(
     includeParked: includeParked,
     // isCashOut intentionally omitted → returns both income and expense.
     forceRealData: forceRealData,
+    rethrowErrors: rethrowErrors,
   );
 }
 
@@ -1072,6 +1075,59 @@ DateTime dashboardPreviousPeriodStart(String period) {
   return DateTime(current.year - 1, current.month, d);
 }
 
+/// The previous-period gauge read before the store was up, or timed out.
+///
+/// An `Exception` (not an `Error`), so Riverpod retries the provider.
+class DashboardPreviousPeriodUnavailable implements Exception {
+  const DashboardPreviousPeriodUnavailable(this.reason);
+
+  final String reason;
+
+  @override
+  String toString() => 'DashboardPreviousPeriodUnavailable: $reason';
+}
+
+/// The previous window's transactions, read once from [read].
+///
+/// Fails instead of answering empty when the store is not up yet, the read
+/// fails (pass a `rethrowErrors` read, or `transactionsStream` swallows the
+/// failure as `[]`), or no result arrives in [timeout]. An empty answer
+/// would be cached as a zero baseline that looks like a period with no
+/// sales; a failure leaves the comparison out and the provider retries (see
+/// [dashboardPreviousGaugeRetry]). A successful empty read is still `[]`.
+/// The timeout sits on the stream, so `.first` cancels the observer when it
+/// fires.
+Future<List<ITransaction>> dashboardPreviousPeriodTransactions({
+  required bool storeReady,
+  required Stream<List<ITransaction>> Function() read,
+  Duration timeout = const Duration(seconds: 10),
+}) async {
+  if (!storeReady) {
+    throw const DashboardPreviousPeriodUnavailable('store not ready');
+  }
+  try {
+    return await read().timeout(timeout).first;
+  } on TimeoutException {
+    throw const DashboardPreviousPeriodUnavailable('timed out');
+  } catch (e) {
+    // `.first` on a stream that closed empty is a StateError; anything else
+    // is the read failing. Both are retried, so neither may be an `Error`.
+    throw DashboardPreviousPeriodUnavailable('read failed: $e');
+  }
+}
+
+/// Retry for the previous-period gauge: while the read is unavailable it
+/// keeps trying (2, 4, 8, 16, 32 s, then once a minute) for as long as the
+/// dashboard watches it, so the comparison appears once Ditto is up without a
+/// pull-to-refresh. Riverpod's default gives up after 10 tries (~40 s).
+/// Other errors keep the default policy.
+Duration? dashboardPreviousGaugeRetry(int retryCount, Object error) {
+  if (error is DashboardPreviousPeriodUnavailable) {
+    return Duration(seconds: retryCount >= 5 ? 60 : 2 << retryCount);
+  }
+  return ProviderContainer.defaultRetry(retryCount, error);
+}
+
 /// Gauge snapshot for the window before [period], read once.
 ///
 /// That window has already closed, so it is computed once instead of keeping
@@ -1089,26 +1145,17 @@ final dashboardPreviousGaugeSnapshotProvider = StreamProvider.autoDispose
       }
 
       Future<DashboardGaugeSnapshot> load() async {
-        // The timeout sits on the stream, so when it fires the stream closes
-        // and `.first` cancels the observer instead of leaving it subscribed.
-        List<ITransaction> all;
-        try {
-          all =
-              await coreTransactionsStream(
-                    ref,
-                    startDate: prevStart,
-                    endDate: prevEnd,
-                    branchId: branchId,
-                    forceRealData: true,
-                  )
-                  .timeout(
-                    const Duration(seconds: 10),
-                    onTimeout: (sink) => sink.close(),
-                  )
-                  .first;
-        } on StateError {
-          all = const <ITransaction>[]; // timed out before the first result
-        }
+        final all = await dashboardPreviousPeriodTransactions(
+          storeReady: DittoService.instance.dittoInstance != null,
+          read: () => coreTransactionsStream(
+            ref,
+            startDate: prevStart,
+            endDate: prevEnd,
+            branchId: branchId,
+            forceRealData: true,
+            rethrowErrors: true,
+          ),
+        );
         final sales = dashboardGaugeSales(all);
         var items = const <TransactionItem>[];
         if (sales.isNotEmpty) {
@@ -1133,7 +1180,7 @@ final dashboardPreviousGaugeSnapshotProvider = StreamProvider.autoDispose
       }
 
       return Stream.fromFuture(load());
-    });
+    }, retry: dashboardPreviousGaugeRetry);
 
 /// A hotel booking-advance movement (received, applied or refunded): money
 /// owed to a guest, kept out of revenue, expenses and profit.
