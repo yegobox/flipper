@@ -1,3 +1,4 @@
+import 'package:flipper_accounting/statutory_accounts.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_models.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_providers.dart';
@@ -14,6 +15,31 @@ import 'package:intl/intl.dart';
 
 /// Sentinel value for the "add expense account" dropdown option.
 const _addExpenseAccountValue = '__add_expense_account__';
+
+/// Dropdown values for payments to RRA and RSSB (not expense account codes).
+const _statutoryValues = {
+  '__pay_vat__': StatutoryPayment.vat,
+  '__pay_paye__': StatutoryPayment.paye,
+  '__pay_rssb__': StatutoryPayment.rssb,
+};
+
+/// The dropdown value for [p].
+/// Upper bound for showing what is owed (a negative balance shows as 0).
+const _owedCap = 1 << 52;
+
+/// What [statutoryOwed] reads: the chart's opening balances, every entry up
+/// to today and every entry waiting for approval.
+typedef _OwedLedger = ({
+  List<Account> chart,
+  List<JournalEntry> throughToday,
+  List<JournalEntry> pending,
+});
+
+/// For choices that never split by what is owed (expenses and VAT).
+const _OwedLedger _noLedger = (chart: [], throughToday: [], pending: []);
+
+String _statutoryValue(StatutoryPayment p) =>
+    _statutoryValues.entries.firstWhere((e) => e.value == p).key;
 
 final expenseUiProvider = StateProvider<bool>((ref) => false);
 
@@ -40,6 +66,10 @@ class _ExpenseEntryPanelState extends ConsumerState<ExpenseEntryPanel> {
   bool _submitted = false;
   bool _defaultCategorySet = false;
   bool _isSubmitting = false;
+
+  /// The memo this panel filled in for a tax or RSSB payment; replaced when
+  /// the choice changes, but never once the user typed their own.
+  String? _autoMemo;
 
   @override
   void initState() {
@@ -72,7 +102,84 @@ class _ExpenseEntryPanelState extends ConsumerState<ExpenseEntryPanel> {
       int.tryParse(_amountCtrl.text.replaceAll(RegExp(r'[^\d]'), '')) ?? 0;
 
   bool get _canSubmit =>
-      _amount > 0 && _expenseCode != null && _expenseCode!.isNotEmpty;
+      _amount > 0 &&
+      _expenseCode != null &&
+      _expenseCode!.isNotEmpty &&
+      _choiceAvailable;
+
+  /// False when VAT is picked but the business turned out not to be
+  /// registered for VAT (the choice is no longer offered).
+  bool get _choiceAvailable =>
+      _statutory != StatutoryPayment.vat ||
+      ref.read(booksVatPositionProvider).value?.registered != false;
+
+  /// The tax or RSSB payment picked, or null for an ordinary expense.
+  StatutoryPayment? get _statutory => _statutoryValues[_expenseCode];
+
+  /// PAYE and RSSB split by what is owed; VAT and expenses do not.
+  bool get _needsOwed =>
+      _statutory != null && _statutory != StatutoryPayment.vat;
+
+  /// What is owed on the liability [payment] settles, as of today and net of
+  /// payments still waiting for approval (see [statutoryOwed]). The preview
+  /// and the submitted entry both use it, so they always split the same way.
+  static int _owed(
+    _OwedLedger ledger,
+    ChartAccountResolver roles,
+    StatutoryPayment payment,
+  ) => statutoryOwed(
+    chart: ledger.chart,
+    throughPaymentDate: ledger.throughToday,
+    pending: ledger.pending,
+    liabilityCode: statutoryLiabilityCode(roles, payment),
+  );
+
+  /// The ledger [_owed] needs, once both reads have loaded.
+  Future<_OwedLedger> _readLedger() async => (
+    chart: ref.read(accountingCoaProvider),
+    throughToday: await ref.read(journalEntriesThroughTodayProvider.future),
+    pending: await ref.read(pendingJournalEntriesProvider.future),
+  );
+
+  List<JournalLine> _lines(List<Account> accounts, _OwedLedger ledger) {
+    final roles = ChartAccountResolver(accounts);
+    final fundingCode = fundingCodeForPaymentMethod(roles, _paymentMethod);
+    final statutory = _statutory;
+    if (statutory == null) {
+      return buildExpenseJournalLines(
+        expenseCode: _expenseCode!,
+        fundingCode: fundingCode,
+        amount: _amount,
+      );
+    }
+    return buildStatutoryPaymentLines(
+      payment: statutory,
+      roles: roles,
+      fundingCode: fundingCode,
+      amount: _amount,
+      owed: _owed(ledger, roles, statutory),
+    );
+  }
+
+  String _statutoryLabel(StatutoryPayment p) {
+    final l10n = context.flipperL10n;
+    return switch (p) {
+      StatutoryPayment.vat => l10n.booksPayVatRra,
+      StatutoryPayment.paye => l10n.booksPayPayeRra,
+      StatutoryPayment.rssb => l10n.booksPayRssb,
+    };
+  }
+
+  void _select(String? value) {
+    setState(() {
+      _expenseCode = value;
+      final statutory = _statutory;
+      final memo = _memoCtrl.text.trim();
+      if (memo.isNotEmpty && memo != _autoMemo) return;
+      _autoMemo = statutory == null ? null : _statutoryLabel(statutory);
+      _memoCtrl.text = _autoMemo ?? '';
+    });
+  }
 
   void _openAddExpenseAccount() {
     final accounts = ref.read(accountingAccountsProvider);
@@ -93,35 +200,42 @@ class _ExpenseEntryPanelState extends ConsumerState<ExpenseEntryPanel> {
     setState(() => _isSubmitting = true);
 
     final accounts = ref.read(accountingAccountsProvider);
-    final roles = ChartAccountResolver(accounts);
-    final fundingCode = fundingCodeForPaymentMethod(roles, _paymentMethod);
     final refText = _nextEntryRef();
-    final memo = _memoCtrl.text.trim().isEmpty
-        ? 'Expense payment'
-        : _memoCtrl.text.trim();
-
-    final entry = JournalEntry(
-      id: refText,
-      date: _dateLabel,
-      memo: memo,
-      ref: refText,
-      status: JournalStatus.pending,
-      src: 'Manual',
-      lines: buildExpenseJournalLines(
-        expenseCode: _expenseCode!,
-        fundingCode: fundingCode,
-        amount: _amount,
-      ),
-    );
+    final statutory = _statutory;
+    final memo = _memoCtrl.text.trim().isNotEmpty
+        ? _memoCtrl.text.trim()
+        : statutory != null
+        ? _statutoryLabel(statutory)
+        : 'Expense payment';
 
     try {
-      await ref
-          .read(accountingLedgerRepositoryProvider)
-          .createJournalEntry(
-            businessId: businessId,
-            entry: entry,
-            journalCode: 'misc',
-          );
+      final lines = _lines(
+        accounts,
+        _needsOwed ? await _readLedger() : _noLedger,
+      );
+      final entry = JournalEntry(
+        id: refText,
+        date: _dateLabel,
+        memo: memo,
+        ref: refText,
+        status: JournalStatus.pending,
+        src: 'Manual',
+        lines: lines,
+      );
+      final repo = ref.read(accountingLedgerRepositoryProvider);
+      // A chart seeded before PAYE / RSSB Payable existed gets them now, so
+      // no leg of the entry points at a missing account.
+      await ensureChartAccounts(
+        repo,
+        businessId: businessId,
+        codes: lines.map((l) => l.ac),
+        existingCodes: {for (final a in accounts) a.code},
+      );
+      await repo.createJournalEntry(
+        businessId: businessId,
+        entry: entry,
+        journalCode: 'misc',
+      );
 
       if (mounted) {
         setState(() {
@@ -239,11 +353,45 @@ class _ExpenseEntryPanelState extends ConsumerState<ExpenseEntryPanel> {
     final roles = ChartAccountResolver(accounts);
     final categories = roles.expenseCategories;
     final currency = ref.watch(accountingCurrencyProvider);
+    // Only a business known not to be VAT-registered loses the VAT choice;
+    // an unknown position keeps it, as bills keep booking VAT to 2100.
+    final vatRegistered =
+        ref.watch(booksVatPositionProvider).value?.registered != false;
+    // VAT picked while the position was still loading, and the business
+    // turns out not to be registered: drop the choice, so no VAT entry is
+    // built from a choice the dropdown no longer offers.
+    ref.listen(booksVatPositionProvider, (_, next) {
+      if (next.value?.registered == false &&
+          _statutory == StatutoryPayment.vat) {
+        _select(null);
+      }
+    });
+    final _OwedLedger ledger = _needsOwed
+        ? (
+            chart: ref.watch(accountingCoaProvider),
+            throughToday:
+                ref.watch(journalEntriesThroughTodayProvider).value ?? const [],
+            pending: ref.watch(pendingJournalEntriesProvider).value ?? const [],
+          )
+        : _noLedger;
+    final statutoryChoices = [
+      if (vatRegistered) StatutoryPayment.vat,
+      StatutoryPayment.paye,
+      StatutoryPayment.rssb,
+    ];
+    final statutory = _statutory;
+    final owed = statutory == null
+        ? 0
+        : _owed(ledger, roles, statutory).clamp(0, _owedCap);
+    final previewLines = _canSubmit
+        ? _lines(accounts, ledger)
+        : const <JournalLine>[];
 
     final dropdownValue =
         _expenseCode != null &&
             (categories.any((a) => a.code == _expenseCode) ||
-                accounts.any((a) => a.code == _expenseCode))
+                accounts.any((a) => a.code == _expenseCode) ||
+                (statutory != null && statutoryChoices.contains(statutory)))
         ? _expenseCode
         : null;
 
@@ -354,15 +502,49 @@ class _ExpenseEntryPanelState extends ConsumerState<ExpenseEntryPanel> {
                       value: _addExpenseAccountValue,
                       child: Text(l10n.booksAddExpenseAccount),
                     ),
+                    DropdownMenuItem(
+                      enabled: false,
+                      child: Text(
+                        l10n.booksTaxesAndRssb.toUpperCase(),
+                        style: AccountingTokens.sans(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w700,
+                          color: AccountingTokens.ink3,
+                          letterSpacing: 0.06 * 11.5,
+                        ),
+                      ),
+                    ),
+                    for (final p in statutoryChoices)
+                      DropdownMenuItem(
+                        value: _statutoryValue(p),
+                        child: Text(
+                          _statutoryLabel(p),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
                   ],
                   onChanged: (v) {
                     if (v == _addExpenseAccountValue) {
                       _openAddExpenseAccount();
                       return;
                     }
-                    setState(() => _expenseCode = v);
+                    _select(v);
                   },
                 ),
+                if (statutory != null) ...[
+                  const SizedBox(height: 7),
+                  Text(
+                    statutory == StatutoryPayment.vat
+                        ? l10n.booksPayVatHint
+                        : l10n.booksPayStatutoryHint(
+                            '$currency ${NumberFormat('#,###').format(owed)}',
+                          ),
+                    style: AccountingTokens.sans(
+                      fontSize: 12.5,
+                      color: AccountingTokens.ink3,
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 16),
                 Text(l10n.amount, style: _fieldLabel),
                 const SizedBox(height: 7),
@@ -417,13 +599,16 @@ class _ExpenseEntryPanelState extends ConsumerState<ExpenseEntryPanel> {
                 if (_canSubmit) ...[
                   const SizedBox(height: 20),
                   _PostPreview(
-                    expenseCode: _expenseCode!,
-                    fundingCode: fundingCodeForPaymentMethod(
-                      roles,
-                      _paymentMethod,
-                    ),
+                    lines: previewLines,
                     amount: _amount,
-                    accountMap: {for (final a in accounts) a.code: a},
+                    accountMap: {
+                      for (final a in accounts) a.code: a,
+                      // Accounts the chart gets when this entry is submitted.
+                      for (final l in previewLines)
+                        if (!accounts.any((a) => a.code == l.ac))
+                          if (seedAccount(l.ac) case final seeded?)
+                            l.ac: seeded,
+                    },
                     currency: currency,
                   ),
                 ],
@@ -500,15 +685,13 @@ final _fieldLabel = AccountingTokens.sans(
 
 class _PostPreview extends StatelessWidget {
   const _PostPreview({
-    required this.expenseCode,
-    required this.fundingCode,
+    required this.lines,
     required this.amount,
     required this.accountMap,
     required this.currency,
   });
 
-  final String expenseCode;
-  final String fundingCode;
+  final List<JournalLine> lines;
   final int amount;
   final Map<String, Account> accountMap;
   final String currency;
@@ -535,18 +718,15 @@ class _PostPreview extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-          _PreviewLine(
-            side: context.flipperL10n.booksDrShort,
-            name: accountMap[expenseCode]?.name ?? expenseCode,
-            amount: amount,
-            isDebit: true,
-          ),
-          _PreviewLine(
-            side: context.flipperL10n.booksCrShort,
-            name: accountMap[fundingCode]?.name ?? fundingCode,
-            amount: amount,
-            isDebit: false,
-          ),
+          for (final line in lines)
+            _PreviewLine(
+              side: line.dr > 0
+                  ? context.flipperL10n.booksDrShort
+                  : context.flipperL10n.booksCrShort,
+              name: accountMap[line.ac]?.name ?? line.ac,
+              amount: line.dr > 0 ? line.dr : line.cr,
+              isDebit: line.dr > 0,
+            ),
           const SizedBox(height: 6),
           Text(
             context.flipperL10n.booksBalancedAmount(

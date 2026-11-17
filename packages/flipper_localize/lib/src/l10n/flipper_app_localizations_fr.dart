@@ -25160,6 +25160,27 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   String get booksAddExpenseAccount => '+ Ajouter un compte de charge';
 
   @override
+  String get booksTaxesAndRssb => 'Impôts et RSSB';
+
+  @override
+  String get booksPayVatRra => 'TVA payée à la RRA';
+
+  @override
+  String get booksPayPayeRra => 'IPR payé à la RRA';
+
+  @override
+  String get booksPayRssb => 'Cotisations RSSB';
+
+  @override
+  String get booksPayVatHint =>
+      'Réduit la TVA due à la RRA. Ce n\'est pas une dépense.';
+
+  @override
+  String booksPayStatutoryHint(String owed) {
+    return 'Solde ce que Books indique comme dû ($owed). Le surplus est enregistré comme une charge.';
+  }
+
+  @override
   String get booksPaidVia => 'Payé via';
 
   @override

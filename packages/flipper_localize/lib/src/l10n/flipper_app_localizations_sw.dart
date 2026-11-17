@@ -24921,6 +24921,26 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   String get booksAddExpenseAccount => '+ Ongeza akaunti ya matumizi';
 
   @override
+  String get booksTaxesAndRssb => 'Kodi na RSSB';
+
+  @override
+  String get booksPayVatRra => 'VAT iliyolipwa RRA';
+
+  @override
+  String get booksPayPayeRra => 'PAYE iliyolipwa RRA';
+
+  @override
+  String get booksPayRssb => 'Michango ya RSSB';
+
+  @override
+  String get booksPayVatHint => 'Inapunguza VAT unayodaiwa na RRA. Si gharama.';
+
+  @override
+  String booksPayStatutoryHint(String owed) {
+    return 'Inalipa kile Books inaonyesha unadaiwa ($owed). Ziada inarekodiwa kama gharama.';
+  }
+
+  @override
   String get booksPaidVia => 'Imelipwa kupitia';
 
   @override

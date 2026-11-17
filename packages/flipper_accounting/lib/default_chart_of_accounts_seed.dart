@@ -1,17 +1,22 @@
 import 'package:flipper_accounting/accounting_models.dart';
 
 /// Zero-balance COA templates used for seeding and tests only — not runtime demo data.
+// One account per line reads as a table; keep it that way.
+// dart format off
 const defaultChartOfAccountsSeed = <Account>[
   Account(code: '1010', name: 'Cash on Hand', type: AccountType.asset, sub: 'Current assets', normal: AccountNormal.debit, bal: 0),
   Account(code: '1020', name: 'Bank', type: AccountType.asset, sub: 'Current assets', normal: AccountNormal.debit, bal: 0),
   Account(code: '1030', name: 'Mobile Money (MoMo)', type: AccountType.asset, sub: 'Current assets', normal: AccountNormal.debit, bal: 0),
   Account(code: '1100', name: 'Accounts Receivable', type: AccountType.asset, sub: 'Current assets', normal: AccountNormal.debit, bal: 0),
+  Account(code: '1150', name: 'Staff Advances', type: AccountType.asset, sub: 'Current assets', normal: AccountNormal.debit, bal: 0),
   Account(code: '1200', name: 'Inventory', type: AccountType.asset, sub: 'Current assets', normal: AccountNormal.debit, bal: 0),
   Account(code: '1500', name: 'Equipment & Fixtures', type: AccountType.asset, sub: 'Fixed assets', normal: AccountNormal.debit, bal: 0),
   Account(code: '1510', name: 'Accumulated Depreciation', type: AccountType.asset, sub: 'Fixed assets', normal: AccountNormal.credit, bal: 0, contra: true),
   Account(code: '2010', name: 'Accounts Payable', type: AccountType.liability, sub: 'Current liabilities', normal: AccountNormal.credit, bal: 0),
   Account(code: '2100', name: 'VAT Payable', type: AccountType.liability, sub: 'Current liabilities', normal: AccountNormal.credit, bal: 0),
   Account(code: '2300', name: 'Wages Payable', type: AccountType.liability, sub: 'Current liabilities', normal: AccountNormal.credit, bal: 0),
+  Account(code: '2310', name: 'PAYE Payable', type: AccountType.liability, sub: 'Current liabilities', normal: AccountNormal.credit, bal: 0),
+  Account(code: '2320', name: 'RSSB Payable', type: AccountType.liability, sub: 'Current liabilities', normal: AccountNormal.credit, bal: 0),
   Account(code: '2200', name: 'Bank Loan', type: AccountType.liability, sub: 'Long-term liabilities', normal: AccountNormal.credit, bal: 0),
   Account(code: '3010', name: "Owner's Capital", type: AccountType.equity, sub: 'Equity', normal: AccountNormal.credit, bal: 0),
   Account(code: '3020', name: 'Retained Earnings', type: AccountType.equity, sub: 'Equity', normal: AccountNormal.credit, bal: 0, note: 'Opening'),
@@ -22,8 +27,10 @@ const defaultChartOfAccountsSeed = <Account>[
   Account(code: '6000', name: 'Operating Expenses', type: AccountType.expense, sub: 'Operating expenses', normal: AccountNormal.debit, bal: 0),
   Account(code: '6010', name: 'Rent', type: AccountType.expense, sub: 'Operating expenses', normal: AccountNormal.debit, bal: 0),
   Account(code: '6020', name: 'Salaries & Wages', type: AccountType.expense, sub: 'Operating expenses', normal: AccountNormal.debit, bal: 0),
+  Account(code: '6025', name: 'Employer RSSB Contributions', type: AccountType.expense, sub: 'Operating expenses', normal: AccountNormal.debit, bal: 0),
   Account(code: '6030', name: 'Utilities', type: AccountType.expense, sub: 'Operating expenses', normal: AccountNormal.debit, bal: 0),
   Account(code: '6040', name: 'Transport', type: AccountType.expense, sub: 'Operating expenses', normal: AccountNormal.debit, bal: 0),
   Account(code: '6050', name: 'Marketing', type: AccountType.expense, sub: 'Operating expenses', normal: AccountNormal.debit, bal: 0),
   Account(code: '6900', name: 'Depreciation Expense', type: AccountType.expense, sub: 'Operating expenses', normal: AccountNormal.debit, bal: 0),
 ];
+// dart format on
