@@ -16858,6 +16858,24 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   String get reportTitleReport => 'Ripoti';
 
   @override
+  String get reportLargePdfTitle => 'Ripoti kubwa';
+
+  @override
+  String reportLargePdfBody(String count) {
+    return 'Ripoti hii ina mistari $count. PDF kubwa hivi inaweza kuchukua muda mrefu kutengenezwa, na programu inaweza kuacha kujibu hadi imalize. Ihamishe kama Excel badala yake?';
+  }
+
+  @override
+  String get reportLargePdfUseExcel => 'Hamisha Excel';
+
+  @override
+  String get reportLargePdfAnyway => 'PDF hata hivyo';
+
+  @override
+  String get reportExportChanged =>
+      'Ripoti ilibadilika ulipokuwa ukichagua. Ihamishe tena ili kujumuisha mistari yote.';
+
+  @override
   String get reportTitleStockRecount => 'Kuhesabu Upya Stoku';
 
   @override

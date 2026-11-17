@@ -426,6 +426,14 @@ class _HotelModeAdminSectionState extends State<HotelModeAdminSection> {
                                 color: HotelTokens.ink4,
                               ),
                             )
+                          : _inkingFor != null &&
+                                _inkingFor == _documents.stampImageBase64
+                          ? const SizedBox(
+                              key: Key('hotelStampInking'),
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
                           : Padding(
                               padding: const EdgeInsets.all(6),
                               child: Image.memory(
@@ -590,15 +598,36 @@ class _HotelModeAdminSectionState extends State<HotelModeAdminSection> {
     );
   }
 
+  /// The stamp (encoded) being processed off the UI isolate, if any.
+  String? _inkingFor;
+
   Uint8List? _decodedStamp() {
     final encoded = _documents.stampImageBase64;
     if (encoded == null || encoded.isEmpty) return null;
     try {
-      // Preview what will print, not the raw photo.
-      return inkifyStamp(base64Decode(encoded));
+      // Preview what will print, not the raw photo. Processing a phone photo
+      // takes seconds, so it runs off the UI isolate; until it is done the
+      // preview box shows a spinner (the rest of the card already knows a
+      // stamp exists).
+      final raw = base64Decode(encoded);
+      final ready = cachedInkifiedStamp(raw);
+      if (ready != null) return ready;
+      _inkifyOffUi(encoded, raw);
+      return raw;
     } catch (_) {
       return null;
     }
+  }
+
+  void _inkifyOffUi(String encoded, Uint8List raw) {
+    if (_inkingFor == encoded) return;
+    _inkingFor = encoded;
+    inkifyStampInBackground(raw).whenComplete(() {
+      if (!mounted) return;
+      setState(() {
+        if (_inkingFor == encoded) _inkingFor = null;
+      });
+    });
   }
 
   Future<void> _pickStamp() async {

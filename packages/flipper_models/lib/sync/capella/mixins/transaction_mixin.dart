@@ -216,6 +216,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     bool includeParked = false,
     required bool skipOriginalTransactionCheck,
     bool includeZeroSubTotal = false,
+    bool rethrowErrors = false,
   }) {
     if (!forceRealData) {
       return Stream.value(
@@ -232,6 +233,9 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       final ditto = dittoService.dittoInstance;
       if (ditto == null) {
         talker.error('Ditto not initialized:13');
+        if (rethrowErrors) {
+          return Stream.error(StateError('Ditto not initialized'));
+        }
         return Stream.value([]);
       }
 
@@ -434,8 +438,9 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       };
 
       return controller.stream;
-    } catch (e) {
+    } catch (e, s) {
       talker.error('Error in transactionsStream: $e');
+      if (rethrowErrors) return Stream.error(e, s);
       return Stream.value([]);
     }
   }
