@@ -16871,6 +16871,24 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   String get reportTitleReport => 'Raporo';
 
   @override
+  String get reportLargePdfTitle => 'Raporo nini';
+
+  @override
+  String reportLargePdfBody(String count) {
+    return 'Iyi raporo ifite imirongo $count. PDF ingana gutya ishobora gutinda gukorwa, kandi porogaramu ishobora guhagarara kugeza irangiye. Ese uyohereze nka Excel aho?';
+  }
+
+  @override
+  String get reportLargePdfUseExcel => 'Ohereza Excel';
+
+  @override
+  String get reportLargePdfAnyway => 'PDF uko byagenda kose';
+
+  @override
+  String get reportExportChanged =>
+      'Raporo yahindutse mu gihe wahitagamo. Ongera uyohereze kugira ngo imirongo yose ijyemo.';
+
+  @override
   String get reportTitleStockRecount => 'Kongera kubara stock';
 
   @override

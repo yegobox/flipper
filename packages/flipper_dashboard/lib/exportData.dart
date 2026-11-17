@@ -22,7 +22,11 @@ import 'package:flipper_dashboard/export/models/expense.dart';
 import 'package:flipper_dashboard/export/models/payment_summary.dart';
 import 'package:flipper_dashboard/export/utils/excel_utils.dart';
 import 'package:flipper_dashboard/export/utils/plu_excel_formula_builder.dart';
-import 'package:flipper_dashboard/features/config/widgets/currency_options.dart';
+import 'package:flipper_dashboard/export/report_export_config.dart';
+import 'package:flipper_dashboard/export/large_pdf_export_prompt.dart';
+
+// Moved out of this file; re-exported so existing importers keep working.
+export 'package:flipper_dashboard/export/report_export_config.dart';
 
 /// PLU line amounts in Excel (manual export + footer sums); keep in sync with [ManualNumericStyle].
 const String _excelPluAmountNumberFormat = '#,##0.00';
@@ -191,6 +195,9 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     bool staticPluLineValues = false,
   }) async {
     String? filePath;
+    // Read before any await: `ref` is unusable once the user leaves the
+    // report. The provider is app-wide, so the notifier outlives the widget.
+    final processing = ref.read(isProcessingProvider.notifier);
     try {
       print(
         '📊 EXPORT: Starting exportDataGrid with ${config.transactions.length} transactions',
@@ -290,12 +297,41 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       );
 
       print('📊 EXPORT: Config updated, fetching business info...');
+      // A very large PDF freezes the app (see kLargePdfExportRowLimit), so
+      // offer Excel first. No grid (headless export) means no count: no ask.
+      var asPdf = ProxyService.box.exportAsPdf();
+      final gridSource = workBookKey.currentState?.widget.source;
+      final gridRowCount = gridSource?.effectiveRows.length;
+      var prompted = false;
+      if (mounted &&
+          shouldOfferExcelForPdf(asPdf: asPdf, rowCount: gridRowCount)) {
+        final choice = await showLargePdfExportPrompt(
+          context,
+          rowCount: gridRowCount!,
+        );
+        if (choice == LargePdfExportChoice.cancel) return null;
+        asPdf = choice == LargePdfExportChoice.pdf;
+        prompted = true;
+      }
+
       // RESTORE ORIGINAL IMPLEMENTATION WITH WORKBOOK KEY
-      ref.read(isProcessingProvider.notifier).startProcessing();
+      processing.startProcessing();
       final business = await businessFuture;
       print('📊 EXPORT: Business fetched: ${business?.name}');
+      // A rebuild during the prompt or the business read can swap the grid's
+      // source; checked after the last await, so the source exported below
+      // is the one the user agreed to. Only grid-based exports care.
+      final now = workBookKey.currentState?.widget.source;
+      if (prompted &&
+          (asPdf || !willUseManualData) &&
+          gridSourceReplaced(gridSource, now)) {
+        processing.stopProcessing();
+        talker.warning('Export stopped: report data changed during prompt');
+        if (mounted) showReportExportChangedNotice(context);
+        return null;
+      }
 
-      if (ProxyService.box.exportAsPdf()) {
+      if (asPdf) {
         print('📊 EXPORT: Exporting as PDF...');
         final PdfDocument document = workBookKey.currentState!
             .exportToPdfDocument(
@@ -507,6 +543,13 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
               netProfitColIndex0 != null;
 
           for (int rowIndex = 0; rowIndex < manualData.length; rowIndex++) {
+            // Building cells is synchronous: on a big report this loop used to
+            // hold the UI isolate for the whole sheet, and Windows marks the
+            // till "Not Responding" after ~5 s. Yield so frames and the
+            // window's messages keep flowing.
+            if (rowIndex > 0 && rowIndex % _exportRowsPerYield == 0) {
+              await Future<void>.delayed(Duration.zero);
+            }
             final item = manualData[rowIndex];
             Map<String, dynamic> rowData;
 
@@ -698,11 +741,11 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         workbook.dispose();
       }
 
-      ref.read(isProcessingProvider.notifier).stopProcessing();
+      processing.stopProcessing();
       await _openOrShareFile(filePath);
       return filePath;
     } catch (e, s) {
-      ref.read(isProcessingProvider.notifier).stopProcessing();
+      processing.stopProcessing();
       talker.error('Error: $e');
       talker.error('Stack: $s');
       return null;
@@ -1451,49 +1494,5 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   };
 }
 
-class ExcelStyler {
-  final excel.Workbook workbook;
-  int _styleCounter = 0;
-
-  ExcelStyler(this.workbook);
-
-  excel.Style createStyle({
-    required String fontColor,
-    required String backColor,
-    required double fontSize,
-  }) {
-    final styleName = 'customStyle${_styleCounter++}';
-    final style = workbook.styles.add(styleName);
-    style.fontName = 'Calibri';
-    style.bold = true;
-    style.fontSize = fontSize;
-    style.fontColor = fontColor;
-    style.backColor = backColor;
-    style.hAlign = excel.HAlignType.center;
-    style.vAlign = excel.VAlignType.center;
-    return style;
-  }
-}
-
-class ExportConfig {
-  DateTime? startDate;
-  DateTime? endDate;
-  double? grossProfit;
-  double? netProfit;
-  double? cogs;
-  String currencyCode;
-  String currencySymbol;
-  String currencyFormat;
-  final List<ITransaction> transactions;
-  ExportConfig({
-    this.startDate,
-    this.endDate,
-    this.grossProfit,
-    this.netProfit,
-    this.cogs,
-    this.currencyCode = 'RWF',
-    required this.transactions,
-  }) : currencySymbol = CurrencyOptions.getSymbolForCurrency(currencyCode),
-       currencyFormat =
-           '${CurrencyOptions.getSymbolForCurrency(currencyCode)}#,##0.00_);${CurrencyOptions.getSymbolForCurrency(currencyCode)}#,##0.00;${CurrencyOptions.getSymbolForCurrency(currencyCode)} 0.00';
-}
+/// Rows written between yields to the event loop while building a sheet.
+const int _exportRowsPerYield = 250;

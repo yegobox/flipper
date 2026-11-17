@@ -16717,6 +16717,24 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
   String get reportTitleReport => 'Report';
 
   @override
+  String get reportLargePdfTitle => 'Large report';
+
+  @override
+  String reportLargePdfBody(String count) {
+    return 'This report has $count rows. A PDF this large can take a long time to make, and the app may stop responding until it is done. Export it as Excel instead?';
+  }
+
+  @override
+  String get reportLargePdfUseExcel => 'Export Excel';
+
+  @override
+  String get reportLargePdfAnyway => 'PDF anyway';
+
+  @override
+  String get reportExportChanged =>
+      'The report changed while you were choosing. Export again to include every row.';
+
+  @override
   String get reportTitleStockRecount => 'Stock Recount';
 
   @override

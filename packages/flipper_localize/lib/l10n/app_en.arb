@@ -13941,6 +13941,31 @@
         }
     },
     "reportTitleReport": "Report",
+    "reportLargePdfTitle": "Large report",
+    "@reportLargePdfTitle": {
+        "description": "Report export: title of the dialog offered before a very large PDF"
+    },
+    "reportLargePdfBody": "This report has {count} rows. A PDF this large can take a long time to make, and the app may stop responding until it is done. Export it as Excel instead?",
+    "@reportLargePdfBody": {
+        "description": "Report export: why Excel is offered instead of a very large PDF",
+        "placeholders": {
+            "count": {
+                "type": "String"
+            }
+        }
+    },
+    "reportLargePdfUseExcel": "Export Excel",
+    "@reportLargePdfUseExcel": {
+        "description": "Report export: button that exports the large report as Excel"
+    },
+    "reportLargePdfAnyway": "PDF anyway",
+    "@reportLargePdfAnyway": {
+        "description": "Report export: button that still makes the large PDF"
+    },
+    "reportExportChanged": "The report changed while you were choosing. Export again to include every row.",
+    "@reportExportChanged": {
+        "description": "Report export: snackbar when the report changed while the large-PDF prompt was open, so the export stopped"
+    },
     "reportTitleStockRecount": "Stock Recount",
     "reportTotalGrossProfit": "Total Gross Profit",
     "reportClosingBalance": "Closing balance",
