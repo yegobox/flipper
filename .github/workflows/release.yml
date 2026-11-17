@@ -194,7 +194,7 @@ jobs:
         # 
         run: |
           cd apps/flipper_web
-          flutter build web --release
+          flutter build web --release --no-wasm-dry-run
           test -f build/web/main.dart.js
           # Drop dart2wasm app artifacts so Firebase cannot serve stale main.dart.mjs
           # to Chrome (service worker cache + leftover files from prior WASM deploys).
@@ -339,7 +339,7 @@ jobs:
         # auth stack, whose cold-start bootstrap is not WASM-safe.
         run: |
           cd apps/flipper_hr
-          flutter build web --release
+          flutter build web --release --no-wasm-dry-run
           test -f build/web/main.dart.js
           rm -f build/web/main.dart.mjs build/web/main.dart.wasm
 
