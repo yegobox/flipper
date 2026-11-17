@@ -40,11 +40,12 @@ class ChartAccountResolver {
   /// Salary advances staff still owe the business.
   String? get staffAdvances => _byCode('1150') ?? _byName('staff advances');
 
-  /// Gross salaries.
+  /// Gross salaries. The name fallbacks take expense accounts only, so a
+  /// liability such as "Salaries payable" is never picked as the cost.
   String? get salaries =>
       _byCode('6020') ??
-      _byName('salaries') ??
-      _byName('wages', exclude: 'payable');
+      _byName('salaries', type: AccountType.expense) ??
+      _byName('wages', exclude: 'payable', type: AccountType.expense);
 
   /// The employer's own RSSB contributions (on top of gross pay).
   String? get employerRssb => _byCode('6025') ?? _byName('employer rssb');
@@ -88,10 +89,11 @@ class ChartAccountResolver {
   String? _byCode(String code) =>
       accounts.any((a) => a.code == code) ? code : null;
 
-  String? _byName(String fragment, {String? exclude}) {
+  String? _byName(String fragment, {String? exclude, AccountType? type}) {
     final q = fragment.toLowerCase();
     final ex = exclude?.toLowerCase();
     return _firstWhere((a) {
+      if (type != null && a.type != type) return false;
       final name = a.name.toLowerCase();
       if (!name.contains(q)) return false;
       if (ex != null && name.contains(ex)) return false;

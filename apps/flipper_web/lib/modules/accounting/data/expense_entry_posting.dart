@@ -41,6 +41,35 @@ String statutoryExpenseCode(ChartAccountResolver roles, StatutoryPayment p) {
   };
 }
 
+/// What is still owed on [liabilityCode] once payments that wait for approval
+/// are counted.
+///
+/// [Account.bal] counts posted entries only, so a payment saved as pending has
+/// not lowered it yet. Without this, a second payment made before the first
+/// is approved would see the whole debt again, and approving both (each posts
+/// its saved split unchanged) would clear it twice. Each pending debit to the
+/// liability is therefore taken off the posted balance.
+int statutoryOwed({
+  required List<Account> accounts,
+  required List<JournalEntry> journal,
+  required String liabilityCode,
+}) {
+  var owed = 0;
+  for (final a in accounts) {
+    if (a.code == liabilityCode) {
+      owed = a.bal;
+      break;
+    }
+  }
+  for (final e in journal) {
+    if (e.status != JournalStatus.pending) continue;
+    for (final l in e.lines) {
+      if (l.ac == liabilityCode) owed -= l.dr;
+    }
+  }
+  return owed;
+}
+
 /// Builds the journal for a payment to RRA or RSSB.
 ///
 /// VAT always clears 2100 VAT Payable: it is a debt, never a cost, and the

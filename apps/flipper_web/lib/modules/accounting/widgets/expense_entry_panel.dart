@@ -91,25 +91,35 @@ class _ExpenseEntryPanelState extends ConsumerState<ExpenseEntryPanel> {
       int.tryParse(_amountCtrl.text.replaceAll(RegExp(r'[^\d]'), '')) ?? 0;
 
   bool get _canSubmit =>
-      _amount > 0 && _expenseCode != null && _expenseCode!.isNotEmpty;
+      _amount > 0 &&
+      _expenseCode != null &&
+      _expenseCode!.isNotEmpty &&
+      _choiceAvailable;
+
+  /// False when VAT is picked but the business turned out not to be
+  /// registered for VAT (the choice is no longer offered).
+  bool get _choiceAvailable =>
+      _statutory != StatutoryPayment.vat ||
+      ref.read(booksVatPositionProvider).value?.registered != false;
 
   /// The tax or RSSB payment picked, or null for an ordinary expense.
   StatutoryPayment? get _statutory => _statutoryValues[_expenseCode];
 
-  /// What the ledger shows owed on the liability [payment] settles.
+  /// What is owed on the liability [payment] settles: the posted balance less
+  /// payments still waiting for approval. The preview and the submitted entry
+  /// both use it, so they always split the same way.
   static int _owed(
     List<Account> accounts,
+    List<JournalEntry> journal,
     ChartAccountResolver roles,
     StatutoryPayment payment,
-  ) {
-    final code = statutoryLiabilityCode(roles, payment);
-    for (final a in accounts) {
-      if (a.code == code) return a.bal;
-    }
-    return 0;
-  }
+  ) => statutoryOwed(
+    accounts: accounts,
+    journal: journal,
+    liabilityCode: statutoryLiabilityCode(roles, payment),
+  );
 
-  List<JournalLine> _lines(List<Account> accounts) {
+  List<JournalLine> _lines(List<Account> accounts, List<JournalEntry> journal) {
     final roles = ChartAccountResolver(accounts);
     final fundingCode = fundingCodeForPaymentMethod(roles, _paymentMethod);
     final statutory = _statutory;
@@ -125,7 +135,7 @@ class _ExpenseEntryPanelState extends ConsumerState<ExpenseEntryPanel> {
       roles: roles,
       fundingCode: fundingCode,
       amount: _amount,
-      owed: _owed(accounts, roles, statutory),
+      owed: _owed(accounts, journal, roles, statutory),
     );
   }
 
@@ -168,7 +178,7 @@ class _ExpenseEntryPanelState extends ConsumerState<ExpenseEntryPanel> {
     setState(() => _isSubmitting = true);
 
     final accounts = ref.read(accountingAccountsProvider);
-    final lines = _lines(accounts);
+    final lines = _lines(accounts, ref.read(accountingJournalProvider));
     final refText = _nextEntryRef();
     final statutory = _statutory;
     final memo = _memoCtrl.text.trim().isNotEmpty
@@ -323,6 +333,16 @@ class _ExpenseEntryPanelState extends ConsumerState<ExpenseEntryPanel> {
     // an unknown position keeps it, as bills keep booking VAT to 2100.
     final vatRegistered =
         ref.watch(booksVatPositionProvider).value?.registered != false;
+    // VAT picked while the position was still loading, and the business
+    // turns out not to be registered: drop the choice, so no VAT entry is
+    // built from a choice the dropdown no longer offers.
+    ref.listen(booksVatPositionProvider, (_, next) {
+      if (next.value?.registered == false &&
+          _statutory == StatutoryPayment.vat) {
+        _select(null);
+      }
+    });
+    final journal = ref.watch(accountingJournalProvider);
     final statutoryChoices = [
       if (vatRegistered) StatutoryPayment.vat,
       StatutoryPayment.paye,
@@ -331,7 +351,10 @@ class _ExpenseEntryPanelState extends ConsumerState<ExpenseEntryPanel> {
     final statutory = _statutory;
     final owed = statutory == null
         ? 0
-        : _owed(accounts, roles, statutory).clamp(0, _owedCap);
+        : _owed(accounts, journal, roles, statutory).clamp(0, _owedCap);
+    final previewLines = _canSubmit
+        ? _lines(accounts, journal)
+        : const <JournalLine>[];
 
     final dropdownValue =
         _expenseCode != null &&
@@ -545,12 +568,12 @@ class _ExpenseEntryPanelState extends ConsumerState<ExpenseEntryPanel> {
                 if (_canSubmit) ...[
                   const SizedBox(height: 20),
                   _PostPreview(
-                    lines: _lines(accounts),
+                    lines: previewLines,
                     amount: _amount,
                     accountMap: {
                       for (final a in accounts) a.code: a,
                       // Accounts the chart gets when this entry is submitted.
-                      for (final l in _lines(accounts))
+                      for (final l in previewLines)
                         if (!accounts.any((a) => a.code == l.ac))
                           if (seedAccount(l.ac) case final seeded?)
                             l.ac: seeded,

@@ -118,6 +118,112 @@ void main() {
     });
   });
 
+  group('statutoryOwed', () {
+    Account paye(int bal) => Account(
+      code: payePayableCode,
+      name: 'PAYE Payable',
+      type: AccountType.liability,
+      sub: 'Current liabilities',
+      normal: AccountNormal.credit,
+      bal: bal,
+    );
+
+    JournalEntry entry(JournalStatus status, int dr) => JournalEntry(
+      id: 'JE-$dr',
+      date: '1 Nov 2026',
+      memo: 'PAYE paid to RRA',
+      ref: 'JE-$dr',
+      status: status,
+      src: 'Manual',
+      lines: [
+        JournalLine(ac: payePayableCode, dr: dr),
+        JournalLine(ac: '1010', cr: dr),
+      ],
+    );
+
+    test('is the posted balance when nothing waits for approval', () {
+      expect(
+        statutoryOwed(
+          accounts: [paye(80000)],
+          journal: [entry(JournalStatus.posted, 30000)],
+          liabilityCode: payePayableCode,
+        ),
+        80000,
+      );
+    });
+
+    test('takes off payments to the liability waiting for approval', () {
+      expect(
+        statutoryOwed(
+          accounts: [paye(80000)],
+          journal: [
+            entry(JournalStatus.pending, 60000),
+            entry(JournalStatus.draft, 10000),
+          ],
+          liabilityCode: payePayableCode,
+        ),
+        20000,
+      );
+    });
+
+    test('is zero less pending payments when the chart lacks the account', () {
+      expect(
+        statutoryOwed(
+          accounts: defaultChartOfAccountsSeed
+              .where((a) => a.code != payePayableCode)
+              .toList(),
+          journal: [entry(JournalStatus.pending, 5000)],
+          liabilityCode: payePayableCode,
+        ),
+        -5000,
+      );
+    });
+  });
+
+  group('statutory accounts', () {
+    test('VAT has no cost account: its liability is used', () {
+      final roles = ChartAccountResolver(defaultChartOfAccountsSeed);
+      expect(statutoryExpenseCode(roles, StatutoryPayment.vat), '2100');
+    });
+
+    Account acct(String code, String name, AccountType type) => Account(
+      code: code,
+      name: name,
+      type: type,
+      sub: '',
+      normal: type == AccountType.expense
+          ? AccountNormal.debit
+          : AccountNormal.credit,
+      bal: 0,
+    );
+
+    test('salaries by name never picks a liability', () {
+      final roles = ChartAccountResolver([
+        acct('2390', 'Salaries payable', AccountType.liability),
+        acct('2395', 'Wages owed', AccountType.liability),
+        acct('6100', 'Staff salaries', AccountType.expense),
+      ]);
+      expect(roles.salaries, '6100');
+    });
+
+    test('with only salary liabilities, PAYE cost goes to 6020', () {
+      final roles = ChartAccountResolver([
+        acct('2390', 'Salaries payable', AccountType.liability),
+        acct('2395', 'Wages owed', AccountType.liability),
+      ]);
+      expect(roles.salaries, isNull);
+      expect(statutoryExpenseCode(roles, StatutoryPayment.paye), salariesCode);
+    });
+
+    test('wages by name is used when no salaries account exists', () {
+      final roles = ChartAccountResolver([
+        acct('6110', 'Wages payable', AccountType.expense),
+        acct('6120', 'Casual wages', AccountType.expense),
+      ]);
+      expect(roles.salaries, '6120');
+    });
+  });
+
   group('ensureChartAccounts', () {
     test('adds only the seed accounts the chart is missing', () async {
       final oldChart = defaultChartOfAccountsSeed
