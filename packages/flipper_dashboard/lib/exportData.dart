@@ -302,6 +302,7 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       var asPdf = ProxyService.box.exportAsPdf();
       final gridSource = workBookKey.currentState?.widget.source;
       final gridRowCount = gridSource?.effectiveRows.length;
+      var prompted = false;
       if (mounted &&
           shouldOfferExcelForPdf(asPdf: asPdf, rowCount: gridRowCount)) {
         final choice = await showLargePdfExportPrompt(
@@ -310,21 +311,25 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         );
         if (choice == LargePdfExportChoice.cancel) return null;
         asPdf = choice == LargePdfExportChoice.pdf;
-        // A rebuild while the dialog was open can swap the grid's source;
-        // only a grid-based export (PDF, or Excel without manualData) cares.
-        final now = workBookKey.currentState?.widget.source;
-        if ((asPdf || !willUseManualData) &&
-            gridSourceReplaced(gridSource, now)) {
-          talker.warning('Export stopped: report data changed during prompt');
-          if (mounted) showReportExportChangedNotice(context);
-          return null;
-        }
+        prompted = true;
       }
 
       // RESTORE ORIGINAL IMPLEMENTATION WITH WORKBOOK KEY
       processing.startProcessing();
       final business = await businessFuture;
       print('📊 EXPORT: Business fetched: ${business?.name}');
+      // A rebuild during the prompt or the business read can swap the grid's
+      // source; checked after the last await, so the source exported below
+      // is the one the user agreed to. Only grid-based exports care.
+      final now = workBookKey.currentState?.widget.source;
+      if (prompted &&
+          (asPdf || !willUseManualData) &&
+          gridSourceReplaced(gridSource, now)) {
+        processing.stopProcessing();
+        talker.warning('Export stopped: report data changed during prompt');
+        if (mounted) showReportExportChangedNotice(context);
+        return null;
+      }
 
       if (asPdf) {
         print('📊 EXPORT: Exporting as PDF...');
