@@ -105,11 +105,13 @@ jobs:
 
       # dart2js only, matching release.yml: dual-target WASM serves main.dart.mjs
       # to Chrome and the Ditto DQL read-after-write cold start breaks
-      # replication bootstrap. Keep these two in step.
+      # replication bootstrap. Keep these two in step. --no-wasm-dry-run: the
+      # dry run is a second full compile (dart2wasm) that can never pass (dart:ffi
+      # via sqlite3) and roughly doubles peak memory, which got runners killed.
       - name: Build web (release)
         working-directory: apps/${{ matrix.app }}
         run: |
-          flutter build web --release
+          flutter build web --release --no-wasm-dry-run
           test -f build/web/main.dart.js
           rm -f build/web/main.dart.mjs build/web/main.dart.wasm
 
