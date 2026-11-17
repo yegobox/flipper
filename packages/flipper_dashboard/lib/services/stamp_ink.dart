@@ -31,6 +31,16 @@ Uint8List inkifyStamp(Uint8List bytes) {
   return output;
 }
 
+/// The processed stamp for [bytes] if it is already cached, else null.
+///
+/// Lets a screen use the stamp synchronously when it is ready, and run
+/// [inkifyStampInBackground] instead of freezing when it is not.
+Uint8List? cachedInkifiedStamp(Uint8List bytes) {
+  final cached = _last;
+  if (cached != null && _sameBytes(cached.input, bytes)) return cached.output;
+  return null;
+}
+
 /// Every quotation re-renders the same stamp; one entry covers the branch.
 ({Uint8List input, Uint8List output})? _last;
 
@@ -155,8 +165,11 @@ class _PaperMap {
     final rows = math.min(_gridSide, image.height);
     final cellW = image.width / cols;
     final cellH = image.height / rows;
-    final raw =
-        List<(double, double, double)>.filled(cols * rows, (255, 255, 255));
+    final raw = List<(double, double, double)>.filled(cols * rows, (
+      255,
+      255,
+      255,
+    ));
 
     for (var cy = 0; cy < rows; cy++) {
       for (var cx = 0; cx < cols; cx++) {
@@ -165,21 +178,30 @@ class _PaperMap {
         final y0 = (cy * cellH).floor();
         final y1 = ((cy + 1) * cellH).floor();
         // Sampling a few hundred pixels per cell is plenty for a percentile.
-        final step =
-            math.max(1, math.sqrt((x1 - x0) * (y1 - y0) / 400).floor());
+        final step = math.max(
+          1,
+          math.sqrt((x1 - x0) * (y1 - y0) / 400).floor(),
+        );
         final samples = <(double, num, num, num)>[];
         for (var y = y0; y < y1; y += step) {
           for (var x = x0; x < x1; x += step) {
             final p = image.getPixel(x, y);
-            samples
-                .add((0.299 * p.r + 0.587 * p.g + 0.114 * p.b, p.r, p.g, p.b));
+            samples.add((
+              0.299 * p.r + 0.587 * p.g + 0.114 * p.b,
+              p.r,
+              p.g,
+              p.b,
+            ));
           }
         }
         if (samples.isEmpty) continue;
         samples.sort((a, b) => a.$1.compareTo(b.$1));
         final pick = samples[((samples.length - 1) * _paperPercentile).round()];
-        raw[cy * cols + cx] =
-            (pick.$2.toDouble(), pick.$3.toDouble(), pick.$4.toDouble());
+        raw[cy * cols + cx] = (
+          pick.$2.toDouble(),
+          pick.$3.toDouble(),
+          pick.$4.toDouble(),
+        );
       }
     }
 
@@ -191,9 +213,11 @@ class _PaperMap {
       final gs = <double>[];
       final bs = <double>[];
       for (var y = math.max(0, cy - 1); y <= math.min(rows - 1, cy + 1); y++) {
-        for (var x = math.max(0, cx - 1);
-            x <= math.min(cols - 1, cx + 1);
-            x++) {
+        for (
+          var x = math.max(0, cx - 1);
+          x <= math.min(cols - 1, cx + 1);
+          x++
+        ) {
           final c = raw[y * cols + x];
           rs.add(c.$1);
           gs.add(c.$2);
