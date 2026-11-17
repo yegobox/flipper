@@ -16832,6 +16832,10 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   String get reportLargePdfAnyway => 'PDF hata hivyo';
 
   @override
+  String get reportExportChanged =>
+      'Ripoti ilibadilika ulipokuwa ukichagua. Ihamishe tena ili kujumuisha mistari yote.';
+
+  @override
   String get reportTitleStockRecount => 'Kuhesabu Upya Stoku';
 
   @override

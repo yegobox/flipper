@@ -195,6 +195,9 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     bool staticPluLineValues = false,
   }) async {
     String? filePath;
+    // Read before any await: `ref` is unusable once the user leaves the
+    // report. The provider is app-wide, so the notifier outlives the widget.
+    final processing = ref.read(isProcessingProvider.notifier);
     try {
       print(
         '📊 EXPORT: Starting exportDataGrid with ${config.transactions.length} transactions',
@@ -297,8 +300,9 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       // A very large PDF freezes the app (see kLargePdfExportRowLimit), so
       // offer Excel first. No grid (headless export) means no count: no ask.
       var asPdf = ProxyService.box.exportAsPdf();
-      final gridRowCount =
-          workBookKey.currentState?.widget.source.effectiveRows.length;
+      final gridSource = workBookKey.currentState?.widget.source;
+      final gridRowCount = gridSource?.effectiveRows.length;
+      var prompted = false;
       if (mounted &&
           shouldOfferExcelForPdf(asPdf: asPdf, rowCount: gridRowCount)) {
         final choice = await showLargePdfExportPrompt(
@@ -307,12 +311,25 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         );
         if (choice == LargePdfExportChoice.cancel) return null;
         asPdf = choice == LargePdfExportChoice.pdf;
+        prompted = true;
       }
 
       // RESTORE ORIGINAL IMPLEMENTATION WITH WORKBOOK KEY
-      ref.read(isProcessingProvider.notifier).startProcessing();
+      processing.startProcessing();
       final business = await businessFuture;
       print('📊 EXPORT: Business fetched: ${business?.name}');
+      // A rebuild during the prompt or the business read can swap the grid's
+      // source; checked after the last await, so the source exported below
+      // is the one the user agreed to. Only grid-based exports care.
+      final now = workBookKey.currentState?.widget.source;
+      if (prompted &&
+          (asPdf || !willUseManualData) &&
+          gridSourceReplaced(gridSource, now)) {
+        processing.stopProcessing();
+        talker.warning('Export stopped: report data changed during prompt');
+        if (mounted) showReportExportChangedNotice(context);
+        return null;
+      }
 
       if (asPdf) {
         print('📊 EXPORT: Exporting as PDF...');
@@ -724,11 +741,11 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         workbook.dispose();
       }
 
-      ref.read(isProcessingProvider.notifier).stopProcessing();
+      processing.stopProcessing();
       await _openOrShareFile(filePath);
       return filePath;
     } catch (e, s) {
-      ref.read(isProcessingProvider.notifier).stopProcessing();
+      processing.stopProcessing();
       talker.error('Error: $e');
       talker.error('Stack: $s');
       return null;

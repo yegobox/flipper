@@ -16994,6 +16994,10 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   String get reportLargePdfAnyway => 'PDF quand même';
 
   @override
+  String get reportExportChanged =>
+      'Le rapport a changé pendant votre choix. Exportez-le à nouveau pour inclure toutes les lignes.';
+
+  @override
   String get reportTitleStockRecount => 'Recomptage du stock';
 
   @override

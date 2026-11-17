@@ -1,3 +1,4 @@
+import 'dart:async' show TimeoutException;
 import 'dart:math' show min;
 
 import 'package:flipper_models/helpers/cash_movement_rules.dart';
@@ -19,6 +20,8 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:rxdart/rxdart.dart';
+import 'package:flipper_web/services/ditto_service.dart';
+import 'package:supabase_models/sync/shared_sync_subscriptions.dart';
 
 // [transactionReportLineMatchesSale] now lives with the other report PLU
 // scoping helpers; re-exported here for the existing importers.
@@ -139,6 +142,7 @@ Stream<List<ITransaction>> coreTransactionsStream(
   required String branchId,
   bool forceRealData = true,
   bool includeParked = false,
+  bool rethrowErrors = false,
 }) {
   talker.debug(
     'coreTransactionsStream: $startDate → $endDate  branch=$branchId '
@@ -154,6 +158,7 @@ Stream<List<ITransaction>> coreTransactionsStream(
     includeParked: includeParked,
     // isCashOut intentionally omitted → returns both income and expense.
     forceRealData: forceRealData,
+    rethrowErrors: rethrowErrors,
   );
 }
 
@@ -871,8 +876,9 @@ DashboardGaugeSnapshot dashboardGaugeSnapshotFrom({
 }
 
 /// Line items for the gauge: a one-shot `execute` read (the Transaction
-/// Reports scope), never a store observer.
-Future<List<TransactionItem>> _gaugeLineItems({
+/// Reports scope), never a store observer. Null when the read failed, so the
+/// gauge keeps its last good lines instead of showing zero profit and tax.
+Future<List<TransactionItem>?> _gaugeLineItems({
   required DateTime start,
   required DateTime end,
   required String branchId,
@@ -883,12 +889,85 @@ Future<List<TransactionItem>> _gaugeLineItems({
       startDate: start,
       endDate: end,
       branchId: branchId,
+      rethrowErrors: true,
     );
   } catch (e) {
     talker.warning('dashboard gauge line items: $e');
-    return const <TransactionItem>[];
+    return null;
   }
 }
+
+/// Reads the gauge's line items for [saleIds], retrying when the read fails
+/// or when a completed sale has no lines yet (they can sync in after the
+/// sale's transaction). A failed read emits nothing, so the gauge keeps its
+/// last good lines; a partial read is shown and then retried. With no
+/// [maxAttempts] it keeps retrying, backing off to once a minute, for as long
+/// as it is listened to, so a store that recovers later is picked up without
+/// a new sale. Cancelled (by `switchMap`) when the sales change again.
+Stream<List<TransactionItem>> dashboardGaugeLinesWithRetry({
+  required Future<List<TransactionItem>?> Function() fetch,
+  required Set<String> saleIds,
+  int? maxAttempts,
+  Duration Function(int attempt) backoff = _gaugeRetryBackoff,
+}) async* {
+  for (
+    var attempt = 1;
+    maxAttempts == null || attempt <= maxAttempts;
+    attempt++
+  ) {
+    final lines = await fetch();
+    if (lines != null) {
+      yield lines;
+      final covered = {
+        for (final line in lines) line.transactionId?.toString(),
+      };
+      if (saleIds.every(covered.contains)) return;
+    }
+    if (maxAttempts == null || attempt < maxAttempts) {
+      await Future<void>.delayed(backoff(attempt));
+    }
+  }
+}
+
+/// 2, 4, 8, 16, 32 s, then once a minute.
+Duration _gaugeRetryBackoff(int attempt) =>
+    Duration(seconds: attempt >= 6 ? 60 : 2 << (attempt - 1));
+
+/// Keeps other tills' line items syncing into this device while the
+/// dashboard gauge reads them with one-shot queries.
+///
+/// The live line-item observer this replaced also registered a sync
+/// subscription; without one, lines from other devices never reach the store
+/// and profit and tax read low. One shared subscription per branch, from the
+/// previous period's start so both gauges are covered, with no end bound so
+/// new lines keep arriving. `historyWindowStart` is a moving argument, so a
+/// newer start replaces the older subscription instead of adding one.
+void registerDashboardGaugeLineSync({
+  required String branchId,
+  required DateTime since,
+}) {
+  final ditto = DittoService.instance.dittoInstance;
+  if (ditto == null) return;
+  final day = DateTime(since.year, since.month, since.day);
+  try {
+    SharedSyncSubscriptions.register(
+      ditto,
+      dashboardGaugeLineSyncDql,
+      arguments: {
+        'branchId': branchId,
+        'historyWindowStart': day.toIso8601String(),
+      },
+    );
+  } catch (e) {
+    talker.warning('dashboard gauge line sync: $e');
+  }
+}
+
+/// The gauge's line-item sync subscription (see [registerDashboardGaugeLineSync]).
+const String dashboardGaugeLineSyncDql =
+    'SELECT * FROM transaction_items '
+    'WHERE (branchId = :branchId OR branch_id = :branchId) '
+    'AND createdAt >= :historyWindowStart';
 
 /// The ids of the completed sales, to tell a new sale from a cart edit.
 Set<String> _saleIds(List<ITransaction> sales) =>
@@ -900,7 +979,10 @@ bool _sameIds(Set<String> a, Set<String> b) =>
 /// When the gauge re-reads line items: once at start, then only when the set
 /// of completed sales changes (a cart edit changes no sale id), at most once
 /// per [window].
-Stream<void> dashboardGaugeLineRefreshes(
+///
+/// Emits the completed sale ids, so the read can tell which sales still lack
+/// their lines.
+Stream<Set<String>> dashboardGaugeLineRefreshes(
   Stream<List<ITransaction>> sales, {
   Duration window = const Duration(seconds: 2),
 }) => sales
@@ -908,8 +990,7 @@ Stream<void> dashboardGaugeLineRefreshes(
     .distinct(_sameIds)
     .throttleTime(window, leading: true, trailing: true)
     // The trailing edge repeats the leading value after a lone change.
-    .distinct(_sameIds)
-    .map((_) {});
+    .distinct(_sameIds);
 
 // Live gauge for the current period. One transaction observer feeds both
 // sales and expenses (expensesStream is the same query filtered, so the gauge
@@ -943,9 +1024,15 @@ final dashboardGaugeSnapshotProvider = StreamProvider.autoDispose
       final sales = all.map(dashboardGaugeSales).shareReplay(maxSize: 1);
       final expenses = all.map(dashboardGaugeExpenses);
 
+      registerDashboardGaugeLineSync(
+        branchId: branchId,
+        since: dashboardPreviousPeriodStart(period),
+      );
       final items = dashboardGaugeLineRefreshes(sales).switchMap(
-        (_) => Stream.fromFuture(
-          _gaugeLineItems(start: start, end: end, branchId: branchId),
+        (saleIds) => dashboardGaugeLinesWithRetry(
+          fetch: () =>
+              _gaugeLineItems(start: start, end: end, branchId: branchId),
+          saleIds: saleIds,
         ),
       );
 
@@ -988,6 +1075,59 @@ DateTime dashboardPreviousPeriodStart(String period) {
   return DateTime(current.year - 1, current.month, d);
 }
 
+/// The previous-period gauge read before the store was up, or timed out.
+///
+/// An `Exception` (not an `Error`), so Riverpod retries the provider.
+class DashboardPreviousPeriodUnavailable implements Exception {
+  const DashboardPreviousPeriodUnavailable(this.reason);
+
+  final String reason;
+
+  @override
+  String toString() => 'DashboardPreviousPeriodUnavailable: $reason';
+}
+
+/// The previous window's transactions, read once from [read].
+///
+/// Fails instead of answering empty when the store is not up yet, the read
+/// fails (pass a `rethrowErrors` read, or `transactionsStream` swallows the
+/// failure as `[]`), or no result arrives in [timeout]. An empty answer
+/// would be cached as a zero baseline that looks like a period with no
+/// sales; a failure leaves the comparison out and the provider retries (see
+/// [dashboardPreviousGaugeRetry]). A successful empty read is still `[]`.
+/// The timeout sits on the stream, so `.first` cancels the observer when it
+/// fires.
+Future<List<ITransaction>> dashboardPreviousPeriodTransactions({
+  required bool storeReady,
+  required Stream<List<ITransaction>> Function() read,
+  Duration timeout = const Duration(seconds: 10),
+}) async {
+  if (!storeReady) {
+    throw const DashboardPreviousPeriodUnavailable('store not ready');
+  }
+  try {
+    return await read().timeout(timeout).first;
+  } on TimeoutException {
+    throw const DashboardPreviousPeriodUnavailable('timed out');
+  } catch (e) {
+    // `.first` on a stream that closed empty is a StateError; anything else
+    // is the read failing. Both are retried, so neither may be an `Error`.
+    throw DashboardPreviousPeriodUnavailable('read failed: $e');
+  }
+}
+
+/// Retry for the previous-period gauge: while the read is unavailable it
+/// keeps trying (2, 4, 8, 16, 32 s, then once a minute) for as long as the
+/// dashboard watches it, so the comparison appears once Ditto is up without a
+/// pull-to-refresh. Riverpod's default gives up after 10 tries (~40 s).
+/// Other errors keep the default policy.
+Duration? dashboardPreviousGaugeRetry(int retryCount, Object error) {
+  if (error is DashboardPreviousPeriodUnavailable) {
+    return Duration(seconds: retryCount >= 5 ? 60 : 2 << retryCount);
+  }
+  return ProviderContainer.defaultRetry(retryCount, error);
+}
+
 /// Gauge snapshot for the window before [period], read once.
 ///
 /// That window has already closed, so it is computed once instead of keeping
@@ -1005,26 +1145,33 @@ final dashboardPreviousGaugeSnapshotProvider = StreamProvider.autoDispose
       }
 
       Future<DashboardGaugeSnapshot> load() async {
-        // `.first` closes the stream (and its observer) after one result.
-        final all =
-            await coreTransactionsStream(
-              ref,
-              startDate: prevStart,
-              endDate: prevEnd,
-              branchId: branchId,
-              forceRealData: true,
-            ).first.timeout(
-              const Duration(seconds: 10),
-              onTimeout: () => const <ITransaction>[],
-            );
+        final all = await dashboardPreviousPeriodTransactions(
+          storeReady: DittoService.instance.dittoInstance != null,
+          read: () => coreTransactionsStream(
+            ref,
+            startDate: prevStart,
+            endDate: prevEnd,
+            branchId: branchId,
+            forceRealData: true,
+            rethrowErrors: true,
+          ),
+        );
         final sales = dashboardGaugeSales(all);
-        final items = sales.isEmpty
-            ? const <TransactionItem>[]
-            : await _gaugeLineItems(
-                start: prevStart,
-                end: prevEnd,
-                branchId: branchId,
-              );
+        var items = const <TransactionItem>[];
+        if (sales.isNotEmpty) {
+          await for (final lines in dashboardGaugeLinesWithRetry(
+            fetch: () => _gaugeLineItems(
+              start: prevStart,
+              end: prevEnd,
+              branchId: branchId,
+            ),
+            saleIds: _saleIds(sales),
+            // Read once: this awaits the stream to its end.
+            maxAttempts: 5,
+          )) {
+            items = lines;
+          }
+        }
         return dashboardGaugeSnapshotFrom(
           items: items,
           sales: sales,
@@ -1033,7 +1180,7 @@ final dashboardPreviousGaugeSnapshotProvider = StreamProvider.autoDispose
       }
 
       return Stream.fromFuture(load());
-    });
+    }, retry: dashboardPreviousGaugeRetry);
 
 /// A hotel booking-advance movement (received, applied or refunded): money
 /// owed to a guest, kept out of revenue, expenses and profit.

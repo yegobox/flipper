@@ -27748,6 +27748,12 @@ abstract class FlipperAppLocalizations {
   /// **'PDF anyway'**
   String get reportLargePdfAnyway;
 
+  /// Report export: snackbar when the report changed while the large-PDF prompt was open, so the export stopped
+  ///
+  /// In en, this message translates to:
+  /// **'The report changed while you were choosing. Export again to include every row.'**
+  String get reportExportChanged;
+
   /// No description provided for @reportTitleStockRecount.
   ///
   /// In en, this message translates to:
