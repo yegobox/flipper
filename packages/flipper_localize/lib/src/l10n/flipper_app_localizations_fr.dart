@@ -13258,7 +13258,7 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
 
   @override
   String stockValueExpiringWithin(int count, int days) {
-    return '$count expirent dans $days jours';
+    return '$count expirent d\'ici $days jours';
   }
 
   @override

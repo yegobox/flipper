@@ -3645,7 +3645,7 @@
     "stockValueStatusOut": "Rupture de stock",
     "stockValueColExpiry": "Péremption",
     "stockValueExpiredCount": "{count} périmé(s)",
-    "stockValueExpiringWithin": "{count} expirent dans {days} jours",
+    "stockValueExpiringWithin": "{count} expirent d'ici {days} jours",
     "stockValueExpiredValue": "{value} de stock périmé",
     "stockValueFilterExpired": "Périmé",
     "stockValueFilterExpiring": "Bientôt périmé",
