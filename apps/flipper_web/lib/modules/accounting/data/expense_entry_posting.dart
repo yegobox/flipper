@@ -1,3 +1,4 @@
+import 'package:flipper_accounting/statutory_accounts.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_models.dart';
 import 'package:flipper_web/modules/accounting/data/chart_account_resolver.dart';
 
@@ -12,6 +13,63 @@ List<JournalLine> buildExpenseJournalLines({
 }) {
   return [
     JournalLine(ac: expenseCode, dr: amount),
+    JournalLine(ac: fundingCode, cr: amount),
+  ];
+}
+
+/// A payment to RRA or RSSB. These settle what the business owes, so they
+/// are not ordinary expenses.
+enum StatutoryPayment { vat, paye, rssb }
+
+/// The liability a [StatutoryPayment] settles.
+String statutoryLiabilityCode(ChartAccountResolver roles, StatutoryPayment p) {
+  return switch (p) {
+    StatutoryPayment.vat => roles.vatPayable ?? '2100',
+    StatutoryPayment.paye => roles.payePayable ?? payePayableCode,
+    StatutoryPayment.rssb => roles.rssbPayable ?? rssbPayableCode,
+  };
+}
+
+/// Where a PAYE or RSSB payment goes when the ledger shows less owed than was
+/// paid: the business never ran payroll through Books, so the payment is the
+/// cost itself.
+String statutoryExpenseCode(ChartAccountResolver roles, StatutoryPayment p) {
+  return switch (p) {
+    StatutoryPayment.paye => roles.salaries ?? salariesCode,
+    StatutoryPayment.rssb => roles.employerRssb ?? employerRssbCode,
+    StatutoryPayment.vat => roles.vatPayable ?? '2100',
+  };
+}
+
+/// Builds the journal for a payment to RRA or RSSB.
+///
+/// VAT always clears 2100 VAT Payable: it is a debt, never a cost, and the
+/// dashboard's "VAT payable" must drop by what was paid.
+///
+/// PAYE and RSSB clear their liability up to [owed] (the liability's credit
+/// balance; HR payroll accrues it). Anything paid above that goes to the
+/// matching expense, so a business that does payroll outside Flipper still
+/// books the cost and never shows a negative debt.
+List<JournalLine> buildStatutoryPaymentLines({
+  required StatutoryPayment payment,
+  required ChartAccountResolver roles,
+  required String fundingCode,
+  required int amount,
+  required int owed,
+}) {
+  final liability = statutoryLiabilityCode(roles, payment);
+  if (payment == StatutoryPayment.vat) {
+    return [
+      JournalLine(ac: liability, dr: amount),
+      JournalLine(ac: fundingCode, cr: amount),
+    ];
+  }
+  final toLiability = owed <= 0 ? 0 : (owed < amount ? owed : amount);
+  final toExpense = amount - toLiability;
+  return [
+    if (toLiability > 0) JournalLine(ac: liability, dr: toLiability),
+    if (toExpense > 0)
+      JournalLine(ac: statutoryExpenseCode(roles, payment), dr: toExpense),
     JournalLine(ac: fundingCode, cr: amount),
   ];
 }

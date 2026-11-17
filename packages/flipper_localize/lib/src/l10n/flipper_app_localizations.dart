@@ -41321,6 +41321,42 @@ abstract class FlipperAppLocalizations {
   /// **'+ Add expense account'**
   String get booksAddExpenseAccount;
 
+  /// No description provided for @booksTaxesAndRssb.
+  ///
+  /// In en, this message translates to:
+  /// **'Taxes & RSSB'**
+  String get booksTaxesAndRssb;
+
+  /// No description provided for @booksPayVatRra.
+  ///
+  /// In en, this message translates to:
+  /// **'VAT paid to RRA'**
+  String get booksPayVatRra;
+
+  /// No description provided for @booksPayPayeRra.
+  ///
+  /// In en, this message translates to:
+  /// **'PAYE paid to RRA'**
+  String get booksPayPayeRra;
+
+  /// No description provided for @booksPayRssb.
+  ///
+  /// In en, this message translates to:
+  /// **'RSSB contributions'**
+  String get booksPayRssb;
+
+  /// No description provided for @booksPayVatHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Lowers the VAT you owe RRA. It is not an expense.'**
+  String get booksPayVatHint;
+
+  /// No description provided for @booksPayStatutoryHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Clears what payroll says you owe ({owed}). Anything above that is recorded as a cost.'**
+  String booksPayStatutoryHint(String owed);
+
   /// No description provided for @booksPaidVia.
   ///
   /// In en, this message translates to:

@@ -13,8 +13,7 @@ class ChartAccountResolver {
   String? get mobileMoney =>
       _byCode('1030') ?? _byName('mobile money') ?? _byName('momo');
 
-  String? get receivable =>
-      _byCode('1100') ?? _byName('accounts receivable');
+  String? get receivable => _byCode('1100') ?? _byName('accounts receivable');
 
   String? get payable =>
       _byCode('2010') ??
@@ -29,6 +28,27 @@ class ChartAccountResolver {
 
   String? get vatPayable => _byCode('2100') ?? _byName('vat payable');
 
+  /// PAYE withheld from salaries and owed to RRA.
+  String? get payePayable => _byCode('2310') ?? _byName('paye payable');
+
+  /// Pension, maternity, occupational hazards and CBHI owed to RSSB.
+  String? get rssbPayable => _byCode('2320') ?? _byName('rssb payable');
+
+  /// Net pay owed to staff.
+  String? get wagesPayable => _byCode('2300') ?? _byName('wages payable');
+
+  /// Salary advances staff still owe the business.
+  String? get staffAdvances => _byCode('1150') ?? _byName('staff advances');
+
+  /// Gross salaries.
+  String? get salaries =>
+      _byCode('6020') ??
+      _byName('salaries') ??
+      _byName('wages', exclude: 'payable');
+
+  /// The employer's own RSSB contributions (on top of gross pay).
+  String? get employerRssb => _byCode('6025') ?? _byName('employer rssb');
+
   String? get inventory => _byCode('1200') ?? _byName('inventory');
 
   String? get operatingExpense =>
@@ -42,9 +62,8 @@ class ChartAccountResolver {
 
   /// Expense accounts sorted by code (for category pickers).
   List<Account> get expenseCategories {
-    final rows =
-        accounts.where((a) => a.type == AccountType.expense).toList()
-          ..sort((a, b) => a.code.compareTo(b.code));
+    final rows = accounts.where((a) => a.type == AccountType.expense).toList()
+      ..sort((a, b) => a.code.compareTo(b.code));
     return rows;
   }
 

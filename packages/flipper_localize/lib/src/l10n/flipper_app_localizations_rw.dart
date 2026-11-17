@@ -25020,6 +25020,26 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   String get booksAddExpenseAccount => '+ Ongeramo konti y\'ibyakoreshejwe';
 
   @override
+  String get booksTaxesAndRssb => 'Imisoro na RSSB';
+
+  @override
+  String get booksPayVatRra => 'VAT yishyuwe RRA';
+
+  @override
+  String get booksPayPayeRra => 'PAYE yishyuwe RRA';
+
+  @override
+  String get booksPayRssb => 'Imisanzu ya RSSB';
+
+  @override
+  String get booksPayVatHint => 'Bigabanya VAT mufitiye RRA. Si ikiguzi.';
+
+  @override
+  String booksPayStatutoryHint(String owed) {
+    return 'Bishyura ibyo imishahara igaragaza ko mubereyemo ($owed). Ibirenzeho byandikwa nk\'ikiguzi.';
+  }
+
+  @override
   String get booksPaidVia => 'Byishyuwe hakoreshejwe';
 
   @override

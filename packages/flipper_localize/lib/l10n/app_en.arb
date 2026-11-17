@@ -19097,6 +19097,15 @@
     "booksRecordExpenseSubtitle": "Pick a category and how you paid — Flipper posts a balanced entry.",
     "booksExpenseCategory": "Expense category",
     "booksAddExpenseAccount": "+ Add expense account",
+    "booksTaxesAndRssb": "Taxes & RSSB",
+    "booksPayVatRra": "VAT paid to RRA",
+    "booksPayPayeRra": "PAYE paid to RRA",
+    "booksPayRssb": "RSSB contributions",
+    "booksPayVatHint": "Lowers the VAT you owe RRA. It is not an expense.",
+    "booksPayStatutoryHint": "Clears what payroll says you owe ({owed}). Anything above that is recorded as a cost.",
+    "@booksPayStatutoryHint": {
+      "placeholders": { "owed": { "type": "String" } }
+    },
     "booksPaidVia": "Paid via",
     "booksMemoDescription": "Memo / description",
     "booksExpenseMemoHint": "What was this expense for?",

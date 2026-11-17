@@ -24759,6 +24759,27 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
   String get booksAddExpenseAccount => '+ Add expense account';
 
   @override
+  String get booksTaxesAndRssb => 'Taxes & RSSB';
+
+  @override
+  String get booksPayVatRra => 'VAT paid to RRA';
+
+  @override
+  String get booksPayPayeRra => 'PAYE paid to RRA';
+
+  @override
+  String get booksPayRssb => 'RSSB contributions';
+
+  @override
+  String get booksPayVatHint =>
+      'Lowers the VAT you owe RRA. It is not an expense.';
+
+  @override
+  String booksPayStatutoryHint(String owed) {
+    return 'Clears what payroll says you owe ($owed). Anything above that is recorded as a cost.';
+  }
+
+  @override
   String get booksPaidVia => 'Paid via';
 
   @override
