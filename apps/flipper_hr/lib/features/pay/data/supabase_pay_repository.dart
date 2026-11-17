@@ -68,6 +68,27 @@ class SupabasePayRepository implements PayRepository {
   });
 
   @override
+  Future<PayBook> fetchForLedger({
+    required String branchId,
+    required DateTime createdSince,
+  }) => _guard(FlipperL10n.current.hrPayErrorLoad, () async {
+    final since = createdSince.toUtc().toIso8601String();
+    final results = await Future.wait([
+      for (final table in ['hr_payslips', 'hr_payments', 'hr_advances'])
+        _client
+            .from(table)
+            .select()
+            .eq('branch_id', branchId)
+            .gte('created_at', since),
+    ]);
+    return PayBook(
+      payslips: [for (final r in results[0]) Payslip.fromRow(r)],
+      payments: [for (final r in results[1]) PayPayment.fromRow(r)],
+      advances: [for (final r in results[2]) Advance.fromRow(r)],
+    );
+  });
+
+  @override
   Future<PayBook> fetchForEmployee({required String employeeId}) =>
       _guard(FlipperL10n.current.hrPayErrorLoad, () async {
         final results = await Future.wait([

@@ -212,6 +212,24 @@ void main() {
       _expectBalanced(writeOff.lines);
     });
 
+    test('the cutoff is midnight on 17 Nov 2026 in Kigali', () {
+      expect(
+        payrollLedgerStart.add(const Duration(hours: 2)),
+        payrollLedgerStartDay,
+      );
+      List<String> planned(DateTime createdAt) => [
+        for (final p in PayrollJournalPoster.plan(
+          businessId: 'biz',
+          payslips: [_payslip(createdAt: createdAt)],
+        ))
+          p.entryId,
+      ];
+      // 01:00 on the 17th in Kigali is 23:00 UTC on the 16th: posted.
+      expect(planned(DateTime.utc(2026, 11, 16, 23)), hasLength(1));
+      // 23:59 on the 16th in Kigali: before the cutoff.
+      expect(planned(DateTime.utc(2026, 11, 16, 21, 59)), isEmpty);
+    });
+
     test('memos never carry who was paid', () {
       final plan = PayrollJournalPoster.plan(
         businessId: 'biz',

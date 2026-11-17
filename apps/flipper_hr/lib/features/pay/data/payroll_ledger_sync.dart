@@ -10,6 +10,7 @@ library;
 import 'package:flipper_accounting/payroll_journal_poster.dart';
 import 'package:flipper_hr/features/pay/data/pay_models.dart';
 import 'package:flipper_hr/features/pay/data/pay_repository.dart';
+import 'package:flipper_hr/features/pay/data/pay_providers.dart';
 import 'package:flipper_hr/features/people/data/employee.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:flutter/foundation.dart';
@@ -104,6 +105,25 @@ class PayrollLedgerSync {
   PayrollLedgerSync(this._ref);
 
   final Ref _ref;
+
+  /// Posts what [branchId] holds that [businessId]'s ledger does not, read
+  /// for Books ([PayRepository.fetchForLedger]: every record from
+  /// [payrollLedgerStart] on, not the Pay page's display window). Never
+  /// throws: a book that cannot be read is posted by the next sync.
+  Future<int> syncBranch({
+    required String businessId,
+    required String branchId,
+  }) async {
+    try {
+      final book = await _ref
+          .read(payRepositoryProvider)
+          .fetchForLedger(branchId: branchId, createdSince: payrollLedgerStart);
+      return await syncBook(book, businessId: businessId);
+    } catch (e) {
+      debugPrint('[Payroll→Books] $branchId not read: $e');
+      return 0;
+    }
+  }
 
   /// Posts what [book] holds that [businessId]'s ledger does not. The caller
   /// names the business that owns the book; the current selection is never

@@ -55,6 +55,16 @@ abstract class PayRepository {
   /// One person's whole pay book.
   Future<PayBook> fetchForEmployee({required String employeeId});
 
+  /// What Books needs from the branch: every payslip, payment and advance
+  /// created on or after [createdSince], whatever its dates or status. No
+  /// display window applies, so an old advance written off long after it was
+  /// given, or a void of an old payslip, still reaches the ledger. Requests
+  /// are left out: they move no money.
+  Future<PayBook> fetchForLedger({
+    required String branchId,
+    required DateTime createdSince,
+  });
+
   Future<Payslip> createPayslip({
     required String employeeId,
     required DateTime periodStart,

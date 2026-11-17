@@ -205,6 +205,37 @@ void main() {
       );
     });
 
+    test(
+      'a branch that cannot be read posts nothing and never throws',
+      () async {
+        var posts = 0;
+        final container = ProviderContainer(
+          overrides: [
+            payRepositoryProvider.overrideWithValue(
+              FakePayRepository(failWith: Exception('offline')),
+            ),
+            payrollLedgerPosterProvider.overrideWithValue(({
+              required businessId,
+              required payslips,
+              required payments,
+              required writeOffs,
+            }) async {
+              posts++;
+              return 0;
+            }),
+          ],
+        );
+        addTearDown(container.dispose);
+        expect(
+          await container
+              .read(payrollLedgerSyncProvider)
+              .syncBranch(businessId: 'biz-1', branchId: 'branch-1'),
+          0,
+        );
+        expect(posts, 0);
+      },
+    );
+
     test('the Ditto poster writes nothing until Ditto is up', () async {
       final container = ProviderContainer(
         overrides: [dittoReadyProvider.overrideWith((ref) => false)],

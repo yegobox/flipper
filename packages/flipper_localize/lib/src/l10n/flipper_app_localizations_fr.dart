@@ -27399,7 +27399,7 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
 
   @override
   String hrPayPostedToBooks(String date) {
-    return 'La paie créée à partir du $date passe automatiquement dans Books : le coût des salaires, l\'IPR et la RSSB dus. N\'y saisissez plus ces salaires. La paie antérieure au $date n\'est pas dans Books : saisissez-la vous-même si ce n\'est pas déjà fait. Enregistrez ce que vous payez à la RRA et à la RSSB dans Enregistrer une dépense → Impôts et RSSB.';
+    return 'La paie créée à partir du $date (heure du Rwanda) passe automatiquement dans Books : le coût des salaires, l\'IPR et la RSSB dus. N\'y saisissez plus ces salaires. La paie antérieure au $date n\'est pas dans Books : saisissez-la vous-même si ce n\'est pas déjà fait. Enregistrez ce que vous payez à la RRA et à la RSSB dans Enregistrer une dépense → Impôts et RSSB.';
   }
 
   @override

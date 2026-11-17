@@ -35,8 +35,15 @@ import 'package:flipper_accounting/journal_entry_id.dart';
 import 'package:flipper_accounting/statutory_accounts.dart';
 import 'package:flutter/foundation.dart';
 
-/// Pay-book records created before this are never posted (see library doc).
-final payrollLedgerStart = DateTime.utc(2026, 11, 17);
+/// The day payroll starts going to Books: 17 Nov 2026 in Rwanda, where HR's
+/// payroll is run. Shown to users as the cutoff.
+final payrollLedgerStartDay = DateTime.utc(2026, 11, 17);
+
+/// Pay-book records created before this instant are never posted (see
+/// library doc): midnight starting [payrollLedgerStartDay] in Kigali (CAT,
+/// UTC+2 all year). Every device applies the same instant, and a record made
+/// at 01:00 on the 17th in Kigali is in.
+final payrollLedgerStart = DateTime.utc(2026, 11, 16, 22);
 
 /// How money left the business.
 enum PayrollFunding { cash, mobileMoney, bank }

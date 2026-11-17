@@ -47,7 +47,7 @@ class PayPage extends ConsumerStatefulWidget {
 class _PayPageState extends ConsumerState<PayPage> {
   late PayTab _tab = widget.initialTab;
 
-  /// Whether this visit has sent the book to Books with Ditto up.
+  /// Whether this visit has sent this branch's pay to Books with Ditto up.
   bool _caughtUp = false;
 
   @override
@@ -55,25 +55,33 @@ class _PayPageState extends ConsumerState<PayPage> {
     super.initState();
     // Catch Books up once per visit: anything a pay action could not post
     // (Ditto not ready yet, offline, another device) goes now. Later changes
-    // are posted by the pay actions themselves. It waits for both the book
-    // and Ditto, whichever comes last, and counts as done only once it ran
-    // with Ditto up: a sync before that writes nothing.
+    // are posted by the pay actions themselves. It counts as done only once
+    // it ran with Ditto up: a sync before that writes nothing.
     ref.listenManual(
-      branchPayBookProvider(widget.branchId),
+      dittoReadyProvider,
       (_, _) => _catchUpBooks(),
       fireImmediately: true,
     );
-    ref.listenManual(dittoReadyProvider, (_, _) => _catchUpBooks());
+  }
+
+  @override
+  void didUpdateWidget(PayPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // The router reuses this State when another branch is picked: that
+    // branch has not been caught up yet.
+    if (oldWidget.branchId != widget.branchId ||
+        oldWidget.businessId != widget.businessId) {
+      _caughtUp = false;
+      _catchUpBooks();
+    }
   }
 
   void _catchUpBooks() {
     if (_caughtUp || !ref.read(dittoReadyProvider)) return;
-    final book = ref.read(branchPayBookProvider(widget.branchId)).value;
-    if (book == null) return;
     _caughtUp = true;
     ref
         .read(payrollLedgerSyncProvider)
-        .syncBook(book, businessId: widget.businessId);
+        .syncBranch(businessId: widget.businessId, branchId: widget.branchId);
   }
 
   void _refresh() {
@@ -1080,7 +1088,7 @@ class _ReturnsTabState extends ConsumerState<_ReturnsTab> {
             // Only payroll from the start date on is posted (older payroll
             // may already be in Books by hand), and the note says so.
             message: l10n.hrPayPostedToBooks(
-              formatShortDate(payrollLedgerStart),
+              formatShortDate(payrollLedgerStartDay),
             ),
           ),
           HrSubheading(l10n.hrPayReturnsRra),

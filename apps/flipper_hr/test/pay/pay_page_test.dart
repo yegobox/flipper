@@ -265,6 +265,62 @@ void main() {
     expect(posts, 1);
   });
 
+  testWidgets('picking another branch catches that branch up too', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(400, 860);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    final pay = FakePayRepository(advances: [_advance()]);
+    final scope = ValueNotifier(('biz-1', 'branch-1'));
+    addTearDown(scope.dispose);
+    final postedTo = <String>[];
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          employeeRepositoryProvider.overrideWithValue(
+            FakeEmployeeRepository(seed: [_aline()]),
+          ),
+          payRepositoryProvider.overrideWithValue(pay),
+          hrClockProvider.overrideWithValue(() => _today),
+          dittoReadyProvider.overrideWith((ref) => true),
+          payrollLedgerPosterProvider.overrideWithValue(({
+            required businessId,
+            required payslips,
+            required payments,
+            required writeOffs,
+          }) async {
+            postedTo.add(businessId);
+            return 0;
+          }),
+        ],
+        child: MaterialApp(
+          localizationsDelegates: FlipperLocalizationDelegates.delegates,
+          supportedLocales: FlipperLocalizationDelegates.supportedLocales,
+          home: Scaffold(
+            // The router rebuilds the same, unkeyed page for a new branch.
+            body: ValueListenableBuilder<(String, String)>(
+              valueListenable: scope,
+              builder: (_, s, _) => PayPage(businessId: s.$1, branchId: s.$2),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(pay.ledgerReads, ['branch-1']);
+
+    scope.value = ('biz-1', 'branch-2');
+    await tester.pumpAndSettle();
+    expect(pay.ledgerReads, ['branch-1', 'branch-2']);
+    expect(postedTo, ['biz-1', 'biz-1']);
+
+    // Another business with the same branch id is a new scope too.
+    scope.value = ('biz-2', 'branch-2');
+    await tester.pumpAndSettle();
+    expect(postedTo, ['biz-1', 'biz-1', 'biz-2']);
+  });
+
   testWidgets('recovery is capped at half of pay after tax and RSSB', (
     tester,
   ) async {
@@ -396,7 +452,9 @@ void main() {
     expect(find.byKey(const Key('hr-returns-books-note')), findsOneWidget);
     // It says which payroll Books gets: from the start date on.
     expect(
-      find.textContaining('Payroll created from 17 Nov 2026 on'),
+      find.textContaining(
+        'Payroll created on or after 17 Nov 2026 (Rwanda time)',
+      ),
       findsOneWidget,
     );
   });
