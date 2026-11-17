@@ -25036,7 +25036,7 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
 
   @override
   String booksPayStatutoryHint(String owed) {
-    return 'Bishyura ibyo imishahara igaragaza ko mubereyemo ($owed). Ibirenzeho byandikwa nk\'ikiguzi.';
+    return 'Bishyura ibyo Books igaragaza ko mubereyemo ($owed). Ibirenzeho byandikwa nk\'ikiguzi.';
   }
 
   @override

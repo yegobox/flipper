@@ -8489,7 +8489,7 @@
   "booksPayPayeRra": "PAYE iliyolipwa RRA",
   "booksPayRssb": "Michango ya RSSB",
   "booksPayVatHint": "Inapunguza VAT unayodaiwa na RRA. Si gharama.",
-  "booksPayStatutoryHint": "Inalipa kile mishahara inaonyesha unadaiwa ({owed}). Ziada inarekodiwa kama gharama.",
+  "booksPayStatutoryHint": "Inalipa kile Books inaonyesha unadaiwa ({owed}). Ziada inarekodiwa kama gharama.",
   "booksPaidVia": "Imelipwa kupitia",
   "booksMemoDescription": "Kumbukumbu / maelezo",
   "booksExpenseMemoHint": "Matumizi haya yalikuwa ya nini?",

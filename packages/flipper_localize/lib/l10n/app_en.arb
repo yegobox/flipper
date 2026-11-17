@@ -19102,7 +19102,7 @@
     "booksPayPayeRra": "PAYE paid to RRA",
     "booksPayRssb": "RSSB contributions",
     "booksPayVatHint": "Lowers the VAT you owe RRA. It is not an expense.",
-    "booksPayStatutoryHint": "Clears what payroll says you owe ({owed}). Anything above that is recorded as a cost.",
+    "booksPayStatutoryHint": "Clears what Books shows you owe ({owed}). Anything above that is recorded as a cost.",
     "@booksPayStatutoryHint": {
       "placeholders": { "owed": { "type": "String" } }
     },

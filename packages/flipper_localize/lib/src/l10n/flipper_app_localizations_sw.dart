@@ -24937,7 +24937,7 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
 
   @override
   String booksPayStatutoryHint(String owed) {
-    return 'Inalipa kile mishahara inaonyesha unadaiwa ($owed). Ziada inarekodiwa kama gharama.';
+    return 'Inalipa kile Books inaonyesha unadaiwa ($owed). Ziada inarekodiwa kama gharama.';
   }
 
   @override
