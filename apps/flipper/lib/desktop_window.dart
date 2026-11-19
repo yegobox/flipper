@@ -32,16 +32,29 @@ bool get _isDesktop =>
         UniversalPlatform.isMacOS ||
         UniversalPlatform.isLinux);
 
+bool get _isWindows => !kIsWeb && UniversalPlatform.isWindows;
+
 /// Opens the desktop app maximized (fills the screen, keeps the title bar and
 /// taskbar / menu bar) instead of the runner's default 1280×720 window.
 ///
+/// On Windows only the plugin is initialized (`windowManager.setIcon` needs
+/// it): the native runner maximizes the window itself (`windows/runner/
+/// main.cpp`, `Win32Window::Show`). A Dart maximize here lands before the first
+/// frame, and the runner's first-frame `ShowWindow` used to undo it, leaving a
+/// black border around a small window.
+///
 /// A no-op on mobile and web. Never throws: a window-plugin failure must not
 /// block startup, the app just opens at its default size.
-Future<void> maximizeOnLaunch({DesktopWindow? window, bool? isDesktop}) async {
+Future<void> maximizeOnLaunch({
+  DesktopWindow? window,
+  bool? isDesktop,
+  bool? isWindows,
+}) async {
   if (!(isDesktop ?? _isDesktop)) return;
   final target = window ?? const WindowManagerDesktopWindow();
   try {
     await target.ensureInitialized();
+    if (isWindows ?? _isWindows) return;
     await target.maximize();
   } catch (e) {
     debugPrint('⚠️ [window] could not maximize on launch: $e');

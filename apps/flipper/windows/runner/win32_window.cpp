@@ -152,8 +152,10 @@ bool Win32Window::Create(const std::wstring& title,
   return OnCreate();
 }
 
+// Called once, when Flutter's first frame lands. SW_SHOWNORMAL would restore
+// the window that main.cpp maximized back to 1280x720, so show it maximized.
 bool Win32Window::Show() {
-  return ShowWindow(window_handle_, SW_SHOWNORMAL);
+  return ShowWindow(window_handle_, SW_SHOWMAXIMIZED);
 }
 
 // static
