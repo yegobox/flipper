@@ -157,6 +157,17 @@ void main() {
 
   tearDown(() => client.dispose());
 
+  test(
+    'batchWrites just runs the writes: Supabase has no reload to hold',
+    () async {
+      expect(
+        await repo.batchWrites(businessId: 'biz', writes: () async => 7),
+        7,
+      );
+      expect(server.calls, isEmpty);
+    },
+  );
+
   group('chart of accounts', () {
     test('seeding calls the seed RPC for the business', () async {
       await repo.ensureSeeded(businessId: 'biz');

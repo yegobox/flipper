@@ -124,4 +124,102 @@ void main() {
     expect(labels, ['books.transactions_refresh']);
     await sub.cancel();
   });
+
+  group('a change feed that fails', () {
+    /// A feed whose first [failures] subscriptions fail as a failed observer
+    /// registration does: one error, then nothing.
+    ({Stream<void> Function() changes, List<StreamController<void>> feeds})
+    flaky(int failures) {
+      final feeds = <StreamController<void>>[];
+      return (
+        feeds: feeds,
+        changes: () {
+          final c = StreamController<void>();
+          feeds.add(c);
+          if (feeds.length <= failures) {
+            c.addError(StateError('registerObserver failed'));
+          }
+          return c.stream;
+        },
+      );
+    }
+
+    test('is subscribed to again, then read for what it missed', () async {
+      final f = flaky(1);
+      final sub = coalescedRows(
+        perfLabel: 'books.transactions_refresh',
+        read: () async {
+          reads++;
+          return const [];
+        },
+        changes: f.changes,
+        coalesce: const Duration(milliseconds: 10),
+        retryBase: const Duration(milliseconds: 20),
+      ).listen((_) {});
+      await pumpEventQueue();
+      expect(reads, 1);
+      expect(f.feeds, hasLength(1));
+
+      await Future<void>.delayed(const Duration(milliseconds: 80));
+      // A new subscription, and one catch-up read.
+      expect(f.feeds, hasLength(2));
+      expect(reads, 2);
+
+      // The new feed works.
+      f.feeds.last.add(null);
+      await Future<void>.delayed(const Duration(milliseconds: 40));
+      expect(reads, 3);
+      await sub.cancel();
+    });
+
+    testWidgets('backs off while it keeps failing, capped, and resets once '
+        'it works', (tester) async {
+      final f = flaky(4);
+      final sub = coalescedRows(
+        perfLabel: 'books.transactions_refresh',
+        read: () async => const [],
+        changes: f.changes,
+        retryBase: const Duration(seconds: 1),
+        retryMax: const Duration(seconds: 3),
+      ).listen((_) {});
+      await tester.pump();
+      expect(f.feeds, hasLength(1));
+
+      // 1 s, then 2 s, then capped at 3 s.
+      await tester.pump(const Duration(milliseconds: 999));
+      expect(f.feeds, hasLength(1));
+      await tester.pump(const Duration(milliseconds: 1));
+      expect(f.feeds, hasLength(2));
+      await tester.pump(const Duration(seconds: 2));
+      expect(f.feeds, hasLength(3));
+      await tester.pump(const Duration(seconds: 3));
+      expect(f.feeds, hasLength(4));
+      await tester.pump(const Duration(seconds: 3));
+      expect(f.feeds, hasLength(5));
+
+      // Working again: the next failure starts from 1 s.
+      f.feeds.last.add(null);
+      await tester.pump();
+      f.feeds.last.addError(StateError('again'));
+      await tester.pump(const Duration(seconds: 1));
+      expect(f.feeds, hasLength(6));
+
+      unawaited(sub.cancel());
+      await tester.pump(const Duration(seconds: 1));
+    });
+
+    testWidgets('is not retried once the listener leaves', (tester) async {
+      final f = flaky(5);
+      final sub = coalescedRows(
+        perfLabel: 'books.transactions_refresh',
+        read: () async => const [],
+        changes: f.changes,
+        retryBase: const Duration(seconds: 1),
+      ).listen((_) {});
+      await tester.pump();
+      unawaited(sub.cancel());
+      await tester.pump(const Duration(seconds: 10));
+      expect(f.feeds, hasLength(1));
+    });
+  });
 }

@@ -4,7 +4,8 @@ import 'package:flipper_models/sync/ditto_observer_utils.dart';
 import 'package:flipper_web/modules/accounting/data/mapper/accounting_transaction_semantics.dart';
 import 'package:flipper_web/modules/accounting/data/repository/accounting_repository.dart';
 import 'package:flipper_web/modules/accounting/data/repository/coalesced_rows.dart';
-import 'package:flipper_web/services/ditto_service.dart';
+import 'package:flipper_web/services/ditto_mixins/accounting_mixin.dart';
+import 'package:flutter/foundation.dart';
 
 /// Ditto DQL implementation — swap in via the [accountingRepositoryProvider]
 /// override to read from the local Ditto store instead of Supabase.
@@ -13,9 +14,19 @@ import 'package:flipper_web/services/ditto_service.dart';
 /// The mapper layer accepts both camelCase and snake_case, so switching
 /// backends requires no mapper changes.
 class DittoAccountingRepository implements AccountingRepository {
-  const DittoAccountingRepository(this._dittoService);
+  const DittoAccountingRepository(
+    this._dittoService, {
+    @visibleForTesting dynamic Function()? store,
+  }) : _storeOverride = store;
 
-  final DittoService _dittoService;
+  final AccountingMixin _dittoService;
+  final dynamic Function()? _storeOverride;
+
+  /// Ditto's store, or null before Ditto is up. `dynamic` so tests can pass a
+  /// fake through `store`, as Ditto's `Store` is a final class.
+  dynamic get _store => _storeOverride != null
+      ? _storeOverride()
+      : _dittoService.dittoInstance?.store;
 
   @override
   Future<List<Map<String, dynamic>>> fetchTransactions({
@@ -23,8 +34,8 @@ class DittoAccountingRepository implements AccountingRepository {
     DateTime? startDate,
     DateTime? endDate,
   }) async {
-    final ditto = _dittoService.dittoInstance;
-    if (ditto == null) return [];
+    final store = _store;
+    if (store == null) return [];
 
     final args = <String, dynamic>{
       'branchId': branchId,
@@ -57,7 +68,7 @@ class DittoAccountingRepository implements AccountingRepository {
 
     query += ' ORDER BY createdAt DESC';
 
-    final result = await ditto.store.execute(query, arguments: args);
+    final result = await store.execute(query, arguments: args);
     return dittoQueryRows(result);
   }
 
@@ -67,8 +78,8 @@ class DittoAccountingRepository implements AccountingRepository {
   }) async {
     if (transactionIds.isEmpty) return [];
 
-    final ditto = _dittoService.dittoInstance;
-    if (ditto == null) return [];
+    final store = _store;
+    if (store == null) return [];
 
     // Build positional placeholders: :id0, :id1, ...
     final placeholders = transactionIds.indexed
@@ -78,7 +89,7 @@ class DittoAccountingRepository implements AccountingRepository {
       for (final (i, id) in transactionIds.indexed) 'id$i': id,
     };
 
-    final result = await ditto.store.execute(
+    final result = await store.execute(
       'SELECT * FROM transaction_items WHERE transactionId IN ($placeholders)',
       arguments: args,
     );
@@ -91,8 +102,8 @@ class DittoAccountingRepository implements AccountingRepository {
     DateTime? startDate,
     DateTime? endDate,
   }) {
-    final ditto = _dittoService.dittoInstance;
-    if (ditto == null) return const Stream.empty();
+    final store = _store;
+    if (store == null) return const Stream.empty();
 
     final args = <String, dynamic>{
       'branchId': branchId,
@@ -127,7 +138,7 @@ class DittoAccountingRepository implements AccountingRepository {
           ? 'books.transactions_all_refresh'
           : 'books.transactions_refresh',
       read: () async =>
-          dittoQueryRows(await ditto.store.execute(query, arguments: args)),
+          dittoQueryRows(await store.execute(query, arguments: args)),
       changes: () => _dittoService.watchChanges('transactions', query, args),
     );
   }

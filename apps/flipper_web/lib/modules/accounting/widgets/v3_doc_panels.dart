@@ -52,8 +52,10 @@ class _DocEditorPanelState extends ConsumerState<DocEditorPanel> {
 
   /// The party picker, kept while its inputs are unchanged. A dropdown lays
   /// out every contact, and each keystroke in a line rebuilds this panel.
+  /// The localizations are an input too, so a language switch redraws its
+  /// hint.
   Widget? _partyField;
-  (List<AccountingContact>, String)? _partyFieldInputs;
+  (List<AccountingContact>, String, FlipperAppLocalizations)? _partyFieldInputs;
 
   late String _who;
   late String _date;
@@ -179,16 +181,17 @@ class _DocEditorPanelState extends ConsumerState<DocEditorPanel> {
   }
 
   Widget _partyPicker(List<AccountingContact> parties) {
+    final l10n = context.flipperL10n;
     final inputs = _partyFieldInputs;
     final cached = _partyField;
     if (cached != null &&
         inputs != null &&
         identical(inputs.$1, parties) &&
-        inputs.$2 == _who) {
+        inputs.$2 == _who &&
+        identical(inputs.$3, l10n)) {
       return cached;
     }
-    final l10n = context.flipperL10n;
-    _partyFieldInputs = (parties, _who);
+    _partyFieldInputs = (parties, _who, l10n);
     return _partyField = DropdownButtonFormField<String>(
       initialValue: _who.isEmpty ? null : _who,
       decoration: _inputDecoration(

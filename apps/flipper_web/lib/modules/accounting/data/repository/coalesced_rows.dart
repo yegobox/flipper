@@ -12,13 +12,22 @@ import 'package:flutter/foundation.dart';
 /// whole history was decoded on each sale. That stalled Books while people
 /// recorded entries. Here a change only starts a timer, and a burst of them
 /// costs one read.
+///
+/// A change feed that fails (its observer could not be registered, so it
+/// sends nothing more) is subscribed to again after [retryBase], doubling up
+/// to [retryMax] while it keeps failing, and each new subscription is
+/// followed by one read for what the outage hid.
 Stream<List<Map<String, dynamic>>> coalescedRows({
   required Future<List<Map<String, dynamic>>> Function() read,
   required Stream<void> Function() changes,
   required String perfLabel,
   Duration coalesce = const Duration(milliseconds: 250),
+  Duration retryBase = const Duration(seconds: 1),
+  Duration retryMax = const Duration(seconds: 30),
 }) {
   StreamSubscription<void>? feed;
+  Timer? feedRetry;
+  var retryDelay = retryBase;
   Timer? timer;
   var loading = false;
   var dirty = false;
@@ -60,16 +69,41 @@ Stream<List<Map<String, dynamic>>> coalescedRows({
     });
   }
 
+  void subscribe() {
+    feed = changes().listen(
+      (_) {
+        // The feed works again: the next failure starts from the base.
+        retryDelay = retryBase;
+        schedule();
+      },
+      onError: (Object e) {
+        debugPrint('[$perfLabel] change feed: $e');
+        if (closed || feedRetry != null) return;
+        final dead = feed;
+        feed = null;
+        unawaited(dead?.cancel());
+        final delay = retryDelay;
+        final doubled = retryDelay * 2;
+        retryDelay = doubled > retryMax ? retryMax : doubled;
+        feedRetry = Timer(delay, () {
+          feedRetry = null;
+          if (closed) return;
+          subscribe();
+          schedule();
+        });
+      },
+    );
+  }
+
   out = StreamController<List<Map<String, dynamic>>>(
     onListen: () {
-      feed = changes().listen(
-        (_) => schedule(),
-        onError: (Object e) => debugPrint('[$perfLabel] change feed: $e'),
-      );
+      subscribe();
       unawaited(load());
     },
     onCancel: () async {
       closed = true;
+      feedRetry?.cancel();
+      feedRetry = null;
       timer?.cancel();
       timer = null;
       await feed?.cancel();
