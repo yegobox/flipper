@@ -33,6 +33,7 @@ import 'repository/auth_refreshing_client.dart';
 import 'repository/local_mode_hold_client.dart';
 import 'repository/database_manager.dart';
 import 'repository/legacy_database_migration.dart';
+import 'repository/fresh_schema_installer.dart';
 import 'repository/main_db_opener.dart';
 import 'repository/queue_manager.dart';
 import 'package:brick_sqlite/turso.dart' show TursoReplicaPaths;
@@ -67,6 +68,8 @@ class Repository extends OfflineFirstWithSupabaseRepository {
   static String? _mainDbTier;
   static List<LocalDbTierFailure> _mainDbFallbacks = const [];
   static String? _queueDbTier;
+  static bool _mainDbFreshSchema = false;
+  static Duration? _mainDbMigrateDuration;
 
   /// Which way the main Brick DB was opened (`sqflite`, `turso`, `memory`, …).
   static String? get mainDbTier => _mainDbTier;
@@ -76,6 +79,17 @@ class Repository extends OfflineFirstWithSupabaseRepository {
 
   /// Which way the offline request queue DB was opened.
   static String? get queueDbTier => _queueDbTier;
+
+  /// True when this launch built the main DB from the schema snapshot (a new
+  /// install, or a database that was moved aside) instead of migrating it.
+  static bool get mainDbFreshSchema => _mainDbFreshSchema;
+
+  /// How long creating or migrating the main DB's schema took at startup.
+  static Duration? get mainDbMigrateDuration => _mainDbMigrateDuration;
+
+  // Set on each main DB candidate by [_openMainDbCandidate].
+  bool _freshSchemaInstalled = false;
+  Duration? _migrateDuration;
 
   // Constants for database filenames and versioning
   static const _dbFileBaseName = 'flipper';
@@ -401,7 +415,11 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     _migrated = true;
     _mainDbTier = opened.tier.name;
     _mainDbFallbacks = opened.failures;
-    print('✅ [Repository] Main DB ready (${opened.tier.name})');
+    _mainDbFreshSchema = opened.value._freshSchemaInstalled;
+    _mainDbMigrateDuration = opened.value._migrateDuration;
+    print('✅ [Repository] Main DB ready (${opened.tier.name}, '
+        'freshSchema=$_mainDbFreshSchema, '
+        'migrate=${_mainDbMigrateDuration?.inMilliseconds}ms)');
 
     if (!kIsWeb &&
         !PlatformHelpers.usesTursoMainDatabase &&
@@ -498,7 +516,9 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     ));
     try {
       await candidate._ensurePendingAnalyticsEventTable();
-      await candidate._migrateMainDb();
+      final watch = Stopwatch()..start();
+      candidate._freshSchemaInstalled = await candidate._migrateMainDb();
+      candidate._migrateDuration = watch.elapsed;
       return candidate;
     } catch (_) {
       await candidate._closeMainDbQuietly();
@@ -508,9 +528,24 @@ class Repository extends OfflineFirstWithSupabaseRepository {
 
   /// [migrate] minus the queue: a broken queue DB must not disqualify a
   /// working main DB (the queue has its own fallback).
-  Future<void> _migrateMainDb() async {
-    final lastVersion = await sqliteProvider.lastMigrationVersion();
+  ///
+  /// An empty database gets the whole schema in one transaction from the
+  /// snapshot ([installFreshSchemaIfEmpty]) instead of replaying every
+  /// migration, which took longer than the startup budget on slow phones and
+  /// Turso. Migrations newer than the snapshot still run afterwards. Returns
+  /// true when the snapshot was used.
+  Future<bool> _migrateMainDb() async {
+    var lastVersion = await sqliteProvider.lastMigrationVersion();
+    var fresh = false;
+    if (lastVersion == -1) {
+      // ignore: invalid_use_of_protected_member
+      fresh = await installFreshSchemaIfEmpty(await sqliteProvider.getDb());
+      if (fresh) {
+        lastVersion = await sqliteProvider.lastMigrationVersion();
+      }
+    }
     await sqliteProvider.migrate(migrationManager.migrationsSince(lastVersion));
+    return fresh;
   }
 
   /// Closes the connection only. Not [SqliteProvider.resetDb], which deletes
