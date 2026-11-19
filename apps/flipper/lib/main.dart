@@ -126,25 +126,36 @@ void _reportLocalDbFallback() {
   final fallbacks = Repository.mainDbFallbacks;
   final queueTier = Repository.queueDbTier;
   final queueDegraded = queueTier != null && queueTier != 'sqflite';
-  if (fallbacks.isEmpty && !queueDegraded) {
+  final migrate = Repository.mainDbMigrateDuration;
+  // A schema step this slow eats most of the startup budget; first launches
+  // used to fail this way before new installs got the schema in one go.
+  final slowMigrate = migrate != null && migrate > _slowLocalDbMigrate;
+  if (fallbacks.isEmpty && !queueDegraded && !slowMigrate) {
     return;
   }
+  final degraded = fallbacks.isNotEmpty || queueDegraded;
   unawaited(
     GlobalErrorHandler.logMessage(
-      'Local database opened on a fallback tier',
-      type: 'local_db_fallback',
+      degraded
+          ? 'Local database opened on a fallback tier'
+          : 'Local database schema setup was slow',
+      type: degraded ? 'local_db_fallback' : 'local_db_slow_migrate',
       tags: {
         'local_db_tier': Repository.mainDbTier ?? 'unknown',
         'queue_db_tier': queueTier ?? 'unknown',
+        'local_db_fresh_schema': Repository.mainDbFreshSchema.toString(),
       },
       extra: {
         'failures': [for (final f in fallbacks) f.toString()],
+        'migrate_ms': migrate?.inMilliseconds,
       },
     ).catchError((Object e) {
       debugPrint('Failed to report local DB fallback: $e');
     }),
   );
 }
+
+const _slowLocalDbMigrate = Duration(seconds: 10);
 
 // Function to initialize Print Delegation (Real-time Ditto-based)
 
