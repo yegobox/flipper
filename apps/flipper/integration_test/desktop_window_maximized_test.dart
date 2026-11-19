@@ -36,10 +36,10 @@ void main() {
 
       expect(maximized, isTrue);
 
-      // The runner shows the window from its native first-frame callback, so
-      // completed pumps prove nothing: wait for the first frame to be
-      // rasterized, then until the window is actually visible (Show() done),
-      // and only then check nothing restored it.
+      // Best effort: wait for the first rasterized frame and for the window to
+      // be visible, then check nothing restored it. This cannot prove ordering
+      // against the runner's native first-frame Show() (the window is created
+      // visible); the fix itself is in win32_window.cpp / main.cpp.
       await tester.binding.waitUntilFirstFrameRasterized;
       var visible = false;
       for (var i = 0; i < 50 && !visible; i++) {
