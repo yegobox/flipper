@@ -700,19 +700,26 @@ Future<void> _categorizeBankLine(
 
   try {
     final ledger = ref.read(accountingLedgerRepositoryProvider);
-    final entryId = await ledger.createJournalEntry(
+    final entryId = await ledger.batchWrites(
       businessId: businessId,
-      entry: entry,
-      journalCode: 'misc',
-      entryId: deterministicEntryId,
+      perfLabel: 'books.save_bank_rec',
+      writes: () async {
+        final entryId = await ledger.createJournalEntry(
+          businessId: businessId,
+          entry: entry,
+          journalCode: 'misc',
+          entryId: deterministicEntryId,
+        );
+        // createJournalEntry writes the header with the entry's status, but
+        // post explicitly so the entry counts in balances/reports regardless
+        // of backend. Both create and post are idempotent upserts on the
+        // deterministic id, so a retry re-runs the whole sequence without
+        // producing duplicates.
+        await ledger.postJournalEntry(businessId: businessId, entryId: entryId);
+        return entryId;
+      },
     );
-    // createJournalEntry writes the header with the entry's status, but post
-    // explicitly so the entry counts in balances/reports regardless of backend.
-    // Both create and post are idempotent upserts on the deterministic id, so a
-    // retry re-runs the whole sequence without producing duplicates.
-    await ledger.postJournalEntry(businessId: businessId, entryId: entryId);
-    ref.invalidate(journalEntriesStreamProvider);
-    ref.invalidate(journalEntriesThroughPeriodEndProvider);
+    _refreshJournalUnlessLive(ref);
 
     await _persistBankLineMatch(
       ref,
@@ -792,15 +799,20 @@ Future<void> _postSmsBalanceAdjustment(
   );
   try {
     final ledger = ref.read(accountingLedgerRepositoryProvider);
-    final entryId = await ledger.createJournalEntry(
+    await ledger.batchWrites(
       businessId: businessId,
-      entry: entry,
-      journalCode: 'misc',
-      entryId: 'je_bankrec_bal_${bank}_$stamp',
+      perfLabel: 'books.save_bank_rec',
+      writes: () async {
+        final entryId = await ledger.createJournalEntry(
+          businessId: businessId,
+          entry: entry,
+          journalCode: 'misc',
+          entryId: 'je_bankrec_bal_${bank}_$stamp',
+        );
+        await ledger.postJournalEntry(businessId: businessId, entryId: entryId);
+      },
     );
-    await ledger.postJournalEntry(businessId: businessId, entryId: entryId);
-    ref.invalidate(journalEntriesStreamProvider);
-    ref.invalidate(journalEntriesThroughPeriodEndProvider);
+    _refreshJournalUnlessLive(ref);
     if (!context.mounted) return;
     showAccountingToast(
       context,
@@ -2029,4 +2041,13 @@ class AccountingChartOfAccountsView extends ConsumerWidget {
       ),
     );
   }
+}
+
+/// Re-reads the journal after a bank-rec post, except on Ditto: its change
+/// feed already brings the entry in, and invalidating there tore the shared
+/// ledger source down and read the whole journal again from cold.
+void _refreshJournalUnlessLive(WidgetRef ref) {
+  if (ref.read(accountingUseDittoForLedgerProvider)) return;
+  ref.invalidate(journalEntriesStreamProvider);
+  ref.invalidate(journalEntriesThroughPeriodEndProvider);
 }

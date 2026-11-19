@@ -7,9 +7,9 @@ class FakeAccountingLedgerRepository implements AccountingLedgerRepository {
     List<Account>? coa,
     List<JournalEntry>? entries,
     List<BankLine>? bankLines,
-  })  : _coa = coa ?? List<Account>.from(defaultChartOfAccountsSeed),
-        _entries = entries ?? [],
-        _bankLines = bankLines ?? [];
+  }) : _coa = coa ?? List<Account>.from(defaultChartOfAccountsSeed),
+       _entries = entries ?? [],
+       _bankLines = bankLines ?? [];
 
   final List<Account> _coa;
   final List<JournalEntry> _entries;
@@ -78,16 +78,18 @@ class FakeAccountingLedgerRepository implements AccountingLedgerRepository {
     String? entryId,
   }) async {
     final id = entryId ?? 'uuid-${_entries.length}';
-    _entries.add(JournalEntry(
-      id: entry.id,
-      date: entry.date,
-      memo: entry.memo,
-      ref: entry.ref,
-      status: entry.status,
-      src: entry.src,
-      lines: entry.lines,
-      uuid: id,
-    ));
+    _entries.add(
+      JournalEntry(
+        id: entry.id,
+        date: entry.date,
+        memo: entry.memo,
+        ref: entry.ref,
+        status: entry.status,
+        src: entry.src,
+        lines: entry.lines,
+        uuid: id,
+      ),
+    );
     if (transactionId != null) {
       _txnToEntryId[transactionId] = id;
     }
@@ -100,6 +102,18 @@ class FakeAccountingLedgerRepository implements AccountingLedgerRepository {
     required String entryId,
     required JournalEntry entry,
   }) async {}
+
+  int batchWritesCalls = 0;
+
+  @override
+  Future<T> batchWrites<T>({
+    required String businessId,
+    required Future<T> Function() writes,
+    String perfLabel = 'books.save',
+  }) {
+    batchWritesCalls++;
+    return writes();
+  }
 
   @override
   Future<bool> postJournalEntry({
@@ -153,7 +167,9 @@ class FakeAccountingLedgerRepository implements AccountingLedgerRepository {
   }
 
   @override
-  Future<Map<String, dynamic>?> fetchSettings({required String businessId}) async {
+  Future<Map<String, dynamic>?> fetchSettings({
+    required String businessId,
+  }) async {
     return {'default_vat_rate': 0.18, 'vat_due_day': 15};
   }
 

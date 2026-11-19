@@ -38,7 +38,7 @@ class DocEditorPanel extends ConsumerStatefulWidget {
   final AccountingDocument? doc;
   final String newId;
   final VoidCallback onClose;
-  final void Function(AccountingDocument doc, String mode) onSaved;
+  final Future<void> Function(AccountingDocument doc, String mode) onSaved;
   final String? initialWho;
 
   @override
@@ -46,6 +46,17 @@ class DocEditorPanel extends ConsumerStatefulWidget {
 }
 
 class _DocEditorPanelState extends ConsumerState<DocEditorPanel> {
+  /// A save is running: the buttons stay off, so clicks on a slow save
+  /// never record the same bill twice.
+  bool _saving = false;
+
+  /// The party picker, kept while its inputs are unchanged. A dropdown lays
+  /// out every contact, and each keystroke in a line rebuilds this panel.
+  /// The localizations are an input too, so a language switch redraws its
+  /// hint.
+  Widget? _partyField;
+  (List<AccountingContact>, String, FlipperAppLocalizations)? _partyFieldInputs;
+
   late String _who;
   late String _date;
   late String _due;
@@ -159,6 +170,42 @@ class _DocEditorPanelState extends ConsumerState<DocEditorPanel> {
     return true;
   }
 
+  Future<void> _save(AccountingDocument doc, String mode) async {
+    if (_saving) return;
+    setState(() => _saving = true);
+    try {
+      await widget.onSaved(doc, mode);
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  Widget _partyPicker(List<AccountingContact> parties) {
+    final l10n = context.flipperL10n;
+    final inputs = _partyFieldInputs;
+    final cached = _partyField;
+    if (cached != null &&
+        inputs != null &&
+        identical(inputs.$1, parties) &&
+        inputs.$2 == _who &&
+        identical(inputs.$3, l10n)) {
+      return cached;
+    }
+    _partyFieldInputs = (parties, _who, l10n);
+    return _partyField = DropdownButtonFormField<String>(
+      initialValue: _who.isEmpty ? null : _who,
+      decoration: _inputDecoration(
+        icon: Icons.business_outlined,
+        hint: _isInvoice ? l10n.booksSelectCustomer : l10n.booksSelectSupplier,
+      ),
+      items: [
+        for (final p in parties)
+          DropdownMenuItem(value: p.name, child: Text(p.name)),
+      ],
+      onChanged: (v) => setState(() => _who = v ?? ''),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.flipperL10n;
@@ -205,23 +252,7 @@ class _DocEditorPanelState extends ConsumerState<DocEditorPanel> {
                           label: _isInvoice
                               ? l10n.customer
                               : l10n.booksSupplier,
-                          child: DropdownButtonFormField<String>(
-                            initialValue: _who.isEmpty ? null : _who,
-                            decoration: _inputDecoration(
-                              icon: Icons.business_outlined,
-                              hint: _isInvoice
-                                  ? l10n.booksSelectCustomer
-                                  : l10n.booksSelectSupplier,
-                            ),
-                            items: [
-                              for (final p in parties)
-                                DropdownMenuItem(
-                                  value: p.name,
-                                  child: Text(p.name),
-                                ),
-                            ],
-                            onChanged: (v) => setState(() => _who = v ?? ''),
-                          ),
+                          child: _partyPicker(parties),
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -321,21 +352,21 @@ class _DocEditorPanelState extends ConsumerState<DocEditorPanel> {
             children: [
               AccountingButton(
                 label: l10n.booksSaveDraft,
-                enabled: _who.isNotEmpty,
-                onPressed: _who.isEmpty
+                enabled: _who.isNotEmpty && !_saving,
+                onPressed: _who.isEmpty || _saving
                     ? null
-                    : () => widget.onSaved(_build(DocStatus.draft), 'draft'),
+                    : () => _save(_build(DocStatus.draft), 'draft'),
               ),
               if (_isInvoice)
                 PopupMenuButton<String>(
                   offset: const Offset(0, -8),
                   padding: EdgeInsets.zero,
-                  enabled: _valid,
+                  enabled: _valid && !_saving,
                   child: AccountingButton(
                     label: l10n.booksSaveAndSend,
                     icon: Icons.mail_outline,
                     primary: true,
-                    enabled: _valid,
+                    enabled: _valid && !_saving,
                   ),
                   itemBuilder: (context) => [
                     PopupMenuItem(value: 'email', child: Text(l10n.email)),
@@ -348,8 +379,7 @@ class _DocEditorPanelState extends ConsumerState<DocEditorPanel> {
                       child: Text(l10n.booksDownloadPdfOnly),
                     ),
                   ],
-                  onSelected: (_) =>
-                      widget.onSaved(_build(DocStatus.sent), 'send'),
+                  onSelected: (_) => _save(_build(DocStatus.sent), 'send'),
                 )
               else
                 AccountingButton(
@@ -358,9 +388,9 @@ class _DocEditorPanelState extends ConsumerState<DocEditorPanel> {
                       : l10n.booksRecordBill,
                   icon: Icons.check,
                   primary: true,
-                  enabled: _valid && !_waitingPurchaseDraft,
-                  onPressed: _valid && !_waitingPurchaseDraft
-                      ? () => widget.onSaved(_build(DocStatus.sent), 'send')
+                  enabled: _valid && !_waitingPurchaseDraft && !_saving,
+                  onPressed: _valid && !_waitingPurchaseDraft && !_saving
+                      ? () => _save(_build(DocStatus.sent), 'send')
                       : null,
                 ),
             ],

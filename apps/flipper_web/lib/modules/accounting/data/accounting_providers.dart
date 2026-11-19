@@ -532,7 +532,10 @@ final accountingCoaBootstrapProvider = FutureProvider<void>((ref) async {
   await Future<void>.delayed(Duration.zero);
   if (!ref.mounted) return;
 
-  await logAccountingStartupDiagnostics(ref);
+  // Debug only: it reads every journal status and every transaction id in the
+  // branch just to log counts, which on a busy till is seconds of Ditto work
+  // each time Books opens.
+  if (kDebugMode) await logAccountingStartupDiagnostics(ref);
 });
 
 /// Background journal replication after the shell is visible.

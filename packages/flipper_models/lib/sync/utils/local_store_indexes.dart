@@ -21,14 +21,26 @@ const Map<String, List<String>> kLocalStoreIndexedFields = {
   // The cart hot path: every tap looks a line up by transaction and variant.
   'transaction_items': ['transactionId', 'variantId', 'branchId'],
   // Cart, tickets, reports and every branch-wide observer filter these.
-  'transactions': ['branchId', 'status', 'createdAt'],
+  // Books filters `branchId = :b OR branch_id = :b`, and an OR only uses
+  // indexes when every side of it has one.
+  'transactions': ['branchId', 'branch_id', 'status', 'createdAt'],
   // Resolved per tap before a line is written.
   'variants': ['productId', 'branchId'],
   'stocks': ['variantId', 'branchId'],
   // Books reads a business's ledger with `businessId = :b OR business_id = :b`
-  // (an OR needs both fields indexed) and heals lines by entry id.
-  'journal_entries': ['businessId', 'business_id'],
+  // (an OR needs both fields indexed) and heals lines by entry id. Every bill,
+  // invoice, payment and recurring post first looks its entry up by
+  // `transactionId`.
+  'journal_entries': ['businessId', 'business_id', 'transactionId'],
   'journal_lines': ['businessId', 'business_id', 'journalEntryId'],
+  // The rest of Books, all read per business while a form is open.
+  'chart_of_accounts': ['businessId', 'business_id'],
+  'accounting_documents': ['businessId'],
+  'accounting_contacts': ['businessId'],
+  'bank_statement_lines': ['businessId'],
+  'accounting_settings': ['businessId'],
+  'accounting_audit_logs': ['businessId'],
+  'accounting_recurring_schedules': ['businessId'],
 };
 
 /// `CREATE INDEX IF NOT EXISTS` statements for [kLocalStoreIndexedFields].

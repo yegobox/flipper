@@ -35,6 +35,27 @@ void main() {
     expect(statements, contains('ON journal_lines (journalEntryId)'));
   });
 
+  test('covers what Books filters on while recording', () {
+    final statements = localStoreIndexStatements().join('\n');
+
+    // `branchId = :b OR branch_id = :b` scans every transaction otherwise.
+    expect(statements, contains('ON transactions (branch_id)'));
+    // Every document post looks its entry up by transaction first.
+    expect(statements, contains('ON journal_entries (transactionId)'));
+    expect(statements, contains('ON chart_of_accounts (businessId)'));
+    expect(statements, contains('ON chart_of_accounts (business_id)'));
+    for (final c in [
+      'accounting_documents',
+      'accounting_contacts',
+      'bank_statement_lines',
+      'accounting_settings',
+      'accounting_audit_logs',
+      'accounting_recurring_schedules',
+    ]) {
+      expect(statements, contains('ON $c (businessId)'));
+    }
+  });
+
   test('index names are unique per collection and field', () {
     final names = [
       for (final s in localStoreIndexStatements())

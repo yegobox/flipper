@@ -49,6 +49,16 @@ abstract class AccountingLedgerRepository {
     required JournalEntry entry,
   });
 
+  /// Runs a save's [writes] (create, post, audit…) as one unit for anything
+  /// watching the ledger: on Ditto the journal is read again once, after the
+  /// last write, instead of after each one. [perfLabel] names the save in the
+  /// UI-stall trail.
+  Future<T> batchWrites<T>({
+    required String businessId,
+    required Future<T> Function() writes,
+    String perfLabel = 'books.save',
+  });
+
   /// Transitions a journal entry to `posted`.
   ///
   /// When [onlyIfPending] is true, only updates rows still in `pending` status

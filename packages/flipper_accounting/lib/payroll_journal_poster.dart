@@ -362,33 +362,40 @@ class PayrollJournalPoster {
       existingCodes: {for (final r in chart) '${r['code']}'},
     );
 
-    var written = 0;
-    for (final p in missing) {
-      try {
-        await ledger.createJournalEntry(
-          businessId: businessId,
-          entry: JournalEntry(
-            id: p.ref,
-            date: billDateFormat.format(p.date),
-            memo: p.memo,
-            ref: p.ref,
-            status: JournalStatus.posted,
-            src: 'Payroll',
-            lines: p.lines,
-          ),
-          journalCode: 'misc',
-          entryId: p.entryId,
-        );
-        await ledger.postJournalEntry(
-          businessId: businessId,
-          entryId: p.entryId,
-        );
-        written++;
-      } catch (e) {
-        // The next sync retries it; one bad record must not stop the rest.
-        debugPrint('[Payroll→Books] ${p.entryId} not posted: $e');
-      }
-    }
-    return written;
+    // One ledger read for the whole run, not one per payslip.
+    return ledger.batchWrites(
+      businessId: businessId,
+      perfLabel: 'books.save_payroll',
+      writes: () async {
+        var written = 0;
+        for (final p in missing) {
+          try {
+            await ledger.createJournalEntry(
+              businessId: businessId,
+              entry: JournalEntry(
+                id: p.ref,
+                date: billDateFormat.format(p.date),
+                memo: p.memo,
+                ref: p.ref,
+                status: JournalStatus.posted,
+                src: 'Payroll',
+                lines: p.lines,
+              ),
+              journalCode: 'misc',
+              entryId: p.entryId,
+            );
+            await ledger.postJournalEntry(
+              businessId: businessId,
+              entryId: p.entryId,
+            );
+            written++;
+          } catch (e) {
+            // The next sync retries it; one bad record must not stop the rest.
+            debugPrint('[Payroll→Books] ${p.entryId} not posted: $e');
+          }
+        }
+        return written;
+      },
+    );
   }
 }
