@@ -160,12 +160,21 @@ class DocumentJournalPoster {
     );
     if (existing != null) return;
 
-    final entryId = await _ledger.createJournalEntry(
+    await _ledger.batchWrites(
       businessId: businessId,
-      entry: entry,
-      transactionId: transactionId,
-      journalCode: journalCode,
+      perfLabel: 'books.save_doc',
+      writes: () async {
+        final entryId = await _ledger.createJournalEntry(
+          businessId: businessId,
+          entry: entry,
+          transactionId: transactionId,
+          journalCode: journalCode,
+        );
+        await _ledger.postJournalEntry(
+          businessId: businessId,
+          entryId: entryId,
+        );
+      },
     );
-    await _ledger.postJournalEntry(businessId: businessId, entryId: entryId);
   }
 }

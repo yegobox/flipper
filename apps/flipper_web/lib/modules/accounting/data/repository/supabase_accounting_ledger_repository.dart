@@ -379,6 +379,14 @@ class SupabaseAccountingLedgerRepository implements AccountingLedgerRepository {
     }
   }
 
+  /// Supabase pushes no per-write reload, so there is nothing to hold.
+  @override
+  Future<T> batchWrites<T>({
+    required String businessId,
+    required Future<T> Function() writes,
+    String perfLabel = 'books.save',
+  }) => writes();
+
   @override
   Future<bool> postJournalEntry({
     required String businessId,

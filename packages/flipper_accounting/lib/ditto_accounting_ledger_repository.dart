@@ -188,6 +188,35 @@ class DittoAccountingLedgerRepository implements AccountingLedgerRepository {
   @visibleForTesting
   static Duration readRetry = const Duration(seconds: 5);
 
+  /// The longest a write may hold the ledger's refresh back; after this the
+  /// ledger reads again even if the write never finishes.
+  @visibleForTesting
+  static Duration writeHoldLimit = const Duration(seconds: 10);
+
+  /// Runs [writes] with this business's ledger refresh held back, then reads
+  /// the ledger once.
+  ///
+  /// A save writes a header, each line and then the post, one await at a
+  /// time. Without the hold, every pause longer than the coalesce window
+  /// reloaded and decoded the business's whole journal on the UI thread
+  /// mid-save, which froze Books while recording on a busy till.
+  @override
+  Future<T> batchWrites<T>({
+    required String businessId,
+    required Future<T> Function() writes,
+    String perfLabel = 'books.save',
+  }) {
+    final holds = _LedgerWriteHolds.of(_ditto);
+    final token = holds.hold(businessId);
+    return PerfTrack.track(perfLabel, () async {
+      try {
+        return await writes();
+      } finally {
+        holds.release(businessId, token);
+      }
+    });
+  }
+
   @override
   Stream<List<JournalEntry>> watchJournalEntries({
     required String businessId,
@@ -201,7 +230,11 @@ class DittoAccountingLedgerRepository implements AccountingLedgerRepository {
       onListen: () {
         final s = source = _ledgerSources.putIfAbsent(
           businessId,
-          () => _JournalLedgerSource(_ditto, businessId),
+          () => _JournalLedgerSource(
+            _ditto,
+            businessId,
+            _LedgerWriteHolds.of(_ditto),
+          ),
         );
         s.listeners++;
         List<JournalEntry> pick(_JournalLedgerSnapshot snap) =>
@@ -397,12 +430,18 @@ class DittoAccountingLedgerRepository implements AccountingLedgerRepository {
       id: entryId,
       transactionId: transactionId,
     );
-    await _ditto.upsertJournalEntryHeader(businessId, header, entryId);
-
-    for (final line in entry.lines) {
-      await _ditto.upsertJournalLine(businessId, entryId, line);
-    }
-    return entryId;
+    final id = entryId;
+    return batchWrites(
+      businessId: businessId,
+      perfLabel: 'books.write_entry',
+      writes: () async {
+        await _ditto.upsertJournalEntryHeader(businessId, header, id);
+        for (final line in entry.lines) {
+          await _ditto.upsertJournalLine(businessId, id, line);
+        }
+        return id;
+      },
+    );
   }
 
   @override
@@ -416,24 +455,30 @@ class DittoAccountingLedgerRepository implements AccountingLedgerRepository {
       entry: entry,
       id: entryId,
     );
-    await _ditto.upsertJournalEntryHeader(businessId, header, entryId);
+    await batchWrites(
+      businessId: businessId,
+      perfLabel: 'books.write_entry',
+      writes: () async {
+        await _ditto.upsertJournalEntryHeader(businessId, header, entryId);
 
-    final existing = await _ditto.queryCollection(
-      'journal_lines',
-      'SELECT * FROM journal_lines WHERE journalEntryId = :entryId',
-      {'entryId': entryId},
+        final existing = await _ditto.queryCollection(
+          'journal_lines',
+          'SELECT _id FROM journal_lines WHERE journalEntryId = :entryId',
+          {'entryId': entryId},
+        );
+        for (final row in existing) {
+          final id = (row['id'] ?? row['_id']).toString();
+          await _ditto.executeUpdate('journal_lines', id, {
+            'debit': 0,
+            'credit': 0,
+          });
+        }
+
+        for (final line in entry.lines) {
+          await _ditto.upsertJournalLine(businessId, entryId, line);
+        }
+      },
     );
-    for (final row in existing) {
-      final id = (row['id'] ?? row['_id']).toString();
-      await _ditto.executeUpdate('journal_lines', id, {
-        'debit': 0,
-        'credit': 0,
-      });
-    }
-
-    for (final line in entry.lines) {
-      await _ditto.upsertJournalLine(businessId, entryId, line);
-    }
   }
 
   @override
@@ -528,19 +573,34 @@ class DittoAccountingLedgerRepository implements AccountingLedgerRepository {
         'SELECT * FROM stocks WHERE branchId = :branchId',
         {'branchId': branchId},
       );
+      final variantIds = <String>{
+        for (final s in stocks)
+          if ((s['variantId'] ?? s['variant_id']) case final id?) id.toString(),
+      }.toList();
+      // One query per chunk of variants, not one per stock row: a shop with
+      // thousands of items ran thousands of sequential reads.
+      final priceById = <String, int>{};
+      for (final chunk in _JournalLedgerSource._chunks(variantIds)) {
+        final variants = await _ditto.queryCollection(
+          'variants',
+          'SELECT * FROM variants WHERE _id IN :ids',
+          {'ids': chunk},
+        );
+        for (final v in variants) {
+          final id = (v['_id'] ?? v['id'])?.toString();
+          if (id == null) continue;
+          priceById.putIfAbsent(
+            id,
+            () => _int(v['supplyPrice'] ?? v['supply_price']),
+          );
+        }
+      }
       var total = 0;
       for (final s in stocks) {
         final variantId = s['variantId'] ?? s['variant_id'];
         if (variantId == null) continue;
-        final variants = await _ditto.queryCollection(
-          'variants',
-          'SELECT * FROM variants WHERE id = :id',
-          {'id': variantId.toString()},
-        );
-        if (variants.isEmpty) continue;
-        final price = _int(
-          variants.first['supplyPrice'] ?? variants.first['supply_price'],
-        );
+        final price = priceById[variantId.toString()];
+        if (price == null) continue;
         final qty = _int(s['currentStock'] ?? s['current_stock']);
         total += price * qty;
       }
@@ -565,7 +625,7 @@ class DittoAccountingLedgerRepository implements AccountingLedgerRepository {
 /// line group and per header with no lines; `asyncMap` then queued one such
 /// rebuild per change. On a busy till that froze Books.
 class _JournalLedgerSource {
-  _JournalLedgerSource(this._ditto, this.businessId);
+  _JournalLedgerSource(this._ditto, this.businessId, this._holds);
 
   /// How long changes are gathered before one refresh reads them all.
   static const coalesce = Duration(milliseconds: 250);
@@ -582,9 +642,14 @@ class _JournalLedgerSource {
 
   final AccountingDittoStore _ditto;
   final String businessId;
+  final _LedgerWriteHolds _holds;
 
   /// Callers currently listening; maintained by the repository.
   int listeners = 0;
+
+  /// A change arrived while a write held the refresh back.
+  var _changedWhileHeld = false;
+  StreamSubscription<String>? _holdReleases;
 
   _JournalLedgerSnapshot? latest;
 
@@ -604,6 +669,11 @@ class _JournalLedgerSource {
   void start() {
     if (_started) return;
     _started = true;
+    _holdReleases = _holds.released.listen((b) {
+      if (b != businessId || !_changedWhileHeld) return;
+      _changedWhileHeld = false;
+      _schedule();
+    });
     // Lines can land after their header: watch both, so an entry's lines
     // show up without waiting for the next header change.
     _watch('journal_entries', _entriesQuery);
@@ -648,6 +718,11 @@ class _JournalLedgerSource {
   /// by later changes, so a steady stream of them cannot starve the ledger.
   void _schedule() {
     if (_disposed) return;
+    // A save is mid-write: read once when it is done, not after every line.
+    if (_holds.isHeld(businessId)) {
+      _changedWhileHeld = true;
+      return;
+    }
     if (_loading) {
       _dirty = true;
       return;
@@ -693,6 +768,8 @@ class _JournalLedgerSource {
     _disposed = true;
     _timer?.cancel();
     _timer = null;
+    await _holdReleases?.cancel();
+    _holdReleases = null;
     _readRetry?.cancel();
     _readRetry = null;
     for (final t in _feedRetries) {
@@ -822,6 +899,63 @@ class _JournalLedgerSource {
         i + idsPerQuery > ids.length ? ids.length : i + idsPerQuery,
       );
     }
+  }
+}
+
+/// Writes in progress per business, shared by every repository on one store.
+///
+/// Posters build their own repository (`DittoAccountingLedgerRepository(store)`)
+/// while the screens watch through another, so the holds live with the store.
+class _LedgerWriteHolds {
+  static final _byStore = Expando<_LedgerWriteHolds>();
+
+  static _LedgerWriteHolds of(AccountingDittoStore store) =>
+      _byStore[store] ??= _LedgerWriteHolds();
+
+  final _depth = <String, int>{};
+  final _generation = <String, int>{};
+  final _limits = <String, Timer>{};
+  final _released = StreamController<String>.broadcast();
+
+  /// Businesses whose hold just ended.
+  Stream<String> get released => _released.stream;
+
+  bool isHeld(String businessId) => (_depth[businessId] ?? 0) > 0;
+
+  /// Holds [businessId]'s refresh; returns the token [release] needs.
+  /// Nested holds share the outer one's token.
+  int hold(String businessId) {
+    final depth = _depth[businessId] ?? 0;
+    if (depth == 0) {
+      final generation = (_generation[businessId] ?? 0) + 1;
+      _generation[businessId] = generation;
+      _limits[businessId] = Timer(
+        DittoAccountingLedgerRepository.writeHoldLimit,
+        () => _end(businessId),
+      );
+    }
+    _depth[businessId] = depth + 1;
+    return _generation[businessId]!;
+  }
+
+  /// Ends one level of the hold [token] belongs to. A token from a hold that
+  /// already timed out is ignored, so it never ends a newer one.
+  void release(String businessId, int token) {
+    if (_generation[businessId] != token) return;
+    final depth = (_depth[businessId] ?? 0) - 1;
+    if (depth > 0) {
+      _depth[businessId] = depth;
+      return;
+    }
+    if (depth == 0) _end(businessId);
+  }
+
+  void _end(String businessId) {
+    if (_depth.remove(businessId) == null) return;
+    _limits.remove(businessId)?.cancel();
+    // A timed-out hold's late release must not match the next hold.
+    _generation[businessId] = (_generation[businessId] ?? 0) + 1;
+    _released.add(businessId);
   }
 }
 

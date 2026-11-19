@@ -45,13 +45,22 @@ class RecurringJournalPoster {
       ],
     );
 
-    final entryId = await _ledger.createJournalEntry(
+    await _ledger.batchWrites(
       businessId: businessId,
-      entry: entry,
-      transactionId: transactionId,
-      journalCode: 'misc',
+      perfLabel: 'books.save_recurring',
+      writes: () async {
+        final entryId = await _ledger.createJournalEntry(
+          businessId: businessId,
+          entry: entry,
+          transactionId: transactionId,
+          journalCode: 'misc',
+        );
+        await _ledger.postJournalEntry(
+          businessId: businessId,
+          entryId: entryId,
+        );
+      },
     );
-    await _ledger.postJournalEntry(businessId: businessId, entryId: entryId);
     return true;
   }
 }

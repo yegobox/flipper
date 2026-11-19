@@ -1,9 +1,9 @@
 import 'dart:async';
 
 import 'package:flipper_models/sync/ditto_observer_utils.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flipper_web/modules/accounting/data/mapper/accounting_transaction_semantics.dart';
 import 'package:flipper_web/modules/accounting/data/repository/accounting_repository.dart';
+import 'package:flipper_web/modules/accounting/data/repository/coalesced_rows.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 
 /// Ditto DQL implementation — swap in via the [accountingRepositoryProvider]
@@ -44,9 +44,15 @@ class DittoAccountingRepository implements AccountingRepository {
     }
     if (endDate != null) {
       query += ' AND (createdAt <= :end OR created_at <= :end)';
-      args['end'] =
-          DateTime(endDate.year, endDate.month, endDate.day, 23, 59, 59, 999)
-              .toIso8601String();
+      args['end'] = DateTime(
+        endDate.year,
+        endDate.month,
+        endDate.day,
+        23,
+        59,
+        59,
+        999,
+      ).toIso8601String();
     }
 
     query += ' ORDER BY createdAt DESC';
@@ -65,8 +71,9 @@ class DittoAccountingRepository implements AccountingRepository {
     if (ditto == null) return [];
 
     // Build positional placeholders: :id0, :id1, ...
-    final placeholders =
-        transactionIds.indexed.map((e) => ':id${e.$1}').join(', ');
+    final placeholders = transactionIds.indexed
+        .map((e) => ':id${e.$1}')
+        .join(', ');
     final args = <String, dynamic>{
       for (final (i, id) in transactionIds.indexed) 'id$i': id,
     };
@@ -103,45 +110,25 @@ class DittoAccountingRepository implements AccountingRepository {
     }
     if (endDate != null) {
       query += ' AND (createdAt <= :end OR created_at <= :end)';
-      args['end'] =
-          DateTime(endDate.year, endDate.month, endDate.day, 23, 59, 59, 999)
-              .toIso8601String();
+      args['end'] = DateTime(
+        endDate.year,
+        endDate.month,
+        endDate.day,
+        23,
+        59,
+        59,
+        999,
+      ).toIso8601String();
     }
     query += ' ORDER BY createdAt DESC';
 
-    final controller = StreamController<List<Map<String, dynamic>>>.broadcast();
-    dynamic observer;
-    var observerCancelled = false;
-
-    void emitRows(dynamic queryResult) {
-      if (observerCancelled || controller.isClosed) return;
-      controller.add(dittoQueryRows(queryResult));
-    }
-
-    Future<void> start() async {
-      try {
-        final initial = await ditto.store.execute(query, arguments: args);
-        emitRows(initial);
-      } catch (e) {
-        debugPrint('watchTransactions initial execute: $e');
-      }
-
-      if (observerCancelled) return;
-      observer = ditto.store.registerObserver(
-        query,
-        arguments: args,
-        onChange: emitRows,
-      );
-    }
-
-    unawaited(start());
-
-    controller.onCancel = () async {
-      observerCancelled = true;
-      await cancelDittoStoreObserver(observer);
-      if (!controller.isClosed) await controller.close();
-    };
-
-    return controller.stream;
+    return coalescedRows(
+      perfLabel: startDate == null && endDate == null
+          ? 'books.transactions_all_refresh'
+          : 'books.transactions_refresh',
+      read: () async =>
+          dittoQueryRows(await ditto.store.execute(query, arguments: args)),
+      changes: () => _dittoService.watchChanges('transactions', query, args),
+    );
   }
 }

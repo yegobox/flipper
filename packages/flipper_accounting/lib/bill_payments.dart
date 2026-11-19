@@ -370,14 +370,20 @@ class BillPaymentPoster {
           JournalLine(ac: paymentAccount, cr: amount),
         ],
       );
-      await ledger.createJournalEntry(
+      await ledger.batchWrites(
         businessId: businessId,
-        entry: entry,
-        transactionId: '$billDocId-pay-${payment.id}',
-        journalCode: 'misc',
-        entryId: jeId,
+        perfLabel: 'books.pay_bill',
+        writes: () async {
+          await ledger.createJournalEntry(
+            businessId: businessId,
+            entry: entry,
+            transactionId: '$billDocId-pay-${payment.id}',
+            journalCode: 'misc',
+            entryId: jeId,
+          );
+          await ledger.postJournalEntry(businessId: businessId, entryId: jeId);
+        },
       );
-      await ledger.postJournalEntry(businessId: businessId, entryId: jeId);
       await _audit?.record(
         businessId: businessId,
         id: 'audit_$jeId',
