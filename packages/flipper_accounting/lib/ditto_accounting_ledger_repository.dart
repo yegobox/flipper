@@ -578,21 +578,29 @@ class DittoAccountingLedgerRepository implements AccountingLedgerRepository {
           if ((s['variantId'] ?? s['variant_id']) case final id?) id.toString(),
       }.toList();
       // One query per chunk of variants, not one per stock row: a shop with
-      // thousands of items ran thousands of sequential reads.
+      // thousands of items ran thousands of sequential reads. A stock row may
+      // name its variant by `_id` or by the logical `id`, which can differ:
+      // `_id` (the indexed key) is tried first, then `id` only for what is
+      // still unmatched, and each price is kept under both keys.
       final priceById = <String, int>{};
-      for (final chunk in _JournalLedgerSource._chunks(variantIds)) {
-        final variants = await _ditto.queryCollection(
-          'variants',
-          'SELECT * FROM variants WHERE _id IN :ids',
-          {'ids': chunk},
-        );
-        for (final v in variants) {
-          final id = (v['_id'] ?? v['id'])?.toString();
-          if (id == null) continue;
-          priceById.putIfAbsent(
-            id,
-            () => _int(v['supplyPrice'] ?? v['supply_price']),
+      for (final field in ['_id', 'id']) {
+        final unmatched = [
+          for (final id in variantIds)
+            if (!priceById.containsKey(id)) id,
+        ];
+        for (final chunk in _JournalLedgerSource._chunks(unmatched)) {
+          final variants = await _ditto.queryCollection(
+            'variants',
+            'SELECT * FROM variants WHERE $field IN :ids',
+            {'ids': chunk},
           );
+          for (final v in variants) {
+            final price = _int(v['supplyPrice'] ?? v['supply_price']);
+            for (final key in {v['_id'], v['id']}) {
+              if (key == null || '$key'.isEmpty) continue;
+              priceById.putIfAbsent('$key', () => price);
+            }
+          }
         }
       }
       var total = 0;
@@ -735,6 +743,13 @@ class _JournalLedgerSource {
 
   Future<void> _refresh() async {
     if (_disposed || _loading) return;
+    // A timer armed before a save began fires mid-save: read once the save
+    // is done instead. The first read still runs, so Books never opens
+    // empty because a save happened to be in progress.
+    if (latest != null && _holds.isHeld(businessId)) {
+      _changedWhileHeld = true;
+      return;
+    }
     _loading = true;
     _dirty = false;
     try {

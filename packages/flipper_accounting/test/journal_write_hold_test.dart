@@ -112,6 +112,41 @@ void main() {
     await sub.cancel();
   });
 
+  test('editing an entry rewrites its lines and is read once', () async {
+    final store = _SlowWriteStore(
+      writeDelay: const Duration(milliseconds: 100),
+    );
+    final repo = DittoAccountingLedgerRepository(store);
+    final id = await repo.createJournalEntry(businessId: _biz, entry: _entry());
+    final (sub, emitted) = await watch(repo);
+    final before = store.queriesOf('journal_entries', 'businessId');
+    final writesBefore = store.writes;
+
+    await repo.updateJournalEntry(
+      businessId: _biz,
+      entryId: id,
+      entry: JournalEntry(
+        id: 'JE-HOLD',
+        date: '19 Nov 2026',
+        memo: 'Two lines now',
+        ref: 'JE-HOLD',
+        status: JournalStatus.posted,
+        src: 'Manual',
+        lines: const [
+          JournalLine(ac: '1010', dr: 50),
+          JournalLine(ac: '4010', cr: 50),
+        ],
+      ),
+    );
+    await Future<void>.delayed(const Duration(milliseconds: 400));
+
+    // Header, the six old lines zeroed, then the two new ones.
+    expect(store.writes - writesBefore, 1 + 6 + 2);
+    expect(store.queriesOf('journal_entries', 'businessId') - before, 1);
+    expect(emitted.last.single.memo, 'Two lines now');
+    await sub.cancel();
+  });
+
   test(
     'a poster with its own repository holds the screens\' source too',
     () async {
@@ -246,9 +281,67 @@ void main() {
     final total = await repo.fetchInventoryValue(branchId: 'b1');
 
     expect(total, 1500 * 2 * 10);
+    // Two chunks by `_id`, then one `id` query for the one still unmatched.
     expect(
-      store.queries.where((q) => q.contains('FROM variants')),
+      store.queries.where((q) => q.contains('variants WHERE _id')),
       hasLength(2),
     );
+    expect(
+      store.queries.where((q) => q.contains('variants WHERE id')),
+      hasLength(1),
+    );
+  });
+
+  test('stock value finds a variant by its logical id too', () async {
+    final store = DqlAccountingStore();
+    // The stock row names the variant by `id`, which differs from `_id`.
+    store.put('stocks', {
+      '_id': 's1',
+      'branchId': 'b1',
+      'variantId': 'logical-1',
+      'currentStock': 3,
+    });
+    store.put('variants', {
+      '_id': 'doc-1',
+      'id': 'logical-1',
+      'supplyPrice': 7,
+    });
+    // And one by `_id`, matched in the first pass only once.
+    store.put('stocks', {
+      '_id': 's2',
+      'branchId': 'b1',
+      'variantId': 'doc-2',
+      'currentStock': 1,
+    });
+    store.put('stocks', {
+      '_id': 's3',
+      'branchId': 'b1',
+      'variantId': 'doc-2',
+      'currentStock': 1,
+    });
+    store.put('variants', {'_id': 'doc-2', 'id': '', 'supplyPrice': 100});
+    final repo = DittoAccountingLedgerRepository(store);
+
+    expect(await repo.fetchInventoryValue(branchId: 'b1'), 3 * 7 + 2 * 100);
+  });
+
+  test('a refresh armed before a save waits for it to finish', () async {
+    final store = _SlowWriteStore(writeDelay: Duration.zero);
+    final repo = DittoAccountingLedgerRepository(store);
+    final (sub, _) = await watch(repo);
+    final before = store.queriesOf('journal_entries', 'businessId');
+
+    // A change arms the 250 ms refresh, then a save starts before it fires.
+    store.notifyChange('journal_entries');
+    await pumpEventQueue();
+    final saving = Completer<void>();
+    unawaited(repo.batchWrites(businessId: _biz, writes: () => saving.future));
+    await Future<void>.delayed(const Duration(milliseconds: 400));
+    expect(store.queriesOf('journal_entries', 'businessId') - before, 0);
+
+    saving.complete();
+    await Future<void>.delayed(const Duration(milliseconds: 400));
+    expect(store.queriesOf('journal_entries', 'businessId') - before, 1);
+    await sub.cancel();
   });
 }

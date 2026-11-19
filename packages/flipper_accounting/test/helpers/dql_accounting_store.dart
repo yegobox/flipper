@@ -48,7 +48,11 @@ class DqlAccountingStore implements AccountingDittoStore {
   int changeFeedsOn(String collection) =>
       _feeds.where((f) => f.collection == collection).length;
 
-  static final _select = RegExp(r'^SELECT \* FROM (\w+) WHERE (.+)$');
+  // A field list is answered with whole rows: callers read only what they
+  // selected.
+  static final _select = RegExp(
+    r'^SELECT (?:\*|\w+(?:, \w+)*) FROM (\w+) WHERE (.+)$',
+  );
   static final _term = RegExp(r'^(\w+) (=|IN) :(\w+)$');
 
   @override
