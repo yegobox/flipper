@@ -36,11 +36,17 @@ void main() {
 
       expect(maximized, isTrue);
 
-      // Let the first frame land and the runner show the window, then check
-      // nothing restored it.
-      for (var i = 0; i < 6; i++) {
-        await tester.pump(const Duration(milliseconds: 250));
+      // The runner shows the window from its native first-frame callback, so
+      // completed pumps prove nothing: wait for the first frame to be
+      // rasterized, then until the window is actually visible (Show() done),
+      // and only then check nothing restored it.
+      await tester.binding.waitUntilFirstFrameRasterized;
+      var visible = false;
+      for (var i = 0; i < 50 && !visible; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+        visible = await windowManager.isVisible();
       }
+      expect(visible, isTrue, reason: 'the runner never showed the window');
       expect(
         await windowManager.isMaximized(),
         isTrue,
