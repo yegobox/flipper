@@ -70,6 +70,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
   if (!window.Create(L"flipper", origin, size)) {
     return EXIT_FAILURE;
   }
+  // Open maximized before Flutter draws its first frame, so the first frame is
+  // rendered at full size. Maximizing later from Dart raced the first-frame
+  // Show() and left a black border around a 1280x720 view.
+  ::ShowWindow(window.GetHandle(), SW_MAXIMIZE);
   window.SetQuitOnClose(true);
 
   ::MSG msg;
