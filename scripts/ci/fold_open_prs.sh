@@ -20,8 +20,11 @@
 # Usage
 #   scripts/ci/fold_open_prs.sh [--prs-json FILE] [--notes FILE] [--summary FILE]
 #
-#   --prs-json  `gh pr list --json number,headRefName,isDraft,title` output to
-#               use instead of calling gh (tests).
+#   --prs-json  `gh pr list --json number,headRefName,headRefOid,isDraft,title`
+#               output to use instead of calling gh (tests, or a plan made
+#               once and folded by several build jobs). A row with headRefOid
+#               folds exactly that commit, not whatever the branch points at
+#               by then, so every job builds the same tree.
 #   --notes     write short release notes (Play allows 500 characters).
 #   --summary   append a markdown table (e.g. $GITHUB_STEP_SUMMARY).
 #
@@ -53,32 +56,37 @@ parked() { # parked <number>
 if [ -n "$PRS_JSON" ]; then
   prs="$(cat "$PRS_JSON")"
 else
-  prs="$(gh pr list --state open --limit 200 --json number,headRefName,isDraft,title)"
+  prs="$(gh pr list --state open --limit 200 --json number,headRefName,headRefOid,isDraft,title)"
 fi
 
 rows="$(printf '%s' "$prs" | jq -r 'sort_by([
     (.headRefName | test("^(l10n_translations$|dependabot/|chore/readme-screenshots$)")),
     .number
   ])[] |
-  [.number, .headRefName, (if .isDraft then "draft" else "ready" end), .title] | @tsv')"
+  [.number, .headRefName, (if .isDraft then "draft" else "ready" end),
+   (.headRefOid // "-"), .title] | @tsv')"
 
 base_sha="$(git rev-parse --short HEAD)"
 folded=""
 skipped=""
 table=""
 
-while IFS="$(printf '\t')" read -r num head state title; do
+while IFS="$(printf '\t')" read -r num head state oid title; do
   [ -n "$num" ] || continue
   reason=""
+  target="origin/$head"
+  [ "$oid" = "-" ] || target="$oid"
   if [ "$state" = draft ]; then
     reason="draft"
   elif parked "$num"; then
     reason="parked"
-  elif ! git rev-parse --verify --quiet "origin/$head" >/dev/null; then
+  elif [ "$oid" != "-" ] && ! git cat-file -e "$oid^{commit}" 2>/dev/null; then
+    reason="commit not fetched"
+  elif ! git rev-parse --verify --quiet "$target" >/dev/null; then
     reason="branch not on origin"
   elif ! git -c user.name="Flipper preview" -c user.email="info@yegobox.com" \
       merge --no-ff --no-edit -m "preview: fold #$num $head" \
-      "origin/$head" >/dev/null 2>&1; then
+      "$target" >/dev/null 2>&1; then
     git merge --abort >/dev/null 2>&1 || git reset --hard --quiet HEAD
     reason="conflict"
   fi

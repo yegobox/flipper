@@ -57,4 +57,21 @@ grep -q "#9 (branch not on origin)" "$TMP/notes.txt" || fail "notes miss the for
 grep -q "| #5 | \`fix/clash\` | skipped: conflict |" "$TMP/summary.md" || fail "summary row for #5"
 [ "$(git log --oneline origin/main..HEAD --merges | wc -l | tr -d ' ')" = 3 ] || fail "expected three fold merges"
 
+# Pinned heads (headRefOid): a build job folds the commit the plan saw, even
+# after the branch moved on, so every platform builds the same tree.
+pinned="$(git rev-parse origin/feat/a)"
+git switch -q -c feat/a-moved origin/feat/a; commit late.txt late "pushed after the plan"
+git push -q origin HEAD:feat/a; git fetch -q origin
+cat >"$TMP/pinned.json" <<JSON
+[
+  {"number": 2, "headRefName": "feat/a", "headRefOid": "$pinned", "isDraft": false, "title": "A"},
+  {"number": 4, "headRefName": "feat/x", "headRefOid": "0123456789abcdef0123456789abcdef01234567", "isDraft": false, "title": "Force-pushed"}
+]
+JSON
+git checkout -q --detach origin/main
+"$HERE/fold_open_prs.sh" --prs-json "$TMP/pinned.json" --notes "$TMP/pinned-notes.txt" >/dev/null
+[ -f a.txt ] || fail "pinned #2 should be folded"
+[ ! -f late.txt ] || fail "pinned #2 must not pick up the later push"
+grep -q "#4 (commit not fetched)" "$TMP/pinned-notes.txt" || fail "notes: $(cat "$TMP/pinned-notes.txt")"
+
 echo "fold_open_prs: all tests passed"

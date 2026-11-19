@@ -6,8 +6,18 @@ name: Flipper - Desktop release (Yegobox Launcher)
 # Launcher (yegobox/flipper-launcher) reads that apps.json to install Flipper
 # and keep it up to date. Store builds in release.yml are unaffected.
 #
-# Runs by itself on every push to main that touches Flipper (→ stable). Run it
-# by hand on any branch for a beta build (or to pick platforms).
+# Runs by itself on every push to main that touches Flipper (→ stable).
+#
+# Beta is automatic too: every push to main or to any branch (release.yml runs
+# on both) builds a Windows beta of main with every open, non-draft,
+# non-parked PR folded in (scripts/ci/fold_open_prs.sh, the same fold as the
+# Android internal preview). The beta channel holds one build per platform, so
+# building branches one at a time only ever gave testers the last one pushed.
+# The `version` job lists the PRs and their head commits once; every build job
+# folds exactly those commits, so all platforms build the same tree.
+#
+# Run it by hand on any branch for a beta of just that branch (or to pick
+# platforms).
 #
 # Secrets:
 #   TAURI_SIGNING_PRIVATE_KEY, TAURI_SIGNING_PRIVATE_KEY_PASSWORD  (required;
@@ -29,6 +39,11 @@ on:
       - "pubspec.yaml"
       - "scripts/ci/update_launcher_manifest.py"
       - ".github/workflows/desktop_launcher_release.yml"
+  # Any push to main or a branch starts release.yml; refresh the open-PR beta.
+  # workflow_run always runs this file as it is on main.
+  workflow_run:
+    workflows: ["Flipper - CI/CD - Windows & Android & Google Play"]
+    types: [requested]
   workflow_dispatch:
     inputs:
       channel:
@@ -45,23 +60,30 @@ on:
 
 permissions:
   contents: write
+  pull-requests: read
 
 # One release at a time. A merge that lands while one runs waits; if several
 # land, only the newest waits (GitHub drops older pending runs), which is right
-# here: users only need the latest main, not every merge in between.
+# here: users only need the latest main, not every merge in between. The
+# open-PR beta has its own group: it runs on main too, and must never evict a
+# pending stable run. Its own newest pending run already folds everything.
 concurrency:
-  group: desktop-launcher-release-${{ github.ref }}
+  group: >-
+    ${{ github.event_name == 'workflow_run' && 'desktop-launcher-beta-open-prs'
+    || format('desktop-launcher-release-{0}', github.ref) }}
   cancel-in-progress: false
 
 env:
   FLUTTER_VERSION: "3.47.9" # keep in step with release.yml
   MANIFEST_TAG: launcher-manifest
-  # A push has no inputs: stable, every platform.
+  # A push has no inputs: stable, every platform. The open-PR beta
+  # (workflow_run) is Windows only.
   # Not "CHANNEL": subosito/flutter-action's setup.sh reads $CHANNEL as the
   # Flutter SDK channel, so CHANNEL=beta made it look for 3.47.9 on Flutter's
   # beta channel and every beta build failed before it started.
-  LAUNCHER_CHANNEL: ${{ inputs.channel || 'stable' }}
-  PLATFORMS: ${{ inputs.platforms || 'windows,macos,linux' }}
+  LAUNCHER_CHANNEL: ${{ inputs.channel || (github.event_name == 'workflow_run' && 'beta') || 'stable' }}
+  PLATFORMS: ${{ inputs.platforms || (github.event_name == 'workflow_run' && 'windows') || 'windows,macos,linux' }}
+  FOLD_OPEN_PRS: ${{ github.event_name == 'workflow_run' }}
 
 jobs:
   version:
@@ -71,10 +93,26 @@ jobs:
       windows: ${{ contains(env.PLATFORMS, 'windows') }}
       macos: ${{ steps.mac.outputs.build }}
       linux: ${{ contains(env.PLATFORMS, 'linux') }}
+      # Open-PR beta only: the main commit to fold onto and the PRs to fold,
+      # each pinned to its head commit as of now.
+      base: ${{ steps.plan.outputs.base }}
+      prs: ${{ steps.plan.outputs.prs }}
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: ${{ env.FOLD_OPEN_PRS == 'true' && 'main' || '' }}
           persist-credentials: false
+      - id: plan
+        if: env.FOLD_OPEN_PRS == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "base=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          prs="$(gh pr list -R "$GITHUB_REPOSITORY" --state open --limit 200 \
+            --json number,headRefName,headRefOid,isDraft,title | jq -c .)"
+          echo "prs=$prs" >> "$GITHUB_OUTPUT"
+          echo "Folding onto main $(git rev-parse --short HEAD):"
+          printf '%s' "$prs" | jq -r '.[] | "  #\(.number) \(.headRefName) \(.headRefOid[0:10])"'
       - id: mac
         # A macOS build must be Developer ID signed and notarized or Gatekeeper
         # refuses it, so skip macOS (and keep the last macOS release in the
@@ -108,8 +146,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: ${{ needs.version.outputs.base || '' }}
+          # The fold merges PR branches, so it needs their history.
+          fetch-depth: ${{ env.FOLD_OPEN_PRS == 'true' && '0' || '1' }}
           submodules: recursive
           persist-credentials: false
+      - name: Fold open PRs onto main
+        if: env.FOLD_OPEN_PRS == 'true'
+        shell: bash
+        env:
+          PRS: ${{ needs.version.outputs.prs }}
+        run: |
+          printf '%s' "$PRS" > "$RUNNER_TEMP/prs.json"
+          mkdir -p dist
+          bash scripts/ci/fold_open_prs.sh --prs-json "$RUNNER_TEMP/prs.json" \
+            --notes dist/beta-notes.txt --summary "$GITHUB_STEP_SUMMARY"
+          echo "BUILD_COMMIT=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
       - run: git submodule update --init --force --recursive
       - uses: subosito/flutter-action@v2
         with:
@@ -165,7 +217,7 @@ jobs:
           ./scripts/ci/prefetch-pdfium.ps1
           ./scripts/ci/patch-windows-plugins.ps1
           Set-Location apps/flipper
-          flutter build windows --release -v --dart-define=GA4_WINDOWS_API_SECRET=${{ secrets.GA4_WINDOWS_API_SECRET }} --dart-define=FLIPPER_RELEASE_COMMIT=${{ github.sha }}
+          flutter build windows --release -v --dart-define=GA4_WINDOWS_API_SECRET=${{ secrets.GA4_WINDOWS_API_SECRET }} --dart-define=FLIPPER_RELEASE_COMMIT=${{ env.BUILD_COMMIT || github.sha }}
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           Set-Location ../..
           ./scripts/ci/bundle-native-assets.ps1
@@ -204,8 +256,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: ${{ needs.version.outputs.base || '' }}
+          # The fold merges PR branches, so it needs their history.
+          fetch-depth: ${{ env.FOLD_OPEN_PRS == 'true' && '0' || '1' }}
           submodules: recursive
           persist-credentials: false
+      - name: Fold open PRs onto main
+        if: env.FOLD_OPEN_PRS == 'true'
+        shell: bash
+        env:
+          PRS: ${{ needs.version.outputs.prs }}
+        run: |
+          printf '%s' "$PRS" > "$RUNNER_TEMP/prs.json"
+          mkdir -p dist
+          bash scripts/ci/fold_open_prs.sh --prs-json "$RUNNER_TEMP/prs.json" \
+            --notes dist/beta-notes.txt --summary "$GITHUB_STEP_SUMMARY"
+          echo "BUILD_COMMIT=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
       - run: git submodule update --init --force --recursive
       - uses: subosito/flutter-action@v2
         with:
@@ -269,7 +335,7 @@ jobs:
           FLUTTER_XCODE_CODE_SIGN_STYLE: Manual
           FLUTTER_XCODE_CODE_SIGNING_REQUIRED: "NO"
           FLUTTER_XCODE_CODE_SIGNING_ALLOWED: "NO"
-        run: flutter build macos --release -v --dart-define=FLIPPER_RELEASE_COMMIT=${{ github.sha }}
+        run: flutter build macos --release -v --dart-define=FLIPPER_RELEASE_COMMIT=${{ env.BUILD_COMMIT || github.sha }}
       - name: Sign, notarize, staple
         env:
           APPLE_ID: ${{ secrets.APPLE_ID }}
@@ -332,8 +398,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: ${{ needs.version.outputs.base || '' }}
+          # The fold merges PR branches, so it needs their history.
+          fetch-depth: ${{ env.FOLD_OPEN_PRS == 'true' && '0' || '1' }}
           submodules: recursive
           persist-credentials: false
+      - name: Fold open PRs onto main
+        if: env.FOLD_OPEN_PRS == 'true'
+        shell: bash
+        env:
+          PRS: ${{ needs.version.outputs.prs }}
+        run: |
+          printf '%s' "$PRS" > "$RUNNER_TEMP/prs.json"
+          mkdir -p dist
+          bash scripts/ci/fold_open_prs.sh --prs-json "$RUNNER_TEMP/prs.json" \
+            --notes dist/beta-notes.txt --summary "$GITHUB_STEP_SUMMARY"
+          echo "BUILD_COMMIT=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
       - run: git submodule update --init --force --recursive
       - name: System dependencies
         run: |
@@ -376,7 +456,7 @@ jobs:
           AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
       - name: Build
         working-directory: apps/flipper
-        run: flutter build linux --release -v --dart-define=FLIPPER_RELEASE_COMMIT=${{ github.sha }}
+        run: flutter build linux --release -v --dart-define=FLIPPER_RELEASE_COMMIT=${{ env.BUILD_COMMIT || github.sha }}
       - name: Archive
         run: |
           BUNDLE="apps/flipper/build/linux/x64/release/bundle"
@@ -398,9 +478,12 @@ jobs:
       always() && needs.version.result == 'success' &&
       (needs.windows.result == 'success' || needs.macos.result == 'success' || needs.linux.result == 'success')
     runs-on: ubuntu-latest
-    # apps.json is read-modify-write; two publishes at once would drop one.
+    # apps.json is read-modify-write. One group per channel: a shared one let a
+    # newer pending beta evict a pending stable publish (GitHub keeps one
+    # pending run per group). Each channel writes only its own entries, and
+    # the cross-channel race is closed by the re-read and retry below.
     concurrency:
-      group: launcher-manifest
+      group: launcher-manifest-${{ github.event_name == 'workflow_run' && 'beta' || inputs.channel || 'stable' }}
       cancel-in-progress: false
     # The version step may wait up to 45 min for the Store build's tag.
     timeout-minutes: 90
@@ -449,12 +532,22 @@ jobs:
             npx --yes @tauri-apps/cli@2 signer sign "$f"
           done
           ls -la dist
+      - name: Release notes
+        # The open-PR beta lists what it folded (written by the build jobs).
+        run: |
+          NOTES=apps/flipper/distribution/whatsnew/whatsnew-en-US
+          [[ -s dist/beta-notes.txt ]] && NOTES=dist/beta-notes.txt
+          echo "NOTES=$NOTES" >> "$GITHUB_ENV"
+          cat "$NOTES"
       - name: Create release
+        env:
+          # The folded commit is never pushed; tag the main commit it starts from.
+          TARGET: ${{ needs.version.outputs.base || github.sha }}
         run: |
           PRE=""; [[ "$LAUNCHER_CHANNEL" == beta ]] && PRE="--prerelease"
-          gh release create "$TAG" -R "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" $PRE --latest=false \
+          gh release create "$TAG" -R "$GITHUB_REPOSITORY" --target "$TARGET" $PRE --latest=false \
             --title "Flipper desktop $VERSION ($LAUNCHER_CHANNEL)" \
-            --notes-file apps/flipper/distribution/whatsnew/whatsnew-en-US
+            --notes-file "$NOTES"
           shopt -s nullglob
           gh release upload "$TAG" -R "$GITHUB_REPOSITORY" dist/*.zip dist/*.tar.gz dist/*.sig
       - name: Update launcher manifest
@@ -464,11 +557,13 @@ jobs:
               --title "Yegobox Launcher manifest" \
               --notes "apps.json read by the Yegobox Launcher. Rewritten by desktop_launcher_release.yml; do not delete."
           fi
-          gh release download "$MANIFEST_TAG" -R "$GITHUB_REPOSITORY" -p apps.json -D . || true
           ARGS=()
           [[ -f dist/flipper-windows-x86_64.zip ]] && ARGS+=(--platform "windows-x86_64=dist/flipper-windows-x86_64.zip:flipper.exe")
           [[ -f dist/flipper-darwin.tar.gz ]] && ARGS+=(--platform "$(cat dist/flipper-darwin.keys)=dist/flipper-darwin.tar.gz:flipper.app")
           [[ -f dist/flipper-linux-x86_64.tar.gz ]] && ARGS+=(--platform "linux-x86_64=dist/flipper-linux-x86_64.tar.gz:flipper")
+          publish_manifest() {
+          rm -f apps.json
+          gh release download "$MANIFEST_TAG" -R "$GITHUB_REPOSITORY" -p apps.json -D . || true
           python3 -I scripts/ci/update_launcher_manifest.py --manifest apps.json \
             --app flipper --name "Flipper POS" \
             --icon "https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/main/apps/flipper/macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_256.png" \
@@ -477,9 +572,29 @@ jobs:
             --accent "#00C2E8" \
             --play-package rw.flipper \
             --channel "$LAUNCHER_CHANNEL" --version "$VERSION" \
-            --notes-file apps/flipper/distribution/whatsnew/whatsnew-en-US \
+            --notes-file "$NOTES" \
             --base-url "https://github.com/${GITHUB_REPOSITORY}/releases/download/$TAG" \
             "${ARGS[@]}"
           gh release upload "$MANIFEST_TAG" -R "$GITHUB_REPOSITORY" apps.json --clobber
+          }
+          # Stable and beta publish independently. If the other channel read
+          # apps.json before this upload and wrote it after, this channel's
+          # entries are gone: re-read after a pause and write again if so.
+          for attempt in 1 2 3 4 5; do
+            publish_manifest
+            sleep 20
+            rm -f apps.json
+            gh release download "$MANIFEST_TAG" -R "$GITHUB_REPOSITORY" -p apps.json -D .
+            if python3 -I - "$LAUNCHER_CHANNEL" "$VERSION" <<'PY'
+          import json, sys
+          channel, version = sys.argv[1], sys.argv[2]
+          app = next(a for a in json.load(open("apps.json"))["apps"] if a["id"] == "flipper")
+          platforms = app.get("channels", {}).get(channel, {}).get("platforms", {})
+          sys.exit(0 if any(p.get("version") == version for p in platforms.values()) else 1)
+          PY
+            then break; fi
+            echo "::warning::apps.json lost $VERSION ($LAUNCHER_CHANNEL) to a concurrent publish; writing it again ($attempt/5)"
+            [[ $attempt == 5 ]] && { echo "::error::could not keep $VERSION in apps.json"; exit 1; }
+          done
           echo "### $TAG → $LAUNCHER_CHANNEL" >> "$GITHUB_STEP_SUMMARY"
           echo "Manifest: https://github.com/${GITHUB_REPOSITORY}/releases/download/$MANIFEST_TAG/apps.json" >> "$GITHUB_STEP_SUMMARY"
