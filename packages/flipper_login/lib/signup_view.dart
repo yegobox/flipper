@@ -149,7 +149,9 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
                         } catch (e) {
                           if (!context.mounted) return;
                           showErrorNotification(
-                              context, l10n.signupFailedToResendOtp('$e'));
+                              context,
+                              signupKnownErrorText(e, l10n) ??
+                                  l10n.signupFailedToResendOtp('$e'));
                         }
                       },
                     );
