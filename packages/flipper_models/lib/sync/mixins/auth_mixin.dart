@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+
 import 'package:flipper_models/account_mode/account_mode_store.dart';
 import 'package:flipper_models/helperModels/business.dart';
 import 'package:flipper_models/helperModels/flipperWatch.dart';
@@ -1042,6 +1043,12 @@ mixin AuthMixin implements AuthInterface {
         talker.error(
           "Authentication failed with status code ${response.statusCode}: ${response.body}",
         );
+        if (LoginLinkedToOtherAccountException.matches(
+          response.statusCode,
+          response.body,
+        )) {
+          throw const LoginLinkedToOtherAccountException();
+        }
         throw Exception(
           "Authentication failed with status code ${response.statusCode}",
         );

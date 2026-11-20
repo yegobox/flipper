@@ -70,6 +70,22 @@ class InternalServerError implements Exception {
   InternalServerError({required this.term});
 }
 
+/// The signup email or phone already belongs to another Flipper account
+/// (`/v2/api/user` answered 409 `login_linked_to_other_account`). Signing up
+/// with it can never finish, so the signup screen stops before sending an OTP.
+class LoginLinkedToOtherAccountException implements Exception {
+  const LoginLinkedToOtherAccountException();
+
+  static const code = 'login_linked_to_other_account';
+
+  /// True for the server's 409 with [code] in the body.
+  static bool matches(int statusCode, String body) =>
+      statusCode == 409 && body.contains(code);
+
+  @override
+  String toString() => 'LoginLinkedToOtherAccountException: $code';
+}
+
 class BusinessNotFoundException implements Exception {
   String term;
 

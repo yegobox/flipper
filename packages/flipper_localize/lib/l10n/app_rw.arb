@@ -7868,6 +7868,7 @@
   "loginEnterEmail": "Andika imeyili",
   "loginAddEmailHint": "Numara kwandika imeyili yawe, kanda kuri Ongeramo imeyili",
   "signupErrorGeneric": "Habaye ikibazo mu gufungura konti",
+  "signupErrorLoginLinkedToOtherAccount": "Iyi imeri cyangwa iyi nimero isanzwe ihujwe n'indi konti ya Flipper. Injira ukoresheje iyo konti, cyangwa wiyandikishe ukoresheje indi imeri cyangwa indi nimero.",
   "signupOtpExpiredOrInvalid": "OTP yarangiye cyangwa ntabwo ari yo. Nyamuneka saba kode nshya.",
   "signupResendOtp": "Ongera wohereze OTP",
   "signupNewOtpSent": "OTP nshya yoherejwe neza!",

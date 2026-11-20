@@ -7876,6 +7876,7 @@
   "loginEnterEmail": "Weka barua pepe",
   "loginAddEmailHint": "Baada ya kuweka barua pepe yako, bofya Ongeza barua pepe",
   "signupErrorGeneric": "Hitilafu imetokea wakati wa kujisajili",
+  "signupErrorLoginLinkedToOtherAccount": "Barua pepe au namba hii tayari imeunganishwa na akaunti nyingine ya Flipper. Ingia kwa akaunti hiyo, au jisajili kwa barua pepe au namba nyingine.",
   "signupOtpExpiredOrInvalid": "OTP imeisha muda au si sahihi. Tafadhali omba kodi mpya.",
   "signupResendOtp": "Tuma OTP tena",
   "signupNewOtpSent": "OTP mpya imetumwa!",

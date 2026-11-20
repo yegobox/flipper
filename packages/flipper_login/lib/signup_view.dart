@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 
 import 'package:flipper_login/pin_login_brand_panel.dart';
 import 'package:flipper_login/signin_tokens.dart';
+import 'package:flipper_login/signup_error_text.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:stacked_services/stacked_services.dart';
@@ -105,6 +106,16 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
                   // failureResponse is a raw (untranslated) reason from the
                   // bloc; match on it, show localized copy.
                   final raw = state.failureResponse;
+                  if (raw ==
+                      AsyncFieldValidationFormBloc
+                          .loginLinkedToOtherAccountFailure) {
+                    showErrorNotification(
+                      context,
+                      l10n.signupErrorLoginLinkedToOtherAccount,
+                      duration: const Duration(seconds: 10),
+                    );
+                    return;
+                  }
                   if (raw ==
                       AsyncFieldValidationFormBloc.localModeDeviceHeldFailure) {
                     showErrorNotification(
@@ -292,8 +303,10 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
                                               if (!mounted) return;
                                               showErrorNotification(
                                                   context,
-                                                  l10n.signupFailedToResendOtp(
-                                                      e.toString()));
+                                                  signupKnownErrorText(
+                                                          e, l10n) ??
+                                                      l10n.signupFailedToResendOtp(
+                                                          e.toString()));
                                             } finally {
                                               if (mounted) {
                                                 setState(() {
@@ -351,8 +364,10 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
                                               if (!mounted) return;
                                               showErrorNotification(
                                                   context,
-                                                  l10n.signupFailedToSendOtp(
-                                                      e.toString()));
+                                                  signupKnownErrorText(
+                                                          e, l10n) ??
+                                                      l10n.signupFailedToSendOtp(
+                                                          e.toString()));
                                             } finally {
                                               if (mounted) {
                                                 setState(() {

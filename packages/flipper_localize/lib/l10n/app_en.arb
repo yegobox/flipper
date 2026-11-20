@@ -17687,6 +17687,7 @@
     "loginEnterEmail": "Enter Email",
     "loginAddEmailHint": "After entering your email, click on add email",
     "signupErrorGeneric": "An error occurred during signup",
+    "signupErrorLoginLinkedToOtherAccount": "This email or phone is already linked to another Flipper account. Sign in with it, or sign up with a different email or phone.",
     "signupOtpExpiredOrInvalid": "OTP expired or invalid. Please request a new code.",
     "signupResendOtp": "Resend OTP",
     "signupNewOtpSent": "New OTP sent successfully!",
