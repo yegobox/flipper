@@ -22634,6 +22634,10 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
   String get signupErrorGeneric => 'An error occurred during signup';
 
   @override
+  String get signupErrorLoginLinkedToOtherAccount =>
+      'This email or phone is already linked to another Flipper account. Sign in with it, or sign up with a different email or phone.';
+
+  @override
   String get signupOtpExpiredOrInvalid =>
       'OTP expired or invalid. Please request a new code.';
 

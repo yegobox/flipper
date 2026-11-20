@@ -6283,6 +6283,7 @@
     "loginEnterEmail": "Saisissez l'e-mail",
     "loginAddEmailHint": "Après avoir saisi votre e-mail, cliquez sur Ajouter un e-mail",
     "signupErrorGeneric": "Une erreur s'est produite lors de l'inscription",
+    "signupErrorLoginLinkedToOtherAccount": "Cet e-mail ou ce numéro est déjà lié à un autre compte Flipper. Connectez-vous avec ce compte, ou inscrivez-vous avec un autre e-mail ou numéro.",
     "signupOtpExpiredOrInvalid": "Code OTP expiré ou invalide. Veuillez demander un nouveau code.",
     "signupResendOtp": "Renvoyer l'OTP",
     "signupNewOtpSent": "Nouveau code OTP envoyé !",

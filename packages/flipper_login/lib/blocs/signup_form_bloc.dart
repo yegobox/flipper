@@ -1,4 +1,5 @@
 import 'package:flipper_models/account_mode/account_mode_store.dart';
+import 'package:flipper_models/exceptions.dart';
 import 'package:flipper_models/helperModels/signup_countries.dart';
 import 'dart:async';
 import 'dart:developer';
@@ -88,6 +89,11 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
   /// Failure reason when this device already keeps another business's data
   /// offline; the view shows its localized explanation.
   static const localModeDeviceHeldFailure = 'local_mode_device_held';
+
+  /// Failure reason when the email or phone already belongs to another
+  /// Flipper account; the view shows its localized explanation.
+  static const loginLinkedToOtherAccountFailure =
+      LoginLinkedToOtherAccountException.code;
 
   AsyncFieldValidationFormBloc(
       {required this.signupViewModel, required String country}) {
@@ -538,6 +544,9 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
     } on LocalModeDeviceHeldException {
       signupViewModel.stopRegistering();
       emitFailure(failureResponse: localModeDeviceHeldFailure);
+    } on LoginLinkedToOtherAccountException {
+      signupViewModel.stopRegistering();
+      emitFailure(failureResponse: loginLinkedToOtherAccountFailure);
     } catch (e) {
       log('Error during signup: $e', name: 'AsyncFieldValidationFormBloc');
       signupViewModel.stopRegistering();

@@ -23002,6 +23002,10 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
       'Une erreur s\'est produite lors de l\'inscription';
 
   @override
+  String get signupErrorLoginLinkedToOtherAccount =>
+      'Cet e-mail ou ce numéro est déjà lié à un autre compte Flipper. Connectez-vous avec ce compte, ou inscrivez-vous avec un autre e-mail ou numéro.';
+
+  @override
   String get signupOtpExpiredOrInvalid =>
       'Code OTP expiré ou invalide. Veuillez demander un nouveau code.';
 

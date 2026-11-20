@@ -22863,6 +22863,10 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   String get signupErrorGeneric => 'Habaye ikibazo mu gufungura konti';
 
   @override
+  String get signupErrorLoginLinkedToOtherAccount =>
+      'Iyi imeri cyangwa iyi nimero isanzwe ihujwe n\'indi konti ya Flipper. Injira ukoresheje iyo konti, cyangwa wiyandikishe ukoresheje indi imeri cyangwa indi nimero.';
+
+  @override
   String get signupOtpExpiredOrInvalid =>
       'OTP yarangiye cyangwa ntabwo ari yo. Nyamuneka saba kode nshya.';
 

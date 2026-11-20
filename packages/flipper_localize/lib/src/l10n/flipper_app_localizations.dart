@@ -37664,6 +37664,12 @@ abstract class FlipperAppLocalizations {
   /// **'An error occurred during signup'**
   String get signupErrorGeneric;
 
+  /// No description provided for @signupErrorLoginLinkedToOtherAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'This email or phone is already linked to another Flipper account. Sign in with it, or sign up with a different email or phone.'**
+  String get signupErrorLoginLinkedToOtherAccount;
+
   /// No description provided for @signupOtpExpiredOrInvalid.
   ///
   /// In en, this message translates to:

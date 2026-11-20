@@ -22773,6 +22773,10 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   String get signupErrorGeneric => 'Hitilafu imetokea wakati wa kujisajili';
 
   @override
+  String get signupErrorLoginLinkedToOtherAccount =>
+      'Barua pepe au namba hii tayari imeunganishwa na akaunti nyingine ya Flipper. Ingia kwa akaunti hiyo, au jisajili kwa barua pepe au namba nyingine.';
+
+  @override
   String get signupOtpExpiredOrInvalid =>
       'OTP imeisha muda au si sahihi. Tafadhali omba kodi mpya.';
 
