@@ -196,9 +196,6 @@ class SharedPreferenceStorage implements LocalStorage {
     'docStampWidthMm',
     'docStampAspectRatio',
     'docStampBranchId',
-    'docReceiptPhone',
-    'docReceiptEmail',
-    'docReceiptMessage',
     // Which service surface THIS device runs. Deliberately never synced: a
     // property runs the front desk on one terminal and the bar on another.
     'deviceServiceMode',

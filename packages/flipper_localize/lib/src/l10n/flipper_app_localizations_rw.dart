@@ -2105,46 +2105,6 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   String get taxSettingsNoneFound => 'Nta igenamiterere ry\'imisoro ryabonetse';
 
   @override
-  String get receiptHeaderTitle => 'Umutwe wa fagitire';
-
-  @override
-  String get receiptHeaderSubtitle =>
-      'Byandikwa hejuru ya buri fagitire y\'iri shami.';
-
-  @override
-  String get receiptHeaderMissing =>
-      'Fagitire zawe ntiziriho nimero ya telefoni cyangwa imeli. Bishyire hano hasi.';
-
-  @override
-  String get receiptHeaderPhone => 'Nimero ya telefoni';
-
-  @override
-  String get receiptHeaderEmail => 'Imeli';
-
-  @override
-  String get receiptHeaderMessage => 'Ubutumwa bw\'ikaze';
-
-  @override
-  String get receiptHeaderMessageHelp =>
-      'Isimbura \"WELCOME TO OUR SHOP\". Siga ari ubusa kugira ngo bigume uko biri.';
-
-  @override
-  String get receiptHeaderPhoneInvalid => 'Andika nimero ya telefoni yemewe';
-
-  @override
-  String get receiptHeaderEmailInvalid => 'Andika imeli yemewe';
-
-  @override
-  String get receiptHeaderSave => 'Bika umutwe wa fagitire';
-
-  @override
-  String get receiptHeaderSaved => 'Umutwe wa fagitire wabitswe';
-
-  @override
-  String get receiptHeaderSaveError =>
-      'Ntibyashobotse kubika umutwe wa fagitire. Ongera ugerageze.';
-
-  @override
   String get cartQtySuffix => 'ingano';
 
   @override

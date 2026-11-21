@@ -28,8 +28,6 @@ EscPosReceipt _receipt(
   String type = 'NS',
   bool fiscal = true,
   String? email = 'shop@example.com',
-  String tel = '788123456',
-  String? welcome,
 }) => EscPosReceipt(
   items: items,
   receiptType: type,
@@ -40,10 +38,9 @@ EscPosReceipt _receipt(
       .toStringAsFixed(2),
   brandName: 'Kigali Shop',
   brandAddress: 'KN 3 Rd',
-  brandTel: tel,
+  brandTel: '788123456',
   brandTIN: '123456789',
   brandEmail: email,
-  welcomeMessage: welcome,
   customerName: 'Walk-in Customer',
   paymentTypeCode: '01',
   invoiceNum: 42,
@@ -213,30 +210,6 @@ void main() {
           reason: '$lines',
         );
       }
-    });
-
-    test('prints the branch welcome line, or the default', () {
-      final custom = _textLines(
-        _receipt([
-          _item('Soap', price: 1180),
-        ], welcome: 'Murakaza neza').build(),
-      );
-      expect(custom, contains('Murakaza neza'));
-      expect(custom.any((l) => l.contains('WELCOME TO OUR SHOP')), isFalse);
-
-      for (final welcome in [null, '', '  ']) {
-        final lines = _textLines(
-          _receipt([_item('Soap', price: 1180)], welcome: welcome).build(),
-        );
-        expect(lines, contains('WELCOME TO OUR SHOP'), reason: '$lines');
-      }
-    });
-
-    test('no TEL line without a phone', () {
-      final lines = _textLines(
-        _receipt([_item('Soap', price: 1180)], tel: '  ').build(),
-      );
-      expect(lines.any((l) => l.startsWith('TEL')), isFalse, reason: '$lines');
     });
 
     test('QR is sent as a raster image by default', () {
