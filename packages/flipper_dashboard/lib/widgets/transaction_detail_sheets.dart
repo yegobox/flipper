@@ -284,7 +284,8 @@ class _TransactionRefundSheetState
 
     try {
       _service.validateCanRefund(widget.transaction);
-      final vatEnabled = await ref.read(ebmVatEnabledProvider.future);
+      // An EBM refund goes to RRA whether or not the branch is VAT-registered.
+      final ebmOn = await ref.read(ebmOnProvider.future);
       final result = await _service.execute(
         request: TransactionRefundRequest(
           transaction: widget.transaction,
@@ -292,7 +293,7 @@ class _TransactionRefundSheetState
           reason: _reason,
           method: _method,
         ),
-        vatEnabled: vatEnabled,
+        ebmOn: ebmOn,
         context: context,
         requestPurchaseCode: () =>
             TransactionRefundService.showPurchaseCodeDialog(context),

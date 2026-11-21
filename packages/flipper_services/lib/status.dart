@@ -164,17 +164,22 @@ class StatusAppBarForWindowsAndWeb
       return;
     }
 
-    // Resolve VAT from local EBM (source of truth). Do not fall back to
-    // turbo.yegobox.com — that falsely flags non-VAT devices as "down".
-    bool vatEnabled = ProxyService.box.vatEnabled();
+    // Resolve EBM-on from local EBM (source of truth). Do not fall back to
+    // turbo.yegobox.com — that falsely flags non-EBM devices as "down".
+    // Without a local row the cached VAT flag stands in, as before.
+    bool ebmOn = ProxyService.box.vatEnabled();
     String? taxServerUrl = await ProxyService.box.getServerUrl();
     try {
       final ebm = await ProxyService.strategy.ebm(
         branchId: branchId,
         fetchRemote: false,
       );
-      vatEnabled = ebm?.vatEnabled == true;
-      await ProxyService.box.writeBool(key: 'vatEnabled', value: vatEnabled);
+      // EBM on and VAT-registered differ for an EBM taxpayer without VAT.
+      ebmOn = ebm?.isEbmOn == true;
+      await ProxyService.box.writeBool(
+        key: 'vatEnabled',
+        value: ebm?.vatEnabled == true,
+      );
       // Probe the server this device actually signs against.
       final ebmUrl = pickTaxServerUrl(
         ebm?.taxServerUrl,
@@ -188,7 +193,7 @@ class StatusAppBarForWindowsAndWeb
       // Keep box/cache values if local EBM read fails.
     }
 
-    if (!vatEnabled) {
+    if (!ebmOn) {
       _clearTaxServerDownBanner();
       return;
     }

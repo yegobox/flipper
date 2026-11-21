@@ -260,6 +260,17 @@ void main() {
       expect(hotelBranchSupportsRra(taxOff), isFalse);
       expect(hotelBranchSupportsRra(ebm()..vatEnabled = null), isFalse);
     });
+
+    test('an EBM branch that is not VAT-registered still files', () {
+      final ebmNoVat = ebm()
+        ..vatEnabled = false
+        ..ebmEnabled = true;
+      expect(hotelBranchSupportsRra(ebmNoVat), isTrue);
+    });
+
+    test('EBM switched off wins over VAT', () {
+      expect(hotelBranchSupportsRra(ebm()..ebmEnabled = false), isFalse);
+    });
   });
 
   group('hotelBranchSupportsTourismTax', () {

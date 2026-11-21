@@ -37,8 +37,29 @@ class Ebm extends OfflineFirstWithSupabaseModel {
   final String businessId;
   @Supabase(name: "branch_id")
   final String branchId;
+
+  /// Whether the branch is registered with RRA for VAT. Picks the tax codes
+  /// (A/B/C when true, D when not) and the VAT bookkeeping. It is not the EBM
+  /// switch: see [isEbmOn].
   @Supabase(name: "vat_enabled")
   bool? vatEnabled;
+
+  /// Supabase `ebm_enabled`: the branch fiscalises through RRA EBM. `null`
+  /// means "follow [vatEnabled]", which is how every branch behaved before
+  /// RRA taxpayers on EBM without VAT registration were supported.
+  ///
+  /// Mapped by hand in the EBM mixins (Ditto `ebmEnabled`). Brick ignores it,
+  /// so the generated adapters and the SQLite schema are unchanged.
+  @Sqlite(ignore: true)
+  @Supabase(ignore: true)
+  bool? ebmEnabled;
+
+  /// Sales, refunds and stock movements go to RRA. True with [vatEnabled]
+  /// false is an EBM taxpayer that is not VAT-registered: RRA accepts only
+  /// tax code D from it.
+  @Sqlite(ignore: true)
+  @Supabase(ignore: true)
+  bool get isEbmOn => ebmEnabled ?? (vatEnabled == true);
 
   /// Whether this branch is registered with RRA for tourism tax.
   ///
@@ -66,6 +87,7 @@ class Ebm extends OfflineFirstWithSupabaseModel {
     required this.branchId,
     this.vatEnabled = false,
     this.tourismTaxEnabled = false,
+    this.ebmEnabled,
     required this.mrc,
     this.remoteServerUrl,
     this.dataConnectorUrl,

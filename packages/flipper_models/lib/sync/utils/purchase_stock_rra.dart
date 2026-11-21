@@ -53,7 +53,7 @@ Future<BranchTransferRraResult> reportPurchaseStockInToRra({
       branchId: branchId,
       fetchRemote: false,
     );
-    if (branchEbm?.vatEnabled != true) return BranchTransferRraResult.skipped;
+    if (branchEbm?.isEbmOn != true) return BranchTransferRraResult.skipped;
 
     final resolvedBusinessId = businessId ?? deps.businessId;
     if (resolvedBusinessId == null || resolvedBusinessId.isEmpty) {

@@ -21,7 +21,7 @@ class BulkActionBar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.flipperL10n;
-    final isEbmEnabled = ref.watch(ebmVatEnabledProvider).value ?? false;
+    final isEbmEnabled = ref.watch(ebmOnProvider).value ?? false;
     final displayCount = model.uploadedProductCountForUi ?? model.rowCount;
     final isPrimaryParsing =
         model.selectedFile != null &&

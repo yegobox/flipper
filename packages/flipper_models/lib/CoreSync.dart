@@ -2899,10 +2899,9 @@ class CoreSync extends AiStrategyImpl
         arguments: arguments,
       )).items.toList();
 
-      // Check if any EBM configuration exists and if VAT is enabled
+      // EBM on, which is not the same as VAT-registered (see ebmOnFromDoc).
       if (items.isNotEmpty) {
         final ebmData = items.first.value as Map<String, dynamic>;
-        final vatEnabled = ebmData['vatEnabled'] as bool?;
         final taxServerUrl = ebmData['taxServerUrl'] as String?;
 
         final isMobile =
@@ -2917,8 +2916,7 @@ class CoreSync extends AiStrategyImpl
           return false;
         }
 
-        return vatEnabled ==
-            true; // Return true if vatEnabled is true, false otherwise
+        return ebmOnFromDoc(ebmData);
       }
 
       // If no EBM configuration found, tax is not enabled

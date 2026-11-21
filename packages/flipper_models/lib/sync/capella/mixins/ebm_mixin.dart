@@ -36,6 +36,7 @@ mixin CapellaEbmMixin implements EbmInterface {
     'businessId': ebm.businessId,
     'branchId': ebm.branchId,
     'vatEnabled': ebm.vatEnabled,
+    'ebmEnabled': ebm.ebmEnabled,
     'tourismTaxEnabled': ebm.tourismTaxEnabled,
     'remoteServerUrl': ebm.remoteServerUrl,
     'dataConnectorUrl': ebm.dataConnectorUrl,
@@ -66,6 +67,7 @@ mixin CapellaEbmMixin implements EbmInterface {
           '',
       branchId: (data['branchId'] ?? data['branch_id'])?.toString() ?? branchId,
       vatEnabled: (data['vatEnabled'] ?? data['vat_enabled']) as bool?,
+      ebmEnabled: (data['ebmEnabled'] ?? data['ebm_enabled']) as bool?,
       tourismTaxEnabled:
           (data['tourismTaxEnabled'] ?? data['tourism_tax_enabled']) as bool?,
       remoteServerUrl: (data['remoteServerUrl'] ?? data['remote_server_url'])

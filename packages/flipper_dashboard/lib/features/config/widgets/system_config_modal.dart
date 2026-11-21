@@ -149,8 +149,10 @@ class _SystemConfigModalCardState extends ConsumerState<SystemConfigModalCard> {
               branchId: branchId,
               fetchRemote: true,
             );
+      // EBM on, not VAT: an EBM branch that is not VAT-registered still
+      // needs this form (its VAT row just reads "off").
       final isTaxEnabledForBusiness = ebm != null
-          ? ebm.vatEnabled == true
+          ? ebm.isEbmOn
           : await ProxyService.strategy.isTaxEnabled(
               businessId: ProxyService.box.getBusinessId()!,
               branchId: branchId,

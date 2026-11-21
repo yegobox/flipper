@@ -218,7 +218,10 @@ class TransactionRefundService {
 
   Future<TransactionRefundResult> execute({
     required TransactionRefundRequest request,
-    required bool vatEnabled,
+
+    /// The branch fiscalises through EBM, so the refund goes to RRA as a
+    /// refund receipt. Not the same as VAT-registered.
+    required bool ebmOn,
     BuildContext? context,
     Future<bool> Function()? requestPurchaseCode,
   }) async {
@@ -238,7 +241,7 @@ class TransactionRefundService {
       );
     }
 
-    if (vatEnabled) {
+    if (ebmOn) {
       if (isPartialRefund(request.refundAmount, originalTotal)) {
         throw TransactionRefundException(
           FlipperL10n.current.refundPartialVatUnsupported,
