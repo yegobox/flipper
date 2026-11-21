@@ -184,6 +184,45 @@ void main() {
     expect(sent.url, Uri.parse(_taxUrl));
   });
 
+  test(
+    'on the web the browser follows redirects: 302 still means up',
+    () async {
+      // BrowserClient throws on a redirect when followRedirects is false, so
+      // the web keeps the default and judges what the browser lands on.
+      when(() => client.send(any())).thenAnswer((invocation) async {
+        final request =
+            invocation.positionalArguments.single as http.BaseRequest;
+        if (!request.followRedirects) {
+          throw http.ClientException('redirect blocked by BrowserClient');
+        }
+        return streamed(302);
+      });
+      final s = StatusAppBarForWindowsAndWeb(httpClient: client, web: true);
+      s.statusText.value = _downMsg;
+
+      await s.checkTaxServerStatus();
+
+      expect(s.statusText.value, '');
+      final sent =
+          verify(() => client.send(captureAny())).captured.single
+              as http.BaseRequest;
+      expect(sent.followRedirects, isTrue);
+    },
+  );
+
+  test('native mode keeps followRedirects false', () async {
+    answer(302);
+    final s = StatusAppBarForWindowsAndWeb(httpClient: client, web: false);
+
+    await s.checkTaxServerStatus();
+
+    final sent =
+        verify(() => client.send(captureAny())).captured.single
+            as http.BaseRequest;
+    expect(sent.followRedirects, isFalse);
+    expect(s.statusText.value, isNot(_downMsg));
+  });
+
   test('without an injected client it makes and closes its own', () async {
     // Nothing listens on port 1, so this fails fast and offline.
     expect(await taxServerAnswers('http://127.0.0.1:1/'), isFalse);

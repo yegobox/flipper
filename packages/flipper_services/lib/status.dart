@@ -18,17 +18,21 @@ const taxServerProbeTimeout = Duration(seconds: 8);
 ///
 /// Any HTTP response means it is up: a VSDC's base URL answers 302 or 404 by
 /// design, so only 200 used to count and the banner cried wolf. Down means a
-/// network error, a timeout, or a gateway error. Redirects are not followed:
-/// the server answering is what counts, not wherever it points.
+/// network error, a timeout, or a gateway error. On native, redirects are not
+/// followed: the server answering is what counts, not wherever it points. On
+/// the web ([web], default [isWeb]) the browser follows them itself, and
+/// `BrowserClient` throws on a redirect when told not to, so it keeps the
+/// default.
 Future<bool> taxServerAnswers(
   String url, {
   http.Client? client,
   Duration timeout = taxServerProbeTimeout,
+  bool? web,
 }) async {
   final httpClient = client ?? http.Client();
   try {
     final request = http.Request('GET', Uri.parse(url))
-      ..followRedirects = false;
+      ..followRedirects = web ?? isWeb;
     final response = await httpClient.send(request).timeout(timeout);
     // Only the status matters: drop the body instead of downloading it.
     await response.stream.listen((_) {}).cancel();
@@ -62,6 +66,7 @@ class StatusAppBarForWindowsAndWeb
   bool _taxServerCheckInFlight = false;
   final http.Client? _httpClient;
   final Duration _taxServerTimeout;
+  final bool? _web;
 
   @override
   ReactiveValue<Color?> get statusColor => _statusColor;
@@ -197,6 +202,7 @@ class StatusAppBarForWindowsAndWeb
       taxServerUrl,
       client: _httpClient,
       timeout: _taxServerTimeout,
+      web: _web,
     );
     if (answers) {
       _clearTaxServerDownBanner();
@@ -213,8 +219,10 @@ class StatusAppBarForWindowsAndWeb
   StatusAppBarForWindowsAndWeb({
     http.Client? httpClient,
     Duration taxServerTimeout = taxServerProbeTimeout,
+    bool? web,
   }) : _httpClient = httpClient,
-       _taxServerTimeout = taxServerTimeout {
+       _taxServerTimeout = taxServerTimeout,
+       _web = web {
     listenToReactiveValues([_statusColor, _statusText]);
   }
 }
