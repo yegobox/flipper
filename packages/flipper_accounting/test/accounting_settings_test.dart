@@ -69,6 +69,69 @@ void main() {
     },
   );
 
+  group('recordEbmVatType', () {
+    test('keeps RRA\'s VAT type beside the seeded defaults', () async {
+      final store = InMemoryAccountingStore();
+      await store.upsertPartyDoc('accounting_settings', 'as_$biz', {
+        'businessId': biz,
+        'vatPayableCode': '2100',
+      });
+      final saved = await AccountingSettingsStore(store).recordEbmVatType(
+        businessId: biz,
+        vatTyCd: '1',
+        tin: '999909695',
+        bhfId: '00',
+        now: DateTime.utc(2026, 11, 21, 9),
+      );
+      expect(saved, isTrue);
+      final doc = store.doc('accounting_settings', 'as_$biz')!;
+      expect(doc['vatPayableCode'], '2100');
+      expect(doc['ebmVatTyCdTin'], '999909695');
+      expect(doc['ebmVatTyCdBhfId'], '00');
+      final read = await AccountingSettingsStore(store).read(biz);
+      expect(read.ebmVatTyCd, '1');
+      expect(read.ebmVatTyCdAt, DateTime.utc(2026, 11, 21, 9));
+      // Recorded only: it does not make the business VAT-registered.
+      expect(read.vatRegistered, isFalse);
+    });
+
+    test(
+      'nothing to record, or nowhere to record it: no write, no throw',
+      () async {
+        final store = InMemoryAccountingStore();
+        final settings = AccountingSettingsStore(store);
+        expect(
+          await settings.recordEbmVatType(
+            businessId: biz,
+            vatTyCd: null,
+            tin: '1',
+            bhfId: '00',
+          ),
+          isFalse,
+        );
+        expect(
+          await settings.recordEbmVatType(
+            businessId: '',
+            vatTyCd: '1',
+            tin: '1',
+            bhfId: '00',
+          ),
+          isFalse,
+        );
+        expect(
+          await AccountingSettingsStore(_NotReadyStore()).recordEbmVatType(
+            businessId: biz,
+            vatTyCd: '1',
+            tin: '1',
+            bhfId: '00',
+          ),
+          isFalse,
+        );
+        expect(store.doc('accounting_settings', 'as_$biz'), isNull);
+      },
+    );
+  });
+
   group('resolvePurchaseVatIsCost', () {
     Future<bool> resolve(bool? ebm, InMemoryAccountingStore store) =>
         resolvePurchaseVatIsCost(

@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
+
+import 'package:flipper_accounting/accounting_settings.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/ebm_helper.dart';
 import 'package:flipper_models/helpers/rra_top_message.dart';
@@ -41,6 +43,7 @@ import 'package:talker/talker.dart';
 import 'package:talker_dio_logger/talker_dio_logger_interceptor.dart';
 import 'package:talker_dio_logger/talker_dio_logger_settings.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
+
 import 'dart:math' as math;
 
 /// Align branch counters in Ditto when RRA rejects a duplicate [invcNo].
@@ -273,10 +276,11 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     try {
       final jsonResponse = jsonDecode(responseBody);
 
-      // Check if this is an error response
+      // Check if this is an error response. The VSDC answers "000" on
+      // success ("It is succeeded"); "0000" is kept for older servers.
       if (jsonResponse is Map<String, dynamic> &&
           jsonResponse.containsKey('resultCd') &&
-          jsonResponse['resultCd'] != '0000') {
+          !isEbmInitSuccess(jsonResponse['resultCd'])) {
         // This is an error response from the API
         final errorMessage = jsonResponse['resultMsg'] ?? 'Unknown error';
         throw Exception(errorMessage);
@@ -288,7 +292,16 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
         BusinessInfoResponse response = BusinessInfoResponse.fromJson(
           jsonResponse,
         );
-        return response.data.info;
+        final info = response.data.info;
+        // RRA's VAT type for this TIN; Books keeps it next to "Registered
+        // for VAT". Never fails the initialisation.
+        await AccountingSettingsStore(DittoService.instance).recordEbmVatType(
+          businessId: ebm.businessId,
+          vatTyCd: info.vatTyCd,
+          tin: tinNumber,
+          bhfId: bhfId,
+        );
+        return info;
       } else {
         throw Exception(
           'Failed to load BusinessInfo: HTTP ${streamedResponse.statusCode}',
@@ -2192,4 +2205,11 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       query: Query(where: [Where('branchId').isExactly(branchId)]),
     );
   }
+}
+
+/// Whether an EBM `initializer/selectInitInfo` result code means success:
+/// the VSDC sends "000"; "0000" is accepted for older servers.
+bool isEbmInitSuccess(Object? resultCd) {
+  final code = resultCd?.toString().trim();
+  return code == '000' || code == '0000';
 }
