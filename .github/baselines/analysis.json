@@ -3,32 +3,32 @@
   "packages": {
     "apps/flipper": {
       "error": 0,
-      "info": 2,
+      "info": 14,
       "warning": 0
     },
     "apps/flipper_ai": {
       "error": 0,
-      "info": 2,
+      "info": 3,
       "warning": 1
     },
     "apps/flipper_auth": {
       "error": 0,
-      "info": 11,
+      "info": 17,
       "warning": 0
     },
     "apps/flipper_hr": {
       "error": 0,
-      "info": 0,
+      "info": 47,
       "warning": 0
     },
     "apps/flipper_personal": {
       "error": 0,
-      "info": 6,
+      "info": 12,
       "warning": 0
     },
     "apps/flipper_web": {
       "error": 0,
-      "info": 33,
+      "info": 147,
       "warning": 10
     },
     "packages/brick_ditto": {
@@ -43,27 +43,27 @@
     },
     "packages/demo_ui_components": {
       "error": 0,
-      "info": 1,
+      "info": 19,
       "warning": 0
     },
     "packages/desktop_webview_auth": {
       "error": 0,
       "info": 0,
-      "warning": 1
+      "warning": 0
     },
     "packages/flipper_accounting": {
       "error": 0,
-      "info": 0,
-      "warning": 2
+      "info": 2,
+      "warning": 1
     },
     "packages/flipper_actionable": {
       "error": 0,
-      "info": 0,
+      "info": 1,
       "warning": 1
     },
     "packages/flipper_ai_feature": {
       "error": 0,
-      "info": 4,
+      "info": 49,
       "warning": 5
     },
     "packages/flipper_analytics": {
@@ -73,32 +73,32 @@
     },
     "packages/flipper_dashboard": {
       "error": 0,
-      "info": 74,
-      "warning": 42
+      "info": 857,
+      "warning": 39
     },
     "packages/flipper_design_system": {
       "error": 0,
-      "info": 1,
+      "info": 22,
       "warning": 0
     },
     "packages/flipper_infra": {
       "error": 0,
-      "info": 1,
+      "info": 6,
       "warning": 0
     },
     "packages/flipper_loading": {
       "error": 0,
-      "info": 0,
+      "info": 11,
       "warning": 1
     },
     "packages/flipper_localize": {
       "error": 0,
-      "info": 0,
+      "info": 8,
       "warning": 0
     },
     "packages/flipper_login": {
       "error": 0,
-      "info": 1,
+      "info": 34,
       "warning": 1
     },
     "packages/flipper_mfa": {
@@ -113,42 +113,47 @@
     },
     "packages/flipper_models": {
       "error": 0,
-      "info": 31,
-      "warning": 41
+      "info": 47,
+      "warning": 36
+    },
+    "packages/flipper_overlay": {
+      "error": 0,
+      "info": 8,
+      "warning": 0
     },
     "packages/flipper_payments": {
       "error": 0,
-      "info": 1,
+      "info": 24,
       "warning": 0
     },
     "packages/flipper_routing": {
       "error": 0,
-      "info": 4,
+      "info": 9,
       "warning": 0
     },
     "packages/flipper_scanner": {
       "error": 0,
-      "info": 0,
+      "info": 1,
       "warning": 0
     },
     "packages/flipper_services": {
       "error": 0,
-      "info": 8,
-      "warning": 18
+      "info": 17,
+      "warning": 14
     },
     "packages/flipper_socials": {
       "error": 0,
-      "info": 1,
+      "info": 7,
       "warning": 1
     },
     "packages/flipper_ui": {
       "error": 0,
-      "info": 10,
+      "info": 74,
       "warning": 7
     },
     "packages/flowy_svg": {
       "error": 0,
-      "info": 0,
+      "info": 1,
       "warning": 0
     },
     "packages/flutter_statusbarcolor": {
@@ -158,7 +163,7 @@
     },
     "packages/supabase_models": {
       "error": 0,
-      "info": 195,
+      "info": 192,
       "warning": 91
     }
   }
