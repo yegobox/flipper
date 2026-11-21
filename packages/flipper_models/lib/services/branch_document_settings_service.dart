@@ -77,10 +77,10 @@ abstract final class BranchDocumentSettingsService {
     return (raw == null || raw.isEmpty) ? null : raw;
   }
 
-  /// The branch's settings as Ditto has them, for an editor that is about to
-  /// write the whole document back. Reading the cache instead could hand back
-  /// defaults (cache not hydrated yet, or holding another branch) and the save
-  /// would then wipe the branch's stamp.
+  /// The branch's settings as Ditto has them, falling back to this device's
+  /// cache, then to defaults. For showing values only: the receipt editor
+  /// saves through [saveReceiptHeader], which never writes the stamp, so a
+  /// failed read here cannot clear it.
   static Future<BranchDocumentSettings> loadForBranch(String branchId) async {
     try {
       final remote =
@@ -97,20 +97,39 @@ abstract final class BranchDocumentSettingsService {
         : BranchDocumentSettings(branchId: branchId);
   }
 
-  /// Save [settings] for any branch. Only the active branch's cache is
-  /// refreshed; another branch's settings must not replace it.
-  static Future<bool> persistForBranch(BranchDocumentSettings settings) async {
-    final next = settings.copyWith(updatedAt: DateTime.now().toUtc());
-    if (next.branchId == ProxyService.box.getBranchId()) return persist(next);
+  /// Save only the receipt header (phone, email, welcome line) of
+  /// [settings.branchId]; the stamp stays exactly as stored, even if another
+  /// device changed it after this one read it.
+  ///
+  /// On success the print cache picks up the new header, but only when it is
+  /// the active branch's: another branch's header must not print here.
+  static Future<bool> saveReceiptHeader(BranchDocumentSettings settings) async {
     try {
-      await (_sync.saveBranchDocumentSettings(next) as Future).timeout(
+      await (_sync.saveBranchReceiptHeader(settings) as Future).timeout(
         const Duration(seconds: 12),
       );
-      return true;
     } catch (e, s) {
-      talker.error('Branch document settings persist failed', e, s);
+      talker.error('Receipt header save failed for ${settings.branchId}', e, s);
       return false;
     }
+    final box = ProxyService.box;
+    if (settings.branchId == box.getBranchId() &&
+        box.readString(key: stampBranchKey) == settings.branchId) {
+      _applyReceiptHeaderToCache(box, settings);
+    }
+    return true;
+  }
+
+  static void _applyReceiptHeaderToCache(
+    LocalStorage box,
+    BranchDocumentSettings settings,
+  ) {
+    box.writeString(key: receiptPhoneKey, value: settings.receiptPhone ?? '');
+    box.writeString(key: receiptEmailKey, value: settings.receiptEmail ?? '');
+    box.writeString(
+      key: receiptMessageKey,
+      value: settings.receiptMessage ?? '',
+    );
   }
 
   /// Stored as a string: [LocalStorage] has no double accessor, and rounding a
@@ -246,11 +265,6 @@ abstract final class BranchDocumentSettingsService {
       key: stampAspectRatioKey,
       value: settings.stampAspectRatio.toString(),
     );
-    box.writeString(key: receiptPhoneKey, value: settings.receiptPhone ?? '');
-    box.writeString(key: receiptEmailKey, value: settings.receiptEmail ?? '');
-    box.writeString(
-      key: receiptMessageKey,
-      value: settings.receiptMessage ?? '',
-    );
+    _applyReceiptHeaderToCache(box, settings);
   }
 }

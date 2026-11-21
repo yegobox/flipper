@@ -178,9 +178,26 @@ class BranchDocumentSettings {
       'stampPlacement': stampPlacement.name,
       'stampWidthMm': stampWidthMm,
       'stampAspectRatio': stampAspectRatio,
-      // Written even when null, for the same reason as the stamp: a cleared
-      // welcome line must clear on every device. Builds older than these
-      // fields omit them, so their stamp saves leave these untouched.
+      // The receipt header is deliberately absent: it is written only by
+      // [receiptHeaderJson]. Ditto's ON ID CONFLICT DO UPDATE leaves omitted
+      // fields untouched, so a stamp save can never revert the header, even
+      // from a device whose cache has not caught up.
+      if (updatedAt != null) 'updatedAt': updatedAt!.toIso8601String(),
+    };
+  }
+
+  /// The receipt header alone, for a save that must not touch the stamp.
+  ///
+  /// The editor in Tax Settings writes this as a partial upsert, so a stamp
+  /// changed on another device while the dialog was open survives, and a
+  /// failed read can never turn into a save of default (empty) stamp fields.
+  /// Each field is written even when null so a cleared value clears on every
+  /// device.
+  Map<String, dynamic> receiptHeaderJson() {
+    return {
+      '_id': branchId,
+      'id': branchId,
+      'branchId': branchId,
       'receiptPhone': receiptPhone,
       'receiptEmail': receiptEmail,
       'receiptMessage': receiptMessage,

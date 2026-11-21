@@ -14,8 +14,9 @@ class ReceiptHeaderStore {
   Future<BranchDocumentSettings> load(String branchId) =>
       BranchDocumentSettingsService.loadForBranch(branchId);
 
+  /// Writes the receipt header only; the stamp is never touched.
   Future<bool> save(BranchDocumentSettings settings) =>
-      BranchDocumentSettingsService.persistForBranch(settings);
+      BranchDocumentSettingsService.saveReceiptHeader(settings);
 }
 
 final receiptHeaderStoreProvider = Provider<ReceiptHeaderStore>(

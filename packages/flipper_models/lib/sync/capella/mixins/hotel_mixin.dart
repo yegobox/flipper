@@ -28,6 +28,7 @@ import 'package:supabase_models/sync/shared_sync_subscriptions.dart';
 
 part 'hotel_mixin_mapping.dart';
 part 'hotel_mixin_stay_changes.dart';
+part 'hotel_mixin_branch_documents.dart';
 
 mixin CapellaHotelMixin implements HotelInterface {
   DittoService get dittoService;
@@ -274,19 +275,12 @@ mixin CapellaHotelMixin implements HotelInterface {
   }
 
   @override
-  Future<void> saveBranchDocumentSettings(
-    BranchDocumentSettings settings,
-  ) async {
-    final ditto = dittoHandle;
-    if (ditto == null) throw StateError('Ditto not initialized');
-    _ensureBranchDocumentSettingsSync(ditto, settings.branchId);
-    final doc = settings.copyWith(updatedAt: DateTime.now().toUtc()).toJson();
-    await ditto.store.execute(
-      'INSERT INTO branch_document_settings DOCUMENTS (:doc) '
-      'ON ID CONFLICT DO UPDATE',
-      arguments: {'doc': doc},
-    );
-  }
+  Future<void> saveBranchDocumentSettings(BranchDocumentSettings settings) =>
+      _upsertBranchDocument(settings, (s) => s.toJson());
+
+  @override
+  Future<void> saveBranchReceiptHeader(BranchDocumentSettings settings) =>
+      _upsertBranchDocument(settings, (s) => s.receiptHeaderJson());
 
   // --- Rooms ----------------------------------------------------------------
 

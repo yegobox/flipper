@@ -36,28 +36,35 @@ class _FakeBox implements LocalStorage {
   dynamic noSuchMethod(Invocation invocation) => null;
 }
 
-/// Only the two Ditto calls the receipt header makes.
+/// Only the Ditto calls the receipt header makes. Stores raw JSON and merges
+/// on upsert, like Ditto's ON ID CONFLICT DO UPDATE.
 class _FakeDb implements DatabaseSyncInterface {
-  final Map<String, BranchDocumentSettings> docs = {};
-  final List<BranchDocumentSettings> saved = [];
+  final Map<String, Map<String, dynamic>> raw = {};
+  final List<Map<String, dynamic>> writes = [];
   bool failReads = false;
   bool failWrites = false;
+
+  void seed(BranchDocumentSettings settings) =>
+      raw[settings.branchId] = settings.toJson();
+
+  BranchDocumentSettings? doc(String branchId) => raw[branchId] == null
+      ? null
+      : BranchDocumentSettings.fromJson(raw[branchId]!);
 
   @override
   Future<BranchDocumentSettings?> branchDocumentSettings({
     required String branchId,
   }) async {
     if (failReads) throw StateError('Ditto not initialized');
-    return docs[branchId];
+    return doc(branchId);
   }
 
   @override
-  Future<void> saveBranchDocumentSettings(
-    BranchDocumentSettings settings,
-  ) async {
+  Future<void> saveBranchReceiptHeader(BranchDocumentSettings settings) async {
     if (failWrites) throw StateError('Ditto not initialized');
-    saved.add(settings);
-    docs[settings.branchId] = settings;
+    final json = settings.receiptHeaderJson();
+    writes.add(json);
+    raw[settings.branchId] = {...?raw[settings.branchId], ...json};
   }
 
   @override
@@ -116,10 +123,17 @@ void main() {
         receiptPhone: '0722111222',
         receiptEmail: 'branch@example.com',
       );
-      final json = settings.toJson();
+      final json = settings.receiptHeaderJson();
       // Written even when null so a cleared line clears on every device.
       expect(json.containsKey('receiptMessage'), isTrue);
       expect(json['receiptMessage'], isNull);
+      // A header save never carries the stamp...
+      expect(json.keys.where((k) => k.startsWith('stamp')), isEmpty);
+      // ...and a stamp save never carries the header.
+      expect(
+        settings.toJson().keys.where((k) => k.startsWith('receipt')),
+        isEmpty,
+      );
 
       final back = BranchDocumentSettings.fromJson(json);
       expect(back.receiptPhone, '0722111222');
@@ -220,16 +234,17 @@ void main() {
       expect(current.receiptMessage, isNull);
     });
 
-    test('loadForBranch reads Ditto so a save keeps the stamp', () async {
-      db.docs['branch-a'] = const BranchDocumentSettings(
-        branchId: 'branch-a',
-        stampEnabled: true,
-        stampImageBase64: 'AAAA',
+    test('loadForBranch reads the header from Ditto', () async {
+      await db.saveBranchReceiptHeader(
+        const BranchDocumentSettings(
+          branchId: 'branch-a',
+          receiptEmail: 'branch@example.com',
+        ),
       );
       final loaded = await BranchDocumentSettingsService.loadForBranch(
         'branch-a',
       );
-      expect(loaded.hasStamp, isTrue);
+      expect(loaded.receiptEmail, 'branch@example.com');
     });
 
     test('loadForBranch falls back to the cache, then to defaults', () async {
@@ -252,49 +267,111 @@ void main() {
       expect(other.receiptPhone, isNull);
     });
 
-    test('saving the active branch writes Ditto and the print cache', () async {
-      final ok = await BranchDocumentSettingsService.persistForBranch(
+    test('saving writes only the header and keeps a newer stamp', () async {
+      // The dialog read the doc before another till added a stamp; its save
+      // must not revert that stamp.
+      final opened = await BranchDocumentSettingsService.loadForBranch(
+        'branch-a',
+      );
+      db.seed(
+        const BranchDocumentSettings(
+          branchId: 'branch-a',
+          stampEnabled: true,
+          stampImageBase64: 'NEW',
+        ),
+      );
+      BranchDocumentSettingsService.applyToLocalCache(db.doc('branch-a')!);
+
+      final ok = await BranchDocumentSettingsService.saveReceiptHeader(
+        opened.copyWith(receiptPhone: '0722111222'),
+      );
+
+      expect(ok, isTrue);
+      expect(
+        db.writes.single.keys.where((k) => k.startsWith('stamp')),
+        isEmpty,
+      );
+      final stored = db.doc('branch-a')!;
+      expect(stored.stampImageBase64, 'NEW');
+      expect(stored.receiptPhone, '0722111222');
+      final cached = BranchDocumentSettingsService.current();
+      expect(cached.receiptPhone, '0722111222');
+      expect(cached.stampImageBase64, 'NEW');
+    });
+
+    test('a failed read never turns into a stamp-clearing save', () async {
+      db.seed(
+        const BranchDocumentSettings(
+          branchId: 'branch-a',
+          stampEnabled: true,
+          stampImageBase64: 'AAAA',
+        ),
+      );
+      db.failReads = true;
+      final opened = await BranchDocumentSettingsService.loadForBranch(
+        'branch-a',
+      );
+      expect(opened.hasStamp, isFalse); // defaults: the cache was empty
+
+      await BranchDocumentSettingsService.saveReceiptHeader(
+        opened.copyWith(receiptPhone: '0722111222'),
+      );
+
+      expect(db.doc('branch-a')!.hasStamp, isTrue);
+      expect(db.doc('branch-a')!.receiptPhone, '0722111222');
+    });
+
+    test('an unhydrated cache is left for hydrate to fill', () async {
+      final ok = await BranchDocumentSettingsService.saveReceiptHeader(
         const BranchDocumentSettings(
           branchId: 'branch-a',
           receiptPhone: '0722111222',
         ),
       );
       expect(ok, isTrue);
-      expect(db.saved.single.receiptPhone, '0722111222');
-      expect(db.saved.single.updatedAt, isNotNull);
-      expect(
-        BranchDocumentSettingsService.current().receiptPhone,
-        '0722111222',
-      );
+      expect(box.values.containsKey('docReceiptPhone'), isFalse);
     });
 
-    test('saving another branch leaves this branch\'s cache alone', () async {
+    test("saving another branch leaves this branch's cache alone", () async {
       BranchDocumentSettingsService.applyToLocalCache(
         const BranchDocumentSettings(
           branchId: 'branch-a',
           receiptPhone: '0722111222',
         ),
       );
-      final ok = await BranchDocumentSettingsService.persistForBranch(
+      final ok = await BranchDocumentSettingsService.saveReceiptHeader(
         const BranchDocumentSettings(
           branchId: 'branch-b',
           receiptPhone: '0733000000',
         ),
       );
       expect(ok, isTrue);
-      expect(db.docs['branch-b']!.receiptPhone, '0733000000');
+      expect(db.doc('branch-b')!.receiptPhone, '0733000000');
       expect(
         BranchDocumentSettingsService.current().receiptPhone,
         '0722111222',
       );
     });
 
-    test('a failed save of another branch reports false', () async {
+    test('a failed save reports false and leaves the cache alone', () async {
+      BranchDocumentSettingsService.applyToLocalCache(
+        const BranchDocumentSettings(
+          branchId: 'branch-a',
+          receiptPhone: '0722111222',
+        ),
+      );
       db.failWrites = true;
-      final ok = await BranchDocumentSettingsService.persistForBranch(
-        const BranchDocumentSettings(branchId: 'branch-b'),
+      final ok = await BranchDocumentSettingsService.saveReceiptHeader(
+        const BranchDocumentSettings(
+          branchId: 'branch-a',
+          receiptPhone: '0799999999',
+        ),
       );
       expect(ok, isFalse);
+      expect(
+        BranchDocumentSettingsService.current().receiptPhone,
+        '0722111222',
+      );
     });
   });
 }
