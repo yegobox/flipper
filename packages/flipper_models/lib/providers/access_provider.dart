@@ -146,19 +146,44 @@ bool featureViewAccess(
     if (isCommissionOnlySession()) {
       return featureName == AppFeature.Commission;
     }
-    if (_isBusinessAdminUserType(ref, userId)) return true;
 
-    // Any active, non-expired grant for this feature counts as at least read.
-    return accesses.any(
-      (access) =>
-          access.featureName == featureName &&
-          access.status == 'active' &&
-          (access.expiresAt == null || access.expiresAt!.isAfter(now)),
+    return viewAccessFromRows(
+      accesses,
+      featureName: featureName,
+      isBusinessAdmin: _isBusinessAdminUserType(ref, userId),
+      now: now,
     );
   } catch (e, s) {
     talker.error(e, s);
     return false; // Fail-safe: deny view on error
   }
+}
+
+/// Features whose grant takes something away from the user instead of giving
+/// them a module. Holding [AppFeature.HideStockQuantity] means "don't show
+/// this user stock numbers", so the Admin shortcut must never grant these:
+/// it hid stock quantities on every Admin's POS cards.
+const Set<String> restrictionFeatures = {AppFeature.HideStockQuantity};
+
+/// The [featureViewAccess] decision once the rows are loaded: Admins see every
+/// module except a restriction, which needs its own active grant like anyone.
+@visibleForTesting
+bool viewAccessFromRows(
+  List<Access> accesses, {
+  required String featureName,
+  required bool isBusinessAdmin,
+  required DateTime now,
+}) {
+  if (isBusinessAdmin && !restrictionFeatures.contains(featureName)) {
+    return true;
+  }
+  // Any active, non-expired grant for this feature counts as at least read.
+  return accesses.any(
+    (access) =>
+        access.featureName == featureName &&
+        access.status == 'active' &&
+        (access.expiresAt == null || access.expiresAt!.isAfter(now)),
+  );
 }
 
 /// True when [accesses] holds an active, non-expired row at [accessLevel].
