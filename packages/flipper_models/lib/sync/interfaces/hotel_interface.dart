@@ -39,6 +39,10 @@ abstract class HotelInterface {
 
   Future<void> saveBranchDocumentSettings(BranchDocumentSettings settings);
 
+  /// Writes only the receipt header fields (phone, email, welcome line) and
+  /// leaves the stamp as stored.
+  Future<void> saveBranchReceiptHeader(BranchDocumentSettings settings);
+
   // --- Rooms ---
 
   Stream<List<HotelRoom>> hotelRoomsStream({required String branchId});

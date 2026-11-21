@@ -41,6 +41,9 @@ class BranchDocumentSettings {
     this.stampPlacement = DocumentStampPlacement.bottomRight,
     this.stampWidthMm = 38,
     this.stampAspectRatio = 1.0,
+    this.receiptPhone,
+    this.receiptEmail,
+    this.receiptMessage,
     this.updatedAt,
   });
 
@@ -64,7 +67,52 @@ class BranchDocumentSettings {
   /// without this the proforma stamp would not match the quotation's.
   final double stampAspectRatio;
 
+  /// Phone printed in the receipt header (Tax Settings → Receipt header).
+  /// Null means "use the business's phone".
+  final String? receiptPhone;
+
+  /// Email printed in the receipt header. Null means "use the business's".
+  final String? receiptEmail;
+
+  /// Replaces "WELCOME TO OUR SHOP" under the header. Null prints the default.
+  final String? receiptMessage;
+
   final DateTime? updatedAt;
+
+  /// Printed when a branch has not set [receiptMessage]. Same text as the
+  /// receipt package's default, which cannot be imported here (it depends on
+  /// this package).
+  static const String defaultReceiptMessage = 'WELCOME TO OUR SHOP';
+
+  /// Longest welcome line the dialog accepts. Thermal paper wraps it anyway;
+  /// the cap keeps it a line, not a paragraph, in the RRA top message.
+  static const int maxReceiptMessageLength = 80;
+
+  /// The phone a receipt should print: this branch's own, else [businessPhone].
+  /// Blank when neither has one.
+  String receiptPhoneOr(String? businessPhone) =>
+      _firstNonBlank(receiptPhone, businessPhone);
+
+  /// The email a receipt should print: this branch's own, else [businessEmail].
+  String receiptEmailOr(String? businessEmail) =>
+      _firstNonBlank(receiptEmail, businessEmail);
+
+  /// The welcome line a receipt should print.
+  String get receiptWelcomeLine {
+    final own = receiptMessage?.trim() ?? '';
+    return own.isEmpty ? defaultReceiptMessage : own;
+  }
+
+  static String _firstNonBlank(String? preferred, String? fallback) {
+    final own = preferred?.trim() ?? '';
+    if (own.isNotEmpty) return own;
+    return fallback?.trim() ?? '';
+  }
+
+  static String? _blankToNull(String? value) {
+    final trimmed = value?.trim();
+    return (trimmed == null || trimmed.isEmpty) ? null : trimmed;
+  }
 
   /// 64 KB raw (~88 KB base64).
   static const int maxStampBytes = 64 * 1024;
@@ -74,9 +122,7 @@ class BranchDocumentSettings {
 
   /// Whether a document should actually draw a stamp.
   bool get hasStamp =>
-      stampEnabled &&
-      stampImageBase64 != null &&
-      stampImageBase64!.isNotEmpty;
+      stampEnabled && stampImageBase64 != null && stampImageBase64!.isNotEmpty;
 
   BranchDocumentSettings copyWith({
     String? branchId,
@@ -89,6 +135,11 @@ class BranchDocumentSettings {
     DocumentStampPlacement? stampPlacement,
     double? stampWidthMm,
     double? stampAspectRatio,
+    String? receiptPhone,
+    String? receiptEmail,
+
+    /// Pass `''` to clear the welcome line back to the default.
+    String? receiptMessage,
     DateTime? updatedAt,
   }) {
     return BranchDocumentSettings(
@@ -100,6 +151,15 @@ class BranchDocumentSettings {
       stampPlacement: stampPlacement ?? this.stampPlacement,
       stampWidthMm: stampWidthMm ?? this.stampWidthMm,
       stampAspectRatio: stampAspectRatio ?? this.stampAspectRatio,
+      receiptPhone: receiptPhone == null
+          ? this.receiptPhone
+          : _blankToNull(receiptPhone),
+      receiptEmail: receiptEmail == null
+          ? this.receiptEmail
+          : _blankToNull(receiptEmail),
+      receiptMessage: receiptMessage == null
+          ? this.receiptMessage
+          : _blankToNull(receiptMessage),
       updatedAt: updatedAt ?? this.updatedAt,
     );
   }
@@ -118,6 +178,29 @@ class BranchDocumentSettings {
       'stampPlacement': stampPlacement.name,
       'stampWidthMm': stampWidthMm,
       'stampAspectRatio': stampAspectRatio,
+      // The receipt header is deliberately absent: it is written only by
+      // [receiptHeaderJson]. Ditto's ON ID CONFLICT DO UPDATE leaves omitted
+      // fields untouched, so a stamp save can never revert the header, even
+      // from a device whose cache has not caught up.
+      if (updatedAt != null) 'updatedAt': updatedAt!.toIso8601String(),
+    };
+  }
+
+  /// The receipt header alone, for a save that must not touch the stamp.
+  ///
+  /// The editor in Tax Settings writes this as a partial upsert, so a stamp
+  /// changed on another device while the dialog was open survives, and a
+  /// failed read can never turn into a save of default (empty) stamp fields.
+  /// Each field is written even when null so a cleared value clears on every
+  /// device.
+  Map<String, dynamic> receiptHeaderJson() {
+    return {
+      '_id': branchId,
+      'id': branchId,
+      'branchId': branchId,
+      'receiptPhone': receiptPhone,
+      'receiptEmail': receiptEmail,
+      'receiptMessage': receiptMessage,
       if (updatedAt != null) 'updatedAt': updatedAt!.toIso8601String(),
     };
   }
@@ -146,13 +229,18 @@ class BranchDocumentSettings {
       stampPlacement: documentStampPlacementFromString(
         raw['stampPlacement']?.toString(),
       ),
-      stampWidthMm: toDouble(raw['stampWidthMm'], fallback: 38).clamp(
-        minStampWidthMm,
-        maxStampWidthMm,
-      ),
+      stampWidthMm: toDouble(
+        raw['stampWidthMm'],
+        fallback: 38,
+      ).clamp(minStampWidthMm, maxStampWidthMm),
       // A zero or negative ratio would collapse the image to nothing, so a bad
       // value falls back to square rather than rendering an invisible stamp.
-      stampAspectRatio: _saneRatio(toDouble(raw['stampAspectRatio'], fallback: 1)),
+      stampAspectRatio: _saneRatio(
+        toDouble(raw['stampAspectRatio'], fallback: 1),
+      ),
+      receiptPhone: _blankToNull(raw['receiptPhone']?.toString()),
+      receiptEmail: _blankToNull(raw['receiptEmail']?.toString()),
+      receiptMessage: _blankToNull(raw['receiptMessage']?.toString()),
       updatedAt: raw['updatedAt'] == null
           ? null
           : DateTime.tryParse(raw['updatedAt'].toString()),

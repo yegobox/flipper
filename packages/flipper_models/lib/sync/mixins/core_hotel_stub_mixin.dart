@@ -57,6 +57,10 @@ mixin CoreHotelStubMixin implements HotelInterface {
   ) async => _warn('saveBranchDocumentSettings');
 
   @override
+  Future<void> saveBranchReceiptHeader(BranchDocumentSettings settings) async =>
+      _warn('saveBranchReceiptHeader');
+
+  @override
   Stream<List<HotelRoom>> hotelRoomsStream({required String branchId}) {
     _warn('hotelRoomsStream');
     return Stream.value(<HotelRoom>[]);
