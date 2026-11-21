@@ -60,6 +60,16 @@ class _FakeDb implements DatabaseSyncInterface {
   }
 
   @override
+  Future<void> saveBranchDocumentSettings(
+    BranchDocumentSettings settings,
+  ) async {
+    if (failWrites) throw StateError('Ditto not initialized');
+    final json = settings.toJson();
+    writes.add(json);
+    raw[settings.branchId] = {...?raw[settings.branchId], ...json};
+  }
+
+  @override
   Future<void> saveBranchReceiptHeader(BranchDocumentSettings settings) async {
     if (failWrites) throw StateError('Ditto not initialized');
     final json = settings.receiptHeaderJson();
@@ -232,6 +242,96 @@ void main() {
       expect(current.receiptPhone, isNull);
       expect(current.receiptEmail, isNull);
       expect(current.receiptMessage, isNull);
+    });
+
+    group('the cached header is the last one Ditto delivered', () {
+      const header = BranchDocumentSettings(
+        branchId: 'branch-a',
+        receiptPhone: '0722111222',
+        receiptEmail: 'branch@example.com',
+        receiptMessage: 'Hello',
+      );
+      const quick = Duration(milliseconds: 50);
+
+      test('a hydrate whose reads all fail keeps it', () async {
+        BranchDocumentSettingsService.applyToLocalCache(header);
+        db.failReads = true;
+
+        await BranchDocumentSettingsService.hydrateForActiveBranch(
+          timeout: quick,
+        );
+
+        final cached = BranchDocumentSettingsService.current();
+        expect(cached.receiptPhone, '0722111222');
+        expect(cached.receiptEmail, 'branch@example.com');
+        expect(cached.receiptMessage, 'Hello');
+      });
+
+      test('a hydrate that finds the document takes its header', () async {
+        BranchDocumentSettingsService.applyToLocalCache(header);
+        await db.saveBranchReceiptHeader(
+          const BranchDocumentSettings(
+            branchId: 'branch-a',
+            receiptPhone: '0733000000',
+          ),
+        );
+
+        await BranchDocumentSettingsService.hydrateForActiveBranch(
+          timeout: quick,
+        );
+
+        final cached = BranchDocumentSettingsService.current();
+        expect(cached.receiptPhone, '0733000000');
+        expect(cached.receiptMessage, isNull);
+      });
+
+      test("a branch switch never keeps another branch's header", () async {
+        BranchDocumentSettingsService.applyToLocalCache(header);
+        box.branchId = 'branch-b';
+        db.failReads = true;
+
+        await BranchDocumentSettingsService.hydrateForActiveBranch(
+          timeout: quick,
+        );
+
+        final cached = BranchDocumentSettingsService.current();
+        expect(cached.branchId, 'branch-b');
+        expect(cached.receiptPhone, isNull);
+        expect(box.values['docReceiptPhone'], '');
+      });
+
+      test('a stamp save leaves it alone, even from a stale copy', () async {
+        BranchDocumentSettingsService.applyToLocalCache(header);
+
+        final ok = await BranchDocumentSettingsService.persist(
+          const BranchDocumentSettings(
+            branchId: 'branch-a',
+            stampEnabled: true,
+            stampImageBase64: 'AAAA',
+            receiptPhone: '0799999999', // stale copy, never written to Ditto
+          ),
+        );
+
+        expect(ok, isTrue);
+        final cached = BranchDocumentSettingsService.current();
+        expect(cached.hasStamp, isTrue);
+        expect(cached.receiptPhone, '0722111222');
+        expect(db.writes.single.containsKey('receiptPhone'), isFalse);
+      });
+
+      test(
+        'a stamp save that claims the cache clears the old header',
+        () async {
+          BranchDocumentSettingsService.applyToLocalCache(header);
+          box.branchId = 'branch-b';
+
+          await BranchDocumentSettingsService.persist(
+            const BranchDocumentSettings(branchId: 'branch-b'),
+          );
+
+          expect(BranchDocumentSettingsService.current().receiptPhone, isNull);
+        },
+      );
     });
 
     test('loadForBranch reads the header from Ditto', () async {
