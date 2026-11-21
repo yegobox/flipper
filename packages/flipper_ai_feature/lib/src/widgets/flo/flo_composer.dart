@@ -252,27 +252,29 @@ class _FloComposerState extends State<FloComposer> {
                             const SizedBox(width: 6),
                             Material(
                               color: Colors.transparent,
-                              child: InkWell(
-                                onTap: canSend ? _handleSend : null,
-                                borderRadius: BorderRadius.circular(12),
-                                child: Ink(
-                                  width: 40,
-                                  height: 40,
-                                  decoration: BoxDecoration(
-                                    gradient: canSend ? FloTheme.gradBtn : null,
-                                    color: canSend
-                                        ? null
-                                        : FloTheme.ink4.withValues(alpha: 0.45),
+                              child: Container(
+                                width: 40,
+                                height: 40,
+                                decoration: BoxDecoration(
+                                  gradient: canSend ? FloTheme.gradBtn : null,
+                                  color: canSend
+                                      ? null
+                                      : FloTheme.ink4.withValues(alpha: 0.45),
+                                  borderRadius: BorderRadius.circular(12),
+                                  boxShadow:
+                                      canSend ? const [FloTheme.shBlue] : null,
+                                ),
+                                child: Material(
+                                  type: MaterialType.transparency,
+                                  child: InkWell(
+                                    onTap: canSend ? _handleSend : null,
                                     borderRadius: BorderRadius.circular(12),
-                                    boxShadow: canSend
-                                        ? const [FloTheme.shBlue]
-                                        : null,
-                                  ),
-                                  child: Center(
-                                    child: FloIcons.send(
-                                      size: 19,
-                                      color: Colors.white
-                                          .withValues(alpha: canSend ? 1 : 0.7),
+                                    child: Center(
+                                      child: FloIcons.send(
+                                        size: 19,
+                                        color: Colors.white.withValues(
+                                            alpha: canSend ? 1 : 0.7),
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -329,17 +331,20 @@ class _CompBtn extends StatelessWidget {
     return Material(
       color: background,
       borderRadius: BorderRadius.circular(11),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(11),
-        child: Ink(
-          width: 38,
-          height: 38,
-          decoration: BoxDecoration(
+      child: Container(
+        width: 38,
+        height: 38,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(11),
+          border: Border.all(color: borderColor),
+        ),
+        child: Material(
+          type: MaterialType.transparency,
+          child: InkWell(
+            onTap: onTap,
             borderRadius: BorderRadius.circular(11),
-            border: Border.all(color: borderColor),
+            child: Center(child: icon),
           ),
-          child: Center(child: icon),
         ),
       ),
     );
@@ -399,30 +404,35 @@ class _QuickPromptChip extends StatelessWidget {
     return Material(
       color: FloTheme.surface,
       borderRadius: BorderRadius.circular(FloTheme.radiusPill),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(FloTheme.radiusPill),
-        child: Ink(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-          decoration: BoxDecoration(
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(FloTheme.radiusPill),
+          border: Border.all(color: FloTheme.line),
+          boxShadow: const [FloTheme.sh1],
+        ),
+        child: Material(
+          type: MaterialType.transparency,
+          child: InkWell(
+            onTap: onTap,
             borderRadius: BorderRadius.circular(FloTheme.radiusPill),
-            border: Border.all(color: FloTheme.line),
-            boxShadow: const [FloTheme.sh1],
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              icon,
-              const SizedBox(width: 7),
-              Text(
-                label,
-                style: const TextStyle(
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w600,
-                  color: FloTheme.ink2,
-                ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  icon,
+                  const SizedBox(width: 7),
+                  Text(
+                    label,
+                    style: const TextStyle(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w600,
+                      color: FloTheme.ink2,
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),

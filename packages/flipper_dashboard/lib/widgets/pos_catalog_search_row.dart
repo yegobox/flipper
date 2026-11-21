@@ -193,25 +193,28 @@ class _PosScanButton extends StatelessWidget {
       child: Material(
         color: isActive ? PosTokens.blueTint : PosTokens.surface,
         borderRadius: BorderRadius.circular(PosTokens.radiusMd),
-        child: InkWell(
-          onTap: onPressed,
-          borderRadius: BorderRadius.circular(PosTokens.radiusMd),
-          hoverColor: PosTokens.surface2,
-          child: Ink(
-            width: PosTokens.scanButtonSize,
-            height: PosTokens.scanButtonSize,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(PosTokens.radiusMd),
-              border: Border.all(
-                color: isActive ? PosTokens.blue : PosTokens.line,
-              ),
+        child: Container(
+          width: PosTokens.scanButtonSize,
+          height: PosTokens.scanButtonSize,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(PosTokens.radiusMd),
+            border: Border.all(
+              color: isActive ? PosTokens.blue : PosTokens.line,
             ),
-            child: Icon(
-              isActive
-                  ? FluentIcons.barcode_scanner_24_filled
-                  : FluentIcons.barcode_scanner_24_regular,
-              size: PosTokens.iconMd,
-              color: isActive ? PosTokens.blue : PosTokens.ink2,
+          ),
+          child: Material(
+            type: MaterialType.transparency,
+            child: InkWell(
+              onTap: onPressed,
+              borderRadius: BorderRadius.circular(PosTokens.radiusMd),
+              hoverColor: PosTokens.surface2,
+              child: Icon(
+                isActive
+                    ? FluentIcons.barcode_scanner_24_filled
+                    : FluentIcons.barcode_scanner_24_regular,
+                size: PosTokens.iconMd,
+                color: isActive ? PosTokens.blue : PosTokens.ink2,
+              ),
             ),
           ),
         ),

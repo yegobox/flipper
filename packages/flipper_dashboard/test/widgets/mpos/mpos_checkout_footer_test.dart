@@ -27,10 +27,14 @@ Future<void> _pump(WidgetTester tester, {String? secondary}) async {
   );
 }
 
+/// Button backgrounds are Containers (never Ink, which some Windows tills
+/// don't draw); the rounded corners tell them apart from the footer's own
+/// top-border Container.
 List<BoxDecoration> _buttonDecorations(WidgetTester tester) => tester
-    .widgetList<Ink>(find.byType(Ink))
-    .map((ink) => ink.decoration)
+    .widgetList<Container>(find.byType(Container))
+    .map((c) => c.decoration)
     .whereType<BoxDecoration>()
+    .where((d) => d.borderRadius != null)
     .where((d) => d.gradient != null || d.border != null)
     .toList();
 

@@ -162,56 +162,59 @@ class _PayButton extends StatelessWidget {
       value: 'RWF ${mposMoneyLabel(total)}',
       child: Material(
         color: Colors.transparent,
-        child: InkWell(
-          onTap: enabled ? onPressed : null,
-          borderRadius: BorderRadius.circular(15),
-          child: Ink(
-            height: MposTokens.checkoutPrimaryHeight,
-            decoration: BoxDecoration(
+        child: Container(
+          height: MposTokens.checkoutPrimaryHeight,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(15),
+            gradient: enabled && !outlined ? MposTokens.gradBtn : null,
+            color: !enabled
+                ? PosTokens.ink4.withValues(alpha: 0.35)
+                : outlined
+                ? PosTokens.blueTint
+                : null,
+            border: enabled && outlined
+                ? Border.all(color: PosTokens.blue, width: 1.5)
+                : null,
+            boxShadow: enabled && !outlined ? MposTokens.shadowBlue : null,
+          ),
+          child: Material(
+            type: MaterialType.transparency,
+            child: InkWell(
+              onTap: enabled ? onPressed : null,
               borderRadius: BorderRadius.circular(15),
-              gradient: enabled && !outlined ? MposTokens.gradBtn : null,
-              color: !enabled
-                  ? PosTokens.ink4.withValues(alpha: 0.35)
-                  : outlined
-                  ? PosTokens.blueTint
-                  : null,
-              border: enabled && outlined
-                  ? Border.all(color: PosTokens.blue, width: 1.5)
-                  : null,
-              boxShadow: enabled && !outlined ? MposTokens.shadowBlue : null,
-            ),
-            child: Center(
-              child: isLoading
-                  ? SizedBox(
-                      width: 22,
-                      height: 22,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: ink,
-                      ),
-                    )
-                  : Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (ready) ...[
-                          Icon(Icons.check_rounded, size: 19, color: ink),
-                          const SizedBox(width: 6),
-                        ],
-                        Flexible(
-                          child: Text(
-                            label.contains('RWF')
-                                ? label
-                                : '$label · RWF ${mposMoneyLabel(total)}',
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w700,
-                              color: ink,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
+              child: Center(
+                child: isLoading
+                    ? SizedBox(
+                        width: 22,
+                        height: 22,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: ink,
                         ),
-                      ],
-                    ),
+                      )
+                    : Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (ready) ...[
+                            Icon(Icons.check_rounded, size: 19, color: ink),
+                            const SizedBox(width: 6),
+                          ],
+                          Flexible(
+                            child: Text(
+                              label.contains('RWF')
+                                  ? label
+                                  : '$label · RWF ${mposMoneyLabel(total)}',
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700,
+                                color: ink,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+              ),
             ),
           ),
         ),

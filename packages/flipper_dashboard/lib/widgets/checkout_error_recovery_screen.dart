@@ -884,61 +884,66 @@ class _PrimaryRecoveryButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Material(
       color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Ink(
-          height: 60,
-          decoration: BoxDecoration(
-            gradient: MposTokens.gradBtn,
+      child: Container(
+        height: 60,
+        decoration: BoxDecoration(
+          gradient: MposTokens.gradBtn,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: MposTokens.shadowBlue,
+        ),
+        child: Material(
+          type: MaterialType.transparency,
+          child: InkWell(
+            onTap: onTap,
             borderRadius: BorderRadius.circular(16),
-            boxShadow: MposTokens.shadowBlue,
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Row(
-            children: [
-              Container(
-                width: 38,
-                height: 38,
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.18),
-                  borderRadius: BorderRadius.circular(11),
-                ),
-                child: Icon(icon, color: Colors.white, size: 20),
-              ),
-              const SizedBox(width: 13),
-              Expanded(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: GoogleFonts.outfit(
-                        fontSize: 15.5,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
-                        letterSpacing: -0.01 * 15.5,
-                      ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children: [
+                  Container(
+                    width: 38,
+                    height: 38,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.18),
+                      borderRadius: BorderRadius.circular(11),
                     ),
-                    if (subtitle != null)
-                      Text(
-                        subtitle!,
-                        style: GoogleFonts.outfit(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.white.withValues(alpha: 0.82),
+                    child: Icon(icon, color: Colors.white, size: 20),
+                  ),
+                  const SizedBox(width: 13),
+                  Expanded(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          title,
+                          style: GoogleFonts.outfit(
+                            fontSize: 15.5,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                            letterSpacing: -0.01 * 15.5,
+                          ),
                         ),
-                      ),
-                  ],
-                ),
+                        if (subtitle != null)
+                          Text(
+                            subtitle!,
+                            style: GoogleFonts.outfit(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.white.withValues(alpha: 0.82),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  Icon(
+                    FluentIcons.chevron_right_24_regular,
+                    color: Colors.white.withValues(alpha: 0.9),
+                    size: 20,
+                  ),
+                ],
               ),
-              Icon(
-                FluentIcons.chevron_right_24_regular,
-                color: Colors.white.withValues(alpha: 0.9),
-                size: 20,
-              ),
-            ],
+            ),
           ),
         ),
       ),

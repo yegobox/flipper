@@ -600,17 +600,17 @@ class BarTabBottomSheet extends StatelessWidget {
   }
 
   Widget _primaryBtn(String label, VoidCallback onTap) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
+    return Container(
+      height: 48,
+      decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(14),
-        child: Ink(
-          height: 48,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(14),
-            gradient: BarTokens.gradBtn,
-          ),
+        gradient: BarTokens.gradBtn,
+      ),
+      child: Material(
+        type: MaterialType.transparency,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(14),
           child: Center(
             child: Text(
               label,

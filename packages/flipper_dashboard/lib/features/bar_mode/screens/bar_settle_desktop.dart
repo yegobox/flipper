@@ -495,37 +495,37 @@ class _BarSettleDesktopScreenState
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            Material(
-                              color: Colors.transparent,
-                              child: InkWell(
-                                onTap: canConfirm
-                                    ? () => _confirm(ref, tab, total, lines)
-                                    : null,
+                            Container(
+                              decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(14),
-                                child: Ink(
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(14),
-                                    gradient: buttonLooksEnabled
-                                        ? BarTokens.gradBtn
-                                        : null,
-                                    color: buttonLooksEnabled
-                                        ? null
-                                        : BarTokens.surface2,
-                                    border: buttonLooksEnabled
-                                        ? null
-                                        : Border.all(color: BarTokens.line),
-                                    boxShadow: buttonLooksEnabled
-                                        ? [
-                                            BoxShadow(
-                                              color: BarTokens.blue.withValues(
-                                                alpha: 0.28,
-                                              ),
-                                              offset: const Offset(0, 6),
-                                              blurRadius: 18,
-                                            ),
-                                          ]
-                                        : null,
-                                  ),
+                                gradient: buttonLooksEnabled
+                                    ? BarTokens.gradBtn
+                                    : null,
+                                color: buttonLooksEnabled
+                                    ? null
+                                    : BarTokens.surface2,
+                                border: buttonLooksEnabled
+                                    ? null
+                                    : Border.all(color: BarTokens.line),
+                                boxShadow: buttonLooksEnabled
+                                    ? [
+                                        BoxShadow(
+                                          color: BarTokens.blue.withValues(
+                                            alpha: 0.28,
+                                          ),
+                                          offset: const Offset(0, 6),
+                                          blurRadius: 18,
+                                        ),
+                                      ]
+                                    : null,
+                              ),
+                              child: Material(
+                                type: MaterialType.transparency,
+                                child: InkWell(
+                                  onTap: canConfirm
+                                      ? () => _confirm(ref, tab, total, lines)
+                                      : null,
+                                  borderRadius: BorderRadius.circular(14),
                                   child: Padding(
                                     padding: const EdgeInsets.symmetric(
                                       vertical: 16,
@@ -836,14 +836,8 @@ class _SettleTopBar extends StatelessWidget {
               color: BarTokens.blue,
               borderRadius: BorderRadius.circular(11),
             ),
-            child: Text(
-              tableName,
-              style: GoogleFonts.outfit(
-                color: Colors.white,
-                fontSize: 15,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
+            // A table named "Igipandurire" wrapped and clipped in 40×40.
+            child: BarTableBadgeText(tableName, fontSize: 15),
           ),
           const SizedBox(width: 12),
           Text(

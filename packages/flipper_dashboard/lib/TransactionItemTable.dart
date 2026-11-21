@@ -1032,17 +1032,20 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
       color: Colors.white,
       shape: const CircleBorder(),
       clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: enabled ? onTap : null,
-        customBorder: const CircleBorder(),
-        child: Ink(
-          width: 34,
-          height: 34,
-          decoration: BoxDecoration(shape: BoxShape.circle, border: border),
-          child: Icon(
-            icon,
-            size: 18,
-            color: enabled ? const Color(0xFF374151) : Colors.grey[400],
+      child: Container(
+        width: 34,
+        height: 34,
+        decoration: BoxDecoration(shape: BoxShape.circle, border: border),
+        child: Material(
+          type: MaterialType.transparency,
+          child: InkWell(
+            onTap: enabled ? onTap : null,
+            customBorder: const CircleBorder(),
+            child: Icon(
+              icon,
+              size: 18,
+              color: enabled ? const Color(0xFF374151) : Colors.grey[400],
+            ),
           ),
         ),
       ),

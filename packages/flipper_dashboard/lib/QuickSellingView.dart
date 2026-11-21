@@ -642,38 +642,41 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       message: context.flipperL10n.parkSaleAsTicket,
       child: Material(
         color: Colors.transparent,
-        child: InkWell(
-          onTap: () => _showParkDialog(transaction, model),
-          borderRadius: BorderRadius.circular(PosTokens.radiusSm),
-          hoverColor: PosTokens.surface2,
-          child: Ink(
-            height: PosTokens.controlHeightSm,
-            decoration: BoxDecoration(
-              color: PosTokens.surface,
+        child: Container(
+          height: PosTokens.controlHeightSm,
+          decoration: BoxDecoration(
+            color: PosTokens.surface,
+            borderRadius: BorderRadius.circular(PosTokens.radiusSm),
+            border: Border.all(color: PosTokens.line),
+          ),
+          child: Material(
+            type: MaterialType.transparency,
+            child: InkWell(
+              onTap: () => _showParkDialog(transaction, model),
               borderRadius: BorderRadius.circular(PosTokens.radiusSm),
-              border: Border.all(color: PosTokens.line),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(
-                    FluentIcons.bookmark_16_regular,
-                    size: 14,
-                    color: accent,
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    context.flipperL10n.saveTicketAction,
-                    style: const TextStyle(
-                      fontSize: 12.5,
-                      fontWeight: FontWeight.w600,
-                      color: PosTokens.ink1,
-                      height: 1.1,
+              hoverColor: PosTokens.surface2,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      FluentIcons.bookmark_16_regular,
+                      size: 14,
+                      color: accent,
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 6),
+                    Text(
+                      context.flipperL10n.saveTicketAction,
+                      style: const TextStyle(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w600,
+                        color: PosTokens.ink1,
+                        height: 1.1,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -4284,18 +4287,21 @@ class _CheckoutSquareButton extends StatelessWidget {
       child: Material(
         color: PosTokens.surface,
         borderRadius: BorderRadius.circular(PosTokens.radiusSm),
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(PosTokens.radiusSm),
-          hoverColor: hoverColor,
-          child: Ink(
-            width: PosTokens.controlHeight,
-            height: PosTokens.controlHeight,
-            decoration: BoxDecoration(
+        child: Container(
+          width: PosTokens.controlHeight,
+          height: PosTokens.controlHeight,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(PosTokens.radiusSm),
+            border: Border.all(color: PosTokens.line),
+          ),
+          child: Material(
+            type: MaterialType.transparency,
+            child: InkWell(
+              onTap: onTap,
               borderRadius: BorderRadius.circular(PosTokens.radiusSm),
-              border: Border.all(color: PosTokens.line),
+              hoverColor: hoverColor,
+              child: Icon(icon, size: 18, color: iconColor),
             ),
-            child: Icon(icon, size: 18, color: iconColor),
           ),
         ),
       ),

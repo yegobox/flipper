@@ -552,73 +552,78 @@ class _CustomerRow extends StatelessWidget {
     final name = customer.custNm ?? customer.telNo ?? fallbackName;
     final phone = customer.telNo;
     final color = mposColorForName(name);
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(MposTokens.radiusMd),
-      child: Ink(
-        decoration: BoxDecoration(
-          color: selected ? PosTokens.blueTint : null,
+    return Container(
+      decoration: BoxDecoration(
+        color: selected ? PosTokens.blueTint : null,
+        borderRadius: BorderRadius.circular(MposTokens.radiusMd),
+      ),
+      child: Material(
+        type: MaterialType.transparency,
+        child: InkWell(
+          onTap: onTap,
           borderRadius: BorderRadius.circular(MposTokens.radiusMd),
-        ),
-        padding: EdgeInsets.symmetric(
-          vertical: 10,
-          horizontal: selected ? 8 : 0,
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 42,
-              height: 42,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: color,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Text(
-                mposAbbreviation(name),
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
+          child: Padding(
+            padding: EdgeInsets.symmetric(
+              vertical: 10,
+              horizontal: selected ? 8 : 0,
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+            child: Row(
+              children: [
+                Container(
+                  width: 42,
+                  height: 42,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: color,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    mposAbbreviation(name),
                     style: const TextStyle(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 14.5,
-                      color: PosTokens.ink1,
+                      color: Colors.white,
+                      fontWeight: FontWeight.w800,
                     ),
                   ),
-                  if (phone != null && phone.isNotEmpty && phone != name)
-                    Text(
-                      phone,
-                      style: const TextStyle(
-                        fontSize: 12.5,
-                        color: PosTokens.ink3,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 14.5,
+                          color: PosTokens.ink1,
+                        ),
                       ),
-                    ),
-                ],
-              ),
-            ),
-            selected
-                ? const Icon(
-                    Icons.check_circle_rounded,
-                    key: ValueKey('mposCustomerSelected'),
-                    color: PosTokens.blue,
-                  )
-                : const Icon(
-                    Icons.chevron_right_rounded,
-                    color: PosTokens.ink4,
+                      if (phone != null && phone.isNotEmpty && phone != name)
+                        Text(
+                          phone,
+                          style: const TextStyle(
+                            fontSize: 12.5,
+                            color: PosTokens.ink3,
+                          ),
+                        ),
+                    ],
                   ),
-          ],
+                ),
+                selected
+                    ? const Icon(
+                        Icons.check_circle_rounded,
+                        key: ValueKey('mposCustomerSelected'),
+                        color: PosTokens.blue,
+                      )
+                    : const Icon(
+                        Icons.chevron_right_rounded,
+                        color: PosTokens.ink4,
+                      ),
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -648,47 +653,50 @@ class _SubmitButton extends StatelessWidget {
       excludeSemantics: true,
       child: Material(
         color: Colors.transparent,
-        child: InkWell(
-          onTap: enabled ? onPressed : null,
-          borderRadius: BorderRadius.circular(15),
-          child: Ink(
-            height: MposTokens.checkoutPrimaryHeight,
-            decoration: BoxDecoration(
+        child: Container(
+          height: MposTokens.checkoutPrimaryHeight,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(15),
+            gradient: enabled || loading ? MposTokens.gradBtn : null,
+            color: enabled || loading
+                ? null
+                : PosTokens.ink4.withValues(alpha: 0.35),
+            boxShadow: enabled ? MposTokens.shadowBlue : null,
+          ),
+          child: Material(
+            type: MaterialType.transparency,
+            child: InkWell(
+              onTap: enabled ? onPressed : null,
               borderRadius: BorderRadius.circular(15),
-              gradient: enabled || loading ? MposTokens.gradBtn : null,
-              color: enabled || loading
-                  ? null
-                  : PosTokens.ink4.withValues(alpha: 0.35),
-              boxShadow: enabled ? MposTokens.shadowBlue : null,
-            ),
-            child: Center(
-              child: loading
-                  ? const SizedBox(
-                      width: 22,
-                      height: 22,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
-                    )
-                  : Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(icon, size: 19, color: Colors.white),
-                        const SizedBox(width: 6),
-                        Flexible(
-                          child: Text(
-                            label,
-                            style: const TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
+              child: Center(
+                child: loading
+                    ? const SizedBox(
+                        width: 22,
+                        height: 22,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
                         ),
-                      ],
-                    ),
+                      )
+                    : Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(icon, size: 19, color: Colors.white),
+                          const SizedBox(width: 6),
+                          Flexible(
+                            child: Text(
+                              label,
+                              style: const TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+              ),
             ),
           ),
         ),

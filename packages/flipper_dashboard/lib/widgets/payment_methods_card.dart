@@ -265,41 +265,44 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
         color: PosTokens.surface,
         borderRadius: BorderRadius.circular(PosTokens.radiusSm),
         clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(PosTokens.radiusSm),
-          hoverColor: PosTokens.blueTint,
-          onTap: canAdd
-              ? () => _handleAddPaymentTap(
-                  transactionId: widget.transactionId,
-                  isMobile: isMobile,
-                )
-              : null,
-          child: Ink(
-            height: 28,
-            decoration: BoxDecoration(
+        child: Container(
+          height: 28,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(PosTokens.radiusSm),
+            border: Border.all(color: PosTokens.line),
+          ),
+          child: Material(
+            type: MaterialType.transparency,
+            child: InkWell(
               borderRadius: BorderRadius.circular(PosTokens.radiusSm),
-              border: Border.all(color: PosTokens.line),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(6, 0, 10, 0),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.add_rounded,
-                    size: 16,
-                    color: canAdd ? accent : PosTokens.ink4,
-                  ),
-                  const SizedBox(width: 3),
-                  Text(
-                    context.flipperL10n.split,
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: canAdd ? PosTokens.ink1 : PosTokens.ink4,
+              hoverColor: PosTokens.blueTint,
+              onTap: canAdd
+                  ? () => _handleAddPaymentTap(
+                      transactionId: widget.transactionId,
+                      isMobile: isMobile,
+                    )
+                  : null,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(6, 0, 10, 0),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.add_rounded,
+                      size: 16,
+                      color: canAdd ? accent : PosTokens.ink4,
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 3),
+                    Text(
+                      context.flipperL10n.split,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: canAdd ? PosTokens.ink1 : PosTokens.ink4,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

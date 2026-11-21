@@ -167,52 +167,57 @@ class _PrimaryButton extends StatelessWidget {
     final enabled = onPressed != null;
     return Material(
       borderRadius: BorderRadius.circular(14),
-      child: InkWell(
-        onTap: onPressed,
-        borderRadius: BorderRadius.circular(14),
-        child: Ink(
-          height: 46,
-          padding: const EdgeInsets.symmetric(horizontal: 22),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(14),
-            gradient: enabled ? ProductEditorTokens.gradBtn : null,
-            color: enabled
-                ? null
-                : ProductEditorTokens.blue.withValues(alpha: 0.45),
-            boxShadow: enabled
-                ? const [
-                    BoxShadow(
-                      color: Color(0x402563EB),
-                      offset: Offset(0, 3),
-                      blurRadius: 8,
-                    ),
-                  ]
-                : null,
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (isSaving)
-                const SizedBox(
-                  width: 17,
-                  height: 17,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: Colors.white,
+      child: Container(
+        height: 46,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(14),
+          gradient: enabled ? ProductEditorTokens.gradBtn : null,
+          color: enabled
+              ? null
+              : ProductEditorTokens.blue.withValues(alpha: 0.45),
+          boxShadow: enabled
+              ? const [
+                  BoxShadow(
+                    color: Color(0x402563EB),
+                    offset: Offset(0, 3),
+                    blurRadius: 8,
                   ),
-                )
-              else
-                const Icon(Icons.check, size: 17, color: Colors.white),
-              const SizedBox(width: 9),
-              Text(
-                label,
-                style: GoogleFonts.outfit(
-                  fontSize: 14.5,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
-                ),
+                ]
+              : null,
+        ),
+        child: Material(
+          type: MaterialType.transparency,
+          child: InkWell(
+            onTap: onPressed,
+            borderRadius: BorderRadius.circular(14),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 22),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (isSaving)
+                    const SizedBox(
+                      width: 17,
+                      height: 17,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  else
+                    const Icon(Icons.check, size: 17, color: Colors.white),
+                  const SizedBox(width: 9),
+                  Text(
+                    label,
+                    style: GoogleFonts.outfit(
+                      fontSize: 14.5,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),

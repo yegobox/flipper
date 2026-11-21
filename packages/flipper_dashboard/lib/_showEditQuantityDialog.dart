@@ -523,41 +523,44 @@ class _PrimaryAction extends StatelessWidget {
     final enabled = onPressed != null;
     return Material(
       borderRadius: BorderRadius.circular(14),
-      child: InkWell(
-        onTap: onPressed,
-        borderRadius: BorderRadius.circular(14),
-        child: Ink(
-          height: 46,
-          decoration: BoxDecoration(
+      child: Container(
+        height: 46,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(14),
+          gradient: enabled ? ProductEditorTokens.gradBtn : null,
+          color: enabled
+              ? null
+              : ProductEditorTokens.blue.withValues(alpha: 0.35),
+          boxShadow: enabled
+              ? const [
+                  BoxShadow(
+                    color: Color(0x402563EB),
+                    offset: Offset(0, 3),
+                    blurRadius: 8,
+                  ),
+                ]
+              : null,
+        ),
+        child: Material(
+          type: MaterialType.transparency,
+          child: InkWell(
+            onTap: onPressed,
             borderRadius: BorderRadius.circular(14),
-            gradient: enabled ? ProductEditorTokens.gradBtn : null,
-            color: enabled
-                ? null
-                : ProductEditorTokens.blue.withValues(alpha: 0.35),
-            boxShadow: enabled
-                ? const [
-                    BoxShadow(
-                      color: Color(0x402563EB),
-                      offset: Offset(0, 3),
-                      blurRadius: 8,
-                    ),
-                  ]
-                : null,
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.check, size: 17, color: Colors.white),
-              const SizedBox(width: 9),
-              Text(
-                label,
-                style: GoogleFonts.outfit(
-                  fontSize: 14.5,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.check, size: 17, color: Colors.white),
+                const SizedBox(width: 9),
+                Text(
+                  label,
+                  style: GoogleFonts.outfit(
+                    fontSize: 14.5,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

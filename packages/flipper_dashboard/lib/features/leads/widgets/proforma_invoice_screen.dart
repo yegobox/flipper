@@ -1493,23 +1493,26 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
   }
 
   Widget _qtyBtn(String t, VoidCallback onTap) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(10),
-      child: Ink(
-        width: 28,
-        height: 28,
-        decoration: BoxDecoration(
-          color: const Color(0xFFF6F7FB),
+    return Container(
+      width: 28,
+      height: 28,
+      decoration: BoxDecoration(
+        color: const Color(0xFFF6F7FB),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0xFFEAECF0)),
+      ),
+      child: Material(
+        type: MaterialType.transparency,
+        child: InkWell(
+          onTap: onTap,
           borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: const Color(0xFFEAECF0)),
-        ),
-        child: Center(
-          child: Text(
-            t,
-            style: GoogleFonts.outfit(
-              fontWeight: FontWeight.w900,
-              color: const Color(0xFF4B4E58),
+          child: Center(
+            child: Text(
+              t,
+              style: GoogleFonts.outfit(
+                fontWeight: FontWeight.w900,
+                color: const Color(0xFF4B4E58),
+              ),
             ),
           ),
         ),
