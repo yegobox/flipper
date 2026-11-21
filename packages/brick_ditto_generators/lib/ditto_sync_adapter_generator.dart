@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:brick_ditto/ditto_sync_adapter.dart';
+import 'package:brick_ditto_generators/annotation_class_name.dart';
 import 'package:brick_ditto_generators/import_validator.dart';
 import 'package:build/build.dart';
 import 'package:source_gen/source_gen.dart';
@@ -37,7 +38,7 @@ class DittoSyncAdapterGenerator extends GeneratorForAnnotation<DittoAdapter> {
     }
 
     final fields = classElement.fields
-        .where((field) => !field.isStatic && !field.isSynthetic)
+        .where((field) => !field.isStatic && field.isOriginDeclaration)
         .toList();
     final hasBranchId = fields.any((field) => field.name == 'branchId');
     final enableBackupPull =
@@ -487,7 +488,7 @@ bool _shouldExcludeFromDitto(FieldElement field) {
   // Check for @Supabase(ignore: true)
   try {
     final supabaseAnnotation = field.metadata.annotations.firstWhere(
-      (annotation) => annotation.element?.displayName == 'Supabase',
+      (annotation) => annotationClassName(annotation) == 'Supabase',
       orElse: () => throw StateError('Not found'),
     );
 
@@ -501,7 +502,7 @@ bool _shouldExcludeFromDitto(FieldElement field) {
 
   // Check for @OfflineFirst annotation (usually for relationships)
   final hasOfflineFirst = field.metadata.annotations.any(
-    (annotation) => annotation.element?.displayName == 'OfflineFirst',
+    (annotation) => annotationClassName(annotation) == 'OfflineFirst',
   );
 
   if (hasOfflineFirst) {

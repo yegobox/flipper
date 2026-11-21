@@ -75,7 +75,7 @@ pwd
 
 echo "--- Installing Flutter ---"
 # Pinned, not "stable": keep in step with .github/workflows/release.yml.
-git clone https://github.com/flutter/flutter.git --depth 1 -b 3.47.9 "$HOME/flutter"
+git clone https://github.com/flutter/flutter.git --depth 1 -b 3.50.1 "$HOME/flutter"
 export PATH="$HOME/flutter/bin:$PATH"
 flutter --version
 

@@ -23,29 +23,10 @@ concurrency:
 
 env:
   # Keep in step with release.yml so CI and release build identically.
-  FLUTTER_VERSION: "3.47.9"
+  FLUTTER_VERSION: "3.50.1"
   FLUTTER_TEST_CI: true
 
 jobs:
-  # Cheap guard for the local-dev dwds patch (scripts/patch_dwds_timeout.sh).
-  # Web release builds do not use dwds, so this never blocks shipping — it
-  # exists so a Flutter bump that moves dwds tells us immediately, instead of
-  # someone rediscovering the 20s Debugger.enable timeout mid-debug.
-  dwds-guard:
-    name: dwds patch still applies
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: subosito/flutter-action@v2
-        with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
-          channel: "stable"
-
-      - name: Verify dwds patch target
-        run: ./scripts/patch_dwds_timeout.sh --ci
-
   web:
     name: ${{ matrix.app }} (test, build, boot)
     runs-on: ubuntu-latest

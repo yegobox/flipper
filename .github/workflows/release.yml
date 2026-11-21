@@ -43,7 +43,7 @@ env:
   URL: ${{ secrets.DB_URL }}
   PASSWORD: ${{ secrets.DB_PASSWORD }}
   SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
-  FLUTTER_VERSION: "3.47.9" # Highest Flutter Shorebird supports (flutter_release/3.47.9). Keep every workflow + ios ci_post_clone.sh on this.
+  FLUTTER_VERSION: "3.50.1" # Highest Flutter Shorebird supports (flutter_release/3.50.1). Keep every workflow + ios ci_post_clone.sh on this.
   # SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }} # Securely store this
   IS_TEST_ENV: true
 
