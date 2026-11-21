@@ -29,4 +29,20 @@ void main() {
       expect(BusinessInfo.fromJson(_info(null)).vatTyCd, isNull);
     },
   );
+
+  test('the initInfo response round-trips, keeping vatTyCd as text', () {
+    final response = BusinessInfoResponse.fromJson({
+      'resultCd': '000',
+      'resultMsg': 'It is succeeded',
+      'resultDt': '20261121120000',
+      'data': {'info': _info(1)},
+    });
+    expect(response.data.info.vatTyCd, '1');
+
+    final json = response.toJson();
+    final info = (json['data'] as Map<String, dynamic>)['info'];
+    expect(info, isA<Map<String, dynamic>>());
+    expect((info as Map<String, dynamic>)['vatTyCd'], '1');
+    expect(BusinessInfoResponse.fromJson(json).data.info.tin, '999909695');
+  });
 }
