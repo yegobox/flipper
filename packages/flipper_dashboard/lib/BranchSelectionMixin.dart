@@ -337,8 +337,9 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
                     Icons.location_on_rounded,
                     color: branch.isDefault ?? false
                         ? Theme.of(context).primaryColor
-                        : Theme.of(context).iconTheme.color
-                              ?.withValues(alpha: .7),
+                        : Theme.of(
+                            context,
+                          ).iconTheme.color?.withValues(alpha: .7),
                     size: 24,
                   ),
                   const SizedBox(width: 16),
@@ -925,8 +926,9 @@ class _BranchSwitchDialogState extends State<_BranchSwitchDialog> {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 14),
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surfaceContainerHighest
-                .withValues(alpha: .5),
+            color: Theme.of(
+              context,
+            ).colorScheme.surfaceContainerHighest.withValues(alpha: .5),
             borderRadius: BorderRadius.circular(12),
           ),
           child: TextField(

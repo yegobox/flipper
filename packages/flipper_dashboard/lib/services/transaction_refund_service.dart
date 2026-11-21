@@ -327,8 +327,9 @@ class TransactionRefundService {
     }
 
     final filterType = _filterTypeFromReceiptType(receiptType);
-    await TaxController(object: transaction)
-        .handleReceipt(filterType: filterType);
+    await TaxController(
+      object: transaction,
+    ).handleReceipt(filterType: filterType);
 
     final updated = await persistRefundMetadata(
       transaction: transaction,
@@ -381,8 +382,9 @@ class TransactionRefundService {
     if (filterType == FilterType.CR ||
         filterType == FilterType.NR ||
         filterType == FilterType.TR) {
-      await TaxController(object: transaction)
-          .handleReceipt(filterType: filterType);
+      await TaxController(
+        object: transaction,
+      ).handleReceipt(filterType: filterType);
       await persistRefundMetadata(
         transaction: transaction,
         refundAmount: refundAmount,
@@ -390,8 +392,9 @@ class TransactionRefundService {
         method: transaction.paymentType ?? 'cash',
       );
     } else {
-      await TaxController(object: transaction)
-          .handleReceipt(filterType: filterType);
+      await TaxController(
+        object: transaction,
+      ).handleReceipt(filterType: filterType);
     }
   }
 
@@ -399,7 +402,8 @@ class TransactionRefundService {
     required ITransaction transaction,
     required FilterType filterType,
   }) async {
-    await TaxController(object: transaction)
-        .handleReceipt(filterType: filterType);
+    await TaxController(
+      object: transaction,
+    ).handleReceipt(filterType: filterType);
   }
 }
