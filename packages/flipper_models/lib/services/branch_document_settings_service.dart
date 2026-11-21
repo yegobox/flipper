@@ -4,6 +4,7 @@ import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/models/branch_document_settings.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:supabase_models/brick/repository/storage.dart';
 
 /// Syncs document branding per branch via Ditto (`branch_document_settings`).
 ///
@@ -20,6 +21,9 @@ abstract final class BranchDocumentSettingsService {
   static const stampPlacementKey = 'docStampPlacement';
   static const stampWidthKey = 'docStampWidthMm';
   static const stampAspectRatioKey = 'docStampAspectRatio';
+  static const receiptPhoneKey = 'docReceiptPhone';
+  static const receiptEmailKey = 'docReceiptEmail';
+  static const receiptMessageKey = 'docReceiptMessage';
 
   /// Which branch the cached stamp above belongs to.
   ///
@@ -61,6 +65,70 @@ abstract final class BranchDocumentSettingsService {
         BranchDocumentSettings.maxStampWidthMm,
       ),
       stampAspectRatio: _readDouble(stampAspectRatioKey, fallback: 1),
+      receiptPhone: _readText(box, receiptPhoneKey),
+      receiptEmail: _readText(box, receiptEmailKey),
+      receiptMessage: _readText(box, receiptMessageKey),
+    );
+  }
+
+  /// A cached text value, with `''` (how a cleared value is cached) as null.
+  static String? _readText(LocalStorage box, String key) {
+    final raw = box.readString(key: key)?.trim();
+    return (raw == null || raw.isEmpty) ? null : raw;
+  }
+
+  /// The branch's settings as Ditto has them, falling back to this device's
+  /// cache, then to defaults. For showing values only: the receipt editor
+  /// saves through [saveReceiptHeader], which never writes the stamp, so a
+  /// failed read here cannot clear it.
+  static Future<BranchDocumentSettings> loadForBranch(String branchId) async {
+    try {
+      final remote =
+          await (_sync.branchDocumentSettings(branchId: branchId)
+                  as Future<BranchDocumentSettings?>)
+              .timeout(const Duration(seconds: 5));
+      if (remote != null) return remote;
+    } catch (e) {
+      talker.warning('Branch document settings load failed: $e');
+    }
+    final cached = current();
+    return cached.branchId == branchId
+        ? cached
+        : BranchDocumentSettings(branchId: branchId);
+  }
+
+  /// Save only the receipt header (phone, email, welcome line) of
+  /// [settings.branchId]; the stamp stays exactly as stored, even if another
+  /// device changed it after this one read it.
+  ///
+  /// On success the print cache picks up the new header, but only when it is
+  /// the active branch's: another branch's header must not print here.
+  static Future<bool> saveReceiptHeader(BranchDocumentSettings settings) async {
+    try {
+      await (_sync.saveBranchReceiptHeader(settings) as Future).timeout(
+        const Duration(seconds: 12),
+      );
+    } catch (e, s) {
+      talker.error('Receipt header save failed for ${settings.branchId}', e, s);
+      return false;
+    }
+    final box = ProxyService.box;
+    if (settings.branchId == box.getBranchId() &&
+        box.readString(key: stampBranchKey) == settings.branchId) {
+      _applyReceiptHeaderToCache(box, settings);
+    }
+    return true;
+  }
+
+  static void _applyReceiptHeaderToCache(
+    LocalStorage box,
+    BranchDocumentSettings settings,
+  ) {
+    box.writeString(key: receiptPhoneKey, value: settings.receiptPhone ?? '');
+    box.writeString(key: receiptEmailKey, value: settings.receiptEmail ?? '');
+    box.writeString(
+      key: receiptMessageKey,
+      value: settings.receiptMessage ?? '',
     );
   }
 
@@ -108,8 +176,13 @@ abstract final class BranchDocumentSettingsService {
 
     // No document yet is the normal case for a branch that has never uploaded
     // a stamp. Claim the cache for this branch anyway, so a switch away from a
-    // branded property does not leave its stamp behind.
-    applyToLocalCache(BranchDocumentSettings(branchId: branchId));
+    // branded property does not leave its stamp behind. A receipt header this
+    // branch already cached stays: every read may simply have failed, and the
+    // header would otherwise fall back to the business until the next refresh.
+    applyToLocalCache(
+      BranchDocumentSettings(branchId: branchId),
+      fromDitto: false,
+    );
     talker.info('No branch_document_settings for branch $branchId');
   }
 
@@ -119,7 +192,9 @@ abstract final class BranchDocumentSettingsService {
     BranchDocumentSettings settings, {
     Duration timeout = const Duration(seconds: 12),
   }) async {
-    applyToLocalCache(settings);
+    // A stamp save never writes the header to Ditto, so the header it carries
+    // (this device's possibly stale copy) must not reach the cache either.
+    applyToLocalCache(settings, fromDitto: false);
     try {
       await (_sync.saveBranchDocumentSettings(settings) as Future).timeout(
         timeout,
@@ -145,10 +220,9 @@ abstract final class BranchDocumentSettingsService {
   ) {
     final branchId = ProxyService.box.getBranchId();
     if (branchId == null) return Future.value(false);
-    final next = change(current()).copyWith(
-      branchId: branchId,
-      updatedAt: DateTime.now().toUtc(),
-    );
+    final next = change(
+      current(),
+    ).copyWith(branchId: branchId, updatedAt: DateTime.now().toUtc());
     return persist(next);
   }
 
@@ -177,18 +251,24 @@ abstract final class BranchDocumentSettingsService {
 
   /// Visible for the service itself and for tests.
   ///
-  /// Every key is written, including a cleared stamp as `''` — leaving the old
-  /// value in the cache is how a removed stamp keeps printing on the device
-  /// that did not remove it.
-  static void applyToLocalCache(BranchDocumentSettings settings) {
+  /// Every stamp key is written, including a cleared stamp as `''` — leaving
+  /// the old value in the cache is how a removed stamp keeps printing on the
+  /// device that did not remove it.
+  ///
+  /// The receipt header is written when [settings] is the document as Ditto
+  /// has it ([fromDitto]), or when the cache is changing branch (so another
+  /// branch's header never prints here). Otherwise this branch's cached header
+  /// is kept: it is the last one Ditto delivered.
+  static void applyToLocalCache(
+    BranchDocumentSettings settings, {
+    bool fromDitto = true,
+  }) {
     final box = ProxyService.box;
+    final sameBranch = box.readString(key: stampBranchKey) == settings.branchId;
     // Stamped first: a cache that cannot say whose it is must read as absent.
     box.writeString(key: stampBranchKey, value: settings.branchId);
     box.writeBool(key: stampEnabledKey, value: settings.stampEnabled);
-    box.writeString(
-      key: stampImageKey,
-      value: settings.stampImageBase64 ?? '',
-    );
+    box.writeString(key: stampImageKey, value: settings.stampImageBase64 ?? '');
     box.writeString(
       key: stampPlacementKey,
       value: settings.stampPlacement.name,
@@ -201,5 +281,6 @@ abstract final class BranchDocumentSettingsService {
       key: stampAspectRatioKey,
       value: settings.stampAspectRatio.toString(),
     );
+    if (fromDitto || !sameBranch) _applyReceiptHeaderToCache(box, settings);
   }
 }

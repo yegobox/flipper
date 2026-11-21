@@ -2121,6 +2121,47 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   String get taxSettingsNoneFound => 'Aucune configuration fiscale trouvée';
 
   @override
+  String get receiptHeaderTitle => 'En-tête du reçu';
+
+  @override
+  String get receiptHeaderSubtitle =>
+      'Imprimé en haut de chaque reçu de cette succursale.';
+
+  @override
+  String get receiptHeaderMissing =>
+      'Vos reçus n\'ont pas de numéro de téléphone ou d\'e-mail. Ajoutez-les ci-dessous.';
+
+  @override
+  String get receiptHeaderPhone => 'Numéro de téléphone';
+
+  @override
+  String get receiptHeaderEmail => 'E-mail';
+
+  @override
+  String get receiptHeaderMessage => 'Message de bienvenue';
+
+  @override
+  String get receiptHeaderMessageHelp =>
+      'Remplace « WELCOME TO OUR SHOP ». Laissez vide pour le garder.';
+
+  @override
+  String get receiptHeaderPhoneInvalid =>
+      'Entrez un numéro de téléphone valide';
+
+  @override
+  String get receiptHeaderEmailInvalid => 'Entrez une adresse e-mail valide';
+
+  @override
+  String get receiptHeaderSave => 'Enregistrer l\'en-tête';
+
+  @override
+  String get receiptHeaderSaved => 'En-tête du reçu enregistré';
+
+  @override
+  String get receiptHeaderSaveError =>
+      'Impossible d\'enregistrer l\'en-tête du reçu. Réessayez.';
+
+  @override
   String get cartQtySuffix => 'qté';
 
   @override
