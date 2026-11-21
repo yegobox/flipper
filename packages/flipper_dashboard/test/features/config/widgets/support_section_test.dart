@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/features/config/widgets/support_section.dart';
+import 'package:flipper_dashboard/theme/pos_tokens.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -61,7 +62,7 @@ void main() {
       );
       if (buttonFinder.evaluate().isNotEmpty) {
         final button = tester.widget<ElevatedButton>(buttonFinder);
-        expect(button.style?.backgroundColor?.resolve({}), Colors.green);
+        expect(button.style?.backgroundColor?.resolve({}), PosTokens.blue);
         expect(button.style?.foregroundColor?.resolve({}), Colors.white);
       }
     });
