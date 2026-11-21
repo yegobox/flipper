@@ -494,56 +494,61 @@ class _SuggestCard extends StatelessWidget {
     return Material(
       color: FloTheme.surface,
       borderRadius: BorderRadius.circular(FloTheme.radiusMd),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(FloTheme.radiusMd),
-        child: Ink(
-          padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 14),
-          decoration: BoxDecoration(
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(FloTheme.radiusMd),
+          border: Border.all(color: FloTheme.line),
+          boxShadow: const [FloTheme.sh1],
+        ),
+        child: Material(
+          type: MaterialType.transparency,
+          child: InkWell(
+            onTap: onTap,
             borderRadius: BorderRadius.circular(FloTheme.radiusMd),
-            border: Border.all(color: FloTheme.line),
-            boxShadow: const [FloTheme.sh1],
-          ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 38,
-                height: 38,
-                decoration: BoxDecoration(
-                  color: bg,
-                  borderRadius: BorderRadius.circular(11),
-                ),
-                child: _icon(fg),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: -0.01,
-                        height: 1.3,
-                        color: FloTheme.ink1,
-                      ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 14),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 38,
+                    height: 38,
+                    decoration: BoxDecoration(
+                      color: bg,
+                      borderRadius: BorderRadius.circular(11),
                     ),
-                    const SizedBox(height: 3),
-                    Text(
-                      desc,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        height: 1.4,
-                        color: FloTheme.ink3,
-                      ),
+                    child: _icon(fg),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          title,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: -0.01,
+                            height: 1.3,
+                            color: FloTheme.ink1,
+                          ),
+                        ),
+                        const SizedBox(height: 3),
+                        Text(
+                          desc,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            height: 1.4,
+                            color: FloTheme.ink3,
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),
@@ -648,54 +653,64 @@ class _ChannelCard extends StatelessWidget {
           primaryAction
               ? Material(
                   color: Colors.transparent,
-                  child: InkWell(
-                    onTap: onAction,
-                    borderRadius: BorderRadius.circular(10),
-                    child: Ink(
-                      height: 34,
-                      padding: const EdgeInsets.symmetric(horizontal: 14),
-                      decoration: BoxDecoration(
-                        gradient: FloTheme.gradBtn,
+                  child: Container(
+                    height: 34,
+                    decoration: BoxDecoration(
+                      gradient: FloTheme.gradBtn,
+                      borderRadius: BorderRadius.circular(10),
+                      boxShadow: const [FloTheme.shBlue],
+                    ),
+                    child: Material(
+                      type: MaterialType.transparency,
+                      child: InkWell(
+                        onTap: onAction,
                         borderRadius: BorderRadius.circular(10),
-                        boxShadow: const [FloTheme.shBlue],
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          FloIcons.link(size: 15, color: Colors.white),
-                          const SizedBox(width: 7),
-                          Text(
-                            actionLabel,
-                            style: const TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white,
-                            ),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 14),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              FloIcons.link(size: 15, color: Colors.white),
+                              const SizedBox(width: 7),
+                              Text(
+                                actionLabel,
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
+                        ),
                       ),
                     ),
                   ),
                 )
               : Material(
                   color: Colors.transparent,
-                  child: InkWell(
-                    onTap: onAction,
-                    borderRadius: BorderRadius.circular(10),
-                    child: Ink(
-                      height: 34,
-                      padding: const EdgeInsets.symmetric(horizontal: 14),
-                      decoration: BoxDecoration(
+                  child: Container(
+                    height: 34,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: FloTheme.lineStrong),
+                    ),
+                    child: Material(
+                      type: MaterialType.transparency,
+                      child: InkWell(
+                        onTap: onAction,
                         borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: FloTheme.lineStrong),
-                      ),
-                      child: Center(
-                        child: Text(
-                          actionLabel,
-                          style: const TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w700,
-                            color: FloTheme.ink2,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 14),
+                          child: Center(
+                            child: Text(
+                              actionLabel,
+                              style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: FloTheme.ink2,
+                              ),
+                            ),
                           ),
                         ),
                       ),

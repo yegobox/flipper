@@ -11,6 +11,7 @@ import 'package:flipper_dashboard/features/bar_mode/theme/bar_tokens.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_mobile_shell.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_credit_tile.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_room_charge_tile.dart';
+import 'package:flipper_dashboard/features/bar_mode/widgets/bar_shared_widgets.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_split_tender_rows.dart';
 import 'package:flipper_dashboard/utils/sale_receipt_settlement.dart';
 import 'package:flipper_localize/flipper_localize.dart';
@@ -451,22 +452,22 @@ class _BarSettleMobileScreenState extends ConsumerState<BarSettleMobileScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: canConfirm
-                    ? () => _confirm(ref, tab, total, lines)
-                    : null,
+            Container(
+              decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(14),
-                child: Ink(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(14),
-                    gradient: buttonLooksEnabled ? BarTokens.gradBtn : null,
-                    color: buttonLooksEnabled ? null : BarTokens.surface2,
-                    border: buttonLooksEnabled
-                        ? null
-                        : Border.all(color: BarTokens.line),
-                  ),
+                gradient: buttonLooksEnabled ? BarTokens.gradBtn : null,
+                color: buttonLooksEnabled ? null : BarTokens.surface2,
+                border: buttonLooksEnabled
+                    ? null
+                    : Border.all(color: BarTokens.line),
+              ),
+              child: Material(
+                type: MaterialType.transparency,
+                child: InkWell(
+                  onTap: canConfirm
+                      ? () => _confirm(ref, tab, total, lines)
+                      : null,
+                  borderRadius: BorderRadius.circular(14),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
                       vertical: 16,
@@ -740,14 +741,7 @@ class _SettleMobileTopBar extends StatelessWidget {
               color: BarTokens.blue,
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Text(
-              tableName,
-              style: GoogleFonts.outfit(
-                color: Colors.white,
-                fontWeight: FontWeight.w800,
-                fontSize: 14,
-              ),
-            ),
+            child: BarTableBadgeText(tableName, fontSize: 14),
           ),
           const SizedBox(width: 9),
           Text(

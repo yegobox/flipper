@@ -416,20 +416,20 @@ class BarPosDesktopScreen extends HookConsumerWidget {
               const SizedBox(width: 10),
               Expanded(
                 flex: 2,
-                child: Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    onTap: () => ref
-                        .read(barModeProvider.notifier)
-                        .saveToTab(autoLogout: BarModeSettings.autoLogout),
+                child: Container(
+                  height: 46,
+                  decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(BarTokens.radiusMd),
-                    child: Ink(
-                      height: 46,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(BarTokens.radiusMd),
-                        gradient: BarTokens.gradBtn,
-                        boxShadow: BarTokens.shadow2,
-                      ),
+                    gradient: BarTokens.gradBtn,
+                    boxShadow: BarTokens.shadow2,
+                  ),
+                  child: Material(
+                    type: MaterialType.transparency,
+                    child: InkWell(
+                      onTap: () => ref
+                          .read(barModeProvider.notifier)
+                          .saveToTab(autoLogout: BarModeSettings.autoLogout),
+                      borderRadius: BorderRadius.circular(BarTokens.radiusMd),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [

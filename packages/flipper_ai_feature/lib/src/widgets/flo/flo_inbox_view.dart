@@ -271,30 +271,35 @@ class _LockedState extends StatelessWidget {
               height: 44,
               child: Material(
                 color: Colors.transparent,
-                child: InkWell(
-                  onTap: onConnect,
-                  borderRadius: BorderRadius.circular(FloTheme.radiusMd),
-                  child: Ink(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    decoration: BoxDecoration(
-                      gradient: FloTheme.gradBtn,
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: FloTheme.gradBtn,
+                    borderRadius: BorderRadius.circular(FloTheme.radiusMd),
+                    boxShadow: const [FloTheme.shBlue],
+                  ),
+                  child: Material(
+                    type: MaterialType.transparency,
+                    child: InkWell(
+                      onTap: onConnect,
                       borderRadius: BorderRadius.circular(FloTheme.radiusMd),
-                      boxShadow: const [FloTheme.shBlue],
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        FloIcons.link(size: 16, color: Colors.white),
-                        const SizedBox(width: 8),
-                        Text(
-                          context.flipperL10n.aiWhatsappConnect,
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                          ),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            FloIcons.link(size: 16, color: Colors.white),
+                            const SizedBox(width: 8),
+                            Text(
+                              context.flipperL10n.aiWhatsappConnect,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
+                      ),
                     ),
                   ),
                 ),
@@ -920,87 +925,91 @@ class _PdfAttachmentState extends State<_PdfAttachment> {
 
     return Material(
       color: Colors.transparent,
-      child: InkWell(
-        onTap: canDownload && !_busy ? _download : null,
-        borderRadius: BorderRadius.circular(10),
-        child: Ink(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-          decoration: BoxDecoration(
-            color: onBlue
-                ? Colors.white.withValues(alpha: 0.14)
-                : FloTheme.blueTint,
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(
-              color:
-                  onBlue ? Colors.white.withValues(alpha: 0.22) : FloTheme.line,
-            ),
+      child: Container(
+        decoration: BoxDecoration(
+          color:
+              onBlue ? Colors.white.withValues(alpha: 0.14) : FloTheme.blueTint,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color:
+                onBlue ? Colors.white.withValues(alpha: 0.22) : FloTheme.line,
           ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: onBlue
-                      ? Colors.white.withValues(alpha: 0.18)
-                      : FloTheme.surface,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(
-                  Icons.picture_as_pdf_rounded,
-                  size: 22,
-                  color: onBlue ? Colors.white : FloTheme.loss,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Flexible(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      name,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 13.5,
-                        fontWeight: FontWeight.w700,
-                        color: onBlue ? Colors.white : FloTheme.ink1,
-                      ),
+        ),
+        child: Material(
+          type: MaterialType.transparency,
+          child: InkWell(
+            onTap: canDownload && !_busy ? _download : null,
+            borderRadius: BorderRadius.circular(10),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: onBlue
+                          ? Colors.white.withValues(alpha: 0.18)
+                          : FloTheme.surface,
+                      borderRadius: BorderRadius.circular(8),
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      context.flipperL10n.aiWhatsappPdfDocument,
-                      style: TextStyle(
-                        fontSize: 11.5,
-                        color: onBlue
-                            ? Colors.white.withValues(alpha: 0.75)
-                            : FloTheme.ink3,
-                      ),
+                    child: Icon(
+                      Icons.picture_as_pdf_rounded,
+                      size: 22,
+                      color: onBlue ? Colors.white : FloTheme.loss,
                     ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              if (_busy)
-                SizedBox(
-                  width: 18,
-                  height: 18,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: onBlue ? Colors.white : FloTheme.blue,
                   ),
-                )
-              else
-                Icon(
-                  Icons.download_rounded,
-                  size: 20,
-                  color: onBlue
-                      ? Colors.white.withValues(alpha: 0.9)
-                      : FloTheme.blueDeep,
-                ),
-            ],
+                  const SizedBox(width: 10),
+                  Flexible(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          name,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 13.5,
+                            fontWeight: FontWeight.w700,
+                            color: onBlue ? Colors.white : FloTheme.ink1,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          context.flipperL10n.aiWhatsappPdfDocument,
+                          style: TextStyle(
+                            fontSize: 11.5,
+                            color: onBlue
+                                ? Colors.white.withValues(alpha: 0.75)
+                                : FloTheme.ink3,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  if (_busy)
+                    SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: onBlue ? Colors.white : FloTheme.blue,
+                      ),
+                    )
+                  else
+                    Icon(
+                      Icons.download_rounded,
+                      size: 20,
+                      color: onBlue
+                          ? Colors.white.withValues(alpha: 0.9)
+                          : FloTheme.blueDeep,
+                    ),
+                ],
+              ),
+            ),
           ),
         ),
       ),
@@ -1253,29 +1262,32 @@ class _ComposerBar extends StatelessWidget {
           const SizedBox(width: 8),
           Material(
             color: Colors.transparent,
-            child: InkWell(
-              onTap: sending ? null : onSend,
-              borderRadius: BorderRadius.circular(12),
-              child: Ink(
-                width: 42,
-                height: 42,
-                decoration: BoxDecoration(
-                  gradient: FloTheme.gradBtn,
+            child: Container(
+              width: 42,
+              height: 42,
+              decoration: BoxDecoration(
+                gradient: FloTheme.gradBtn,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: const [FloTheme.shBlue],
+              ),
+              child: Material(
+                type: MaterialType.transparency,
+                child: InkWell(
+                  onTap: sending ? null : onSend,
                   borderRadius: BorderRadius.circular(12),
-                  boxShadow: const [FloTheme.shBlue],
-                ),
-                child: Center(
-                  child: sending
-                      ? const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor:
-                                AlwaysStoppedAnimation<Color>(Colors.white),
-                          ),
-                        )
-                      : FloIcons.send(size: 18, color: Colors.white),
+                  child: Center(
+                    child: sending
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor:
+                                  AlwaysStoppedAnimation<Color>(Colors.white),
+                            ),
+                          )
+                        : FloIcons.send(size: 18, color: Colors.white),
+                  ),
                 ),
               ),
             ),

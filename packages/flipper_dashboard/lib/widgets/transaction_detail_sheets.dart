@@ -997,56 +997,59 @@ class _RefundConfirmButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Material(
       color: Colors.transparent,
-      child: InkWell(
-        onTap: enabled ? onPressed : null,
-        borderRadius: BorderRadius.circular(15),
-        child: Ink(
-          height: 56,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(15),
-            gradient: enabled
-                ? const LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [Color(0xFFEF5350), Color(0xFFD93A3F)],
-                  )
-                : null,
-            color: enabled ? null : _SheetColors.ink4.withValues(alpha: 0.4),
-            boxShadow: enabled
-                ? [
-                    BoxShadow(
-                      color: const Color(0xFFD93A3F).withValues(alpha: 0.5),
-                      blurRadius: 28,
-                      offset: const Offset(0, 12),
-                      spreadRadius: -8,
-                    ),
-                  ]
-                : null,
-          ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  TransactionDetailSvgs.icon(
-                    TransactionDetailSvgs.refresh(),
-                    size: 18,
-                    color: Colors.white,
+      child: Container(
+        height: 56,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(15),
+          gradient: enabled
+              ? const LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Color(0xFFEF5350), Color(0xFFD93A3F)],
+                )
+              : null,
+          color: enabled ? null : _SheetColors.ink4.withValues(alpha: 0.4),
+          boxShadow: enabled
+              ? [
+                  BoxShadow(
+                    color: const Color(0xFFD93A3F).withValues(alpha: 0.5),
+                    blurRadius: 28,
+                    offset: const Offset(0, 12),
+                    spreadRadius: -8,
                   ),
-                  const SizedBox(width: 9),
-                  Text(
-                    label,
-                    maxLines: 1,
-                    style: GoogleFonts.outfit(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
+                ]
+              : null,
+        ),
+        child: Material(
+          type: MaterialType.transparency,
+          child: InkWell(
+            onTap: enabled ? onPressed : null,
+            borderRadius: BorderRadius.circular(15),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    TransactionDetailSvgs.icon(
+                      TransactionDetailSvgs.refresh(),
+                      size: 18,
                       color: Colors.white,
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 9),
+                    Text(
+                      label,
+                      maxLines: 1,
+                      style: GoogleFonts.outfit(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

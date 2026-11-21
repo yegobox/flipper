@@ -397,43 +397,46 @@ class _WhatsAppConnectionDialogState
           height: 48,
           child: Material(
             color: Colors.transparent,
-            child: InkWell(
-              onTap: state.isLoading ? null : _handleConnect,
-              borderRadius: BorderRadius.circular(FloTheme.radiusMd),
-              child: Ink(
-                decoration: BoxDecoration(
-                  gradient: state.isLoading ? null : FloTheme.gradBtn,
-                  color: state.isLoading ? FloTheme.lineStrong : null,
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: state.isLoading ? null : FloTheme.gradBtn,
+                color: state.isLoading ? FloTheme.lineStrong : null,
+                borderRadius: BorderRadius.circular(FloTheme.radiusMd),
+                boxShadow: state.isLoading ? null : const [FloTheme.shBlue],
+              ),
+              child: Material(
+                type: MaterialType.transparency,
+                child: InkWell(
+                  onTap: state.isLoading ? null : _handleConnect,
                   borderRadius: BorderRadius.circular(FloTheme.radiusMd),
-                  boxShadow: state.isLoading ? null : const [FloTheme.shBlue],
-                ),
-                child: Center(
-                  child: state.isLoading
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor:
-                                AlwaysStoppedAnimation<Color>(Colors.white),
-                          ),
-                        )
-                      : Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            FloIcons.link(size: 18, color: Colors.white),
-                            const SizedBox(width: 8),
-                            Text(
-                              context.flipperL10n.aiWhatsappConnect,
-                              style: const TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w700,
-                                color: Colors.white,
-                                letterSpacing: -0.01,
-                              ),
+                  child: Center(
+                    child: state.isLoading
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor:
+                                  AlwaysStoppedAnimation<Color>(Colors.white),
                             ),
-                          ],
-                        ),
+                          )
+                        : Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              FloIcons.link(size: 18, color: Colors.white),
+                              const SizedBox(width: 8),
+                              Text(
+                                context.flipperL10n.aiWhatsappConnect,
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white,
+                                  letterSpacing: -0.01,
+                                ),
+                              ),
+                            ],
+                          ),
+                  ),
                 ),
               ),
             ),
@@ -550,23 +553,28 @@ class _WhatsAppConnectionDialogState
             height: 44,
             child: Material(
               color: Colors.transparent,
-              child: InkWell(
-                onTap: () {
-                  ref.read(whatsAppConnectionStateProvider.notifier).refresh();
-                },
-                borderRadius: BorderRadius.circular(FloTheme.radiusMd),
-                child: Ink(
-                  decoration: BoxDecoration(
-                    gradient: FloTheme.gradBtn,
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: FloTheme.gradBtn,
+                  borderRadius: BorderRadius.circular(FloTheme.radiusMd),
+                ),
+                child: Material(
+                  type: MaterialType.transparency,
+                  child: InkWell(
+                    onTap: () {
+                      ref
+                          .read(whatsAppConnectionStateProvider.notifier)
+                          .refresh();
+                    },
                     borderRadius: BorderRadius.circular(FloTheme.radiusMd),
-                  ),
-                  child: Center(
-                    child: Text(
-                      context.flipperL10n.aiWhatsappTryAgain,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
+                    child: Center(
+                      child: Text(
+                        context.flipperL10n.aiWhatsappTryAgain,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
                   ),

@@ -485,38 +485,40 @@ class BarPrimaryButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final enabled = onPressed != null;
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onPressed,
+    return Container(
+      height: 46,
+      decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(BarTokens.radiusMd),
-        child: Ink(
-          height: 46,
-          padding: const EdgeInsets.symmetric(horizontal: 18),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(BarTokens.radiusMd),
-            gradient: enabled ? BarTokens.gradBtn : null,
-            color: enabled ? null : BarTokens.line,
-            boxShadow: enabled ? BarTokens.shadow2 : null,
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                icon,
-                size: 18,
-                color: enabled ? Colors.white : BarTokens.ink4,
-              ),
-              const SizedBox(width: 9),
-              Text(
-                label,
-                style: GoogleFonts.outfit(
-                  fontSize: 14.5,
-                  fontWeight: FontWeight.w700,
+        gradient: enabled ? BarTokens.gradBtn : null,
+        color: enabled ? null : BarTokens.line,
+        boxShadow: enabled ? BarTokens.shadow2 : null,
+      ),
+      child: Material(
+        type: MaterialType.transparency,
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: BorderRadius.circular(BarTokens.radiusMd),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 18),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  icon,
+                  size: 18,
                   color: enabled ? Colors.white : BarTokens.ink4,
                 ),
-              ),
-            ],
+                const SizedBox(width: 9),
+                Text(
+                  label,
+                  style: GoogleFonts.outfit(
+                    fontSize: 14.5,
+                    fontWeight: FontWeight.w700,
+                    color: enabled ? Colors.white : BarTokens.ink4,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

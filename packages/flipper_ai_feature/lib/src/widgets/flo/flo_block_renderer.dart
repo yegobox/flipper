@@ -772,37 +772,42 @@ class _ActionButton extends StatelessWidget {
 
     return Material(
       color: Colors.transparent,
-      child: InkWell(
-        onTap: () {},
-        borderRadius: BorderRadius.circular(10),
-        child: Ink(
-          height: 36,
-          padding: const EdgeInsets.symmetric(horizontal: 14),
-          decoration: BoxDecoration(
-            gradient: primary ? FloTheme.gradBtn : null,
-            color: primary ? null : FloTheme.surface,
+      child: Container(
+        height: 36,
+        decoration: BoxDecoration(
+          gradient: primary ? FloTheme.gradBtn : null,
+          color: primary ? null : FloTheme.surface,
+          borderRadius: BorderRadius.circular(10),
+          border: primary ? null : Border.all(color: FloTheme.lineStrong),
+          boxShadow: primary ? const [FloTheme.shBlue] : const [FloTheme.sh1],
+        ),
+        child: Material(
+          type: MaterialType.transparency,
+          child: InkWell(
+            onTap: () {},
             borderRadius: BorderRadius.circular(10),
-            border: primary ? null : Border.all(color: FloTheme.lineStrong),
-            boxShadow: primary ? const [FloTheme.shBlue] : const [FloTheme.sh1],
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              FloIcons.byName(
-                iconName,
-                size: 15,
-                color: primary ? Colors.white : FloTheme.ink2,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  FloIcons.byName(
+                    iconName,
+                    size: 15,
+                    color: primary ? Colors.white : FloTheme.ink2,
+                  ),
+                  const SizedBox(width: 7),
+                  Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: primary ? Colors.white : FloTheme.ink1,
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(width: 7),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: primary ? Colors.white : FloTheme.ink1,
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),
@@ -839,37 +844,42 @@ class _FollowupsBlock extends StatelessWidget {
                 Material(
                   color: FloTheme.surface,
                   borderRadius: BorderRadius.circular(FloTheme.radiusPill),
-                  child: InkWell(
-                    onTap: onAsk == null
-                        ? null
-                        : () => onAsk!(
-                              f['q']?.toString() ??
-                                  f['label']?.toString() ??
-                                  '',
-                            ),
-                    borderRadius: BorderRadius.circular(FloTheme.radiusPill),
-                    child: Ink(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 13, vertical: 8),
-                      decoration: BoxDecoration(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(FloTheme.radiusPill),
+                      border: Border.all(color: FloTheme.lineStrong),
+                    ),
+                    child: Material(
+                      type: MaterialType.transparency,
+                      child: InkWell(
+                        onTap: onAsk == null
+                            ? null
+                            : () => onAsk!(
+                                  f['q']?.toString() ??
+                                      f['label']?.toString() ??
+                                      '',
+                                ),
                         borderRadius:
                             BorderRadius.circular(FloTheme.radiusPill),
-                        border: Border.all(color: FloTheme.lineStrong),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          FloIcons.sparkle(size: 14, color: FloTheme.blue),
-                          const SizedBox(width: 8),
-                          Text(
-                            f['label']?.toString() ?? '',
-                            style: const TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                              color: FloTheme.ink2,
-                            ),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 13, vertical: 8),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              FloIcons.sparkle(size: 14, color: FloTheme.blue),
+                              const SizedBox(width: 8),
+                              Text(
+                                f['label']?.toString() ?? '',
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: FloTheme.ink2,
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
+                        ),
                       ),
                     ),
                   ),

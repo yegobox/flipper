@@ -77,80 +77,89 @@ class MposCartBar extends StatelessWidget {
                 value: summary,
                 child: Material(
                   color: Colors.transparent,
-                  child: InkWell(
-                    onTap: onReviewPay,
-                    borderRadius: BorderRadius.circular(16),
-                    child: Ink(
-                      height: MposTokens.cartBarHeight,
-                      decoration: BoxDecoration(
+                  child: Container(
+                    height: MposTokens.cartBarHeight,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(16),
+                      gradient: MposTokens.gradBtn,
+                      boxShadow: MposTokens.shadowBlue,
+                    ),
+                    child: Material(
+                      type: MaterialType.transparency,
+                      child: InkWell(
+                        onTap: onReviewPay,
                         borderRadius: BorderRadius.circular(16),
-                        gradient: MposTokens.gradBtn,
-                        boxShadow: MposTokens.shadowBlue,
-                      ),
-                      padding: const EdgeInsets.symmetric(horizontal: 18),
-                      child: Row(
-                        children: [
-                          Container(
-                            constraints: const BoxConstraints(minWidth: 30),
-                            height: 30,
-                            padding: const EdgeInsets.symmetric(horizontal: 9),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.22),
-                              borderRadius: BorderRadius.circular(999),
-                            ),
-                            alignment: Alignment.center,
-                            child: Text(
-                              '$itemCount',
-                              style: mposMonoStyle(
-                                Theme.of(context).textTheme,
-                                fontSize: 14,
-                              ).copyWith(color: Colors.white),
-                            ),
-                          ),
-                          const SizedBox(width: 13),
-                          Expanded(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  l10n.mposCartItemsInCart(itemCount),
-                                  style: TextStyle(
-                                    fontSize: 11.5,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.white.withValues(alpha: 0.85),
-                                  ),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 18),
+                          child: Row(
+                            children: [
+                              Container(
+                                constraints: const BoxConstraints(minWidth: 30),
+                                height: 30,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 9,
                                 ),
-                                Text(
-                                  'RWF ${mposMoneyLabel(total)}',
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.22),
+                                  borderRadius: BorderRadius.circular(999),
+                                ),
+                                alignment: Alignment.center,
+                                child: Text(
+                                  '$itemCount',
                                   style: mposMonoStyle(
                                     Theme.of(context).textTheme,
-                                    fontSize: 18,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                actionLabel,
-                                style: const TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w700,
-                                  color: Colors.white,
+                                    fontSize: 14,
+                                  ).copyWith(color: Colors.white),
                                 ),
                               ),
-                              const Icon(
-                                Icons.chevron_right_rounded,
-                                color: Colors.white,
-                                size: 20,
+                              const SizedBox(width: 13),
+                              Expanded(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      l10n.mposCartItemsInCart(itemCount),
+                                      style: TextStyle(
+                                        fontSize: 11.5,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.white.withValues(
+                                          alpha: 0.85,
+                                        ),
+                                      ),
+                                    ),
+                                    Text(
+                                      'RWF ${mposMoneyLabel(total)}',
+                                      style: mposMonoStyle(
+                                        Theme.of(context).textTheme,
+                                        fontSize: 18,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    actionLabel,
+                                    style: const TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w700,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  const Icon(
+                                    Icons.chevron_right_rounded,
+                                    color: Colors.white,
+                                    size: 20,
+                                  ),
+                                ],
                               ),
                             ],
                           ),
-                        ],
+                        ),
                       ),
                     ),
                   ),

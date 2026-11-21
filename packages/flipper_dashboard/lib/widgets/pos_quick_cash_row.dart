@@ -74,24 +74,27 @@ class _QuickCashButtonState extends State<_QuickCashButton> {
       child: Material(
         color: _hovered && enabled ? PosTokens.blueTint : PosTokens.surface2,
         borderRadius: BorderRadius.circular(PosTokens.radiusSm),
-        child: InkWell(
-          onTap: widget.onPressed,
-          borderRadius: BorderRadius.circular(PosTokens.radiusSm),
-          child: Ink(
-            height: 44,
-            decoration: BoxDecoration(
+        child: Container(
+          height: 44,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(PosTokens.radiusSm),
+            border: Border.all(color: PosTokens.line),
+          ),
+          child: Material(
+            type: MaterialType.transparency,
+            child: InkWell(
+              onTap: widget.onPressed,
               borderRadius: BorderRadius.circular(PosTokens.radiusSm),
-              border: Border.all(color: PosTokens.line),
-            ),
-            child: Center(
-              child: Text(
-                widget.label,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: enabled
-                      ? (_hovered ? PosTokens.blue : PosTokens.ink2)
-                      : PosTokens.ink4,
+              child: Center(
+                child: Text(
+                  widget.label,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: enabled
+                        ? (_hovered ? PosTokens.blue : PosTokens.ink2)
+                        : PosTokens.ink4,
+                  ),
                 ),
               ),
             ),

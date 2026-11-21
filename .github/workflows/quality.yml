@@ -130,6 +130,9 @@ jobs:
       - name: Architecture ratchet
         run: ./scripts/ci/architecture_ratchet.sh
 
+      - name: No Ink backgrounds
+        run: ./scripts/ci/no_ink_backgrounds.sh
+
       - name: Documented rules
         run: python3 scripts/ci/documented_rules_check.py
 

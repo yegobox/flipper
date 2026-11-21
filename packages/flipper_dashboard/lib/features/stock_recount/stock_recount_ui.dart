@@ -128,40 +128,46 @@ class StockRecountFab extends StatelessWidget {
       ),
       child: Material(
         color: Colors.transparent,
-        child: InkWell(
-          onTap: onPressed,
-          borderRadius: BorderRadius.circular(StockRecountTokens.radiusPill),
-          child: Ink(
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  StockRecountTokens.accent,
-                  StockRecountTokens.accentDeep,
-                ],
-              ),
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                StockRecountTokens.accent,
+                StockRecountTokens.accentDeep,
+              ],
+            ),
+            borderRadius: BorderRadius.circular(StockRecountTokens.radiusPill),
+            boxShadow: const [StockRecountTokens.primaryButtonShadow],
+          ),
+          child: Material(
+            type: MaterialType.transparency,
+            child: InkWell(
+              onTap: onPressed,
               borderRadius: BorderRadius.circular(
                 StockRecountTokens.radiusPill,
               ),
-              boxShadow: const [StockRecountTokens.primaryButtonShadow],
-            ),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 16),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  StockRecountIcons.plus(size: 20, color: Colors.white),
-                  const SizedBox(width: 9),
-                  Text(
-                    context.flipperL10n.stockRecountNew,
-                    style: StockRecountHelpers.text(
-                      size: 15.5,
-                      weight: FontWeight.w700,
-                      color: Colors.white,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 22,
+                  vertical: 16,
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    StockRecountIcons.plus(size: 20, color: Colors.white),
+                    const SizedBox(width: 9),
+                    Text(
+                      context.flipperL10n.stockRecountNew,
+                      style: StockRecountHelpers.text(
+                        size: 15.5,
+                        weight: FontWeight.w700,
+                        color: Colors.white,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),

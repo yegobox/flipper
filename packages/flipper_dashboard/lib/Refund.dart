@@ -885,65 +885,68 @@ class _RefundActionButton extends StatelessWidget {
     final active = enabled && !busy;
     return Material(
       color: Colors.transparent,
-      child: InkWell(
-        onTap: active ? onTap : null,
-        borderRadius: BorderRadius.circular(15),
-        child: Ink(
-          height: 54,
-          decoration: BoxDecoration(
+      child: Container(
+        height: 54,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(15),
+          gradient: active
+              ? const LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Color(0xFFEF5350), Color(0xFFD93A3F)],
+                )
+              : null,
+          color: active ? null : _PreviewColors.ink4.withValues(alpha: 0.35),
+          boxShadow: active
+              ? [
+                  BoxShadow(
+                    color: const Color(0xFFD93A3F).withValues(alpha: 0.45),
+                    blurRadius: 24,
+                    offset: const Offset(0, 10),
+                    spreadRadius: -8,
+                  ),
+                ]
+              : null,
+        ),
+        child: Material(
+          type: MaterialType.transparency,
+          child: InkWell(
+            onTap: active ? onTap : null,
             borderRadius: BorderRadius.circular(15),
-            gradient: active
-                ? const LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [Color(0xFFEF5350), Color(0xFFD93A3F)],
-                  )
-                : null,
-            color: active ? null : _PreviewColors.ink4.withValues(alpha: 0.35),
-            boxShadow: active
-                ? [
-                    BoxShadow(
-                      color: const Color(0xFFD93A3F).withValues(alpha: 0.45),
-                      blurRadius: 24,
-                      offset: const Offset(0, 10),
-                      spreadRadius: -8,
-                    ),
-                  ]
-                : null,
-          ),
-          child: Center(
-            child: busy
-                ? const SizedBox(
-                    width: 22,
-                    height: 22,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2.5,
-                      color: Colors.white,
-                    ),
-                  )
-                : Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      TransactionDetailSvgs.icon(
-                        TransactionDetailSvgs.refresh(),
-                        size: 18,
+            child: Center(
+              child: busy
+                  ? const SizedBox(
+                      width: 22,
+                      height: 22,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.5,
                         color: Colors.white,
                       ),
-                      const SizedBox(width: 9),
-                      Flexible(
-                        child: Text(
-                          label,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: GoogleFonts.outfit(
-                            fontSize: 15.5,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
+                    )
+                  : Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        TransactionDetailSvgs.icon(
+                          TransactionDetailSvgs.refresh(),
+                          size: 18,
+                          color: Colors.white,
+                        ),
+                        const SizedBox(width: 9),
+                        Flexible(
+                          child: Text(
+                            label,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.outfit(
+                              fontSize: 15.5,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                            ),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
+                      ],
+                    ),
+            ),
           ),
         ),
       ),

@@ -78,40 +78,45 @@ class _MposScanButton extends StatelessWidget {
     return Material(
       color: isActive ? PosTokens.blueTint : PosTokens.surface,
       borderRadius: BorderRadius.circular(MposTokens.radiusMd),
-      child: InkWell(
-        onTap: onPressed,
-        onLongPress: onLongPress,
-        borderRadius: BorderRadius.circular(MposTokens.radiusMd),
-        child: Ink(
-          height: 50,
-          padding: const EdgeInsets.symmetric(horizontal: 15),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(MposTokens.radiusMd),
-            border: Border.all(
-              color: isActive ? PosTokens.blue : PosTokens.line,
-              width: 1.5,
-            ),
+      child: Container(
+        height: 50,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(MposTokens.radiusMd),
+          border: Border.all(
+            color: isActive ? PosTokens.blue : PosTokens.line,
+            width: 1.5,
           ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                isActive
-                    ? FluentIcons.barcode_scanner_24_filled
-                    : FluentIcons.barcode_scanner_24_regular,
-                size: 22,
-                color: isActive ? PosTokens.blue : PosTokens.ink2,
+        ),
+        child: Material(
+          type: MaterialType.transparency,
+          child: InkWell(
+            onTap: onPressed,
+            onLongPress: onLongPress,
+            borderRadius: BorderRadius.circular(MposTokens.radiusMd),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 15),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    isActive
+                        ? FluentIcons.barcode_scanner_24_filled
+                        : FluentIcons.barcode_scanner_24_regular,
+                    size: 22,
+                    color: isActive ? PosTokens.blue : PosTokens.ink2,
+                  ),
+                  const SizedBox(width: 7),
+                  Text(
+                    context.flipperL10n.mposScan,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: isActive ? PosTokens.blue : PosTokens.ink2,
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(width: 7),
-              Text(
-                context.flipperL10n.mposScan,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  color: isActive ? PosTokens.blue : PosTokens.ink2,
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),

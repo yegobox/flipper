@@ -117,37 +117,46 @@ class _ProductEditorScanSectionState extends State<ProductEditorScanSection> {
               ],
               Material(
                 borderRadius: BorderRadius.circular(10),
-                child: InkWell(
-                  onTap: () => _submit(widget.controller.text),
-                  borderRadius: BorderRadius.circular(10),
-                  child: Ink(
-                    height: 40,
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    decoration: BoxDecoration(
+                child: Container(
+                  height: 40,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10),
+                    gradient: ProductEditorTokens.gradBtn,
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Color(0x402563EB),
+                        offset: Offset(0, 3),
+                        blurRadius: 8,
+                      ),
+                    ],
+                  ),
+                  child: Material(
+                    type: MaterialType.transparency,
+                    child: InkWell(
+                      onTap: () => _submit(widget.controller.text),
                       borderRadius: BorderRadius.circular(10),
-                      gradient: ProductEditorTokens.gradBtn,
-                      boxShadow: const [
-                        BoxShadow(
-                          color: Color(0x402563EB),
-                          offset: Offset(0, 3),
-                          blurRadius: 8,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.add,
+                              size: 16,
+                              color: Colors.white,
+                            ),
+                            const SizedBox(width: 7),
+                            Text(
+                              context.flipperL10n.productEditorAddVariant,
+                              style: GoogleFonts.outfit(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(Icons.add, size: 16, color: Colors.white),
-                        const SizedBox(width: 7),
-                        Text(
-                          context.flipperL10n.productEditorAddVariant,
-                          style: GoogleFonts.outfit(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
                   ),
                 ),

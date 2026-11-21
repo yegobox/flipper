@@ -273,21 +273,19 @@ class _BarCreditCollectSheetState extends ConsumerState<BarCreditCollectSheet> {
                 ],
               ),
               const SizedBox(height: 18),
-              Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  key: const ValueKey('bar_credit_collect'),
-                  onTap: canCollect ? _collect : null,
+              Container(
+                height: 52,
+                decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(14),
-                  child: Ink(
-                    height: 52,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(14),
-                      gradient: canCollect || _saving
-                          ? BarTokens.gradBtn
-                          : null,
-                      color: canCollect || _saving ? null : BarTokens.surface2,
-                    ),
+                  gradient: canCollect || _saving ? BarTokens.gradBtn : null,
+                  color: canCollect || _saving ? null : BarTokens.surface2,
+                ),
+                child: Material(
+                  type: MaterialType.transparency,
+                  child: InkWell(
+                    key: const ValueKey('bar_credit_collect'),
+                    onTap: canCollect ? _collect : null,
+                    borderRadius: BorderRadius.circular(14),
                     child: Center(
                       child: _saving
                           ? const SizedBox(

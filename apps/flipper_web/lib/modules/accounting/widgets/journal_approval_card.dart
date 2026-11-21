@@ -399,17 +399,20 @@ class _ActionButton extends StatelessWidget {
     if (filled) {
       return Material(
         color: Colors.transparent,
-        child: InkWell(
-          onTap: onPressed,
-          borderRadius: BorderRadius.circular(AccountingTokens.radiusMd),
-          child: Ink(
-            height: 46,
-            decoration: BoxDecoration(
-              gradient: JournalApprovalCard._approveGradient,
+        child: Container(
+          height: 46,
+          decoration: BoxDecoration(
+            gradient: JournalApprovalCard._approveGradient,
+            borderRadius: BorderRadius.circular(AccountingTokens.radiusMd),
+            boxShadow: JournalApprovalCard._approveShadow,
+          ),
+          child: Material(
+            type: MaterialType.transparency,
+            child: InkWell(
+              onTap: onPressed,
               borderRadius: BorderRadius.circular(AccountingTokens.radiusMd),
-              boxShadow: JournalApprovalCard._approveShadow,
+              child: Center(child: child),
             ),
-            child: Center(child: child),
           ),
         ),
       );
