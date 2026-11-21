@@ -1113,6 +1113,7 @@
     "exchangeNotInTrainingOrProforma": "Désactivez le mode formation ou proforma pour échanger des articles.",
     "refundBlockedAfterExchange": "Des articles de cette vente ont été échangés : elle ne peut pas être remboursée.",
     "refundExchangeCheckFailed": "Impossible de vérifier si cette vente a été échangée. Réessayez avant de rembourser.",
+    "refundEbmCheckFailed": "Impossible de vérifier si cette succursale utilise l'EBM, rien n'a donc été remboursé. Réessayez.",
     "adminGroupTaxCompliance": "Taxes et conformité",
     "adminGroupDataSync": "Données et synchronisation",
     "adminGroupDiagnostics": "Diagnostics",

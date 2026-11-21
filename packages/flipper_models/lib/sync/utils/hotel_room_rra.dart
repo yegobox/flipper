@@ -140,6 +140,22 @@ Variant applyHotelRoomRraFields({
   return variant;
 }
 
+/// Recodes a retained room [variant] to [taxTyCd] before it is resubmitted.
+///
+/// A pending room keeps the code of the attempt that minted it. Without this,
+/// a branch whose VAT registration has changed since, or an EBM branch that is
+/// not VAT-registered (RRA accepts only `D` from it), resent the old code and
+/// failed on every retry. [applyHotelRoomRraFields] lays the tourism-tax name
+/// and rate over this afterwards, as it does for a new room.
+Variant recodeHotelRoomTaxType(Variant variant, String taxTyCd) {
+  if (variant.taxTyCd == taxTyCd) return variant;
+  return variant
+    ..taxTyCd = taxTyCd
+    ..taxName = taxTyCd
+    // B is the 18% VAT rate; D (not VAT-registered) carries none.
+    ..taxPercentage = taxTyCd == 'B' ? 18 : 0;
+}
+
 /// Whether [variant] is registered with RRA as a tourism-tax room service.
 bool isHotelRoomVariantRegistered(Variant? variant) {
   if (variant == null) return false;
@@ -203,16 +219,14 @@ bool isHotelRoomPlaceholderVariant({
 /// failure to report — there is nothing to report to, so the room is simply
 /// sold without a tourism-tax item.
 ///
-/// `vatEnabled` is the same switch `isTaxEnabled` reads, so the desk agrees
+/// `isEbmOn` is the same switch `isTaxEnabled` reads, so the desk agrees
 /// with checkout, which files a folio only when it is on. A row with a TIN
 /// but the switch off is a branch that does not fiscalise: treating it as EBM
 /// sent every room charge through a registration that could never finish, and
 /// its guests checked out on folios that billed no nights.
 bool hotelBranchSupportsRra(Ebm? ebm) {
   if (ebm == null) return false;
-  return ebm.vatEnabled == true &&
-      ebm.tinNumber != 0 &&
-      ebm.bhfId.trim().isNotEmpty;
+  return ebm.isEbmOn && ebm.tinNumber != 0 && ebm.bhfId.trim().isNotEmpty;
 }
 
 /// Whether this branch may send tourism-tax coding on item registration.

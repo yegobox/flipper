@@ -206,6 +206,9 @@ mixin EbmMixin implements EbmInterface {
               vatEnabled:
                   ebmData['vatEnabled'] as bool? ??
                   ebmData['vat_enabled'] as bool?,
+              ebmEnabled:
+                  ebmData['ebmEnabled'] as bool? ??
+                  ebmData['ebm_enabled'] as bool?,
               remoteServerUrl:
                   ebmData['remoteServerUrl'] as String? ??
                   ebmData['remote_server_url'] as String?,

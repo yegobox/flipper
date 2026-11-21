@@ -2698,6 +2698,7 @@
   "exchangeNotInTrainingOrProforma": "Zimya uburyo bw'imyitozo cyangwa proforma kugira ngo uhindure ibicuruzwa.",
   "refundBlockedAfterExchange": "Ibicuruzwa by'iri gurisha byarahinduwe, ntirishobora gusubizwa amafaranga.",
   "refundExchangeCheckFailed": "Ntibyashobotse kugenzura niba iri gurisha ryarahinduwe. Ongera ugerageze mbere yo gusubiza amafaranga.",
+  "refundEbmCheckFailed": "Ntibyashobotse kugenzura niba iri shami rikoresha EBM, nta mafaranga yasubijwe. Ongera ugerageze.",
   "adminGroupTaxCompliance": "Imisoro n'iyubahirizwa ry'amategeko",
   "adminGroupDataSync": "Amakuru n'ihuzwa",
   "adminGroupDiagnostics": "Isuzuma",

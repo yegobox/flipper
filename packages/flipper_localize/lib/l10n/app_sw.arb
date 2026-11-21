@@ -2706,6 +2706,7 @@
   "exchangeNotInTrainingOrProforma": "Zima hali ya mafunzo au proforma ili kubadilisha bidhaa.",
   "refundBlockedAfterExchange": "Bidhaa za mauzo haya zimebadilishwa, hivyo hayawezi kurejeshewa pesa.",
   "refundExchangeCheckFailed": "Imeshindikana kuthibitisha kama mauzo haya yalibadilishwa. Jaribu tena kabla ya kurejesha pesa.",
+  "refundEbmCheckFailed": "Imeshindikana kuthibitisha kama tawi hili linatumia EBM, kwa hivyo hakuna pesa iliyorejeshwa. Jaribu tena.",
   "adminGroupTaxCompliance": "Kodi na uzingatiaji",
   "adminGroupDataSync": "Data na usawazishaji",
   "adminGroupDiagnostics": "Uchunguzi",

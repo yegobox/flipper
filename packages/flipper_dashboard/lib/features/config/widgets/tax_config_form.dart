@@ -481,6 +481,7 @@ class _TaxConfigFormState extends ConsumerState<TaxConfigForm> {
           ref.invalidate(catalog);
         }
         ref.invalidate(ebmVatEnabledProvider);
+        ref.invalidate(ebmOnProvider);
       }
 
       setState(() {

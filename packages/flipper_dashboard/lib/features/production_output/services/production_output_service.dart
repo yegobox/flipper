@@ -144,7 +144,7 @@ class ProductionOutputService {
       final ebm = await ProxyService.strategy.ebm(branchId: branchId);
       final taxUrl = ebm?.taxServerUrl;
       final isEbmEnabled =
-          ebm != null && (ebm.vatEnabled ?? false) && taxUrl != null && taxUrl.isNotEmpty;
+          ebm != null && ebm.isEbmOn && taxUrl != null && taxUrl.isNotEmpty;
       final rraItems = <models.TransactionItem>[];
 
       // 4. If no composites, treat the variant itself as the raw material

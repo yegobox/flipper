@@ -479,9 +479,7 @@ class BulkAddProductViewModel extends ChangeNotifier {
   }
 
   /// Quantities keyed by [Variant.barCode] after TEMP barcodes are assigned.
-  Map<String, String> _buildQuantitiesMapFromItems(
-    List<brick.Variant> items,
-  ) {
+  Map<String, String> _buildQuantitiesMapFromItems(List<brick.Variant> items) {
     final map = <String, String>{};
     if (_excelData == null) return map;
     for (var i = 0; i < items.length; i++) {
@@ -729,9 +727,7 @@ class BulkAddProductViewModel extends ChangeNotifier {
     // cloudSync covers any row not yet mirrored to Ditto (or failed Ditto writes).
     if (!kIsWeb) {
       try {
-        merge(
-          await ProxyService.legacyStrategy.categories(branchId: branchId),
-        );
+        merge(await ProxyService.legacyStrategy.categories(branchId: branchId));
       } catch (e, s) {
         talker.warning('bulk category merge from cloudSync: $e', e, s);
       }
@@ -742,9 +738,7 @@ class BulkAddProductViewModel extends ChangeNotifier {
   /// Reverse of [_loadBulkCategoryLookup] — needed to resolve a display name
   /// for rows where the user picked a category id from the grid dropdown
   /// rather than typing a name into the Excel "Category" column.
-  Future<Map<String, String>> _loadBulkCategoryIdToName(
-    String branchId,
-  ) async {
+  Future<Map<String, String>> _loadBulkCategoryIdToName(String branchId) async {
     final map = <String, String>{};
     void merge(List<Category> list) {
       for (final c in list) {
@@ -760,9 +754,7 @@ class BulkAddProductViewModel extends ChangeNotifier {
 
     if (!kIsWeb) {
       try {
-        merge(
-          await ProxyService.legacyStrategy.categories(branchId: branchId),
-        );
+        merge(await ProxyService.legacyStrategy.categories(branchId: branchId));
       } catch (e, s) {
         talker.warning('bulk category id->name merge from cloudSync: $e', e, s);
       }
@@ -891,8 +883,12 @@ class BulkAddProductViewModel extends ChangeNotifier {
       final product = _excelData![rowIndex];
       final barCode = _stableBulkBarCode(product, rowIndex);
       final rowUid = _bulkUidOf(product);
-      final (finalCategoryId, finalCategoryName) =
-          _bulkCategoryForRow(product, rowUid, normToId, idToName);
+      final (finalCategoryId, finalCategoryName) = _bulkCategoryForRow(
+        product,
+        rowUid,
+        normToId,
+        idToName,
+      );
       final qtyText = _resolveQuantityText(rowUid, product);
       items.add(
         brick.Variant(
@@ -1077,9 +1073,7 @@ class BulkAddProductViewModel extends ChangeNotifier {
       }
     }
 
-    await _refreshVariantsFromDittoCloud(
-      ProxyService.box.getBranchId()!,
-    );
+    await _refreshVariantsFromDittoCloud(ProxyService.box.getBranchId()!);
   }
 
   Future<BulkSaveResult> _saveViaDataConnector() async {
@@ -1098,7 +1092,9 @@ class BulkAddProductViewModel extends ChangeNotifier {
     final isVatEnabled = ebm?.vatEnabled ?? false;
     _isVatEnabledForBulk = isVatEnabled;
     _seedAllRowTaxTypes();
-    final isTaxEnabled = isVatEnabled;
+    // RRA registration follows EBM, not VAT: a non-VAT EBM branch registers
+    // its (D-coded) items too.
+    final isTaxEnabled = ebm?.isEbmOn ?? false;
     final dataConnectorUrl = _resolveDataConnectorUrl(ebm);
     if (dataConnectorUrl == null) {
       talker.warning(
@@ -1203,11 +1199,11 @@ class BulkAddProductViewModel extends ChangeNotifier {
         success: false,
         message: isVatEnabled
             ? '$totalFailed of ${rows.length} failed at RRA. '
-                'First error (row $idx, $name): '
-                '${first['resultMsg'] ?? first['status']}'
+                  'First error (row $idx, $name): '
+                  '${first['resultMsg'] ?? first['status']}'
             : '$totalFailed of ${rows.length} failed to save. '
-                'First error (row $idx, $name): '
-                '${first['resultMsg'] ?? first['status']}',
+                  'First error (row $idx, $name): '
+                  '${first['resultMsg'] ?? first['status']}',
         total: rows.length,
         succeeded: totalSuccess,
         failed: totalFailed,
@@ -1274,8 +1270,12 @@ class BulkAddProductViewModel extends ChangeNotifier {
       }
 
       final rowUid = _bulkUidOf(product);
-      final (finalCategoryId, finalCategoryName) =
-          _bulkCategoryForRow(product, rowUid, normToId, idToName);
+      final (finalCategoryId, finalCategoryName) = _bulkCategoryForRow(
+        product,
+        rowUid,
+        normToId,
+        idToName,
+      );
 
       final qty = _resolveQuantityText(rowUid, product);
       final taxTyCd = resolveTaxTyCdForRow(rowUid, product);

@@ -4,6 +4,7 @@ import 'dart:io';
 import 'dart:isolate';
 import 'dart:typed_data';
 
+import 'package:flipper_models/ebm_helper.dart';
 import 'package:flipper_models/DatabaseSyncInterface.dart';
 import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:flipper_models/sync/transaction_payment_records_sync.dart';
@@ -1811,10 +1812,9 @@ class CapellaSync extends AiStrategyImpl
         arguments: arguments,
       )).items.toList();
 
-      // Check if any EBM configuration exists and if VAT is enabled
+      // EBM on, which is not the same as VAT-registered (see ebmOnFromDoc).
       if (items.isNotEmpty) {
         final ebmData = items.first.value;
-        final vatEnabled = ebmData['vatEnabled'] as bool?;
         final taxServerUrl = ebmData['taxServerUrl'] as String?;
 
         final isMobile =
@@ -1828,8 +1828,7 @@ class CapellaSync extends AiStrategyImpl
           return false;
         }
 
-        return vatEnabled ==
-            true; // Return true if vatEnabled is true, false otherwise
+        return ebmOnFromDoc(ebmData);
       }
 
       // If no EBM configuration found, tax is not enabled

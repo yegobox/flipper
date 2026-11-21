@@ -137,6 +137,20 @@ class TransactionRefundService {
     }
   }
 
+  /// Whether the refund must go to RRA, from [readEbmOn]. If the EBM status
+  /// cannot be read the refund is blocked: treating "unknown" as off would
+  /// complete it locally with no RRA refund receipt.
+  Future<bool> requireEbmStatus(Future<bool> Function() readEbmOn) async {
+    try {
+      return await readEbmOn();
+    } catch (e) {
+      _talker.warning('EBM status lookup before refund failed: $e');
+      throw TransactionRefundException(
+        FlipperL10n.current.refundEbmCheckFailed,
+      );
+    }
+  }
+
   Future<void> restoreStock({
     required String transactionId,
     required double refundAmount,
@@ -218,7 +232,10 @@ class TransactionRefundService {
 
   Future<TransactionRefundResult> execute({
     required TransactionRefundRequest request,
-    required bool vatEnabled,
+
+    /// The branch fiscalises through EBM, so the refund goes to RRA as a
+    /// refund receipt. Not the same as VAT-registered.
+    required bool ebmOn,
     BuildContext? context,
     Future<bool> Function()? requestPurchaseCode,
   }) async {
@@ -238,7 +255,7 @@ class TransactionRefundService {
       );
     }
 
-    if (vatEnabled) {
+    if (ebmOn) {
       if (isPartialRefund(request.refundAmount, originalTotal)) {
         throw TransactionRefundException(
           FlipperL10n.current.refundPartialVatUnsupported,

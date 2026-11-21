@@ -1,6 +1,7 @@
 import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:meta/meta.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/ebm_helper.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/sync/utils/rra_new_variant_register.dart';
 import 'package:flipper_models/sync/utils/rra_sar_sequence.dart';
@@ -90,7 +91,7 @@ String userFacingBranchTransferRraFailure([Object? error]) {
 /// Transfers into non-VAT / non-EBM branches are local Capella/Ditto only; the
 /// tax server has nothing to reconcile on the receiving side.
 bool destinationBranchRequiresTransferRra(Ebm? destEbm) {
-  return destEbm?.vatEnabled == true;
+  return destEbm?.isEbmOn == true;
 }
 
 /// Posts RRA StockIO OUT (`13`) / IN (`04`) + dual StockMaster after a branch transfer.
@@ -132,15 +133,15 @@ Future<BranchTransferRraResult> reportBranchTransferToRra({
     return BranchTransferRraResult.skipped;
   }
 
-  final resolvedBusinessId =
-      businessId ?? ProxyService.box.getBusinessId();
+  final resolvedBusinessId = businessId ?? ProxyService.box.getBusinessId();
   if (resolvedBusinessId == null || resolvedBusinessId.isEmpty) {
     talker.warning('BranchTransferRra: skip — no businessId');
     return BranchTransferRraResult.skipped;
   }
 
-  final businessEbm =
-      await (resolveEbm ?? resolveBusinessEbm)(resolvedBusinessId);
+  final businessEbm = await (resolveEbm ?? resolveBusinessEbm)(
+    resolvedBusinessId,
+  );
   if (businessEbm == null) {
     return BranchTransferRraResult.skipped;
   }
@@ -172,6 +173,10 @@ Future<BranchTransferRraResult> reportBranchTransferToRra({
 
   final tin = businessEbm.tinNumber.toString();
   final now = DateTime.now();
+  // A line with no tax code takes its own branch's default: D where the
+  // branch is on EBM without VAT registration.
+  final sourceVat = sourceEbm?.vatEnabled == true;
+  final destVat = destEbm?.vatEnabled == true;
 
   // OUT reports the source branch's item identity; IN reports the destination
   // branch's (its own itemCd / units may differ from the source's).
@@ -188,12 +193,28 @@ Future<BranchTransferRraResult> reportBranchTransferToRra({
     final source = line.sourceVariant;
     outTotalSupply += (source.supplyPrice ?? source.retailPrice ?? 0) * qty;
     outTotalAmount += (source.retailPrice ?? source.supplyPrice ?? 0) * qty;
-    outItems.add(_transferLineItem(line.itemName, source, qty, mainBranchId));
+    outItems.add(
+      _transferLineItem(
+        line.itemName,
+        source,
+        qty,
+        mainBranchId,
+        vatEnabled: sourceVat,
+      ),
+    );
 
     final dest = line.destVariant;
     inTotalSupply += (dest.supplyPrice ?? dest.retailPrice ?? 0) * qty;
     inTotalAmount += (dest.retailPrice ?? dest.supplyPrice ?? 0) * qty;
-    inItems.add(_transferLineItem(line.itemName, dest, qty, subBranchId));
+    inItems.add(
+      _transferLineItem(
+        line.itemName,
+        dest,
+        qty,
+        subBranchId,
+        vatEnabled: destVat,
+      ),
+    );
   }
 
   if (outItems.isEmpty) return BranchTransferRraResult.skipped;
@@ -297,10 +318,10 @@ Future<BranchTransferRraResult> reportBranchTransferToRra({
     for (final line in lines) {
       final sourceStock = line.sourceVariant.stock;
       final destStock = line.destVariant.stock;
-      final sourceQty =
-          (sourceStock?.rsdQty ?? sourceStock?.currentStock)?.toDouble();
-      final destQty =
-          (destStock?.rsdQty ?? destStock?.currentStock)?.toDouble();
+      final sourceQty = (sourceStock?.rsdQty ?? sourceStock?.currentStock)
+          ?.toDouble();
+      final destQty = (destStock?.rsdQty ?? destStock?.currentStock)
+          ?.toDouble();
 
       if (sourceQty != null) {
         final masterResp = await retryTransientRraCall(
@@ -371,16 +392,19 @@ Future<BranchTransferRraResult> reportBranchTransferToRra({
 }
 
 /// One `saveStockItems` line for [variant] at [branchId], moving [qty] units.
+/// [vatEnabled] is that branch's VAT registration, for a line with no code.
 TransactionItem _transferLineItem(
   String name,
   Variant variant,
   double qty,
-  String branchId,
-) {
-  final unitSupply =
-      (variant.supplyPrice ?? variant.retailPrice ?? 0).toDouble();
-  final unitRetail =
-      (variant.retailPrice ?? variant.supplyPrice ?? 0).toDouble();
+  String branchId, {
+  required bool vatEnabled,
+}) {
+  final unitSupply = (variant.supplyPrice ?? variant.retailPrice ?? 0)
+      .toDouble();
+  final unitRetail = (variant.retailPrice ?? variant.supplyPrice ?? 0)
+      .toDouble();
+  final taxTyCd = taxTyCdOrDefault(variant.taxTyCd, vatEnabled: vatEnabled);
   return TransactionItem(
     name: name,
     qty: qty,
@@ -388,8 +412,8 @@ TransactionItem _transferLineItem(
     discount: 0,
     prc: unitRetail,
     supplyPrice: unitSupply,
-    ttCatCd: variant.taxTyCd ?? 'B',
-    taxTyCd: variant.taxTyCd ?? 'B',
+    ttCatCd: taxTyCd,
+    taxTyCd: taxTyCd,
     itemCd: variant.itemCd,
     itemClsCd: variant.itemClsCd,
     itemNm: variant.name,
@@ -401,19 +425,17 @@ TransactionItem _transferLineItem(
   );
 }
 
-/// Any vat-enabled EBM row for the business (shared tin / tax URL).
+/// Any EBM-on row for the business (shared tin / tax URL).
 Future<Ebm?> resolveBusinessEbm(String businessId) async {
   try {
     final repo = Repository();
     final fetched = await repo.get<Ebm>(
-      query: Query(
-        where: [Where('businessId').isExactly(businessId)],
-      ),
+      query: Query(where: [Where('businessId').isExactly(businessId)]),
       policy: OfflineFirstGetPolicy.localOnly,
     );
     for (final e in fetched) {
       final url = e.taxServerUrl?.trim();
-      if ((e.vatEnabled ?? false) && url != null && url.isNotEmpty) {
+      if (e.isEbmOn && url != null && url.isNotEmpty) {
         return e;
       }
     }
@@ -426,19 +448,19 @@ Future<Ebm?> resolveBusinessEbm(String businessId) async {
     );
     for (final item in result.items) {
       final map = Map<String, dynamic>.from(item.value);
-      final vat = map['vatEnabled'] == true || map['vat_enabled'] == true;
       final url = (map['taxServerUrl'] ?? map['tax_server_url'])?.toString();
-      if (vat && url != null && url.trim().isNotEmpty) {
+      if (ebmOnFromDoc(map) && url != null && url.trim().isNotEmpty) {
         return Ebm(
           id: map['_id']?.toString() ?? map['id']?.toString(),
           bhfId: (map['bhfId'] ?? map['bhf_id'] ?? '').toString(),
-          tinNumber: (map['tinNumber'] ?? map['tin_number'] as num?)?.toInt() ??
-              0,
+          tinNumber:
+              (map['tinNumber'] ?? map['tin_number'] as num?)?.toInt() ?? 0,
           dvcSrlNo: (map['dvcSrlNo'] ?? map['dvc_srl_no'] ?? '').toString(),
           taxServerUrl: url.trim(),
           businessId: businessId,
           branchId: (map['branchId'] ?? map['branch_id'] ?? '').toString(),
-          vatEnabled: true,
+          vatEnabled: (map['vatEnabled'] ?? map['vat_enabled']) == true,
+          ebmEnabled: true,
           mrc: (map['mrc'] ?? '').toString(),
         );
       }

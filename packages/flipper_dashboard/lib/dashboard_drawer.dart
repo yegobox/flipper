@@ -665,7 +665,7 @@ class _DashboardDrawerState extends ConsumerState<DashboardDrawer>
           if (!LocalMode.isOn)
             Consumer(
               builder: (context, ref, child) {
-                final ebmStatus = ref.watch(ebmVatEnabledProvider);
+                final ebmStatus = ref.watch(ebmOnProvider);
                 return ebmStatus.when(
                   data: (isVatEnabled) {
                     return Container(

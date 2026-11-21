@@ -164,31 +164,40 @@ class StatusAppBarForWindowsAndWeb
       return;
     }
 
-    // Resolve VAT from local EBM (source of truth). Do not fall back to
-    // turbo.yegobox.com — that falsely flags non-VAT devices as "down".
-    bool vatEnabled = ProxyService.box.vatEnabled();
+    // Resolve EBM-on from local EBM (source of truth). Do not fall back to
+    // turbo.yegobox.com — that falsely flags non-EBM devices as "down".
+    // Without a local row the cached VAT flag stands in, as before.
+    bool ebmOn = ProxyService.box.vatEnabled();
     String? taxServerUrl = await ProxyService.box.getServerUrl();
     try {
       final ebm = await ProxyService.strategy.ebm(
         branchId: branchId,
         fetchRemote: false,
       );
-      vatEnabled = ebm?.vatEnabled == true;
-      await ProxyService.box.writeBool(key: 'vatEnabled', value: vatEnabled);
-      // Probe the server this device actually signs against.
-      final ebmUrl = pickTaxServerUrl(
-        ebm?.taxServerUrl,
-        ebm?.remoteServerUrl,
-        useRemote: isWeb,
-      );
-      if (ebmUrl != null && ebmUrl.isNotEmpty) {
-        taxServerUrl = ebmUrl;
+      // No local row: keep the cached flag and URL rather than reading the
+      // missing row as "EBM off" (and writing that back to the box).
+      if (ebm != null) {
+        // EBM on and VAT-registered differ for an EBM taxpayer without VAT.
+        ebmOn = ebm.isEbmOn;
+        await ProxyService.box.writeBool(
+          key: 'vatEnabled',
+          value: ebm.vatEnabled == true,
+        );
+        // Probe the server this device actually signs against.
+        final ebmUrl = pickTaxServerUrl(
+          ebm.taxServerUrl,
+          ebm.remoteServerUrl,
+          useRemote: isWeb,
+        );
+        if (ebmUrl != null && ebmUrl.isNotEmpty) {
+          taxServerUrl = ebmUrl;
+        }
       }
     } catch (_) {
       // Keep box/cache values if local EBM read fails.
     }
 
-    if (!vatEnabled) {
+    if (!ebmOn) {
       _clearTaxServerDownBanner();
       return;
     }

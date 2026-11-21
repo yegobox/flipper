@@ -17,8 +17,27 @@ Future<bool> isVatEnabledForBranch({String? branchId}) async {
   }
 }
 
+/// Whether a raw EBM row (Ditto camelCase or Supabase snake_case) has EBM on.
+///
+/// Same rule as `Ebm.isEbmOn`: `ebmEnabled` when set, otherwise `vatEnabled`.
+/// A branch can be on EBM without being VAT-registered; `vatEnabled` alone
+/// only says which tax codes it may use.
+bool ebmOnFromDoc(Map<dynamic, dynamic> doc) {
+  final ebmEnabled = doc['ebmEnabled'] ?? doc['ebm_enabled'];
+  if (ebmEnabled is bool) return ebmEnabled;
+  return (doc['vatEnabled'] ?? doc['vat_enabled']) == true;
+}
+
 /// Default RRA tax type when none is specified for a row.
 String defaultTaxTyCdForVat(bool vatEnabled) => vatEnabled ? 'B' : 'D';
+
+/// [taxTyCd] when the row has one, otherwise [defaultTaxTyCdForVat]: an EBM
+/// branch that is not VAT-registered gets `D`, never the VAT default `B`.
+String taxTyCdOrDefault(String? taxTyCd, {required bool vatEnabled}) {
+  final code = taxTyCd?.trim();
+  if (code == null || code.isEmpty) return defaultTaxTyCdForVat(vatEnabled);
+  return code;
+}
 
 /// Resolve the effective TIN number for the current context.
 /// Priority:

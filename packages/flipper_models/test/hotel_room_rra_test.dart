@@ -162,6 +162,54 @@ void main() {
     });
   });
 
+  group('recodeHotelRoomTaxType', () {
+    test('a pending B room is resent as D on a non-VAT EBM branch', () {
+      // RRA accepts only D from a branch on EBM without VAT registration, so
+      // resending the code the first attempt was minted with failed forever.
+      final variant = recodeHotelRoomTaxType(
+        Variant(
+          branchId: 'b1',
+          name: '204',
+          taxTyCd: 'B',
+          taxName: 'B',
+          taxPercentage: 18,
+        ),
+        'D',
+      );
+
+      expect(variant.taxTyCd, 'D');
+      expect(variant.taxName, 'D');
+      expect(variant.taxPercentage, 0);
+    });
+
+    test('a branch that became VAT-registered moves the room to B', () {
+      final variant = recodeHotelRoomTaxType(
+        Variant(branchId: 'b1', name: '204', taxTyCd: 'D', taxPercentage: 0),
+        'B',
+      );
+
+      expect(variant.taxTyCd, 'B');
+      expect(variant.taxPercentage, 18);
+    });
+
+    test('a room already on the right code is left alone', () {
+      final variant = recodeHotelRoomTaxType(
+        Variant(
+          branchId: 'b1',
+          name: '204',
+          taxTyCd: 'D',
+          taxName: 'TT',
+          taxPercentage: 3,
+        ),
+        'D',
+      );
+
+      // Tourism-tax name and rate from applyHotelRoomRraFields survive.
+      expect(variant.taxName, 'TT');
+      expect(variant.taxPercentage, 3);
+    });
+  });
+
   group('hotelRraRejectedRegistration', () {
     test('an RRA rejection is recognised so it is not retried forever', () {
       // registerVariantWithRraForAdd throws with RRA's own message when
@@ -259,6 +307,17 @@ void main() {
       final taxOff = ebm()..vatEnabled = false;
       expect(hotelBranchSupportsRra(taxOff), isFalse);
       expect(hotelBranchSupportsRra(ebm()..vatEnabled = null), isFalse);
+    });
+
+    test('an EBM branch that is not VAT-registered still files', () {
+      final ebmNoVat = ebm()
+        ..vatEnabled = false
+        ..ebmEnabled = true;
+      expect(hotelBranchSupportsRra(ebmNoVat), isTrue);
+    });
+
+    test('EBM switched off wins over VAT', () {
+      expect(hotelBranchSupportsRra(ebm()..ebmEnabled = false), isFalse);
     });
   });
 

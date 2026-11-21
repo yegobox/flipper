@@ -526,8 +526,9 @@ abstract final class HotelRoomRraService {
 
     // Rooms are exempt-or-VAT coded the same way AddRoomDialog codes them;
     // the 3% tourism tax rides on ttCatCd, not on taxTyCd.
-    final vatEnabled = business?.tinNumber != null && ebm.tinNumber != 0;
-    final taxTyCd = vatEnabled ? 'B' : 'D';
+    // VAT registration, not the TIN: an EBM branch that is not VAT-registered
+    // has a TIN too, and RRA rejects B from it.
+    final taxTyCd = ebm.vatEnabled == true ? 'B' : 'D';
 
     // Checked before anything is minted. This throw skips the rollback below,
     // so checking after left an orphan product and variant on every attempt:
@@ -553,7 +554,9 @@ abstract final class HotelRoomRraService {
 
     if (pending != null) {
       variant = applyHotelRoomRraFields(
-        variant: pending,
+        // The retry sends the code for the branch's VAT status now, not the
+        // one the earlier attempt was minted with.
+        variant: recodeHotelRoomTaxType(pending, taxTyCd),
         room: room,
         tourismTaxEnabled: tourismTax,
       );
