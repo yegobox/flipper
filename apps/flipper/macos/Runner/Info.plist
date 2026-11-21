@@ -30,6 +30,12 @@
 	<string>NSApplication</string>
 	<key>LSApplicationCategoryType</key>
 	<string>public.app-category.business</string>
+	<!-- Render with Skia, not Impeller. Flutter 3.47 always draws macOS text
+	     with Impeller's SDF glyph atlas, and that atlas gets corrupted: letters
+	     turn to noise and the screen flickers. Skia is the only opt-out.
+	     Re-test with this removed on every Flutter upgrade. -->
+	<key>FLTEnableImpeller</key>
+	<false/>
 	<key>FirebaseAutomaticScreenReportingEnabled</key>
 	<false/>
 	<key>NSAppTransportSecurity</key>
