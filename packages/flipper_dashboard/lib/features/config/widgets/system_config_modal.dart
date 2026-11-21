@@ -11,11 +11,11 @@ import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/providers/ebm_provider.dart';
 import 'package:flipper_models/providers/outer_variant_provider.dart';
-import 'package:flipper_models/view_models/setting_view_model.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/dialogs/AdminPinDialog.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
+import 'package:flipper_web/core/local_mode/local_mode.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -128,16 +128,33 @@ class _SystemConfigModalCardState extends ConsumerState<SystemConfigModalCard> {
     setState(() => _saved = false);
   }
 
+  /// Decides between the tax form and "contact support".
+  ///
+  /// Asks the server first: `isTaxEnabled` reads only this device's cached EBM
+  /// row, and `ebm()` is what refreshes that cache from Supabase. Gating on
+  /// the cache alone meant an EBM enabled on the server (by support, say)
+  /// never showed here, because the support view never fetched. The cache is
+  /// the fallback only when `ebm()` has nothing (offline, or no row).
   Future<void> _loadTaxEnabled() async {
     try {
-      final isTaxEnabledForBusiness = await ProxyService.strategy.isTaxEnabled(
-        businessId: ProxyService.box.getBusinessId()!,
-        branchId: ProxyService.box.getBranchId()!,
-      );
+      final branchId = ProxyService.box.getBranchId()!;
+      // No EBM in local mode, so there is nothing to ask the server.
+      final ebm = LocalMode.isOn
+          ? null
+          : await ProxyService.strategy.ebm(
+              branchId: branchId,
+              fetchRemote: true,
+            );
+      final isTaxEnabledForBusiness = ebm != null
+          ? ebm.vatEnabled == true
+          : await ProxyService.strategy.isTaxEnabled(
+              businessId: ProxyService.box.getBusinessId()!,
+              branchId: branchId,
+            );
       if (!mounted) return;
       setState(() => _isTaxEnabled = isTaxEnabledForBusiness);
       if (isTaxEnabledForBusiness) {
-        await _loadTaxData();
+        await _loadTaxData(ebm);
       }
     } catch (e, s) {
       talker.warning(s);
@@ -155,10 +172,8 @@ class _SystemConfigModalCardState extends ConsumerState<SystemConfigModalCard> {
     );
   }
 
-  Future<void> _loadTaxData() async {
-    final ebm = await ProxyService.strategy.ebm(
-      branchId: ProxyService.box.getBranchId()!,
-    );
+  /// Fills the form from [ebm], the row [_loadTaxEnabled] already fetched.
+  Future<void> _loadTaxData(Ebm? ebm) async {
     final serverUrl =
         ebm?.taxServerUrl ?? await ProxyService.box.getServerUrl();
 
