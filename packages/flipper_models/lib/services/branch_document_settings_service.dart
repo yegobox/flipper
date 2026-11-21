@@ -4,6 +4,7 @@ import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/models/branch_document_settings.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:supabase_models/brick/repository/storage.dart';
 
 /// Syncs document branding per branch via Ditto (`branch_document_settings`).
 ///
@@ -20,6 +21,9 @@ abstract final class BranchDocumentSettingsService {
   static const stampPlacementKey = 'docStampPlacement';
   static const stampWidthKey = 'docStampWidthMm';
   static const stampAspectRatioKey = 'docStampAspectRatio';
+  static const receiptPhoneKey = 'docReceiptPhone';
+  static const receiptEmailKey = 'docReceiptEmail';
+  static const receiptMessageKey = 'docReceiptMessage';
 
   /// Which branch the cached stamp above belongs to.
   ///
@@ -61,7 +65,52 @@ abstract final class BranchDocumentSettingsService {
         BranchDocumentSettings.maxStampWidthMm,
       ),
       stampAspectRatio: _readDouble(stampAspectRatioKey, fallback: 1),
+      receiptPhone: _readText(box, receiptPhoneKey),
+      receiptEmail: _readText(box, receiptEmailKey),
+      receiptMessage: _readText(box, receiptMessageKey),
     );
+  }
+
+  /// A cached text value, with `''` (how a cleared value is cached) as null.
+  static String? _readText(LocalStorage box, String key) {
+    final raw = box.readString(key: key)?.trim();
+    return (raw == null || raw.isEmpty) ? null : raw;
+  }
+
+  /// The branch's settings as Ditto has them, for an editor that is about to
+  /// write the whole document back. Reading the cache instead could hand back
+  /// defaults (cache not hydrated yet, or holding another branch) and the save
+  /// would then wipe the branch's stamp.
+  static Future<BranchDocumentSettings> loadForBranch(String branchId) async {
+    try {
+      final remote =
+          await (_sync.branchDocumentSettings(branchId: branchId)
+                  as Future<BranchDocumentSettings?>)
+              .timeout(const Duration(seconds: 5));
+      if (remote != null) return remote;
+    } catch (e) {
+      talker.warning('Branch document settings load failed: $e');
+    }
+    final cached = current();
+    return cached.branchId == branchId
+        ? cached
+        : BranchDocumentSettings(branchId: branchId);
+  }
+
+  /// Save [settings] for any branch. Only the active branch's cache is
+  /// refreshed; another branch's settings must not replace it.
+  static Future<bool> persistForBranch(BranchDocumentSettings settings) async {
+    final next = settings.copyWith(updatedAt: DateTime.now().toUtc());
+    if (next.branchId == ProxyService.box.getBranchId()) return persist(next);
+    try {
+      await (_sync.saveBranchDocumentSettings(next) as Future).timeout(
+        const Duration(seconds: 12),
+      );
+      return true;
+    } catch (e, s) {
+      talker.error('Branch document settings persist failed', e, s);
+      return false;
+    }
   }
 
   /// Stored as a string: [LocalStorage] has no double accessor, and rounding a
@@ -145,10 +194,9 @@ abstract final class BranchDocumentSettingsService {
   ) {
     final branchId = ProxyService.box.getBranchId();
     if (branchId == null) return Future.value(false);
-    final next = change(current()).copyWith(
-      branchId: branchId,
-      updatedAt: DateTime.now().toUtc(),
-    );
+    final next = change(
+      current(),
+    ).copyWith(branchId: branchId, updatedAt: DateTime.now().toUtc());
     return persist(next);
   }
 
@@ -185,10 +233,7 @@ abstract final class BranchDocumentSettingsService {
     // Stamped first: a cache that cannot say whose it is must read as absent.
     box.writeString(key: stampBranchKey, value: settings.branchId);
     box.writeBool(key: stampEnabledKey, value: settings.stampEnabled);
-    box.writeString(
-      key: stampImageKey,
-      value: settings.stampImageBase64 ?? '',
-    );
+    box.writeString(key: stampImageKey, value: settings.stampImageBase64 ?? '');
     box.writeString(
       key: stampPlacementKey,
       value: settings.stampPlacement.name,
@@ -200,6 +245,12 @@ abstract final class BranchDocumentSettingsService {
     box.writeString(
       key: stampAspectRatioKey,
       value: settings.stampAspectRatio.toString(),
+    );
+    box.writeString(key: receiptPhoneKey, value: settings.receiptPhone ?? '');
+    box.writeString(key: receiptEmailKey, value: settings.receiptEmail ?? '');
+    box.writeString(
+      key: receiptMessageKey,
+      value: settings.receiptMessage ?? '',
     );
   }
 }

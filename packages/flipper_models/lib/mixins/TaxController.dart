@@ -16,6 +16,7 @@ import 'package:uuid/uuid.dart';
 import 'package:flipper_models/helpers/deferred_sale_receipt_persist.dart';
 import 'package:receipt/print.dart';
 import 'package:flipper_models/helpers/escpos_receipt.dart';
+import 'package:flipper_models/services/branch_document_settings_service.dart';
 import 'package:flipper_services/builtin_printer/builtin_printer_service.dart';
 import 'package:printing/printing.dart';
 
@@ -616,6 +617,11 @@ class TaxController<OBJ> {
       skipPresentation: skipPresentation,
       deferPresentation: deferPresentation,
     );
+    // Tax Settings → Receipt header: the branch's own phone, email and welcome
+    // line, falling back to the business's details.
+    final header = BranchDocumentSettingsService.current();
+    final receiptTel = header.receiptPhoneOr(business?.phoneNumber);
+    final receiptEmail = header.receiptEmailOr(business?.email);
 
     await Print().print(
       vatEnabled: ebm.vatEnabled ?? false,
@@ -655,12 +661,13 @@ class TaxController<OBJ> {
       totRcptNo: receipt.totRcptNo ?? 0,
       brandName: business.name!,
       brandAddress: business.adrs ?? "",
-      brandTel: business.phoneNumber ?? "",
+      brandTel: receiptTel,
       brandTIN: (ebm.tinNumber).toString(),
       brandDescription: business.name!,
       brandFooter: business.name!,
       emails: [business.email ?? ""],
-      brandEmail: business.email,
+      brandEmail: receiptEmail,
+      welcomeMessage: header.receiptWelcomeLine,
       customerTin: customerTin,
       receiptType: receiptType,
       customerName: customerNameForPrint,
@@ -685,9 +692,10 @@ class TaxController<OBJ> {
         totalTax: totalTax,
         brandName: business.name!,
         brandAddress: business.adrs ?? "",
-        brandTel: business.phoneNumber ?? "",
+        brandTel: receiptTel,
         brandTIN: (ebm.tinNumber).toString(),
-        brandEmail: business.email,
+        brandEmail: receiptEmail,
+        welcomeMessage: header.receiptWelcomeLine,
         customerName: customerNameForPrint,
         customerTin: customerTin,
         customerPhone: customerPhone,
@@ -757,6 +765,9 @@ class TaxController<OBJ> {
         ? transaction.customerTin
         : ProxyService.box.customerTin();
     final whenCreated = transaction.lastPaymentDate ?? DateTime.now();
+    final header = BranchDocumentSettingsService.current();
+    final receiptTel = header.receiptPhoneOr(business.phoneNumber);
+    final receiptEmail = header.receiptEmailOr(business.email);
     final printOnBuiltin = _printsOnBuiltinPrinter(
       skipPresentation: false,
       deferPresentation: deferPresentation,
@@ -798,12 +809,13 @@ class TaxController<OBJ> {
       totRcptNo: 0,
       brandName: business.name ?? "",
       brandAddress: business.adrs ?? "",
-      brandTel: business.phoneNumber ?? "",
+      brandTel: receiptTel,
       brandTIN: business.tinNumber?.toString() ?? "",
       brandDescription: business.name ?? "",
       brandFooter: business.name ?? "",
       emails: [business.email ?? ""],
-      brandEmail: business.email,
+      brandEmail: receiptEmail,
+      welcomeMessage: header.receiptWelcomeLine,
       customerTin: customerTin,
       receiptType: TransactionReceptType.NS,
       customerName: customerNameForPrint,
@@ -829,9 +841,10 @@ class TaxController<OBJ> {
         totalTax: 0.toStringAsFixed(2),
         brandName: business.name ?? "",
         brandAddress: business.adrs ?? "",
-        brandTel: business.phoneNumber ?? "",
+        brandTel: receiptTel,
         brandTIN: business.tinNumber?.toString() ?? "",
-        brandEmail: business.email,
+        brandEmail: receiptEmail,
+        welcomeMessage: header.receiptWelcomeLine,
         customerName: customerNameForPrint,
         customerTin: customerTin,
         customerPhone: customerPhone,

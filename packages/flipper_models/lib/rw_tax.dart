@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'dart:developer';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/ebm_helper.dart';
+import 'package:flipper_models/helpers/rra_top_message.dart';
+import 'package:flipper_models/services/branch_document_settings_service.dart';
 import 'package:flipper_models/helpers/sale_exchange.dart'
     show markExchangeReturnSigned, notifyExchangeReturnSigned;
 import 'package:flutter/services.dart';
@@ -1629,14 +1631,14 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       (line) => (line['taxTyCd'] as String?)?.toUpperCase() == 'F',
     );
 
-    final topMessage = [
-      business?.name ?? 'Our Business',
-      business?.adrs?.isNotEmpty == true ? business!.adrs : '',
-      'TEL: ${business?.phoneNumber?.replaceAll("+", "") ?? '0780000000'}',
-      'Email: ${business?.email ?? 'info@yegobox.com'}',
-      'TIN: ${ebm?.tinNumber ?? '999909695'}',
-      'WELCOME TO OUR SHOP',
-    ].join('\n');
+    final topMessage = rraReceiptTopMessage(
+      header: BranchDocumentSettingsService.current(),
+      businessName: business?.name,
+      address: business?.adrs,
+      businessPhone: business?.phoneNumber,
+      businessEmail: business?.email,
+      tin: ebm?.tinNumber.toString(),
+    );
 
     talker.error("TopMessage: $topMessage");
     talker.error("TINN: ${ebm?.tinNumber}");

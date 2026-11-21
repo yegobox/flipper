@@ -3827,6 +3827,78 @@ abstract class FlipperAppLocalizations {
   /// **'No tax configurations found'**
   String get taxSettingsNoneFound;
 
+  /// No description provided for @receiptHeaderTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Receipt header'**
+  String get receiptHeaderTitle;
+
+  /// No description provided for @receiptHeaderSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Printed at the top of every receipt from this branch.'**
+  String get receiptHeaderSubtitle;
+
+  /// No description provided for @receiptHeaderMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'Your receipts are missing a phone number or email. Add them below.'**
+  String get receiptHeaderMissing;
+
+  /// No description provided for @receiptHeaderPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone number'**
+  String get receiptHeaderPhone;
+
+  /// No description provided for @receiptHeaderEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get receiptHeaderEmail;
+
+  /// No description provided for @receiptHeaderMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome message'**
+  String get receiptHeaderMessage;
+
+  /// No description provided for @receiptHeaderMessageHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Replaces \"WELCOME TO OUR SHOP\". Leave empty to keep it.'**
+  String get receiptHeaderMessageHelp;
+
+  /// No description provided for @receiptHeaderPhoneInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid phone number'**
+  String get receiptHeaderPhoneInvalid;
+
+  /// No description provided for @receiptHeaderEmailInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid email address'**
+  String get receiptHeaderEmailInvalid;
+
+  /// No description provided for @receiptHeaderSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save receipt header'**
+  String get receiptHeaderSave;
+
+  /// No description provided for @receiptHeaderSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Receipt header saved'**
+  String get receiptHeaderSaved;
+
+  /// No description provided for @receiptHeaderSaveError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save the receipt header. Try again.'**
+  String get receiptHeaderSaveError;
+
   /// Short suffix in the cart quantity field
   ///
   /// In en, this message translates to:
