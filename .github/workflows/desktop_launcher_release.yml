@@ -98,7 +98,7 @@ jobs:
       base: ${{ steps.plan.outputs.base }}
       prs: ${{ steps.plan.outputs.prs }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7.0.1
         with:
           ref: ${{ env.FOLD_OPEN_PRS == 'true' && 'main' || '' }}
           persist-credentials: false
@@ -144,7 +144,7 @@ jobs:
     runs-on: windows-latest
     timeout-minutes: 75
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7.0.1
         with:
           ref: ${{ needs.version.outputs.base || '' }}
           # The fold merges PR branches, so it needs their history.
@@ -254,7 +254,7 @@ jobs:
     runs-on: macos-14
     timeout-minutes: 90
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7.0.1
         with:
           ref: ${{ needs.version.outputs.base || '' }}
           # The fold merges PR branches, so it needs their history.
@@ -396,7 +396,7 @@ jobs:
     runs-on: ubuntu-22.04
     timeout-minutes: 60
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7.0.1
         with:
           ref: ${{ needs.version.outputs.base || '' }}
           # The fold merges PR branches, so it needs their history.
@@ -490,7 +490,7 @@ jobs:
     env:
       GH_TOKEN: ${{ github.token }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
       - name: Resolve version
