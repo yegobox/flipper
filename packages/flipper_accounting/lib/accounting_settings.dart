@@ -12,10 +12,17 @@ import 'package:flipper_accounting/accounting_ditto_store.dart';
 ///   books output VAT on sales made from [vatRegisteredChangedAt] on.
 ///
 /// EBM branches (`ebm.vatEnabled`) always book VAT, whatever this says.
+///
+/// [ebmVatTyCd] is RRA's VAT type for the business's TIN, as the EBM server
+/// last returned it from `initializer/selectInitInfo` (written by
+/// [AccountingSettingsStore.recordEbmVatType]). It is recorded only: nothing
+/// decides VAT from it until RRA's code meanings are confirmed.
 class AccountingSettings {
   const AccountingSettings({
     this.vatRegistered = false,
     this.vatRegisteredChangedAt,
+    this.ebmVatTyCd,
+    this.ebmVatTyCdAt,
   });
 
   static const collection = 'accounting_settings';
@@ -24,6 +31,8 @@ class AccountingSettings {
 
   final bool vatRegistered;
   final DateTime? vatRegisteredChangedAt;
+  final String? ebmVatTyCd;
+  final DateTime? ebmVatTyCdAt;
 
   factory AccountingSettings.fromRow(Map<String, dynamic>? row) {
     if (row == null) return const AccountingSettings();
@@ -35,6 +44,10 @@ class AccountingSettings {
       vatRegisteredChangedAt: changed == null
           ? null
           : DateTime.tryParse(changed.toString()),
+      ebmVatTyCd: row['ebmVatTyCd']?.toString(),
+      ebmVatTyCdAt: row['ebmVatTyCdAt'] == null
+          ? null
+          : DateTime.tryParse(row['ebmVatTyCdAt'].toString()),
     );
   }
 }
@@ -126,5 +139,41 @@ class AccountingSettingsStore {
         'vat_registered_changed_at': at,
       },
     );
+  }
+
+  /// Records RRA's VAT type for the business, from an EBM initialisation
+  /// (`selectInitInfo` → `vatTyCd`), with the TIN and branch it came from.
+  /// Only these fields are written; [AccountingSettings.vatRegistered] is
+  /// left alone.
+  ///
+  /// Never throws: initialising the EBM must not fail over a note. Returns
+  /// whether it was saved (false with no code, no business or no store).
+  Future<bool> recordEbmVatType({
+    required String businessId,
+    required String? vatTyCd,
+    required String tin,
+    required String bhfId,
+    DateTime? now,
+  }) async {
+    final code = vatTyCd?.trim();
+    if (code == null || code.isEmpty || businessId.isEmpty) return false;
+    try {
+      if (!_ditto.isReady()) return false;
+      await _ditto.upsertPartyDoc(
+        AccountingSettings.collection,
+        AccountingSettings.docId(businessId),
+        {
+          'businessId': businessId,
+          'business_id': businessId,
+          'ebmVatTyCd': code,
+          'ebmVatTyCdTin': tin,
+          'ebmVatTyCdBhfId': bhfId,
+          'ebmVatTyCdAt': (now ?? DateTime.now()).toUtc().toIso8601String(),
+        },
+      );
+      return true;
+    } catch (_) {
+      return false;
+    }
   }
 }

@@ -33,9 +33,7 @@ class BusinessInfoResponse {
 class BusinessInfoData {
   final BusinessInfo info;
 
-  BusinessInfoData({
-    required this.info,
-  });
+  BusinessInfoData({required this.info});
 
   factory BusinessInfoData.fromJson(Map<String, dynamic> json) {
     return BusinessInfoData(
@@ -44,9 +42,7 @@ class BusinessInfoData {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'info': info.toJson(),
-    };
+    return {'info': info.toJson()};
   }
 }
 
@@ -78,7 +74,10 @@ class BusinessInfo {
   final String? lastTrainInvcNo; // Can be null
   final String? lastProfrmInvcNo; // Can be null
   final String? lastCopyInvcNo; // Can be null
-  final int vatTyCd;
+
+  /// RRA's VAT type for this TIN. The EBM has sent it as a number, a string
+  /// and null, so it is kept as text (`"1"`), or null when absent.
+  final String? vatTyCd;
 
   BusinessInfo({
     required this.tin,
@@ -108,7 +107,7 @@ class BusinessInfo {
     this.lastTrainInvcNo,
     this.lastProfrmInvcNo,
     this.lastCopyInvcNo,
-    required this.vatTyCd,
+    this.vatTyCd,
   });
 
   factory BusinessInfo.fromJson(Map<String, dynamic> json) {
@@ -140,7 +139,7 @@ class BusinessInfo {
       lastTrainInvcNo: json['lastTrainInvcNo'] as String?,
       lastProfrmInvcNo: json['lastProfrmInvcNo'] as String?,
       lastCopyInvcNo: json['lastCopyInvcNo'] as String?,
-      vatTyCd: json['vatTyCd'] as int,
+      vatTyCd: json['vatTyCd']?.toString(),
     );
   }
 
