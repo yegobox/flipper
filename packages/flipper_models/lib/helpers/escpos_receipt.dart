@@ -27,7 +27,6 @@ class EscPosReceipt {
     required this.saleDate,
     required this.whenCreated,
     this.brandEmail,
-    this.welcomeMessage,
     this.customerTin,
     this.customerPhone,
     this.originalInvoiceNumber,
@@ -55,10 +54,6 @@ class EscPosReceipt {
   final String brandTel;
   final String brandTIN;
   final String? brandEmail;
-
-  /// The branch's own line under the header (Tax Settings → Receipt header).
-  /// Null or blank prints [defaultWelcomeMessage].
-  final String? welcomeMessage;
   final String customerName;
   final String? customerTin;
   final String? customerPhone;
@@ -101,13 +96,6 @@ class EscPosReceipt {
     return p.bytes();
   }
 
-  static const String defaultWelcomeMessage = 'WELCOME TO OUR SHOP';
-
-  String get _welcomeLine {
-    final own = welcomeMessage?.trim() ?? '';
-    return own.isEmpty ? defaultWelcomeMessage : own;
-  }
-
   bool get _isRefund =>
       receiptType == 'NR' || receiptType == 'TR' || receiptType == 'CR';
 
@@ -123,16 +111,14 @@ class EscPosReceipt {
     if (brandAddress.trim().isNotEmpty) {
       p.wrapped(brandAddress, align: EscPosAlign.center);
     }
-    if (brandTel.trim().isNotEmpty) {
-      p.wrapped('TEL: ${brandTel.normalizePhone()}');
-    }
+    p.wrapped('TEL: ${brandTel.normalizePhone()}');
     final email = brandEmail?.trim() ?? '';
     if (email.isNotEmpty) {
       p.wrapped('EMAIL: $email');
     }
     p
       ..wrapped('TIN: $brandTIN')
-      ..wrapped(_welcomeLine, align: EscPosAlign.center)
+      ..text('WELCOME TO OUR SHOP', align: EscPosAlign.center)
       ..rule();
 
     if (receiptType == 'TS' || receiptType == 'TR') {

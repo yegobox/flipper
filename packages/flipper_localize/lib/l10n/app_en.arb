@@ -2343,18 +2343,6 @@
     "taxSettingsRequired": "Required",
     "taxSettingsRange": "Must be 0-100",
     "taxSettingsNoneFound": "No tax configurations found",
-    "receiptHeaderTitle": "Receipt header",
-    "receiptHeaderSubtitle": "Printed at the top of every receipt from this branch.",
-    "receiptHeaderMissing": "Your receipts are missing a phone number or email. Add them below.",
-    "receiptHeaderPhone": "Phone number",
-    "receiptHeaderEmail": "Email",
-    "receiptHeaderMessage": "Welcome message",
-    "receiptHeaderMessageHelp": "Replaces \"WELCOME TO OUR SHOP\". Leave empty to keep it.",
-    "receiptHeaderPhoneInvalid": "Enter a valid phone number",
-    "receiptHeaderEmailInvalid": "Enter a valid email address",
-    "receiptHeaderSave": "Save receipt header",
-    "receiptHeaderSaved": "Receipt header saved",
-    "receiptHeaderSaveError": "Could not save the receipt header. Try again.",
     "cartQtySuffix": "qty",
     "@cartQtySuffix": {
         "description": "Short suffix in the cart quantity field"

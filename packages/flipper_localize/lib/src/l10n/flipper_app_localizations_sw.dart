@@ -2097,46 +2097,6 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   String get taxSettingsNoneFound => 'Hakuna mipangilio ya kodi iliyopatikana';
 
   @override
-  String get receiptHeaderTitle => 'Kichwa cha risiti';
-
-  @override
-  String get receiptHeaderSubtitle =>
-      'Huchapishwa juu ya kila risiti ya tawi hili.';
-
-  @override
-  String get receiptHeaderMissing =>
-      'Risiti zako hazina namba ya simu au barua pepe. Ziongeze hapa chini.';
-
-  @override
-  String get receiptHeaderPhone => 'Namba ya simu';
-
-  @override
-  String get receiptHeaderEmail => 'Barua pepe';
-
-  @override
-  String get receiptHeaderMessage => 'Ujumbe wa kukaribisha';
-
-  @override
-  String get receiptHeaderMessageHelp =>
-      'Huchukua nafasi ya \"WELCOME TO OUR SHOP\". Acha tupu ili kuibakiza.';
-
-  @override
-  String get receiptHeaderPhoneInvalid => 'Weka namba ya simu sahihi';
-
-  @override
-  String get receiptHeaderEmailInvalid => 'Weka barua pepe sahihi';
-
-  @override
-  String get receiptHeaderSave => 'Hifadhi kichwa cha risiti';
-
-  @override
-  String get receiptHeaderSaved => 'Kichwa cha risiti kimehifadhiwa';
-
-  @override
-  String get receiptHeaderSaveError =>
-      'Imeshindwa kuhifadhi kichwa cha risiti. Jaribu tena.';
-
-  @override
   String get cartQtySuffix => 'idadi';
 
   @override

@@ -8,6 +8,7 @@ import 'package:flipper_models/AppInitializer.dart';
 import 'package:flipper_models/helperModels/startup_route_log.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/services/ebm_cache_refresh.dart';
 import 'package:flipper_models/services/payment_verification_navigator.dart';
 import 'package:flipper_models/services/payment_verification_service.dart';
 import 'package:flipper_models/services/internet_connection_service.dart';
@@ -205,6 +206,15 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
       await appService.appInit().timeout(const Duration(seconds: 30));
       debugPrint('🚀 [StartupViewModel] appService.appInit() complete');
       mark('appInit');
+      // Pull the server's EBM row into the device cache that Pay reads, so
+      // an EBM enabled on the server reaches this device. Never awaited.
+      unawaited(
+        EbmCacheRefresh.refreshOnce(
+          branchId: ProxyService.box.getBranchId(),
+          localMode: LocalMode.isOn,
+          fetch: (branchId) => ProxyService.strategy.ebm(branchId: branchId),
+        ),
+      );
       _progress = 0.8;
       notifyListeners();
 

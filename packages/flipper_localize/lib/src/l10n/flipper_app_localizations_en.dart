@@ -2085,46 +2085,6 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
   String get taxSettingsNoneFound => 'No tax configurations found';
 
   @override
-  String get receiptHeaderTitle => 'Receipt header';
-
-  @override
-  String get receiptHeaderSubtitle =>
-      'Printed at the top of every receipt from this branch.';
-
-  @override
-  String get receiptHeaderMissing =>
-      'Your receipts are missing a phone number or email. Add them below.';
-
-  @override
-  String get receiptHeaderPhone => 'Phone number';
-
-  @override
-  String get receiptHeaderEmail => 'Email';
-
-  @override
-  String get receiptHeaderMessage => 'Welcome message';
-
-  @override
-  String get receiptHeaderMessageHelp =>
-      'Replaces \"WELCOME TO OUR SHOP\". Leave empty to keep it.';
-
-  @override
-  String get receiptHeaderPhoneInvalid => 'Enter a valid phone number';
-
-  @override
-  String get receiptHeaderEmailInvalid => 'Enter a valid email address';
-
-  @override
-  String get receiptHeaderSave => 'Save receipt header';
-
-  @override
-  String get receiptHeaderSaved => 'Receipt header saved';
-
-  @override
-  String get receiptHeaderSaveError =>
-      'Could not save the receipt header. Try again.';
-
-  @override
   String get cartQtySuffix => 'qty';
 
   @override

@@ -1,22 +1,19 @@
-import 'package:flipper_dashboard/features/branch_location/branch_services.dart';
-import 'package:flipper_dashboard/features/receipt_header/receipt_header_section.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-/// Tax rates and the receipt header (phone, email, welcome line) for a branch.
-class TaxSettingsModal extends ConsumerStatefulWidget {
+class TaxSettingsModal extends StatefulWidget {
   final String branchId;
 
   const TaxSettingsModal({Key? key, required this.branchId}) : super(key: key);
 
   @override
-  ConsumerState<TaxSettingsModal> createState() => _TaxSettingsModalState();
+  State<TaxSettingsModal> createState() => _TaxSettingsModalState();
 }
 
-class _TaxSettingsModalState extends ConsumerState<TaxSettingsModal> {
+class _TaxSettingsModalState extends State<TaxSettingsModal> {
   late Future<List<Configurations>> _taxConfigsFuture;
   final Map<String, bool> _editingStates = {};
   final Map<String, TextEditingController> _controllers = {};
@@ -32,10 +29,7 @@ class _TaxSettingsModalState extends ConsumerState<TaxSettingsModal> {
   }
 
   void _loadTaxConfigurations() {
-    _taxConfigsFuture = ref
-        .read(branchServicesProvider)
-        .strategy
-        .taxes(branchId: widget.branchId);
+    _taxConfigsFuture = ProxyService.strategy.taxes(branchId: widget.branchId);
   }
 
   Future<void> _saveTaxConfiguration(
@@ -49,10 +43,10 @@ class _TaxSettingsModalState extends ConsumerState<TaxSettingsModal> {
       });
 
       final newTaxPercentage = double.parse(newTaxValue);
-      await ref
-          .read(branchServicesProvider)
-          .strategy
-          .saveTax(configId: configId, taxPercentage: newTaxPercentage);
+      await ProxyService.strategy.saveTax(
+        configId: configId,
+        taxPercentage: newTaxPercentage,
+      );
 
       if (mounted) {
         setState(() {
@@ -171,8 +165,8 @@ class _TaxSettingsModalState extends ConsumerState<TaxSettingsModal> {
   Widget build(BuildContext context) {
     return Dialog(
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 460),
-        child: SingleChildScrollView(
+        constraints: const BoxConstraints(maxWidth: 400),
+        child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -186,8 +180,6 @@ class _TaxSettingsModalState extends ConsumerState<TaxSettingsModal> {
                 ),
               ),
               const SizedBox(height: 16),
-              ReceiptHeaderSection(branchId: widget.branchId),
-              const Divider(height: 32),
               if (_statusMessage != null)
                 Container(
                   width: double.infinity,
