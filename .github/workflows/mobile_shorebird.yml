@@ -33,7 +33,7 @@ on:
       - main
 
 env:
-  FLUTTER_VERSION: "3.47.9" # keep in step with release.yml
+  FLUTTER_VERSION: "3.50.1" # keep in step with release.yml
   SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
 
 jobs:

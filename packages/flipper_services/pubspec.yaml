@@ -54,7 +54,7 @@ dependencies:
   timezone: ^0.11.0
   connectivity_plus: ^7.0.0
   get_it: ^8.0.3
-  injectable: ^2.5.0
+  injectable: ^3.0.0
   flipper_routing: ^1.0.0
   flipper_analytics: any
   flipper_models: any
@@ -104,7 +104,7 @@ dependency_overrides:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  injectable_generator: ^2.6.0
+  injectable_generator: ^3.1.3
   build_runner: ^2.4.15
   test:
   mocktail: ^1.0.4

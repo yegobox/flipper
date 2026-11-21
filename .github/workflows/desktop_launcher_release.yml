@@ -74,12 +74,12 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  FLUTTER_VERSION: "3.47.9" # keep in step with release.yml
+  FLUTTER_VERSION: "3.50.1" # keep in step with release.yml
   MANIFEST_TAG: launcher-manifest
   # A push has no inputs: stable, every platform. The open-PR beta
   # (workflow_run) is Windows only.
   # Not "CHANNEL": subosito/flutter-action's setup.sh reads $CHANNEL as the
-  # Flutter SDK channel, so CHANNEL=beta made it look for 3.47.9 on Flutter's
+  # Flutter SDK channel, so CHANNEL=beta made it look for 3.50.1 on Flutter's
   # beta channel and every beta build failed before it started.
   LAUNCHER_CHANNEL: ${{ inputs.channel || (github.event_name == 'workflow_run' && 'beta') || 'stable' }}
   PLATFORMS: ${{ inputs.platforms || (github.event_name == 'workflow_run' && 'windows') || 'windows,macos,linux' }}

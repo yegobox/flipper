@@ -1,6 +1,6 @@
 # Flutter version
 
-Flipper builds with **Flutter 3.47.9** (Dart 3.13.7). Every pipeline uses this one version, so the version that tests run on is the version that ships.
+Flipper builds with **Flutter 3.50.1** (Dart 3.14.0). Every pipeline uses this one version, so the version that tests run on is the version that ships.
 
 ## Where it is pinned
 
@@ -35,9 +35,10 @@ git ls-remote https://github.com/shorebirdtech/flutter.git | grep -oE 'flutter_r
 1. Pick a version that Shorebird supports and that has at least one patch release (`x.y.1` or later).
 2. Look up its real Dart version in `https://storage.googleapis.com/flutter_infra_release/releases/releases_macos.json` (`dart_sdk_version`). Flutter's own `pubspec.yaml` lists only a minimum Dart version, not the one it ships with.
 3. Change every pin in the table above.
-4. Run `flutter pub get`, not `upgrade`, and check that every change in `apps/flipper/pubspec.lock` comes from the SDK.
+4. Run `melos bootstrap`, not `upgrade`, and check that every change in `apps/flipper/pubspec.lock` comes from the SDK.
+   - A new Flutter pins a new `test_api`, and `package:test` versions accept a pinned `test_api` only with a recent analyzer. If a package with both `test` and a code generator stops resolving, the generators have to move. For 3.50.1 that meant `injectable`/`injectable_generator` 3 and analyzer `>=10 <15` in the Brick fork (yegobox/brick#2) and `brick_ditto_generators`.
+   - Then run `dart run build_runner build` in `supabase_models` and `flipper_services`. The output must be unchanged. If a generator compares an annotation by `element.displayName`, it breaks silently: newer analyzers name an unnamed constructor `Supabase.new`, not `Supabase`. Compare the enclosing class name instead.
 5. Refresh the analyzer baseline: run `quality.yml` manually with `refresh_baseline: true` and commit the `analysis-baseline` artifact (see `docs/quality_gates.md`).
-6. Re-apply `scripts/patch_dwds_timeout.sh`. A new SDK undoes the local web-debugging patch.
 
 ## Intel Macs
 

@@ -20,47 +20,19 @@ Only the *debugger attach* fails. The app itself is fine.
 
 ### Cause
 
-`dwds` gives Chrome 4 attempts x 5s = 20s to answer the Chrome DevTools
-Protocol `Debugger.enable` call:
-
-```dart
-// dwds/lib/src/debugging/webkit_debugger.dart
-var attempts = 3;
-while (true) {
-  try {
-    await _wipDebugger.enable().timeout(const Duration(seconds: 5));
-    return;
-  } on TimeoutException {
-    if (attempts-- == 0) rethrow;
-  }
-}
-```
-
-DDC emits one JS module per library, and `flipper_web` / `flipper_hr` resolve
-roughly 378 packages. `Debugger.enable` makes Chrome report every parsed script,
-and it cannot finish that inside 20s. Upstream acknowledges the race in a TODO
-on the same function.
+Before Flutter 3.50.1, `dwds` gave Chrome 4 attempts x 5s = 20s to answer the
+Chrome DevTools Protocol `Debugger.enable` call. DDC emits one JS module per
+library, and `flipper_web` / `flipper_hr` resolve roughly 378 packages.
+`Debugger.enable` makes Chrome report every parsed script, and it could not
+finish that inside 20s.
 
 ### Fix
 
-```sh
-scripts/patch_dwds_timeout.sh
-```
-
-Idempotent. It finds whichever dwds your `flutter_tools` resolves (it does not
-hardcode a version), raises the timeout to 60s, backs up the original beside it
-as `webkit_debugger.dart.orig`, and rebuilds `flutter_tools.snapshot` — that
-rebuild is required, because dwds is compiled *into* the snapshot.
-
-```sh
-scripts/patch_dwds_timeout.sh --check    # is it applied on this machine?
-scripts/patch_dwds_timeout.sh --revert   # restore the original
-DWDS_ENABLE_TIMEOUT=120 scripts/patch_dwds_timeout.sh   # allow even longer
-```
-
-**This patch is not permanent.** It lives in `~/.pub-cache`, which is not in
-git, so it is undone by `flutter upgrade`, `dart pub cache repair`, a Flutter
-bump that moves dwds to a new version, or a new machine. Re-run the script.
+Fixed upstream in dwds 27.2.1, which Flutter 3.50.1 ships: it now waits up to
+3 minutes and resends `Debugger.enable` every 5s. Up to 3.47.9 we patched the
+timeout in `~/.pub-cache` with `scripts/patch_dwds_timeout.sh`. That script and
+its CI guard were removed with the 3.50.1 bump. If you see this symptom, check
+`flutter --version` first.
 
 ### What is NOT the cause
 
@@ -69,7 +41,7 @@ High CPU load. This was tested and ruled out: a run failed at load average 33
 changes only compile time — 415.8s busy versus 193.2s quiet. It does not decide
 the attach. Do not spend time chasing it.
 
-### If you cannot patch
+### If it still fails
 
 `flutter build web --release` and serve `build/web` statically. No DWDS, so no
 attach problem — but no debugger either. Note that `python3 -m http.server` has
@@ -111,15 +83,3 @@ what the boot smoke is for.
 
 Measure `<flutter-view>`, not `<flt-glass-pane>`: the glass pane is a shadow
 host whose own bounding rect is 0x0 even on a perfectly healthy app.
-
-### The `dwds-guard` job
-
-Web release builds do not use dwds, so this never blocks shipping. It runs
-`scripts/patch_dwds_timeout.sh --ci`, which checks that the patch *still
-applies* — not that it is applied, since CI always has a pristine pub-cache. It
-fails when the resolved dwds version drifts from `EXPECTED_DWDS` in the script,
-so a Flutter bump tells you immediately instead of someone rediscovering the
-20s timeout mid-debug.
-
-When it fails: re-run the script locally, confirm `flutter run -d chrome`
-attaches for `apps/flipper_web`, then bump `EXPECTED_DWDS` and commit.
