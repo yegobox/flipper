@@ -34,7 +34,7 @@ void main() {
   late _MockClient client;
 
   setUpAll(() {
-    registerFallbackValue(Uri.parse(_taxUrl));
+    registerFallbackValue(http.Request('GET', Uri.parse(_taxUrl)));
   });
 
   setUp(() async {
@@ -84,10 +84,13 @@ void main() {
     taxServerTimeout: const Duration(milliseconds: 50),
   );
 
+  http.StreamedResponse streamed(int statusCode) =>
+      http.StreamedResponse(Stream.value(const <int>[]), statusCode);
+
   void answer(int statusCode) {
     when(
-      () => client.get(any(), headers: any(named: 'headers')),
-    ).thenAnswer((_) async => http.Response('', statusCode));
+      () => client.send(any()),
+    ).thenAnswer((_) async => streamed(statusCode));
   }
 
   for (final code in [200, 302, 404]) {
@@ -117,7 +120,7 @@ void main() {
 
   test('a network error shows the banner', () async {
     when(
-      () => client.get(any(), headers: any(named: 'headers')),
+      () => client.send(any()),
     ).thenThrow(http.ClientException('connection refused'));
     final s = status();
 
@@ -127,10 +130,8 @@ void main() {
   });
 
   test('a request past the timeout shows the banner', () async {
-    final never = Completer<http.Response>();
-    when(
-      () => client.get(any(), headers: any(named: 'headers')),
-    ).thenAnswer((_) => never.future);
+    final never = Completer<http.StreamedResponse>();
+    when(() => client.send(any())).thenAnswer((_) => never.future);
     final s = status();
 
     await s.checkTaxServerStatus();
@@ -139,26 +140,48 @@ void main() {
   });
 
   test('a check in flight makes the next one a no-op', () async {
-    final pending = Completer<http.Response>();
-    when(
-      () => client.get(any(), headers: any(named: 'headers')),
-    ).thenAnswer((_) => pending.future);
+    final pending = Completer<http.StreamedResponse>();
+    when(() => client.send(any())).thenAnswer((_) => pending.future);
     final s = StatusAppBarForWindowsAndWeb(httpClient: client);
 
     final first = s.checkTaxServerStatus();
     // Let the first check reach its (hung) request.
     await pumpEventQueue();
     await s.checkTaxServerStatus();
-    verify(() => client.get(any(), headers: any(named: 'headers'))).called(1);
+    verify(() => client.send(any())).called(1);
 
-    pending.complete(http.Response('', 302));
+    pending.complete(streamed(302));
     await first;
 
     // Once it lands, the next tick probes again.
     answer(503);
     await s.checkTaxServerStatus();
-    verify(() => client.get(any(), headers: any(named: 'headers'))).called(1);
+    verify(() => client.send(any())).called(1);
     expect(s.statusText.value, _downMsg);
+  });
+
+  test('a 302 counts as up even when its target is unreachable', () async {
+    // Following the redirect would land on a host that refuses the
+    // connection; the probe must judge the tax server's own answer.
+    when(() => client.send(any())).thenAnswer((invocation) async {
+      final request = invocation.positionalArguments.single as http.BaseRequest;
+      if (request.followRedirects) {
+        throw http.ClientException('redirect target refused the connection');
+      }
+      return streamed(302);
+    });
+    final s = status();
+    s.statusText.value = _downMsg;
+
+    await s.checkTaxServerStatus();
+
+    expect(s.statusText.value, '');
+    final sent =
+        verify(() => client.send(captureAny())).captured.single
+            as http.BaseRequest;
+    expect(sent.followRedirects, isFalse);
+    expect(sent.method, 'GET');
+    expect(sent.url, Uri.parse(_taxUrl));
   });
 
   test('without an injected client it makes and closes its own', () async {

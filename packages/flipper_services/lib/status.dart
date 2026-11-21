@@ -18,7 +18,8 @@ const taxServerProbeTimeout = Duration(seconds: 8);
 ///
 /// Any HTTP response means it is up: a VSDC's base URL answers 302 or 404 by
 /// design, so only 200 used to count and the banner cried wolf. Down means a
-/// network error, a timeout, or a gateway error.
+/// network error, a timeout, or a gateway error. Redirects are not followed:
+/// the server answering is what counts, not wherever it points.
 Future<bool> taxServerAnswers(
   String url, {
   http.Client? client,
@@ -26,7 +27,11 @@ Future<bool> taxServerAnswers(
 }) async {
   final httpClient = client ?? http.Client();
   try {
-    final response = await httpClient.get(Uri.parse(url)).timeout(timeout);
+    final request = http.Request('GET', Uri.parse(url))
+      ..followRedirects = false;
+    final response = await httpClient.send(request).timeout(timeout);
+    // Only the status matters: drop the body instead of downloading it.
+    await response.stream.listen((_) {}).cancel();
     return !taxServerGatewayDownCodes.contains(response.statusCode);
   } catch (_) {
     return false;
