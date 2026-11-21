@@ -76,6 +76,10 @@ class SystemConfigModalCard extends ConsumerStatefulWidget {
 
 class _SystemConfigModalCardState extends ConsumerState<SystemConfigModalCard> {
   bool _isTaxEnabled = false;
+
+  /// False until [_loadTaxEnabled] has an answer, so the body shows neither
+  /// the tax form nor "contact support" while the server lookup runs.
+  bool _taxStateLoaded = false;
   bool _taxDataLoaded = false;
   bool _isSaving = false;
   bool _saved = false;
@@ -152,12 +156,17 @@ class _SystemConfigModalCardState extends ConsumerState<SystemConfigModalCard> {
               branchId: branchId,
             );
       if (!mounted) return;
-      setState(() => _isTaxEnabled = isTaxEnabledForBusiness);
+      setState(() {
+        _isTaxEnabled = isTaxEnabledForBusiness;
+        _taxStateLoaded = true;
+      });
       if (isTaxEnabledForBusiness) {
         await _loadTaxData(ebm);
       }
     } catch (e, s) {
       talker.warning(s);
+      // No answer: fall back to "contact support", as before.
+      if (mounted) setState(() => _taxStateLoaded = true);
     }
   }
 
@@ -406,7 +415,9 @@ class _SystemConfigModalCardState extends ConsumerState<SystemConfigModalCard> {
                       SystemConfigTokens.cardPaddingH,
                       8,
                     ),
-                    child: _isTaxEnabled
+                    child: !_taxStateLoaded
+                        ? const _TaxStateLoading()
+                        : _isTaxEnabled
                         ? _buildTaxEnabledBody(model)
                         : const _SupportBody(),
                   ),
@@ -514,6 +525,29 @@ class _SystemConfigModalCardState extends ConsumerState<SystemConfigModalCard> {
             ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Shown while the dialog asks the server whether this branch has EBM.
+class _TaxStateLoading extends StatelessWidget {
+  const _TaxStateLoading();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Padding(
+      key: Key('systemConfigTaxStateLoading'),
+      padding: EdgeInsets.symmetric(vertical: 48),
+      child: Center(
+        child: SizedBox(
+          width: 28,
+          height: 28,
+          child: CircularProgressIndicator(
+            strokeWidth: 2.5,
+            color: SystemConfigTokens.accent,
+          ),
+        ),
       ),
     );
   }

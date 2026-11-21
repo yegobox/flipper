@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flipper_dashboard/features/config/widgets/support_section.dart';
 import 'package:flipper_dashboard/features/config/widgets/system_config_modal.dart';
 import 'package:flipper_localize/flipper_localize.dart';
@@ -81,7 +83,7 @@ void main() {
 
   tearDown(() => LocalMode.debugReset());
 
-  Future<void> pumpCard(WidgetTester tester) async {
+  Future<void> pumpCard(WidgetTester tester, {bool settle = true}) async {
     tester.view.physicalSize = const Size(1400, 1800);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
@@ -95,8 +97,10 @@ void main() {
         ),
       ),
     );
-    await tester.pumpAndSettle();
+    if (settle) await tester.pumpAndSettle();
   }
+
+  final loading = find.byKey(const Key('systemConfigTaxStateLoading'));
 
   testWidgets(
     'a server-side enable shows the tax form over a stale cached "off"',
@@ -170,5 +174,49 @@ void main() {
         fetchRemote: any(named: 'fetchRemote'),
       ),
     );
+  });
+
+  testWidgets(
+    'shows a spinner, not support or the form, until the server answers',
+    (tester) async {
+      final lookup = Completer<Ebm?>();
+      stubCachedTaxEnabled(false);
+      when(
+        () => env.mockDbSync.ebm(
+          branchId: any(named: 'branchId'),
+          fetchRemote: any(named: 'fetchRemote'),
+        ),
+      ).thenAnswer((_) => lookup.future);
+
+      await pumpCard(tester, settle: false);
+      await tester.pump();
+
+      expect(loading, findsOneWidget);
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.byType(SupportSection), findsNothing);
+      expect(find.byType(Form), findsNothing);
+
+      lookup.complete(serverEbm(vatEnabled: true));
+      await tester.pumpAndSettle();
+
+      expect(loading, findsNothing);
+      expect(find.byType(Form), findsOneWidget);
+      expect(find.byType(SupportSection), findsNothing);
+    },
+  );
+
+  testWidgets('a failed lookup ends on support, not a spinner', (tester) async {
+    stubCachedTaxEnabled(false);
+    when(
+      () => env.mockDbSync.ebm(
+        branchId: any(named: 'branchId'),
+        fetchRemote: any(named: 'fetchRemote'),
+      ),
+    ).thenThrow(StateError('boom'));
+
+    await pumpCard(tester);
+
+    expect(loading, findsNothing);
+    expect(find.byType(SupportSection), findsOneWidget);
   });
 }
