@@ -22,12 +22,14 @@
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 
-hits=$(grep -rnE '(^|[^A-Za-z0-9_])Ink(\.image)?\(' \
-  --include='*.dart' packages apps 2>/dev/null |
-  grep -v '/test/' |
-  grep -v '\.g\.dart:' |
-  grep -v '/build/' |
-  grep -v '/\.dart_tool/' || true)
+# Paths are excluded by grep itself, never by filtering the matched text, so a
+# string such as '/test/' inside a production line cannot hide a hit. Spaces
+# or tabs between `Ink` and `(` still match (`dart format` never splits the
+# name from its parenthesis across lines).
+hits=$(grep -rnE '(^|[^A-Za-z0-9_])Ink(\.image)?[[:space:]]*\(' \
+  --include='*.dart' --exclude='*.g.dart' \
+  --exclude-dir=test --exclude-dir=build --exclude-dir=.dart_tool \
+  packages apps 2>/dev/null || true)
 
 if [[ -n "$hits" ]]; then
   echo "Ink( paints on the Material ink layer, which some Windows tills never draw."
