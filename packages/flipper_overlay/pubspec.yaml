@@ -6,7 +6,7 @@ publish_to: none
 environment:
   # Upstream said 2.14, but overlay_animation.dart uses a 2.15 API (sdk_version_since).
   # 2.15 only adds language features, so behaviour is unchanged.
-  sdk: '>=2.15.0 <4.0.0'
+  sdk: '>=3.10.4 <4.0.0'
 
 dependencies:
   flutter:

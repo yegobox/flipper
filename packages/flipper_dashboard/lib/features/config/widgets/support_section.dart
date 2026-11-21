@@ -1,3 +1,4 @@
+import 'package:flipper_dashboard/theme/pos_tokens.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_services/proxy.dart';
@@ -49,7 +50,7 @@ class SupportSection extends StatelessWidget {
               icon: const Icon(Icons.support_agent),
               label: Text(l10n.configContactSupport),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
+                backgroundColor: PosTokens.blue,
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),

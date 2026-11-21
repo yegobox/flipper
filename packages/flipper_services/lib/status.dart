@@ -8,6 +8,43 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_web/core/local_mode/local_mode.dart';
 import 'package:http/http.dart' as http;
 
+/// Gateway errors: what nginx answers when the VSDC behind it is down.
+const taxServerGatewayDownCodes = {502, 503, 504};
+
+/// How long a tax server probe may take before the server counts as down.
+const taxServerProbeTimeout = Duration(seconds: 8);
+
+/// Whether the tax server at [url] answers.
+///
+/// Any HTTP response means it is up: a VSDC's base URL answers 302 or 404 by
+/// design, so only 200 used to count and the banner cried wolf. Down means a
+/// network error, a timeout, or a gateway error. On native, redirects are not
+/// followed: the server answering is what counts, not wherever it points. On
+/// the web ([web], default [isWeb]) the browser follows them itself, and
+/// `BrowserClient` throws on a redirect when told not to, so it keeps the
+/// default.
+Future<bool> taxServerAnswers(
+  String url, {
+  http.Client? client,
+  Duration timeout = taxServerProbeTimeout,
+  bool? web,
+}) async {
+  final httpClient = client ?? http.Client();
+  try {
+    final request = http.Request('GET', Uri.parse(url))
+      ..followRedirects = web ?? isWeb;
+    final response = await httpClient.send(request).timeout(timeout);
+    // Only the status matters: drop the body instead of downloading it.
+    await response.stream.listen((_) {}).cancel();
+    return !taxServerGatewayDownCodes.contains(response.statusCode);
+  } catch (_) {
+    return false;
+  } finally {
+    // Closing our own client also drops a request the timeout gave up on.
+    if (client == null) httpClient.close();
+  }
+}
+
 abstract class Status {
   Future<void> appBarColor(Color color);
   void updateStatusColor();
@@ -26,6 +63,10 @@ class StatusAppBarForWindowsAndWeb
   ReactiveValue<String?> _statusText = ReactiveValue<String?>(null);
   bool _connectivityListening = false;
   bool _taxServerCheckStarted = false;
+  bool _taxServerCheckInFlight = false;
+  final http.Client? _httpClient;
+  final Duration _taxServerTimeout;
+  final bool? _web;
 
   @override
   ReactiveValue<Color?> get statusColor => _statusColor;
@@ -91,8 +132,23 @@ class StatusAppBarForWindowsAndWeb
     }
   }
 
-  /// Tax health banner is only for VAT/EBM-enabled branches with a tax URL.
+  @visibleForTesting
+  Future<void> checkTaxServerStatus() => _checkTaxServerStatus();
+
+  /// The periodic tick does not wait for a slow probe, so a check that is
+  /// still running makes the next one a no-op instead of piling requests up.
   Future<void> _checkTaxServerStatus() async {
+    if (_taxServerCheckInFlight) return;
+    _taxServerCheckInFlight = true;
+    try {
+      await _runTaxServerCheck();
+    } finally {
+      _taxServerCheckInFlight = false;
+    }
+  }
+
+  /// Tax health banner is only for VAT/EBM-enabled branches with a tax URL.
+  Future<void> _runTaxServerCheck() async {
     // Don't overwrite a clearer offline message with tax-server noise.
     if (_statusText.value == _internetDownMsg) return;
 
@@ -142,18 +198,15 @@ class StatusAppBarForWindowsAndWeb
       return;
     }
 
-    try {
-      final response = await http.get(Uri.parse(taxServerUrl));
-
-      if (response.statusCode != 200) {
-        _statusText.value = _taxServerDownMsg;
-        _statusColor.value = Colors.red;
-        notifyListeners();
-      } else {
-        _clearTaxServerDownBanner();
-      }
-    } catch (e) {
-      // Error checking the tax server (e.g., tax host unreachable)
+    final answers = await taxServerAnswers(
+      taxServerUrl,
+      client: _httpClient,
+      timeout: _taxServerTimeout,
+      web: _web,
+    );
+    if (answers) {
+      _clearTaxServerDownBanner();
+    } else {
       _statusText.value = _taxServerDownMsg;
       _statusColor.value = Colors.red;
       notifyListeners();
@@ -163,7 +216,13 @@ class StatusAppBarForWindowsAndWeb
   @override
   Future<bool> isInternetAvailable() => InternetProbe.isOnline();
 
-  StatusAppBarForWindowsAndWeb() {
+  StatusAppBarForWindowsAndWeb({
+    http.Client? httpClient,
+    Duration taxServerTimeout = taxServerProbeTimeout,
+    bool? web,
+  }) : _httpClient = httpClient,
+       _taxServerTimeout = taxServerTimeout,
+       _web = web {
     listenToReactiveValues([_statusColor, _statusText]);
   }
 }
