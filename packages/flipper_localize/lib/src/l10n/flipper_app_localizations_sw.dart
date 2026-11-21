@@ -3756,6 +3756,10 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
       'Imeshindikana kuthibitisha kama mauzo haya yalibadilishwa. Jaribu tena kabla ya kurejesha pesa.';
 
   @override
+  String get refundEbmCheckFailed =>
+      'Imeshindikana kuthibitisha kama tawi hili linatumia EBM, kwa hivyo hakuna pesa iliyorejeshwa. Jaribu tena.';
+
+  @override
   String get adminGroupTaxCompliance => 'Kodi na uzingatiaji';
 
   @override

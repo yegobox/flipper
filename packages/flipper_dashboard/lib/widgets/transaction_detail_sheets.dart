@@ -285,7 +285,9 @@ class _TransactionRefundSheetState
     try {
       _service.validateCanRefund(widget.transaction);
       // An EBM refund goes to RRA whether or not the branch is VAT-registered.
-      final ebmOn = await ref.read(ebmOnProvider.future);
+      // Read strictly: an unreadable status blocks the refund rather than
+      // completing it locally without an RRA refund receipt.
+      final ebmOn = await _service.requireEbmStatus(loadEbmOn);
       final result = await _service.execute(
         request: TransactionRefundRequest(
           transaction: widget.transaction,

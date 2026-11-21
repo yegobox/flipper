@@ -363,6 +363,7 @@ class _SystemConfigModalCardState extends ConsumerState<SystemConfigModalCard> {
           ref.invalidate(catalog);
         }
         ref.invalidate(ebmVatEnabledProvider);
+        ref.invalidate(ebmOnProvider);
       }
 
       setState(() {

@@ -3786,6 +3786,10 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
       'Impossible de vérifier si cette vente a été échangée. Réessayez avant de rembourser.';
 
   @override
+  String get refundEbmCheckFailed =>
+      'Impossible de vérifier si cette succursale utilise l\'EBM, rien n\'a donc été remboursé. Réessayez.';
+
+  @override
   String get adminGroupTaxCompliance => 'Taxes et conformité';
 
   @override

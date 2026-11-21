@@ -1,4 +1,5 @@
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/ebm_helper.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/services/purchase_approval_deps.dart';
 import 'package:flipper_models/sync/utils/branch_transfer_rra.dart';
@@ -72,6 +73,9 @@ Future<BranchTransferRraResult> reportPurchaseStockInToRra({
       return BranchTransferRraResult.skipped;
     }
     final tin = businessEbm.tinNumber.toString();
+    // A line with no tax code takes the branch's default: D where the branch
+    // is on EBM without VAT registration.
+    final vatEnabled = branchEbm?.vatEnabled == true;
 
     final items = <TransactionItem>[];
     double totalSupply = 0;
@@ -82,6 +86,7 @@ Future<BranchTransferRraResult> reportPurchaseStockInToRra({
       final retail = (v.retailPrice ?? v.supplyPrice ?? 0).toDouble();
       totalSupply += supply * line.qty;
       totalAmount += retail * line.qty;
+      final taxTyCd = taxTyCdOrDefault(v.taxTyCd, vatEnabled: vatEnabled);
       items.add(
         TransactionItem(
           name: v.name,
@@ -90,8 +95,8 @@ Future<BranchTransferRraResult> reportPurchaseStockInToRra({
           discount: 0,
           prc: retail,
           supplyPrice: supply,
-          ttCatCd: v.taxTyCd ?? 'B',
-          taxTyCd: v.taxTyCd ?? 'B',
+          ttCatCd: taxTyCd,
+          taxTyCd: taxTyCd,
           itemCd: v.itemCd,
           itemClsCd: v.itemClsCd,
           itemNm: v.name,

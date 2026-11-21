@@ -177,16 +177,14 @@ class _TaxConfigFormState extends ConsumerState<TaxConfigForm> {
                   children: [
                     Text(
                       l10n.configTaxConfiguration,
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style: Theme.of(context).textTheme.titleLarge
+                          ?.copyWith(fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       l10n.configSaveAppliesTo,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Colors.grey.shade700,
-                      ),
+                      style: Theme.of(context).textTheme.bodySmall
+                          ?.copyWith(color: Colors.grey.shade700),
                     ),
                     const SizedBox(height: 16),
                     Consumer(
@@ -481,6 +479,7 @@ class _TaxConfigFormState extends ConsumerState<TaxConfigForm> {
           ref.invalidate(catalog);
         }
         ref.invalidate(ebmVatEnabledProvider);
+        ref.invalidate(ebmOnProvider);
       }
 
       setState(() {

@@ -173,6 +173,10 @@ Future<BranchTransferRraResult> reportBranchTransferToRra({
 
   final tin = businessEbm.tinNumber.toString();
   final now = DateTime.now();
+  // A line with no tax code takes its own branch's default: D where the
+  // branch is on EBM without VAT registration.
+  final sourceVat = sourceEbm?.vatEnabled == true;
+  final destVat = destEbm?.vatEnabled == true;
 
   // OUT reports the source branch's item identity; IN reports the destination
   // branch's (its own itemCd / units may differ from the source's).
@@ -189,12 +193,28 @@ Future<BranchTransferRraResult> reportBranchTransferToRra({
     final source = line.sourceVariant;
     outTotalSupply += (source.supplyPrice ?? source.retailPrice ?? 0) * qty;
     outTotalAmount += (source.retailPrice ?? source.supplyPrice ?? 0) * qty;
-    outItems.add(_transferLineItem(line.itemName, source, qty, mainBranchId));
+    outItems.add(
+      _transferLineItem(
+        line.itemName,
+        source,
+        qty,
+        mainBranchId,
+        vatEnabled: sourceVat,
+      ),
+    );
 
     final dest = line.destVariant;
     inTotalSupply += (dest.supplyPrice ?? dest.retailPrice ?? 0) * qty;
     inTotalAmount += (dest.retailPrice ?? dest.supplyPrice ?? 0) * qty;
-    inItems.add(_transferLineItem(line.itemName, dest, qty, subBranchId));
+    inItems.add(
+      _transferLineItem(
+        line.itemName,
+        dest,
+        qty,
+        subBranchId,
+        vatEnabled: destVat,
+      ),
+    );
   }
 
   if (outItems.isEmpty) return BranchTransferRraResult.skipped;
@@ -372,16 +392,19 @@ Future<BranchTransferRraResult> reportBranchTransferToRra({
 }
 
 /// One `saveStockItems` line for [variant] at [branchId], moving [qty] units.
+/// [vatEnabled] is that branch's VAT registration, for a line with no code.
 TransactionItem _transferLineItem(
   String name,
   Variant variant,
   double qty,
-  String branchId,
-) {
+  String branchId, {
+  required bool vatEnabled,
+}) {
   final unitSupply = (variant.supplyPrice ?? variant.retailPrice ?? 0)
       .toDouble();
   final unitRetail = (variant.retailPrice ?? variant.supplyPrice ?? 0)
       .toDouble();
+  final taxTyCd = taxTyCdOrDefault(variant.taxTyCd, vatEnabled: vatEnabled);
   return TransactionItem(
     name: name,
     qty: qty,
@@ -389,8 +412,8 @@ TransactionItem _transferLineItem(
     discount: 0,
     prc: unitRetail,
     supplyPrice: unitSupply,
-    ttCatCd: variant.taxTyCd ?? 'B',
-    taxTyCd: variant.taxTyCd ?? 'B',
+    ttCatCd: taxTyCd,
+    taxTyCd: taxTyCd,
     itemCd: variant.itemCd,
     itemClsCd: variant.itemClsCd,
     itemNm: variant.name,

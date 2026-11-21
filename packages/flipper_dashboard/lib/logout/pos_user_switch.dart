@@ -11,6 +11,7 @@ import 'package:flipper_models/helpers/pos_payment_role_tenant.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/providers/access_provider.dart';
 import 'package:flipper_models/providers/active_branch_provider.dart';
+import 'package:flipper_models/providers/ebm_provider.dart';
 import 'package:flipper_models/providers/optimistic_cart_provider.dart';
 import 'package:flipper_models/providers/scan_mode_provider.dart';
 import 'package:flipper_models/providers/tickets_provider.dart';
@@ -44,6 +45,9 @@ void _invalidateAccessProviders(WidgetRef ref, String? userId) {
 void _refreshPosStateAfterUserSwitch(WidgetRef ref) {
   ref.invalidate(currentOpenShiftProvider);
   ref.invalidate(activeBranchProvider);
+  // The incoming agent may work on another branch, with its own EBM.
+  ref.invalidate(ebmOnProvider);
+  ref.invalidate(ebmVatEnabledProvider);
   ref.invalidate(pendingTransactionStreamProvider(isExpense: false));
   ref.invalidate(optimisticCartProvider);
   // Re-bind open-ticket observers to the new agent / branch sync context.

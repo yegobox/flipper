@@ -223,6 +223,78 @@ void main() {
     expect(s.statusText.value, isNot(_downMsg));
   });
 
+  void ebmRow(Ebm? row) {
+    when(
+      () => db.ebm(
+        branchId: any(named: 'branchId'),
+        fetchRemote: any(named: 'fetchRemote'),
+      ),
+    ).thenAnswer((_) async => row);
+  }
+
+  test('an EBM branch that is not VAT-registered is still probed', () async {
+    ebmRow(
+      Ebm(
+        mrc: 'WIS00253379',
+        bhfId: '01',
+        tinNumber: 108754813,
+        dvcSrlNo: '1351571294',
+        taxServerUrl: _taxUrl,
+        businessId: 'biz',
+        branchId: 'b1',
+        vatEnabled: false,
+        ebmEnabled: true,
+      ),
+    );
+    answer(503);
+    final s = status();
+
+    await s.checkTaxServerStatus();
+
+    expect(s.statusText.value, _downMsg);
+    // The box keeps VAT registration, not "EBM on".
+    verify(() => box.writeBool(key: 'vatEnabled', value: false)).called(1);
+  });
+
+  test('EBM switched off clears the banner without a probe', () async {
+    ebmRow(
+      Ebm(
+        mrc: 'WIS00253379',
+        bhfId: '01',
+        tinNumber: 108754813,
+        dvcSrlNo: '1351571294',
+        taxServerUrl: _taxUrl,
+        businessId: 'biz',
+        branchId: 'b1',
+        vatEnabled: true,
+        ebmEnabled: false,
+      ),
+    );
+    final s = status();
+    s.statusText.value = _downMsg;
+
+    await s.checkTaxServerStatus();
+
+    expect(s.statusText.value, '');
+    verifyNever(() => client.send(any()));
+  });
+
+  test('no local EBM row keeps the cached VAT flag and probes', () async {
+    ebmRow(null);
+    answer(503);
+    final s = status();
+
+    await s.checkTaxServerStatus();
+
+    expect(s.statusText.value, _downMsg);
+    verifyNever(
+      () => box.writeBool(
+        key: 'vatEnabled',
+        value: any(named: 'value'),
+      ),
+    );
+  });
+
   test('without an injected client it makes and closes its own', () async {
     // Nothing listens on port 1, so this fails fast and offline.
     expect(await taxServerAnswers('http://127.0.0.1:1/'), isFalse);

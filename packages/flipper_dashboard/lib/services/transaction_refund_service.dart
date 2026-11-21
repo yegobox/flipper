@@ -137,6 +137,20 @@ class TransactionRefundService {
     }
   }
 
+  /// Whether the refund must go to RRA, from [readEbmOn]. If the EBM status
+  /// cannot be read the refund is blocked: treating "unknown" as off would
+  /// complete it locally with no RRA refund receipt.
+  Future<bool> requireEbmStatus(Future<bool> Function() readEbmOn) async {
+    try {
+      return await readEbmOn();
+    } catch (e) {
+      _talker.warning('EBM status lookup before refund failed: $e');
+      throw TransactionRefundException(
+        FlipperL10n.current.refundEbmCheckFailed,
+      );
+    }
+  }
+
   Future<void> restoreStock({
     required String transactionId,
     required double refundAmount,
@@ -313,9 +327,8 @@ class TransactionRefundService {
     }
 
     final filterType = _filterTypeFromReceiptType(receiptType);
-    await TaxController(
-      object: transaction,
-    ).handleReceipt(filterType: filterType);
+    await TaxController(object: transaction)
+        .handleReceipt(filterType: filterType);
 
     final updated = await persistRefundMetadata(
       transaction: transaction,
@@ -368,9 +381,8 @@ class TransactionRefundService {
     if (filterType == FilterType.CR ||
         filterType == FilterType.NR ||
         filterType == FilterType.TR) {
-      await TaxController(
-        object: transaction,
-      ).handleReceipt(filterType: filterType);
+      await TaxController(object: transaction)
+          .handleReceipt(filterType: filterType);
       await persistRefundMetadata(
         transaction: transaction,
         refundAmount: refundAmount,
@@ -378,9 +390,8 @@ class TransactionRefundService {
         method: transaction.paymentType ?? 'cash',
       );
     } else {
-      await TaxController(
-        object: transaction,
-      ).handleReceipt(filterType: filterType);
+      await TaxController(object: transaction)
+          .handleReceipt(filterType: filterType);
     }
   }
 
@@ -388,8 +399,7 @@ class TransactionRefundService {
     required ITransaction transaction,
     required FilterType filterType,
   }) async {
-    await TaxController(
-      object: transaction,
-    ).handleReceipt(filterType: filterType);
+    await TaxController(object: transaction)
+        .handleReceipt(filterType: filterType);
   }
 }

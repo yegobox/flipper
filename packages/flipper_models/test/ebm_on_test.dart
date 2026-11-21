@@ -76,4 +76,17 @@ void main() {
     final e = ebm(vatEnabled: false, ebmEnabled: true);
     expect(defaultTaxTyCdForVat(e.vatEnabled == true), 'D');
   });
+
+  group('taxTyCdOrDefault', () {
+    test('a row without a code takes the branch VAT default', () {
+      expect(taxTyCdOrDefault(null, vatEnabled: false), 'D');
+      expect(taxTyCdOrDefault('  ', vatEnabled: false), 'D');
+      expect(taxTyCdOrDefault(null, vatEnabled: true), 'B');
+    });
+
+    test('an explicit code is kept', () {
+      expect(taxTyCdOrDefault('A', vatEnabled: false), 'A');
+      expect(taxTyCdOrDefault(' C ', vatEnabled: true), 'C');
+    });
+  });
 }

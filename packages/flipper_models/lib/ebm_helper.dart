@@ -31,6 +31,14 @@ bool ebmOnFromDoc(Map<dynamic, dynamic> doc) {
 /// Default RRA tax type when none is specified for a row.
 String defaultTaxTyCdForVat(bool vatEnabled) => vatEnabled ? 'B' : 'D';
 
+/// [taxTyCd] when the row has one, otherwise [defaultTaxTyCdForVat]: an EBM
+/// branch that is not VAT-registered gets `D`, never the VAT default `B`.
+String taxTyCdOrDefault(String? taxTyCd, {required bool vatEnabled}) {
+  final code = taxTyCd?.trim();
+  if (code == null || code.isEmpty) return defaultTaxTyCdForVat(vatEnabled);
+  return code;
+}
+
 /// Resolve the effective TIN number for the current context.
 /// Priority:
 /// 1. Ebm.tinNumber for the current branch (if available)

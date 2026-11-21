@@ -174,20 +174,24 @@ class StatusAppBarForWindowsAndWeb
         branchId: branchId,
         fetchRemote: false,
       );
-      // EBM on and VAT-registered differ for an EBM taxpayer without VAT.
-      ebmOn = ebm?.isEbmOn == true;
-      await ProxyService.box.writeBool(
-        key: 'vatEnabled',
-        value: ebm?.vatEnabled == true,
-      );
-      // Probe the server this device actually signs against.
-      final ebmUrl = pickTaxServerUrl(
-        ebm?.taxServerUrl,
-        ebm?.remoteServerUrl,
-        useRemote: isWeb,
-      );
-      if (ebmUrl != null && ebmUrl.isNotEmpty) {
-        taxServerUrl = ebmUrl;
+      // No local row: keep the cached flag and URL rather than reading the
+      // missing row as "EBM off" (and writing that back to the box).
+      if (ebm != null) {
+        // EBM on and VAT-registered differ for an EBM taxpayer without VAT.
+        ebmOn = ebm.isEbmOn;
+        await ProxyService.box.writeBool(
+          key: 'vatEnabled',
+          value: ebm.vatEnabled == true,
+        );
+        // Probe the server this device actually signs against.
+        final ebmUrl = pickTaxServerUrl(
+          ebm.taxServerUrl,
+          ebm.remoteServerUrl,
+          useRemote: isWeb,
+        );
+        if (ebmUrl != null && ebmUrl.isNotEmpty) {
+          taxServerUrl = ebmUrl;
+        }
       }
     } catch (_) {
       // Keep box/cache values if local EBM read fails.

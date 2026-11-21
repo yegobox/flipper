@@ -3292,6 +3292,7 @@
     "exchangeNotInTrainingOrProforma": "Turn off training or proforma mode to exchange items.",
     "refundBlockedAfterExchange": "Items from this sale were exchanged, so it can't be refunded.",
     "refundExchangeCheckFailed": "Couldn't check whether this sale was exchanged. Try again before refunding.",
+    "refundEbmCheckFailed": "Couldn't check whether this branch uses EBM, so nothing was refunded. Try again.",
     "adminGroupTaxCompliance": "Tax & compliance",
     "adminGroupDataSync": "Data & sync",
     "adminGroupDiagnostics": "Diagnostics",

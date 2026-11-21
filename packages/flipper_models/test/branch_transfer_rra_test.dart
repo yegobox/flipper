@@ -19,31 +19,34 @@ class RecordingTaxApi extends Mock implements TaxApi {
   final List<Map<String, dynamic>> ioCalls = [];
 
   RwApiResponse ioResponse = RwApiResponse(resultCd: '000', resultMsg: 'ok');
-  RwApiResponse masterResponse =
-      RwApiResponse(resultCd: '000', resultMsg: 'ok');
+  RwApiResponse masterResponse = RwApiResponse(
+    resultCd: '000',
+    resultMsg: 'ok',
+  );
 
   @override
-  Future<RwApiResponse> saveStockItems(
-      {required List<TransactionItem> items,
-      bool updateMaster = true,
-      required String tinNumber,
-      required String bhFId,
-      String? customerName,
-      String? custTin,
-      String? regTyCd = "A",
-      required String sarTyCd,
-      bool isStockIn = false,
-      String? custBhfId,
-      required double totalSupplyPrice,
-      required double totalvat,
-      required double totalAmount,
-      required String remark,
-      required DateTime ocrnDt,
-      String? sarNo,
-      required String URI,
-      num? invoiceNumber,
-      num? approvedQty,
-      bool includeCustomerFields = false}) async {
+  Future<RwApiResponse> saveStockItems({
+    required List<TransactionItem> items,
+    bool updateMaster = true,
+    required String tinNumber,
+    required String bhFId,
+    String? customerName,
+    String? custTin,
+    String? regTyCd = "A",
+    required String sarTyCd,
+    bool isStockIn = false,
+    String? custBhfId,
+    required double totalSupplyPrice,
+    required double totalvat,
+    required double totalAmount,
+    required String remark,
+    required DateTime ocrnDt,
+    String? sarNo,
+    required String URI,
+    num? invoiceNumber,
+    num? approvedQty,
+    bool includeCustomerFields = false,
+  }) async {
     order.add('io:$sarTyCd');
     ioCalls.add({
       'sarTyCd': sarTyCd,
@@ -57,6 +60,8 @@ class RecordingTaxApi extends Mock implements TaxApi {
       'includeCustomerFields': includeCustomerFields,
       'URI': URI,
       'itemCd': items.isNotEmpty ? items.first.itemCd : null,
+      'taxTyCd': items.isNotEmpty ? items.first.taxTyCd : null,
+      'ttCatCd': items.isNotEmpty ? items.first.ttCatCd : null,
     });
     return ioResponse;
   }
@@ -83,6 +88,7 @@ Ebm _ebm({
   String? taxServerUrl,
   int tin = 999909695,
   bool vatEnabled = true,
+  bool? ebmEnabled,
 }) {
   return Ebm(
     bhfId: bhfId,
@@ -92,6 +98,7 @@ Ebm _ebm({
     businessId: 'biz1',
     branchId: branchId,
     vatEnabled: vatEnabled,
+    ebmEnabled: ebmEnabled,
     mrc: 'mrc',
   );
 }
@@ -101,12 +108,13 @@ Variant _variant({
   required String branchId,
   required Stock stock,
   String itemCd = 'RW2AMCT0000138',
+  String? taxTyCd = 'B',
 }) {
   return Variant(
     id: id,
     name: 'Tea',
     branchId: branchId,
-    taxTyCd: 'B',
+    taxTyCd: taxTyCd,
     itemCd: itemCd,
     itemClsCd: '5020230602',
     itemTyCd: '2',
@@ -116,15 +124,17 @@ Variant _variant({
   );
 }
 
-BranchTransferApprovedLine _line() {
+BranchTransferApprovedLine _line({String? taxTyCd = 'B'}) {
   final source = _variant(
     id: 'vSrc',
     branchId: 'branchA',
+    taxTyCd: taxTyCd,
     stock: Stock(id: 'sSrc', branchId: 'branchA', currentStock: 7, rsdQty: 7),
   );
   final dest = _variant(
     id: 'vDst',
     branchId: 'branchB',
+    taxTyCd: taxTyCd,
     // Destination branch registers its own itemCd for the shared item.
     itemCd: 'RW2AMCT0000999',
     stock: Stock(id: 'sDst', branchId: 'branchB', currentStock: 3, rsdQty: 3),
@@ -138,10 +148,10 @@ BranchTransferApprovedLine _line() {
 }
 
 InventoryRequest _request() => InventoryRequest(
-      mainBranchId: 'branchA',
-      subBranchId: 'branchB',
-      branchId: 'branchB',
-    );
+  mainBranchId: 'branchA',
+  subBranchId: 'branchB',
+  branchId: 'branchB',
+);
 
 void main() {
   group('buildRraSaveStockItemsRequest — branch-transfer IN (04)', () {
@@ -228,24 +238,72 @@ void main() {
       await services_locator.getIt.reset();
     });
 
-    test('skips when no vat-enabled business EBM resolves (no tax calls)',
-        () async {
-      final result = await reportBranchTransferToRra(
-        request: _request(),
-        lines: [_line()],
-        businessId: 'biz1',
-        resolveEbm: (_) async => null,
-        nextBranchSar: (branchId) async =>
-            Sar(sarNo: 1, branchId: branchId),
+    test(
+      'skips when no vat-enabled business EBM resolves (no tax calls)',
+      () async {
+        // The destination is on EBM, so only the missing business EBM skips.
+        when(
+          () => db.ebm(
+            branchId: 'branchB',
+            fetchRemote: any(named: 'fetchRemote'),
+          ),
+        ).thenAnswer((_) async => _ebm(branchId: 'branchB', bhfId: '01'));
+        final result = await reportBranchTransferToRra(
+          request: _request(),
+          lines: [_line()],
+          businessId: 'biz1',
+          resolveEbm: (_) async => null,
+          nextBranchSar: (branchId) async => Sar(sarNo: 1, branchId: branchId),
+        );
+
+        expect(result.attempted, isFalse);
+        expect(tax.order, isEmpty);
+      },
+    );
+
+    test(
+      'skips when destination branch has no EBM / is non-VAT (no tax calls)',
+      () async {
+        when(
+          () => db.ebm(
+            branchId: 'branchB',
+            fetchRemote: any(named: 'fetchRemote'),
+          ),
+        ).thenAnswer((_) async => null);
+
+        final result = await reportBranchTransferToRra(
+          request: _request(),
+          lines: [_line()],
+          businessId: 'biz1',
+          resolveEbm: (_) async => _ebm(
+            branchId: 'branchA',
+            bhfId: '00',
+            taxServerUrl: 'https://tax.example/',
+          ),
+          nextBranchSar: (branchId) async => Sar(sarNo: 1, branchId: branchId),
+        );
+
+        expect(result.attempted, isFalse);
+        expect(result.succeeded, isTrue);
+        expect(tax.order, isEmpty);
+        verifyNever(
+          () => db.ebm(
+            branchId: 'branchA',
+            fetchRemote: any(named: 'fetchRemote'),
+          ),
+        );
+      },
+    );
+
+    test('skips when destination branch is explicitly non-VAT', () async {
+      when(
+        () => db.ebm(
+          branchId: 'branchB',
+          fetchRemote: any(named: 'fetchRemote'),
+        ),
+      ).thenAnswer(
+        (_) async => _ebm(branchId: 'branchB', bhfId: '01', vatEnabled: false),
       );
-
-      expect(result.attempted, isFalse);
-      expect(tax.order, isEmpty);
-    });
-
-    test('skips when destination branch has no EBM / is non-VAT (no tax calls)',
-        () async {
-      when(() => db.ebm(branchId: 'branchB')).thenAnswer((_) async => null);
 
       final result = await reportBranchTransferToRra(
         request: _request(),
@@ -256,137 +314,243 @@ void main() {
           bhfId: '00',
           taxServerUrl: 'https://tax.example/',
         ),
-        nextBranchSar: (branchId) async =>
-            Sar(sarNo: 1, branchId: branchId),
+        nextBranchSar: (branchId) async => Sar(sarNo: 1, branchId: branchId),
       );
 
       expect(result.attempted, isFalse);
       expect(result.succeeded, isTrue);
       expect(tax.order, isEmpty);
-      verifyNever(() => db.ebm(branchId: 'branchA'));
     });
 
-    test('skips when destination branch is explicitly non-VAT', () async {
-      when(() => db.ebm(branchId: 'branchB')).thenAnswer(
+    test(
+      'skips + flags when a VAT destination bhfId cannot be resolved',
+      () async {
+        when(
+          () => db.ebm(
+            branchId: 'branchA',
+            fetchRemote: any(named: 'fetchRemote'),
+          ),
+        ).thenAnswer((_) async => _ebm(branchId: 'branchA', bhfId: '00'));
+        when(
+          () => db.ebm(
+            branchId: 'branchB',
+            fetchRemote: any(named: 'fetchRemote'),
+          ),
+        ).thenAnswer(
+          (_) async => _ebm(branchId: 'branchB', bhfId: '', vatEnabled: true),
+        );
+
+        final result = await reportBranchTransferToRra(
+          request: _request(),
+          lines: [_line()],
+          businessId: 'biz1',
+          resolveEbm: (_) async => _ebm(
+            branchId: 'branchA',
+            bhfId: '00',
+            taxServerUrl: 'https://tax.example/',
+          ),
+          nextBranchSar: (branchId) async => Sar(sarNo: 1, branchId: branchId),
+        );
+
+        expect(result.attempted, isFalse);
+        expect(result.succeeded, isFalse);
+        expect(tax.order, isEmpty);
+      },
+    );
+
+    test(
+      'posts OUT(13) → IN(04) → masters, links orgSarNo, cust* per side',
+      () async {
+        when(
+          () => db.ebm(
+            branchId: 'branchA',
+            fetchRemote: any(named: 'fetchRemote'),
+          ),
+        ).thenAnswer((_) async => _ebm(branchId: 'branchA', bhfId: '00'));
+        when(
+          () => db.ebm(
+            branchId: 'branchB',
+            fetchRemote: any(named: 'fetchRemote'),
+          ),
+        ).thenAnswer((_) async => _ebm(branchId: 'branchB', bhfId: '01'));
+        when(
+          () => db.updateStock(
+            stockId: any(named: 'stockId'),
+            ebmSynced: any(named: 'ebmSynced'),
+          ),
+        ).thenAnswer((_) async {});
+
+        final result = await reportBranchTransferToRra(
+          request: _request(),
+          lines: [_line()],
+          businessId: 'biz1',
+          resolveEbm: (_) async => _ebm(
+            branchId: 'branchA',
+            bhfId: '00',
+            taxServerUrl: 'https://tax.example/',
+          ),
+          // Distinct SARs per branch so the OUT→IN link is unambiguous.
+          nextBranchSar: (branchId) async =>
+              Sar(sarNo: branchId == 'branchA' ? 100 : 200, branchId: branchId),
+        );
+
+        expect(result.attempted, isTrue);
+        expect(result.succeeded, isTrue);
+
+        // Call order: source OUT, then dest IN, then both masters.
+        expect(tax.order, ['io:13', 'io:04', 'master:vSrc', 'master:vDst']);
+
+        final out = tax.ioCalls[0];
+        expect(out['sarTyCd'], StockInOutType.stockMovementOut);
+        expect(out['bhFId'], '00');
+        expect(out['custBhfId'], '01'); // counterparty = destination
+        expect(out['isStockIn'], isFalse);
+        expect(out['includeCustomerFields'], isFalse);
+        expect(out['sarNo'], '100');
+        expect(out['invoiceNumber'], 100);
+        expect(out['URI'], 'https://tax.example/');
+        expect(out['itemCd'], 'RW2AMCT0000138'); // source item identity
+
+        final incoming = tax.ioCalls[1];
+        expect(incoming['sarTyCd'], StockInOutType.stockMovementIn);
+        expect(incoming['bhFId'], '01');
+        expect(incoming['custBhfId'], '00'); // counterparty = source
+        expect(incoming['isStockIn'], isTrue);
+        expect(incoming['includeCustomerFields'], isTrue);
+        expect(incoming['sarNo'], '200');
+        // orgSarNo on IN links back to A's OUT sarNo.
+        expect(incoming['invoiceNumber'], 100);
+        expect(incoming['invoiceNumber'], out['invoiceNumber']);
+        expect(
+          incoming['itemCd'],
+          'RW2AMCT0000999',
+        ); // destination item identity
+
+        // Local stocks flagged ebmSynced once masters return 000.
+        verify(
+          () => db.updateStock(stockId: 'sSrc', ebmSynced: true),
+        ).called(1);
+        verify(
+          () => db.updateStock(stockId: 'sDst', ebmSynced: true),
+        ).called(1);
+      },
+    );
+
+    test(
+      'uncoded lines default per branch VAT: D on a non-VAT EBM branch',
+      () async {
+        // Source is VAT-registered; the destination is on EBM without VAT,
+        // which RRA allows only D from.
+        when(
+          () => db.ebm(
+            branchId: 'branchA',
+            fetchRemote: any(named: 'fetchRemote'),
+          ),
+        ).thenAnswer((_) async => _ebm(branchId: 'branchA', bhfId: '00'));
+        when(
+          () => db.ebm(
+            branchId: 'branchB',
+            fetchRemote: any(named: 'fetchRemote'),
+          ),
+        ).thenAnswer(
+          (_) async => _ebm(
+            branchId: 'branchB',
+            bhfId: '01',
+            vatEnabled: false,
+            ebmEnabled: true,
+          ),
+        );
+        when(
+          () => db.updateStock(
+            stockId: any(named: 'stockId'),
+            ebmSynced: any(named: 'ebmSynced'),
+          ),
+        ).thenAnswer((_) async {});
+
+        final result = await reportBranchTransferToRra(
+          request: _request(),
+          lines: [_line(taxTyCd: null)],
+          businessId: 'biz1',
+          resolveEbm: (_) async => _ebm(
+            branchId: 'branchA',
+            bhfId: '00',
+            taxServerUrl: 'https://tax.example/',
+          ),
+          nextBranchSar: (branchId) async =>
+              Sar(sarNo: branchId == 'branchA' ? 100 : 200, branchId: branchId),
+        );
+
+        expect(result.attempted, isTrue);
+        expect(tax.ioCalls[0]['taxTyCd'], 'B'); // OUT from the VAT branch
+        expect(tax.ioCalls[0]['ttCatCd'], 'B');
+        expect(tax.ioCalls[1]['taxTyCd'], 'D'); // IN to the non-VAT branch
+        expect(tax.ioCalls[1]['ttCatCd'], 'D');
+      },
+    );
+
+    test('an explicit tax code is kept on a non-VAT EBM branch', () async {
+      when(
+        () => db.ebm(
+          branchId: 'branchA',
+          fetchRemote: any(named: 'fetchRemote'),
+        ),
+      ).thenAnswer(
+        (_) async => _ebm(
+          branchId: 'branchA',
+          bhfId: '00',
+          vatEnabled: false,
+          ebmEnabled: true,
+        ),
+      );
+      when(
+        () => db.ebm(
+          branchId: 'branchB',
+          fetchRemote: any(named: 'fetchRemote'),
+        ),
+      ).thenAnswer(
         (_) async => _ebm(
           branchId: 'branchB',
           bhfId: '01',
           vatEnabled: false,
+          ebmEnabled: true,
         ),
       );
+      when(
+        () => db.updateStock(
+          stockId: any(named: 'stockId'),
+          ebmSynced: any(named: 'ebmSynced'),
+        ),
+      ).thenAnswer((_) async {});
 
-      final result = await reportBranchTransferToRra(
+      await reportBranchTransferToRra(
         request: _request(),
-        lines: [_line()],
+        lines: [_line(taxTyCd: 'A')],
         businessId: 'biz1',
         resolveEbm: (_) async => _ebm(
           branchId: 'branchA',
           bhfId: '00',
           taxServerUrl: 'https://tax.example/',
         ),
-        nextBranchSar: (branchId) async =>
-            Sar(sarNo: 1, branchId: branchId),
-      );
-
-      expect(result.attempted, isFalse);
-      expect(result.succeeded, isTrue);
-      expect(tax.order, isEmpty);
-    });
-
-    test('skips + flags when a VAT destination bhfId cannot be resolved',
-        () async {
-      when(() => db.ebm(branchId: 'branchA'))
-          .thenAnswer((_) async => _ebm(branchId: 'branchA', bhfId: '00'));
-      when(() => db.ebm(branchId: 'branchB')).thenAnswer(
-        (_) async => _ebm(
-          branchId: 'branchB',
-          bhfId: '',
-          vatEnabled: true,
-        ),
-      );
-
-      final result = await reportBranchTransferToRra(
-        request: _request(),
-        lines: [_line()],
-        businessId: 'biz1',
-        resolveEbm: (_) async => _ebm(
-          branchId: 'branchA',
-          bhfId: '00',
-          taxServerUrl: 'https://tax.example/',
-        ),
-        nextBranchSar: (branchId) async =>
-            Sar(sarNo: 1, branchId: branchId),
-      );
-
-      expect(result.attempted, isFalse);
-      expect(result.succeeded, isFalse);
-      expect(tax.order, isEmpty);
-    });
-
-    test('posts OUT(13) → IN(04) → masters, links orgSarNo, cust* per side',
-        () async {
-      when(() => db.ebm(branchId: 'branchA'))
-          .thenAnswer((_) async => _ebm(branchId: 'branchA', bhfId: '00'));
-      when(() => db.ebm(branchId: 'branchB'))
-          .thenAnswer((_) async => _ebm(branchId: 'branchB', bhfId: '01'));
-      when(() => db.updateStock(
-            stockId: any(named: 'stockId'),
-            ebmSynced: any(named: 'ebmSynced'),
-          )).thenAnswer((_) async {});
-
-      final result = await reportBranchTransferToRra(
-        request: _request(),
-        lines: [_line()],
-        businessId: 'biz1',
-        resolveEbm: (_) async => _ebm(
-          branchId: 'branchA',
-          bhfId: '00',
-          taxServerUrl: 'https://tax.example/',
-        ),
-        // Distinct SARs per branch so the OUT→IN link is unambiguous.
         nextBranchSar: (branchId) async =>
             Sar(sarNo: branchId == 'branchA' ? 100 : 200, branchId: branchId),
       );
 
-      expect(result.attempted, isTrue);
-      expect(result.succeeded, isTrue);
-
-      // Call order: source OUT, then dest IN, then both masters.
-      expect(tax.order, ['io:13', 'io:04', 'master:vSrc', 'master:vDst']);
-
-      final out = tax.ioCalls[0];
-      expect(out['sarTyCd'], StockInOutType.stockMovementOut);
-      expect(out['bhFId'], '00');
-      expect(out['custBhfId'], '01'); // counterparty = destination
-      expect(out['isStockIn'], isFalse);
-      expect(out['includeCustomerFields'], isFalse);
-      expect(out['sarNo'], '100');
-      expect(out['invoiceNumber'], 100);
-      expect(out['URI'], 'https://tax.example/');
-      expect(out['itemCd'], 'RW2AMCT0000138'); // source item identity
-
-      final incoming = tax.ioCalls[1];
-      expect(incoming['sarTyCd'], StockInOutType.stockMovementIn);
-      expect(incoming['bhFId'], '01');
-      expect(incoming['custBhfId'], '00'); // counterparty = source
-      expect(incoming['isStockIn'], isTrue);
-      expect(incoming['includeCustomerFields'], isTrue);
-      expect(incoming['sarNo'], '200');
-      // orgSarNo on IN links back to A's OUT sarNo.
-      expect(incoming['invoiceNumber'], 100);
-      expect(incoming['invoiceNumber'], out['invoiceNumber']);
-      expect(incoming['itemCd'], 'RW2AMCT0000999'); // destination item identity
-
-      // Local stocks flagged ebmSynced once masters return 000.
-      verify(() => db.updateStock(stockId: 'sSrc', ebmSynced: true)).called(1);
-      verify(() => db.updateStock(stockId: 'sDst', ebmSynced: true)).called(1);
+      expect(tax.ioCalls.map((c) => c['taxTyCd']), ['A', 'A']);
     });
 
     test('OUT failure aborts before IN / masters', () async {
-      when(() => db.ebm(branchId: 'branchA'))
-          .thenAnswer((_) async => _ebm(branchId: 'branchA', bhfId: '00'));
-      when(() => db.ebm(branchId: 'branchB'))
-          .thenAnswer((_) async => _ebm(branchId: 'branchB', bhfId: '01'));
+      when(
+        () => db.ebm(
+          branchId: 'branchA',
+          fetchRemote: any(named: 'fetchRemote'),
+        ),
+      ).thenAnswer((_) async => _ebm(branchId: 'branchA', bhfId: '00'));
+      when(
+        () => db.ebm(
+          branchId: 'branchB',
+          fetchRemote: any(named: 'fetchRemote'),
+        ),
+      ).thenAnswer((_) async => _ebm(branchId: 'branchB', bhfId: '01'));
       tax.ioResponse = RwApiResponse(resultCd: '894', resultMsg: 'rejected');
 
       final result = await reportBranchTransferToRra(
@@ -409,42 +573,59 @@ void main() {
       expect(tax.order, ['io:13']);
     });
 
-    test('master failure after successful IO yields not-succeeded result',
-        () async {
-      when(() => db.ebm(branchId: 'branchA'))
-          .thenAnswer((_) async => _ebm(branchId: 'branchA', bhfId: '00'));
-      when(() => db.ebm(branchId: 'branchB'))
-          .thenAnswer((_) async => _ebm(branchId: 'branchB', bhfId: '01'));
-      when(() => db.updateStock(
+    test(
+      'master failure after successful IO yields not-succeeded result',
+      () async {
+        when(
+          () => db.ebm(
+            branchId: 'branchA',
+            fetchRemote: any(named: 'fetchRemote'),
+          ),
+        ).thenAnswer((_) async => _ebm(branchId: 'branchA', bhfId: '00'));
+        when(
+          () => db.ebm(
+            branchId: 'branchB',
+            fetchRemote: any(named: 'fetchRemote'),
+          ),
+        ).thenAnswer((_) async => _ebm(branchId: 'branchB', bhfId: '01'));
+        when(
+          () => db.updateStock(
             stockId: any(named: 'stockId'),
             ebmSynced: any(named: 'ebmSynced'),
-          )).thenAnswer((_) async {});
-      // OUT/IN succeed, masters do not.
-      tax.masterResponse = RwApiResponse(resultCd: '894', resultMsg: 'no item');
+          ),
+        ).thenAnswer((_) async {});
+        // OUT/IN succeed, masters do not.
+        tax.masterResponse = RwApiResponse(
+          resultCd: '894',
+          resultMsg: 'no item',
+        );
 
-      final result = await reportBranchTransferToRra(
-        request: _request(),
-        lines: [_line()],
-        businessId: 'biz1',
-        resolveEbm: (_) async => _ebm(
-          branchId: 'branchA',
-          bhfId: '00',
-          taxServerUrl: 'https://tax.example/',
-        ),
-        nextBranchSar: (branchId) async =>
-            Sar(sarNo: branchId == 'branchA' ? 100 : 200, branchId: branchId),
-      );
+        final result = await reportBranchTransferToRra(
+          request: _request(),
+          lines: [_line()],
+          businessId: 'biz1',
+          resolveEbm: (_) async => _ebm(
+            branchId: 'branchA',
+            bhfId: '00',
+            taxServerUrl: 'https://tax.example/',
+          ),
+          nextBranchSar: (branchId) async =>
+              Sar(sarNo: branchId == 'branchA' ? 100 : 200, branchId: branchId),
+        );
 
-      expect(result.attempted, isTrue);
-      expect(result.succeeded, isFalse);
-      // IO fully ran; masters were attempted but failed.
-      expect(tax.order, ['io:13', 'io:04', 'master:vSrc', 'master:vDst']);
-      // No stock is flagged synced when its master failed.
-      verifyNever(() => db.updateStock(
+        expect(result.attempted, isTrue);
+        expect(result.succeeded, isFalse);
+        // IO fully ran; masters were attempted but failed.
+        expect(tax.order, ['io:13', 'io:04', 'master:vSrc', 'master:vDst']);
+        // No stock is flagged synced when its master failed.
+        verifyNever(
+          () => db.updateStock(
             stockId: any(named: 'stockId'),
             ebmSynced: any(named: 'ebmSynced'),
-          ));
-    });
+          ),
+        );
+      },
+    );
   });
 
   group('userFacingBranchTransferRraFailure', () {

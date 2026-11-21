@@ -554,7 +554,9 @@ abstract final class HotelRoomRraService {
 
     if (pending != null) {
       variant = applyHotelRoomRraFields(
-        variant: pending,
+        // The retry sends the code for the branch's VAT status now, not the
+        // one the earlier attempt was minted with.
+        variant: recodeHotelRoomTaxType(pending, taxTyCd),
         room: room,
         tourismTaxEnabled: tourismTax,
       );

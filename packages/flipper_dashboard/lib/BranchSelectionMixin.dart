@@ -4,6 +4,7 @@ import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/services/bar_mode_branch_settings_service.dart';
 import 'package:flipper_models/providers/branch_business_provider.dart';
+import 'package:flipper_models/providers/ebm_provider.dart';
 import 'package:flipper_models/providers/scan_mode_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
@@ -21,6 +22,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_routing/app.locator.dart' show locator;
 import 'package:flipper_models/providers/active_branch_provider.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
+
 import 'dart:async'; // Add missing import for Timer
 
 mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
@@ -186,6 +188,9 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
       );
       ref.invalidate(activeBranchProvider);
       ref.invalidate(customersProvider);
+      // Both read the box's branch, so they would keep the old branch's EBM.
+      ref.invalidate(ebmOnProvider);
+      ref.invalidate(ebmVatEnabledProvider);
 
       await BarModeBranchSettingsService.hydrateForActiveBranch();
 
@@ -332,9 +337,8 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
                     Icons.location_on_rounded,
                     color: branch.isDefault ?? false
                         ? Theme.of(context).primaryColor
-                        : Theme.of(
-                            context,
-                          ).iconTheme.color?.withValues(alpha: .7),
+                        : Theme.of(context).iconTheme.color
+                              ?.withValues(alpha: .7),
                     size: 24,
                   ),
                   const SizedBox(width: 16),
@@ -480,6 +484,8 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
       // Invalidate transaction providers to refresh for new branch
       ref.invalidate(pendingTransactionStreamProvider);
       ref.invalidate(transactionItemsStreamProvider);
+      ref.invalidate(ebmOnProvider);
+      ref.invalidate(ebmVatEnabledProvider);
 
       // Set a flag in storage to indicate a branch switch occurred
       // This can be used by other widgets to detect when they should refresh
@@ -919,9 +925,8 @@ class _BranchSwitchDialogState extends State<_BranchSwitchDialog> {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 14),
           decoration: BoxDecoration(
-            color: Theme.of(
-              context,
-            ).colorScheme.surfaceContainerHighest.withValues(alpha: .5),
+            color: Theme.of(context).colorScheme.surfaceContainerHighest
+                .withValues(alpha: .5),
             borderRadius: BorderRadius.circular(12),
           ),
           child: TextField(

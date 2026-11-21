@@ -3733,6 +3733,10 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
       'Couldn\'t check whether this sale was exchanged. Try again before refunding.';
 
   @override
+  String get refundEbmCheckFailed =>
+      'Couldn\'t check whether this branch uses EBM, so nothing was refunded. Try again.';
+
+  @override
   String get adminGroupTaxCompliance => 'Tax & compliance';
 
   @override

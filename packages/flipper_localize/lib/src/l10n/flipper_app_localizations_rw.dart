@@ -3771,6 +3771,10 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
       'Ntibyashobotse kugenzura niba iri gurisha ryarahinduwe. Ongera ugerageze mbere yo gusubiza amafaranga.';
 
   @override
+  String get refundEbmCheckFailed =>
+      'Ntibyashobotse kugenzura niba iri shami rikoresha EBM, nta mafaranga yasubijwe. Ongera ugerageze.';
+
+  @override
   String get adminGroupTaxCompliance => 'Imisoro n\'iyubahirizwa ry\'amategeko';
 
   @override

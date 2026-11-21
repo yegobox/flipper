@@ -55,11 +55,21 @@ Future<bool> ebmVatEnabled(Ref ref) async {
   }
 }
 
+/// Whether the branch fiscalises through RRA EBM (`Ebm.isEbmOn`), without
+/// the `false` fallback of [ebmOnProvider]: throws when there is no branch or
+/// the EBM row cannot be read. For paths where a wrong "off" would skip RRA,
+/// such as refunds.
+Future<bool> loadEbmOn() async => (await _loadBranchEbm())?.isEbmOn ?? false;
+
 /// Whether the branch fiscalises through RRA EBM (`Ebm.isEbmOn`): the same
 /// switch Pay, refunds and stock movements read through `isTaxEnabled`.
+/// An unreadable status reads as off; use [loadEbmOn] where that is unsafe.
+///
+/// It reads the box's branch, so a branch switch or user switch must
+/// invalidate it.
 final ebmOnProvider = FutureProvider<bool>((ref) async {
   try {
-    return (await _loadBranchEbm())?.isEbmOn ?? false;
+    return await loadEbmOn();
   } catch (e) {
     return false;
   }

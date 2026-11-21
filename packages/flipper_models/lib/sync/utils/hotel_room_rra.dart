@@ -140,6 +140,22 @@ Variant applyHotelRoomRraFields({
   return variant;
 }
 
+/// Recodes a retained room [variant] to [taxTyCd] before it is resubmitted.
+///
+/// A pending room keeps the code of the attempt that minted it. Without this,
+/// a branch whose VAT registration has changed since, or an EBM branch that is
+/// not VAT-registered (RRA accepts only `D` from it), resent the old code and
+/// failed on every retry. [applyHotelRoomRraFields] lays the tourism-tax name
+/// and rate over this afterwards, as it does for a new room.
+Variant recodeHotelRoomTaxType(Variant variant, String taxTyCd) {
+  if (variant.taxTyCd == taxTyCd) return variant;
+  return variant
+    ..taxTyCd = taxTyCd
+    ..taxName = taxTyCd
+    // B is the 18% VAT rate; D (not VAT-registered) carries none.
+    ..taxPercentage = taxTyCd == 'B' ? 18 : 0;
+}
+
 /// Whether [variant] is registered with RRA as a tourism-tax room service.
 bool isHotelRoomVariantRegistered(Variant? variant) {
   if (variant == null) return false;

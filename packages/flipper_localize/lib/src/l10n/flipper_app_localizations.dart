@@ -6665,6 +6665,12 @@ abstract class FlipperAppLocalizations {
   /// **'Couldn\'t check whether this sale was exchanged. Try again before refunding.'**
   String get refundExchangeCheckFailed;
 
+  /// No description provided for @refundEbmCheckFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t check whether this branch uses EBM, so nothing was refunded. Try again.'**
+  String get refundEbmCheckFailed;
+
   /// No description provided for @adminGroupTaxCompliance.
   ///
   /// In en, this message translates to:
