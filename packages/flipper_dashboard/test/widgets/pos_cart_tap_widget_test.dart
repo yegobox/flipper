@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:flipper_dashboard/itemRow.dart';
 import 'package:flipper_dashboard/widgets/pos_cart_table_host.dart';
+import 'package:flipper_dashboard/widgets/pos_catalog_grid_card.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/providers/optimistic_cart_provider.dart';
 import 'package:flipper_models/providers/pos_cart_display_provider.dart';
 import 'package:flipper_models/providers/pos_payment_role_provider.dart';
@@ -74,11 +76,13 @@ class PosCartTapTestHarness extends ConsumerWidget {
     required this.variant,
     required this.productName,
     required this.model,
+    this.stock = 25,
   });
 
   final Variant variant;
   final String productName;
   final ProductViewModel model;
+  final double stock;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -93,7 +97,7 @@ class PosCartTapTestHarness extends ConsumerWidget {
             color: '#2563EB',
             productName: productName,
             variantName: variant.name ?? '',
-            stock: 25,
+            stock: stock,
             forceRemoteUrl: false,
             forceListView: false,
             usePosCatalogTile: true,
@@ -216,7 +220,7 @@ void main() {
     env.restore();
   });
 
-  Future<void> pumpHarness(WidgetTester tester) {
+  Future<void> pumpHarness(WidgetTester tester, {double stock = 25}) {
     tester.view.physicalSize = const Size(1280, 800);
     tester.view.devicePixelRatio = 1.0;
 
@@ -241,7 +245,7 @@ void main() {
               Stock(
                 id: 'stock-$variantId',
                 branchId: '1',
-                currentStock: 25,
+                currentStock: stock,
                 lowStock: 10,
               ),
             ),
@@ -258,17 +262,59 @@ void main() {
           }),
         ],
         child: MaterialApp(
+          // The out-of-stock badge reads context.flipperL10n.
+          localizationsDelegates: FlipperLocalizationDelegates.delegates,
+          supportedLocales: FlipperLocalizationDelegates.supportedLocales,
           home: Scaffold(
             body: PosCartTapTestHarness(
               variant: variant,
               productName: productName,
               model: mockProductViewModel,
+              stock: stock,
             ),
           ),
         ),
       ),
     );
   }
+
+  group('service items (itemTyCd 3) keep no stock', () {
+    PosCatalogGridCard card(WidgetTester tester) =>
+        tester.widget(find.byKey(Key('pos-catalog-tap-$variantId')));
+
+    testWidgets('a service with no stock is sellable and not marked Out', (
+      tester,
+    ) async {
+      addTearDown(tester.view.resetPhysicalSize);
+      variant.itemTyCd = '3';
+      await pumpHarness(tester, stock: 0);
+      await tester.pump();
+
+      expect(card(tester).isOutOfStock, isFalse);
+      expect(card(tester).onTap, isNotNull);
+      expect(card(tester).stockLabel, isEmpty);
+      expect(find.text('Out'), findsNothing);
+
+      await tester.tap(find.byKey(Key('pos-catalog-tap-$variantId')));
+      await tester.pump();
+      await tester.pump();
+
+      expect(
+        tester.widget<Text>(find.byKey(const Key('pos-cart-line-count'))).data,
+        '1',
+      );
+    });
+
+    testWidgets('goods with no stock stay untappable', (tester) async {
+      addTearDown(tester.view.resetPhysicalSize);
+      variant.itemTyCd = '2';
+      await pumpHarness(tester, stock: 0);
+      await tester.pump();
+
+      expect(card(tester).isOutOfStock, isTrue);
+      expect(card(tester).onTap, isNull);
+    });
+  });
 
   group('RowItem tap → cart (Capella/Ditto mocked slow)', () {
     testWidgets('shows cart line on next frame after catalog tap', (

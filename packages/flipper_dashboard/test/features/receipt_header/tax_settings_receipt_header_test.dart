@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flipper_dashboard/TaxSettingsModal.dart';
 import 'package:flipper_dashboard/features/branch_location/branch_services.dart';
 import 'package:flipper_dashboard/features/receipt_header/receipt_header_section.dart';
@@ -12,11 +14,15 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:supabase_models/brick/repository/storage.dart';
 
 class _Box implements LocalStorage {
+  _Box({this.branchId = 'br'});
+
+  final String? branchId;
+
   @override
   String? getBusinessId() => 'biz';
 
   @override
-  String? getBranchId() => 'br';
+  String? getBranchId() => branchId;
 
   @override
   dynamic noSuchMethod(Invocation invocation) => null;
@@ -27,6 +33,9 @@ class _Db implements DatabaseSyncInterface {
 
   final Business? business;
   final bool businessThrows;
+  bool saveThrows = false;
+  Future<void>? saveGate;
+  bool taxesThrow = false;
   final saved = <({String configId, double taxPercentage})>[];
   final taxRows = [
     Configurations(id: 'cfg-b', taxType: 'B', taxPercentage: 18),
@@ -39,15 +48,19 @@ class _Db implements DatabaseSyncInterface {
   }
 
   @override
-  Future<List<Configurations>> taxes({required String branchId}) async =>
-      taxRows;
+  Future<List<Configurations>> taxes({required String branchId}) async {
+    if (taxesThrow) throw StateError('offline');
+    return taxRows;
+  }
 
   @override
   Future<Configurations> saveTax({
     required String configId,
     required double taxPercentage,
   }) async {
+    if (saveThrows) throw StateError('offline');
     saved.add((configId: configId, taxPercentage: taxPercentage));
+    if (saveGate != null) await saveGate;
     return taxRows.first;
   }
 
@@ -56,10 +69,11 @@ class _Db implements DatabaseSyncInterface {
 }
 
 class _Services extends BranchServices {
-  _Services(this.db);
+  _Services(this.db, {String? branchId = 'br'})
+    : _box = _Box(branchId: branchId);
 
   final _Db db;
-  final _box = _Box();
+  final _Box _box;
 
   @override
   LocalStorage get box => _box;
@@ -74,10 +88,14 @@ class _Store implements ReceiptHeaderStore {
 
   BranchDocumentSettings settings;
   final saved = <BranchDocumentSettings>[];
+  final loaded = <String>[];
   bool fail = false;
 
   @override
-  Future<BranchDocumentSettings> load(String branchId) async => settings;
+  Future<BranchDocumentSettings> load(String branchId) async {
+    loaded.add(branchId);
+    return settings;
+  }
 
   @override
   Future<bool> save(BranchDocumentSettings next) async {
@@ -93,8 +111,13 @@ List<Override> _overrides(_Store store, _Db db) => [
   receiptHeaderStoreProvider.overrideWithValue(store),
 ];
 
-Future<void> _pump(WidgetTester tester, _Store store, _Db db) async {
-  tester.view.physicalSize = const Size(900, 1600) * 2;
+Future<void> _pump(
+  WidgetTester tester,
+  _Store store,
+  _Db db, {
+  Size size = const Size(900, 1600),
+}) async {
+  tester.view.physicalSize = size * 2;
   tester.view.devicePixelRatio = 2;
   addTearDown(tester.view.reset);
   await tester.pumpWidget(
@@ -104,10 +127,24 @@ Future<void> _pump(WidgetTester tester, _Store store, _Db db) async {
         locale: const Locale('en'),
         localizationsDelegates: FlipperAppLocalizations.localizationsDelegates,
         supportedLocales: FlipperAppLocalizations.supportedLocales,
-        home: const Scaffold(body: TaxSettingsModal(branchId: 'br')),
+        home: Scaffold(
+          body: Builder(
+            builder: (context) => Center(
+              child: TextButton(
+                onPressed: () => showDialog<void>(
+                  context: context,
+                  builder: (_) => const TaxSettingsModal(branchId: 'br'),
+                ),
+                child: const Text('open'),
+              ),
+            ),
+          ),
+        ),
       ),
     ),
   );
+  await tester.pumpAndSettle();
+  await tester.tap(find.text('open'));
   await tester.pumpAndSettle();
 }
 
@@ -275,7 +312,7 @@ void main() {
       final db = _Db();
       await _pump(tester, _Store(), db);
 
-      await tester.tap(find.byIcon(Icons.edit));
+      await tester.tap(find.byIcon(Icons.edit_outlined));
       await tester.pumpAndSettle();
       await tester.enterText(find.widgetWithText(TextFormField, '18.0'), '16');
       await tester.tap(find.byIcon(Icons.check));
@@ -284,6 +321,185 @@ void main() {
       expect(db.saved.single, (configId: 'cfg-b', taxPercentage: 16.0));
       expect(find.text('Tax settings updated successfully'), findsOneWidget);
       await tester.pump(const Duration(seconds: 3));
+      expect(find.text('Tax settings updated successfully'), findsNothing);
     });
+
+    testWidgets('a rate out of range is refused; undo puts the old one back', (
+      tester,
+    ) async {
+      final db = _Db();
+      await _pump(tester, _Store(), db);
+
+      await tester.tap(find.byIcon(Icons.edit_outlined));
+      await tester.pumpAndSettle();
+      final rate = find.byKey(const ValueKey('taxRate-cfg-b'));
+      await tester.enterText(rate, '150');
+      await tester.tap(find.byIcon(Icons.check));
+      await tester.pumpAndSettle();
+      expect(find.text('Must be 0-100'), findsOneWidget);
+
+      await tester.enterText(rate, '');
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pumpAndSettle();
+      expect(find.text('Required'), findsOneWidget);
+      expect(db.saved, isEmpty);
+
+      await tester.tap(find.byIcon(Icons.undo));
+      await tester.pumpAndSettle();
+      expect(rate, findsNothing);
+      expect(find.text('18.0%'), findsOneWidget);
+    });
+
+    testWidgets('a failed rate save says so and can be dismissed', (
+      tester,
+    ) async {
+      final db = _Db()..saveThrows = true;
+      await _pump(tester, _Store(), db);
+
+      await tester.tap(find.byIcon(Icons.edit_outlined));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.widgetWithText(TextFormField, '18.0'), '16');
+      await tester.tap(find.byIcon(Icons.check));
+      await tester.pumpAndSettle();
+
+      final status = find.byKey(const ValueKey('taxSettingsStatus'));
+      expect(find.text('Error updating tax settings'), findsOneWidget);
+      await tester.tap(
+        find.descendant(of: status, matching: find.byIcon(Icons.close)),
+      );
+      await tester.pumpAndSettle();
+      expect(status, findsNothing);
+    });
+
+    testWidgets('says so when the branch has no tax rates', (tester) async {
+      await _pump(tester, _Store(), _Db()..taxRows.clear());
+      expect(find.text('No tax configurations found'), findsOneWidget);
+    });
+
+    testWidgets('a failed rate lookup is shown, not a spinner', (tester) async {
+      await _pump(tester, _Store(), _Db()..taxesThrow = true);
+      expect(find.textContaining('offline'), findsOneWidget);
+      expect(find.byType(CircularProgressIndicator), findsNothing);
+    });
+
+    testWidgets('the close button dismisses the dialog', (tester) async {
+      await _pump(tester, _Store(), _Db());
+
+      expect(find.byType(TaxSettingsModal), findsOneWidget);
+      await tester.tap(find.byKey(const ValueKey('configClose')));
+      await tester.pumpAndSettle();
+      expect(find.byType(TaxSettingsModal), findsNothing);
+    });
+
+    testWidgets('phone and email stack on a phone, sit side by side in a '
+        'wide dialog', (tester) async {
+      double dy(String key) => tester.getTopLeft(find.byKey(ValueKey(key))).dy;
+
+      await _pump(tester, _Store(), _Db(), size: const Size(420, 1600));
+      expect(dy('receiptHeaderEmail'), greaterThan(dy('receiptHeaderPhone')));
+
+      await _pump(tester, _Store(), _Db());
+      expect(dy('receiptHeaderEmail'), dy('receiptHeaderPhone'));
+    });
+  });
+
+  group('narrow screens and no branch', () {
+    testWidgets('a rate being edited on a phone drops below its label', (
+      tester,
+    ) async {
+      await _pump(tester, _Store(), _Db(), size: const Size(360, 1600));
+
+      await tester.tap(find.byIcon(Icons.edit_outlined));
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      final field = find.byKey(const ValueKey('taxRate-cfg-b'));
+      expect(
+        tester.getTopLeft(field).dy,
+        greaterThan(tester.getBottomLeft(find.text('B Tax')).dy),
+      );
+      expect(find.byIcon(Icons.undo), findsOneWidget);
+    });
+
+    testWidgets('with no branch the header says so instead of dead fields', (
+      tester,
+    ) async {
+      final store = _Store();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            branchServicesProvider.overrideWithValue(
+              _Services(_Db(), branchId: null),
+            ),
+            receiptHeaderStoreProvider.overrideWithValue(store),
+          ],
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates:
+                FlipperAppLocalizations.localizationsDelegates,
+            supportedLocales: FlipperAppLocalizations.supportedLocales,
+            home: const Scaffold(
+              body: SingleChildScrollView(child: ReceiptHeaderSection()),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byKey(const ValueKey('receiptHeaderNoBranch')),
+        findsOneWidget,
+      );
+      expect(find.byKey(const ValueKey('receiptHeaderPhone')), findsNothing);
+      expect(find.byKey(const ValueKey('receiptHeaderSave')), findsNothing);
+      expect(store.loaded, isEmpty);
+    });
+
+    testWidgets('with no branch id passed, it loads the active branch', (
+      tester,
+    ) async {
+      final store = _Store();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: _overrides(store, _Db()),
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates:
+                FlipperAppLocalizations.localizationsDelegates,
+            supportedLocales: FlipperAppLocalizations.supportedLocales,
+            home: const Scaffold(
+              body: SingleChildScrollView(child: ReceiptHeaderSection()),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(store.loaded, ['br']);
+      expect(find.byKey(const ValueKey('receiptHeaderPhone')), findsOneWidget);
+    });
+  });
+
+  testWidgets('Enter while a rate save is pending does not save twice', (
+    tester,
+  ) async {
+    final gate = Completer<void>();
+    final db = _Db()..saveGate = gate.future;
+    await _pump(tester, _Store(), db);
+
+    await tester.tap(find.byIcon(Icons.edit_outlined));
+    await tester.pumpAndSettle();
+    final rate = find.byKey(const ValueKey('taxRate-cfg-b'));
+    await tester.enterText(rate, '16');
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pump();
+    await tester.enterText(rate, '17');
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pump();
+
+    expect(db.saved, [(configId: 'cfg-b', taxPercentage: 16.0)]);
+    gate.complete();
+    await tester.pumpAndSettle();
+    await tester.pump(const Duration(seconds: 3));
   });
 }

@@ -8,6 +8,7 @@ import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/sync/utils/rra_stock_reporting.dart';
+import 'package:flipper_models/sync/utils/pos_catalog_stock_filter.dart';
 import 'package:flipper_services/proxy.dart';
 
 /// Reads on-hand qty per [Stock] id for non-service sale lines (before RRA sign).
@@ -16,7 +17,7 @@ Future<Map<String, double>> loadPreSaleStockLevelsForLines(
 ) async {
   final capella = ProxyService.getStrategy(Strategy.capella);
   final candidates = transactionItems.where((item) {
-    if (item.itemTyCd == '3') return false;
+    if (isServiceItemType(item.itemTyCd)) return false;
     final vid = item.variantId;
     return vid != null && vid.isNotEmpty;
   }).toList();
@@ -35,15 +36,14 @@ Future<Map<String, double>> loadPreSaleStockLevelsForLines(
   final stocksMap = await capella.batchGetStocksByIds(stockIds.toList());
   // Batch misses were re-read one await at a time; on a large cart that is a
   // second sequential pass over the whole line set.
-  await forEachBounded(
-    stockIds.where((sid) => !stocksMap.containsKey(sid)),
-    (sid) async {
-      final loaded = await capella.getStockById(id: sid);
-      if (loaded != null && loaded.branchId.isNotEmpty) {
-        stocksMap[sid] = loaded;
-      }
-    },
-  );
+  await forEachBounded(stockIds.where((sid) => !stocksMap.containsKey(sid)), (
+    sid,
+  ) async {
+    final loaded = await capella.getStockById(id: sid);
+    if (loaded != null && loaded.branchId.isNotEmpty) {
+      stocksMap[sid] = loaded;
+    }
+  });
 
   final out = <String, double>{};
   for (final sid in stockIds) {
@@ -86,7 +86,7 @@ Future<Map<String, double>> applyDeferredSaleStockDeduction({
   );
 
   final candidateItems = transactionItems.where((item) {
-    if (item.itemTyCd == "3") return false;
+    if (isServiceItemType(item.itemTyCd)) return false;
     final vid = item.variantId;
     return vid != null && vid.isNotEmpty;
   }).toList();
@@ -114,15 +114,14 @@ Future<Map<String, double>> applyDeferredSaleStockDeduction({
   final stocksMap = await capella.batchGetStocksByIds(stockIds.toList());
   // Batch misses were re-read one await at a time; on a large cart that is a
   // second sequential pass over the whole line set.
-  await forEachBounded(
-    stockIds.where((sid) => !stocksMap.containsKey(sid)),
-    (sid) async {
-      final loaded = await capella.getStockById(id: sid);
-      if (loaded != null && loaded.branchId.isNotEmpty) {
-        stocksMap[sid] = loaded;
-      }
-    },
-  );
+  await forEachBounded(stockIds.where((sid) => !stocksMap.containsKey(sid)), (
+    sid,
+  ) async {
+    final loaded = await capella.getStockById(id: sid);
+    if (loaded != null && loaded.branchId.isNotEmpty) {
+      stocksMap[sid] = loaded;
+    }
+  });
 
   final itemsNeedingDeduction = candidateItems.where((item) {
     return !saleLineAlreadyStockDeducted(

@@ -4,8 +4,10 @@ import 'dart:async';
 
 import 'package:flipper_dashboard/features/config/system_config_tokens.dart';
 import 'package:flipper_dashboard/features/config/tax_config_logic.dart';
+import 'package:flipper_dashboard/features/config/widgets/config_chrome.dart';
 import 'package:flipper_dashboard/features/config/widgets/currency_options.dart';
 import 'package:flipper_dashboard/features/config/widgets/support_section.dart';
+import 'package:flipper_dashboard/features/receipt_header/receipt_header_section.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/talker.dart';
@@ -409,7 +411,12 @@ class _SystemConfigModalCardState extends ConsumerState<SystemConfigModalCard> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                _Header(onClose: widget.onClose),
+                ConfigHeader(
+                  icon: Icons.settings_outlined,
+                  title: context.flipperL10n.configSystemConfiguration,
+                  subtitle: context.flipperL10n.configSystemConfigSubtitle,
+                  onClose: widget.onClose,
+                ),
                 Flexible(
                   child: SingleChildScrollView(
                     padding: const EdgeInsets.fromLTRB(
@@ -461,7 +468,7 @@ class _SystemConfigModalCardState extends ConsumerState<SystemConfigModalCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _SectionLabel(title: l10n.configGeneral),
+          ConfigSectionLabel(title: l10n.configGeneral),
           const SizedBox(height: 12),
           _GeneralSection(
             model: model,
@@ -471,7 +478,11 @@ class _SystemConfigModalCardState extends ConsumerState<SystemConfigModalCard> {
             },
           ),
           const SizedBox(height: 24),
-          _SectionLabel(title: l10n.configTaxConfiguration),
+          // Its own form and save: the receipt header is per branch in
+          // Ditto, not part of the EBM row this dialog's footer saves.
+          const ReceiptHeaderSection(),
+          const SizedBox(height: 24),
+          ConfigSectionLabel(title: l10n.configTaxConfiguration),
           const SizedBox(height: 6),
           Text(
             l10n.configSaveAppliesTo,
@@ -491,14 +502,14 @@ class _SystemConfigModalCardState extends ConsumerState<SystemConfigModalCard> {
             },
           ),
           const SizedBox(height: 16),
-          _ScTextField(
+          ConfigTextField(
             fieldKey: _serverFieldKey,
             label: l10n.configTaxServerUrl,
             controller: _serverUrlController,
             validator: _validateUrl,
           ),
           const SizedBox(height: 14),
-          _ScTextField(
+          ConfigTextField(
             fieldKey: _dataConnectorFieldKey,
             label: l10n.configDataConnectorUrl,
             controller: _dataConnectorUrlController,
@@ -509,7 +520,7 @@ class _SystemConfigModalCardState extends ConsumerState<SystemConfigModalCard> {
           Row(
             children: [
               Expanded(
-                child: _ScTextField(
+                child: ConfigTextField(
                   fieldKey: _branchFieldKey,
                   label: l10n.configBranchCodeBhfId,
                   controller: _branchController,
@@ -518,7 +529,7 @@ class _SystemConfigModalCardState extends ConsumerState<SystemConfigModalCard> {
               ),
               const SizedBox(width: 14),
               Expanded(
-                child: _ScTextField(
+                child: ConfigTextField(
                   fieldKey: _mrcFieldKey,
                   label: 'MRC',
                   controller: _mrcController,
@@ -561,139 +572,13 @@ class _SupportBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const SupportSection();
-  }
-}
-
-class _Header extends StatelessWidget {
-  const _Header({this.onClose});
-
-  final VoidCallback? onClose;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(26, 22, 26, 22),
-      decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: SystemConfigTokens.border)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 38,
-            height: 38,
-            decoration: BoxDecoration(
-              color: SystemConfigTokens.accentTint,
-              borderRadius: BorderRadius.circular(
-                SystemConfigTokens.iconRadius,
-              ),
-            ),
-            child: const Icon(
-              Icons.settings_outlined,
-              size: 20,
-              color: SystemConfigTokens.accent,
-            ),
-          ),
-          const SizedBox(width: 13),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  context.flipperL10n.configSystemConfiguration,
-                  style: GoogleFonts.outfit(
-                    fontSize: 21,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: -0.01 * 21,
-                    color: SystemConfigTokens.ink,
-                    height: 1.1,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  context.flipperL10n.configSystemConfigSubtitle,
-                  style: GoogleFonts.outfit(
-                    fontSize: 12.5,
-                    color: SystemConfigTokens.secondary,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          if (onClose != null) _CloseButton(onTap: onClose!),
-        ],
-      ),
-    );
-  }
-}
-
-class _CloseButton extends StatefulWidget {
-  const _CloseButton({required this.onTap});
-
-  final VoidCallback onTap;
-
-  @override
-  State<_CloseButton> createState() => _CloseButtonState();
-}
-
-class _CloseButtonState extends State<_CloseButton> {
-  bool _hovered = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return MouseRegion(
-      onEnter: (_) => setState(() => _hovered = true),
-      onExit: (_) => setState(() => _hovered = false),
-      child: InkWell(
-        onTap: widget.onTap,
-        borderRadius: BorderRadius.circular(SystemConfigTokens.closeRadius),
-        child: Container(
-          width: 34,
-          height: 34,
-          decoration: BoxDecoration(
-            color: _hovered
-                ? SystemConfigTokens.inputFill
-                : SystemConfigTokens.surface,
-            borderRadius: BorderRadius.circular(SystemConfigTokens.closeRadius),
-            border: Border.all(color: SystemConfigTokens.border),
-          ),
-          child: const Icon(
-            Icons.close,
-            size: 16,
-            color: SystemConfigTokens.secondary,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _SectionLabel extends StatelessWidget {
-  const _SectionLabel({required this.title});
-
-  final String title;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
+    // Receipts print without EBM too, so the header is editable here as well.
+    return const Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(
-          title.toUpperCase(),
-          style: GoogleFonts.outfit(
-            fontSize: 11,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 0.16 * 11,
-            color: SystemConfigTokens.accent,
-          ),
-        ),
-        const SizedBox(width: 10),
-        const Expanded(
-          child: Divider(
-            height: 1,
-            thickness: 1,
-            color: SystemConfigTokens.border,
-          ),
-        ),
+        ReceiptHeaderSection(),
+        SizedBox(height: 24),
+        SupportSection(),
       ],
     );
   }
@@ -1028,134 +913,6 @@ class _TourismTaxRow extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-}
-
-class _ScTextField extends StatefulWidget {
-  const _ScTextField({
-    required this.fieldKey,
-    required this.label,
-    required this.controller,
-    required this.validator,
-    this.helper,
-  });
-
-  final Key fieldKey;
-  final String label;
-  final TextEditingController controller;
-  final String? Function(String?) validator;
-  final String? helper;
-
-  @override
-  State<_ScTextField> createState() => _ScTextFieldState();
-}
-
-class _ScTextFieldState extends State<_ScTextField> {
-  final _focusNode = FocusNode();
-  bool _focused = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _focusNode.addListener(() {
-      setState(() => _focused = _focusNode.hasFocus);
-    });
-  }
-
-  @override
-  void dispose() {
-    _focusNode.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          widget.label,
-          style: GoogleFonts.outfit(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: SystemConfigTokens.secondary,
-          ),
-        ),
-        const SizedBox(height: 6),
-        AnimatedContainer(
-          duration: const Duration(milliseconds: 150),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(SystemConfigTokens.fieldRadius),
-            boxShadow: _focused
-                ? const [
-                    BoxShadow(
-                      color: SystemConfigTokens.focusRing,
-                      spreadRadius: 3,
-                    ),
-                  ]
-                : null,
-          ),
-          child: TextFormField(
-            key: widget.fieldKey,
-            controller: widget.controller,
-            focusNode: _focusNode,
-            validator: widget.validator,
-            style: GoogleFonts.outfit(
-              fontSize: 14,
-              color: SystemConfigTokens.ink,
-            ),
-            decoration: InputDecoration(
-              filled: true,
-              fillColor: _focused
-                  ? SystemConfigTokens.surface
-                  : SystemConfigTokens.inputFill,
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 14,
-                vertical: 12,
-              ),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(
-                  SystemConfigTokens.fieldRadius,
-                ),
-                borderSide: const BorderSide(
-                  color: SystemConfigTokens.inputBorder,
-                ),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(
-                  SystemConfigTokens.fieldRadius,
-                ),
-                borderSide: const BorderSide(
-                  color: SystemConfigTokens.inputBorder,
-                ),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(
-                  SystemConfigTokens.fieldRadius,
-                ),
-                borderSide: const BorderSide(color: SystemConfigTokens.accent),
-              ),
-              errorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(
-                  SystemConfigTokens.fieldRadius,
-                ),
-                borderSide: const BorderSide(color: Color(0xFFEF4444)),
-              ),
-            ),
-          ),
-        ),
-        if (widget.helper != null) ...[
-          const SizedBox(height: 6),
-          Text(
-            widget.helper!,
-            style: GoogleFonts.outfit(
-              fontSize: 11.5,
-              color: SystemConfigTokens.muted,
-            ),
-          ),
-        ],
-      ],
     );
   }
 }
