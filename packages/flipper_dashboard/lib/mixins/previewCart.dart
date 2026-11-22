@@ -22,6 +22,7 @@ import 'package:flipper_dashboard/providers/mpos_momo_phone_provider.dart';
 import 'package:flipper_dashboard/providers/digital_receipt_provider.dart';
 // ignore: unused_import
 import 'package:flipper_models/DatabaseSyncInterface.dart';
+import 'package:flipper_models/sync/utils/pos_catalog_stock_filter.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/providers/pay_button_provider.dart';
 import 'package:flipper_models/providers/selected_provider.dart';
@@ -973,9 +974,10 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
         ref.read(payButtonStateProvider.notifier).stopLoading();
         return false;
       }
-      // Filter out services (itemTyCd == "3") from stock validation
+      // Services keep no stock: leave them out of stock validation. Same
+      // predicate as the POS tile, so a tappable service never fails here.
       final itemsToValidate = transactionItems
-          .where((item) => item.itemTyCd != "3")
+          .where((item) => !isServiceItemType(item.itemTyCd))
           .toList();
 
       final stockCheckSw = Stopwatch()..start();
