@@ -86,4 +86,45 @@ void main() {
     expect(variant.qty, 7);
     expect(variant.stock!.currentStock, 7);
   });
+
+  test('a padded service type is still a service', () {
+    model.setProductType(' 3 ');
+
+    expect(variant.qty, 0);
+    expect(variant.stock!.currentStock, 0);
+    expect(ScannViewModel.isServiceVariant(variant), isTrue);
+  });
+
+  group('stockOnRecord', () {
+    test('keeps the loaded stock after switching to Service', () {
+      model.setScannedVariants([variant]);
+      model.setProductType('3');
+
+      expect(variant.stock!.currentStock, 0);
+      expect(model.stockOnRecord(variant), 5);
+    });
+
+    test('a new, unsaved variant uses the editor quantity', () {
+      final fresh = Variant(name: 'Cut', branchId: 'b1', itemTyCd: '2');
+      fresh.stock = Stock(branchId: 'b1', currentStock: 3);
+
+      expect(model.stockOnRecord(fresh), 3);
+      expect(model.stockOnRecord(Variant(name: 'Empty', branchId: 'b1')), 0);
+    });
+
+    test('a variant loaded without a stock row falls back to qty', () {
+      final legacy = Variant(name: 'Old', branchId: 'b1', qty: 4);
+      model.setScannedVariants([legacy]);
+
+      expect(model.stockOnRecord(legacy), 4);
+    });
+
+    test('loading again forgets the previous product', () {
+      model.setScannedVariants([variant]);
+      model.setScannedVariants([]);
+      variant.stock!.currentStock = 0;
+
+      expect(model.stockOnRecord(variant), 0);
+    });
+  });
 }

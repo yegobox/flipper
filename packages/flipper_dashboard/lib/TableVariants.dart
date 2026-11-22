@@ -11,6 +11,7 @@ import 'package:flipper_dashboard/_showEditQuantityDialog.dart';
 import 'package:flipper_dashboard/features/product_editor/widgets/pe_variant_field.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/ebm_provider.dart';
+import 'package:flipper_models/sync/utils/pos_catalog_stock_filter.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_routing/app.dialogs.dart';
 import 'package:flutter/material.dart';
@@ -241,7 +242,8 @@ class TableVariants extends StatelessWidget {
   );
 
   /// A service carries no stock, so its quantity is read-only.
-  static bool _isService(Variant variant) => variant.itemTyCd == "3";
+  static bool _isService(Variant variant) =>
+      isServiceItemType(variant.itemTyCd);
 
   Widget _quantityField(BuildContext context, Variant variant) => _cardField(
     context.flipperL10n.quantity,
@@ -403,9 +405,9 @@ class TableVariants extends StatelessWidget {
           branchId: branchId,
         );
 
-    if ((variant.stock?.currentStock ?? 0) > 0 &&
-        isEbmEnabledLocal &&
-        !kDebugMode) {
+    // Stock on record, not the editor's value: switching to Service zeroes
+    // the editor's quantity but writes nothing off.
+    if (model.stockOnRecord(variant) > 0 && isEbmEnabledLocal && !kDebugMode) {
       final dialogService = locator<DialogService>();
       dialogService.showCustomDialog(
         variant: DialogType.info,

@@ -6,6 +6,7 @@ import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/product_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/sync/utils/bulk_desktop_variant_prep.dart';
+import 'package:flipper_models/sync/utils/pos_catalog_stock_filter.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as newMod;
 import 'package:flipper_services/locator.dart' as loc;
 
@@ -28,32 +29,34 @@ mixin ProductMixin {
     _discountRate = discountRate;
   }
 
-  Future<void> addVariant(
-      {List<Variant>? variations,
-      required String packagingUnit,
-      Map<String, String>? rates,
-      Map<String, String>? dates,
-      double? retailPrice,
-      double? supplyPrice,
-      bool preserveVariationFields = false,
-      required String countryofOrigin,
-      required String productName,
-      required String selectedProductType,
-      String? color,
-      Product? product,
-      String? propertyTyCd,
-      String? roomTypeCd,
-      String? ttCatCd,
-      required Function(List<Variant> variantions) onCompleteCallback,
-      required ScannViewModel model,
-      String? categoryId}) async {
+  Future<void> addVariant({
+    List<Variant>? variations,
+    required String packagingUnit,
+    Map<String, String>? rates,
+    Map<String, String>? dates,
+    double? retailPrice,
+    double? supplyPrice,
+    bool preserveVariationFields = false,
+    required String countryofOrigin,
+    required String productName,
+    required String selectedProductType,
+    String? color,
+    Product? product,
+    String? propertyTyCd,
+    String? roomTypeCd,
+    String? ttCatCd,
+    required Function(List<Variant> variantions) onCompleteCallback,
+    required ScannViewModel model,
+    String? categoryId,
+  }) async {
     if (product == null) return;
 
     ///loop variations add pkgUnitCd this come from UI but a lot of
     ///EBM fields will be hard coded to simplify the UI, so we will loop the variation
     ///and add some missing fields to simplify the UI
-    Business? business = await ProxyService.strategy
-        .getBusiness(businessId: ProxyService.box.getBusinessId()!);
+    Business? business = await ProxyService.strategy.getBusiness(
+      businessId: ProxyService.box.getBusinessId()!,
+    );
     try {
       // find the related product to update its name
 
@@ -96,7 +99,8 @@ mixin ProductMixin {
 
         if (existing.taxTyCd == null || existing.taxTyCd!.isEmpty) {
           throw Exception(
-              'Fatal Error: Tax type (taxTyCd) must be set for variant ${existing.id}. This is a required field.');
+            'Fatal Error: Tax type (taxTyCd) must be set for variant ${existing.id}. This is a required field.',
+          );
         }
 
         final vn = existing.name.trim();
@@ -124,8 +128,9 @@ mixin ProductMixin {
           supplyPrice: effectiveSupplyPrice ?? 0,
           barCode: existing.bcd ?? existing.barCode ?? existing.sku,
           sku: int.tryParse(existing.sku?.toString() ?? '') ?? randomNumber(),
-          countryCode:
-              countryofOrigin.trim().isNotEmpty ? countryofOrigin.trim() : 'RW',
+          countryCode: countryofOrigin.trim().isNotEmpty
+              ? countryofOrigin.trim()
+              : 'RW',
           packagingUnitCode: pkgCode,
           categoryId: categoryId,
           categoryName: category?.name,
@@ -165,7 +170,7 @@ mixin ProductMixin {
 
         // A service carries no stock: never save a quantity typed before the
         // type was switched to Service.
-        final isService = selectedProductType == "3";
+        final isService = isServiceItemType(selectedProductType);
         if (isService) {
           existing.qty = 0;
           existing.rsdQty = 0;
@@ -188,9 +193,10 @@ mixin ProductMixin {
       }
 
       await ProxyService.strategy.addVariant(
-          skipRRaCall: false,
-          variations: updatables,
-          branchId: ProxyService.box.getBranchId()!);
+        skipRRaCall: false,
+        variations: updatables,
+        branchId: ProxyService.box.getBranchId()!,
+      );
 
       // Quantities typed in the variant sheet are held back until the stock rows
       // exist; write them through updateStock so the milli COUNTER matches.
@@ -254,16 +260,17 @@ mixin ProductMixin {
   }
 
   Future<double> setTaxPercentage(Variant variant) async {
-    newMod.Configurations? configurations =
-        await ProxyService.strategy.getByTaxType(taxtype: variant.taxTyCd!);
+    newMod.Configurations? configurations = await ProxyService.strategy
+        .getByTaxType(taxtype: variant.taxTyCd!);
     return configurations?.taxPercentage ?? 0;
   }
 
-  Future<Product?> saveProduct(
-      {required Product mproduct,
-      required bool inUpdateProcess,
-      required String productName,
-      required String color}) async {
+  Future<Product?> saveProduct({
+    required Product mproduct,
+    required bool inUpdateProcess,
+    required String productName,
+    required String color,
+  }) async {
     try {
       analytics.track(
         AnalyticsEvents.productCreated,
@@ -273,8 +280,9 @@ mixin ProductMixin {
         },
       );
 
-      Category? activeCat = await ProxyService.strategy
-          .activeCategory(branchId: ProxyService.box.getBranchId()!);
+      Category? activeCat = await ProxyService.strategy.activeCategory(
+        branchId: ProxyService.box.getBranchId()!,
+      );
 
       await ProxyService.strategy.updateProduct(
         productId: mproduct.id,
@@ -291,9 +299,10 @@ mixin ProductMixin {
         );
       }
       return await ProxyService.strategy.getProduct(
-          id: mproduct.id,
-          branchId: ProxyService.box.getBranchId()!,
-          businessId: ProxyService.box.getBusinessId()!);
+        id: mproduct.id,
+        branchId: ProxyService.box.getBranchId()!,
+        businessId: ProxyService.box.getBusinessId()!,
+      );
     } catch (e, s) {
       talker.warning(e);
       talker.error(s);

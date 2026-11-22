@@ -3,6 +3,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/providers/ebm_provider.dart';
+import 'package:flipper_models/sync/utils/pos_catalog_stock_filter.dart';
 import 'package:flipper_scanner/scanner_view.dart';
 import 'package:flipper_services/GlobalLogError.dart';
 import 'package:flipper_dashboard/FieldCompositeActivated.dart';
@@ -1175,6 +1176,11 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
               }
 
               model.setScannedVariants(variants);
+              // A service shows no stock, even one with stock still on
+              // record; that stays untouched until a Stock Recount.
+              if (isServiceItemType(selectedProductType)) {
+                model.setProductType(selectedProductType);
+              }
 
               if (variants.first.color != null) {
                 pickerColor = getColorOrDefault(variants.first.color!);
@@ -1519,7 +1525,7 @@ Future<void> _showVariantSheet({
   String? initialBarcode,
 }) async {
   // Services carry no stock: the sheet hides the stock fields and saves 0.
-  final isService = selectedProductType == "3";
+  final isService = isServiceItemType(selectedProductType);
   final nameController = TextEditingController(
     text: existingVariant?.name ?? '',
   );

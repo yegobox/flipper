@@ -4,6 +4,7 @@ import 'dart:developer';
 
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/random.dart';
+import 'package:flipper_models/sync/utils/pos_catalog_stock_filter.dart';
 import 'package:flipper_models/sync/utils/stock_io_util.dart';
 import 'package:flipper_models/view_models/mixins/rraConstants.dart';
 import 'package:flipper_services/constants.dart';
@@ -304,8 +305,32 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
 
   setScannedVariants(List<Variant> variants) {
     scannedVariants = variants;
+    _stockOnRecord
+      ..clear()
+      ..addEntries(
+        variants.map(
+          (v) => MapEntry(v.id, v.stock?.currentStock ?? v.qty ?? 0),
+        ),
+      );
     notifyListeners();
   }
+
+  /// Stock each loaded variant held when the editor opened it, by id. The
+  /// editor zeroes a service's quantity in memory, so a guard that must
+  /// respect stock already on record reads this instead.
+  final Map<String, double> _stockOnRecord = {};
+
+  /// The larger of the stock recorded when [variant] was loaded and the
+  /// quantity now in the editor. A new, unsaved variant has only the latter.
+  double stockOnRecord(Variant variant) {
+    final inEditor = variant.stock?.currentStock ?? 0;
+    final loaded = _stockOnRecord[variant.id] ?? 0;
+    return loaded > inEditor ? loaded : inEditor;
+  }
+
+  /// Item type last chosen in the editor ([setProductType]); a variant scanned
+  /// while that choice was being made still gets it.
+  String? _selectedItemTyCd;
 
   /// Ditto/RRA reject null, empty, or literal "null" for [Variant.bhfId].
   String _coerceBhfId(
@@ -408,7 +433,7 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
       regrNm: productTitle,
       qty: 0,
       dcRt: 0,
-      itemTyCd: itemTyCd,
+      itemTyCd: _selectedItemTyCd ?? itemTyCd,
       pkgUnitCd: "NT",
       // bcd is bar code
       bcd: barCode,
@@ -518,14 +543,16 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
   }
 
   /// A service (`itemTyCd == "3"`) carries no stock.
-  static bool isServiceVariant(Variant variant) => variant.itemTyCd == "3";
+  static bool isServiceVariant(Variant variant) =>
+      isServiceItemType(variant.itemTyCd);
 
   /// Applies the product's item type to every variant in the editor. Choosing
   /// a service clears any stock already typed in, so none is shown or saved.
   void setProductType(String itemTyCd) {
+    _selectedItemTyCd = itemTyCd;
     for (final variant in scannedVariants) {
       variant.itemTyCd = itemTyCd;
-      if (itemTyCd != "3") continue;
+      if (!isServiceItemType(itemTyCd)) continue;
       variant.qty = 0;
       variant.rsdQty = 0;
       final stock = variant.stock;
@@ -824,7 +851,7 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
           variant.retailPrice = newRetailPrice;
           variant.prc = newRetailPrice;
           variant.dftPrc = newRetailPrice;
-          if (selectedProductType == "3") {
+          if (isServiceItemType(selectedProductType)) {
             variant.itemTyCd = "3";
             variant.qty = 0;
             variant.rsdQty = 0;
