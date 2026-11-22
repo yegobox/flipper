@@ -3899,6 +3899,24 @@ abstract class FlipperAppLocalizations {
   /// **'Could not save the receipt header. Try again.'**
   String get receiptHeaderSaveError;
 
+  /// No description provided for @taxSettingsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Receipt header and tax rates for this branch.'**
+  String get taxSettingsSubtitle;
+
+  /// No description provided for @taxSettingsRates.
+  ///
+  /// In en, this message translates to:
+  /// **'Tax rates'**
+  String get taxSettingsRates;
+
+  /// No description provided for @taxSettingsRatesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'The rate charged for each tax code.'**
+  String get taxSettingsRatesHint;
+
   /// Short suffix in the cart quantity field
   ///
   /// In en, this message translates to:

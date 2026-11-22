@@ -2355,6 +2355,9 @@
     "receiptHeaderSave": "Save receipt header",
     "receiptHeaderSaved": "Receipt header saved",
     "receiptHeaderSaveError": "Could not save the receipt header. Try again.",
+    "taxSettingsSubtitle": "Receipt header and tax rates for this branch.",
+    "taxSettingsRates": "Tax rates",
+    "taxSettingsRatesHint": "The rate charged for each tax code.",
     "cartQtySuffix": "qty",
     "@cartQtySuffix": {
         "description": "Short suffix in the cart quantity field"

@@ -1,12 +1,18 @@
+import 'dart:async';
+
 import 'package:flipper_dashboard/features/branch_location/branch_services.dart';
+import 'package:flipper_dashboard/features/config/system_config_tokens.dart';
+import 'package:flipper_dashboard/features/config/widgets/config_chrome.dart';
 import 'package:flipper_dashboard/features/receipt_header/receipt_header_section.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-/// Tax rates and the receipt header (phone, email, welcome line) for a branch.
+/// Tax rates and the receipt header (phone, email, welcome line) for a branch,
+/// in the same chrome as System Configuration.
 class TaxSettingsModal extends ConsumerStatefulWidget {
   final String branchId;
 
@@ -24,6 +30,7 @@ class _TaxSettingsModalState extends ConsumerState<TaxSettingsModal> {
   bool _isLoading = false;
   String? _statusMessage;
   bool _isError = false;
+  Timer? _statusTimer;
 
   @override
   void initState() {
@@ -62,13 +69,9 @@ class _TaxSettingsModalState extends ConsumerState<TaxSettingsModal> {
           _loadTaxConfigurations();
         });
 
-        // Clear success message after 3 seconds
-        Future.delayed(const Duration(seconds: 3), () {
-          if (mounted) {
-            setState(() {
-              _statusMessage = null;
-            });
-          }
+        _statusTimer?.cancel();
+        _statusTimer = Timer(const Duration(seconds: 3), () {
+          if (mounted) setState(() => _statusMessage = null);
         });
       }
     } catch (e) {
@@ -87,12 +90,36 @@ class _TaxSettingsModalState extends ConsumerState<TaxSettingsModal> {
 
   @override
   void dispose() {
+    _statusTimer?.cancel();
     _controllers.forEach((_, controller) => controller.dispose());
     super.dispose();
   }
 
-  Widget _buildTaxRow(Configurations config) {
+  void _submit(Configurations config) {
+    if (_formKeys[config.id]!.currentState!.validate()) {
+      _saveTaxConfiguration(config.id, _controllers[config.id]!.text);
+    }
+  }
+
+  void _cancelEdit(Configurations config) {
+    setState(() {
+      _editingStates[config.id] = false;
+      _controllers[config.id]!.text = config.taxPercentage.toString();
+    });
+  }
+
+  String? _validateRate(String? value) {
+    final l10n = context.flipperL10n;
+    if (value == null || value.isEmpty) return l10n.taxSettingsRequired;
+    final tax = double.tryParse(value);
+    if (tax == null) return l10n.invalidNumber;
+    if (tax < 0 || tax > 100) return l10n.taxSettingsRange;
+    return null;
+  }
+
+  Widget _buildTaxRow(Configurations config, {required bool first}) {
     final bool isEditing = _editingStates[config.id] ?? false;
+    final l10n = context.flipperL10n;
 
     if (!_controllers.containsKey(config.id)) {
       _controllers[config.id] = TextEditingController(
@@ -101,180 +128,242 @@ class _TaxSettingsModalState extends ConsumerState<TaxSettingsModal> {
       _formKeys[config.id] = GlobalKey<FormState>();
     }
 
-    return Card(
-      child: ListTile(
-        title: Text(
-          context.flipperL10n.taxSettingsTaxType(config.taxType ?? ''),
-        ),
-        subtitle: isEditing
-            ? Form(
+    final code = (config.taxType ?? '').trim();
+    return ConfigGroupRow(
+      first: first,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          _TaxCodeBadge(code: code),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Text(
+              l10n.taxSettingsTaxType(code),
+              style: GoogleFonts.outfit(
+                fontSize: 14.5,
+                fontWeight: FontWeight.w600,
+                color: SystemConfigTokens.ink,
+              ),
+            ),
+          ),
+          if (isEditing)
+            SizedBox(
+              width: 130,
+              child: Form(
                 key: _formKeys[config.id],
-                child: TextFormField(
-                  controller: _controllers[config.id],
-                  decoration: const InputDecoration(
-                    isDense: true,
-                    contentPadding: EdgeInsets.symmetric(
-                      horizontal: 0,
-                      vertical: 8,
-                    ),
-                    suffixText: '%',
+                child: ConfigTextField(
+                  fieldKey: ValueKey('taxRate-${config.id}'),
+                  controller: _controllers[config.id]!,
+                  autofocus: true,
+                  suffixText: '%',
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
                   ),
-                  keyboardType: TextInputType.numberWithOptions(decimal: true),
                   inputFormatters: [
                     FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
                   ],
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return context.flipperL10n.taxSettingsRequired;
-                    }
-                    final tax = double.tryParse(value);
-                    if (tax == null) {
-                      return context.flipperL10n.invalidNumber;
-                    }
-                    if (tax < 0 || tax > 100) {
-                      return context.flipperL10n.taxSettingsRange;
-                    }
-                    return null;
-                  },
-                  onFieldSubmitted: (value) {
-                    if (_formKeys[config.id]!.currentState!.validate()) {
-                      _saveTaxConfiguration(config.id, value);
-                    }
-                  },
+                  validator: _validateRate,
+                  onFieldSubmitted: (_) => _submit(config),
                 ),
-              )
-            : Text('${config.taxPercentage}%'),
-        trailing: IconButton(
-          icon: Icon(isEditing ? Icons.check : Icons.edit),
-          onPressed: _isLoading
-              ? null
-              : () {
-                  if (isEditing) {
-                    if (_formKeys[config.id]!.currentState!.validate()) {
-                      _saveTaxConfiguration(
-                        config.id,
-                        _controllers[config.id]!.text,
-                      );
-                    }
-                  } else {
-                    setState(() {
-                      _editingStates[config.id] = true;
-                    });
-                  }
-                },
-        ),
+              ),
+            )
+          else
+            Text(
+              '${config.taxPercentage}%',
+              style: GoogleFonts.outfit(
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+                color: SystemConfigTokens.ink,
+                fontFeatures: const [FontFeature.tabularFigures()],
+              ),
+            ),
+          const SizedBox(width: 8),
+          if (isEditing) ...[
+            _RowIconButton(
+              icon: Icons.check,
+              tooltip: l10n.save,
+              primary: true,
+              onPressed: _isLoading ? null : () => _submit(config),
+            ),
+            const SizedBox(width: 6),
+            _RowIconButton(
+              icon: Icons.undo,
+              tooltip: l10n.cancel,
+              onPressed: _isLoading ? null : () => _cancelEdit(config),
+            ),
+          ] else
+            _RowIconButton(
+              icon: Icons.edit_outlined,
+              tooltip: l10n.edit,
+              onPressed: _isLoading
+                  ? null
+                  : () => setState(() => _editingStates[config.id] = true),
+            ),
+        ],
       ),
+    );
+  }
+
+  Widget _buildRates() {
+    final l10n = context.flipperL10n;
+    return FutureBuilder<List<Configurations>>(
+      future: _taxConfigsFuture,
+      builder: (context, snapshot) {
+        final muted = GoogleFonts.outfit(
+          fontSize: 13,
+          color: SystemConfigTokens.muted,
+        );
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Padding(
+            padding: EdgeInsets.symmetric(vertical: 24),
+            child: Center(
+              child: SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2.5,
+                  color: SystemConfigTokens.accent,
+                ),
+              ),
+            ),
+          );
+        }
+        if (snapshot.hasError) {
+          return ConfigNotice(
+            tone: ConfigNoticeTone.error,
+            message: l10n.errorMessage('${snapshot.error}'),
+          );
+        }
+        final rows = snapshot.data ?? const <Configurations>[];
+        if (rows.isEmpty) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            child: Text(l10n.taxSettingsNoneFound, style: muted),
+          );
+        }
+        return ConfigGroup(
+          children: [
+            for (var i = 0; i < rows.length; i++)
+              _buildTaxRow(rows[i], first: i == 0),
+          ],
+        );
+      },
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
     return Dialog(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 460),
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                context.flipperL10n.taxSettings,
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+      child: ConfigDialogCard(
+        maxWidth: 600,
+        header: ConfigHeader(
+          icon: Icons.receipt_long_outlined,
+          title: l10n.taxSettings,
+          subtitle: l10n.taxSettingsSubtitle,
+          onClose: () => Navigator.of(context).maybePop(),
+        ),
+        body: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            ReceiptHeaderSection(branchId: widget.branchId),
+            const SizedBox(height: 28),
+            ConfigSectionLabel(title: l10n.taxSettingsRates),
+            const SizedBox(height: 6),
+            ConfigSectionHint(l10n.taxSettingsRatesHint),
+            const SizedBox(height: 14),
+            if (_statusMessage != null) ...[
+              ConfigNotice(
+                key: const ValueKey('taxSettingsStatus'),
+                tone: _isError
+                    ? ConfigNoticeTone.error
+                    : ConfigNoticeTone.success,
+                message: _statusMessage!,
+                onDismiss: _isError
+                    ? () => setState(() => _statusMessage = null)
+                    : null,
               ),
-              const SizedBox(height: 16),
-              ReceiptHeaderSection(branchId: widget.branchId),
-              const Divider(height: 32),
-              if (_statusMessage != null)
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(12),
-                  margin: const EdgeInsets.only(bottom: 16),
-                  decoration: BoxDecoration(
-                    color: _isError ? Colors.red.shade50 : Colors.green.shade50,
-                    border: Border.all(
-                      color: _isError
-                          ? Colors.red.shade300
-                          : Colors.green.shade300,
-                    ),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        _isError
-                            ? Icons.error_outline
-                            : Icons.check_circle_outline,
-                        color: _isError
-                            ? Colors.red.shade700
-                            : Colors.green.shade700,
-                        size: 20,
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          _statusMessage!,
-                          style: TextStyle(
-                            color: _isError
-                                ? Colors.red.shade700
-                                : Colors.green.shade700,
-                            fontSize: 14,
-                          ),
-                        ),
-                      ),
-                      if (_isError)
-                        GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              _statusMessage = null;
-                            });
-                          },
-                          child: Icon(
-                            Icons.close,
-                            color: Colors.red.shade700,
-                            size: 18,
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-              FutureBuilder<List<Configurations>>(
-                future: _taxConfigsFuture,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-
-                  if (snapshot.hasError) {
-                    return Text(
-                      context.flipperL10n.errorMessage('${snapshot.error}'),
-                    );
-                  }
-
-                  if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return Text(context.flipperL10n.taxSettingsNoneFound);
-                  }
-
-                  return Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: snapshot.data!.map(_buildTaxRow).toList(),
-                  );
-                },
-              ),
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  TextButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    child: Text(context.flipperL10n.close),
-                  ),
-                ],
-              ),
+              const SizedBox(height: 12),
             ],
+            _buildRates(),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// The RRA tax code ("A", "B", "TT") in a tinted tile.
+class _TaxCodeBadge extends StatelessWidget {
+  const _TaxCodeBadge({required this.code});
+
+  final String code;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 36,
+      height: 36,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: SystemConfigTokens.accentTint,
+        borderRadius: BorderRadius.circular(SystemConfigTokens.iconRadius),
+      ),
+      child: Text(
+        code.isEmpty ? '–' : code,
+        style: GoogleFonts.outfit(
+          fontSize: code.length > 1 ? 12.5 : 15,
+          fontWeight: FontWeight.w700,
+          color: SystemConfigTokens.accent,
+        ),
+      ),
+    );
+  }
+}
+
+class _RowIconButton extends StatelessWidget {
+  const _RowIconButton({
+    required this.icon,
+    required this.tooltip,
+    required this.onPressed,
+    this.primary = false,
+  });
+
+  final IconData icon;
+  final String tooltip;
+  final VoidCallback? onPressed;
+  final bool primary;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: tooltip,
+      child: Material(
+        color: primary ? SystemConfigTokens.accent : SystemConfigTokens.surface,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(SystemConfigTokens.closeRadius),
+          side: primary
+              ? BorderSide.none
+              : const BorderSide(color: SystemConfigTokens.border),
+        ),
+        child: InkWell(
+          onTap: onPressed,
+          customBorder: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(SystemConfigTokens.closeRadius),
+          ),
+          child: SizedBox(
+            width: 34,
+            height: 34,
+            child: Icon(
+              icon,
+              size: 17,
+              color: primary ? Colors.white : SystemConfigTokens.secondary,
+            ),
           ),
         ),
       ),

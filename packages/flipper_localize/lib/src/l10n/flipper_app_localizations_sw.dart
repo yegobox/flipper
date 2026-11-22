@@ -1,6 +1,5 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
-
 import 'flipper_app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -2135,6 +2134,17 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   @override
   String get receiptHeaderSaveError =>
       'Imeshindwa kuhifadhi kichwa cha risiti. Jaribu tena.';
+
+  @override
+  String get taxSettingsSubtitle =>
+      'Kichwa cha risiti na viwango vya kodi vya tawi hili.';
+
+  @override
+  String get taxSettingsRates => 'Viwango vya kodi';
+
+  @override
+  String get taxSettingsRatesHint =>
+      'Kiwango kinachotozwa kwa kila msimbo wa kodi.';
 
   @override
   String get cartQtySuffix => 'idadi';
@@ -10948,7 +10958,8 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
       locale: localeName,
       other:
           'Tiketi $count zisizoweza kufutwa zimerukwa (malipo ya sehemu au zimekaguliwa)',
-      one: 'Tiketi 1 isiyoweza kufutwa imerukwa (malipo ya sehemu au imekaguliwa)',
+      one:
+          'Tiketi 1 isiyoweza kufutwa imerukwa (malipo ya sehemu au imekaguliwa)',
     );
     return '$_temp0';
   }
@@ -14716,7 +14727,8 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
       locale: localeName,
       other:
           'Bidhaa $count zinahitaji bei ya kununua na ya kuuza, au kuunganishwa na mojawapo ya bidhaa zako',
-      one: 'Bidhaa 1 inahitaji bei ya kununua na ya kuuza, au kuunganishwa na mojawapo ya bidhaa zako',
+      one:
+          'Bidhaa 1 inahitaji bei ya kununua na ya kuuza, au kuunganishwa na mojawapo ya bidhaa zako',
     );
     return '$_temp0';
   }
@@ -19243,7 +19255,8 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
       locale: localeName,
       other:
           'Watu $count wanaripoti kwake, hivyo ataidhinisha likizo zao kwa jukumu lolote utakalochagua. Jukumu la meneja linaongeza orodha na mishahara ya wote.',
-      one: 'Mtu 1 anaripoti kwake, hivyo ataidhinisha likizo yake kwa jukumu lolote utakalochagua. Jukumu la meneja linaongeza orodha na mishahara ya wote.',
+      one:
+          'Mtu 1 anaripoti kwake, hivyo ataidhinisha likizo yake kwa jukumu lolote utakalochagua. Jukumu la meneja linaongeza orodha na mishahara ya wote.',
     );
     return '$_temp0';
   }

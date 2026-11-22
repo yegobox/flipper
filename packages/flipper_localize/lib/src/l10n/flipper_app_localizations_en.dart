@@ -1,6 +1,5 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
-
 import 'flipper_app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -2123,6 +2122,16 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
   @override
   String get receiptHeaderSaveError =>
       'Could not save the receipt header. Try again.';
+
+  @override
+  String get taxSettingsSubtitle =>
+      'Receipt header and tax rates for this branch.';
+
+  @override
+  String get taxSettingsRates => 'Tax rates';
+
+  @override
+  String get taxSettingsRatesHint => 'The rate charged for each tax code.';
 
   @override
   String get cartQtySuffix => 'qty';
@@ -10885,7 +10894,8 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
       locale: localeName,
       other:
           'Skipped $count tickets that cannot be deleted (partial payments or reviewed)',
-      one: 'Skipped 1 ticket that cannot be deleted (partial payments or reviewed)',
+      one:
+          'Skipped 1 ticket that cannot be deleted (partial payments or reviewed)',
     );
     return '$_temp0';
   }
@@ -14630,7 +14640,8 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
       locale: localeName,
       other:
           '$count items need a supply and retail price, or a link to one of your products',
-      one: '1 item needs a supply and retail price, or a link to one of your products',
+      one:
+          '1 item needs a supply and retail price, or a link to one of your products',
     );
     return '$_temp0';
   }
@@ -19122,7 +19133,8 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
       locale: localeName,
       other:
           '$count people report to them, so they will approve that leave whichever role you pick. The roster and everyone else\'s pay is what the manager role adds.',
-      one: '1 person reports to them, so they will approve that leave whichever role you pick. The roster and everyone else\'s pay is what the manager role adds.',
+      one:
+          '1 person reports to them, so they will approve that leave whichever role you pick. The roster and everyone else\'s pay is what the manager role adds.',
     );
     return '$_temp0';
   }
@@ -28087,7 +28099,8 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
       locale: localeName,
       other:
           '$count records will be permanently deleted from every branch, together with their ledger entries. This cannot be undone.',
-      one: '1 record will be permanently deleted from every branch, together with its ledger entries. This cannot be undone.',
+      one:
+          '1 record will be permanently deleted from every branch, together with its ledger entries. This cannot be undone.',
     );
     return '$_temp0';
   }
