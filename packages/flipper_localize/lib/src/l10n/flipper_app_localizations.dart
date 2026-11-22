@@ -3899,6 +3899,12 @@ abstract class FlipperAppLocalizations {
   /// **'Could not save the receipt header. Try again.'**
   String get receiptHeaderSaveError;
 
+  /// No description provided for @receiptHeaderNoBranch.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a branch to edit its receipt header.'**
+  String get receiptHeaderNoBranch;
+
   /// No description provided for @taxSettingsSubtitle.
   ///
   /// In en, this message translates to:

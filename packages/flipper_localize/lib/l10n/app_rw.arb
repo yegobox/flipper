@@ -2237,6 +2237,7 @@
   "receiptHeaderSave": "Bika umutwe wa fagitire",
   "receiptHeaderSaved": "Umutwe wa fagitire wabitswe",
   "receiptHeaderSaveError": "Ntibyashobotse kubika umutwe wa fagitire. Ongera ugerageze.",
+  "receiptHeaderNoBranch": "Hitamo ishami kugira ngo uhindure umutwe wa fagitire yaryo.",
   "taxSettingsSubtitle": "Umutwe wa fagitire n'ibipimo by'imisoro by'iri shami.",
   "taxSettingsRates": "Ibipimo by'imisoro",
   "taxSettingsRatesHint": "Igipimo gicibwa kuri buri kode y'umusoro.",

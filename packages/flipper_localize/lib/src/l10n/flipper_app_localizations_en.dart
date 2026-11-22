@@ -2124,6 +2124,10 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
       'Could not save the receipt header. Try again.';
 
   @override
+  String get receiptHeaderNoBranch =>
+      'Select a branch to edit its receipt header.';
+
+  @override
   String get taxSettingsSubtitle =>
       'Receipt header and tax rates for this branch.';
 

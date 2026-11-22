@@ -2245,6 +2245,7 @@
   "receiptHeaderSave": "Hifadhi kichwa cha risiti",
   "receiptHeaderSaved": "Kichwa cha risiti kimehifadhiwa",
   "receiptHeaderSaveError": "Imeshindwa kuhifadhi kichwa cha risiti. Jaribu tena.",
+  "receiptHeaderNoBranch": "Chagua tawi ili kuhariri kichwa cha risiti zake.",
   "taxSettingsSubtitle": "Kichwa cha risiti na viwango vya kodi vya tawi hili.",
   "taxSettingsRates": "Viwango vya kodi",
   "taxSettingsRatesHint": "Kiwango kinachotozwa kwa kila msimbo wa kodi.",

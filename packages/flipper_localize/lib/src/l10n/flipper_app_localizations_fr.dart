@@ -2161,6 +2161,10 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
       'Impossible d\'enregistrer l\'en-tête du reçu. Réessayez.';
 
   @override
+  String get receiptHeaderNoBranch =>
+      'Sélectionnez une succursale pour modifier l\'en-tête de ses reçus.';
+
+  @override
   String get taxSettingsSubtitle =>
       'En-tête du reçu et taux de taxe de cette succursale.';
 

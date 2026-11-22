@@ -22,6 +22,9 @@ class TaxSettingsModal extends ConsumerStatefulWidget {
   ConsumerState<TaxSettingsModal> createState() => _TaxSettingsModalState();
 }
 
+/// Screen width under which a tax rate being edited moves below its label.
+const double _stackedEditBelow = 480;
+
 class _TaxSettingsModalState extends ConsumerState<TaxSettingsModal> {
   late Future<List<Configurations>> _taxConfigsFuture;
   final Map<String, bool> _editingStates = {};
@@ -129,45 +132,30 @@ class _TaxSettingsModalState extends ConsumerState<TaxSettingsModal> {
     }
 
     final code = (config.taxType ?? '').trim();
-    return ConfigGroupRow(
-      first: first,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          _TaxCodeBadge(code: code),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Text(
-              l10n.taxSettingsTaxType(code),
-              style: GoogleFonts.outfit(
-                fontSize: 14.5,
-                fontWeight: FontWeight.w600,
-                color: SystemConfigTokens.ink,
-              ),
-            ),
-          ),
-          if (isEditing)
-            SizedBox(
-              width: 130,
-              child: Form(
-                key: _formKeys[config.id],
-                child: ConfigTextField(
-                  fieldKey: ValueKey('taxRate-${config.id}'),
-                  controller: _controllers[config.id]!,
-                  autofocus: true,
-                  suffixText: '%',
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
-                  inputFormatters: [
-                    FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
-                  ],
-                  validator: _validateRate,
-                  onFieldSubmitted: (_) => _submit(config),
-                ),
-              ),
-            )
-          else
+    final label = Text(
+      l10n.taxSettingsTaxType(code),
+      style: GoogleFonts.outfit(
+        fontSize: 14.5,
+        fontWeight: FontWeight.w600,
+        color: SystemConfigTokens.ink,
+      ),
+    );
+    final editButton = _RowIconButton(
+      icon: Icons.edit_outlined,
+      tooltip: l10n.edit,
+      onPressed: _isLoading
+          ? null
+          : () => setState(() => _editingStates[config.id] = true),
+    );
+
+    if (!isEditing) {
+      return ConfigGroupRow(
+        first: first,
+        child: Row(
+          children: [
+            _TaxCodeBadge(code: code),
+            const SizedBox(width: 14),
+            Expanded(child: label),
             Text(
               '${config.taxPercentage}%',
               style: GoogleFonts.outfit(
@@ -177,28 +165,82 @@ class _TaxSettingsModalState extends ConsumerState<TaxSettingsModal> {
                 fontFeatures: const [FontFeature.tabularFigures()],
               ),
             ),
+            const SizedBox(width: 8),
+            editButton,
+          ],
+        ),
+      );
+    }
+
+    final field = Form(
+      key: _formKeys[config.id],
+      child: ConfigTextField(
+        fieldKey: ValueKey('taxRate-${config.id}'),
+        controller: _controllers[config.id]!,
+        autofocus: true,
+        suffixText: '%',
+        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+        inputFormatters: [
+          FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+        ],
+        validator: _validateRate,
+        onFieldSubmitted: (_) => _submit(config),
+      ),
+    );
+    final actions = [
+      _RowIconButton(
+        icon: Icons.check,
+        tooltip: l10n.save,
+        primary: true,
+        onPressed: _isLoading ? null : () => _submit(config),
+      ),
+      const SizedBox(width: 6),
+      _RowIconButton(
+        icon: Icons.undo,
+        tooltip: l10n.cancel,
+        onPressed: _isLoading ? null : () => _cancelEdit(config),
+      ),
+    ];
+
+    // A phone leaves ~230px per row; badge + field + two buttons need ~262,
+    // so the editor drops to its own line there.
+    if (MediaQuery.sizeOf(context).width < _stackedEditBelow) {
+      return ConfigGroupRow(
+        first: first,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                _TaxCodeBadge(code: code),
+                const SizedBox(width: 14),
+                Expanded(child: label),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(child: field),
+                const SizedBox(width: 8),
+                ...actions,
+              ],
+            ),
+          ],
+        ),
+      );
+    }
+
+    return ConfigGroupRow(
+      first: first,
+      child: Row(
+        children: [
+          _TaxCodeBadge(code: code),
+          const SizedBox(width: 14),
+          Expanded(child: label),
+          SizedBox(width: 130, child: field),
           const SizedBox(width: 8),
-          if (isEditing) ...[
-            _RowIconButton(
-              icon: Icons.check,
-              tooltip: l10n.save,
-              primary: true,
-              onPressed: _isLoading ? null : () => _submit(config),
-            ),
-            const SizedBox(width: 6),
-            _RowIconButton(
-              icon: Icons.undo,
-              tooltip: l10n.cancel,
-              onPressed: _isLoading ? null : () => _cancelEdit(config),
-            ),
-          ] else
-            _RowIconButton(
-              icon: Icons.edit_outlined,
-              tooltip: l10n.edit,
-              onPressed: _isLoading
-                  ? null
-                  : () => setState(() => _editingStates[config.id] = true),
-            ),
+          ...actions,
         ],
       ),
     );

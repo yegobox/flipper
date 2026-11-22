@@ -12,11 +12,15 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:supabase_models/brick/repository/storage.dart';
 
 class _Box implements LocalStorage {
+  _Box({this.branchId = 'br'});
+
+  final String? branchId;
+
   @override
   String? getBusinessId() => 'biz';
 
   @override
-  String? getBranchId() => 'br';
+  String? getBranchId() => branchId;
 
   @override
   dynamic noSuchMethod(Invocation invocation) => null;
@@ -61,10 +65,11 @@ class _Db implements DatabaseSyncInterface {
 }
 
 class _Services extends BranchServices {
-  _Services(this.db);
+  _Services(this.db, {String? branchId = 'br'})
+    : _box = _Box(branchId: branchId);
 
   final _Db db;
-  final _box = _Box();
+  final _Box _box;
 
   @override
   LocalStorage get box => _box;
@@ -79,10 +84,14 @@ class _Store implements ReceiptHeaderStore {
 
   BranchDocumentSettings settings;
   final saved = <BranchDocumentSettings>[];
+  final loaded = <String>[];
   bool fail = false;
 
   @override
-  Future<BranchDocumentSettings> load(String branchId) async => settings;
+  Future<BranchDocumentSettings> load(String branchId) async {
+    loaded.add(branchId);
+    return settings;
+  }
 
   @override
   Future<bool> save(BranchDocumentSettings next) async {
@@ -387,6 +396,83 @@ void main() {
 
       await _pump(tester, _Store(), _Db());
       expect(dy('receiptHeaderEmail'), dy('receiptHeaderPhone'));
+    });
+  });
+
+  group('narrow screens and no branch', () {
+    testWidgets('a rate being edited on a phone drops below its label', (
+      tester,
+    ) async {
+      await _pump(tester, _Store(), _Db(), size: const Size(360, 1600));
+
+      await tester.tap(find.byIcon(Icons.edit_outlined));
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      final field = find.byKey(const ValueKey('taxRate-cfg-b'));
+      expect(
+        tester.getTopLeft(field).dy,
+        greaterThan(tester.getBottomLeft(find.text('B Tax')).dy),
+      );
+      expect(find.byIcon(Icons.undo), findsOneWidget);
+    });
+
+    testWidgets('with no branch the header says so instead of dead fields', (
+      tester,
+    ) async {
+      final store = _Store();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            branchServicesProvider.overrideWithValue(
+              _Services(_Db(), branchId: null),
+            ),
+            receiptHeaderStoreProvider.overrideWithValue(store),
+          ],
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates:
+                FlipperAppLocalizations.localizationsDelegates,
+            supportedLocales: FlipperAppLocalizations.supportedLocales,
+            home: const Scaffold(
+              body: SingleChildScrollView(child: ReceiptHeaderSection()),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byKey(const ValueKey('receiptHeaderNoBranch')),
+        findsOneWidget,
+      );
+      expect(find.byKey(const ValueKey('receiptHeaderPhone')), findsNothing);
+      expect(find.byKey(const ValueKey('receiptHeaderSave')), findsNothing);
+      expect(store.loaded, isEmpty);
+    });
+
+    testWidgets('with no branch id passed, it loads the active branch', (
+      tester,
+    ) async {
+      final store = _Store();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: _overrides(store, _Db()),
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates:
+                FlipperAppLocalizations.localizationsDelegates,
+            supportedLocales: FlipperAppLocalizations.supportedLocales,
+            home: const Scaffold(
+              body: SingleChildScrollView(child: ReceiptHeaderSection()),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(store.loaded, ['br']);
+      expect(find.byKey(const ValueKey('receiptHeaderPhone')), findsOneWidget);
     });
   });
 }

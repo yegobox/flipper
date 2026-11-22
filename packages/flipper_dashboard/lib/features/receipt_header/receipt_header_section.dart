@@ -61,6 +61,7 @@ class _ReceiptHeaderSectionState extends ConsumerState<ReceiptHeaderSection> {
 
   BranchDocumentSettings? _settings;
   bool _loading = true;
+  bool _noBranch = false;
   bool _saving = false;
   bool _missingContact = false;
   String? _status;
@@ -85,7 +86,13 @@ class _ReceiptHeaderSectionState extends ConsumerState<ReceiptHeaderSection> {
     final store = ref.read(receiptHeaderStoreProvider);
     final branchId = widget.branchId ?? services.box.getBranchId();
     if (branchId == null) {
-      if (mounted) setState(() => _loading = false);
+      // Nothing to load or save: say so rather than show dead fields.
+      if (mounted) {
+        setState(() {
+          _noBranch = true;
+          _loading = false;
+        });
+      }
       return;
     }
 
@@ -192,6 +199,12 @@ class _ReceiptHeaderSectionState extends ConsumerState<ReceiptHeaderSection> {
                 ),
               ),
             ),
+          )
+        else if (_noBranch)
+          ConfigNotice(
+            key: const ValueKey('receiptHeaderNoBranch'),
+            tone: ConfigNoticeTone.warning,
+            message: l10n.receiptHeaderNoBranch,
           )
         else
           Form(

@@ -2355,6 +2355,7 @@
     "receiptHeaderSave": "Save receipt header",
     "receiptHeaderSaved": "Receipt header saved",
     "receiptHeaderSaveError": "Could not save the receipt header. Try again.",
+    "receiptHeaderNoBranch": "Select a branch to edit its receipt header.",
     "taxSettingsSubtitle": "Receipt header and tax rates for this branch.",
     "taxSettingsRates": "Tax rates",
     "taxSettingsRatesHint": "The rate charged for each tax code.",
