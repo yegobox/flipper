@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flipper_dashboard/TaxSettingsModal.dart';
 import 'package:flipper_dashboard/features/branch_location/branch_services.dart';
 import 'package:flipper_dashboard/features/receipt_header/receipt_header_section.dart';
@@ -32,6 +34,7 @@ class _Db implements DatabaseSyncInterface {
   final Business? business;
   final bool businessThrows;
   bool saveThrows = false;
+  Future<void>? saveGate;
   bool taxesThrow = false;
   final saved = <({String configId, double taxPercentage})>[];
   final taxRows = [
@@ -57,6 +60,7 @@ class _Db implements DatabaseSyncInterface {
   }) async {
     if (saveThrows) throw StateError('offline');
     saved.add((configId: configId, taxPercentage: taxPercentage));
+    if (saveGate != null) await saveGate;
     return taxRows.first;
   }
 
@@ -474,5 +478,28 @@ void main() {
       expect(store.loaded, ['br']);
       expect(find.byKey(const ValueKey('receiptHeaderPhone')), findsOneWidget);
     });
+  });
+
+  testWidgets('Enter while a rate save is pending does not save twice', (
+    tester,
+  ) async {
+    final gate = Completer<void>();
+    final db = _Db()..saveGate = gate.future;
+    await _pump(tester, _Store(), db);
+
+    await tester.tap(find.byIcon(Icons.edit_outlined));
+    await tester.pumpAndSettle();
+    final rate = find.byKey(const ValueKey('taxRate-cfg-b'));
+    await tester.enterText(rate, '16');
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pump();
+    await tester.enterText(rate, '17');
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pump();
+
+    expect(db.saved, [(configId: 'cfg-b', taxPercentage: 16.0)]);
+    gate.complete();
+    await tester.pumpAndSettle();
+    await tester.pump(const Duration(seconds: 3));
   });
 }

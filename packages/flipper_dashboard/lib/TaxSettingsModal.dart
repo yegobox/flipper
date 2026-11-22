@@ -99,6 +99,8 @@ class _TaxSettingsModalState extends ConsumerState<TaxSettingsModal> {
   }
 
   void _submit(Configurations config) {
+    // Enter in the field bypasses the disabled buttons; one save at a time.
+    if (_isLoading) return;
     if (_formKeys[config.id]!.currentState!.validate()) {
       _saveTaxConfiguration(config.id, _controllers[config.id]!.text);
     }
