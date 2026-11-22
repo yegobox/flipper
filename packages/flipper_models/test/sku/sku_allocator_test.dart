@@ -7,11 +7,17 @@ import 'package:flutter_test/flutter_test.dart';
 class _MemoryStore implements SkuAllocatorStore {
   String? value;
 
+  /// Set to make the next writes fail (disk full, file locked).
+  Object? failWith;
+
   @override
   String? read() => value;
 
   @override
-  Future<void> write(String v) async => value = v;
+  Future<void> write(String v) async {
+    if (failWith != null) throw failWith!;
+    value = v;
+  }
 }
 
 /// A server with a row-locked counter, like `reserve_sku_block`.
@@ -257,5 +263,81 @@ void main() {
       expect(await a.next(businessId: biz), 1);
       expect(env.reserveCalls, 0);
     });
+
+    test('numbers used in Local Mode never come back from a block', () async {
+      final env = _FakeEnv();
+      final store = _MemoryStore();
+      final a = allocator(env, store: store);
+      a.topUp(businessId: biz);
+      await a.settle();
+      expect(a.peek(businessId: biz), 1, reason: 'block 1..50 reserved');
+
+      // Local Mode counts from the items on this device, so it reuses the
+      // reserved range.
+      env.isLocalMode = true;
+      final local = [
+        for (var i = 0; i < 12; i++) (await a.next(businessId: biz))!,
+      ];
+      expect(local.first, 1);
+
+      env.isLocalMode = false;
+      final server = [
+        for (var i = 0; i < 45; i++) await a.next(businessId: biz),
+      ];
+      await a.settle();
+      final issued = server.whereType<int>().toList();
+      expect(issued.toSet().intersection(local.toSet()), isEmpty);
+      expect(issued.first, 13, reason: 'the block skips past Local Mode');
+      expect(issued.toSet(), hasLength(issued.length));
+    });
+
+    test('a queued block below the local counter is dropped', () async {
+      final env = _FakeEnv(isLocalMode: true, localMaxValue: 120);
+      final store = _MemoryStore()
+        ..value =
+            '{"$biz":{"next":10,"end":59,"queuedStart":100,"queuedEnd":149}}';
+      final a = allocator(env, store: store);
+      expect(await a.next(businessId: biz), 121);
+
+      env.isLocalMode = false;
+      expect(a.remaining(businessId: biz), 28, reason: '122..149');
+      expect(a.peek(businessId: biz), 122);
+      expect(await a.next(businessId: biz), 122);
+    });
   });
+
+  group('a cursor that cannot be stored', () {
+    test('hands out no number: the item saves as SKU pending', () async {
+      final env = _FakeEnv();
+      final store = _MemoryStore();
+      final errors = <Object>[];
+      final a = allocator(env, store: store)..onWriteError = errors.add;
+      a.topUp(businessId: biz);
+      await a.settle();
+
+      store.failWith = const _WriteFailure('disk full');
+      expect(await a.next(businessId: biz), isNull);
+      expect(errors, hasLength(1));
+
+      // Once the disk is writable again, numbers resume from the stored
+      // cursor: the number that was never handed out is used now.
+      store.failWith = null;
+      expect(await a.next(businessId: biz), 1);
+      expect(await a.next(businessId: biz), 2);
+    });
+
+    test('in Local Mode too', () async {
+      final env = _FakeEnv(isLocalMode: true, localMaxValue: 4);
+      final store = _MemoryStore()..failWith = const _WriteFailure('locked');
+      final a = allocator(env, store: store);
+      expect(await a.next(businessId: biz), isNull);
+      store.failWith = null;
+      expect(await a.next(businessId: biz), 5);
+    });
+  });
+}
+
+class _WriteFailure implements Exception {
+  const _WriteFailure(this.message);
+  final String message;
 }

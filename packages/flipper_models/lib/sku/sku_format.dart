@@ -7,10 +7,13 @@
 /// (`Variant.itemCd`).
 ///
 /// Shape: `<PREFIX>-<number padded to 5>`, e.g. `BEV-00042`. Extra variants
-/// of one product reuse the base number with a two-digit suffix:
-/// `BEV-00042-02`, `BEV-00042-03`. The number comes from one counter per
-/// business, so the number alone is unique and renaming a prefix can never
-/// create a clash.
+/// of one product reuse the base number with a suffix of two digits or more:
+/// `BEV-00042-02`, `BEV-00042-03`, ..., `BEV-00042-100`. The number comes
+/// from one counter per business, so the number alone is unique and renaming
+/// a prefix can never create a clash.
+///
+/// Rust's `split_sku` still takes two-digit suffixes only, so a `-100` sibling
+/// is invisible to the connector sweep (it would pick `-100` again there).
 library;
 
 /// Prefix used when an item has no category, or the category name has fewer
@@ -18,10 +21,11 @@ library;
 const String kDefaultSkuPrefix = 'SKU';
 
 final RegExp _prefixPattern = RegExp(r'^[A-Z0-9]{2,6}$');
-final RegExp _basePattern = RegExp(r'^([A-Z0-9]{2,6}-[0-9]{5,})(-[0-9]{2})?$');
+// The suffix is two digits or more: the 100th variant is `-100`.
+final RegExp _basePattern = RegExp(r'^([A-Z0-9]{2,6}-[0-9]{5,})(-[0-9]{2,})?$');
 final RegExp _legacyInteger = RegExp(r'^[0-9]{1,7}$');
 final RegExp _prefixedNumber = RegExp(
-  r'^[A-Za-z0-9]{1,6}-([0-9]{1,9})(-[0-9]{2})?$',
+  r'^[A-Za-z0-9]{1,6}-([0-9]{1,9})(-[0-9]{2,})?$',
 );
 
 /// Whether [value] is a valid stored prefix (`categories.sku_prefix`).

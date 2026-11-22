@@ -101,6 +101,19 @@ void main() {
       expect(nextVariantSku('BEV-00042-02', ['BEV-00042-02']), 'BEV-00042-03');
     });
 
+    test('suffixes go past 99', () {
+      final siblings = ['BEV-00042', 'BEV-00042-99'];
+      final hundredth = nextVariantSku('BEV-00042', siblings);
+      expect(hundredth, 'BEV-00042-100');
+      expect(skuBase(hundredth), 'BEV-00042');
+      expect(skuVariantIndex(hundredth), 100);
+      expect(
+        nextVariantSku('BEV-00042', [...siblings, hundredth]),
+        'BEV-00042-101',
+      );
+      expect(legacySkuNumber('BEV-00042-100'), 42);
+    });
+
     test('a non-generated SKU has no suffix rule', () {
       expect(nextVariantSku('42', ['42']), isNull);
     });

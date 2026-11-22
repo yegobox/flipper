@@ -408,6 +408,16 @@ class SharedPreferenceStorage implements LocalStorage {
   /// a copy on a second device would hand out the same numbers twice.
   static const Set<String> _deviceOnlyKeys = {'skuBlocks'};
 
+  /// Keys whose write must reach disk: a failed file write throws to the
+  /// caller instead of being logged. The SKU allocator then hands out no
+  /// number, since a cursor that is not on disk would repeat numbers after a
+  /// restart.
+  static const Set<String> _strictKeys = {'skuBlocks'};
+
+  /// Where the preferences file lives (tests point it at an unwritable path).
+  @visibleForTesting
+  set debugFilePath(String value) => _filePath = value;
+
   static void _keepLocalFileOnlyKeys(
     Map<String, dynamic> merged,
     Map<String, dynamic> legacy,
@@ -500,9 +510,9 @@ class SharedPreferenceStorage implements LocalStorage {
       };
 
   Future<void> _writeDittoPayload() async {
+    final payload = jsonEncode(dittoMirrorPayload(_cache));
     final store = DittoService.instance.store;
     if (store == null) return;
-    final payload = jsonEncode(dittoMirrorPayload(_cache));
     await store.execute(
       'INSERT INTO $_kDittoPrefsCollection DOCUMENTS (:data) ON ID CONFLICT DO UPDATE',
       // dart format off
@@ -516,23 +526,19 @@ class SharedPreferenceStorage implements LocalStorage {
     );
   }
 
-  Future<void> _persist() async {
+  Future<void> _persist({bool strict = false}) async {
     if (kIsWeb) {
       if (_webPrefs != null) {
         await _webPrefs!.setString(_kPreferencesKey, jsonEncode(_cache));
       }
       return;
     }
-    if (_isFlutterTestEnv) {
-      await _savePreferences();
-      return;
-    }
     // Local JSON file is the synchronous durable store and is written on every
     // call. The Ditto upsert is only needed for cross-device restore, so it is
     // flushed in the background and coalesced — see [_scheduleDittoFlush]. This
     // keeps the hot write path (login fires ~15 writes serially) off the shared
-    // Ditto store that catalog sync is busy with.
-    await _savePreferences();
+    // Ditto store that catalog sync is busy with. (Tests skip the flush.)
+    await _savePreferences(strict: strict);
     _scheduleDittoFlush();
   }
 
@@ -711,8 +717,9 @@ class SharedPreferenceStorage implements LocalStorage {
     }
   }
 
-  /// Save preferences to the JSON file using a safe write pattern
-  Future<void> _savePreferences() async {
+  /// Save preferences to the JSON file using a safe write pattern. A failed
+  /// write is logged, or thrown when [strict] (see [_strictKeys]).
+  Future<void> _savePreferences({bool strict = false}) async {
     try {
       final file = File(_filePath);
       final tempFile = File('$_filePath.tmp');
@@ -733,6 +740,7 @@ class SharedPreferenceStorage implements LocalStorage {
       } catch (directWriteError) {
         // Log the error but continue execution
         print('Error writing preferences file: $directWriteError');
+        if (strict) rethrow;
       }
     }
   }
@@ -901,7 +909,7 @@ class SharedPreferenceStorage implements LocalStorage {
   Future<void> writeString({required String key, required String value}) async {
     if (!_isKeyAllowed(key)) return;
     _cache[key] = value;
-    await _persist();
+    await _persist(strict: _strictKeys.contains(key));
   }
 
   @override

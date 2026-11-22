@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:supabase_models/brick/repository/local_storage.dart';
 
@@ -28,6 +30,53 @@ void main() {
         reason: 'skuBlocks is missing from the LocalStorage allowlist',
       );
     });
+  });
+
+  // A cursor that never reached disk would hand the same SKU numbers out
+  // again after a restart, so the allocator must hear about a failed write.
+  group('a failed file write', () {
+    late SharedPreferenceStorage box;
+    late Directory dir;
+
+    setUp(() async {
+      box = SharedPreferenceStorage();
+      await box.initializePreferences();
+      dir = Directory.systemTemp.createTempSync('sku_prefs_');
+      // Both the temp file and the direct-write fallback hit a directory.
+      final blocked = '${dir.path}/prefs.json';
+      Directory(blocked).createSync();
+      Directory('$blocked.tmp').createSync();
+      box.debugFilePath = blocked;
+    });
+
+    tearDown(() {
+      box.dispose();
+      dir.deleteSync(recursive: true);
+    });
+
+    test('throws for skuBlocks', () async {
+      await expectLater(
+        box.writeString(key: 'skuBlocks', value: '{"biz":{"next":5}}'),
+        throwsA(isA<FileSystemException>()),
+      );
+    });
+
+    test('is only logged for other keys', () async {
+      await box.writeString(key: 'branchId', value: 'branch-1');
+      expect(box.readString(key: 'branchId'), 'branch-1');
+    });
+  });
+
+  test('the Ditto copy is built before Ditto is open', () async {
+    // No Ditto store in tests: the attach still builds the mirror payload
+    // (skuBlocks left out) and keeps the local value.
+    final box = SharedPreferenceStorage();
+    await box.initializePreferences();
+    await box.writeString(key: 'skuBlocks', value: '{"biz":{"next":7}}');
+    await box.attachDittoPersistence(readDitto: () async => null);
+    expect(box.readString(key: 'skuBlocks'), '{"biz":{"next":7}}');
+    await box.clear();
+    box.dispose();
   });
 
   group('skuBlocks stays on this device', () {

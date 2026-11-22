@@ -12,6 +12,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_web/core/local_mode/local_mode.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:http/http.dart' as http;
+import 'package:supabase_models/brick/models/variant.model.dart';
 
 /// Preference key holding every business's reserved SKU numbers (one JSON
 /// map). Must stay in `SharedPreferenceStorage._allowedKeys`.
@@ -138,10 +139,10 @@ class _AppSkuEnv implements SkuAllocatorEnv {
 SkuAllocator? _allocator;
 
 /// The app's allocator. Tests replace it with [debugSetSkuAllocator].
-SkuAllocator get skuAllocator => _allocator ??= SkuAllocator(
-  store: const _BoxSkuStore(),
-  env: const _AppSkuEnv(),
-)..onRefillError = (e) => talker.info('SKU block refill skipped: $e');
+SkuAllocator get skuAllocator => _allocator ??=
+    SkuAllocator(store: const _BoxSkuStore(), env: const _AppSkuEnv())
+      ..onRefillError = ((e) => talker.info('SKU block refill skipped: $e'))
+      ..onWriteError = ((e) => talker.warning('SKU cursor not stored: $e'));
 
 /// Swap the allocator (tests). Null restores the app's own.
 void debugSetSkuAllocator(SkuAllocator? allocator) => _allocator = allocator;
@@ -181,6 +182,33 @@ Future<SkuAssignment> assignVariantSku({
     categoryName: categoryName,
     skuPrefix: skuPrefix,
   );
+}
+
+/// Gives each of [variants] that has no SKU one before it is saved, from
+/// [assign] (called with the SKUs the product's variants hold so far, so it
+/// can take the next suffix: [assignVariantSku]). [otherSkus] are the SKUs of
+/// the product's variants that are not in [variants]. A variant that already
+/// has a SKU, or is already SKU pending, is left alone; a pending assignment
+/// leaves `sku` null and sets `skuPending`.
+Future<void> fillMissingVariantSkus(
+  List<Variant> variants, {
+  Iterable<String?> otherSkus = const [],
+  required Future<SkuAssignment> Function(List<String?> siblingSkus) assign,
+}) async {
+  final siblings = <String?>[
+    for (final v in variants)
+      if ((v.sku ?? '').trim().isNotEmpty) v.sku!.trim(),
+    ...otherSkus,
+  ];
+  for (final variant in variants) {
+    if ((variant.sku ?? '').trim().isNotEmpty) continue;
+    if (variant.skuPending == true) continue;
+    final assignment = await assign(List.of(siblings));
+    variant
+      ..sku = assignment.sku
+      ..skuPending = assignment.pending;
+    if (assignment.sku != null) siblings.add(assignment.sku);
+  }
 }
 
 /// A SKU for a new item. Reads only local state (the reserved block and the

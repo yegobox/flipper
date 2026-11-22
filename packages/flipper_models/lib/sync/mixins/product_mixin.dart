@@ -391,9 +391,11 @@ mixin ProductMixin implements ProductInterface {
     Category? category = (await repository.get<Category>(
       query: Query(where: [Where('id').isExactly(categoryId)]),
     )).firstOrNull;
-    // Local only: never waits for the server (see SkuAllocator).
+    // Local only: never waits for the server (see SkuAllocator). Brick never
+    // loads skuPrefix (Ditto-only), so categoryId lets assignNewSku read it.
     final skuAssignment = await assignNewSku(
       businessId: businessId,
+      categoryId: categoryId,
       skuPrefix: category?.skuPrefix,
       categoryName: category?.name,
     );

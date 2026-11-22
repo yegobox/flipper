@@ -74,10 +74,13 @@ class _AddVariationState extends State<AddVariation> with TransactionMixinOld {
                     // A typed SKU must be free in the business. Local check
                     // only, so it works offline; blank is assigned on save.
                     final product = model.product;
+                    // Read once: the field stays editable during the awaits
+                    // below, and the SKU saved must be the one checked.
+                    final checkedSku = skuController.text.trim();
                     if (product != null) {
                       final skuError = await skuSaveError(
                         context,
-                        typed: skuController.text.trim(),
+                        typed: checkedSku,
                         businessId: product.businessId,
                         candidate: SkuHolder(
                           id: '',
@@ -98,6 +101,7 @@ class _AddVariationState extends State<AddVariation> with TransactionMixinOld {
                       model,
                       selectedProductType: "1",
                       productName: "",
+                      typedSku: checkedSku,
                     );
                     _routerService.pop();
                   }
@@ -213,6 +217,7 @@ class _AddVariationState extends State<AddVariation> with TransactionMixinOld {
     Map<String, String>? rates,
     Map<String, String>? dates,
     required String productName,
+    required String typedSku,
   }) async {
     Business? business = await ProxyService.strategy.getBusiness(
       businessId: ProxyService.box.getBusinessId()!,
@@ -226,7 +231,6 @@ class _AddVariationState extends State<AddVariation> with TransactionMixinOld {
     // 321981891968185
     List<Variant> variations = [];
     // Blank: addVariant assigns the SKU (a sibling suffix or a new number).
-    final typedSku = skuController.text.trim();
     final String? sku = typedSku.isEmpty ? null : typedSku;
     Variant data =
         Variant(

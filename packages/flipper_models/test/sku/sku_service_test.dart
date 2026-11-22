@@ -143,6 +143,54 @@ void main() {
     });
   });
 
+  // A variant added while editing a product (bulkUpdateVariants) used to be
+  // saved with neither a SKU nor skuPending.
+  group('fillMissingVariantSkus', () {
+    Variant variant(String id, {String? sku, bool? skuPending}) => Variant(
+      id: id,
+      name: id,
+      sku: sku,
+      skuPending: skuPending,
+      branchId: 'branch-1',
+    );
+
+    test('a new variant takes the next suffix of its siblings', () async {
+      final env = _Env(() async => const SkuNumberRange(1, 50));
+      debugSetSkuAllocator(SkuAllocator(store: _MemoryStore(), env: env));
+      final kept = variant('a', sku: 'BEV-00042');
+      final added = variant('b');
+      final another = variant('c', sku: '  ');
+      await fillMissingVariantSkus(
+        [kept, added, another],
+        otherSkus: ['BEV-00042-02'],
+        assign: (siblings) =>
+            assignVariantSku(businessId: 'biz-1', siblingSkus: siblings),
+      );
+      expect(kept.sku, 'BEV-00042', reason: 'a SKU it has is left alone');
+      expect(kept.skuPending, isNull);
+      expect(added.sku, 'BEV-00042-03');
+      expect(added.skuPending, isFalse);
+      expect(another.sku, 'BEV-00042-04');
+      expect(env.calls, 0);
+    });
+
+    test('no number available: saved as SKU pending', () async {
+      final added = variant('b');
+      final pending = variant('p', skuPending: true);
+      var calls = 0;
+      await fillMissingVariantSkus(
+        [added, pending],
+        assign: (_) async {
+          calls++;
+          return const SkuAssignment.pending();
+        },
+      );
+      expect(added.sku, isNull);
+      expect(added.skuPending, isTrue);
+      expect(calls, 1, reason: 'an already pending variant is left alone');
+    });
+  });
+
   group('SkuReserveClient', () {
     test('posts the contract body and reads the inclusive range', () async {
       late http.Request sent;

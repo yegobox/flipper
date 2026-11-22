@@ -2602,7 +2602,14 @@ class CapellaSync extends AiStrategyImpl
     }
 
     final ditto = dittoService.dittoInstance;
-    if (ditto == null) return;
+    // The SKU prefix lives only in Ditto: report it unsaved rather than let
+    // the form close as if it were.
+    if (ditto == null) {
+      if (skuPrefix != null) {
+        throw StateError('SKU prefix not saved: Ditto is not open');
+      }
+      return;
+    }
 
     final updates = <String>[];
     final args = <String, dynamic>{'cid': categoryId};
@@ -2632,11 +2639,18 @@ class CapellaSync extends AiStrategyImpl
     addIfNonNull('lastTouched', DateTime.now());
 
     try {
-      await ditto.store.execute(
+      final result = await ditto.store.execute(
         'UPDATE categories SET ${updates.join(', ')} WHERE $whereClause',
         arguments: args,
       );
+      // UPDATE matches nothing when the category never reached Ditto.
+      if (skuPrefix != null && result.mutatedDocumentIDs().isEmpty) {
+        throw StateError(
+          'SKU prefix not saved: category $categoryId not found',
+        );
+      }
     } catch (e, s) {
+      if (skuPrefix != null) rethrow;
       talker.warning(
         'Capella updateCategory Ditto mirror failed (non-fatal): $e',
         s,

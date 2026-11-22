@@ -178,6 +178,18 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
     return null;
   }
 
+  /// The selected category's own SKU prefix (`BEV`), or null when it has
+  /// none and the prefix comes from the category name.
+  String? _selectedSkuPrefix() {
+    final categoryId = selectedCategoryId;
+    if (categoryId == null) return null;
+    final categories = ref.read(categoryProvider).value ?? const <Category>[];
+    for (final category in categories) {
+      if (category.id == categoryId) return category.skuPrefix;
+    }
+    return null;
+  }
+
   /// Keeps [selectedCategoryId] and [selectedCategoryName] in lockstep, and
   /// honours a null (cleared) selection. Previously only the id was stored and
   /// nulls were dropped, so the editor showed no name for a freshly picked
@@ -247,6 +259,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
             true,
             color: pickerColor.toHex(),
             categoryId: selectedCategoryId,
+            businessId: productRef.businessId,
             productName: syncedProductName,
             selectedProductType: selectedProductType,
             newRetailPrice: double.tryParse(retailPriceController.text) ?? 0,
@@ -1320,6 +1333,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                     selectedProductType: selectedProductType,
                     isEditMode: widget.productId != null,
                     categoryName: selectedCategoryName,
+                    skuPrefix: _selectedSkuPrefix(),
                     initialBarcode: barcode.trim(),
                   );
                 }
@@ -1336,6 +1350,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                   selectedProductType: selectedProductType,
                   isEditMode: widget.productId != null,
                   categoryName: selectedCategoryName,
+                  skuPrefix: _selectedSkuPrefix(),
                 );
               },
               onEditVariant: (variant) {
@@ -1350,6 +1365,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                   selectedProductType: selectedProductType,
                   isEditMode: widget.productId != null,
                   categoryName: selectedCategoryName,
+                  skuPrefix: _selectedSkuPrefix(),
                   existingVariant: variant,
                 );
               },
@@ -1549,6 +1565,7 @@ Future<void> _showVariantSheet({
   Variant? existingVariant,
   String? initialBarcode,
   String? categoryName,
+  String? skuPrefix,
 }) async {
   // Services carry no stock: the sheet hides the stock fields and saves 0.
   final isService = isServiceItemType(selectedProductType);
@@ -1564,6 +1581,7 @@ Future<void> _showVariantSheet({
   final skuPreview = skuPreviewFor(
     businessId: productRef?.businessId ?? '',
     categoryName: categoryName,
+    skuPrefix: skuPrefix,
     siblingSkus: [
       for (final v in model.scannedVariants)
         if (v.id != existingVariant?.id) v.sku,

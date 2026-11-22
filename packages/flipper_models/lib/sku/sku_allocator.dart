@@ -47,7 +47,14 @@ abstract interface class SkuAllocatorEnv {
 /// saves the item with no SKU and `skuPending: true`, the item sells exactly
 /// as before, and data-connector assigns the SKU on sync.
 ///
-/// Local Mode never touches the network: it counts locally.
+/// Local Mode never touches the network: it counts locally. A block reserved
+/// before (or kept through) Local Mode never hands out a number the local
+/// counter already used: the block cursor skips past it.
+///
+/// A number is handed out only once the new cursor is stored. If the store
+/// write fails, [next] returns null (the item saves as SKU pending): a cursor
+/// that did not reach disk would hand the same number out again after a
+/// restart.
 ///
 /// Calls are serialised, so two items saved at once never get the same number.
 class SkuAllocator {
@@ -69,6 +76,10 @@ class SkuAllocator {
   /// Told about a failed background refill (offline, server down). Logging
   /// only: a failed refill changes nothing for the user.
   void Function(Object error)? onRefillError;
+
+  /// Told when the new cursor could not be stored. The number is not handed
+  /// out; the item saves as SKU pending.
+  void Function(Object error)? onWriteError;
 
   Future<void> _tail = Future.value();
   final Map<String, Future<void>> _refills = {};
@@ -92,14 +103,14 @@ class SkuAllocator {
     final state = _readState()[businessId];
     if (state == null) return null;
     if (_env.isLocalMode) return state.localNext;
-    return state.peek;
+    return state.usable.peek;
   }
 
   /// Numbers left on this device for [businessId], queued block included.
   int remaining({required String businessId}) {
     final state = _readState()[businessId];
     if (state == null) return 0;
-    return state.remaining;
+    return state.usable.remaining;
   }
 
   /// Start a background refill if this device holds fewer than
@@ -120,7 +131,7 @@ class SkuAllocator {
   Future<int?> _next(String businessId) async {
     if (_env.isLocalMode) return _nextLocal(businessId);
 
-    final state = _readState()[businessId] ?? const _BlockState();
+    final state = (_readState()[businessId] ?? const _BlockState()).usable;
     if (state.isEmpty) {
       // Never wait for the server here: the item saves as SKU pending.
       _refillInBackground(businessId);
@@ -128,20 +139,31 @@ class SkuAllocator {
     }
 
     final (number, rest) = state.take();
-    await _writeState(businessId, rest);
+    if (!await _tryWriteState(businessId, rest)) return null;
     if (rest.remaining < refillBelow) _refillInBackground(businessId);
     return number;
   }
 
-  Future<int> _nextLocal(String businessId) async {
+  Future<int?> _nextLocal(String businessId) async {
     final state = _readState()[businessId];
     var next = state?.localNext;
     next ??= (await _env.localMax(businessId: businessId)) + 1;
-    await _writeState(
+    final stored = await _tryWriteState(
       businessId,
       (state ?? const _BlockState()).copyWith(localNext: next + 1),
     );
-    return next;
+    return stored ? next : null;
+  }
+
+  /// [_writeState], reporting a failed store write instead of throwing.
+  Future<bool> _tryWriteState(String businessId, _BlockState state) async {
+    try {
+      await _writeState(businessId, state);
+      return true;
+    } catch (e) {
+      onWriteError?.call(e);
+      return false;
+    }
   }
 
   void _refillInBackground(String businessId) {
@@ -229,6 +251,25 @@ class _BlockState {
   int get remaining => _current + _queued;
 
   int? get peek => _current > 0 ? next : (_queued > 0 ? queuedStart : null);
+
+  /// This state with every block number below [localNext] dropped: those
+  /// numbers may already have gone to items made in Local Mode.
+  _BlockState get usable {
+    final floor = localNext;
+    if (floor == null) return this;
+    final keepCurrent = _current > 0 && end! >= floor;
+    final keepQueued = _queued > 0 && queuedEnd! >= floor;
+    return _BlockState(
+      next: keepCurrent ? (next! < floor ? floor : next) : null,
+      end: keepCurrent ? end : null,
+      queuedStart: keepQueued
+          ? (queuedStart! < floor ? floor : queuedStart)
+          : null,
+      queuedEnd: keepQueued ? queuedEnd : null,
+      localNext: localNext,
+    );
+  }
+
   bool get isEmpty => remaining == 0;
 
   /// Take one number, rolling over to the queued block when the current one
