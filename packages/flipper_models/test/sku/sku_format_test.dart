@@ -2,7 +2,7 @@ import 'package:flipper_models/sku/sku_format.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 // flutter test test/sku/sku_format_test.dart
-// data-connector's src/sku/format.rs applies the same rules; keep both in step.
+// data-connector's src/sku/mod.rs applies the same rules; keep both in step.
 void main() {
   group('deriveSkuPrefix', () {
     test('a valid category prefix wins', () {
@@ -25,6 +25,12 @@ void main() {
       expect(deriveSkuPrefix(categoryName: 'soft drinks'), 'SOF');
       expect(deriveSkuPrefix(categoryName: 'Café & Thé'), 'CAF');
       expect(deriveSkuPrefix(categoryName: '4x4 parts'), '4X4');
+    });
+
+    test('non-ASCII letters are dropped before upper-casing, as in Rust', () {
+      // Dart upper-cases "ß" to "SS"; data-connector drops it.
+      expect(deriveSkuPrefix(categoryName: 'ßa'), 'SKU');
+      expect(deriveSkuPrefix(categoryName: 'ıab'), 'AB');
     });
 
     test('two characters give a two-letter prefix', () {

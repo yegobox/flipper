@@ -1,5 +1,5 @@
 /// How a SKU is written. Pure functions only: data-connector
-/// (`src/sku/format.rs`) applies the same rules, so keep the two in step.
+/// (`src/sku/mod.rs`) applies the same rules, so keep the two in step.
 ///
 /// A SKU is the shop's own code for an item, unique within the business and
 /// shared by that item's copies at every branch. It is never the barcode
@@ -37,8 +37,12 @@ bool isValidSkuPrefix(String? value) =>
 String deriveSkuPrefix({String? skuPrefix, String? categoryName}) {
   final explicit = skuPrefix?.trim();
   if (isValidSkuPrefix(explicit)) return explicit!;
-  final name = categoryName?.toUpperCase() ?? '';
-  final kept = name.replaceAll(RegExp(r'[^A-Z0-9]'), '');
+  // Strip to ASCII before upper-casing, as data-connector does: Dart's
+  // toUpperCase turns "ß" into "SS" and "ı" into "I", Rust's ASCII filter
+  // drops them.
+  final kept = (categoryName ?? '')
+      .replaceAll(RegExp(r'[^A-Za-z0-9]'), '')
+      .toUpperCase();
   if (kept.length < 2) return kDefaultSkuPrefix;
   return kept.substring(0, kept.length >= 3 ? 3 : 2);
 }
