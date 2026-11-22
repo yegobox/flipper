@@ -6,6 +6,7 @@ import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/product_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/sync/utils/bulk_desktop_variant_prep.dart';
+import 'package:flipper_models/sync/utils/pos_catalog_stock_filter.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as newMod;
 import 'package:flipper_services/locator.dart' as loc;
 
@@ -192,7 +193,7 @@ mixin ProductMixin {
 
         // A service carries no stock: never save a quantity typed before the
         // type was switched to Service.
-        final isService = selectedProductType == "3";
+        final isService = isServiceItemType(selectedProductType);
         if (isService) {
           existing.qty = 0;
           existing.rsdQty = 0;

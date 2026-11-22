@@ -1,3 +1,5 @@
+import 'package:flipper_models/DatabaseSyncInterface.dart';
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_routing/app.locator.dart' as routing_locator;
 import 'package:flipper_services/app_service.dart';
@@ -21,6 +23,10 @@ class _MockSettingsService extends Mock implements SettingsService {}
 class _MockLanguage extends Mock implements Language {}
 
 class _MockRouterService extends Mock implements RouterService {}
+
+class _MockSyncStrategy extends Mock implements SyncStrategy {}
+
+class _MockDatabaseSync extends Mock implements DatabaseSyncInterface {}
 
 /// A service (`itemTyCd == "3"`) carries no stock: the product editor must not
 /// let a quantity in, whichever way it is typed.
@@ -85,5 +91,108 @@ void main() {
     expect(variant.itemTyCd, '2');
     expect(variant.qty, 7);
     expect(variant.stock!.currentStock, 7);
+  });
+
+  test('a padded service type is still a service', () {
+    model.setProductType(' 3 ');
+
+    expect(variant.qty, 0);
+    expect(variant.stock!.currentStock, 0);
+    expect(ScannViewModel.isServiceVariant(variant), isTrue);
+  });
+
+  group('stockOnRecord', () {
+    test('keeps the loaded stock after switching to Service', () {
+      model.setScannedVariants([variant]);
+      model.setProductType('3');
+
+      expect(variant.stock!.currentStock, 0);
+      expect(model.stockOnRecord(variant), 5);
+    });
+
+    test('a new, unsaved variant uses the editor quantity', () {
+      final fresh = Variant(name: 'Cut', branchId: 'b1', itemTyCd: '2');
+      fresh.stock = Stock(branchId: 'b1', currentStock: 3);
+
+      expect(model.stockOnRecord(fresh), 3);
+      expect(model.stockOnRecord(Variant(name: 'Empty', branchId: 'b1')), 0);
+    });
+
+    test('a variant loaded without a stock row falls back to qty', () {
+      final legacy = Variant(name: 'Old', branchId: 'b1', qty: 4);
+      model.setScannedVariants([legacy]);
+
+      expect(model.stockOnRecord(legacy), 4);
+    });
+
+    test('a saved quantity becomes the stock on record', () async {
+      final strategy = _MockSyncStrategy();
+      final db = _MockDatabaseSync();
+      services_locator.getIt.registerSingleton<SyncStrategy>(
+        strategy,
+        instanceName: 'strategy',
+      );
+      when(() => strategy.current).thenReturn(db);
+      when(
+        () => db.updateStock(
+          stockId: any(named: 'stockId'),
+          currentStock: any(named: 'currentStock'),
+          rsdQty: any(named: 'rsdQty'),
+          value: any(named: 'value'),
+          lastTouched: any(named: 'lastTouched'),
+        ),
+      ).thenAnswer((_) async {});
+      model.setScannedVariants([variant]);
+
+      await model.updateVariantQuantity(variant.id, 0, persistToBackend: false);
+      expect(model.stockOnRecord(variant), 5, reason: 'not saved yet');
+
+      await model.flushPendingStockQuantities();
+
+      expect(model.stockOnRecord(variant), 0);
+      verify(
+        () => db.updateStock(
+          stockId: variant.stockId!,
+          currentStock: 0,
+          rsdQty: 0,
+          value: any(named: 'value'),
+          lastTouched: any(named: 'lastTouched'),
+        ),
+      ).called(1);
+    });
+
+    test('a padded service type never writes stock', () async {
+      final strategy = _MockSyncStrategy();
+      final db = _MockDatabaseSync();
+      services_locator.getIt.registerSingleton<SyncStrategy>(
+        strategy,
+        instanceName: 'strategy',
+      );
+      when(() => strategy.current).thenReturn(db);
+      model.setScannedVariants([variant]);
+      await model.updateVariantQuantity(variant.id, 2, persistToBackend: false);
+      variant.itemTyCd = ' 3 ';
+
+      await model.flushPendingStockQuantities();
+
+      verifyNever(
+        () => db.updateStock(
+          stockId: any(named: 'stockId'),
+          currentStock: any(named: 'currentStock'),
+          rsdQty: any(named: 'rsdQty'),
+          value: any(named: 'value'),
+          lastTouched: any(named: 'lastTouched'),
+        ),
+      );
+      expect(model.stockOnRecord(variant), 5);
+    });
+
+    test('loading again forgets the previous product', () {
+      model.setScannedVariants([variant]);
+      model.setScannedVariants([]);
+      variant.stock!.currentStock = 0;
+
+      expect(model.stockOnRecord(variant), 0);
+    });
   });
 }
