@@ -1,3 +1,5 @@
+import 'package:flipper_models/DatabaseSyncInterface.dart';
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_routing/app.locator.dart' as routing_locator;
 import 'package:flipper_services/app_service.dart';
@@ -21,6 +23,10 @@ class _MockSettingsService extends Mock implements SettingsService {}
 class _MockLanguage extends Mock implements Language {}
 
 class _MockRouterService extends Mock implements RouterService {}
+
+class _MockSyncStrategy extends Mock implements SyncStrategy {}
+
+class _MockDatabaseSync extends Mock implements DatabaseSyncInterface {}
 
 /// A service (`itemTyCd == "3"`) carries no stock: the product editor must not
 /// let a quantity in, whichever way it is typed.
@@ -117,6 +123,68 @@ void main() {
       model.setScannedVariants([legacy]);
 
       expect(model.stockOnRecord(legacy), 4);
+    });
+
+    test('a saved quantity becomes the stock on record', () async {
+      final strategy = _MockSyncStrategy();
+      final db = _MockDatabaseSync();
+      services_locator.getIt.registerSingleton<SyncStrategy>(
+        strategy,
+        instanceName: 'strategy',
+      );
+      when(() => strategy.current).thenReturn(db);
+      when(
+        () => db.updateStock(
+          stockId: any(named: 'stockId'),
+          currentStock: any(named: 'currentStock'),
+          rsdQty: any(named: 'rsdQty'),
+          value: any(named: 'value'),
+          lastTouched: any(named: 'lastTouched'),
+        ),
+      ).thenAnswer((_) async {});
+      model.setScannedVariants([variant]);
+
+      await model.updateVariantQuantity(variant.id, 0, persistToBackend: false);
+      expect(model.stockOnRecord(variant), 5, reason: 'not saved yet');
+
+      await model.flushPendingStockQuantities();
+
+      expect(model.stockOnRecord(variant), 0);
+      verify(
+        () => db.updateStock(
+          stockId: variant.stockId!,
+          currentStock: 0,
+          rsdQty: 0,
+          value: any(named: 'value'),
+          lastTouched: any(named: 'lastTouched'),
+        ),
+      ).called(1);
+    });
+
+    test('a padded service type never writes stock', () async {
+      final strategy = _MockSyncStrategy();
+      final db = _MockDatabaseSync();
+      services_locator.getIt.registerSingleton<SyncStrategy>(
+        strategy,
+        instanceName: 'strategy',
+      );
+      when(() => strategy.current).thenReturn(db);
+      model.setScannedVariants([variant]);
+      await model.updateVariantQuantity(variant.id, 2, persistToBackend: false);
+      variant.itemTyCd = ' 3 ';
+
+      await model.flushPendingStockQuantities();
+
+      verifyNever(
+        () => db.updateStock(
+          stockId: any(named: 'stockId'),
+          currentStock: any(named: 'currentStock'),
+          rsdQty: any(named: 'rsdQty'),
+          value: any(named: 'value'),
+          lastTouched: any(named: 'lastTouched'),
+        ),
+      );
+      expect(model.stockOnRecord(variant), 5);
     });
 
     test('loading again forgets the previous product', () {

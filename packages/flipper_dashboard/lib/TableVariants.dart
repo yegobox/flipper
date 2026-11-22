@@ -499,7 +499,7 @@ class TableVariants extends StatelessWidget {
                       branchId: branchId,
                     );
 
-                if ((variant.stock?.currentStock ?? 0) > 0 &&
+                if (model.stockOnRecord(variant) > 0 &&
                     isEbmEnabled &&
                     !kDebugMode) {
                   final dialogService = locator<DialogService>();
@@ -881,7 +881,7 @@ class TableVariants extends StatelessWidget {
                     branchId: branchId,
                   );
 
-              if ((variant.stock?.currentStock ?? 0) > 0 &&
+              if (model.stockOnRecord(variant) > 0 &&
                   isEbmEnabled &&
                   !kDebugMode) {
                 final dialogService = locator<DialogService>();

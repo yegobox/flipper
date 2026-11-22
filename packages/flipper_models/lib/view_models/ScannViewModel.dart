@@ -579,7 +579,11 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
   /// plus the register dual-write, and the Brick strategy mirrors it into Capella.
   Future<void> _persistStockQuantity(Variant variant, double quantity) async {
     final stockId = variant.stockId;
-    if (stockId == null || stockId.isEmpty || variant.itemTyCd == "3") return;
+    if (stockId == null ||
+        stockId.isEmpty ||
+        isServiceItemType(variant.itemTyCd)) {
+      return;
+    }
     await ProxyService.strategy.updateStock(
       stockId: stockId,
       currentStock: quantity,
@@ -587,6 +591,8 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
       value: quantity * (variant.retailPrice ?? 0.0),
       lastTouched: DateTime.now().toUtc(),
     );
+    // Saved: this is now the stock on record (zero included).
+    _stockOnRecord[variant.id] = quantity;
   }
 
   /// Writes quantities captured with `persistToBackend: false` (Add/Edit variant
@@ -630,7 +636,8 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
 
         // A variant without a Stock row would silently drop the edit: the UI
         // reads `stock.currentStock`, and persistence is keyed on `stockId`.
-        if (scannedVariant.stock == null && scannedVariant.itemTyCd != "3") {
+        if (scannedVariant.stock == null &&
+            !isServiceItemType(scannedVariant.itemTyCd)) {
           // Keep the variant's existing stockId when it has one: a fresh uuid here
           // orphans the real stock row (the variant may simply have been loaded
           // without its stock hydrated) and the qty write then targets nothing.
