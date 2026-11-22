@@ -4,6 +4,7 @@ import 'dart:developer';
 
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/random.dart';
+import 'package:flipper_models/sync/utils/pos_catalog_stock_filter.dart';
 import 'package:flipper_models/sync/utils/stock_io_util.dart';
 import 'package:flipper_models/view_models/mixins/rraConstants.dart';
 import 'package:flipper_services/constants.dart';
@@ -199,8 +200,8 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
       final text = low == null
           ? '0'
           : (low == low.roundToDouble()
-              ? low.toInt().toString()
-              : low.toString());
+                ? low.toInt().toString()
+                : low.toString());
       _lowStockControllers[variantId] = TextEditingController(text: text);
     }
     return _lowStockControllers[variantId]!;
@@ -304,8 +305,32 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
 
   setScannedVariants(List<Variant> variants) {
     scannedVariants = variants;
+    _stockOnRecord
+      ..clear()
+      ..addEntries(
+        variants.map(
+          (v) => MapEntry(v.id, v.stock?.currentStock ?? v.qty ?? 0),
+        ),
+      );
     notifyListeners();
   }
+
+  /// Stock each loaded variant held when the editor opened it, by id. The
+  /// editor zeroes a service's quantity in memory, so a guard that must
+  /// respect stock already on record reads this instead.
+  final Map<String, double> _stockOnRecord = {};
+
+  /// The larger of the stock recorded when [variant] was loaded and the
+  /// quantity now in the editor. A new, unsaved variant has only the latter.
+  double stockOnRecord(Variant variant) {
+    final inEditor = variant.stock?.currentStock ?? 0;
+    final loaded = _stockOnRecord[variant.id] ?? 0;
+    return loaded > inEditor ? loaded : inEditor;
+  }
+
+  /// Item type last chosen in the editor ([setProductType]); a variant scanned
+  /// while that choice was being made still gets it.
+  String? _selectedItemTyCd;
 
   /// Ditto/RRA reject null, empty, or literal "null" for [Variant.bhfId].
   String _coerceBhfId(
@@ -351,6 +376,11 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
     /// to the in-progress product title so desktop scan-only flow still works.
     String? variantDisplayName,
     double? lowStock,
+
+    /// RRA item type of the product being edited ("2" goods, "3" service).
+    /// Set on the new variant so the editor knows straight away that a
+    /// service takes no stock.
+    String itemTyCd = "2",
   }) async {
     String branchId = ProxyService.box.getBranchId()!;
 
@@ -362,8 +392,10 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
         // If found, update it
         variant.retailPrice = retailPrice;
         variant.supplyPrice = supplyPrice;
-        variant.rsdQty = (variant.qty!) + 1;
-        variant.qty = (variant.qty!) + 1; // Increment the quantity safely
+        if (!isServiceVariant(variant)) {
+          variant.rsdQty = (variant.qty ?? 0) + 1;
+          variant.qty = (variant.qty ?? 0) + 1;
+        }
         if (variantDisplayName != null &&
             variantDisplayName.trim().isNotEmpty) {
           final label = variantDisplayName.trim();
@@ -401,6 +433,7 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
       regrNm: productTitle,
       qty: 0,
       dcRt: 0,
+      itemTyCd: _selectedItemTyCd ?? itemTyCd,
       pkgUnitCd: "NT",
       // bcd is bar code
       bcd: barCode,
@@ -509,6 +542,30 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
     notifyListeners();
   }
 
+  /// A service (`itemTyCd == "3"`) carries no stock.
+  static bool isServiceVariant(Variant variant) =>
+      isServiceItemType(variant.itemTyCd);
+
+  /// Applies the product's item type to every variant in the editor. Choosing
+  /// a service clears any stock already typed in, so none is shown or saved.
+  void setProductType(String itemTyCd) {
+    _selectedItemTyCd = itemTyCd;
+    for (final variant in scannedVariants) {
+      variant.itemTyCd = itemTyCd;
+      if (!isServiceItemType(itemTyCd)) continue;
+      variant.qty = 0;
+      variant.rsdQty = 0;
+      final stock = variant.stock;
+      if (stock != null) {
+        stock.currentStock = 0;
+        stock.rsdQty = 0;
+        stock.value = 0;
+      }
+      _pendingStockQty.remove(variant.id);
+    }
+    notifyListeners();
+  }
+
   /// Absolute stock quantities the operator set in this editor session, by variant
   /// id — deferred until **Save product** (see [flushPendingStockQuantities]).
   final Map<String, double> _pendingStockQty = {};
@@ -522,7 +579,11 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
   /// plus the register dual-write, and the Brick strategy mirrors it into Capella.
   Future<void> _persistStockQuantity(Variant variant, double quantity) async {
     final stockId = variant.stockId;
-    if (stockId == null || stockId.isEmpty || variant.itemTyCd == "3") return;
+    if (stockId == null ||
+        stockId.isEmpty ||
+        isServiceItemType(variant.itemTyCd)) {
+      return;
+    }
     await ProxyService.strategy.updateStock(
       stockId: stockId,
       currentStock: quantity,
@@ -530,6 +591,8 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
       value: quantity * (variant.retailPrice ?? 0.0),
       lastTouched: DateTime.now().toUtc(),
     );
+    // Saved: this is now the stock on record (zero included).
+    _stockOnRecord[variant.id] = quantity;
   }
 
   /// Writes quantities captured with `persistToBackend: false` (Add/Edit variant
@@ -566,12 +629,15 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
       if (index != -1) {
         // Update the existing variant and stock directly
         final scannedVariant = scannedVariants[index];
+        // Services carry no stock, whoever asks.
+        if (isServiceVariant(scannedVariant)) newQuantity = 0;
         scannedVariant.qty = newQuantity;
         scannedVariant.lastTouched = DateTime.now().toUtc();
 
         // A variant without a Stock row would silently drop the edit: the UI
         // reads `stock.currentStock`, and persistence is keyed on `stockId`.
-        if (scannedVariant.stock == null && scannedVariant.itemTyCd != "3") {
+        if (scannedVariant.stock == null &&
+            !isServiceItemType(scannedVariant.itemTyCd)) {
           // Keep the variant's existing stockId when it has one: a fresh uuid here
           // orphans the real stock row (the variant may simply have been loaded
           // without its stock hydrated) and the qty write then targets nothing.
@@ -792,6 +858,13 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
           variant.retailPrice = newRetailPrice;
           variant.prc = newRetailPrice;
           variant.dftPrc = newRetailPrice;
+          if (isServiceItemType(selectedProductType)) {
+            variant.itemTyCd = "3";
+            variant.qty = 0;
+            variant.rsdQty = 0;
+            variant.stock?.currentStock = 0;
+            variant.stock?.rsdQty = 0;
+          }
           if (newSupplyPrice != null) {
             variant.supplyPrice = newSupplyPrice;
           }
