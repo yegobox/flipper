@@ -4,11 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class PeVariantField extends StatelessWidget {
-  const PeVariantField({
-    super.key,
-    required this.label,
-    required this.child,
-  });
+  const PeVariantField({super.key, required this.label, required this.child});
 
   final String label;
   final Widget child;
@@ -169,7 +165,9 @@ class PeVariantQtyButton extends StatelessWidget {
   });
 
   final double? quantity;
-  final VoidCallback onTap;
+
+  /// Null makes the field read-only (a service carries no stock).
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -198,11 +196,12 @@ class PeVariantQtyButton extends StatelessWidget {
                   color: const Color(0xFF1D4ED8),
                 ),
               ),
-              const Icon(
-                Icons.edit_outlined,
-                size: 14,
-                color: ProductEditorTokens.blue,
-              ),
+              if (onTap != null)
+                const Icon(
+                  Icons.edit_outlined,
+                  size: 14,
+                  color: ProductEditorTokens.blue,
+                ),
             ],
           ),
         ),
@@ -231,10 +230,7 @@ class PeVariantPhotoCell extends StatelessWidget {
             style: BorderStyle.solid,
           ),
         ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(8),
-          child: child,
-        ),
+        child: ClipRRect(borderRadius: BorderRadius.circular(8), child: child),
       ),
     );
   }

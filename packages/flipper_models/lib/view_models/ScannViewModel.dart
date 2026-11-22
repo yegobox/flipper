@@ -199,8 +199,8 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
       final text = low == null
           ? '0'
           : (low == low.roundToDouble()
-              ? low.toInt().toString()
-              : low.toString());
+                ? low.toInt().toString()
+                : low.toString());
       _lowStockControllers[variantId] = TextEditingController(text: text);
     }
     return _lowStockControllers[variantId]!;
@@ -351,6 +351,11 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
     /// to the in-progress product title so desktop scan-only flow still works.
     String? variantDisplayName,
     double? lowStock,
+
+    /// RRA item type of the product being edited ("2" goods, "3" service).
+    /// Set on the new variant so the editor knows straight away that a
+    /// service takes no stock.
+    String itemTyCd = "2",
   }) async {
     String branchId = ProxyService.box.getBranchId()!;
 
@@ -362,8 +367,10 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
         // If found, update it
         variant.retailPrice = retailPrice;
         variant.supplyPrice = supplyPrice;
-        variant.rsdQty = (variant.qty!) + 1;
-        variant.qty = (variant.qty!) + 1; // Increment the quantity safely
+        if (!isServiceVariant(variant)) {
+          variant.rsdQty = (variant.qty ?? 0) + 1;
+          variant.qty = (variant.qty ?? 0) + 1;
+        }
         if (variantDisplayName != null &&
             variantDisplayName.trim().isNotEmpty) {
           final label = variantDisplayName.trim();
@@ -401,6 +408,7 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
       regrNm: productTitle,
       qty: 0,
       dcRt: 0,
+      itemTyCd: itemTyCd,
       pkgUnitCd: "NT",
       // bcd is bar code
       bcd: barCode,
@@ -509,6 +517,28 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
     notifyListeners();
   }
 
+  /// A service (`itemTyCd == "3"`) carries no stock.
+  static bool isServiceVariant(Variant variant) => variant.itemTyCd == "3";
+
+  /// Applies the product's item type to every variant in the editor. Choosing
+  /// a service clears any stock already typed in, so none is shown or saved.
+  void setProductType(String itemTyCd) {
+    for (final variant in scannedVariants) {
+      variant.itemTyCd = itemTyCd;
+      if (itemTyCd != "3") continue;
+      variant.qty = 0;
+      variant.rsdQty = 0;
+      final stock = variant.stock;
+      if (stock != null) {
+        stock.currentStock = 0;
+        stock.rsdQty = 0;
+        stock.value = 0;
+      }
+      _pendingStockQty.remove(variant.id);
+    }
+    notifyListeners();
+  }
+
   /// Absolute stock quantities the operator set in this editor session, by variant
   /// id — deferred until **Save product** (see [flushPendingStockQuantities]).
   final Map<String, double> _pendingStockQty = {};
@@ -566,6 +596,8 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
       if (index != -1) {
         // Update the existing variant and stock directly
         final scannedVariant = scannedVariants[index];
+        // Services carry no stock, whoever asks.
+        if (isServiceVariant(scannedVariant)) newQuantity = 0;
         scannedVariant.qty = newQuantity;
         scannedVariant.lastTouched = DateTime.now().toUtc();
 
@@ -792,6 +824,13 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
           variant.retailPrice = newRetailPrice;
           variant.prc = newRetailPrice;
           variant.dftPrc = newRetailPrice;
+          if (selectedProductType == "3") {
+            variant.itemTyCd = "3";
+            variant.qty = 0;
+            variant.rsdQty = 0;
+            variant.stock?.currentStock = 0;
+            variant.stock?.rsdQty = 0;
+          }
           if (newSupplyPrice != null) {
             variant.supplyPrice = newSupplyPrice;
           }

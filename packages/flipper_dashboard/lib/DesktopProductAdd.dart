@@ -642,6 +642,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
           supplyPrice: double.tryParse(supplyPriceController.text) ?? 0,
           isTaxExempted: false,
           product: productRef,
+          itemTyCd: selectedProductType,
         );
         talker.warning("onAddVariant called successfully");
         scannedInputController.clear();
@@ -1014,11 +1015,9 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                 onProductTypeChanged: (newValue) {
                   if (newValue != null) {
                     setState(() => selectedProductType = newValue);
-                    // Sync in-memory variants to the new type outside build().
-                    for (final v in model.scannedVariants) {
-                      v.itemTyCd = newValue;
-                      if (newValue == "3") v.qty = 0;
-                    }
+                    // Sync in-memory variants to the new type outside build();
+                    // a service drops any stock typed in so far.
+                    model.setProductType(newValue);
                   }
                 },
                 countryOfOriginController: countryOfOriginController,
@@ -1265,6 +1264,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
               onProductTypeChanged: (newValue) {
                 if (newValue != null) {
                   setState(() => selectedProductType = newValue);
+                  model.setProductType(newValue);
                 }
               },
               countryOfOriginController: countryOfOriginController,
@@ -1518,6 +1518,8 @@ Future<void> _showVariantSheet({
   Variant? existingVariant,
   String? initialBarcode,
 }) async {
+  // Services carry no stock: the sheet hides the stock fields and saves 0.
+  final isService = selectedProductType == "3";
   final nameController = TextEditingController(
     text: existingVariant?.name ?? '',
   );
@@ -1906,45 +1908,59 @@ Future<void> _showVariantSheet({
                                   ),
                                 ),
                                 const SizedBox(height: 12),
-                                TextFormField(
-                                  controller: stockController,
-                                  focusNode: stockFocusNode,
-                                  textInputAction: TextInputAction.next,
-                                  keyboardType: TextInputType.number,
-                                  inputFormatters: [
-                                    FilteringTextInputFormatter.digitsOnly,
-                                  ],
-                                  decoration: InputDecoration(
-                                    labelText:
-                                        context.flipperL10n.dpaStockQuantity,
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12),
+                                if (isService)
+                                  Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: Text(
+                                      context.flipperL10n.editQtyServiceNotice,
+                                      style: Theme.of(ctx).textTheme.bodySmall
+                                          ?.copyWith(
+                                            color: Colors.grey.shade700,
+                                          ),
                                     ),
                                   ),
-                                ),
-                                const SizedBox(height: 12),
-                                TextFormField(
-                                  controller: lowStockController,
-                                  textInputAction: TextInputAction.next,
-                                  keyboardType:
-                                      const TextInputType.numberWithOptions(
-                                        decimal: true,
+                                if (!isService) ...[
+                                  TextFormField(
+                                    controller: stockController,
+                                    focusNode: stockFocusNode,
+                                    textInputAction: TextInputAction.next,
+                                    keyboardType: TextInputType.number,
+                                    inputFormatters: [
+                                      FilteringTextInputFormatter.digitsOnly,
+                                    ],
+                                    decoration: InputDecoration(
+                                      labelText:
+                                          context.flipperL10n.dpaStockQuantity,
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(12),
                                       ),
-                                  inputFormatters: [
-                                    FilteringTextInputFormatter.allow(
-                                      RegExp(r'[0-9.]'),
-                                    ),
-                                  ],
-                                  decoration: InputDecoration(
-                                    labelText:
-                                        context.flipperL10n.dpaLowStockReorder,
-                                    helperText:
-                                        context.flipperL10n.dpaLowStockHelper,
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12),
                                     ),
                                   ),
-                                ),
+                                  const SizedBox(height: 12),
+                                  TextFormField(
+                                    controller: lowStockController,
+                                    textInputAction: TextInputAction.next,
+                                    keyboardType:
+                                        const TextInputType.numberWithOptions(
+                                          decimal: true,
+                                        ),
+                                    inputFormatters: [
+                                      FilteringTextInputFormatter.allow(
+                                        RegExp(r'[0-9.]'),
+                                      ),
+                                    ],
+                                    decoration: InputDecoration(
+                                      labelText: context
+                                          .flipperL10n
+                                          .dpaLowStockReorder,
+                                      helperText:
+                                          context.flipperL10n.dpaLowStockHelper,
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                    ),
+                                  ),
+                                ],
                                 const SizedBox(height: 12),
                                 Align(
                                   alignment: Alignment.centerLeft,
@@ -2089,11 +2105,12 @@ Future<void> _showVariantSheet({
                                     final override = double.tryParse(
                                       priceOverrideController.text.trim(),
                                     );
-                                    final qty =
-                                        double.tryParse(
-                                          stockController.text.trim(),
-                                        ) ??
-                                        0;
+                                    final qty = isService
+                                        ? 0.0
+                                        : double.tryParse(
+                                                stockController.text.trim(),
+                                              ) ??
+                                              0;
                                     final lowStockVal =
                                         double.tryParse(
                                           lowStockController.text.trim(),
@@ -2119,6 +2136,7 @@ Future<void> _showVariantSheet({
                                         isTaxExempted: effectiveTaxTyCd == 'C',
                                         product: productRef,
                                         variantDisplayName: variantName,
+                                        itemTyCd: selectedProductType,
                                       );
 
                                       final idx = model.scannedVariants

@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 
 class QuantityCell extends StatelessWidget {
   final double? quantity;
-  final VoidCallback onEdit;
+
+  /// Null makes the cell read-only (a service carries no stock).
+  final VoidCallback? onEdit;
 
   const QuantityCell({required this.quantity, required this.onEdit});
 
@@ -13,7 +15,7 @@ class QuantityCell extends StatelessWidget {
       child: Row(
         children: [
           Text(quantity.toString()),
-          const Icon(Icons.edit),
+          if (onEdit != null) const Icon(Icons.edit),
         ],
       ),
     );

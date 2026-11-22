@@ -163,7 +163,21 @@ mixin ProductMixin {
           prepared.addInfo = existing.addInfo;
         }
 
-        final stockQty = existing.stock?.currentStock ?? existing.qty ?? 0;
+        // A service carries no stock: never save a quantity typed before the
+        // type was switched to Service.
+        final isService = selectedProductType == "3";
+        if (isService) {
+          existing.qty = 0;
+          existing.rsdQty = 0;
+          existing.stock?.currentStock = 0;
+          existing.stock?.rsdQty = 0;
+          prepared
+            ..qty = 0
+            ..rsdQty = 0;
+        }
+        final double stockQty = isService
+            ? 0.0
+            : (existing.stock?.currentStock ?? existing.qty ?? 0);
         if (stockQty > 0) {
           prepared.qty = stockQty;
           prepared.rsdQty = stockQty;

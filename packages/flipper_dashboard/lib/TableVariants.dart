@@ -240,16 +240,21 @@ class TableVariants extends StatelessWidget {
     ),
   );
 
+  /// A service carries no stock, so its quantity is read-only.
+  static bool _isService(Variant variant) => variant.itemTyCd == "3";
+
   Widget _quantityField(BuildContext context, Variant variant) => _cardField(
     context.flipperL10n.quantity,
     PeVariantQtyButton(
       quantity: variant.stock?.currentStock ?? variant.qty,
-      onTap: () => showEditQuantityDialog(
-        context,
-        variant,
-        model,
-        () => FocusScope.of(context).requestFocus(scannedInputFocusNode),
-      ),
+      onTap: _isService(variant)
+          ? null
+          : () => showEditQuantityDialog(
+              context,
+              variant,
+              model,
+              () => FocusScope.of(context).requestFocus(scannedInputFocusNode),
+            ),
     ),
   );
 
@@ -520,13 +525,15 @@ class TableVariants extends StatelessWidget {
                   context.flipperL10n.quantity,
                   QuantityCell(
                     quantity: variant.stock?.currentStock ?? variant.qty,
-                    onEdit: () {
-                      showEditQuantityDialog(context, variant, model, () {
-                        FocusScope.of(
-                          context,
-                        ).requestFocus(scannedInputFocusNode);
-                      });
-                    },
+                    onEdit: _isService(variant)
+                        ? null
+                        : () {
+                            showEditQuantityDialog(context, variant, model, () {
+                              FocusScope.of(
+                                context,
+                              ).requestFocus(scannedInputFocusNode);
+                            });
+                          },
                   ),
                 ),
                 _buildMobileInfoRow(
@@ -727,11 +734,15 @@ class TableVariants extends StatelessWidget {
         DataCell(
           QuantityCell(
             quantity: variant.stock?.currentStock ?? variant.qty,
-            onEdit: () {
-              showEditQuantityDialog(context, variant, model, () {
-                FocusScope.of(context).requestFocus(scannedInputFocusNode);
-              });
-            },
+            onEdit: _isService(variant)
+                ? null
+                : () {
+                    showEditQuantityDialog(context, variant, model, () {
+                      FocusScope.of(
+                        context,
+                      ).requestFocus(scannedInputFocusNode);
+                    });
+                  },
           ),
         ),
         DataCell(
