@@ -33,6 +33,7 @@ import 'package:flipper_routing/app.dialogs.dart';
 import 'package:flipper_dashboard/providers/pos_cart_add_service.dart';
 import 'package:flipper_models/providers/optimistic_cart_provider.dart';
 import 'package:flipper_models/providers/pos_cart_display_provider.dart';
+import 'package:flipper_models/sync/utils/pos_catalog_stock_filter.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:flipper_ui/dialogs/AdminPinDialog.dart';
 import 'package:flipper_services/setting_service.dart';
@@ -189,6 +190,10 @@ class _RowItemState extends ConsumerState<RowItem>
 
   double get _lowStockThreshold => widget.variant?.stock?.lowStock ?? 10.0;
 
+  /// A service (RRA `itemTyCd` 3) keeps no stock: its tile is always sellable
+  /// and shows no quantity, the same rule Pay's stock check follows.
+  bool get _isService => isServiceItemType(widget.variant?.itemTyCd);
+
   // Image loading state management
   Future<String>? _cachedRemoteUrlFuture;
   Future<String?>? _cachedLocalImageFuture;
@@ -302,11 +307,14 @@ class _RowItemState extends ConsumerState<RowItem>
         ? ref.watch(posCartQtyForVariantProvider(variantId))
         : 0;
 
-    final stockValue = _resolveStockValue(ref);
-    final visual = posStockVisual(
-      currentStock: stockValue,
-      lowStockThreshold: _lowStockThreshold,
-    );
+    final isService = _isService;
+    final stockValue = isService ? 0 : _resolveStockValue(ref);
+    final visual = isService
+        ? PosStockVisual.ok
+        : posStockVisual(
+            currentStock: stockValue,
+            lowStockThreshold: _lowStockThreshold,
+          );
     final isOut = visual == PosStockVisual.out;
 
     final price = widget.variant?.retailPrice ?? 0;
@@ -332,7 +340,7 @@ class _RowItemState extends ConsumerState<RowItem>
         currencySymbol: currency,
         priceAmount: price,
         stockVisual: visual,
-        stockLabel: _hideStockQuantity(ref)
+        stockLabel: isService || _hideStockQuantity(ref)
             ? ''
             : posStockLabel(visual, stockValue),
         inCartQty: inCartQty,
@@ -643,7 +651,9 @@ class _RowItemState extends ConsumerState<RowItem>
         RepaintBoundary(
           child: Consumer(
             builder: (context, ref, child) {
-              if (_hideStockQuantity(ref)) return const SizedBox.shrink();
+              if (_isService || _hideStockQuantity(ref)) {
+                return const SizedBox.shrink();
+              }
               final stockValue = _resolveStockValue(ref);
 
               return Text(
@@ -780,7 +790,7 @@ class _RowItemState extends ConsumerState<RowItem>
                     RepaintBoundary(
                       child: Consumer(
                         builder: (context, ref, child) {
-                          if (_hideStockQuantity(ref)) {
+                          if (_isService || _hideStockQuantity(ref)) {
                             return const SizedBox.shrink();
                           }
                           final stockValue = _resolveStockValue(ref);
@@ -850,8 +860,9 @@ class _RowItemState extends ConsumerState<RowItem>
     );
 
     // Same enablement as the row's "+" (physical on-hand, so "sell below
-    // stock" still works). Read during build — `watch` is build-only.
-    final canTapAdd = _physicalStockValue(ref) > 0;
+    // stock" still works). Read during build — `watch` is build-only. A
+    // service has no stock and is always sellable.
+    final canTapAdd = _isService || _physicalStockValue(ref) > 0;
 
     return GestureDetector(
       // The whole card is the touch target: a tap on the name or photo adds
@@ -1020,6 +1031,7 @@ class _RowItemState extends ConsumerState<RowItem>
               RepaintBoundary(
                 child: Consumer(
                   builder: (context, ref, _) {
+                    if (_isService) return const SizedBox.shrink();
                     final stockValue = _resolveStockValue(ref);
 
                     final threshold = _lowStockThreshold;
@@ -1115,7 +1127,8 @@ class _RowItemState extends ConsumerState<RowItem>
       return Consumer(
         builder: (context, ref, _) {
           // Keep physical on-hand for enablement so "sell below stock" still works.
-          final enabled = _physicalStockValue(ref) > 0;
+          // A service has no stock and is always sellable.
+          final enabled = _isService || _physicalStockValue(ref) > 0;
 
           return Material(
             color: enabled ? PosTokens.blue : const Color(0xFFE8E8ED),

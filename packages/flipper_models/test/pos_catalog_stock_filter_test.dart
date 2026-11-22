@@ -96,6 +96,30 @@ void main() {
       expect(inStock.length + outOfStock.length, rows.length);
     });
 
+    test('a service is always in stock, with or without a stock row', () {
+      final services = <Map<String, dynamic>>[
+        {'_id': 'svc-no-stock', 'itemTyCd': '3'},
+        {'_id': 'svc-empty', 'stockId': 's-empty', 'itemTyCd': '3'},
+        {'_id': 'goods-empty', 'stockId': 's-empty', 'itemTyCd': '2'},
+      ];
+      expect(
+        variantIdsMatchingStock(
+          rows: services,
+          qtyByStockId: qty,
+          inStock: true,
+        ),
+        ['svc-no-stock', 'svc-empty'],
+      );
+      expect(
+        variantIdsMatchingStock(
+          rows: services,
+          qtyByStockId: qty,
+          inStock: false,
+        ),
+        ['goods-empty'],
+      );
+    });
+
     test('a row without a Ditto _id is skipped rather than fetched', () {
       expect(
         variantIdsMatchingStock(
@@ -110,6 +134,17 @@ void main() {
     });
   });
 
+  group('isServiceItemType', () {
+    test('only RRA item type 3 is a service', () {
+      expect(isServiceItemType('3'), isTrue);
+      expect(isServiceItemType(' 3 '), isTrue);
+      expect(isServiceItemType(3), isTrue);
+      expect(isServiceItemType('2'), isFalse);
+      expect(isServiceItemType('1'), isFalse);
+      expect(isServiceItemType(null), isFalse);
+    });
+  });
+
   group('stockFilterCatalogQuery', () {
     const filter =
         "SELECT * FROM variants WHERE branchId = :branchId AND name NOT IN ('Cash In')";
@@ -117,7 +152,7 @@ void main() {
     test('projects the same filters and keeps the display order', () {
       expect(
         stockFilterCatalogQuery(filter, ' ORDER BY lastTouched DESC'),
-        "SELECT _id, stockId, lastTouched FROM variants WHERE branchId = :branchId "
+        "SELECT _id, stockId, lastTouched, itemTyCd FROM variants WHERE branchId = :branchId "
         "AND name NOT IN ('Cash In') ORDER BY lastTouched DESC",
       );
     });
