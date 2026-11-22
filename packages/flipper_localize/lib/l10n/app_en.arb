@@ -3759,7 +3759,7 @@
     "dpaRetailOverride": "Retail price override",
     "dpaLeaveBlankBasePrice": "Leave blank to use base retail price",
     "dpaBarcode": "Barcode",
-    "dpaBarcodeHint": "SKU / barcode (optional)",
+    "dpaBarcodeHint": "Barcode (optional)",
     "dpaLeaveBlankVariantName": "Leave blank to use the variant name",
     "dpaStockQuantity": "Stock quantity",
     "dpaLowStockReorder": "Low stock / reorder at",
@@ -14584,6 +14584,29 @@
     "createEnterCostPrice": "Enter cost price",
     "createCostPriceRequired": "Cost price required",
     "createEnterSku": "Enter SKU",
+    "skuAutoHint": "Auto: {sku}",
+    "@skuAutoHint": {
+        "placeholders": {
+            "sku": {
+                "type": "String"
+            }
+        }
+    },
+    "skuPending": "SKU pending",
+    "skuAutoHelper": "Leave blank to assign one automatically",
+    "skuAlreadyUsed": "SKU already used by {item}",
+    "@skuAlreadyUsed": {
+        "placeholders": {
+            "item": {
+                "type": "String"
+            }
+        }
+    },
+    "skuPrefixLabel": "SKU prefix",
+    "skuPrefixHelper": "2-6 letters or digits, e.g. BEV. Leave blank to use the category name.",
+    "skuPrefixInvalid": "Use 2-6 capital letters or digits",
+    "skuNeedsAttention": "Needs attention",
+    "skuConflictTooltip": "Another item in the business uses this SKU. Give one of them a new SKU.",
     "createTaxExempted": "Tax Exempted",
     "createFillRequiredFields": "Fill all required fields",
     "photosPickColor": "Pick a color",

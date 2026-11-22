@@ -1,6 +1,5 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
-
 import 'flipper_app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -4459,7 +4458,7 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   String get dpaBarcode => 'Barcode';
 
   @override
-  String get dpaBarcodeHint => 'SKU / barcode (si ngombwa)';
+  String get dpaBarcodeHint => 'Barcode (si ngombwa)';
 
   @override
   String get dpaLeaveBlankVariantName => 'Siga ubusa ukoreshe izina ry\'ubwoko';
@@ -10984,7 +10983,8 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
       locale: localeName,
       other:
           'Amatike $count adashobora gusibwa yasimbutswe (yishyuwe igice cyangwa yagenzuwe)',
-      one: 'Itike 1 itashobora gusibwa yasimbutswe (yishyuwe igice cyangwa yagenzuwe)',
+      one:
+          'Itike 1 itashobora gusibwa yasimbutswe (yishyuwe igice cyangwa yagenzuwe)',
     );
     return '$_temp0';
   }
@@ -14764,7 +14764,8 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
       locale: localeName,
       other:
           'Ibicuruzwa $count bikeneye ikiranguzo n\'igiciro cyo kugurisha, cyangwa guhuzwa n\'igicuruzwa cyawe',
-      one: 'Igicuruzwa 1 gikeneye ikiranguzo n\'igiciro cyo kugurisha, cyangwa guhuzwa n\'igicuruzwa cyawe',
+      one:
+          'Igicuruzwa 1 gikeneye ikiranguzo n\'igiciro cyo kugurisha, cyangwa guhuzwa n\'igicuruzwa cyawe',
     );
     return '$_temp0';
   }
@@ -17939,6 +17940,39 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   String get createEnterSku => 'Andika SKU';
 
   @override
+  String skuAutoHint(String sku) {
+    return 'Byikora: $sku';
+  }
+
+  @override
+  String get skuPending => 'SKU itegerejwe';
+
+  @override
+  String get skuAutoHelper => 'Bireke ubusa uhabwe SKU byikora';
+
+  @override
+  String skuAlreadyUsed(String item) {
+    return 'SKU isanzwe ikoreshwa na $item';
+  }
+
+  @override
+  String get skuPrefixLabel => 'Intangiriro ya SKU';
+
+  @override
+  String get skuPrefixHelper =>
+      'Inyuguti cyangwa imibare 2-6, urugero BEV. Bireke ubusa ukoreshe izina ry’icyiciro.';
+
+  @override
+  String get skuPrefixInvalid => 'Koresha inyuguti nkuru cyangwa imibare 2-6';
+
+  @override
+  String get skuNeedsAttention => 'Bikeneye kurebwa';
+
+  @override
+  String get skuConflictTooltip =>
+      'Ikindi gicuruzwa cy’ubucuruzi gikoresha iyi SKU. Haha kimwe muri byo SKU nshya.';
+
+  @override
   String get createTaxExempted => 'Isonewe umusoro';
 
   @override
@@ -19304,7 +19338,8 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
       locale: localeName,
       other:
           'Abantu $count bayoborwa na we, bityo azemeza ibiruhuko byabo uko uruhare wahitamo rwaba ruri kose. Uruhare rw\'umuyobozi rwongeraho urutonde rw\'abakozi n\'imishahara ya bose.',
-      one: 'Umuntu 1 ayoborwa na we, bityo azemeza ikiruhuko cye uko uruhare wahitamo rwaba ruri kose. Uruhare rw\'umuyobozi rwongeraho urutonde rw\'abakozi n\'imishahara ya bose.',
+      one:
+          'Umuntu 1 ayoborwa na we, bityo azemeza ikiruhuko cye uko uruhare wahitamo rwaba ruri kose. Uruhare rw\'umuyobozi rwongeraho urutonde rw\'abakozi n\'imishahara ya bose.',
     );
     return '$_temp0';
   }

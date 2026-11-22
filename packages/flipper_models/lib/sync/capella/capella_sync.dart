@@ -1246,44 +1246,6 @@ class CapellaSync extends AiStrategyImpl
     );
   }
 
-  // TODO(ditto-migration): port `createVariant` to Ditto.
-  @override
-  Future<Variant> createVariant({
-    required String barCode,
-    required int sku,
-    required String productId,
-    required String branchId,
-    required double retailPrice,
-    required double supplierPrice,
-    required double qty,
-    Map<String, String>? taxTypes,
-    Map<String, String>? itemClasses,
-    Map<String, String>? itemTypes,
-    required String color,
-    required int tinNumber,
-    required int itemSeq,
-    required String name,
-    Configurations? taxType,
-  }) {
-    return _legacy.createVariant(
-      barCode: barCode,
-      sku: sku,
-      productId: productId,
-      branchId: branchId,
-      retailPrice: retailPrice,
-      supplierPrice: supplierPrice,
-      qty: qty,
-      taxTypes: taxTypes,
-      itemClasses: itemClasses,
-      itemTypes: itemTypes,
-      color: color,
-      tinNumber: tinNumber,
-      itemSeq: itemSeq,
-      name: name,
-      taxType: taxType,
-    );
-  }
-
   // TODO(ditto-migration): port `credit` to Ditto.
   @override
   Stream<Credit?> credit({required String branchId}) {
@@ -2202,12 +2164,6 @@ class CapellaSync extends AiStrategyImpl
     return _legacy.size<T>(object: object);
   }
 
-  // TODO(ditto-migration): port `sku` to Ditto.
-  @override
-  Stream<SKU?> sku({required String branchId, required String businessId}) {
-    return _legacy.sku(branchId: branchId, businessId: businessId);
-  }
-
   // TODO(ditto-migration): port `spawnIsolate` to Ditto.
   @override
   Future<void> spawnIsolate(isolateHandler) {
@@ -2626,6 +2582,7 @@ class CapellaSync extends AiStrategyImpl
     bool? active,
     bool? focused,
     String? branchId,
+    String? skuPrefix,
   }) async {
     // Native: keep Brick/SQLite authoritative for focus flags (same as pre-Capella-category work).
     // Web: only Ditto path below runs.
@@ -2666,6 +2623,11 @@ class CapellaSync extends AiStrategyImpl
     addIfNonNull('name', name);
     addIfNonNull('active', active);
     addIfNonNull('focused', focused);
+    // Empty string clears the prefix (items fall back to the category name).
+    if (skuPrefix != null) {
+      updates.add('skuPrefix = :skuPrefix');
+      args['skuPrefix'] = skuPrefix.isEmpty ? null : skuPrefix;
+    }
     if (updates.isEmpty) return;
     addIfNonNull('lastTouched', DateTime.now());
 

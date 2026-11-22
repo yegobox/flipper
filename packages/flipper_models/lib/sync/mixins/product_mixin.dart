@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:brick_offline_first/brick_offline_first.dart' as brick;
 import 'package:flipper_models/ebm_helper.dart';
 import 'package:flipper_models/helperModels/random.dart';
+import 'package:flipper_models/sku/sku_service.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/helper_models.dart';
 import 'package:flipper_models/sync/branch_catalog_cloud_sync.dart';
@@ -30,9 +31,7 @@ mixin ProductMixin implements ProductInterface {
   Stream<List<Product>> productStreams({String? prodIndex}) {
     if (prodIndex != null) {
       return repository
-          .get<Product>(
-            query: Query(where: [Where('id').isExactly(prodIndex)]),
-          )
+          .get<Product>(query: Query(where: [Where('id').isExactly(prodIndex)]))
           .asStream();
     }
     return repository.get<Product>().asStream();
@@ -43,14 +42,20 @@ mixin ProductMixin implements ProductInterface {
     double totalStock = 0.0;
     if (productId != null) {
       List<Stock> stocksIn = await repository.get<Stock>(
-          query: Query(where: [Where('productId').isExactly(productId)]));
-      totalStock =
-          stocksIn.fold(0.0, (sum, stock) => sum + (stock.currentStock!));
+        query: Query(where: [Where('productId').isExactly(productId)]),
+      );
+      totalStock = stocksIn.fold(
+        0.0,
+        (sum, stock) => sum + (stock.currentStock!),
+      );
     } else if (variantId != null) {
       List<Stock> stocksIn = await repository.get<Stock>(
-          query: Query(where: [Where('variantId').isExactly(variantId)]));
-      totalStock =
-          stocksIn.fold(0.0, (sum, stock) => sum + (stock.currentStock!));
+        query: Query(where: [Where('variantId').isExactly(variantId)]),
+      );
+      totalStock = stocksIn.fold(
+        0.0,
+        (sum, stock) => sum + (stock.currentStock!),
+      );
     }
     return totalStock;
   }
@@ -74,85 +79,88 @@ mixin ProductMixin implements ProductInterface {
   }
 
   @override
-  Future<Product?> getProduct(
-      {String? id,
-      String? barCode,
-      required String branchId,
-      String? name,
-      required String businessId}) async {
+  Future<Product?> getProduct({
+    String? id,
+    String? barCode,
+    required String branchId,
+    String? name,
+    required String businessId,
+  }) async {
     return (await repository.get<Product>(
-            policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
-            query: Query(where: [
-              if (id != null) Where('id').isExactly(id),
-              if (name != null) Where('name').isExactly(name),
-              if (barCode != null) Where('barCode').isExactly(barCode),
-              Where('branchId').isExactly(branchId),
-              Where('businessId').isExactly(businessId),
-            ])))
-        .firstOrNull;
+      policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+      query: Query(
+        where: [
+          if (id != null) Where('id').isExactly(id),
+          if (name != null) Where('name').isExactly(name),
+          if (barCode != null) Where('barCode').isExactly(barCode),
+          Where('branchId').isExactly(branchId),
+          Where('businessId').isExactly(businessId),
+        ],
+      ),
+    )).firstOrNull;
   }
 
   @override
-  Future<Product?> createProduct(
-      {required Product product,
-      required String businessId,
-      required String branchId,
-      required int tinNumber,
-      required String bhFId,
-      required bool skipRRaCall,
-      Map<String, String>? taxTypes,
-      Map<String, String>? itemClasses,
-      Map<String, String>? itemTypes,
-      String? modrId,
-      String? orgnNatCd,
-      String? exptNatCd,
-      int? pkg,
-      String? pkgUnitCd,
-      String? qtyUnitCd,
-      int? totWt,
-      int? netWt,
-      String? spplrNm,
-      String? agntNm,
-      int? invcFcurAmt,
-      String? invcFcurCd,
-      double? invcFcurExcrt,
-      String? dclNo,
-      String? taskCd,
-      String? dclDe,
-      String? hsCd,
-      String? imptItemsttsCd,
-      String? spplrItemClsCd,
-      String? spplrItemCd,
-      bool skipRegularVariant = false,
-      double qty = 1,
-      double supplyPrice = 0,
-      double retailPrice = 0,
-      int itemSeq = 1,
-      required bool createItemCode,
-      bool ebmSynced = false,
-      String? saleListId,
-      Purchase? purchase,
-      String? pchsSttsCd,
-      double? totAmt,
-      double? taxAmt,
-      double? taxblAmt,
-      String? taxTyCd,
-      double? splyAmt,
-      String? itemCd}) async {
+  Future<Product?> createProduct({
+    required Product product,
+    required String businessId,
+    required String branchId,
+    required int tinNumber,
+    required String bhFId,
+    required bool skipRRaCall,
+    Map<String, String>? taxTypes,
+    Map<String, String>? itemClasses,
+    Map<String, String>? itemTypes,
+    String? modrId,
+    String? orgnNatCd,
+    String? exptNatCd,
+    int? pkg,
+    String? pkgUnitCd,
+    String? qtyUnitCd,
+    int? totWt,
+    int? netWt,
+    String? spplrNm,
+    String? agntNm,
+    int? invcFcurAmt,
+    String? invcFcurCd,
+    double? invcFcurExcrt,
+    String? dclNo,
+    String? taskCd,
+    String? dclDe,
+    String? hsCd,
+    String? imptItemsttsCd,
+    String? spplrItemClsCd,
+    String? spplrItemCd,
+    bool skipRegularVariant = false,
+    double qty = 1,
+    double supplyPrice = 0,
+    double retailPrice = 0,
+    int itemSeq = 1,
+    required bool createItemCode,
+    bool ebmSynced = false,
+    String? saleListId,
+    Purchase? purchase,
+    String? pchsSttsCd,
+    double? totAmt,
+    double? taxAmt,
+    double? taxblAmt,
+    String? taxTyCd,
+    double? splyAmt,
+    String? itemCd,
+  }) async {
     try {
       final String productName = product.name;
       if (productName == CUSTOM_PRODUCT || productName == TEMP_PRODUCT) {
         final Product? existingProduct = await getProduct(
-            name: productName, businessId: businessId, branchId: branchId);
+          name: productName,
+          businessId: businessId,
+          branchId: branchId,
+        );
         if (existingProduct != null) {
           return existingProduct;
         }
       }
 
-      SKU sku = await getSku(branchId: branchId, businessId: businessId);
-
-      sku.consumed = true;
-      await repository.upsert(sku);
       final createdProduct = await repository.upsert<Product>(product);
 
       if (!skipRegularVariant) {
@@ -231,7 +239,7 @@ mixin ProductMixin implements ProductInterface {
           supplierPrice: supplyPrice,
           retailPrice: retailPrice,
           name: createdProduct.name,
-          sku: sku.sku!,
+          businessId: businessId,
           productId: product.id,
           itemSeq: itemSeq,
           bcd: product.barCode,
@@ -250,8 +258,8 @@ mixin ProductMixin implements ProductInterface {
           lastTouched: DateTime.now().toUtc(),
           rsdQty: qty,
           initialStock: qty,
-          value:
-              (qty * (retailPrice > 0 ? retailPrice : supplyPrice)).toDouble(),
+          value: (qty * (retailPrice > 0 ? retailPrice : supplyPrice))
+              .toDouble(),
           branchId: branchId,
           currentStock: qty,
         );
@@ -279,7 +287,8 @@ mixin ProductMixin implements ProductInterface {
         }
 
         talker.info(
-            'Variant ${savedVariant.id} created with stock ${savedVariant.stockId}');
+          'Variant ${savedVariant.id} created with stock ${savedVariant.stockId}',
+        );
 
         // If associated with a purchase, update the purchase-variant relationship
         if (purchase != null) {
@@ -306,14 +315,16 @@ mixin ProductMixin implements ProductInterface {
               await repository.upsert<Purchase>(purchase);
 
               talker.info(
-                  'Added variant ${savedVariant.id} to purchase ${purchase.id}');
+                'Added variant ${savedVariant.id} to purchase ${purchase.id}',
+              );
             } catch (e) {
               talker.error('Error saving variant/purchase association: $e');
               rethrow;
             }
           } else {
             talker.info(
-                'Variant ${savedVariant.id} already exists in purchase ${purchase.id}');
+              'Variant ${savedVariant.id} already exists in purchase ${purchase.id}',
+            );
           }
         }
       }
@@ -327,74 +338,85 @@ mixin ProductMixin implements ProductInterface {
     }
   }
 
-  Future<Variant> _createRegularVariant(String branchId, int? tinNumber,
-      {required double qty,
-      required double supplierPrice,
-      required double retailPrice,
-      required int itemSeq,
-      String? bhFId,
-      bool createItemCode = false,
-      required bool ebmSynced,
-      Product? product,
-      required String productId,
-      required String name,
-      String? orgnNatCd,
-      String? exptNatCd,
-      int? pkg,
-      String? pkgUnitCd,
-      String? qtyUnitCd,
-      int? totWt,
-      int? netWt,
-      String? spplrNm,
-      String? agntNm,
-      int? invcFcurAmt,
-      String? invcFcurCd,
-      double? invcFcurExcrt,
-      String? dclNo,
-      String? taskCd,
-      String? dclDe,
-      String? hsCd,
-      String? imptItemsttsCd,
-      String? spplrItemCd,
-      String? spplrItemClsCd,
-      String? categoryId,
-      Map<String, String>? taxTypes,
-      Map<String, String>? itemClasses,
-      Map<String, String>? itemTypes,
-      required int sku,
-      Configurations? taxType,
-      String? bcd,
-      String? saleListId,
-      String? pchsSttsCd,
-      double? totAmt,
-      double? taxAmt,
-      double? taxblAmt,
-      String? itemCd,
-      String? taxTyCd,
-      double? splyAmt}) async {
+  Future<Variant> _createRegularVariant(
+    String branchId,
+    int? tinNumber, {
+    required double qty,
+    required double supplierPrice,
+    required double retailPrice,
+    required int itemSeq,
+    String? bhFId,
+    bool createItemCode = false,
+    required bool ebmSynced,
+    Product? product,
+    required String productId,
+    required String name,
+    String? orgnNatCd,
+    String? exptNatCd,
+    int? pkg,
+    String? pkgUnitCd,
+    String? qtyUnitCd,
+    int? totWt,
+    int? netWt,
+    String? spplrNm,
+    String? agntNm,
+    int? invcFcurAmt,
+    String? invcFcurCd,
+    double? invcFcurExcrt,
+    String? dclNo,
+    String? taskCd,
+    String? dclDe,
+    String? hsCd,
+    String? imptItemsttsCd,
+    String? spplrItemCd,
+    String? spplrItemClsCd,
+    String? categoryId,
+    Map<String, String>? taxTypes,
+    Map<String, String>? itemClasses,
+    Map<String, String>? itemTypes,
+    required String businessId,
+    Configurations? taxType,
+    String? bcd,
+    String? saleListId,
+    String? pchsSttsCd,
+    double? totAmt,
+    double? taxAmt,
+    double? taxblAmt,
+    String? itemCd,
+    String? taxTyCd,
+    double? splyAmt,
+  }) async {
     final String variantId = const Uuid().v4();
     final number = randomNumber().toString().substring(0, 5);
     Category? category = (await repository.get<Category>(
       query: Query(where: [Where('id').isExactly(categoryId)]),
-    ))
-        .firstOrNull;
+    )).firstOrNull;
+    // Local only: never waits for the server (see SkuAllocator).
+    final skuAssignment = await assignNewSku(
+      businessId: businessId,
+      skuPrefix: category?.skuPrefix,
+      categoryName: category?.name,
+    );
 
     // Determine tax type code - explicit taxTyCd, then taxTypes map, then EBM VAT default.
     final vatEnabled = await isVatEnabledForBranch(branchId: branchId);
     String finalTaxTyCd =
-        taxTyCd ?? taxTypes?[product?.barCode] ?? defaultTaxTyCdForVat(vatEnabled);
+        taxTyCd ??
+        taxTypes?[product?.barCode] ??
+        defaultTaxTyCdForVat(vatEnabled);
 
     // Get tax percentage based on the tax type code
     double finalTaxPercentage = taxType?.taxPercentage ?? 18.0;
     try {
-      Configurations? taxConfig =
-          await ProxyService.legacyStrategy.getByTaxType(taxtype: finalTaxTyCd);
+      Configurations? taxConfig = await ProxyService.legacyStrategy
+          .getByTaxType(taxtype: finalTaxTyCd);
       if (taxConfig != null) {
         finalTaxPercentage = taxConfig.taxPercentage!;
       }
     } catch (e) {
       talker.warning(
-          'Failed to get tax configuration for $finalTaxTyCd, using default: $e');
+        'Failed to get tax configuration for $finalTaxTyCd, using default: $e',
+      );
     }
 
     return Variant(
@@ -416,7 +438,8 @@ mixin ProductMixin implements ProductInterface {
       imptItemSttsCd: imptItemsttsCd ?? null,
       lastTouched: DateTime.now().toUtc(),
       name: product?.name ?? name,
-      sku: sku.toString(),
+      sku: skuAssignment.sku,
+      skuPending: skuAssignment.pending,
       dcRt: 0.0,
       productId: product?.id ?? productId,
       categoryId: categoryId,
@@ -459,9 +482,12 @@ mixin ProductMixin implements ProductInterface {
       taxPercentage: finalTaxPercentage,
       taxName: finalTaxTyCd,
       tin: tinNumber,
-      bcd: bcd ??
-          (product?.name ?? name)
-              .substring(0, min((product?.name ?? name).length, 20)),
+      bcd:
+          bcd ??
+          (product?.name ?? name).substring(
+            0,
+            min((product?.name ?? name).length, 20),
+          ),
 
       /// country of origin for this item we default until we support something different
       /// and this will happen when we do import.
@@ -489,12 +515,13 @@ mixin ProductMixin implements ProductInterface {
   }
 
   @override
-  Future<String> itemCode(
-      {required String countryCode,
-      required String productType,
-      required packagingUnit,
-      required String branchId,
-      required String quantityUnit}) async {
+  Future<String> itemCode({
+    required String countryCode,
+    required String productType,
+    required packagingUnit,
+    required String branchId,
+    required String quantityUnit,
+  }) async {
     final repository = Repository();
     final lastSequence = await maxRraItemCodeSequenceForBranch(
       repository: repository,
@@ -505,123 +532,100 @@ mixin ProductMixin implements ProductInterface {
         '$countryCode$productType$packagingUnit$quantityUnit$newSequence';
 
     final newItem = ItemCode(
-        code: newItemCode,
-        createdAt: DateTime.now().toUtc(),
-        branchId: branchId);
+      code: newItemCode,
+      createdAt: DateTime.now().toUtc(),
+      branchId: branchId,
+    );
     await repository.upsert(newItem);
 
     return newItemCode;
   }
 
-//   @override
-// Future<String> itemCode({
-//   required String countryCode,
-//   required String productType,
-//   required packagingUnit,
-//   required String branchId,
-//   required String quantityUnit,
-// }) async {
-//   final repository = Repository();
-//   final query = Query(
-//     where: [
-//       Where('code').isNot(null),
-//       Where('branchId').isExactly(branchId),
-//     ],
-//     orderBy: [OrderBy('createdAt', ascending: false)],
-//   );
+  //   @override
+  // Future<String> itemCode({
+  //   required String countryCode,
+  //   required String productType,
+  //   required packagingUnit,
+  //   required String branchId,
+  //   required String quantityUnit,
+  // }) async {
+  //   final repository = Repository();
+  //   final query = Query(
+  //     where: [
+  //       Where('code').isNot(null),
+  //       Where('branchId').isExactly(branchId),
+  //     ],
+  //     orderBy: [OrderBy('createdAt', ascending: false)],
+  //   );
 
-//   final items = await repository.get<ItemCode>(
-//     query: query,
-//     policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist
-//   );
+  //   final items = await repository.get<ItemCode>(
+  //     query: query,
+  //     policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist
+  //   );
 
-//   // Create the prefix for the new code
-//   final prefix = '$countryCode$productType$packagingUnit$quantityUnit';
+  //   // Create the prefix for the new code
+  //   final prefix = '$countryCode$productType$packagingUnit$quantityUnit';
 
-//   int highestSequence = 0;
+  //   int highestSequence = 0;
 
-//   if (items.isNotEmpty) {
-//     for (final item in items) {
-//       final code = item.code;
+  //   if (items.isNotEmpty) {
+  //     for (final item in items) {
+  //       final code = item.code;
 
-//       // Check if this code matches our prefix
-//       if (code.startsWith(prefix) && code.length > prefix.length) {
-//         // Extract the sequence part (everything after the prefix)
-//         final sequencePart = code.substring(prefix.length);
+  //       // Check if this code matches our prefix
+  //       if (code.startsWith(prefix) && code.length > prefix.length) {
+  //         // Extract the sequence part (everything after the prefix)
+  //         final sequencePart = code.substring(prefix.length);
 
-//         // Try to parse the sequence as an integer
-//         try {
-//           final sequence = int.parse(sequencePart);
-//           if (sequence > highestSequence) {
-//             highestSequence = sequence;
-//           }
-//         } catch (e) {
-//           // If parsing fails, skip this item
-//           continue;
-//         }
-//       }
-//     }
-//   }
-//   // Increment and format the new sequence (always use 7-digit padding)
-//   final newSequence = (highestSequence + 1).toString().padLeft(7, '0');
+  //         // Try to parse the sequence as an integer
+  //         try {
+  //           final sequence = int.parse(sequencePart);
+  //           if (sequence > highestSequence) {
+  //             highestSequence = sequence;
+  //           }
+  //         } catch (e) {
+  //           // If parsing fails, skip this item
+  //           continue;
+  //         }
+  //       }
+  //     }
+  //   }
+  //   // Increment and format the new sequence (always use 7-digit padding)
+  //   final newSequence = (highestSequence + 1).toString().padLeft(7, '0');
 
-//   // Construct the new item code
-//   final newItemCode = '$prefix$newSequence';
+  //   // Construct the new item code
+  //   final newItemCode = '$prefix$newSequence';
 
-//   // Save the new item code in the database
-//   final newItem = ItemCode(
-//     code: newItemCode,
-//     createdAt: DateTime.now().toUtc(),
-//     branchId: branchId,
-//   );
+  //   // Save the new item code in the database
+  //   final newItem = ItemCode(
+  //     code: newItemCode,
+  //     createdAt: DateTime.now().toUtc(),
+  //     branchId: branchId,
+  //   );
 
-//   await repository.upsert(newItem);
+  //   await repository.upsert(newItem);
 
-//   return newItemCode;
-// }
+  //   return newItemCode;
+  // }
 
   @override
-  FutureOr<SKU> getSku(
-      {required String branchId, required String businessId}) async {
-    final query = Query(
-      where: [
-        Where('branchId').isExactly(branchId),
-        Where('businessId').isExactly(businessId),
-      ],
-      orderBy: [OrderBy('sku', ascending: true)],
-    );
-
-    final skus = await repository.get<SKU>(
-        query: query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
-
-    // Get highest sequence number
-    int lastSequence = skus.isEmpty ? 0 : skus.last.sku ?? 0;
-    final newSequence = lastSequence + 1;
-
-    final newSku = SKU(
-      sku: newSequence,
+  FutureOr<void> updateProduct({
+    String? productId,
+    String? name,
+    bool? isComposite,
+    String? unit,
+    String? color,
+    String? imageUrl,
+    required String branchId,
+    required String businessId,
+    String? categoryId,
+    String? expiryDate,
+  }) async {
+    final product = await getProduct(
+      id: productId,
       branchId: branchId,
       businessId: businessId,
     );
-    await repository.upsert(newSku);
-
-    return newSku;
-  }
-
-  @override
-  FutureOr<void> updateProduct(
-      {String? productId,
-      String? name,
-      bool? isComposite,
-      String? unit,
-      String? color,
-      String? imageUrl,
-      required String branchId,
-      required String businessId,
-      String? categoryId,
-      String? expiryDate}) async {
-    final product = await getProduct(
-        id: productId, branchId: branchId, businessId: businessId);
     if (product != null) {
       product.name = name ?? product.name;
       product.categoryId = categoryId ?? product.categoryId;
@@ -638,9 +642,7 @@ mixin ProductMixin implements ProductInterface {
   Future<void> hydrateCodes({required String branchId}) async {
     await repository.get<ItemCode>(
       policy: brick.OfflineFirstGetPolicy.alwaysHydrate,
-      query: brick.Query(
-        where: [brick.Where('branchId').isExactly(branchId)],
-      ),
+      query: brick.Query(where: [brick.Where('branchId').isExactly(branchId)]),
     );
   }
 
@@ -648,16 +650,11 @@ mixin ProductMixin implements ProductInterface {
   Future<void> hydrateSars({required String branchId}) async {
     final ditto = DittoService.instance.dittoInstance;
     if (ditto != null) {
-      await ensureBranchSarCloudSubscription(
-        ditto: ditto,
-        branchId: branchId,
-      );
+      await ensureBranchSarCloudSubscription(ditto: ditto, branchId: branchId);
     }
     await repository.get<Sar>(
       policy: brick.OfflineFirstGetPolicy.alwaysHydrate,
-      query: brick.Query(
-        where: [brick.Where('branchId').isExactly(branchId)],
-      ),
+      query: brick.Query(where: [brick.Where('branchId').isExactly(branchId)]),
     );
   }
 

@@ -1,5 +1,5 @@
 import 'package:flipper_localize/flipper_localize.dart';
-import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
+import 'package:flipper_dashboard/features/product_entry/sku_entry.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -25,6 +25,7 @@ class FieldcompositeactivatedState
   @override
   Widget build(BuildContext context) {
     final branchId = ProxyService.box.getBranchId();
+    final businessId = ProxyService.box.getBusinessId();
 
     if (branchId == null) {
       return Center(child: Text(context.flipperL10n.noBranchSelected));
@@ -38,32 +39,15 @@ class FieldcompositeactivatedState
           children: [
             Expanded(
               flex: 2,
-              child: TextFormField(
+              // Optional: blank means a SKU is assigned on save. The hint
+              // shows the next one without taking it.
+              child: SkuTextField(
                 controller: widget.skuController,
-                keyboardType: TextInputType.number,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return context.flipperL10n.compositeSkuRequired;
-                  }
-                  return null;
-                },
-                decoration: InputDecoration(
-                  labelText: 'SKU',
+                preview: skuPreviewFor(businessId: businessId ?? ''),
+                decorate: (base) => base.copyWith(
                   labelStyle: const TextStyle(color: Colors.black),
                   border: OutlineInputBorder(),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 8.0),
-                  errorBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8.0),
-                    borderSide: BorderSide(
-                      color: Theme.of(context).colorScheme.error,
-                    ),
-                  ),
-                  focusedErrorBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8.0),
-                    borderSide: BorderSide(
-                      color: Theme.of(context).colorScheme.error,
-                    ),
-                  ),
                 ),
               ),
             ),
@@ -102,22 +86,5 @@ class FieldcompositeactivatedState
         ),
       ),
     );
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final branchId = ProxyService.box.getBranchId();
-      if (branchId != null) {
-        ref.listenManual(skuProvider(branchId), (previous, next) {
-          next.whenData((sku) {
-            if (sku != null && mounted) {
-              widget.skuController.text = sku.sku.toString();
-            }
-          });
-        });
-      }
-    });
   }
 }

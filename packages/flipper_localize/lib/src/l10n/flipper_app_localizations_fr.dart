@@ -1,6 +1,5 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
-
 import 'flipper_app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -4478,7 +4477,7 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   String get dpaBarcode => 'Code-barres';
 
   @override
-  String get dpaBarcodeHint => 'SKU / code-barres (facultatif)';
+  String get dpaBarcodeHint => 'Code-barres (facultatif)';
 
   @override
   String get dpaLeaveBlankVariantName =>
@@ -11048,7 +11047,8 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
       locale: localeName,
       other:
           '$count tickets ignorés car ils ne peuvent pas être supprimés (paiements partiels ou révisés)',
-      one: '1 ticket ignoré car il ne peut pas être supprimé (paiements partiels ou révisé)',
+      one:
+          '1 ticket ignoré car il ne peut pas être supprimé (paiements partiels ou révisé)',
     );
     return '$_temp0';
   }
@@ -14855,7 +14855,8 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
       locale: localeName,
       other:
           '$count articles ont besoin d\'un prix d\'achat et de vente, ou d\'un lien vers l\'un de vos produits',
-      one: '1 article a besoin d\'un prix d\'achat et de vente, ou d\'un lien vers l\'un de vos produits',
+      one:
+          '1 article a besoin d\'un prix d\'achat et de vente, ou d\'un lien vers l\'un de vos produits',
     );
     return '$_temp0';
   }
@@ -18057,6 +18058,39 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   String get createEnterSku => 'Saisissez le SKU';
 
   @override
+  String skuAutoHint(String sku) {
+    return 'Auto : $sku';
+  }
+
+  @override
+  String get skuPending => 'SKU en attente';
+
+  @override
+  String get skuAutoHelper => 'Laissez vide pour l’attribuer automatiquement';
+
+  @override
+  String skuAlreadyUsed(String item) {
+    return 'SKU déjà utilisé par $item';
+  }
+
+  @override
+  String get skuPrefixLabel => 'Préfixe SKU';
+
+  @override
+  String get skuPrefixHelper =>
+      '2 à 6 lettres ou chiffres, ex. BEV. Laissez vide pour utiliser le nom de la catégorie.';
+
+  @override
+  String get skuPrefixInvalid => 'Utilisez 2 à 6 majuscules ou chiffres';
+
+  @override
+  String get skuNeedsAttention => 'À vérifier';
+
+  @override
+  String get skuConflictTooltip =>
+      'Un autre article de l’entreprise utilise ce SKU. Donnez un nouveau SKU à l’un des deux.';
+
+  @override
   String get createTaxExempted => 'Exonéré de taxe';
 
   @override
@@ -19427,7 +19461,8 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
       locale: localeName,
       other:
           '$count personnes lui rendent compte : elle approuvera leurs congés quel que soit le rôle choisi. Le rôle de responsable ajoute l\'effectif et la paie de tous.',
-      one: '1 personne lui rend compte : elle approuvera ses congés quel que soit le rôle choisi. Le rôle de responsable ajoute l\'effectif et la paie de tous.',
+      one:
+          '1 personne lui rend compte : elle approuvera ses congés quel que soit le rôle choisi. Le rôle de responsable ajoute l\'effectif et la paie de tous.',
     );
     return '$_temp0';
   }
@@ -28527,7 +28562,8 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
       locale: localeName,
       other:
           '$count enregistrements seront définitivement supprimés de toutes les succursales, avec leurs écritures comptables. Cette action est irréversible.',
-      one: '1 enregistrement sera définitivement supprimé de toutes les succursales, avec ses écritures comptables. Cette action est irréversible.',
+      one:
+          '1 enregistrement sera définitivement supprimé de toutes les succursales, avec ses écritures comptables. Cette action est irréversible.',
     );
     return '$_temp0';
   }

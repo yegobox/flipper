@@ -1,4 +1,3 @@
-import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/sync/utils/bulk_desktop_variant_prep.dart';
 import 'package:flipper_models/view_models/mixins/rraConstants.dart';
 import 'package:flipper_services/proxy.dart';
@@ -46,8 +45,9 @@ Future<Variant> createIpmCatalogVariant({
     throw StateError('Failed to create product for "$name"');
   }
 
-  final business =
-      await ProxyService.strategy.getBusiness(businessId: businessId);
+  final business = await ProxyService.strategy.getBusiness(
+    businessId: businessId,
+  );
   final category = await ProxyService.strategy.ensureUncategorizedCategory(
     branchId: branchId,
   );
@@ -62,7 +62,6 @@ Future<Variant> createIpmCatalogVariant({
     retailPrice: retailPrice,
     supplyPrice: supplyPrice,
     barCode: bcd,
-    sku: randomNumber(),
     countryCode: 'RW',
     packagingUnitCode: pkgUnitCd,
     categoryId: category.id,

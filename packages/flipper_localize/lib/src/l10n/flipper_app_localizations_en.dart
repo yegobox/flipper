@@ -1,6 +1,5 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
-
 import 'flipper_app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -4419,7 +4418,7 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
   String get dpaBarcode => 'Barcode';
 
   @override
-  String get dpaBarcodeHint => 'SKU / barcode (optional)';
+  String get dpaBarcodeHint => 'Barcode (optional)';
 
   @override
   String get dpaLeaveBlankVariantName => 'Leave blank to use the variant name';
@@ -10885,7 +10884,8 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
       locale: localeName,
       other:
           'Skipped $count tickets that cannot be deleted (partial payments or reviewed)',
-      one: 'Skipped 1 ticket that cannot be deleted (partial payments or reviewed)',
+      one:
+          'Skipped 1 ticket that cannot be deleted (partial payments or reviewed)',
     );
     return '$_temp0';
   }
@@ -14630,7 +14630,8 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
       locale: localeName,
       other:
           '$count items need a supply and retail price, or a link to one of your products',
-      one: '1 item needs a supply and retail price, or a link to one of your products',
+      one:
+          '1 item needs a supply and retail price, or a link to one of your products',
     );
     return '$_temp0';
   }
@@ -17769,6 +17770,39 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
   String get createEnterSku => 'Enter SKU';
 
   @override
+  String skuAutoHint(String sku) {
+    return 'Auto: $sku';
+  }
+
+  @override
+  String get skuPending => 'SKU pending';
+
+  @override
+  String get skuAutoHelper => 'Leave blank to assign one automatically';
+
+  @override
+  String skuAlreadyUsed(String item) {
+    return 'SKU already used by $item';
+  }
+
+  @override
+  String get skuPrefixLabel => 'SKU prefix';
+
+  @override
+  String get skuPrefixHelper =>
+      '2-6 letters or digits, e.g. BEV. Leave blank to use the category name.';
+
+  @override
+  String get skuPrefixInvalid => 'Use 2-6 capital letters or digits';
+
+  @override
+  String get skuNeedsAttention => 'Needs attention';
+
+  @override
+  String get skuConflictTooltip =>
+      'Another item in the business uses this SKU. Give one of them a new SKU.';
+
+  @override
   String get createTaxExempted => 'Tax Exempted';
 
   @override
@@ -19122,7 +19156,8 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
       locale: localeName,
       other:
           '$count people report to them, so they will approve that leave whichever role you pick. The roster and everyone else\'s pay is what the manager role adds.',
-      one: '1 person reports to them, so they will approve that leave whichever role you pick. The roster and everyone else\'s pay is what the manager role adds.',
+      one:
+          '1 person reports to them, so they will approve that leave whichever role you pick. The roster and everyone else\'s pay is what the manager role adds.',
     );
     return '$_temp0';
   }
@@ -28087,7 +28122,8 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
       locale: localeName,
       other:
           '$count records will be permanently deleted from every branch, together with their ledger entries. This cannot be undone.',
-      one: '1 record will be permanently deleted from every branch, together with its ledger entries. This cannot be undone.',
+      one:
+          '1 record will be permanently deleted from every branch, together with its ledger entries. This cannot be undone.',
     );
     return '$_temp0';
   }

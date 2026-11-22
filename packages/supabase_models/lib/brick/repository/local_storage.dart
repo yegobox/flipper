@@ -229,6 +229,9 @@ class SharedPreferenceStorage implements LocalStorage {
     // business, and a personal signup the server has not confirmed yet.
     'accountModes',
     'pendingAccountMode',
+    // SKU numbers reserved for this device, per business
+    // (flipper_models/lib/sku/sku_service.dart `kSkuBlocksKey`).
+    'skuBlocks',
     // Add new preference keys above this line
   };
 
@@ -397,7 +400,13 @@ class SharedPreferenceStorage implements LocalStorage {
     'saleExchangeIntents',
     'accountModes',
     'pendingAccountMode',
+    ..._deviceOnlyKeys,
   };
+
+  /// Keys that belong to this device alone and are never mirrored to Ditto.
+  /// `skuBlocks` holds the SKU numbers the server reserved for this device:
+  /// a copy on a second device would hand out the same numbers twice.
+  static const Set<String> _deviceOnlyKeys = {'skuBlocks'};
 
   static void _keepLocalFileOnlyKeys(
     Map<String, dynamic> merged,
@@ -485,7 +494,9 @@ class SharedPreferenceStorage implements LocalStorage {
     // The staff roster (hashed PINs) is device-local; never mirror it.
     final payload = jsonEncode({
       for (final e in _cache.entries)
-        if (!e.key.startsWith(_staffRosterPrefix)) e.key: e.value,
+        if (!e.key.startsWith(_staffRosterPrefix) &&
+            !_deviceOnlyKeys.contains(e.key))
+          e.key: e.value,
     });
     await store.execute(
       'INSERT INTO $_kDittoPrefsCollection DOCUMENTS (:data) ON ID CONFLICT DO UPDATE',

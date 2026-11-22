@@ -28,6 +28,13 @@ class Category extends OfflineFirstWithSupabaseModel {
   bool focused = false;
   String? name;
 
+  /// SKU prefix for items in this category (`BEV` → `BEV-00042`), 2-6
+  /// upper-case letters or digits. Null derives it from [name]. Lives in Ditto
+  /// (`skuPrefix`); data-connector mirrors it to `categories.sku_prefix`.
+  @Sqlite(ignore: true)
+  @Supabase(ignore: true)
+  String? skuPrefix;
+
   String? branchId;
   DateTime? deletedAt;
   DateTime? lastTouched;
@@ -36,6 +43,7 @@ class Category extends OfflineFirstWithSupabaseModel {
     this.active,
     this.focused = false,
     this.name,
+    this.skuPrefix,
     this.branchId,
     this.deletedAt,
     this.lastTouched,

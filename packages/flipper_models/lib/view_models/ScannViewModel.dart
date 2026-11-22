@@ -410,9 +410,9 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
       dcRt: 0,
       itemTyCd: itemTyCd,
       pkgUnitCd: "NT",
-      // bcd is bar code
+      // bcd is the manufacturer's barcode. The SKU is the shop's own code,
+      // assigned when the product is saved (never copied from the barcode).
       bcd: barCode,
-      sku: barCode,
       productId: product.id,
       color: currentColor,
       unit: 'Per Item',

@@ -21,6 +21,7 @@ Category categoryFromDittoMap(Map<String, dynamic> data) {
   return Category(
     id: (rawId != null && rawId.isNotEmpty) ? rawId : null,
     name: data['name'] as String?,
+    skuPrefix: data['skuPrefix'] as String?,
     branchId: data['branchId'] as String?,
     active: parseBool(data['active']),
     focused: parseBool(data['focused']) ?? false,

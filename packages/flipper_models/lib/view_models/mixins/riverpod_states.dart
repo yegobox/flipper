@@ -445,16 +445,6 @@ final universalProductsNames =
       }
     });
 
-final skuProvider = StreamProvider.autoDispose.family<SKU?, String>((
-  ref,
-  branchId,
-) {
-  return ProxyService.strategy.sku(
-    branchId: branchId,
-    businessId: ProxyService.box.getBusinessId()!,
-  );
-});
-
 final keypadProvider = NotifierProvider<KeypadNotifier, String>(
   KeypadNotifier.new,
 );

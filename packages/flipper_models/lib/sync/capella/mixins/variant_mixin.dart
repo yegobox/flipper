@@ -418,7 +418,8 @@ mixin CapellaVariantMixin implements VariantInterface {
             "LOWER(COALESCE(itemNm, '')) LIKE :searchLike OR "
             "LOWER(COALESCE(productName, '')) LIKE :searchLike OR "
             "LOWER(TRIM(COALESCE(bcd, ''))) = :bcdExact OR "
-            "LOWER(TRIM(COALESCE(itemCd, ''))) = :bcdExact)";
+            "LOWER(TRIM(COALESCE(itemCd, ''))) = :bcdExact OR "
+            "LOWER(TRIM(COALESCE(sku, ''))) = :bcdExact)";
         arguments['searchLike'] = '%$searchTerm%';
         arguments['bcdExact'] = searchTerm;
         talker.info(
@@ -667,7 +668,8 @@ mixin CapellaVariantMixin implements VariantInterface {
                 "LOWER(COALESCE(itemNm, '')) LIKE :searchLike OR "
                 "LOWER(COALESCE(productName, '')) LIKE :searchLike OR "
                 "LOWER(TRIM(COALESCE(bcd, ''))) = :bcdExact OR "
-                "LOWER(TRIM(COALESCE(itemCd, ''))) = :bcdExact)";
+                "LOWER(TRIM(COALESCE(itemCd, ''))) = :bcdExact OR "
+                "LOWER(TRIM(COALESCE(sku, ''))) = :bcdExact)";
           }
 
           if (productId != null) {

@@ -22,6 +22,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
 import 'package:flipper_web/core/secrets.dart';
 import 'package:flipper_models/ebm_helper.dart';
+import 'package:flipper_models/sku/sku_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flipper_models/helperModels/business_type.dart' as helper;
 import 'package:flipper_models/SyncStrategy.dart';
@@ -216,6 +217,8 @@ class AppService with ListenableServiceMixin {
   }) async {
     // Update Hive preferences first (fast, no DB locks)
     await _updateBusinessPreferences(business);
+    // Background only: reserve SKU numbers for this business on this device.
+    topUpSkuNumbers(business.id);
 
     if (persistToSqlite) {
       // Defer SQLite updates to avoid blocking UI - runs in background
@@ -648,6 +651,9 @@ class AppService with ListenableServiceMixin {
 
   void _schedulePostDittoSetup({required bool dittoAvailable}) {
     unawaited(_attachLocalStorageDittoIfReady());
+    // Reserve SKU numbers for this device in the background so items created
+    // offline later get a SKU. Never blocks or throws; Local Mode skips it.
+    topUpSkuNumbers(ProxyService.box.getBusinessId());
     if (dittoAvailable && !kIsWeb && !Platform.isAndroid && !Platform.isIOS) {
       unawaited(_saveDesktopDeviceRecordIfNeeded());
       unawaited(ProxyService.cron.setupDelegationMonitoringIfNeeded());

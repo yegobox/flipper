@@ -4,13 +4,13 @@ import 'dart:isolate';
 import 'dart:ui';
 import 'package:amplify_flutter/amplify_flutter.dart' as amplify;
 import 'package:flipper_models/account_mode/account_mode_store.dart';
+import 'package:flipper_models/sku/sku_service.dart';
 import 'package:flipper_models/sync/utils/local_store_retention.dart';
 import 'package:flipper_models/DatabaseSyncInterface.dart';
 import 'package:flipper_payments/flipper_payments.dart' show BillingCadence;
 import 'package:flipper_models/cache/utility_cash_variant_cache.dart';
 import 'package:flipper_models/helpers/cash_movement_utility_variant.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
-import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:flipper_mocks/mocks.dart';
@@ -355,152 +355,6 @@ class CoreSync extends AiStrategyImpl
         policy: OfflineFirstUpsertPolicy.localOnly,
       );
     }
-  }
-
-  Future<models.Variant> _createRegularVariant(
-    String branchId,
-    int? tinNumber, {
-    required double qty,
-    required double supplierPrice,
-    required double retailPrice,
-    required int itemSeq,
-    String? bhFId,
-    bool createItemCode = false,
-    required bool ebmSynced,
-    Product? product,
-    required String productId,
-    required String name,
-    String? orgnNatCd,
-    String? exptNatCd,
-    int? pkg,
-    String? pkgUnitCd,
-    int? totWt,
-    int? netWt,
-    String? spplrNm,
-    String? agntNm,
-    int? invcFcurAmt,
-    String? invcFcurCd,
-    String? dclNo,
-    String? taskCd,
-    String? dclDe,
-    String? hsCd,
-    String? spplrItemCd,
-    String? imptItemsttsCd,
-    String? spplrItemClsCd,
-    Map<String, String>? taxTypes,
-    Map<String, String>? itemClasses,
-    Map<String, String>? itemTypes,
-    required int sku,
-    models.Configurations? taxType,
-    String? bcd,
-    String? pchsSttsCd,
-    double? totAmt,
-    double? taxAmt,
-    double? taxblAmt,
-    String? itemCd,
-    String? taxTyCd,
-  }) async {
-    final String variantId = const Uuid().v4();
-    final number = randomNumber().toString().substring(0, 5);
-    final vatEnabled = await isVatEnabledForBranch(branchId: branchId);
-    final finalTaxTyCd =
-        taxTyCd ??
-        taxTypes?[product?.barCode] ??
-        defaultTaxTyCdForVat(vatEnabled);
-
-    return Variant(
-      spplrNm: spplrNm ?? "",
-      agntNm: agntNm ?? "",
-      totAmt: totAmt,
-      netWt: netWt ?? 0,
-      totWt: totWt ?? 0,
-      pchsSttsCd: pchsSttsCd,
-      taxblAmt: taxblAmt,
-      taxAmt: taxAmt,
-      invcFcurAmt: invcFcurAmt ?? 0,
-      invcFcurCd: invcFcurCd ?? "",
-      exptNatCd: exptNatCd ?? "",
-      dclNo: dclNo ?? "",
-      taskCd: taskCd ?? "",
-      dclDe: dclDe ?? "",
-
-      hsCd: hsCd ?? "",
-      imptItemSttsCd: imptItemsttsCd ?? "",
-      lastTouched: DateTime.now().toUtc(),
-      name: product?.name ?? name,
-      sku: sku.toString(),
-      dcRt: 0.0,
-      productId: product?.id ?? productId,
-      color: product?.color,
-      unit: 'Per Item',
-      productName: product?.name ?? name,
-      branchId: branchId,
-      supplyPrice: supplierPrice,
-      retailPrice: retailPrice,
-      id: variantId,
-      bhfId: bhFId ?? '00',
-      itemStdNm: product?.name ?? name,
-      addInfo: "A",
-      pkg: pkg ?? 1,
-
-      splyAmt: supplierPrice,
-      itemClsCd: itemClasses?[product?.barCode] ?? "5020230602",
-      itemCd: (createItemCode || itemCd == null)
-          ? await itemCode(
-              countryCode: orgnNatCd ?? "RW",
-              productType: "2",
-              packagingUnit: "CT",
-              quantityUnit: "BJ",
-              branchId: branchId,
-            )
-          : itemCd,
-      modrNm: name,
-      modrId: number,
-      pkgUnitCd: pkgUnitCd ?? "BJ",
-      regrId: randomNumber().toString().substring(0, 5),
-      itemTyCd: itemTypes?.containsKey(product?.barCode) == true
-          ? itemTypes![product!.barCode]!
-          : "2", // this is a finished product
-      /// available type for itemTyCd are 1 for raw material and 3 for service
-      /// is insurance applicable default is not applicable
-      isrcAplcbYn: "N",
-      useYn: "N",
-      itemSeq: itemSeq,
-      itemNm: product?.name ?? name,
-      taxPercentage: taxType?.taxPercentage ?? 18.0,
-      taxName: finalTaxTyCd,
-      tin: tinNumber,
-      bcd:
-          bcd ??
-          (product?.name ?? name).substring(
-            0,
-            min((product?.name ?? name).length, 20),
-          ),
-
-      /// country of origin for this item we default until we support something different
-      /// and this will happen when we do import.
-      orgnNatCd: orgnNatCd ?? "RW",
-
-      /// registration name
-      regrNm: product?.name ?? name,
-
-      /// taxation type code
-      taxTyCd: finalTaxTyCd,
-      // default unit price
-      dftPrc: retailPrice,
-      prc: retailPrice,
-
-      // NOTE: I believe bellow item are required when saving purchase
-      ///but I wonder how to get them when saving an item.
-      spplrItemCd: spplrItemCd ?? "",
-      spplrItemClsCd: itemClasses?[product?.barCode] ?? spplrItemClsCd,
-      spplrItemNm: product?.name ?? name,
-
-      /// Packaging Unit
-      // qtyUnitCd ??
-      qtyUnitCd: "U", // see 4.6 in doc
-      ebmSynced: ebmSynced,
-    );
   }
 
   @override
@@ -881,16 +735,15 @@ class CoreSync extends AiStrategyImpl
     }
 
     if (variant == null) {
-      final sku = await getSku(branchId: branchId, businessId: businessId);
-      sku.consumed = true;
-      await repository.upsert(sku);
+      final sku = await assignNewSku(businessId: businessId);
 
       variant = models.Variant(
         id: const Uuid().v4(),
         name: name,
         productId: product.id,
         branchId: branchId,
-        sku: sku.sku.toString(),
+        sku: sku.sku,
+        skuPending: sku.pending,
         retailPrice: 0.0,
         supplyPrice: 0.0,
         lastTouched: DateTime.now().toUtc(),
@@ -2701,6 +2554,7 @@ class CoreSync extends AiStrategyImpl
     bool? active,
     bool? focused,
     String? branchId,
+    String? skuPrefix,
   }) async {
     final category = (await repository.get<Category>(
       query: brick.Query(
@@ -3063,89 +2917,6 @@ class CoreSync extends AiStrategyImpl
           .toList();
     }
     return accesses;
-  }
-
-  @override
-  FutureOr<SKU> getSku({
-    required String branchId,
-    required String businessId,
-  }) async {
-    final query = brick.Query(
-      where: [
-        brick.Where('branchId').isExactly(branchId),
-        brick.Where('businessId').isExactly(businessId),
-      ],
-      orderBy: [brick.OrderBy('sku', ascending: true)],
-    );
-
-    final skus = await repository.get<SKU>(
-      query: query,
-      policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
-    );
-
-    // Get highest sequence number
-    int lastSequence = skus.isEmpty ? 0 : skus.last.sku ?? 0;
-    final newSequence = lastSequence + 1;
-
-    final newSku = SKU(
-      sku: newSequence,
-      branchId: branchId,
-      businessId: businessId,
-    );
-    await repository.upsert(newSku);
-
-    return newSku;
-  }
-
-  @override
-  Stream<SKU?> sku({required String branchId, required String businessId}) {
-    final query = brick.Query(
-      where: [
-        brick.Where('branchId').isExactly(branchId),
-        brick.Where('businessId').isExactly(businessId),
-      ],
-      orderBy: [brick.OrderBy('sku', ascending: true)],
-    );
-
-    return repository
-        .subscribe<SKU>(query: query, policy: OfflineFirstGetPolicy.localOnly)
-        .map((skus) => skus.isNotEmpty ? skus.first : null);
-  }
-
-  @override
-  Future<Variant> createVariant({
-    required String barCode,
-    required int sku,
-    required String productId,
-    required String branchId,
-    required double retailPrice,
-    required double supplierPrice,
-    required double qty,
-    Map<String, String>? taxTypes,
-    Map<String, String>? itemClasses,
-    Map<String, String>? itemTypes,
-    required String color,
-    required int tinNumber,
-    required int itemSeq,
-    required String name,
-    models.Configurations? taxType,
-  }) async {
-    return await _createRegularVariant(
-      branchId,
-      tinNumber,
-      qty: qty,
-      supplierPrice: supplierPrice,
-      retailPrice: retailPrice,
-      itemSeq: itemSeq,
-      name: name,
-      sku: sku,
-      taxType: taxType,
-      ebmSynced: false,
-      productId: productId,
-      taxTypes: taxTypes,
-      itemClasses: itemClasses,
-      itemTypes: itemTypes,
-    );
   }
 
   @override

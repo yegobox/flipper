@@ -1,6 +1,5 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
-
 import 'flipper_app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -4445,7 +4444,7 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   String get dpaBarcode => 'Msimbopau';
 
   @override
-  String get dpaBarcodeHint => 'SKU / msimbopau (si lazima)';
+  String get dpaBarcodeHint => 'Msimbopau (si lazima)';
 
   @override
   String get dpaLeaveBlankVariantName => 'Acha wazi ili kutumia jina la aina';
@@ -10948,7 +10947,8 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
       locale: localeName,
       other:
           'Tiketi $count zisizoweza kufutwa zimerukwa (malipo ya sehemu au zimekaguliwa)',
-      one: 'Tiketi 1 isiyoweza kufutwa imerukwa (malipo ya sehemu au imekaguliwa)',
+      one:
+          'Tiketi 1 isiyoweza kufutwa imerukwa (malipo ya sehemu au imekaguliwa)',
     );
     return '$_temp0';
   }
@@ -14716,7 +14716,8 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
       locale: localeName,
       other:
           'Bidhaa $count zinahitaji bei ya kununua na ya kuuza, au kuunganishwa na mojawapo ya bidhaa zako',
-      one: 'Bidhaa 1 inahitaji bei ya kununua na ya kuuza, au kuunganishwa na mojawapo ya bidhaa zako',
+      one:
+          'Bidhaa 1 inahitaji bei ya kununua na ya kuuza, au kuunganishwa na mojawapo ya bidhaa zako',
     );
     return '$_temp0';
   }
@@ -17881,6 +17882,39 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   String get createEnterSku => 'Weka SKU';
 
   @override
+  String skuAutoHint(String sku) {
+    return 'Otomatiki: $sku';
+  }
+
+  @override
+  String get skuPending => 'SKU inasubiri';
+
+  @override
+  String get skuAutoHelper => 'Acha wazi ili ipewe moja kwa moja';
+
+  @override
+  String skuAlreadyUsed(String item) {
+    return 'SKU tayari inatumiwa na $item';
+  }
+
+  @override
+  String get skuPrefixLabel => 'Kiambishi cha SKU';
+
+  @override
+  String get skuPrefixHelper =>
+      'Herufi au tarakimu 2-6, mf. BEV. Acha wazi ili kutumia jina la kundi.';
+
+  @override
+  String get skuPrefixInvalid => 'Tumia herufi kubwa au tarakimu 2-6';
+
+  @override
+  String get skuNeedsAttention => 'Inahitaji kuangaliwa';
+
+  @override
+  String get skuConflictTooltip =>
+      'Bidhaa nyingine ya biashara inatumia SKU hii. Ipe mojawapo SKU mpya.';
+
+  @override
   String get createTaxExempted => 'Imesamehewa Kodi';
 
   @override
@@ -19243,7 +19277,8 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
       locale: localeName,
       other:
           'Watu $count wanaripoti kwake, hivyo ataidhinisha likizo zao kwa jukumu lolote utakalochagua. Jukumu la meneja linaongeza orodha na mishahara ya wote.',
-      one: 'Mtu 1 anaripoti kwake, hivyo ataidhinisha likizo yake kwa jukumu lolote utakalochagua. Jukumu la meneja linaongeza orodha na mishahara ya wote.',
+      one:
+          'Mtu 1 anaripoti kwake, hivyo ataidhinisha likizo yake kwa jukumu lolote utakalochagua. Jukumu la meneja linaongeza orodha na mishahara ya wote.',
     );
     return '$_temp0';
   }

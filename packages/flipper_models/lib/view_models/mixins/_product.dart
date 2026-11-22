@@ -1,5 +1,5 @@
 import 'package:flipper_analytics/flipper_analytics.dart';
-import 'package:flipper_models/helperModels/random.dart';
+import 'package:flipper_models/sku/sku_service.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/constants.dart';
@@ -28,32 +28,34 @@ mixin ProductMixin {
     _discountRate = discountRate;
   }
 
-  Future<void> addVariant(
-      {List<Variant>? variations,
-      required String packagingUnit,
-      Map<String, String>? rates,
-      Map<String, String>? dates,
-      double? retailPrice,
-      double? supplyPrice,
-      bool preserveVariationFields = false,
-      required String countryofOrigin,
-      required String productName,
-      required String selectedProductType,
-      String? color,
-      Product? product,
-      String? propertyTyCd,
-      String? roomTypeCd,
-      String? ttCatCd,
-      required Function(List<Variant> variantions) onCompleteCallback,
-      required ScannViewModel model,
-      String? categoryId}) async {
+  Future<void> addVariant({
+    List<Variant>? variations,
+    required String packagingUnit,
+    Map<String, String>? rates,
+    Map<String, String>? dates,
+    double? retailPrice,
+    double? supplyPrice,
+    bool preserveVariationFields = false,
+    required String countryofOrigin,
+    required String productName,
+    required String selectedProductType,
+    String? color,
+    Product? product,
+    String? propertyTyCd,
+    String? roomTypeCd,
+    String? ttCatCd,
+    required Function(List<Variant> variantions) onCompleteCallback,
+    required ScannViewModel model,
+    String? categoryId,
+  }) async {
     if (product == null) return;
 
     ///loop variations add pkgUnitCd this come from UI but a lot of
     ///EBM fields will be hard coded to simplify the UI, so we will loop the variation
     ///and add some missing fields to simplify the UI
-    Business? business = await ProxyService.strategy
-        .getBusiness(businessId: ProxyService.box.getBusinessId()!);
+    Business? business = await ProxyService.strategy.getBusiness(
+      businessId: ProxyService.box.getBusinessId()!,
+    );
     try {
       // find the related product to update its name
 
@@ -75,8 +77,31 @@ mixin ProductMixin {
         category = await ProxyService.strategy.category(id: categoryId);
       }
       List<Variant> updatables = [];
-      for (var i = 0; i < variations!.length; i++) {
+      // SKUs already held by this product's variants: a variant without one
+      // takes the next suffix of a sibling's SKU (BEV-00042-02) or a fresh
+      // number. Local only, so saving works offline.
+      final siblingSkus = <String?>[
+        for (final v in variations!)
+          if ((v.sku ?? '').trim().isNotEmpty) v.sku!.trim(),
+        ...await productVariantSkus(
+          productId: product.id,
+          branchId: ProxyService.box.getBranchId()!,
+        ),
+      ];
+      for (var i = 0; i < variations.length; i++) {
         final existing = variations[i];
+        final hasSku = (existing.sku ?? '').trim().isNotEmpty;
+        final SkuAssignment skuAssignment = hasSku
+            ? SkuAssignment.value(existing.sku!.trim())
+            : await assignVariantSku(
+                businessId: business?.id ?? product.businessId,
+                siblingSkus: siblingSkus,
+                skuPrefix: category?.skuPrefix,
+                categoryName: category?.name,
+              );
+        if (!hasSku && skuAssignment.sku != null) {
+          siblingSkus.add(skuAssignment.sku);
+        }
         final pkgCode = resolveRraPackagingUnitCode(
           packagingUnit,
           fallback: existing.pkgUnitCd ?? 'CT',
@@ -96,7 +121,8 @@ mixin ProductMixin {
 
         if (existing.taxTyCd == null || existing.taxTyCd!.isEmpty) {
           throw Exception(
-              'Fatal Error: Tax type (taxTyCd) must be set for variant ${existing.id}. This is a required field.');
+            'Fatal Error: Tax type (taxTyCd) must be set for variant ${existing.id}. This is a required field.',
+          );
         }
 
         final vn = existing.name.trim();
@@ -122,10 +148,12 @@ mixin ProductMixin {
           itemTyCd: selectedProductType,
           retailPrice: effectiveRetailPrice ?? 0,
           supplyPrice: effectiveSupplyPrice ?? 0,
-          barCode: existing.bcd ?? existing.barCode ?? existing.sku,
-          sku: int.tryParse(existing.sku?.toString() ?? '') ?? randomNumber(),
-          countryCode:
-              countryofOrigin.trim().isNotEmpty ? countryofOrigin.trim() : 'RW',
+          // The barcode is the manufacturer's code; never fall back to the SKU.
+          barCode: existing.bcd ?? existing.barCode,
+          skuAssignment: skuAssignment,
+          countryCode: countryofOrigin.trim().isNotEmpty
+              ? countryofOrigin.trim()
+              : 'RW',
           packagingUnitCode: pkgCode,
           categoryId: categoryId,
           categoryName: category?.name,
@@ -148,7 +176,6 @@ mixin ProductMixin {
           ..roomTypeCd = roomTypeCd
           ..stock = existing.stock
           ..stockId = existing.stockId
-          ..sku = existing.sku ?? prepared.sku
           ..imageUrl = existing.imageUrl
           ..barCode = existing.barCode
           ..bcd = existing.bcd ?? prepared.bcd
@@ -184,13 +211,19 @@ mixin ProductMixin {
         }
 
         _applyPreparedVariantFields(existing, prepared);
+        if (!hasSku) {
+          existing
+            ..sku = skuAssignment.sku
+            ..skuPending = skuAssignment.pending;
+        }
         updatables.add(existing);
       }
 
       await ProxyService.strategy.addVariant(
-          skipRRaCall: false,
-          variations: updatables,
-          branchId: ProxyService.box.getBranchId()!);
+        skipRRaCall: false,
+        variations: updatables,
+        branchId: ProxyService.box.getBranchId()!,
+      );
 
       // Quantities typed in the variant sheet are held back until the stock rows
       // exist; write them through updateStock so the milli COUNTER matches.
@@ -254,16 +287,17 @@ mixin ProductMixin {
   }
 
   Future<double> setTaxPercentage(Variant variant) async {
-    newMod.Configurations? configurations =
-        await ProxyService.strategy.getByTaxType(taxtype: variant.taxTyCd!);
+    newMod.Configurations? configurations = await ProxyService.strategy
+        .getByTaxType(taxtype: variant.taxTyCd!);
     return configurations?.taxPercentage ?? 0;
   }
 
-  Future<Product?> saveProduct(
-      {required Product mproduct,
-      required bool inUpdateProcess,
-      required String productName,
-      required String color}) async {
+  Future<Product?> saveProduct({
+    required Product mproduct,
+    required bool inUpdateProcess,
+    required String productName,
+    required String color,
+  }) async {
     try {
       analytics.track(
         AnalyticsEvents.productCreated,
@@ -273,8 +307,9 @@ mixin ProductMixin {
         },
       );
 
-      Category? activeCat = await ProxyService.strategy
-          .activeCategory(branchId: ProxyService.box.getBranchId()!);
+      Category? activeCat = await ProxyService.strategy.activeCategory(
+        branchId: ProxyService.box.getBranchId()!,
+      );
 
       await ProxyService.strategy.updateProduct(
         productId: mproduct.id,
@@ -291,9 +326,10 @@ mixin ProductMixin {
         );
       }
       return await ProxyService.strategy.getProduct(
-          id: mproduct.id,
-          branchId: ProxyService.box.getBranchId()!,
-          businessId: ProxyService.box.getBusinessId()!);
+        id: mproduct.id,
+        branchId: ProxyService.box.getBranchId()!,
+        businessId: ProxyService.box.getBusinessId()!,
+      );
     } catch (e, s) {
       talker.warning(e);
       talker.error(s);

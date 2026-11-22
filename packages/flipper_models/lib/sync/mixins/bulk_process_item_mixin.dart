@@ -1,7 +1,6 @@
 import 'dart:math';
 
 import 'package:flipper_models/ebm_helper.dart';
-import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/sync/utils/bulk_desktop_variant_prep.dart';
 import 'package:flipper_services/proxy.dart';
@@ -195,8 +194,7 @@ Future<void> runBulkProcessItem(
     final qty = _bulkItemQuantity(item, quantitis);
     final retail = item.retailPrice ?? 0;
     final supply = item.supplyPrice ?? retail;
-    final itemCls =
-        itemClasses[item.barCode] ?? item.itemClsCd ?? '5020230602';
+    final itemCls = itemClasses[item.barCode] ?? item.itemClsCd ?? '5020230602';
     final itemTy = itemTypes[item.barCode] ?? item.itemTyCd ?? '2';
     final taxTy = bulkTaxFor(item.barCode);
     // Prefer Excel BarCode for new rows; only fall back to bcdU when BarCode
@@ -209,29 +207,31 @@ Future<void> runBulkProcessItem(
       return u.endsWith('.0') ? u.substring(0, u.length - 2) : u;
     }();
 
-    final createdProduct = await host.createProduct(
-      skipRRaCall: true,
-      skipRegularVariant: true,
-      createItemCode: false,
-      bhFId: bhfId ?? '00',
-      tinNumber: tin,
-      businessId: businessId,
-      branchId: branchId,
-      product: Product(
-        color: _randomizeColor(),
-        name: productName,
-        lastTouched: DateTime.now().toUtc(),
-        branchId: branchId,
-        businessId: businessId,
-        createdAt: DateTime.now().toUtc(),
-        barCode: createBarCode,
-        categoryId: categoryId,
-      ),
-      supplyPrice: supply,
-      retailPrice: retail,
-      qty: qty,
-      taxTyCd: taxTy,
-    ) as Product?;
+    final createdProduct =
+        await host.createProduct(
+              skipRRaCall: true,
+              skipRegularVariant: true,
+              createItemCode: false,
+              bhFId: bhfId ?? '00',
+              tinNumber: tin,
+              businessId: businessId,
+              branchId: branchId,
+              product: Product(
+                color: _randomizeColor(),
+                name: productName,
+                lastTouched: DateTime.now().toUtc(),
+                branchId: branchId,
+                businessId: businessId,
+                createdAt: DateTime.now().toUtc(),
+                barCode: createBarCode,
+                categoryId: categoryId,
+              ),
+              supplyPrice: supply,
+              retailPrice: retail,
+              qty: qty,
+              taxTyCd: taxTy,
+            )
+            as Product?;
     if (createdProduct == null) {
       throw Exception('Failed to create product for bulk row $productName');
     }
@@ -250,7 +250,6 @@ Future<void> runBulkProcessItem(
       retailPrice: retail,
       supplyPrice: supply,
       barCode: createBarCode,
-      sku: randomNumber(),
       countryCode: item.orgnNatCd ?? 'RW',
       packagingUnitCode: 'CT',
       categoryId: categoryId,
@@ -286,7 +285,8 @@ Future<void> runBulkProcessItem(
 
 double _bulkItemQuantity(Variant item, Map<String, String> quantitis) {
   final key = item.barCode ?? '';
-  final raw = quantitis[key] ??
+  final raw =
+      quantitis[key] ??
       (item.quantity != null && item.quantity! > 0
           ? item.quantity.toString()
           : null);

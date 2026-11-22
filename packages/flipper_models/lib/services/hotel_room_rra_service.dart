@@ -440,7 +440,6 @@ abstract final class HotelRoomRraService {
       room: room,
       branchId: branchId,
       taxTyCd: 'D',
-      sku: DateTime.now().millisecondsSinceEpoch % 100000,
       business: business,
       tourismTaxEnabled: false,
     );
@@ -600,7 +599,6 @@ abstract final class HotelRoomRraService {
         room: room,
         branchId: branchId,
         taxTyCd: taxTyCd,
-        sku: DateTime.now().millisecondsSinceEpoch % 100000,
         business: business,
         tourismTaxEnabled: tourismTax,
       );
