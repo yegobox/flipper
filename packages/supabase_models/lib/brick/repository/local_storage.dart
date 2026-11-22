@@ -488,16 +488,21 @@ class SharedPreferenceStorage implements LocalStorage {
     }
   }
 
+  /// The preferences copied to Ditto: everything except what belongs to
+  /// this device alone. The staff roster (hashed PINs) and the SKU numbers
+  /// reserved for this device ([_deviceOnlyKeys]) never leave it.
+  static Map<String, dynamic> dittoMirrorPayload(Map<String, dynamic> prefs) =>
+      {
+        for (final e in prefs.entries)
+          if (!e.key.startsWith(_staffRosterPrefix) &&
+              !_deviceOnlyKeys.contains(e.key))
+            e.key: e.value,
+      };
+
   Future<void> _writeDittoPayload() async {
     final store = DittoService.instance.store;
     if (store == null) return;
-    // The staff roster (hashed PINs) is device-local; never mirror it.
-    final payload = jsonEncode({
-      for (final e in _cache.entries)
-        if (!e.key.startsWith(_staffRosterPrefix) &&
-            !_deviceOnlyKeys.contains(e.key))
-          e.key: e.value,
-    });
+    final payload = jsonEncode(dittoMirrorPayload(_cache));
     await store.execute(
       'INSERT INTO $_kDittoPrefsCollection DOCUMENTS (:data) ON ID CONFLICT DO UPDATE',
       // dart format off

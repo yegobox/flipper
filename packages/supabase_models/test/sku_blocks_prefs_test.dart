@@ -54,6 +54,15 @@ void main() {
       }
     });
 
+    test('is never copied to Ditto', () {
+      final payload = SharedPreferenceStorage.dittoMirrorPayload({
+        'skuBlocks': '{"biz":{"next":1,"end":50}}',
+        'staff_roster_biz': 'hashed',
+        'branchId': 'branch-1',
+      });
+      expect(payload, {'branchId': 'branch-1'});
+    });
+
     test('a Ditto copy is never adopted when this device has none', () {
       final merged = SharedPreferenceStorage.mergeDittoPreferences(
         legacy: prefs({}),
