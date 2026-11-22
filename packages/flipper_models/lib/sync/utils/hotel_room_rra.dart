@@ -70,7 +70,7 @@ Future<Variant> buildHotelRoomVariant({
   required HotelRoom room,
   required String branchId,
   required String taxTyCd,
-  required int sku,
+  String? sku,
   Business? business,
   bool tourismTaxEnabled = true,
 }) async {

@@ -4,6 +4,7 @@ import 'dart:developer';
 
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/random.dart';
+import 'package:flipper_models/sku/sku_service.dart';
 import 'package:flipper_models/sync/utils/pos_catalog_stock_filter.dart';
 import 'package:flipper_models/sync/utils/stock_io_util.dart';
 import 'package:flipper_models/view_models/mixins/rraConstants.dart';
@@ -91,6 +92,8 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
           name: existingVariant.name,
           color: existingVariant.color,
           sku: existingVariant.sku,
+          skuPending: existingVariant.skuPending,
+          skuConflict: existingVariant.skuConflict,
           productId: existingVariant.productId,
           unit: existingVariant.unit,
           productName: existingVariant.productName,
@@ -435,9 +438,9 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
       dcRt: 0,
       itemTyCd: _selectedItemTyCd ?? itemTyCd,
       pkgUnitCd: "NT",
-      // bcd is bar code
+      // bcd is the manufacturer's barcode. The SKU is the shop's own code,
+      // assigned when the product is saved (never copied from the barcode).
       bcd: barCode,
-      sku: barCode,
       productId: product.id,
       color: currentColor,
       unit: 'Per Item',
@@ -760,6 +763,9 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
     required String productName,
     Function(List<Variant>)? onCompleteCallback,
     String? categoryId,
+
+    /// The product's business, for SKUs of variants added while editing.
+    String? businessId,
   }) async {
     if (editmode) {
       try {
@@ -772,6 +778,20 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
         }
 
         final boxBhfId = await ProxyService.box.bhfId();
+
+        // A variant added while editing has no SKU yet. Local only (reserved
+        // block, local Ditto): saving never waits for the network.
+        await fillMissingVariantSkus(
+          scannedVariants,
+          otherSkus: await _savedSiblingSkus(branchId),
+          assign: (siblings) async => (businessId ?? '').isEmpty
+              ? const SkuAssignment.pending()
+              : assignVariantSku(
+                  businessId: businessId!,
+                  siblingSkus: siblings,
+                  categoryId: finalCategoryId,
+                ),
+        );
 
         // Memoised across the whole loop. Declaring [ebmCache] inside the loop
         // reset it on every iteration, so a save issued one EBM lookup per
@@ -904,6 +924,18 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
         rethrow;
       }
     }
+  }
+
+  /// SKUs of the saved variants of the product being edited (local Ditto).
+  Future<List<String>> _savedSiblingSkus(String branchId) async {
+    final productIds = {
+      for (final v in scannedVariants)
+        if ((v.productId ?? '').isNotEmpty) v.productId!,
+    };
+    return [
+      for (final productId in productIds)
+        ...await productVariantSkus(productId: productId, branchId: branchId),
+    ];
   }
 
   void updateDateController(String id, DateTime date) {

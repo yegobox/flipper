@@ -2,7 +2,10 @@ import 'package:flipper_dashboard/features/product_editor/product_editor_tokens.
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/all_providers.dart';
+import 'package:flipper_models/sku/sku_format.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';
@@ -36,6 +39,7 @@ class _AddCategoryForm extends ConsumerStatefulWidget {
 
 class _AddCategoryFormState extends ConsumerState<_AddCategoryForm> {
   late final TextEditingController _nameController;
+  final TextEditingController _prefixController = TextEditingController();
   bool _saving = false;
   String? _error;
 
@@ -52,6 +56,7 @@ class _AddCategoryFormState extends ConsumerState<_AddCategoryForm> {
   void dispose() {
     _nameController.removeListener(_onNameChanged);
     _nameController.dispose();
+    _prefixController.dispose();
     super.dispose();
   }
 
@@ -76,6 +81,11 @@ class _AddCategoryFormState extends ConsumerState<_AddCategoryForm> {
       setState(() => _error = context.flipperL10n.productCategoryNameTooShort);
       return;
     }
+    final prefix = _prefixController.text.trim();
+    if (prefix.isNotEmpty && !isValidSkuPrefix(prefix)) {
+      setState(() => _error = context.flipperL10n.skuPrefixInvalid);
+      return;
+    }
     setState(() {
       _saving = true;
       _error = null;
@@ -91,6 +101,16 @@ class _AddCategoryFormState extends ConsumerState<_AddCategoryForm> {
         });
         return;
       }
+      if (prefix.isNotEmpty) {
+        // Ditto write, local first: works offline like the create above.
+        await ProxyService.strategy.updateCategory(
+          categoryId: created.id,
+          branchId: created.branchId,
+          skuPrefix: prefix,
+        );
+        created.skuPrefix = prefix;
+      }
+      if (!mounted) return;
       Navigator.of(context).pop(created);
     } catch (_) {
       if (!mounted) return;
@@ -214,6 +234,42 @@ class _AddCategoryFormState extends ConsumerState<_AddCategoryForm> {
                     color: ProductEditorTokens.line,
                     width: 1.5,
                   ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 14),
+            Text(
+              l10n.skuPrefixLabel,
+              style: GoogleFonts.outfit(
+                fontSize: 12.5,
+                fontWeight: FontWeight.w700,
+                color: ProductEditorTokens.ink2,
+              ),
+            ),
+            const SizedBox(height: 7),
+            TextField(
+              controller: _prefixController,
+              enabled: !_saving,
+              textCapitalization: TextCapitalization.characters,
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp('[A-Za-z0-9]')),
+                LengthLimitingTextInputFormatter(6),
+                TextInputFormatter.withFunction(
+                  (oldValue, newValue) =>
+                      newValue.copyWith(text: newValue.text.toUpperCase()),
+                ),
+              ],
+              decoration: InputDecoration(
+                // The prefix items get when this is left blank.
+                hintText: deriveSkuPrefix(categoryName: typedName),
+                helperText: l10n.skuPrefixHelper,
+                helperMaxLines: 2,
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 14,
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
                 ),
               ),
             ),

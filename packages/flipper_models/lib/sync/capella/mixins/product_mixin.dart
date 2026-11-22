@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'dart:math';
-import 'package:brick_offline_first/brick_offline_first.dart' as brick;
 import 'package:flipper_models/ebm_helper.dart';
 import 'package:flipper_models/helperModels/random.dart';
+import 'package:flipper_models/sku/sku_service.dart';
 import 'package:flipper_models/sync/utils/rra_item_code_sequence.dart';
 import 'package:flipper_models/sync/utils/stock_qty_milli.dart';
 import 'package:flipper_models/sync/interfaces/category_interface.dart';
@@ -249,51 +249,6 @@ mixin CapellaProductMixin implements ProductInterface {
   }
 
   @override
-  FutureOr<SKU> getSku({
-    required String branchId,
-    required String businessId,
-  }) async {
-    final ditto = dittoService.dittoInstance;
-    if (ditto == null) {
-      throw Exception('Ditto not initialized: getSku');
-    }
-
-    // Highest existing sequence for this branch+business. The maximum is
-    // computed in Dart instead of with `ORDER BY sku DESC LIMIT 1`: replicated
-    // documents may carry `sku` as a string or null, and those sort
-    // lexicographically ("9" > "10") or ahead of every number, so the single
-    // ordered row is not reliably the numeric maximum.
-    final existing = await ditto.store.execute(
-      'SELECT * FROM skus WHERE branchId = :branchId AND businessId = :businessId',
-      arguments: {'branchId': branchId, 'businessId': businessId},
-    );
-
-    int lastSequence = 0;
-    for (final item in existing.items) {
-      final raw = item.value['sku'];
-      final sequence = raw is num
-          ? raw.toInt()
-          : int.tryParse(raw?.toString() ?? '') ?? 0;
-      if (sequence > lastSequence) {
-        lastSequence = sequence;
-      }
-    }
-
-    final newSku = SKU(
-      sku: lastSequence + 1,
-      branchId: branchId,
-      businessId: businessId,
-    );
-
-    await ditto.store.execute(
-      "INSERT INTO skus DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE",
-      arguments: {'doc': newSku.toJson()},
-    );
-
-    return newSku;
-  }
-
-  @override
   Future<Product?> createProduct({
     required Product product,
     required String businessId,
@@ -354,20 +309,12 @@ mixin CapellaProductMixin implements ProductInterface {
         }
       }
 
-      SKU sku = await getSku(branchId: branchId, businessId: businessId);
-
-      sku.consumed = true;
-
       final ditto = dittoService.dittoInstance;
       if (ditto == null) {
         // Without Ditto we cannot write documents nor run the duplicate check,
         // so an empty query result would be indistinguishable from "no match".
         throw Exception('Ditto not initialized: createProduct');
       }
-      await ditto.store.execute(
-        "INSERT INTO skus DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE",
-        arguments: {'doc': sku.toJson()},
-      );
 
       final createdProduct = product;
       await ditto.store.execute(
@@ -452,7 +399,7 @@ mixin CapellaProductMixin implements ProductInterface {
           supplierPrice: supplyPrice,
           retailPrice: retailPrice,
           name: createdProduct.name,
-          sku: sku.sku!,
+          businessId: businessId,
           productId: product.id,
           itemSeq: itemSeq,
           bcd: product.barCode,
@@ -601,7 +548,7 @@ mixin CapellaProductMixin implements ProductInterface {
     Map<String, String>? taxTypes,
     Map<String, String>? itemClasses,
     Map<String, String>? itemTypes,
-    required int sku,
+    required String businessId,
     Configurations? taxType,
     String? bcd,
     String? saleListId,
@@ -618,6 +565,13 @@ mixin CapellaProductMixin implements ProductInterface {
     Category? category = categoryId == null
         ? null
         : await (this as CategoryInterface).category(id: categoryId);
+    // Local only (reserved block + local category): never waits for the
+    // server. No number left → saved as SKU pending, sold as usual.
+    final skuAssignment = await assignNewSku(
+      businessId: businessId,
+      skuPrefix: category?.skuPrefix,
+      categoryName: category?.name,
+    );
 
     // Determine tax type code - explicit taxTyCd, then taxTypes map, then EBM VAT default.
     final vatEnabled = await isVatEnabledForBranch(branchId: branchId);
@@ -660,7 +614,8 @@ mixin CapellaProductMixin implements ProductInterface {
       imptItemSttsCd: imptItemsttsCd ?? null,
       lastTouched: DateTime.now().toUtc(),
       name: product?.name ?? name,
-      sku: sku.toString(),
+      sku: skuAssignment.sku,
+      skuPending: skuAssignment.pending,
       dcRt: 0.0,
       productId: product?.id ?? productId,
       categoryId: categoryId,

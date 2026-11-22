@@ -33,6 +33,7 @@ mixin CapellaCategoryDittoMixin implements CategoryInterface {
       'active': model.active,
       'focused': model.focused,
       'name': model.name,
+      if (model.skuPrefix != null) 'skuPrefix': model.skuPrefix,
       'branchId': model.branchId,
       'deletedAt': model.deletedAt?.toIso8601String(),
       'lastTouched': model.lastTouched?.toIso8601String(),
@@ -60,10 +61,12 @@ mixin CapellaCategoryDittoMixin implements CategoryInterface {
     required dynamic deletedAt,
   }) async {
     final existing = await repository.get<Category>(
-      query: brick.Query(where: [
-        brick.Where('name').isExactly(name),
-        brick.Where('branchId').isExactly(branchId),
-      ]),
+      query: brick.Query(
+        where: [
+          brick.Where('name').isExactly(name),
+          brick.Where('branchId').isExactly(branchId),
+        ],
+      ),
       policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
     );
     final Category row;
@@ -85,12 +88,16 @@ mixin CapellaCategoryDittoMixin implements CategoryInterface {
   }
 
   @override
-  Future<Category> ensureUncategorizedCategory({required String branchId}) async {
+  Future<Category> ensureUncategorizedCategory({
+    required String branchId,
+  }) async {
     final existing = await repository.get<Category>(
-      query: brick.Query(where: [
-        brick.Where('name').isExactly('UnCategorized'),
-        brick.Where('branchId').isExactly(branchId),
-      ]),
+      query: brick.Query(
+        where: [
+          brick.Where('name').isExactly('UnCategorized'),
+          brick.Where('branchId').isExactly(branchId),
+        ],
+      ),
       policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
     );
 
@@ -151,7 +158,9 @@ mixin CapellaCategoryDittoMixin implements CategoryInterface {
           arguments: {"id": id},
         );
         if (result.items.isEmpty) return null;
-        return categoryFromDittoMap(Map<String, dynamic>.from(result.items.first.value));
+        return categoryFromDittoMap(
+          Map<String, dynamic>.from(result.items.first.value),
+        );
       }
 
       return await one('SELECT * FROM categories WHERE id = :id LIMIT 1') ??

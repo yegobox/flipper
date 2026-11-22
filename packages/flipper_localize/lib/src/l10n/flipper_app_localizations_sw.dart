@@ -4459,7 +4459,7 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   String get dpaBarcode => 'Msimbopau';
 
   @override
-  String get dpaBarcodeHint => 'SKU / msimbopau (si lazima)';
+  String get dpaBarcodeHint => 'Msimbopau (si lazima)';
 
   @override
   String get dpaLeaveBlankVariantName => 'Acha wazi ili kutumia jina la aina';
@@ -17895,6 +17895,39 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
 
   @override
   String get createEnterSku => 'Weka SKU';
+
+  @override
+  String skuAutoHint(String sku) {
+    return 'Otomatiki: $sku';
+  }
+
+  @override
+  String get skuPending => 'SKU inasubiri';
+
+  @override
+  String get skuAutoHelper => 'Acha wazi ili ipewe moja kwa moja';
+
+  @override
+  String skuAlreadyUsed(String item) {
+    return 'SKU tayari inatumiwa na $item';
+  }
+
+  @override
+  String get skuPrefixLabel => 'Kiambishi cha SKU';
+
+  @override
+  String get skuPrefixHelper =>
+      'Herufi au tarakimu 2-6, mf. BEV. Acha wazi ili kutumia jina la kundi.';
+
+  @override
+  String get skuPrefixInvalid => 'Tumia herufi kubwa au tarakimu 2-6';
+
+  @override
+  String get skuNeedsAttention => 'Inahitaji kuangaliwa';
+
+  @override
+  String get skuConflictTooltip =>
+      'Bidhaa nyingine ya biashara inatumia SKU hii. Ipe mojawapo SKU mpya.';
 
   @override
   String get createTaxExempted => 'Imesamehewa Kodi';

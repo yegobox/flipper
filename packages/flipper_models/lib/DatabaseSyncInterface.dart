@@ -41,7 +41,7 @@ import 'package:flipper_models/sync/interfaces/hotel_interface.dart';
 import 'package:flipper_models/sync/interfaces/production_output_interface.dart';
 import 'package:flipper_models/sync/interfaces/getter_operations_interface.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
-import 'package:supabase_models/brick/models/all_models.dart' as models;
+
 // import 'package:flipper_services/database_provider.dart'
 //     if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
 
@@ -422,26 +422,6 @@ abstract class DatabaseSyncInterface extends AiStrategy
 
   Future<void> saveComposite({required Composite composite});
   FutureOr<List<Composite>> composites({String? productId, String? variantId});
-  Stream<SKU?> sku({required String branchId, required String businessId});
-  FutureOr<SKU> getSku({required String branchId, required String businessId});
-  Future<Variant> createVariant({
-    required String barCode,
-    required int sku,
-    required String productId,
-    required String branchId,
-    required double retailPrice,
-    required double supplierPrice,
-    required double qty,
-    Map<String, String>? taxTypes,
-    Map<String, String>? itemClasses,
-    Map<String, String>? itemTypes,
-    required String color,
-    required int tinNumber,
-    required int itemSeq,
-    required String name,
-    models.Configurations? taxType,
-  });
-
   Future<String> uploadPdfToS3(
     Uint8List pdfData,
     String fileName, {
@@ -621,6 +601,7 @@ abstract class DatabaseSyncInterface extends AiStrategy
     bool? active,
     bool? focused,
     String? branchId,
+    String? skuPrefix,
   });
 
   FutureOr<void> updateUnit({

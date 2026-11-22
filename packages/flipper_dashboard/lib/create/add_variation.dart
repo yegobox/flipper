@@ -1,4 +1,8 @@
 import 'package:flipper_dashboard/create/section_select_unit.dart';
+import 'package:flipper_dashboard/features/product_entry/sku_entry.dart';
+import 'package:flipper_models/sku/sku_duplicate_check.dart';
+import 'package:flipper_models/sku/sku_service.dart';
+import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:flipper_services/constants.dart';
@@ -27,13 +31,14 @@ class _AddVariationState extends State<AddVariation> with TransactionMixinOld {
   TextEditingController skuController = TextEditingController();
   bool isTaxExempted = false;
   final _routerService = locator<RouterService>();
-  String sku = '';
+  String? _skuPreview;
 
   @override
   void dispose() {
     retailController.dispose();
     costController.dispose();
     nameController.dispose();
+    skuController.dispose();
     super.dispose();
   }
 
@@ -42,6 +47,21 @@ class _AddVariationState extends State<AddVariation> with TransactionMixinOld {
     return ViewModelBuilder<ScannViewModel>.reactive(
       onViewModelReady: (model) async {
         await model.getProduct(productId: widget.productId);
+        final product = model.product;
+        if (product == null) return;
+        // Local read: the product's other variants decide whether this one
+        // gets a suffix (BEV-00042-02) or a new number.
+        final siblings = await productVariantSkus(
+          productId: product.id,
+          branchId: product.branchId,
+        );
+        if (!mounted) return;
+        setState(() {
+          _skuPreview = skuPreviewFor(
+            businessId: product.businessId,
+            siblingSkus: siblings,
+          );
+        });
       },
       builder: (context, model, child) {
         return Scaffold(
@@ -51,11 +71,37 @@ class _AddVariationState extends State<AddVariation> with TransactionMixinOld {
               ElevatedButton(
                 onPressed: () async {
                   if (AddVariation._formKey.currentState!.validate()) {
+                    // A typed SKU must be free in the business. Local check
+                    // only, so it works offline; blank is assigned on save.
+                    final product = model.product;
+                    // Read once: the field stays editable during the awaits
+                    // below, and the SKU saved must be the one checked.
+                    final checkedSku = skuController.text.trim();
+                    if (product != null) {
+                      final skuError = await skuSaveError(
+                        context,
+                        typed: checkedSku,
+                        businessId: product.businessId,
+                        candidate: SkuHolder(
+                          id: '',
+                          branchId: product.branchId,
+                          productId: product.id,
+                        ),
+                      );
+                      if (skuError != null) {
+                        if (context.mounted) {
+                          showErrorNotification(context, skuError);
+                        }
+                        return;
+                      }
+                    }
+
                     /// TODO: change this hard coded on mobile later.
                     await _saveVariation(
                       model,
                       selectedProductType: "1",
                       productName: "",
+                      typedSku: checkedSku,
                     );
                     _routerService.pop();
                   }
@@ -121,16 +167,16 @@ class _AddVariationState extends State<AddVariation> with TransactionMixinOld {
                       return null;
                     },
                   ),
-                  _buildTextFormField(
-                    controller: skuController,
-                    onChanged: (value) {
-                      sku =
-                          DateTime.now().year.toString() +
-                          (value.isEmpty ? '' : value);
-                    },
-                    labelText: 'SKU',
-                    hintText: context.flipperL10n.createEnterSku,
-                    suffixIcon: Icon(Icons.book),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: SkuTextField(
+                      controller: skuController,
+                      preview: _skuPreview,
+                      decorate: (base) => base.copyWith(
+                        suffixIcon: const Icon(Icons.book),
+                        border: const OutlineInputBorder(),
+                      ),
+                    ),
                   ),
                   SwitchListTile(
                     title: Text(
@@ -171,6 +217,7 @@ class _AddVariationState extends State<AddVariation> with TransactionMixinOld {
     Map<String, String>? rates,
     Map<String, String>? dates,
     required String productName,
+    required String typedSku,
   }) async {
     Business? business = await ProxyService.strategy.getBusiness(
       businessId: ProxyService.box.getBusinessId()!,
@@ -183,6 +230,8 @@ class _AddVariationState extends State<AddVariation> with TransactionMixinOld {
     // 321981891968185
     // 321981891968185
     List<Variant> variations = [];
+    // Blank: addVariant assigns the SKU (a sibling suffix or a new number).
+    final String? sku = typedSku.isEmpty ? null : typedSku;
     Variant data =
         Variant(
             color: model.product!.color,

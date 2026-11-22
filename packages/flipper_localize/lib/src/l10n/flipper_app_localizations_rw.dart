@@ -4473,7 +4473,7 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   String get dpaBarcode => 'Barcode';
 
   @override
-  String get dpaBarcodeHint => 'SKU / barcode (si ngombwa)';
+  String get dpaBarcodeHint => 'Barcode (si ngombwa)';
 
   @override
   String get dpaLeaveBlankVariantName => 'Siga ubusa ukoreshe izina ry\'ubwoko';
@@ -17953,6 +17953,39 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
 
   @override
   String get createEnterSku => 'Andika SKU';
+
+  @override
+  String skuAutoHint(String sku) {
+    return 'Byikora: $sku';
+  }
+
+  @override
+  String get skuPending => 'SKU itegerejwe';
+
+  @override
+  String get skuAutoHelper => 'Bireke ubusa uhabwe SKU byikora';
+
+  @override
+  String skuAlreadyUsed(String item) {
+    return 'SKU isanzwe ikoreshwa na $item';
+  }
+
+  @override
+  String get skuPrefixLabel => 'Intangiriro ya SKU';
+
+  @override
+  String get skuPrefixHelper =>
+      'Inyuguti cyangwa imibare 2-6, urugero BEV. Bireke ubusa ukoreshe izina ry’icyiciro.';
+
+  @override
+  String get skuPrefixInvalid => 'Koresha inyuguti nkuru cyangwa imibare 2-6';
+
+  @override
+  String get skuNeedsAttention => 'Bikeneye kurebwa';
+
+  @override
+  String get skuConflictTooltip =>
+      'Ikindi gicuruzwa cy’ubucuruzi gikoresha iyi SKU. Haha kimwe muri byo SKU nshya.';
 
   @override
   String get createTaxExempted => 'Isonewe umusoro';

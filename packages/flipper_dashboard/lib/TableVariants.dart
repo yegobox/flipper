@@ -14,6 +14,7 @@ import 'package:flipper_models/providers/ebm_provider.dart';
 import 'package:flipper_models/sync/utils/pos_catalog_stock_filter.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_routing/app.dialogs.dart';
+import 'package:flipper_dashboard/features/product_entry/sku_entry.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -197,7 +198,8 @@ class TableVariants extends StatelessWidget {
   }
 
   String? _variantSubtitle(Variant variant) {
-    final barcode = (variant.bcd ?? variant.sku ?? '').trim();
+    // The barcode only: the SKU has its own line (SkuStatusLine).
+    final barcode = (variant.bcd ?? '').trim();
     if (barcode.isEmpty || barcode == _variantTitle(variant)) return null;
     return barcode;
   }
@@ -1076,6 +1078,15 @@ class _VariantCardState extends State<_VariantCard> {
                           ],
                         ),
                       ),
+                    SkuStatusLine(
+                      sku: variant.sku,
+                      pending: variant.skuPending == true,
+                      conflict: variant.skuConflict == true,
+                      textStyle: GoogleFonts.jetBrainsMono(
+                        fontSize: 11.5,
+                        color: ProductEditorTokens.ink3,
+                      ),
+                    ),
                   ],
                 ),
               ),

@@ -7736,7 +7736,7 @@ abstract class FlipperAppLocalizations {
   /// No description provided for @dpaBarcodeHint.
   ///
   /// In en, this message translates to:
-  /// **'SKU / barcode (optional)'**
+  /// **'Barcode (optional)'**
   String get dpaBarcodeHint;
 
   /// No description provided for @dpaLeaveBlankVariantName.
@@ -29528,6 +29528,60 @@ abstract class FlipperAppLocalizations {
   /// In en, this message translates to:
   /// **'Enter SKU'**
   String get createEnterSku;
+
+  /// No description provided for @skuAutoHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto: {sku}'**
+  String skuAutoHint(String sku);
+
+  /// No description provided for @skuPending.
+  ///
+  /// In en, this message translates to:
+  /// **'SKU pending'**
+  String get skuPending;
+
+  /// No description provided for @skuAutoHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave blank to assign one automatically'**
+  String get skuAutoHelper;
+
+  /// No description provided for @skuAlreadyUsed.
+  ///
+  /// In en, this message translates to:
+  /// **'SKU already used by {item}'**
+  String skuAlreadyUsed(String item);
+
+  /// No description provided for @skuPrefixLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'SKU prefix'**
+  String get skuPrefixLabel;
+
+  /// No description provided for @skuPrefixHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'2-6 letters or digits, e.g. BEV. Leave blank to use the category name.'**
+  String get skuPrefixHelper;
+
+  /// No description provided for @skuPrefixInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Use 2-6 capital letters or digits'**
+  String get skuPrefixInvalid;
+
+  /// No description provided for @skuNeedsAttention.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs attention'**
+  String get skuNeedsAttention;
+
+  /// No description provided for @skuConflictTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Another item in the business uses this SKU. Give one of them a new SKU.'**
+  String get skuConflictTooltip;
 
   /// No description provided for @createTaxExempted.
   ///

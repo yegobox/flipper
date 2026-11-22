@@ -40,6 +40,8 @@ import 'package:flipper_dashboard/features/product_editor/widgets/product_editor
 import 'package:flipper_dashboard/responsive_layout.dart' as responsive;
 import 'package:flutter/services.dart';
 import 'package:flipper_dashboard/utils/image_source_sheet.dart';
+import 'package:flipper_dashboard/features/product_entry/sku_entry.dart';
+import 'package:flipper_models/sku/sku_duplicate_check.dart';
 import 'package:path_provider/path_provider.dart';
 
 class ProductEntryScreen extends StatefulHookConsumerWidget {
@@ -176,6 +178,18 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
     return null;
   }
 
+  /// The selected category's own SKU prefix (`BEV`), or null when it has
+  /// none and the prefix comes from the category name.
+  String? _selectedSkuPrefix() {
+    final categoryId = selectedCategoryId;
+    if (categoryId == null) return null;
+    final categories = ref.read(categoryProvider).value ?? const <Category>[];
+    for (final category in categories) {
+      if (category.id == categoryId) return category.skuPrefix;
+    }
+    return null;
+  }
+
   /// Keeps [selectedCategoryId] and [selectedCategoryName] in lockstep, and
   /// honours a null (cleared) selection. Previously only the id was stored and
   /// nulls were dropped, so the editor showed no name for a freshly picked
@@ -245,6 +259,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
             true,
             color: pickerColor.toHex(),
             categoryId: selectedCategoryId,
+            businessId: productRef.businessId,
             productName: syncedProductName,
             selectedProductType: selectedProductType,
             newRetailPrice: double.tryParse(retailPriceController.text) ?? 0,
@@ -419,6 +434,26 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
         return;
       }
 
+      // A typed SKU must be free in the business (local check, offline-safe).
+      // Blank is fine: one is assigned on save.
+      final typedSku = skuController.text.trim();
+      final skuError = await skuSaveError(
+        context,
+        typed: typedSku,
+        businessId: businessId,
+        candidate: SkuHolder(
+          id: '',
+          branchId: branchId,
+          productId: product.id,
+          bcd: barCodeController.text.trim(),
+        ),
+      );
+      if (skuError != null) {
+        ref.read(loadingProvider.notifier).stopLoading();
+        if (mounted) showErrorNotification(context, skuError);
+        return;
+      }
+
       List<VariantState> partOfComposite = ref.read(
         selectedVariantsLocalProvider,
       );
@@ -490,7 +525,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
           variations: [
             Variant(
               name: productNameController.text,
-              sku: skuController.text,
+              sku: typedSku.isEmpty ? null : typedSku,
               bcd: barCodeController.text,
               qty: 1.0,
               retailPrice: double.tryParse(retailPriceController.text) ?? 0,
@@ -1297,6 +1332,8 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                     countryOfOriginController: countryOfOriginController,
                     selectedProductType: selectedProductType,
                     isEditMode: widget.productId != null,
+                    categoryName: selectedCategoryName,
+                    skuPrefix: _selectedSkuPrefix(),
                     initialBarcode: barcode.trim(),
                   );
                 }
@@ -1312,6 +1349,8 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                   countryOfOriginController: countryOfOriginController,
                   selectedProductType: selectedProductType,
                   isEditMode: widget.productId != null,
+                  categoryName: selectedCategoryName,
+                  skuPrefix: _selectedSkuPrefix(),
                 );
               },
               onEditVariant: (variant) {
@@ -1325,6 +1364,8 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                   countryOfOriginController: countryOfOriginController,
                   selectedProductType: selectedProductType,
                   isEditMode: widget.productId != null,
+                  categoryName: selectedCategoryName,
+                  skuPrefix: _selectedSkuPrefix(),
                   existingVariant: variant,
                 );
               },
@@ -1523,14 +1564,28 @@ Future<void> _showVariantSheet({
   required bool isEditMode,
   Variant? existingVariant,
   String? initialBarcode,
+  String? categoryName,
+  String? skuPrefix,
 }) async {
   // Services carry no stock: the sheet hides the stock fields and saves 0.
   final isService = isServiceItemType(selectedProductType);
   final nameController = TextEditingController(
     text: existingVariant?.name ?? '',
   );
+  // The barcode is the manufacturer's code and the SKU the shop's own: two
+  // fields, never copied into each other.
   final barcodeController = TextEditingController(
-    text: initialBarcode ?? existingVariant?.bcd ?? existingVariant?.sku ?? '',
+    text: initialBarcode ?? existingVariant?.bcd ?? '',
+  );
+  final skuController = TextEditingController(text: existingVariant?.sku ?? '');
+  final skuPreview = skuPreviewFor(
+    businessId: productRef?.businessId ?? '',
+    categoryName: categoryName,
+    skuPrefix: skuPrefix,
+    siblingSkus: [
+      for (final v in model.scannedVariants)
+        if (v.id != existingVariant?.id) v.sku,
+    ],
   );
   final _initialStockNum =
       (existingVariant?.stock?.currentStock ?? existingVariant?.qty ?? 0)
@@ -1914,6 +1969,16 @@ Future<void> _showVariantSheet({
                                   ),
                                 ),
                                 const SizedBox(height: 12),
+                                SkuTextField(
+                                  controller: skuController,
+                                  preview: skuPreview,
+                                  decorate: (base) => base.copyWith(
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
                                 if (isService)
                                   Align(
                                     alignment: Alignment.centerLeft,
@@ -2098,6 +2163,34 @@ Future<void> _showVariantSheet({
                                     final effectiveBarcode = barcode.isNotEmpty
                                         ? barcode
                                         : variantName;
+                                    // Local check only (works offline); a
+                                    // blank SKU is assigned on save.
+                                    final typedSku = skuController.text.trim();
+                                    final skuError = await skuSaveError(
+                                      ctx,
+                                      typed: typedSku,
+                                      storedSku: existingVariant?.sku,
+                                      businessId: productRef.businessId,
+                                      candidate: SkuHolder(
+                                        id: existingVariant?.id ?? '',
+                                        branchId:
+                                            existingVariant?.branchId ??
+                                            productRef.branchId,
+                                        productId: productRef.id,
+                                        itemCd: existingVariant?.itemCd,
+                                        bcd: effectiveBarcode,
+                                      ),
+                                      unsaved: [
+                                        for (final v in model.scannedVariants)
+                                          (id: v.id, name: v.name, sku: v.sku),
+                                      ],
+                                    );
+                                    if (skuError != null) {
+                                      if (ctx.mounted) {
+                                        showErrorNotification(ctx, skuError);
+                                      }
+                                      return;
+                                    }
                                     final baseRetail =
                                         double.tryParse(
                                           retailPriceController.text,
@@ -2155,6 +2248,9 @@ Future<void> _showVariantSheet({
                                                 ? model.scannedVariants.last
                                                 : null);
                                       if (v != null) {
+                                        if (typedSku.isNotEmpty) {
+                                          v.sku = typedSku;
+                                        }
                                         v.name = variantName;
                                         v.itemNm = variantName;
                                         v.modrNm = variantName;
@@ -2181,7 +2277,18 @@ Future<void> _showVariantSheet({
                                       existingVariant.itemNm = variantName;
                                       existingVariant.modrNm = variantName;
                                       existingVariant.bcd = effectiveBarcode;
-                                      existingVariant.sku = effectiveBarcode;
+                                      if (skuNeedsDuplicateCheck(
+                                        typed: typedSku,
+                                        stored: existingVariant.sku,
+                                      )) {
+                                        // A new SKU clears the server's
+                                        // conflict flag; it re-flags if the
+                                        // clash is still there.
+                                        existingVariant
+                                          ..sku = typedSku
+                                          ..skuPending = false
+                                          ..skuConflict = false;
+                                      }
                                       existingVariant.taxTyCd =
                                           effectiveTaxTyCd;
                                       existingVariant.taxName =
@@ -2291,6 +2398,7 @@ Future<void> _showVariantSheet({
     Future<void>.delayed(const Duration(milliseconds: 350), () {
       nameController.dispose();
       barcodeController.dispose();
+      skuController.dispose();
       stockFocusNode.dispose();
       stockController.dispose();
       lowStockController.dispose();

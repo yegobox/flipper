@@ -39,7 +39,23 @@ class Variant extends OfflineFirstWithSupabaseModel {
   num? taxPercentage;
   String name;
   String? color;
+
+  /// The shop's own code for this item (`BEV-00042`), unique within the
+  /// business and shared by the item's copies at every branch. Never the
+  /// barcode ([bcd]) nor the RRA code ([itemCd]). See `flipper_models/lib/sku`.
   String? sku;
+
+  /// Saved while this device had no SKU numbers left (offline). data-connector
+  /// assigns the SKU on sync and clears the flag. Ditto-only.
+  @Sqlite(ignore: true)
+  @Supabase(ignore: true)
+  bool? skuPending;
+
+  /// The SKU is used by a different item in the business; the item list shows
+  /// it under "Needs attention". Set by data-connector. Ditto-only.
+  @Sqlite(ignore: true)
+  @Supabase(ignore: true)
+  bool? skuConflict;
 
   String? productId;
   String? unit;
@@ -238,6 +254,8 @@ class Variant extends OfflineFirstWithSupabaseModel {
     required this.name,
     this.color,
     this.sku,
+    this.skuPending,
+    this.skuConflict,
     this.productId,
     this.unit,
     this.productName,
@@ -380,6 +398,8 @@ class Variant extends OfflineFirstWithSupabaseModel {
         name: parseOrDefault<String>(json['name'], ''),
         color: parseOrDefault<String?>(json['color'], null),
         sku: parseOrDefault<String?>(json['sku'], null),
+        skuPending: json['skuPending'] == true,
+        skuConflict: json['skuConflict'] == true,
         productId: parseOrDefault<String?>(json['productId'], null),
         unit: parseOrDefault<String?>(json['unit'], null),
         qty: (parseNum(json['qty']) ?? 1.0).toDouble(),
@@ -487,6 +507,10 @@ class Variant extends OfflineFirstWithSupabaseModel {
       'name': name,
       'color': color,
       'sku': sku,
+      // Only when known: a variant read from Brick has neither, and writing
+      // false would clear a flag another device or data-connector set.
+      if (skuPending != null) 'skuPending': skuPending,
+      if (skuConflict != null) 'skuConflict': skuConflict,
       'productId': productId,
       'unit': unit,
       'productName': productName,
@@ -579,6 +603,8 @@ class Variant extends OfflineFirstWithSupabaseModel {
     String? name,
     String? color,
     String? sku,
+    bool? skuPending,
+    bool? skuConflict,
     String? productId,
     String? unit,
     String? productName,
@@ -665,6 +691,8 @@ class Variant extends OfflineFirstWithSupabaseModel {
       name: name ?? this.name,
       color: color ?? this.color,
       sku: sku ?? this.sku,
+      skuPending: skuPending ?? this.skuPending,
+      skuConflict: skuConflict ?? this.skuConflict,
       productId: productId ?? this.productId,
       unit: unit ?? this.unit,
       productName: productName ?? this.productName,

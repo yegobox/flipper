@@ -4491,7 +4491,7 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   String get dpaBarcode => 'Code-barres';
 
   @override
-  String get dpaBarcodeHint => 'SKU / code-barres (facultatif)';
+  String get dpaBarcodeHint => 'Code-barres (facultatif)';
 
   @override
   String get dpaLeaveBlankVariantName =>
@@ -18070,6 +18070,39 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
 
   @override
   String get createEnterSku => 'Saisissez le SKU';
+
+  @override
+  String skuAutoHint(String sku) {
+    return 'Auto : $sku';
+  }
+
+  @override
+  String get skuPending => 'SKU en attente';
+
+  @override
+  String get skuAutoHelper => 'Laissez vide pour l’attribuer automatiquement';
+
+  @override
+  String skuAlreadyUsed(String item) {
+    return 'SKU déjà utilisé par $item';
+  }
+
+  @override
+  String get skuPrefixLabel => 'Préfixe SKU';
+
+  @override
+  String get skuPrefixHelper =>
+      '2 à 6 lettres ou chiffres, ex. BEV. Laissez vide pour utiliser le nom de la catégorie.';
+
+  @override
+  String get skuPrefixInvalid => 'Utilisez 2 à 6 majuscules ou chiffres';
+
+  @override
+  String get skuNeedsAttention => 'À vérifier';
+
+  @override
+  String get skuConflictTooltip =>
+      'Un autre article de l’entreprise utilise ce SKU. Donnez un nouveau SKU à l’un des deux.';
 
   @override
   String get createTaxExempted => 'Exonéré de taxe';

@@ -1,11 +1,15 @@
 import 'package:flipper_models/ebm_helper.dart';
 import 'package:flipper_models/helperModels/random.dart';
+import 'package:flipper_models/sku/sku_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:supabase_models/brick/models/all_models.dart';
 import 'package:uuid/uuid.dart';
 
 /// Packaging unit code from UI (`AM:1:...` → `AM`, bare `CT` → `CT`).
-String resolveRraPackagingUnitCode(Object? packagingUnit, {String fallback = 'CT'}) {
+String resolveRraPackagingUnitCode(
+  Object? packagingUnit, {
+  String fallback = 'CT',
+}) {
   final raw = packagingUnit?.toString().trim() ?? '';
   if (raw.isEmpty) return fallback;
   return raw.contains(':') ? raw.split(':').first.trim() : raw;
@@ -13,6 +17,11 @@ String resolveRraPackagingUnitCode(Object? packagingUnit, {String fallback = 'CT
 
 /// Builds a [Variant] with the same EBM/RRA fields as
 /// [ProductMixin.addVariant] in `view_models/mixins/_product.dart` (DesktopProductAdd).
+///
+/// [sku] keeps an existing SKU, and [skuAssignment] uses one the caller
+/// already worked out. Without either, a new SKU is assigned from this
+/// device's reserved numbers (local only, never waits for the server); with
+/// none left the variant is saved as SKU pending and sells as usual.
 Future<Variant> prepareBulkVariantLikeDesktopAdd({
   required Product product,
   required String productName,
@@ -23,7 +32,8 @@ Future<Variant> prepareBulkVariantLikeDesktopAdd({
   required double retailPrice,
   required double supplyPrice,
   required String? barCode,
-  required int sku,
+  String? sku,
+  SkuAssignment? skuAssignment,
   String countryCode = 'RW',
   String packagingUnitCode = 'CT',
   String? categoryId,
@@ -39,12 +49,23 @@ Future<Variant> prepareBulkVariantLikeDesktopAdd({
 
   double taxPercentage = 18;
   try {
-    final taxConfig =
-        await ProxyService.strategy.getByTaxType(taxtype: taxTyCd);
+    final taxConfig = await ProxyService.strategy.getByTaxType(
+      taxtype: taxTyCd,
+    );
     taxPercentage = taxConfig?.taxPercentage ?? taxPercentage;
   } catch (_) {}
 
   final tin = await effectiveTin(business: business);
+
+  final keptSku = sku?.trim();
+  final SkuAssignment assigned = (keptSku != null && keptSku.isNotEmpty)
+      ? SkuAssignment.value(keptSku)
+      : skuAssignment ??
+            await assignNewSku(
+              businessId: business?.id ?? product.businessId,
+              categoryId: categoryId,
+              categoryName: categoryName,
+            );
 
   final variant = Variant(
     id: preserveVariantId ?? const Uuid().v4(),
@@ -62,7 +83,8 @@ Future<Variant> prepareBulkVariantLikeDesktopAdd({
     prc: retailPrice,
     dftPrc: retailPrice,
     splyAmt: supplyPrice,
-    sku: sku.toString(),
+    sku: assigned.sku,
+    skuPending: assigned.pending,
     bcd: effectiveBcd,
     barCode: barCode?.trim().isNotEmpty == true ? barCode!.trim() : null,
     itemClsCd: itemClsCd,

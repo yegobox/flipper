@@ -3,17 +3,18 @@ import 'package:flipper_models/db_model_export.dart';
 
 abstract class ProductInterface {
   Future<List<Product>> products({required String branchId});
-  FutureOr<void> updateProduct(
-      {String? productId,
-      String? name,
-      bool? isComposite,
-      String? unit,
-      String? color,
-      required String branchId,
-      required String businessId,
-      String? imageUrl,
-      String? expiryDate,
-      String? categoryId});
+  FutureOr<void> updateProduct({
+    String? productId,
+    String? name,
+    bool? isComposite,
+    String? unit,
+    String? color,
+    required String branchId,
+    required String businessId,
+    String? imageUrl,
+    String? expiryDate,
+    String? categoryId,
+  });
   Stream<List<Product>> productStreams({String? prodIndex});
   Future<double> totalStock({String? productId, String? variantId});
   Stream<double> wholeStockValue({required String branchId});
@@ -32,7 +33,6 @@ abstract class ProductInterface {
     String? name,
     required String businessId,
   });
-  FutureOr<SKU> getSku({required String branchId, required String businessId});
   Future<Product?> createProduct({
     required Product product,
     required String businessId,
