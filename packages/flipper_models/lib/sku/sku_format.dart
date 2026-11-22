@@ -80,12 +80,15 @@ int? skuVariantIndex(String? sku) {
 /// base (the base alone counts as 1). Returns null when [baseSku] is not a
 /// generated SKU, so the caller allocates a fresh number instead.
 String? nextVariantSku(String baseSku, Iterable<String?> siblingSkus) {
-  final base = skuBase(baseSku);
+  // Case-insensitive, like normalizeSku: a typed `bev-00042-02` is the same
+  // SKU as `BEV-00042-02`.
+  final base = skuBase(baseSku.toUpperCase());
   if (base == null) return null;
   var highest = 1;
   for (final sibling in siblingSkus) {
-    if (skuBase(sibling) != base) continue;
-    final index = skuVariantIndex(sibling)!;
+    final upper = sibling?.toUpperCase();
+    if (skuBase(upper) != base) continue;
+    final index = skuVariantIndex(upper)!;
     if (index > highest) highest = index;
   }
   return '$base-${(highest + 1).toString().padLeft(2, '0')}';

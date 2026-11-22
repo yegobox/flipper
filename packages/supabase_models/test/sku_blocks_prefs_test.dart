@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -64,6 +65,55 @@ void main() {
     test('is only logged for other keys', () async {
       await box.writeString(key: 'branchId', value: 'branch-1');
       expect(box.readString(key: 'branchId'), 'branch-1');
+    });
+  });
+
+  // Overlapping saves share the `.tmp` file; an older save must never land
+  // after a newer SKU cursor.
+  group('overlapping saves', () {
+    late SharedPreferenceStorage box;
+    late Directory dir;
+    late String path;
+
+    setUp(() async {
+      box = SharedPreferenceStorage();
+      await box.initializePreferences();
+      dir = Directory.systemTemp.createTempSync('sku_prefs_queue_');
+      path = '${dir.path}/prefs.json';
+      box.debugFilePath = path;
+    });
+
+    tearDown(() {
+      box.dispose();
+      dir.deleteSync(recursive: true);
+    });
+
+    test('the file ends with the latest cursor', () async {
+      await Future.wait([
+        box.writeString(key: 'branchId', value: 'branch-1'),
+        box.writeString(key: 'skuBlocks', value: '{"biz":{"next":5}}'),
+        box.writeString(key: 'branchId', value: 'branch-2'),
+        box.writeString(key: 'skuBlocks', value: '{"biz":{"next":9}}'),
+      ]);
+      final saved = jsonDecode(File(path).readAsStringSync()) as Map;
+      expect(saved['skuBlocks'], '{"biz":{"next":9}}');
+      expect(saved['branchId'], 'branch-2');
+    });
+
+    test('a failed save does not block the ones after it', () async {
+      final blocked = '${dir.path}/blocked.json';
+      Directory(blocked).createSync();
+      Directory('$blocked.tmp').createSync();
+      box.debugFilePath = blocked;
+      await expectLater(
+        box.writeString(key: 'skuBlocks', value: '{"biz":{"next":5}}'),
+        throwsA(isA<FileSystemException>()),
+      );
+
+      box.debugFilePath = path;
+      await box.writeString(key: 'skuBlocks', value: '{"biz":{"next":6}}');
+      final saved = jsonDecode(File(path).readAsStringSync()) as Map;
+      expect(saved['skuBlocks'], '{"biz":{"next":6}}');
     });
   });
 

@@ -717,9 +717,21 @@ class SharedPreferenceStorage implements LocalStorage {
     }
   }
 
+  /// File writes run one at a time, in order. Two overlapping saves share
+  /// the `.tmp` path, so an older save could otherwise rename its stale
+  /// snapshot over a newer SKU cursor.
+  Future<void> _saveQueue = Future<void>.value();
+
   /// Save preferences to the JSON file using a safe write pattern. A failed
-  /// write is logged, or thrown when [strict] (see [_strictKeys]).
-  Future<void> _savePreferences({bool strict = false}) async {
+  /// write is logged, or thrown when [strict] (see [_strictKeys]). Each save
+  /// waits for the one before it and writes the cache as it is then.
+  Future<void> _savePreferences({bool strict = false}) {
+    final run = _saveQueue.then((_) => _writePreferencesFile(strict: strict));
+    _saveQueue = run.catchError((Object _) {});
+    return run;
+  }
+
+  Future<void> _writePreferencesFile({required bool strict}) async {
     try {
       final file = File(_filePath);
       final tempFile = File('$_filePath.tmp');

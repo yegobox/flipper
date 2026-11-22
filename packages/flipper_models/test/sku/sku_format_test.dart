@@ -80,6 +80,14 @@ void main() {
   });
 
   group('nextVariantSku', () {
+    test('siblings match whatever their case', () {
+      expect(
+        nextVariantSku('BEV-00042', ['BEV-00042', 'bev-00042-02']),
+        'BEV-00042-03',
+      );
+      expect(nextVariantSku('bev-00042', ['BEV-00042-02']), 'BEV-00042-03');
+    });
+
     test('the base alone counts as variant 1', () {
       expect(nextVariantSku('BEV-00042', ['BEV-00042']), 'BEV-00042-02');
     });

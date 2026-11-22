@@ -138,7 +138,13 @@ class SkuAllocator {
       return null;
     }
 
-    final (number, rest) = state.take();
+    final (number, taken) = state.take();
+    // Keep the Local Mode counter past every number issued online, so going
+    // back into Local Mode never hands one of them out again.
+    final local = taken.localNext;
+    final rest = local != null && local <= number
+        ? taken.copyWith(localNext: number + 1)
+        : taken;
     if (!await _tryWriteState(businessId, rest)) return null;
     if (rest.remaining < refillBelow) _refillInBackground(businessId);
     return number;
@@ -181,7 +187,11 @@ class SkuAllocator {
         final range = await _env
             .reserve(businessId: businessId, size: blockSize)
             .timeout(reserveTimeout);
-        final current = _readState()[businessId] ?? const _BlockState();
+        // Drop blocks already behind the Local Mode counter first: kept,
+        // they would make withBlock discard every new block and the device
+        // would stay SKU-pending for good.
+        final current =
+            (_readState()[businessId] ?? const _BlockState()).usable;
         await _writeState(businessId, current.withBlock(range));
       } finally {
         _refills.remove(businessId);

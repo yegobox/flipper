@@ -304,6 +304,43 @@ void main() {
       expect(a.peek(businessId: biz), 122);
       expect(await a.next(businessId: biz), 122);
     });
+
+    test(
+      'Local Mode, online, Local Mode again never repeats a number',
+      () async {
+        final env = _FakeEnv(isLocalMode: true);
+        final a = allocator(env);
+        expect(await a.next(businessId: biz), 1);
+
+        env.isLocalMode = false;
+        a.topUp(businessId: biz);
+        await a.settle();
+        expect(await a.next(businessId: biz), 2, reason: 'block skips 1');
+
+        env.isLocalMode = true;
+        expect(await a.next(businessId: biz), 3, reason: '2 went online');
+      },
+    );
+
+    test(
+      'a refill replaces blocks that fell behind the local counter',
+      () async {
+        // Both stored blocks are below localNext: nothing is usable, and the
+        // refill must not keep them and discard the new block.
+        final env = _FakeEnv()..nextOnServer = 500;
+        final store = _MemoryStore()
+          ..value =
+              '{"$biz":{"next":10,"end":59,"queuedStart":100,"queuedEnd":149,'
+              '"localNext":300}}';
+        final a = allocator(env, store: store);
+
+        expect(await a.next(businessId: biz), isNull, reason: 'nothing usable');
+        await a.settle();
+        expect(env.reserveCalls, 1);
+        expect(await a.next(businessId: biz), 500);
+        expect(a.remaining(businessId: biz), 49);
+      },
+    );
   });
 
   group('a cursor that cannot be stored', () {
