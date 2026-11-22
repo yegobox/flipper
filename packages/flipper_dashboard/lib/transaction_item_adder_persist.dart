@@ -9,6 +9,7 @@ import 'package:flipper_models/providers/optimistic_cart_provider.dart';
 import 'package:flipper_models/providers/pos_cart_display_provider.dart';
 import 'package:flipper_models/providers/pending_cart_sale_session_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
+import 'package:flipper_models/sync/utils/pos_catalog_stock_filter.dart';
 import 'package:flipper_services/GlobalLogError.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
@@ -131,7 +132,7 @@ Future<bool> persistItemToTransaction({
   if (!isOrdering) {
     final currentStock =
         cachedStock?.currentStock ?? variant.stock?.currentStock;
-    if (variant.taxTyCd != "D" && variant.itemTyCd != "3") {
+    if (variant.taxTyCd != "D" && !isServiceItemType(variant.itemTyCd)) {
       final allowSellingBelowStock = await locator<SettingsService>()
           .isAllowSellingBelowStock();
       final inCartQty = ref.read(posCartQtyForVariantProvider(variant.id));

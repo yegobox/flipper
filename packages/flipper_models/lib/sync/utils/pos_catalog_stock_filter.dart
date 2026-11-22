@@ -36,6 +36,11 @@ double stockRowQty(Map<String, dynamic> row) {
 /// grid shows as sellable, or list one it refuses to sell.
 bool posTileHasStock(num qty) => qty.floor() > 0;
 
+/// Whether a variant's RRA item type is a service (`itemTyCd` `3`). A service
+/// keeps no stock, so the POS always sells it and the stock filter lists it
+/// as in stock — the same rule Pay's stock check and stock deduction follow.
+bool isServiceItemType(Object? itemTyCd) => itemTyCd?.toString().trim() == '3';
+
 /// Quantity per stock id, indexed under both `_id` and `id` because a
 /// variant's `stockId` may hold either.
 Map<String, double> stockQtyByIdKeys(Iterable<Map<String, dynamic>> rows) {
@@ -60,7 +65,8 @@ String? variantRowStockId(Map<String, dynamic> row) {
 /// Ditto `_id`s of the variant [rows] on the requested side of the stock line,
 /// in the order given.
 ///
-/// A variant with no stock id, or whose stock row is unknown, counts as out of
+/// A service (see [isServiceItemType]) always counts as in stock. Any other
+/// variant with no stock id, or whose stock row is unknown, counts as out of
 /// stock — the tile shows it as 0 on hand.
 List<String> variantIdsMatchingStock({
   required Iterable<Map<String, dynamic>> rows,
@@ -72,16 +78,18 @@ List<String> variantIdsMatchingStock({
     final id = row['_id'];
     if (id is! String || id.isEmpty) continue;
     final sid = variantRowStockId(row);
-    final has = sid != null && posTileHasStock(qtyByStockId[sid] ?? 0);
+    final has =
+        isServiceItemType(row['itemTyCd']) ||
+        (sid != null && posTileHasStock(qtyByStockId[sid] ?? 0));
     if (has == inStock) out.add(id);
   }
   return out;
 }
 
 /// The light catalog walk behind the stock filter: the same filters as the
-/// page query, projected to `_id, stockId` (plus the sort field, so the
-/// ORDER BY never references a column the projection dropped), in the page
-/// query's order but without its LIMIT/OFFSET (the filter pages after
+/// page query, projected to `_id, stockId, itemTyCd` (plus the sort field,
+/// so the ORDER BY never references a column the projection dropped), in the
+/// page query's order but without its LIMIT/OFFSET (the filter pages after
 /// matching).
 ///
 /// [filterQuery] is the `SELECT * FROM variants WHERE …` the page query was
@@ -89,7 +97,7 @@ List<String> variantIdsMatchingStock({
 String stockFilterCatalogQuery(String filterQuery, String orderSuffix) {
   assert(filterQuery.startsWith('SELECT * '));
   final orderBy = orderSuffix.split(' LIMIT ').first;
-  return '${filterQuery.replaceFirst('SELECT * ', 'SELECT _id, stockId, lastTouched ')}'
+  return '${filterQuery.replaceFirst('SELECT * ', 'SELECT _id, stockId, lastTouched, itemTyCd ')}'
       '$orderBy';
 }
 

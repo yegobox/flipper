@@ -625,6 +625,8 @@ class OuterVariants extends _$OuterVariants {
     final incoming = wantInStock == null
         ? newVariants
         : newVariants.where((v) {
+            // A service keeps no stock and is always sellable.
+            if (isServiceItemType(v.itemTyCd)) return wantInStock;
             final qty = v.stock?.currentStock;
             return qty == null || posTileHasStock(qty) == wantInStock;
           }).toList();

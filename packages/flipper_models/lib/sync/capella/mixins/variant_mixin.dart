@@ -484,10 +484,11 @@ mixin CapellaVariantMixin implements VariantInterface {
 
       // Stock filter (POS grid, not while searching). Stock lives in its own
       // collection and DQL has no joins, so the filter walks a light
-      // `_id, stockId` projection of the same filtered catalog in display
-      // order, checks each row against the branch's stock, then pages in Dart
-      // and loads only that page's documents. The match list doubles as the
-      // total, so the COUNT(*) pass below is skipped.
+      // `_id, stockId, itemTyCd` projection of the same filtered catalog in
+      // display order, checks each row against the branch's stock (a service
+      // always passes), then pages in Dart and loads only that page's
+      // documents. The match list doubles as the total, so the COUNT(*) pass
+      // below is skipped.
       var stockFilterActive =
           inStock != null && bcd == null && !isCatalogTextSearch;
       int? stockFilteredOut;

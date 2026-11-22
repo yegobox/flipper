@@ -2136,6 +2136,21 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
       'Imeshindwa kuhifadhi kichwa cha risiti. Jaribu tena.';
 
   @override
+  String get receiptHeaderNoBranch =>
+      'Chagua tawi ili kuhariri kichwa cha risiti zake.';
+
+  @override
+  String get taxSettingsSubtitle =>
+      'Kichwa cha risiti na viwango vya kodi vya tawi hili.';
+
+  @override
+  String get taxSettingsRates => 'Viwango vya kodi';
+
+  @override
+  String get taxSettingsRatesHint =>
+      'Kiwango kinachotozwa kwa kila msimbo wa kodi.';
+
+  @override
   String get cartQtySuffix => 'idadi';
 
   @override

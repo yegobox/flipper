@@ -1,6 +1,7 @@
 import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
 import 'package:flipper_dashboard/utils/pos_product_tile.dart';
 import 'package:flipper_dashboard/widgets/pos_catalog_grid_card.dart';
+import 'package:flipper_models/sync/utils/pos_catalog_stock_filter.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
@@ -25,10 +26,11 @@ class BarPosVariantTile extends StatelessWidget {
     final physical =
         liveStock?.currentStock ?? variant.stock?.currentStock ?? 0;
     final threshold = variant.stock?.lowStock ?? 10.0;
-    final visual = posStockVisual(
-      currentStock: physical,
-      lowStockThreshold: threshold,
-    );
+    // A service keeps no stock: always sellable, no quantity shown.
+    final isService = isServiceItemType(variant.itemTyCd);
+    final visual = isService
+        ? PosStockVisual.ok
+        : posStockVisual(currentStock: physical, lowStockThreshold: threshold);
     final isOut = visual == PosStockVisual.out;
     final productName =
         (variant.productName?.trim().isNotEmpty == true
@@ -44,7 +46,7 @@ class BarPosVariantTile extends StatelessWidget {
       currencySymbol: ProxyService.box.defaultCurrency(),
       priceAmount: variant.retailPrice ?? 0,
       stockVisual: visual,
-      stockLabel: posStockLabel(visual, physical),
+      stockLabel: isService ? '' : posStockLabel(visual, physical),
       inCartQty: 0,
       showSelectionBorder: false,
       isOutOfStock: isOut,

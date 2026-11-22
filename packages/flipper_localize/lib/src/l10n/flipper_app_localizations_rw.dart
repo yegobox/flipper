@@ -2144,6 +2144,21 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
       'Ntibyashobotse kubika umutwe wa fagitire. Ongera ugerageze.';
 
   @override
+  String get receiptHeaderNoBranch =>
+      'Hitamo ishami kugira ngo uhindure umutwe wa fagitire yaryo.';
+
+  @override
+  String get taxSettingsSubtitle =>
+      'Umutwe wa fagitire n\'ibipimo by\'imisoro by\'iri shami.';
+
+  @override
+  String get taxSettingsRates => 'Ibipimo by\'imisoro';
+
+  @override
+  String get taxSettingsRatesHint =>
+      'Igipimo gicibwa kuri buri kode y\'umusoro.';
+
+  @override
   String get cartQtySuffix => 'ingano';
 
   @override

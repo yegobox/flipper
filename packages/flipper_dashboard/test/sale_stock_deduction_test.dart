@@ -23,10 +23,7 @@ class _InMemoryBox extends MockBox {
   String? readString({required String key}) => _strings[key];
 
   @override
-  Future<void> writeString({
-    required String key,
-    required String value,
-  }) async {
+  Future<void> writeString({required String key, required String value}) async {
     _strings[key] = value;
   }
 
@@ -40,10 +37,7 @@ class _MockCapella extends Mock implements DatabaseSyncInterface {}
 
 const _transactionId = 'txn-1';
 
-ITransaction _transaction({
-  int? invoiceNumber,
-  double subTotal = 60,
-}) {
+ITransaction _transaction({int? invoiceNumber, double subTotal = 60}) {
   return ITransaction(
     id: _transactionId,
     branchId: 'b',
@@ -67,6 +61,7 @@ TransactionItem _saleLine({
   required String variantId,
   num qty = 1,
   int quantityShipped = 0,
+  String itemTyCd = '2',
 }) {
   return TransactionItem(
     id: id,
@@ -80,7 +75,7 @@ TransactionItem _saleLine({
     itemCd: 'RW2AMCT0000138',
     itemClsCd: '5020230602',
     itemNm: 'Smoke 005',
-    itemTyCd: '2',
+    itemTyCd: itemTyCd,
     supplyPrice: 25,
     quantityShipped: quantityShipped,
   );
@@ -106,9 +101,7 @@ void main() {
         ttCatCd: 'A',
       ),
     );
-    registerFallbackValue(
-      Variant(name: 'V', branchId: 'b', stockId: stockId),
-    );
+    registerFallbackValue(Variant(name: 'V', branchId: 'b', stockId: stockId));
     registerFallbackValue(_transaction());
   });
 
@@ -128,12 +121,11 @@ void main() {
       instanceName: 'strategy',
     );
 
-    when(() => mockStrategy.getStrategy(Strategy.capella))
-        .thenReturn(mockCapella);
-
     when(
-      () => mockCapella.batchGetVariantsByIds(any()),
-    ).thenAnswer(
+      () => mockStrategy.getStrategy(Strategy.capella),
+    ).thenReturn(mockCapella);
+
+    when(() => mockCapella.batchGetVariantsByIds(any())).thenAnswer(
       (_) async => {
         variantId: Variant(
           name: 'V',
@@ -144,20 +136,17 @@ void main() {
       },
     );
 
-    when(
-      () => mockCapella.batchDeductStocks(any()),
-    ).thenAnswer((_) async {});
-    when(
-      () => mockCapella.batchUpdateStocks(any()),
-    ).thenAnswer((_) async {});
+    when(() => mockCapella.batchDeductStocks(any())).thenAnswer((_) async {});
+    when(() => mockCapella.batchUpdateStocks(any())).thenAnswer((_) async {});
 
     when(
       () => mockCapella.updateTransactionItem(
         transactionItemId: any(named: 'transactionItemId'),
         quantityShipped: any(named: 'quantityShipped'),
         ignoreForReport: any(named: 'ignoreForReport'),
-        skipParentSaleSubtotalRecalc:
-            any(named: 'skipParentSaleSubtotalRecalc'),
+        skipParentSaleSubtotalRecalc: any(
+          named: 'skipParentSaleSubtotalRecalc',
+        ),
       ),
     ).thenAnswer((_) async {});
 
@@ -173,9 +162,7 @@ void main() {
   });
 
   Future<void> _stubStock(double current) async {
-    when(
-      () => mockCapella.batchGetStocksByIds(any()),
-    ).thenAnswer(
+    when(() => mockCapella.batchGetStocksByIds(any())).thenAnswer(
       (_) async => {
         stockId: Stock(id: stockId, branchId: 'b', currentStock: current),
       },
@@ -207,9 +194,11 @@ void main() {
           transactionId: _transactionId,
         );
 
-        final captured = verify(
-          () => mockCapella.batchDeductStocks(captureAny()),
-        ).captured.single as Map<String, double>;
+        final captured =
+            verify(
+                  () => mockCapella.batchDeductStocks(captureAny()),
+                ).captured.single
+                as Map<String, double>;
 
         expect(captured[stockId], 1);
         verifyNever(() => mockCapella.batchUpdateStocks(any()));
@@ -240,36 +229,64 @@ void main() {
     });
   });
 
-  group('runPostSaleStockDeductionAndRraSync', () {
-    test('reports sale stock-out (11) to RRA when invoice is present', () async {
-      await _stubStock(10);
-      final item = _saleLine(id: 'line-1', variantId: variantId);
-      final transaction = _transaction(invoiceNumber: 4518);
-      await box.writeString(
-        key: rraSaleStockSnapshotBoxKey(_transactionId),
-        value: jsonEncode({stockId: 11}),
+  group('service lines keep no stock', () {
+    test('a service is never deducted, even with padded itemTyCd', () async {
+      // Same predicate as the POS tile (isServiceItemType): a tile that sold
+      // the service must not have the sale take stock for it.
+      await _stubStock(11);
+      final item = _saleLine(
+        id: 'line-svc',
+        variantId: variantId,
+        quantityShipped: 0,
+        itemTyCd: ' 3 ',
       );
 
-      await runPostSaleStockDeductionAndRraSync(
+      await applyDeferredSaleStockDeduction(
         transactionItems: [item],
-        allowSellingBelowStock: false,
+        allowSellingBelowStock: true,
         isProformaOrTraining: false,
         transactionId: _transactionId,
-        transaction: transaction,
-        receiptType: 'NS',
-        sarTyCd: StockInOutType.sale,
       );
 
-      verify(
-        () => mockTaxApi.syncStockAfterSuccessfulSaveSales(
-          receiptType: 'NS',
-          items: [item],
-          transaction: transaction,
-          highestInvcNo: 4518,
-          sarTyCd: StockInOutType.sale,
-        ),
-      ).called(1);
+      verifyNever(() => mockCapella.batchGetVariantsByIds(any()));
+      verifyNever(() => mockCapella.batchDeductStocks(any()));
+      verifyNever(() => mockCapella.batchUpdateStocks(any()));
     });
+  });
+
+  group('runPostSaleStockDeductionAndRraSync', () {
+    test(
+      'reports sale stock-out (11) to RRA when invoice is present',
+      () async {
+        await _stubStock(10);
+        final item = _saleLine(id: 'line-1', variantId: variantId);
+        final transaction = _transaction(invoiceNumber: 4518);
+        await box.writeString(
+          key: rraSaleStockSnapshotBoxKey(_transactionId),
+          value: jsonEncode({stockId: 11}),
+        );
+
+        await runPostSaleStockDeductionAndRraSync(
+          transactionItems: [item],
+          allowSellingBelowStock: false,
+          isProformaOrTraining: false,
+          transactionId: _transactionId,
+          transaction: transaction,
+          receiptType: 'NS',
+          sarTyCd: StockInOutType.sale,
+        );
+
+        verify(
+          () => mockTaxApi.syncStockAfterSuccessfulSaveSales(
+            receiptType: 'NS',
+            items: [item],
+            transaction: transaction,
+            highestInvcNo: 4518,
+            sarTyCd: StockInOutType.sale,
+          ),
+        ).called(1);
+      },
+    );
 
     test('does not call RRA sync without invoice number', () async {
       await _stubStock(11);
@@ -306,11 +323,7 @@ void main() {
 
       expect(
         saleLineAlreadyStockDeducted(
-          item: _saleLine(
-            id: 'l1',
-            variantId: variantId,
-            quantityShipped: 1,
-          ),
+          item: _saleLine(id: 'l1', variantId: variantId, quantityShipped: 1),
           variantsByVariantId: {
             variantId: Variant(name: 'V', branchId: 'b', stockId: stockId),
           },
@@ -329,11 +342,7 @@ void main() {
 
       expect(
         saleLineAlreadyStockDeducted(
-          item: _saleLine(
-            id: 'l1',
-            variantId: variantId,
-            quantityShipped: 1,
-          ),
+          item: _saleLine(id: 'l1', variantId: variantId, quantityShipped: 1),
           variantsByVariantId: {
             variantId: Variant(name: 'V', branchId: 'b', stockId: stockId),
           },
