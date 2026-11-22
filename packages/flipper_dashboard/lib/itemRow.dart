@@ -1787,34 +1787,38 @@ class _RowItemState extends ConsumerState<RowItem>
             tooltip: context.flipperL10n.delete,
             onPressed: () async {
               if (widget.variant != null) {
-                final strategy = ProxyService.getStrategy(Strategy.capella);
-                final stock = await strategy.getStockById(
-                  id: widget.variant!.stockId!,
-                );
-                if (stock == null) return;
-                final businessId = ProxyService.box.getBusinessId();
-                final branchId = ProxyService.box.getBranchId();
+                // A service keeps no stock (often no stock row at all), so
+                // the "cannot delete with stock" guard is for goods only.
+                if (!_isService) {
+                  final stockId = widget.variant!.stockId;
+                  if (stockId == null || stockId.isEmpty) return;
+                  final strategy = ProxyService.getStrategy(Strategy.capella);
+                  final stock = await strategy.getStockById(id: stockId);
+                  if (stock == null) return;
+                  final businessId = ProxyService.box.getBusinessId();
+                  final branchId = ProxyService.box.getBranchId();
 
-                final isEbmEnabled =
-                    businessId != null &&
-                    branchId != null &&
-                    await ProxyService.strategy.isTaxEnabled(
-                      businessId: businessId,
-                      branchId: branchId,
+                  final isEbmEnabled =
+                      businessId != null &&
+                      branchId != null &&
+                      await ProxyService.strategy.isTaxEnabled(
+                        businessId: businessId,
+                        branchId: branchId,
+                      );
+
+                  if ((stock.currentStock ?? 0) > 0 &&
+                      isEbmEnabled &&
+                      !kDebugMode) {
+                    final dialogService = locator<DialogService>();
+                    dialogService.showCustomDialog(
+                      variant: DialogType.info,
+                      title: context.flipperL10n.error,
+                      description:
+                          context.flipperL10n.itemRowCannotDeleteWithStock,
+                      data: {'status': InfoDialogStatus.error},
                     );
-
-                if ((stock.currentStock ?? 0) > 0 &&
-                    isEbmEnabled &&
-                    !kDebugMode) {
-                  final dialogService = locator<DialogService>();
-                  dialogService.showCustomDialog(
-                    variant: DialogType.info,
-                    title: context.flipperL10n.error,
-                    description:
-                        context.flipperL10n.itemRowCannotDeleteWithStock,
-                    data: {'status': InfoDialogStatus.error},
-                  );
-                  return;
+                    return;
+                  }
                 }
 
                 // PIN Verification
