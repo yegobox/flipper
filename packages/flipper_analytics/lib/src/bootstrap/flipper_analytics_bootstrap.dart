@@ -7,6 +7,7 @@ import '../implementations/offline_first_analytics.dart';
 import '../implementations/posthog_transport.dart';
 import '../interfaces/analytics_event_store.dart';
 import '../interfaces/product_analytics.dart';
+import '../report_exception.dart';
 import 'product_active_lifecycle.dart';
 
 class FlipperAnalytics {
@@ -98,6 +99,8 @@ class FlipperAnalytics {
     }
 
     _instance = analytics;
+    // Startup steps that failed before analytics existed.
+    flushEarlyExceptions(analytics);
     _flushService = flushService;
     return analytics;
   }
