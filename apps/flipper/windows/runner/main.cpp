@@ -6,6 +6,7 @@
 #include <shellapi.h>
 
 #include <cstring>
+#include <cwchar>
 #include <string>
 
 #include "flutter_window.h"
@@ -72,19 +73,33 @@ const PROPERTYKEY kRelaunchIconResource = {kAppUserModelFmtid, 3};
 const PROPERTYKEY kRelaunchDisplayNameResource = {kAppUserModelFmtid, 4};
 const PROPERTYKEY kAppUserModelId = {kAppUserModelFmtid, 5};
 
+// Failures go to the debugger output (DebugView on a till), so a pin that
+// still points at a version folder can be traced to the call that failed.
+void LogTaskbarIdentityFailure(const wchar_t* step, HRESULT hr) {
+  wchar_t message[160];
+  std::swprintf(message, sizeof(message) / sizeof(message[0]),
+                L"Flipper taskbar identity: %ls failed (HRESULT 0x%08lX)\n",
+                step, static_cast<unsigned long>(hr));
+  ::OutputDebugStringW(message);
+}
+
 // The shell wants VT_LPWSTR strings here.
 void SetWindowString(IPropertyStore* store, const PROPERTYKEY& key,
-                     const std::wstring& value) {
+                     const wchar_t* step, const std::wstring& value) {
   PROPVARIANT var;
   PropVariantInit(&var);
   const size_t bytes = (value.size() + 1) * sizeof(wchar_t);
   var.pwszVal = static_cast<LPWSTR>(::CoTaskMemAlloc(bytes));
   if (var.pwszVal == nullptr) {
+    LogTaskbarIdentityFailure(step, E_OUTOFMEMORY);
     return;
   }
   std::memcpy(var.pwszVal, value.c_str(), bytes);
   var.vt = VT_LPWSTR;
-  store->SetValue(key, var);
+  const HRESULT hr = store->SetValue(key, var);
+  if (FAILED(hr)) {
+    LogTaskbarIdentityFailure(step, hr);
+  }
   ::PropVariantClear(&var);
 }
 
@@ -94,7 +109,10 @@ void ApplyLauncherTaskbarIdentity(HWND window) {
     return;
   }
   IPropertyStore* store = nullptr;
-  if (FAILED(::SHGetPropertyStoreForWindow(window, IID_PPV_ARGS(&store)))) {
+  const HRESULT hr =
+      ::SHGetPropertyStoreForWindow(window, IID_PPV_ARGS(&store));
+  if (FAILED(hr)) {
+    LogTaskbarIdentityFailure(L"SHGetPropertyStoreForWindow", hr);
     return;
   }
   // The relaunch command only counts with a display name. Set both before the
@@ -102,14 +120,16 @@ void ApplyLauncherTaskbarIdentity(HWND window) {
   const std::wstring command = EnvVar(L"YEGOBOX_RELAUNCH_COMMAND");
   const std::wstring name = EnvVar(L"YEGOBOX_RELAUNCH_NAME");
   if (!command.empty() && !name.empty()) {
-    SetWindowString(store, kRelaunchCommand, command);
-    SetWindowString(store, kRelaunchDisplayNameResource, name);
+    SetWindowString(store, kRelaunchCommand, L"RelaunchCommand", command);
+    SetWindowString(store, kRelaunchDisplayNameResource,
+                    L"RelaunchDisplayNameResource", name);
     const std::wstring icon = EnvVar(L"YEGOBOX_RELAUNCH_ICON");
     if (!icon.empty()) {
-      SetWindowString(store, kRelaunchIconResource, icon);
+      SetWindowString(store, kRelaunchIconResource,
+                      L"RelaunchIconResource", icon);
     }
   }
-  SetWindowString(store, kAppUserModelId, id);
+  SetWindowString(store, kAppUserModelId, L"AppUserModelID", id);
   store->Release();
 }
 
