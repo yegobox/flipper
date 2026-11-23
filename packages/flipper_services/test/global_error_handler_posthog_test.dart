@@ -72,7 +72,8 @@ void main() {
     });
     GlobalErrorHandler.initialize();
 
-    final details = FlutterErrorDetails(
+    // A latched assertion throws a new error object every frame.
+    FlutterErrorDetails details() => FlutterErrorDetails(
       exception: AssertionError('!_debugDuringDeviceUpdate'),
       stack: StackTrace.fromString(
         '#0      MouseTracker._deviceUpdatePhase '
@@ -81,7 +82,7 @@ void main() {
       library: 'gestures library',
     );
     for (var i = 0; i < 5; i++) {
-      FlutterError.onError!(details);
+      FlutterError.onError!(details());
     }
     final handled = PlatformDispatcher.instance.onError!(
       const FormatException('bad json'),
@@ -97,5 +98,34 @@ void main() {
     });
     expect(posthog.captured.last.$1, isA<FormatException>());
     expect(posthog.captured.last.$2, {'error_type': 'platform_error'});
+  });
+
+  test('a reported error that is rethrown counts and sends once', () async {
+    final platformOnError = PlatformDispatcher.instance.onError;
+    final flutterOnError = FlutterError.onError;
+    addTearDown(() {
+      FlutterError.onError = flutterOnError;
+      PlatformDispatcher.instance.onError = platformOnError;
+    });
+    GlobalErrorHandler.initialize();
+    final error = StateError('sync failed');
+    final stack = StackTrace.fromString('#0 sync');
+
+    await GlobalErrorHandler.logError(error, stackTrace: stack, type: 'caught');
+    PlatformDispatcher.instance.onError!(error, stack);
+    await settle();
+
+    expect(posthog.captured, hasLength(1));
+    // The budget was spent once: two more distinct occurrences still pass.
+    await GlobalErrorHandler.logError(
+      StateError('sync failed'),
+      stackTrace: stack,
+    );
+    await GlobalErrorHandler.logError(
+      StateError('sync failed'),
+      stackTrace: stack,
+    );
+    await settle();
+    expect(posthog.captured, hasLength(3));
   });
 }
