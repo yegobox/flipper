@@ -2,14 +2,20 @@ import 'package:flipper_analytics/flipper_analytics.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 class _FakeContextProvider implements AnalyticsContextProvider {
-  @override
-  String? get branchId => 'branch-1';
+  _FakeContextProvider({
+    this.userId = 'user-1',
+    this.businessId = 'business-1',
+    this.branchId = 'branch-1',
+  });
 
   @override
-  String? get businessId => 'business-1';
+  String? branchId;
 
   @override
-  String? get userId => 'user-1';
+  String? businessId;
+
+  @override
+  String? userId;
 
   @override
   Map<String, Object?> buildBaseProperties() {
@@ -55,6 +61,9 @@ class _FakeTransport implements AnalyticsTransport {
   final List<PendingAnalyticsEvent> sentEvents = [];
   final List<bool> enabledCalls = [];
   final List<String> identified = [];
+  final List<Map<String, Object?>> identifyProperties = [];
+  final List<(String, String, Map<String, Object?>)> groups = [];
+  bool failIdentify = false;
   final List<(Object, Map<String, Object?>)> exceptions = [];
   bool failCapture = false;
   int flushCount = 0;
@@ -87,14 +96,18 @@ class _FakeTransport implements AnalyticsTransport {
     String groupType,
     String groupKey, {
     Map<String, Object?> properties = const {},
-  }) async {}
+  }) async {
+    groups.add((groupType, groupKey, properties));
+  }
 
   @override
   Future<void> identify(
     String userId, {
     Map<String, Object?> properties = const {},
   }) async {
+    if (failIdentify) throw StateError('sdk down');
     identified.add(userId);
+    identifyProperties.add(properties);
   }
 
   @override
@@ -123,6 +136,9 @@ class _FakeTransport implements AnalyticsTransport {
     sentEvents.add(event);
   }
 }
+
+String _describe((String, String, Map<String, Object?>) call) =>
+    '${call.$1}=${call.$2} ${call.$3}';
 
 void main() {
   test('queues event when transport send fails', () async {
@@ -306,6 +322,194 @@ void main() {
       await analytics.captureException(StateError('boom'));
 
       expect(transport.exceptions, isEmpty);
+    });
+  });
+
+  group(r'$groups', () {
+    late _MemoryEventStore store;
+    late _FakeTransport transport;
+    late _FakeContextProvider context;
+    late OfflineFirstAnalytics analytics;
+
+    Future<void> start({
+      String? userId = 'user-1',
+      String? businessId = 'business-1',
+      String? branchId = 'branch-1',
+    }) async {
+      store = _MemoryEventStore();
+      transport = _FakeTransport();
+      context = _FakeContextProvider(
+        userId: userId,
+        businessId: businessId,
+        branchId: branchId,
+      );
+      analytics = OfflineFirstAnalytics(
+        contextProvider: context,
+        eventStore: store,
+        transport: transport,
+      );
+      await analytics.initialize();
+    }
+
+    test('every event carries its business and branch', () async {
+      await start();
+
+      await analytics.track(AnalyticsEvents.productActive);
+      await analytics.screen('Pos');
+      await analytics.captureException(StateError('boom'));
+
+      const expected = {'business': 'business-1', 'branch': 'branch-1'};
+      expect(transport.sentEvents, hasLength(2));
+      for (final event in transport.sentEvents) {
+        expect(event.properties[r'$groups'], expected);
+      }
+      expect(transport.exceptions.single.$2[r'$groups'], expected);
+    });
+
+    test('a restored session is identified and grouped once, before its '
+        'first event', () async {
+      await start();
+
+      await analytics.track(AnalyticsEvents.productActive);
+      await analytics.track('ui_stall');
+      await analytics.flush();
+
+      expect(transport.identified, ['user-1']);
+      // No person properties, so the SDK skips a repeat identify.
+      expect(transport.identifyProperties.single, isEmpty);
+      expect(transport.groups.map(_describe), [
+        'business=business-1 {}',
+        'branch=branch-1 {business_id: business-1}',
+      ]);
+    });
+
+    test('no business or branch, no groups', () async {
+      await start(userId: null, businessId: null, branchId: '  ');
+
+      await analytics.track(AnalyticsEvents.productActive);
+
+      expect(
+        transport.sentEvents.single.properties.containsKey(r'$groups'),
+        isFalse,
+      );
+      expect(transport.groups, isEmpty);
+      expect(transport.identified, isEmpty);
+    });
+
+    test('a business switch regroups the next events', () async {
+      await start();
+      await analytics.track('before_switch');
+
+      context
+        ..businessId = 'business-2'
+        ..branchId = 'branch-9';
+      await analytics.track('after_switch');
+
+      expect(transport.sentEvents.first.properties[r'$groups'], {
+        'business': 'business-1',
+        'branch': 'branch-1',
+      });
+      expect(transport.sentEvents.last.properties[r'$groups'], {
+        'business': 'business-2',
+        'branch': 'branch-9',
+      });
+      expect(transport.groups.skip(2).map(_describe), [
+        'business=business-2 {}',
+        'branch=branch-9 {business_id: business-2}',
+      ]);
+      expect(transport.identified, ['user-1']);
+    });
+
+    test('a queued event keeps the groups of when it happened', () async {
+      await start();
+      transport.failSend = true;
+      await analytics.track('offline_sale');
+      expect(store.events, hasLength(1));
+
+      context.businessId = 'business-2';
+      transport.failSend = false;
+      await analytics.flush();
+
+      expect(transport.sentEvents.single.eventName, 'offline_sale');
+      expect(transport.sentEvents.single.properties[r'$groups'], {
+        'business': 'business-1',
+        'branch': 'branch-1',
+      });
+      // The SDK itself moves on to the business the till is on now.
+      expect(transport.groups.last.$2, 'business-2');
+    });
+
+    test('a queued event survives the store round trip with its groups', () {
+      final event = PendingAnalyticsEvent(
+        eventName: 'offline_sale',
+        type: PendingAnalyticsEventType.capture,
+        properties: const {
+          r'$groups': {'business': 'business-1', 'branch': 'branch-1'},
+        },
+      );
+
+      final fromDb = PendingAnalyticsEvent.fromDbMap(event.toDbMap());
+      final fromJson = PendingAnalyticsEvent.fromJson(event.toJson());
+
+      for (final restored in [fromDb, fromJson]) {
+        expect(restored.properties[r'$groups'], {
+          'business': 'business-1',
+          'branch': 'branch-1',
+        });
+      }
+    });
+
+    test('sign-in grouping is not repeated, and reset starts over', () async {
+      await start();
+      await identifySession(
+        analytics,
+        source: 'login_choices',
+        userId: 'user-1',
+        businessId: 'business-1',
+        branchId: 'branch-1',
+      );
+      await analytics.track(AnalyticsEvents.loginSuccess);
+
+      expect(transport.identified, ['user-1']);
+      expect(transport.groups, hasLength(2));
+      // Person and group properties never get a `$groups` of their own.
+      expect(
+        transport.identifyProperties.single.containsKey(r'$groups'),
+        isFalse,
+      );
+      expect(transport.groups.first.$3.containsKey(r'$groups'), isFalse);
+
+      await analytics.reset();
+      await analytics.track(AnalyticsEvents.productActive);
+
+      expect(transport.identified, ['user-1', 'user-1']);
+      expect(transport.groups, hasLength(4));
+    });
+
+    test('a failing SDK call still sends the event', () async {
+      await start();
+      transport.failIdentify = true;
+
+      await analytics.track(AnalyticsEvents.productActive);
+
+      expect(transport.sentEvents.single.eventName, 'product_active');
+    });
+
+    test('local mode groups nothing', () async {
+      store = _MemoryEventStore();
+      transport = _FakeTransport();
+      analytics = OfflineFirstAnalytics(
+        contextProvider: _FakeContextProvider(),
+        eventStore: store,
+        transport: transport,
+        enabled: false,
+      );
+
+      await analytics.track(AnalyticsEvents.productActive);
+      await analytics.flush();
+
+      expect(transport.groups, isEmpty);
+      expect(transport.identified, isEmpty);
     });
   });
 }

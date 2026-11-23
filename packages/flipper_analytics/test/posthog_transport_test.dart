@@ -146,6 +146,21 @@ void main() {
       ).called(1);
     });
 
+    test('hands the event\'s groups to the SDK untouched', () async {
+      const groups = {'business': 'business-1', 'branch': 'branch-1'};
+      await transport().send(event({r'$groups': groups, 'lag_ms': 4200}));
+
+      verify(
+        () => posthog.capture(
+          eventName: 'ui_stall',
+          properties: {r'$groups': groups, 'lag_ms': 4200},
+        ),
+      ).called(1);
+      expect(PostHogTransport.redact({r'$groups': groups}), {
+        r'$groups': groups,
+      });
+    });
+
     test('a queued screen view goes out as a screen', () async {
       await transport().send(
         event({
@@ -231,6 +246,7 @@ void main() {
         'shipping',
         'business_id',
         'lag_ms',
+        r'$groups',
         '',
       ]) {
         expect(PostHogTransport.isSensitiveKey(key), isFalse, reason: key);
