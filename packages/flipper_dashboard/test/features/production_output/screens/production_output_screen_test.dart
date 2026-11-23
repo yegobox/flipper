@@ -3,7 +3,6 @@ import 'package:flipper_dashboard/features/production_output/providers/productio
 import 'package:flipper_dashboard/features/production_output/screens/production_output_screen.dart';
 import 'package:flipper_dashboard/features/production_output/services/production_output_service.dart';
 import 'package:flipper_localize/flipper_localize.dart';
-import 'package:flipper_models/providers/production_output_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -71,7 +70,9 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          todayWorkOrdersProvider.overrideWithValue(AsyncData([_order()])),
+          productionDayOrdersProvider.overrideWithValue(
+            AsyncData(ProductionDayOrders(due: [_order()], carriedOver: [])),
+          ),
           productionSummaryProvider.overrideWithValue(
             const AsyncData(ProductionSummary.empty),
           ),
