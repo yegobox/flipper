@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flipper_models/DatabaseSyncInterface.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -63,5 +65,40 @@ void main() {
     second.close();
 
     verify(() => db.categoryStream(branchId: 'b1')).called(1);
+  });
+
+  test('a rename of the active branch keeps the open observer', () async {
+    final branches = StreamController<Branch>();
+    addTearDown(branches.close);
+    branches.add(Branch(id: 'b1', name: 'Main'));
+    final container = await containerFor(branches.stream);
+
+    final sub = container.listen(categoryProvider, (_, _) {});
+    addTearDown(sub.close);
+    await container.read(categoryProvider.future);
+
+    branches.add(Branch(id: 'b1', name: 'Main shop'));
+    await container.pump();
+    await container.read(categoryProvider.future);
+
+    verify(() => db.categoryStream(branchId: 'b1')).called(1);
+  });
+
+  test('switching branch opens the new branch observer', () async {
+    final branches = StreamController<Branch>();
+    addTearDown(branches.close);
+    branches.add(Branch(id: 'b1', name: 'Main'));
+    final container = await containerFor(branches.stream);
+
+    final sub = container.listen(categoryProvider, (_, _) {});
+    addTearDown(sub.close);
+    await container.read(categoryProvider.future);
+
+    branches.add(Branch(id: 'b2', name: 'Annex'));
+    await container.pump();
+    await container.read(categoryProvider.future);
+
+    verify(() => db.categoryStream(branchId: 'b1')).called(1);
+    verify(() => db.categoryStream(branchId: 'b2')).called(1);
   });
 }

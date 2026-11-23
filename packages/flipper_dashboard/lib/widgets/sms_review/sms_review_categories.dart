@@ -6,7 +6,6 @@ import 'package:flipper_dashboard/features/personal_finance/personal_finance_dat
 import 'package:flipper_models/personal_loans/personal_loan.dart'
     show kLoanRepaymentCategory;
 import 'package:flipper_models/db_model_export.dart' show Category;
-import 'package:flipper_models/providers/category_provider.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 /// What money coming into a business account usually is. Category names are
@@ -121,7 +120,6 @@ class SmsCategoryStore {
       createdAt: now,
       deletedAt: null,
     );
-    _ref.invalidate(categoryProvider);
     return draft.id;
   }
 
