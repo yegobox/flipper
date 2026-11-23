@@ -29,7 +29,11 @@ import '../../stock_recount/stock_recount_ui.dart';
 /// - Variance chart
 /// - Work orders table
 class ProductionOutputScreen extends ConsumerStatefulWidget {
-  const ProductionOutputScreen({Key? key}) : super(key: key);
+  const ProductionOutputScreen({Key? key, @visibleForTesting this.service})
+    : super(key: key);
+
+  /// Defaults to the live service; tests pass a fake.
+  final ProductionOutputService? service;
 
   @override
   ConsumerState<ProductionOutputScreen> createState() =>
@@ -38,7 +42,8 @@ class ProductionOutputScreen extends ConsumerStatefulWidget {
 
 class _ProductionOutputScreenState
     extends ConsumerState<ProductionOutputScreen> {
-  final ProductionOutputService _service = ProductionOutputService();
+  late final ProductionOutputService _service =
+      widget.service ?? ProductionOutputService();
 
   bool _showCreateForm = false;
 
@@ -548,9 +553,17 @@ class _ProductionOutputScreenState
           varianceReason: result['varianceReason'] as String?,
           notes: null,
         );
-        // The stock is updated; only the tax-server report failed.
+        // The output is saved either way. A stock error means the stock
+        // didn't move; an RRA message means only the tax report failed.
+        final stockError = recorded.stockError;
         final rraMessage = recorded.rraMessage;
-        if (rraMessage != null && mounted) {
+        if (stockError != null && mounted) {
+          showCustomSnackBarUtil(
+            context,
+            stockError,
+            type: NotificationType.error,
+          );
+        } else if (rraMessage != null && mounted) {
           showCustomSnackBarUtil(
             context,
             rraMessage,
