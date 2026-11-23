@@ -187,7 +187,7 @@ void main() {
         ),
       );
       when(
-        () => db.composites(productId: 'combo'),
+        () => db.composites(productId: 'combo', localOnly: true),
       ).thenAnswer((_) async => components);
       when(
         () => db.batchGetVariantsByIds(any()),
@@ -208,6 +208,10 @@ void main() {
         );
         expect(out.map((l) => l.variantId), ['soda', 'bread', 'fee']);
         verifyNever(() => db.composites(productId: 'delivery'));
+        // On the Pay path: never a network read for the components.
+        verify(
+          () => db.composites(productId: 'combo', localOnly: true),
+        ).called(1);
       },
     );
 

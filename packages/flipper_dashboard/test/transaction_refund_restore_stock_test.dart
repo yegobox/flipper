@@ -94,7 +94,7 @@ void main() {
         isComposite: true,
       ),
     );
-    when(() => db.composites(productId: 'combo')).thenAnswer(
+    when(() => db.composites(productId: 'combo', localOnly: true)).thenAnswer(
       (_) async => [Composite(productId: 'combo', variantId: 'soda', qty: 0.5)],
     );
     when(

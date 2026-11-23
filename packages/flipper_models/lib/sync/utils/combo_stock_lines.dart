@@ -152,7 +152,12 @@ Future<List<TransactionItem>> expandComboLinesForStock(
       businessId: businessId,
     );
     if (product?.isComposite != true) continue;
-    final components = await capella.composites(productId: entry.key);
+    // Local only: this runs on the Pay path, which must never wait on the
+    // network.
+    final components = await capella.composites(
+      productId: entry.key,
+      localOnly: true,
+    );
     if (components.isNotEmpty) componentsByProductId[entry.key] = components;
   }
   if (componentsByProductId.isEmpty) return items;

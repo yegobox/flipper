@@ -96,8 +96,6 @@ void main() {
       variant: variant,
       // Ordering skips the stock check, which is not under test here.
       isOrdering: true,
-      productHint: null,
-      isCompositeProduct: false,
       pendingProv: pendingProv,
       pendingTransaction: pending,
       sessionAtStart: 0,

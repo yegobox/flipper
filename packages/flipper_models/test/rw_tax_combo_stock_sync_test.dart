@@ -118,4 +118,17 @@ void main() {
       () => box.remove(key: rraSaleStockSnapshotBoxKey(transaction.id)),
     ).called(1);
   });
+
+  test('without a repository the sync uses the app one', () async {
+    // None is initialised under test, so reaching for it throws.
+    await expectLater(
+      RWTax().syncStockAfterSuccessfulSaveSales(
+        receiptType: 'NS',
+        items: const [],
+        transaction: transaction,
+        highestInvcNo: 12,
+      ),
+      throwsA(isA<StateError>()),
+    );
+  });
 }
