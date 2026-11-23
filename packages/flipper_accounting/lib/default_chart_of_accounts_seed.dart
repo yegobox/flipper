@@ -25,6 +25,7 @@ const defaultChartOfAccountsSeed = <Account>[
   Account(code: '4020', name: 'Service Income', type: AccountType.income, sub: 'Operating income', normal: AccountNormal.credit, bal: 0),
   Account(code: '4090', name: 'Sales Discounts', type: AccountType.income, sub: 'Operating income', normal: AccountNormal.debit, bal: 0, contra: true),
   Account(code: '5010', name: 'Cost of Goods Sold', type: AccountType.expense, sub: 'Cost of sales', normal: AccountNormal.debit, bal: 0),
+  Account(code: '5020', name: 'Production Cost Absorbed', type: AccountType.expense, sub: 'Cost of sales', normal: AccountNormal.credit, bal: 0, contra: true, note: 'Goods made without a recipe, moved into stock'),
   Account(code: '6000', name: 'Operating Expenses', type: AccountType.expense, sub: 'Operating expenses', normal: AccountNormal.debit, bal: 0),
   Account(code: '6010', name: 'Rent', type: AccountType.expense, sub: 'Operating expenses', normal: AccountNormal.debit, bal: 0),
   Account(code: '6020', name: 'Salaries & Wages', type: AccountType.expense, sub: 'Operating expenses', normal: AccountNormal.debit, bal: 0),

@@ -1,6 +1,9 @@
 import 'package:supabase_models/brick/models/work_order.model.dart';
 import 'package:supabase_models/brick/models/actual_output.model.dart';
+import 'package:flipper_accounting/production_journal_poster.dart';
+import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/services/purchase_approval_deps.dart';
+import 'package:flipper_web/services/ditto_service.dart';
 
 import 'production_stock_poster.dart';
 
@@ -12,9 +15,12 @@ import 'production_stock_poster.dart';
 /// class deliberately keeps no read logic of its own beyond [getWorkOrders],
 /// which the forecasting service still needs as a one-shot.
 class ProductionOutputService {
-  /// [deps] and [postStock] default to the live app; tests pass fakes.
+  /// [deps], [postStock] and [postToBooks] default to the live app; tests
+  /// pass fakes.
   ProductionOutputService({
     PurchaseApprovalDeps Function()? deps,
+    Future<void> Function(String businessId, ProductionOutputRecord record)?
+    postToBooks,
     Future<ProductionStockResult> Function({
       required WorkOrder workOrder,
       required double qty,
@@ -22,7 +28,18 @@ class ProductionOutputService {
     })?
     postStock,
   }) : _deps = deps ?? PurchaseApprovalDeps.fromProxy,
-       _postStock = postStock ?? _postProductionOutput;
+       _postStock = postStock ?? _postProductionOutput,
+       _postToBooks = postToBooks ?? _postProductionToBooks;
+
+  final Future<void> Function(String businessId, ProductionOutputRecord record)
+  _postToBooks;
+
+  static Future<void> _postProductionToBooks(
+    String businessId,
+    ProductionOutputRecord record,
+  ) => ProductionJournalPoster(
+    DittoService.instance,
+  ).sync(businessId: businessId, outputs: [record]);
 
   final PurchaseApprovalDeps Function() _deps;
   final Future<ProductionStockResult> Function({
@@ -116,12 +133,32 @@ class ProductionOutputService {
     );
     if (output == null) return (output: null, rraMessage: null);
 
+    final saved = output as ActualOutput;
     final stock = await _postStock(
       workOrder: workOrder,
       qty: actualQuantity,
       deps: deps,
     );
-    return (output: output as ActualOutput, rraMessage: stock.rraMessage);
+    // A product made without a recipe: move the batch's value into stock in
+    // Books. Best effort: the output and the stock are already saved.
+    final unitCost = stock.absorbUnitCost;
+    if (unitCost != null) {
+      try {
+        await _postToBooks(
+          workOrder.businessId,
+          ProductionOutputRecord(
+            outputId: saved.id,
+            productName: workOrder.variantName ?? '',
+            qty: actualQuantity,
+            unitCost: unitCost,
+            recordedAt: saved.recordedAt,
+          ),
+        );
+      } catch (e, s) {
+        talker.warning('Production: Books posting skipped: $e\n$s');
+      }
+    }
+    return (output: saved, rraMessage: stock.rraMessage);
   }
 
   /// Update work order status. Throws on failure — see [createWorkOrder].

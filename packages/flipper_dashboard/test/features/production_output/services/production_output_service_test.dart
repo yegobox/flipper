@@ -1,3 +1,4 @@
+import 'package:flipper_accounting/production_journal_poster.dart';
 import 'package:flipper_dashboard/features/production_output/services/production_output_service.dart';
 import 'package:flipper_dashboard/features/production_output/services/production_stock_poster.dart';
 import 'package:flipper_models/DatabaseSyncInterface.dart';
@@ -165,6 +166,8 @@ void main() {
 
       expect(result.stocked, isTrue);
       expect(result.rraMessage, isNull);
+      // No recipe: Books moves each unit into stock at the bread's own cost.
+      expect(result.absorbUnitCost, 500);
       verify(
         () => db.updateStock(
           stockId: 'bread-s',
@@ -250,6 +253,8 @@ void main() {
       // held at 500, so the average after making 10 is (3×500 + 10×2150) / 13.
       expect(costs.keys, ['bread-v']);
       expect(costs['bread-v'], closeTo((3 * 500 + 10 * 2150) / 13, 0.001));
+      // A recipe's components already move within stock: nothing to absorb.
+      expect(result.absorbUnitCost, isNull);
       expect(tax.ioCalls.map((c) => (c.sarTyCd, c.isStockIn, c.sarNo)), [
         ('14', false, '41'),
         ('05', true, '42'),
@@ -310,6 +315,78 @@ void main() {
       expect(result.stocked, isTrue);
       expect(result.rraMessage, isNull);
       expect(tax.ioCalls, isEmpty);
+    });
+  });
+
+  group('ProductionOutputService → Books', () {
+    late _MockDb db;
+    setUp(() {
+      db = _MockDb();
+      when(
+        () => db.recordActualOutput(
+          workOrderId: any(named: 'workOrderId'),
+          branchId: any(named: 'branchId'),
+          actualQuantity: any(named: 'actualQuantity'),
+          userId: any(named: 'userId'),
+          varianceReason: any(named: 'varianceReason'),
+          notes: any(named: 'notes'),
+        ),
+      ).thenAnswer(
+        (_) async => ActualOutput(
+          id: 'out-9',
+          workOrderId: 'wo1',
+          branchId: 'b1',
+          actualQuantity: 10,
+          userId: 'u1',
+        ),
+      );
+    });
+
+    ProductionOutputService service({
+      double? absorb,
+      required Future<void> Function(String, ProductionOutputRecord) books,
+    }) => ProductionOutputService(
+      deps: () => PurchaseApprovalDeps(
+        strategy: db,
+        capella: db,
+        tax: _RecordingTaxApi(),
+        branchId: 'b1',
+        businessId: 'biz1',
+        userId: 'u1',
+      ),
+      postStock: ({required workOrder, required qty, required deps}) async =>
+          ProductionStockResult(stocked: true, absorbUnitCost: absorb),
+      postToBooks: books,
+    );
+
+    test('a batch made without a recipe is posted at its cost', () async {
+      final posted = <(String, ProductionOutputRecord)>[];
+      await service(
+        absorb: 150,
+        books: (biz, record) async => posted.add((biz, record)),
+      ).recordActualOutput(workOrder: _order(), actualQuantity: 10);
+
+      final (biz, record) = posted.single;
+      expect(biz, 'biz1');
+      expect(record.outputId, 'out-9');
+      expect(record.productName, 'Bread');
+      expect(record.value, 1500);
+    });
+
+    test('nothing to absorb posts nothing', () async {
+      var calls = 0;
+      await service(
+        books: (_, _) async => calls++,
+      ).recordActualOutput(workOrder: _order(), actualQuantity: 10);
+      expect(calls, 0);
+    });
+
+    test('a Books failure never undoes the recorded output', () async {
+      final recorded = await service(
+        absorb: 150,
+        books: (_, _) async => throw StateError('ledger offline'),
+      ).recordActualOutput(workOrder: _order(), actualQuantity: 10);
+      expect(recorded.output?.id, 'out-9');
     });
   });
 
