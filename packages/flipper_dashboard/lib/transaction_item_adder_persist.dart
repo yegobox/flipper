@@ -10,6 +10,7 @@ import 'package:flipper_models/providers/pos_cart_display_provider.dart';
 import 'package:flipper_models/providers/pending_cart_sale_session_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_models/sync/utils/pos_catalog_stock_filter.dart';
+import 'package:flipper_dashboard/utils/combo_sale_lines.dart';
 import 'package:flipper_services/GlobalLogError.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
@@ -224,10 +225,19 @@ Future<bool> persistItemToTransaction({
 
     final stock = cachedStock;
 
-    if (product != null && product.isComposite == true) {
-      final composites = await ProxyService.getStrategy(
-        Strategy.capella,
-      ).composites(productId: product.id);
+    // A combo (composite product) sells as its components: one line per
+    // component, each taking its own stock. A combo with no components left
+    // sells as itself below, so the tap still charges the customer.
+    final composites = product != null && product.isComposite == true
+        ? await capella.composites(productId: product.id)
+        : const <Composite>[];
+    if (product != null && product.isComposite == true && composites.isEmpty) {
+      talker.warning(
+        'Combo ${product.id} has no components; selling it as one line',
+      );
+    }
+
+    if (composites.isNotEmpty) {
       final variantIds = composites
           .map((c) => c.variantId)
           .whereType<String>()
@@ -237,28 +247,44 @@ Future<bool> persistItemToTransaction({
       final variantsMap = variantIds.isEmpty
           ? <String, Variant>{}
           : await capella.batchGetVariantsByIds(variantIds);
+      // Each component's own on-hand: it is what the line reports to RRA as
+      // remaining stock. One read for the whole combo.
+      final stockIds = variantsMap.values
+          .map((v) => v.stockId)
+          .whereType<String>()
+          .where((id) => id.isNotEmpty)
+          .toList();
+      final stocksById = stockIds.isEmpty
+          ? <String, Stock>{}
+          : await capella.batchGetStocksByIds(stockIds);
 
-      for (final composite in composites) {
-        final vid = composite.variantId;
-        if (vid == null || vid.isEmpty) continue;
-        final compositeVariant = variantsMap[vid];
-        if (compositeVariant != null) {
-          final storeSw = Stopwatch()..start();
-          final okComposite = await capella.saveTransactionItem(
-            variation: compositeVariant,
-            doneWithTransaction: false,
-            ignoreForReport: false,
-            amountTotal: compositeVariant.retailPrice!,
-            customItem: false,
-            currentStock: stock?.currentStock ?? 0,
-            pendingTransaction: pendingTransaction,
-            partOfComposite: true,
-            compositePrice: composite.actualPrice,
-          );
-          storeMs = (storeMs < 0 ? 0 : storeMs) + storeSw.elapsedMilliseconds;
-          if (!okComposite) {
-            throw StateError('saveTransactionItem failed (composite line)');
-          }
+      final lines = planComboSaleLines(
+        composites,
+        variantsById: variantsMap,
+        stocksById: stocksById,
+      );
+      for (final line in lines) {
+        final storeSw = Stopwatch()..start();
+        final okComposite = await capella.saveTransactionItem(
+          variation: line.variant,
+          doneWithTransaction: false,
+          ignoreForReport: false,
+          // Each component at its own price. The combo's price
+          // (`Composite.actualPrice`) is not applied: the cart keeps one line
+          // per product, so a split price would collide with the same product
+          // sold on its own in the same sale.
+          amountTotal: line.variant.retailPrice ?? 0,
+          customItem: false,
+          currentStock: line.currentStock,
+          pendingTransaction: pendingTransaction,
+          // Plain lines: the partOfComposite UI paths assume rows this sale
+          // path never writes.
+          partOfComposite: false,
+          addQty: line.qty,
+        );
+        storeMs = (storeMs < 0 ? 0 : storeMs) + storeSw.elapsedMilliseconds;
+        if (!okComposite) {
+          throw StateError('saveTransactionItem failed (composite line)');
         }
       }
     } else {
