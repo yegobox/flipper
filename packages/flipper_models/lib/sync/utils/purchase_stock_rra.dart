@@ -33,6 +33,9 @@ class PurchaseStockInLine {
 /// incoming adjustment — what data-connector sends for approved purchases)
 /// for all lines, then each variant's stock master.
 ///
+/// Other incoming movements reuse it with their own [sarTyCd] and [remark]:
+/// recorded production output reports `05` (incoming processing).
+///
 /// Never throws and never undoes the local stock: like branch transfers, a
 /// tax-server failure is reported back as a message for the owner. Skips for
 /// non-VAT / non-EBM branches.
@@ -43,6 +46,8 @@ Future<BranchTransferRraResult> reportPurchaseStockInToRra({
   required PurchaseApprovalDeps deps,
   String supplierTin = '',
   String? businessId,
+  String sarTyCd = StockInOutType.adjustmentIn,
+  String? remark,
   @visibleForTesting Future<Ebm?> Function(String businessId)? resolveEbm,
   @visibleForTesting Future<Sar> Function(String branchId)? nextBranchSar,
 }) async {
@@ -123,7 +128,7 @@ Future<BranchTransferRraResult> reportPurchaseStockInToRra({
         updateMaster: false,
         tinNumber: tin,
         bhFId: bhfId,
-        sarTyCd: StockInOutType.adjustmentIn,
+        sarTyCd: sarTyCd,
         isStockIn: true,
         customerName: supplierName,
         custTin: hasTin ? supplierTin.trim() : null,
@@ -132,7 +137,7 @@ Future<BranchTransferRraResult> reportPurchaseStockInToRra({
         totalSupplyPrice: totalSupply,
         totalvat: 0,
         totalAmount: totalAmount,
-        remark: 'Purchase from $supplierName',
+        remark: remark ?? 'Purchase from $supplierName',
         ocrnDt: DateTime.now(),
         sarNo: sar.sarNo.toString(),
         invoiceNumber: sar.sarNo,

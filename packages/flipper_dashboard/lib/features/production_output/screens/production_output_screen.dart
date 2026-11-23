@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/providers/production_output_provider.dart';
+import 'package:supabase_models/brick/models/work_order.model.dart';
 import '../models/production_output_models.dart';
 import '../providers/production_output_derived_providers.dart';
 import '../services/production_output_service.dart';
@@ -541,12 +542,21 @@ class _ProductionOutputScreenState
 
     if (result != null) {
       await _guard('record output', failureMessage, () async {
-        await _service.recordActualOutput(
-          workOrderId: workOrder.id as String,
+        final recorded = await _service.recordActualOutput(
+          workOrder: workOrder as WorkOrder,
           actualQuantity: result['quantity'] as double,
           varianceReason: result['varianceReason'] as String?,
           notes: null,
         );
+        // The stock is updated; only the tax-server report failed.
+        final rraMessage = recorded.rraMessage;
+        if (rraMessage != null && mounted) {
+          showCustomSnackBarUtil(
+            context,
+            rraMessage,
+            type: NotificationType.warning,
+          );
+        }
       });
     }
   }
@@ -637,7 +647,7 @@ class _ProductionOutputScreenState
       await _guard(
         'start this work order',
         failureMessage,
-        () => _service.startWorkOrder(workOrder.id as String),
+        () => _service.startWorkOrder(workOrder as WorkOrder),
       );
     }
   }

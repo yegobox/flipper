@@ -1,382 +1,362 @@
 import 'package:flipper_dashboard/features/production_output/services/production_output_service.dart';
-import 'package:flipper_models/SyncStrategy.dart';
+import 'package:flipper_dashboard/features/production_output/services/production_stock_poster.dart';
+import 'package:flipper_models/DatabaseSyncInterface.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
-import 'package:supabase_models/brick/models/all_models.dart' as models;
-import 'package:supabase_models/brick/models/work_order.model.dart';
+import 'package:flipper_models/services/purchase_approval_deps.dart';
+import 'package:flipper_models/tax_api.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-// Adjust import path based on file structure
-import '../../../test_helpers/mocks.dart';
-import 'package:flipper_services/locator.dart';
-import 'package:flipper_models/tax_api.dart';
-import 'package:supabase_models/brick/repository/storage.dart';
 import 'package:supabase_models/brick/models/sars.model.dart';
 
-// flutter test test/features/production_output/services/production_output_service_test.dart  --dart-define=FLUTTER_TEST_ENV=true
-// Create a proper mock that extends the class we want to mock
-// and implements the interface we need.
-class MockProductionOutputService extends Mock
-    implements ProductionOutputService {}
+// flutter test test/features/production_output/services/production_output_service_test.dart --dart-define=FLUTTER_TEST_ENV=true
+//
+// Production output used to deduct the product being made (no recipe) or its
+// sale-time components (composite) when an order started, and never added the
+// finished goods. Now recording output adds plain goods to stock as `05`, a
+// composite moves nothing, and starting moves no stock at all.
 
-class TestProductionOutputService extends ProductionOutputService {
-  final List<WorkOrder> mockWorkOrders;
+class _MockDb extends Mock implements DatabaseSyncInterface {}
 
-  TestProductionOutputService(this.mockWorkOrders);
+/// Records each `saveStockItems` call; answers [resultCd] to all of them.
+class _RecordingTaxApi extends Mock implements TaxApi {
+  _RecordingTaxApi({this.resultCd = '000'});
+
+  final String resultCd;
+  final List<({String sarTyCd, bool isStockIn, String? sarNo, String remark})>
+  ioCalls = [];
+  final List<double?> masterQtys = [];
 
   @override
-  Future<List<WorkOrder>> getWorkOrders({
-    String? branchId,
-    DateTime? startDate,
-    DateTime? endDate,
-    String? status,
+  Future<RwApiResponse> saveStockItems({
+    required List<TransactionItem> items,
+    bool updateMaster = true,
+    required String tinNumber,
+    required String bhFId,
+    String? customerName,
+    String? custTin,
+    String? regTyCd = "A",
+    required String sarTyCd,
+    bool isStockIn = false,
+    String? custBhfId,
+    required double totalSupplyPrice,
+    required double totalvat,
+    required double totalAmount,
+    required String remark,
+    required DateTime ocrnDt,
+    String? sarNo,
+    required String URI,
+    num? invoiceNumber,
+    num? approvedQty,
+    bool includeCustomerFields = false,
   }) async {
-    return mockWorkOrders;
+    ioCalls.add((
+      sarTyCd: sarTyCd,
+      isStockIn: isStockIn,
+      sarNo: sarNo,
+      remark: remark,
+    ));
+    return RwApiResponse(resultCd: resultCd, resultMsg: 'rejected');
   }
 
   @override
-  Future<void> updateWorkOrderStatus({
-    required String workOrderId,
-    required String status,
+  Future<RwApiResponse> saveStockMaster({
+    required Variant variant,
+    required String URI,
+    num? approvedQty,
+    double? stockMasterQty,
   }) async {
-    // no-op or mock
+    masterQtys.add(stockMasterQty);
+    return RwApiResponse(resultCd: '000', resultMsg: 'ok');
   }
 }
 
+Ebm _ebmOn() => Ebm(
+  bhfId: '00',
+  tinNumber: 999909695,
+  dvcSrlNo: 'dvc',
+  taxServerUrl: 'https://tax.example/',
+  businessId: 'biz1',
+  branchId: 'b1',
+  vatEnabled: true,
+  mrc: 'mrc',
+);
+
+WorkOrder _order({String status = 'planned'}) => WorkOrder(
+  id: 'wo1',
+  branchId: 'b1',
+  businessId: 'biz1',
+  variantId: 'bread-v',
+  variantName: 'Bread',
+  plannedQuantity: 20,
+  targetDate: DateTime(2026, 11, 23),
+  status: status,
+);
+
+Variant _bread({String? itemTyCd = '2'}) => Variant(
+  id: 'bread-v',
+  name: 'Bread',
+  branchId: 'b1',
+  productId: 'bread-p',
+  stockId: 'bread-s',
+  itemTyCd: itemTyCd,
+  itemCd: 'RW2NTU0000001',
+  supplyPrice: 500,
+  retailPrice: 800,
+);
+
 void main() {
-  late TestProductionOutputService service;
-  late MockSyncStrategy mockStrategy;
-  late MockBox mockBox;
-  late MockTaxApi mockTaxApi;
-  late MockDatabaseSync mockDatabaseSync;
+  setUpAll(() => registerFallbackValue(DateTime(2026)));
 
-  setUpAll(() {
-    registerFallbackValue(
-      models.TransactionItem(
-        name: 'Fallback Item',
-        qty: 1,
-        price: 100,
-        discount: 0,
-        prc: 100,
-        ttCatCd: 'Test',
-      ),
-    );
-    registerFallbackValue(
-      models.Variant(
-        name: 'Test',
-        sku: 'SKU',
-        productId: 'PID',
-        unit: 'kg',
-        productName: 'PName',
-        branchId: 'BID',
-        id: 'ID',
-        itemStdNm: 'Standard Name',
-        retailPrice: 100,
-      ),
-    );
-    registerFallbackValue(DateTime.now());
-  });
+  group('postProductionOutput', () {
+    late _MockDb db;
+    late _RecordingTaxApi tax;
+    late List<int> sarsHandedOut;
 
-  setUp(() async {
-    // Clear GetIt to avoid conflicts - must await this!
-    await getIt.reset();
-
-    // Register mocks needed by ProxyService getter lookups
-    mockStrategy = MockSyncStrategy();
-    mockBox = MockBox();
-    mockTaxApi = MockTaxApi();
-    mockDatabaseSync = MockDatabaseSync();
-
-    // Register simple instances - these are what ProxyService.box, etc. look up
-    getIt.registerSingleton<LocalStorage>(mockBox);
-    getIt.registerSingleton<TaxApi>(mockTaxApi);
-    getIt.registerSingleton<SyncStrategy>(
-      mockStrategy,
-      instanceName: 'strategy',
-    );
-
-    // Stub global getters
-    when(() => mockStrategy.current).thenReturn(mockDatabaseSync);
-    when(() => mockBox.getBranchId()).thenReturn('branch-1');
-
-    // Stub updateWorkOrder which is called by updateWorkOrderStatus
-    when(
-      () => mockDatabaseSync.updateWorkOrder(
-        workOrderId: any(named: 'workOrderId'),
-        status: any(named: 'status'),
-      ),
-    ).thenAnswer((_) async {});
-
-    // Default stub for updateStock as it is called on ProxyService.strategy (which returns mockDatabaseSync via .current)
-    when(
-      () => mockDatabaseSync.updateStock(
-        stockId: any(named: 'stockId'),
-        currentStock: any(named: 'currentStock'),
-        appending: any(named: 'appending'),
-        lastTouched: any(named: 'lastTouched'),
-      ),
-    ).thenAnswer((_) async {});
-
-    when(
-      () => mockDatabaseSync.getVariant(id: any(named: 'id')),
-    ).thenAnswer((_) async => null); // Default
-
-    when(
-      () => mockDatabaseSync.composites(productId: any(named: 'productId')),
-    ).thenAnswer((_) async => []); // Default
-
-    when(
-      () => mockDatabaseSync.ebm(branchId: any(named: 'branchId')),
-    ).thenAnswer((_) async => null); // Default
-
-    when(
-      () => mockDatabaseSync.getSar(branchId: any(named: 'branchId')),
-    ).thenAnswer((_) async => null); // Default
-  });
-
-  group('ProductionOutputService - Auto Deduction', () {
-    test('startWorkOrder deducts raw materials correctly', () async {
-      const branchId = 'branch-1';
-      const workOrderId = 'wo-1';
-      const variantId = 'var-1';
-      const ingredientVariantId = 'ing-var-1';
-      const stockId = 'stock-1';
-      const plannedQty = 10.0;
-      const compositeQty = 2.0;
-
-      final workOrder = WorkOrder(
-        id: workOrderId,
-        variantId: variantId,
-        plannedQuantity: plannedQty,
-        targetDate: DateTime.now(),
-        status: 'pending',
-        branchId: branchId,
-        businessId: 'bus-1',
-        createdAt: DateTime.now(),
-        variantName: 'Finished Product',
-      );
-
-      service = TestProductionOutputService([workOrder]);
-
-      final variant = models.Variant(
-        id: variantId,
-        productId: 'prod-finish',
-        name: 'Finished Product',
-        sku: 'SKU-F',
-        unit: 'Item',
-        productName: 'Finished Product',
-        branchId: branchId,
-        itemStdNm: 'Finished Product',
-        retailPrice: 1000,
-      );
-
-      final composite = models.Composite(
-        id: 'comp-1',
-        productId: 'prod-finish',
-        variantId: ingredientVariantId,
-        qty: compositeQty,
-        actualPrice: 100,
-        businessId: 'bus-1',
-        branchId: branchId,
-      );
-
-      final ingredientVariant = models.Variant(
-        id: ingredientVariantId,
-        productId: 'prod-raw',
-        stockId: stockId,
-        name: 'Raw Material',
-        itemTyCd: '1',
-        taxTyCd: 'B',
-        supplyPrice: 50.0,
-        sku: 'SKU-R',
-        unit: 'kg',
-        productName: 'Raw Material',
-        branchId: branchId,
-        itemStdNm: 'Raw Material',
-        retailPrice: 100,
-      );
-
-      // Stubs
+    setUp(() {
+      db = _MockDb();
+      tax = _RecordingTaxApi();
+      sarsHandedOut = [];
       when(
-        () => mockDatabaseSync.getVariant(id: variantId),
-      ).thenAnswer((_) async => variant);
+        () => db.getVariant(id: 'bread-v'),
+      ).thenAnswer((_) async => _bread());
       when(
-        () => mockDatabaseSync.composites(productId: 'prod-finish'),
-      ).thenAnswer((_) async => [composite]);
-      when(
-        () => mockDatabaseSync.getVariant(id: ingredientVariantId),
-      ).thenAnswer((_) async => ingredientVariant);
-      when(
-        () => mockDatabaseSync.ebm(branchId: branchId),
-      ).thenAnswer((_) async => null); // Disable EBM for simplicity first
-
-      // Act
-      await service.startWorkOrder(workOrderId);
-
-      // Assert
-      verify(
-        () => mockDatabaseSync.updateStock(
-          stockId: stockId,
-          currentStock: -20.0, // 10 * 2
-          appending: true, // Should be true
-          lastTouched: any(named: 'lastTouched'),
+        () => db.getProduct(id: 'bread-p', branchId: 'b1', businessId: 'biz1'),
+      ).thenAnswer(
+        (_) async => Product(
+          id: 'bread-p',
+          name: 'Bread',
+          color: '#000',
+          businessId: 'biz1',
+          branchId: 'b1',
         ),
-      ).called(1);
+      );
+      when(() => db.getStockById(id: 'bread-s')).thenAnswer(
+        (_) async => Stock(id: 'bread-s', branchId: 'b1', currentStock: 13),
+      );
+      when(
+        () => db.updateStock(
+          stockId: any(named: 'stockId'),
+          currentStock: any(named: 'currentStock'),
+          appending: any(named: 'appending'),
+          lastTouched: any(named: 'lastTouched'),
+          ebmSynced: any(named: 'ebmSynced'),
+          value: any(named: 'value'),
+        ),
+      ).thenAnswer((_) async {});
+      when(
+        () => db.ebm(branchId: 'b1', fetchRemote: false),
+      ).thenAnswer((_) async => _ebmOn());
     });
 
-    test('startWorkOrder sends to RRA when EBM enabled', () async {
-      const branchId = 'branch-1';
-      const workOrderId = 'wo-1';
-      const variantId = 'var-1';
-      const ingredientVariantId = 'ing-var-1';
-      const stockId = 'stock-1';
+    Future<ProductionStockResult> post(double qty) => postProductionOutput(
+      workOrder: _order(status: 'in_progress'),
+      qty: qty,
+      deps: PurchaseApprovalDeps(strategy: db, capella: db, tax: tax),
+      resolveEbm: (_) async => _ebmOn(),
+      nextBranchSar: (branchId) async {
+        sarsHandedOut.add(41 + sarsHandedOut.length);
+        return Sar(sarNo: sarsHandedOut.last, branchId: branchId);
+      },
+    );
 
-      final workOrder = WorkOrder(
-        id: workOrderId,
-        variantId: variantId,
-        plannedQuantity: 10.0,
-        targetDate: DateTime.now(),
-        status: 'pending',
-        branchId: branchId,
-        businessId: 'bus-1',
-        createdAt: DateTime.now(),
-        variantName: 'Finished Product',
-      );
+    test('adds the finished goods and reports incoming processing', () async {
+      final result = await post(10);
 
-      service = TestProductionOutputService([workOrder]);
-
-      final variant = models.Variant(
-        id: variantId,
-        productId: 'prod-finish',
-        name: 'Finished Product',
-        sku: 'SKU-F',
-        unit: 'Item',
-        productName: 'Finished Product',
-        branchId: branchId,
-        itemStdNm: 'Finished Product',
-        retailPrice: 1000,
-      );
-      final composite = models.Composite(
-        id: 'comp-1',
-        productId: 'prod-finish',
-        variantId: ingredientVariantId,
-        qty: 2.0,
-        actualPrice: 100,
-        businessId: 'bus-1',
-        branchId: branchId,
-        // active: true, // removed
-      );
-      final ingredientVariant = models.Variant(
-        id: ingredientVariantId,
-        productId: 'prod-raw',
-        stockId: stockId,
-        name: 'Raw Material',
-        itemTyCd: '1',
-        taxTyCd: 'B',
-        supplyPrice: 50.0,
-        sku: 'SKU-R',
-        unit: 'kg',
-        productName: 'Raw Material',
-        branchId: branchId,
-        itemStdNm: 'Raw Material',
-        retailPrice: 100,
-      );
-
-      when(
-        () => mockDatabaseSync.getVariant(id: variantId),
-      ).thenAnswer((_) async => variant);
-      when(
-        () => mockDatabaseSync.composites(productId: 'prod-finish'),
-      ).thenAnswer((_) async => [composite]);
-      when(
-        () => mockDatabaseSync.getVariant(id: ingredientVariantId),
-      ).thenAnswer((_) async => ingredientVariant);
-
-      // Mock EBM enabled
-      final ebm = models.Ebm(
-        id: 'ebm-1',
-        tinNumber: 123456789,
-        bhfId: '00',
-        dvcSrlNo: 'DEVICE001',
-        mrc: 'MRC001',
-        taxServerUrl: 'http://tax',
-        vatEnabled: true,
-        businessId: 'bus-1',
-        branchId: branchId,
-      );
-      when(
-        () => mockDatabaseSync.ebm(branchId: branchId),
-      ).thenAnswer((_) async => ebm);
-
-      // Mock SAR for invoice numbering
-      final sar = Sar(sarNo: 100, branchId: branchId);
-      when(
-        () => mockDatabaseSync.getSar(branchId: branchId),
-      ).thenAnswer((_) async => sar);
-
-      when(
-        () => mockTaxApi.saveStockItems(
-          items: any(named: 'items'),
-          updateMaster: any(named: 'updateMaster'),
-          tinNumber: any(named: 'tinNumber'),
-          bhFId: any(named: 'bhFId'),
-          sarTyCd: any(named: 'sarTyCd'),
-          isStockIn: any(named: 'isStockIn'),
-          sarNo: any(named: 'sarNo'),
-          invoiceNumber: any(named: 'invoiceNumber'),
-          totalSupplyPrice: any(named: 'totalSupplyPrice'),
-          totalvat: any(named: 'totalvat'),
-          totalAmount: any(named: 'totalAmount'),
-          remark: any(named: 'remark'),
-          ocrnDt: any(named: 'ocrnDt'),
-          URI: any(named: 'URI'),
-        ),
-      ).thenAnswer(
-        (_) async => RwApiResponse(resultCd: '000', resultMsg: 'Success'),
-      );
-
-      when(
-        () => mockTaxApi.saveStockMaster(
-          variant: any(named: 'variant'),
-          URI: any(named: 'URI'),
-          stockMasterQty: any(named: 'stockMasterQty'),
-        ),
-      ).thenAnswer(
-        (_) async => RwApiResponse(resultCd: '000', resultMsg: 'Success'),
-      );
-
-      // Act
-      await service.startWorkOrder(workOrderId);
-
-      // Assert
-      // Verify local stock update
+      expect(result.stocked, isTrue);
+      expect(result.rraMessage, isNull);
       verify(
-        () => mockDatabaseSync.updateStock(
-          stockId: stockId,
-          currentStock: -20.0,
+        () => db.updateStock(
+          stockId: 'bread-s',
+          currentStock: 10,
           appending: true,
           lastTouched: any(named: 'lastTouched'),
+          ebmSynced: false,
         ),
       ).called(1);
+      final io = tax.ioCalls.single;
+      expect(io.sarTyCd, '05');
+      expect(io.isStockIn, isTrue);
+      expect(io.sarNo, '41');
+      expect(io.remark, 'Production output: Bread');
+      expect(tax.masterQtys, [13]);
+    });
 
-      // Verify RRA call - use any() for parameters that might vary
-      verify(
-        () => mockTaxApi.saveStockItems(
-          items: any(named: 'items'),
-          updateMaster: any(named: 'updateMaster'),
-          tinNumber: any(named: 'tinNumber'),
-          bhFId: any(named: 'bhFId'),
-          sarTyCd: '06',
-          isStockIn: false,
-          sarNo: any(named: 'sarNo'),
-          invoiceNumber: any(named: 'invoiceNumber'),
-          totalSupplyPrice: any(named: 'totalSupplyPrice'),
-          totalvat: any(named: 'totalvat'),
-          totalAmount: any(named: 'totalAmount'),
-          remark: any(named: 'remark'),
-          ocrnDt: any(named: 'ocrnDt'),
-          URI: 'http://tax',
+    test('a composite product moves no stock: its sale does', () async {
+      when(
+        () => db.getProduct(id: 'bread-p', branchId: 'b1', businessId: 'biz1'),
+      ).thenAnswer(
+        (_) async => Product(
+          id: 'bread-p',
+          name: 'Bread kit',
+          color: '#000',
+          businessId: 'biz1',
+          branchId: 'b1',
+          isComposite: true,
         ),
+      );
+
+      final result = await post(10);
+
+      expect(result.stocked, isFalse);
+      verifyNever(
+        () => db.updateStock(
+          stockId: any(named: 'stockId'),
+          currentStock: any(named: 'currentStock'),
+          appending: any(named: 'appending'),
+          lastTouched: any(named: 'lastTouched'),
+          ebmSynced: any(named: 'ebmSynced'),
+          value: any(named: 'value'),
+        ),
+      );
+      expect(tax.ioCalls, isEmpty);
+    });
+
+    test('a service holds no stock', () async {
+      when(
+        () => db.getVariant(id: 'bread-v'),
+      ).thenAnswer((_) async => _bread(itemTyCd: '3'));
+
+      expect((await post(10)).stocked, isFalse);
+      expect(tax.ioCalls, isEmpty);
+    });
+
+    test('no quantity, no movement', () async {
+      expect((await post(0)).stocked, isFalse);
+      verifyNever(() => db.getVariant(id: any(named: 'id')));
+    });
+
+    test('a missing product fails loudly', () async {
+      when(() => db.getVariant(id: 'bread-v')).thenAnswer((_) async => null);
+
+      expect(() => post(10), throwsStateError);
+    });
+
+    test('an RRA rejection keeps the stock and returns a message', () async {
+      tax = _RecordingTaxApi(resultCd: '999');
+
+      final result = await post(10);
+
+      expect(result.stocked, isTrue);
+      expect(result.rraMessage, isNotNull);
+    });
+
+    test('a branch off EBM is stocked without RRA', () async {
+      when(
+        () => db.ebm(branchId: 'b1', fetchRemote: false),
+      ).thenAnswer((_) async => null);
+
+      final result = await post(10);
+
+      expect(result.stocked, isTrue);
+      expect(result.rraMessage, isNull);
+      expect(tax.ioCalls, isEmpty);
+    });
+  });
+
+  group('ProductionOutputService', () {
+    late _MockDb db;
+    late List<double> posted;
+    late ProductionOutputService service;
+
+    setUp(() {
+      db = _MockDb();
+      posted = [];
+      when(
+        () => db.updateWorkOrder(
+          workOrderId: any(named: 'workOrderId'),
+          status: any(named: 'status'),
+        ),
+      ).thenAnswer((_) async {});
+      service = ProductionOutputService(
+        deps: () => PurchaseApprovalDeps(
+          strategy: db,
+          capella: db,
+          tax: _RecordingTaxApi(),
+          branchId: 'b1',
+          businessId: 'biz1',
+          userId: 'u1',
+        ),
+        postStock: ({required workOrder, required qty, required deps}) async {
+          posted.add(qty);
+          return const ProductionStockResult(
+            stocked: true,
+            rraMessage: 'tax server down',
+          );
+        },
+      );
+    });
+
+    test('starting a planned order only changes its status', () async {
+      await service.startWorkOrder(_order());
+
+      verify(
+        () => db.updateWorkOrder(workOrderId: 'wo1', status: 'in_progress'),
       ).called(1);
+      expect(posted, isEmpty);
+      verifyNever(() => db.getVariant(id: any(named: 'id')));
+    });
+
+    test('starting an order already under way is a no-op', () async {
+      await service.startWorkOrder(_order(status: 'in_progress'));
+      await service.startWorkOrder(_order(status: 'completed'));
+
+      verifyNever(
+        () => db.updateWorkOrder(
+          workOrderId: any(named: 'workOrderId'),
+          status: any(named: 'status'),
+        ),
+      );
+    });
+
+    test('recording output saves it, then stocks the quantity', () async {
+      when(
+        () => db.recordActualOutput(
+          workOrderId: 'wo1',
+          branchId: 'b1',
+          actualQuantity: 12,
+          userId: 'u1',
+          varianceReason: null,
+          notes: null,
+        ),
+      ).thenAnswer(
+        (_) async => ActualOutput(
+          workOrderId: 'wo1',
+          branchId: 'b1',
+          actualQuantity: 12,
+          userId: 'u1',
+        ),
+      );
+
+      final recorded = await service.recordActualOutput(
+        workOrder: _order(status: 'in_progress'),
+        actualQuantity: 12,
+      );
+
+      expect(recorded.output?.actualQuantity, 12);
+      expect(recorded.rraMessage, 'tax server down');
+      expect(posted, [12]);
+    });
+
+    test('an output that was not saved stocks nothing', () async {
+      when(
+        () => db.recordActualOutput(
+          workOrderId: any(named: 'workOrderId'),
+          branchId: any(named: 'branchId'),
+          actualQuantity: any(named: 'actualQuantity'),
+          userId: any(named: 'userId'),
+          varianceReason: any(named: 'varianceReason'),
+          notes: any(named: 'notes'),
+        ),
+      ).thenAnswer((_) async => null);
+
+      final recorded = await service.recordActualOutput(
+        workOrder: _order(),
+        actualQuantity: 12,
+      );
+
+      expect(recorded.output, isNull);
+      expect(posted, isEmpty);
     });
   });
 }

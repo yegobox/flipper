@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:flipper_models/sync/interfaces/production_output_interface.dart';
 import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:flipper_models/helperModels/talker.dart';
@@ -167,7 +168,12 @@ mixin CapellaProductionOutputMixin implements ProductionOutputInterface {
     if (status != null) updates['status'] = status;
     if (notes != null) updates['notes'] = notes;
     if (updates.isEmpty) return;
-    updates['lastTouched'] = DateTime.now().toUtc().toIso8601String();
+    final nowIso = DateTime.now().toUtc().toIso8601String();
+    updates['lastTouched'] = nowIso;
+    // The daily production report reads these (data-connector
+    // `production_daily.rs`); UTC with an offset converts to branch time.
+    if (status == 'in_progress') updates['startedAt'] = nowIso;
+    if (status == 'completed') updates['completedAt'] = nowIso;
 
     await ditto.store.execute(
       'UPDATE work_orders SET ${_setClause(updates)} '
