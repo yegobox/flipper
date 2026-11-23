@@ -59,6 +59,11 @@ final DittoObserverStats dittoObserverStats = DittoObserverStats();
 /// is what a tap is queued behind.
 const int kSlowObserverCallbackMs = 250;
 
+/// Registering an observer slower than this is worth naming. Registration is a
+/// synchronous FFI call on the UI thread (`ditto_live_query_start`): while
+/// Ditto is busy it blocks there, and the till shows "Not Responding".
+const int kSlowObserverRegisterMs = 100;
+
 /// A store observer that reports what it costs.
 class TrackedDittoObserver {
   TrackedDittoObserver._(this._inner, this._name, this._collection);
@@ -93,6 +98,7 @@ TrackedDittoObserver registerTrackedObserver({
   required void Function(dynamic queryResult) onChange,
 }) {
   dittoObserverStats.opened(name: name, collection: collection);
+  final registering = Stopwatch()..start();
   final inner = ditto.store.registerObserver(
     query,
     arguments: arguments,
@@ -119,5 +125,18 @@ TrackedDittoObserver registerTrackedObserver({
       }
     },
   );
+  final registerMs = registering.elapsedMilliseconds;
+  if (registerMs >= kSlowObserverRegisterMs) {
+    // Noted before the UI thread is free again, so the stall report the
+    // watchdog sends next names this observer.
+    PerfOpTrail.instance.note(
+      'obs-open:$name',
+      took: Duration(milliseconds: registerMs),
+    );
+    talker.warning(
+      '[ditto_observer] opening $name blocked the UI for ${registerMs}ms '
+      '(live: ${dittoObserverStats.summary()})',
+    );
+  }
   return TrackedDittoObserver._(inner, name, collection);
 }

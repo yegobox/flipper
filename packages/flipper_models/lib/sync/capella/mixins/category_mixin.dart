@@ -4,6 +4,7 @@ import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:brick_core/query.dart' as brick;
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/sync/capella/category_ditto_mapper.dart';
+import 'package:flipper_models/sync/ditto_observer_registry.dart';
 import 'package:flipper_models/sync/interfaces/category_interface.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_web/services/ditto_service.dart';
@@ -186,13 +187,18 @@ mixin CapellaCategoryDittoMixin implements CategoryInterface {
     const query = "SELECT * FROM categories WHERE branchId = :branchId";
     final arguments = {"branchId": id};
 
-    final observer = dittoService.dittoInstance!.store.registerObserver(
-      query,
+    // Tracked: opening it is a synchronous call on the UI thread, and a slow
+    // one (Ditto busy syncing) is named in the next stall report.
+    final observer = registerTrackedObserver(
+      ditto: dittoService.dittoInstance!,
+      name: 'categoryStream',
+      collection: 'categories',
+      query: query,
       arguments: arguments,
       onChange: (queryResult) {
         if (controller.isClosed) return;
 
-        final categories = queryResult.items.map((doc) {
+        final categories = (queryResult.items as Iterable).map((doc) {
           final data = Map<String, dynamic>.from(doc.value);
           return categoryFromDittoMap(data);
         }).toList();

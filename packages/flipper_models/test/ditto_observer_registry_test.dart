@@ -7,6 +7,10 @@ import 'package:flutter_test/flutter_test.dart';
 /// Just enough of a Ditto handle for [registerTrackedObserver]: it keeps the
 /// callback so a test can fire it.
 class _FakeStore {
+  _FakeStore({this.registerDelay = Duration.zero});
+
+  /// How long registering blocks, like a real Ditto busy syncing.
+  final Duration registerDelay;
   void Function(dynamic)? onChange;
 
   Object registerObserver(
@@ -14,13 +18,17 @@ class _FakeStore {
     Map<String, dynamic>? arguments,
     required void Function(dynamic) onChange,
   }) {
+    if (registerDelay > Duration.zero) sleep(registerDelay);
     this.onChange = onChange;
     return Object();
   }
 }
 
 class _FakeDitto {
-  final store = _FakeStore();
+  _FakeDitto({Duration registerDelay = Duration.zero})
+    : store = _FakeStore(registerDelay: registerDelay);
+
+  final _FakeStore store;
 }
 
 class _FakeResult {
@@ -100,6 +108,41 @@ void main() {
     ditto.store.onChange!(_FakeResult());
 
     expect(PerfOpTrail.instance.recent().last, startsWith('obs:barTabs('));
+  });
+
+  test('a slow registration lands in the perf trail by name', () {
+    // Opening an observer is synchronous on the UI thread; when Ditto is busy
+    // it blocks there, and the stall report must say which one it was.
+    registerTrackedObserver(
+      ditto: _FakeDitto(
+        registerDelay: const Duration(
+          milliseconds: kSlowObserverRegisterMs + 20,
+        ),
+      ),
+      name: 'categoryStream',
+      collection: 'categories',
+      query: 'SELECT * FROM categories',
+      onChange: (_) {},
+    );
+
+    expect(
+      PerfOpTrail.instance.recent().last,
+      startsWith('obs-open:categoryStream('),
+    );
+  });
+
+  test('a fast registration leaves the perf trail alone', () {
+    final before = PerfOpTrail.instance.recent();
+
+    registerTrackedObserver(
+      ditto: _FakeDitto(),
+      name: 'quickOne',
+      collection: 'categories',
+      query: 'SELECT * FROM categories',
+      onChange: (_) {},
+    );
+
+    expect(PerfOpTrail.instance.recent(), before);
   });
 
   test('the slow-callback threshold is the documented one', () {
