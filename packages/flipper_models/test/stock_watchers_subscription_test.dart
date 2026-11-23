@@ -54,6 +54,23 @@ void main() {
   );
 
   test(
+    'the batched watcher drains the observer results nobody else reads',
+    () async {
+      // ditto_live queues every result on `observer.changes`; left unread,
+      // each one stays in memory until the observer is cancelled.
+      final observers = <FakeDittoObserver>[];
+      final sub = sync.watchStocksByIds(['s-1']).listen((_) {});
+      expect(ditto.store.liveObserverCount, 1);
+      observers.addAll(ditto.store.liveObservers);
+      expect(observers.single.changesListened, isTrue);
+
+      await sub.cancel();
+      expect(observers.single.changesListened, isFalse);
+      expect(observers.single.cancelled, isTrue);
+    },
+  );
+
+  test(
     'the per-row watcher drops its subscription with its observer',
     () async {
       final rows = [

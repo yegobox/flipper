@@ -139,30 +139,37 @@ mixin CapellaVariantMixin implements VariantInterface {
   /// Chunk size for `IN (…)` id lookups, matching the cart cleanup path.
   static const int _idLookupChunkSize = 80;
 
-  /// On-hand quantity for every stock id the catalog [rows] point at.
+  /// Recent stock filter walks; see [StockFilterMatchCache].
+  final StockFilterMatchCache _stockFilterMatches = StockFilterMatchCache();
+
+  /// Walks the stock filter for [catalogJson] (the catalog projection's raw
+  /// rows) against the branch's stock.
   ///
   /// One scan of the branch's stock rows (`stocks.branchId` is indexed), then a
   /// by-id lookup for any stock id that scan did not return — a row with no
   /// `branchId` still feeds the tile's live stock, so it must count here too.
-  Future<Map<String, double>> _stockQtyForCatalogRows(
+  /// Rows stay raw JSON strings on this isolate: the decode and the join run
+  /// in [runStockFilterWalk], off the UI thread once the catalog is large.
+  Future<StockFilterWalk> _walkStockFilter(
     Ditto ditto,
     String branchId,
-    List<Map<String, dynamic>> rows,
-  ) async {
+    List<String> catalogJson, {
+    required bool inStock,
+  }) async {
     final branchStock = await ditto.store.execute(
       stockQtySelectDql(whereClause: 'branchId = :branchId'),
       arguments: {'branchId': branchId},
     );
-    final qty = stockQtyByIdKeys(
-      branchStock.items.map((doc) => Map<String, dynamic>.from(doc.value)),
+    final stockJson = [for (final doc in branchStock.items) doc.jsonString];
+    final walk = await runStockFilterWalk(
+      catalogJson: catalogJson,
+      stockJson: stockJson,
+      inStock: inStock,
     );
+    final missing = walk.unresolvedStockIds;
+    if (missing.isEmpty) return walk;
 
-    final missing = rows
-        .map(variantRowStockId)
-        .whereType<String>()
-        .where((id) => !qty.containsKey(id))
-        .toSet()
-        .toList();
+    final extraQty = <String, double>{};
     for (var i = 0; i < missing.length; i += _idLookupChunkSize) {
       final chunk = missing.sublist(
         i,
@@ -182,13 +189,18 @@ mixin CapellaVariantMixin implements VariantInterface {
         ),
         arguments: lookup.arguments,
       );
-      qty.addAll(
+      extraQty.addAll(
         stockQtyByIdKeys(
           found.items.map((doc) => Map<String, dynamic>.from(doc.value)),
         ),
       );
     }
-    return qty;
+    return runStockFilterWalk(
+      catalogJson: catalogJson,
+      stockJson: stockJson,
+      inStock: inStock,
+      extraQty: extraQty,
+    );
   }
 
   /// Variant documents for [ids], returned in the order of [ids].
@@ -493,25 +505,50 @@ mixin CapellaVariantMixin implements VariantInterface {
           inStock != null && bcd == null && !isCatalogTextSearch;
       int? stockFilteredOut;
 
+      //
+      // The walk covers the whole catalog, so it runs once per listing: a fetch
+      // that keeps the caller's total (next page, prefetch, resize, scroll)
+      // pages through the stored walk instead (see [StockFilterMatchCache]).
       Future<List<dynamic>> runStockFiltered() async {
         final catalogArgs = Map<String, dynamic>.from(arguments)
           ..remove('limit')
           ..remove('offset');
-        final catalogRows = (await runExecute(
-          stockFilterCatalogQuery(filterQuery, orderSuffix),
+        final catalogQuery = stockFilterCatalogQuery(filterQuery, orderSuffix);
+        final cacheKey = stockFilterMatchKey(
+          catalogQuery,
           catalogArgs,
-          label: 'variants:stock_catalog',
-        )).map((doc) => Map<String, dynamic>.from(doc.value)).toList();
-        final matching = variantIdsMatchingStock(
-          rows: catalogRows,
-          qtyByStockId: await PerfOpTrail.instance.track(
-            'variants:stock_qty',
-            () => _stockQtyForCatalogRows(ditto, branchId, catalogRows),
-          ),
           inStock: inStock!,
         );
+        var walk = countTotal ? null : _stockFilterMatches.lookup(cacheKey);
+        if (walk == null) {
+          // Raw JSON only: decoding thousands of rows here is what stalled
+          // the UI thread on 2 GB phones.
+          final catalogJson = await PerfOpTrail.instance.track(
+            'variants:stock_catalog',
+            () async {
+              final r = await ditto.store.execute(
+                catalogQuery,
+                arguments: catalogArgs,
+              );
+              return [for (final doc in r.items) doc.jsonString];
+            },
+          );
+          walk = _stockFilterMatches.store(
+            cacheKey,
+            await PerfOpTrail.instance.track(
+              'variants:stock_qty',
+              () => _walkStockFilter(
+                ditto,
+                branchId,
+                catalogJson,
+                inStock: inStock,
+              ),
+            ),
+          );
+        }
+        final matching = walk.matching;
         totalCount = matching.length;
-        stockFilteredOut = catalogRows.length - matching.length;
+        stockFilteredOut = walk.filteredOut;
         return PerfOpTrail.instance.track(
           'variants:stock_docs',
           () => _variantDocsInOrder(
@@ -701,8 +738,12 @@ mixin CapellaVariantMixin implements VariantInterface {
         totalCount = items.length < itemsPerPage ? base : base + 1;
       }
 
-      final stockIds = items
-          .map((doc) => Map<String, dynamic>.from(doc.value)['stockId'])
+      // Decoded once: the stock ids and the variants read the same rows.
+      final rows = [
+        for (final doc in items) Map<String, dynamic>.from(doc.value),
+      ];
+      final stockIds = rows
+          .map((row) => row['stockId'])
           .whereType<String>()
           .where((id) => id.trim().isNotEmpty)
           .toSet()
@@ -719,8 +760,8 @@ mixin CapellaVariantMixin implements VariantInterface {
 
       // Parse results
       final pagedVariants = <Variant>[];
-      for (var doc in items) {
-        final variant = Variant.fromJson(Map<String, dynamic>.from(doc.value));
+      for (final row in rows) {
+        final variant = Variant.fromJson(row);
         final sid = variant.stockId?.trim();
         if (sid != null && sid.isNotEmpty) {
           final attached = stocksById[sid];

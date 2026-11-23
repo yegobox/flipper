@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flipper_models/perf/ui_stall_watchdog.dart';
@@ -21,6 +22,29 @@ class _FakeStore {
 
 class _FakeDitto {
   final store = _FakeStore();
+}
+
+/// Like ditto_live's `StoreObserver`: every result also lands on [changes],
+/// a single-subscription stream that buffers until someone listens.
+class _ObserverWithChanges {
+  final results = StreamController<dynamic>();
+  Stream<dynamic> get changes => results.stream;
+  bool cancelled = false;
+  Future<void> cancel() async => cancelled = true;
+}
+
+class _StoreWithChanges {
+  final observer = _ObserverWithChanges();
+
+  _ObserverWithChanges registerObserver(
+    String query, {
+    Map<String, dynamic>? arguments,
+    required void Function(dynamic) onChange,
+  }) => observer;
+}
+
+class _DittoWithChanges {
+  final store = _StoreWithChanges();
 }
 
 class _FakeResult {
@@ -100,6 +124,34 @@ void main() {
     ditto.store.onChange!(_FakeResult());
 
     expect(PerfOpTrail.instance.recent().last, startsWith('obs:barTabs('));
+  });
+
+  test('results queued on `changes` are drained, not kept alive', () async {
+    final ditto = _DittoWithChanges();
+    final observer = registerTrackedObserver(
+      ditto: ditto,
+      name: 'stocks_by_ids',
+      collection: 'stocks',
+      query: 'SELECT * FROM stocks',
+      onChange: (_) {},
+    );
+    final inner = ditto.store.observer;
+    expect(inner.results.hasListener, isTrue);
+
+    await observer.cancel();
+    expect(inner.results.hasListener, isFalse);
+    expect(inner.cancelled, isTrue);
+  });
+
+  test('a double without `changes` still registers', () async {
+    final observer = registerTrackedObserver(
+      ditto: _FakeDitto(),
+      name: 'plain',
+      collection: 'stocks',
+      query: 'SELECT * FROM stocks',
+      onChange: (_) {},
+    );
+    await observer.cancel();
   });
 
   test('the slow-callback threshold is the documented one', () {
