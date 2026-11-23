@@ -182,3 +182,31 @@ List<TransactionItem> saleLinesToMarkShipped(
   }
   return marked.values.toList();
 }
+
+/// Whether the stock covers [combosInCart] of a combo: each component's
+/// on-hand must hold [Composite.qty] (1 when unset) per combo plus what the
+/// cart already holds of that component on its own ([inCartAlone]).
+/// Components that hold no stock (services, or no stock record) never block.
+bool comboComponentsInStock({
+  required List<Composite> components,
+  required Map<String, Variant> variantsById,
+  required Map<String, Stock> stocksById,
+  required double combosInCart,
+  required double Function(String variantId) inCartAlone,
+}) {
+  final needByVariant = <String, double>{};
+  for (final component in components) {
+    final variant = variantsById[component.variantId];
+    if (variant == null || isServiceItemType(variant.itemTyCd)) continue;
+    final perCombo = (component.qty ?? 0) > 0 ? component.qty! : 1.0;
+    needByVariant[variant.id] =
+        (needByVariant[variant.id] ?? 0) + perCombo * combosInCart;
+  }
+  for (final entry in needByVariant.entries) {
+    final stockId = variantsById[entry.key]?.stockId;
+    if (stockId == null || stockId.isEmpty) continue;
+    final onHand = stocksById[stockId]?.currentStock ?? 0;
+    if (onHand < entry.value + inCartAlone(entry.key)) return false;
+  }
+  return true;
+}

@@ -24,6 +24,8 @@ class _Store implements CapellaSync {
   final paymentRows = <String, ({double amount, String method})>{};
   final stockLevels = <String, double>{};
   final variantRows = <String, Variant>{};
+  final productRows = <String, Product>{};
+  final compositeRows = <String, List<Composite>>{};
   final calls = <Symbol, int>{};
 
   /// This device's LocalStorage, which survives a restart like the store.
@@ -109,6 +111,18 @@ class _Store implements CapellaSync {
         return Future<void>.value();
       case #getVariant:
         return Future<Variant?>.value(variantRows[arg<String>(#id)]);
+      case #getProduct:
+        return Future<Product?>.value(productRows[arg<String?>(#id)]);
+      case #composites:
+        return Future<List<Composite>>.value(
+          compositeRows[arg<String?>(#productId)] ?? const [],
+        );
+      case #batchGetVariantsByIds:
+        final ids = i.positionalArguments.first as List<String>;
+        return Future<Map<String, Variant>>.value({
+          for (final id in ids)
+            if (variantRows[id] != null) id: variantRows[id]!,
+        });
       case #updateStock:
         final id = arg<String>(#stockId);
         stockLevels[id] = (stockLevels[id] ?? 0) + arg<double>(#currentStock);
@@ -292,6 +306,53 @@ SaleExchangeRequest _request(ITransaction original, {double takeQty = 2}) =>
 
 void main() {
   final l10n = FlipperL10n.current;
+
+  test('a returned combo gives its components back to stock', () async {
+    final store = _Store();
+    final original = _seedSale(store);
+    // The sale also sold one combo: 2 sodas + 1 bread, sold as one line.
+    store.items[_shirtLineId] = store.items[_shirtLineId]!.copyWith(
+      variantId: 'v-combo',
+      productId: 'p-combo',
+      itemTyCd: '3',
+      qty: 1,
+    );
+    store.variantRows['v-combo'] = Variant(
+      id: 'v-combo',
+      name: 'Breakfast',
+      branchId: 'b1',
+      productId: 'p-combo',
+      itemTyCd: '3',
+    );
+    store.productRows['p-combo'] = Product(
+      id: 'p-combo',
+      name: 'Breakfast',
+      color: '#000',
+      businessId: 'biz1',
+      branchId: 'b1',
+      isComposite: true,
+    );
+    store.compositeRows['p-combo'] = [
+      Composite(productId: 'p-combo', variantId: 'v-soda', qty: 2),
+      Composite(productId: 'p-combo', variantId: 'v-bread'),
+    ];
+    for (final (id, stock) in [
+      ('v-soda', 'stock-soda'),
+      ('v-bread', 'stock-bread'),
+    ]) {
+      store.variantRows[id] = Variant(
+        id: id,
+        name: id,
+        branchId: 'b1',
+        itemTyCd: '2',
+        stockId: stock,
+      );
+    }
+
+    await _service(store).execute(_request(original));
+
+    expect(store.stockLevels, {'stock-soda': 2.0, 'stock-bread': 1.0});
+  });
 
   test('a take of 2 is priced at its unit price, not unit × 2 × 2', () async {
     final store = _Store();

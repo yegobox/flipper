@@ -2086,36 +2086,12 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
         }
         return true;
       }
-      if (!(item.partOfComposite ?? false)) {
-        await ProxyService.getStrategy(
-          Strategy.capella,
-        ).flipperDelete(id: item.id, endPoint: 'transactionItem');
-      } else {
-        final paged = await ProxyService.getStrategy(Strategy.capella).variants(
-          taxTyCds: ProxyService.box.vatEnabled() ? ['A', 'B', 'C'] : ['D'],
-          variantId: item.variantId!,
-          branchId: ProxyService.box.getBranchId()!,
-        );
-        Variant? variant = (List<Variant>.from(paged.variants)).firstOrNull;
-
-        if (variant != null) {
-          final composites = await ProxyService.getStrategy(
-            Strategy.capella,
-          ).composites(productId: variant.productId!);
-
-          for (final composite in composites) {
-            final deletableItem = await ProxyService.getStrategy(
-              Strategy.capella,
-            ).getTransactionItem(variantId: composite.variantId!);
-            if (deletableItem != null) {
-              await ProxyService.getStrategy(Strategy.capella).flipperDelete(
-                id: deletableItem.id,
-                endPoint: 'transactionItem',
-              );
-            }
-          }
-        }
-      }
+      // Every line deletes on its own, combo lines included: a combo is one
+      // line. (The old partOfComposite branch looked its siblings up by
+      // variant across every cart, so it could delete another cart's line.)
+      await ProxyService.getStrategy(
+        Strategy.capella,
+      ).flipperDelete(id: item.id, endPoint: 'transactionItem');
       _refreshTransactionItems(isOrdering, transactionId: item.transactionId!);
       return true;
     } catch (e, s) {

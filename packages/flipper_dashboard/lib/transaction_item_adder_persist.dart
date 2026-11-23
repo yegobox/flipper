@@ -9,6 +9,7 @@ import 'package:flipper_models/providers/optimistic_cart_provider.dart';
 import 'package:flipper_models/providers/pos_cart_display_provider.dart';
 import 'package:flipper_models/providers/pending_cart_sale_session_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
+import 'package:flipper_models/sync/utils/combo_stock_lines.dart';
 import 'package:flipper_models/sync/utils/pos_catalog_stock_filter.dart';
 import 'package:flipper_services/GlobalLogError.dart';
 import 'package:flipper_services/constants.dart';
@@ -86,6 +87,54 @@ Future<ITransaction?> resolvePendingTransactionForPersist({
   return pendingTransaction;
 }
 
+/// Whether a combo [variant]'s components cover the combos now in the cart
+/// ([comboComponentsInStock]). True for a service that is not a combo. Local
+/// Ditto reads only, and only for service items.
+Future<bool> _comboComponentsInStock({
+  required Ref ref,
+  required dynamic capella,
+  required Variant variant,
+}) async {
+  final productId = variant.productId;
+  final branchId = ProxyService.box.getBranchId();
+  final businessId = ProxyService.box.getBusinessId();
+  if (productId == null || branchId == null || businessId == null) return true;
+  final Product? product = await capella.getProduct(
+    id: productId,
+    branchId: branchId,
+    businessId: businessId,
+  );
+  if (product?.isComposite != true) return true;
+  final List<Composite> components = await capella.composites(
+    productId: productId,
+  );
+  final ids = components
+      .map((c) => c.variantId)
+      .whereType<String>()
+      .where((id) => id.isNotEmpty)
+      .toSet()
+      .toList();
+  if (ids.isEmpty) return true;
+  final Map<String, Variant> variants = await capella.batchGetVariantsByIds(
+    ids,
+  );
+  final stockIds = variants.values
+      .map((v) => v.stockId)
+      .whereType<String>()
+      .where((id) => id.isNotEmpty)
+      .toList();
+  final Map<String, Stock> stocks = stockIds.isEmpty
+      ? <String, Stock>{}
+      : await capella.batchGetStocksByIds(stockIds);
+  return comboComponentsInStock(
+    components: components,
+    variantsById: variants,
+    stocksById: stocks,
+    combosInCart: ref.read(posCartQtyForVariantProvider(variant.id)).toDouble(),
+    inCartAlone: (id) => ref.read(posCartQtyForVariantProvider(id)).toDouble(),
+  );
+}
+
 Future<bool> persistItemToTransaction({
   required Ref ref,
   required BuildContext context,
@@ -136,6 +185,29 @@ Future<bool> persistItemToTransaction({
         }
         return false;
       }
+    }
+    // A combo is a service, so the check above skips it; its components'
+    // stock is what it sells (see expandComboLinesForStock).
+    if (variant.taxTyCd != "D" &&
+        isServiceItemType(variant.itemTyCd) &&
+        !await locator<SettingsService>().isAllowSellingBelowStock() &&
+        !await _comboComponentsInStock(
+          ref: ref,
+          capella: capella,
+          variant: variant,
+        )) {
+      if (cartOptimismApplied) {
+        ref
+            .read(optimisticCartProvider.notifier)
+            .rollbackPending(
+              transactionId: pendingTransaction.id,
+              variantId: variant.id,
+            );
+      }
+      if (context.mounted) {
+        showErrorNotification(context, context.flipperL10n.cartNotEnoughStock);
+      }
+      return false;
     }
   }
 

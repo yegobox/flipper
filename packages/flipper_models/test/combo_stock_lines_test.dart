@@ -139,6 +139,76 @@ void main() {
     expect(marked.map((l) => l.id), ['tea', 'c1']);
   });
 
+  group('comboComponentsInStock', () {
+    final variants = {
+      'soda': Variant(
+        id: 'soda',
+        name: 'soda',
+        branchId: 'b1',
+        stockId: 'soda-s',
+        itemTyCd: '2',
+      ),
+      'bread': Variant(
+        id: 'bread',
+        name: 'bread',
+        branchId: 'b1',
+        stockId: 'bread-s',
+        itemTyCd: '2',
+      ),
+      'napkin': Variant(
+        id: 'napkin',
+        name: 'napkin',
+        branchId: 'b1',
+        itemTyCd: '2',
+      ),
+      'wrap': Variant(
+        id: 'wrap',
+        name: 'wrap',
+        branchId: 'b1',
+        stockId: 'wrap-s',
+        itemTyCd: '3',
+      ),
+    };
+    final parts = [
+      Composite(variantId: 'soda', qty: 2),
+      Composite(variantId: 'bread'),
+      // Hold no stock, so never block: no stock record, a service, gone.
+      Composite(variantId: 'napkin', qty: 9),
+      Composite(variantId: 'wrap', qty: 9),
+      Composite(variantId: 'gone', qty: 9),
+    ];
+    Map<String, Stock> stocks(double soda, double bread) => {
+      'soda-s': Stock(id: 'soda-s', branchId: 'b1', currentStock: soda),
+      'bread-s': Stock(id: 'bread-s', branchId: 'b1', currentStock: bread),
+    };
+    bool check(Map<String, Stock> s, double combos, {double sodaAlone = 0}) =>
+        comboComponentsInStock(
+          components: parts,
+          variantsById: variants,
+          stocksById: s,
+          combosInCart: combos,
+          inCartAlone: (id) => id == 'soda' ? sodaAlone : 0,
+        );
+
+    test('enough of every component for the combos in the cart', () {
+      expect(check(stocks(4, 2), 2), isTrue);
+    });
+
+    test('short of one component blocks', () {
+      expect(check(stocks(3, 2), 2), isFalse);
+      expect(check(stocks(4, 1), 2), isFalse);
+    });
+
+    test('the same component sold on its own counts too', () {
+      expect(check(stocks(4, 2), 2, sodaAlone: 1), isFalse);
+      expect(check(stocks(5, 2), 2, sodaAlone: 1), isTrue);
+    });
+
+    test('a component with no stock row reads as none on hand', () {
+      expect(check({}, 1), isFalse);
+    });
+  });
+
   group('expandComboLinesForStock', () {
     late _MockDb db;
 
