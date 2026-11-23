@@ -3,6 +3,7 @@ import 'package:flipper_dashboard/features/product_editor/product_editor_tokens.
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 /// Handoff-styled composite toggle wrapping [isCompositeProvider].
@@ -12,6 +13,61 @@ class ProductEditorCompositeToggle extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isToggled = ref.watch(isCompositeProvider);
+    return ProductEditorSwitchRow(
+      icon: Icons.layers_outlined,
+      title: context.flipperL10n.productEditorCompositeItem,
+      hint: context.flipperL10n.productEditorCompositeHint,
+      value: isToggled,
+      onChanged: (value) =>
+          ref.read(isCompositeProvider.notifier).state = value,
+    );
+  }
+}
+
+/// Whether a new combo is made ahead in Production Output (a finished product
+/// with its own stock) rather than put together when it is sold (a service).
+/// Starts off each time the editor opens.
+final madeInProductionProvider = StateProvider.autoDispose<bool>(
+  (ref) => false,
+);
+
+/// "Made in production" switch, shown for a combo.
+class ProductEditorMadeInProductionToggle extends ConsumerWidget {
+  const ProductEditorMadeInProductionToggle({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final value = ref.watch(madeInProductionProvider);
+    return ProductEditorSwitchRow(
+      icon: Icons.factory_outlined,
+      title: context.flipperL10n.productEditorMadeInProduction,
+      hint: context.flipperL10n.productEditorMadeInProductionHint,
+      value: value,
+      onChanged: (v) => ref.read(madeInProductionProvider.notifier).state = v,
+    );
+  }
+}
+
+/// The editor's labelled on/off row.
+class ProductEditorSwitchRow extends StatelessWidget {
+  const ProductEditorSwitchRow({
+    super.key,
+    required this.icon,
+    required this.title,
+    required this.hint,
+    required this.value,
+    required this.onChanged,
+  });
+
+  final IconData icon;
+  final String title;
+  final String hint;
+  final bool value;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final isToggled = value;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -29,11 +85,7 @@ class ProductEditorCompositeToggle extends ConsumerWidget {
               color: ProductEditorTokens.violetTint,
               borderRadius: BorderRadius.circular(10),
             ),
-            child: const Icon(
-              Icons.layers_outlined,
-              size: 17,
-              color: ProductEditorTokens.violet,
-            ),
+            child: Icon(icon, size: 17, color: ProductEditorTokens.violet),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -41,7 +93,7 @@ class ProductEditorCompositeToggle extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  context.flipperL10n.productEditorCompositeItem,
+                  title,
                   style: GoogleFonts.outfit(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
@@ -49,7 +101,7 @@ class ProductEditorCompositeToggle extends ConsumerWidget {
                   ),
                 ),
                 Text(
-                  context.flipperL10n.productEditorCompositeHint,
+                  hint,
                   style: GoogleFonts.outfit(
                     fontSize: 12,
                     color: ProductEditorTokens.ink3,
@@ -59,9 +111,7 @@ class ProductEditorCompositeToggle extends ConsumerWidget {
             ),
           ),
           GestureDetector(
-            onTap: () {
-              ref.read(isCompositeProvider.notifier).state = !isToggled;
-            },
+            onTap: () => onChanged(!isToggled),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
               width: 50,

@@ -12846,6 +12846,13 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
       'Gikozwe mu bindi bicuruzwa — igiciro ni igiteranyo cy\'ibigize';
 
   @override
+  String get productEditorMadeInProduction => 'Bikorerwa mu musaruro';
+
+  @override
+  String get productEditorMadeInProductionHint =>
+      'Bikorwa mbere muri Umusaruro wakozwe, bikagurishwa mu bubiko bwabyo. Kwandika umusaruro bikoresha ibibigize.';
+
+  @override
   String get productEditorColorSelectShade => 'Hitamo ubwoko bw\'ibara';
 
   @override

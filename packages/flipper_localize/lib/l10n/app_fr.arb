@@ -3555,6 +3555,8 @@
     "productEditorCategoryNew": "Nouvelle",
     "productEditorCompositeItem": "Article composé",
     "productEditorCompositeHint": "Composé d'autres produits — le prix est la somme de ses composants",
+    "productEditorMadeInProduction": "Fabriqué en production",
+    "productEditorMadeInProductionHint": "Fabriqué à l'avance dans le suivi de production et vendu depuis son propre stock. L'enregistrement de la production consomme les composants.",
     "productEditorColorSelectShade": "Choisir une nuance",
     "productEditorColorShades": "NUANCES",
     "productEditorColorHueShade": "{hue} · nuance {number}",

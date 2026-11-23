@@ -5140,6 +5140,8 @@
   "productEditorCategoryNew": "Gishya",
   "productEditorCompositeItem": "Igicuruzwa gikomatanyije",
   "productEditorCompositeHint": "Gikozwe mu bindi bicuruzwa — igiciro ni igiteranyo cy'ibigize",
+  "productEditorMadeInProduction": "Bikorerwa mu musaruro",
+  "productEditorMadeInProductionHint": "Bikorwa mbere muri Umusaruro wakozwe, bikagurishwa mu bubiko bwabyo. Kwandika umusaruro bikoresha ibibigize.",
   "productEditorColorSelectShade": "Hitamo ubwoko bw'ibara",
   "productEditorColorShades": "AMABARA",
   "productEditorColorHueShade": "{hue} · ubwoko {number}",

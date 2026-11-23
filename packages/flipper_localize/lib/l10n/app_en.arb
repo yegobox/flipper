@@ -10665,6 +10665,8 @@
         "description": "Product editor: composite toggle title"
     },
     "productEditorCompositeHint": "Built from other products — price is the sum of its components",
+    "productEditorMadeInProduction": "Made in production",
+    "productEditorMadeInProductionHint": "Made ahead in Production Output and sold from its own stock. Recording output uses up the components.",
     "@productEditorCompositeHint": {
         "description": "Product editor: composite toggle subtitle"
     },

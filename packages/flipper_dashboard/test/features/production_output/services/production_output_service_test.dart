@@ -182,33 +182,77 @@ void main() {
       expect(tax.masterQtys, [13]);
     });
 
-    test('a composite product moves no stock: its sale does', () async {
+    test('a combo made in production uses up its components', () async {
       when(
         () => db.getProduct(id: 'bread-p', branchId: 'b1', businessId: 'biz1'),
       ).thenAnswer(
         (_) async => Product(
           id: 'bread-p',
-          name: 'Bread kit',
+          name: 'Bread',
           color: '#000',
           businessId: 'biz1',
           branchId: 'b1',
           isComposite: true,
         ),
       );
+      when(() => db.composites(productId: 'bread-p')).thenAnswer(
+        (_) async => [
+          Composite(productId: 'bread-p', variantId: 'flour', qty: 0.5),
+          Composite(productId: 'bread-p', variantId: 'sugar', qty: 20),
+          Composite(productId: 'bread-p', variantId: 'oven'),
+        ],
+      );
+      Variant ingredient(String id, {String itemTyCd = '1'}) => Variant(
+        id: id,
+        name: id,
+        branchId: 'b1',
+        stockId: '$id-s',
+        itemTyCd: itemTyCd,
+        itemCd: 'RW1NTU$id',
+        supplyPrice: 100,
+        retailPrice: 100,
+      );
+      when(() => db.batchGetVariantsByIds(any())).thenAnswer(
+        (_) async => {
+          'flour': ingredient('flour'),
+          'sugar': ingredient('sugar'),
+          // A service component holds no stock and is skipped.
+          'oven': ingredient('oven', itemTyCd: '3'),
+        },
+      );
+      Map<String, double>? deducted;
+      when(() => db.batchDeductStocks(any())).thenAnswer((inv) async {
+        deducted = Map.of(inv.positionalArguments.first as Map<String, double>);
+      });
+      when(() => db.batchGetStocksByIds(any())).thenAnswer(
+        (_) async => {
+          'flour-s': Stock(id: 'flour-s', branchId: 'b1', currentStock: 15),
+          'sugar-s': Stock(id: 'sugar-s', branchId: 'b1', currentStock: -4),
+        },
+      );
+
+      final result = await post(10);
+
+      expect(result.stocked, isTrue);
+      expect(deducted, {'flour-s': 5.0, 'sugar-s': 200.0});
+      expect(tax.ioCalls.map((c) => (c.sarTyCd, c.isStockIn, c.sarNo)), [
+        ('14', false, '41'),
+        ('05', true, '42'),
+      ]);
+      expect(tax.ioCalls.first.remark, 'Used in production: Bread');
+      // On-hand after use (never negative), then the bread itself.
+      expect(tax.masterQtys, [15, 0, 13]);
+    });
+
+    test('a combo sold as made (a service) moves nothing here', () async {
+      when(
+        () => db.getVariant(id: 'bread-v'),
+      ).thenAnswer((_) async => _bread(itemTyCd: '3'));
 
       final result = await post(10);
 
       expect(result.stocked, isFalse);
-      verifyNever(
-        () => db.updateStock(
-          stockId: any(named: 'stockId'),
-          currentStock: any(named: 'currentStock'),
-          appending: any(named: 'appending'),
-          lastTouched: any(named: 'lastTouched'),
-          ebmSynced: any(named: 'ebmSynced'),
-          value: any(named: 'value'),
-        ),
-      );
+      verifyNever(() => db.composites(productId: any(named: 'productId')));
       expect(tax.ioCalls, isEmpty);
     });
 

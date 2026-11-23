@@ -12802,6 +12802,13 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
       'Imetengenezwa kwa bidhaa nyingine — bei ni jumla ya vipengele vyake';
 
   @override
+  String get productEditorMadeInProduction => 'Hutengenezwa katika uzalishaji';
+
+  @override
+  String get productEditorMadeInProductionHint =>
+      'Hutengenezwa mapema katika Matokeo ya uzalishaji na kuuzwa kutoka kwenye hisa yake. Kurekodi matokeo hutumia viambato vyake.';
+
+  @override
   String get productEditorColorSelectShade => 'Chagua kivuli cha rangi';
 
   @override
