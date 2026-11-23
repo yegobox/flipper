@@ -231,10 +231,25 @@ void main() {
         },
       );
 
-      final result = await post(10);
+      final costs = <String, double>{};
+      final result = await postProductionOutput(
+        workOrder: _order(status: 'in_progress'),
+        qty: 10,
+        deps: PurchaseApprovalDeps(strategy: db, capella: db, tax: tax),
+        resolveEbm: (_) async => _ebmOn(),
+        nextBranchSar: (branchId) async {
+          sarsHandedOut.add(41 + sarsHandedOut.length);
+          return Sar(sarNo: sarsHandedOut.last, branchId: branchId);
+        },
+        writeSupplyPrice: (id, cost) async => costs[id] = cost,
+      );
 
       expect(result.stocked, isTrue);
       expect(deducted, {'flour-s': 5.0, 'sugar-s': 200.0});
+      // A loaf costs 0.5×100 + 20×100 + 1×100 = 2150. 3 loaves were already
+      // held at 500, so the average after making 10 is (3×500 + 10×2150) / 13.
+      expect(costs.keys, ['bread-v']);
+      expect(costs['bread-v'], closeTo((3 * 500 + 10 * 2150) / 13, 0.001));
       expect(tax.ioCalls.map((c) => (c.sarTyCd, c.isStockIn, c.sarNo)), [
         ('14', false, '41'),
         ('05', true, '42'),

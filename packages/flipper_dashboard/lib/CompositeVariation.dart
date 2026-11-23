@@ -13,12 +13,17 @@ class VVariant {
   final String productId;
   final double retailPrice;
 
+  /// What one unit costs the business (the variant's supply price). A combo's
+  /// cost is built from this, never from the selling price.
+  final double supplyPrice;
+
   VVariant({
     required this.productName,
     this.name,
     required this.id,
     required this.productId,
     required this.retailPrice,
+    this.supplyPrice = 0,
   });
 }
 
@@ -28,7 +33,7 @@ class VariantState {
   final double cost;
 
   VariantState({required this.variant, this.quantity = 1})
-    : cost = variant.retailPrice * quantity;
+    : cost = variant.supplyPrice * quantity;
 
   VariantState copyWith({VVariant? variant, double? quantity}) {
     return VariantState(
@@ -119,7 +124,7 @@ class _SearchVariantState extends ConsumerState<CompositeVariation> {
   void recalculateTotalCost() {
     final selectedVariants = ref.read(selectedVariantsLocalProvider);
     totalCost = selectedVariants.fold(0, (sum, vs) {
-      return sum + (vs.variant.retailPrice * vs.quantity);
+      return sum + (vs.variant.supplyPrice * vs.quantity);
     });
     widget.supplyPriceController.text = totalCost.toString();
   }

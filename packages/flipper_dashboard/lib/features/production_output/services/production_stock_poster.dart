@@ -4,8 +4,10 @@ import 'package:flipper_dashboard/manual_purchase/manual_purchase_stock_in.dart'
 import 'package:flipper_models/DatabaseSyncInterface.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/services/purchase_approval_deps.dart';
+import 'package:flipper_models/sync/utils/combo_cost.dart';
 import 'package:flipper_models/sync/utils/purchase_stock_rra.dart';
 import 'package:flipper_services/constants.dart';
+import 'package:flipper_web/services/ditto_service.dart';
 import 'package:meta/meta.dart';
 import 'package:supabase_models/brick/models/sars.model.dart';
 import 'package:supabase_models/brick/models/work_order.model.dart';
@@ -45,6 +47,8 @@ Future<ProductionStockResult> postProductionOutput({
   required PurchaseApprovalDeps deps,
   @visibleForTesting Future<Ebm?> Function(String businessId)? resolveEbm,
   @visibleForTesting Future<Sar> Function(String branchId)? nextBranchSar,
+  @visibleForTesting
+  Future<void> Function(String variantId, double supplyPrice)? writeSupplyPrice,
 }) async {
   if (qty <= 0) return ProductionStockResult.skipped;
 
@@ -71,8 +75,23 @@ Future<ProductionStockResult> postProductionOutput({
   }
   final productName = workOrder.variantName ?? variant.name;
 
+  final componentIds = components
+      .map((c) => c.variantId)
+      .whereType<String>()
+      .where((id) => id.isNotEmpty)
+      .toSet()
+      .toList();
+  final componentVariants = componentIds.isEmpty
+      ? const <String, Variant>{}
+      : await capella.batchGetVariantsByIds(componentIds);
+
   String? rraMessage;
-  final used = await _useUpComponents(components, qty: qty, capella: capella);
+  final used = await _useUpComponents(
+    components,
+    componentVariants,
+    qty: qty,
+    capella: capella,
+  );
   if (used.isNotEmpty) {
     final usedRra = await reportPurchaseStockInToRra(
       branchId: workOrder.branchId,
@@ -121,6 +140,22 @@ Future<ProductionStockResult> postProductionOutput({
   );
   if (!rra.succeeded) rraMessage ??= rra.message;
 
+  // What this batch cost to make, averaged into the product's supply price
+  // so its sales book the right COGS. A product without a recipe keeps the
+  // cost its owner set.
+  if (components.isNotEmpty) {
+    final oldCost = (variant.supplyPrice ?? 0).toDouble();
+    final newCost = movingAverageCost(
+      onHandBefore: added.onHand - qty,
+      oldCost: oldCost,
+      qty: qty,
+      unitCost: comboUnitCost(components, componentVariants),
+    );
+    if ((newCost - oldCost).abs() > comboCostTolerance) {
+      await (writeSupplyPrice ?? _writeSupplyPrice)(variant.id, newCost);
+    }
+  }
+
   return ProductionStockResult(stocked: true, rraMessage: rraMessage);
 }
 
@@ -128,20 +163,23 @@ Future<ProductionStockResult> postProductionOutput({
 /// decrement per stock (concurrent sales on other tills merge), and returns
 /// what was used with each component's on-hand afterwards, for RRA.
 /// Services and components with no stock record are skipped.
+Future<void> _writeSupplyPrice(String variantId, double supplyPrice) async {
+  final ditto = DittoService.instance.dittoInstance;
+  if (ditto == null) return;
+  await writeVariantSupplyPrice(
+    ditto,
+    variantId: variantId,
+    supplyPrice: supplyPrice,
+  );
+}
+
 Future<List<PurchaseStockInLine>> _useUpComponents(
-  List<Composite> components, {
+  List<Composite> components,
+  Map<String, Variant> variants, {
   required double qty,
   required DatabaseSyncInterface capella,
 }) async {
-  if (components.isEmpty) return const [];
-  final ids = components
-      .map((c) => c.variantId)
-      .whereType<String>()
-      .where((id) => id.isNotEmpty)
-      .toSet()
-      .toList();
-  if (ids.isEmpty) return const [];
-  final variants = await capella.batchGetVariantsByIds(ids);
+  if (components.isEmpty || variants.isEmpty) return const [];
 
   final usedByStock = <String, double>{};
   final variantByStock = <String, Variant>{};

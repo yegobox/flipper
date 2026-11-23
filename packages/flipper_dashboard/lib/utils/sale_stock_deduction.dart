@@ -9,9 +9,11 @@ import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/sync/utils/rra_stock_reporting.dart';
+import 'package:flipper_models/sync/utils/combo_cost.dart';
 import 'package:flipper_models/sync/utils/combo_stock_lines.dart';
 import 'package:flipper_models/sync/utils/pos_catalog_stock_filter.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_web/services/ditto_service.dart';
 
 /// Sale lines as stock sees them: a combo line becomes its components
 /// ([expandComboLinesForStock]).
@@ -104,6 +106,9 @@ Future<Map<String, double>> applyDeferredSaleStockDeduction({
   );
 
   final stockLines = await saleLinesForStock(transactionItems, capella);
+  if (!isProformaOrTraining) {
+    await _recordComboCosts(transactionItems, stockLines);
+  }
   final candidateItems = stockLines.where((item) {
     if (isServiceItemType(item.itemTyCd)) return false;
     final vid = item.variantId;
@@ -236,6 +241,56 @@ Future<Map<String, double>> applyDeferredSaleStockDeduction({
         'lines=${itemsNeedingDeduction.length} stocks=${deductByStockId.length}',
   );
   return originalStockQuantities;
+}
+
+/// A combo line costs what its components cost now ([comboLineCosts]): its
+/// `splyAmt`, which the data-connector books as COGS, and, when it has
+/// drifted, the combo's own supply price. Older combos were saved with their
+/// components' selling prices as cost; this corrects them on their next sale.
+Future<void> _recordComboCosts(
+  List<TransactionItem> saleLines,
+  List<TransactionItem> stockLines,
+) async {
+  final costs = comboLineCosts(stockLines);
+  if (costs.isEmpty) return;
+  final ditto = DittoService.instance.dittoInstance;
+  if (ditto == null) return;
+  final linesById = {for (final line in saleLines) line.id: line};
+  final variantCosts = <String, double>{};
+  for (final entry in costs.entries) {
+    final line = linesById[entry.key];
+    final qty = line?.qty.toDouble() ?? 0;
+    if (line == null || qty <= 0) continue;
+    final unit = entry.value / qty;
+    try {
+      if (((line.splyAmt ?? 0) - entry.value).abs() > comboCostTolerance) {
+        await writeLineSupplyCost(
+          ditto,
+          lineId: line.id,
+          unitCost: unit,
+          qty: qty,
+        );
+      }
+    } catch (e) {
+      talker.warning('Combo line cost not recorded for ${line.id}: $e');
+    }
+    final variantId = line.variantId;
+    if (variantId != null &&
+        ((line.supplyPrice ?? 0) - unit).abs() > comboCostTolerance) {
+      variantCosts[variantId] = unit;
+    }
+  }
+  for (final entry in variantCosts.entries) {
+    try {
+      await writeVariantSupplyPrice(
+        ditto,
+        variantId: entry.key,
+        supplyPrice: entry.value,
+      );
+    } catch (e) {
+      talker.warning('Combo cost not updated for ${entry.key}: $e');
+    }
+  }
 }
 
 Future<void> _deferMarkItemsQuantityShipped({

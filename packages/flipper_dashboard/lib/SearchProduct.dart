@@ -136,6 +136,8 @@ class _SearchProductState extends ConsumerState<SearchProduct> {
                                 productName: _searchResults[index].productName!,
                                 name: _searchResults[index].name,
                                 retailPrice: _searchResults[index].retailPrice!,
+                                supplyPrice:
+                                    _searchResults[index].supplyPrice ?? 0,
                                 id: _searchResults[index].id,
                                 productId: _searchResults[index].productId!,
                               ),
