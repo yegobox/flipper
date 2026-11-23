@@ -4,6 +4,8 @@ import 'dart:io' show HttpException, Platform;
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:posthog_flutter/posthog_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:uuid/uuid.dart';
 
 import '../models/pending_analytics_event.dart';
 import '../interfaces/analytics_transport.dart';
@@ -16,7 +18,14 @@ class PostHogTransport implements AnalyticsTransport {
     this.maskAllTexts = true,
     this.maskAllImages = true,
     http.Client? httpClient,
-  }) : _httpClient = httpClient ?? http.Client();
+    Future<SharedPreferences> Function()? preferences,
+    @visibleForTesting bool? useHttp,
+  }) : _httpClient = httpClient ?? http.Client(),
+       _preferences = preferences ?? SharedPreferences.getInstance,
+       _useHttp = useHttp;
+
+  /// Where the Windows HTTP path keeps this install's anonymous id.
+  static const deviceIdKey = 'posthog_device_id';
 
   final String projectToken;
   final String host;
@@ -24,10 +33,14 @@ class PostHogTransport implements AnalyticsTransport {
   final bool maskAllTexts;
   final bool maskAllImages;
   final http.Client _httpClient;
+  final Future<SharedPreferences> Function() _preferences;
+  final bool? _useHttp;
+  String? _deviceId;
 
   bool _initialized = false;
 
   bool get _usesHttpFallback {
+    if (_useHttp != null) return _useHttp;
     if (kIsWeb) return false;
     return Platform.isWindows;
   }
@@ -120,10 +133,7 @@ class PostHogTransport implements AnalyticsTransport {
         PendingAnalyticsEvent(
           eventName: r'$screen',
           type: PendingAnalyticsEventType.screen,
-          properties: {
-            'screen_name': screenName,
-            ...properties,
-          },
+          properties: {'screen_name': screenName, ...properties},
         ),
       );
       return;
@@ -143,7 +153,8 @@ class PostHogTransport implements AnalyticsTransport {
     }
     if (event.type == PendingAnalyticsEventType.screen) {
       await Posthog().screen(
-        screenName: event.properties['screen_name']?.toString() ?? event.eventName,
+        screenName:
+            event.properties['screen_name']?.toString() ?? event.eventName,
         properties: _compact(event.properties),
       );
       return;
@@ -154,11 +165,25 @@ class PostHogTransport implements AnalyticsTransport {
     );
   }
 
+  // PostHog answers 200 to an event with no `distinct_id` and then drops it,
+  // so every Windows event (stall reports included) used to vanish. The SDK
+  // sets one on the other platforms; here it is the signed-in user, or this
+  // install's id before anyone signs in.
   Future<void> _sendViaHttp(PendingAnalyticsEvent event) async {
+    final deviceId = await _loadDeviceId();
+    final userId = event.properties['user_id']?.toString();
+    final hasUser = userId != null && userId.isNotEmpty;
     final payload = {
       'api_key': projectToken,
       'event': event.eventName,
-      'properties': _compact(event.properties),
+      'distinct_id': hasUser ? userId : deviceId,
+      'properties': redact({
+        ..._compact(event.properties),
+        // Tells one till's events apart when several share a login.
+        'device_id': deviceId,
+        // No person profile for a till nobody has signed in on yet.
+        if (!hasUser) r'$process_person_profile': false,
+      }),
       'timestamp': event.createdAt.toIso8601String(),
     };
     final response = await _httpClient.post(
@@ -173,11 +198,38 @@ class PostHogTransport implements AnalyticsTransport {
     }
   }
 
+  Future<String> _loadDeviceId() async {
+    final cached = _deviceId;
+    if (cached != null) return cached;
+    try {
+      final prefs = await _preferences();
+      var id = prefs.getString(deviceIdKey);
+      if (id == null || id.isEmpty) {
+        id = const Uuid().v4();
+        await prefs.setString(deviceIdKey, id);
+      }
+      return _deviceId = id;
+    } catch (_) {
+      // Unreadable prefs: one id for this run is still better than none,
+      // which PostHog would drop.
+      return _deviceId = const Uuid().v4();
+    }
+  }
+
   PostHogEvent? _redactSensitiveFields(PostHogEvent event) {
-    final current = Map<String, Object>.from(event.properties ?? const {});
+    event.properties = redact(event.properties ?? const {});
+    return event;
+  }
+
+  /// The same keys are masked on both paths: the SDK's `beforeSend` and
+  /// the Windows HTTP payload.
+  @visibleForTesting
+  static Map<String, Object> redact(Map<String, Object> properties) {
+    final current = Map<String, Object>.from(properties);
     for (final key in current.keys.toList()) {
       final lower = key.toLowerCase();
-      final isSensitive = lower.contains('pin') ||
+      final isSensitive =
+          lower.contains('pin') ||
           lower.contains('otp') ||
           lower.contains('password') ||
           lower.contains('tin') ||
@@ -186,8 +238,7 @@ class PostHogTransport implements AnalyticsTransport {
         current[key] = '[redacted]';
       }
     }
-    event.properties = current;
-    return event;
+    return current;
   }
 
   Map<String, Object> _compact(Map<String, Object?> source) {
