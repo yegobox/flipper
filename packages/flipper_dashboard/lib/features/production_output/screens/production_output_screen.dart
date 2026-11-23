@@ -14,6 +14,7 @@ import '../widgets/work_order_table.dart';
 import '../widgets/work_order_form.dart';
 import '../widgets/variance_reason_dialog.dart';
 import '../widgets/work_order_bottom_sheet.dart';
+import '../widgets/production_day_bar.dart';
 import 'package:flipper_ui/dialogs/WorkOrderDetailsDialog.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
 import '../../stock_recount/stock_recount_tokens.dart';
@@ -79,7 +80,10 @@ class _ProductionOutputScreenState
 
   @override
   Widget build(BuildContext context) {
-    final workOrdersAsync = ref.watch(todayWorkOrdersProvider);
+    final dayOrdersAsync = ref.watch(productionDayOrdersProvider);
+    final workOrdersAsync = dayOrdersAsync.whenData((day) => day.due);
+    final carriedOver =
+        dayOrdersAsync.asData?.value.carriedOver ?? const <WorkOrder>[];
     final summaryAsync = ref.watch(productionSummaryProvider);
     final chartAsync = ref.watch(varianceChartDataProvider);
     final summary = summaryAsync.asData?.value ?? ProductionSummary.empty;
@@ -194,6 +198,9 @@ class _ProductionOutputScreenState
                     ),
                     const SizedBox(height: 16),
                   ],
+                  // The day everything below counts
+                  const ProductionDayBar(),
+                  const SizedBox(height: 8),
                   // Object Page Header with KPIs
                   ObjectPageHeader(
                     summary: summary,
@@ -241,6 +248,10 @@ class _ProductionOutputScreenState
                         ),
                       ),
                     ),
+                  if (carriedOver.isNotEmpty) ...[
+                    const SizedBox(height: 16),
+                    _buildCarriedOverList(carriedOver),
+                  ],
                 ]),
               ),
             ),
@@ -405,7 +416,42 @@ class _ProductionOutputScreenState
     );
   }
 
-  Widget _buildWorkOrderCard(dynamic wo) {
+  /// Earlier days' orders still planned or in progress, shown on today so
+  /// they aren't lost. They are not in today's numbers.
+  Widget _buildCarriedOverList(List<WorkOrder> orders) {
+    final l10n = context.flipperL10n;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: Row(
+            children: [
+              Icon(Icons.history, color: Colors.orange[700], size: 20),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  l10n.productionOutputCarriedOver,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey[800],
+                  ),
+                ),
+              ),
+              Text(
+                l10n.productionOutputItemsCount(orders.length),
+                style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+              ),
+            ],
+          ),
+        ),
+        ...orders.map((wo) => _buildWorkOrderCard(wo, showDueDate: true)),
+      ],
+    );
+  }
+
+  Widget _buildWorkOrderCard(dynamic wo, {bool showDueDate = false}) {
     final status = WorkOrderStatus.fromString(wo.status ?? 'planned');
     final variance = (wo.actualQuantity ?? 0.0) - (wo.plannedQuantity ?? 0.0);
     final varianceColor = variance >= 0
@@ -451,6 +497,15 @@ class _ProductionOutputScreenState
                 ),
               ],
             ),
+            if (showDueDate) ...[
+              const SizedBox(height: 4),
+              Text(
+                MaterialLocalizations.of(
+                  context,
+                ).formatMediumDate(localDay(wo.targetDate as DateTime)),
+                style: TextStyle(fontSize: 12, color: Colors.orange[800]),
+              ),
+            ],
             const SizedBox(height: 12),
             // Metrics row
             Row(
