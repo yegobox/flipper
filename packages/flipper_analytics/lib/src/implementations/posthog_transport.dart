@@ -35,7 +35,7 @@ class PostHogTransport implements AnalyticsTransport {
   final http.Client _httpClient;
   final Future<SharedPreferences> Function() _preferences;
   final bool? _useHttp;
-  String? _deviceId;
+  Future<String>? _deviceId;
 
   bool _initialized = false;
 
@@ -198,9 +198,10 @@ class PostHogTransport implements AnalyticsTransport {
     }
   }
 
-  Future<String> _loadDeviceId() async {
-    final cached = _deviceId;
-    if (cached != null) return cached;
+  // Shared by concurrent sends, so two events at once never mint two ids.
+  Future<String> _loadDeviceId() => _deviceId ??= _readDeviceId();
+
+  Future<String> _readDeviceId() async {
     try {
       final prefs = await _preferences();
       var id = prefs.getString(deviceIdKey);
@@ -208,11 +209,11 @@ class PostHogTransport implements AnalyticsTransport {
         id = const Uuid().v4();
         await prefs.setString(deviceIdKey, id);
       }
-      return _deviceId = id;
+      return id;
     } catch (_) {
       // Unreadable prefs: one id for this run is still better than none,
       // which PostHog would drop.
-      return _deviceId = const Uuid().v4();
+      return const Uuid().v4();
     }
   }
 
@@ -224,21 +225,36 @@ class PostHogTransport implements AnalyticsTransport {
   /// The same keys are masked on both paths: the SDK's `beforeSend` and
   /// the Windows HTTP payload.
   @visibleForTesting
-  static Map<String, Object> redact(Map<String, Object> properties) {
-    final current = Map<String, Object>.from(properties);
-    for (final key in current.keys.toList()) {
-      final lower = key.toLowerCase();
-      final isSensitive =
-          lower.contains('pin') ||
-          lower.contains('otp') ||
-          lower.contains('password') ||
-          lower.contains('tin') ||
-          lower.contains('card');
-      if (isSensitive) {
-        current[key] = '[redacted]';
-      }
-    }
-    return current;
+  static Map<String, Object> redact(Map<String, Object> properties) => {
+    for (final entry in properties.entries)
+      entry.key: _isSensitive(entry.key)
+          ? '[redacted]'
+          : _redactValue(entry.value),
+  };
+
+  // Nested maps and lists are masked at every depth.
+  static Object _redactValue(Object value) => switch (value) {
+    Map() => {
+      for (final entry in value.entries)
+        if (entry.value != null)
+          '${entry.key}': _isSensitive('${entry.key}')
+              ? '[redacted]'
+              : _redactValue(entry.value as Object),
+    },
+    List() => [
+      for (final item in value)
+        if (item != null) _redactValue(item as Object),
+    ],
+    _ => value,
+  };
+
+  static bool _isSensitive(String key) {
+    final lower = key.toLowerCase();
+    return lower.contains('pin') ||
+        lower.contains('otp') ||
+        lower.contains('password') ||
+        lower.contains('tin') ||
+        lower.contains('card');
   }
 
   Map<String, Object> _compact(Map<String, Object?> source) {

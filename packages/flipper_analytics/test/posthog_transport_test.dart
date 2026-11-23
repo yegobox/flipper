@@ -100,6 +100,50 @@ void main() {
     expect(props['user_id'], 'u-7');
   });
 
+  test('sensitive keys are masked at every depth', () {
+    final out = PostHogTransport.redact({
+      'context': {
+        'branch': 'b1',
+        'otp': '123456',
+        'gone': null,
+        'staff': [
+          {'name': 'Ann', 'pin': 4321},
+          null,
+          'cashier',
+        ],
+      },
+      'card_last4': '4242',
+    });
+
+    expect(out, {
+      'context': {
+        'branch': 'b1',
+        'otp': '[redacted]',
+        'staff': [
+          {'name': 'Ann', 'pin': '[redacted]'},
+          'cashier',
+        ],
+      },
+      'card_last4': '[redacted]',
+    });
+  });
+
+  test('events sent at once share one install id', () async {
+    final t = transport();
+    await Future.wait([
+      t.send(event({})),
+      t.send(event({})),
+      t.send(event({})),
+    ]);
+
+    expect(sent.map((b) => b['distinct_id']).toSet(), hasLength(1));
+    final prefs = await SharedPreferences.getInstance();
+    expect(
+      prefs.getString(PostHogTransport.deviceIdKey),
+      sent[0]['distinct_id'],
+    );
+  });
+
   test('a rejected capture throws so the event stays queued', () async {
     status = 401;
 
