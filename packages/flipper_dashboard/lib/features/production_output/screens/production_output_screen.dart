@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/providers/production_output_provider.dart';
+import 'package:supabase_models/brick/models/work_order.model.dart';
 import '../models/production_output_models.dart';
 import '../providers/production_output_derived_providers.dart';
 import '../services/production_output_service.dart';
@@ -28,7 +29,11 @@ import '../../stock_recount/stock_recount_ui.dart';
 /// - Variance chart
 /// - Work orders table
 class ProductionOutputScreen extends ConsumerStatefulWidget {
-  const ProductionOutputScreen({Key? key}) : super(key: key);
+  const ProductionOutputScreen({Key? key, @visibleForTesting this.service})
+    : super(key: key);
+
+  /// Defaults to the live service; tests pass a fake.
+  final ProductionOutputService? service;
 
   @override
   ConsumerState<ProductionOutputScreen> createState() =>
@@ -37,7 +42,8 @@ class ProductionOutputScreen extends ConsumerStatefulWidget {
 
 class _ProductionOutputScreenState
     extends ConsumerState<ProductionOutputScreen> {
-  final ProductionOutputService _service = ProductionOutputService();
+  late final ProductionOutputService _service =
+      widget.service ?? ProductionOutputService();
 
   bool _showCreateForm = false;
 
@@ -541,12 +547,29 @@ class _ProductionOutputScreenState
 
     if (result != null) {
       await _guard('record output', failureMessage, () async {
-        await _service.recordActualOutput(
-          workOrderId: workOrder.id as String,
+        final recorded = await _service.recordActualOutput(
+          workOrder: workOrder as WorkOrder,
           actualQuantity: result['quantity'] as double,
           varianceReason: result['varianceReason'] as String?,
           notes: null,
         );
+        // The output is saved either way. A stock error means the stock
+        // didn't move; an RRA message means only the tax report failed.
+        final stockError = recorded.stockError;
+        final rraMessage = recorded.rraMessage;
+        if (stockError != null && mounted) {
+          showCustomSnackBarUtil(
+            context,
+            stockError,
+            type: NotificationType.error,
+          );
+        } else if (rraMessage != null && mounted) {
+          showCustomSnackBarUtil(
+            context,
+            rraMessage,
+            type: NotificationType.warning,
+          );
+        }
       });
     }
   }
@@ -637,7 +660,7 @@ class _ProductionOutputScreenState
       await _guard(
         'start this work order',
         failureMessage,
-        () => _service.startWorkOrder(workOrder.id as String),
+        () => _service.startWorkOrder(workOrder as WorkOrder),
       );
     }
   }
