@@ -33,13 +33,12 @@ class _FakeDb implements DatabaseSyncInterface {
     bool useTransactionItemForQty = false,
     required bool partOfComposite,
     double? updatableQty,
-    double? addQty,
     TransactionItem? item,
     int? invoiceNumber,
     String? sarTyCd,
     bool updatePendingTransactionSubtotal = true,
   }) async {
-    lines.add((variation.id, updatableQty ?? addQty ?? 1, amountTotal));
+    lines.add((variation.id, updatableQty ?? 1, amountTotal));
     log.add('line ${variation.id}');
     return true;
   }

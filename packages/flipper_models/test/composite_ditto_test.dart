@@ -1,6 +1,5 @@
 // Combo (composite) components are written to Ditto only, but the till read
-// them from SQLite/Supabase, so a combo made since #587 sold as nothing. And
-// each component went on the cart as 1, whatever the combo needed.
+// them from SQLite/Supabase, so a combo made since #587 sold as nothing.
 //
 // The real-store test skips unless LIBDITTOFFI_PATH points at a Ditto build:
 //
@@ -58,22 +57,6 @@ void main() {
       expect(c.id, 'c2');
       expect(c.qty, isNull);
       expect(c.variantId, isNull);
-    });
-  });
-
-  group('nextCartLineQty', () {
-    test('a new line starts at the amount added, 1 by default', () {
-      expect(nextCartLineQty(), 1);
-      expect(nextCartLineQty(addQty: 2), 2);
-    });
-
-    test('an existing line grows by the amount added', () {
-      expect(nextCartLineQty(currentQty: 3), 4);
-      expect(nextCartLineQty(currentQty: 3, addQty: 2), 5);
-    });
-
-    test('an absolute quantity wins', () {
-      expect(nextCartLineQty(currentQty: 3, addQty: 2, updatableQty: 7), 7);
     });
   });
 

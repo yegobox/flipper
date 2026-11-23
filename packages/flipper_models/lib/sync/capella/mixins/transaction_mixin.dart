@@ -1,4 +1,3 @@
-import 'package:flipper_models/sync/utils/composite_ditto.dart';
 import 'dart:async';
 import 'package:flipper_models/sync/ditto_observer_registry.dart';
 import 'package:flipper_models/sync/utils/cart_line_doc_cache.dart';
@@ -1613,7 +1612,6 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     double? compositePrice,
     bool? ignoreForReport,
     double? updatableQty,
-    double? addQty,
     required Variant variation,
     required bool doneWithTransaction,
     required double amountTotal,
@@ -1702,11 +1700,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         // Update existing item
         final existingItemData = Map<String, dynamic>.from(existingLine);
         final double currentQty = (existingItemData['qty'] as num).toDouble();
-        final double newQty = nextCartLineQty(
-          currentQty: currentQty,
-          updatableQty: updatableQty,
-          addQty: addQty,
-        );
+        final double newQty = updatableQty ?? (currentQty + 1);
         final double qtyDelta = newQty - currentQty;
         final prevRem = (existingItemData['remainingStock'] as num?)
             ?.toDouble();
@@ -1813,10 +1807,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
           seq: nextItemSeq,
         );
 
-        final double qty = nextCartLineQty(
-          updatableQty: updatableQty,
-          addQty: addQty,
-        );
+        final double qty = updatableQty ?? 1.0;
         final unitSupply = variation.supplyPrice ?? 0;
         final lineSupplyAmt = unitSupply * qty;
         final pricing = SaleLinePricing.compute(

@@ -17,17 +17,6 @@ Composite compositeFromDittoDoc(Map<dynamic, dynamic> doc) {
   );
 }
 
-/// The quantity a cart line ends at after one `saveTransactionItem` call.
-///
-/// [updatableQty] is an absolute quantity and wins. Otherwise the line grows
-/// by [addQty] (default 1) from [currentQty], or starts at it when the cart has
-/// no line for the variant yet ([currentQty] null).
-double nextCartLineQty({
-  double? currentQty,
-  double? updatableQty,
-  double? addQty,
-}) => updatableQty ?? (currentQty ?? 0) + (addQty ?? 1);
-
 /// A combo's components from the Ditto `composites` collection, by parent
 /// product and/or component variant. Empty when neither is given.
 Future<List<Composite>> readCompositesFromDitto(

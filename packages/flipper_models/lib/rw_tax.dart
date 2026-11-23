@@ -24,6 +24,7 @@ import 'package:flipper_models/mail_log.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/sync/utils/hotel_room_rra.dart';
 import 'package:flipper_models/sync/utils/rra_bcd.dart';
+import 'package:flipper_models/sync/utils/combo_stock_lines.dart';
 import 'package:flipper_models/sync/utils/rra_stock_reporting.dart';
 import 'package:flipper_models/sync/utils/pos_catalog_stock_filter.dart';
 import 'package:flipper_models/tax_api.dart';
@@ -800,6 +801,13 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     required ITransaction transaction,
     required Repository repository,
   }) async {
+    // A combo line is reported as its components: the stock that moved.
+    items = await expandComboLinesForStock(
+      items,
+      capella: ProxyService.getStrategy(Strategy.capella),
+      businessId: ProxyService.box.getBusinessId(),
+      branchId: ProxyService.box.getBranchId(),
+    );
     final snapshotKey = rraSaleStockSnapshotBoxKey(transaction.id);
     Map<String, num> allocations = {};
     var movementItemsForStockIo = items;

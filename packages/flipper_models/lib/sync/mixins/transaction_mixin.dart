@@ -752,8 +752,6 @@ mixin TransactionMixin implements TransactionInterface {
     int? invoiceNumber,
     TransactionItem? item,
     double? updatableQty,
-    // Unused on this legacy (Brick) path, which sizes combo lines itself.
-    double? addQty,
     String? sarTyCd,
     required bool ignoreForReport,
     bool updatePendingTransactionSubtotal = true,

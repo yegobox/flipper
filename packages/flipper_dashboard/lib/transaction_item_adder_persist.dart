@@ -10,7 +10,6 @@ import 'package:flipper_models/providers/pos_cart_display_provider.dart';
 import 'package:flipper_models/providers/pending_cart_sale_session_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_models/sync/utils/pos_catalog_stock_filter.dart';
-import 'package:flipper_dashboard/utils/combo_sale_lines.dart';
 import 'package:flipper_services/GlobalLogError.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
@@ -99,36 +98,16 @@ Future<bool> persistItemToTransaction({
   required int sessionAtStart,
   required bool cartOptimismApplied,
 }) async {
-  final branchId = ProxyService.box.getBranchId()!;
-  final businessId = ProxyService.box.getBusinessId()!;
   final capella = ProxyService.getStrategy(Strategy.capella);
 
-  final productFuture = _resolveProductForAdd(
-    capella: capella,
-    variant: variant,
-    branchId: branchId,
-    businessId: businessId,
-    productHint: productHint,
-    isCompositeProduct: isCompositeProduct,
-  );
-  final stockFuture = _resolveStockForAdd(
+  // The product is no longer read here: a combo sells as one line like any
+  // item, so nothing on this path depends on it ([productHint] and
+  // [isCompositeProduct] are accepted for existing callers).
+  final cachedStock = await _resolveStockForAdd(
     capella: capella,
     variant: variant,
     isOrdering: isOrdering,
   );
-
-  final results = await Future.wait<Object?>([productFuture, stockFuture]);
-  final product = results[0] as Product?;
-  final cachedStock = results[1] as Stock?;
-
-  if (cartOptimismApplied && product?.isComposite == true) {
-    ref
-        .read(optimisticCartProvider.notifier)
-        .rollbackPending(
-          transactionId: pendingTransaction.id,
-          variantId: variant.id,
-        );
-  }
 
   if (!isOrdering) {
     final currentStock =
@@ -225,93 +204,32 @@ Future<bool> persistItemToTransaction({
 
     final stock = cachedStock;
 
-    // A combo (composite product) sells as its components: one line per
-    // component, each taking its own stock. A combo with no components left
-    // sells as itself below, so the tap still charges the customer.
-    final composites = product != null && product.isComposite == true
-        ? await capella.composites(productId: product.id)
-        : const <Composite>[];
-    if (product != null && product.isComposite == true && composites.isEmpty) {
+    // A combo (composite product) is one line at its own price, like any
+    // item. Its components' stock moves when the sale is paid
+    // (`expandComboLinesForStock`), not here.
+    final storeSw = Stopwatch()..start();
+    final saved = await capella.saveTransactionItem(
+      variation: variant,
+      doneWithTransaction: false,
+      ignoreForReport: false,
+      amountTotal: variant.retailPrice ?? 0,
+      customItem: false,
+      currentStock: stock?.currentStock ?? 0,
+      pendingTransaction: pendingTransaction,
+      partOfComposite: false,
+    );
+    storeMs = storeSw.elapsedMilliseconds;
+    if (!saved) {
+      // The write did not happen, so the ghost must not survive it. Left
+      // standing it is a line the cashier can see, believes is in the cart,
+      // and that no row backs — it inflates the on-screen total and the
+      // reconciliation that retires ghosts can never fire for it.
       talker.warning(
-        'Combo ${product.id} has no components; selling it as one line',
+        'saveTransactionItem returned false for variant=${variant.id} on '
+        'txn=${pendingTransaction.id}; rolling the cart line back',
       );
-    }
-
-    if (composites.isNotEmpty) {
-      final variantIds = composites
-          .map((c) => c.variantId)
-          .whereType<String>()
-          .where((id) => id.isNotEmpty)
-          .toSet()
-          .toList();
-      final variantsMap = variantIds.isEmpty
-          ? <String, Variant>{}
-          : await capella.batchGetVariantsByIds(variantIds);
-      // Each component's own on-hand: it is what the line reports to RRA as
-      // remaining stock. One read for the whole combo.
-      final stockIds = variantsMap.values
-          .map((v) => v.stockId)
-          .whereType<String>()
-          .where((id) => id.isNotEmpty)
-          .toList();
-      final stocksById = stockIds.isEmpty
-          ? <String, Stock>{}
-          : await capella.batchGetStocksByIds(stockIds);
-
-      final lines = planComboSaleLines(
-        composites,
-        variantsById: variantsMap,
-        stocksById: stocksById,
-      );
-      for (final line in lines) {
-        final storeSw = Stopwatch()..start();
-        final okComposite = await capella.saveTransactionItem(
-          variation: line.variant,
-          doneWithTransaction: false,
-          ignoreForReport: false,
-          // Each component at its own price. The combo's price
-          // (`Composite.actualPrice`) is not applied: the cart keeps one line
-          // per product, so a split price would collide with the same product
-          // sold on its own in the same sale.
-          amountTotal: line.variant.retailPrice ?? 0,
-          customItem: false,
-          currentStock: line.currentStock,
-          pendingTransaction: pendingTransaction,
-          // Plain lines: the partOfComposite UI paths assume rows this sale
-          // path never writes.
-          partOfComposite: false,
-          addQty: line.qty,
-        );
-        storeMs = (storeMs < 0 ? 0 : storeMs) + storeSw.elapsedMilliseconds;
-        if (!okComposite) {
-          throw StateError('saveTransactionItem failed (composite line)');
-        }
-      }
-    } else {
-      final storeSw = Stopwatch()..start();
-      final saved = await capella.saveTransactionItem(
-        variation: variant,
-        doneWithTransaction: false,
-        ignoreForReport: false,
-        amountTotal: variant.retailPrice ?? 0,
-        customItem: false,
-        currentStock: stock?.currentStock ?? 0,
-        pendingTransaction: pendingTransaction,
-        partOfComposite: false,
-      );
-      storeMs = storeSw.elapsedMilliseconds;
-      if (!saved) {
-        // The write did not happen, so the ghost must not survive it. Left
-        // standing it is a line the cashier can see, believes is in the cart,
-        // and that no row backs — it inflates the on-screen total and the
-        // reconciliation that retires ghosts can never fire for it.
-        talker.warning(
-          'saveTransactionItem returned false for variant=${variant.id} on '
-          'txn=${pendingTransaction.id}; rolling the cart line back',
-        );
-        rollbackStaleAddAttempt();
-        return;
-      }
+      rollbackStaleAddAttempt();
+      return;
     }
 
     // Ghost clears only when transactionItemsStreamProvider itself reflects
@@ -411,45 +329,6 @@ Future<bool> handlePersistFailure({
   );
   showErrorNotification(context, context.flipperL10n.cartFailedToAddItem);
   return false;
-}
-
-Future<Product?> _resolveProductForAdd({
-  required dynamic capella,
-  required Variant variant,
-  required String branchId,
-  required String businessId,
-  Product? productHint,
-  required bool isCompositeProduct,
-}) {
-  if (productHint != null) return Future<Product?>.value(productHint);
-
-  if (isCompositeProduct) {
-    final productId = variant.productId;
-    if (productId == null || productId.isEmpty) {
-      return Future<Product?>.value(null);
-    }
-    return Future<Product?>.value(
-      Product(
-        id: productId,
-        name: variant.productName ?? variant.name,
-        color: '',
-        businessId: businessId,
-        branchId: branchId,
-        isComposite: true,
-      ),
-    );
-  }
-
-  final productId = variant.productId;
-  if (productId == null || productId.isEmpty) {
-    return Future<Product?>.value(null);
-  }
-
-  return capella.getProduct(
-    businessId: businessId,
-    id: productId,
-    branchId: branchId,
-  );
 }
 
 Future<Stock?> _resolveStockForAdd({

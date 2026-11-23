@@ -167,12 +167,6 @@ abstract class TransactionInterface {
     bool useTransactionItemForQty = false,
     required bool partOfComposite,
     double? updatableQty,
-
-    /// How much one call adds: an existing line for the variant grows by it,
-    /// a new line starts at it. Defaults to 1. [updatableQty] (an absolute
-    /// quantity) wins when given. A combo passes each component's amount per
-    /// combo.
-    double? addQty,
     TransactionItem? item,
     int? invoiceNumber,
     String? sarTyCd,
