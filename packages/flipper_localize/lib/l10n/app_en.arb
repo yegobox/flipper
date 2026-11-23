@@ -13652,6 +13652,20 @@
             }
         }
     },
+    "incomingOrdersColBranch": "Branch",
+    "incomingOrdersColRequested": "Requested",
+    "incomingOrdersColItems": "Items",
+    "incomingOrdersColQty": "Qty",
+    "incomingOrdersColDelivery": "Delivery",
+    "incomingOrdersSelectRequest": "Select a request to see its items",
+    "incomingOrdersRequestCount": "{count, plural, =1{1 request} other{{count} requests}}",
+    "@incomingOrdersRequestCount": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
     "incomingOrdersQtyRatio": "{approved}/{requested, plural, =1{1 Item} other{{requested} Items}}",
     "@incomingOrdersQtyRatio": {
         "placeholders": {

@@ -58,7 +58,7 @@ class ActionRow extends ConsumerWidget
             onPressed: null,
             icon: Icons.check_circle_outline,
             label: l10n.incomingOrdersApprove,
-            variant: _OmBtnVariant.greenSoft,
+            variant: _OmBtnVariant.primary,
           ),
           _OmBtn(
             onPressed: null,
@@ -103,7 +103,7 @@ class ActionRow extends ConsumerWidget
               label: isProcessing
                   ? l10n.incomingOrdersInProduction
                   : l10n.incomingOrdersApprove,
-              variant: _OmBtnVariant.greenSoft,
+              variant: _OmBtnVariant.primary,
               isDisabled: approveDisabled,
             ),
             _OmBtn(
@@ -448,7 +448,7 @@ class ActionRow extends ConsumerWidget
   }
 }
 
-enum _OmBtnVariant { ghost, greenSoft, voidDisabled }
+enum _OmBtnVariant { ghost, primary, voidDisabled }
 
 class _ActionsBar extends StatelessWidget {
   const _ActionsBar({required this.children});
@@ -523,9 +523,10 @@ class _OmBtn extends StatelessWidget {
         fg = OmTokens.ink2;
         border = OmTokens.line2;
         break;
-      case _OmBtnVariant.greenSoft:
-        bg = OmTokens.greenWash;
-        fg = OmTokens.greenStrong;
+      // Brand blue: actions are never green (green only means stock/gain).
+      case _OmBtnVariant.primary:
+        bg = OmTokens.accentStrong;
+        fg = Colors.white;
         border = Colors.transparent;
         break;
       case _OmBtnVariant.voidDisabled:
