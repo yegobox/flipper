@@ -6,6 +6,8 @@ abstract final class AnalyticsProperties {
   static const branchId = 'branch_id';
   static const userId = 'user_id';
   static const buildMode = 'build_mode';
+  static const appVersion = 'app_version';
+  static const releaseCommit = 'release_commit';
   static const route = 'route';
   static const screenName = 'screen_name';
 }
