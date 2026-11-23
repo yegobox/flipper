@@ -29,6 +29,7 @@ import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_routing/app.locator.dart' as loc;
 import 'package:flipper_routing/app.dialogs.dart';
 import 'package:flipper_routing/app.bottomsheets.dart';
+import 'package:flipper_services/app_build_info.dart';
 import 'package:flipper_services/app_shortcuts_platform.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/locator.dart';
@@ -382,6 +383,8 @@ Future<void> _initializeAnalytics() async {
       appName: 'flipper',
       platformName: _analyticsPlatformName(),
       buildMode: kDebugMode ? 'debug' : 'release',
+      appVersion: AppBuildInfo.releaseVersion,
+      releaseCommit: AppBuildInfo.releaseCommit,
       userIdGetter: () => ProxyService.box.getUserId()?.toString(),
       businessIdGetter: () => ProxyService.box.getBusinessId(),
       branchIdGetter: () => ProxyService.box.getBranchId(),
