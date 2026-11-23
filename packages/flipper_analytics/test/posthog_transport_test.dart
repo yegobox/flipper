@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flipper_analytics/flipper_analytics.dart';
 import 'package:flipper_analytics/src/web/posthog_js_host.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -230,12 +232,14 @@ void main() {
   });
 
   group('web', () {
-    test('posthog-js does the setup, so the SDK one is skipped', () async {
+    test('posthog-js does the setup; the install is still tagged', () async {
       final t = PostHogTransport(
         projectToken: 'phc_test',
         host: 'https://ph.example',
         posthog: posthog,
         isWeb: true,
+        loadWeb: () async => true,
+        webReady: () => true,
       );
 
       await t.initialize();
@@ -243,10 +247,83 @@ void main() {
       await t.send(event({'n': 1}));
 
       verifyNever(() => posthog.setup(any()));
-      verifyNever(() => posthog.register(any(), any()));
+      verify(() => posthog.register('device_id', any())).called(1);
       verify(
         () => posthog.capture(eventName: 'ui_stall', properties: {'n': 1}),
       ).called(1);
+    });
+
+    group('before posthog-js has loaded', () {
+      late Completer<bool> load;
+      late bool loaded;
+      late List<String> calls;
+      late PostHogTransport t;
+
+      setUp(() {
+        load = Completer<bool>();
+        loaded = false;
+        calls = [];
+        when(() => posthog.register(any(), any())).thenAnswer((_) async {
+          calls.add('register');
+        });
+        when(
+          () => posthog.identify(
+            userId: any(named: 'userId'),
+            userProperties: any(named: 'userProperties'),
+          ),
+        ).thenAnswer((_) async => calls.add('identify'));
+        when(
+          () => posthog.group(
+            groupType: any(named: 'groupType'),
+            groupKey: any(named: 'groupKey'),
+            groupProperties: any(named: 'groupProperties'),
+          ),
+        ).thenAnswer((_) async => calls.add('group'));
+        when(() => posthog.isOptOut()).thenAnswer((_) async => true);
+        when(() => posthog.optIn()).thenAnswer((_) async => calls.add('optIn'));
+        t = PostHogTransport(
+          projectToken: 'phc_test',
+          host: 'https://ph.example',
+          posthog: posthog,
+          isWeb: true,
+          loadWeb: () => load.future,
+          webReady: () => loaded,
+        );
+      });
+
+      test('startup and login return at once instead of waiting', () async {
+        await t.initialize();
+        await t.setEnabled(true);
+        await t.identify('42');
+        await t.group('business', 'b-1');
+
+        expect(calls, isEmpty);
+      });
+
+      test('queued calls run in order once it loads, install first', () async {
+        await t.setEnabled(true);
+        await t.identify('42');
+        await t.group('business', 'b-1');
+
+        loaded = true;
+        load.complete(true);
+        await pumpEventQueue();
+
+        expect(calls, ['register', 'optIn', 'identify', 'group']);
+      });
+
+      test('a failed load drops the queued calls', () async {
+        await t.identify('42');
+
+        load.complete(false);
+        await pumpEventQueue();
+
+        expect(calls, isEmpty);
+      });
+
+      test('sends wait in the offline queue until it loads', () async {
+        await expectLater(t.send(event({'n': 1})), throwsStateError);
+      });
     });
 
     test('the bundle comes from the assets host', () {
@@ -264,4 +341,51 @@ void main() {
       );
     });
   });
+
+  test('sensitive keys are masked at every depth', () {
+    final out = PostHogTransport.redact({
+      'context': {
+        'branch': 'b1',
+        'otp': '123456',
+        'gone': null,
+        'staff': [
+          {'name': 'Ann', 'pin': 4321, 'pin_user_id': 7},
+          null,
+          'cashier',
+        ],
+      },
+      'card_last4': '4242',
+    });
+
+    expect(out, {
+      'context': {
+        'branch': 'b1',
+        'otp': '[redacted]',
+        'staff': [
+          {'name': 'Ann', 'pin': '[redacted]', 'pin_user_id': 7},
+          'cashier',
+        ],
+      },
+      'card_last4': '[redacted]',
+    });
+  });
+
+  test(
+    'concurrent tagging shares one install id, even without prefs',
+    () async {
+      final t = PostHogTransport(
+        projectToken: 'phc_test',
+        host: 'https://ph.example',
+        posthog: posthog,
+        preferences: () async => throw StateError('NUL-filled prefs'),
+      );
+
+      await Future.wait([t.initialize(), t.reset(), t.reset()]);
+
+      final ids = verify(
+        () => posthog.register('device_id', captureAny()),
+      ).captured.toSet();
+      expect(ids, hasLength(1));
+    },
+  );
 }

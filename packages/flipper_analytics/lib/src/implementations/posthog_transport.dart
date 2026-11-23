@@ -27,9 +27,13 @@ class PostHogTransport implements AnalyticsTransport {
     Future<SharedPreferences> Function()? preferences,
     @visibleForTesting Posthog? posthog,
     @visibleForTesting bool? isWeb,
+    @visibleForTesting Future<bool> Function()? loadWeb,
+    @visibleForTesting bool Function()? webReady,
   }) : _preferences = preferences ?? SharedPreferences.getInstance,
        _posthogOverride = posthog,
-       _isWeb = isWeb ?? kIsWeb;
+       _isWeb = isWeb ?? kIsWeb,
+       _loadWebOverride = loadWeb,
+       _webReadyOverride = webReady;
 
   /// Where this install's anonymous id is kept. Its value is sent as
   /// `device_id` on every event, to tell tills that share a login apart.
@@ -47,10 +51,22 @@ class PostHogTransport implements AnalyticsTransport {
   final Future<SharedPreferences> Function() _preferences;
   final Posthog? _posthogOverride;
   final bool _isWeb;
+  final Future<bool> Function()? _loadWebOverride;
+  final bool Function()? _webReadyOverride;
+
+  bool get _webReady => _webReadyOverride?.call() ?? isPostHogJsReady;
 
   Posthog get _posthog => _posthogOverride ?? Posthog();
 
   bool _initialized = false;
+
+  /// Web calls run one after another, in the order they were made.
+  Future<void> _webChain = Future<void>.value();
+  Future<void>? _deviceRegistration;
+
+  /// One lookup shared by every caller, so concurrent calls never mint two
+  /// install ids (and unreadable prefs still give one id per run).
+  Future<String>? _deviceId;
 
   @visibleForTesting
   PostHogConfig buildConfig() {
@@ -82,29 +98,50 @@ class PostHogTransport implements AnalyticsTransport {
     if (_isWeb) {
       // In the background: a slow CDN must not hold up Books' startup.
       // Events sent meanwhile throw and wait in the offline queue.
-      unawaited(_loadWeb());
+      unawaited(_onLive(() async {}));
       return;
     }
     await _posthog.setup(buildConfig());
-    await _posthog.register('device_id', await _loadDeviceId());
+    await _ensureDeviceRegistered();
   }
+
+  Future<void> _ensureDeviceRegistered() =>
+      _deviceRegistration ??= _registerDevice();
+
+  Future<void> _registerDevice() async =>
+      _posthog.register('device_id', await _loadDeviceId());
 
   /// Completes once posthog-js is loaded on web (true at once on native).
   Future<bool> get ready => _isWeb ? _loadWeb() : Future.value(true);
 
   Future<bool> _loadWeb() =>
+      _loadWebOverride?.call() ??
       loadPostHogJs(projectToken: projectToken, host: host);
 
-  /// identify/group/reset need the live client: on web they wait (bounded)
-  /// for posthog-js rather than being dropped while it loads.
-  Future<void> _whenReady() async {
-    await initialize();
-    if (_isWeb && !isPostHogJsReady) await _loadWeb();
+  /// Runs [call] against the live client. On native that is now. On web,
+  /// before posthog-js has loaded, [call] is queued behind the load and this
+  /// returns at once: Books' startup and login never wait on the CDN. Queued
+  /// calls run in the order they were made; a failed load drops them (the
+  /// next call retries the load).
+  Future<void> _onLive(Future<void> Function() call) async {
+    if (!_initialized) await initialize();
+    if (!_isWeb) return call();
+    Future<void> run() async {
+      await _ensureDeviceRegistered();
+      await call();
+    }
+
+    final step = _webChain.then((_) async {
+      if (_webReady || await _loadWeb()) await run();
+    });
+    _webChain = step.catchError((Object _) {});
+    // Already loaded: the caller may wait for its own call. Not loaded yet:
+    // return at once, never holding up startup or login on the CDN.
+    if (_webReady) await _webChain;
   }
 
   @override
-  Future<void> setEnabled(bool enabled) async {
-    await _whenReady();
+  Future<void> setEnabled(bool enabled) => _onLive(() async {
     // Only on a real change: posthog-js records an `$opt_in` event each time.
     if (await _posthog.isOptOut() == !enabled) return;
     if (enabled) {
@@ -112,7 +149,7 @@ class PostHogTransport implements AnalyticsTransport {
     } else {
       await _posthog.optOut();
     }
-  }
+  });
 
   @override
   Future<void> flush() => _posthog.flush();
@@ -126,26 +163,22 @@ class PostHogTransport implements AnalyticsTransport {
     String groupType,
     String groupKey, {
     Map<String, Object?> properties = const {},
-  }) async {
-    await _whenReady();
-    return _posthog.group(
+  }) => _onLive(
+    () => _posthog.group(
       groupType: groupType,
       groupKey: groupKey,
       groupProperties: _compact(properties),
-    );
-  }
+    ),
+  );
 
   @override
   Future<void> identify(
     String userId, {
     Map<String, Object?> properties = const {},
-  }) async {
-    await _whenReady();
-    return _posthog.identify(
-      userId: userId,
-      userProperties: _compact(properties),
-    );
-  }
+  }) => _onLive(
+    () =>
+        _posthog.identify(userId: userId, userProperties: _compact(properties)),
+  );
 
   @override
   Future<bool> isFeatureEnabled(String flagKey) =>
@@ -155,14 +188,11 @@ class PostHogTransport implements AnalyticsTransport {
   Future<void> reloadFeatureFlags() => _posthog.reloadFeatureFlags();
 
   @override
-  Future<void> reset() async {
-    await _whenReady();
+  Future<void> reset() => _onLive(() async {
     await _posthog.reset();
     // reset() drops registered properties too.
-    if (!_isWeb) {
-      await _posthog.register('device_id', await _loadDeviceId());
-    }
-  }
+    await _registerDevice();
+  });
 
   @override
   Future<void> screen(
@@ -178,7 +208,7 @@ class PostHogTransport implements AnalyticsTransport {
   @override
   Future<void> send(PendingAnalyticsEvent event) async {
     await initialize();
-    if (_isWeb && !isPostHogJsReady) {
+    if (_isWeb && !_webReady) {
       // Thrown so the offline queue keeps it for the next flush.
       throw StateError('posthog-js is not loaded yet');
     }
@@ -196,7 +226,9 @@ class PostHogTransport implements AnalyticsTransport {
     );
   }
 
-  Future<String> _loadDeviceId() async {
+  Future<String> _loadDeviceId() => _deviceId ??= _readDeviceId();
+
+  Future<String> _readDeviceId() async {
     try {
       final prefs = await _preferences();
       var id = prefs.getString(deviceIdKey);
@@ -236,15 +268,30 @@ class PostHogTransport implements AnalyticsTransport {
   /// Keys are matched by whole word (split on `_`, `-`, `.`, spaces and
   /// camelCase), not by substring, so `printer`, `setting` or `discard` are
   /// left alone. A key that ends in `id` names a record, not a secret
-  /// (`pin_user_id`), and is kept.
+  /// (`pin_user_id`), and is kept. Nested maps and lists are walked at every
+  /// depth, and null entries inside them are dropped.
   @visibleForTesting
-  static Map<String, Object> redact(Map<String, Object> properties) {
-    final current = Map<String, Object>.from(properties);
-    for (final key in current.keys.toList()) {
-      if (isSensitiveKey(key)) current[key] = '[redacted]';
-    }
-    return current;
-  }
+  static Map<String, Object> redact(Map<String, Object> properties) => {
+    for (final entry in properties.entries)
+      entry.key: isSensitiveKey(entry.key)
+          ? '[redacted]'
+          : _redactValue(entry.value),
+  };
+
+  static Object _redactValue(Object value) => switch (value) {
+    Map() => {
+      for (final entry in value.entries)
+        if (entry.value != null)
+          '${entry.key}': isSensitiveKey('${entry.key}')
+              ? '[redacted]'
+              : _redactValue(entry.value as Object),
+    },
+    List() => [
+      for (final item in value)
+        if (item != null) _redactValue(item as Object),
+    ],
+    _ => value,
+  };
 
   @visibleForTesting
   static bool isSensitiveKey(String key) {
