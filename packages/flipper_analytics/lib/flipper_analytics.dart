@@ -7,6 +7,7 @@ export 'src/events/analytics_properties.dart';
 export 'src/feature_usage.dart';
 export 'src/report_exception.dart';
 export 'src/session_identity.dart';
+export 'src/test_lab_detector.dart';
 export 'src/implementations/analytics_flush_service.dart';
 export 'src/implementations/callback_analytics_context_provider.dart';
 export 'src/implementations/ga4_active_user_pinger.dart';

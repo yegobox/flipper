@@ -6,6 +6,7 @@ import android.content.pm.ShortcutManager
 import android.graphics.drawable.Icon
 import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
@@ -27,6 +28,17 @@ class MainActivity : FlutterActivity() {
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+        // Firebase Test Lab (and so Play's pre-launch reports) sets this on its
+        // devices. Dart keeps those robots out of analytics.
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, DEVICE_ENV_CHANNEL)
+            .setMethodCallHandler { call, result ->
+                when (call.method) {
+                    "isTestLab" -> result.success(
+                        Settings.System.getString(contentResolver, "firebase.test.lab") == "true",
+                    )
+                    else -> result.notImplemented()
+                }
+            }
         shortcutsChannel =
             MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL).also { channel ->
                 channel.setMethodCallHandler { call, result ->
@@ -124,6 +136,7 @@ class MainActivity : FlutterActivity() {
 
     companion object {
         private const val CHANNEL = "rw.flipper/app_shortcuts"
+        private const val DEVICE_ENV_CHANNEL = "rw.flipper/device_env"
         private const val EXTRA_SHORTCUT_PAGE = "shortcut_page"
 
         @Volatile

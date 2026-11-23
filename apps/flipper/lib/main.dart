@@ -359,6 +359,9 @@ Future<void> _runInitStep(_InitStep step) async {
 /// Analytics must never be able to stop a till from opening, so it is a step
 /// like any other rather than an unguarded `await` in the middle of startup.
 Future<void> _initializeAnalytics() async {
+  // Play's pre-launch robots (Firebase Test Lab) outnumber real Android users
+  // about 50 to 1 and never sign in; they stay out of every count.
+  final testLab = await isFirebaseTestLab();
   await FlipperAnalytics.initialize(
     appName: 'flipper',
     platformName: analyticsPlatformName(),
@@ -388,7 +391,7 @@ Future<void> _initializeAnalytics() async {
     ga4IsEnabled: () => !LocalMode.isOn,
     // PostHog too: no events, replay or flags while local mode is on, and
     // back on once the till opts in to sync.
-    isEnabled: () => !LocalMode.isOn,
+    isEnabled: () => !LocalMode.isOn && !testLab,
     enabledChanges: LocalMode.changes,
   );
 }
