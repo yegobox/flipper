@@ -70,6 +70,11 @@ class PostHogTransport implements AnalyticsTransport {
     config.sessionReplayConfig.maskAllImages = maskAllImages;
     // Flipper registers its own FCM tokens; on iOS the SDK would also swizzle
     // the app delegate for this.
+    // Dart errors arrive through the app's own handler (deduplicated, see
+    // reportException); the SDK's Dart autocapture would bypass that and
+    // send a per-frame assertion once per frame. NDK crashes on Android
+    // reach no Dart handler, so the SDK records those.
+    config.errorTrackingConfig.captureNativeCrashes = true;
     config.capturePushNotificationSubscriptions = false;
     config.capturePushNotificationOpened = false;
     return config;
@@ -112,6 +117,20 @@ class PostHogTransport implements AnalyticsTransport {
     } else {
       await _posthog.optOut();
     }
+  }
+
+  @override
+  Future<void> captureException(
+    Object error, {
+    StackTrace? stackTrace,
+    Map<String, Object?> properties = const {},
+  }) async {
+    await _whenReady();
+    await _posthog.captureException(
+      error: error,
+      stackTrace: stackTrace,
+      properties: _compact(properties),
+    );
   }
 
   @override

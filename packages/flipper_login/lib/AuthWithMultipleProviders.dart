@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flipper_services/GlobalLogError.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_login/LoadingDialog.dart';
@@ -16,7 +17,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
 // import 'apple_logo_painter.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
@@ -366,12 +366,14 @@ class _AuthState extends State<Auth> {
           e.code == 'web-context-canceled') {
         _authController.notifySignedOut();
       } else {
-        Sentry.captureException(e, stackTrace: StackTrace.current);
+        GlobalErrorHandler.report(e, StackTrace.current,
+            type: 'social_login_failed');
         _authController.notifyError(
             e.message ?? FlipperL10n.current.loginAuthenticationFailed);
       }
     } catch (e) {
-      Sentry.captureException(e, stackTrace: StackTrace.current);
+      GlobalErrorHandler.report(e, StackTrace.current,
+          type: 'social_login_failed');
       _authController.notifyError(FlipperL10n.current.loginUnexpectedError);
     }
   }
@@ -415,7 +417,8 @@ class _AuthState extends State<Auth> {
       // Handle specific Firebase Auth errors
       talker.error(
           'Microsoft login FirebaseAuthException: ${e.code} - ${e.message}');
-      Sentry.captureException(e, stackTrace: StackTrace.current);
+      GlobalErrorHandler.report(e, StackTrace.current,
+          type: 'social_login_failed');
 
       // Handle user cancellation gracefully
       if (e.code == 'popup-closed-by-user' ||
@@ -437,7 +440,8 @@ class _AuthState extends State<Auth> {
     } catch (e) {
       // Log detailed error information for other exceptions
       talker.error('Microsoft login error: ${e.toString()}');
-      Sentry.captureException(e, stackTrace: StackTrace.current);
+      GlobalErrorHandler.report(e, StackTrace.current,
+          type: 'social_login_failed');
       _authController.notifyError(FlipperL10n.current.loginMicrosoftFailed);
     }
   }
@@ -470,17 +474,20 @@ class _AuthState extends State<Auth> {
       if (e.code == AuthorizationErrorCode.canceled) {
         _authController.notifySignedOut();
       } else {
-        Sentry.captureException(e, stackTrace: StackTrace.current);
+        GlobalErrorHandler.report(e, StackTrace.current,
+            type: 'social_login_failed');
         _authController.notifyError(
             FlipperL10n.current.loginAppleAuthorizationFailed(e.message));
       }
     } on FirebaseAuthException catch (e) {
-      Sentry.captureException(e, stackTrace: StackTrace.current);
+      GlobalErrorHandler.report(e, StackTrace.current,
+          type: 'social_login_failed');
       _authController.notifyError(
           e.message ?? FlipperL10n.current.loginAuthenticationFailed);
     } catch (e) {
       talker.warning(e);
-      Sentry.captureException(e, stackTrace: StackTrace.current);
+      GlobalErrorHandler.report(e, StackTrace.current,
+          type: 'social_login_failed');
       _authController
           .notifyError(FlipperL10n.current.loginAppleFailed(e.toString()));
     }

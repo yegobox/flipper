@@ -39,7 +39,6 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/analytics/repository_analytics_event_store.dart';
 import 'package:flipper_design_system/flipper_design_system.dart';
 import 'package:flipper_overlay/flipper_overlay.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show Clipboard, ClipboardData;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -255,7 +254,7 @@ final Set<String> _finishedInitSteps = <String>{};
 final ValueNotifier<String> initProgressLabel = ValueNotifier<String>('');
 
 /// Localized, user-facing name of a startup step. `_InitStep.label` stays
-/// English because it also goes into logs, Sentry and the copied error report.
+/// English because it also goes into logs, PostHog and the copied error report.
 String _initStepDisplayLabel(FlipperAppLocalizations l10n, String? stepId) {
   switch (stepId) {
     case 'firebase':
@@ -288,18 +287,14 @@ String _initStepDisplayLabel(FlipperAppLocalizations l10n, String? stepId) {
 
 void _reportInitFailure(_InitStep step, Object error, StackTrace stackTrace) {
   try {
-    Sentry.captureException(
+    GlobalErrorHandler.report(
       error,
-      stackTrace: stackTrace,
-      hint: Hint.withMap({
-        'context': 'App initialization step failed',
-        'step': step.id,
-        'critical': step.isCritical.toString(),
-        'error_type': error.runtimeType.toString(),
-      }),
+      stackTrace,
+      type: 'init_step_failed',
+      tags: {'step': step.id, 'critical': step.isCritical.toString()},
     );
   } catch (e) {
-    debugPrint('Failed to report init step failure to Sentry: $e');
+    debugPrint('Failed to report init step failure: $e');
   }
 
   // `Crash` is only registered once the dependency graph step has run, and a

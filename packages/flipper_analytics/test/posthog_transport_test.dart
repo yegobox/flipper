@@ -41,6 +41,13 @@ void main() {
     when(() => posthog.optOut()).thenAnswer((_) async {});
     when(() => posthog.reset()).thenAnswer((_) async {});
     when(() => posthog.isOptOut()).thenAnswer((_) async => false);
+    when(
+      () => posthog.captureException(
+        error: any(named: 'error'),
+        stackTrace: any(named: 'stackTrace'),
+        properties: any(named: 'properties'),
+      ),
+    ).thenAnswer((_) async {});
   });
 
   PostHogTransport transport({bool startOptedOut = false}) => PostHogTransport(
@@ -70,6 +77,15 @@ void main() {
       expect(config.sessionReplayConfig.maskAllImages, isTrue);
       expect(config.capturePushNotificationSubscriptions, isFalse);
       expect(config.capturePushNotificationOpened, isFalse);
+    });
+
+    test('records NDK crashes, but leaves Dart errors to the app handler', () {
+      final errors = transport().buildConfig().errorTrackingConfig;
+
+      expect(errors.captureNativeCrashes, isTrue);
+      expect(errors.captureFlutterErrors, isFalse);
+      expect(errors.capturePlatformDispatcherErrors, isFalse);
+      expect(errors.captureIsolateErrors, isFalse);
     });
 
     test('a local-mode till starts opted out, with no replay', () {
@@ -263,5 +279,24 @@ void main() {
         'https://ph.yegobox.com/static/array.full.js',
       );
     });
+  });
+
+  test('captureException hands the error to PostHog', () async {
+    final error = StateError('boom');
+    final stack = StackTrace.current;
+
+    await transport().captureException(
+      error,
+      stackTrace: stack,
+      properties: {'error_type': 'caught', 'empty': null},
+    );
+
+    verify(
+      () => posthog.captureException(
+        error: error,
+        stackTrace: stack,
+        properties: {'error_type': 'caught'},
+      ),
+    ).called(1);
   });
 }
