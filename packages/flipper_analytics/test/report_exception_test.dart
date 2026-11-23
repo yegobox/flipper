@@ -55,8 +55,33 @@ void main() {
     await Future<void>.delayed(Duration.zero);
   });
 
-  test('does nothing before analytics has started', () {
-    expect(FlipperAnalytics.maybeInstance, isNull);
-    reportException(StateError('x'), null);
+  group('before analytics has started', () {
+    setUp(debugClearEarlyExceptions);
+    tearDown(debugClearEarlyExceptions);
+
+    test('reports are held, then sent once it starts', () async {
+      expect(FlipperAnalytics.maybeInstance, isNull);
+      reportException(StateError('db'), null, type: 'init_step_failed');
+      expect(earlyExceptionCount, 1);
+
+      final analytics = _Recorder();
+      flushEarlyExceptions(analytics);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(earlyExceptionCount, 0);
+      final (error, _, props) = analytics.captured.single;
+      expect(error, isA<StateError>());
+      expect(props, {
+        'error_type': 'init_step_failed',
+        'reported_before_analytics': true,
+      });
+    });
+
+    test('only the first few are held', () {
+      for (var i = 0; i < maxEarlyExceptions + 5; i++) {
+        reportException(StateError('$i'), null);
+      }
+      expect(earlyExceptionCount, maxEarlyExceptions);
+    });
   });
 }
