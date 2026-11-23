@@ -1,6 +1,7 @@
 import 'package:flipper_models/DatabaseSyncInterface.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/sync/utils/pos_catalog_stock_filter.dart';
+import 'package:flipper_models/sync/utils/sale_line_pricing.dart';
 
 /// A combo (composite product) sells as ONE line at its own price; the combo
 /// itself is a service and holds no stock. Its components' stock moves when
@@ -32,6 +33,14 @@ TransactionItem comboComponentLine(
   final qty = comboLine.qty.toDouble() * perCombo;
   final shipped = comboLine.quantityShipped == comboLine.qty.toInt();
   final retail = (component.retailPrice ?? 0).toDouble();
+  // Tax as the goods sale path stores it on a line (saveTransactionItem):
+  // the stock-IO envelope sums it.
+  final pricing = SaleLinePricing.compute(
+    unitPrice: retail,
+    qty: qty,
+    taxTyCd: component.taxTyCd,
+    taxPercentage: (component.taxPercentage ?? 18.0).toDouble(),
+  );
   return TransactionItem(
     id: comboComponentLineId(comboLine.id, component.id),
     transactionId: comboLine.transactionId,
@@ -51,6 +60,7 @@ TransactionItem comboComponentLine(
     taxTyCd: component.taxTyCd,
     ttCatCd: component.ttCatCd,
     taxPercentage: component.taxPercentage,
+    taxAmt: pricing.taxAmt,
     itemSeq: comboLine.itemSeq,
     qty: qty,
     price: retail,

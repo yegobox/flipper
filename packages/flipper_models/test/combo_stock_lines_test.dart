@@ -82,6 +82,25 @@ void main() {
       expect(sodaLine.transactionId, 't1');
     });
 
+    test('a component line carries its tax, as a goods sale line does', () {
+      // The saveStockItems envelope sums each line's taxAmt; without it a
+      // taxable component added no VAT to the stock-out report.
+      final out = expandComboLines(
+        [_line('c1', productId: 'combo', itemTyCd: '3', qty: 3)],
+        productIdOf: (l) => l.productId,
+        componentsByProductId: {'combo': components},
+        variantsById: {
+          'soda': soda,
+          'bread': _variant('bread')
+            ..taxTyCd = 'D'
+            ..taxPercentage = 0,
+        },
+      );
+      // 6 sodas x 500, tax-inclusive B at 18%: 3000 * 18 / 118.
+      expect(out[0].taxAmt, 457.63);
+      expect(out[1].taxAmt, 0);
+    });
+
     test('a component counts as deducted exactly when its combo line does', () {
       List<int?> shipped(TransactionItem combo) => expandComboLines(
         [combo],

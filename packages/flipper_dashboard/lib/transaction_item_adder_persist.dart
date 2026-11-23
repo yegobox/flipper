@@ -153,6 +153,9 @@ Future<bool> persistItemToTransaction({
   }
 
   var itemAddCancelled = false;
+  // A `return` inside the lock leaves only its callback; the result is read
+  // after it.
+  var itemSaveFailed = false;
 
   final queuedAtLock = DateTime.now();
   await _persistLock.synchronized(() async {
@@ -229,6 +232,7 @@ Future<bool> persistItemToTransaction({
         'txn=${pendingTransaction.id}; rolling the cart line back',
       );
       rollbackStaleAddAttempt();
+      itemSaveFailed = true;
       return;
     }
 
@@ -249,6 +253,7 @@ Future<bool> persistItemToTransaction({
 
   if (itemAddCancelled) return false;
   if (itemAddAbortedStale) return false;
+  if (itemSaveFailed) return false;
   return true;
 }
 

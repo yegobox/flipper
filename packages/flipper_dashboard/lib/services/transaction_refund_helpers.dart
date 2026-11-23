@@ -85,6 +85,27 @@ List<int> stockRestoreQtysForLines({
   return floors;
 }
 
+/// Stock to put back per line on a refund. A full refund returns exactly what
+/// the sale took, fractions included (a combo component sold at 0.5 per
+/// combo); a partial refund allocates whole units ([stockRestoreQtysForLines]).
+List<double> stockRestoreAmountsForLines({
+  required List<num> lineQtys,
+  required double refundAmount,
+  required double originalTotal,
+}) {
+  if (originalTotal > 0 && refundAmount >= originalTotal - 0.001) {
+    return [for (final q in lineQtys) q.toDouble()];
+  }
+  return [
+    for (final q in stockRestoreQtysForLines(
+      lineQtys: [for (final q in lineQtys) q.toInt()],
+      refundAmount: refundAmount,
+      originalTotal: originalTotal,
+    ))
+      q.toDouble(),
+  ];
+}
+
 bool isPartialRefund(double refundAmount, double originalTotal) {
   if (originalTotal <= 0) return false;
   return refundAmount < originalTotal - 0.001;

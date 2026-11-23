@@ -126,6 +126,41 @@ void main() {
     });
   });
 
+  group('stockRestoreAmountsForLines', () {
+    test('full refund restores fractional line qtys exactly', () {
+      expect(
+        stockRestoreAmountsForLines(
+          lineQtys: [0.5, 2],
+          refundAmount: 1000,
+          originalTotal: 1000,
+        ),
+        [0.5, 2.0],
+      );
+    });
+
+    test('partial refund allocates whole units', () {
+      expect(
+        stockRestoreAmountsForLines(
+          lineQtys: [10],
+          refundAmount: 500,
+          originalTotal: 1000,
+        ),
+        [5.0],
+      );
+    });
+
+    test('no original total restores nothing', () {
+      expect(
+        stockRestoreAmountsForLines(
+          lineQtys: [0.5],
+          refundAmount: 100,
+          originalTotal: 0,
+        ),
+        [0.0],
+      );
+    });
+  });
+
   group('isPartialRefund', () {
     test('detects partial vs full', () {
       expect(isPartialRefund(500, 1000), isTrue);
