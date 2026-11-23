@@ -1,38 +1,32 @@
 import 'package:flipper_dashboard/DesktopProductAdd.dart';
-import 'package:flipper_dashboard/responsive_layout.dart' as responsive;
-import 'package:flipper_localize/flipper_localize.dart';
+import 'package:flipper_dashboard/ToggleButtonWidget.dart';
 import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-/// Opens add/edit product as a full-page route (desktop) or Scaffold (phone).
+/// Opens add/edit product as a full-page route. [ProductEntryScreen] brings
+/// its own header ([CustomAppBar]) on every layout, so callers must not wrap
+/// it in another Scaffold or AppBar.
 Future<void> openProductEntryScreen(BuildContext context, {String? productId}) {
-  final isPhone =
-      responsive.ResponsiveLayout.isPhone(context) ||
-      responsive.ResponsiveLayout.isTinyLimit(context);
+  startFreshProductEntry(context);
+  return Navigator.of(context).push(_route(productId));
+}
 
-  if (isPhone) {
-    return Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (ctx) => Scaffold(
-          appBar: AppBar(
-            title: Text(
-              productId == null
-                  ? ctx.flipperL10n.productEntryAddNewProduct
-                  : ctx.flipperL10n.productEntryEditProduct,
-            ),
-            leading: IconButton(
-              icon: const Icon(Icons.close),
-              onPressed: () => Navigator.of(ctx).maybePop(),
-            ),
-          ),
-          body: SafeArea(child: ProductEntryScreen(productId: productId)),
-        ),
-      ),
-    );
-  }
+/// "Add another" after a save: swaps the current page for a blank editor.
+Future<void> replaceWithProductEntryScreen(BuildContext context) {
+  startFreshProductEntry(context);
+  return Navigator.of(context).pushReplacement(_route(null));
+}
 
-  return Navigator.of(context).push(
-    MaterialPageRoute<void>(
-      builder: (_) => ProductEntryScreen(productId: productId),
-    ),
-  );
+MaterialPageRoute<void> _route(String? productId) => MaterialPageRoute<void>(
+  builder: (_) => ProductEntryScreen(productId: productId),
+);
+
+/// The combo switch is a global flag. Left on from the last product, it would
+/// open the next one as a combo, so every editor starts as a plain product.
+@visibleForTesting
+void startFreshProductEntry(BuildContext context) {
+  ProviderScope.containerOf(
+    context,
+    listen: false,
+  ).read(isCompositeProvider.notifier).state = false;
 }

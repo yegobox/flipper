@@ -2,6 +2,8 @@ import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/view_models/ScannViewModel.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:flipper_dashboard/features/product_entry/widgets/mobile_entry_style.dart';
+import 'package:flipper_dashboard/theme/pos_tokens.dart';
 
 class PricingSection extends HookConsumerWidget {
   final TextEditingController retailPriceController;
@@ -12,6 +14,9 @@ class PricingSection extends HookConsumerWidget {
   /// When true, retail and supply fields stay on one row (narrow phones).
   final bool forceHorizontalPrices;
 
+  /// Shown before both prices (the business's currency, e.g. RWF).
+  final String? currencySymbol;
+
   const PricingSection({
     Key? key,
     required this.retailPriceController,
@@ -19,100 +24,91 @@ class PricingSection extends HookConsumerWidget {
     required this.model,
     required this.isComposite,
     this.forceHorizontalPrices = false,
+    this.currencySymbol,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Card(
-      elevation: 0,
-      color: Theme.of(context).cardColor,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              context.flipperL10n.pricing,
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
-            LayoutBuilder(
-              builder: (context, constraints) {
-                final retailField = TextFormField(
-                  textInputAction: TextInputAction.next,
-                  controller: retailPriceController,
-                  onChanged: (value) => model.setRetailPrice(price: value),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return context.flipperL10n.productEntryPriceRequired;
-                    }
-                    if (double.tryParse(value) == null) {
-                      return context.flipperL10n.invalidPrice;
-                    }
-                    return null;
-                  },
-                  decoration: InputDecoration(
-                    labelText: context.flipperL10n.productEntryRetailPrice,
-                    prefixText: '', // Currency symbol could go here
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
-                    filled: true,
-                    fillColor: Colors.grey.shade50,
-                  ),
-                  keyboardType: TextInputType.number,
-                );
+    const priceKeyboard = TextInputType.numberWithOptions(decimal: true);
+    return MobileEntryCard(
+      title: context.flipperL10n.pricing,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final retailField = Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              MobileEntryFieldLabel(
+                context.flipperL10n.productEntryRetailPrice,
+                required: true,
+              ),
+              TextFormField(
+                textInputAction: TextInputAction.next,
+                controller: retailPriceController,
+                style: mobileEntryInputTextStyle,
+                onChanged: (value) => model.setRetailPrice(price: value),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return context.flipperL10n.productEntryPriceRequired;
+                  }
+                  if (double.tryParse(value) == null) {
+                    return context.flipperL10n.invalidPrice;
+                  }
+                  return null;
+                },
+                decoration: mobileEntryInputDecoration(
+                  hint: '0',
+                  prefixText: currencySymbol,
+                ),
+                keyboardType: priceKeyboard,
+              ),
+            ],
+          );
 
-                final supplyField = TextFormField(
-                  textInputAction: TextInputAction.next,
-                  controller: supplyPriceController,
-                  readOnly: isComposite,
-                  onChanged: (value) => model.setSupplyPrice(price: value),
-                  decoration: InputDecoration(
-                    labelText: context.flipperL10n.productEntrySupplyPrice,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
-                    filled: true,
-                    fillColor: isComposite
-                        ? Colors.grey.shade200
-                        : Colors.grey.shade50,
-                    suffixIcon: isComposite
-                        ? const Icon(Icons.lock, color: Colors.grey)
-                        : null,
-                  ),
-                  keyboardType: TextInputType.number,
-                  style: TextStyle(
-                    color: isComposite ? Colors.grey : Colors.black,
-                  ),
-                );
+          final supplyField = Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              MobileEntryFieldLabel(
+                context.flipperL10n.productEntrySupplyPrice,
+              ),
+              TextFormField(
+                textInputAction: TextInputAction.next,
+                controller: supplyPriceController,
+                readOnly: isComposite,
+                onChanged: (value) => model.setSupplyPrice(price: value),
+                decoration: mobileEntryInputDecoration(
+                  hint: '0',
+                  prefixText: currencySymbol,
+                  locked: isComposite,
+                  suffixIcon: isComposite
+                      ? const Icon(Icons.lock, size: 18, color: PosTokens.ink3)
+                      : null,
+                ),
+                keyboardType: priceKeyboard,
+                style: mobileEntryInputTextStyle.copyWith(
+                  color: isComposite ? PosTokens.ink3 : PosTokens.ink1,
+                ),
+              ),
+            ],
+          );
 
-                final shouldStack =
-                    !forceHorizontalPrices && constraints.maxWidth < 520;
-                if (shouldStack) {
-                  return Column(
-                    children: [
-                      retailField,
-                      const SizedBox(height: 12),
-                      supplyField,
-                    ],
-                  );
-                }
+          final shouldStack =
+              !forceHorizontalPrices && constraints.maxWidth < 520;
+          if (shouldStack) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [retailField, const SizedBox(height: 14), supplyField],
+            );
+          }
 
-                return Row(
-                  children: [
-                    Expanded(child: retailField),
-                    const SizedBox(width: 16),
-                    Expanded(child: supplyField),
-                  ],
-                );
-              },
-            ),
-          ],
-        ),
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(child: retailField),
+              const SizedBox(width: 12),
+              Expanded(child: supplyField),
+            ],
+          );
+        },
       ),
     );
   }

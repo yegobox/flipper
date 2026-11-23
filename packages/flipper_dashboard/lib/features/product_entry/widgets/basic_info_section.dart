@@ -1,6 +1,7 @@
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/view_models/ScannViewModel.dart';
+import 'package:flipper_dashboard/features/product_entry/widgets/mobile_entry_style.dart';
 
 class BasicInfoSection extends StatelessWidget {
   final TextEditingController productNameController;
@@ -16,45 +17,35 @@ class BasicInfoSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 0,
-      color: Theme.of(context).cardColor,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            TextFormField(
-              controller: productNameController,
-              textInputAction: TextInputAction.next,
-              onChanged: (value) {
-                model.setProductName(name: value);
-              },
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return context.flipperL10n.productEntryNameRequired;
-                } else if (value.length < 3) {
-                  return context.flipperL10n.productEntryNameTooShort;
-                }
-                return null;
-              },
-              decoration: InputDecoration(
-                labelText: context.flipperL10n.productEntryProductName,
-                hintText: context.flipperL10n.productEntryProductNameHint,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-                filled: true,
-                fillColor: Colors.grey.shade50,
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16.0,
-                  vertical: 16.0,
-                ),
-              ),
+    return MobileEntryCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          MobileEntryFieldLabel(
+            context.flipperL10n.productEntryProductName,
+            required: true,
+          ),
+          TextFormField(
+            controller: productNameController,
+            textInputAction: TextInputAction.next,
+            textCapitalization: TextCapitalization.sentences,
+            style: mobileEntryInputTextStyle,
+            onChanged: (value) {
+              model.setProductName(name: value);
+            },
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return context.flipperL10n.productEntryNameRequired;
+              } else if (value.length < 3) {
+                return context.flipperL10n.productEntryNameTooShort;
+              }
+              return null;
+            },
+            decoration: mobileEntryInputDecoration(
+              hint: context.flipperL10n.productEntryProductNameHint,
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
