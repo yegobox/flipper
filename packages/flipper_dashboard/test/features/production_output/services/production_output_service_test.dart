@@ -388,7 +388,8 @@ void main() {
       expect(recorded.output?.actualQuantity, 12);
       expect(recorded.rraMessage, isNull);
       expect(recorded.stockError, contains('variant gone'));
-      expect(recorded.stockError, contains('do not record this output again'));
+      expect(recorded.stockError, contains('Stock may already have changed'));
+      expect(recorded.stockError, contains('Do not record this output again'));
     });
 
     test('an output that was not saved stocks nothing', () async {

@@ -137,9 +137,12 @@ class ProductionOutputService {
       return (
         output: output as ActualOutput,
         rraMessage: null,
+        // The increment may have landed before the failure, so don't
+        // claim the stock is unchanged: a blind manual add would double it.
         stockError:
-            'Output saved, but stock was not updated ($e). '
-            'Adjust the stock by hand; do not record this output again.',
+            'Output saved, but stock posting failed ($e). Stock may already '
+            'have changed: check the finished product stock before adjusting '
+            'it by hand. Do not record this output again.',
       );
     }
   }
