@@ -49,6 +49,36 @@ void main() {
     expect(go('/apps', auth: false), isNull);
   });
 
+  test('login resumes only a valid OAuth consent location', () {
+    expect(
+      appRedirect(
+        path: '/login',
+        authenticated: true,
+        opensOnLoginScreen: false,
+        continueTo: '/oauth/consent?authorization_id=auth-1',
+      ),
+      '/oauth/consent?authorization_id=auth-1',
+    );
+    for (final location in [
+      'https://attacker.example/',
+      '//attacker.example/',
+      '/accounting',
+      '/oauth/consent',
+      '/oauth/consent?authorization_id=',
+    ]) {
+      expect(
+        appRedirect(
+          path: '/login',
+          authenticated: true,
+          opensOnLoginScreen: false,
+          continueTo: location,
+        ),
+        '/business-selection',
+        reason: location,
+      );
+    }
+  });
+
   group('shopDeepLinkLocation', () {
     test('a plain shop path becomes the first location, query kept', () {
       expect(
@@ -76,6 +106,34 @@ void main() {
       );
       expect(
         shopDeepLinkLocation(Uri.parse('https://useflipper.com/')),
+        isNull,
+      );
+    });
+  });
+
+  group('oauthConsentDeepLinkLocation', () {
+    test('a plain consent URL is converted to the app hash route', () {
+      expect(
+        oauthConsentDeepLinkLocation(
+          Uri.parse(
+            'https://useflipper.com/oauth/consent?authorization_id=auth-1',
+          ),
+        ),
+        '/oauth/consent?authorization_id=auth-1',
+      );
+    });
+
+    test('other routes and hash URLs are left alone', () {
+      expect(
+        oauthConsentDeepLinkLocation(
+          Uri.parse('https://useflipper.com/#/oauth/consent'),
+        ),
+        isNull,
+      );
+      expect(
+        oauthConsentDeepLinkLocation(
+          Uri.parse('https://useflipper.com/accounting'),
+        ),
         isNull,
       );
     });

@@ -12,8 +12,13 @@ import 'package:go_router/go_router.dart';
 enum _OtpType { sms, authenticator }
 
 class PinScreen extends ConsumerStatefulWidget {
-  const PinScreen({super.key, this.isPinVerified = false});
+  const PinScreen({
+    super.key,
+    this.isPinVerified = false,
+    this.continueTo,
+  });
   final bool isPinVerified;
+  final String? continueTo;
 
   @override
   ConsumerState<PinScreen> createState() => _PinScreenState();
@@ -160,7 +165,7 @@ class _PinScreenState extends ConsumerState<PinScreen>
         if (mounted) {
           if (success) {
             setState(() => _isDone = true);
-            context.go('/business-selection');
+            context.go(widget.continueTo ?? '/business-selection');
           } else {
             setState(() {
               _hasError = true;
