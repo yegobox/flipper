@@ -42,6 +42,8 @@ target_link_libraries(${BINARY_NAME} PRIVATE flutter flutter_wrapper_app)
 target_link_libraries(${BINARY_NAME} PRIVATE "dwmapi.lib")
 # WinRT InputPane (touch_keyboard.cpp).
 target_link_libraries(${BINARY_NAME} PRIVATE "runtimeobject.lib")
+# Taskbar identity from Atlas (main.cpp: SHGetPropertyStoreForWindow, CoTaskMemAlloc).
+target_link_libraries(${BINARY_NAME} PRIVATE "shell32.lib" "ole32.lib")
 target_include_directories(${BINARY_NAME} PRIVATE "${CMAKE_SOURCE_DIR}")
 
 # Run the Flutter tool portions of the build. This must not be removed.

@@ -481,4 +481,27 @@ void main() {
       expect(sent.toString(), 'Bad state: mail [email]');
     });
   });
+
+  test('web loads nothing without a real project token', () async {
+    var loads = 0;
+    final t = PostHogTransport(
+      projectToken: 'ci-fixture-postHogProjectToken',
+      host: 'https://ph.example',
+      posthog: posthog,
+      isWeb: true,
+      loadWeb: () async {
+        loads++;
+        return true;
+      },
+      webReady: () => false,
+    );
+
+    expect(t.hasProjectToken, isFalse);
+    expect(await t.ready, isFalse);
+    await t.identify('42');
+    await pumpEventQueue();
+
+    expect(loads, 0);
+    verifyNever(() => posthog.register(any(), any()));
+  });
 }
