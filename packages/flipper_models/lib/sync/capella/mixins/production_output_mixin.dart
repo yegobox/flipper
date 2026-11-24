@@ -8,6 +8,8 @@ import 'package:uuid/uuid.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:supabase_models/sync/shared_sync_subscriptions.dart';
+import 'package:flipper_models/sync/ditto_observer_registry.dart';
+import 'package:ditto_live/ditto_live.dart' show QueryResult;
 
 /// Capella (Ditto) implementation of ProductionOutputInterface.
 ///
@@ -477,10 +479,13 @@ mixin CapellaProductionOutputMixin implements ProductionOutputInterface {
           arguments: prepared.arguments,
         );
 
-        observer = ditto.store.registerObserver(
-          query,
+        observer = registerTrackedObserver(
+          ditto: ditto,
+          name: 'actualOutputs',
+          collection: 'actual_outputs',
+          query: query,
           arguments: arguments,
-          onChange: (result) {
+          onChange: (QueryResult result) {
             if (controller.isClosed) return;
             observed = true;
             controller.add(decode(result.items));

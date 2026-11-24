@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flipper_models/sync/ditto_observer_registry.dart';
+import 'package:ditto_live/ditto_live.dart' show QueryResult;
 import 'package:flipper_models/sync/utils/cart_line_doc_cache.dart';
 import 'package:flipper_models/sync/utils/kitchen_orders_store.dart';
 import 'package:flipper_models/sync/utils/local_store_indexes.dart';
@@ -409,7 +410,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         collection: 'transactions',
         query: query,
         arguments: arguments,
-        onChange: (queryResult) {
+        onChange: (QueryResult queryResult) {
           if (controller.isClosed) return;
 
           final transactions = <ITransaction>[];
@@ -4382,10 +4383,13 @@ mixin CapellaTransactionMixin implements TransactionInterface {
             }
           }
 
-          observerSlot[0] = activeDitto.store.registerObserver(
-            query,
+          observerSlot[0] = registerTrackedObserver(
+            ditto: activeDitto,
+            name: 'pendingTransaction',
+            collection: 'transactions',
+            query: query,
             arguments: arguments,
-            onChange: (queryResult) {
+            onChange: (QueryResult queryResult) {
               if (controller.isClosed) return;
 
               if (queryResult.items.isNotEmpty) {

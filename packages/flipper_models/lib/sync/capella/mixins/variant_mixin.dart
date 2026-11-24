@@ -24,6 +24,7 @@ import 'package:flipper_services/constants.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:talker/talker.dart';
 import 'package:supabase_models/sync/shared_sync_subscriptions.dart';
+import 'package:flipper_models/sync/ditto_observer_registry.dart';
 
 mixin CapellaVariantMixin implements VariantInterface {
   DittoService get dittoService => DittoService.instance;
@@ -1108,10 +1109,13 @@ mixin CapellaVariantMixin implements VariantInterface {
       }
 
       final completer = Completer<Variant?>();
-      final observer = ditto.store.registerObserver(
-        query,
+      final observer = registerTrackedObserver(
+        ditto: ditto,
+        name: 'variantById',
+        collection: 'variants',
+        query: query,
         arguments: arguments,
-        onChange: (result) {
+        onChange: (QueryResult result) {
           // Keep waiting on empty — first empty callback must not short-circuit
           // bulk sync that is still pulling the document.
           if (completer.isCompleted || result.items.isEmpty) {

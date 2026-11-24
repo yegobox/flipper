@@ -2,7 +2,9 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math' as math;
 
+import 'package:ditto_live/ditto_live.dart' show QueryResult;
 import 'package:flipper_models/models/challenge_code.dart';
+import 'package:flipper_models/sync/ditto_observer_registry.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/foundation.dart' hide Category;
 
@@ -22,13 +24,16 @@ class DittoService {
     try {
       // Register observer for real-time updates of all challenge codes
       // Since Ditto doesn't support spatial queries, we'll fetch all and filter in Dart
-      observer = ProxyService.ditto.store!.registerObserver(
-        """
+      observer = registerTrackedObserver(
+        store: ProxyService.ditto.store!,
+        name: 'nearbyChallenges',
+        collection: 'challengeCodes',
+        query: """
         SELECT * FROM challengeCodes
         WHERE validTo > :now AND validFrom < :now
         """,
         arguments: {"now": DateTime.now().toIso8601String()},
-        onChange: (queryResult) {
+        onChange: (QueryResult queryResult) {
           if (controller.isClosed) return;
 
           final allChallengeCodes = queryResult.items

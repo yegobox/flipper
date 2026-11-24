@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:ditto_live/ditto_live.dart' show QueryResult;
 import 'package:flipper_models/helpers/daily_goal_rules.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/models/engagement.dart';
@@ -48,7 +49,7 @@ class EngagementStore {
             collection: collection,
             query: query,
             arguments: arguments,
-            onChange: (result) {
+            onChange: (QueryResult result) {
               if (controller.isClosed) return;
               final rows = <Map<String, dynamic>>[
                 for (final item in result.items)

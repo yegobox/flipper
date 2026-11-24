@@ -8,6 +8,7 @@ import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:talker/talker.dart';
+import 'package:flipper_models/sync/ditto_observer_registry.dart';
 
 /// Ditto-native favourites (POS keypad shortcuts).
 ///
@@ -26,11 +27,10 @@ mixin CapellaFavoriteMixin implements FavoriteInterface {
 
   String? get _branchId => ProxyService.box.getBranchId();
 
-  Future<void> _upsert(Ditto ditto, Favorite favorite) =>
-      ditto.store.execute(
-        'INSERT INTO $favoritesCollection DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE',
-        arguments: {'doc': favoriteToDittoDoc(favorite)},
-      );
+  Future<void> _upsert(Ditto ditto, Favorite favorite) => ditto.store.execute(
+    'INSERT INTO $favoritesCollection DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE',
+    arguments: {'doc': favoriteToDittoDoc(favorite)},
+  );
 
   /// Ditto rows for [branchId], seeding from Brick the first time they are
   /// missing. Returns null when Ditto is unavailable so callers can fall back.
@@ -46,7 +46,9 @@ mixin CapellaFavoriteMixin implements FavoriteInterface {
       );
       if (result.items.isNotEmpty) {
         return result.items
-            .map((d) => favoriteFromDittoDoc(Map<String, dynamic>.from(d.value)))
+            .map(
+              (d) => favoriteFromDittoDoc(Map<String, dynamic>.from(d.value)),
+            )
             .toList();
       }
     } catch (e, s) {
@@ -88,8 +90,9 @@ mixin CapellaFavoriteMixin implements FavoriteInterface {
     } catch (e, s) {
       talker.error('Ditto getFavoriteById($favId) failed: $e', e, s);
     }
-    final favorite =
-        await ProxyService.legacyStrategy.getFavoriteById(favId: favId);
+    final favorite = await ProxyService.legacyStrategy.getFavoriteById(
+      favId: favId,
+    );
     if (favorite != null) await _upsert(ditto, favorite);
     return favorite;
   }
@@ -125,8 +128,9 @@ mixin CapellaFavoriteMixin implements FavoriteInterface {
     final ditto = dittoService.dittoInstance;
     final branchId = _branchId;
     if (ditto == null || branchId == null) {
-      return ProxyService.legacyStrategy
-          .getFavoriteByIndexStream(favIndex: favIndex);
+      return ProxyService.legacyStrategy.getFavoriteByIndexStream(
+        favIndex: favIndex,
+      );
     }
 
     final controller = StreamController<Favorite?>.broadcast();
@@ -144,10 +148,13 @@ mixin CapellaFavoriteMixin implements FavoriteInterface {
       // registering. onCancel has already run by then and will not run again,
       // so registering an observer now would leak it.
       if (cancelled) return;
-      observer = ditto.store.registerObserver(
-        query,
+      observer = registerTrackedObserver(
+        ditto: ditto,
+        name: 'favoriteByIndex',
+        collection: favoritesCollection,
+        query: query,
         arguments: arguments,
-        onChange: (result) {
+        onChange: (QueryResult result) {
           if (controller.isClosed) return;
           controller.add(
             result.items.isEmpty
@@ -173,16 +180,17 @@ mixin CapellaFavoriteMixin implements FavoriteInterface {
   @override
   Future<int> addFavorite({required Favorite data}) async {
     final ditto = dittoService.dittoInstance;
-    if (ditto == null) return ProxyService.legacyStrategy.addFavorite(data: data);
+    if (ditto == null)
+      return ProxyService.legacyStrategy.addFavorite(data: data);
 
     final branchId = data.branchId ?? _branchId;
     // A slot can only hold one product: reuse the row already in that slot so
     // re-assigning a shortcut repoints it instead of stacking a second row.
     final existing = branchId == null
         ? null
-        : (await _favoritesForBranch(branchId))
-            ?.where((f) => f.favIndex == data.favIndex)
-            .firstOrNull;
+        : (await _favoritesForBranch(
+            branchId,
+          ))?.where((f) => f.favIndex == data.favIndex).firstOrNull;
 
     final row = existing ?? data;
     row.productId = data.productId;
@@ -199,8 +207,9 @@ mixin CapellaFavoriteMixin implements FavoriteInterface {
   Future<int> deleteFavoriteByIndex({required String favIndex}) async {
     final ditto = dittoService.dittoInstance;
     if (ditto == null) {
-      return ProxyService.legacyStrategy
-          .deleteFavoriteByIndex(favIndex: favIndex);
+      return ProxyService.legacyStrategy.deleteFavoriteByIndex(
+        favIndex: favIndex,
+      );
     }
 
     final favorite = await getFavoriteByIndex(favIndex: favIndex);

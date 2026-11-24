@@ -7,6 +7,7 @@ import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:flutter/foundation.dart' hide Category;
 import 'package:supabase_models/brick/models/counter.model.dart';
 import 'package:supabase_models/sync/ditto_sync_adapter.dart';
+import 'package:flipper_models/sync/ditto_observer_registry.dart';
 
 /// Coordinates two-way synchronisation between Ditto and OfflineFirst models.
 class DittoSyncCoordinator {
@@ -265,8 +266,11 @@ class DittoSyncCoordinator {
       }
     }
 
-    final observer = ditto.store.registerObserver(
-      query.query,
+    final observer = registerTrackedObserver(
+      ditto: ditto,
+      name: 'syncCoordinator:$type',
+      collection: dqlCollection(query.query),
+      query: query.query,
       arguments: query.arguments,
       onChange: (result) => _handleQueryResult(type, result),
     );

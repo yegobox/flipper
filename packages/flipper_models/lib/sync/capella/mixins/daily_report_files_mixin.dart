@@ -5,6 +5,8 @@ import 'package:flipper_models/models/daily_report_file.dart';
 import 'package:flipper_models/sync/branch_catalog_cloud_sync.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:talker/talker.dart';
+import 'package:flipper_models/sync/ditto_observer_registry.dart';
+import 'package:ditto_live/ditto_live.dart' show QueryResult;
 
 /// Live list of server-generated daily transaction XLSX catalogue rows in Ditto.
 mixin CapellaDailyReportFilesMixin {
@@ -79,10 +81,13 @@ mixin CapellaDailyReportFilesMixin {
           branchId: branchId,
         );
 
-        observer = ditto.store.registerObserver(
-          query,
+        observer = registerTrackedObserver(
+          ditto: ditto,
+          name: 'dailyReportFiles',
+          collection: 'daily_report_files',
+          query: query,
           arguments: arguments,
-          onChange: (queryResult) {
+          onChange: (QueryResult queryResult) {
             if (controller.isClosed) return;
             controller.add(_mapAndSort(queryResult.items));
           },
@@ -125,11 +130,12 @@ mixin CapellaDailyReportFilesMixin {
   String _dailyReportFilesSignature(List<DailyReportFile> files) {
     if (files.isEmpty) return 'empty';
     final newest = files.first.createdAt?.toUtc().millisecondsSinceEpoch ?? 0;
-    final keys = files
-        .map((f) => f.s3ObjectKey?.trim() ?? f.id)
-        .where((k) => k.isNotEmpty)
-        .toList()
-      ..sort();
+    final keys =
+        files
+            .map((f) => f.s3ObjectKey?.trim() ?? f.id)
+            .where((k) => k.isNotEmpty)
+            .toList()
+          ..sort();
     return '${files.length}|$newest|${keys.join(',')}';
   }
 
@@ -248,9 +254,7 @@ mixin CapellaDailyReportFilesMixin {
 
     final createdIso = createdAt?.toUtc().toIso8601String();
     final trimmedName = fileName?.trim() ?? '';
-    if (createdIso != null &&
-        createdIso.isNotEmpty &&
-        trimmedName.isNotEmpty) {
+    if (createdIso != null && createdIso.isNotEmpty && trimmedName.isNotEmpty) {
       final byMeta = await ditto.store.execute(
         'SELECT * FROM daily_report_files WHERE branchId = :branchId AND createdAt = :createdAt AND fileName = :fileName LIMIT 1',
         arguments: {

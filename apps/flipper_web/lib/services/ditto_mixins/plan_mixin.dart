@@ -4,6 +4,7 @@ import 'package:flipper_models/models/subscription_plan.dart';
 import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'ditto_core_mixin.dart';
 import 'package:supabase_models/sync/shared_sync_subscriptions.dart';
+import 'package:flipper_models/sync/ditto_observer_registry.dart';
 
 mixin PlanMixin on DittoCore {
   /// [dittoInstance], untyped: this mixin only calls its `sync` and `store`.
@@ -110,19 +111,21 @@ mixin PlanMixin on DittoCore {
       if (isNewReplicationSub) {
         // First time for this business: observe while replication catches up
         // ([Store.execute] does not wait for sync — Ditto docs).
-        final dynamic observer = ditto.store.registerObserver(
-          _planQuery,
+        final observer = registerTrackedObserver(
+          ditto: ditto,
+          name: 'paymentPlan',
+          collection: 'plans',
+          query: _planQuery,
           arguments: args,
           onChange: (result) {
             observerSnapshot = _mapsFromQueryResult(result);
           },
         );
-        final streamSub = observer.changes.listen((_) {});
+        // The tracked observer drains its own `changes`.
         try {
           await Future.delayed(const Duration(milliseconds: 1200));
         } finally {
-          await streamSub.cancel();
-          observer.cancel();
+          await observer.cancel();
         }
       }
 
@@ -155,19 +158,21 @@ mixin PlanMixin on DittoCore {
       List<Map<String, dynamic>>? observerSnapshot;
 
       if (isNew) {
-        final dynamic observer = ditto.store.registerObserver(
-          _addonQuery,
+        final observer = registerTrackedObserver(
+          ditto: ditto,
+          name: 'planAddons',
+          collection: 'addons',
+          query: _addonQuery,
           arguments: args,
           onChange: (result) {
             observerSnapshot = _mapsFromQueryResult(result);
           },
         );
-        final streamSub = observer.changes.listen((_) {});
+        // The tracked observer drains its own `changes`.
         try {
           await Future.delayed(const Duration(milliseconds: 1200));
         } finally {
-          await streamSub.cancel();
-          observer.cancel();
+          await observer.cancel();
         }
       }
 

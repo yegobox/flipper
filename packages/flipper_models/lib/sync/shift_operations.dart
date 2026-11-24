@@ -7,6 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as models;
 import 'package:uuid/uuid.dart';
 import 'package:supabase_models/sync/shared_sync_subscriptions.dart';
+import 'package:flipper_models/sync/ditto_observer_registry.dart';
+import 'package:ditto_live/ditto_live.dart' show QueryResult;
 
 /// Ditto-backed shift reads/writes (no Brick/SQLite path).
 ///
@@ -267,10 +269,13 @@ class ShiftOperations {
         if (!controller.isClosed) {
           controller.add(applyRange(_shiftsFromResult(initial)));
         }
-        observer = ditto.store.registerObserver(
-          _byBusinessSql,
+        observer = registerTrackedObserver(
+          ditto: ditto,
+          name: 'shifts',
+          collection: collection,
+          query: _byBusinessSql,
           arguments: args,
-          onChange: (r) {
+          onChange: (QueryResult r) {
             if (!controller.isClosed) {
               controller.add(applyRange(_shiftsFromResult(r)));
             }

@@ -9,16 +9,19 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:talker/talker.dart';
+import 'package:flipper_models/sync/ditto_observer_registry.dart';
+import 'package:ditto_live/ditto_live.dart' show QueryResult;
 
 mixin CapellaCounterMixin implements CounterInterface {
   Repository get repository;
   Talker get talker;
 
   @override
-  Future<Counter?> getCounter(
-      {required String branchId,
-      required String receiptType,
-      required bool fetchRemote}) async {
+  Future<Counter?> getCounter({
+    required String branchId,
+    required String receiptType,
+    required bool fetchRemote,
+  }) async {
     final ditto = DittoService.instance.dittoInstance;
     if (ditto == null) return null;
 
@@ -37,8 +40,9 @@ mixin CapellaCounterMixin implements CounterInterface {
       totRcptNo: data['totRcptNo'],
       invcNo: data['invcNo'],
       businessId: data['businessId'],
-      createdAt:
-          data['createdAt'] != null ? DateTime.parse(data['createdAt']) : null,
+      createdAt: data['createdAt'] != null
+          ? DateTime.parse(data['createdAt'])
+          : null,
       lastTouched: data['lastTouched'] != null
           ? DateTime.parse(data['lastTouched'])
           : null,
@@ -48,8 +52,10 @@ mixin CapellaCounterMixin implements CounterInterface {
   }
 
   @override
-  Future<List<Counter>> getCounters(
-      {required String branchId, bool fetchRemote = false}) async {
+  Future<List<Counter>> getCounters({
+    required String branchId,
+    bool fetchRemote = false,
+  }) async {
     final ditto = DittoService.instance.dittoInstance;
     if (ditto == null) return [];
 
@@ -173,10 +179,13 @@ mixin CapellaCounterMixin implements CounterInterface {
         ensureBranchCounterCloudSubscription(ditto: ditto, branchId: branchId),
       );
 
-      observer = ditto.store.registerObserver(
-        'SELECT * FROM counters WHERE branchId = :branchId',
+      observer = registerTrackedObserver(
+        ditto: ditto,
+        name: 'counters',
+        collection: 'counters',
+        query: 'SELECT * FROM counters WHERE branchId = :branchId',
         arguments: {'branchId': branchId},
-        onChange: (queryResult) {
+        onChange: (QueryResult queryResult) {
           if (controller.isClosed) return;
 
           final counters = queryResult.items.map((doc) {

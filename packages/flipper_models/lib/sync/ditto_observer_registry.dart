@@ -91,26 +91,44 @@ class TrackedDittoObserver {
   }
 }
 
+final RegExp _fromCollection = RegExp(
+  r'\bFROM\s+`?(\w+)',
+  caseSensitive: false,
+);
+
+/// The collection a `SELECT` reads, for call sites that take the query as a
+/// parameter. `unknown` when there is no `FROM <name>`.
+String dqlCollection(String query) =>
+    _fromCollection.firstMatch(query)?.group(1) ?? 'unknown';
+
 /// Registers a store observer that accounts for itself.
 ///
 /// [name] identifies the call site — several observers can share a collection,
 /// and the point is to know *which* one woke up and what it cost.
-TrackedDittoObserver registerTrackedObserver({
-  required dynamic ditto,
+///
+/// Pass the Ditto handle as [ditto], or its store as [store] where a caller
+/// only holds the store. [R] keeps a call site's callback typed
+/// (`(QueryResult result) {...}`). An untyped callback's parameter is
+/// inferred as `Object?`, so type it whenever the callback reads the result.
+/// No [arguments] registers the query with none, as `registerObserver` does.
+TrackedDittoObserver registerTrackedObserver<R>({
+  dynamic ditto,
+  dynamic store,
   required String name,
   required String collection,
   required String query,
   Map<String, dynamic>? arguments,
-  required void Function(dynamic queryResult) onChange,
+  required void Function(R queryResult) onChange,
 }) {
-  dittoObserverStats.opened(name: name, collection: collection);
-  final inner = ditto.store.registerObserver(
+  assert(ditto != null || store != null, 'pass ditto or store');
+  final dynamic target = store ?? ditto.store;
+  final inner = target.registerObserver(
     query,
-    arguments: arguments,
+    arguments: arguments ?? const <String, dynamic>{},
     onChange: (dynamic queryResult) {
       final sw = Stopwatch()..start();
       try {
-        onChange(queryResult);
+        onChange(queryResult as R);
       } finally {
         final ms = sw.elapsedMilliseconds;
         if (ms >= kSlowObserverCallbackMs) {
@@ -130,6 +148,8 @@ TrackedDittoObserver registerTrackedObserver({
       }
     },
   );
+  // Counted once it exists: a registration that throws opened nothing.
+  dittoObserverStats.opened(name: name, collection: collection);
   return TrackedDittoObserver._(inner, name, collection, _drainChanges(inner));
 }
 
