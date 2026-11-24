@@ -8,12 +8,16 @@ import 'interfaces/product_analytics.dart';
 /// one person spans the apps. Without one nobody is identified: a shared
 /// placeholder id would merge strangers into one person. Contact details
 /// (phone, email) are never sent.
+///
+/// [businessName] and [branchName], when known, label the groups in PostHog.
 Future<void> identifySession(
   ProductAnalytics analytics, {
   required String source,
   String? userId,
   String? businessId,
   String? branchId,
+  String? businessName,
+  String? branchName,
 }) async {
   if (userId != null && userId.isNotEmpty) {
     await analytics.identify(userId, properties: {'source': source});
@@ -22,7 +26,11 @@ Future<void> identifySession(
     await analytics.group(
       AnalyticsGroups.business,
       businessId,
-      properties: {'source': source},
+      properties: {
+        'source': source,
+        if (businessName != null && businessName.isNotEmpty)
+          'business_name': businessName,
+      },
     );
   }
   if (branchId != null && branchId.isNotEmpty) {
@@ -33,6 +41,8 @@ Future<void> identifySession(
         'source': source,
         if (businessId != null && businessId.isNotEmpty)
           AnalyticsProperties.businessId: businessId,
+        if (branchName != null && branchName.isNotEmpty)
+          'branch_name': branchName,
       },
     );
   }

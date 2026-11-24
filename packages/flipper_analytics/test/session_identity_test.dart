@@ -66,6 +66,24 @@ void main() {
     expect(analytics.calls, isEmpty);
   });
 
+  test('names label the business and branch groups', () async {
+    final analytics = _Recorder();
+
+    await identifySession(
+      analytics,
+      source: 's',
+      businessId: 'biz',
+      branchId: 'br',
+      businessName: 'Shop',
+      branchName: 'Main',
+    );
+
+    expect(analytics.props, [
+      {'source': 's', 'business_name': 'Shop'},
+      {'source': 's', 'business_id': 'biz', 'branch_name': 'Main'},
+    ]);
+  });
+
   test('a branch without a business still groups', () async {
     final analytics = _Recorder();
 

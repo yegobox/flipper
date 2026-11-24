@@ -359,13 +359,17 @@ class _BusinessBranchSelectorState
     final business = ref.read(selectedBusinessProvider);
     if (business != null) {
       final analytics = ref.read(productAnalyticsProvider);
-      await analytics.group(
-        'business',
-        business.id,
-        properties: {
-          'source': 'business_branch_selector',
-          'business_name': business.name,
-        },
+      final apiUserId = await SessionPersistence.readApiUserId();
+      final userId = apiUserId ?? widget.userProfile.id;
+      // The branch group too, so Books and HR count per till as POS does.
+      await identifySession(
+        analytics,
+        source: 'business_branch_selector',
+        userId: userId,
+        businessId: business.id,
+        businessName: business.name,
+        branchId: branch.id,
+        branchName: branch.name,
       );
       await analytics.track(
         AnalyticsEvents.branchSelected,
@@ -385,9 +389,8 @@ class _BusinessBranchSelectorState
         },
       );
       kickoffAccountingBootstrap(ref, business.id);
-      final apiUserId = await SessionPersistence.readApiUserId();
       await BusinessSelectionPersistence.save(
-        userId: apiUserId ?? widget.userProfile.id,
+        userId: userId,
         businessId: business.id,
         branchId: branch.id,
       );
