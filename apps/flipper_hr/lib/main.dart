@@ -4,6 +4,7 @@ import 'package:flipper_hr/features/branding/hr_brand_panel.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_hr/features/ui/hr_theme.dart';
 import 'package:flipper_hr/router/hr_router.dart';
+import 'package:flipper_web/core/analytics/analytics_session_context.dart';
 import 'package:flipper_web/core/branding/brand_panel_builder.dart';
 import 'package:flipper_web/core/data_connector_web_auth.dart';
 import 'package:flipper_web/core/flipper_web_host.dart';
@@ -33,12 +34,14 @@ Future<void> main() async {
 
   await FlipperAnalytics.initialize(
     appName: 'flipper_hr',
-    platformName: 'web',
+    platformName: analyticsPlatformName(),
     projectToken: AppSecrets.postHogProjectToken,
     store: SharedPreferencesAnalyticsEventStore(),
-    contextProvider: CallbackAnalyticsContextProvider(
+    // The user, business and branch come from the session as it changes;
+    // the app root keeps them in step (analyticsSessionSyncProvider).
+    contextProvider: analyticsSessionContext.contextProvider(
       appName: 'flipper_hr',
-      platformName: 'web',
+      platformName: analyticsPlatformName(),
       buildMode: kDebugMode ? 'debug' : 'release',
     ),
   );
@@ -51,6 +54,8 @@ class FlipperHrApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Tags every analytics event with the session's business and branch.
+    ref.watch(analyticsSessionSyncProvider);
     return MaterialApp.router(
       title: 'Flipper HR',
       debugShowCheckedModeBanner: false,

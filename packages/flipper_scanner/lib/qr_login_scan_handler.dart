@@ -11,6 +11,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/ditto_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_models/sync/shared_sync_subscriptions.dart';
+import 'package:flipper_models/sync/ditto_observer_registry.dart';
 
 /// Shared phone-side QR desktop login flow (dashboard + auth scanners).
 class QrLoginScanHandler {
@@ -157,10 +158,13 @@ class QrLoginScanHandler {
       arguments: preparedEv.arguments,
     );
 
-    _responseObserver = ditto.store.registerObserver(
-      'SELECT * FROM events WHERE channel = :channel',
+    _responseObserver = registerTrackedObserver(
+      ditto: ditto,
+      name: 'qrLoginResponse',
+      collection: 'events',
+      query: 'SELECT * FROM events WHERE channel = :channel',
       arguments: {'channel': responseChannel},
-      onChange: (queryResult) {
+      onChange: (dynamic queryResult) {
         if (_responseHandled) return;
         for (final item in queryResult.items) {
           final response = Map<String, dynamic>.from(item.value);

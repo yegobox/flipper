@@ -421,7 +421,11 @@ abstract class DatabaseSyncInterface extends AiStrategy
   });
 
   Future<void> saveComposite({required Composite composite});
-  FutureOr<List<Composite>> composites({String? productId, String? variantId});
+  FutureOr<List<Composite>> composites({
+    String? productId,
+    String? variantId,
+    bool localOnly = false,
+  });
   Future<String> uploadPdfToS3(
     Uint8List pdfData,
     String fileName, {

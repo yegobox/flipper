@@ -568,7 +568,7 @@ class _PinLoginState extends State<PinLogin>
     }
 
     if (e is! TimeoutException && e is! NeedSignUpException) {
-      // Logs + Sentry; the user-facing text comes from pinLoginErrorText.
+      // Logs + PostHog; the user-facing text comes from pinLoginErrorText.
       await ProxyService.strategy.handleLoginError(e, s);
     }
     final errorMessage = pinLoginErrorText(e as Object);

@@ -9,6 +9,11 @@ import '../providers/production_output_derived_providers.dart';
 class ProductionDayBar extends ConsumerWidget {
   const ProductionDayBar({super.key});
 
+  /// The picker's range. The arrows stop at the same days, so the picker is
+  /// never opened on a day outside it.
+  static final firstDay = DateTime(2020);
+  static DateTime lastDay(DateTime today) => shiftDay(today, 365);
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final day = ref.watch(productionDayProvider);
@@ -18,6 +23,7 @@ class ProductionDayBar extends ConsumerWidget {
         ? l10n.productionOutputToday
         : MaterialLocalizations.of(context).formatMediumDate(day);
 
+    final lastDay = ProductionDayBar.lastDay(today);
     void setDay(DateTime value) =>
         ref.read(productionDayProvider.notifier).state = localDay(value);
 
@@ -26,7 +32,9 @@ class ProductionDayBar extends ConsumerWidget {
         IconButton(
           icon: const Icon(Icons.chevron_left),
           tooltip: l10n.productionOutputPreviousDay,
-          onPressed: () => setDay(day.subtract(const Duration(days: 1))),
+          onPressed: day.isAfter(firstDay)
+              ? () => setDay(shiftDay(day, -1))
+              : null,
         ),
         TextButton.icon(
           icon: const Icon(Icons.calendar_today, size: 16),
@@ -37,9 +45,10 @@ class ProductionDayBar extends ConsumerWidget {
           onPressed: () async {
             final picked = await showDatePicker(
               context: context,
+              // In range: only the arrows and this picker set the day.
               initialDate: day,
-              firstDate: DateTime(2020),
-              lastDate: today.add(const Duration(days: 365)),
+              firstDate: firstDay,
+              lastDate: lastDay,
             );
             if (picked != null) setDay(picked);
           },
@@ -47,7 +56,9 @@ class ProductionDayBar extends ConsumerWidget {
         IconButton(
           icon: const Icon(Icons.chevron_right),
           tooltip: l10n.productionOutputNextDay,
-          onPressed: () => setDay(day.add(const Duration(days: 1))),
+          onPressed: day.isBefore(lastDay)
+              ? () => setDay(shiftDay(day, 1))
+              : null,
         ),
         if (day != today) ...[
           const SizedBox(width: 4),

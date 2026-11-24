@@ -9,6 +9,7 @@ import 'package:flipper_web/services/ditto_service.dart';
 import 'package:flipper_services/log_service.dart';
 import 'package:talker/talker.dart';
 import 'package:supabase_models/sync/shared_sync_subscriptions.dart';
+import 'package:flipper_models/sync/ditto_observer_registry.dart';
 
 mixin CapellaCustomerMixin implements CustomerInterface {
   DittoService get dittoService => DittoService.instance;
@@ -731,8 +732,11 @@ mixin CapellaCustomerMixin implements CustomerInterface {
         controller.add(customers);
       }
 
-      observer = ditto.store.registerObserver(
-        query,
+      observer = registerTrackedObserver(
+        ditto: ditto,
+        name: 'customerById',
+        collection: 'customers',
+        query: query,
         arguments: arguments,
         onChange: (queryResult) => emitFromResult(queryResult),
       );
@@ -790,8 +794,11 @@ mixin CapellaCustomerMixin implements CustomerInterface {
       controller.add(customers);
     }
 
-    observer = ditto.store.registerObserver(
-      query,
+    observer = registerTrackedObserver(
+      ditto: ditto,
+      name: 'customers',
+      collection: 'customers',
+      query: query,
       arguments: arguments,
       onChange: (queryResult) => emitFromResult(queryResult),
     );

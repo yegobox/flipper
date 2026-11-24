@@ -6,6 +6,8 @@ import 'package:flipper_models/sms_review/sms_review_providers.dart'
     show usableDittoProvider;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_models/sync/shared_sync_subscriptions.dart';
+import 'package:flipper_models/sync/ditto_observer_registry.dart';
+import 'package:ditto_live/ditto_live.dart' show QueryResult;
 
 final accountModeStoreProvider = Provider<AccountModeStore>(
   (ref) => AccountModeStore.instance,
@@ -47,10 +49,13 @@ final accountModeProvider = StreamProvider.family<AccountModeReading, String>((
 
   final controller = StreamController<AccountModeReading>();
   controller.add(fallback);
-  final observer = ditto.store.registerObserver(
-    query,
+  final observer = registerTrackedObserver(
+    ditto: ditto,
+    name: 'accountMode',
+    collection: kAccountModesCollection,
+    query: query,
     arguments: args,
-    onChange: (result) {
+    onChange: (QueryResult result) {
       if (controller.isClosed || result.items.isEmpty) return;
       final doc = Map<String, dynamic>.from(result.items.first.value);
       // A switch made here is newer than the doc until the connector's

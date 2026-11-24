@@ -7,6 +7,7 @@ import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:flutter/foundation.dart' hide Category;
 import 'package:supabase_models/brick/models/counter.model.dart';
 import 'package:supabase_models/sync/ditto_sync_adapter.dart';
+import 'package:flipper_models/sync/ditto_observer_registry.dart';
 
 /// Coordinates two-way synchronisation between Ditto and OfflineFirst models.
 class DittoSyncCoordinator {
@@ -24,6 +25,16 @@ class DittoSyncCoordinator {
   bool _skipInitialFetch = false;
   Timer? _upsertDebouncer;
   Ditto? get ditto => _ditto;
+
+  /// ditto_live's `Ditto` is a final class, so a test cannot stand one in
+  /// through [setDitto]. Tests set this to a fake that [_startObserverFor]
+  /// uses instead, to cover how an adapter's live observer is registered.
+  @visibleForTesting
+  dynamic debugDittoOverride;
+
+  /// Starts (or restarts) the live observer for [type]'s registered adapter.
+  @visibleForTesting
+  Future<void> debugStartObserverFor(Type type) => _startObserverFor(type);
 
   /// Set the Ditto instance to be used for sync operations.
   /// Passing `null` tears down existing observers.
@@ -226,7 +237,7 @@ class DittoSyncCoordinator {
 
   Future<void> _startObserverFor(Type type) async {
     final adapter = _adapters[type];
-    final ditto = _ditto;
+    final dynamic ditto = debugDittoOverride ?? _ditto;
     if (adapter == null || ditto == null) {
       return;
     }
@@ -265,8 +276,11 @@ class DittoSyncCoordinator {
       }
     }
 
-    final observer = ditto.store.registerObserver(
-      query.query,
+    final observer = registerTrackedObserver(
+      ditto: ditto,
+      name: 'syncCoordinator:$type',
+      collection: dqlCollection(query.query),
+      query: query.query,
       arguments: query.arguments,
       onChange: (result) => _handleQueryResult(type, result),
     );

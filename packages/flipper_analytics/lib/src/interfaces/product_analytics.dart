@@ -29,4 +29,16 @@ abstract class ProductAnalytics {
   Future<void> reset();
 
   Future<void> flush();
+
+  /// Reports an error to PostHog error tracking, tagged like any event
+  /// (app, platform, user, business, branch). Never throws.
+  Future<void> captureException(
+    Object error, {
+    StackTrace? stackTrace,
+    Map<String, Object?> properties = const {},
+  });
+
+  /// Opts this device in to or out of analytics. Off drops events instead of
+  /// queueing them (local mode promises nothing leaves the device).
+  Future<void> setEnabled(bool enabled);
 }

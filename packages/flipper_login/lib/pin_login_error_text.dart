@@ -77,7 +77,7 @@ String pinLoginErrorText(Object error, [FlipperAppLocalizations? l10n]) {
   }
 
   // Raw exception text can carry response bodies or internals; it is already
-  // logged (GlobalErrorHandler + Sentry), so the user gets a stable message.
+  // logged (GlobalErrorHandler, which also feeds PostHog), so the user gets a stable message.
   return t.loginErrorUnknown;
 }
 
