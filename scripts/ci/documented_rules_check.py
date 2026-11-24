@@ -236,10 +236,14 @@ def rule_untracked_store_observers():
     A ratchet: existing direct calls stay until they are moved; new ones need
     a reviewed reason.
     """
-    call = re.compile(r"\.\s*store\s*\.\s*registerObserver(?:WithSignalNext)?\s*\(")
+    # Any receiver: `ditto.store.`, `store!.`, a bare `store.` local.
+    call = re.compile(r"\bregisterObserver(?:WithSignalNext)?\s*\(")
+    # The registry itself, and the WhatsApp sync's DittoObserverRunner
+    # facade, whose real runner goes through registerTrackedObserver.
+    allowed = ("ditto_observer_registry.dart", "whatsapp_message_sync_service.dart")
     offenders = []
     for path in dart_files(include_tests=False):
-        if path.endswith("ditto_observer_registry.dart"):
+        if path.endswith(allowed):
             continue
         text = strip_comments(read(path))
         for m in call.finditer(text):

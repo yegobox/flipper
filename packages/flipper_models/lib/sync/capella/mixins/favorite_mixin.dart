@@ -180,8 +180,9 @@ mixin CapellaFavoriteMixin implements FavoriteInterface {
   @override
   Future<int> addFavorite({required Favorite data}) async {
     final ditto = dittoService.dittoInstance;
-    if (ditto == null)
+    if (ditto == null) {
       return ProxyService.legacyStrategy.addFavorite(data: data);
+    }
 
     final branchId = data.branchId ?? _branchId;
     // A slot can only hold one product: reuse the row already in that slot so

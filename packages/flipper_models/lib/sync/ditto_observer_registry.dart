@@ -84,14 +84,18 @@ class TrackedDittoObserver {
     _cancelled = true;
     dittoObserverStats.closed(name: _name, collection: _collection);
     _throttle?.close();
+    // The live query stops now, synchronously, as `StoreObserver.cancel()`
+    // does: call sites cancel without awaiting and close their controller
+    // straight after, so no result may arrive once this returns.
     try {
-      await _drain?.cancel();
-    } catch (_) {}
-    try {
-      await _inner?.cancel();
+      final dynamic stopped = _inner?.cancel();
+      if (stopped is Future) unawaited(stopped.catchError((Object _) {}));
     } catch (_) {
       // Ditto already closed, or the observer is already torn down.
     }
+    try {
+      await _drain?.cancel();
+    } catch (_) {}
   }
 }
 

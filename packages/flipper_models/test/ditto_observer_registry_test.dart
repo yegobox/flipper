@@ -226,6 +226,24 @@ void main() {
     expect(inner.cancelled, isTrue);
   });
 
+  test('cancel stops the live query at once, before any await', () async {
+    final ditto = _DittoWithChanges();
+    final observer = registerTrackedObserver(
+      ditto: ditto,
+      name: 'features',
+      collection: 'business_features',
+      query: 'SELECT * FROM business_features',
+      onChange: (_) {},
+    );
+
+    // Call sites cancel without awaiting and close their controller next.
+    final done = observer.cancel();
+    expect(ditto.store.observer.cancelled, isTrue);
+
+    await done;
+    expect(ditto.store.observer.results.hasListener, isFalse);
+  });
+
   test('a double without `changes` still registers', () async {
     final observer = registerTrackedObserver(
       ditto: _FakeDitto(),
