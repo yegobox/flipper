@@ -12,6 +12,8 @@ import 'package:flipper_web/services/ditto_service.dart';
 import 'package:flutter/foundation.dart' hide Category;
 import 'package:supabase_models/brick/models/all_models.dart';
 import 'package:supabase_models/sync/shared_sync_subscriptions.dart';
+import 'package:flipper_models/sync/ditto_observer_registry.dart';
+import 'package:ditto_live/ditto_live.dart' show QueryResult;
 
 mixin CapellaDelegationMixin implements DelegationInterface {
   DittoService get dittoService => DittoService.instance;
@@ -236,10 +238,13 @@ mixin CapellaDelegationMixin implements DelegationInterface {
 
           // Use registerObserver with initial data fetch
           final completer = Completer<List<TransactionDelegation>>();
-          observer = ditto.store.registerObserver(
-            query,
+          observer = registerTrackedObserver(
+            ditto: ditto,
+            name: 'delegations',
+            collection: _collectionName,
+            query: query,
             arguments: arguments,
-            onChange: (queryResult) {
+            onChange: (QueryResult queryResult) {
               if (controller.isClosed) return;
 
               final delegations = queryResult.items.map((doc) {

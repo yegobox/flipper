@@ -80,6 +80,8 @@ import 'package:flutter/foundation.dart'
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/payment_methods.dart';
 import 'package:supabase_models/sync/shared_sync_subscriptions.dart';
+import 'package:flipper_models/sync/ditto_observer_registry.dart';
+import 'package:ditto_live/ditto_live.dart' show QueryResult;
 
 String? _nonEmptyCustomerField(String? value) {
   final trimmed = value?.trim();
@@ -1418,10 +1420,13 @@ class CapellaSync extends AiStrategyImpl
       // registering. onCancel has already run by then and will not run again,
       // so registering an observer now would leak it.
       if (cancelled) return;
-      observer = ditto.store.registerObserver(
-        query,
+      observer = registerTrackedObserver(
+        ditto: ditto,
+        name: 'variantsByProduct',
+        collection: 'variants',
+        query: query,
         arguments: arguments,
-        onChange: (result) {
+        onChange: (QueryResult result) {
           if (controller.isClosed) return;
           controller.add(
             result.items
@@ -2219,10 +2224,13 @@ class CapellaSync extends AiStrategyImpl
     final controller = StreamController<List<BusinessAnalytic>>.broadcast();
     dynamic observer;
 
-    observer = ditto.store.registerObserver(
-      'SELECT * FROM business_analytics WHERE branchId = :branchId',
+    observer = registerTrackedObserver(
+      ditto: ditto,
+      name: 'remoteAnalytics',
+      collection: 'business_analytics',
+      query: 'SELECT * FROM business_analytics WHERE branchId = :branchId',
       arguments: {'branchId': branchId},
-      onChange: (queryResult) {
+      onChange: (QueryResult queryResult) {
         if (controller.isClosed) return;
 
         final analytics = <BusinessAnalytic>[];

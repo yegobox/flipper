@@ -84,46 +84,73 @@ class TrackedDittoObserver {
     _cancelled = true;
     dittoObserverStats.closed(name: _name, collection: _collection);
     _throttle?.close();
+    // The live query stops now, synchronously, as `StoreObserver.cancel()`
+    // does: call sites cancel without awaiting and close their controller
+    // straight after, so no result may arrive once this returns.
     try {
-      await _drain?.cancel();
-    } catch (_) {}
-    try {
-      await _inner?.cancel();
+      final dynamic stopped = _inner?.cancel();
+      if (stopped is Future) unawaited(stopped.catchError((Object _) {}));
     } catch (_) {
       // Ditto already closed, or the observer is already torn down.
     }
+    try {
+      await _drain?.cancel();
+    } catch (_) {}
   }
 }
+
+final RegExp _fromCollection = RegExp(
+  r'\bFROM\s+`?(\w+)',
+  caseSensitive: false,
+);
+
+/// The collection a `SELECT` reads, for call sites that take the query as a
+/// parameter. `unknown` when there is no `FROM <name>`.
+String dqlCollection(String query) =>
+    _fromCollection.firstMatch(query)?.group(1) ?? 'unknown';
 
 /// Registers a store observer that accounts for itself.
 ///
 /// [name] identifies the call site — several observers can share a collection,
 /// and the point is to know *which* one woke up and what it cost.
 ///
+/// Pass the Ditto handle as [ditto], or its store as [store] where a caller
+/// only holds the store. [R] keeps a call site's callback typed
+/// (`(QueryResult result) {...}`). An untyped callback's parameter is
+/// inferred as `Object?`, so type it whenever the callback reads the result.
+/// No [arguments] registers the query with none, as `registerObserver` does.
+///
 /// With [coalesce], a burst of results reaches [onChange] at most once per
 /// window (the first at once, then only the newest; see [LatestThrottle]).
 /// Every call to [onChange] is timed, including the ones the window's timer
 /// makes after Ditto's callback has returned.
-TrackedDittoObserver registerTrackedObserver({
-  required dynamic ditto,
+TrackedDittoObserver registerTrackedObserver<R>({
+  dynamic ditto,
+  dynamic store,
   required String name,
   required String collection,
   required String query,
   Map<String, dynamic>? arguments,
   Duration? coalesce,
-  required void Function(dynamic queryResult) onChange,
+  required void Function(R queryResult) onChange,
 }) {
-  dittoObserverStats.opened(name: name, collection: collection);
-  void timed(dynamic queryResult) =>
-      _timeObserverCallback(name, queryResult, onChange);
+  assert(ditto != null || store != null, 'pass ditto or store');
+  final dynamic target = store ?? ditto.store;
+  void timed(dynamic queryResult) => _timeObserverCallback(
+    name,
+    queryResult,
+    (dynamic result) => onChange(result as R),
+  );
   final throttle = coalesce == null
       ? null
       : LatestThrottle<dynamic>(coalesce, timed);
-  final inner = ditto.store.registerObserver(
+  final inner = target.registerObserver(
     query,
-    arguments: arguments,
+    arguments: arguments ?? const <String, dynamic>{},
     onChange: throttle?.add ?? timed,
   );
+  // Counted once it exists: a registration that throws opened nothing.
+  dittoObserverStats.opened(name: name, collection: collection);
   return TrackedDittoObserver._(
     inner,
     name,

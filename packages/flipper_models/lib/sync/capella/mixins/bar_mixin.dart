@@ -23,6 +23,7 @@ import 'package:flipper_models/sync/utils/sale_accounting_fields.dart';
 import 'package:flipper_models/sync/utils/service_mode_sale_date.dart';
 import 'package:flipper_models/helpers/default_sale_receipt_type.dart';
 import 'package:supabase_models/sync/shared_sync_subscriptions.dart';
+import 'package:flipper_models/sync/ditto_observer_registry.dart';
 
 TransactionItem? _barFindLine(List<TransactionItem> lines, String lineId) {
   for (final line in lines) {
@@ -191,8 +192,11 @@ mixin CapellaBarMixin implements BarInterface {
         if (controller.isClosed) return;
         controller.add(_branchSettingsFromResult(initial));
         if (controller.isClosed) return;
-        observer = ditto.store.registerObserver(
-          _barBranchSettingsSql,
+        observer = registerTrackedObserver(
+          ditto: ditto,
+          name: 'barBranchSettings',
+          collection: 'bar_branch_settings',
+          query: _barBranchSettingsSql,
           arguments: args,
           onChange: (r) {
             if (!controller.isClosed) {
@@ -260,8 +264,11 @@ mixin CapellaBarMixin implements BarInterface {
         if (!controller.isClosed) {
           controller.add(_tablesFromResult(initial));
         }
-        observer = ditto.store.registerObserver(
-          _barTablesSql,
+        observer = registerTrackedObserver(
+          ditto: ditto,
+          name: 'barTables',
+          collection: 'bar_tables',
+          query: _barTablesSql,
           arguments: args,
           onChange: (r) {
             if (!controller.isClosed) {
@@ -341,8 +348,11 @@ mixin CapellaBarMixin implements BarInterface {
         if (!controller.isClosed) {
           controller.add(await _tabsFromResult(initial));
         }
-        observer = ditto.store.registerObserver(
-          _barTabsSql,
+        observer = registerTrackedObserver(
+          ditto: ditto,
+          name: 'barTabs',
+          collection: 'transactions',
+          query: _barTabsSql,
           arguments: args,
           onChange: (r) async {
             if (!controller.isClosed) {
@@ -862,8 +872,11 @@ mixin CapellaBarMixin implements BarInterface {
       try {
         final initial = await ditto.store.execute(sql, arguments: args);
         if (!controller.isClosed) controller.add(await open(initial));
-        observer = ditto.store.registerObserver(
-          sql,
+        observer = registerTrackedObserver(
+          ditto: ditto,
+          name: 'barCreditTabs',
+          collection: 'transactions',
+          query: sql,
           arguments: args,
           onChange: (r) async {
             if (!controller.isClosed) controller.add(await open(r));

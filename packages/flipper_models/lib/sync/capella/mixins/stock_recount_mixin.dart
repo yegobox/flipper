@@ -18,6 +18,8 @@ import 'package:supabase_models/brick/repository.dart';
 import 'package:talker/talker.dart';
 import 'package:uuid/uuid.dart';
 import 'package:supabase_models/sync/shared_sync_subscriptions.dart';
+import 'package:flipper_models/sync/ditto_observer_registry.dart';
+import 'package:ditto_live/ditto_live.dart' show QueryResult;
 
 /// Ditto-backed stock recount (Capella). Overrides [StockRecountMixin] SQLite/B-repository reads so mesh state is authoritative.
 mixin CapellaStockRecountMixin implements StockRecountInterface {
@@ -630,10 +632,13 @@ LIMIT 1
           arguments: prepared.arguments,
         );
 
-        observer = ditto.store.registerObserver(
-          query,
+        observer = registerTrackedObserver(
+          ditto: ditto,
+          name: 'stockRecounts',
+          collection: 'stock_recounts',
+          query: query,
           arguments: arguments,
-          onChange: (queryResult) {
+          onChange: (QueryResult queryResult) {
             if (controller.isClosed) return;
             final list = queryResult.items
                 .map<StockRecount>(

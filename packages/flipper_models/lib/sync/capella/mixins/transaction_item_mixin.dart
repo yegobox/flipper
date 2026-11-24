@@ -12,6 +12,8 @@ import 'package:flipper_services/proxy.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:talker/talker.dart';
+import 'package:flipper_models/sync/ditto_observer_registry.dart';
+import 'package:ditto_live/ditto_live.dart' show QueryResult;
 
 /// Prefer explicit `id` (UUID) over Ditto's auto-generated `_id`.
 String? _dittoDocumentId(Map<String, dynamic> data) {
@@ -677,10 +679,13 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
     final controller = StreamController<List<TransactionItem>>.broadcast();
     dynamic observer;
 
-    observer = ditto.store.registerObserver(
-      query,
+    observer = registerTrackedObserver(
+      ditto: ditto,
+      name: 'transactionItems',
+      collection: 'transaction_items',
+      query: query,
       arguments: arguments,
-      onChange: (queryResult) {
+      onChange: (QueryResult queryResult) {
         if (controller.isClosed) return;
 
         final items = <TransactionItem>[];

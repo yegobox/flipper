@@ -1,7 +1,10 @@
 import 'dart:async';
 
+import 'package:flipper_models/sync/ditto_observer_registry.dart';
+import 'package:flipper_web/services/ditto_mixins/challenge_code_mixin.dart';
 import 'package:flipper_web/services/ditto_mixins/ditto_core_mixin.dart';
 import 'package:flipper_web/services/ditto_mixins/event_mixin.dart';
+import 'package:flipper_web/services/ditto_mixins/feature_mixin.dart';
 import 'package:flipper_web/services/ditto_mixins/plan_mixin.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -54,6 +57,14 @@ class _Observer {
 class _Store {
   final docs = <String, List<Map<String, dynamic>>>{};
   final observers = <_Observer>[];
+  final _live = <void Function()>[];
+
+  /// Re-runs every observer's query, as a sync arriving would.
+  void notify() {
+    for (final fire in List.of(_live)) {
+      fire();
+    }
+  }
 
   _Result _query(String dql, Map<String, dynamic>? arguments) {
     final collection = RegExp(r'FROM (\w+)').firstMatch(dql)!.group(1)!;
@@ -76,6 +87,9 @@ class _Store {
   }) {
     final observer = _Observer();
     observers.add(observer);
+    _live.add(() {
+      if (!observer.cancelled) onChange(_query(dql, arguments));
+    });
     onChange(_query(dql, arguments));
     return observer;
   }
@@ -86,7 +100,8 @@ class _Ditto {
   final store = _Store();
 }
 
-class _Probe extends DittoCore with EventMixin, PlanMixin {
+class _Probe extends DittoCore
+    with EventMixin, PlanMixin, ChallengeCodeMixin, FeatureMixin {
   _Probe(this.fake);
 
   final _Ditto? fake;
@@ -119,6 +134,10 @@ class _EventsOnly extends DittoCore with EventMixin {}
 
 class _PlanOnly extends DittoCore with PlanMixin {}
 
+class _ChallengeOnly extends DittoCore with ChallengeCodeMixin {}
+
+class _FeatureOnly extends DittoCore with FeatureMixin {}
+
 void main() {
   late DebugPrintCallback previousDebugPrint;
 
@@ -132,6 +151,8 @@ void main() {
   test("each mixin's handle is the Ditto instance, null until one is set", () {
     expect(_EventsOnly().dittoHandle, isNull);
     expect(_PlanOnly().dittoHandle, isNull);
+    expect(_ChallengeOnly().dittoHandle, isNull);
+    expect(_FeatureOnly().dittoHandle, isNull);
   });
 
   group('events', () {
@@ -232,6 +253,72 @@ void main() {
 
     test('no Ditto: null, nothing registered', () async {
       expect(await _Probe(null).getPaymentPlanFromDitto('biz-x'), isNull);
+    });
+  });
+
+  group('challenge codes', () {
+    test('streams the business codes and closes its observer', () async {
+      final ditto = _Ditto();
+      ditto.store.docs['challengeCodes'] = [
+        {'_id': 'c1', 'businessId': 'biz-1', 'code': 'A'},
+        {'_id': 'c2', 'businessId': 'biz-2', 'code': 'B'},
+      ];
+
+      final stream = _Probe(
+        ditto,
+      ).observeChallengeCodes(businessId: 'biz-1', onlyValid: false);
+      // A broadcast stream: rows reach whoever listens when Ditto reports.
+      final next = stream.first;
+      ditto.store.notify();
+      final first = await next;
+
+      expect(first.map((c) => c['code']), ['A']);
+      await pumpEventQueue();
+      expect(ditto.store.observers.single.cancelled, isTrue);
+      expect(dittoObserverStats.liveFor('challengeCodes'), 0);
+    });
+
+    test('no Ditto: one empty list, no observer', () async {
+      expect(await _Probe(null).observeChallengeCodes().toList(), [isEmpty]);
+    });
+  });
+
+  group('business features', () {
+    test('streams the feature row, subscribing once', () async {
+      final ditto = _Ditto();
+      ditto.store.docs['business_features'] = [
+        {
+          '_id': 'f1',
+          'businessId': 'biz-1',
+          'features': ['hr'],
+        },
+      ];
+
+      final feature = await _Probe(
+        ditto,
+      ).businessFeatureStream(businessId: 'biz-1').first;
+
+      expect(feature?.features, ['hr']);
+      expect(ditto.sync.registered, hasLength(1));
+      expect(ditto.sync.registered.single.dql, contains('business_features'));
+      await pumpEventQueue();
+      expect(ditto.store.observers.single.cancelled, isTrue);
+    });
+
+    test('no row for the business: null', () async {
+      final ditto = _Ditto();
+
+      expect(
+        await _Probe(ditto).businessFeatureStream(businessId: 'biz-x').first,
+        isNull,
+      );
+    });
+
+    test('no Ditto: null, nothing registered', () async {
+      expect(
+        await _Probe(null).businessFeatureStream(businessId: 'biz-x').toList(),
+        [isNull],
+      );
     });
   });
 }

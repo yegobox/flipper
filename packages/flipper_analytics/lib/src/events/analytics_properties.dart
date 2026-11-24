@@ -13,3 +13,12 @@ abstract final class AnalyticsProperties {
   static const module = 'module';
   static const action = 'action';
 }
+
+/// PostHog group types; `business` is group type index 0 (`$group_0`).
+abstract final class AnalyticsGroups {
+  static const business = 'business';
+  static const branch = 'branch';
+
+  /// The event property PostHog reads an event's groups from.
+  static const property = r'$groups';
+}
