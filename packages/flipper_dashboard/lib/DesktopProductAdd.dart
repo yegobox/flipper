@@ -1187,6 +1187,8 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
             ref
                 .read(unsavedProductProvider.notifier)
                 .emitProduct(value: product);
+            // Opening reset the combo switch; a combo is edited as a combo.
+            showProductInItsOwnMode(ref, product);
 
             productNameController.text = product.name;
             model.setProductName(name: product.name);
@@ -1301,12 +1303,13 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                 showCategoryError: _showCategoryError,
                 onSave: () async {
                   if (!mounted) return;
+                  // validate() marks the bad fields; the gate is the same
+                  // one desktop's Save uses.
                   final formOk = _formKey.currentState!.validate();
-                  final hasCategory = selectedCategoryId != null;
-                  if (!hasCategory) {
+                  if (selectedCategoryId == null) {
                     setState(() => _showCategoryError = true);
                   }
-                  if (formOk && hasCategory) {
+                  if (formOk && _requiredFieldsFilled(isComposite: false)) {
                     if (productRef == null) {
                       showErrorNotification(
                         context,
@@ -2719,12 +2722,15 @@ class _MobileVariantCard extends StatelessWidget {
           child: const Icon(Icons.delete_outline, color: Colors.white),
         ),
         onDismissed: (_) => onDelete(),
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            color: PosTokens.surface,
+        // ExpansionTile builds a ListTile, which paints its ripple on the
+        // nearest Material: the card itself, so the tap shows.
+        child: Material(
+          color: PosTokens.surface,
+          shape: const RoundedRectangleBorder(
+            side: BorderSide(color: PosTokens.line),
             borderRadius: radius,
-            border: Border.all(color: PosTokens.line),
           ),
+          clipBehavior: Clip.antiAlias,
           child: ExpansionTile(
             key: PageStorageKey<String>('vexp-${v.id}'),
             tilePadding: const EdgeInsets.symmetric(
