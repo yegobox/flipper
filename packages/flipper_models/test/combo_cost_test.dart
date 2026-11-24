@@ -30,25 +30,36 @@ class _FakePaths extends Fake
   Future<String?> getTemporaryPath() async => dir;
 }
 
-Variant _v(String id, double supply, {double retail = 9999}) => Variant(
+Variant _v(
+  String id,
+  double? supply, {
+  double retail = 9999,
+  String itemTyCd = '2',
+}) => Variant(
   id: id,
   name: id,
   branchId: 'b1',
   supplyPrice: supply,
   retailPrice: retail,
+  itemTyCd: itemTyCd,
 );
 
-TransactionItem _line(String id, {num qty = 1, double? supply}) =>
-    TransactionItem(
-      id: id,
-      name: id,
-      qty: qty,
-      price: 0,
-      prc: 0,
-      discount: 0,
-      ttCatCd: null,
-      supplyPrice: supply,
-    );
+TransactionItem _line(
+  String id, {
+  num qty = 1,
+  double? supply,
+  String itemTyCd = '2',
+}) => TransactionItem(
+  id: id,
+  name: id,
+  qty: qty,
+  price: 0,
+  prc: 0,
+  discount: 0,
+  ttCatCd: null,
+  supplyPrice: supply,
+  itemTyCd: itemTyCd,
+);
 
 void main() {
   group('comboUnitCost', () {
@@ -75,6 +86,31 @@ void main() {
       );
       expect(comboUnitCost(components, {'soda': _v('soda', 300)}), isNull);
     });
+  });
+
+  // Labour, delivery or a packaging fee usually has no supply price: a known
+  // 0, so the combo still gets a cost. Goods without one stay unknown.
+  test('a service component with no price costs nothing', () {
+    expect(
+      comboUnitCost(
+        [
+          Composite(variantId: 'soda', qty: 2),
+          Composite(variantId: 'delivery'),
+        ],
+        {
+          'soda': _v('soda', 300),
+          'delivery': _v('delivery', null, itemTyCd: '3'),
+        },
+      ),
+      600,
+    );
+    expect(
+      comboLineCosts([
+        _line(comboComponentLineId('c1', 'soda'), qty: 2, supply: 300),
+        _line(comboComponentLineId('c1', 'wrap'), itemTyCd: '3'),
+      ]),
+      {'c1': 600.0},
+    );
   });
 
   test('comboLineCosts totals each combo line from its component lines', () {

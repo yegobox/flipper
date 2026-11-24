@@ -148,6 +148,21 @@ void main() {
       ).called(1);
     });
 
+    test('hands the event\'s groups to the SDK untouched', () async {
+      const groups = {'business': 'business-1', 'branch': 'branch-1'};
+      await transport().send(event({r'$groups': groups, 'lag_ms': 4200}));
+
+      verify(
+        () => posthog.capture(
+          eventName: 'ui_stall',
+          properties: {r'$groups': groups, 'lag_ms': 4200},
+        ),
+      ).called(1);
+      expect(PostHogTransport.redact({r'$groups': groups}), {
+        r'$groups': groups,
+      });
+    });
+
     test('a queued screen view goes out as a screen', () async {
       await transport().send(
         event({
@@ -233,6 +248,7 @@ void main() {
         'shipping',
         'business_id',
         'lag_ms',
+        r'$groups',
         '',
       ]) {
         expect(PostHogTransport.isSensitiveKey(key), isFalse, reason: key);
@@ -328,13 +344,53 @@ void main() {
         expect(calls, ['register', 'optIn', 'identify', 'group']);
       });
 
-      test('a failed load drops the queued calls', () async {
-        await t.identify('42');
+      test('a failed load keeps the queued calls for the next load', () async {
+        final loads = [Completer<bool>(), Completer<bool>()];
+        var attempt = 0;
+        final retrying = PostHogTransport(
+          projectToken: 'phc_test',
+          host: 'https://ph.example',
+          posthog: posthog,
+          isWeb: true,
+          loadWeb: () => loads[attempt++].future,
+          webReady: () => loaded,
+        );
 
-        load.complete(false);
+        await retrying.identify('42');
+        loads[0].complete(false);
+        await pumpEventQueue();
+        expect(calls, isEmpty);
+
+        await retrying.group('business', 'b-1');
+        loaded = true;
+        loads[1].complete(true);
         await pumpEventQueue();
 
-        expect(calls, isEmpty);
+        expect(calls, ['register', 'identify', 'group']);
+      });
+
+      test('only the newest calls wait when nothing ever loads', () async {
+        final never = PostHogTransport(
+          projectToken: 'phc_test',
+          host: 'https://ph.example',
+          posthog: posthog,
+          isWeb: true,
+          loadWeb: () async => false,
+          webReady: () => loaded,
+        );
+        for (var i = 0; i < PostHogTransport.maxQueuedWebCalls + 5; i++) {
+          await never.identify('$i');
+        }
+        await pumpEventQueue();
+
+        loaded = true;
+        await never.identify('last');
+        await pumpEventQueue();
+
+        expect(
+          calls.where((c) => c == 'identify'),
+          hasLength(PostHogTransport.maxQueuedWebCalls),
+        );
       });
 
       test('sends wait in the offline queue until it loads', () async {

@@ -7,6 +7,8 @@ import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:flipper_services/constants.dart' show COMPLETE;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_models/sync/shared_sync_subscriptions.dart';
+import 'package:flipper_models/sync/ditto_observer_registry.dart';
+import 'package:ditto_live/ditto_live.dart' show QueryResult;
 
 const _ordersQuery =
     'SELECT * FROM $kOnlineOrdersCollection WHERE branchId = :branchId '
@@ -39,10 +41,13 @@ final onlineOrdersProvider = StreamProvider.autoDispose
       }
 
       final controller = StreamController<List<OnlineOrder>>.broadcast();
-      final observer = ditto.store.registerObserver(
-        _ordersQuery,
+      final observer = registerTrackedObserver(
+        ditto: ditto,
+        name: 'onlineOrders',
+        collection: kOnlineOrdersCollection,
+        query: _ordersQuery,
         arguments: args,
-        onChange: (result) {
+        onChange: (QueryResult result) {
           if (controller.isClosed) return;
           controller.add(
             parseOnlineOrders(
@@ -89,10 +94,14 @@ final soldOnlineOrderTicketsProvider = StreamProvider.autoDispose
       if (ditto == null) return Stream.value(const <String>{});
 
       final controller = StreamController<Set<String>>.broadcast();
-      final observer = ditto.store.registerObserver(
-        'SELECT _id, status, branchId FROM transactions WHERE _id IN :ids',
+      final observer = registerTrackedObserver(
+        ditto: ditto,
+        name: 'soldOnlineOrderTickets',
+        collection: 'transactions',
+        query:
+            'SELECT _id, status, branchId FROM transactions WHERE _id IN :ids',
         arguments: {'ids': ticketIds.split(',')},
-        onChange: (result) {
+        onChange: (QueryResult result) {
           if (controller.isClosed) return;
           controller.add(
             soldTicketIds(

@@ -2,8 +2,14 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart' hide Category;
 import 'ditto_core_mixin.dart';
+import 'package:flipper_models/sync/ditto_observer_registry.dart';
+import 'package:flipper_models/sync/ditto_observer_utils.dart';
 
 mixin ChallengeCodeMixin on DittoCore {
+  /// [dittoInstance], untyped: `Ditto` is a final class a unit test cannot
+  /// stand in for, so tests override this with an in-memory store.
+  dynamic get dittoHandle => dittoInstance;
+
   /// Save a challenge code to the challengeCodes collection
   Future<void> saveChallengeCode(Map<String, dynamic> challengeCode) async {
     if (dittoInstance == null) return handleNotInitialized('saveChallengeCode');
@@ -45,7 +51,8 @@ mixin ChallengeCodeMixin on DittoCore {
     String? businessId,
     bool onlyValid = true,
   }) {
-    if (dittoInstance == null) return Stream.value([]);
+    final ditto = dittoHandle;
+    if (ditto == null) return Stream.value([]);
     String query = "SELECT * FROM challengeCodes";
     final arguments = <String, dynamic>{};
     if (businessId != null) {
@@ -60,15 +67,15 @@ mixin ChallengeCodeMixin on DittoCore {
     query += " ORDER BY createdAt DESC";
     final controller = StreamController<List<Map<String, dynamic>>>.broadcast();
     dynamic observer;
-    observer = dittoInstance!.store.registerObserver(
-      query,
+    observer = registerTrackedObserver(
+      ditto: ditto,
+      name: 'challengeCodes',
+      collection: 'challengeCodes',
+      query: query,
       arguments: arguments,
       onChange: (queryResult) {
         if (controller.isClosed) return;
-        final items = queryResult.items
-            .map((doc) => Map<String, dynamic>.from(doc.value))
-            .toList();
-        controller.add(items);
+        controller.add(dittoQueryRows(queryResult));
       },
     );
     controller.onCancel = () async {

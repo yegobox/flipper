@@ -11,11 +11,12 @@ import 'package:flipper_models/sms_review/sms_sale_match.dart';
 import 'package:flipper_models/sms_review/sms_transfer.dart';
 import 'package:flipper_services/constants.dart' show COMPLETE;
 import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
-import 'package:ditto_live/ditto_live.dart' show Ditto;
+import 'package:ditto_live/ditto_live.dart' show Ditto, QueryResult;
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_models/sync/shared_sync_subscriptions.dart';
+import 'package:flipper_models/sync/ditto_observer_registry.dart';
 
 const _pendingQuery =
     'SELECT * FROM ${SmsReviewItem.collection} '
@@ -97,10 +98,13 @@ final smsReviewItemsProvider = StreamProvider.autoDispose
 
       final controller = StreamController<List<SmsReviewItem>>.broadcast();
       var logged = false;
-      final observer = ditto.store.registerObserver(
-        _pendingQuery,
+      final observer = registerTrackedObserver(
+        ditto: ditto,
+        name: 'smsReviewItems',
+        collection: SmsReviewItem.collection,
+        query: _pendingQuery,
         arguments: args,
-        onChange: (result) {
+        onChange: (QueryResult result) {
           if (controller.isClosed) return;
           if (!logged) {
             // One line per subscription, so "SMS not showing" can be read off
