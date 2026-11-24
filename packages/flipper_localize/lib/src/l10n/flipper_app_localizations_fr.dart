@@ -12919,6 +12919,13 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
       'Composé d\'autres produits — le prix est la somme de ses composants';
 
   @override
+  String get productEditorMadeInProduction => 'Fabriqué en production';
+
+  @override
+  String get productEditorMadeInProductionHint =>
+      'Fabriqué à l\'avance dans le suivi de production et vendu depuis son propre stock. L\'enregistrement de la production consomme les composants.';
+
+  @override
   String get productEditorColorSelectShade => 'Choisir une nuance';
 
   @override

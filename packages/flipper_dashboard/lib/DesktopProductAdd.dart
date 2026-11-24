@@ -510,6 +510,11 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
         // Get the current EBM VAT status directly to ensure consistency
         final ebm = await ProxyService.strategy.ebm(branchId: branchId);
         final isVatEnabled = ebm?.vatEnabled ?? false;
+        // Sold as made (a service, no stock: its components' stock moves at
+        // payment) or made ahead in Production Output (a finished product,
+        // itemTyCd 2, sold from its own stock, which starts at 0).
+        final madeInProduction = ref.read(madeInProductionProvider);
+        final itemType = madeInProduction ? "2" : "3";
 
         await model.addVariant(
           model: model,
@@ -527,7 +532,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
               name: productNameController.text,
               sku: typedSku.isEmpty ? null : typedSku,
               bcd: barCodeController.text,
-              qty: 1.0,
+              qty: madeInProduction ? 0.0 : 1.0,
               retailPrice: double.tryParse(retailPriceController.text) ?? 0,
               supplyPrice: double.tryParse(supplyPriceController.text) ?? 0,
               prc: double.tryParse(retailPriceController.text) ?? 0,
@@ -540,20 +545,20 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
               dcRt: 0,
               regrNm: productNameController.text,
               lastTouched: DateTime.now().toUtc(),
-              itemTyCd: "3", // Mark as service (no stock reporting to RRA)
+              itemTyCd: itemType,
               taxTyCd: isVatEnabled ? "B" : "D", // VAT or non-VAT
               taxName: isVatEnabled ? "B" : "D", // Should match taxTyCd
             ),
           ],
           product: product,
-          selectedProductType:
-              "3", // Service type for composite (no stock reporting)
+          selectedProductType: itemType,
           packagingUnit: selectedPackageUnitValue.split(":")[0],
           categoryId: selectedCategoryId,
           onCompleteCallback: (List<Variant> variants) async {
             if (!mounted) return;
 
-            // Composite variants are services (itemTyCd=3) and don't need stock transactions
+            // A combo starts with no stock (a service never has any; a
+            // made-in-production combo gets it from Production Output).
             // Just add variants to provider for immediate UI update
             _addVariantsToProvider(variants);
 
@@ -819,6 +824,8 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                   ),
                   const SizedBox(height: 18),
                   const ProductEditorCompositeToggle(),
+                  const SizedBox(height: 12),
+                  const ProductEditorMadeInProductionToggle(),
                 ],
               ),
             ),

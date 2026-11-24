@@ -5148,6 +5148,8 @@
   "productEditorCategoryNew": "Jipya",
   "productEditorCompositeItem": "Bidhaa mchanganyiko",
   "productEditorCompositeHint": "Imetengenezwa kwa bidhaa nyingine — bei ni jumla ya vipengele vyake",
+  "productEditorMadeInProduction": "Hutengenezwa katika uzalishaji",
+  "productEditorMadeInProductionHint": "Hutengenezwa mapema katika Matokeo ya uzalishaji na kuuzwa kutoka kwenye hisa yake. Kurekodi matokeo hutumia viambato vyake.",
   "productEditorColorSelectShade": "Chagua kivuli cha rangi",
   "productEditorColorShades": "VIVULI",
   "productEditorColorHueShade": "{hue} · kivuli {number}",

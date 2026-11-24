@@ -21327,6 +21327,18 @@ abstract class FlipperAppLocalizations {
   /// **'Built from other products — price is the sum of its components'**
   String get productEditorCompositeHint;
 
+  /// No description provided for @productEditorMadeInProduction.
+  ///
+  /// In en, this message translates to:
+  /// **'Made in production'**
+  String get productEditorMadeInProduction;
+
+  /// No description provided for @productEditorMadeInProductionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Made ahead in Production Output and sold from its own stock. Recording output uses up the components.'**
+  String get productEditorMadeInProductionHint;
+
   /// Product editor color picker: popover title
   ///
   /// In en, this message translates to:

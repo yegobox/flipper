@@ -33,8 +33,10 @@ class PurchaseStockInLine {
 /// incoming adjustment — what data-connector sends for approved purchases)
 /// for all lines, then each variant's stock master.
 ///
-/// Other incoming movements reuse it with their own [sarTyCd] and [remark]:
-/// recorded production output reports `05` (incoming processing).
+/// Other movements reuse it with their own [sarTyCd], [remark] and
+/// [isStockIn]: recorded production output reports `05` (incoming
+/// processing) for what was made and `14` (outgoing processing) for the
+/// components it used up.
 ///
 /// Never throws and never undoes the local stock: like branch transfers, a
 /// tax-server failure is reported back as a message for the owner. Skips for
@@ -48,6 +50,7 @@ Future<BranchTransferRraResult> reportPurchaseStockInToRra({
   String? businessId,
   String sarTyCd = StockInOutType.adjustmentIn,
   String? remark,
+  bool isStockIn = true,
   @visibleForTesting Future<Ebm?> Function(String businessId)? resolveEbm,
   @visibleForTesting Future<Sar> Function(String branchId)? nextBranchSar,
 }) async {
@@ -129,7 +132,7 @@ Future<BranchTransferRraResult> reportPurchaseStockInToRra({
         tinNumber: tin,
         bhFId: bhfId,
         sarTyCd: sarTyCd,
-        isStockIn: true,
+        isStockIn: isStockIn,
         customerName: supplierName,
         custTin: hasTin ? supplierTin.trim() : null,
         includeCustomerFields: hasTin,
