@@ -32,6 +32,7 @@ class ProductEditorPage extends StatefulWidget {
     this.canSaveBuilder,
     this.sectionDefsBuilder,
     this.loadingOverlay,
+    this.backIcon = Icons.arrow_back,
   }) : assert(
          productNameController != null ||
              (canSaveBuilder != null && sectionDefsBuilder != null),
@@ -49,6 +50,9 @@ class ProductEditorPage extends StatefulWidget {
   final bool Function()? canSaveBuilder;
   final List<ProductEditorSectionDef> Function()? sectionDefsBuilder;
   final Widget? loadingOverlay;
+
+  /// The header's leading icon: [Icons.close] when the editor fills a phone.
+  final IconData backIcon;
 
   @override
   State<ProductEditorPage> createState() => _ProductEditorPageState();
@@ -93,7 +97,10 @@ class _ProductEditorPageState extends State<ProductEditorPage> {
       if (ctx == null) continue;
       final box = ctx.findRenderObject() as RenderBox?;
       if (box == null || !box.hasSize) continue;
-      final pos = box.localToGlobal(Offset.zero, ancestor: context.findRenderObject());
+      final pos = box.localToGlobal(
+        Offset.zero,
+        ancestor: context.findRenderObject(),
+      );
       if (pos.dy <= top) {
         current = section.def.id;
       }
@@ -140,6 +147,7 @@ class _ProductEditorPageState extends State<ProductEditorPage> {
             productNameController: widget.productNameController,
             onBack: widget.onBack,
             isSaving: widget.isSaving,
+            icon: widget.backIcon,
           ),
           Expanded(
             child: ColoredBox(
@@ -168,8 +176,9 @@ class _ProductEditorPageState extends State<ProductEditorPage> {
                             children: [
                               Expanded(child: _buildSheet(useHorizontalNav)),
                               ProductEditorFooter(
-                                doneCount:
-                                    navDefs.where((s) => s.isFilled).length,
+                                doneCount: navDefs
+                                    .where((s) => s.isFilled)
+                                    .length,
                                 totalCount: navDefs.length,
                                 canSave: canSave,
                                 isSaving: widget.isSaving,
