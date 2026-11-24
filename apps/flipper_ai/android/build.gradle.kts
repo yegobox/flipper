@@ -17,6 +17,19 @@ subprojects {
     project.evaluationDependsOn(":app")
 }
 
+// AGP 9 checks AAR metadata for every library: plugins still compiled against
+// an old SDK (e.g. flutter_keyboard_visibility at 31) fail checkReleaseAarMetadata
+// once a dependency needs 34+. Compile every plugin against the app's SDK, as
+// apps/flipper already does.
+subprojects {
+    afterEvaluate {
+        val androidExt = extensions.findByName("android")
+        if (androidExt is com.android.build.gradle.BaseExtension) {
+            androidExt.compileSdkVersion(36)
+        }
+    }
+}
+
 tasks.register<Delete>("clean") {
     delete(rootProject.layout.buildDirectory)
 }
