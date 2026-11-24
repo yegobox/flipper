@@ -6,7 +6,6 @@ import 'package:flipper_models/sync/interfaces/stock_interface.dart';
 import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:flipper_models/sync/keyed_sync_subscriptions.dart';
 import 'package:flipper_models/sync/ditto_observer_registry.dart';
-import 'package:flipper_models/sync/utils/latest_throttle.dart';
 import 'package:flipper_models/sync/utils/stock_qty_milli.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_services/constants.dart';
@@ -1197,28 +1196,6 @@ mixin CapellaStockMixin implements StockInterface {
       final controller = StreamController<Map<String, Stock?>>.broadcast();
       dynamic observer;
 
-      // A sync burst fires the observer once per changed row, and each fire
-      // decoded every stock on the page and rebuilt the grid on the UI
-      // thread. Only the newest result in each window is decoded.
-      final throttle = LatestThrottle<dynamic>(stockWatchCoalesceWindow, (
-        queryResult,
-      ) {
-        if (controller.isClosed) return;
-        final out = <String, Stock?>{for (final id in unique) id: null};
-        for (final doc in queryResult.items) {
-          final data = Map<String, dynamic>.from(doc.value);
-          final stock = _convertFromDittoDocument(data);
-          for (final key in <String>{
-            stock.id,
-            data['id']?.toString() ?? '',
-            data['_id']?.toString() ?? '',
-          }) {
-            if (key.isNotEmpty) out[key] = stock;
-          }
-        }
-        controller.add(out);
-      });
-
       final prepared = prepareDqlSyncSubscription(query, arguments);
       final subscription = ditto.sync.registerSubscription(
         prepared.dql,
@@ -1230,13 +1207,32 @@ mixin CapellaStockMixin implements StockInterface {
         collection: 'stocks',
         query: query,
         arguments: arguments,
-        onChange: throttle.add,
+        // A sync burst fires the observer once per changed row, and each fire
+        // decoded every stock on the page and rebuilt the grid on the UI
+        // thread. Only the newest result in each window is decoded, and the
+        // registry times those deliveries too.
+        coalesce: stockWatchCoalesceWindow,
+        onChange: (queryResult) {
+          if (controller.isClosed) return;
+          final out = <String, Stock?>{for (final id in unique) id: null};
+          for (final doc in queryResult.items) {
+            final data = Map<String, dynamic>.from(doc.value);
+            final stock = _convertFromDittoDocument(data);
+            for (final key in <String>{
+              stock.id,
+              data['id']?.toString() ?? '',
+              data['_id']?.toString() ?? '',
+            }) {
+              if (key.isNotEmpty) out[key] = stock;
+            }
+          }
+          controller.add(out);
+        },
       );
 
       controller.onCancel = () async {
         // The grid rebuilds this on every search, so a subscription left
         // behind would pile up for Ditto's sync to evaluate.
-        throttle.close();
         subscription?.cancel();
         await observer?.cancel();
         await controller.close();

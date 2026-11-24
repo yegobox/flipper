@@ -16,6 +16,7 @@ import 'package:ditto_live/ditto_live.dart';
 import 'package:flipper_models/sync/utils/catalog_delete.dart';
 import 'package:flipper_models/sync/utils/pos_catalog_search.dart';
 import 'package:flipper_models/sync/utils/pos_catalog_stock_filter.dart';
+import 'package:flipper_models/sync/utils/pos_stock_filter_walker.dart';
 import 'package:flipper_models/sync/utils/rra_new_variant_register.dart';
 import 'package:flipper_models/sync/utils/stock_qty_milli.dart';
 import 'package:flipper_models/sync/utils/stock_threshold.dart';
@@ -139,69 +140,8 @@ mixin CapellaVariantMixin implements VariantInterface {
   /// Chunk size for `IN (…)` id lookups, matching the cart cleanup path.
   static const int _idLookupChunkSize = 80;
 
-  /// Recent stock filter walks; see [StockFilterMatchCache].
-  final StockFilterMatchCache _stockFilterMatches = StockFilterMatchCache();
-
-  /// Walks the stock filter for [catalogJson] (the catalog projection's raw
-  /// rows) against the branch's stock.
-  ///
-  /// One scan of the branch's stock rows (`stocks.branchId` is indexed), then a
-  /// by-id lookup for any stock id that scan did not return — a row with no
-  /// `branchId` still feeds the tile's live stock, so it must count here too.
-  /// Rows stay raw JSON strings on this isolate: the decode and the join run
-  /// in [runStockFilterWalk], off the UI thread once the catalog is large.
-  Future<StockFilterWalk> _walkStockFilter(
-    Ditto ditto,
-    String branchId,
-    List<String> catalogJson, {
-    required bool inStock,
-  }) async {
-    final branchStock = await ditto.store.execute(
-      stockQtySelectDql(whereClause: 'branchId = :branchId'),
-      arguments: {'branchId': branchId},
-    );
-    final stockJson = [for (final doc in branchStock.items) doc.jsonString];
-    final walk = await runStockFilterWalk(
-      catalogJson: catalogJson,
-      stockJson: stockJson,
-      inStock: inStock,
-    );
-    final missing = walk.unresolvedStockIds;
-    if (missing.isEmpty) return walk;
-
-    final extraQty = <String, double>{};
-    for (var i = 0; i < missing.length; i += _idLookupChunkSize) {
-      final chunk = missing.sublist(
-        i,
-        i + _idLookupChunkSize < missing.length
-            ? i + _idLookupChunkSize
-            : missing.length,
-      );
-      // No catch here: a failed lookup must not read as "0 on hand", which
-      // would hide sellable items. It propagates to runPage, which lists the
-      // unfiltered page instead. A lookup that simply finds no row still
-      // leaves the item out of stock, as the tile shows it.
-      final lookup = idInLookup(chunk);
-      final found = await ditto.store.execute(
-        stockQtySelectDql(
-          whereClause:
-              '_id IN (${lookup.placeholders}) OR id IN (${lookup.placeholders})',
-        ),
-        arguments: lookup.arguments,
-      );
-      extraQty.addAll(
-        stockQtyByIdKeys(
-          found.items.map((doc) => Map<String, dynamic>.from(doc.value)),
-        ),
-      );
-    }
-    return runStockFilterWalk(
-      catalogJson: catalogJson,
-      stockJson: stockJson,
-      inStock: inStock,
-      extraQty: extraQty,
-    );
-  }
+  /// The POS grid's stock filter and its recent walks.
+  final PosStockFilterWalker _stockFilter = PosStockFilterWalker();
 
   /// Variant documents for [ids], returned in the order of [ids].
   Future<List<dynamic>> _variantDocsInOrder(
@@ -505,47 +445,19 @@ mixin CapellaVariantMixin implements VariantInterface {
           inStock != null && bcd == null && !isCatalogTextSearch;
       int? stockFilteredOut;
 
-      //
-      // The walk covers the whole catalog, so it runs once per listing: a fetch
-      // that keeps the caller's total (next page, prefetch, resize, scroll)
-      // pages through the stored walk instead (see [StockFilterMatchCache]).
+      // The walk covers the whole catalog, so a fetch that keeps the caller's
+      // total pages through the stored one (see [PosStockFilterWalker]).
       Future<List<dynamic>> runStockFiltered() async {
-        final catalogArgs = Map<String, dynamic>.from(arguments)
-          ..remove('limit')
-          ..remove('offset');
-        final catalogQuery = stockFilterCatalogQuery(filterQuery, orderSuffix);
-        final cacheKey = stockFilterMatchKey(
-          catalogQuery,
-          catalogArgs,
+        final walk = await _stockFilter.listing(
+          ditto,
+          branchId: branchId,
+          catalogQuery: stockFilterCatalogQuery(filterQuery, orderSuffix),
+          catalogArgs: Map<String, dynamic>.from(arguments)
+            ..remove('limit')
+            ..remove('offset'),
           inStock: inStock!,
+          fresh: countTotal,
         );
-        var walk = countTotal ? null : _stockFilterMatches.lookup(cacheKey);
-        if (walk == null) {
-          // Raw JSON only: decoding thousands of rows here is what stalled
-          // the UI thread on 2 GB phones.
-          final catalogJson = await PerfOpTrail.instance.track(
-            'variants:stock_catalog',
-            () async {
-              final r = await ditto.store.execute(
-                catalogQuery,
-                arguments: catalogArgs,
-              );
-              return [for (final doc in r.items) doc.jsonString];
-            },
-          );
-          walk = _stockFilterMatches.store(
-            cacheKey,
-            await PerfOpTrail.instance.track(
-              'variants:stock_qty',
-              () => _walkStockFilter(
-                ditto,
-                branchId,
-                catalogJson,
-                inStock: inStock,
-              ),
-            ),
-          );
-        }
         final matching = walk.matching;
         totalCount = matching.length;
         stockFilteredOut = walk.filteredOut;

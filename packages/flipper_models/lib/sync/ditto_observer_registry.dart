@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/perf/ui_stall_watchdog.dart';
+import 'package:flipper_models/sync/utils/latest_throttle.dart';
 
 /// How many live store observers there are, and what each wake-up costs.
 ///
@@ -68,18 +69,21 @@ class TrackedDittoObserver {
     this._name,
     this._collection,
     this._drain,
+    this._throttle,
   );
 
   final dynamic _inner;
   final String _name;
   final String _collection;
   final StreamSubscription<dynamic>? _drain;
+  final LatestThrottle<dynamic>? _throttle;
   bool _cancelled = false;
 
   Future<void> cancel() async {
     if (_cancelled) return;
     _cancelled = true;
     dittoObserverStats.closed(name: _name, collection: _collection);
+    _throttle?.close();
     try {
       await _drain?.cancel();
     } catch (_) {}
@@ -95,42 +99,64 @@ class TrackedDittoObserver {
 ///
 /// [name] identifies the call site — several observers can share a collection,
 /// and the point is to know *which* one woke up and what it cost.
+///
+/// With [coalesce], a burst of results reaches [onChange] at most once per
+/// window (the first at once, then only the newest; see [LatestThrottle]).
+/// Every call to [onChange] is timed, including the ones the window's timer
+/// makes after Ditto's callback has returned.
 TrackedDittoObserver registerTrackedObserver({
   required dynamic ditto,
   required String name,
   required String collection,
   required String query,
   Map<String, dynamic>? arguments,
+  Duration? coalesce,
   required void Function(dynamic queryResult) onChange,
 }) {
   dittoObserverStats.opened(name: name, collection: collection);
+  void timed(dynamic queryResult) =>
+      _timeObserverCallback(name, queryResult, onChange);
+  final throttle = coalesce == null
+      ? null
+      : LatestThrottle<dynamic>(coalesce, timed);
   final inner = ditto.store.registerObserver(
     query,
     arguments: arguments,
-    onChange: (dynamic queryResult) {
-      final sw = Stopwatch()..start();
-      try {
-        onChange(queryResult);
-      } finally {
-        final ms = sw.elapsedMilliseconds;
-        if (ms >= kSlowObserverCallbackMs) {
-          PerfOpTrail.instance.note(
-            'obs:$name',
-            took: Duration(milliseconds: ms),
-          );
-          int? rows;
-          try {
-            rows = (queryResult.items as Iterable).length;
-          } catch (_) {}
-          talker.warning(
-            '[ditto_observer] $name woke for ${ms}ms '
-            '(rows=${rows ?? '?'}, live: ${dittoObserverStats.summary()})',
-          );
-        }
-      }
-    },
+    onChange: throttle?.add ?? timed,
   );
-  return TrackedDittoObserver._(inner, name, collection, _drainChanges(inner));
+  return TrackedDittoObserver._(
+    inner,
+    name,
+    collection,
+    _drainChanges(inner),
+    throttle,
+  );
+}
+
+/// Runs [onChange] and names it in the perf trail and the log when it takes
+/// [kSlowObserverCallbackMs] or more.
+void _timeObserverCallback(
+  String name,
+  dynamic queryResult,
+  void Function(dynamic queryResult) onChange,
+) {
+  final sw = Stopwatch()..start();
+  try {
+    onChange(queryResult);
+  } finally {
+    final ms = sw.elapsedMilliseconds;
+    if (ms >= kSlowObserverCallbackMs) {
+      PerfOpTrail.instance.note('obs:$name', took: Duration(milliseconds: ms));
+      int? rows;
+      try {
+        rows = (queryResult.items as Iterable).length;
+      } catch (_) {}
+      talker.warning(
+        '[ditto_observer] $name woke for ${ms}ms '
+        '(rows=${rows ?? '?'}, live: ${dittoObserverStats.summary()})',
+      );
+    }
+  }
 }
 
 /// Reads and drops the results ditto_live queues on `observer.changes`.

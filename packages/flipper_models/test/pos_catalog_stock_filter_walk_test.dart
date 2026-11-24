@@ -59,10 +59,76 @@ void main() {
         catalogJson: catalog,
         stockJson: stocks,
         inStock: true,
-        extraQty: {'s6': 2},
-      );
+      ).withExtraQty({'s6': 2}, inStock: true);
       expect(walk.matching, ['v1', 'v5', 'v6']);
       expect(walk.unresolvedStockIds, isEmpty);
+      expect(walk.catalogSize, 6);
+    });
+
+    test('settling unresolved rows matches a walk that saw their stock', () {
+      // Unresolved rows at the start, the end and side by side, sharing a
+      // stock id, on both sides of the stock line.
+      final rows = [
+        row('a', stockId: 'x1'),
+        row('b', stockId: 's1'),
+        row('c', stockId: 'x2'),
+        row('d', stockId: 'x3'),
+        row('e', stockId: 's2'),
+        row('f', itemTyCd: '3', stockId: 'x9'),
+        row('g', stockId: 'x1'),
+      ];
+      const extra = {'x1': 4.0, 'x2': 0.2, 'x9': 1.0};
+      final seen = [
+        ...stocks,
+        for (final e in extra.entries) stock(e.key, e.value),
+      ];
+      for (final side in [true, false]) {
+        final first = walkStockFilter(
+          catalogJson: rows,
+          stockJson: stocks,
+          inStock: side,
+        );
+        // A service never needs its stock looked up.
+        expect(first.unresolvedStockIds, ['x1', 'x2', 'x3']);
+        final settled = first.withExtraQty(extra, inStock: side);
+        final whole = walkStockFilter(
+          catalogJson: rows,
+          stockJson: seen,
+          inStock: side,
+        );
+        expect(settled.matching, whole.matching, reason: 'inStock: $side');
+        expect(settled.filteredOut, whole.filteredOut);
+      }
+      expect(
+        walkStockFilter(
+          catalogJson: rows,
+          stockJson: stocks,
+          inStock: true,
+        ).withExtraQty(extra, inStock: true).matching,
+        ['a', 'b', 'f', 'g'],
+      );
+    });
+
+    test('a lookup that finds nothing leaves the rows out of stock', () {
+      for (final side in [true, false]) {
+        final first = walkStockFilter(
+          catalogJson: catalog,
+          stockJson: stocks,
+          inStock: side,
+        );
+        final settled = first.withExtraQty(const {}, inStock: side);
+        expect(settled.matching, first.matching);
+        expect(settled.unresolved, isEmpty);
+      }
+    });
+
+    test('a walk with nothing unresolved settles to itself', () {
+      final walk = walkStockFilter(
+        catalogJson: [row('v1', stockId: 's1')],
+        stockJson: stocks,
+        inStock: true,
+      );
+      expect(walk.withExtraQty({'s1': 0}, inStock: true), same(walk));
     });
 
     test('agrees with the map-based join it replaced', () {
@@ -86,17 +152,18 @@ void main() {
   });
 
   group('runStockFilterWalk', () {
+    final bigCatalog = [
+      for (var i = 0; i < stockFilterIsolateMinRows; i++)
+        row('v$i', stockId: 's$i'),
+    ];
+    final bigStock = [
+      for (var i = 0; i < stockFilterIsolateMinRows; i++)
+        stock('s$i', i.isEven ? 3 : 0),
+    ];
+
     test(
       'a large catalog walks on a background isolate, same answer',
       () async {
-        final bigCatalog = [
-          for (var i = 0; i < stockFilterIsolateMinRows; i++)
-            row('v$i', stockId: 's$i'),
-        ];
-        final bigStock = [
-          for (var i = 0; i < stockFilterIsolateMinRows; i++)
-            stock('s$i', i.isEven ? 3 : 0),
-        ];
         final walk = await runStockFilterWalk(
           catalogJson: bigCatalog,
           stockJson: bigStock,
@@ -113,14 +180,53 @@ void main() {
       },
     );
 
-    test('a small catalog walks inline', () async {
+    test('the isolate runner takes the walk from the threshold up', () async {
+      var isolateRuns = 0;
+      Future<StockFilterWalk> counting(StockFilterWalk Function() walk) async {
+        isolateRuns++;
+        return walk();
+      }
+
+      // Exactly at the threshold, counting catalog and stock rows together.
+      final atThreshold = await runStockFilterWalk(
+        catalogJson: bigCatalog.sublist(0, stockFilterIsolateMinRows - 10),
+        stockJson: bigStock.sublist(0, 10),
+        inStock: true,
+        isolateRunner: counting,
+      );
+      expect(isolateRuns, 1);
+      expect(atThreshold.catalogSize, stockFilterIsolateMinRows - 10);
+
+      await runStockFilterWalk(
+        catalogJson: bigCatalog,
+        stockJson: bigStock,
+        inStock: false,
+        isolateRunner: counting,
+      );
+      expect(isolateRuns, 2);
+    });
+
+    test('a small catalog walks inline, never on the isolate', () async {
+      var isolateRuns = 0;
       final walk = await runStockFilterWalk(
+        catalogJson: bigCatalog.sublist(0, stockFilterIsolateMinRows - 10),
+        stockJson: bigStock.sublist(0, 9),
+        inStock: true,
+        isolateRunner: (walk) async {
+          isolateRuns++;
+          return walk();
+        },
+      );
+      expect(isolateRuns, 0);
+      expect(walk.catalogSize, stockFilterIsolateMinRows - 10);
+
+      final small = await runStockFilterWalk(
         catalogJson: catalog,
         stockJson: stocks,
         inStock: true,
-        extraQty: {'s6': 1},
+        isolateRunner: (walk) => throw StateError('no isolate for 9 rows'),
       );
-      expect(walk.matching, ['v1', 'v5', 'v6']);
+      expect(small.matching, ['v1', 'v5']);
     });
   });
 

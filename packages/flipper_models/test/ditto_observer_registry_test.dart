@@ -126,6 +126,89 @@ void main() {
     expect(PerfOpTrail.instance.recent().last, startsWith('obs:barTabs('));
   });
 
+  group('with a coalescing window', () {
+    const window = Duration(milliseconds: 30);
+
+    test('a slow delivery from the window\'s timer is timed too', () async {
+      final ditto = _FakeDitto();
+      var calls = 0;
+      final observer = registerTrackedObserver(
+        ditto: ditto,
+        name: 'throttledStocks',
+        collection: 'stocks',
+        query: 'SELECT * FROM stocks',
+        coalesce: window,
+        onChange: (_) {
+          calls++;
+          // Only the delivery the timer makes is slow.
+          if (calls == 2) {
+            sleep(const Duration(milliseconds: kSlowObserverCallbackMs + 10));
+          }
+        },
+      );
+      bool named() => PerfOpTrail.instance.recent().any(
+        (op) => op.startsWith('obs:throttledStocks('),
+      );
+
+      ditto.store.onChange!(_FakeResult()); // delivered at once, fast
+      ditto.store.onChange!(_FakeResult()); // held for the window
+      ditto.store.onChange!(_FakeResult()); // replaces it
+      expect(calls, 1);
+      expect(named(), isFalse);
+
+      await Future<void>.delayed(window * 3);
+      expect(calls, 2);
+      expect(named(), isTrue);
+      expect(
+        PerfOpTrail.instance.recent().last,
+        startsWith('obs:throttledStocks('),
+      );
+      await observer.cancel();
+    });
+
+    test('a slow first delivery is named once', () {
+      final ditto = _FakeDitto();
+      registerTrackedObserver(
+        ditto: ditto,
+        name: 'throttledFirst',
+        collection: 'stocks',
+        query: 'SELECT * FROM stocks',
+        coalesce: window,
+        onChange: (_) =>
+            sleep(const Duration(milliseconds: kSlowObserverCallbackMs + 10)),
+      );
+
+      ditto.store.onChange!(_FakeResult());
+
+      expect(
+        PerfOpTrail.instance.recent().where(
+          (op) => op.startsWith('obs:throttledFirst('),
+        ),
+        hasLength(1),
+      );
+    });
+
+    test('cancelling drops a held delivery', () async {
+      final ditto = _FakeDitto();
+      var calls = 0;
+      final observer = registerTrackedObserver(
+        ditto: ditto,
+        name: 'throttledCancel',
+        collection: 'stocks',
+        query: 'SELECT * FROM stocks',
+        coalesce: window,
+        onChange: (_) => calls++,
+      );
+
+      ditto.store.onChange!(_FakeResult());
+      ditto.store.onChange!(_FakeResult());
+      await observer.cancel();
+      await Future<void>.delayed(window * 3);
+
+      expect(calls, 1);
+    });
+  });
+
   test('results queued on `changes` are drained, not kept alive', () async {
     final ditto = _DittoWithChanges();
     final observer = registerTrackedObserver(
