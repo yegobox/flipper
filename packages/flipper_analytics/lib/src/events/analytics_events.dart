@@ -3,12 +3,18 @@ abstract final class AnalyticsEvents {
   /// Emitted on cold start and each app foreground resume via [ProductActiveLifecycle].
   static const productActive = 'product_active';
 
+  /// Someone opened or used a module (`module`: pos, books, hr, bar, hotel,
+  /// flo, orders, kitchen, …; `action`: open, …). One event for every module,
+  /// so adoption and retention per module come from one PostHog breakdown.
+  static const featureUsed = 'feature_used';
+
   static const loginSuccess = 'login_success';
   static const loginFailed = 'login_failed';
   static const signupCompleted = 'signup_completed';
   static const transactionCompleted = 'transaction_completed';
   static const quickSellCompleted = 'quick_sell_completed';
   static const productCreated = 'product_created';
+  static const productUpdated = 'product_updated';
   static const businessSelected = 'business_selected';
   static const branchSelected = 'branch_selected';
   static const booksSessionStarted = 'books_session_started';

@@ -7,7 +7,6 @@ import 'package:flipper_models/services/purchase_approval_deps.dart';
 import 'package:flipper_models/sync/utils/combo_cost.dart';
 import 'package:flipper_models/sync/utils/purchase_stock_rra.dart';
 import 'package:flipper_services/constants.dart';
-import 'package:flipper_web/services/ditto_service.dart';
 import 'package:meta/meta.dart';
 import 'package:supabase_models/brick/models/sars.model.dart';
 import 'package:supabase_models/brick/models/work_order.model.dart';
@@ -56,8 +55,6 @@ Future<ProductionStockResult> postProductionOutput({
   required PurchaseApprovalDeps deps,
   @visibleForTesting Future<Ebm?> Function(String businessId)? resolveEbm,
   @visibleForTesting Future<Sar> Function(String branchId)? nextBranchSar,
-  @visibleForTesting
-  Future<void> Function(String variantId, double supplyPrice)? writeSupplyPrice,
 }) async {
   if (qty <= 0) return ProductionStockResult.skipped;
 
@@ -84,42 +81,9 @@ Future<ProductionStockResult> postProductionOutput({
   }
   final productName = workOrder.variantName ?? variant.name;
 
-  final componentIds = components
-      .map((c) => c.variantId)
-      .whereType<String>()
-      .where((id) => id.isNotEmpty)
-      .toSet()
-      .toList();
-  final componentVariants = componentIds.isEmpty
-      ? const <String, Variant>{}
-      : await capella.batchGetVariantsByIds(componentIds);
-
-  String? rraMessage;
-  final used = await _useUpComponents(
-    components,
-    componentVariants,
-    qty: qty,
-    capella: capella,
-  );
-  if (used.isNotEmpty) {
-    final usedRra = await reportPurchaseStockInToRra(
-      branchId: workOrder.branchId,
-      businessId: workOrder.businessId,
-      lines: used,
-      supplierName: 'Production',
-      sarTyCd: StockInOutType.processingOut,
-      isStockIn: false,
-      remark: 'Used in production: $productName',
-      deps: deps,
-      // This function's own test seams, passed through.
-      // ignore: invalid_use_of_visible_for_testing_member
-      resolveEbm: resolveEbm,
-      // ignore: invalid_use_of_visible_for_testing_member
-      nextBranchSar: nextBranchSar,
-    );
-    if (!usedRra.succeeded) rraMessage = usedRra.message;
-  }
-
+  // The product is stocked first: if that fails, no component has been
+  // used up, so nothing is lost and re-recording can't take them twice.
+  // RRA then sees the `05` before the matching `14`.
   final added = await addPurchasedStock(
     variant: variant,
     qty: qty,
@@ -147,21 +111,60 @@ Future<ProductionStockResult> postProductionOutput({
     // ignore: invalid_use_of_visible_for_testing_member
     nextBranchSar: nextBranchSar,
   );
-  if (!rra.succeeded) rraMessage ??= rra.message;
+  String? rraMessage = rra.succeeded ? null : rra.message;
+
+  final componentIds = components
+      .map((c) => c.variantId)
+      .whereType<String>()
+      .where((id) => id.isNotEmpty)
+      .toSet()
+      .toList();
+  final componentVariants = componentIds.isEmpty
+      ? const <String, Variant>{}
+      : await capella.batchGetVariantsByIds(componentIds);
+
+  final used = await _useUpComponents(
+    components,
+    componentVariants,
+    qty: qty,
+    capella: capella,
+  );
+  if (used.isNotEmpty) {
+    final usedRra = await reportPurchaseStockInToRra(
+      branchId: workOrder.branchId,
+      businessId: workOrder.businessId,
+      lines: used,
+      supplierName: 'Production',
+      sarTyCd: StockInOutType.processingOut,
+      isStockIn: false,
+      remark: 'Used in production: $productName',
+      deps: deps,
+      // This function's own test seams, passed through.
+      // ignore: invalid_use_of_visible_for_testing_member
+      resolveEbm: resolveEbm,
+      // ignore: invalid_use_of_visible_for_testing_member
+      nextBranchSar: nextBranchSar,
+    );
+    if (!usedRra.succeeded) rraMessage ??= usedRra.message;
+  }
 
   // What this batch cost to make, averaged into the product's supply price
-  // so its sales book the right COGS. A product without a recipe keeps the
-  // cost its owner set.
-  if (components.isNotEmpty) {
+  // so its sales book the right COGS. A product without a recipe, or with a
+  // component whose cost is unknown, keeps the cost its owner set.
+  final unitCost = components.isEmpty
+      ? null
+      : comboUnitCost(components, componentVariants);
+  final costs = deps.comboCosts;
+  if (unitCost != null && costs != null) {
     final oldCost = (variant.supplyPrice ?? 0).toDouble();
     final newCost = movingAverageCost(
       onHandBefore: added.onHand - qty,
       oldCost: oldCost,
       qty: qty,
-      unitCost: comboUnitCost(components, componentVariants),
+      unitCost: unitCost,
     );
     if ((newCost - oldCost).abs() > comboCostTolerance) {
-      await (writeSupplyPrice ?? _writeSupplyPrice)(variant.id, newCost);
+      await costs.variantSupplyPrice(variant.id, newCost);
     }
   }
 
@@ -177,16 +180,6 @@ Future<ProductionStockResult> postProductionOutput({
 /// decrement per stock (concurrent sales on other tills merge), and returns
 /// what was used with each component's on-hand afterwards, for RRA.
 /// Services and components with no stock record are skipped.
-Future<void> _writeSupplyPrice(String variantId, double supplyPrice) async {
-  final ditto = DittoService.instance.dittoInstance;
-  if (ditto == null) return;
-  await writeVariantSupplyPrice(
-    ditto,
-    variantId: variantId,
-    supplyPrice: supplyPrice,
-  );
-}
-
 Future<List<PurchaseStockInLine>> _useUpComponents(
   List<Composite> components,
   Map<String, Variant> variants, {

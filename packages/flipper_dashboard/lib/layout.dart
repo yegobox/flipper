@@ -18,6 +18,7 @@ import 'package:flipper_dashboard/shift_history_content.dart';
 import 'package:flipper_dashboard/import_purchase_page_view.dart';
 import 'package:flipper_dashboard/dashboard_shell.dart';
 import 'package:flipper_dashboard/hooks/use_access_permissions_realtime.dart';
+import 'package:flipper_dashboard/hooks/use_dashboard_feature_usage.dart';
 import 'package:flipper_dashboard/hooks/use_tenant_names_realtime.dart';
 import 'package:flipper_dashboard/logout/pos_user_switch_lock_screen.dart';
 import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
@@ -56,6 +57,7 @@ class DashboardLayout extends HookConsumerWidget {
     useAccessPermissionsRealtimeSync(ref);
     useTenantNamesRealtimeSync(ref);
     usePendingDashboardPageNavigation(ref);
+    useDashboardFeatureUsage(ref);
 
     return GlobalDashboardKeyboardScope(
       child: ViewModelBuilder<CoreViewModel>.nonReactive(

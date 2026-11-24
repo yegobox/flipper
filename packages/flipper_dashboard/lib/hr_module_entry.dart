@@ -1,3 +1,4 @@
+import 'package:flipper_analytics/flipper_analytics.dart';
 import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flipper_dashboard/native_books_context_bridge.dart';
 import 'package:flipper_localize/flipper_localize.dart';
@@ -42,6 +43,7 @@ final hrEnsureSupabaseSessionProvider = Provider<Future<String?> Function()>(
 /// Resolves when HR is popped, so callers that just want it on screen should
 /// not await it.
 Future<void> openHrModuleOn(NavigatorState navigator) {
+  trackFeatureUsed('hr');
   return navigator.push<void>(
     MaterialPageRoute<void>(
       settings: const RouteSettings(name: HrModuleEntry.routeName),

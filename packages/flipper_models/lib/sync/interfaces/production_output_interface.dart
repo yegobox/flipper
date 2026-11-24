@@ -25,12 +25,15 @@ abstract class ProductionOutputInterface {
     String? notes,
   });
 
-  /// Update an existing work order
+  /// Update an existing work order. With [fromStatus] set, the update
+  /// applies only while the order still has that status, so a stale copy on
+  /// one till can't undo what another till already did.
   Future<void> updateWorkOrder({
     required String workOrderId,
     double? plannedQuantity,
     String? status,
     String? notes,
+    String? fromStatus,
   });
 
   /// Delete a work order

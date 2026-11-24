@@ -1,6 +1,7 @@
 import 'package:ditto_live/ditto_live.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/sync/utils/combo_stock_lines.dart';
+import 'package:flipper_web/services/ditto_service.dart';
 
 /// What a combo costs the business: a sale's cost of goods (COGS) and a
 /// product's stock value come from a supply price, so a combo must carry the
@@ -20,32 +21,45 @@ import 'package:flipper_models/sync/utils/combo_stock_lines.dart';
 const comboCostTolerance = 0.005;
 
 /// One combo's cost: [Composite.qty] (1 when unset) of each component at its
-/// supply price. A component whose variant is gone costs nothing.
-double comboUnitCost(
+/// supply price.
+///
+/// Null when any component's cost is unknown (its variant is gone, or it has
+/// no supply price above 0): a missing price would count as 0 and overwrite a
+/// cost the owner set, so the caller keeps the cost it has.
+double? comboUnitCost(
   Iterable<Composite> components,
   Map<String, Variant> variantsById,
 ) {
   var total = 0.0;
   for (final component in components) {
-    final variant = variantsById[component.variantId];
-    if (variant == null) continue;
+    final supply = variantsById[component.variantId]?.supplyPrice;
+    if (supply == null || supply <= 0) return null;
     final perCombo = (component.qty ?? 0) > 0 ? component.qty! : 1.0;
-    total += perCombo * (variant.supplyPrice ?? 0).toDouble();
+    total += perCombo * supply.toDouble();
   }
   return total;
 }
 
 /// Each combo sale line's total cost, from its expanded component lines
 /// ([expandComboLines]): Σ component supply price × quantity.
+///
+/// A combo with any component line lacking a supply price above 0 is left
+/// out, so its sale keeps the cost it was saved with.
 Map<String, double> comboLineCosts(Iterable<TransactionItem> expandedLines) {
   final costs = <String, double>{};
+  final unknown = <String>{};
   for (final line in expandedLines) {
     final comboId = comboLineIdOf(line.id);
     if (comboId == null) continue;
+    final supply = line.supplyPrice;
+    if (supply == null || supply <= 0) {
+      unknown.add(comboId);
+      continue;
+    }
     costs[comboId] =
-        (costs[comboId] ?? 0) +
-        (line.supplyPrice ?? 0).toDouble() * line.qty.toDouble();
+        (costs[comboId] ?? 0) + supply.toDouble() * line.qty.toDouble();
   }
+  costs.removeWhere((comboId, _) => unknown.contains(comboId));
   return costs;
 }
 
@@ -98,3 +112,41 @@ Future<void> writeLineSupplyCost(
     'id': lineId,
   },
 );
+
+/// Where combo costs are written: [ComboCostWriter.live] is the app's Ditto
+/// store; tests pass their own functions.
+class ComboCostWriter {
+  const ComboCostWriter({
+    required this.variantSupplyPrice,
+    required this.lineSupplyCost,
+  });
+
+  /// Writes through [ditto] ([writeVariantSupplyPrice], [writeLineSupplyCost]).
+  ComboCostWriter.ditto(Ditto ditto)
+    : variantSupplyPrice = ((variantId, supplyPrice) => writeVariantSupplyPrice(
+        ditto,
+        variantId: variantId,
+        supplyPrice: supplyPrice,
+      )),
+      lineSupplyCost = ((lineId, unitCost, qty) => writeLineSupplyCost(
+        ditto,
+        lineId: lineId,
+        unitCost: unitCost,
+        qty: qty,
+      ));
+
+  /// The app's Ditto store, or null before Ditto is open. The one place the
+  /// cost writers reach the global [DittoService].
+  static ComboCostWriter? live() {
+    final ditto = DittoService.instance.dittoInstance;
+    return ditto == null ? null : ComboCostWriter.ditto(ditto);
+  }
+
+  /// Sets a variant's supply price.
+  final Future<void> Function(String variantId, double supplyPrice)
+  variantSupplyPrice;
+
+  /// Sets a sale line's unit cost and `splyAmt` (unit cost × [qty]).
+  final Future<void> Function(String lineId, double unitCost, double qty)
+  lineSupplyCost;
+}

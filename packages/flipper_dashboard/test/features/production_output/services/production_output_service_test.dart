@@ -5,6 +5,7 @@ import 'package:flipper_models/DatabaseSyncInterface.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/services/purchase_approval_deps.dart';
+import 'package:flipper_models/sync/utils/combo_cost.dart';
 import 'package:flipper_models/tax_api.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -238,13 +239,20 @@ void main() {
       final result = await postProductionOutput(
         workOrder: _order(status: 'in_progress'),
         qty: 10,
-        deps: PurchaseApprovalDeps(strategy: db, capella: db, tax: tax),
+        deps: PurchaseApprovalDeps(
+          strategy: db,
+          capella: db,
+          tax: tax,
+          comboCosts: ComboCostWriter(
+            variantSupplyPrice: (id, cost) async => costs[id] = cost,
+            lineSupplyCost: (_, __, ___) async {},
+          ),
+        ),
         resolveEbm: (_) async => _ebmOn(),
         nextBranchSar: (branchId) async {
           sarsHandedOut.add(41 + sarsHandedOut.length);
           return Sar(sarNo: sarsHandedOut.last, branchId: branchId);
         },
-        writeSupplyPrice: (id, cost) async => costs[id] = cost,
       );
 
       expect(result.stocked, isTrue);
@@ -255,13 +263,107 @@ void main() {
       expect(costs['bread-v'], closeTo((3 * 500 + 10 * 2150) / 13, 0.001));
       // A recipe's components already move within stock: nothing to absorb.
       expect(result.absorbUnitCost, isNull);
+      // The bread is stocked and reported first, then the components.
       expect(tax.ioCalls.map((c) => (c.sarTyCd, c.isStockIn, c.sarNo)), [
-        ('14', false, '41'),
-        ('05', true, '42'),
+        ('05', true, '41'),
+        ('14', false, '42'),
       ]);
-      expect(tax.ioCalls.first.remark, 'Used in production: Bread');
-      // On-hand after use (never negative), then the bread itself.
-      expect(tax.masterQtys, [15, 0, 13]);
+      expect(tax.ioCalls.last.remark, 'Used in production: Bread');
+      // The bread itself, then each component's on-hand (never negative).
+      expect(tax.masterQtys, [13, 15, 0]);
+    });
+
+    // An unknown component cost would count as 0 and drag the average down.
+    test('a component with no cost keeps the product\'s cost', () async {
+      when(
+        () => db.getProduct(id: 'bread-p', branchId: 'b1', businessId: 'biz1'),
+      ).thenAnswer(
+        (_) async => Product(
+          id: 'bread-p',
+          name: 'Bread',
+          color: '#000',
+          businessId: 'biz1',
+          branchId: 'b1',
+          isComposite: true,
+        ),
+      );
+      when(() => db.composites(productId: 'bread-p')).thenAnswer(
+        (_) async => [
+          Composite(productId: 'bread-p', variantId: 'flour', qty: 0.5),
+        ],
+      );
+      when(() => db.batchGetVariantsByIds(any())).thenAnswer(
+        (_) async => {
+          'flour': Variant(
+            id: 'flour',
+            name: 'flour',
+            branchId: 'b1',
+            stockId: 'flour-s',
+            itemTyCd: '1',
+          ),
+        },
+      );
+      when(() => db.batchDeductStocks(any())).thenAnswer((_) async {});
+      when(() => db.batchGetStocksByIds(any())).thenAnswer((_) async => {});
+
+      final costs = <String, double>{};
+      final result = await postProductionOutput(
+        workOrder: _order(status: 'in_progress'),
+        qty: 10,
+        deps: PurchaseApprovalDeps(
+          strategy: db,
+          capella: db,
+          tax: tax,
+          comboCosts: ComboCostWriter(
+            variantSupplyPrice: (id, cost) async => costs[id] = cost,
+            lineSupplyCost: (_, __, ___) async {},
+          ),
+        ),
+        resolveEbm: (_) async => _ebmOn(),
+        nextBranchSar: (branchId) async {
+          sarsHandedOut.add(41 + sarsHandedOut.length);
+          return Sar(sarNo: sarsHandedOut.last, branchId: branchId);
+        },
+      );
+
+      expect(result.stocked, isTrue);
+      expect(costs, isEmpty);
+    });
+
+    // Stocking first means a failure there leaves every component in place,
+    // so re-recording the output can't use them up twice.
+    test('a stocking failure uses up no components', () async {
+      when(
+        () => db.getProduct(id: 'bread-p', branchId: 'b1', businessId: 'biz1'),
+      ).thenAnswer(
+        (_) async => Product(
+          id: 'bread-p',
+          name: 'Bread',
+          color: '#000',
+          businessId: 'biz1',
+          branchId: 'b1',
+          isComposite: true,
+        ),
+      );
+      when(() => db.composites(productId: 'bread-p')).thenAnswer(
+        (_) async => [
+          Composite(productId: 'bread-p', variantId: 'flour', qty: 0.5),
+        ],
+      );
+      when(
+        () => db.updateStock(
+          stockId: any(named: 'stockId'),
+          currentStock: any(named: 'currentStock'),
+          appending: any(named: 'appending'),
+          lastTouched: any(named: 'lastTouched'),
+          ebmSynced: any(named: 'ebmSynced'),
+          value: any(named: 'value'),
+        ),
+      ).thenThrow(StateError('stock write failed'));
+
+      await expectLater(post(10), throwsStateError);
+      verifyNever(() => db.batchDeductStocks(any()));
+      expect(tax.ioCalls, isEmpty);
     });
 
     test('a combo sold as made (a service) moves nothing here', () async {
@@ -387,6 +489,29 @@ void main() {
         books: (_, _) async => throw StateError('ledger offline'),
       ).recordActualOutput(workOrder: _order(), actualQuantity: 10);
       expect(recorded.output?.id, 'out-9');
+      expect(recorded.stockError, isNull);
+    });
+
+    // Nothing reached stock, so Books must not show it as stock either.
+    test('a stock failure posts nothing to Books', () async {
+      var calls = 0;
+      final recorded = await ProductionOutputService(
+        deps: () => PurchaseApprovalDeps(
+          strategy: db,
+          capella: db,
+          tax: _RecordingTaxApi(),
+          branchId: 'b1',
+          businessId: 'biz1',
+          userId: 'u1',
+        ),
+        postStock: ({required workOrder, required qty, required deps}) =>
+            throw StateError('variant gone'),
+        postToBooks: (_, _) async => calls++,
+      ).recordActualOutput(workOrder: _order(), actualQuantity: 10);
+
+      expect(recorded.output?.id, 'out-9');
+      expect(recorded.stockError, contains('variant gone'));
+      expect(calls, 0);
     });
   });
 
@@ -402,6 +527,7 @@ void main() {
         () => db.updateWorkOrder(
           workOrderId: any(named: 'workOrderId'),
           status: any(named: 'status'),
+          fromStatus: any(named: 'fromStatus'),
         ),
       ).thenAnswer((_) async {});
       service = ProductionOutputService(
@@ -426,8 +552,14 @@ void main() {
     test('starting a planned order only changes its status', () async {
       await service.startWorkOrder(_order());
 
+      // Conditional on `planned`: a stale copy can't restart an order
+      // another till already started or completed.
       verify(
-        () => db.updateWorkOrder(workOrderId: 'wo1', status: 'in_progress'),
+        () => db.updateWorkOrder(
+          workOrderId: 'wo1',
+          status: 'in_progress',
+          fromStatus: 'planned',
+        ),
       ).called(1);
       expect(posted, isEmpty);
       verifyNever(() => db.getVariant(id: any(named: 'id')));
@@ -441,6 +573,7 @@ void main() {
         () => db.updateWorkOrder(
           workOrderId: any(named: 'workOrderId'),
           status: any(named: 'status'),
+          fromStatus: any(named: 'fromStatus'),
         ),
       );
     });
@@ -471,7 +604,53 @@ void main() {
 
       expect(recorded.output?.actualQuantity, 12);
       expect(recorded.rraMessage, 'tax server down');
+      expect(recorded.stockError, isNull);
       expect(posted, [12]);
+    });
+
+    // Throwing here would read as "not recorded", and recording again
+    // would count the output twice.
+    test('a stock failure keeps the saved output and says so', () async {
+      when(
+        () => db.recordActualOutput(
+          workOrderId: any(named: 'workOrderId'),
+          branchId: any(named: 'branchId'),
+          actualQuantity: any(named: 'actualQuantity'),
+          userId: any(named: 'userId'),
+          varianceReason: any(named: 'varianceReason'),
+          notes: any(named: 'notes'),
+        ),
+      ).thenAnswer(
+        (_) async => ActualOutput(
+          workOrderId: 'wo1',
+          branchId: 'b1',
+          actualQuantity: 12,
+          userId: 'u1',
+        ),
+      );
+      service = ProductionOutputService(
+        deps: () => PurchaseApprovalDeps(
+          strategy: db,
+          capella: db,
+          tax: _RecordingTaxApi(),
+          branchId: 'b1',
+          businessId: 'biz1',
+          userId: 'u1',
+        ),
+        postStock: ({required workOrder, required qty, required deps}) =>
+            throw StateError('variant gone'),
+      );
+
+      final recorded = await service.recordActualOutput(
+        workOrder: _order(status: 'in_progress'),
+        actualQuantity: 12,
+      );
+
+      expect(recorded.output?.actualQuantity, 12);
+      expect(recorded.rraMessage, isNull);
+      expect(recorded.stockError, contains('variant gone'));
+      expect(recorded.stockError, contains('Stock may already have changed'));
+      expect(recorded.stockError, contains('Do not record this output again'));
     });
 
     test('an output that was not saved stocks nothing', () async {
@@ -493,6 +672,106 @@ void main() {
 
       expect(recorded.output, isNull);
       expect(posted, isEmpty);
+    });
+
+    test('the live stock poster runs by default', () async {
+      when(
+        () => db.recordActualOutput(
+          workOrderId: any(named: 'workOrderId'),
+          branchId: any(named: 'branchId'),
+          actualQuantity: any(named: 'actualQuantity'),
+          userId: any(named: 'userId'),
+          varianceReason: any(named: 'varianceReason'),
+          notes: any(named: 'notes'),
+        ),
+      ).thenAnswer(
+        (_) async => ActualOutput(
+          workOrderId: 'wo1',
+          branchId: 'b1',
+          actualQuantity: 4,
+          userId: 'u1',
+        ),
+      );
+      when(() => db.getVariant(id: 'bread-v')).thenAnswer((_) async => null);
+      final live = ProductionOutputService(
+        deps: () => PurchaseApprovalDeps(
+          strategy: db,
+          capella: db,
+          tax: _RecordingTaxApi(),
+          branchId: 'b1',
+          businessId: 'biz1',
+          userId: 'u1',
+        ),
+      );
+
+      final recorded = await live.recordActualOutput(
+        workOrder: _order(status: 'in_progress'),
+        actualQuantity: 4,
+      );
+
+      expect(recorded.output?.actualQuantity, 4);
+      expect(recorded.stockError, contains('bread-v'));
+    });
+
+    test('reads and creates work orders for the current branch', () async {
+      final order = _order();
+      when(
+        () => db.getWorkOrders(
+          branchId: 'b1',
+          startDate: null,
+          endDate: null,
+          status: 'planned',
+        ),
+      ).thenAnswer((_) async => [order]);
+      when(
+        () => db.createWorkOrder(
+          branchId: 'b1',
+          businessId: 'biz1',
+          variantId: 'bread-v',
+          variantName: 'Bread',
+          plannedQuantity: 20,
+          targetDate: DateTime(2026, 11, 23),
+          shiftId: null,
+          notes: null,
+        ),
+      ).thenAnswer((_) async => order);
+
+      expect(await service.getWorkOrders(status: 'planned'), [order]);
+      expect(
+        await service.createWorkOrder(
+          variantId: 'bread-v',
+          variantName: 'Bread',
+          plannedQuantity: 20,
+          targetDate: DateTime(2026, 11, 23),
+        ),
+        order,
+      );
+    });
+
+    test('without a branch nothing is read or created', () async {
+      final noBranch = ProductionOutputService(
+        deps: () => PurchaseApprovalDeps(
+          strategy: db,
+          capella: db,
+          tax: _RecordingTaxApi(),
+        ),
+      );
+
+      expect(await noBranch.getWorkOrders(), isEmpty);
+      expect(
+        await noBranch.createWorkOrder(
+          variantId: 'bread-v',
+          plannedQuantity: 1,
+          targetDate: DateTime(2026, 11, 23),
+        ),
+        isNull,
+      );
+      final recorded = await noBranch.recordActualOutput(
+        workOrder: _order(),
+        actualQuantity: 1,
+      );
+      expect(recorded.output, isNull);
+      verifyZeroInteractions(db);
     });
   });
 }

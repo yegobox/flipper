@@ -13,10 +13,7 @@ class _FakeContextProvider implements AnalyticsContextProvider {
 
   @override
   Map<String, Object?> buildBaseProperties() {
-    return const {
-      'app': 'test_app',
-      'platform': 'test',
-    };
+    return const {'app': 'test_app', 'platform': 'test'};
   }
 }
 
@@ -56,7 +53,26 @@ class _FakeTransport implements AnalyticsTransport {
 
   bool failSend;
   final List<PendingAnalyticsEvent> sentEvents = [];
+  final List<bool> enabledCalls = [];
+  final List<String> identified = [];
+  final List<(Object, Map<String, Object?>)> exceptions = [];
+  bool failCapture = false;
   int flushCount = 0;
+
+  @override
+  Future<void> captureException(
+    Object error, {
+    StackTrace? stackTrace,
+    Map<String, Object?> properties = const {},
+  }) async {
+    if (failCapture) throw StateError('sdk down');
+    exceptions.add((error, properties));
+  }
+
+  @override
+  Future<void> setEnabled(bool enabled) async {
+    enabledCalls.add(enabled);
+  }
 
   @override
   Future<void> flush() async {
@@ -77,7 +93,9 @@ class _FakeTransport implements AnalyticsTransport {
   Future<void> identify(
     String userId, {
     Map<String, Object?> properties = const {},
-  }) async {}
+  }) async {
+    identified.add(userId);
+  }
 
   @override
   Future<void> initialize() async {}
@@ -151,5 +169,143 @@ void main() {
     expect(transport.sentEvents, hasLength(1));
     expect(store.events, isEmpty);
     expect(transport.flushCount, 1);
+  });
+
+  group('local mode (disabled)', () {
+    late _MemoryEventStore store;
+    late _FakeTransport transport;
+    late OfflineFirstAnalytics analytics;
+
+    setUp(() async {
+      store = _MemoryEventStore();
+      transport = _FakeTransport();
+      analytics = OfflineFirstAnalytics(
+        contextProvider: _FakeContextProvider(),
+        eventStore: store,
+        transport: transport,
+        enabled: false,
+      );
+      await analytics.initialize();
+    });
+
+    test('startup states the opt-out to the SDK', () {
+      expect(transport.enabledCalls, [false]);
+    });
+
+    test('drops events instead of queueing them', () async {
+      await analytics.track(AnalyticsEvents.loginSuccess);
+      await analytics.screen('Pos');
+      await analytics.identify('42');
+      await analytics.group('business', 'b-1');
+      await store.enqueue(
+        PendingAnalyticsEvent(
+          eventName: 'queued_before',
+          type: PendingAnalyticsEventType.capture,
+          properties: const {},
+        ),
+      );
+      await analytics.flush();
+
+      expect(transport.sentEvents, isEmpty);
+      expect(transport.identified, isEmpty);
+      expect(transport.flushCount, 0);
+      expect(store.events, hasLength(1));
+    });
+
+    test('opting back in sends again', () async {
+      await analytics.setEnabled(true);
+      await analytics.setEnabled(true);
+      await analytics.track(AnalyticsEvents.loginSuccess);
+
+      expect(transport.enabledCalls, [false, true]);
+      expect(analytics.enabled, isTrue);
+      expect(transport.sentEvents.single.eventName, 'login_success');
+    });
+  });
+
+  test('a signed-in till applies its enabled state at startup', () async {
+    final transport = _FakeTransport();
+    await OfflineFirstAnalytics(
+      contextProvider: _FakeContextProvider(),
+      eventStore: _MemoryEventStore(),
+      transport: transport,
+    ).initialize();
+
+    expect(transport.enabledCalls, [true]);
+  });
+
+  test('flush drops an event that keeps failing', () async {
+    final store = _MemoryEventStore();
+    final transport = _FakeTransport(failSend: true);
+    final analytics = OfflineFirstAnalytics(
+      contextProvider: _FakeContextProvider(),
+      eventStore: store,
+      transport: transport,
+    );
+    await analytics.initialize();
+    await store.enqueue(
+      PendingAnalyticsEvent(
+        eventName: 'never_accepted',
+        type: PendingAnalyticsEventType.capture,
+        properties: const {},
+      ),
+    );
+
+    for (var i = 0; i < OfflineFirstAnalytics.maxSendAttempts; i++) {
+      await analytics.flush();
+    }
+    expect(
+      store.events.single.attemptCount,
+      OfflineFirstAnalytics.maxSendAttempts,
+    );
+
+    await analytics.flush();
+    expect(store.events, isEmpty);
+  });
+
+  group('captureException', () {
+    test('tags the error like any event', () async {
+      final transport = _FakeTransport();
+      final analytics = OfflineFirstAnalytics(
+        contextProvider: _FakeContextProvider(),
+        eventStore: _MemoryEventStore(),
+        transport: transport,
+      );
+
+      await analytics.captureException(
+        StateError('boom'),
+        properties: const {'error_type': 'caught'},
+      );
+
+      final (error, props) = transport.exceptions.single;
+      expect(error, isA<StateError>());
+      expect(props['app'], 'test_app');
+      expect(props['error_type'], 'caught');
+    });
+
+    test('never throws, even when the SDK does', () async {
+      final transport = _FakeTransport()..failCapture = true;
+      final analytics = OfflineFirstAnalytics(
+        contextProvider: _FakeContextProvider(),
+        eventStore: _MemoryEventStore(),
+        transport: transport,
+      );
+
+      await analytics.captureException(StateError('boom'));
+    });
+
+    test('sends nothing in local mode', () async {
+      final transport = _FakeTransport();
+      final analytics = OfflineFirstAnalytics(
+        contextProvider: _FakeContextProvider(),
+        eventStore: _MemoryEventStore(),
+        transport: transport,
+        enabled: false,
+      );
+
+      await analytics.captureException(StateError('boom'));
+
+      expect(transport.exceptions, isEmpty);
+    });
   });
 }
