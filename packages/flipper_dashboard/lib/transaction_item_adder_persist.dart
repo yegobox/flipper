@@ -91,8 +91,6 @@ Future<bool> persistItemToTransaction({
   required BuildContext context,
   required Variant variant,
   required bool isOrdering,
-  required Product? productHint,
-  required bool isCompositeProduct,
   required dynamic pendingProv,
   required ITransaction pendingTransaction,
   required int sessionAtStart,
@@ -100,9 +98,7 @@ Future<bool> persistItemToTransaction({
 }) async {
   final capella = ProxyService.getStrategy(Strategy.capella);
 
-  // The product is no longer read here: a combo sells as one line like any
-  // item, so nothing on this path depends on it ([productHint] and
-  // [isCompositeProduct] are accepted for existing callers).
+  // The product is not read here: a combo sells as one line like any item.
   final cachedStock = await _resolveStockForAdd(
     capella: capella,
     variant: variant,
@@ -153,6 +149,9 @@ Future<bool> persistItemToTransaction({
   }
 
   var itemAddCancelled = false;
+  // A `return` inside the lock leaves only its callback; the result is read
+  // after it.
+  var itemSaveFailed = false;
 
   final queuedAtLock = DateTime.now();
   await _persistLock.synchronized(() async {
@@ -229,6 +228,7 @@ Future<bool> persistItemToTransaction({
         'txn=${pendingTransaction.id}; rolling the cart line back',
       );
       rollbackStaleAddAttempt();
+      itemSaveFailed = true;
       return;
     }
 
@@ -249,6 +249,7 @@ Future<bool> persistItemToTransaction({
 
   if (itemAddCancelled) return false;
   if (itemAddAbortedStale) return false;
+  if (itemSaveFailed) return false;
   return true;
 }
 

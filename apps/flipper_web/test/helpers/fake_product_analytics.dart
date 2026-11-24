@@ -31,6 +31,16 @@ class FakeProductAnalytics implements ProductAnalytics {
   Future<void> reset() async {}
 
   @override
+  Future<void> setEnabled(bool enabled) async {}
+
+  @override
+  Future<void> captureException(
+    Object error, {
+    StackTrace? stackTrace,
+    Map<String, Object?> properties = const {},
+  }) async {}
+
+  @override
   Future<void> screen(
     String screenName, {
     Map<String, Object?> properties = const {},

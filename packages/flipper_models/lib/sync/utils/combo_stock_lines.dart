@@ -1,6 +1,8 @@
 import 'package:flipper_models/DatabaseSyncInterface.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/sync/utils/pos_catalog_stock_filter.dart';
+import 'package:flipper_models/sync/utils/sale_line_pricing.dart';
 
 /// A combo (composite product) sells as ONE line at its own price; the combo
 /// itself is a service and holds no stock. Its components' stock moves when
@@ -32,6 +34,14 @@ TransactionItem comboComponentLine(
   final qty = comboLine.qty.toDouble() * perCombo;
   final shipped = comboLine.quantityShipped == comboLine.qty.toInt();
   final retail = (component.retailPrice ?? 0).toDouble();
+  // Tax as the goods sale path stores it on a line (saveTransactionItem):
+  // the stock-IO envelope sums it.
+  final pricing = SaleLinePricing.compute(
+    unitPrice: retail,
+    qty: qty,
+    taxTyCd: component.taxTyCd,
+    taxPercentage: (component.taxPercentage ?? 18.0).toDouble(),
+  );
   return TransactionItem(
     id: comboComponentLineId(comboLine.id, component.id),
     transactionId: comboLine.transactionId,
@@ -51,6 +61,7 @@ TransactionItem comboComponentLine(
     taxTyCd: component.taxTyCd,
     ttCatCd: component.ttCatCd,
     taxPercentage: component.taxPercentage,
+    taxAmt: pricing.taxAmt,
     itemSeq: comboLine.itemSeq,
     qty: qty,
     price: retail,
@@ -91,13 +102,16 @@ List<TransactionItem> expandComboLines(
 }
 
 /// [items] as stock sees them: combo lines become their components
-/// ([expandComboLines]). Reads only local Ditto, and only for service lines:
-/// a product counts as a combo when it is marked composite and has components.
+/// ([expandComboLines]). Reads local data, and only for service lines: a
+/// product counts as a combo when it is marked composite and has components.
+/// A combo with no components on this till gets one remote fetch, bounded by
+/// [remoteTimeout]; when that finds none either, it is logged and skipped.
 Future<List<TransactionItem>> expandComboLinesForStock(
   List<TransactionItem> items, {
   required DatabaseSyncInterface capella,
   required String? businessId,
   required String? branchId,
+  Duration remoteTimeout = comboComponentsRemoteTimeout,
 }) async {
   final serviceLines = items
       .where(
@@ -142,8 +156,26 @@ Future<List<TransactionItem>> expandComboLinesForStock(
       businessId: businessId,
     );
     if (product?.isComposite != true) continue;
-    final components = await capella.composites(productId: entry.key);
-    if (components.isNotEmpty) componentsByProductId[entry.key] = components;
+    // Local first: this runs on the Pay path, which must never wait long on
+    // the network.
+    var components = await capella.composites(
+      productId: entry.key,
+      localOnly: true,
+    );
+    if (components.isEmpty) {
+      // A combo made before #587 may have no rows on this till yet (fresh
+      // install, new till). Fetch them once, bounded, so the sale still moves
+      // its components' stock.
+      components = await _remoteComponents(capella, entry.key, remoteTimeout);
+    }
+    if (components.isNotEmpty) {
+      componentsByProductId[entry.key] = components;
+    } else {
+      talker.warning(
+        'Combo "${product?.name}" (${entry.key}) has no components on this '
+        'till or the server: its components\' stock was not moved.',
+      );
+    }
   }
   if (componentsByProductId.isEmpty) return items;
 
@@ -164,6 +196,27 @@ Future<List<TransactionItem>> expandComboLinesForStock(
     componentsByProductId: componentsByProductId,
     variantsById: variantsById,
   );
+}
+
+/// How long Pay waits for a combo's components from the server when this
+/// till has none of them.
+const comboComponentsRemoteTimeout = Duration(seconds: 5);
+
+/// [productId]'s components from the server, or none when the fetch fails or
+/// takes longer than [timeout].
+Future<List<Composite>> _remoteComponents(
+  DatabaseSyncInterface capella,
+  String productId,
+  Duration timeout,
+) async {
+  try {
+    return await Future.sync(
+      () => capella.composites(productId: productId, localOnly: false),
+    ).timeout(timeout);
+  } catch (e) {
+    talker.warning('Combo $productId: remote components fetch failed: $e');
+    return const <Composite>[];
+  }
 }
 
 /// The stored sale lines to mark "stock deducted" after [deducted] lines moved
