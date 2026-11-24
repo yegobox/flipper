@@ -1087,6 +1087,7 @@ class CapellaSync extends AiStrategyImpl
   FutureOr<List<Composite>> composites({
     String? productId,
     String? variantId,
+    bool localOnly = false,
   }) async {
     // [saveComposite] writes to Ditto only (since #587), so read Ditto first.
     // Reading only Brick found nothing for any combo made since then, and the
@@ -1099,7 +1100,7 @@ class CapellaSync extends AiStrategyImpl
 
     // Combos made before #587 live in SQLite/Supabase.
     return repository.get<Composite>(
-      policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+      policy: compositesGetPolicy(localOnly: localOnly),
       query: brick.Query(
         where: [
           if (productId != null) brick.Where('productId').isExactly(productId),

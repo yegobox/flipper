@@ -5,5 +5,7 @@ abstract class CompositeInterface {
   FutureOr<List<Composite>> composites({
     String? productId,
     String? variantId,
+    // Never wait on the network (see [compositesGetPolicy]).
+    bool localOnly = false,
   });
 }

@@ -1,3 +1,4 @@
+import 'package:flipper_models/sync/utils/composite_ditto.dart';
 import 'dart:convert';
 import 'dart:math';
 import 'dart:isolate';
@@ -275,9 +276,10 @@ class CoreSync extends AiStrategyImpl
   FutureOr<List<Composite>> composites({
     String? productId,
     String? variantId,
+    bool localOnly = false,
   }) async {
     return await repository.get<Composite>(
-      policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+      policy: compositesGetPolicy(localOnly: localOnly),
       query: brick.Query(
         where: [
           if (productId != null) brick.Where('productId').isExactly(productId),

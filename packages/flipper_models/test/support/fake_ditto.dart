@@ -53,6 +53,14 @@ class FakeDittoObserver {
   final void Function() _onCancel;
   bool cancelled = false;
 
+  /// Like ditto_live's `StoreObserver.changes`: a single-subscription stream
+  /// that buffers every result until someone listens.
+  final _changes = StreamController<FakeDittoResult>();
+  Stream<FakeDittoResult> get changes => _changes.stream;
+
+  /// Whether anyone is draining [changes].
+  bool get changesListened => _changes.hasListener;
+
   Future<void> cancel() async {
     cancelled = true;
     _onCancel();
@@ -152,8 +160,17 @@ class FakeDittoStore {
   }) {
     final entry = _Registered(sql, arguments ?? const {}, onChange);
     _observers.add(entry);
-    return FakeDittoObserver(() => _observers.remove(entry));
+    late final FakeDittoObserver observer;
+    observer = FakeDittoObserver(() {
+      _observers.remove(entry);
+      liveObservers.remove(observer);
+    });
+    liveObservers.add(observer);
+    return observer;
   }
+
+  /// The observers [registerObserver] handed out and not cancelled yet.
+  final List<FakeDittoObserver> liveObservers = [];
 
   void _notify() {
     if (_inTransaction) {

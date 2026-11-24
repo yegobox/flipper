@@ -29,6 +29,7 @@ import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_routing/app.locator.dart' as loc;
 import 'package:flipper_routing/app.dialogs.dart';
 import 'package:flipper_routing/app.bottomsheets.dart';
+import 'package:flipper_services/app_build_info.dart';
 import 'package:flipper_services/app_shortcuts_platform.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/locator.dart';
@@ -38,7 +39,6 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/analytics/repository_analytics_event_store.dart';
 import 'package:flipper_design_system/flipper_design_system.dart';
 import 'package:flipper_overlay/flipper_overlay.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show Clipboard, ClipboardData;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -186,16 +186,6 @@ String _formatInitError(Object error, StackTrace stackTrace) {
 
 bool skipDependencyInitialization = false;
 
-String _analyticsPlatformName() {
-  if (kIsWeb) return 'web';
-  if (UniversalPlatform.isAndroid) return 'android';
-  if (UniversalPlatform.isIOS) return 'ios';
-  if (UniversalPlatform.isMacOS) return 'macos';
-  if (UniversalPlatform.isWindows) return 'windows';
-  if (UniversalPlatform.isLinux) return 'linux';
-  return 'unknown';
-}
-
 /// One unit of application startup.
 ///
 /// Startup used to be a single straight-line `await` chain under one 60s
@@ -264,7 +254,7 @@ final Set<String> _finishedInitSteps = <String>{};
 final ValueNotifier<String> initProgressLabel = ValueNotifier<String>('');
 
 /// Localized, user-facing name of a startup step. `_InitStep.label` stays
-/// English because it also goes into logs, Sentry and the copied error report.
+/// English because it also goes into logs, PostHog and the copied error report.
 String _initStepDisplayLabel(FlipperAppLocalizations l10n, String? stepId) {
   switch (stepId) {
     case 'firebase':
@@ -297,18 +287,14 @@ String _initStepDisplayLabel(FlipperAppLocalizations l10n, String? stepId) {
 
 void _reportInitFailure(_InitStep step, Object error, StackTrace stackTrace) {
   try {
-    Sentry.captureException(
+    GlobalErrorHandler.report(
       error,
-      stackTrace: stackTrace,
-      hint: Hint.withMap({
-        'context': 'App initialization step failed',
-        'step': step.id,
-        'critical': step.isCritical.toString(),
-        'error_type': error.runtimeType.toString(),
-      }),
+      stackTrace,
+      type: 'init_step_failed',
+      tags: {'step': step.id, 'critical': step.isCritical.toString()},
     );
   } catch (e) {
-    debugPrint('Failed to report init step failure to Sentry: $e');
+    debugPrint('Failed to report init step failure: $e');
   }
 
   // `Crash` is only registered once the dependency graph step has run, and a
@@ -373,15 +359,20 @@ Future<void> _runInitStep(_InitStep step) async {
 /// Analytics must never be able to stop a till from opening, so it is a step
 /// like any other rather than an unguarded `await` in the middle of startup.
 Future<void> _initializeAnalytics() async {
+  // Play's pre-launch robots (Firebase Test Lab) outnumber real Android users
+  // about 50 to 1 and never sign in; they stay out of every count.
+  final testLab = await isFirebaseTestLab();
   await FlipperAnalytics.initialize(
     appName: 'flipper',
-    platformName: _analyticsPlatformName(),
+    platformName: analyticsPlatformName(),
     projectToken: AppSecrets.postHogProjectToken,
     store: RepositoryAnalyticsEventStore(),
     contextProvider: CallbackAnalyticsContextProvider(
       appName: 'flipper',
-      platformName: _analyticsPlatformName(),
+      platformName: analyticsPlatformName(),
       buildMode: kDebugMode ? 'debug' : 'release',
+      appVersion: AppBuildInfo.releaseVersion,
+      releaseCommit: AppBuildInfo.releaseCommit,
       userIdGetter: () => ProxyService.box.getUserId()?.toString(),
       businessIdGetter: () => ProxyService.box.getBusinessId(),
       branchIdGetter: () => ProxyService.box.getBranchId(),
@@ -398,6 +389,10 @@ Future<void> _initializeAnalytics() async {
         : null,
     // A local-mode till promised to stay off the cloud.
     ga4IsEnabled: () => !LocalMode.isOn,
+    // PostHog too: no events, replay or flags while local mode is on, and
+    // back on once the till opts in to sync.
+    isEnabled: () => !LocalMode.isOn && !testLab,
+    enabledChanges: LocalMode.changes,
   );
 }
 
@@ -860,7 +855,10 @@ class _FlipperAppState extends State<FlipperApp> {
     debugPrint('🎬 [FlipperApp] initState called');
     super.initState();
     _theme = _buildTheme();
-    _routerDelegate = stackedRouter.delegate() as RouterDelegate<Object>;
+    _routerDelegate = stackedRouter.delegate(
+      // $screen per route, so PostHog shows which screens tills use.
+      navigatorObservers: () => [createPostHogObserver()],
+    ) as RouterDelegate<Object>;
     _routeInformationParser =
         stackedRouter.defaultRouteParser() as RouteInformationParser<Object>;
     // Remove splash screen after the first frame is rendered

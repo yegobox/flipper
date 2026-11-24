@@ -8,6 +8,7 @@
 //     flutter test test/composite_ditto_test.dart
 import 'dart:io';
 
+import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:ditto_live/ditto_live.dart';
 import 'package:flipper_models/sync/utils/composite_ditto.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -40,6 +41,17 @@ Map<String, dynamic> _doc(String id, String variantId, num qty) => {
 };
 
 void main() {
+  test('a stock path reads composites without waiting on the network', () {
+    expect(
+      compositesGetPolicy(localOnly: true),
+      OfflineFirstGetPolicy.localOnly,
+    );
+    expect(
+      compositesGetPolicy(localOnly: false),
+      OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+    );
+  });
+
   group('compositeFromDittoDoc', () {
     test('reads what saveComposite writes, int numbers included', () {
       final c = compositeFromDittoDoc(_doc('c1', 'soda', 2));

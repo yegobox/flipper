@@ -50,7 +50,7 @@ dependencies:
   supabase_models: any
   shared_preferences: ^2.5.3
   flutter_native_splash: ^2.4.7
-  posthog_flutter: ^5.30.0
+  posthog_flutter: ^5.61.3
   flipper_analytics: any
   # Subscription paywall: MoMo + card rails, plan catalogue, paywall widgets.
   # A leaf package on purpose — see packages/flipper_payments/pubspec.yaml.

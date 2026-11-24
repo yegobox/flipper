@@ -1,9 +1,9 @@
+import 'package:flipper_services/GlobalLogError.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:flutter/material.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
 import 'dart:io';
 
 import '../animated_loading_dialog.dart';
@@ -61,7 +61,12 @@ class PhoneVerificationService {
         },
         verificationFailed: (FirebaseAuthException e) async {
           state.isLoading = false;
-          await Sentry.captureException(e, stackTrace: e);
+          GlobalErrorHandler.report(
+            e,
+            e.stackTrace,
+            type: 'phone_verification_failed',
+            tags: {'code': e.code},
+          );
           showErrorSnackBar(FlipperL10n.current.phoneAuthVerificationFailed(
               e.message ?? FlipperL10n.current.phoneAuthUnknownError));
         },
@@ -106,7 +111,12 @@ class PhoneVerificationService {
         },
         verificationFailed: (FirebaseAuthException e) async {
           state.isLoading = false;
-          await Sentry.captureException(e, stackTrace: e);
+          GlobalErrorHandler.report(
+            e,
+            e.stackTrace,
+            type: 'phone_verification_failed',
+            tags: {'code': e.code},
+          );
           showErrorSnackBar(FlipperL10n.current.phoneAuthVerificationFailed(
               e.message ?? FlipperL10n.current.phoneAuthUnknownError));
         },

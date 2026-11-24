@@ -14,9 +14,9 @@ import 'package:supabase_models/brick/models/actual_output.model.dart';
 /// feature, which is exactly the bug the Ditto-only cutover removed.
 mixin ProductionOutputMixin implements ProductionOutputInterface {
   Never _dittoOnly(String member) => throw UnimplementedError(
-        'Production output is Ditto-only; $member is served by '
-        'CapellaProductionOutputMixin.',
-      );
+    'Production output is Ditto-only; $member is served by '
+    'CapellaProductionOutputMixin.',
+  );
 
   @override
   Future<List<WorkOrder>> getWorkOrders({
@@ -24,8 +24,7 @@ mixin ProductionOutputMixin implements ProductionOutputInterface {
     DateTime? startDate,
     DateTime? endDate,
     String? status,
-  }) async =>
-      _dittoOnly('getWorkOrders');
+  }) async => _dittoOnly('getWorkOrders');
 
   @override
   Future<WorkOrder?> createWorkOrder({
@@ -37,8 +36,7 @@ mixin ProductionOutputMixin implements ProductionOutputInterface {
     required DateTime targetDate,
     String? shiftId,
     String? notes,
-  }) async =>
-      _dittoOnly('createWorkOrder');
+  }) async => _dittoOnly('createWorkOrder');
 
   @override
   Future<void> updateWorkOrder({
@@ -46,8 +44,8 @@ mixin ProductionOutputMixin implements ProductionOutputInterface {
     double? plannedQuantity,
     String? status,
     String? notes,
-  }) async =>
-      _dittoOnly('updateWorkOrder');
+    String? fromStatus,
+  }) async => _dittoOnly('updateWorkOrder');
 
   @override
   Future<void> deleteWorkOrder({required String workOrderId}) async =>
@@ -59,8 +57,7 @@ mixin ProductionOutputMixin implements ProductionOutputInterface {
     DateTime? startDate,
     DateTime? endDate,
     String? workOrderId,
-  }) async =>
-      _dittoOnly('getActualOutputs');
+  }) async => _dittoOnly('getActualOutputs');
 
   @override
   Future<ActualOutput?> recordActualOutput({
@@ -70,8 +67,7 @@ mixin ProductionOutputMixin implements ProductionOutputInterface {
     required String userId,
     String? varianceReason,
     String? notes,
-  }) async =>
-      _dittoOnly('recordActualOutput');
+  }) async => _dittoOnly('recordActualOutput');
 
   @override
   Future<void> updateActualOutput({
@@ -79,30 +75,26 @@ mixin ProductionOutputMixin implements ProductionOutputInterface {
     double? actualQuantity,
     String? varianceReason,
     String? notes,
-  }) async =>
-      _dittoOnly('updateActualOutput');
+  }) async => _dittoOnly('updateActualOutput');
 
   @override
   Stream<List<WorkOrder>> workOrdersStream({
     required String branchId,
     DateTime? startDate,
     DateTime? endDate,
-  }) =>
-      _dittoOnly('workOrdersStream');
+  }) => _dittoOnly('workOrdersStream');
 
   @override
   Stream<List<ActualOutput>> actualOutputsStream({
     required String branchId,
     DateTime? startDate,
     DateTime? endDate,
-  }) =>
-      _dittoOnly('actualOutputsStream');
+  }) => _dittoOnly('actualOutputsStream');
 
   @override
   Future<Map<String, dynamic>> getVarianceSummary({
     required String branchId,
     required DateTime startDate,
     required DateTime endDate,
-  }) async =>
-      _dittoOnly('getVarianceSummary');
+  }) async => _dittoOnly('getVarianceSummary');
 }

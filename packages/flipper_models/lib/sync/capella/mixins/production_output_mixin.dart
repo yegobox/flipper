@@ -157,6 +157,7 @@ mixin CapellaProductionOutputMixin implements ProductionOutputInterface {
     double? plannedQuantity,
     String? status,
     String? notes,
+    String? fromStatus,
   }) async {
     final ditto = _dittoOrThrow('updateWorkOrder');
 
@@ -175,10 +176,17 @@ mixin CapellaProductionOutputMixin implements ProductionOutputInterface {
     if (status == 'in_progress') updates['startedAt'] = nowIso;
     if (status == 'completed') updates['completedAt'] = nowIso;
 
+    // `fromStatus` makes the transition conditional (e.g. Start only moves a
+    // still-planned order), so `startedAt` is stamped only when it happens.
     await ditto.store.execute(
       'UPDATE work_orders SET ${_setClause(updates)} '
-      'WHERE _id = :id OR id = :id',
-      arguments: {...updates, 'id': workOrderId},
+      'WHERE (_id = :id OR id = :id)'
+      '${fromStatus != null ? ' AND status = :fromStatus' : ''}',
+      arguments: {
+        ...updates,
+        'id': workOrderId,
+        if (fromStatus != null) 'fromStatus': fromStatus,
+      },
     );
   }
 

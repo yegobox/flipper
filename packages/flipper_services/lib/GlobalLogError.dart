@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:isolate';
+import 'package:flipper_analytics/flipper_analytics.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_services/log_service.dart';
 import 'package:flipper_services/supabase_realtime_utils.dart';
@@ -20,6 +21,29 @@ class GlobalErrorHandler {
 
   static final Map<String, _ErrorTally> _tallies = {};
 
+  /// Where errors go in tests; the app's analytics otherwise.
+  @visibleForTesting
+  static ProductAnalytics? analyticsOverride;
+
+  /// PostHog error tracking, already past the repeat filter. The Log rows
+  /// stay; this adds the errors to the same project as `ui_stall`, by
+  /// business, branch and till, on every platform (Windows has no
+  /// Crashlytics).
+  static void _toPostHog(
+    Object error,
+    StackTrace? stackTrace,
+    String type, {
+    Map<String, Object?> properties = const {},
+  }) {
+    reportException(
+      error,
+      stackTrace,
+      type: type,
+      properties: properties,
+      analytics: analyticsOverride,
+    );
+  }
+
   /// Some framework assertions latch and then fire ONCE PER FRAME for the rest
   /// of the session — both `_RenderTheater._addDeferredChild`
   /// ('!_skipMarkNeedsLayout') and `MouseTracker._deviceUpdatePhase`
@@ -29,6 +53,19 @@ class GlobalErrorHandler {
   /// Reporting every repeat inserts a Log row per frame (which then syncs) and
   /// buries the FIRST error — the only one that identifies the actual cause.
   /// So: report the first few, then count quietly.
+  /// The last few error objects already reported, by identity. A caught
+  /// error that is reported and then rethrown reaches both [logError] and a
+  /// handler; it is one occurrence, so it is counted and sent once.
+  static final List<Object> _recent = [];
+  static const int _recentLimit = 16;
+
+  static bool _seenRecently(Object error) {
+    if (_recent.any((seen) => identical(seen, error))) return true;
+    _recent.add(error);
+    if (_recent.length > _recentLimit) _recent.removeAt(0);
+    return false;
+  }
+
   static bool _shouldReport(Object error, StackTrace? stackTrace) {
     final signature = _signatureOf(error, stackTrace);
     final now = DateTime.now();
@@ -75,7 +112,10 @@ class GlobalErrorHandler {
   static void initialize() {
     // Catch Flutter framework errors
     FlutterError.onError = (FlutterErrorDetails details) {
-      if (!_shouldReport(details.exception, details.stack)) return;
+      if (_seenRecently(details.exception) ||
+          !_shouldReport(details.exception, details.stack)) {
+        return;
+      }
 
       // Log to your service
       _logService.logException(
@@ -85,9 +125,17 @@ class GlobalErrorHandler {
         extra: {
           'library': details.library,
           'context': details.context.toString(),
-          'informationCollector':
-              details.informationCollector?.call().toString(),
+          'informationCollector': details.informationCollector
+              ?.call()
+              .toString(),
         },
+      );
+
+      _toPostHog(
+        details.exception,
+        details.stack,
+        'flutter_error',
+        properties: {'library': details.library},
       );
 
       // Also print to console in debug mode
@@ -102,14 +150,13 @@ class GlobalErrorHandler {
         logSupabaseRealtimeError(error, stackTrace: stack);
         return true;
       }
-      if (!_shouldReport(error, stack)) return true;
+      if (_seenRecently(error) || !_shouldReport(error, stack)) return true;
+      _toPostHog(error, stack, 'platform_error');
       _logService.logException(
         error,
         stackTrace: stack,
         type: 'platform_error',
-        extra: {
-          'error_type': error.runtimeType.toString(),
-        },
+        extra: {'error_type': error.runtimeType.toString()},
       );
       return true; // Handled
     };
@@ -120,14 +167,16 @@ class GlobalErrorHandler {
         final List<dynamic> errorAndStacktrace = pair;
         final error = errorAndStacktrace.first;
         final stackTrace = errorAndStacktrace.last;
+        final trace = StackTrace.fromString(stackTrace.toString());
+        if (error != null && _shouldReport(error, trace)) {
+          _toPostHog(error, trace, 'isolate_error');
+        }
 
         await _logService.logException(
           error,
           stackTrace: StackTrace.fromString(stackTrace.toString()),
           type: 'isolate_error',
-          extra: {
-            'error_type': error.runtimeType.toString(),
-          },
+          extra: {'error_type': error.runtimeType.toString()},
         );
       }).sendPort,
     );
@@ -142,15 +191,16 @@ class GlobalErrorHandler {
     Map<String, String>? tags,
     Map<String, dynamic>? extra,
   }) async {
+    // Tags only: `extra` can carry customer data, which stays in Log rows.
+    if (!_seenRecently(error) && _shouldReport(error, stackTrace)) {
+      _toPostHog(error, stackTrace, type ?? 'manual', properties: {...?tags});
+    }
     await _logService.logException(
       error,
       stackTrace: stackTrace,
       type: type ?? 'manual',
       tags: tags,
-      extra: {
-        if (context != null) ...context,
-        if (extra != null) ...extra,
-      },
+      extra: {if (context != null) ...context, if (extra != null) ...extra},
     );
   }
 
@@ -213,9 +263,7 @@ class GlobalErrorHandler {
           error,
           stackTrace: stackTrace,
           type: 'zone_error',
-          extra: {
-            'error_type': error.runtimeType.toString(),
-          },
+          extra: {'error_type': error.runtimeType.toString()},
         );
       },
     );
@@ -223,7 +271,10 @@ class GlobalErrorHandler {
 
   /// Test hook: forget what has been reported so far.
   @visibleForTesting
-  static void resetReportTallies() => _tallies.clear();
+  static void resetReportTallies() {
+    _tallies.clear();
+    _recent.clear();
+  }
 
   /// Test hook for the repeat-suppression decision.
   @visibleForTesting
@@ -231,7 +282,7 @@ class GlobalErrorHandler {
       _shouldReport(error, stackTrace);
 
   /// Example of how to use in your main.dart
-/*
+  /*
 void main() {
   runAppWithErrorHandling(MyApp());
 }
