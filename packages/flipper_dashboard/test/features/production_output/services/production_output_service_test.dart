@@ -4,6 +4,7 @@ import 'package:flipper_models/DatabaseSyncInterface.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/services/purchase_approval_deps.dart';
+import 'package:flipper_models/sync/utils/combo_cost.dart';
 import 'package:flipper_models/tax_api.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -235,13 +236,20 @@ void main() {
       final result = await postProductionOutput(
         workOrder: _order(status: 'in_progress'),
         qty: 10,
-        deps: PurchaseApprovalDeps(strategy: db, capella: db, tax: tax),
+        deps: PurchaseApprovalDeps(
+          strategy: db,
+          capella: db,
+          tax: tax,
+          comboCosts: ComboCostWriter(
+            variantSupplyPrice: (id, cost) async => costs[id] = cost,
+            lineSupplyCost: (_, __, ___) async {},
+          ),
+        ),
         resolveEbm: (_) async => _ebmOn(),
         nextBranchSar: (branchId) async {
           sarsHandedOut.add(41 + sarsHandedOut.length);
           return Sar(sarNo: sarsHandedOut.last, branchId: branchId);
         },
-        writeSupplyPrice: (id, cost) async => costs[id] = cost,
       );
 
       expect(result.stocked, isTrue);
@@ -258,6 +266,63 @@ void main() {
       expect(tax.ioCalls.last.remark, 'Used in production: Bread');
       // The bread itself, then each component's on-hand (never negative).
       expect(tax.masterQtys, [13, 15, 0]);
+    });
+
+    // An unknown component cost would count as 0 and drag the average down.
+    test('a component with no cost keeps the product\'s cost', () async {
+      when(
+        () => db.getProduct(id: 'bread-p', branchId: 'b1', businessId: 'biz1'),
+      ).thenAnswer(
+        (_) async => Product(
+          id: 'bread-p',
+          name: 'Bread',
+          color: '#000',
+          businessId: 'biz1',
+          branchId: 'b1',
+          isComposite: true,
+        ),
+      );
+      when(() => db.composites(productId: 'bread-p')).thenAnswer(
+        (_) async => [
+          Composite(productId: 'bread-p', variantId: 'flour', qty: 0.5),
+        ],
+      );
+      when(() => db.batchGetVariantsByIds(any())).thenAnswer(
+        (_) async => {
+          'flour': Variant(
+            id: 'flour',
+            name: 'flour',
+            branchId: 'b1',
+            stockId: 'flour-s',
+            itemTyCd: '1',
+          ),
+        },
+      );
+      when(() => db.batchDeductStocks(any())).thenAnswer((_) async {});
+      when(() => db.batchGetStocksByIds(any())).thenAnswer((_) async => {});
+
+      final costs = <String, double>{};
+      final result = await postProductionOutput(
+        workOrder: _order(status: 'in_progress'),
+        qty: 10,
+        deps: PurchaseApprovalDeps(
+          strategy: db,
+          capella: db,
+          tax: tax,
+          comboCosts: ComboCostWriter(
+            variantSupplyPrice: (id, cost) async => costs[id] = cost,
+            lineSupplyCost: (_, __, ___) async {},
+          ),
+        ),
+        resolveEbm: (_) async => _ebmOn(),
+        nextBranchSar: (branchId) async {
+          sarsHandedOut.add(41 + sarsHandedOut.length);
+          return Sar(sarNo: sarsHandedOut.last, branchId: branchId);
+        },
+      );
+
+      expect(result.stocked, isTrue);
+      expect(costs, isEmpty);
     });
 
     // Stocking first means a failure there leaves every component in place,

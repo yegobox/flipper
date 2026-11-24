@@ -13,7 +13,6 @@ import 'package:flipper_models/sync/utils/combo_cost.dart';
 import 'package:flipper_models/sync/utils/combo_stock_lines.dart';
 import 'package:flipper_models/sync/utils/pos_catalog_stock_filter.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flipper_web/services/ditto_service.dart';
 
 /// Sale lines as stock sees them: a combo line becomes its components
 /// ([expandComboLinesForStock]).
@@ -91,11 +90,15 @@ Future<void> persistPreSaleStockSnapshot({
 }
 
 /// Applies Ditto stock decrements after RRA sign / sale success (not on Pay hot path).
+///
+/// [comboCosts] is where combo lines' costs are written (default: the app's
+/// Ditto store, [ComboCostWriter.live]).
 Future<Map<String, double>> applyDeferredSaleStockDeduction({
   required List<TransactionItem> transactionItems,
   required bool allowSellingBelowStock,
   required bool isProformaOrTraining,
   required String transactionId,
+  ComboCostWriter? Function() comboCosts = ComboCostWriter.live,
 }) async {
   final sw = Stopwatch()..start();
   final originalStockQuantities = <String, double>{};
@@ -107,7 +110,7 @@ Future<Map<String, double>> applyDeferredSaleStockDeduction({
 
   final stockLines = await saleLinesForStock(transactionItems, capella);
   if (!isProformaOrTraining) {
-    await _recordComboCosts(transactionItems, stockLines);
+    await _recordComboCosts(transactionItems, stockLines, comboCosts);
   }
   final candidateItems = stockLines.where((item) {
     if (isServiceItemType(item.itemTyCd)) return false;
@@ -250,11 +253,12 @@ Future<Map<String, double>> applyDeferredSaleStockDeduction({
 Future<void> _recordComboCosts(
   List<TransactionItem> saleLines,
   List<TransactionItem> stockLines,
+  ComboCostWriter? Function() resolveWriter,
 ) async {
   final costs = comboLineCosts(stockLines);
   if (costs.isEmpty) return;
-  final ditto = DittoService.instance.dittoInstance;
-  if (ditto == null) return;
+  final writer = resolveWriter();
+  if (writer == null) return;
   final linesById = {for (final line in saleLines) line.id: line};
   final variantCosts = <String, double>{};
   for (final entry in costs.entries) {
@@ -264,12 +268,7 @@ Future<void> _recordComboCosts(
     final unit = entry.value / qty;
     try {
       if (((line.splyAmt ?? 0) - entry.value).abs() > comboCostTolerance) {
-        await writeLineSupplyCost(
-          ditto,
-          lineId: line.id,
-          unitCost: unit,
-          qty: qty,
-        );
+        await writer.lineSupplyCost(line.id, unit, qty);
       }
     } catch (e) {
       talker.warning('Combo line cost not recorded for ${line.id}: $e');
@@ -282,11 +281,7 @@ Future<void> _recordComboCosts(
   }
   for (final entry in variantCosts.entries) {
     try {
-      await writeVariantSupplyPrice(
-        ditto,
-        variantId: entry.key,
-        supplyPrice: entry.value,
-      );
+      await writer.variantSupplyPrice(entry.key, entry.value);
     } catch (e) {
       talker.warning('Combo cost not updated for ${entry.key}: $e');
     }

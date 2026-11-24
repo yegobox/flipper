@@ -54,14 +54,26 @@ void main() {
   group('comboUnitCost', () {
     test('sums component cost prices, never selling prices', () {
       final cost = comboUnitCost(
-        [
-          Composite(variantId: 'soda', qty: 2),
-          Composite(variantId: 'bread'),
-          Composite(variantId: 'gone', qty: 5),
-        ],
+        [Composite(variantId: 'soda', qty: 2), Composite(variantId: 'bread')],
         {'soda': _v('soda', 300), 'bread': _v('bread', 250)},
       );
       expect(cost, 2 * 300 + 250);
+    });
+
+    // Counting an unknown cost as 0 would overwrite the cost the owner set.
+    test('unknown when a component has no cost or is gone', () {
+      final components = [
+        Composite(variantId: 'soda', qty: 2),
+        Composite(variantId: 'bread'),
+      ];
+      expect(
+        comboUnitCost(components, {
+          'soda': _v('soda', 300),
+          'bread': _v('bread', 0),
+        }),
+        isNull,
+      );
+      expect(comboUnitCost(components, {'soda': _v('soda', 300)}), isNull);
     });
   });
 
@@ -70,9 +82,11 @@ void main() {
       _line('tea', supply: 100),
       _line(comboComponentLineId('c1', 'soda'), qty: 4, supply: 300),
       _line(comboComponentLineId('c1', 'bread'), qty: 2, supply: 250),
-      _line(comboComponentLineId('c2', 'soda'), qty: 2),
+      // c2 has a component with no cost: left out, never booked as 0.
+      _line(comboComponentLineId('c2', 'soda'), qty: 2, supply: 300),
+      _line(comboComponentLineId('c2', 'bread'), qty: 2),
     ]);
-    expect(costs, {'c1': 4 * 300 + 2 * 250, 'c2': 0.0});
+    expect(costs, {'c1': 4 * 300 + 2 * 250});
   });
 
   group('movingAverageCost', () {
