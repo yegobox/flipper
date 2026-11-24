@@ -67,6 +67,7 @@ class _FakeTransport implements AnalyticsTransport {
   final List<(Object, Map<String, Object?>)> exceptions = [];
   bool failCapture = false;
   int flushCount = 0;
+  final List<String> order = [];
 
   @override
   Future<void> captureException(
@@ -76,6 +77,7 @@ class _FakeTransport implements AnalyticsTransport {
   }) async {
     if (failCapture) throw StateError('sdk down');
     exceptions.add((error, properties));
+    order.add('exception');
   }
 
   @override
@@ -98,6 +100,7 @@ class _FakeTransport implements AnalyticsTransport {
     Map<String, Object?> properties = const {},
   }) async {
     groups.add((groupType, groupKey, properties));
+    order.add('group:$groupType');
   }
 
   @override
@@ -107,6 +110,7 @@ class _FakeTransport implements AnalyticsTransport {
   }) async {
     if (failIdentify) throw StateError('sdk down');
     identified.add(userId);
+    order.add('identify');
     identifyProperties.add(properties);
   }
 
@@ -394,6 +398,39 @@ void main() {
       );
       expect(transport.groups, isEmpty);
       expect(transport.identified, isEmpty);
+    });
+
+    test(
+      'an exception as the first event is identified and grouped first',
+      () async {
+        await start();
+
+        await analytics.captureException(StateError('startup failed'));
+
+        expect(transport.order, [
+          'identify',
+          'group:business',
+          'group:branch',
+          'exception',
+        ]);
+      },
+    );
+
+    test('a failed identify is retried on the next event, and does not skip '
+        'the groups', () async {
+      await start();
+      transport.failIdentify = true;
+
+      await analytics.track('first');
+      expect(transport.identified, isEmpty);
+      expect(transport.groups, hasLength(2));
+
+      transport.failIdentify = false;
+      await analytics.track('second');
+      await analytics.track('third');
+
+      expect(transport.identified, ['user-1']);
+      expect(transport.groups, hasLength(2));
     });
 
     test('a business switch regroups the next events', () async {
