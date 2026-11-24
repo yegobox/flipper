@@ -1,5 +1,6 @@
 import 'package:flipper_dashboard/services/sale_exchange_service.dart';
 import 'package:flipper_dashboard/services/transaction_refund_helpers.dart';
+import 'package:flipper_dashboard/utils/sale_stock_deduction.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/sync/shift_sync.dart';
@@ -165,7 +166,8 @@ class TransactionRefundService {
     // Resolve stock-tracked lines first, then allocate restore qtys as a set so
     // a small partial refund does not restore ≥1 unit on every qty-1 line.
     final stockLines = <({TransactionItem item, String stockId})>[];
-    for (final item in items) {
+    // A combo line returns its components' stock (see saleLinesForStock).
+    for (final item in await saleLinesForStock(items, capella)) {
       final variant = await capella.getVariant(id: item.variantId);
       if (variant == null || variant.itemTyCd == '3') continue;
       final stockId = variant.stockId;
@@ -174,8 +176,9 @@ class TransactionRefundService {
     }
     if (stockLines.isEmpty) return;
 
-    final restoreQtys = stockRestoreQtysForLines(
-      lineQtys: [for (final line in stockLines) line.item.qty.toInt()],
+    final restoreQtys = stockRestoreAmountsForLines(
+      lineQtys: [for (final line in stockLines) line.item.qty],
+      lineIds: [for (final line in stockLines) line.item.id],
       refundAmount: refundAmount,
       originalTotal: originalTotal,
     );
@@ -186,7 +189,7 @@ class TransactionRefundService {
 
       await ProxyService.strategy.updateStock(
         stockId: stockLines[i].stockId,
-        currentStock: qty.toDouble(),
+        currentStock: qty,
         appending: true,
       );
     }

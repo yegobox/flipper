@@ -84,8 +84,6 @@ class PosCartAddService {
             context: context,
             variant: variant,
             isOrdering: isOrdering,
-            product: product,
-            isComposite: isComposite,
             cartOptimismApplied: cartOptimismApplied,
           ),
         );
@@ -115,8 +113,6 @@ class PosCartAddService {
     required BuildContext context,
     required Variant variant,
     required bool isOrdering,
-    required Product? product,
-    required bool isComposite,
     required bool cartOptimismApplied,
   }) async {
     if (!ref.mounted) return;
@@ -163,8 +159,6 @@ class PosCartAddService {
         context: context,
         variant: variant,
         isOrdering: isOrdering,
-        productHint: product,
-        isCompositeProduct: isComposite,
         pendingProv: pendingProv,
         pendingTransaction: txn,
         sessionAtStart: sessionAtStart,

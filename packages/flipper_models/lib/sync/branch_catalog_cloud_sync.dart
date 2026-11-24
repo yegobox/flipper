@@ -157,6 +157,13 @@ Future<void> ensureBranchCatalogCloudSubscriptions({
       args: {'branchId': branchId},
     ),
     (
+      // Combo components: written to Ditto only, so another till's combos
+      // reach this one only through this subscription.
+      key: 'composites|$branchId',
+      sql: 'SELECT * FROM composites WHERE branchId = :branchId',
+      args: {'branchId': branchId},
+    ),
+    (
       key: 'codes|$branchId',
       sql: 'SELECT * FROM codes WHERE branchId = :branchId',
       args: {'branchId': branchId},
