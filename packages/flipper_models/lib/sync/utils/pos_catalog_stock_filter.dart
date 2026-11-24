@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:isolate';
 
 import 'package:flipper_models/sync/utils/stock_qty_milli.dart';
+import 'package:meta/meta.dart';
 
 /// Which part of the catalog the POS grid lists while nobody is searching.
 ///
@@ -131,63 +132,120 @@ String stockQtySelectDql({required String whereClause}) =>
     'FROM COLLECTION stocks ($stockCurrentStockMilliField COUNTER) '
     'WHERE $whereClause';
 
+/// A catalog row whose stock id no stock row given to the walk answered for
+/// (a stock row with no `branchId`). [at] is the row's place in the walk's
+/// `matching` list: where it sits while it counts as 0 on hand (out of stock
+/// side), or where it goes once it turns out to have stock (in stock side).
+typedef UnresolvedStockRow = ({String variantId, String stockId, int at});
+
 /// What one walk of the stock filter found: every catalog row on the asked
 /// side of the stock line, in display order.
 class StockFilterWalk {
   const StockFilterWalk({
     required this.matching,
     required this.catalogSize,
-    this.unresolvedStockIds = const [],
+    this.unresolved = const [],
   });
 
-  /// Ditto `_id`s of the matching variants, in the catalog's order.
+  /// Ditto `_id`s of the matching variants, in the catalog's order. A row in
+  /// [unresolved] counts as 0 on hand here, as its tile shows it.
   final List<String> matching;
 
   /// Rows the catalog walk saw, matching or not.
   final int catalogSize;
 
-  /// Stock ids the catalog points at that no stock row given to the walk
-  /// answered for (a stock row with no `branchId`); they counted as 0 on
-  /// hand.
-  final List<String> unresolvedStockIds;
+  /// Rows whose stock the walk could not see, in catalog order; see
+  /// [withExtraQty].
+  final List<UnresolvedStockRow> unresolved;
+
+  /// The distinct stock ids of [unresolved], to look up separately.
+  List<String> get unresolvedStockIds => [
+    ...{for (final row in unresolved) row.stockId},
+  ];
 
   /// Rows the filter hid.
   int get filteredOut => catalogSize - matching.length;
+
+  /// This walk with [unresolved] settled by [extraQty] (quantities read
+  /// separately, by stock id), as if those stock rows had been in the walk.
+  ///
+  /// One pass over [matching] and no decode: the catalog and its stock are
+  /// not walked again. A stock id still missing from [extraQty] stays 0 on
+  /// hand. [inStock] must be the side the walk was made for.
+  StockFilterWalk withExtraQty(
+    Map<String, double> extraQty, {
+    required bool inStock,
+  }) {
+    if (unresolved.isEmpty) return this;
+    final stocked = [
+      for (final row in unresolved)
+        if (posTileHasStock(extraQty[row.stockId] ?? 0)) row,
+    ];
+    final List<String> settled;
+    if (stocked.isEmpty) {
+      settled = matching;
+    } else if (inStock) {
+      // Rows that have stock after all join the list at their place.
+      settled = <String>[];
+      var next = 0;
+      for (final row in stocked) {
+        settled
+          ..addAll(matching.sublist(next, row.at))
+          ..add(row.variantId);
+        next = row.at;
+      }
+      settled.addAll(matching.sublist(next));
+    } else {
+      // Rows that have stock after all leave the out-of-stock list.
+      final leaving = {for (final row in stocked) row.at};
+      settled = [
+        for (var i = 0; i < matching.length; i++)
+          if (!leaving.contains(i)) matching[i],
+      ];
+    }
+    return StockFilterWalk(matching: settled, catalogSize: catalogSize);
+  }
 }
 
 /// The stock filter's join, from the raw JSON Ditto hands back for each row
 /// ([catalogJson]: the `_id, stockId, itemTyCd` projection; [stockJson]:
-/// [stockQtySelectDql] rows). [extraQty] adds quantities read separately.
+/// [stockQtySelectDql] rows).
 ///
 /// Pure Dart on purpose, so [runStockFilterWalk] can run it off the UI
 /// isolate: decoding a whole catalog and its stock is the part that froze
-/// 2 GB phones for seconds.
+/// 2 GB phones for seconds. Matches [variantIdsMatchingStock] row for row,
+/// and also records the rows whose stock row it was not given.
 StockFilterWalk walkStockFilter({
   required List<String> catalogJson,
   required List<String> stockJson,
   required bool inStock,
-  Map<String, double> extraQty = const {},
 }) {
-  final rows = [
-    for (final json in catalogJson) jsonDecode(json) as Map<String, dynamic>,
-  ];
   final qty = stockQtyByIdKeys([
     for (final json in stockJson) jsonDecode(json) as Map<String, dynamic>,
-  ])..addAll(extraQty);
-  final unresolved = rows
-      .map(variantRowStockId)
-      .whereType<String>()
-      .where((id) => !qty.containsKey(id))
-      .toSet()
-      .toList();
+  ]);
+  final matching = <String>[];
+  final unresolved = <UnresolvedStockRow>[];
+  for (final json in catalogJson) {
+    final row = jsonDecode(json) as Map<String, dynamic>;
+    final id = row['_id'];
+    if (id is! String || id.isEmpty) continue;
+    final bool has;
+    if (isServiceItemType(row['itemTyCd'])) {
+      has = true;
+    } else {
+      final sid = variantRowStockId(row);
+      final known = sid == null ? null : qty[sid];
+      if (sid != null && known == null) {
+        unresolved.add((variantId: id, stockId: sid, at: matching.length));
+      }
+      has = known != null && posTileHasStock(known);
+    }
+    if (has == inStock) matching.add(id);
+  }
   return StockFilterWalk(
-    matching: variantIdsMatchingStock(
-      rows: rows,
-      qtyByStockId: qty,
-      inStock: inStock,
-    ),
-    catalogSize: rows.length,
-    unresolvedStockIds: unresolved,
+    matching: matching,
+    catalogSize: catalogJson.length,
+    unresolved: unresolved,
   );
 }
 
@@ -196,25 +254,32 @@ StockFilterWalk walkStockFilter({
 /// walk itself.
 const int stockFilterIsolateMinRows = 300;
 
-/// Runs [walkStockFilter], on a background isolate once the input reaches
-/// [stockFilterIsolateMinRows] rows. Only plain strings and numbers cross
-/// the isolate boundary; every Ditto call stays on the caller's isolate.
+/// Runs a stock filter walk somewhere other than the calling isolate.
+typedef StockFilterIsolateRunner =
+    Future<StockFilterWalk> Function(StockFilterWalk Function() walk);
+
+Future<StockFilterWalk> _runOnIsolate(StockFilterWalk Function() walk) =>
+    Isolate.run(walk, debugName: 'pos_stock_filter');
+
+/// Runs [walkStockFilter], through [isolateRunner] (a background isolate)
+/// once the input reaches [stockFilterIsolateMinRows] rows. Only plain
+/// strings and numbers cross the isolate boundary; every Ditto call stays on
+/// the caller's isolate.
 Future<StockFilterWalk> runStockFilterWalk({
   required List<String> catalogJson,
   required List<String> stockJson,
   required bool inStock,
-  Map<String, double> extraQty = const {},
+  @visibleForTesting StockFilterIsolateRunner isolateRunner = _runOnIsolate,
 }) {
   StockFilterWalk walk() => walkStockFilter(
     catalogJson: catalogJson,
     stockJson: stockJson,
     inStock: inStock,
-    extraQty: extraQty,
   );
   if (catalogJson.length + stockJson.length < stockFilterIsolateMinRows) {
     return Future.value(walk());
   }
-  return Isolate.run(walk, debugName: 'pos_stock_filter');
+  return isolateRunner(walk);
 }
 
 /// The key a [StockFilterMatchCache] entry is stored under: the catalog

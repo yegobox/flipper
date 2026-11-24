@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/perf/ui_stall_watchdog.dart';
+import 'package:flipper_models/sync/utils/latest_throttle.dart';
 
 /// How many live store observers there are, and what each wake-up costs.
 ///
@@ -68,18 +69,21 @@ class TrackedDittoObserver {
     this._name,
     this._collection,
     this._drain,
+    this._throttle,
   );
 
   final dynamic _inner;
   final String _name;
   final String _collection;
   final StreamSubscription<dynamic>? _drain;
+  final LatestThrottle<dynamic>? _throttle;
   bool _cancelled = false;
 
   Future<void> cancel() async {
     if (_cancelled) return;
     _cancelled = true;
     dittoObserverStats.closed(name: _name, collection: _collection);
+    _throttle?.close();
     try {
       await _drain?.cancel();
     } catch (_) {}
@@ -111,6 +115,11 @@ String dqlCollection(String query) =>
 /// (`(QueryResult result) {...}`). An untyped callback's parameter is
 /// inferred as `Object?`, so type it whenever the callback reads the result.
 /// No [arguments] registers the query with none, as `registerObserver` does.
+///
+/// With [coalesce], a burst of results reaches [onChange] at most once per
+/// window (the first at once, then only the newest; see [LatestThrottle]).
+/// Every call to [onChange] is timed, including the ones the window's timer
+/// makes after Ditto's callback has returned.
 TrackedDittoObserver registerTrackedObserver<R>({
   dynamic ditto,
   dynamic store,
@@ -118,39 +127,59 @@ TrackedDittoObserver registerTrackedObserver<R>({
   required String collection,
   required String query,
   Map<String, dynamic>? arguments,
+  Duration? coalesce,
   required void Function(R queryResult) onChange,
 }) {
   assert(ditto != null || store != null, 'pass ditto or store');
   final dynamic target = store ?? ditto.store;
+  void timed(dynamic queryResult) => _timeObserverCallback(
+    name,
+    queryResult,
+    (dynamic result) => onChange(result as R),
+  );
+  final throttle = coalesce == null
+      ? null
+      : LatestThrottle<dynamic>(coalesce, timed);
   final inner = target.registerObserver(
     query,
     arguments: arguments ?? const <String, dynamic>{},
-    onChange: (dynamic queryResult) {
-      final sw = Stopwatch()..start();
-      try {
-        onChange(queryResult as R);
-      } finally {
-        final ms = sw.elapsedMilliseconds;
-        if (ms >= kSlowObserverCallbackMs) {
-          PerfOpTrail.instance.note(
-            'obs:$name',
-            took: Duration(milliseconds: ms),
-          );
-          int? rows;
-          try {
-            rows = (queryResult.items as Iterable).length;
-          } catch (_) {}
-          talker.warning(
-            '[ditto_observer] $name woke for ${ms}ms '
-            '(rows=${rows ?? '?'}, live: ${dittoObserverStats.summary()})',
-          );
-        }
-      }
-    },
+    onChange: throttle?.add ?? timed,
   );
   // Counted once it exists: a registration that throws opened nothing.
   dittoObserverStats.opened(name: name, collection: collection);
-  return TrackedDittoObserver._(inner, name, collection, _drainChanges(inner));
+  return TrackedDittoObserver._(
+    inner,
+    name,
+    collection,
+    _drainChanges(inner),
+    throttle,
+  );
+}
+
+/// Runs [onChange] and names it in the perf trail and the log when it takes
+/// [kSlowObserverCallbackMs] or more.
+void _timeObserverCallback(
+  String name,
+  dynamic queryResult,
+  void Function(dynamic queryResult) onChange,
+) {
+  final sw = Stopwatch()..start();
+  try {
+    onChange(queryResult);
+  } finally {
+    final ms = sw.elapsedMilliseconds;
+    if (ms >= kSlowObserverCallbackMs) {
+      PerfOpTrail.instance.note('obs:$name', took: Duration(milliseconds: ms));
+      int? rows;
+      try {
+        rows = (queryResult.items as Iterable).length;
+      } catch (_) {}
+      talker.warning(
+        '[ditto_observer] $name woke for ${ms}ms '
+        '(rows=${rows ?? '?'}, live: ${dittoObserverStats.summary()})',
+      );
+    }
+  }
 }
 
 /// Reads and drops the results ditto_live queues on `observer.changes`.
