@@ -313,7 +313,6 @@ class _BusinessBranchSelectorState
           properties: {
             'source': 'business_branch_selector',
             'business_id': business.id,
-            'business_name': business.name,
           },
         );
 
@@ -367,9 +366,7 @@ class _BusinessBranchSelectorState
         source: 'business_branch_selector',
         userId: userId,
         businessId: business.id,
-        businessName: business.name,
         branchId: branch.id,
-        branchName: branch.name,
       );
       await analytics.track(
         AnalyticsEvents.branchSelected,
@@ -377,7 +374,6 @@ class _BusinessBranchSelectorState
           'source': 'business_branch_selector',
           'business_id': business.id,
           'branch_id': branch.id,
-          'branch_name': branch.name,
         },
       );
       await analytics.track(

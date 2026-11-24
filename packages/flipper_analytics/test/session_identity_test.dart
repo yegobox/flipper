@@ -66,7 +66,7 @@ void main() {
     expect(analytics.calls, isEmpty);
   });
 
-  test('names label the business and branch groups', () async {
+  test('groups are keyed by id; no business or branch name is sent', () async {
     final analytics = _Recorder();
 
     await identifySession(
@@ -74,13 +74,11 @@ void main() {
       source: 's',
       businessId: 'biz',
       branchId: 'br',
-      businessName: 'Shop',
-      branchName: 'Main',
     );
 
     expect(analytics.props, [
-      {'source': 's', 'business_name': 'Shop'},
-      {'source': 's', 'business_id': 'biz', 'branch_name': 'Main'},
+      {'source': 's'},
+      {'source': 's', 'business_id': 'biz'},
     ]);
   });
 

@@ -217,11 +217,11 @@ void main() {
       'group:business:biz-1',
       'group:branch:br-1',
     ]);
-    expect(analytics.callProperties[1]['business_name'], 'Kigali Shop');
+    // Ids only: a business name can be the owner's own name.
+    expect(analytics.callProperties[1], {'source': 'business_branch_selector'});
     expect(analytics.callProperties[2], {
       'source': 'business_branch_selector',
       AnalyticsProperties.businessId: 'biz-1',
-      'branch_name': 'Main',
     });
 
     // The business is known before its branch is.
@@ -231,6 +231,13 @@ void main() {
     expect(businessSelected[AnalyticsGroups.property], {
       AnalyticsGroups.business: 'biz-1',
     });
+    expect(businessSelected.containsKey('business_name'), isFalse);
+    expect(
+      analytics
+          .lastEvent(AnalyticsEvents.branchSelected)
+          .containsKey('branch_name'),
+      isFalse,
+    );
 
     final started = analytics.lastEvent(AnalyticsEvents.booksSessionStarted);
     expect(started[AnalyticsProperties.userId], '42');

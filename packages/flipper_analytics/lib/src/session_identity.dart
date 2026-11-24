@@ -7,17 +7,15 @@ import 'interfaces/product_analytics.dart';
 /// [userId] is the Flipper user id that POS and Books both sign in with, so
 /// one person spans the apps. Without one nobody is identified: a shared
 /// placeholder id would merge strangers into one person. Contact details
-/// (phone, email) are never sent.
-///
-/// [businessName] and [branchName], when known, label the groups in PostHog.
+/// (phone, email) are never sent, and neither are business or branch names:
+/// many shops are sole traders named after their owner. Groups are keyed by
+/// id; map ids to names server-side when a readable label is needed.
 Future<void> identifySession(
   ProductAnalytics analytics, {
   required String source,
   String? userId,
   String? businessId,
   String? branchId,
-  String? businessName,
-  String? branchName,
 }) async {
   if (userId != null && userId.isNotEmpty) {
     await analytics.identify(userId, properties: {'source': source});
@@ -26,11 +24,7 @@ Future<void> identifySession(
     await analytics.group(
       AnalyticsGroups.business,
       businessId,
-      properties: {
-        'source': source,
-        if (businessName != null && businessName.isNotEmpty)
-          'business_name': businessName,
-      },
+      properties: {'source': source},
     );
   }
   if (branchId != null && branchId.isNotEmpty) {
@@ -41,8 +35,6 @@ Future<void> identifySession(
         'source': source,
         if (businessId != null && businessId.isNotEmpty)
           AnalyticsProperties.businessId: businessId,
-        if (branchName != null && branchName.isNotEmpty)
-          'branch_name': branchName,
       },
     );
   }
