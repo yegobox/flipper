@@ -281,6 +281,61 @@ void main() {
       expect(tax.ioCalls, isEmpty);
     });
 
+    // The product is already in stock: a throw now would read as "not
+    // recorded", and recording again would stock it twice.
+    test('a component failure after stocking never throws', () async {
+      when(
+        () => db.getProduct(id: 'bread-p', branchId: 'b1', businessId: 'biz1'),
+      ).thenAnswer(
+        (_) async => Product(
+          id: 'bread-p',
+          name: 'Bread',
+          color: '#000',
+          businessId: 'biz1',
+          branchId: 'b1',
+          isComposite: true,
+        ),
+      );
+      when(() => db.composites(productId: 'bread-p')).thenAnswer(
+        (_) async => [
+          Composite(productId: 'bread-p', variantId: 'flour', qty: 0.5),
+        ],
+      );
+      when(() => db.batchGetVariantsByIds(any())).thenAnswer(
+        (_) async => {
+          'flour': Variant(
+            id: 'flour',
+            name: 'flour',
+            branchId: 'b1',
+            stockId: 'flour-s',
+            itemTyCd: '1',
+          ),
+        },
+      );
+      when(
+        () => db.batchDeductStocks(any()),
+      ).thenThrow(StateError('deduct failed'));
+
+      final result = await post(10);
+
+      expect(result.stocked, isTrue);
+      expect(result.rraMessage, contains('Bread is in stock'));
+      expect(result.rraMessage, contains('components were not deducted'));
+      expect(result.rraMessage, contains('deduct failed'));
+      expect(result.rraMessage, contains('do not record this output again'));
+      // The bread was stocked and reported; no `14` went out.
+      verify(
+        () => db.updateStock(
+          stockId: 'bread-s',
+          currentStock: 10,
+          appending: true,
+          lastTouched: any(named: 'lastTouched'),
+          ebmSynced: false,
+        ),
+      ).called(1);
+      expect(tax.ioCalls.map((c) => c.sarTyCd), ['05']);
+    });
+
     test('a combo sold as made (a service) moves nothing here', () async {
       when(
         () => db.getVariant(id: 'bread-v'),
