@@ -27,19 +27,20 @@ class _MockDb extends Mock implements DatabaseSyncInterface {}
 
 /// Controllable stand-in for the merged cart so the test can simulate the
 /// stream lagging behind (lines still present right after completion).
-final _cartSourceProvider =
-    StateProvider<List<TransactionItem>>((ref) => const []);
+final _cartSourceProvider = StateProvider<List<TransactionItem>>(
+  (ref) => const [],
+);
 
 TransactionItem _line(String id) => TransactionItem(
-      id: id,
-      name: 'Item $id',
-      qty: 1,
-      price: 100,
-      discount: 0,
-      prc: 100,
-      ttCatCd: 'B',
-      active: true,
-    );
+  id: id,
+  name: 'Item $id',
+  qty: 1,
+  price: 100,
+  discount: 0,
+  prc: 100,
+  ttCatCd: 'B',
+  active: true,
+);
 
 class _CartHarness extends ConsumerStatefulWidget {
   const _CartHarness({super.key});
@@ -83,8 +84,9 @@ void main() {
     (tester) async {
       final container = ProviderContainer(
         overrides: [
-          posCartDisplayItemsProvider
-              .overrideWith((ref) => ref.watch(_cartSourceProvider)),
+          posCartDisplayItemsProvider.overrideWith(
+            (ref) => ref.watch(_cartSourceProvider),
+          ),
         ],
       );
       addTearDown(container.dispose);
@@ -139,8 +141,9 @@ void main() {
     (tester) async {
       final container = ProviderContainer(
         overrides: [
-          posCartDisplayItemsProvider
-              .overrideWith((ref) => ref.watch(_cartSourceProvider)),
+          posCartDisplayItemsProvider.overrideWith(
+            (ref) => ref.watch(_cartSourceProvider),
+          ),
         ],
       );
       addTearDown(container.dispose);
@@ -180,18 +183,21 @@ void main() {
       expect(
         find.text('count:2'),
         findsOneWidget,
-        reason: 'the resumed ticket must render its lines, not stay filtered by '
+        reason:
+            'the resumed ticket must render its lines, not stay filtered by '
             'the ghost ids from when it was parked',
       );
     },
   );
 
-  testWidgets('clearCartLinesOptimistically is a no-op on an empty cart',
-      (tester) async {
+  testWidgets('clearCartLinesOptimistically is a no-op on an empty cart', (
+    tester,
+  ) async {
     final container = ProviderContainer(
       overrides: [
-        posCartDisplayItemsProvider
-            .overrideWith((ref) => ref.watch(_cartSourceProvider)),
+        posCartDisplayItemsProvider.overrideWith(
+          (ref) => ref.watch(_cartSourceProvider),
+        ),
       ],
     );
     addTearDown(container.dispose);
@@ -234,8 +240,9 @@ void main() {
 
     final container = ProviderContainer(
       overrides: [
-        posCartDisplayItemsProvider
-            .overrideWith((ref) => ref.watch(_cartSourceProvider)),
+        posCartDisplayItemsProvider.overrideWith(
+          (ref) => ref.watch(_cartSourceProvider),
+        ),
       ],
     );
     addTearDown(container.dispose);
