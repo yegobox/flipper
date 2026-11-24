@@ -4,6 +4,7 @@ import 'package:flipper_models/DatabaseSyncInterface.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/services/purchase_approval_deps.dart';
+import 'package:flipper_models/sync/utils/combo_cost.dart';
 import 'package:flipper_models/tax_api.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -231,10 +232,32 @@ void main() {
         },
       );
 
-      final result = await post(10);
+      final costs = <String, double>{};
+      final result = await postProductionOutput(
+        workOrder: _order(status: 'in_progress'),
+        qty: 10,
+        deps: PurchaseApprovalDeps(
+          strategy: db,
+          capella: db,
+          tax: tax,
+          comboCosts: ComboCostWriter(
+            variantSupplyPrice: (id, cost) async => costs[id] = cost,
+            lineSupplyCost: (_, __, ___) async {},
+          ),
+        ),
+        resolveEbm: (_) async => _ebmOn(),
+        nextBranchSar: (branchId) async {
+          sarsHandedOut.add(41 + sarsHandedOut.length);
+          return Sar(sarNo: sarsHandedOut.last, branchId: branchId);
+        },
+      );
 
       expect(result.stocked, isTrue);
       expect(deducted, {'flour-s': 5.0, 'sugar-s': 200.0});
+      // A loaf costs 0.5×100 + 20×100 + 1×100 = 2150. 3 loaves were already
+      // held at 500, so the average after making 10 is (3×500 + 10×2150) / 13.
+      expect(costs.keys, ['bread-v']);
+      expect(costs['bread-v'], closeTo((3 * 500 + 10 * 2150) / 13, 0.001));
       // The bread is stocked and reported first, then the components.
       expect(tax.ioCalls.map((c) => (c.sarTyCd, c.isStockIn, c.sarNo)), [
         ('05', true, '41'),
@@ -243,6 +266,63 @@ void main() {
       expect(tax.ioCalls.last.remark, 'Used in production: Bread');
       // The bread itself, then each component's on-hand (never negative).
       expect(tax.masterQtys, [13, 15, 0]);
+    });
+
+    // An unknown component cost would count as 0 and drag the average down.
+    test('a component with no cost keeps the product\'s cost', () async {
+      when(
+        () => db.getProduct(id: 'bread-p', branchId: 'b1', businessId: 'biz1'),
+      ).thenAnswer(
+        (_) async => Product(
+          id: 'bread-p',
+          name: 'Bread',
+          color: '#000',
+          businessId: 'biz1',
+          branchId: 'b1',
+          isComposite: true,
+        ),
+      );
+      when(() => db.composites(productId: 'bread-p')).thenAnswer(
+        (_) async => [
+          Composite(productId: 'bread-p', variantId: 'flour', qty: 0.5),
+        ],
+      );
+      when(() => db.batchGetVariantsByIds(any())).thenAnswer(
+        (_) async => {
+          'flour': Variant(
+            id: 'flour',
+            name: 'flour',
+            branchId: 'b1',
+            stockId: 'flour-s',
+            itemTyCd: '1',
+          ),
+        },
+      );
+      when(() => db.batchDeductStocks(any())).thenAnswer((_) async {});
+      when(() => db.batchGetStocksByIds(any())).thenAnswer((_) async => {});
+
+      final costs = <String, double>{};
+      final result = await postProductionOutput(
+        workOrder: _order(status: 'in_progress'),
+        qty: 10,
+        deps: PurchaseApprovalDeps(
+          strategy: db,
+          capella: db,
+          tax: tax,
+          comboCosts: ComboCostWriter(
+            variantSupplyPrice: (id, cost) async => costs[id] = cost,
+            lineSupplyCost: (_, __, ___) async {},
+          ),
+        ),
+        resolveEbm: (_) async => _ebmOn(),
+        nextBranchSar: (branchId) async {
+          sarsHandedOut.add(41 + sarsHandedOut.length);
+          return Sar(sarNo: sarsHandedOut.last, branchId: branchId);
+        },
+      );
+
+      expect(result.stocked, isTrue);
+      expect(costs, isEmpty);
     });
 
     // Stocking first means a failure there leaves every component in place,
@@ -334,6 +414,64 @@ void main() {
         ),
       ).called(1);
       expect(tax.ioCalls.map((c) => c.sarTyCd), ['05']);
+    });
+
+    // Like the components, the product's new cost is written after it is in
+    // stock, so a failed write must not throw either.
+    test('a failed cost write keeps the output stocked', () async {
+      when(
+        () => db.getProduct(id: 'bread-p', branchId: 'b1', businessId: 'biz1'),
+      ).thenAnswer(
+        (_) async => Product(
+          id: 'bread-p',
+          name: 'Bread',
+          color: '#000',
+          businessId: 'biz1',
+          branchId: 'b1',
+          isComposite: true,
+        ),
+      );
+      when(() => db.composites(productId: 'bread-p')).thenAnswer(
+        (_) async => [
+          Composite(productId: 'bread-p', variantId: 'flour', qty: 0.5),
+        ],
+      );
+      when(() => db.batchGetVariantsByIds(any())).thenAnswer(
+        (_) async => {
+          'flour': Variant(
+            id: 'flour',
+            name: 'flour',
+            branchId: 'b1',
+            stockId: 'flour-s',
+            itemTyCd: '1',
+            supplyPrice: 100,
+          ),
+        },
+      );
+      when(() => db.batchDeductStocks(any())).thenAnswer((_) async {});
+      when(() => db.batchGetStocksByIds(any())).thenAnswer((_) async => {});
+
+      final result = await postProductionOutput(
+        workOrder: _order(status: 'in_progress'),
+        qty: 10,
+        deps: PurchaseApprovalDeps(
+          strategy: db,
+          capella: db,
+          tax: tax,
+          comboCosts: ComboCostWriter(
+            variantSupplyPrice: (_, __) async => throw StateError('ditto'),
+            lineSupplyCost: (_, __, ___) async {},
+          ),
+        ),
+        resolveEbm: (_) async => _ebmOn(),
+        nextBranchSar: (branchId) async {
+          sarsHandedOut.add(41 + sarsHandedOut.length);
+          return Sar(sarNo: sarsHandedOut.last, branchId: branchId);
+        },
+      );
+
+      expect(result.stocked, isTrue);
+      expect(result.rraMessage, isNull);
     });
 
     test('a combo sold as made (a service) moves nothing here', () async {

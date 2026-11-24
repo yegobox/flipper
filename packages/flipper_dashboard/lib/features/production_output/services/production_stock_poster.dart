@@ -5,6 +5,7 @@ import 'package:flipper_models/DatabaseSyncInterface.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/services/purchase_approval_deps.dart';
+import 'package:flipper_models/sync/utils/combo_cost.dart';
 import 'package:flipper_models/sync/utils/purchase_stock_rra.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:meta/meta.dart';
@@ -109,8 +110,24 @@ Future<ProductionStockResult> postProductionOutput({
 
   // The product is in stock now, so nothing below may throw: the output
   // would read as failed, and recording it again would stock it twice.
+  var componentVariants = const <String, Variant>{};
   try {
-    final used = await _useUpComponents(components, qty: qty, capella: capella);
+    final componentIds = components
+        .map((c) => c.variantId)
+        .whereType<String>()
+        .where((id) => id.isNotEmpty)
+        .toSet()
+        .toList();
+    if (componentIds.isNotEmpty) {
+      componentVariants = await capella.batchGetVariantsByIds(componentIds);
+    }
+
+    final used = await _useUpComponents(
+      components,
+      componentVariants,
+      qty: qty,
+      capella: capella,
+    );
     if (used.isNotEmpty) {
       final usedRra = await reportPurchaseStockInToRra(
         branchId: workOrder.branchId,
@@ -138,6 +155,31 @@ Future<ProductionStockResult> postProductionOutput({
     rraMessage = componentsNotDeductedMessage(productName, e);
   }
 
+  // What this batch cost to make, averaged into the product's supply price
+  // so its sales book the right COGS. A product without a recipe, or with a
+  // component whose cost is unknown, keeps the cost its owner set.
+  final unitCost = components.isEmpty
+      ? null
+      : comboUnitCost(components, componentVariants);
+  final costs = deps.comboCosts;
+  if (unitCost != null && costs != null) {
+    final oldCost = (variant.supplyPrice ?? 0).toDouble();
+    final newCost = movingAverageCost(
+      onHandBefore: added.onHand - qty,
+      oldCost: oldCost,
+      qty: qty,
+      unitCost: unitCost,
+    );
+    if ((newCost - oldCost).abs() > comboCostTolerance) {
+      try {
+        await costs.variantSupplyPrice(variant.id, newCost);
+      } catch (e) {
+        // The product keeps its old cost; the next batch averages again.
+        talker.warning('Production: $productName cost not updated: $e');
+      }
+    }
+  }
+
   return ProductionStockResult(stocked: true, rraMessage: rraMessage);
 }
 
@@ -153,19 +195,12 @@ String componentsNotDeductedMessage(String productName, Object error) =>
 /// what was used with each component's on-hand afterwards, for RRA.
 /// Services and components with no stock record are skipped.
 Future<List<PurchaseStockInLine>> _useUpComponents(
-  List<Composite> components, {
+  List<Composite> components,
+  Map<String, Variant> variants, {
   required double qty,
   required DatabaseSyncInterface capella,
 }) async {
-  if (components.isEmpty) return const [];
-  final ids = components
-      .map((c) => c.variantId)
-      .whereType<String>()
-      .where((id) => id.isNotEmpty)
-      .toSet()
-      .toList();
-  if (ids.isEmpty) return const [];
-  final variants = await capella.batchGetVariantsByIds(ids);
+  if (components.isEmpty || variants.isEmpty) return const [];
 
   final usedByStock = <String, double>{};
   final variantByStock = <String, Variant>{};
