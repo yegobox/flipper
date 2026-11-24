@@ -4,19 +4,37 @@ import 'dart:convert';
 
 import 'package:flipper_dashboard/utils/bounded_concurrency.dart';
 import 'package:flipper_dashboard/utils/ebm_receipt_gate.dart';
+import 'package:flipper_models/DatabaseSyncInterface.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/sync/utils/rra_stock_reporting.dart';
+import 'package:flipper_models/sync/utils/combo_stock_lines.dart';
 import 'package:flipper_models/sync/utils/pos_catalog_stock_filter.dart';
 import 'package:flipper_services/proxy.dart';
+
+/// Sale lines as stock sees them: a combo line becomes its components
+/// ([expandComboLinesForStock]).
+Future<List<TransactionItem>> saleLinesForStock(
+  List<TransactionItem> transactionItems,
+  DatabaseSyncInterface capella,
+) {
+  final box = ProxyService.box;
+  return expandComboLinesForStock(
+    transactionItems,
+    capella: capella,
+    businessId: box.getBusinessId(),
+    branchId: box.getBranchId(),
+  );
+}
 
 /// Reads on-hand qty per [Stock] id for non-service sale lines (before RRA sign).
 Future<Map<String, double>> loadPreSaleStockLevelsForLines(
   List<TransactionItem> transactionItems,
 ) async {
   final capella = ProxyService.getStrategy(Strategy.capella);
-  final candidates = transactionItems.where((item) {
+  final stockLines = await saleLinesForStock(transactionItems, capella);
+  final candidates = stockLines.where((item) {
     if (isServiceItemType(item.itemTyCd)) return false;
     final vid = item.variantId;
     return vid != null && vid.isNotEmpty;
@@ -85,7 +103,8 @@ Future<Map<String, double>> applyDeferredSaleStockDeduction({
     ProxyService.box.readString(key: rraSaleSnapshotKey),
   );
 
-  final candidateItems = transactionItems.where((item) {
+  final stockLines = await saleLinesForStock(transactionItems, capella);
+  final candidateItems = stockLines.where((item) {
     if (isServiceItemType(item.itemTyCd)) return false;
     final vid = item.variantId;
     return vid != null && vid.isNotEmpty;
@@ -194,6 +213,7 @@ Future<Map<String, double>> applyDeferredSaleStockDeduction({
       items: itemsNeedingDeduction,
       deductedStockIds: deductedStockIds,
       variantsMap: variantsMap,
+      saleLinesById: {for (final line in transactionItems) line.id: line},
     );
   }
 
@@ -223,16 +243,19 @@ Future<void> _deferMarkItemsQuantityShipped({
   required List<TransactionItem> items,
   required Set<String> deductedStockIds,
   required Map<String, Variant> variantsMap,
+  required Map<String, TransactionItem> saleLinesById,
 }) async {
   try {
     // One Ditto round trip per line, awaited before the till says "Payment
     // Successful" — the single biggest per-item cost on the Pay path. The work
     // is independent and idempotent per line, so a bounded window is safe and
     // turns 100 sequential trips into ~13.
-    final shippable = items.where((item) {
+    final deducted = items.where((item) {
       final sid = variantsMap[item.variantId!]?.stockId;
       return sid != null && deductedStockIds.contains(sid);
-    }).toList();
+    });
+    // A combo's component lines are not stored: the combo line takes the mark.
+    final shippable = saleLinesToMarkShipped(deducted, saleLinesById);
 
     await forEachBounded(shippable, (item) async {
       item.quantityShipped = item.qty.toInt();

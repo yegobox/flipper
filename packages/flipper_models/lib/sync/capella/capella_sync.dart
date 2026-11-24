@@ -1,3 +1,4 @@
+import 'package:flipper_models/sync/utils/composite_ditto.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -1086,9 +1087,20 @@ class CapellaSync extends AiStrategyImpl
   FutureOr<List<Composite>> composites({
     String? productId,
     String? variantId,
+    bool localOnly = false,
   }) async {
+    // [saveComposite] writes to Ditto only (since #587), so read Ditto first.
+    // Reading only Brick found nothing for any combo made since then, and the
+    // till sold such a combo as nothing at all.
+    final fromDitto = await _compositesFromDitto(
+      productId: productId,
+      variantId: variantId,
+    );
+    if (fromDitto.isNotEmpty) return fromDitto;
+
+    // Combos made before #587 live in SQLite/Supabase.
     return repository.get<Composite>(
-      policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+      policy: compositesGetPolicy(localOnly: localOnly),
       query: brick.Query(
         where: [
           if (productId != null) brick.Where('productId').isExactly(productId),
@@ -1917,6 +1929,24 @@ class CapellaSync extends AiStrategyImpl
   @override
   Stream<List<Report>> reports({required String branchId}) {
     return _legacy.reports(branchId: branchId);
+  }
+
+  Future<List<Composite>> _compositesFromDitto({
+    String? productId,
+    String? variantId,
+  }) async {
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) return const [];
+    try {
+      return await readCompositesFromDitto(
+        ditto,
+        productId: productId,
+        variantId: variantId,
+      );
+    } catch (e) {
+      talker.error('composites: Ditto read failed: $e');
+      return const [];
+    }
   }
 
   @override

@@ -522,7 +522,14 @@ class OuterVariants extends _$OuterVariants {
 
     final cacheGeneration = _cacheGeneration;
     final nextPage = _lastCachedPage + 1;
-    final paged = await _fetchVariants(branchId, nextPage, _currentSearch);
+    // The total is known (checked above), so the next page needs no COUNT(*)
+    // and, on the stock-filtered POS, no second walk of the whole catalog.
+    final paged = await _fetchVariants(
+      branchId,
+      nextPage,
+      _currentSearch,
+      countTotal: false,
+    );
     // A search, refresh or restore replaced the cache meanwhile.
     if (cacheGeneration != _cacheGeneration) return;
     _pageCache[nextPage] = List<Variant>.from(paged.variants);
