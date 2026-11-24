@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/services/transaction_refund_helpers.dart';
+import 'package:flipper_models/sync/utils/combo_stock_lines.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:supabase_models/brick/models/transaction.model.dart';
 
@@ -146,6 +147,46 @@ void main() {
           originalTotal: 1000,
         ),
         [5.0],
+      );
+    });
+
+    test(
+      'partial refund: combo components in fractions, plain lines as before',
+      () {
+        final ids = [
+          'tea',
+          comboComponentLineId('c1', 'soda'),
+          'bun',
+          comboComponentLineId('c1', 'milk'),
+        ];
+        final out = stockRestoreAmountsForLines(
+          lineQtys: [1, 1.5, 1, 0],
+          lineIds: ids,
+          refundAmount: 1000,
+          originalTotal: 3000,
+        );
+        // 3 combos x 0.5 soda, 1 of 3 refunded: 0.5 back. A zero line: none.
+        expect(out[1], 0.5);
+        expect(out[3], 0.0);
+        // The plain lines get exactly what they got without the combo lines.
+        final plainOnly = stockRestoreAmountsForLines(
+          lineQtys: [1, 1],
+          refundAmount: 1000,
+          originalTotal: 3000,
+        );
+        expect([out[0], out[2]], plainOnly);
+      },
+    );
+
+    test('no original total restores nothing, combo lines included', () {
+      expect(
+        stockRestoreAmountsForLines(
+          lineQtys: [0.5, 1],
+          lineIds: [comboComponentLineId('c1', 'soda'), 'tea'],
+          refundAmount: 100,
+          originalTotal: 0,
+        ),
+        [0.0, 0.0],
       );
     });
 

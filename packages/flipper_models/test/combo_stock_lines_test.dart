@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flipper_models/DatabaseSyncInterface.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/sync/utils/combo_stock_lines.dart';
@@ -240,6 +242,79 @@ void main() {
         branchId: 'b1',
       );
       expect(out.map((l) => l.variantId), ['soda', 'bread']);
+    });
+
+    test('a local hit never reads the server', () async {
+      await expandComboLinesForStock(
+        [_line('c1', productId: 'combo', itemTyCd: '3')],
+        capella: db,
+        businessId: 'biz1',
+        branchId: 'b1',
+      );
+      verifyNever(() => db.composites(productId: 'combo', localOnly: false));
+    });
+
+    test(
+      'a combo with no local rows fetches them from the server once',
+      () async {
+        // A combo made before #587 on a fresh till: no rows here yet.
+        when(
+          () => db.composites(productId: 'combo', localOnly: true),
+        ).thenAnswer((_) async => <Composite>[]);
+        when(
+          () => db.composites(productId: 'combo', localOnly: false),
+        ).thenAnswer((_) async => components);
+        final out = await expandComboLinesForStock(
+          [_line('c1', productId: 'combo', itemTyCd: '3')],
+          capella: db,
+          businessId: 'biz1',
+          branchId: 'b1',
+        );
+        expect(out.map((l) => l.variantId), ['soda', 'bread']);
+        verify(
+          () => db.composites(productId: 'combo', localOnly: false),
+        ).called(1);
+      },
+    );
+
+    test('a server fetch that hangs is cut off; the sale goes on', () async {
+      when(
+        () => db.composites(productId: 'combo', localOnly: true),
+      ).thenAnswer((_) async => <Composite>[]);
+      when(
+        () => db.composites(productId: 'combo', localOnly: false),
+      ).thenAnswer((_) => Completer<List<Composite>>().future);
+      final lines = [_line('c1', productId: 'combo', itemTyCd: '3')];
+      final out = await expandComboLinesForStock(
+        lines,
+        capella: db,
+        businessId: 'biz1',
+        branchId: 'b1',
+        remoteTimeout: const Duration(milliseconds: 10),
+      );
+      // Nothing to expand: the combo line passes through unchanged.
+      expect(out, same(lines));
+    });
+
+    test('a server fetch that fails leaves the combo line as is', () async {
+      when(
+        () => db.composites(productId: 'combo', localOnly: true),
+      ).thenAnswer((_) async => <Composite>[]);
+      when(
+        () => db.composites(productId: 'combo', localOnly: false),
+      ).thenThrow(Exception('offline'));
+      final lines = [_line('c1', productId: 'combo', itemTyCd: '3')];
+      final out = await expandComboLinesForStock(
+        lines,
+        capella: db,
+        businessId: 'biz1',
+        branchId: 'b1',
+      );
+      expect(out, same(lines));
+    });
+
+    test('the server bound defaults to 5 seconds', () {
+      expect(comboComponentsRemoteTimeout, const Duration(seconds: 5));
     });
   });
 }

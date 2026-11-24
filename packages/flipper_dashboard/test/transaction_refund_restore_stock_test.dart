@@ -126,14 +126,24 @@ void main() {
     expect(restored, {'stock-soda': 1.5, 'stock-tea': 2.0});
   });
 
-  test('a partial refund still restores whole units', () async {
+  test('a partial refund restores a combo component in fractions', () async {
+    await TransactionRefundService(talker: Talker()).restoreStock(
+      transactionId: 'txn-1',
+      refundAmount: 1000,
+      originalTotal: 3000,
+    );
+    // 1 of 3 combos x 0.5 soda: 0.5 back, not 0. The plain line keeps the
+    // whole-unit allocation: round(2 / 3) = 1.
+    expect(restored, {'stock-soda': 0.5, 'stock-tea': 1.0});
+  });
+
+  test('a half refund: the component its share, plain lines whole', () async {
     await TransactionRefundService(talker: Talker()).restoreStock(
       transactionId: 'txn-1',
       refundAmount: 2500,
       originalTotal: 5000,
     );
-    // Half of (1 + 2) whole units, largest remainder first.
-    expect(restored.values.fold<double>(0, (s, q) => s + q), 2);
-    expect(restored.values.every((q) => q == q.roundToDouble()), isTrue);
+    // 1.5 soda x 0.5; half of 2 tea.
+    expect(restored, {'stock-soda': 0.75, 'stock-tea': 1.0});
   });
 }
