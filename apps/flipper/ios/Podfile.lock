@@ -552,7 +552,7 @@ SPEC CHECKSUMS:
   permission_handler_apple: ee2fe0fd04551b304eb002714ff067c371c822ed
   pointer_interceptor_ios: a78ffe95ad3c6cd52c42ad362c116d92355c3d42
   PostHog: 5c282f8dad4937abfe451db73dd42975253b13fa
-  posthog_flutter: 9e38bb08d9de6f4c782aaeae1d341b3585d80979
+  posthog_flutter: b95314041725c95f198889daf21cd8a27f9eaaaa
   printing: bfc11ab4553c1728730eefb778f4647280044111
   PromisesObjC: 752c3227f599e3467650e47ea36f433eeb10c273
   PromisesSwift: 217dea0fd5d2ad65222a109c48698add13cc1c5b

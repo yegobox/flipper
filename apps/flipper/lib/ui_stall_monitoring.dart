@@ -45,10 +45,12 @@ Future<void> startUiStallMonitoring() async {
   // A normal quit mid-search is not a hang. The binding keeps the listener.
   clearMarkerOnExitRequest(trail);
 
-  _watchdog = UiStallWatchdog(
+  final watchdog = _watchdog = UiStallWatchdog(
     onStall: (stall) => trail.report('ui_stall', stall.toProperties()),
     context: () => {'observers': dittoObserverStats.summary()},
   )..start();
+  // Time in the background is not a stall. The binding keeps the listener.
+  pauseWatchdogInBackground(watchdog);
 }
 
 /// Points [PerfTrack] at [trail], so shared packages (Books' ledger) time
