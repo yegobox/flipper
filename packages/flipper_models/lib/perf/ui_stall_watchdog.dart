@@ -2,10 +2,10 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:ui' show AppExitResponse;
+import 'dart:ui' show AppExitResponse, AppLifecycleState;
 
 import 'package:flipper_models/perf/windows_unbiased_ticks.dart';
-import 'package:flutter/widgets.dart' show AppLifecycleListener;
+import 'package:flutter/widgets.dart' show AppLifecycleListener, WidgetsBinding;
 
 /// Reports a diagnostic event (`ui_stall`, `ui_hang_killed`, `search_timeout`)
 /// to wherever the app sends them. Set once at startup.
@@ -236,6 +236,11 @@ class UiStall {
 /// shows "Not Responding" from about 5s. It can only report once the thread
 /// is free again; a stall that ends in a kill is caught by the
 /// [PerfOpTrail] marker instead.
+///
+/// The clock keeps running while the app is in the background (Android
+/// freezes a cached app with the screen on, and a paused app's timers stop),
+/// so [pause] it there — see [pauseWatchdogInBackground] — or the first tick
+/// after coming back reports the whole time away as a stall.
 class UiStallWatchdog {
   UiStallWatchdog({
     required this.onStall,
@@ -256,22 +261,53 @@ class UiStallWatchdog {
   final Duration Function() _elapsed;
   Timer? _timer;
   Duration _last = Duration.zero;
+  bool _started = false;
+  bool _paused = false;
 
+  /// True while ticks are being timed: started and not paused.
   bool get isRunning => _timer != null;
 
+  bool get isPaused => _paused;
+
   void start() {
-    if (_timer != null) return;
+    _started = true;
+    _arm();
+  }
+
+  void stop() {
+    _started = false;
+    _disarm();
+  }
+
+  /// The app left the foreground: stop timing until [resume].
+  void pause() {
+    _paused = true;
+    _disarm();
+  }
+
+  /// The app is back. Timing starts again from now, so the time away is
+  /// never reported as a stall.
+  void resume() {
+    if (!_paused) return;
+    _paused = false;
+    _arm();
+  }
+
+  void _arm() {
+    if (!_started || _paused || _timer != null) return;
     _last = _elapsed();
     _timer = Timer.periodic(tick, (_) => check());
   }
 
-  void stop() {
+  void _disarm() {
     _timer?.cancel();
     _timer = null;
   }
 
   /// One timer tick: how late it is compared with the previous one.
   void check() {
+    // A tick already queued when the app paused is not a stall.
+    if (_paused) return;
     final now = _elapsed();
     final lag = now - _last - tick;
     _last = now;
@@ -293,6 +329,54 @@ class UiStallWatchdog {
       // Diagnostics must never break the till.
     }
   }
+}
+
+/// Whether the watchdog should time ticks while the app is in [state].
+///
+/// - `resumed` and `inactive`: yes. A Windows till that lost focus to
+///   another window is still the till, and phones pass through `inactive`
+///   only briefly (a call, the app switcher).
+/// - `paused` and `detached`: no. The app is in the background; Android may
+///   freeze it there.
+/// - `hidden`: yes on Windows, where it means every window is minimised and
+///   the till keeps working (and the clock leaves sleep out). Elsewhere no:
+///   phones go `hidden` on their way to `paused`, and macOS throttles the
+///   timers of a hidden app (App Nap).
+///
+/// [isWindows] replaces the platform check in tests.
+bool watchesUiIn(AppLifecycleState state, {bool? isWindows}) {
+  switch (state) {
+    case AppLifecycleState.resumed:
+    case AppLifecycleState.inactive:
+      return true;
+    case AppLifecycleState.hidden:
+      return isWindows ?? Platform.isWindows;
+    case AppLifecycleState.paused:
+    case AppLifecycleState.detached:
+      return false;
+  }
+}
+
+/// Pauses [watchdog] while the app is in the background and resumes it when
+/// the app comes back (see [watchesUiIn]). Applies the current state at once,
+/// so an app started in the background is not timed either.
+///
+/// Dispose the listener to stop.
+AppLifecycleListener pauseWatchdogInBackground(
+  UiStallWatchdog watchdog, {
+  bool? isWindows,
+}) {
+  void apply(AppLifecycleState state) {
+    if (watchesUiIn(state, isWindows: isWindows)) {
+      watchdog.resume();
+    } else {
+      watchdog.pause();
+    }
+  }
+
+  final current = WidgetsBinding.instance.lifecycleState;
+  if (current != null) apply(current);
+  return AppLifecycleListener(onStateChange: apply);
 }
 
 /// Time since the clock was made, not counting time the OS spent asleep.
