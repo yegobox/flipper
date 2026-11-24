@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:ditto_live/ditto_live.dart' show SyncSubscription;
+import 'package:ditto_live/ditto_live.dart' show SyncSubscription, QueryResult;
 import 'package:flipper_models/ebm_helper.dart';
 import 'package:flipper_models/helper_models.dart';
 import 'package:flipper_models/sync/interfaces/stock_interface.dart';
@@ -272,10 +272,13 @@ mixin CapellaStockMixin implements StockInterface {
 
           // Use registerObserver with initial data fetch
           final completer = Completer<Stock?>();
-          observer = ditto.store.registerObserver(
-            query,
+          observer = registerTrackedObserver(
+            ditto: ditto,
+            name: 'stockById',
+            collection: 'stocks',
+            query: query,
             arguments: arguments,
-            onChange: (queryResult) {
+            onChange: (QueryResult queryResult) {
               if (controller.isClosed) return;
 
               if (queryResult.items.isNotEmpty) {
@@ -884,10 +887,13 @@ mixin CapellaStockMixin implements StockInterface {
       onError: (e) => talker.error('Error processing requests stream: $e'),
     );
 
-    final observer = ditto.store.registerObserver(
-      query,
+    final observer = registerTrackedObserver(
+      ditto: ditto,
+      name: 'stockRequestsIncoming',
+      collection: 'stock_requests',
+      query: query,
       arguments: arguments,
-      onChange: (queryResult) => feed.emit(
+      onChange: (QueryResult queryResult) => feed.emit(
         () => [
           for (final item in queryResult.items)
             _convertInventoryRequestFromDitto(
@@ -970,10 +976,13 @@ mixin CapellaStockMixin implements StockInterface {
           talker.error('Error processing outgoing requests stream: $e'),
     );
 
-    final observer = ditto.store.registerObserver(
-      query,
+    final observer = registerTrackedObserver(
+      ditto: ditto,
+      name: 'stockRequestsOutgoing',
+      collection: 'stock_requests',
+      query: query,
       arguments: arguments,
-      onChange: (queryResult) => feed.emit(
+      onChange: (QueryResult queryResult) => feed.emit(
         () => [
           for (final item in queryResult.items)
             _convertInventoryRequestFromDitto(
@@ -1212,7 +1221,7 @@ mixin CapellaStockMixin implements StockInterface {
         // thread. Only the newest result in each window is decoded, and the
         // registry times those deliveries too.
         coalesce: stockWatchCoalesceWindow,
-        onChange: (queryResult) {
+        onChange: (QueryResult queryResult) {
           if (controller.isClosed) return;
           final out = <String, Stock?>{for (final id in unique) id: null};
           for (final doc in queryResult.items) {
@@ -1264,10 +1273,13 @@ mixin CapellaStockMixin implements StockInterface {
         preparedStockId.dql,
         arguments: preparedStockId.arguments,
       );
-      observer = ditto.store.registerObserver(
-        stockQuery,
+      observer = registerTrackedObserver(
+        ditto: ditto,
+        name: 'stockByVariant',
+        collection: 'stocks',
+        query: stockQuery,
         arguments: {'id': stockId},
-        onChange: (queryResult) {
+        onChange: (QueryResult queryResult) {
           if (controller.isClosed) return;
 
           if (queryResult.items.isNotEmpty) {

@@ -5,6 +5,7 @@ import 'package:flipper_web/modules/accounting/data/accounting_models.dart';
 import 'package:flipper_web/modules/accounting/data/mapper/ledger_row_mapper.dart';
 import 'package:flutter/foundation.dart' hide Category;
 import 'ditto_core_mixin.dart';
+import 'package:flipper_models/sync/ditto_observer_registry.dart';
 
 mixin AccountingMixin on DittoCore {
   Future<void> upsertChartOfAccount(
@@ -219,8 +220,8 @@ mixin AccountingMixin on DittoCore {
     String query,
     Map<String, dynamic> args,
   ) {
-    final ditto = dittoInstance;
-    if (ditto == null) return Stream.value(const <Map<String, dynamic>>[]);
+    final store = changeFeedStore;
+    if (store == null) return Stream.value(const <Map<String, dynamic>>[]);
 
     final controller = StreamController<List<Map<String, dynamic>>>.broadcast();
     dynamic observer;
@@ -233,15 +234,18 @@ mixin AccountingMixin on DittoCore {
 
     Future<void> start() async {
       try {
-        final initial = await ditto.store.execute(query, arguments: args);
+        final initial = await store.execute(query, arguments: args);
         emitRows(initial);
       } catch (e) {
         debugPrint('watchCollection($collection) initial execute: $e');
       }
 
       if (observerCancelled) return;
-      observer = ditto.store.registerObserver(
-        query,
+      observer = registerTrackedObserver(
+        store: store,
+        name: 'watchCollection',
+        collection: collection,
+        query: query,
         arguments: args,
         onChange: emitRows,
       );
@@ -258,8 +262,8 @@ mixin AccountingMixin on DittoCore {
     return controller.stream;
   }
 
-  /// The store [watchChanges] observes. `dynamic` so tests can swap in a
-  /// fake, as Ditto's `Store` is a final class.
+  /// The store [watchCollection] and [watchChanges] observe. `dynamic` so
+  /// tests can swap in a fake, as Ditto's `Store` is a final class.
   @visibleForTesting
   dynamic get changeFeedStore => dittoInstance?.store;
 
@@ -279,8 +283,11 @@ mixin AccountingMixin on DittoCore {
     controller = StreamController<void>(
       onListen: () {
         try {
-          observer = store.registerObserver(
-            query,
+          observer = registerTrackedObserver(
+            store: store,
+            name: 'watchChanges',
+            collection: collection,
+            query: query,
             arguments: args,
             onChange: (_) {
               if (!cancelled && !controller.isClosed) controller.add(null);

@@ -11,6 +11,8 @@ import 'package:flipper_web/services/ditto_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meta/meta.dart' show visibleForTesting;
 import 'package:supabase_models/sync/shared_sync_subscriptions.dart';
+import 'package:flipper_models/sync/ditto_observer_registry.dart';
+import 'package:ditto_live/ditto_live.dart' show QueryResult;
 
 /// Writes loans and repayments. Tests override [personalLoansStoreProvider].
 abstract interface class PersonalLoansStore {
@@ -116,10 +118,13 @@ Stream<List<Map<String, dynamic>>> _observe(
     // The observer still reads what is already on this device.
   }
   final controller = StreamController<List<Map<String, dynamic>>>();
-  final observer = ditto.store.registerObserver(
-    query,
+  final observer = registerTrackedObserver(
+    ditto: ditto,
+    name: 'personalLoans',
+    collection: collection,
+    query: query,
     arguments: args,
-    onChange: (result) {
+    onChange: (QueryResult result) {
       if (controller.isClosed) return;
       controller.add([
         for (final i in result.items) Map<String, dynamic>.from(i.value),

@@ -6,6 +6,8 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_models/sync/shared_sync_subscriptions.dart';
+import 'package:flipper_models/sync/ditto_observer_registry.dart';
+import 'package:ditto_live/ditto_live.dart' show QueryResult;
 
 final leadsStreamProvider = StreamProvider.autoDispose<List<Lead>>((ref) {
   final branchId = ProxyService.box.getBranchId();
@@ -36,10 +38,13 @@ final leadsStreamProvider = StreamProvider.autoDispose<List<Lead>>((ref) {
   }
 
   final controller = StreamController<List<Lead>>.broadcast();
-  final observer = ditto.store.registerObserver(
-    query,
+  final observer = registerTrackedObserver(
+    ditto: ditto,
+    name: 'leads',
+    collection: 'leads',
+    query: query,
     arguments: args,
-    onChange: (result) {
+    onChange: (QueryResult result) {
       if (controller.isClosed) return;
       final leads = result.items
           .map((i) => Lead.fromDitto(Map<String, dynamic>.from(i.value)))
