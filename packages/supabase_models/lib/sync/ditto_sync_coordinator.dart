@@ -26,6 +26,16 @@ class DittoSyncCoordinator {
   Timer? _upsertDebouncer;
   Ditto? get ditto => _ditto;
 
+  /// ditto_live's `Ditto` is a final class, so a test cannot stand one in
+  /// through [setDitto]. Tests set this to a fake that [_startObserverFor]
+  /// uses instead, to cover how an adapter's live observer is registered.
+  @visibleForTesting
+  dynamic debugDittoOverride;
+
+  /// Starts (or restarts) the live observer for [type]'s registered adapter.
+  @visibleForTesting
+  Future<void> debugStartObserverFor(Type type) => _startObserverFor(type);
+
   /// Set the Ditto instance to be used for sync operations.
   /// Passing `null` tears down existing observers.
   Future<void> setDitto(Ditto? ditto, {bool skipInitialFetch = false}) async {
@@ -227,7 +237,7 @@ class DittoSyncCoordinator {
 
   Future<void> _startObserverFor(Type type) async {
     final adapter = _adapters[type];
-    final ditto = _ditto;
+    final dynamic ditto = debugDittoOverride ?? _ditto;
     if (adapter == null || ditto == null) {
       return;
     }
