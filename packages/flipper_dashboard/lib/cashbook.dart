@@ -74,9 +74,9 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
   /// shared category `focused`/`active` flags.
   String? _selectedCategoryId;
 
-  /// Category made via "+ New" on this screen. [categoryProvider] is
-  /// refreshed asynchronously, so a quick Save can run before the stream
-  /// carries it; the save lookup falls back to this copy.
+  /// Category made via "+ New" on this screen. [categoryProvider]'s live
+  /// observer carries it a moment later, so a quick Save can run before the
+  /// stream does; the save lookup falls back to this copy.
   Category? _createdCategory;
   String _paymentMethod = cashbookMethodCash;
 
@@ -904,7 +904,6 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
       rethrow;
     }
     _createdCategory = draft;
-    ref.invalidate(categoryProvider);
     return draft.id;
   }
 

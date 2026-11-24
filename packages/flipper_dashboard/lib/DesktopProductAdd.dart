@@ -46,6 +46,7 @@ import 'package:flutter/services.dart';
 import 'package:flipper_dashboard/utils/image_source_sheet.dart';
 import 'package:flipper_dashboard/features/product_entry/sku_entry.dart';
 import 'package:flipper_models/sku/sku_duplicate_check.dart';
+import 'package:flipper_models/perf/ui_stall_watchdog.dart';
 import 'package:path_provider/path_provider.dart';
 
 class ProductEntryScreen extends StatefulHookConsumerWidget {
@@ -1170,6 +1171,97 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
     );
   }
 
+  /// Loads the product being edited, or creates the placeholder product a
+  /// new one is written into.
+  Future<void> _loadEditor(ScannViewModel model) async {
+    try {
+      if (widget.productId != null) {
+        Product product = await model.getProduct(productId: widget.productId!);
+        if (!mounted) return;
+        ref.read(unsavedProductProvider.notifier).emitProduct(value: product);
+        // Opening reset the combo switch; a combo is edited as a combo.
+        showProductInItsOwnMode(ref, product);
+
+        productNameController.text = product.name;
+        model.setProductName(name: product.name);
+
+        // Fetch variants WITHOUT tax filtering to ensure we find all variants
+        // for the product when in edit mode.
+        final paged = await ProxyService.getStrategy(Strategy.capella).variants(
+          taxTyCds: [],
+          productId: widget.productId!,
+          branchId: ProxyService.box.getBranchId()!,
+          fetchRemote: true,
+        );
+
+        List<Variant> variants = List<Variant>.from(paged.variants);
+        if (!mounted) return;
+
+        if (variants.isNotEmpty) {
+          if (variants.first.itemTyCd != null) {
+            selectedProductType = variants.first.itemTyCd!;
+          }
+
+          supplyPriceController.text = variants.first.supplyPrice.toString();
+          retailPriceController.text = variants.first.retailPrice.toString();
+
+          // Explicitly update model prices to ensure UI sync
+          model.setRetailPrice(price: retailPriceController.text);
+          model.setSupplyPrice(price: supplyPriceController.text);
+
+          if (variants.first.categoryId != null) {
+            String? catName = variants.first.categoryName;
+            if (catName == null) {
+              Category? fetchedCategory = await ProxyService.getStrategy(
+                Strategy.capella,
+              ).category(id: variants.first.categoryId!);
+              catName = fetchedCategory?.name;
+            }
+            setState(() {
+              selectedCategoryId = variants.first.categoryId;
+              selectedCategoryName = catName;
+            });
+          }
+
+          model.setScannedVariants(variants);
+          // A service shows no stock, even one with stock still on
+          // record; that stays untouched until a Stock Recount.
+          if (isServiceItemType(selectedProductType)) {
+            model.setProductType(selectedProductType);
+          }
+
+          if (variants.first.color != null) {
+            pickerColor = getColorOrDefault(variants.first.color!);
+          }
+        }
+      } else {
+        Product? product = await model.createProduct(
+          name: TEMP_PRODUCT,
+          createItemCode: false,
+        );
+        if (!mounted) return;
+        if (product != null) {
+          ref.read(unsavedProductProvider.notifier).emitProduct(value: product);
+        }
+      }
+
+      model.initialize();
+      // Ensure we are not in loading state AFTER data is loaded
+      ref.read(loadingProvider.notifier).stopLoading();
+    } catch (e, s) {
+      talker.error('ProductEntryScreen load failed', e, s);
+      if (!mounted) return;
+      // Never leave the editor stuck on the loading spinner.
+      ref.read(loadingProvider.notifier).stopLoading();
+      showErrorNotification(
+        context,
+        e is ProductNotFoundException
+            ? context.flipperL10n.dpaProductDeleted
+            : context.flipperL10n.dpaProductLoadFailed,
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final productRef = ref.watch(unsavedProductProvider);
@@ -1177,103 +1269,13 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
 
     return ViewModelBuilder<ScannViewModel>.reactive(
       viewModelBuilder: () => ScannViewModel(),
-      onViewModelReady: (model) async {
-        try {
-          if (widget.productId != null) {
-            Product product = await model.getProduct(
-              productId: widget.productId!,
-            );
-            if (!mounted) return;
-            ref
-                .read(unsavedProductProvider.notifier)
-                .emitProduct(value: product);
-            // Opening reset the combo switch; a combo is edited as a combo.
-            showProductInItsOwnMode(ref, product);
-
-            productNameController.text = product.name;
-            model.setProductName(name: product.name);
-
-            // Fetch variants WITHOUT tax filtering to ensure we find all variants
-            // for the product when in edit mode.
-            final paged = await ProxyService.getStrategy(Strategy.capella)
-                .variants(
-                  taxTyCds: [],
-                  productId: widget.productId!,
-                  branchId: ProxyService.box.getBranchId()!,
-                  fetchRemote: true,
-                );
-
-            List<Variant> variants = List<Variant>.from(paged.variants);
-            if (!mounted) return;
-
-            if (variants.isNotEmpty) {
-              if (variants.first.itemTyCd != null) {
-                selectedProductType = variants.first.itemTyCd!;
-              }
-
-              supplyPriceController.text = variants.first.supplyPrice
-                  .toString();
-              retailPriceController.text = variants.first.retailPrice
-                  .toString();
-
-              // Explicitly update model prices to ensure UI sync
-              model.setRetailPrice(price: retailPriceController.text);
-              model.setSupplyPrice(price: supplyPriceController.text);
-
-              if (variants.first.categoryId != null) {
-                String? catName = variants.first.categoryName;
-                if (catName == null) {
-                  Category? fetchedCategory = await ProxyService.getStrategy(
-                    Strategy.capella,
-                  ).category(id: variants.first.categoryId!);
-                  catName = fetchedCategory?.name;
-                }
-                setState(() {
-                  selectedCategoryId = variants.first.categoryId;
-                  selectedCategoryName = catName;
-                });
-              }
-
-              model.setScannedVariants(variants);
-              // A service shows no stock, even one with stock still on
-              // record; that stays untouched until a Stock Recount.
-              if (isServiceItemType(selectedProductType)) {
-                model.setProductType(selectedProductType);
-              }
-
-              if (variants.first.color != null) {
-                pickerColor = getColorOrDefault(variants.first.color!);
-              }
-            }
-          } else {
-            Product? product = await model.createProduct(
-              name: TEMP_PRODUCT,
-              createItemCode: false,
-            );
-            if (!mounted) return;
-            if (product != null) {
-              ref
-                  .read(unsavedProductProvider.notifier)
-                  .emitProduct(value: product);
-            }
-          }
-
-          model.initialize();
-          // Ensure we are not in loading state AFTER data is loaded
-          ref.read(loadingProvider.notifier).stopLoading();
-        } catch (e, s) {
-          talker.error('ProductEntryScreen load failed', e, s);
-          if (!mounted) return;
-          // Never leave the editor stuck on the loading spinner.
-          ref.read(loadingProvider.notifier).stopLoading();
-          showErrorNotification(
-            context,
-            e is ProductNotFoundException
-                ? context.flipperL10n.dpaProductDeleted
-                : context.flipperL10n.dpaProductLoadFailed,
-          );
-        }
-      },
+      // Tracked so a till's stall report names this screen: a customer's till
+      // froze for a while opening "Single product", with no log to say why.
+      onViewModelReady: (model) => PerfOpTrail.instance.track(
+        'product_entry_open',
+        () => _loadEditor(model),
+        critical: true,
+      ),
       builder: (context, model, child) {
         final isPhone =
             responsive.ResponsiveLayout.isPhone(context) ||

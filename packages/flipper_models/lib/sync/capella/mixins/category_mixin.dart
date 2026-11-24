@@ -188,6 +188,8 @@ mixin CapellaCategoryDittoMixin implements CategoryInterface {
     const query = "SELECT * FROM categories WHERE branchId = :branchId";
     final arguments = {"branchId": id};
 
+    // Tracked: opening it is a synchronous call on the UI thread, and a slow
+    // one (Ditto busy syncing) is named in the next stall report.
     final observer = registerTrackedObserver(
       ditto: dittoService.dittoInstance!,
       name: 'categories',

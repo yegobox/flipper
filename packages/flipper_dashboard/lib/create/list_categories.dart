@@ -126,7 +126,6 @@ class ListCategoriesState extends ConsumerState<ListCategories> {
       return;
     }
 
-    ref.invalidate(categoryProvider);
     ref.invalidate(categoriesProvider(branchId: branchId));
   }
 

@@ -57,9 +57,8 @@ class CategorySelector extends HookConsumerWidget {
     await _routerService.navigateTo(
       ListCategoriesRoute(modeOfOperation: modeOfOperation),
     );
-    if (context.mounted) {
-      final _ = ref.refresh(categoryProvider);
-    }
+    // No refresh on return: categoryProvider is a kept-alive live observer
+    // that already carries the pick, and restarting it blocks the UI thread.
   }
 
   Widget _buildProductMode(
