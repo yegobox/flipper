@@ -235,3 +235,45 @@ List<TransactionItem> saleLinesToMarkShipped(
   }
   return marked.values.toList();
 }
+
+/// What the combos in a cart take of each stocked component: for every
+/// combo in [combosInCart] (combo variant id → qty), [Composite.qty] (1 when
+/// unset) of each of its [componentsByCombo] per combo. Components that hold
+/// no stock (services, gone) are left out.
+Map<String, double> comboComponentNeeds({
+  required Map<String, List<Composite>> componentsByCombo,
+  required Map<String, double> combosInCart,
+  required Map<String, Variant> variantsById,
+}) {
+  final needs = <String, double>{};
+  for (final entry in componentsByCombo.entries) {
+    final combos = combosInCart[entry.key] ?? 0;
+    if (combos <= 0) continue;
+    for (final component in entry.value) {
+      final variant = variantsById[component.variantId];
+      if (variant == null || isServiceItemType(variant.itemTyCd)) continue;
+      final perCombo = (component.qty ?? 0) > 0 ? component.qty! : 1.0;
+      needs[variant.id] = (needs[variant.id] ?? 0) + perCombo * combos;
+    }
+  }
+  return needs;
+}
+
+/// Whether the stock covers what the cart's combos take of each component
+/// ([needs], from [comboComponentNeeds] over every combo in the cart) plus
+/// what the cart holds of that component on its own ([inCartAlone]).
+/// Components with no stock record never block.
+bool comboComponentsInStock({
+  required Map<String, double> needs,
+  required Map<String, Variant> variantsById,
+  required Map<String, Stock> stocksById,
+  required double Function(String variantId) inCartAlone,
+}) {
+  for (final entry in needs.entries) {
+    final stockId = variantsById[entry.key]?.stockId;
+    if (stockId == null || stockId.isEmpty) continue;
+    final onHand = stocksById[stockId]?.currentStock ?? 0;
+    if (onHand < entry.value + inCartAlone(entry.key)) return false;
+  }
+  return true;
+}

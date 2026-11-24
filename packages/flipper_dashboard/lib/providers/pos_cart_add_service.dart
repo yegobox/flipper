@@ -163,6 +163,7 @@ class PosCartAddService {
         pendingTransaction: txn,
         sessionAtStart: sessionAtStart,
         cartOptimismApplied: cartOptimismApplied,
+        businessId: ProxyService.box.getBusinessId(),
       );
 
       if (context.mounted) {
