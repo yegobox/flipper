@@ -43,7 +43,7 @@ class StatusDeliveryInfo extends StatelessWidget {
                 iconBg: isApproved ? OmTokens.greenWash : OmTokens.amberWash,
                 iconColor: isApproved ? OmTokens.greenStrong : OmTokens.amber,
                 label: l10n.incomingOrdersStatus,
-                value: _statusLabel(l10n, status).toUpperCase(),
+                value: requestStatusLabel(l10n, status).toUpperCase(),
                 valueColor: isApproved ? OmTokens.greenStrong : OmTokens.amber,
               ),
               _MetaTile(
@@ -73,28 +73,28 @@ class StatusDeliveryInfo extends StatelessWidget {
       ],
     );
   }
+}
 
-  /// Display text for a stored [RequestStatus] value; unknown values fall
-  /// back to the raw status.
-  static String _statusLabel(FlipperAppLocalizations l10n, String status) {
-    switch (status) {
-      case RequestStatus.pending:
-        return l10n.incomingOrdersStatusPending;
-      case RequestStatus.processing:
-        return l10n.incomingOrdersStatusProcessing;
-      case RequestStatus.approved:
-        return l10n.approved;
-      case RequestStatus.partiallyApproved:
-        return l10n.incomingOrdersStatusPartiallyApproved;
-      case RequestStatus.rejected:
-        return l10n.incomingOrdersStatusRejected;
-      case RequestStatus.fulfilled:
-        return l10n.incomingOrdersStatusFulfilled;
-      case RequestStatus.voided:
-        return l10n.incomingOrdersStatusVoided;
-      default:
-        return status;
-    }
+/// Display text for a stored [RequestStatus] value; unknown values fall
+/// back to the raw status.
+String requestStatusLabel(FlipperAppLocalizations l10n, String status) {
+  switch (status) {
+    case RequestStatus.pending:
+      return l10n.incomingOrdersStatusPending;
+    case RequestStatus.processing:
+      return l10n.incomingOrdersStatusProcessing;
+    case RequestStatus.approved:
+      return l10n.approved;
+    case RequestStatus.partiallyApproved:
+      return l10n.incomingOrdersStatusPartiallyApproved;
+    case RequestStatus.rejected:
+      return l10n.incomingOrdersStatusRejected;
+    case RequestStatus.fulfilled:
+      return l10n.incomingOrdersStatusFulfilled;
+    case RequestStatus.voided:
+      return l10n.incomingOrdersStatusVoided;
+    default:
+      return status;
   }
 }
 

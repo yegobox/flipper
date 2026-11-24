@@ -2,6 +2,7 @@
 
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/checkout.dart' show OrderStatus;
+import 'package:flipper_dashboard/features/incoming_orders/desktop/orders_desktop_view.dart';
 import 'package:flipper_dashboard/features/incoming_orders/om_tokens.dart';
 import 'package:flipper_dashboard/features/incoming_orders/widgets/bulk_action_bar.dart';
 import 'package:flipper_dashboard/features/incoming_orders/widgets/om_segmented.dart';
@@ -70,6 +71,62 @@ class IncomingOrdersScreen extends HookConsumerWidget {
         }
 
         final compact = constraints.maxWidth < OmTokens.compactBreakpoint;
+
+        void onStatusChanged(OrderStatus newStatus) {
+          ref.read(orderStatusProvider.notifier).state = newStatus;
+          ref
+              .read(requestStatusProvider.notifier)
+              .state = newStatus == OrderStatus.approved
+              ? RequestStatus.approved
+              : RequestStatus.pending;
+        }
+
+        // Desktop: toolbar + request table + detail pane. Phones (and the
+        // mobile shell, which names the page in its own app bar) keep the
+        // card list below.
+        if (!compact && showTitle) {
+          final provider = isIncoming
+              ? stockRequestsProvider(status: status, search: search)
+              : outgoingStockRequestsProvider(status: status, search: search);
+          return OrdersDesktopView(
+            direction: direction,
+            onDirection: (v) => picked.value = v,
+            shopAvailable: shopAvailable,
+            newOnline: newOnline,
+            incomingCount: incomingRequestsAsync.value?.length,
+            outgoingCount: outgoingRequestsAsync.value?.length,
+            orderStatus: orderStatus,
+            onStatusChanged: onStatusChanged,
+            onRefresh: () => ref.invalidate(provider),
+            requestsAsync: requestsAsync,
+            branchAsync: branchAsync,
+            status: status,
+            onLoadMore: () {
+              if (isIncoming) {
+                ref
+                    .read(
+                      stockRequestsProvider(
+                        status: status,
+                        search: search,
+                      ).notifier,
+                    )
+                    .loadMore();
+              } else {
+                ref
+                    .read(
+                      outgoingStockRequestsProvider(
+                        status: status,
+                        search: search,
+                      ).notifier,
+                    )
+                    .loadMore();
+              }
+            },
+            onRetryRequests: () => ref.invalidate(provider),
+            onRetryBranch: () => ref.invalidate(activeBranchProvider),
+          );
+        }
+
         final hPad = compact ? 16.0 : 32.0;
         final vPad = compact ? 20.0 : 36.0;
 
@@ -96,15 +153,7 @@ class IncomingOrdersScreen extends HookConsumerWidget {
                               showStatus: !isOnline,
                               compact: compact,
                               orderStatus: orderStatus,
-                              onStatusChanged: (newStatus) {
-                                ref.read(orderStatusProvider.notifier).state =
-                                    newStatus;
-                                ref
-                                    .read(requestStatusProvider.notifier)
-                                    .state = newStatus == OrderStatus.approved
-                                    ? RequestStatus.approved
-                                    : RequestStatus.pending;
-                              },
+                              onStatusChanged: onStatusChanged,
                             ),
                             SizedBox(height: compact ? 16 : 22),
                             OmSegmented<OmDirection>(
