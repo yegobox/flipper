@@ -25720,6 +25720,30 @@ abstract class FlipperAppLocalizations {
   /// **'Production Output'**
   String get productionOutputTitle;
 
+  /// No description provided for @productionOutputToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get productionOutputToday;
+
+  /// No description provided for @productionOutputPreviousDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous day'**
+  String get productionOutputPreviousDay;
+
+  /// No description provided for @productionOutputNextDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Next day'**
+  String get productionOutputNextDay;
+
+  /// No description provided for @productionOutputCarriedOver.
+  ///
+  /// In en, this message translates to:
+  /// **'Unfinished from earlier days'**
+  String get productionOutputCarriedOver;
+
   /// No description provided for @productionOutputNew.
   ///
   /// In en, this message translates to:
