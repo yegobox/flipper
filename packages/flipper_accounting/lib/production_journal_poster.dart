@@ -18,8 +18,10 @@
 /// stock to stock within 1200.
 ///
 /// Ids are deterministic (`je_<businessId>_prodout_<outputId>`), so posting is
-/// idempotent; an entry cut short (header without all lines) is written again
-/// over the same ids, as in [PayrollJournalPoster].
+/// idempotent: posting a record again completes an entry cut short (header
+/// without all lines) over the same ids. Only the record just saved is
+/// posted, though; nothing re-posts a batch whose entry failed (it is logged).
+/// A sweep needs the batch's unit cost, which `actual_outputs` does not keep.
 library;
 
 import 'package:flipper_accounting/accounting_ditto_store.dart';
@@ -183,7 +185,8 @@ class ProductionJournalPoster {
             );
             written++;
           } catch (e) {
-            // The next record retries it; one bad batch must not stop others.
+            // Logged, not retried (see the library doc); one bad batch must
+            // not stop the others.
             debugPrint('[Production→Books] ${p.entryId} not posted: $e');
           }
         }

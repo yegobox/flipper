@@ -204,10 +204,13 @@ void main() {
     };
     bool check(Map<String, Stock> s, double combos, {double sodaAlone = 0}) =>
         comboComponentsInStock(
-          components: parts,
+          needs: comboComponentNeeds(
+            componentsByCombo: {'lunch': parts},
+            combosInCart: {'lunch': combos},
+            variantsById: variants,
+          ),
           variantsById: variants,
           stocksById: s,
-          combosInCart: combos,
           inCartAlone: (id) => id == 'soda' ? sodaAlone : 0,
         );
 
@@ -227,6 +230,28 @@ void main() {
 
     test('a component with no stock row reads as none on hand', () {
       expect(check({}, 1), isFalse);
+    });
+
+    // Combo A (2 soda) and combo B (1 soda) in one cart share the soda.
+    test('every combo in the cart adds to what a component must cover', () {
+      final needs = comboComponentNeeds(
+        componentsByCombo: {
+          'a': [Composite(variantId: 'soda', qty: 2)],
+          'b': [Composite(variantId: 'soda'), Composite(variantId: 'wrap')],
+          'none': [Composite(variantId: 'soda', qty: 50)],
+        },
+        combosInCart: {'a': 1, 'b': 1},
+        variantsById: variants,
+      );
+      expect(needs, {'soda': 3.0});
+      bool covers(double soda) => comboComponentsInStock(
+        needs: needs,
+        variantsById: variants,
+        stocksById: stocks(soda, 0),
+        inCartAlone: (_) => 0,
+      );
+      expect(covers(3), isTrue);
+      expect(covers(2), isFalse);
     });
   });
 

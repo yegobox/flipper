@@ -87,38 +87,123 @@ Future<ITransaction?> resolvePendingTransactionForPersist({
   return pendingTransaction;
 }
 
-/// Whether a combo [variant]'s components cover the combos now in the cart
-/// ([comboComponentsInStock]). True for a service that is not a combo. Local
-/// Ditto reads only, and only for service items.
-Future<bool> _comboComponentsInStock({
+/// What every combo in the cart takes of each stocked component
+/// ([comboComponentNeeds]), with those components' variants. [tapped] counts
+/// as in the cart even before its line shows. Local reads only (Ditto, then
+/// Brick `localOnly`): a tap never waits on the network. A cart with no
+/// service lines reads nothing.
+Future<({Map<String, double> needs, Map<String, Variant> variants})>
+_cartComboNeeds({
   required Ref ref,
   required dynamic capella,
-  required Variant variant,
+  required String? branchId,
+  required String? businessId,
+  Variant? tapped,
 }) async {
-  final productId = variant.productId;
-  final branchId = ProxyService.box.getBranchId();
-  final businessId = ProxyService.box.getBusinessId();
-  if (productId == null || branchId == null || businessId == null) return true;
-  final Product? product = await capella.getProduct(
-    id: productId,
-    branchId: branchId,
-    businessId: businessId,
-  );
-  if (product?.isComposite != true) return true;
-  final List<Composite> components = await capella.composites(
-    productId: productId,
-  );
-  final ids = components
+  const none = (needs: <String, double>{}, variants: <String, Variant>{});
+  if (branchId == null || businessId == null) return none;
+
+  final productOfService = <String, String?>{};
+  for (final line in ref.read(posCartDisplayItemsProvider)) {
+    final vid = line.variantId;
+    if (line.active == false || vid == null || vid.isEmpty) continue;
+    if (!isServiceItemType(line.itemTyCd)) continue;
+    final pid = line.productId;
+    productOfService[vid] = pid != null && pid.isNotEmpty ? pid : null;
+  }
+  if (tapped != null) productOfService[tapped.id] = tapped.productId;
+  if (productOfService.isEmpty) return none;
+
+  final unknown = [
+    for (final e in productOfService.entries)
+      if (e.value == null) e.key,
+  ];
+  if (unknown.isNotEmpty) {
+    final Map<String, Variant> lineVariants = await capella
+        .batchGetVariantsByIds(unknown);
+    for (final vid in unknown) {
+      productOfService[vid] = lineVariants[vid]?.productId;
+    }
+  }
+
+  final componentsByCombo = <String, List<Composite>>{};
+  for (final e in productOfService.entries) {
+    final productId = e.value;
+    if (productId == null || productId.isEmpty) continue;
+    final Product? product = await capella.getProduct(
+      id: productId,
+      branchId: branchId,
+      businessId: businessId,
+    );
+    if (product?.isComposite != true) continue;
+    final List<Composite> components = await capella.composites(
+      productId: productId,
+      localOnly: true,
+    );
+    if (components.isNotEmpty) componentsByCombo[e.key] = components;
+  }
+  if (componentsByCombo.isEmpty) return none;
+
+  final ids = componentsByCombo.values
+      .expand((c) => c)
       .map((c) => c.variantId)
       .whereType<String>()
       .where((id) => id.isNotEmpty)
       .toSet()
       .toList();
-  if (ids.isEmpty) return true;
   final Map<String, Variant> variants = await capella.batchGetVariantsByIds(
     ids,
   );
-  final stockIds = variants.values
+  final inCart = ref.read(posCartQtyByVariantIdProvider);
+  return (
+    needs: comboComponentNeeds(
+      componentsByCombo: componentsByCombo,
+      combosInCart: {
+        for (final vid in componentsByCombo.keys)
+          vid: (inCart[vid] ?? 0).toDouble(),
+      },
+      variantsById: variants,
+    ),
+    variants: variants,
+  );
+}
+
+/// How much of [variantId] the combos already in the cart take.
+Future<double> _takenByCartCombos({
+  required Ref ref,
+  required dynamic capella,
+  required String variantId,
+  required String? branchId,
+  required String? businessId,
+}) async {
+  final cart = await _cartComboNeeds(
+    ref: ref,
+    capella: capella,
+    branchId: branchId,
+    businessId: businessId,
+  );
+  return cart.needs[variantId] ?? 0;
+}
+
+/// Whether the components cover every combo now in the cart, tapped [variant]
+/// included ([comboComponentsInStock]). True for a service that is not a
+/// combo.
+Future<bool> _comboComponentsInStock({
+  required Ref ref,
+  required dynamic capella,
+  required Variant variant,
+  required String? branchId,
+  required String? businessId,
+}) async {
+  final cart = await _cartComboNeeds(
+    ref: ref,
+    capella: capella,
+    branchId: branchId,
+    businessId: businessId,
+    tapped: variant,
+  );
+  if (cart.needs.isEmpty) return true;
+  final stockIds = cart.variants.values
       .map((v) => v.stockId)
       .whereType<String>()
       .where((id) => id.isNotEmpty)
@@ -127,10 +212,9 @@ Future<bool> _comboComponentsInStock({
       ? <String, Stock>{}
       : await capella.batchGetStocksByIds(stockIds);
   return comboComponentsInStock(
-    components: components,
-    variantsById: variants,
+    needs: cart.needs,
+    variantsById: cart.variants,
     stocksById: stocks,
-    combosInCart: ref.read(posCartQtyForVariantProvider(variant.id)).toDouble(),
     inCartAlone: (id) => ref.read(posCartQtyForVariantProvider(id)).toDouble(),
   );
 }
@@ -144,8 +228,10 @@ Future<bool> persistItemToTransaction({
   required ITransaction pendingTransaction,
   required int sessionAtStart,
   required bool cartOptimismApplied,
+  String? businessId,
 }) async {
   final capella = ProxyService.getStrategy(Strategy.capella);
+  final branchId = pendingTransaction.branchId;
 
   // The product is not read here: a combo sells as one line like any item.
   final cachedStock = await _resolveStockForAdd(
@@ -164,7 +250,16 @@ Future<bool> persistItemToTransaction({
       if (!allowSellingBelowStock &&
           (currentStock == null ||
               currentStock <= 0 ||
-              currentStock < inCartQty)) {
+              currentStock < inCartQty ||
+              currentStock <
+                  inCartQty +
+                      await _takenByCartCombos(
+                        ref: ref,
+                        capella: capella,
+                        variantId: variant.id,
+                        branchId: branchId,
+                        businessId: businessId,
+                      ))) {
         if (cartOptimismApplied) {
           ref
               .read(optimisticCartProvider.notifier)
@@ -191,6 +286,8 @@ Future<bool> persistItemToTransaction({
           ref: ref,
           capella: capella,
           variant: variant,
+          branchId: branchId,
+          businessId: businessId,
         )) {
       if (cartOptimismApplied) {
         ref

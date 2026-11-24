@@ -8,8 +8,11 @@
 //   flutter test test/transaction_item_table_clear_test.dart --dart-define=FLUTTER_TEST_ENV=true
 
 import 'package:flipper_dashboard/TransactionItemTable.dart';
+import 'package:flipper_models/DatabaseSyncInterface.dart';
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/providers/pos_cart_display_provider.dart';
 import 'package:flipper_routing/app.locator.dart';
+import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/setting_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/legacy.dart' show StateProvider;
@@ -19,6 +22,8 @@ import 'package:mocktail/mocktail.dart';
 import 'package:supabase_models/brick/models/transactionItem.model.dart';
 
 class _MockSettingsService extends Mock implements SettingsService {}
+
+class _MockDb extends Mock implements DatabaseSyncInterface {}
 
 /// Controllable stand-in for the merged cart so the test can simulate the
 /// stream lagging behind (lines still present right after completion).
@@ -205,5 +210,61 @@ void main() {
     await tester.pump();
 
     expect(find.text('count:0'), findsOneWidget);
+  });
+
+  // A combo is one line: deleting it deletes that line only. The old combo
+  // branch looked its parts up by variant across every cart, so it could
+  // delete another cart's line.
+  testWidgets('deleting a combo line deletes that line only', (tester) async {
+    final db = _MockDb();
+    if (getIt.isRegistered<SyncStrategy>(instanceName: 'strategy')) {
+      getIt.unregister<SyncStrategy>(instanceName: 'strategy');
+    }
+    getIt.registerSingleton<SyncStrategy>(
+      SyncStrategy(capella: db, cloudSync: db),
+      instanceName: 'strategy',
+    );
+    addTearDown(() => getIt.unregister<SyncStrategy>(instanceName: 'strategy'));
+    when(
+      () => db.flipperDelete(
+        id: any(named: 'id'),
+        endPoint: any(named: 'endPoint'),
+      ),
+    ).thenAnswer((_) async => true);
+
+    final container = ProviderContainer(
+      overrides: [
+        posCartDisplayItemsProvider
+            .overrideWith((ref) => ref.watch(_cartSourceProvider)),
+      ],
+    );
+    addTearDown(container.dispose);
+    final harnessKey = GlobalKey<CartHarnessState>();
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: _CartHarness(key: harnessKey),
+      ),
+    );
+
+    final combo = TransactionItem(
+      id: 'combo-line',
+      name: 'Lunch',
+      qty: 1,
+      price: 3000,
+      discount: 0,
+      prc: 3000,
+      ttCatCd: 'B',
+      transactionId: 'txn-1',
+      variantId: 'combo-v',
+      partOfComposite: true,
+    );
+    final ok = await harnessKey.currentState!.debugDeleteItem(combo);
+
+    expect(ok, isTrue);
+    verify(
+      () => db.flipperDelete(id: 'combo-line', endPoint: 'transactionItem'),
+    ).called(1);
+    verifyNoMoreInteractions(db);
   });
 }

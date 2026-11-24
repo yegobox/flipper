@@ -574,6 +574,24 @@ void main() {
       postToBooks: books,
     );
 
+    // The live poster: before Ditto is open it posts nothing and never throws.
+    test('the default Books poster waits for Ditto', () async {
+      final recorded = await ProductionOutputService(
+        deps: () => PurchaseApprovalDeps(
+          strategy: db,
+          capella: db,
+          tax: _RecordingTaxApi(),
+          branchId: 'b1',
+          businessId: 'biz1',
+          userId: 'u1',
+        ),
+        postStock: ({required workOrder, required qty, required deps}) async =>
+            const ProductionStockResult(stocked: true, absorbUnitCost: 150),
+      ).recordActualOutput(workOrder: _order(), actualQuantity: 10);
+      expect(recorded.output?.id, 'out-9');
+      expect(recorded.stockError, isNull);
+    });
+
     test('a batch made without a recipe is posted at its cost', () async {
       final posted = <(String, ProductionOutputRecord)>[];
       await service(
