@@ -10,4 +10,6 @@ abstract final class AnalyticsProperties {
   static const releaseCommit = 'release_commit';
   static const route = 'route';
   static const screenName = 'screen_name';
+  static const module = 'module';
+  static const action = 'action';
 }

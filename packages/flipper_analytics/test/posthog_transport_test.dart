@@ -1,103 +1,345 @@
-import 'dart:convert';
-import 'dart:io';
+import 'dart:async';
 
 import 'package:flipper_analytics/flipper_analytics.dart';
+import 'package:flipper_analytics/src/web/posthog_js_host.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:http/http.dart' as http;
-import 'package:http/testing.dart';
+import 'package:mocktail/mocktail.dart';
+import 'package:posthog_flutter/posthog_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 // flutter test test/posthog_transport_test.dart
 //
-// Windows has no PostHog SDK, so its events go over HTTP. PostHog answers
-// 200 to an event without `distinct_id` and then drops it, which is how every
-// Windows stall report (`ui_stall`, `ui_hang_killed`) went missing.
+// Every platform goes through the PostHog SDK, Windows and Linux included
+// (posthog_flutter 5.55+). Windows used to post raw HTTP without a
+// `distinct_id`, and PostHog silently dropped every one of those events.
+
+class _MockPosthog extends Mock implements Posthog {}
 
 void main() {
-  late List<Map<String, dynamic>> sent;
-  late int status;
+  late _MockPosthog posthog;
 
-  PostHogTransport transport({Future<SharedPreferences> Function()? prefs}) =>
-      PostHogTransport(
-        projectToken: 'phc_test',
-        host: 'https://ph.example',
-        useHttp: true,
-        preferences: prefs,
-        httpClient: MockClient((request) async {
-          expect(request.url.toString(), 'https://ph.example/capture/');
-          sent.add(jsonDecode(request.body) as Map<String, dynamic>);
-          return http.Response('{}', status);
-        }),
-      );
-
-  PendingAnalyticsEvent event(Map<String, Object?> properties) =>
-      PendingAnalyticsEvent(
-        eventName: 'ui_stall',
-        type: PendingAnalyticsEventType.capture,
-        properties: properties,
-      );
+  setUpAll(() {
+    registerFallbackValue(PostHogConfig('phc_fallback'));
+  });
 
   setUp(() {
-    sent = [];
-    status = 200;
     SharedPreferences.setMockInitialValues({});
+    posthog = _MockPosthog();
+    when(() => posthog.setup(any())).thenAnswer((_) async {});
+    when(() => posthog.register(any(), any())).thenAnswer((_) async {});
+    when(
+      () => posthog.capture(
+        eventName: any(named: 'eventName'),
+        properties: any(named: 'properties'),
+      ),
+    ).thenAnswer((_) async {});
+    when(
+      () => posthog.screen(
+        screenName: any(named: 'screenName'),
+        properties: any(named: 'properties'),
+      ),
+    ).thenAnswer((_) async {});
+    when(() => posthog.optIn()).thenAnswer((_) async {});
+    when(() => posthog.optOut()).thenAnswer((_) async {});
+    when(() => posthog.reset()).thenAnswer((_) async {});
+    when(() => posthog.isOptOut()).thenAnswer((_) async => false);
   });
 
-  test('a signed-in till sends its user as distinct_id', () async {
-    await transport().send(
-      event({'user_id': 'u-7', 'branch_id': 'b1', 'lag_ms': 4200}),
-    );
+  PostHogTransport transport({bool startOptedOut = false}) => PostHogTransport(
+    projectToken: 'phc_test',
+    host: 'https://ph.example',
+    startOptedOut: startOptedOut,
+    posthog: posthog,
+  );
 
-    final body = sent.single;
-    expect(body['distinct_id'], 'u-7');
-    expect(body['event'], 'ui_stall');
-    final props = body['properties'] as Map<String, dynamic>;
-    expect(props['lag_ms'], 4200);
-    expect(props['device_id'], isA<String>());
-    expect(props.containsKey(r'$process_person_profile'), isFalse);
+  PendingAnalyticsEvent event(
+    Map<String, Object?> properties, {
+    PendingAnalyticsEventType type = PendingAnalyticsEventType.capture,
+  }) => PendingAnalyticsEvent(
+    eventName: 'ui_stall',
+    type: type,
+    properties: properties,
+  );
+
+  group('config', () {
+    test('records replay and leaves push to Flipper\'s own FCM', () {
+      final config = transport().buildConfig();
+
+      expect(config.host, 'https://ph.example');
+      expect(config.optOut, isFalse);
+      expect(config.sessionReplay, isTrue);
+      expect(config.sessionReplayConfig.maskAllTexts, isTrue);
+      expect(config.sessionReplayConfig.maskAllImages, isTrue);
+      expect(config.capturePushNotificationSubscriptions, isFalse);
+      expect(config.capturePushNotificationOpened, isFalse);
+    });
+
+    test('a local-mode till starts opted out, with no replay', () {
+      final config = transport(startOptedOut: true).buildConfig();
+
+      expect(config.optOut, isTrue);
+      expect(config.sessionReplay, isFalse);
+    });
   });
 
-  test('before sign-in the install id is the distinct_id', () async {
+  group('initialize', () {
+    test('sets the SDK up once and tags events with this install', () async {
+      final t = transport();
+      await t.initialize();
+      await t.initialize();
+
+      verify(() => posthog.setup(any())).called(1);
+      final id = verify(
+        () => posthog.register('device_id', captureAny()),
+      ).captured.single;
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getString(PostHogTransport.deviceIdKey), id);
+    });
+
+    test('keeps the install id a till already has', () async {
+      SharedPreferences.setMockInitialValues({
+        PostHogTransport.deviceIdKey: 'till-7',
+      });
+
+      await transport().initialize();
+
+      verify(() => posthog.register('device_id', 'till-7')).called(1);
+    });
+
+    test('unreadable prefs still tag events', () async {
+      final t = PostHogTransport(
+        projectToken: 'phc_test',
+        host: 'https://ph.example',
+        posthog: posthog,
+        preferences: () async => throw StateError('NUL-filled prefs'),
+      );
+
+      await t.initialize();
+
+      verify(() => posthog.register('device_id', any())).called(1);
+    });
+  });
+
+  group('send', () {
+    test('captures an event without its null properties', () async {
+      await transport().send(event({'lag_ms': 4200, 'screen': null}));
+
+      verify(
+        () => posthog.capture(
+          eventName: 'ui_stall',
+          properties: {'lag_ms': 4200},
+        ),
+      ).called(1);
+    });
+
+    test('a queued screen view goes out as a screen', () async {
+      await transport().send(
+        event({
+          'screen_name': 'Pos',
+          'app': 'flipper',
+        }, type: PendingAnalyticsEventType.screen),
+      );
+
+      verify(
+        () => posthog.screen(
+          screenName: 'Pos',
+          properties: {'screen_name': 'Pos', 'app': 'flipper'},
+        ),
+      ).called(1);
+    });
+  });
+
+  group('setEnabled', () {
+    test('opts out only when not already out', () async {
+      final t = transport();
+
+      await t.setEnabled(false);
+      verify(() => posthog.optOut()).called(1);
+
+      when(() => posthog.isOptOut()).thenAnswer((_) async => true);
+      await t.setEnabled(false);
+      verifyNever(() => posthog.optOut());
+    });
+
+    test('opts back in after local mode, and only then', () async {
+      final t = transport();
+
+      await t.setEnabled(true);
+      verifyNever(() => posthog.optIn());
+
+      when(() => posthog.isOptOut()).thenAnswer((_) async => true);
+      await t.setEnabled(true);
+      verify(() => posthog.optIn()).called(1);
+    });
+  });
+
+  test('reset keeps tagging events with this install', () async {
     final t = transport();
-    await t.send(event({'branch_id': 'b1'}));
-    await t.send(event({'user_id': '', 'branch_id': 'b1'}));
+    await t.initialize();
+    clearInteractions(posthog);
 
-    final first = sent[0];
-    final props = first['properties'] as Map<String, dynamic>;
-    expect(first['distinct_id'], isNotEmpty);
-    expect(first['distinct_id'], props['device_id']);
-    expect(props[r'$process_person_profile'], isFalse);
-    // An empty user id is no user either.
-    expect(sent[1]['distinct_id'], first['distinct_id']);
+    await t.reset();
+
+    verify(() => posthog.reset()).called(1);
+    verify(() => posthog.register('device_id', any())).called(1);
   });
 
-  test('the install id survives a restart', () async {
-    await transport().send(event({}));
-    await transport().send(event({}));
+  group('redact', () {
+    test('masks secrets by whole word', () {
+      for (final key in [
+        'pin',
+        'user_pin',
+        'pinCode',
+        'otp',
+        'otp_code',
+        'password',
+        'newPassword',
+        'tin',
+        'tin_number',
+        'card_number',
+        'cardNumber',
+        'cvv',
+        'client-secret',
+      ]) {
+        expect(PostHogTransport.isSensitiveKey(key), isTrue, reason: key);
+      }
+    });
 
-    expect(sent[0]['distinct_id'], sent[1]['distinct_id']);
-    final prefs = await SharedPreferences.getInstance();
-    expect(
-      prefs.getString(PostHogTransport.deviceIdKey),
-      sent[0]['distinct_id'],
-    );
+    test('leaves words that only contain a secret word alone', () {
+      for (final key in [
+        'pin_user_id',
+        'pinUserId',
+        'card_id',
+        'printer',
+        'setting',
+        'discard',
+        'continent',
+        'shipping',
+        'business_id',
+        'lag_ms',
+        '',
+      ]) {
+        expect(PostHogTransport.isSensitiveKey(key), isFalse, reason: key);
+      }
+    });
+
+    test('replaces only the sensitive values', () {
+      expect(
+        PostHogTransport.redact({'pin': '1234', 'printer': 'P70E', 'n': 2}),
+        {'pin': '[redacted]', 'printer': 'P70E', 'n': 2},
+      );
+    });
   });
 
-  test('unreadable prefs still give every event an id', () async {
-    final t = transport(prefs: () async => throw StateError('NUL-filled'));
-    await t.send(event({}));
-    await t.send(event({}));
+  group('web', () {
+    test('posthog-js does the setup; the install is still tagged', () async {
+      final t = PostHogTransport(
+        projectToken: 'phc_test',
+        host: 'https://ph.example',
+        posthog: posthog,
+        isWeb: true,
+        loadWeb: () async => true,
+        webReady: () => true,
+      );
 
-    expect(sent[0]['distinct_id'], isNotEmpty);
-    expect(sent[1]['distinct_id'], sent[0]['distinct_id']);
-  });
+      await t.initialize();
+      expect(await t.ready, isTrue);
+      await t.send(event({'n': 1}));
 
-  test('sensitive keys are masked on the HTTP path too', () async {
-    await transport().send(event({'user_id': 'u-7', 'pin': 1234}));
+      verifyNever(() => posthog.setup(any()));
+      verify(() => posthog.register('device_id', any())).called(1);
+      verify(
+        () => posthog.capture(eventName: 'ui_stall', properties: {'n': 1}),
+      ).called(1);
+    });
 
-    final props = sent.single['properties'] as Map<String, dynamic>;
-    expect(props['pin'], '[redacted]');
-    expect(props['user_id'], 'u-7');
+    group('before posthog-js has loaded', () {
+      late Completer<bool> load;
+      late bool loaded;
+      late List<String> calls;
+      late PostHogTransport t;
+
+      setUp(() {
+        load = Completer<bool>();
+        loaded = false;
+        calls = [];
+        when(() => posthog.register(any(), any())).thenAnswer((_) async {
+          calls.add('register');
+        });
+        when(
+          () => posthog.identify(
+            userId: any(named: 'userId'),
+            userProperties: any(named: 'userProperties'),
+          ),
+        ).thenAnswer((_) async => calls.add('identify'));
+        when(
+          () => posthog.group(
+            groupType: any(named: 'groupType'),
+            groupKey: any(named: 'groupKey'),
+            groupProperties: any(named: 'groupProperties'),
+          ),
+        ).thenAnswer((_) async => calls.add('group'));
+        when(() => posthog.isOptOut()).thenAnswer((_) async => true);
+        when(() => posthog.optIn()).thenAnswer((_) async => calls.add('optIn'));
+        t = PostHogTransport(
+          projectToken: 'phc_test',
+          host: 'https://ph.example',
+          posthog: posthog,
+          isWeb: true,
+          loadWeb: () => load.future,
+          webReady: () => loaded,
+        );
+      });
+
+      test('startup and login return at once instead of waiting', () async {
+        await t.initialize();
+        await t.setEnabled(true);
+        await t.identify('42');
+        await t.group('business', 'b-1');
+
+        expect(calls, isEmpty);
+      });
+
+      test('queued calls run in order once it loads, install first', () async {
+        await t.setEnabled(true);
+        await t.identify('42');
+        await t.group('business', 'b-1');
+
+        loaded = true;
+        load.complete(true);
+        await pumpEventQueue();
+
+        expect(calls, ['register', 'optIn', 'identify', 'group']);
+      });
+
+      test('a failed load drops the queued calls', () async {
+        await t.identify('42');
+
+        load.complete(false);
+        await pumpEventQueue();
+
+        expect(calls, isEmpty);
+      });
+
+      test('sends wait in the offline queue until it loads', () async {
+        await expectLater(t.send(event({'n': 1})), throwsStateError);
+      });
+    });
+
+    test('the bundle comes from the assets host', () {
+      expect(
+        assetsHostFor('https://us.i.posthog.com'),
+        'https://us-assets.i.posthog.com/static/array.full.js',
+      );
+      expect(
+        assetsHostFor('https://eu.i.posthog.com/'),
+        'https://eu-assets.i.posthog.com/static/array.full.js',
+      );
+      expect(
+        assetsHostFor('https://ph.yegobox.com'),
+        'https://ph.yegobox.com/static/array.full.js',
+      );
+    });
   });
 
   test('sensitive keys are masked at every depth', () {
@@ -107,7 +349,7 @@ void main() {
         'otp': '123456',
         'gone': null,
         'staff': [
-          {'name': 'Ann', 'pin': 4321},
+          {'name': 'Ann', 'pin': 4321, 'pin_user_id': 7},
           null,
           'cashier',
         ],
@@ -120,7 +362,7 @@ void main() {
         'branch': 'b1',
         'otp': '[redacted]',
         'staff': [
-          {'name': 'Ann', 'pin': '[redacted]'},
+          {'name': 'Ann', 'pin': '[redacted]', 'pin_user_id': 7},
           'cashier',
         ],
       },
@@ -128,67 +370,45 @@ void main() {
     });
   });
 
-  test('events sent at once share one install id', () async {
-    final t = transport();
-    await Future.wait([
-      t.send(event({})),
-      t.send(event({})),
-      t.send(event({})),
-    ]);
+  test(
+    'concurrent tagging shares one install id, even without prefs',
+    () async {
+      final t = PostHogTransport(
+        projectToken: 'phc_test',
+        host: 'https://ph.example',
+        posthog: posthog,
+        preferences: () async => throw StateError('NUL-filled prefs'),
+      );
 
-    expect(sent.map((b) => b['distinct_id']).toSet(), hasLength(1));
-    final prefs = await SharedPreferences.getInstance();
-    expect(
-      prefs.getString(PostHogTransport.deviceIdKey),
-      sent[0]['distinct_id'],
+      await Future.wait([t.initialize(), t.reset(), t.reset()]);
+
+      final ids = verify(
+        () => posthog.register('device_id', captureAny()),
+      ).captured.toSet();
+      expect(ids, hasLength(1));
+    },
+  );
+
+  test('web loads nothing without a real project token', () async {
+    var loads = 0;
+    final t = PostHogTransport(
+      projectToken: 'ci-fixture-postHogProjectToken',
+      host: 'https://ph.example',
+      posthog: posthog,
+      isWeb: true,
+      loadWeb: () async {
+        loads++;
+        return true;
+      },
+      webReady: () => false,
     );
-  });
 
-  test('a rejected capture throws so the event stays queued', () async {
-    status = 401;
+    expect(t.hasProjectToken, isFalse);
+    expect(await t.ready, isFalse);
+    await t.identify('42');
+    await pumpEventQueue();
 
-    await expectLater(
-      transport().send(event({'user_id': 'u-7'})),
-      throwsA(isA<HttpException>()),
-    );
-  });
-
-  test('screens go over HTTP with the same id', () async {
-    await transport().screen('Books', properties: {'user_id': 'u-7'});
-
-    expect(sent.single['event'], r'$screen');
-    expect(sent.single['distinct_id'], 'u-7');
-    expect(
-      (sent.single['properties'] as Map<String, dynamic>)['screen_name'],
-      'Books',
-    );
-  });
-
-  test('the build stamps its version and commit on every event', () {
-    const withRelease = CallbackAnalyticsContextProvider(
-      appName: 'flipper',
-      platformName: 'windows',
-      buildMode: 'release',
-      appVersion: '1.605.0.0',
-      releaseCommit: '0a9a65f',
-    );
-    expect(withRelease.buildBaseProperties(), {
-      'app': 'flipper',
-      'platform': 'windows',
-      'build_mode': 'release',
-      'app_version': '1.605.0.0',
-      'release_commit': '0a9a65f',
-    });
-
-    // A local build has neither; empty strings are left out.
-    const local = CallbackAnalyticsContextProvider(
-      appName: 'flipper',
-      platformName: 'macos',
-      buildMode: 'debug',
-      appVersion: '',
-      releaseCommit: '',
-    );
-    expect(local.buildBaseProperties().containsKey('app_version'), isFalse);
-    expect(local.buildBaseProperties().containsKey('release_commit'), isFalse);
+    expect(loads, 0);
+    verifyNever(() => posthog.register(any(), any()));
   });
 }

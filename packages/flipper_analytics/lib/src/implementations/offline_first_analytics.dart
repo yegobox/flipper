@@ -13,7 +13,17 @@ class OfflineFirstAnalytics
     required this.contextProvider,
     required this.transport,
     required this.eventStore,
-  });
+    bool enabled = true,
+  }) : _enabled = enabled;
+
+  /// A queued event that has failed this many sends is dropped, so one event
+  /// PostHog will never accept can't hold up everything queued behind it.
+  static const maxSendAttempts = 5;
+
+  bool _enabled;
+
+  /// False while the device is opted out (local mode).
+  bool get enabled => _enabled;
 
   @override
   final AnalyticsContextProvider contextProvider;
@@ -27,12 +37,27 @@ class OfflineFirstAnalytics
   Future<void> initialize() async {
     await eventStore.initialize();
     await transport.initialize();
+    // The SDK remembers an opt-out across restarts and prefers it to the
+    // config, so a till that left local mode must be opted back in here.
+    await transport.setEnabled(_enabled);
+  }
+
+  @override
+  Future<void> setEnabled(bool enabled) async {
+    if (_enabled == enabled) return;
+    _enabled = enabled;
+    await transport.setEnabled(enabled);
   }
 
   @override
   Future<void> flush() async {
+    if (!_enabled) return;
     final pending = await eventStore.peekBatch(limit: 100);
     for (final event in pending) {
+      if (event.attemptCount >= maxSendAttempts) {
+        await eventStore.deleteByIds([event.id]);
+        continue;
+      }
       try {
         await transport.send(event);
         await eventStore.deleteByIds([event.id]);
@@ -53,7 +78,8 @@ class OfflineFirstAnalytics
     String groupType,
     String groupKey, {
     Map<String, Object?> properties = const {},
-  }) {
+  }) async {
+    if (!_enabled) return;
     return transport.group(
       groupType,
       groupKey,
@@ -65,11 +91,9 @@ class OfflineFirstAnalytics
   Future<void> identify(
     String userId, {
     Map<String, Object?> properties = const {},
-  }) {
-    return transport.identify(
-      userId,
-      properties: withContext(properties),
-    );
+  }) async {
+    if (!_enabled) return;
+    return transport.identify(userId, properties: withContext(properties));
   }
 
   @override
@@ -91,15 +115,13 @@ class OfflineFirstAnalytics
   Future<void> screen(
     String screenName, {
     Map<String, Object?> properties = const {},
-  }) {
+  }) async {
+    if (!_enabled) return;
     return sendOrQueue(
       PendingAnalyticsEvent(
         eventName: r'$screen',
         type: PendingAnalyticsEventType.screen,
-        properties: withContext({
-          'screen_name': screenName,
-          ...properties,
-        }),
+        properties: withContext({'screen_name': screenName, ...properties}),
       ),
     );
   }
@@ -108,7 +130,8 @@ class OfflineFirstAnalytics
   Future<void> track(
     String eventName, {
     Map<String, Object?> properties = const {},
-  }) {
+  }) async {
+    if (!_enabled) return;
     return sendOrQueue(
       PendingAnalyticsEvent(
         eventName: eventName,

@@ -30,4 +30,7 @@ abstract class AnalyticsTransport {
   Future<dynamic> getFeatureFlag(String flagKey);
 
   Future<void> reloadFeatureFlags();
+
+  /// Opts this device in to or out of sending anything at all.
+  Future<void> setEnabled(bool enabled);
 }

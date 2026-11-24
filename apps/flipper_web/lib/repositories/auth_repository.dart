@@ -209,14 +209,11 @@ class AuthRepository {
     await _supabase.auth.setSession(refreshToken);
     await _fetchAndSaveUserProfile(loginKey: loginKey, pinUserId: pinUserId);
     final analytics = _ref.read(productAnalyticsProvider);
-    final analyticsUserId =
-        _supabase.auth.currentUser?.id ?? pinUserId ?? 'unknown_user';
-    await analytics.identify(
-      analyticsUserId,
-      properties: {
-        'source': 'auth_repository',
-        if (loginKey != null) 'login_key': loginKey,
-      },
+    // The Flipper user id, as in POS; never the login key (phone or email).
+    await identifySession(
+      analytics,
+      source: 'auth_repository',
+      userId: pinUserId,
     );
     await analytics.track(
       AnalyticsEvents.loginSuccess,

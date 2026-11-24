@@ -1,3 +1,4 @@
+import 'package:flipper_analytics/flipper_analytics.dart';
 import 'package:flipper_dashboard/books_module_entry.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_web/features/login/signin_styles.dart';
@@ -6,7 +7,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Pops the Books module route when it is on the navigation stack.
 void popBooksModuleIfOpen(NavigatorState navigator) {
-  navigator.popUntil((route) => route.settings.name != BooksModuleEntry.routeName);
+  navigator.popUntil(
+    (route) => route.settings.name != BooksModuleEntry.routeName,
+  );
 }
 
 /// Opens Flipper Books in-process via [AccountingModuleScreen] (no WebView).
@@ -33,6 +36,7 @@ Future<void> navigateToBooksModule(
 /// Resolves when Books is popped, so callers that just want it on screen should
 /// not await it.
 Future<void> openBooksModuleOn(NavigatorState navigator) async {
+  trackFeatureUsed('books');
   await ProxyService.box.writeString(key: 'defaultApp', value: 'Books');
 
   popBooksModuleIfOpen(navigator);

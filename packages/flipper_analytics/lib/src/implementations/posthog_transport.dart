@@ -1,15 +1,21 @@
-import 'dart:convert';
-import 'dart:io' show HttpException, Platform;
+import 'dart:async';
 
 import 'package:flutter/foundation.dart';
-import 'package:http/http.dart' as http;
 import 'package:posthog_flutter/posthog_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
 import '../models/pending_analytics_event.dart';
 import '../interfaces/analytics_transport.dart';
+import '../web/posthog_js_loader.dart';
 
+/// Sends through the PostHog SDK on every platform.
+///
+/// Since posthog_flutter 5.55 the SDK has its own Windows and Linux client
+/// (file-backed queue, retries, `distinct_id`), which replaced the raw HTTP
+/// path Windows used before: that path once lost every event because it sent
+/// no `distinct_id`. On web the SDK drives the posthog-js instance that each
+/// app's `web/index.html` initializes; `setup()` does nothing there.
 class PostHogTransport implements AnalyticsTransport {
   PostHogTransport({
     required this.projectToken,
@@ -17,14 +23,20 @@ class PostHogTransport implements AnalyticsTransport {
     this.enableSessionReplay = true,
     this.maskAllTexts = true,
     this.maskAllImages = true,
-    http.Client? httpClient,
+    this.startOptedOut = false,
     Future<SharedPreferences> Function()? preferences,
-    @visibleForTesting bool? useHttp,
-  }) : _httpClient = httpClient ?? http.Client(),
-       _preferences = preferences ?? SharedPreferences.getInstance,
-       _useHttp = useHttp;
+    @visibleForTesting Posthog? posthog,
+    @visibleForTesting bool? isWeb,
+    @visibleForTesting Future<bool> Function()? loadWeb,
+    @visibleForTesting bool Function()? webReady,
+  }) : _preferences = preferences ?? SharedPreferences.getInstance,
+       _posthogOverride = posthog,
+       _isWeb = isWeb ?? kIsWeb,
+       _loadWebOverride = loadWeb,
+       _webReadyOverride = webReady;
 
-  /// Where the Windows HTTP path keeps this install's anonymous id.
+  /// Where this install's anonymous id is kept. Its value is sent as
+  /// `device_id` on every event, to tell tills that share a login apart.
   static const deviceIdKey = 'posthog_device_id';
 
   final String projectToken;
@@ -32,113 +44,169 @@ class PostHogTransport implements AnalyticsTransport {
   final bool enableSessionReplay;
   final bool maskAllTexts;
   final bool maskAllImages;
-  final http.Client _httpClient;
+
+  /// A till that must not reach the cloud (local mode) starts opted out, so
+  /// nothing at all leaves it, session replay included.
+  final bool startOptedOut;
   final Future<SharedPreferences> Function() _preferences;
-  final bool? _useHttp;
-  Future<String>? _deviceId;
+  final Posthog? _posthogOverride;
+  final bool _isWeb;
+  final Future<bool> Function()? _loadWebOverride;
+  final bool Function()? _webReadyOverride;
+
+  bool get _webReady => _webReadyOverride?.call() ?? isPostHogJsReady;
+
+  Posthog get _posthog => _posthogOverride ?? Posthog();
 
   bool _initialized = false;
 
-  bool get _usesHttpFallback {
-    if (_useHttp != null) return _useHttp;
-    if (kIsWeb) return false;
-    return Platform.isWindows;
+  /// Web calls run one after another, in the order they were made.
+  Future<void> _webChain = Future<void>.value();
+  Future<void>? _deviceRegistration;
+
+  /// One lookup shared by every caller, so concurrent calls never mint two
+  /// install ids (and unreadable prefs still give one id per run).
+  Future<String>? _deviceId;
+
+  @visibleForTesting
+  PostHogConfig buildConfig() {
+    final config = PostHogConfig(
+      projectToken,
+      beforeSend: [_redactSensitiveFields],
+    );
+    config.host = host;
+    config.debug = kDebugMode;
+    config.captureApplicationLifecycleEvents = true;
+    config.flushAt = 20;
+    config.flushInterval = const Duration(seconds: 30);
+    config.maxQueueSize = 1000;
+    config.optOut = startOptedOut;
+    config.sessionReplay = enableSessionReplay && !startOptedOut;
+    config.sessionReplayConfig.maskAllTexts = maskAllTexts;
+    config.sessionReplayConfig.maskAllImages = maskAllImages;
+    // Flipper registers its own FCM tokens; on iOS the SDK would also swizzle
+    // the app delegate for this.
+    config.capturePushNotificationSubscriptions = false;
+    config.capturePushNotificationOpened = false;
+    return config;
   }
 
   @override
-  Future<void> flush() async {
-    if (_usesHttpFallback) return;
-    await Posthog().flush();
+  Future<void> initialize() async {
+    if (_initialized) return;
+    _initialized = true;
+    if (_isWeb) {
+      // In the background: a slow CDN must not hold up Books' startup.
+      // Events sent meanwhile throw and wait in the offline queue.
+      unawaited(_onLive(() async {}));
+      return;
+    }
+    await _posthog.setup(buildConfig());
+    await _ensureDeviceRegistered();
+  }
+
+  Future<void> _ensureDeviceRegistered() =>
+      _deviceRegistration ??= _registerDevice();
+
+  Future<void> _registerDevice() async =>
+      _posthog.register('device_id', await _loadDeviceId());
+
+  /// Completes once posthog-js is loaded on web (true at once on native).
+  Future<bool> get ready => _isWeb ? _loadWeb() : Future.value(true);
+
+  /// PostHog project tokens start with `phc_`. CI and local builds carry a
+  /// placeholder, and posthog-js would fetch that token's remote config and
+  /// log a 404, so nothing is loaded without a real token.
+  bool get hasProjectToken => projectToken.startsWith('phc_');
+
+  Future<bool> _loadWeb() {
+    if (!hasProjectToken) return Future.value(false);
+    return _loadWebOverride?.call() ??
+        loadPostHogJs(projectToken: projectToken, host: host);
+  }
+
+  /// Runs [call] against the live client. On native that is now. On web,
+  /// before posthog-js has loaded, [call] is queued behind the load and this
+  /// returns at once: Books' startup and login never wait on the CDN. Queued
+  /// calls run in the order they were made; a failed load drops them (the
+  /// next call retries the load).
+  Future<void> _onLive(Future<void> Function() call) async {
+    if (!_initialized) await initialize();
+    if (!_isWeb) return call();
+    Future<void> run() async {
+      await _ensureDeviceRegistered();
+      await call();
+    }
+
+    final step = _webChain.then((_) async {
+      if (_webReady || await _loadWeb()) await run();
+    });
+    _webChain = step.catchError((Object _) {});
+    // Already loaded: the caller may wait for its own call. Not loaded yet:
+    // return at once, never holding up startup or login on the CDN.
+    if (_webReady) await _webChain;
   }
 
   @override
-  Future<dynamic> getFeatureFlag(String flagKey) async {
-    if (_usesHttpFallback) return null;
-    return Posthog().getFeatureFlag(flagKey);
-  }
+  Future<void> setEnabled(bool enabled) => _onLive(() async {
+    // Only on a real change: posthog-js records an `$opt_in` event each time.
+    if (await _posthog.isOptOut() == !enabled) return;
+    if (enabled) {
+      await _posthog.optIn();
+    } else {
+      await _posthog.optOut();
+    }
+  });
+
+  @override
+  Future<void> flush() => _posthog.flush();
+
+  @override
+  Future<dynamic> getFeatureFlag(String flagKey) =>
+      _posthog.getFeatureFlag(flagKey);
 
   @override
   Future<void> group(
     String groupType,
     String groupKey, {
     Map<String, Object?> properties = const {},
-  }) async {
-    if (_usesHttpFallback) return;
-    await Posthog().group(
+  }) => _onLive(
+    () => _posthog.group(
       groupType: groupType,
       groupKey: groupKey,
       groupProperties: _compact(properties),
-    );
-  }
+    ),
+  );
 
   @override
   Future<void> identify(
     String userId, {
     Map<String, Object?> properties = const {},
-  }) async {
-    if (_usesHttpFallback) return;
-    await Posthog().identify(
-      userId: userId,
-      userProperties: _compact(properties),
-    );
-  }
+  }) => _onLive(
+    () =>
+        _posthog.identify(userId: userId, userProperties: _compact(properties)),
+  );
 
   @override
-  Future<void> initialize() async {
-    if (_initialized) return;
-    if (!_usesHttpFallback) {
-      final config = PostHogConfig(
-        projectToken,
-        beforeSend: [_redactSensitiveFields],
-      );
-      config.host = host;
-      config.debug = kDebugMode;
-      config.captureApplicationLifecycleEvents = true;
-      config.flushAt = 20;
-      config.flushInterval = const Duration(seconds: 30);
-      config.maxQueueSize = 1000;
-      config.sessionReplay = enableSessionReplay;
-      config.sessionReplayConfig.maskAllTexts = maskAllTexts;
-      config.sessionReplayConfig.maskAllImages = maskAllImages;
-      await Posthog().setup(config);
-    }
-    _initialized = true;
-  }
+  Future<bool> isFeatureEnabled(String flagKey) =>
+      _posthog.isFeatureEnabled(flagKey);
 
   @override
-  Future<bool> isFeatureEnabled(String flagKey) async {
-    if (_usesHttpFallback) return false;
-    return Posthog().isFeatureEnabled(flagKey);
-  }
+  Future<void> reloadFeatureFlags() => _posthog.reloadFeatureFlags();
 
   @override
-  Future<void> reloadFeatureFlags() async {
-    if (_usesHttpFallback) return;
-    await Posthog().reloadFeatureFlags();
-  }
-
-  @override
-  Future<void> reset() async {
-    if (_usesHttpFallback) return;
-    await Posthog().reset();
-  }
+  Future<void> reset() => _onLive(() async {
+    await _posthog.reset();
+    // reset() drops registered properties too.
+    await _registerDevice();
+  });
 
   @override
   Future<void> screen(
     String screenName, {
     Map<String, Object?> properties = const {},
-  }) async {
-    if (_usesHttpFallback) {
-      await send(
-        PendingAnalyticsEvent(
-          eventName: r'$screen',
-          type: PendingAnalyticsEventType.screen,
-          properties: {'screen_name': screenName, ...properties},
-        ),
-      );
-      return;
-    }
-    await Posthog().screen(
+  }) {
+    return _posthog.screen(
       screenName: screenName,
       properties: _compact(properties),
     );
@@ -147,58 +215,24 @@ class PostHogTransport implements AnalyticsTransport {
   @override
   Future<void> send(PendingAnalyticsEvent event) async {
     await initialize();
-    if (_usesHttpFallback) {
-      await _sendViaHttp(event);
-      return;
+    if (_isWeb && !_webReady) {
+      // Thrown so the offline queue keeps it for the next flush.
+      throw StateError('posthog-js is not loaded yet');
     }
     if (event.type == PendingAnalyticsEventType.screen) {
-      await Posthog().screen(
+      await _posthog.screen(
         screenName:
             event.properties['screen_name']?.toString() ?? event.eventName,
         properties: _compact(event.properties),
       );
       return;
     }
-    await Posthog().capture(
+    await _posthog.capture(
       eventName: event.eventName,
       properties: _compact(event.properties),
     );
   }
 
-  // PostHog answers 200 to an event with no `distinct_id` and then drops it,
-  // so every Windows event (stall reports included) used to vanish. The SDK
-  // sets one on the other platforms; here it is the signed-in user, or this
-  // install's id before anyone signs in.
-  Future<void> _sendViaHttp(PendingAnalyticsEvent event) async {
-    final deviceId = await _loadDeviceId();
-    final userId = event.properties['user_id']?.toString();
-    final hasUser = userId != null && userId.isNotEmpty;
-    final payload = {
-      'api_key': projectToken,
-      'event': event.eventName,
-      'distinct_id': hasUser ? userId : deviceId,
-      'properties': redact({
-        ..._compact(event.properties),
-        // Tells one till's events apart when several share a login.
-        'device_id': deviceId,
-        // No person profile for a till nobody has signed in on yet.
-        if (!hasUser) r'$process_person_profile': false,
-      }),
-      'timestamp': event.createdAt.toIso8601String(),
-    };
-    final response = await _httpClient.post(
-      Uri.parse('$host/capture/'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(payload),
-    );
-    if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw HttpException(
-        'PostHog capture failed with status ${response.statusCode}',
-      );
-    }
-  }
-
-  // Shared by concurrent sends, so two events at once never mint two ids.
   Future<String> _loadDeviceId() => _deviceId ??= _readDeviceId();
 
   Future<String> _readDeviceId() async {
@@ -211,8 +245,7 @@ class PostHogTransport implements AnalyticsTransport {
       }
       return id;
     } catch (_) {
-      // Unreadable prefs: one id for this run is still better than none,
-      // which PostHog would drop.
+      // Unreadable prefs: one id for this run still tells tills apart.
       return const Uuid().v4();
     }
   }
@@ -222,22 +255,41 @@ class PostHogTransport implements AnalyticsTransport {
     return event;
   }
 
-  /// The same keys are masked on both paths: the SDK's `beforeSend` and
-  /// the Windows HTTP payload.
+  /// Words that mark a property as a secret wherever they appear in its key:
+  /// `pin`, `user_pin`, `pinCode`, `otp_code`, `card_number`, `tin`.
+  static const _sensitiveWords = {
+    'pin',
+    'pincode',
+    'otp',
+    'password',
+    'passcode',
+    'secret',
+    'tin',
+    'card',
+    'cardnumber',
+    'cvv',
+  };
+
+  /// Masks secrets before an event leaves the device.
+  ///
+  /// Keys are matched by whole word (split on `_`, `-`, `.`, spaces and
+  /// camelCase), not by substring, so `printer`, `setting` or `discard` are
+  /// left alone. A key that ends in `id` names a record, not a secret
+  /// (`pin_user_id`), and is kept. Nested maps and lists are walked at every
+  /// depth, and null entries inside them are dropped.
   @visibleForTesting
   static Map<String, Object> redact(Map<String, Object> properties) => {
     for (final entry in properties.entries)
-      entry.key: _isSensitive(entry.key)
+      entry.key: isSensitiveKey(entry.key)
           ? '[redacted]'
           : _redactValue(entry.value),
   };
 
-  // Nested maps and lists are masked at every depth.
   static Object _redactValue(Object value) => switch (value) {
     Map() => {
       for (final entry in value.entries)
         if (entry.value != null)
-          '${entry.key}': _isSensitive('${entry.key}')
+          '${entry.key}': isSensitiveKey('${entry.key}')
               ? '[redacted]'
               : _redactValue(entry.value as Object),
     },
@@ -248,13 +300,21 @@ class PostHogTransport implements AnalyticsTransport {
     _ => value,
   };
 
-  static bool _isSensitive(String key) {
-    final lower = key.toLowerCase();
-    return lower.contains('pin') ||
-        lower.contains('otp') ||
-        lower.contains('password') ||
-        lower.contains('tin') ||
-        lower.contains('card');
+  @visibleForTesting
+  static bool isSensitiveKey(String key) {
+    final words = key
+        .replaceAllMapped(
+          RegExp(r'([a-z0-9])([A-Z])'),
+          (m) => '${m[1]}_${m[2]}',
+        )
+        .toLowerCase()
+        .split(RegExp(r'[^a-z0-9]+'))
+        .where((w) => w.isNotEmpty)
+        .toList();
+    if (words.isEmpty || words.last == 'id' || words.last == 'ids') {
+      return false;
+    }
+    return words.any(_sensitiveWords.contains);
   }
 
   Map<String, Object> _compact(Map<String, Object?> source) {
