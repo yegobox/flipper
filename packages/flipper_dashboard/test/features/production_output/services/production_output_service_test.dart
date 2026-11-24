@@ -235,13 +235,50 @@ void main() {
 
       expect(result.stocked, isTrue);
       expect(deducted, {'flour-s': 5.0, 'sugar-s': 200.0});
+      // The bread is stocked and reported first, then the components.
       expect(tax.ioCalls.map((c) => (c.sarTyCd, c.isStockIn, c.sarNo)), [
-        ('14', false, '41'),
-        ('05', true, '42'),
+        ('05', true, '41'),
+        ('14', false, '42'),
       ]);
-      expect(tax.ioCalls.first.remark, 'Used in production: Bread');
-      // On-hand after use (never negative), then the bread itself.
-      expect(tax.masterQtys, [15, 0, 13]);
+      expect(tax.ioCalls.last.remark, 'Used in production: Bread');
+      // The bread itself, then each component's on-hand (never negative).
+      expect(tax.masterQtys, [13, 15, 0]);
+    });
+
+    // Stocking first means a failure there leaves every component in place,
+    // so re-recording the output can't use them up twice.
+    test('a stocking failure uses up no components', () async {
+      when(
+        () => db.getProduct(id: 'bread-p', branchId: 'b1', businessId: 'biz1'),
+      ).thenAnswer(
+        (_) async => Product(
+          id: 'bread-p',
+          name: 'Bread',
+          color: '#000',
+          businessId: 'biz1',
+          branchId: 'b1',
+          isComposite: true,
+        ),
+      );
+      when(() => db.composites(productId: 'bread-p')).thenAnswer(
+        (_) async => [
+          Composite(productId: 'bread-p', variantId: 'flour', qty: 0.5),
+        ],
+      );
+      when(
+        () => db.updateStock(
+          stockId: any(named: 'stockId'),
+          currentStock: any(named: 'currentStock'),
+          appending: any(named: 'appending'),
+          lastTouched: any(named: 'lastTouched'),
+          ebmSynced: any(named: 'ebmSynced'),
+          value: any(named: 'value'),
+        ),
+      ).thenThrow(StateError('stock write failed'));
+
+      await expectLater(post(10), throwsStateError);
+      verifyNever(() => db.batchDeductStocks(any()));
+      expect(tax.ioCalls, isEmpty);
     });
 
     test('a combo sold as made (a service) moves nothing here', () async {

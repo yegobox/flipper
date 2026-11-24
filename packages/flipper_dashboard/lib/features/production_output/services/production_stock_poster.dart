@@ -71,27 +71,9 @@ Future<ProductionStockResult> postProductionOutput({
   }
   final productName = workOrder.variantName ?? variant.name;
 
-  String? rraMessage;
-  final used = await _useUpComponents(components, qty: qty, capella: capella);
-  if (used.isNotEmpty) {
-    final usedRra = await reportPurchaseStockInToRra(
-      branchId: workOrder.branchId,
-      businessId: workOrder.businessId,
-      lines: used,
-      supplierName: 'Production',
-      sarTyCd: StockInOutType.processingOut,
-      isStockIn: false,
-      remark: 'Used in production: $productName',
-      deps: deps,
-      // This function's own test seams, passed through.
-      // ignore: invalid_use_of_visible_for_testing_member
-      resolveEbm: resolveEbm,
-      // ignore: invalid_use_of_visible_for_testing_member
-      nextBranchSar: nextBranchSar,
-    );
-    if (!usedRra.succeeded) rraMessage = usedRra.message;
-  }
-
+  // The product is stocked first: if that fails, no component has been
+  // used up, so nothing is lost and re-recording can't take them twice.
+  // RRA then sees the `05` before the matching `14`.
   final added = await addPurchasedStock(
     variant: variant,
     qty: qty,
@@ -119,7 +101,27 @@ Future<ProductionStockResult> postProductionOutput({
     // ignore: invalid_use_of_visible_for_testing_member
     nextBranchSar: nextBranchSar,
   );
-  if (!rra.succeeded) rraMessage ??= rra.message;
+  String? rraMessage = rra.succeeded ? null : rra.message;
+
+  final used = await _useUpComponents(components, qty: qty, capella: capella);
+  if (used.isNotEmpty) {
+    final usedRra = await reportPurchaseStockInToRra(
+      branchId: workOrder.branchId,
+      businessId: workOrder.businessId,
+      lines: used,
+      supplierName: 'Production',
+      sarTyCd: StockInOutType.processingOut,
+      isStockIn: false,
+      remark: 'Used in production: $productName',
+      deps: deps,
+      // This function's own test seams, passed through.
+      // ignore: invalid_use_of_visible_for_testing_member
+      resolveEbm: resolveEbm,
+      // ignore: invalid_use_of_visible_for_testing_member
+      nextBranchSar: nextBranchSar,
+    );
+    if (!usedRra.succeeded) rraMessage ??= usedRra.message;
+  }
 
   return ProductionStockResult(stocked: true, rraMessage: rraMessage);
 }
