@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flipper_dashboard/manual_purchase/manual_purchase_stock_in.dart';
 import 'package:flipper_models/DatabaseSyncInterface.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/services/purchase_approval_deps.dart';
 import 'package:flipper_models/sync/utils/combo_cost.dart';
 import 'package:flipper_models/sync/utils/purchase_stock_rra.dart';
@@ -25,7 +26,8 @@ class ProductionStockResult {
   /// True when the finished goods were added to stock.
   final bool stocked;
 
-  /// Set when reporting to RRA (EBM) failed; the stock is updated anyway.
+  /// Set when reporting to RRA (EBM) failed, or the components could not be
+  /// used up; the finished product is stocked either way.
   final String? rraMessage;
 
   /// For a product made without a recipe: the cost each unit is moved into
@@ -46,9 +48,11 @@ class ProductionStockResult {
 /// components' stock (`expandComboLinesForStock`). Services hold no stock.
 /// A plain product has no recipe in Flipper, so nothing is used up.
 ///
-/// Throws when the product can't be found, so the caller can tell the user
-/// the output was saved but stock was not. An RRA failure never throws; it
-/// comes back as [ProductionStockResult.rraMessage].
+/// Throws when the product can't be found or can't be stocked, so the caller
+/// can tell the user the output was saved but stock was not. Once the
+/// product is stocked nothing throws: a failure to use up the components
+/// ([componentsNotDeductedMessage]) or to report to RRA comes back as
+/// [ProductionStockResult.rraMessage].
 Future<ProductionStockResult> postProductionOutput({
   required WorkOrder workOrder,
   required double qty,
@@ -113,39 +117,51 @@ Future<ProductionStockResult> postProductionOutput({
   );
   String? rraMessage = rra.succeeded ? null : rra.message;
 
-  final componentIds = components
-      .map((c) => c.variantId)
-      .whereType<String>()
-      .where((id) => id.isNotEmpty)
-      .toSet()
-      .toList();
-  final componentVariants = componentIds.isEmpty
-      ? const <String, Variant>{}
-      : await capella.batchGetVariantsByIds(componentIds);
+  // The product is in stock now, so nothing below may throw: the output
+  // would read as failed, and recording it again would stock it twice.
+  var componentVariants = const <String, Variant>{};
+  try {
+    final componentIds = components
+        .map((c) => c.variantId)
+        .whereType<String>()
+        .where((id) => id.isNotEmpty)
+        .toSet()
+        .toList();
+    if (componentIds.isNotEmpty) {
+      componentVariants = await capella.batchGetVariantsByIds(componentIds);
+    }
 
-  final used = await _useUpComponents(
-    components,
-    componentVariants,
-    qty: qty,
-    capella: capella,
-  );
-  if (used.isNotEmpty) {
-    final usedRra = await reportPurchaseStockInToRra(
-      branchId: workOrder.branchId,
-      businessId: workOrder.businessId,
-      lines: used,
-      supplierName: 'Production',
-      sarTyCd: StockInOutType.processingOut,
-      isStockIn: false,
-      remark: 'Used in production: $productName',
-      deps: deps,
-      // This function's own test seams, passed through.
-      // ignore: invalid_use_of_visible_for_testing_member
-      resolveEbm: resolveEbm,
-      // ignore: invalid_use_of_visible_for_testing_member
-      nextBranchSar: nextBranchSar,
+    final used = await _useUpComponents(
+      components,
+      componentVariants,
+      qty: qty,
+      capella: capella,
     );
-    if (!usedRra.succeeded) rraMessage ??= usedRra.message;
+    if (used.isNotEmpty) {
+      final usedRra = await reportPurchaseStockInToRra(
+        branchId: workOrder.branchId,
+        businessId: workOrder.businessId,
+        lines: used,
+        supplierName: 'Production',
+        sarTyCd: StockInOutType.processingOut,
+        isStockIn: false,
+        remark: 'Used in production: $productName',
+        deps: deps,
+        // This function's own test seams, passed through.
+        // ignore: invalid_use_of_visible_for_testing_member
+        resolveEbm: resolveEbm,
+        // ignore: invalid_use_of_visible_for_testing_member
+        nextBranchSar: nextBranchSar,
+      );
+      if (!usedRra.succeeded) rraMessage ??= usedRra.message;
+    }
+  } catch (e, s) {
+    talker.error(
+      'Production: $productName stocked, components not used up',
+      e,
+      s,
+    );
+    rraMessage = componentsNotDeductedMessage(productName, e);
   }
 
   // What this batch cost to make, averaged into the product's supply price
@@ -164,7 +180,12 @@ Future<ProductionStockResult> postProductionOutput({
       unitCost: unitCost,
     );
     if ((newCost - oldCost).abs() > comboCostTolerance) {
-      await costs.variantSupplyPrice(variant.id, newCost);
+      try {
+        await costs.variantSupplyPrice(variant.id, newCost);
+      } catch (e) {
+        // The product keeps its old cost; the next batch averages again.
+        talker.warning('Production: $productName cost not updated: $e');
+      }
     }
   }
 
@@ -175,6 +196,13 @@ Future<ProductionStockResult> postProductionOutput({
     absorbUnitCost: components.isEmpty && ownCost > 0 ? ownCost : null,
   );
 }
+
+/// What the user is told when the product was stocked but its components
+/// could not be used up.
+String componentsNotDeductedMessage(String productName, Object error) =>
+    '$productName is in stock, but its components were not deducted '
+    '($error). Adjust the components\' stock by hand; do not record this '
+    'output again.';
 
 /// Takes [qty] units' worth of each component out of stock in one counter
 /// decrement per stock (concurrent sales on other tills merge), and returns
