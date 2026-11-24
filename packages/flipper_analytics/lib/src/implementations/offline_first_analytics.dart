@@ -30,6 +30,11 @@ class OfflineFirstAnalytics
   /// again when the business or branch changes.
   String? _syncedUserId;
   final Map<String, String> _syncedGroups = {};
+  // Being sent now, so concurrent events don't send them twice. Moved to
+  // the synced fields only once the SDK call succeeds; a failure is retried
+  // on the next event.
+  String? _syncingUserId;
+  final Map<String, String> _syncingGroups = {};
   Future<void>? _syncing;
 
   /// False while the device is opted out (local mode).
@@ -67,6 +72,9 @@ class OfflineFirstAnalytics
   }) async {
     if (!_enabled) return;
     try {
+      // Like any event: a restored session's first exception must not go
+      // out personless (PostHog would drop its groups).
+      await _syncSession();
       await transport.captureException(
         error,
         stackTrace: stackTrace,
@@ -143,6 +151,8 @@ class OfflineFirstAnalytics
     // session's again.
     _syncedUserId = null;
     _syncedGroups.clear();
+    _syncingUserId = null;
+    _syncingGroups.clear();
     _syncing = null;
     return transport.reset();
   }
@@ -186,25 +196,40 @@ class OfflineFirstAnalytics
   Future<void> _syncSession() {
     final current = contextProvider.userId?.trim();
     final userId =
-        current == null || current.isEmpty || current == _syncedUserId
+        current == null ||
+            current.isEmpty ||
+            current == _syncedUserId ||
+            current == _syncingUserId
         ? null
         : current;
     final groups = currentGroups();
     final changed = {
       for (final entry in groups.entries)
-        if (_syncedGroups[entry.key] != entry.value) entry.key: entry.value,
+        if (_syncedGroups[entry.key] != entry.value &&
+            _syncingGroups[entry.key] != entry.value)
+          entry.key: entry.value,
     };
     if (userId == null && changed.isEmpty) return _syncing ?? Future.value();
 
-    if (userId != null) _syncedUserId = userId;
-    _syncedGroups.addAll(changed);
+    if (userId != null) _syncingUserId = userId;
+    _syncingGroups.addAll(changed);
     final businessId = groups[AnalyticsGroups.business];
     Future<void> run() async {
-      try {
-        // No person properties: the SDK then ignores a repeat identify of
-        // the user it already has, instead of sending a `$set` each start.
-        if (userId != null) await transport.identify(userId);
-        for (final entry in changed.entries) {
+      // Each call separately: a failed identify must not skip the groups,
+      // and only what succeeded counts as synced.
+      if (userId != null) {
+        try {
+          // No person properties: the SDK then ignores a repeat identify of
+          // the user it already has, instead of sending a `$set` each start.
+          await transport.identify(userId);
+          _syncedUserId = userId;
+        } catch (_) {
+        } finally {
+          if (_syncingUserId == userId) _syncingUserId = null;
+        }
+      }
+      for (final entry in changed.entries) {
+        try {
           await transport.group(
             entry.key,
             entry.value,
@@ -213,8 +238,14 @@ class OfflineFirstAnalytics
                 AnalyticsProperties.businessId: businessId,
             },
           );
+          _syncedGroups[entry.key] = entry.value;
+        } catch (_) {
+        } finally {
+          if (_syncingGroups[entry.key] == entry.value) {
+            _syncingGroups.remove(entry.key);
+          }
         }
-      } catch (_) {}
+      }
     }
 
     return _syncing = (_syncing ?? Future<void>.value()).then((_) => run());
