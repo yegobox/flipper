@@ -10,6 +10,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:flutter/widgets.dart';
 import 'package:supabase_models/sync/shared_sync_subscriptions.dart';
+import 'package:flipper_models/sync/ditto_observer_registry.dart';
 
 /// Watches Ditto for personal-goal credits from other devices and shows system
 /// notifications. Uses both `personal_goals` replication and `events` mesh
@@ -119,10 +120,13 @@ class PersonalGoalNotificationService with WidgetsBindingObserver {
 
     var goalsPrimed = false;
 
-    _goalsObserver = ditto.store.registerObserver(
-      _goalsQuery,
+    _goalsObserver = registerTrackedObserver(
+      ditto: ditto,
+      name: 'goalNotificationGoals',
+      collection: 'personal_goals',
+      query: _goalsQuery,
       arguments: {'branchId': branchId},
-      onChange: (result) {
+      onChange: (QueryResult result) {
         final goals = _mapGoals(result);
         if (!goalsPrimed) {
           for (final g in goals) {
@@ -144,10 +148,13 @@ class PersonalGoalNotificationService with WidgetsBindingObserver {
       },
     );
 
-    _eventsObserver = ditto.store.registerObserver(
-      _eventsQuery,
+    _eventsObserver = registerTrackedObserver(
+      ditto: ditto,
+      name: 'goalNotificationEvents',
+      collection: 'events',
+      query: _eventsQuery,
       arguments: {'channel': eventChannel},
-      onChange: (result) {
+      onChange: (QueryResult result) {
         for (final item in result.items as Iterable<dynamic>) {
           try {
             final doc = Map<String, dynamic>.from(

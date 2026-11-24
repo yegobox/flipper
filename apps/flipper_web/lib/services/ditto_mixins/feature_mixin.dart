@@ -1,10 +1,15 @@
 import 'dart:async';
 import 'package:flipper_models/helperModels/business_feature.dart';
+import 'package:flipper_models/sync/ditto_observer_registry.dart';
 import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:flutter/foundation.dart';
 import 'ditto_core_mixin.dart';
 
 mixin FeatureMixin on DittoCore {
+  /// [dittoInstance], untyped: `Ditto` is a final class a unit test cannot
+  /// stand in for, so tests override this with an in-memory store.
+  dynamic get dittoHandle => dittoInstance;
+
   /// Get features for a business
   Future<BusinessFeature?> getBusinessFeatures({
     required String businessId,
@@ -33,7 +38,8 @@ mixin FeatureMixin on DittoCore {
 
   /// Subscribe to business features
   Stream<BusinessFeature?> businessFeatureStream({required String businessId}) {
-    if (!isReady()) {
+    final ditto = dittoHandle;
+    if (ditto == null) {
       return Stream.value(null);
     }
 
@@ -65,16 +71,19 @@ mixin FeatureMixin on DittoCore {
     try {
       // 1. Register Subscription (to sync data)
       final preparedFeat = prepareDqlSyncSubscription(query, args);
-      syncSubscription = dittoInstance!.sync.registerSubscription(
+      syncSubscription = ditto.sync.registerSubscription(
         preparedFeat.dql,
         arguments: preparedFeat.arguments,
       );
 
       // 2. Register Observer (to listen for local changes)
-      observer = store!.registerObserver(
-        query,
+      observer = registerTrackedObserver(
+        ditto: ditto,
+        name: 'businessFeature',
+        collection: 'business_features',
+        query: query,
         arguments: args,
-        onChange: (result) {
+        onChange: (dynamic result) {
           if (result.items.isNotEmpty) {
             controller.add(
               BusinessFeature.fromJson(

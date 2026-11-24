@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flipper_services/GlobalLogError.dart';
 import 'package:flipper_models/account_mode/account_mode_store.dart';
 import 'package:flipper_models/helperModels/business.dart';
 import 'package:flipper_models/helperModels/flipperWatch.dart';
@@ -28,7 +29,6 @@ import 'package:supabase_models/brick/repository/local_storage.dart';
 import 'package:flipper_services/locator.dart' as loc;
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_routing/app.locator.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:flipper_web/core/secrets.dart';
 import 'package:flipper_web/core/local_mode/local_mode.dart';
 import 'package:flipper_web/core/utils/ditto_singleton.dart';
@@ -153,11 +153,7 @@ mixin AuthMixin implements AuthInterface {
 
     // Capture exception for non-expected errors
     if (shouldCaptureException) {
-      try {
-        await Sentry.captureException(e, stackTrace: s);
-      } catch (sentryError) {
-        talker.error('Failed to capture exception with Sentry: $sentryError');
-      }
+      GlobalErrorHandler.report(e, s, type: 'login_failed');
     }
 
     return {

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flipper_models/sync/ditto_observer_registry.dart';
 import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_web/services/ditto_service.dart';
@@ -52,8 +53,11 @@ class RealDittoObserverRunner implements DittoObserverRunner {
     if (store == null) {
       throw Exception('Ditto not initialized:21');
     }
-    return store.registerObserver(
-      query,
+    return registerTrackedObserver(
+      store: store,
+      name: 'whatsappMessages',
+      collection: 'whatsapp_messages',
+      query: query,
       arguments: arguments ?? {},
       onChange: (result) => onChange(result),
     );

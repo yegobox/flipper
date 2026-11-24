@@ -664,6 +664,13 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
   @visibleForTesting
   List<TransactionItem> get debugVisibleCartLines => _visibleTransactionItems;
 
+  /// Deletes one cart line, as the line's delete button does after confirm.
+  @visibleForTesting
+  Future<bool> debugDeleteItem(
+    TransactionItem item, {
+    bool isOrdering = false,
+  }) => _deleteItem(item, isOrdering);
+
   Widget _buildModernItemRow(
     TransactionItem item,
     bool isOrdering, {

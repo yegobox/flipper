@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/perf/ui_stall_watchdog.dart';
+import 'package:flipper_models/sync/utils/latest_throttle.dart';
 
 /// How many live store observers there are, and what each wake-up costs.
 ///
@@ -61,63 +64,142 @@ const int kSlowObserverCallbackMs = 250;
 
 /// A store observer that reports what it costs.
 class TrackedDittoObserver {
-  TrackedDittoObserver._(this._inner, this._name, this._collection);
+  TrackedDittoObserver._(
+    this._inner,
+    this._name,
+    this._collection,
+    this._drain,
+    this._throttle,
+  );
 
   final dynamic _inner;
   final String _name;
   final String _collection;
+  final StreamSubscription<dynamic>? _drain;
+  final LatestThrottle<dynamic>? _throttle;
   bool _cancelled = false;
 
   Future<void> cancel() async {
     if (_cancelled) return;
     _cancelled = true;
     dittoObserverStats.closed(name: _name, collection: _collection);
+    _throttle?.close();
+    // The live query stops now, synchronously, as `StoreObserver.cancel()`
+    // does: call sites cancel without awaiting and close their controller
+    // straight after, so no result may arrive once this returns.
     try {
-      await _inner?.cancel();
+      final dynamic stopped = _inner?.cancel();
+      if (stopped is Future) unawaited(stopped.catchError((Object _) {}));
     } catch (_) {
       // Ditto already closed, or the observer is already torn down.
     }
+    try {
+      await _drain?.cancel();
+    } catch (_) {}
   }
 }
+
+final RegExp _fromCollection = RegExp(
+  r'\bFROM\s+`?(\w+)',
+  caseSensitive: false,
+);
+
+/// The collection a `SELECT` reads, for call sites that take the query as a
+/// parameter. `unknown` when there is no `FROM <name>`.
+String dqlCollection(String query) =>
+    _fromCollection.firstMatch(query)?.group(1) ?? 'unknown';
 
 /// Registers a store observer that accounts for itself.
 ///
 /// [name] identifies the call site — several observers can share a collection,
 /// and the point is to know *which* one woke up and what it cost.
-TrackedDittoObserver registerTrackedObserver({
-  required dynamic ditto,
+///
+/// Pass the Ditto handle as [ditto], or its store as [store] where a caller
+/// only holds the store. [R] keeps a call site's callback typed
+/// (`(QueryResult result) {...}`). An untyped callback's parameter is
+/// inferred as `Object?`, so type it whenever the callback reads the result.
+/// No [arguments] registers the query with none, as `registerObserver` does.
+///
+/// With [coalesce], a burst of results reaches [onChange] at most once per
+/// window (the first at once, then only the newest; see [LatestThrottle]).
+/// Every call to [onChange] is timed, including the ones the window's timer
+/// makes after Ditto's callback has returned.
+TrackedDittoObserver registerTrackedObserver<R>({
+  dynamic ditto,
+  dynamic store,
   required String name,
   required String collection,
   required String query,
   Map<String, dynamic>? arguments,
-  required void Function(dynamic queryResult) onChange,
+  Duration? coalesce,
+  required void Function(R queryResult) onChange,
 }) {
-  dittoObserverStats.opened(name: name, collection: collection);
-  final inner = ditto.store.registerObserver(
-    query,
-    arguments: arguments,
-    onChange: (dynamic queryResult) {
-      final sw = Stopwatch()..start();
-      try {
-        onChange(queryResult);
-      } finally {
-        final ms = sw.elapsedMilliseconds;
-        if (ms >= kSlowObserverCallbackMs) {
-          PerfOpTrail.instance.note(
-            'obs:$name',
-            took: Duration(milliseconds: ms),
-          );
-          int? rows;
-          try {
-            rows = (queryResult.items as Iterable).length;
-          } catch (_) {}
-          talker.warning(
-            '[ditto_observer] $name woke for ${ms}ms '
-            '(rows=${rows ?? '?'}, live: ${dittoObserverStats.summary()})',
-          );
-        }
-      }
-    },
+  assert(ditto != null || store != null, 'pass ditto or store');
+  final dynamic target = store ?? ditto.store;
+  void timed(dynamic queryResult) => _timeObserverCallback(
+    name,
+    queryResult,
+    (dynamic result) => onChange(result as R),
   );
-  return TrackedDittoObserver._(inner, name, collection);
+  final throttle = coalesce == null
+      ? null
+      : LatestThrottle<dynamic>(coalesce, timed);
+  final inner = target.registerObserver(
+    query,
+    arguments: arguments ?? const <String, dynamic>{},
+    onChange: throttle?.add ?? timed,
+  );
+  // Counted once it exists: a registration that throws opened nothing.
+  dittoObserverStats.opened(name: name, collection: collection);
+  return TrackedDittoObserver._(
+    inner,
+    name,
+    collection,
+    _drainChanges(inner),
+    throttle,
+  );
+}
+
+/// Runs [onChange] and names it in the perf trail and the log when it takes
+/// [kSlowObserverCallbackMs] or more.
+void _timeObserverCallback(
+  String name,
+  dynamic queryResult,
+  void Function(dynamic queryResult) onChange,
+) {
+  final sw = Stopwatch()..start();
+  try {
+    onChange(queryResult);
+  } finally {
+    final ms = sw.elapsedMilliseconds;
+    if (ms >= kSlowObserverCallbackMs) {
+      PerfOpTrail.instance.note('obs:$name', took: Duration(milliseconds: ms));
+      int? rows;
+      try {
+        rows = (queryResult.items as Iterable).length;
+      } catch (_) {}
+      talker.warning(
+        '[ditto_observer] $name woke for ${ms}ms '
+        '(rows=${rows ?? '?'}, live: ${dittoObserverStats.summary()})',
+      );
+    }
+  }
+}
+
+/// Reads and drops the results ditto_live queues on `observer.changes`.
+///
+/// `StoreObserver` adds every result to that single-subscription stream as
+/// well as passing it to `onChange`. A stream nobody listens to buffers, so
+/// without this each result (and the native memory behind it) stays alive
+/// for as long as the observer does — a long-lived observer over a busy
+/// collection grows the heap all session, which a 2 GB phone pays for in
+/// garbage-collection pauses.
+StreamSubscription<dynamic>? _drainChanges(dynamic observer) {
+  try {
+    final Stream<dynamic> changes = observer.changes;
+    return changes.listen((_) {});
+  } catch (_) {
+    // A test double without `changes`.
+    return null;
+  }
 }

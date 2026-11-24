@@ -25,6 +25,7 @@ import 'package:supabase_models/brick/models/transactionItem.model.dart';
 import 'package:talker/talker.dart';
 import 'package:uuid/uuid.dart';
 import 'package:supabase_models/sync/shared_sync_subscriptions.dart';
+import 'package:flipper_models/sync/ditto_observer_registry.dart';
 
 part 'hotel_mixin_mapping.dart';
 part 'hotel_mixin_stay_changes.dart';
@@ -176,8 +177,11 @@ mixin CapellaHotelMixin implements HotelInterface {
         if (controller.isClosed) return;
         controller.add(map(initial));
         if (controller.isClosed) return;
-        observer = ditto.store.registerObserver(
-          sql,
+        observer = registerTrackedObserver(
+          ditto: ditto,
+          name: label,
+          collection: dqlCollection(sql),
+          query: sql,
           arguments: args,
           onChange: (r) {
             if (!controller.isClosed) controller.add(map(r));
@@ -189,10 +193,9 @@ mixin CapellaHotelMixin implements HotelInterface {
       }
     }());
 
+    // A tracked observer's cancel never throws.
     controller.onCancel = () async {
-      try {
-        await observer?.cancel();
-      } catch (_) {}
+      await observer?.cancel();
       await controller.close();
     };
 
@@ -971,8 +974,11 @@ mixin CapellaHotelMixin implements HotelInterface {
         if (!controller.isClosed) {
           controller.add(await _foliosFromResult(initial));
         }
-        observer = ditto.store.registerObserver(
-          _hotelOpenFoliosSql,
+        observer = registerTrackedObserver(
+          ditto: ditto,
+          name: 'hotelOpenFolios',
+          collection: 'transactions',
+          query: _hotelOpenFoliosSql,
           arguments: args,
           onChange: (r) async {
             if (!controller.isClosed) {
@@ -986,10 +992,9 @@ mixin CapellaHotelMixin implements HotelInterface {
       }
     }());
 
+    // A tracked observer's cancel never throws.
     controller.onCancel = () async {
-      try {
-        await observer?.cancel();
-      } catch (_) {}
+      await observer?.cancel();
       await controller.close();
     };
 

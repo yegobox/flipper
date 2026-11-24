@@ -130,4 +130,56 @@ void main() {
     expect(store.executed.single.$1, isNot(contains(':end')));
     await sub.cancel();
   });
+
+  group('watchCollection', () {
+    test('reads once, then emits the rows on every change', () async {
+      final service = _Service(store);
+      final emitted = <List<Map<String, dynamic>>>[];
+      final sub = service
+          .watchCollection('transactions', 'SELECT * FROM transactions', {
+            'branchId': 'b',
+          })
+          .listen(emitted.add);
+      await pumpEventQueue();
+      expect(emitted.single.single['_id'], 't1');
+      expect(store.executed.single.$2, {'branchId': 'b'});
+
+      store.onChange!(
+        _Result([
+          _Item({'_id': 't2'}),
+        ]),
+      );
+      await pumpEventQueue();
+      expect(emitted.last.single['_id'], 't2');
+
+      await sub.cancel();
+      expect(store.observer!.cancelled, isTrue);
+      // A late change after cancel is dropped.
+      store.onChange!(
+        _Result([
+          _Item({'_id': 't3'}),
+        ]),
+      );
+      await pumpEventQueue();
+      expect(emitted, hasLength(2));
+    });
+
+    test('cancelled before the first read: no observer', () async {
+      final sub = _Service(store)
+          .watchCollection('transactions', 'SELECT * FROM transactions', {})
+          .listen((_) {});
+      await sub.cancel();
+      await pumpEventQueue();
+      expect(store.observer, isNull);
+    });
+
+    test('no Ditto: one empty list', () async {
+      expect(
+        await _Service(
+          null,
+        ).watchCollection('transactions', 'SELECT * FROM t', {}).toList(),
+        [isEmpty],
+      );
+    });
+  });
 }

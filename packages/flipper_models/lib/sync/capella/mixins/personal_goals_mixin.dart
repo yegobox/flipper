@@ -12,6 +12,8 @@ import 'package:flipper_web/services/ditto_service.dart';
 import 'package:supabase_models/brick/models/transactionItem.model.dart';
 import 'package:talker/talker.dart';
 import 'package:supabase_models/sync/shared_sync_subscriptions.dart';
+import 'package:flipper_models/sync/ditto_observer_registry.dart';
+import 'package:ditto_live/ditto_live.dart' show QueryResult;
 
 mixin CapellaPersonalGoalsMixin {
   DittoService get dittoService;
@@ -239,10 +241,13 @@ mixin CapellaPersonalGoalsMixin {
               // Register the observer before any retry sleeps so replication that
               // lands during cold-start backoff still pushes updates (otherwise
               // the UI can stay empty until pull-to-refresh recreates the stream).
-              observer = ditto.store.registerObserver(
-                orderedQuery,
+              observer = registerTrackedObserver(
+                ditto: ditto,
+                name: 'personalGoals',
+                collection: 'personal_goals',
+                query: orderedQuery,
                 arguments: arguments,
-                onChange: (queryResult) {
+                onChange: (QueryResult queryResult) {
                   unawaited(emitIfOpen(queryResult));
                 },
               );

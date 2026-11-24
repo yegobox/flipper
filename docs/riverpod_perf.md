@@ -18,7 +18,13 @@ Agent rule: `.cursor/rules/flipper-riverpod-perf.mdc` (also in workspace `yego-p
 - **A subscription you don't keep goes through `SharedSyncSubscriptions.register`.** It registers each query and arguments once per Ditto session. Calling Ditto directly on every stream rebuild left hundreds of identical branch-wide subscriptions for sync to evaluate. CI enforces this: `documented_rules_check.py`, rule `unshared_sync_subscriptions`.
 - **A subscription you do keep is cancelled in `onCancel`**, next to the observer (`KeyedSyncSubscriptions` for per-key ones).
 - **Arguments must repeat.** A value that changes on every call (such as `DateTime.now()`) makes every registration a new subscription. `localHistoryWindowStart` is whole days for this reason.
-- **New observers use `registerTrackedObserver`**, which counts live observers and names slow callbacks in `perf.log`. Rule `untracked_store_observers` is a ratchet on the direct calls.
+- **New observers use `registerTrackedObserver`**, which counts live observers and names slow callbacks in `perf.log`. Rule `untracked_store_observers` is a ratchet on the direct calls. It also drains `observer.changes`: ditto_live queues every result there as well as passing it to `onChange`, and an unread stream keeps each result (and its native memory) alive until the observer is cancelled.
+- **Watch the key, not the list.** A provider that opens an observer for a list's rows watches `select((a) => stockIdsKey(...))`, so a repaint with the same rows does not re-register it (`stocksForVisibleVariantsProvider`).
+- **Coalesce bursty observers.** A sync burst fires an observer once per changed row; decode only the newest result per window: `registerTrackedObserver(coalesce: …)`, as `watchStocksByIds` does, so the deliveries the window's timer makes are timed like any observer callback.
+
+## Big reads on the UI isolate
+
+`store.execute` itself is off the UI thread, but `QueryResultItem.value` is a `jsonDecode` on the calling isolate. Reading a whole collection that way froze 2 GB phones for 2–5 s (PostHog `ui_stall` after `variants:stock_*`, 2026-11). For a full-catalog read, take `doc.jsonString` and decode and join in `Isolate.run` (`runStockFilterWalk`), and do it once per listing, not once per page (`PosStockFilterWalker`, `StockFilterMatchCache`). Walk once: rows the walk could not resolve are settled on the caller in one pass (`StockFilterWalk.withExtraQty`), never by a second decode. Never call Ditto from the isolate.
 
 ## Perf budgets
 

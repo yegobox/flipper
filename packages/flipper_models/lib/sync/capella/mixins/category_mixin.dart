@@ -9,6 +9,8 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:talker/talker.dart';
+import 'package:flipper_models/sync/ditto_observer_registry.dart';
+import 'package:ditto_live/ditto_live.dart' show QueryResult;
 
 /// Ditto SQL reads for categories on Capella. Applied **after** [CategoryMixin]
 /// (Brick) on [CapellaSync] so listing/subscription hits local Ditto.
@@ -186,10 +188,13 @@ mixin CapellaCategoryDittoMixin implements CategoryInterface {
     const query = "SELECT * FROM categories WHERE branchId = :branchId";
     final arguments = {"branchId": id};
 
-    final observer = dittoService.dittoInstance!.store.registerObserver(
-      query,
+    final observer = registerTrackedObserver(
+      ditto: dittoService.dittoInstance!,
+      name: 'categories',
+      collection: 'categories',
+      query: query,
       arguments: arguments,
-      onChange: (queryResult) {
+      onChange: (QueryResult queryResult) {
         if (controller.isClosed) return;
 
         final categories = queryResult.items.map((doc) {

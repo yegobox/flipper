@@ -4,6 +4,7 @@ import 'package:flipper_dashboard/utils/sale_stock_deduction.dart';
 import 'package:flipper_models/DatabaseSyncInterface.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/sync/utils/combo_cost.dart';
 import 'package:flipper_models/sync/utils/rra_stock_reporting.dart';
 import 'package:flipper_models/tax_api.dart';
 import 'package:flipper_services/FirebaseCrashlyticService.dart';
@@ -383,6 +384,141 @@ void main() {
       expect(body['sarTyCd'], StockInOutType.sale);
       expect(body['remark'], 'Stock out for sale');
       expect(body['orgSarNo'], 4518);
+    });
+  });
+
+  // A combo sold as made books its components' cost as COGS (splyAmt), and
+  // its own supply price follows.
+  group('combo costs', () {
+    late List<(String, double, double)> lineCosts;
+    late Map<String, double> variantCosts;
+    late ComboCostWriter writer;
+
+    TransactionItem comboLine() => TransactionItem(
+      id: 'combo-line',
+      name: 'Lunch',
+      qty: 2,
+      price: 3000,
+      discount: 0,
+      prc: 3000,
+      ttCatCd: 'A',
+      variantId: 'combo-v',
+      productId: 'combo-p',
+      branchId: 'b',
+      itemTyCd: '3',
+      supplyPrice: 0,
+    );
+
+    Variant component(String id, double? supply) => Variant(
+      id: id,
+      name: id,
+      branchId: 'b',
+      stockId: '$id-s',
+      itemTyCd: '2',
+      supplyPrice: supply,
+    );
+
+    void stubCombo({double? breadCost = 250}) {
+      when(() => box.getBusinessId()).thenReturn('biz');
+      when(() => box.getBranchId()).thenReturn('b');
+      when(
+        () => mockCapella.getProduct(
+          id: 'combo-p',
+          branchId: 'b',
+          businessId: 'biz',
+        ),
+      ).thenAnswer(
+        (_) async => Product(
+          id: 'combo-p',
+          name: 'Lunch',
+          color: '#000',
+          businessId: 'biz',
+          branchId: 'b',
+          isComposite: true,
+        ),
+      );
+      when(
+        () => mockCapella.composites(productId: 'combo-p', localOnly: true),
+      ).thenAnswer(
+        (_) async => [
+          Composite(productId: 'combo-p', variantId: 'soda', qty: 2),
+          Composite(productId: 'combo-p', variantId: 'bread'),
+        ],
+      );
+      when(() => mockCapella.batchGetVariantsByIds(any())).thenAnswer(
+        (_) async => {
+          'soda': component('soda', 300),
+          'bread': component('bread', breadCost),
+        },
+      );
+      when(
+        () => mockCapella.batchGetStocksByIds(any()),
+      ).thenAnswer((_) async => {});
+      when(
+        () => mockCapella.getStockById(id: any(named: 'id')),
+      ).thenAnswer((_) async => null);
+    }
+
+    setUp(() {
+      lineCosts = [];
+      variantCosts = {};
+      writer = ComboCostWriter(
+        variantSupplyPrice: (id, cost) async => variantCosts[id] = cost,
+        lineSupplyCost: (id, unit, qty) async => lineCosts.add((id, unit, qty)),
+      );
+    });
+
+    Future<void> sell({ComboCostWriter? costs}) =>
+        applyDeferredSaleStockDeduction(
+          transactionItems: [comboLine()],
+          allowSellingBelowStock: true,
+          isProformaOrTraining: false,
+          transactionId: _transactionId,
+          comboCosts: () => costs,
+        );
+
+    test('a combo line books what its components cost', () async {
+      stubCombo();
+
+      await sell(costs: writer);
+
+      // One lunch = 2 soda × 300 + 1 bread × 250 = 850; 2 sold.
+      expect(lineCosts, [('combo-line', 850.0, 2.0)]);
+      expect(variantCosts, {'combo-v': 850.0});
+    });
+
+    test('a component with no cost keeps the cost the combo has', () async {
+      stubCombo(breadCost: null);
+
+      await sell(costs: writer);
+
+      expect(lineCosts, isEmpty);
+      expect(variantCosts, isEmpty);
+    });
+
+    test('with Ditto not open, nothing is written', () async {
+      stubCombo();
+
+      await sell();
+
+      expect(lineCosts, isEmpty);
+      expect(variantCosts, isEmpty);
+    });
+
+    test('a failed cost write never fails the sale', () async {
+      stubCombo();
+
+      await sell(
+        costs: ComboCostWriter(
+          variantSupplyPrice: (_, __) async => throw StateError('ditto'),
+          lineSupplyCost: (_, __, ___) async => throw StateError('ditto'),
+        ),
+      );
+
+      // The components' stock still moves.
+      verify(
+        () => mockCapella.batchGetStocksByIds(any()),
+      ).called(greaterThan(0));
     });
   });
 }
