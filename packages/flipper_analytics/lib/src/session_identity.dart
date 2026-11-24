@@ -1,3 +1,4 @@
+import 'events/analytics_properties.dart';
 import 'interfaces/product_analytics.dart';
 
 /// Ties what follows to the signed-in Flipper user and their business and
@@ -19,19 +20,19 @@ Future<void> identifySession(
   }
   if (businessId != null && businessId.isNotEmpty) {
     await analytics.group(
-      'business',
+      AnalyticsGroups.business,
       businessId,
       properties: {'source': source},
     );
   }
   if (branchId != null && branchId.isNotEmpty) {
     await analytics.group(
-      'branch',
+      AnalyticsGroups.branch,
       branchId,
       properties: {
         'source': source,
         if (businessId != null && businessId.isNotEmpty)
-          'business_id': businessId,
+          AnalyticsProperties.businessId: businessId,
       },
     );
   }

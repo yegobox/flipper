@@ -62,6 +62,11 @@ class PostHogTransport implements AnalyticsTransport {
 
   /// Web calls run one after another, in the order they were made.
   Future<void> _webChain = Future<void>.value();
+  final List<Future<void> Function()> _webQueue = [];
+
+  /// How many web calls wait for posthog-js at most.
+  @visibleForTesting
+  static const maxQueuedWebCalls = 50;
   Future<void>? _deviceRegistration;
 
   /// One lookup shared by every caller, so concurrent calls never mint two
@@ -138,13 +143,21 @@ class PostHogTransport implements AnalyticsTransport {
   Future<void> _onLive(Future<void> Function() call) async {
     if (!_initialized) await initialize();
     if (!_isWeb) return call();
-    Future<void> run() async {
-      await _ensureDeviceRegistered();
-      await call();
-    }
-
+    _webQueue.add(call);
+    // Bounded: with no token (or the CDN blocked for good) nothing loads,
+    // and the oldest calls give way.
+    if (_webQueue.length > maxQueuedWebCalls) _webQueue.removeAt(0);
     final step = _webChain.then((_) async {
-      if (_webReady || await _loadWeb()) await run();
+      // A failed load keeps the queue; the next call tries the load again
+      // and runs everything queued so far, in order.
+      if (!_webReady && !await _loadWeb()) return;
+      await _ensureDeviceRegistered();
+      while (_webQueue.isNotEmpty) {
+        final next = _webQueue.removeAt(0);
+        try {
+          await next();
+        } catch (_) {}
+      }
     });
     _webChain = step.catchError((Object _) {});
     // Already loaded: the caller may wait for its own call. Not loaded yet:
