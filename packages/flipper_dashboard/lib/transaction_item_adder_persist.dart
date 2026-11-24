@@ -87,15 +87,78 @@ Future<ITransaction?> resolvePendingTransactionForPersist({
   return pendingTransaction;
 }
 
+/// Combo recipes resolved for one cart, so later taps don't read them again.
+///
+/// Scoped to the pending transaction (with its branch and business): a new
+/// cart starts empty. Holds each product's components (empty when it is not
+/// a combo) and the product of each cart line read from its variant; bounded
+/// so a long-lived cart can't grow it without limit. Stock is never cached.
+class ComboRecipeCache {
+  ComboRecipeCache({this.maxProducts = 64});
+
+  /// Products kept at most; the least recently used go first.
+  final int maxProducts;
+
+  String? _scope;
+  final _recipes = <String, List<Composite>>{};
+  final _productOfVariant = <String, String?>{};
+
+  /// Starts over unless [scope] is the cart the cache holds.
+  void useScope(String scope) {
+    if (_scope == scope) return;
+    _scope = scope;
+    _recipes.clear();
+    _productOfVariant.clear();
+  }
+
+  List<Composite>? recipe(String productId) {
+    final hit = _recipes.remove(productId);
+    if (hit != null) _recipes[productId] = hit; // most recently used last
+    return hit;
+  }
+
+  void putRecipe(String productId, List<Composite> components) {
+    _recipes.remove(productId);
+    _recipes[productId] = components;
+    while (_recipes.length > maxProducts) {
+      _recipes.remove(_recipes.keys.first);
+    }
+  }
+
+  bool knowsProductOf(String variantId) =>
+      _productOfVariant.containsKey(variantId);
+
+  String? productOf(String variantId) => _productOfVariant[variantId];
+
+  void putProductOf(String variantId, String? productId) {
+    if (_productOfVariant.length >= maxProducts * 4) _productOfVariant.clear();
+    _productOfVariant[variantId] = productId;
+  }
+
+  @visibleForTesting
+  void clear() {
+    _scope = null;
+    _recipes.clear();
+    _productOfVariant.clear();
+  }
+}
+
+/// The till's [ComboRecipeCache] (one cart is open at a time).
+@visibleForTesting
+final comboRecipeCache = ComboRecipeCache();
+
 /// What every combo in the cart takes of each stocked component
 /// ([comboComponentNeeds]), with those components' variants. [tapped] counts
 /// as in the cart even before its line shows. Local reads only (Ditto, then
 /// Brick `localOnly`): a tap never waits on the network. A cart with no
-/// service lines reads nothing.
+/// service lines reads nothing. Recipes come from [comboRecipeCache] after
+/// the first tap; each product is read once, and the component variants in
+/// one batch.
 Future<({Map<String, double> needs, Map<String, Variant> variants})>
 _cartComboNeeds({
   required Ref ref,
   required dynamic capella,
+  required String transactionId,
   required String? branchId,
   required String? businessId,
   Variant? tapped,
@@ -114,34 +177,59 @@ _cartComboNeeds({
   if (tapped != null) productOfService[tapped.id] = tapped.productId;
   if (productOfService.isEmpty) return none;
 
-  final unknown = [
-    for (final e in productOfService.entries)
-      if (e.value == null) e.key,
-  ];
+  final cache = comboRecipeCache
+    ..useScope('$businessId/$branchId/$transactionId');
+  final unknown = <String>[];
+  for (final e in productOfService.entries) {
+    if (e.value != null) continue;
+    if (cache.knowsProductOf(e.key)) {
+      productOfService[e.key] = cache.productOf(e.key);
+    } else {
+      unknown.add(e.key);
+    }
+  }
   if (unknown.isNotEmpty) {
     final Map<String, Variant> lineVariants = await capella
         .batchGetVariantsByIds(unknown);
     for (final vid in unknown) {
-      productOfService[vid] = lineVariants[vid]?.productId;
+      final pid = lineVariants[vid]?.productId;
+      productOfService[vid] = pid;
+      cache.putProductOf(vid, pid);
     }
   }
 
-  final componentsByCombo = <String, List<Composite>>{};
-  for (final e in productOfService.entries) {
-    final productId = e.value;
+  // One lookup per distinct product, then never again for this cart. A
+  // combo with no components here yet is not cached: they may still sync.
+  final recipes = <String, List<Composite>>{};
+  for (final productId in productOfService.values.toSet()) {
     if (productId == null || productId.isEmpty) continue;
-    final Product? product = await capella.getProduct(
-      id: productId,
-      branchId: branchId,
-      businessId: businessId,
-    );
-    if (product?.isComposite != true) continue;
-    final List<Composite> components = await capella.composites(
-      productId: productId,
-      localOnly: true,
-    );
-    if (components.isNotEmpty) componentsByCombo[e.key] = components;
+    var components = cache.recipe(productId);
+    if (components == null) {
+      final Product? product = await capella.getProduct(
+        id: productId,
+        branchId: branchId,
+        businessId: businessId,
+      );
+      if (product?.isComposite != true) {
+        components = const <Composite>[];
+        cache.putRecipe(productId, components);
+      } else {
+        final List<Composite> read = await capella.composites(
+          productId: productId,
+          localOnly: true,
+        );
+        components = read;
+        if (read.isNotEmpty) cache.putRecipe(productId, read);
+      }
+    }
+    recipes[productId] = components;
   }
+
+  final componentsByCombo = <String, List<Composite>>{
+    for (final e in productOfService.entries)
+      if ((recipes[e.value] ?? const <Composite>[]).isNotEmpty)
+        e.key: recipes[e.value]!,
+  };
   if (componentsByCombo.isEmpty) return none;
 
   final ids = componentsByCombo.values
@@ -172,6 +260,7 @@ _cartComboNeeds({
 Future<double> _takenByCartCombos({
   required Ref ref,
   required dynamic capella,
+  required String transactionId,
   required String variantId,
   required String? branchId,
   required String? businessId,
@@ -179,6 +268,7 @@ Future<double> _takenByCartCombos({
   final cart = await _cartComboNeeds(
     ref: ref,
     capella: capella,
+    transactionId: transactionId,
     branchId: branchId,
     businessId: businessId,
   );
@@ -191,6 +281,7 @@ Future<double> _takenByCartCombos({
 Future<bool> _comboComponentsInStock({
   required Ref ref,
   required dynamic capella,
+  required String transactionId,
   required Variant variant,
   required String? branchId,
   required String? businessId,
@@ -198,6 +289,7 @@ Future<bool> _comboComponentsInStock({
   final cart = await _cartComboNeeds(
     ref: ref,
     capella: capella,
+    transactionId: transactionId,
     branchId: branchId,
     businessId: businessId,
     tapped: variant,
@@ -256,6 +348,7 @@ Future<bool> persistItemToTransaction({
                       await _takenByCartCombos(
                         ref: ref,
                         capella: capella,
+                        transactionId: pendingTransaction.id,
                         variantId: variant.id,
                         branchId: branchId,
                         businessId: businessId,
@@ -285,6 +378,7 @@ Future<bool> persistItemToTransaction({
         !await _comboComponentsInStock(
           ref: ref,
           capella: capella,
+          transactionId: pendingTransaction.id,
           variant: variant,
           branchId: branchId,
           businessId: businessId,

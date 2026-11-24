@@ -214,6 +214,7 @@ void main() {
       Variant tapped, {
       required List<TransactionItem> cart,
       String? businessId = 'biz1',
+      ITransaction? transaction,
     }) async {
       final settings = _MockSettings();
       when(
@@ -223,7 +224,11 @@ void main() {
         locator.unregister<SettingsService>();
       }
       locator.registerSingleton<SettingsService>(settings);
-      addTearDown(() => locator.unregister<SettingsService>());
+      addTearDown(() {
+        if (locator.isRegistered<SettingsService>()) {
+          locator.unregister<SettingsService>();
+        }
+      });
 
       final container = ProviderContainer(
         overrides: [posCartDisplayItemsProvider.overrideWithValue(cart)],
@@ -235,14 +240,14 @@ void main() {
         variant: tapped,
         isOrdering: false,
         pendingProv: pendingProv,
-        pendingTransaction: pending,
+        pendingTransaction: transaction ?? pending,
         sessionAtStart: 0,
         cartOptimismApplied: false,
         businessId: businessId,
       );
     }
 
-    void expectSaved(bool saved) {
+    void expectSavedTimes(int times) {
       final save = () => db.saveTransactionItem(
         variation: any(named: 'variation'),
         amountTotal: any(named: 'amountTotal'),
@@ -262,14 +267,18 @@ void main() {
           named: 'updatePendingTransactionSubtotal',
         ),
       );
-      if (saved) {
-        verify(save).called(1);
+      if (times > 0) {
+        verify(save).called(times);
       } else {
         verifyNever(save);
       }
     }
 
+    void expectSaved(bool saved) => expectSavedTimes(saved ? 1 : 0);
+
     setUp(() {
+      // Each test starts with a cold recipe cache.
+      comboRecipeCache.clear();
       when(
         () => db.saveTransactionItem(
           variation: any(named: 'variation'),
@@ -298,6 +307,94 @@ void main() {
       line('combo-b', productId: 'pb'),
       line('delivery', productId: 'pd'),
     ];
+
+    // The recipes are read once per cart: later taps reuse them, and the
+    // stock check still reads stock every time.
+    test(
+      'a second tap reads no recipe again; stock is still checked',
+      () async {
+        // Combo A takes 2 soda, B and B2 one each.
+        stubStore(sodaOnHand: 4);
+        final cart = [
+          ...cartWithBothCombos,
+          // Another variant of combo B's product: still one lookup.
+          line('combo-b2', productId: 'pb'),
+        ];
+
+        await tap(comboB, cart: cart);
+        await tap(comboB, cart: cart);
+        expectSavedTimes(2);
+
+        verify(
+          () => db.getProduct(id: 'pa', branchId: 'b1', businessId: 'biz1'),
+        ).called(1);
+        verify(
+          () => db.getProduct(id: 'pb', branchId: 'b1', businessId: 'biz1'),
+        ).called(1);
+        verify(
+          () => db.getProduct(id: 'pd', branchId: 'b1', businessId: 'biz1'),
+        ).called(1);
+        verify(() => db.composites(productId: 'pa', localOnly: true)).called(1);
+        verify(() => db.composites(productId: 'pb', localOnly: true)).called(1);
+        // Combo A's line has no productId: its variant is read once too.
+        verify(() => db.batchGetVariantsByIds(['combo-a'])).called(1);
+      },
+    );
+
+    test('a cached recipe gives the same stock answer', () async {
+      stubStore(sodaOnHand: 3);
+      await tap(comboB, cart: cartWithBothCombos);
+      expectSaved(true);
+
+      // Same cart, less soda on hand: the cached recipe still blocks it.
+      clearInteractions(db);
+      stubStore(sodaOnHand: 2);
+      await tap(comboB, cart: cartWithBothCombos);
+      expectSaved(false);
+      verifyNever(
+        () => db.getProduct(
+          id: any(named: 'id'),
+          branchId: any(named: 'branchId'),
+          businessId: any(named: 'businessId'),
+        ),
+      );
+    });
+
+    test('a new cart reads the recipes again', () async {
+      stubStore(sodaOnHand: 3);
+      await tap(comboB, cart: [line('combo-b', productId: 'pb')]);
+      await tap(
+        comboB,
+        cart: [line('combo-b', productId: 'pb')],
+        transaction: ITransaction(
+          id: 'txn-next',
+          branchId: 'b1',
+          agentId: 'agent-1',
+          status: PENDING,
+          transactionType: 'sale',
+          paymentType: 'CASH',
+          cashReceived: 0,
+          customerChangeDue: 0,
+          updatedAt: DateTime.utc(2026, 11, 24),
+          isIncome: true,
+          isExpense: false,
+          subTotal: 0,
+        ),
+      );
+      verify(
+        () => db.getProduct(id: 'pb', branchId: 'b1', businessId: 'biz1'),
+      ).called(2);
+    });
+
+    test('a combo with no components yet is read again next tap', () async {
+      stubStore(sodaOnHand: 3);
+      when(
+        () => db.composites(productId: 'pb', localOnly: true),
+      ).thenAnswer((_) async => []);
+      await tap(comboB, cart: [line('combo-b', productId: 'pb')]);
+      await tap(comboB, cart: [line('combo-b', productId: 'pb')]);
+      verify(() => db.composites(productId: 'pb', localOnly: true)).called(2);
+    });
 
     test('combo B is blocked by the soda combo A already takes', () async {
       stubStore(sodaOnHand: 2);
@@ -465,6 +562,42 @@ void main() {
       stubStore(sodaOnHand: 0);
       await tap(delivery, cart: [line('delivery', productId: 'pd')]);
       expectSaved(true);
+    });
+  });
+
+  group('ComboRecipeCache', () {
+    test('keeps the most recently used products', () {
+      final cache = ComboRecipeCache(maxProducts: 2)..useScope('cart-1');
+      final soda = [Composite(variantId: 'soda')];
+      cache.putRecipe('a', soda);
+      cache.putRecipe('b', soda);
+      expect(cache.recipe('a'), soda); // a is now the most recent
+      cache.putRecipe('c', soda);
+      expect(cache.recipe('b'), isNull);
+      expect(cache.recipe('a'), soda);
+      expect(cache.recipe('c'), soda);
+    });
+
+    test('a new scope starts empty; the same scope keeps its entries', () {
+      final cache = ComboRecipeCache()..useScope('cart-1');
+      cache.putRecipe('a', const []);
+      cache.putProductOf('v1', 'a');
+      cache.useScope('cart-1');
+      expect(cache.recipe('a'), isEmpty);
+      expect(cache.knowsProductOf('v1'), isTrue);
+      cache.useScope('cart-2');
+      expect(cache.recipe('a'), isNull);
+      expect(cache.knowsProductOf('v1'), isFalse);
+    });
+
+    test('line products are bounded too', () {
+      final cache = ComboRecipeCache(maxProducts: 1)..useScope('cart-1');
+      for (var i = 0; i < 4; i++) {
+        cache.putProductOf('v$i', 'p$i');
+      }
+      cache.putProductOf('v4', 'p4');
+      expect(cache.knowsProductOf('v0'), isFalse);
+      expect(cache.productOf('v4'), 'p4');
     });
   });
 }
