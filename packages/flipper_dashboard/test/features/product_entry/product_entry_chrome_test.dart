@@ -5,6 +5,8 @@ import 'package:flipper_dashboard/features/product_entry/widgets/mobile_entry_st
 import 'package:flipper_dashboard/features/product_entry/widgets/pricing_section.dart';
 import 'package:flipper_design_system/flipper_design_system.dart';
 import 'package:flipper_localize/flipper_localize.dart';
+import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -54,55 +56,134 @@ void main() {
       expect(backs, 1);
     });
 
-    testWidgets('cannot go back while saving; takes a close icon', (
-      tester,
-    ) async {
-      var backs = 0;
+    testWidgets(
+      'the top-bar back is disabled while saving; takes a close icon',
+      (tester) async {
+        var backs = 0;
+        await tester.pumpWidget(
+          _app(
+            Scaffold(
+              body: ProductEditorTopBar(
+                isEditMode: true,
+                isComposite: false,
+                productName: 'Soap',
+                onBack: () => backs++,
+                isSaving: true,
+                icon: Icons.close,
+              ),
+            ),
+          ),
+        );
+
+        expect(find.byIcon(Icons.arrow_back), findsNothing);
+        await tester.tap(find.byIcon(Icons.close));
+        expect(backs, 0);
+      },
+    );
+  });
+
+  group('product routes', () {
+    late Widget Function(String?) realPage;
+    setUp(() => realPage = productEntryPageBuilder);
+    tearDown(() => productEntryPageBuilder = realPage);
+
+    /// Pumps a launcher, then opens the editor through
+    /// [openProductEntryScreen], with a light page in place of the editor.
+    Future<ProviderContainer> openEditor(
+      WidgetTester tester, {
+      String? productId,
+      bool comboBefore = false,
+    }) async {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      container.read(isCompositeProvider.notifier).state = comboBefore;
+      productEntryPageBuilder = (id) =>
+          Scaffold(body: Text('editor ${id ?? 'new'}'));
+
       await tester.pumpWidget(
-        _app(
-          Scaffold(
-            body: ProductEditorTopBar(
-              isEditMode: true,
-              isComposite: false,
-              productName: 'Soap',
-              onBack: () => backs++,
-              isSaving: true,
-              icon: Icons.close,
+        UncontrolledProviderScope(
+          container: container,
+          child: _app(
+            Builder(
+              builder: (context) => TextButton(
+                onPressed: () =>
+                    openProductEntryScreen(context, productId: productId),
+                child: const Text('open'),
+              ),
             ),
           ),
         ),
       );
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+      return container;
+    }
 
-      expect(find.byIcon(Icons.arrow_back), findsNothing);
-      await tester.tap(find.byIcon(Icons.close));
-      expect(backs, 0);
+    testWidgets('opening the editor starts as a plain product, not a combo', (
+      tester,
+    ) async {
+      final container = await openEditor(tester, comboBefore: true);
+
+      expect(find.text('editor new'), findsOneWidget);
+      expect(container.read(isCompositeProvider), isFalse);
     });
-  });
 
-  testWidgets('opening the editor starts as a plain product, not a combo', (
-    tester,
-  ) async {
-    final container = ProviderContainer();
-    addTearDown(container.dispose);
-    container.read(isCompositeProvider.notifier).state = true;
+    testWidgets('system back cannot leave while saving', (tester) async {
+      final container = await openEditor(tester, productId: 'p1');
+      container.read(loadingProvider.notifier).startLoading();
+      await tester.pump();
 
-    late BuildContext ctx;
-    await tester.pumpWidget(
-      UncontrolledProviderScope(
-        container: container,
-        child: _app(
-          Builder(
-            builder: (context) {
-              ctx = context;
+      await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
+      expect(find.text('editor p1'), findsOneWidget);
+
+      container.read(loadingProvider.notifier).stopLoading();
+      await tester.pump();
+      await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
+      expect(find.text('editor p1'), findsNothing);
+      expect(find.text('open'), findsOneWidget);
+    });
+
+    testWidgets('editing a combo reopens it as a combo', (tester) async {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      late WidgetRef widgetRef;
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: Consumer(
+            builder: (context, ref, _) {
+              widgetRef = ref;
               return const SizedBox();
             },
           ),
         ),
-      ),
-    );
+      );
 
-    startFreshProductEntry(ctx);
-    expect(container.read(isCompositeProvider), isFalse);
+      showProductInItsOwnMode(
+        widgetRef,
+        Product(
+          name: 'Lunch combo',
+          color: '#000000',
+          businessId: 'b',
+          branchId: 'br',
+          isComposite: true,
+        ),
+      );
+      expect(container.read(isCompositeProvider), isTrue);
+
+      showProductInItsOwnMode(
+        widgetRef,
+        Product(
+          name: 'Soap',
+          color: '#000000',
+          businessId: 'b',
+          branchId: 'br',
+        ),
+      );
+      expect(container.read(isCompositeProvider), isFalse);
+    });
   });
 
   testWidgets('phone prices show the business currency', (tester) async {
