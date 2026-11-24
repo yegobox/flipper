@@ -37,6 +37,10 @@ class OfflineFirstAnalytics
   final Map<String, String> _syncingGroups = {};
   Future<void>? _syncing;
 
+  /// Bumped by [reset]: a sync queued before it belongs to the old session
+  /// and must neither run nor record anything afterwards.
+  int _session = 0;
+
   /// False while the device is opted out (local mode).
   bool get enabled => _enabled;
 
@@ -117,12 +121,13 @@ class OfflineFirstAnalytics
     Map<String, Object?> properties = const {},
   }) async {
     if (!_enabled) return;
-    _syncedGroups[groupType] = groupKey;
-    return transport.group(
+    await transport.group(
       groupType,
       groupKey,
       properties: withContext(properties),
     );
+    // Only once the SDK has it, so a failed call is synced again later.
+    _syncedGroups[groupType] = groupKey;
   }
 
   @override
@@ -131,8 +136,8 @@ class OfflineFirstAnalytics
     Map<String, Object?> properties = const {},
   }) async {
     if (!_enabled) return;
+    await transport.identify(userId, properties: withContext(properties));
     _syncedUserId = userId;
-    return transport.identify(userId, properties: withContext(properties));
   }
 
   @override
@@ -149,6 +154,7 @@ class OfflineFirstAnalytics
   Future<void> reset() {
     // The SDK forgets the user and groups; the next event gives it the
     // session's again.
+    _session++;
     _syncedUserId = null;
     _syncedGroups.clear();
     _syncingUserId = null;
@@ -194,6 +200,26 @@ class OfflineFirstAnalytics
   /// person-processed and grouped. It never throws: analytics must not break
   /// the caller.
   Future<void> _syncSession() {
+    final groups = currentGroups();
+    // The SDK keeps a registered group until it is reset, and it outranks the
+    // event's own `$groups` on native. posthog_flutter cannot drop a single
+    // group, so when one the SDK holds has gone from the session (a business
+    // with no branch yet), it is reset and given the current user and groups.
+    final stale = _syncedGroups.keys.any((key) => !groups.containsKey(key));
+    if (stale) {
+      final session = ++_session;
+      _syncedUserId = null;
+      _syncedGroups.clear();
+      _syncingUserId = null;
+      _syncingGroups.clear();
+      final previous = _syncing ?? Future<void>.value();
+      _syncing = previous.then((_) async {
+        if (session != _session) return;
+        try {
+          await transport.reset();
+        } catch (_) {}
+      });
+    }
     final current = contextProvider.userId?.trim();
     final userId =
         current == null ||
@@ -202,7 +228,6 @@ class OfflineFirstAnalytics
             current == _syncingUserId
         ? null
         : current;
-    final groups = currentGroups();
     final changed = {
       for (final entry in groups.entries)
         if (_syncedGroups[entry.key] != entry.value &&
@@ -214,7 +239,10 @@ class OfflineFirstAnalytics
     if (userId != null) _syncingUserId = userId;
     _syncingGroups.addAll(changed);
     final businessId = groups[AnalyticsGroups.business];
+    final session = _session;
     Future<void> run() async {
+      // Queued before a reset: that session is over.
+      if (session != _session) return;
       // Each call separately: a failed identify must not skip the groups,
       // and only what succeeded counts as synced.
       if (userId != null) {
@@ -222,10 +250,12 @@ class OfflineFirstAnalytics
           // No person properties: the SDK then ignores a repeat identify of
           // the user it already has, instead of sending a `$set` each start.
           await transport.identify(userId);
-          _syncedUserId = userId;
+          if (session == _session) _syncedUserId = userId;
         } catch (_) {
         } finally {
-          if (_syncingUserId == userId) _syncingUserId = null;
+          if (session == _session && _syncingUserId == userId) {
+            _syncingUserId = null;
+          }
         }
       }
       for (final entry in changed.entries) {
@@ -238,10 +268,10 @@ class OfflineFirstAnalytics
                 AnalyticsProperties.businessId: businessId,
             },
           );
-          _syncedGroups[entry.key] = entry.value;
+          if (session == _session) _syncedGroups[entry.key] = entry.value;
         } catch (_) {
         } finally {
-          if (_syncingGroups[entry.key] == entry.value) {
+          if (session == _session && _syncingGroups[entry.key] == entry.value) {
             _syncingGroups.remove(entry.key);
           }
         }

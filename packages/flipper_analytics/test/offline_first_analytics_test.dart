@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flipper_analytics/flipper_analytics.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -68,6 +70,8 @@ class _FakeTransport implements AnalyticsTransport {
   bool failCapture = false;
   int flushCount = 0;
   final List<String> order = [];
+  int resetCount = 0;
+  Completer<void>? holdIdentify;
 
   @override
   Future<void> captureException(
@@ -108,6 +112,8 @@ class _FakeTransport implements AnalyticsTransport {
     String userId, {
     Map<String, Object?> properties = const {},
   }) async {
+    final hold = holdIdentify;
+    if (hold != null) await hold.future;
     if (failIdentify) throw StateError('sdk down');
     identified.add(userId);
     order.add('identify');
@@ -124,7 +130,10 @@ class _FakeTransport implements AnalyticsTransport {
   Future<void> reloadFeatureFlags() async {}
 
   @override
-  Future<void> reset() async {}
+  Future<void> reset() async {
+    resetCount++;
+    order.add('reset');
+  }
 
   @override
   Future<void> screen(
@@ -432,6 +441,70 @@ void main() {
       expect(transport.identified, ['user-1']);
       expect(transport.groups, hasLength(2));
     });
+
+    test(
+      'a sync queued before reset never applies to the new session',
+      () async {
+        await start();
+        transport.holdIdentify = Completer<void>();
+        final oldEvent = analytics.track('old_session');
+
+        await analytics.reset();
+        transport.holdIdentify!.complete();
+        transport.holdIdentify = null;
+        await oldEvent;
+        context
+          ..userId = 'user-2'
+          ..businessId = 'business-2'
+          ..branchId = 'branch-2';
+        await analytics.track('new_session');
+
+        expect(transport.identified, ['user-2']);
+        expect(transport.groups.map(_describe), [
+          'business=business-2 {}',
+          'branch=branch-2 {business_id: business-2}',
+        ]);
+      },
+    );
+
+    test('a branch that goes away is not left registered', () async {
+      await start();
+      await analytics.track('with_branch');
+
+      context
+        ..businessId = 'business-2'
+        ..branchId = null;
+      await analytics.track('no_branch_yet');
+
+      expect(transport.resetCount, 1);
+      expect(transport.order.skip(3), ['reset', 'identify', 'group:business']);
+      expect(transport.identified, ['user-1', 'user-1']);
+      expect(transport.sentEvents.last.properties[r'$groups'], {
+        'business': 'business-2',
+      });
+
+      await analytics.track('still_no_branch');
+      expect(transport.resetCount, 1);
+    });
+
+    test(
+      'a failed explicit identify is synced again on the next event',
+      () async {
+        await start();
+        transport.failIdentify = true;
+        await expectLater(analytics.identify('user-1'), throwsStateError);
+        await expectLater(analytics.group('business', 'business-1'), completes);
+
+        transport.failIdentify = false;
+        await analytics.track('next');
+
+        expect(transport.identified, ['user-1']);
+        // The explicit business group succeeded, so only the branch is new.
+        expect(transport.groups.map(_describe).skip(1), [
+          'branch=branch-1 {business_id: business-1}',
+        ]);
+      },
+    );
 
     test('a business switch regroups the next events', () async {
       await start();
