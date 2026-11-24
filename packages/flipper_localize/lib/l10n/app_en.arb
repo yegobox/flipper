@@ -13376,6 +13376,10 @@
         "description": "Fallback branch name on the recount PDF"
     },
     "productionOutputTitle": "Production Output",
+    "productionOutputToday": "Today",
+    "productionOutputPreviousDay": "Previous day",
+    "productionOutputNextDay": "Next day",
+    "productionOutputCarriedOver": "Unfinished from earlier days",
     "productionOutputNew": "New",
     "productionOutputNewOrder": "New Order",
     "productionOutputWorkOrders": "Work Orders",
