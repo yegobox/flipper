@@ -1,8 +1,11 @@
 import 'package:flipper_dashboard/features/product_editor/product_editor_tokens.dart';
+import 'package:flipper_design_system/flipper_design_system.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
+/// The product editor's header: Flipper's [CustomAppBar] with the product's
+/// live name as the title and the breadcrumb ("NEW PRODUCT", "EDIT COMBO"…)
+/// underneath.
 class ProductEditorTopBar extends StatelessWidget {
   const ProductEditorTopBar({
     super.key,
@@ -12,6 +15,7 @@ class ProductEditorTopBar extends StatelessWidget {
     this.productNameController,
     required this.onBack,
     this.isSaving = false,
+    this.icon = Icons.arrow_back,
   }) : assert(productName != null || productNameController != null);
 
   final bool isEditMode;
@@ -20,6 +24,9 @@ class ProductEditorTopBar extends StatelessWidget {
   final TextEditingController? productNameController;
   final VoidCallback onBack;
   final bool isSaving;
+
+  /// [Icons.close] on a phone, where the editor is a full-screen task.
+  final IconData icon;
 
   String _displayName(BuildContext context, String raw) => raw.trim().isEmpty
       ? context.flipperL10n.productEditorUntitledProduct
@@ -36,88 +43,21 @@ class ProductEditorTopBar extends StatelessWidget {
               ? l10n.productEditorBreadcrumbNewComposite
               : l10n.productEditorBreadcrumbNewProduct);
 
-    Widget title;
-    if (productNameController != null) {
-      title = ListenableBuilder(
-        listenable: productNameController!,
-        builder: (context, _) => Text(
-          _displayName(context, productNameController!.text),
-          style: GoogleFonts.outfit(
-            fontSize: 17,
-            fontWeight: FontWeight.w700,
-            letterSpacing: -0.3,
-            color: ProductEditorTokens.ink1,
-          ),
-          overflow: TextOverflow.ellipsis,
-        ),
-      );
-    } else {
-      title = Text(
-        _displayName(context, productName!),
-        style: GoogleFonts.outfit(
-          fontSize: 17,
-          fontWeight: FontWeight.w700,
-          letterSpacing: -0.3,
-          color: ProductEditorTokens.ink1,
-        ),
-        overflow: TextOverflow.ellipsis,
-      );
-    }
+    Widget bar(String name) => CustomAppBar(
+      title: _displayName(context, name),
+      subtitle: breadcrumb,
+      icon: icon,
+      // Leaving mid-save would drop the half-written product.
+      onPop: isSaving ? null : onBack,
+      barBackgroundColor: ProductEditorTokens.surface,
+      bottomSpacer: ProductEditorTokens.topBarHeight,
+    );
 
-    return Container(
-      height: ProductEditorTokens.topBarHeight,
-      decoration: const BoxDecoration(
-        color: ProductEditorTokens.surface,
-        border: Border(bottom: BorderSide(color: ProductEditorTokens.line)),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 26),
-      child: Row(
-        children: [
-          Material(
-            color: ProductEditorTokens.surface2,
-            borderRadius: BorderRadius.circular(10),
-            child: InkWell(
-              onTap: isSaving ? null : onBack,
-              borderRadius: BorderRadius.circular(10),
-              child: Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: ProductEditorTokens.line),
-                ),
-                child: Icon(
-                  Icons.chevron_left,
-                  size: 20,
-                  color: isSaving
-                      ? ProductEditorTokens.ink4
-                      : ProductEditorTokens.ink2,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  breadcrumb,
-                  style: GoogleFonts.outfit(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 0.8,
-                    color: ProductEditorTokens.ink3,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-                title,
-              ],
-            ),
-          ),
-        ],
-      ),
+    final controller = productNameController;
+    if (controller == null) return bar(productName!);
+    return ListenableBuilder(
+      listenable: controller,
+      builder: (context, _) => bar(controller.text),
     );
   }
 }

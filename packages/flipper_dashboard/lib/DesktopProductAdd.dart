@@ -28,7 +28,11 @@ import 'package:flipper_dashboard/features/product/widgets/add_category_modal.da
 import 'package:flipper_dashboard/dashboard_scanner_actions.dart';
 import 'package:flipper_dashboard/features/product_entry/widgets/basic_info_section.dart';
 import 'package:flipper_dashboard/features/product_entry/widgets/pricing_section.dart';
-import 'package:flipper_dashboard/features/product_entry/widgets/inventory_section.dart';
+import 'package:flipper_dashboard/features/product_entry/widgets/mobile_entry_style.dart';
+import 'package:flipper_dashboard/features/product_entry/product_entry_navigation.dart';
+import 'package:flipper_dashboard/theme/mpos_tokens.dart';
+import 'package:flipper_dashboard/theme/pos_tokens.dart';
+import 'package:flipper_design_system/flipper_design_system.dart';
 import 'package:flipper_dashboard/features/product_editor/widgets/product_editor_inventory_section.dart';
 import 'package:flipper_dashboard/features/product_editor/widgets/product_editor_scan_section.dart';
 import 'package:flipper_dashboard/features/product_editor/widgets/pe_field.dart';
@@ -91,6 +95,25 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
   final _sectionVariantsKey = GlobalKey();
   final _sectionComponentsKey = GlobalKey();
   bool _saveInProgress = false;
+
+  /// Set after a phone save attempt without a category, so the picker says why.
+  bool _showCategoryError = false;
+
+  /// The business's currency, shown before every price.
+  String get _currency => ProxyService.box.defaultCurrency();
+
+  /// What a save needs, on every layout: a name, a valid retail price, and a
+  /// category (a combo needs its components instead).
+  bool _requiredFieldsFilled({required bool isComposite}) {
+    final nameFilled = productNameController.text.trim().isNotEmpty;
+    final retailFilled =
+        retailPriceController.text.trim().isNotEmpty &&
+        double.tryParse(retailPriceController.text) != null;
+    final rest = isComposite
+        ? ref.read(selectedVariantsLocalProvider).isNotEmpty
+        : selectedCategoryId != null;
+    return nameFilled && retailFilled && rest;
+  }
 
   // Helper function to get a valid color or a default color
   Color getColorOrDefault(String? hexColor) {
@@ -205,6 +228,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
       selectedCategoryId = categoryId;
       selectedCategoryName =
           resolvedName ?? (unchanged ? selectedCategoryName : null);
+      if (categoryId != null) _showCategoryError = false;
     });
   }
 
@@ -219,6 +243,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
     setState(() {
       selectedCategoryId = created.id;
       selectedCategoryName = created.name;
+      _showCategoryError = false;
     });
   }
 
@@ -322,12 +347,8 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
 
         ref.read(loadingProvider.notifier).stopLoading();
         if (mounted) {
-          showSuccessNotification(context, context.flipperL10n.dpaProductSaved);
-          final isPhone =
-              responsive.ResponsiveLayout.isPhone(context) ||
-              responsive.ResponsiveLayout.isTinyLimit(context);
-
-          // Phone-only: show a confirmation screen for new products.
+          // Phone-only: a new product gets a confirmation screen, which is the
+          // confirmation; everywhere else a toast says it saved.
           if (isPhone && widget.productId == null) {
             Navigator.of(context).pushReplacement(
               MaterialPageRoute(
@@ -338,18 +359,17 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                   supplyPrice:
                       double.tryParse(supplyPriceController.text) ?? 0.0,
                   variantsCount: model.scannedVariants.length,
+                  currency: _currency,
                   onDone: () => Navigator.of(ctx).maybePop(),
-                  onAddAnother: () => Navigator.of(ctx).pushReplacement(
-                    MaterialPageRoute(
-                      builder: (_) => const Scaffold(
-                        body: SafeArea(child: ProductEntryScreen()),
-                      ),
-                    ),
-                  ),
+                  onAddAnother: () => replaceWithProductEntryScreen(ctx),
                 ),
               ),
             );
           } else {
+            showSuccessNotification(
+              context,
+              context.flipperL10n.dpaProductSaved,
+            );
             Navigator.pop(context);
           }
         }
@@ -851,7 +871,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                           hint: context.flipperL10n.dpaRetailPriceHint,
                           child: PeTextInput(
                             controller: retailPriceController,
-                            prefix: 'RWF',
+                            prefix: _currency,
                             mono: true,
                             placeholder: '0',
                             keyboardType: TextInputType.number,
@@ -876,7 +896,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                           hint: context.flipperL10n.dpaSupplyFromComponents,
                           child: PeTextInput(
                             controller: supplyPriceController,
-                            prefix: 'RWF',
+                            prefix: _currency,
                             mono: true,
                             locked: true,
                             readOnly: true,
@@ -989,7 +1009,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                           hint: context.flipperL10n.dpaRetailPriceHint,
                           child: PeTextInput(
                             controller: retailPriceController,
-                            prefix: 'RWF',
+                            prefix: _currency,
                             mono: true,
                             placeholder: '0',
                             keyboardType: TextInputType.number,
@@ -1014,7 +1034,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                           hint: context.flipperL10n.dpaCostPerUnit,
                           child: PeTextInput(
                             controller: supplyPriceController,
-                            prefix: 'RWF',
+                            prefix: _currency,
                             mono: true,
                             placeholder: '0',
                             keyboardType: TextInputType.number,
@@ -1137,19 +1157,14 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
         sections: sections,
         onBack: () => Navigator.maybePop(context),
         onClose: () => Navigator.maybePop(context),
+        backIcon:
+            responsive.ResponsiveLayout.isPhone(context) ||
+                responsive.ResponsiveLayout.isTinyLimit(context)
+            ? Icons.close
+            : Icons.arrow_back,
         onSave: () => _onDesktopSave(model, productRef),
         formListenable: _formTick,
-        canSaveBuilder: () {
-          final nameFilled = productNameController.text.trim().isNotEmpty;
-          final retailFilled =
-              retailPriceController.text.trim().isNotEmpty &&
-              double.tryParse(retailPriceController.text) != null;
-          final invFilled = selectedCategoryId != null;
-          final compFilled = ref.read(selectedVariantsLocalProvider).isNotEmpty;
-          return nameFilled &&
-              retailFilled &&
-              (isComposite ? compFilled : invFilled);
-        },
+        canSaveBuilder: () => _requiredFieldsFilled(isComposite: isComposite),
         sectionDefsBuilder: () => sections.map((s) => s.def).toList(),
         isSaving: isLoading,
       ),
@@ -1164,6 +1179,8 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
         Product product = await model.getProduct(productId: widget.productId!);
         if (!mounted) return;
         ref.read(unsavedProductProvider.notifier).emitProduct(value: product);
+        // Opening reset the combo switch; a combo is edited as a combo.
+        showProductInItsOwnMode(ref, product);
 
         productNameController.text = product.name;
         model.setProductName(name: product.name);
@@ -1266,72 +1283,109 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
         // itemTyCd sync is done in _onProductTypeChanged; avoid
         // mutating variants inside build() to prevent unnecessary jank.
         if (isPhone && !ref.watch(isCompositeProvider)) {
-          return Form(
-            key: _formKey,
-            child: _MobileProductEntry(
-              productId: widget.productId,
-              productRef: productRef,
-              model: model,
-              formKey: _formKey,
-              onSave: () async {
-                if (!mounted) return;
-                if (_formKey.currentState!.validate()) {
-                  if (productRef == null) {
-                    showErrorNotification(
-                      context,
-                      context.flipperL10n.dpaInvalidProductRef,
-                    );
-                    return;
+          final l10n = context.flipperL10n;
+          return Scaffold(
+            backgroundColor: MposTokens.bg,
+            appBar: CustomAppBar(
+              title: widget.productId == null
+                  ? l10n.productEntryAddNewProduct
+                  : l10n.productEntryEditProduct,
+              icon: Icons.close,
+              onPop: isLoading ? null : () => Navigator.maybePop(context),
+              barBackgroundColor: MposTokens.head,
+            ),
+            body: Form(
+              key: _formKey,
+              child: _MobileProductEntry(
+                productId: widget.productId,
+                productRef: productRef,
+                model: model,
+                formKey: _formKey,
+                currency: _currency,
+                showCategoryError: _showCategoryError,
+                onSave: () async {
+                  if (!mounted) return;
+                  // validate() marks the bad fields; the gate is the same
+                  // one desktop's Save uses.
+                  final formOk = _formKey.currentState!.validate();
+                  if (selectedCategoryId == null) {
+                    setState(() => _showCategoryError = true);
                   }
-                  await _onSaveButtonPressed(
-                    model,
+                  if (formOk && _requiredFieldsFilled(isComposite: false)) {
+                    if (productRef == null) {
+                      showErrorNotification(
+                        context,
+                        context.flipperL10n.dpaInvalidProductRef,
+                      );
+                      return;
+                    }
+                    await _onSaveButtonPressed(
+                      model,
+                      context,
+                      productRef,
+                      selectedProductType: selectedProductType,
+                    );
+                  }
+                },
+                // Controllers
+                productNameController: productNameController,
+                retailPriceController: retailPriceController,
+                supplyPriceController: supplyPriceController,
+                scannedInputController: scannedInputController,
+                scannedInputFocusNode: _scannedInputFocusNode,
+                // Advanced/inventory plumbing
+                selectedPackageUnitValue: selectedPackageUnitValue,
+                pkgUnits: model.pkgUnits,
+                onPackageUnitChanged: (newValue) {
+                  if (newValue != null) {
+                    setState(() => selectedPackageUnitValue = newValue);
+                  }
+                },
+                selectedCategoryId: selectedCategoryId,
+                selectedCategoryName: selectedCategoryName,
+                onCategoryChanged: _onCategorySelected,
+                onAddCategory: _createAndSelectCategory,
+                onCreateCategory: (initialName) =>
+                    _createAndSelectCategory(initialName: initialName),
+                selectedProductType: selectedProductType,
+                onProductTypeChanged: (newValue) {
+                  if (newValue != null) {
+                    setState(() => selectedProductType = newValue);
+                    model.setProductType(newValue);
+                  }
+                },
+                countryOfOriginController: countryOfOriginController,
+                isSaving: isLoading,
+                onScan: () async {
+                  await Navigator.push(
                     context,
-                    productRef,
-                    selectedProductType: selectedProductType,
-                  );
-                }
-              },
-              onClose: () => Navigator.maybePop(context),
-              // Controllers
-              productNameController: productNameController,
-              retailPriceController: retailPriceController,
-              supplyPriceController: supplyPriceController,
-              scannedInputController: scannedInputController,
-              scannedInputFocusNode: _scannedInputFocusNode,
-              // Advanced/inventory plumbing
-              selectedPackageUnitValue: selectedPackageUnitValue,
-              pkgUnits: model.pkgUnits,
-              onPackageUnitChanged: (newValue) {
-                if (newValue != null) {
-                  setState(() => selectedPackageUnitValue = newValue);
-                }
-              },
-              selectedCategoryId: selectedCategoryId,
-              selectedCategoryName: selectedCategoryName,
-              onCategoryChanged: _onCategorySelected,
-              onAddCategory: _createAndSelectCategory,
-              selectedProductType: selectedProductType,
-              onProductTypeChanged: (newValue) {
-                if (newValue != null) {
-                  setState(() => selectedProductType = newValue);
-                  model.setProductType(newValue);
-                }
-              },
-              countryOfOriginController: countryOfOriginController,
-              isSaving: isLoading,
-              onScan: () async {
-                await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => ScannView(
-                      intent: BARCODE,
-                      scannerActions: DashboardScannerActions(context, ref),
+                    MaterialPageRoute(
+                      builder: (context) => ScannView(
+                        intent: BARCODE,
+                        scannerActions: DashboardScannerActions(context, ref),
+                      ),
                     ),
-                  ),
-                );
-                final barcode = ProxyService.productService.barCode;
-                if (barcode.trim().isNotEmpty) {
-                  await _showVariantSheet(
+                  );
+                  final barcode = ProxyService.productService.barCode;
+                  if (barcode.trim().isNotEmpty) {
+                    await _showVariantSheet(
+                      context: context,
+                      ref: ref,
+                      model: model,
+                      productRef: productRef,
+                      retailPriceController: retailPriceController,
+                      supplyPriceController: supplyPriceController,
+                      countryOfOriginController: countryOfOriginController,
+                      selectedProductType: selectedProductType,
+                      isEditMode: widget.productId != null,
+                      categoryName: selectedCategoryName,
+                      skuPrefix: _selectedSkuPrefix(),
+                      initialBarcode: barcode.trim(),
+                    );
+                  }
+                },
+                onAddVariant: () {
+                  _showVariantSheet(
                     context: context,
                     ref: ref,
                     model: model,
@@ -1343,48 +1397,33 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                     isEditMode: widget.productId != null,
                     categoryName: selectedCategoryName,
                     skuPrefix: _selectedSkuPrefix(),
-                    initialBarcode: barcode.trim(),
                   );
-                }
-              },
-              onAddVariant: () {
-                _showVariantSheet(
-                  context: context,
-                  ref: ref,
-                  model: model,
-                  productRef: productRef,
-                  retailPriceController: retailPriceController,
-                  supplyPriceController: supplyPriceController,
-                  countryOfOriginController: countryOfOriginController,
-                  selectedProductType: selectedProductType,
-                  isEditMode: widget.productId != null,
-                  categoryName: selectedCategoryName,
-                  skuPrefix: _selectedSkuPrefix(),
-                );
-              },
-              onEditVariant: (variant) {
-                _showVariantSheet(
-                  context: context,
-                  ref: ref,
-                  model: model,
-                  productRef: productRef,
-                  retailPriceController: retailPriceController,
-                  supplyPriceController: supplyPriceController,
-                  countryOfOriginController: countryOfOriginController,
-                  selectedProductType: selectedProductType,
-                  isEditMode: widget.productId != null,
-                  categoryName: selectedCategoryName,
-                  skuPrefix: _selectedSkuPrefix(),
-                  existingVariant: variant,
-                );
-              },
-              onDeleteVariant: (variant) => model.removeVariant(id: variant.id),
-              pickerColor: pickerColor,
-              onColorSelected: (color) {
-                setState(() {
-                  pickerColor = color;
-                });
-              },
+                },
+                onEditVariant: (variant) {
+                  _showVariantSheet(
+                    context: context,
+                    ref: ref,
+                    model: model,
+                    productRef: productRef,
+                    retailPriceController: retailPriceController,
+                    supplyPriceController: supplyPriceController,
+                    countryOfOriginController: countryOfOriginController,
+                    selectedProductType: selectedProductType,
+                    isEditMode: widget.productId != null,
+                    categoryName: selectedCategoryName,
+                    skuPrefix: _selectedSkuPrefix(),
+                    existingVariant: variant,
+                  );
+                },
+                onDeleteVariant: (variant) =>
+                    model.removeVariant(id: variant.id),
+                pickerColor: pickerColor,
+                onColorSelected: (color) {
+                  setState(() {
+                    pickerColor = color;
+                  });
+                },
+              ),
             ),
           );
         }
@@ -1406,6 +1445,7 @@ class _ProductSavedScreen extends StatelessWidget {
     required this.retailPrice,
     required this.supplyPrice,
     required this.variantsCount,
+    required this.currency,
     required this.onDone,
     required this.onAddAnother,
   });
@@ -1414,111 +1454,88 @@ class _ProductSavedScreen extends StatelessWidget {
   final double retailPrice;
   final double supplyPrice;
   final int variantsCount;
+  final String currency;
   final VoidCallback onDone;
   final VoidCallback onAddAnother;
 
   @override
   Widget build(BuildContext context) {
-    const accentBlue = Color(0xFF0078D4);
+    final l10n = context.flipperL10n;
     return Scaffold(
-      appBar: AppBar(title: Text(context.flipperL10n.dpaProductSavedTitle)),
+      backgroundColor: MposTokens.bg,
+      appBar: CustomAppBar(
+        title: l10n.dpaProductSavedTitle,
+        icon: Icons.close,
+        onPop: onDone,
+        barBackgroundColor: MposTokens.head,
+      ),
       body: SafeArea(
+        top: false,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
           child: Column(
             children: [
               const Spacer(),
               Container(
                 width: 88,
                 height: 88,
-                decoration: BoxDecoration(
-                  color: Colors.green.withValues(alpha: 0.12),
+                decoration: const BoxDecoration(
+                  color: MposTokens.gainTint,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.check, size: 42, color: Colors.green),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                context.flipperL10n.dpaNamedProductSaved(productName),
-                textAlign: TextAlign.center,
-                style: Theme.of(
-                  context,
-                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                context.flipperL10n.dpaAddedToInventory,
-                textAlign: TextAlign.center,
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyMedium?.copyWith(color: Colors.grey.shade700),
-              ),
-              const SizedBox(height: 20),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: Colors.grey.shade200),
+                child: const Icon(
+                  Icons.check_rounded,
+                  size: 44,
+                  color: MposTokens.gain,
                 ),
+              ),
+              const SizedBox(height: 18),
+              Text(
+                l10n.dpaNamedProductSaved(productName),
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  color: PosTokens.ink1,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                l10n.dpaAddedToInventory,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 14, color: PosTokens.ink3),
+              ),
+              const SizedBox(height: 22),
+              MobileEntryCard(
                 child: Column(
                   children: [
+                    _SummaryRow(label: l10n.productLabel, value: productName),
+                    const SizedBox(height: 10),
                     _SummaryRow(
-                      label: context.flipperL10n.productLabel,
-                      value: productName,
+                      label: l10n.dpaRetailPrice,
+                      value: '$currency ${retailPrice.toStringAsFixed(2)}',
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 10),
                     _SummaryRow(
-                      label: context.flipperL10n.dpaRetailPrice,
-                      value: retailPrice.toStringAsFixed(2),
+                      label: l10n.dpaSupplyPrice,
+                      value: '$currency ${supplyPrice.toStringAsFixed(2)}',
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 10),
                     _SummaryRow(
-                      label: context.flipperL10n.dpaSupplyPrice,
-                      value: supplyPrice.toStringAsFixed(2),
-                    ),
-                    const SizedBox(height: 8),
-                    _SummaryRow(
-                      label: context.flipperL10n.dpaVariants,
-                      value: context.flipperL10n.fuelVariantsCount(
-                        variantsCount,
-                      ),
+                      label: l10n.dpaVariants,
+                      value: l10n.fuelVariantsCount(variantsCount),
                     ),
                   ],
                 ),
               ),
               const Spacer(),
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton(
-                  onPressed: onDone,
-                  style: FilledButton.styleFrom(
-                    backgroundColor: accentBlue.withValues(alpha: 0.12),
-                    foregroundColor: accentBlue,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                  ),
-                  child: Text(context.flipperL10n.done),
-                ),
-              ),
+              MobileEntryPrimaryButton(label: l10n.done, onPressed: onDone),
               const SizedBox(height: 12),
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton(
-                  onPressed: onAddAnother,
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: accentBlue,
-                    side: const BorderSide(color: Color(0xFFD1D1D6)),
-                    backgroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                  ),
-                  child: Text(context.flipperL10n.dpaAddAnother),
-                ),
+              MobileEntrySecondaryButton(
+                label: l10n.dpaAddAnother,
+                icon: Icons.add,
+                onPressed: onAddAnother,
+                expand: true,
               ),
             ],
           ),
@@ -1541,9 +1558,7 @@ class _SummaryRow extends StatelessWidget {
         Expanded(
           child: Text(
             label,
-            style: Theme.of(
-              context,
-            ).textTheme.bodySmall?.copyWith(color: Colors.grey.shade600),
+            style: const TextStyle(fontSize: 13.5, color: PosTokens.ink3),
           ),
         ),
         const SizedBox(width: 12),
@@ -1551,9 +1566,12 @@ class _SummaryRow extends StatelessWidget {
           child: Text(
             value,
             textAlign: TextAlign.right,
-            style: Theme.of(
-              context,
-            ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+            style: const TextStyle(
+              fontSize: 14.5,
+              fontWeight: FontWeight.w600,
+              color: PosTokens.ink1,
+              fontFeatures: [FontFeature.tabularFigures()],
+            ),
           ),
         ),
       ],
@@ -1677,726 +1695,770 @@ Future<void> _showVariantSheet({
     context: context,
     isScrollControlled: true,
     useSafeArea: true,
-    backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+    backgroundColor: MposTokens.bg,
     shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      borderRadius: BorderRadius.vertical(
+        top: Radius.circular(MposTokens.sheetRadius),
+      ),
     ),
     builder: (ctx) {
-      return StatefulBuilder(
-        builder: (ctx, setModalState) {
-          return DraggableScrollableSheet(
-            initialChildSize: 0.96,
-            minChildSize: 0.70,
-            maxChildSize: 0.98,
-            expand: false,
-            builder: (ctx, scrollController) {
-              final bottomInset = MediaQuery.of(ctx).viewInsets.bottom;
-              return Padding(
-                padding: EdgeInsets.only(bottom: bottomInset),
-                child: Column(
-                  children: [
-                    Expanded(
-                      child: ListView(
-                        controller: scrollController,
-                        padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-                        children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  existingVariant == null
-                                      ? context.flipperL10n.dpaAddVariant
-                                      : context.flipperL10n.dpaEditVariant,
-                                  style: Theme.of(ctx).textTheme.titleLarge
-                                      ?.copyWith(fontWeight: FontWeight.w600),
-                                ),
-                              ),
-                              IconButton(
-                                onPressed: () => Navigator.of(ctx).maybePop(),
-                                icon: const Icon(Icons.close),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          Form(
-                            key: formKey,
-                            child: Column(
+      return Theme(
+        data: Theme.of(
+          ctx,
+        ).copyWith(inputDecorationTheme: mobileEntryInputTheme()),
+        child: StatefulBuilder(
+          builder: (ctx, setModalState) {
+            return DraggableScrollableSheet(
+              initialChildSize: 0.96,
+              minChildSize: 0.70,
+              maxChildSize: 0.98,
+              expand: false,
+              builder: (ctx, scrollController) {
+                final bottomInset = MediaQuery.of(ctx).viewInsets.bottom;
+                return Padding(
+                  padding: EdgeInsets.only(bottom: bottomInset),
+                  child: Column(
+                    children: [
+                      Expanded(
+                        child: ListView(
+                          controller: scrollController,
+                          padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+                          children: [
+                            Row(
                               children: [
-                                Align(
-                                  alignment: Alignment.centerLeft,
+                                Expanded(
                                   child: Text(
-                                    context.flipperL10n.variantsImage,
-                                    style: Theme.of(ctx).textTheme.titleSmall
-                                        ?.copyWith(fontWeight: FontWeight.w600),
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                InkWell(
-                                  onTap: uploadingImage
-                                      ? null
-                                      : () async {
-                                          if (productRef == null) {
-                                            showErrorNotification(
-                                              ctx,
-                                              context
-                                                  .flipperL10n
-                                                  .dpaInvalidProductRef,
-                                            );
-                                            return;
-                                          }
-                                          final sourceResult =
-                                              await showImageSourceSheet(ctx);
-                                          if (sourceResult == null) return;
-
-                                          setModalState(
-                                            () => uploadingImage = true,
-                                          );
-                                          try {
-                                            // Pick first so we can preview immediately.
-                                            final pickedPath =
-                                                await pickLocalImagePathForSheetResult(
-                                                  sourceResult,
-                                                );
-                                            if (pickedPath == null) return;
-
-                                            setModalState(() {
-                                              variantPreviewPath = pickedPath;
-                                            });
-
-                                            final uploader = UploadViewModel()
-                                              ..setRef(ref);
-                                            final fileName = await uploader
-                                                .uploadPickedImagePath(
-                                                  pickedPath: pickedPath,
-                                                  id: productRef.id,
-                                                  urlType: URLTYPE.PRODUCT,
-                                                  updateProductImage: false,
-                                                  // Persist a variant-scoped Assets row (not the product-level image).
-                                                  persistAssetRecord:
-                                                      existingVariant?.id !=
-                                                      null,
-                                                  variantId:
-                                                      existingVariant?.id,
-                                                );
-                                            setModalState(() {
-                                              variantAssetName = fileName;
-                                              // Keep preview; it will get replaced by local asset on next open.
-                                            });
-                                          } catch (e, st) {
-                                            talker.error(
-                                              'Variant image upload failed: $e',
-                                              e,
-                                              st,
-                                            );
-                                            showErrorNotification(
-                                              ctx,
-                                              context
-                                                  .flipperL10n
-                                                  .dpaImageUploadFailed,
-                                            );
-                                          } finally {
-                                            if (ctx.mounted) {
-                                              setModalState(
-                                                () => uploadingImage = false,
-                                              );
-                                            }
-                                          }
-                                        },
-                                  child: Container(
-                                    width: double.infinity,
-                                    height: 140,
-                                    decoration: BoxDecoration(
-                                      color: Colors.grey.shade100,
-                                      borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(
-                                        color: Colors.grey.shade300,
-                                      ),
-                                    ),
-                                    child: Stack(
-                                      children: [
-                                        if (variantPreviewPath != null)
-                                          ClipRRect(
-                                            borderRadius: BorderRadius.circular(
-                                              12,
-                                            ),
-                                            child: Image.file(
-                                              File(variantPreviewPath!),
-                                              width: double.infinity,
-                                              height: double.infinity,
-                                              fit: BoxFit.cover,
-                                            ),
-                                          )
-                                        else if (variantAssetName != null)
-                                          FutureBuilder<String?>(
-                                            future: tryGetLocalAssetPath(
-                                              variantAssetName!,
-                                            ),
-                                            builder: (c, snap) {
-                                              final local = snap.data;
-                                              if (local != null) {
-                                                return ClipRRect(
-                                                  borderRadius:
-                                                      BorderRadius.circular(12),
-                                                  child: Image.file(
-                                                    File(local),
-                                                    width: double.infinity,
-                                                    height: double.infinity,
-                                                    fit: BoxFit.cover,
-                                                  ),
-                                                );
-                                              }
-                                              return Center(
-                                                child: Text(
-                                                  context
-                                                      .flipperL10n
-                                                      .dpaImageSelected,
-                                                  style: TextStyle(
-                                                    color: Colors.grey.shade700,
-                                                    fontWeight: FontWeight.w600,
-                                                  ),
-                                                ),
-                                              );
-                                            },
-                                          )
-                                        else
-                                          Center(
-                                            child: Column(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.center,
-                                              children: [
-                                                Icon(
-                                                  Icons.add_a_photo_outlined,
-                                                  color: Colors.grey.shade700,
-                                                ),
-                                                const SizedBox(height: 8),
-                                                Text(
-                                                  context
-                                                      .flipperL10n
-                                                      .dpaAddImage,
-                                                  style: TextStyle(
-                                                    color: Colors.grey.shade700,
-                                                    fontWeight: FontWeight.w600,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        if (uploadingImage)
-                                          Positioned.fill(
-                                            child: Container(
-                                              decoration: BoxDecoration(
-                                                color: Colors.black.withValues(
-                                                  alpha: 0.35,
-                                                ),
-                                                borderRadius:
-                                                    BorderRadius.circular(12),
-                                              ),
-                                              child: const Center(
-                                                child:
-                                                    CircularProgressIndicator(),
-                                              ),
-                                            ),
-                                          ),
-                                      ],
+                                    existingVariant == null
+                                        ? context.flipperL10n.dpaAddVariant
+                                        : context.flipperL10n.dpaEditVariant,
+                                    style: const TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w700,
+                                      color: PosTokens.ink1,
                                     ),
                                   ),
                                 ),
-                                const SizedBox(height: 12),
-                                TextFormField(
-                                  controller: nameController,
-                                  textInputAction: TextInputAction.next,
-                                  decoration: InputDecoration(
-                                    labelText:
-                                        context.flipperL10n.dpaVariantName,
-                                    hintText:
-                                        context.flipperL10n.dpaVariantNameHint,
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                  ),
-                                  validator: (v) {
-                                    if (v == null || v.trim().isEmpty) {
-                                      return context
-                                          .flipperL10n
-                                          .dpaNameRequired;
-                                    }
-                                    return null;
-                                  },
+                                AppBarRoundIconButton(
+                                  icon: Icons.close,
+                                  onPressed: () => Navigator.of(ctx).maybePop(),
                                 ),
-                                const SizedBox(height: 12),
-                                TextFormField(
-                                  controller: priceOverrideController,
-                                  textInputAction: TextInputAction.next,
-                                  keyboardType: TextInputType.number,
-                                  inputFormatters: [
-                                    FilteringTextInputFormatter.allow(
-                                      RegExp(r'[0-9.]'),
-                                    ),
-                                  ],
-                                  decoration: InputDecoration(
-                                    labelText:
-                                        context.flipperL10n.dpaRetailOverride,
-                                    helperText: context.flipperL10n
-                                        .dpaBaseRetailPrice(
-                                          (double.tryParse(
-                                                    retailPriceController.text,
-                                                  ) ??
-                                                  0)
-                                              .toStringAsFixed(2),
-                                        ),
-                                    hintText: context
-                                        .flipperL10n
-                                        .dpaLeaveBlankBasePrice,
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                  ),
-                                  validator: (v) {
-                                    if (v == null || v.trim().isEmpty) {
-                                      return null;
-                                    }
-                                    if (double.tryParse(v) == null) {
-                                      return context.flipperL10n.invalidPrice;
-                                    }
-                                    return null;
-                                  },
-                                ),
-                                const SizedBox(height: 12),
-                                TextFormField(
-                                  controller: barcodeController,
-                                  textInputAction: TextInputAction.next,
-                                  decoration: InputDecoration(
-                                    labelText: context.flipperL10n.dpaBarcode,
-                                    hintText:
-                                        context.flipperL10n.dpaBarcodeHint,
-                                    helperText: context
-                                        .flipperL10n
-                                        .dpaLeaveBlankVariantName,
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(height: 12),
-                                SkuTextField(
-                                  controller: skuController,
-                                  preview: skuPreview,
-                                  decorate: (base) => base.copyWith(
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(height: 12),
-                                if (isService)
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            Form(
+                              key: formKey,
+                              child: Column(
+                                children: [
                                   Align(
                                     alignment: Alignment.centerLeft,
                                     child: Text(
-                                      context.flipperL10n.editQtyServiceNotice,
-                                      style: Theme.of(ctx).textTheme.bodySmall
+                                      context.flipperL10n.variantsImage,
+                                      style: Theme.of(ctx).textTheme.titleSmall
                                           ?.copyWith(
-                                            color: Colors.grey.shade700,
+                                            fontWeight: FontWeight.w600,
                                           ),
                                     ),
                                   ),
-                                if (!isService) ...[
-                                  TextFormField(
-                                    controller: stockController,
-                                    focusNode: stockFocusNode,
-                                    textInputAction: TextInputAction.next,
-                                    keyboardType: TextInputType.number,
-                                    inputFormatters: [
-                                      FilteringTextInputFormatter.digitsOnly,
-                                    ],
-                                    decoration: InputDecoration(
-                                      labelText:
-                                          context.flipperL10n.dpaStockQuantity,
-                                      border: OutlineInputBorder(
+                                  const SizedBox(height: 8),
+                                  InkWell(
+                                    onTap: uploadingImage
+                                        ? null
+                                        : () async {
+                                            if (productRef == null) {
+                                              showErrorNotification(
+                                                ctx,
+                                                context
+                                                    .flipperL10n
+                                                    .dpaInvalidProductRef,
+                                              );
+                                              return;
+                                            }
+                                            final sourceResult =
+                                                await showImageSourceSheet(ctx);
+                                            if (sourceResult == null) return;
+
+                                            setModalState(
+                                              () => uploadingImage = true,
+                                            );
+                                            try {
+                                              // Pick first so we can preview immediately.
+                                              final pickedPath =
+                                                  await pickLocalImagePathForSheetResult(
+                                                    sourceResult,
+                                                  );
+                                              if (pickedPath == null) return;
+
+                                              setModalState(() {
+                                                variantPreviewPath = pickedPath;
+                                              });
+
+                                              final uploader = UploadViewModel()
+                                                ..setRef(ref);
+                                              final fileName = await uploader
+                                                  .uploadPickedImagePath(
+                                                    pickedPath: pickedPath,
+                                                    id: productRef.id,
+                                                    urlType: URLTYPE.PRODUCT,
+                                                    updateProductImage: false,
+                                                    // Persist a variant-scoped Assets row (not the product-level image).
+                                                    persistAssetRecord:
+                                                        existingVariant?.id !=
+                                                        null,
+                                                    variantId:
+                                                        existingVariant?.id,
+                                                  );
+                                              setModalState(() {
+                                                variantAssetName = fileName;
+                                                // Keep preview; it will get replaced by local asset on next open.
+                                              });
+                                            } catch (e, st) {
+                                              talker.error(
+                                                'Variant image upload failed: $e',
+                                                e,
+                                                st,
+                                              );
+                                              showErrorNotification(
+                                                ctx,
+                                                context
+                                                    .flipperL10n
+                                                    .dpaImageUploadFailed,
+                                              );
+                                            } finally {
+                                              if (ctx.mounted) {
+                                                setModalState(
+                                                  () => uploadingImage = false,
+                                                );
+                                              }
+                                            }
+                                          },
+                                    child: Container(
+                                      width: double.infinity,
+                                      height: 140,
+                                      decoration: BoxDecoration(
+                                        color: PosTokens.surface2,
                                         borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(
+                                          color: PosTokens.line,
+                                        ),
+                                      ),
+                                      child: Stack(
+                                        children: [
+                                          if (variantPreviewPath != null)
+                                            ClipRRect(
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                              child: Image.file(
+                                                File(variantPreviewPath!),
+                                                width: double.infinity,
+                                                height: double.infinity,
+                                                fit: BoxFit.cover,
+                                              ),
+                                            )
+                                          else if (variantAssetName != null)
+                                            FutureBuilder<String?>(
+                                              future: tryGetLocalAssetPath(
+                                                variantAssetName!,
+                                              ),
+                                              builder: (c, snap) {
+                                                final local = snap.data;
+                                                if (local != null) {
+                                                  return ClipRRect(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          12,
+                                                        ),
+                                                    child: Image.file(
+                                                      File(local),
+                                                      width: double.infinity,
+                                                      height: double.infinity,
+                                                      fit: BoxFit.cover,
+                                                    ),
+                                                  );
+                                                }
+                                                return Center(
+                                                  child: Text(
+                                                    context
+                                                        .flipperL10n
+                                                        .dpaImageSelected,
+                                                    style: TextStyle(
+                                                      color: PosTokens.ink2,
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                    ),
+                                                  ),
+                                                );
+                                              },
+                                            )
+                                          else
+                                            Center(
+                                              child: Column(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.center,
+                                                children: [
+                                                  Icon(
+                                                    Icons.add_a_photo_outlined,
+                                                    color: PosTokens.ink2,
+                                                  ),
+                                                  const SizedBox(height: 8),
+                                                  Text(
+                                                    context
+                                                        .flipperL10n
+                                                        .dpaAddImage,
+                                                    style: TextStyle(
+                                                      color: PosTokens.ink2,
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          if (uploadingImage)
+                                            Positioned.fill(
+                                              child: Container(
+                                                decoration: BoxDecoration(
+                                                  color: Colors.black
+                                                      .withValues(alpha: 0.35),
+                                                  borderRadius:
+                                                      BorderRadius.circular(12),
+                                                ),
+                                                child: const Center(
+                                                  child:
+                                                      CircularProgressIndicator(),
+                                                ),
+                                              ),
+                                            ),
+                                        ],
                                       ),
                                     ),
                                   ),
                                   const SizedBox(height: 12),
                                   TextFormField(
-                                    controller: lowStockController,
+                                    controller: nameController,
                                     textInputAction: TextInputAction.next,
-                                    keyboardType:
-                                        const TextInputType.numberWithOptions(
-                                          decimal: true,
-                                        ),
+                                    decoration: InputDecoration(
+                                      labelText:
+                                          context.flipperL10n.dpaVariantName,
+                                      hintText: context
+                                          .flipperL10n
+                                          .dpaVariantNameHint,
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                    ),
+                                    validator: (v) {
+                                      if (v == null || v.trim().isEmpty) {
+                                        return context
+                                            .flipperL10n
+                                            .dpaNameRequired;
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                                  const SizedBox(height: 12),
+                                  TextFormField(
+                                    controller: priceOverrideController,
+                                    textInputAction: TextInputAction.next,
+                                    keyboardType: TextInputType.number,
                                     inputFormatters: [
                                       FilteringTextInputFormatter.allow(
                                         RegExp(r'[0-9.]'),
                                       ),
                                     ],
                                     decoration: InputDecoration(
-                                      labelText: context
+                                      labelText:
+                                          context.flipperL10n.dpaRetailOverride,
+                                      helperText: context.flipperL10n
+                                          .dpaBaseRetailPrice(
+                                            (double.tryParse(
+                                                      retailPriceController
+                                                          .text,
+                                                    ) ??
+                                                    0)
+                                                .toStringAsFixed(2),
+                                          ),
+                                      hintText: context
                                           .flipperL10n
-                                          .dpaLowStockReorder,
-                                      helperText:
-                                          context.flipperL10n.dpaLowStockHelper,
+                                          .dpaLeaveBlankBasePrice,
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                    ),
+                                    validator: (v) {
+                                      if (v == null || v.trim().isEmpty) {
+                                        return null;
+                                      }
+                                      if (double.tryParse(v) == null) {
+                                        return context.flipperL10n.invalidPrice;
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                                  const SizedBox(height: 12),
+                                  TextFormField(
+                                    controller: barcodeController,
+                                    textInputAction: TextInputAction.next,
+                                    decoration: InputDecoration(
+                                      labelText: context.flipperL10n.dpaBarcode,
+                                      hintText:
+                                          context.flipperL10n.dpaBarcodeHint,
+                                      helperText: context
+                                          .flipperL10n
+                                          .dpaLeaveBlankVariantName,
                                       border: OutlineInputBorder(
                                         borderRadius: BorderRadius.circular(12),
                                       ),
                                     ),
                                   ),
-                                ],
-                                const SizedBox(height: 12),
-                                Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: Text(
-                                    context.flipperL10n.variantsTax,
-                                    style: Theme.of(ctx).textTheme.titleSmall
-                                        ?.copyWith(fontWeight: FontWeight.w600),
+                                  const SizedBox(height: 12),
+                                  SkuTextField(
+                                    controller: skuController,
+                                    preview: skuPreview,
+                                    decorate: (base) => base.copyWith(
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                    ),
                                   ),
-                                ),
-                                if (!isVatEnabled) ...[
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    context.flipperL10n.dpaNotVatRegistered,
-                                    style: Theme.of(ctx).textTheme.bodySmall
-                                        ?.copyWith(color: Colors.grey.shade700),
-                                  ),
-                                ],
-                                const SizedBox(height: 8),
-                                if (isVatEnabled)
-                                  Wrap(
-                                    spacing: 8,
-                                    runSpacing: 8,
-                                    children: [
-                                      ChoiceChip(
-                                        label: Text(
-                                          context.flipperL10n.dpaTaxStandardB,
-                                        ),
-                                        selected: taxTyCd == 'B',
-                                        onSelected: (_) =>
-                                            setModalState(() => taxTyCd = 'B'),
+                                  const SizedBox(height: 12),
+                                  if (isService)
+                                    Align(
+                                      alignment: Alignment.centerLeft,
+                                      child: Text(
+                                        context
+                                            .flipperL10n
+                                            .editQtyServiceNotice,
+                                        style: Theme.of(ctx).textTheme.bodySmall
+                                            ?.copyWith(color: PosTokens.ink2),
                                       ),
-                                      ChoiceChip(
-                                        label: Text(
-                                          context.flipperL10n.dpaTaxStandardA,
+                                    ),
+                                  if (!isService) ...[
+                                    TextFormField(
+                                      controller: stockController,
+                                      focusNode: stockFocusNode,
+                                      textInputAction: TextInputAction.next,
+                                      keyboardType: TextInputType.number,
+                                      inputFormatters: [
+                                        FilteringTextInputFormatter.digitsOnly,
+                                      ],
+                                      decoration: InputDecoration(
+                                        labelText: context
+                                            .flipperL10n
+                                            .dpaStockQuantity,
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
                                         ),
-                                        selected: taxTyCd == 'A',
-                                        onSelected: (_) =>
-                                            setModalState(() => taxTyCd = 'A'),
                                       ),
-                                      ChoiceChip(
-                                        label: Text(
-                                          context
-                                              .flipperL10n
-                                              .roomTaxExemptShort,
+                                    ),
+                                    const SizedBox(height: 12),
+                                    TextFormField(
+                                      controller: lowStockController,
+                                      textInputAction: TextInputAction.next,
+                                      keyboardType:
+                                          const TextInputType.numberWithOptions(
+                                            decimal: true,
+                                          ),
+                                      inputFormatters: [
+                                        FilteringTextInputFormatter.allow(
+                                          RegExp(r'[0-9.]'),
                                         ),
-                                        selected: taxTyCd == 'C',
-                                        onSelected: (_) =>
-                                            setModalState(() => taxTyCd = 'C'),
+                                      ],
+                                      decoration: InputDecoration(
+                                        labelText: context
+                                            .flipperL10n
+                                            .dpaLowStockReorder,
+                                        helperText: context
+                                            .flipperL10n
+                                            .dpaLowStockHelper,
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                        ),
                                       ),
-                                    ],
-                                  )
-                                else
+                                    ),
+                                  ],
+                                  const SizedBox(height: 12),
                                   Align(
                                     alignment: Alignment.centerLeft,
-                                    child: Chip(
-                                      avatar: const Icon(
-                                        Icons.check_circle_outline,
-                                        size: 20,
-                                      ),
-                                      label: Text(
-                                        context.flipperL10n.dpaTaxNoneD,
-                                      ),
-                                      backgroundColor: Theme.of(
-                                        ctx,
-                                      ).colorScheme.surfaceContainerHighest,
+                                    child: Text(
+                                      context.flipperL10n.variantsTax,
+                                      style: Theme.of(ctx).textTheme.titleSmall
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.w600,
+                                          ),
                                     ),
                                   ),
-                                const SizedBox(height: 12),
-                                Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: Text(
-                                    context.flipperL10n.variantsDiscountPercent,
-                                    style: Theme.of(ctx).textTheme.titleSmall
-                                        ?.copyWith(fontWeight: FontWeight.w600),
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                TextFormField(
-                                  controller: discountController,
-                                  textInputAction: TextInputAction.done,
-                                  keyboardType: TextInputType.number,
-                                  inputFormatters: [
-                                    FilteringTextInputFormatter.digitsOnly,
+                                  if (!isVatEnabled) ...[
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      context.flipperL10n.dpaNotVatRegistered,
+                                      style: Theme.of(ctx).textTheme.bodySmall
+                                          ?.copyWith(color: PosTokens.ink2),
+                                    ),
                                   ],
-                                  decoration: InputDecoration(
-                                    hintText: '0',
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12),
+                                  const SizedBox(height: 8),
+                                  if (isVatEnabled)
+                                    Wrap(
+                                      spacing: 8,
+                                      runSpacing: 8,
+                                      children: [
+                                        ChoiceChip(
+                                          label: Text(
+                                            context.flipperL10n.dpaTaxStandardB,
+                                          ),
+                                          selected: taxTyCd == 'B',
+                                          onSelected: (_) => setModalState(
+                                            () => taxTyCd = 'B',
+                                          ),
+                                        ),
+                                        ChoiceChip(
+                                          label: Text(
+                                            context.flipperL10n.dpaTaxStandardA,
+                                          ),
+                                          selected: taxTyCd == 'A',
+                                          onSelected: (_) => setModalState(
+                                            () => taxTyCd = 'A',
+                                          ),
+                                        ),
+                                        ChoiceChip(
+                                          label: Text(
+                                            context
+                                                .flipperL10n
+                                                .roomTaxExemptShort,
+                                          ),
+                                          selected: taxTyCd == 'C',
+                                          onSelected: (_) => setModalState(
+                                            () => taxTyCd = 'C',
+                                          ),
+                                        ),
+                                      ],
+                                    )
+                                  else
+                                    Align(
+                                      alignment: Alignment.centerLeft,
+                                      child: Chip(
+                                        avatar: const Icon(
+                                          Icons.check_circle_outline,
+                                          size: 20,
+                                        ),
+                                        label: Text(
+                                          context.flipperL10n.dpaTaxNoneD,
+                                        ),
+                                        backgroundColor: Theme.of(
+                                          ctx,
+                                        ).colorScheme.surfaceContainerHighest,
+                                      ),
+                                    ),
+                                  const SizedBox(height: 12),
+                                  Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: Text(
+                                      context
+                                          .flipperL10n
+                                          .variantsDiscountPercent,
+                                      style: Theme.of(ctx).textTheme.titleSmall
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.w600,
+                                          ),
                                     ),
                                   ),
-                                ),
-                                const SizedBox(height: 24),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Padding(
-                      padding: EdgeInsets.fromLTRB(
-                        16,
-                        0,
-                        16,
-                        16 + MediaQuery.of(ctx).padding.bottom,
-                      ),
-                      child: SizedBox(
-                        width: double.infinity,
-                        child: FilledButton(
-                          onPressed: savingVariant
-                              ? null
-                              : () async {
-                                  if (!formKey.currentState!.validate()) {
-                                    return;
-                                  }
-                                  if (productRef == null) {
-                                    showErrorNotification(
-                                      ctx,
-                                      context.flipperL10n.dpaInvalidProductRef,
-                                    );
-                                    return;
-                                  }
-
-                                  setModalState(() => savingVariant = true);
-                                  try {
-                                    final barcode = barcodeController.text
-                                        .trim();
-                                    final variantName = nameController.text
-                                        .trim();
-                                    final effectiveBarcode = barcode.isNotEmpty
-                                        ? barcode
-                                        : variantName;
-                                    // Local check only (works offline); a
-                                    // blank SKU is assigned on save.
-                                    final typedSku = skuController.text.trim();
-                                    final skuError = await skuSaveError(
-                                      ctx,
-                                      typed: typedSku,
-                                      storedSku: existingVariant?.sku,
-                                      businessId: productRef.businessId,
-                                      candidate: SkuHolder(
-                                        id: existingVariant?.id ?? '',
-                                        branchId:
-                                            existingVariant?.branchId ??
-                                            productRef.branchId,
-                                        productId: productRef.id,
-                                        itemCd: existingVariant?.itemCd,
-                                        bcd: effectiveBarcode,
+                                  const SizedBox(height: 8),
+                                  TextFormField(
+                                    controller: discountController,
+                                    textInputAction: TextInputAction.done,
+                                    keyboardType: TextInputType.number,
+                                    inputFormatters: [
+                                      FilteringTextInputFormatter.digitsOnly,
+                                    ],
+                                    decoration: InputDecoration(
+                                      hintText: '0',
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(12),
                                       ),
-                                      unsaved: [
-                                        for (final v in model.scannedVariants)
-                                          (id: v.id, name: v.name, sku: v.sku),
-                                      ],
-                                    );
-                                    if (skuError != null) {
-                                      if (ctx.mounted) {
-                                        showErrorNotification(ctx, skuError);
-                                      }
+                                    ),
+                                  ),
+                                  const SizedBox(height: 24),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.fromLTRB(
+                          16,
+                          0,
+                          16,
+                          16 + MediaQuery.of(ctx).padding.bottom,
+                        ),
+                        child: SizedBox(
+                          width: double.infinity,
+                          child: FilledButton(
+                            onPressed: savingVariant
+                                ? null
+                                : () async {
+                                    if (!formKey.currentState!.validate()) {
                                       return;
                                     }
-                                    final baseRetail =
-                                        double.tryParse(
-                                          retailPriceController.text,
-                                        ) ??
-                                        0;
-                                    final baseSupply =
-                                        double.tryParse(
-                                          supplyPriceController.text,
-                                        ) ??
-                                        0;
-                                    final override = double.tryParse(
-                                      priceOverrideController.text.trim(),
-                                    );
-                                    final qty = isService
-                                        ? 0.0
-                                        : double.tryParse(
-                                                stockController.text.trim(),
-                                              ) ??
-                                              0;
-                                    final lowStockVal =
-                                        double.tryParse(
-                                          lowStockController.text.trim(),
-                                        ) ??
-                                        0.0;
-                                    final discount =
-                                        int.tryParse(
-                                          discountController.text.trim(),
-                                        ) ??
-                                        0;
-                                    final effectiveTaxTyCd = isVatEnabled
-                                        ? (taxTyCd == 'D' ? 'B' : taxTyCd)
-                                        : 'D';
-
-                                    if (existingVariant == null) {
-                                      await model.onScanItem(
-                                        countryCode:
-                                            countryOfOriginController.text,
-                                        editmode: isEditMode,
-                                        barCode: effectiveBarcode,
-                                        retailPrice: override ?? baseRetail,
-                                        supplyPrice: baseSupply,
-                                        isTaxExempted: effectiveTaxTyCd == 'C',
-                                        product: productRef,
-                                        variantDisplayName: variantName,
-                                        itemTyCd: selectedProductType,
+                                    if (productRef == null) {
+                                      showErrorNotification(
+                                        ctx,
+                                        context
+                                            .flipperL10n
+                                            .dpaInvalidProductRef,
                                       );
+                                      return;
+                                    }
 
-                                      final idx = model.scannedVariants
-                                          .indexWhere(
-                                            (v) => v.bcd == effectiveBarcode,
+                                    setModalState(() => savingVariant = true);
+                                    try {
+                                      final barcode = barcodeController.text
+                                          .trim();
+                                      final variantName = nameController.text
+                                          .trim();
+                                      final effectiveBarcode =
+                                          barcode.isNotEmpty
+                                          ? barcode
+                                          : variantName;
+                                      // Local check only (works offline); a
+                                      // blank SKU is assigned on save.
+                                      final typedSku = skuController.text
+                                          .trim();
+                                      final skuError = await skuSaveError(
+                                        ctx,
+                                        typed: typedSku,
+                                        storedSku: existingVariant?.sku,
+                                        businessId: productRef.businessId,
+                                        candidate: SkuHolder(
+                                          id: existingVariant?.id ?? '',
+                                          branchId:
+                                              existingVariant?.branchId ??
+                                              productRef.branchId,
+                                          productId: productRef.id,
+                                          itemCd: existingVariant?.itemCd,
+                                          bcd: effectiveBarcode,
+                                        ),
+                                        unsaved: [
+                                          for (final v in model.scannedVariants)
+                                            (
+                                              id: v.id,
+                                              name: v.name,
+                                              sku: v.sku,
+                                            ),
+                                        ],
+                                      );
+                                      if (skuError != null) {
+                                        if (ctx.mounted) {
+                                          showErrorNotification(ctx, skuError);
+                                        }
+                                        return;
+                                      }
+                                      final baseRetail =
+                                          double.tryParse(
+                                            retailPriceController.text,
+                                          ) ??
+                                          0;
+                                      final baseSupply =
+                                          double.tryParse(
+                                            supplyPriceController.text,
+                                          ) ??
+                                          0;
+                                      final override = double.tryParse(
+                                        priceOverrideController.text.trim(),
+                                      );
+                                      final qty = isService
+                                          ? 0.0
+                                          : double.tryParse(
+                                                  stockController.text.trim(),
+                                                ) ??
+                                                0;
+                                      final lowStockVal =
+                                          double.tryParse(
+                                            lowStockController.text.trim(),
+                                          ) ??
+                                          0.0;
+                                      final discount =
+                                          int.tryParse(
+                                            discountController.text.trim(),
+                                          ) ??
+                                          0;
+                                      final effectiveTaxTyCd = isVatEnabled
+                                          ? (taxTyCd == 'D' ? 'B' : taxTyCd)
+                                          : 'D';
+
+                                      if (existingVariant == null) {
+                                        await model.onScanItem(
+                                          countryCode:
+                                              countryOfOriginController.text,
+                                          editmode: isEditMode,
+                                          barCode: effectiveBarcode,
+                                          retailPrice: override ?? baseRetail,
+                                          supplyPrice: baseSupply,
+                                          isTaxExempted:
+                                              effectiveTaxTyCd == 'C',
+                                          product: productRef,
+                                          variantDisplayName: variantName,
+                                          itemTyCd: selectedProductType,
+                                        );
+
+                                        final idx = model.scannedVariants
+                                            .indexWhere(
+                                              (v) => v.bcd == effectiveBarcode,
+                                            );
+                                        final v = idx != -1
+                                            ? model.scannedVariants[idx]
+                                            : (model.scannedVariants.isNotEmpty
+                                                  ? model.scannedVariants.last
+                                                  : null);
+                                        if (v != null) {
+                                          if (typedSku.isNotEmpty) {
+                                            v.sku = typedSku;
+                                          }
+                                          v.name = variantName;
+                                          v.itemNm = variantName;
+                                          v.modrNm = variantName;
+                                          v.taxTyCd = effectiveTaxTyCd;
+                                          v.taxName = effectiveTaxTyCd;
+                                          v.dcRt = discount.toDouble();
+                                          if (variantAssetName != null) {
+                                            v.imageUrl = variantAssetName;
+                                            // Backward-compatible fallback for older clients.
+                                            v.addInfo =
+                                                'asset:$variantAssetName';
+                                          }
+                                          model
+                                              .getDiscountController(v.id)
+                                              .text = discount
+                                              .toString();
+                                          await model.updateVariantQuantity(
+                                            v.id,
+                                            qty,
+                                            persistToBackend: false,
+                                            lowStock: lowStockVal,
                                           );
-                                      final v = idx != -1
-                                          ? model.scannedVariants[idx]
-                                          : (model.scannedVariants.isNotEmpty
-                                                ? model.scannedVariants.last
-                                                : null);
-                                      if (v != null) {
-                                        if (typedSku.isNotEmpty) {
-                                          v.sku = typedSku;
+                                          model.notifyListeners();
                                         }
-                                        v.name = variantName;
-                                        v.itemNm = variantName;
-                                        v.modrNm = variantName;
-                                        v.taxTyCd = effectiveTaxTyCd;
-                                        v.taxName = effectiveTaxTyCd;
-                                        v.dcRt = discount.toDouble();
+                                      } else {
+                                        existingVariant.name = variantName;
+                                        existingVariant.itemNm = variantName;
+                                        existingVariant.modrNm = variantName;
+                                        existingVariant.bcd = effectiveBarcode;
+                                        if (skuNeedsDuplicateCheck(
+                                          typed: typedSku,
+                                          stored: existingVariant.sku,
+                                        )) {
+                                          // A new SKU clears the server's
+                                          // conflict flag; it re-flags if the
+                                          // clash is still there.
+                                          existingVariant
+                                            ..sku = typedSku
+                                            ..skuPending = false
+                                            ..skuConflict = false;
+                                        }
+                                        existingVariant.taxTyCd =
+                                            effectiveTaxTyCd;
+                                        existingVariant.taxName =
+                                            effectiveTaxTyCd;
+                                        existingVariant.retailPrice =
+                                            override ?? baseRetail;
+                                        existingVariant.supplyPrice =
+                                            baseSupply;
+                                        existingVariant.dcRt = discount
+                                            .toDouble();
                                         if (variantAssetName != null) {
-                                          v.imageUrl = variantAssetName;
+                                          existingVariant.imageUrl =
+                                              variantAssetName;
                                           // Backward-compatible fallback for older clients.
-                                          v.addInfo = 'asset:$variantAssetName';
+                                          existingVariant.addInfo =
+                                              'asset:$variantAssetName';
                                         }
-                                        model.getDiscountController(v.id).text =
-                                            discount.toString();
+                                        model
+                                            .getDiscountController(
+                                              existingVariant.id,
+                                            )
+                                            .text = discount
+                                            .toString();
                                         await model.updateVariantQuantity(
-                                          v.id,
+                                          existingVariant.id,
                                           qty,
                                           persistToBackend: false,
                                           lowStock: lowStockVal,
                                         );
                                         model.notifyListeners();
                                       }
-                                    } else {
-                                      existingVariant.name = variantName;
-                                      existingVariant.itemNm = variantName;
-                                      existingVariant.modrNm = variantName;
-                                      existingVariant.bcd = effectiveBarcode;
-                                      if (skuNeedsDuplicateCheck(
-                                        typed: typedSku,
-                                        stored: existingVariant.sku,
-                                      )) {
-                                        // A new SKU clears the server's
-                                        // conflict flag; it re-flags if the
-                                        // clash is still there.
-                                        existingVariant
-                                          ..sku = typedSku
-                                          ..skuPending = false
-                                          ..skuConflict = false;
-                                      }
-                                      existingVariant.taxTyCd =
-                                          effectiveTaxTyCd;
-                                      existingVariant.taxName =
-                                          effectiveTaxTyCd;
-                                      existingVariant.retailPrice =
-                                          override ?? baseRetail;
-                                      existingVariant.supplyPrice = baseSupply;
-                                      existingVariant.dcRt = discount
-                                          .toDouble();
-                                      if (variantAssetName != null) {
-                                        existingVariant.imageUrl =
-                                            variantAssetName;
-                                        // Backward-compatible fallback for older clients.
-                                        existingVariant.addInfo =
-                                            'asset:$variantAssetName';
-                                      }
-                                      model
-                                          .getDiscountController(
-                                            existingVariant.id,
-                                          )
-                                          .text = discount
-                                          .toString();
-                                      await model.updateVariantQuantity(
-                                        existingVariant.id,
-                                        qty,
-                                        persistToBackend: false,
-                                        lowStock: lowStockVal,
-                                      );
-                                      model.notifyListeners();
-                                    }
 
-                                    if (ctx.mounted) {
-                                      await Navigator.of(ctx).maybePop();
-                                    }
-                                  } catch (e, st) {
-                                    talker.error(
-                                      'Save variant failed: $e',
-                                      e,
-                                      st,
-                                    );
-                                    if (ctx.mounted) {
-                                      showErrorNotification(
-                                        ctx,
-                                        context
-                                            .flipperL10n
-                                            .dpaSaveVariantFailed,
+                                      if (ctx.mounted) {
+                                        await Navigator.of(ctx).maybePop();
+                                      }
+                                    } catch (e, st) {
+                                      talker.error(
+                                        'Save variant failed: $e',
+                                        e,
+                                        st,
                                       );
+                                      if (ctx.mounted) {
+                                        showErrorNotification(
+                                          ctx,
+                                          context
+                                              .flipperL10n
+                                              .dpaSaveVariantFailed,
+                                        );
+                                      }
+                                    } finally {
+                                      // Do not call setModalState after a successful pop: the sheet
+                                      // is deactivating and rebuild triggers InheritedElement asserts.
+                                      if (ctx.mounted) {
+                                        setModalState(
+                                          () => savingVariant = false,
+                                        );
+                                      }
                                     }
-                                  } finally {
-                                    // Do not call setModalState after a successful pop: the sheet
-                                    // is deactivating and rebuild triggers InheritedElement asserts.
-                                    if (ctx.mounted) {
-                                      setModalState(
-                                        () => savingVariant = false,
-                                      );
-                                    }
-                                  }
-                                },
-                          style: FilledButton.styleFrom(
-                            backgroundColor: const Color(
-                              0xFF0078D4,
-                            ).withValues(alpha: 0.12),
-                            foregroundColor: const Color(0xFF0078D4),
-                            disabledBackgroundColor: const Color(
-                              0xFF0078D4,
-                            ).withValues(alpha: 0.12),
-                            disabledForegroundColor: const Color(0xFF0078D4),
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                          ),
-                          child: savingVariant
-                              ? const SizedBox(
-                                  height: 22,
-                                  width: 22,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2.5,
-                                    color: Color(0xFF0078D4),
-                                  ),
-                                )
-                              : Text(
-                                  existingVariant == null
-                                      ? context.flipperL10n.dpaSaveVariant
-                                      : context.flipperL10n.save,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: 16,
-                                  ),
+                                  },
+                            style: FilledButton.styleFrom(
+                              backgroundColor: PosTokens.blue,
+                              foregroundColor: Colors.white,
+                              disabledBackgroundColor: PosTokens.blue,
+                              disabledForegroundColor: Colors.white,
+                              minimumSize: const Size.fromHeight(
+                                MposTokens.checkoutPrimaryHeight,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(
+                                  MposTokens.radiusMd,
                                 ),
+                              ),
+                            ),
+                            child: savingVariant
+                                ? const SizedBox(
+                                    height: 22,
+                                    width: 22,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2.5,
+                                      color: Colors.white,
+                                    ),
+                                  )
+                                : Text(
+                                    existingVariant == null
+                                        ? context.flipperL10n.dpaSaveVariant
+                                        : context.flipperL10n.save,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                          ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-              );
-            },
-          );
-        },
+                    ],
+                  ),
+                );
+              },
+            );
+          },
+        ),
       );
     },
   );
@@ -2423,8 +2485,9 @@ class _MobileProductEntry extends StatelessWidget {
     required this.productRef,
     required this.model,
     required this.formKey,
+    required this.currency,
+    required this.showCategoryError,
     required this.onSave,
-    required this.onClose,
     required this.productNameController,
     required this.retailPriceController,
     required this.supplyPriceController,
@@ -2437,6 +2500,7 @@ class _MobileProductEntry extends StatelessWidget {
     required this.selectedCategoryName,
     required this.onCategoryChanged,
     required this.onAddCategory,
+    required this.onCreateCategory,
     required this.selectedProductType,
     required this.onProductTypeChanged,
     required this.countryOfOriginController,
@@ -2453,8 +2517,9 @@ class _MobileProductEntry extends StatelessWidget {
   final Product? productRef;
   final ScannViewModel model;
   final GlobalKey<FormState> formKey;
+  final String currency;
+  final bool showCategoryError;
   final VoidCallback onSave;
-  final VoidCallback onClose;
 
   final TextEditingController productNameController;
   final TextEditingController retailPriceController;
@@ -2469,6 +2534,7 @@ class _MobileProductEntry extends StatelessWidget {
   final String? selectedCategoryName;
   final void Function(String?) onCategoryChanged;
   final VoidCallback onAddCategory;
+  final Future<void> Function(String? initialName) onCreateCategory;
   final String selectedProductType;
   final void Function(String?) onProductTypeChanged;
   final TextEditingController countryOfOriginController;
@@ -2481,298 +2547,259 @@ class _MobileProductEntry extends StatelessWidget {
   final Color pickerColor;
   final ValueChanged<Color> onColorSelected;
 
+  static String? _variantAssetName(Variant v) {
+    final direct = v.imageUrl;
+    if (direct != null && direct.isNotEmpty) return direct;
+    final raw = v.addInfo;
+    if (raw == null) return null;
+    return raw.startsWith('asset:') ? raw.substring('asset:'.length) : null;
+  }
+
   @override
   Widget build(BuildContext context) {
-    const accentBlue = Color(0xFF0078D4);
-    final sym = ProxyService.box.defaultCurrency();
-
-    String? _variantAssetName(Variant v) {
-      final direct = v.imageUrl;
-      if (direct != null && direct.isNotEmpty) return direct;
-      final raw = v.addInfo;
-      if (raw == null) return null;
-      return raw.startsWith('asset:') ? raw.substring('asset:'.length) : null;
-    }
+    final l10n = context.flipperL10n;
 
     // Cache download operations across rebuilds (keyed by assetName).
     // This avoids re-triggering downloads while scrolling.
-    final Map<String, Future<void>> _downloadCache =
+    final Map<String, Future<void>> downloadCache =
         _MobileVariantThumbnail.globalDownloadCache;
 
-    // ExpansionTile builds a ListTile, which needs an opaque Material ancestor
-    // for its background and ink effects.
-    return Material(
-      color: const Color(0xFFF2F2F7),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: Column(
-          children: [
-            Expanded(
-              child: ListView(
-                padding: const EdgeInsets.only(top: 12, bottom: 12),
+    return Column(
+      children: [
+        Expanded(
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+            children: [
+              BasicInfoSection(
+                productNameController: productNameController,
+                model: model,
+                isEditMode: productId != null,
+              ),
+              const SizedBox(height: 12),
+              PricingSection(
+                retailPriceController: retailPriceController,
+                supplyPriceController: supplyPriceController,
+                model: model,
+                isComposite: false,
+                forceHorizontalPrices: true,
+                currencySymbol: currency,
+              ),
+              const SizedBox(height: 12),
+              // Category and item type change stock, tax and the SKU prefix,
+              // so they sit in the open; packaging and origin stay folded.
+              MobileEntryCard(
+                title: l10n.dpaInventoryCategorization,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    ProductEditorInventorySection(
+                      selectedPackageUnitValue: selectedPackageUnitValue,
+                      pkgUnits: pkgUnits,
+                      onPackageUnitChanged: onPackageUnitChanged,
+                      selectedCategoryId: selectedCategoryId,
+                      selectedCategoryName: selectedCategoryName,
+                      onCategoryChanged: onCategoryChanged,
+                      onAddCategory: onAddCategory,
+                      onCreateCategory: onCreateCategory,
+                      selectedProductType: selectedProductType,
+                      onProductTypeChanged: onProductTypeChanged,
+                      countryOfOriginController: countryOfOriginController,
+                      isEditMode: productId != null,
+                    ),
+                    if (showCategoryError && selectedCategoryId == null) ...[
+                      const SizedBox(height: 10),
+                      Text(
+                        l10n.dashFieldRequired(l10n.category),
+                        style: const TextStyle(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w600,
+                          color: PosTokens.lossInk,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+              Row(
                 children: [
-                  Text(
-                    context.flipperL10n.dpaProductInfo,
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      color: Colors.grey.shade600,
+                  Expanded(
+                    child: Text(
+                      '${l10n.dpaVariants} (${model.scannedVariants.length})',
+                      style: mobileEntrySectionTitleStyle,
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  BasicInfoSection(
-                    productNameController: productNameController,
-                    model: model,
-                    isEditMode: productId != null,
+                  MobileEntrySecondaryButton(
+                    label: l10n.checkoutScan,
+                    icon: Icons.qr_code_scanner,
+                    onPressed: isSaving ? null : onScan,
                   ),
-                  const SizedBox(height: 12),
-                  PricingSection(
-                    retailPriceController: retailPriceController,
-                    supplyPriceController: supplyPriceController,
-                    model: model,
-                    isComposite: false,
-                    forceHorizontalPrices: true,
+                  const SizedBox(width: 8),
+                  MobileEntrySecondaryButton(
+                    label: l10n.dpaPlusAdd,
+                    onPressed: isSaving ? null : onAddVariant,
                   ),
-                  const SizedBox(height: 12),
-                  ExpansionTile(
-                    initiallyExpanded: false,
-                    tilePadding: EdgeInsets.zero,
-                    childrenPadding: const EdgeInsets.only(top: 8),
-                    title: Text(
-                      context.flipperL10n.dpaAdvanced,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    children: [
-                      InventorySection(
-                        selectedPackageUnitValue: selectedPackageUnitValue,
-                        pkgUnits: pkgUnits,
-                        onPackageUnitChanged: onPackageUnitChanged,
-                        selectedCategoryId: selectedCategoryId,
-                        selectedCategoryName: selectedCategoryName,
-                        onCategoryChanged: onCategoryChanged,
-                        onAddCategory: onAddCategory,
-                        selectedProductType: selectedProductType,
-                        onProductTypeChanged: onProductTypeChanged,
-                        countryOfOriginController: countryOfOriginController,
-                        isEditMode: productId != null,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          '${context.flipperL10n.dpaVariants} (${model.scannedVariants.length})',
-                          style: Theme.of(context).textTheme.titleMedium
-                              ?.copyWith(fontWeight: FontWeight.w600),
-                        ),
-                      ),
-                      OutlinedButton(
-                        onPressed: onScan,
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: accentBlue,
-                          side: const BorderSide(color: Color(0xFFD1D1D6)),
-                          backgroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 10,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: Text(context.flipperL10n.checkoutScan),
-                      ),
-                      const SizedBox(width: 8),
-                      OutlinedButton(
-                        onPressed: onAddVariant,
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: accentBlue,
-                          side: const BorderSide(color: Color(0xFFD1D1D6)),
-                          backgroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 10,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: Text(context.flipperL10n.dpaPlusAdd),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    context.flipperL10n.dpaVariantsHint,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Colors.grey.shade600,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  ...model.scannedVariants.reversed.map((v) {
-                    final displayName = v.name.isNotEmpty
-                        ? v.name
-                        : (v.bcd ?? context.flipperL10n.variantsVariant);
-                    final priceStr =
-                        '${(v.retailPrice ?? 0).toStringAsFixed(2)}';
-                    return Dismissible(
-                      key: ValueKey('variant-${v.id}'),
-                      direction: DismissDirection.endToStart,
-                      background: Container(
-                        alignment: Alignment.centerRight,
-                        padding: const EdgeInsets.only(right: 16),
-                        color: Colors.red.shade600,
-                        child: const Icon(Icons.delete, color: Colors.white),
-                      ),
-                      confirmDismiss: (_) async => true,
-                      onDismissed: (_) => onDeleteVariant(v),
-                      child: Card(
-                        elevation: 0,
-                        color: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                          side: BorderSide(color: Colors.grey.shade200),
-                        ),
-                        margin: const EdgeInsets.only(bottom: 8),
-                        child: ExpansionTile(
-                          key: PageStorageKey<String>('vexp-${v.id}'),
-                          tilePadding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 4,
-                          ),
-                          childrenPadding: const EdgeInsets.fromLTRB(
-                            12,
-                            0,
-                            12,
-                            12,
-                          ),
-                          shape: const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(14)),
-                          ),
-                          collapsedShape: const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(14)),
-                          ),
-                          leading: _MobileVariantThumbnail(
-                            assetName: _variantAssetName(v),
-                            downloadCache: _downloadCache,
-                          ),
-                          title: Text(
-                            displayName,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 16,
-                            ),
-                          ),
-                          subtitle: Padding(
-                            padding: const EdgeInsets.only(top: 4),
-                            child: Text(
-                              '$sym $priceStr',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w700,
-                                color: accentBlue,
-                                fontSize: 15,
-                              ),
-                            ),
-                          ),
-                          children: [
-                            Row(
-                              children: [
-                                TextButton.icon(
-                                  onPressed: () => onEditVariant(v),
-                                  icon: const Icon(
-                                    Icons.edit_outlined,
-                                    size: 20,
-                                  ),
-                                  label: Text(
-                                    context.flipperL10n.dpaEditVariant,
-                                  ),
-                                  style: TextButton.styleFrom(
-                                    foregroundColor: accentBlue,
-                                  ),
-                                ),
-                                const Spacer(),
-                                TextButton.icon(
-                                  onPressed: () => onDeleteVariant(v),
-                                  icon: Icon(
-                                    Icons.delete_outline,
-                                    size: 20,
-                                    color: Colors.red.shade700,
-                                  ),
-                                  label: Text(
-                                    context.flipperL10n.delete,
-                                    style: TextStyle(
-                                      color: Colors.red.shade700,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                  style: TextButton.styleFrom(
-                                    foregroundColor: Colors.red.shade700,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  }),
                 ],
               ),
-            ),
-            const SizedBox(height: 8),
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton(
-                onPressed: isSaving ? null : onSave,
-                style: FilledButton.styleFrom(
-                  backgroundColor: accentBlue.withValues(alpha: 0.12),
-                  foregroundColor: accentBlue,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                ),
-                child: isSaving
-                    ? const SizedBox(
-                        height: 18,
-                        width: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : Text(
-                        context.flipperL10n.dpaSaveProduct,
-                        style: TextStyle(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 16,
-                        ),
-                      ),
-              ),
-            ),
-            const SizedBox(height: 10),
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton(
-                onPressed: isSaving ? null : onClose,
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: accentBlue,
-                  side: const BorderSide(color: Color(0xFFD1D1D6)),
-                  backgroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                ),
-                child: Text(
-                  context.flipperL10n.close,
-                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
+              const SizedBox(height: 6),
+              Text(l10n.dpaVariantsHint, style: mobileEntryHintStyle),
+              const SizedBox(height: 10),
+              ...model.scannedVariants.reversed.map(
+                (v) => _MobileVariantCard(
+                  variant: v,
+                  currency: currency,
+                  assetName: _variantAssetName(v),
+                  downloadCache: downloadCache,
+                  onEdit: () => onEditVariant(v),
+                  onDelete: () => onDeleteVariant(v),
                 ),
               ),
+            ],
+          ),
+        ),
+        DecoratedBox(
+          decoration: const BoxDecoration(
+            color: PosTokens.surface,
+            border: Border(top: BorderSide(color: PosTokens.line)),
+          ),
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(
+              16,
+              12,
+              16,
+              12 + MediaQuery.paddingOf(context).bottom,
             ),
-            SizedBox(height: 12 + MediaQuery.of(context).padding.bottom),
-          ],
+            child: MobileEntryPrimaryButton(
+              label: l10n.dpaSaveProduct,
+              isBusy: isSaving,
+              onPressed: onSave,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// One variant on the phone form: swipe left or expand to edit or delete.
+class _MobileVariantCard extends StatelessWidget {
+  const _MobileVariantCard({
+    required this.variant,
+    required this.currency,
+    required this.assetName,
+    required this.downloadCache,
+    required this.onEdit,
+    required this.onDelete,
+  });
+
+  final Variant variant;
+  final String currency;
+  final String? assetName;
+  final Map<String, Future<void>> downloadCache;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
+    final v = variant;
+    final displayName = v.name.isNotEmpty
+        ? v.name
+        : (v.bcd ?? l10n.variantsVariant);
+    const radius = BorderRadius.all(Radius.circular(MposTokens.radiusMd));
+    const shape = RoundedRectangleBorder(borderRadius: radius);
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Dismissible(
+        key: ValueKey('variant-${v.id}'),
+        direction: DismissDirection.endToStart,
+        background: Container(
+          alignment: Alignment.centerRight,
+          padding: const EdgeInsets.only(right: 20),
+          decoration: const BoxDecoration(
+            color: PosTokens.loss,
+            borderRadius: radius,
+          ),
+          child: const Icon(Icons.delete_outline, color: Colors.white),
+        ),
+        onDismissed: (_) => onDelete(),
+        // ExpansionTile builds a ListTile, which paints its ripple on the
+        // nearest Material: the card itself, so the tap shows.
+        child: Material(
+          color: PosTokens.surface,
+          shape: const RoundedRectangleBorder(
+            side: BorderSide(color: PosTokens.line),
+            borderRadius: radius,
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: ExpansionTile(
+            key: PageStorageKey<String>('vexp-${v.id}'),
+            tilePadding: const EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: 4,
+            ),
+            childrenPadding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+            shape: shape,
+            collapsedShape: shape,
+            iconColor: PosTokens.ink3,
+            collapsedIconColor: PosTokens.ink3,
+            leading: _MobileVariantThumbnail(
+              assetName: assetName,
+              downloadCache: downloadCache,
+            ),
+            title: Text(
+              displayName,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 15.5,
+                color: PosTokens.ink1,
+              ),
+            ),
+            subtitle: Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text(
+                '$currency ${(v.retailPrice ?? 0).toStringAsFixed(2)}',
+                style: const TextStyle(
+                  fontWeight: FontWeight.w700,
+                  color: PosTokens.blue,
+                  fontSize: 14.5,
+                  fontFeatures: [FontFeature.tabularFigures()],
+                ),
+              ),
+            ),
+            children: [
+              Row(
+                children: [
+                  TextButton.icon(
+                    onPressed: onEdit,
+                    icon: const Icon(Icons.edit_outlined, size: 20),
+                    label: Text(
+                      l10n.dpaEditVariant,
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    style: TextButton.styleFrom(
+                      foregroundColor: PosTokens.blue,
+                    ),
+                  ),
+                  const Spacer(),
+                  TextButton.icon(
+                    onPressed: onDelete,
+                    icon: const Icon(Icons.delete_outline, size: 20),
+                    label: Text(
+                      l10n.delete,
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    style: TextButton.styleFrom(
+                      foregroundColor: PosTokens.lossInk,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -2854,11 +2881,11 @@ class _MobileVariantThumbnailState extends State<_MobileVariantThumbnail> {
     if (assetName == null || assetName.isEmpty) {
       return CircleAvatar(
         radius: 20,
-        backgroundColor: Colors.grey.shade100,
+        backgroundColor: PosTokens.surface2,
         child: const Icon(
           Icons.inventory_2_outlined,
           size: 20,
-          color: Colors.black54,
+          color: PosTokens.ink3,
         ),
       );
     }
@@ -2867,11 +2894,11 @@ class _MobileVariantThumbnailState extends State<_MobileVariantThumbnail> {
     if (local == null) {
       return CircleAvatar(
         radius: 20,
-        backgroundColor: Colors.grey.shade100,
+        backgroundColor: PosTokens.surface2,
         child: const Icon(
           Icons.image_outlined,
           size: 20,
-          color: Colors.black54,
+          color: PosTokens.ink3,
         ),
       );
     }
