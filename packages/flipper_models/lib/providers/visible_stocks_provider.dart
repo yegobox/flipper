@@ -2,7 +2,8 @@ import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/outer_variant_provider.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart' show StreamProvider;
+import 'package:flutter_riverpod/flutter_riverpod.dart'
+    show ProviderListenableSelect, StreamProvider;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'visible_stocks_provider.g.dart';
@@ -11,28 +12,31 @@ part 'visible_stocks_provider.g.dart';
 ///
 /// [stockFilter] must match the catalog the grid renders, or the observer
 /// watches another page's stock rows.
+///
+/// Watches only the page's stock ids, not the list itself: the catalog emits
+/// a new list for every repaint (a cached page swapped back in, an edit, a
+/// refresh that returns the same rows), and each re-run re-registered the
+/// observer and its subscription — synchronous Ditto calls on the UI thread
+/// that block whenever Ditto is busy, which right after a page load it is.
 @riverpod
 Stream<Map<String, Stock?>> stocksForVisibleVariants(
   Ref ref,
   String branchId, {
   PosStockFilter stockFilter = PosStockFilter.all,
 }) {
-  final variantsAsync = ref.watch(
-    outerVariantsProvider(branchId, stockFilter: stockFilter),
+  final key = ref.watch(
+    outerVariantsProvider(
+      branchId,
+      stockFilter: stockFilter,
+    ).select((async) => stockIdsKey(async.asData?.value ?? const <Variant>[])),
   );
-  final variants = variantsAsync.asData?.value ?? const <Variant>[];
-  final stockIds = variants
-      .map((v) => v.stockId)
-      .whereType<String>()
-      .where((id) => id.isNotEmpty)
-      .toSet()
-      .toList();
-
-  if (stockIds.isEmpty) {
+  if (key.isEmpty) {
     return Stream.value(const {});
   }
 
-  return ProxyService.getStrategy(Strategy.capella).watchStocksByIds(stockIds);
+  return ProxyService.getStrategy(
+    Strategy.capella,
+  ).watchStocksByIds(key.split(','));
 }
 
 /// The key [stocksByIdsProvider] is read with: the stock ids of a list's

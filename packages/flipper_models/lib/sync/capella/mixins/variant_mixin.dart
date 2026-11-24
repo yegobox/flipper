@@ -16,6 +16,7 @@ import 'package:ditto_live/ditto_live.dart';
 import 'package:flipper_models/sync/utils/catalog_delete.dart';
 import 'package:flipper_models/sync/utils/pos_catalog_search.dart';
 import 'package:flipper_models/sync/utils/pos_catalog_stock_filter.dart';
+import 'package:flipper_models/sync/utils/pos_stock_filter_walker.dart';
 import 'package:flipper_models/sync/utils/rra_new_variant_register.dart';
 import 'package:flipper_models/sync/utils/stock_qty_milli.dart';
 import 'package:flipper_models/sync/utils/stock_threshold.dart';
@@ -139,57 +140,8 @@ mixin CapellaVariantMixin implements VariantInterface {
   /// Chunk size for `IN (…)` id lookups, matching the cart cleanup path.
   static const int _idLookupChunkSize = 80;
 
-  /// On-hand quantity for every stock id the catalog [rows] point at.
-  ///
-  /// One scan of the branch's stock rows (`stocks.branchId` is indexed), then a
-  /// by-id lookup for any stock id that scan did not return — a row with no
-  /// `branchId` still feeds the tile's live stock, so it must count here too.
-  Future<Map<String, double>> _stockQtyForCatalogRows(
-    Ditto ditto,
-    String branchId,
-    List<Map<String, dynamic>> rows,
-  ) async {
-    final branchStock = await ditto.store.execute(
-      stockQtySelectDql(whereClause: 'branchId = :branchId'),
-      arguments: {'branchId': branchId},
-    );
-    final qty = stockQtyByIdKeys(
-      branchStock.items.map((doc) => Map<String, dynamic>.from(doc.value)),
-    );
-
-    final missing = rows
-        .map(variantRowStockId)
-        .whereType<String>()
-        .where((id) => !qty.containsKey(id))
-        .toSet()
-        .toList();
-    for (var i = 0; i < missing.length; i += _idLookupChunkSize) {
-      final chunk = missing.sublist(
-        i,
-        i + _idLookupChunkSize < missing.length
-            ? i + _idLookupChunkSize
-            : missing.length,
-      );
-      // No catch here: a failed lookup must not read as "0 on hand", which
-      // would hide sellable items. It propagates to runPage, which lists the
-      // unfiltered page instead. A lookup that simply finds no row still
-      // leaves the item out of stock, as the tile shows it.
-      final lookup = idInLookup(chunk);
-      final found = await ditto.store.execute(
-        stockQtySelectDql(
-          whereClause:
-              '_id IN (${lookup.placeholders}) OR id IN (${lookup.placeholders})',
-        ),
-        arguments: lookup.arguments,
-      );
-      qty.addAll(
-        stockQtyByIdKeys(
-          found.items.map((doc) => Map<String, dynamic>.from(doc.value)),
-        ),
-      );
-    }
-    return qty;
-  }
+  /// The POS grid's stock filter and its recent walks.
+  final PosStockFilterWalker _stockFilter = PosStockFilterWalker();
 
   /// Variant documents for [ids], returned in the order of [ids].
   Future<List<dynamic>> _variantDocsInOrder(
@@ -493,25 +445,22 @@ mixin CapellaVariantMixin implements VariantInterface {
           inStock != null && bcd == null && !isCatalogTextSearch;
       int? stockFilteredOut;
 
+      // The walk covers the whole catalog, so a fetch that keeps the caller's
+      // total pages through the stored one (see [PosStockFilterWalker]).
       Future<List<dynamic>> runStockFiltered() async {
-        final catalogArgs = Map<String, dynamic>.from(arguments)
-          ..remove('limit')
-          ..remove('offset');
-        final catalogRows = (await runExecute(
-          stockFilterCatalogQuery(filterQuery, orderSuffix),
-          catalogArgs,
-          label: 'variants:stock_catalog',
-        )).map((doc) => Map<String, dynamic>.from(doc.value)).toList();
-        final matching = variantIdsMatchingStock(
-          rows: catalogRows,
-          qtyByStockId: await PerfOpTrail.instance.track(
-            'variants:stock_qty',
-            () => _stockQtyForCatalogRows(ditto, branchId, catalogRows),
-          ),
+        final walk = await _stockFilter.listing(
+          ditto,
+          branchId: branchId,
+          catalogQuery: stockFilterCatalogQuery(filterQuery, orderSuffix),
+          catalogArgs: Map<String, dynamic>.from(arguments)
+            ..remove('limit')
+            ..remove('offset'),
           inStock: inStock!,
+          fresh: countTotal,
         );
+        final matching = walk.matching;
         totalCount = matching.length;
-        stockFilteredOut = catalogRows.length - matching.length;
+        stockFilteredOut = walk.filteredOut;
         return PerfOpTrail.instance.track(
           'variants:stock_docs',
           () => _variantDocsInOrder(
@@ -701,8 +650,12 @@ mixin CapellaVariantMixin implements VariantInterface {
         totalCount = items.length < itemsPerPage ? base : base + 1;
       }
 
-      final stockIds = items
-          .map((doc) => Map<String, dynamic>.from(doc.value)['stockId'])
+      // Decoded once: the stock ids and the variants read the same rows.
+      final rows = [
+        for (final doc in items) Map<String, dynamic>.from(doc.value),
+      ];
+      final stockIds = rows
+          .map((row) => row['stockId'])
           .whereType<String>()
           .where((id) => id.trim().isNotEmpty)
           .toSet()
@@ -719,8 +672,8 @@ mixin CapellaVariantMixin implements VariantInterface {
 
       // Parse results
       final pagedVariants = <Variant>[];
-      for (var doc in items) {
-        final variant = Variant.fromJson(Map<String, dynamic>.from(doc.value));
+      for (final row in rows) {
+        final variant = Variant.fromJson(row);
         final sid = variant.stockId?.trim();
         if (sid != null && sid.isNotEmpty) {
           final attached = stocksById[sid];
