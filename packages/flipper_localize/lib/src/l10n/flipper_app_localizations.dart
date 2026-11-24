@@ -26716,12 +26716,6 @@ abstract class FlipperAppLocalizations {
   /// **'Delivery'**
   String get incomingOrdersColDelivery;
 
-  /// No description provided for @incomingOrdersSelectRequest.
-  ///
-  /// In en, this message translates to:
-  /// **'Select a request to see its items'**
-  String get incomingOrdersSelectRequest;
-
   /// No description provided for @incomingOrdersRequestCount.
   ///
   /// In en, this message translates to:

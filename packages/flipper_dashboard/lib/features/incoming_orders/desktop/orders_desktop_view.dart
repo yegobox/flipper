@@ -37,6 +37,14 @@ class OrdersDesktopView extends StatelessWidget {
     required this.onRetryBranch,
   });
 
+  /// Detail width bounds. The pane takes 40% of the row within them, and
+  /// the table takes the rest, so a 1024px till still has room for counts.
+  static const double detailWidth = 440;
+  static const double minDetailWidth = 320;
+
+  static double detailWidthFor(double rowWidth) =>
+      (rowWidth * 0.4).clamp(minDetailWidth, detailWidth);
+
   final OmDirection direction;
   final ValueChanged<OmDirection> onDirection;
   final bool shopAvailable;
@@ -73,12 +81,14 @@ class OrdersDesktopView extends StatelessWidget {
                     l10n.incomingOrdersIncoming,
                     Icons.move_to_inbox_outlined,
                     incomingCount,
+                    paged: true,
                   ),
                   _TabSpec(
                     OmDirection.outgoing,
                     l10n.incomingOrdersOutgoing,
                     Icons.outbox_outlined,
                     outgoingCount,
+                    paged: true,
                   ),
                   if (shopAvailable)
                     _TabSpec(
@@ -259,9 +269,6 @@ class _Workspace extends HookWidget {
   final bool isIncoming;
   final VoidCallback onLoadMore;
 
-  /// Detail width; the table takes the rest.
-  static const double detailWidth = 440;
-
   @override
   Widget build(BuildContext context) {
     final picked = useState<String?>(null);
@@ -274,36 +281,38 @@ class _Workspace extends HookWidget {
         break;
       }
     }
-    selected ??= requests.first;
+    final open = selected ?? requests.first;
 
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Expanded(
-          child: _Card(
-            child: OrdersRequestTable(
-              title: title,
-              requests: requests,
-              selectedId: selected.id,
-              onSelect: (id) => picked.value = id,
-              isIncoming: isIncoming,
-              onLoadMore: onLoadMore,
+    return LayoutBuilder(
+      builder: (context, constraints) => Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(
+            child: _Card(
+              child: OrdersRequestTable(
+                title: title,
+                requests: requests,
+                selectedId: open.id,
+                onSelect: (id) => picked.value = id,
+                isIncoming: isIncoming,
+                onLoadMore: onLoadMore,
+              ),
             ),
           ),
-        ),
-        const SizedBox(width: 16),
-        SizedBox(
-          width: detailWidth,
-          child: _Card(
-            child: OrdersRequestDetail(
-              key: ValueKey(selected.id),
-              request: selected,
-              activeBranch: branch,
-              isIncoming: isIncoming,
+          const SizedBox(width: 16),
+          SizedBox(
+            width: OrdersDesktopView.detailWidthFor(constraints.maxWidth),
+            child: _Card(
+              child: OrdersRequestDetail(
+                key: ValueKey(open.id),
+                request: open,
+                activeBranch: branch,
+                isIncoming: isIncoming,
+              ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
@@ -403,13 +412,30 @@ class _Message extends StatelessWidget {
   }
 }
 
+/// Stock requests load [stockRequestsPageSize] at a time (`StockRequests`
+/// in flipper_models), so a count that fills whole pages may have more behind
+/// it: the tab then reads "50+" rather than a total it doesn't have.
+const int stockRequestsPageSize = 50;
+
+String pagedCountLabel(int count) =>
+    count > 0 && count % stockRequestsPageSize == 0 ? '$count+' : '$count';
+
 class _TabSpec {
-  const _TabSpec(this.value, this.label, this.icon, this.count);
+  const _TabSpec(
+    this.value,
+    this.label,
+    this.icon,
+    this.count, {
+    this.paged = false,
+  });
 
   final OmDirection value;
   final String label;
   final IconData icon;
   final int? count;
+
+  /// [count] is the loaded part of a paged list, not a total.
+  final bool paged;
 }
 
 class _Toolbar extends StatelessWidget {
@@ -530,7 +556,7 @@ class _TabState extends State<_Tab> {
                           : Border.all(color: PosTokens.line),
                     ),
                     child: Text(
-                      '$count',
+                      widget.spec.paged ? pagedCountLabel(count) : '$count',
                       style: PosTokens.meta.copyWith(
                         fontWeight: FontWeight.w700,
                         color: selected ? Colors.white : PosTokens.ink2,

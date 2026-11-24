@@ -16365,10 +16365,6 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   String get incomingOrdersColDelivery => 'Livraison';
 
   @override
-  String get incomingOrdersSelectRequest =>
-      'Sélectionnez une demande pour voir ses articles';
-
-  @override
   String incomingOrdersRequestCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

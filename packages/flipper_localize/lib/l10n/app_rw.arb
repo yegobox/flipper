@@ -6037,7 +6037,6 @@
   "incomingOrdersColItems": "Ibicuruzwa",
   "incomingOrdersColQty": "Ingano",
   "incomingOrdersColDelivery": "Kugeza",
-  "incomingOrdersSelectRequest": "Hitamo ubusabe urebe ibicuruzwa byabwo",
   "incomingOrdersRequestCount": "{count, plural, =1{Ubusabe 1} other{Ubusabe {count}}}",
   "incomingOrdersQtyRatio": "Ibicuruzwa {approved}/{requested, plural, =1{1} other{{requested}}}",
   "failedPaymentCardEmailRequired": "Imeyili irakenewe kugira ngo wakire inyemezabwishyu y'ikarita",

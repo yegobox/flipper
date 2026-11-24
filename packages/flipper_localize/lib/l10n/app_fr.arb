@@ -4452,7 +4452,6 @@
     "incomingOrdersColItems": "Articles",
     "incomingOrdersColQty": "Qté",
     "incomingOrdersColDelivery": "Livraison",
-    "incomingOrdersSelectRequest": "Sélectionnez une demande pour voir ses articles",
     "incomingOrdersRequestCount": "{count, plural, =1{1 demande} other{{count} demandes}}",
     "incomingOrdersQtyRatio": "{approved}/{requested, plural, =1{1 article} other{{requested} articles}}",
     "failedPaymentCardEmailRequired": "Une adresse e-mail est requise pour le reçu de carte",

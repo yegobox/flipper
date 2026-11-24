@@ -13657,7 +13657,6 @@
     "incomingOrdersColItems": "Items",
     "incomingOrdersColQty": "Qty",
     "incomingOrdersColDelivery": "Delivery",
-    "incomingOrdersSelectRequest": "Select a request to see its items",
     "incomingOrdersRequestCount": "{count, plural, =1{1 request} other{{count} requests}}",
     "@incomingOrdersRequestCount": {
         "placeholders": {

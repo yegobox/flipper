@@ -10,17 +10,46 @@ import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
 
-/// Column widths shared by the header and every row, so they line up.
-const List<int> _flex = [30, 20, 9, 12, 15, 16];
 const double _rowHeight = 52;
 const double _checkboxWidth = 40;
 const double _hPad = 16;
 
-/// Indexes of right-aligned number columns, and the wider gap after them so
-/// a number never reads as part of the next column.
-const Set<int> _numeric = {2, 3};
-EdgeInsets _cellPad(int i) =>
-    EdgeInsets.only(right: _numeric.contains(i) ? 28 : 12);
+/// The table's columns, in order.
+enum OrdersColumn { branch, requested, items, qty, delivery, status }
+
+/// Columns that fit a table [width] wide. Counts and status keep fixed
+/// widths, so on a narrow desktop (the detail pane takes ~320–440px) the
+/// table drops Delivery, then Items (both are in the detail pane) instead of
+/// squeezing numbers to nothing.
+List<OrdersColumn> ordersColumnsFor(double width) => [
+  OrdersColumn.branch,
+  OrdersColumn.requested,
+  if (width >= 520) OrdersColumn.items,
+  OrdersColumn.qty,
+  if (width >= 640) OrdersColumn.delivery,
+  OrdersColumn.status,
+];
+
+/// Number columns are right-aligned, with a wider gap after them so a number
+/// never reads as part of the next column.
+bool _isNumeric(OrdersColumn c) =>
+    c == OrdersColumn.items || c == OrdersColumn.qty;
+
+/// One cell, sized the same in the header and every row so they line up.
+Widget _cell(OrdersColumn c, Widget child) {
+  final padded = Padding(
+    padding: EdgeInsets.only(right: _isNumeric(c) ? 20 : 12),
+    child: child,
+  );
+  return switch (c) {
+    OrdersColumn.items => SizedBox(width: 80, child: padded),
+    OrdersColumn.qty => SizedBox(width: 92, child: padded),
+    OrdersColumn.status => SizedBox(width: 112, child: padded),
+    OrdersColumn.branch => Expanded(flex: 25, child: padded),
+    OrdersColumn.requested => Expanded(flex: 20, child: padded),
+    OrdersColumn.delivery => Expanded(flex: 15, child: padded),
+  };
+}
 
 /// Requested vs approved units across a request's lines. Falls back to the
 /// stored line count when the lines are not loaded with the request.
@@ -123,49 +152,56 @@ class _OrdersRequestTableState extends State<OrdersRequestTable> {
     return Focus(
       focusNode: _focus,
       onKeyEvent: _onKey,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          OrdersTableCaption(title: widget.title, count: requests.length),
-          OrdersTableHeader(
-            showCheckbox: widget.isIncoming,
-            requestIds: [for (final r in requests) r.id],
-          ),
-          Expanded(
-            child: NotificationListener<ScrollNotification>(
-              onNotification: (n) {
-                final atEnd =
-                    n.metrics.pixels >= n.metrics.maxScrollExtent - 40;
-                if (atEnd && !_loadMoreFired) {
-                  _loadMoreFired = true;
-                  widget.onLoadMore();
-                } else if (!atEnd) {
-                  _loadMoreFired = false;
-                }
-                return false;
+      child: LayoutBuilder(
+        builder: (context, constraints) =>
+            _table(requests, ordersColumnsFor(constraints.maxWidth)),
+      ),
+    );
+  }
+
+  Widget _table(List<InventoryRequest> requests, List<OrdersColumn> columns) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        OrdersTableCaption(title: widget.title, count: requests.length),
+        OrdersTableHeader(
+          showCheckbox: widget.isIncoming,
+          requestIds: [for (final r in requests) r.id],
+        ),
+        Expanded(
+          child: NotificationListener<ScrollNotification>(
+            onNotification: (n) {
+              final atEnd = n.metrics.pixels >= n.metrics.maxScrollExtent - 40;
+              if (atEnd && !_loadMoreFired) {
+                _loadMoreFired = true;
+                widget.onLoadMore();
+              } else if (!atEnd) {
+                _loadMoreFired = false;
+              }
+              return false;
+            },
+            child: ListView.builder(
+              controller: _scroll,
+              itemExtent: _rowHeight,
+              itemCount: requests.length,
+              itemBuilder: (context, i) {
+                final request = requests[i];
+                return _RequestRow(
+                  key: ValueKey(request.id),
+                  request: request,
+                  columns: columns,
+                  isIncoming: widget.isIncoming,
+                  selected: request.id == widget.selectedId,
+                  onTap: () {
+                    _focus.requestFocus();
+                    widget.onSelect(request.id);
+                  },
+                );
               },
-              child: ListView.builder(
-                controller: _scroll,
-                itemExtent: _rowHeight,
-                itemCount: requests.length,
-                itemBuilder: (context, i) {
-                  final request = requests[i];
-                  return _RequestRow(
-                    key: ValueKey(request.id),
-                    request: request,
-                    isIncoming: widget.isIncoming,
-                    selected: request.id == widget.selectedId,
-                    onTap: () {
-                      _focus.requestFocus();
-                      widget.onSelect(request.id);
-                    },
-                  );
-                },
-              ),
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
@@ -217,14 +253,14 @@ class OrdersTableHeader extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.flipperL10n;
-    final labels = [
-      l10n.incomingOrdersColBranch,
-      l10n.incomingOrdersColRequested,
-      l10n.incomingOrdersColItems,
-      l10n.incomingOrdersColQty,
-      l10n.incomingOrdersColDelivery,
-      l10n.incomingOrdersStatus,
-    ];
+    String label(OrdersColumn c) => switch (c) {
+      OrdersColumn.branch => l10n.incomingOrdersColBranch,
+      OrdersColumn.requested => l10n.incomingOrdersColRequested,
+      OrdersColumn.items => l10n.incomingOrdersColItems,
+      OrdersColumn.qty => l10n.incomingOrdersColQty,
+      OrdersColumn.delivery => l10n.incomingOrdersColDelivery,
+      OrdersColumn.status => l10n.incomingOrdersStatus,
+    };
 
     Widget? checkbox;
     if (showCheckbox) {
@@ -264,26 +300,25 @@ class OrdersTableHeader extends ConsumerWidget {
         color: PosTokens.surface2,
         border: Border.symmetric(horizontal: BorderSide(color: PosTokens.line)),
       ),
-      child: Row(
-        children: [
-          ?checkbox,
-          for (var i = 0; i < labels.length; i++)
-            Expanded(
-              flex: _flex[i],
-              child: Padding(
-                padding: _cellPad(i),
-                child: Text(
-                  labels[i].toUpperCase(),
+      child: LayoutBuilder(
+        // The header sits inside the same card as the rows, so its width
+        // (plus padding) picks the same columns.
+        builder: (context, constraints) => Row(
+          children: [
+            ?checkbox,
+            for (final c in ordersColumnsFor(constraints.maxWidth + 2 * _hPad))
+              _cell(
+                c,
+                Text(
+                  label(c).toUpperCase(),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  textAlign: _numeric.contains(i)
-                      ? TextAlign.right
-                      : TextAlign.left,
+                  textAlign: _isNumeric(c) ? TextAlign.right : TextAlign.left,
                   style: PosTokens.eyebrow,
                 ),
               ),
-            ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -293,12 +328,14 @@ class _RequestRow extends ConsumerStatefulWidget {
   const _RequestRow({
     super.key,
     required this.request,
+    required this.columns,
     required this.isIncoming,
     required this.selected,
     required this.onTap,
   });
 
   final InventoryRequest request;
+  final List<OrdersColumn> columns;
   final bool isIncoming;
   final bool selected;
   final VoidCallback onTap;
@@ -333,18 +370,22 @@ class _RequestRowState extends ConsumerState<_RequestRow> {
         ? PosTokens.surface2
         : PosTokens.surface;
 
-    final cells = <Widget>[
-      _BranchCell(request: request, isIncoming: widget.isIncoming),
-      _TwoLine(
+    Widget cell(OrdersColumn c) => switch (c) {
+      OrdersColumn.branch => _BranchCell(
+        request: request,
+        isIncoming: widget.isIncoming,
+      ),
+      OrdersColumn.requested => _TwoLine(
         top: created == null ? '—' : DateFormat('d MMM yyyy').format(created),
         bottom: created == null ? null : DateFormat('HH:mm').format(created),
       ),
-      Text(
+      OrdersColumn.items => Text(
         '${requestLineCount(request)}',
+        maxLines: 1,
         style: mono,
         textAlign: TextAlign.right,
       ),
-      Text.rich(
+      OrdersColumn.qty => Text.rich(
         TextSpan(
           children: [
             if (!isPending)
@@ -365,9 +406,10 @@ class _RequestRowState extends ConsumerState<_RequestRow> {
             ),
           ],
         ),
+        maxLines: 1,
         textAlign: TextAlign.right,
       ),
-      Text(
+      OrdersColumn.delivery => Text(
         delivery == null ? '—' : DateFormat('d MMM yyyy').format(delivery),
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
@@ -375,11 +417,11 @@ class _RequestRowState extends ConsumerState<_RequestRow> {
           color: delivery == null ? PosTokens.ink4 : PosTokens.ink2,
         ),
       ),
-      Align(
+      OrdersColumn.status => Align(
         alignment: Alignment.centerLeft,
         child: OrdersStatusChip(status: request.status),
       ),
-    ];
+    };
 
     return MouseRegion(
       cursor: SystemMouseCursors.click,
@@ -416,11 +458,7 @@ class _RequestRowState extends ConsumerState<_RequestRow> {
                     ),
                   ),
                 ),
-              for (var i = 0; i < cells.length; i++)
-                Expanded(
-                  flex: _flex[i],
-                  child: Padding(padding: _cellPad(i), child: cells[i]),
-                ),
+              for (final c in widget.columns) _cell(c, cell(c)),
             ],
           ),
         ),

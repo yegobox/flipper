@@ -16210,9 +16210,6 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   String get incomingOrdersColDelivery => 'Uwasilishaji';
 
   @override
-  String get incomingOrdersSelectRequest => 'Chagua ombi kuona bidhaa zake';
-
-  @override
   String incomingOrdersRequestCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

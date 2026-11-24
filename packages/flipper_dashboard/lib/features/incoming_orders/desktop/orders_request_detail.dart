@@ -172,33 +172,3 @@ class _Fact extends StatelessWidget {
     );
   }
 }
-
-/// What the pane shows before a row is picked.
-class OrdersDetailPlaceholder extends StatelessWidget {
-  const OrdersDetailPlaceholder({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(
-              Icons.receipt_long_outlined,
-              size: 28,
-              color: PosTokens.ink4,
-            ),
-            const SizedBox(height: 10),
-            Text(
-              context.flipperL10n.incomingOrdersSelectRequest,
-              textAlign: TextAlign.center,
-              style: PosTokens.body.copyWith(color: PosTokens.ink3),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}

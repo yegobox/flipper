@@ -9,6 +9,7 @@ import 'package:flipper_dashboard/features/production_output/widgets/work_order_
 import 'package:flipper_dashboard/features/production_output/widgets/work_order_form.dart';
 import 'package:flipper_dashboard/providers/navigation_providers.dart';
 import 'package:flipper_dashboard/stockApprovalMixin.dart';
+import 'package:flipper_dashboard/theme/pos_tokens.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/providers/orders_provider.dart';
@@ -525,7 +526,7 @@ class _OmBtn extends StatelessWidget {
         break;
       // Brand blue: actions are never green (green only means stock/gain).
       case _OmBtnVariant.primary:
-        bg = OmTokens.accentStrong;
+        bg = PosTokens.blue;
         fg = Colors.white;
         border = Colors.transparent;
         break;
