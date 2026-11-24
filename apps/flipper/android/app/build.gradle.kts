@@ -26,10 +26,6 @@ android {
         isCoreLibraryDesugaringEnabled = true
     }
 
-    kotlinOptions {
-        jvmTarget = "17"
-    }
-
     sourceSets["main"].java.srcDirs("src/main/kotlin")
 
     defaultConfig {
@@ -100,9 +96,15 @@ android {
         jniLibs {
             // AGP 8.5+: keep .so uncompressed so ZIP+ELF 16KB alignment is preserved
             // when extractNativeLibs=false. Legacy compressed packaging is only the
-            // workaround for AGP < 8.5.1 — not for this project (AGP 8.12.1).
+            // workaround for AGP < 8.5.1 — not for this project (AGP 9.3.1).
             useLegacyPackaging = false
         }
+    }
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
     }
 }
 
