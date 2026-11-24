@@ -1,5 +1,6 @@
 // router and auth wiring moved to router_provider
 import 'package:flipper_analytics/flipper_analytics.dart';
+import 'package:flipper_web/core/analytics/analytics_session_context.dart';
 import 'package:flipper_web/core/data_connector_web_auth.dart';
 import 'package:flipper_web/core/flipper_web_host.dart';
 import 'package:flipper_web/core/secrets.dart';
@@ -44,12 +45,14 @@ Future<void> main() async {
 
     await FlipperAnalytics.initialize(
       appName: 'flipper_web',
-      platformName: 'web',
+      platformName: analyticsPlatformName(),
       projectToken: AppSecrets.postHogProjectToken,
       store: SharedPreferencesAnalyticsEventStore(),
-      contextProvider: CallbackAnalyticsContextProvider(
+      // The user, business and branch come from the session as it changes;
+      // the app root keeps them in step (analyticsSessionSyncProvider).
+      contextProvider: analyticsSessionContext.contextProvider(
         appName: 'flipper_web',
-        platformName: 'web',
+        platformName: analyticsPlatformName(),
         buildMode: kDebugMode ? 'debug' : 'release',
       ),
     );
@@ -77,6 +80,8 @@ class MyApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Tags every analytics event with the session's business and branch.
+    ref.watch(analyticsSessionSyncProvider);
     final themeMode = ref.watch(themeProvider);
     final locale = ref.watch(localeProvider);
     // notify GoRouter to refresh when auth state changes

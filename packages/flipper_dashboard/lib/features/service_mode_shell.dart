@@ -1,3 +1,4 @@
+import 'package:flipper_analytics/flipper_analytics.dart';
 import 'package:flipper_dashboard/features/bar_mode/bar_mode_settings.dart';
 import 'package:flipper_dashboard/features/hotel_mode/hotel_mode_settings.dart';
 import 'package:flipper_dashboard/features/service_mode_switch.dart';
@@ -93,6 +94,7 @@ void _showShell(ServiceMode mode) {
   final router = routerService.router;
   final current = router.current.name;
   if (current == serviceModeShellRouteName(mode)) return;
+  trackFeatureUsed(mode.name, properties: const {'source': 'service_mode'});
 
   switch (mode) {
     case ServiceMode.pos:

@@ -10,6 +10,8 @@ import 'package:flipper_web/services/ditto_service.dart';
 import 'package:flipper_services/proxy.dart';
 
 import 'package:flipper_models/sync/capella/category_ditto_mapper.dart';
+import 'package:flipper_models/sync/ditto_observer_registry.dart';
+import 'package:ditto_live/ditto_live.dart' show QueryResult;
 
 /// `businessId` keys (or `''` for none) already given one Brick fallback
 /// attempt for a legitimately-empty `branches`/`businesses` Ditto result, so
@@ -376,10 +378,13 @@ mixin CapellaBranchMixin implements BranchInterface {
     final query = "SELECT * FROM categories WHERE branchId = :branchId";
     final arguments = {"branchId": id};
 
-    final observer = dittoService.dittoInstance!.store.registerObserver(
-      query,
+    final observer = registerTrackedObserver(
+      ditto: dittoService.dittoInstance!,
+      name: 'branchCategories',
+      collection: 'categories',
+      query: query,
       arguments: arguments,
-      onChange: (queryResult) {
+      onChange: (QueryResult queryResult) {
         if (controller.isClosed) return;
 
         final categories = queryResult.items.map((doc) {
@@ -456,10 +461,13 @@ mixin CapellaBranchMixin implements BranchInterface {
 
     bool fallbackInFlight = false;
 
-    final observer = dittoService.dittoInstance!.store.registerObserver(
-      query,
+    final observer = registerTrackedObserver(
+      ditto: dittoService.dittoInstance!,
+      name: 'activeBranch',
+      collection: 'branches',
+      query: query,
       arguments: arguments,
-      onChange: (queryResult) {
+      onChange: (QueryResult queryResult) {
         if (controller.isClosed) return;
 
         if (queryResult.items.isEmpty) {

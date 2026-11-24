@@ -1,6 +1,7 @@
 import 'dart:developer';
 import 'dart:io';
 
+import 'package:flipper_analytics/flipper_analytics.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/sale_device_id.dart';
 import 'package:flipper_models/helpers/agent_session_helper.dart';
@@ -67,7 +68,8 @@ mixin CoreMiscellaneous implements CoreMiscellaneousInterface {
     Directory appSupportDir;
     if (Platform.isAndroid) {
       // Try to get external storage, fall back to internal if not available
-      appSupportDir = await getExternalStorageDirectory() ??
+      appSupportDir =
+          await getExternalStorageDirectory() ??
           await getApplicationCacheDirectory();
     } else if (kIsWeb) {
       //Web platforms don't need to declare a support directory
@@ -270,6 +272,15 @@ mixin CoreMiscellaneous implements CoreMiscellaneousInterface {
       // `getUserId()` reads *before* `userId` — so the app still saw a signed-in
       // user on the next launch and walked straight into the dashboard.
       await ProxyService.box.clearSessionKeys();
+
+      // A shared till's next cashier must not be counted as this person.
+      try {
+        await FlipperAnalytics.maybeInstance?.reset().timeout(
+          const Duration(seconds: 2),
+        );
+      } catch (e) {
+        print('Analytics reset on logout failed: $e');
+      }
 
       // Tear down Ditto only after prefs are wiped: DittoSingleton.logout()
       // stops sync, and resetDittoInitialization lets the next user re-init.

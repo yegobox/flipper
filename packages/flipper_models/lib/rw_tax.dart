@@ -776,6 +776,8 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     required ITransaction transaction,
     required int highestInvcNo,
     String? sarTyCd,
+    // The app's repository unless given; tests pass their own.
+    Repository? repository,
   }) async {
     final branchId = ProxyService.box.getBranchId();
     if (branchId == null) return;
@@ -788,7 +790,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       highestInvcNo: highestInvcNo,
       sarTyCd: sarTyCd,
       transaction: transaction,
-      repository: Repository(),
+      repository: repository ?? Repository(),
     );
   }
 
@@ -801,19 +803,21 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     required ITransaction transaction,
     required Repository repository,
   }) async {
-    // A combo line is reported as its components: the stock that moved.
-    items = await expandComboLinesForStock(
-      items,
-      capella: ProxyService.getStrategy(Strategy.capella),
-      businessId: ProxyService.box.getBusinessId(),
-      branchId: ProxyService.box.getBranchId(),
-    );
     final snapshotKey = rraSaleStockSnapshotBoxKey(transaction.id);
     Map<String, num> allocations = {};
     var movementItemsForStockIo = items;
     var capRra = false;
 
     try {
+      // A combo line is reported as its components: the stock that moved.
+      // Inside the try: a failed component lookup is logged and the snapshot
+      // still cleared, like any other stock-sync failure.
+      items = await expandComboLinesForStock(
+        items,
+        capella: ProxyService.getStrategy(Strategy.capella),
+        businessId: ProxyService.box.getBusinessId(),
+        branchId: ProxyService.box.getBranchId(),
+      );
       final taxUrl = pickTaxServerUrl(
         ebm.taxServerUrl,
         ebm.remoteServerUrl,

@@ -4,12 +4,13 @@ import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:brick_core/query.dart' as brick;
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/sync/capella/category_ditto_mapper.dart';
-import 'package:flipper_models/sync/ditto_observer_registry.dart';
 import 'package:flipper_models/sync/interfaces/category_interface.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:talker/talker.dart';
+import 'package:flipper_models/sync/ditto_observer_registry.dart';
+import 'package:ditto_live/ditto_live.dart' show QueryResult;
 
 /// Ditto SQL reads for categories on Capella. Applied **after** [CategoryMixin]
 /// (Brick) on [CapellaSync] so listing/subscription hits local Ditto.
@@ -191,14 +192,14 @@ mixin CapellaCategoryDittoMixin implements CategoryInterface {
     // one (Ditto busy syncing) is named in the next stall report.
     final observer = registerTrackedObserver(
       ditto: dittoService.dittoInstance!,
-      name: 'categoryStream',
+      name: 'categories',
       collection: 'categories',
       query: query,
       arguments: arguments,
-      onChange: (queryResult) {
+      onChange: (QueryResult queryResult) {
         if (controller.isClosed) return;
 
-        final categories = (queryResult.items as Iterable).map((doc) {
+        final categories = queryResult.items.map((doc) {
           final data = Map<String, dynamic>.from(doc.value);
           return categoryFromDittoMap(data);
         }).toList();

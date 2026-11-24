@@ -176,8 +176,9 @@ class TransactionRefundService {
     }
     if (stockLines.isEmpty) return;
 
-    final restoreQtys = stockRestoreQtysForLines(
-      lineQtys: [for (final line in stockLines) line.item.qty.toInt()],
+    final restoreQtys = stockRestoreAmountsForLines(
+      lineQtys: [for (final line in stockLines) line.item.qty],
+      lineIds: [for (final line in stockLines) line.item.id],
       refundAmount: refundAmount,
       originalTotal: originalTotal,
     );
@@ -188,7 +189,7 @@ class TransactionRefundService {
 
       await ProxyService.strategy.updateStock(
         stockId: stockLines[i].stockId,
-        currentStock: qty.toDouble(),
+        currentStock: qty,
         appending: true,
       );
     }

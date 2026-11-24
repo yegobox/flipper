@@ -1,6 +1,13 @@
 #include <flutter/dart_project.h>
 #include <flutter/flutter_view_controller.h>
 #include <windows.h>
+#include <objbase.h>
+#include <propsys.h>
+#include <shellapi.h>
+
+#include <cstring>
+#include <cwchar>
+#include <string>
 
 #include "flutter_window.h"
 #include "utils.h"
@@ -29,6 +36,101 @@ void FocusExistingInstance() {
     ::ShowWindow(existing, SW_RESTORE);
   }
   ::SetForegroundWindow(existing);
+}
+
+// --- Taskbar identity when started by Atlas (the Yegobox launcher) ---------
+//
+// Atlas installs Flipper under ...\apps\flipper\versions\<ver>\ and deletes
+// old versions. Pinning the running window used to pin that exe path, so after
+// two updates the pin pointed at a deleted folder and stopped working. Atlas
+// now passes an AppUserModelID and a relaunch command (its own
+// "--launch flipper"), and the window carries them: Windows groups it with
+// Atlas's Flipper shortcut, and a pin opens Flipper through Atlas, which
+// always starts the current version. See flipper-launcher src/winshell.rs.
+// Store (MSIX) installs and `flutter run` don't set these variables and keep
+// Windows' default identity.
+
+std::wstring EnvVar(const wchar_t* name) {
+  DWORD size = ::GetEnvironmentVariableW(name, nullptr, 0);
+  if (size == 0) {
+    return std::wstring();
+  }
+  std::wstring value(size, L'\0');
+  DWORD written = ::GetEnvironmentVariableW(name, value.data(), size);
+  if (written == 0 || written >= size) {
+    return std::wstring();
+  }
+  value.resize(written);
+  return value;
+}
+
+// PKEY_AppUserModel_* from propkey.h, spelled out so this file needs neither
+// INITGUID nor propsys.lib.
+constexpr GUID kAppUserModelFmtid = {
+    0x9F4C2855, 0x9F79, 0x4B39, {0xA8, 0xD0, 0xE1, 0xD4, 0x2D, 0xE1, 0xD5, 0xF3}};
+const PROPERTYKEY kRelaunchCommand = {kAppUserModelFmtid, 2};
+const PROPERTYKEY kRelaunchIconResource = {kAppUserModelFmtid, 3};
+const PROPERTYKEY kRelaunchDisplayNameResource = {kAppUserModelFmtid, 4};
+const PROPERTYKEY kAppUserModelId = {kAppUserModelFmtid, 5};
+
+// Failures go to the debugger output (DebugView on a till), so a pin that
+// still points at a version folder can be traced to the call that failed.
+void LogTaskbarIdentityFailure(const wchar_t* step, HRESULT hr) {
+  wchar_t message[160];
+  std::swprintf(message, sizeof(message) / sizeof(message[0]),
+                L"Flipper taskbar identity: %ls failed (HRESULT 0x%08lX)\n",
+                step, static_cast<unsigned long>(hr));
+  ::OutputDebugStringW(message);
+}
+
+// The shell wants VT_LPWSTR strings here.
+void SetWindowString(IPropertyStore* store, const PROPERTYKEY& key,
+                     const wchar_t* step, const std::wstring& value) {
+  PROPVARIANT var;
+  PropVariantInit(&var);
+  const size_t bytes = (value.size() + 1) * sizeof(wchar_t);
+  var.pwszVal = static_cast<LPWSTR>(::CoTaskMemAlloc(bytes));
+  if (var.pwszVal == nullptr) {
+    LogTaskbarIdentityFailure(step, E_OUTOFMEMORY);
+    return;
+  }
+  std::memcpy(var.pwszVal, value.c_str(), bytes);
+  var.vt = VT_LPWSTR;
+  const HRESULT hr = store->SetValue(key, var);
+  if (FAILED(hr)) {
+    LogTaskbarIdentityFailure(step, hr);
+  }
+  ::PropVariantClear(&var);
+}
+
+void ApplyLauncherTaskbarIdentity(HWND window) {
+  const std::wstring id = EnvVar(L"YEGOBOX_AUMID");
+  if (id.empty()) {
+    return;
+  }
+  IPropertyStore* store = nullptr;
+  const HRESULT hr =
+      ::SHGetPropertyStoreForWindow(window, IID_PPV_ARGS(&store));
+  if (FAILED(hr)) {
+    LogTaskbarIdentityFailure(L"SHGetPropertyStoreForWindow", hr);
+    return;
+  }
+  // The relaunch command only counts with a display name. Set both before the
+  // ID, so the shell reads a complete set when the ID arrives.
+  const std::wstring command = EnvVar(L"YEGOBOX_RELAUNCH_COMMAND");
+  const std::wstring name = EnvVar(L"YEGOBOX_RELAUNCH_NAME");
+  if (!command.empty() && !name.empty()) {
+    SetWindowString(store, kRelaunchCommand, L"RelaunchCommand", command);
+    SetWindowString(store, kRelaunchDisplayNameResource,
+                    L"RelaunchDisplayNameResource", name);
+    const std::wstring icon = EnvVar(L"YEGOBOX_RELAUNCH_ICON");
+    if (!icon.empty()) {
+      SetWindowString(store, kRelaunchIconResource,
+                      L"RelaunchIconResource", icon);
+    }
+  }
+  SetWindowString(store, kAppUserModelId, L"AppUserModelID", id);
+  store->Release();
 }
 
 }  // namespace
@@ -70,6 +172,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
   if (!window.Create(L"flipper", origin, size)) {
     return EXIT_FAILURE;
   }
+  // Before the window is shown, so the taskbar button starts with it.
+  ApplyLauncherTaskbarIdentity(window.GetHandle());
   // Open maximized before Flutter draws its first frame, so the first frame is
   // rendered at full size. Maximizing later from Dart raced the first-frame
   // Show() and left a black border around a 1280x720 view.

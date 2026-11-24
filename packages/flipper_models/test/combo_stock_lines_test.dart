@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flipper_models/DatabaseSyncInterface.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/sync/utils/combo_stock_lines.dart';
@@ -80,6 +82,25 @@ void main() {
       expect(sodaLine.prc, 500);
       expect(sodaLine.supplyPrice, 300);
       expect(sodaLine.transactionId, 't1');
+    });
+
+    test('a component line carries its tax, as a goods sale line does', () {
+      // The saveStockItems envelope sums each line's taxAmt; without it a
+      // taxable component added no VAT to the stock-out report.
+      final out = expandComboLines(
+        [_line('c1', productId: 'combo', itemTyCd: '3', qty: 3)],
+        productIdOf: (l) => l.productId,
+        componentsByProductId: {'combo': components},
+        variantsById: {
+          'soda': soda,
+          'bread': _variant('bread')
+            ..taxTyCd = 'D'
+            ..taxPercentage = 0,
+        },
+      );
+      // 6 sodas x 500, tax-inclusive B at 18%: 3000 * 18 / 118.
+      expect(out[0].taxAmt, 457.63);
+      expect(out[1].taxAmt, 0);
     });
 
     test('a component counts as deducted exactly when its combo line does', () {
@@ -183,10 +204,13 @@ void main() {
     };
     bool check(Map<String, Stock> s, double combos, {double sodaAlone = 0}) =>
         comboComponentsInStock(
-          components: parts,
+          needs: comboComponentNeeds(
+            componentsByCombo: {'lunch': parts},
+            combosInCart: {'lunch': combos},
+            variantsById: variants,
+          ),
           variantsById: variants,
           stocksById: s,
-          combosInCart: combos,
           inCartAlone: (id) => id == 'soda' ? sodaAlone : 0,
         );
 
@@ -206,6 +230,28 @@ void main() {
 
     test('a component with no stock row reads as none on hand', () {
       expect(check({}, 1), isFalse);
+    });
+
+    // Combo A (2 soda) and combo B (1 soda) in one cart share the soda.
+    test('every combo in the cart adds to what a component must cover', () {
+      final needs = comboComponentNeeds(
+        componentsByCombo: {
+          'a': [Composite(variantId: 'soda', qty: 2)],
+          'b': [Composite(variantId: 'soda'), Composite(variantId: 'wrap')],
+          'none': [Composite(variantId: 'soda', qty: 50)],
+        },
+        combosInCart: {'a': 1, 'b': 1},
+        variantsById: variants,
+      );
+      expect(needs, {'soda': 3.0});
+      bool covers(double soda) => comboComponentsInStock(
+        needs: needs,
+        variantsById: variants,
+        stocksById: stocks(soda, 0),
+        inCartAlone: (_) => 0,
+      );
+      expect(covers(3), isTrue);
+      expect(covers(2), isFalse);
     });
   });
 
@@ -238,7 +284,7 @@ void main() {
         ),
       );
       when(
-        () => db.composites(productId: 'combo'),
+        () => db.composites(productId: 'combo', localOnly: true),
       ).thenAnswer((_) async => components);
       when(
         () => db.batchGetVariantsByIds(any()),
@@ -259,6 +305,10 @@ void main() {
         );
         expect(out.map((l) => l.variantId), ['soda', 'bread', 'fee']);
         verifyNever(() => db.composites(productId: 'delivery'));
+        // On the Pay path: never a network read for the components.
+        verify(
+          () => db.composites(productId: 'combo', localOnly: true),
+        ).called(1);
       },
     );
 
@@ -287,6 +337,79 @@ void main() {
         branchId: 'b1',
       );
       expect(out.map((l) => l.variantId), ['soda', 'bread']);
+    });
+
+    test('a local hit never reads the server', () async {
+      await expandComboLinesForStock(
+        [_line('c1', productId: 'combo', itemTyCd: '3')],
+        capella: db,
+        businessId: 'biz1',
+        branchId: 'b1',
+      );
+      verifyNever(() => db.composites(productId: 'combo', localOnly: false));
+    });
+
+    test(
+      'a combo with no local rows fetches them from the server once',
+      () async {
+        // A combo made before #587 on a fresh till: no rows here yet.
+        when(
+          () => db.composites(productId: 'combo', localOnly: true),
+        ).thenAnswer((_) async => <Composite>[]);
+        when(
+          () => db.composites(productId: 'combo', localOnly: false),
+        ).thenAnswer((_) async => components);
+        final out = await expandComboLinesForStock(
+          [_line('c1', productId: 'combo', itemTyCd: '3')],
+          capella: db,
+          businessId: 'biz1',
+          branchId: 'b1',
+        );
+        expect(out.map((l) => l.variantId), ['soda', 'bread']);
+        verify(
+          () => db.composites(productId: 'combo', localOnly: false),
+        ).called(1);
+      },
+    );
+
+    test('a server fetch that hangs is cut off; the sale goes on', () async {
+      when(
+        () => db.composites(productId: 'combo', localOnly: true),
+      ).thenAnswer((_) async => <Composite>[]);
+      when(
+        () => db.composites(productId: 'combo', localOnly: false),
+      ).thenAnswer((_) => Completer<List<Composite>>().future);
+      final lines = [_line('c1', productId: 'combo', itemTyCd: '3')];
+      final out = await expandComboLinesForStock(
+        lines,
+        capella: db,
+        businessId: 'biz1',
+        branchId: 'b1',
+        remoteTimeout: const Duration(milliseconds: 10),
+      );
+      // Nothing to expand: the combo line passes through unchanged.
+      expect(out, same(lines));
+    });
+
+    test('a server fetch that fails leaves the combo line as is', () async {
+      when(
+        () => db.composites(productId: 'combo', localOnly: true),
+      ).thenAnswer((_) async => <Composite>[]);
+      when(
+        () => db.composites(productId: 'combo', localOnly: false),
+      ).thenThrow(Exception('offline'));
+      final lines = [_line('c1', productId: 'combo', itemTyCd: '3')];
+      final out = await expandComboLinesForStock(
+        lines,
+        capella: db,
+        businessId: 'biz1',
+        branchId: 'b1',
+      );
+      expect(out, same(lines));
+    });
+
+    test('the server bound defaults to 5 seconds', () {
+      expect(comboComponentsRemoteTimeout, const Duration(seconds: 5));
     });
   });
 }

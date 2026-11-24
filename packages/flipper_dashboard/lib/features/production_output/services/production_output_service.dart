@@ -106,10 +106,12 @@ class ProductionOutputService {
   /// Record actual output for a work order and add it to the finished
   /// product's stock (see [postProductionOutput]).
   ///
-  /// Throws when the output can't be saved, or when it was saved but the
-  /// stock could not be updated — see [createWorkOrder]. An RRA failure does
-  /// not throw: it comes back as `rraMessage` for the caller to show.
-  Future<({ActualOutput? output, String? rraMessage})> recordActualOutput({
+  /// Throws only when the output can't be saved — see [createWorkOrder].
+  /// Once it is saved this never throws: an error would read as "not
+  /// recorded", and recording again would count the output twice. A stock
+  /// failure comes back as `stockError`, an RRA failure as `rraMessage`.
+  Future<({ActualOutput? output, String? rraMessage, String? stockError})>
+  recordActualOutput({
     required WorkOrder workOrder,
     required double actualQuantity,
     String? varianceReason,
@@ -120,7 +122,7 @@ class ProductionOutputService {
     final userId = deps.userId;
 
     if (branchId == null || userId == null) {
-      return (output: null, rraMessage: null);
+      return (output: null, rraMessage: null, stockError: null);
     }
 
     final output = await deps.strategy.recordActualOutput(
@@ -131,16 +133,35 @@ class ProductionOutputService {
       varianceReason: varianceReason,
       notes: notes,
     );
-    if (output == null) return (output: null, rraMessage: null);
+    if (output == null) {
+      return (output: null, rraMessage: null, stockError: null);
+    }
 
     final saved = output as ActualOutput;
-    final stock = await _postStock(
-      workOrder: workOrder,
-      qty: actualQuantity,
-      deps: deps,
-    );
+    final ProductionStockResult stock;
+    try {
+      stock = await _postStock(
+        workOrder: workOrder,
+        qty: actualQuantity,
+        deps: deps,
+      );
+    } catch (e, s) {
+      talker.error('ProductionOutput: output saved, stock not updated', e, s);
+      return (
+        output: saved,
+        rraMessage: null,
+        // The increment may have landed before the failure, so don't
+        // claim the stock is unchanged: a blind manual add would double it.
+        stockError:
+            'Output saved, but stock posting failed ($e). Stock may already '
+            'have changed: check the finished product stock before adjusting '
+            'it by hand. Do not record this output again.',
+      );
+    }
+
     // A product made without a recipe: move the batch's value into stock in
-    // Books. Best effort: the output and the stock are already saved.
+    // Books. Only once its stock is in, and best effort: the output and the
+    // stock are already saved.
     final unitCost = stock.absorbUnitCost;
     if (unitCost != null) {
       try {
@@ -158,28 +179,34 @@ class ProductionOutputService {
         talker.warning('Production: Books posting skipped: $e\n$s');
       }
     }
-    return (output: saved, rraMessage: stock.rraMessage);
+    return (output: saved, rraMessage: stock.rraMessage, stockError: null);
   }
 
   /// Update work order status. Throws on failure — see [createWorkOrder].
+  /// With [fromStatus], the change applies only while the order still has
+  /// that status.
   Future<void> updateWorkOrderStatus({
     required String workOrderId,
     required String status,
+    String? fromStatus,
   }) async {
     await _deps().strategy.updateWorkOrder(
       workOrderId: workOrderId,
       status: status,
+      fromStatus: fromStatus,
     );
   }
 
   /// Start a planned work order (status `in_progress`). Starting moves no
   /// stock: finished goods are added when output is recorded. An order that
-  /// is already started or finished is left alone.
+  /// is already started or finished is left alone, also when this copy is
+  /// stale and another till moved it on meanwhile (the update is conditional).
   Future<void> startWorkOrder(WorkOrder workOrder) async {
     if (!canStartWorkOrder(workOrder)) return;
     await updateWorkOrderStatus(
       workOrderId: workOrder.id,
       status: 'in_progress',
+      fromStatus: 'planned',
     );
   }
 

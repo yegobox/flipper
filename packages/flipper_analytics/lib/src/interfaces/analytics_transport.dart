@@ -30,4 +30,14 @@ abstract class AnalyticsTransport {
   Future<dynamic> getFeatureFlag(String flagKey);
 
   Future<void> reloadFeatureFlags();
+
+  /// Sends an `$exception` event to PostHog error tracking.
+  Future<void> captureException(
+    Object error, {
+    StackTrace? stackTrace,
+    Map<String, Object?> properties = const {},
+  });
+
+  /// Opts this device in to or out of sending anything at all.
+  Future<void> setEnabled(bool enabled);
 }

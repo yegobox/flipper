@@ -300,14 +300,6 @@ mixin ProductMixin {
     required String color,
   }) async {
     try {
-      analytics.track(
-        AnalyticsEvents.productCreated,
-        properties: const {
-          'feature_name': 'product_creation',
-          'source': 'product_mixin',
-        },
-      );
-
       Category? activeCat = await ProxyService.strategy.activeCategory(
         branchId: ProxyService.box.getBranchId()!,
       );
@@ -326,11 +318,22 @@ mixin ProductMixin {
           focused: false,
         );
       }
-      return await ProxyService.strategy.getProduct(
+      final saved = await ProxyService.strategy.getProduct(
         id: mproduct.id,
         branchId: ProxyService.box.getBranchId()!,
         businessId: ProxyService.box.getBusinessId()!,
       );
+      // Only once it saved, and an edit is not a new product.
+      analytics.track(
+        inUpdateProcess
+            ? AnalyticsEvents.productUpdated
+            : AnalyticsEvents.productCreated,
+        properties: const {
+          'feature_name': 'product_creation',
+          'source': 'product_mixin',
+        },
+      );
+      return saved;
     } catch (e, s) {
       talker.warning(e);
       talker.error(s);

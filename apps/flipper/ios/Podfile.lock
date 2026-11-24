@@ -284,11 +284,11 @@ PODS:
     - Flutter
   - pointer_interceptor_ios (0.0.1):
     - Flutter
-  - PostHog (3.69.8)
+  - PostHog (3.98.2)
   - posthog_flutter (0.0.1):
     - Flutter
     - FlutterMacOS
-    - PostHog (< 4.0.0, >= 3.61.0)
+    - PostHog (< 4.0.0, >= 3.92.3)
   - printing (1.0.0):
     - Flutter
   - PromisesObjC (2.4.1)
@@ -551,8 +551,8 @@ SPEC CHECKSUMS:
   patrol: 5a504c6012be7a84369231475ede1fce6e777268
   permission_handler_apple: ee2fe0fd04551b304eb002714ff067c371c822ed
   pointer_interceptor_ios: a78ffe95ad3c6cd52c42ad362c116d92355c3d42
-  PostHog: 2e3bf4f294ebc35c27e0988cc2ca9808f8a1edb4
-  posthog_flutter: ba961b6d613822b95702e9a7e4e94548c511fef6
+  PostHog: 5c282f8dad4937abfe451db73dd42975253b13fa
+  posthog_flutter: b95314041725c95f198889daf21cd8a27f9eaaaa
   printing: bfc11ab4553c1728730eefb778f4647280044111
   PromisesObjC: 752c3227f599e3467650e47ea36f433eeb10c273
   PromisesSwift: 217dea0fd5d2ad65222a109c48698add13cc1c5b

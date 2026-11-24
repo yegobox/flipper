@@ -24,6 +24,12 @@ DateTime localDay(DateTime date) {
   return DateTime(local.year, local.month, local.day);
 }
 
+/// The local calendar day [days] away from [day]. Built from calendar fields,
+/// not a 24-hour `Duration`, so it stays on midnight across a daylight-saving
+/// change and keeps matching [localDay] keys.
+DateTime shiftDay(DateTime day, int days) =>
+    DateTime(day.year, day.month, day.day + days);
+
 /// The day the Production Output screen is showing (local midnight). The
 /// cards, the list and the chart all follow it, so they always count the same
 /// orders. Starts at today each time the screen opens.
@@ -208,7 +214,7 @@ List<VarianceDataPoint> buildVarianceSeries(
   }
 
   return List<VarianceDataPoint>.generate(days, (i) {
-    final day = today.subtract(Duration(days: days - 1 - i));
+    final day = shiftDay(today, -(days - 1 - i));
     final p = planned[day] ?? 0;
     final a = actual[day] ?? 0;
     return VarianceDataPoint(date: day, planned: p, actual: a, variance: a - p);

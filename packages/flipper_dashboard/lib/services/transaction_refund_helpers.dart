@@ -1,4 +1,5 @@
 import 'package:flipper_localize/flipper_localize.dart';
+import 'package:flipper_models/sync/utils/combo_stock_lines.dart';
 import 'package:supabase_models/brick/models/transaction.model.dart';
 
 /// Pure helpers for refund stock restoration (testable without I/O).
@@ -83,6 +84,50 @@ List<int> stockRestoreQtysForLines({
     guard++;
   }
   return floors;
+}
+
+/// Stock to put back per line on a refund. A full refund returns exactly what
+/// the sale took, fractions included (a combo component sold at 0.5 per
+/// combo). A partial refund gives a combo's component line its share in
+/// fractions (`qty × refundAmount / originalTotal`, to 0.001), so 1 of 3
+/// combos at 0.5 each restores 0.5; other lines get whole units
+/// ([stockRestoreQtysForLines]), allocated among themselves.
+///
+/// [lineIds] are the lines' ids, in the same order; without them every line
+/// is a plain one.
+List<double> stockRestoreAmountsForLines({
+  required List<num> lineQtys,
+  required double refundAmount,
+  required double originalTotal,
+  List<String>? lineIds,
+}) {
+  if (originalTotal > 0 && refundAmount >= originalTotal - 0.001) {
+    return [for (final q in lineQtys) q.toDouble()];
+  }
+  bool isComponent(int i) =>
+      lineIds != null && comboLineIdOf(lineIds[i]) != null;
+  final plain = [
+    for (var i = 0; i < lineQtys.length; i++)
+      if (!isComponent(i)) i,
+  ];
+  final whole = stockRestoreQtysForLines(
+    lineQtys: [for (final i in plain) lineQtys[i].toInt()],
+    refundAmount: refundAmount,
+    originalTotal: originalTotal,
+  );
+  final out = List<double>.filled(lineQtys.length, 0);
+  for (var k = 0; k < plain.length; k++) {
+    out[plain[k]] = whole[k].toDouble();
+  }
+  if (originalTotal <= 0 || refundAmount <= 0) return out;
+  final ratio = refundAmount / originalTotal;
+  for (var i = 0; i < lineQtys.length; i++) {
+    if (!isComponent(i)) continue;
+    final q = lineQtys[i].toDouble();
+    if (q <= 0) continue;
+    out[i] = ((q * ratio * 1000).round() / 1000).clamp(0, q).toDouble();
+  }
+  return out;
 }
 
 bool isPartialRefund(double refundAmount, double originalTotal) {

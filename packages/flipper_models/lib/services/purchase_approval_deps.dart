@@ -1,5 +1,6 @@
 import 'package:flipper_models/DatabaseSyncInterface.dart';
 import 'package:flipper_models/SyncStrategy.dart';
+import 'package:flipper_models/sync/utils/combo_cost.dart';
 import 'package:flipper_models/tax_api.dart';
 import 'package:flipper_services/proxy.dart';
 
@@ -14,6 +15,7 @@ class PurchaseApprovalDeps {
     this.branchId,
     this.businessId,
     this.userId,
+    this.comboCosts,
   });
 
   /// The app's live services and the signed-in session.
@@ -26,6 +28,7 @@ class PurchaseApprovalDeps {
       branchId: box.getBranchId(),
       businessId: box.getBusinessId(),
       userId: box.getUserId(),
+      comboCosts: ComboCostWriter.live(),
     );
   }
 
@@ -37,4 +40,8 @@ class PurchaseApprovalDeps {
   final String? branchId;
   final String? businessId;
   final String? userId;
+
+  /// Where a made combo's new supply price is written; null (Ditto not open,
+  /// or a test that doesn't care) leaves the price as it is.
+  final ComboCostWriter? comboCosts;
 }

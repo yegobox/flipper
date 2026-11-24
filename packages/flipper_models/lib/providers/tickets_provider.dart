@@ -17,6 +17,7 @@ import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:flipper_models/sync/ditto_observer_registry.dart';
 
 part 'tickets_provider.g.dart';
 
@@ -135,8 +136,11 @@ Stream<Map<String, double>> ticketsPaymentSums(Ref ref) async* {
   final controller = StreamController<void>();
   dynamic observer;
   try {
-    observer = ditto.store.registerObserver(
-      kTransactionPaymentRecordsAllSql,
+    observer = registerTrackedObserver(
+      ditto: ditto,
+      name: 'ticketPaymentSums',
+      collection: kTransactionPaymentRecordsCollection,
+      query: kTransactionPaymentRecordsAllSql,
       onChange: (_) {
         if (!controller.isClosed) controller.add(null);
       },

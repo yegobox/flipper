@@ -1,5 +1,14 @@
+import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:ditto_live/ditto_live.dart';
 import 'package:supabase_models/brick/models/composite.model.dart';
+
+/// How a Brick `composites` read may fetch. A stock path (Pay, refund, RRA
+/// stock report) reads only what is on the device: it must never wait on the
+/// network for a combo whose components are not stored locally.
+OfflineFirstGetPolicy compositesGetPolicy({required bool localOnly}) =>
+    localOnly
+    ? OfflineFirstGetPolicy.localOnly
+    : OfflineFirstGetPolicy.awaitRemoteWhenNoneExist;
 
 /// A Ditto `composites` document (as `CapellaSync.saveComposite` writes it)
 /// as a [Composite]. Numbers may arrive as int or double.

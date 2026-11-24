@@ -18,6 +18,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'login_event.dart';
 import 'dart:io';
 import 'package:flipper_services/desktop_login_status.dart';
+import 'package:flipper_models/sync/ditto_observer_registry.dart';
 
 LoginData loginDataFromMap(String str) => LoginData.fromMap(json.decode(str));
 
@@ -75,9 +76,7 @@ class EventService
           if (status == 'success') 'loggedOut': false,
         },
       );
-      talker.debug(
-        'Sent login $status response to channel: $responseChannel',
-      );
+      talker.debug('Sent login $status response to channel: $responseChannel');
     } catch (e) {
       talker.error('Failed to send login response: $e');
     }
@@ -89,15 +88,11 @@ class EventService
 
   @override
   void resetLoginStatus() {
-    _emitDesktopLoginStatus(
-      DesktopLoginStatus(DesktopLoginState.idle),
-    );
+    _emitDesktopLoginStatus(DesktopLoginStatus(DesktopLoginState.idle));
   }
 
   EventService({required this.userId}) {
-    _emitDesktopLoginStatus(
-      DesktopLoginStatus(DesktopLoginState.idle),
-    );
+    _emitDesktopLoginStatus(DesktopLoginStatus(DesktopLoginState.idle));
     _setupEventObservation();
   }
 
@@ -123,19 +118,21 @@ class EventService
       await _eventObserver?.cancel();
 
       // Register observer for all events
-      _eventObserver = DittoService.instance.dittoInstance!.store
-          .registerObserver(
-            "SELECT * FROM events ORDER BY timestamp DESC",
-            onChange: (queryResult) {
-              // Emit all events to the stream
-              for (final item in queryResult.items) {
-                final event = Map<String, dynamic>.from(item.value);
-                if (!_eventController.isClosed) {
-                  _eventController.add(event);
-                }
-              }
-            },
-          );
+      _eventObserver = registerTrackedObserver(
+        ditto: DittoService.instance.dittoInstance!,
+        name: 'allEvents',
+        collection: 'events',
+        query: "SELECT * FROM events ORDER BY timestamp DESC",
+        onChange: (QueryResult queryResult) {
+          // Emit all events to the stream
+          for (final item in queryResult.items) {
+            final event = Map<String, dynamic>.from(item.value);
+            if (!_eventController.isClosed) {
+              _eventController.add(event);
+            }
+          }
+        },
+      );
 
       talker.debug('Real-time event observation set up successfully');
     } catch (e) {
@@ -420,10 +417,13 @@ class EventService
       // Use a DEDICATED observer for this channel instead of the global stream
       // This ensures we directly watch for synced events
       _loginObserverActive = true;
-      _loginObserver = ditto.store.registerObserver(
-        "SELECT * FROM events WHERE channel = :channel",
+      _loginObserver = registerTrackedObserver(
+        ditto: ditto,
+        name: 'loginEvents',
+        collection: 'events',
+        query: "SELECT * FROM events WHERE channel = :channel",
         arguments: {"channel": channel},
-        onChange: (queryResult) {
+        onChange: (QueryResult queryResult) {
           if (!_loginObserverActive) return;
           talker.debug(
             'Login observer fired for channel $channel, items: ${queryResult.items.length}',
@@ -557,9 +557,7 @@ class EventService
       talker.debug(
         'Received login/broadcast event for channel $channel: $event',
       );
-      _emitDesktopLoginStatus(
-        DesktopLoginStatus(DesktopLoginState.loading),
-      );
+      _emitDesktopLoginStatus(DesktopLoginStatus(DesktopLoginState.loading));
 
       loginData = LoginData.fromMap(event);
       responseChannel = loginData.responseChannel;
@@ -663,9 +661,7 @@ class EventService
       // Complete login and send success response
       await ProxyService.strategy.completeLogin(thePin);
 
-      _emitDesktopLoginStatus(
-        DesktopLoginStatus(DesktopLoginState.success),
-      );
+      _emitDesktopLoginStatus(DesktopLoginStatus(DesktopLoginState.success));
       if (responseChannel != null) {
         await _publishLoginResponse(
           responseChannel: responseChannel,
@@ -674,9 +670,7 @@ class EventService
         );
       }
     } on LoginChoicesException {
-      _emitDesktopLoginStatus(
-        DesktopLoginStatus(DesktopLoginState.success),
-      );
+      _emitDesktopLoginStatus(DesktopLoginStatus(DesktopLoginState.success));
 
       if (responseChannel != null) {
         await _publishLoginResponse(

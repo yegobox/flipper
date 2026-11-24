@@ -3,6 +3,7 @@ import 'package:ditto_live/ditto_live.dart';
 import 'package:flutter/foundation.dart' hide Category;
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_models/sync/ditto_observer_registry.dart';
 
 /// Service for managing Print Delegation between mobile and desktop devices
 /// using Ditto for real-time cross-device sync
@@ -41,7 +42,8 @@ class DittoDelegationService {
       if (_ditto != null) {
         _isInitialized = true;
         debugPrint(
-            '✅ DittoDelegationService initialized with device: ${_ditto!.deviceName}');
+          '✅ DittoDelegationService initialized with device: ${_ditto!.deviceName}',
+        );
       } else {
         debugPrint('⏳ DittoDelegationService waiting for Ditto instance...');
       }
@@ -63,7 +65,8 @@ class DittoDelegationService {
     _ditto = ditto;
     _isInitialized = true;
     debugPrint(
-        '✅ DittoDelegationService Ditto instance set: ${ditto.deviceName}');
+      '✅ DittoDelegationService Ditto instance set: ${ditto.deviceName}',
+    );
   }
 
   /// Check if the service is ready to use
@@ -115,15 +118,15 @@ class DittoDelegationService {
       // Use DQL INSERT with conflict resolution (upsert)
       await _ditto!.store.execute(
         "INSERT INTO $_collectionName DOCUMENTS (:delegation) ON ID CONFLICT DO UPDATE",
-        arguments: {
-          "delegation": delegationData,
-        },
+        arguments: {"delegation": delegationData},
       );
 
       debugPrint(
-          '✅ Delegation created in Ditto: $transactionId (status: delegated)');
+        '✅ Delegation created in Ditto: $transactionId (status: delegated)',
+      );
       debugPrint(
-          '   Branch: $branchId, Receipt: $receiptType, Device: $deviceId');
+        '   Branch: $branchId, Receipt: $receiptType, Device: $deviceId',
+      );
     } catch (e) {
       debugPrint('❌ Error creating delegation: $e');
       rethrow;
@@ -150,13 +153,13 @@ class DittoDelegationService {
           StreamController<List<Map<String, dynamic>>>.broadcast();
 
       // Register observer for real-time updates
-      _observer = _ditto!.store.registerObserver(
-        query,
-        arguments: {
-          "branchId": branchId,
-          "status": "delegated",
-        },
-        onChange: (queryResult) {
+      _observer = registerTrackedObserver(
+        ditto: _ditto!,
+        name: 'delegationMonitor',
+        collection: _collectionName,
+        query: query,
+        arguments: {"branchId": branchId, "status": "delegated"},
+        onChange: (QueryResult queryResult) {
           if (_delegationsController?.isClosed ?? true) {
             return;
           }
@@ -168,7 +171,8 @@ class DittoDelegationService {
           // Notify about each new delegation
           for (final delegation in delegations) {
             debugPrint(
-                '🔔 Desktop received delegation: ${delegation['transactionId']}');
+              '🔔 Desktop received delegation: ${delegation['transactionId']}',
+            );
             onNewDelegation(delegation);
           }
 
@@ -218,10 +222,7 @@ class DittoDelegationService {
       }
 
       final now = DateTime.now().toIso8601String();
-      final updateData = <String, dynamic>{
-        'status': status,
-        'updatedAt': now,
-      };
+      final updateData = <String, dynamic>{'status': status, 'updatedAt': now};
 
       if (processingDevice != null) {
         updateData['processingDevice'] = processingDevice;
@@ -242,10 +243,7 @@ class DittoDelegationService {
 
       await _ditto!.store.execute(
         query,
-        arguments: {
-          'transactionId': transactionId,
-          ...updateData,
-        },
+        arguments: {'transactionId': transactionId, ...updateData},
       );
 
       debugPrint('✅ Delegation status updated: $transactionId → $status');
@@ -389,10 +387,13 @@ class DittoDelegationService {
     final controller = StreamController<List<Map<String, dynamic>>>.broadcast();
     dynamic observer;
 
-    observer = _ditto!.store.registerObserver(
-      query,
+    observer = registerTrackedObserver(
+      ditto: _ditto!,
+      name: 'observeDelegations',
+      collection: _collectionName,
+      query: query,
       arguments: arguments,
-      onChange: (queryResult) {
+      onChange: (QueryResult queryResult) {
         if (controller.isClosed) {
           return;
         }
