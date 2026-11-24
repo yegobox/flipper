@@ -44,12 +44,12 @@ Future<void> main() async {
 
     await FlipperAnalytics.initialize(
       appName: 'flipper_web',
-      platformName: 'web',
+      platformName: analyticsPlatformName(),
       projectToken: AppSecrets.postHogProjectToken,
       store: SharedPreferencesAnalyticsEventStore(),
       contextProvider: CallbackAnalyticsContextProvider(
         appName: 'flipper_web',
-        platformName: 'web',
+        platformName: analyticsPlatformName(),
         buildMode: kDebugMode ? 'debug' : 'release',
       ),
     );

@@ -946,21 +946,16 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
     );
 
     final analytics = ProxyService.productAnalytics;
+    final session = ProxyService.box;
     unawaited(
-      analytics.identify(
-        ProxyService.box.getUserId()?.toString() ?? 'unknown_user',
-        properties: const {'source': 'login_choices'},
+      identifySession(
+        analytics,
+        source: 'login_choices',
+        userId: session.getUserId()?.toString(),
+        businessId: selectedBusinessId,
+        branchId: session.getBranchId(),
       ),
     );
-    if (selectedBusinessId != null) {
-      unawaited(
-        analytics.group(
-          'business',
-          selectedBusinessId,
-          properties: const {'source': 'login_choices'},
-        ),
-      );
-    }
     unawaited(analytics.reloadFeatureFlags());
     analytics.track(
       AnalyticsEvents.loginSuccess,

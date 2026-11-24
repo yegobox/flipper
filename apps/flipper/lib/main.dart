@@ -29,6 +29,7 @@ import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_routing/app.locator.dart' as loc;
 import 'package:flipper_routing/app.dialogs.dart';
 import 'package:flipper_routing/app.bottomsheets.dart';
+import 'package:flipper_services/app_build_info.dart';
 import 'package:flipper_services/app_shortcuts_platform.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/locator.dart';
@@ -185,16 +186,6 @@ String _formatInitError(Object error, StackTrace stackTrace) {
 }
 
 bool skipDependencyInitialization = false;
-
-String _analyticsPlatformName() {
-  if (kIsWeb) return 'web';
-  if (UniversalPlatform.isAndroid) return 'android';
-  if (UniversalPlatform.isIOS) return 'ios';
-  if (UniversalPlatform.isMacOS) return 'macos';
-  if (UniversalPlatform.isWindows) return 'windows';
-  if (UniversalPlatform.isLinux) return 'linux';
-  return 'unknown';
-}
 
 /// One unit of application startup.
 ///
@@ -375,13 +366,15 @@ Future<void> _runInitStep(_InitStep step) async {
 Future<void> _initializeAnalytics() async {
   await FlipperAnalytics.initialize(
     appName: 'flipper',
-    platformName: _analyticsPlatformName(),
+    platformName: analyticsPlatformName(),
     projectToken: AppSecrets.postHogProjectToken,
     store: RepositoryAnalyticsEventStore(),
     contextProvider: CallbackAnalyticsContextProvider(
       appName: 'flipper',
-      platformName: _analyticsPlatformName(),
+      platformName: analyticsPlatformName(),
       buildMode: kDebugMode ? 'debug' : 'release',
+      appVersion: AppBuildInfo.releaseVersion,
+      releaseCommit: AppBuildInfo.releaseCommit,
       userIdGetter: () => ProxyService.box.getUserId()?.toString(),
       businessIdGetter: () => ProxyService.box.getBusinessId(),
       branchIdGetter: () => ProxyService.box.getBranchId(),
@@ -398,6 +391,10 @@ Future<void> _initializeAnalytics() async {
         : null,
     // A local-mode till promised to stay off the cloud.
     ga4IsEnabled: () => !LocalMode.isOn,
+    // PostHog too: no events, replay or flags while local mode is on, and
+    // back on once the till opts in to sync.
+    isEnabled: () => !LocalMode.isOn,
+    enabledChanges: LocalMode.changes,
   );
 }
 
@@ -860,7 +857,10 @@ class _FlipperAppState extends State<FlipperApp> {
     debugPrint('🎬 [FlipperApp] initState called');
     super.initState();
     _theme = _buildTheme();
-    _routerDelegate = stackedRouter.delegate() as RouterDelegate<Object>;
+    _routerDelegate = stackedRouter.delegate(
+      // $screen per route, so PostHog shows which screens tills use.
+      navigatorObservers: () => [createPostHogObserver()],
+    ) as RouterDelegate<Object>;
     _routeInformationParser =
         stackedRouter.defaultRouteParser() as RouteInformationParser<Object>;
     // Remove splash screen after the first frame is rendered

@@ -16,6 +16,7 @@ class FlipperAnalytics {
   static AnalyticsFlushService? _flushService;
   static ProductActiveLifecycle? _productActiveLifecycle;
   static Ga4ActiveUserPinger? _ga4ActiveUserPinger;
+  static VoidCallback? _stopFollowingEnabled;
 
   static ProductAnalytics get instance {
     final analytics = _instance;
@@ -27,6 +28,10 @@ class FlipperAnalytics {
     return analytics;
   }
 
+  /// Null when initialization never finished (it is optional at startup), so
+  /// callers such as logout can't be broken by analytics.
+  static ProductAnalytics? get maybeInstance => _instance;
+
   static Future<ProductAnalytics> initialize({
     required String appName,
     required String platformName,
@@ -34,22 +39,45 @@ class FlipperAnalytics {
     required AnalyticsEventStore store,
     required CallbackAnalyticsContextProvider contextProvider,
     String host = 'https://us.i.posthog.com',
+    // isEnabled: false keeps everything on the device (local mode); with
+    // enabledChanges it is re-read whenever that notifier fires.
     String? ga4MeasurementId,
     String? ga4ApiSecret,
     bool Function()? ga4IsEnabled,
+    bool Function()? isEnabled,
+    ValueListenable<bool>? enabledChanges,
   }) async {
+    final enabled = isEnabled?.call() ?? true;
+    final transport = PostHogTransport(
+      projectToken: projectToken,
+      host: host,
+      enableSessionReplay: !kIsWeb,
+      maskAllTexts: true,
+      maskAllImages: true,
+      startOptedOut: !enabled,
+    );
     final analytics = OfflineFirstAnalytics(
       contextProvider: contextProvider,
       eventStore: store,
-      transport: PostHogTransport(
-        projectToken: projectToken,
-        host: host,
-        enableSessionReplay: !kIsWeb,
-        maskAllTexts: true,
-        maskAllImages: true,
-      ),
+      enabled: enabled,
+      transport: transport,
     );
     await analytics.initialize();
+    // On web, what queued while posthog-js loaded goes out as soon as it is
+    // up, not at the next 5-minute flush.
+    if (kIsWeb) {
+      transport.ready.then((ok) {
+        if (ok) analytics.flush().ignore();
+      }).ignore();
+    }
+
+    // A till can enter local mode (signup) or leave it (opting in to sync)
+    // while running; follow it rather than waiting for a restart.
+    if (isEnabled != null && enabledChanges != null) {
+      void follow() => analytics.setEnabled(isEnabled()).ignore();
+      enabledChanges.addListener(follow);
+      _stopFollowingEnabled = () => enabledChanges.removeListener(follow);
+    }
 
     final flushService = AnalyticsFlushService(analytics);
     flushService.initialize();
@@ -75,6 +103,8 @@ class FlipperAnalytics {
   }
 
   static Future<void> dispose() async {
+    _stopFollowingEnabled?.call();
+    _stopFollowingEnabled = null;
     await _productActiveLifecycle?.detach();
     _productActiveLifecycle = null;
     await _ga4ActiveUserPinger?.detach();

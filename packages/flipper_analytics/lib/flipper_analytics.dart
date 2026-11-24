@@ -2,7 +2,10 @@ library flipper_analytics;
 
 export 'src/bootstrap/flipper_analytics_bootstrap.dart';
 export 'src/events/analytics_events.dart';
+export 'src/events/analytics_platform.dart';
 export 'src/events/analytics_properties.dart';
+export 'src/feature_usage.dart';
+export 'src/session_identity.dart';
 export 'src/implementations/analytics_flush_service.dart';
 export 'src/implementations/callback_analytics_context_provider.dart';
 export 'src/implementations/ga4_active_user_pinger.dart';

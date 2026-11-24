@@ -29,4 +29,8 @@ abstract class ProductAnalytics {
   Future<void> reset();
 
   Future<void> flush();
+
+  /// Opts this device in to or out of analytics. Off drops events instead of
+  /// queueing them (local mode promises nothing leaves the device).
+  Future<void> setEnabled(bool enabled);
 }
