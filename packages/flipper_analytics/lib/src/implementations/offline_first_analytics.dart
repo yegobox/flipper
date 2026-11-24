@@ -50,6 +50,24 @@ class OfflineFirstAnalytics
   }
 
   @override
+  Future<void> captureException(
+    Object error, {
+    StackTrace? stackTrace,
+    Map<String, Object?> properties = const {},
+  }) async {
+    if (!_enabled) return;
+    try {
+      await transport.captureException(
+        error,
+        stackTrace: stackTrace,
+        properties: withContext(properties),
+      );
+    } catch (_) {
+      // Error reporting runs inside error handlers: it must never throw.
+    }
+  }
+
+  @override
   Future<void> flush() async {
     if (!_enabled) return;
     final pending = await eventStore.peekBatch(limit: 100);

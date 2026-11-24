@@ -43,6 +43,13 @@ void main() {
     when(() => posthog.optOut()).thenAnswer((_) async {});
     when(() => posthog.reset()).thenAnswer((_) async {});
     when(() => posthog.isOptOut()).thenAnswer((_) async => false);
+    when(
+      () => posthog.captureException(
+        error: any(named: 'error'),
+        stackTrace: any(named: 'stackTrace'),
+        properties: any(named: 'properties'),
+      ),
+    ).thenAnswer((_) async {});
   });
 
   PostHogTransport transport({bool startOptedOut = false}) => PostHogTransport(
@@ -72,6 +79,15 @@ void main() {
       expect(config.sessionReplayConfig.maskAllImages, isTrue);
       expect(config.capturePushNotificationSubscriptions, isFalse);
       expect(config.capturePushNotificationOpened, isFalse);
+    });
+
+    test('records NDK crashes, but leaves Dart errors to the app handler', () {
+      final errors = transport().buildConfig().errorTrackingConfig;
+
+      expect(errors.captureNativeCrashes, isTrue);
+      expect(errors.captureFlutterErrors, isFalse);
+      expect(errors.capturePlatformDispatcherErrors, isFalse);
+      expect(errors.captureIsolateErrors, isFalse);
     });
 
     test('a local-mode till starts opted out, with no replay', () {
@@ -342,6 +358,25 @@ void main() {
     });
   });
 
+  test('captureException hands the error to PostHog', () async {
+    final error = StateError('boom');
+    final stack = StackTrace.current;
+
+    await transport().captureException(
+      error,
+      stackTrace: stack,
+      properties: {'error_type': 'caught', 'empty': null},
+    );
+
+    verify(
+      () => posthog.captureException(
+        error: error,
+        stackTrace: stack,
+        properties: {'error_type': 'caught'},
+      ),
+    ).called(1);
+  });
+
   test('sensitive keys are masked at every depth', () {
     final out = PostHogTransport.redact({
       'context': {
@@ -388,6 +423,64 @@ void main() {
       expect(ids, hasLength(1));
     },
   );
+
+  group('exception text', () {
+    test('emails and long numbers are scrubbed, the rest kept', () {
+      expect(
+        PostHogTransport.scrubText(
+          'duplicate key: Key (email)=(ann.b+1@shop.rw) for 0788 123 456, '
+          'order 42, card 4242424242424242',
+        ),
+        'duplicate key: Key (email)=([email]) for [number], '
+        'order 42, card [number]',
+      );
+    });
+
+    test('each exception message in an event is scrubbed', () {
+      final out = PostHogTransport.scrubExceptions({
+        r'$exception_list': [
+          {'type': 'PostgrestException', 'value': 'call +250788123456'},
+          {'type': 'StateError', 'value': 'boom'},
+          'not a map',
+        ],
+        'error_type': 'caught',
+      });
+
+      expect(out[r'$exception_list'], [
+        {'type': 'PostgrestException', 'value': 'call [number]'},
+        {'type': 'StateError', 'value': 'boom'},
+        'not a map',
+      ]);
+      expect(out['error_type'], 'caught');
+    });
+
+    test('events without exceptions pass through', () {
+      expect(PostHogTransport.scrubExceptions({'n': 1}), {'n': 1});
+    });
+
+    test('on web the message is scrubbed before posthog-js sees it', () async {
+      final t = PostHogTransport(
+        projectToken: 'phc_test',
+        host: 'https://ph.example',
+        posthog: posthog,
+        isWeb: true,
+        loadWeb: () async => true,
+        webReady: () => true,
+      );
+
+      await t.captureException(StateError('mail ann@shop.rw'));
+
+      final sent = verify(
+        () => posthog.captureException(
+          error: captureAny(named: 'error'),
+          stackTrace: any(named: 'stackTrace'),
+          properties: any(named: 'properties'),
+        ),
+      ).captured.single;
+      expect(sent, isA<ScrubbedError>());
+      expect(sent.toString(), 'Bad state: mail [email]');
+    });
+  });
 
   test('web loads nothing without a real project token', () async {
     var loads = 0;

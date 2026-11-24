@@ -86,6 +86,11 @@ class PostHogTransport implements AnalyticsTransport {
     config.sessionReplayConfig.maskAllImages = maskAllImages;
     // Flipper registers its own FCM tokens; on iOS the SDK would also swizzle
     // the app delegate for this.
+    // Dart errors arrive through the app's own handler (deduplicated, see
+    // reportException); the SDK's Dart autocapture would bypass that and
+    // send a per-frame assertion once per frame. NDK crashes on Android
+    // reach no Dart handler, so the SDK records those.
+    config.errorTrackingConfig.captureNativeCrashes = true;
     config.capturePushNotificationSubscriptions = false;
     config.capturePushNotificationOpened = false;
     return config;
@@ -157,6 +162,21 @@ class PostHogTransport implements AnalyticsTransport {
       await _posthog.optOut();
     }
   });
+
+  @override
+  Future<void> captureException(
+    Object error, {
+    StackTrace? stackTrace,
+    Map<String, Object?> properties = const {},
+  }) => _onLive(
+    () => _posthog.captureException(
+      // posthog-js sends the message as is; native runs it through
+      // beforeSend, which scrubs it there.
+      error: _isWeb ? ScrubbedError(error) : error,
+      stackTrace: stackTrace,
+      properties: _compact(properties),
+    ),
+  );
 
   @override
   Future<void> flush() => _posthog.flush();
@@ -251,8 +271,36 @@ class PostHogTransport implements AnalyticsTransport {
   }
 
   PostHogEvent? _redactSensitiveFields(PostHogEvent event) {
-    event.properties = redact(event.properties ?? const {});
+    event.properties = scrubExceptions(redact(event.properties ?? const {}));
     return event;
+  }
+
+  static final _email = RegExp(r'[\w.+-]+@[\w-]+(\.[\w-]+)+');
+  // Phone numbers, card and account numbers: 7+ digits, maybe spaced.
+  static final _longNumber = RegExp(r'\+?\d[\d \-]{5,}\d');
+
+  /// Removes emails and long numbers from free text. Exception messages can
+  /// carry response bodies (`Key (email)=(…)`, a customer's phone), and
+  /// those must not reach PostHog; the full text stays in the local Log row.
+  @visibleForTesting
+  static String scrubText(String text) =>
+      text.replaceAll(_email, '[email]').replaceAll(_longNumber, '[number]');
+
+  /// Scrubs the message of each exception in an `$exception` event.
+  @visibleForTesting
+  static Map<String, Object> scrubExceptions(Map<String, Object> properties) {
+    final list = properties[r'$exception_list'];
+    if (list is! List) return properties;
+    return {
+      ...properties,
+      r'$exception_list': [
+        for (final item in list)
+          if (item is Map && item['value'] is String)
+            {...item, 'value': scrubText(item['value'] as String)}
+          else
+            item,
+      ],
+    };
   }
 
   /// Words that mark a property as a secret wherever they appear in its key:
@@ -326,4 +374,16 @@ class PostHogTransport implements AnalyticsTransport {
     });
     return result;
   }
+}
+
+/// An error whose message has had emails and long numbers removed; used where
+/// the SDK sends the message without running beforeSend (web).
+@visibleForTesting
+class ScrubbedError implements Exception {
+  ScrubbedError(this.source);
+
+  final Object source;
+
+  @override
+  String toString() => PostHogTransport.scrubText(source.toString());
 }

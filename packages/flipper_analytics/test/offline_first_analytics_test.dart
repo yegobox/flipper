@@ -55,7 +55,19 @@ class _FakeTransport implements AnalyticsTransport {
   final List<PendingAnalyticsEvent> sentEvents = [];
   final List<bool> enabledCalls = [];
   final List<String> identified = [];
+  final List<(Object, Map<String, Object?>)> exceptions = [];
+  bool failCapture = false;
   int flushCount = 0;
+
+  @override
+  Future<void> captureException(
+    Object error, {
+    StackTrace? stackTrace,
+    Map<String, Object?> properties = const {},
+  }) async {
+    if (failCapture) throw StateError('sdk down');
+    exceptions.add((error, properties));
+  }
 
   @override
   Future<void> setEnabled(bool enabled) async {
@@ -249,5 +261,51 @@ void main() {
 
     await analytics.flush();
     expect(store.events, isEmpty);
+  });
+
+  group('captureException', () {
+    test('tags the error like any event', () async {
+      final transport = _FakeTransport();
+      final analytics = OfflineFirstAnalytics(
+        contextProvider: _FakeContextProvider(),
+        eventStore: _MemoryEventStore(),
+        transport: transport,
+      );
+
+      await analytics.captureException(
+        StateError('boom'),
+        properties: const {'error_type': 'caught'},
+      );
+
+      final (error, props) = transport.exceptions.single;
+      expect(error, isA<StateError>());
+      expect(props['app'], 'test_app');
+      expect(props['error_type'], 'caught');
+    });
+
+    test('never throws, even when the SDK does', () async {
+      final transport = _FakeTransport()..failCapture = true;
+      final analytics = OfflineFirstAnalytics(
+        contextProvider: _FakeContextProvider(),
+        eventStore: _MemoryEventStore(),
+        transport: transport,
+      );
+
+      await analytics.captureException(StateError('boom'));
+    });
+
+    test('sends nothing in local mode', () async {
+      final transport = _FakeTransport();
+      final analytics = OfflineFirstAnalytics(
+        contextProvider: _FakeContextProvider(),
+        eventStore: _MemoryEventStore(),
+        transport: transport,
+        enabled: false,
+      );
+
+      await analytics.captureException(StateError('boom'));
+
+      expect(transport.exceptions, isEmpty);
+    });
   });
 }
