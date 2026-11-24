@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:ui' show AppExitResponse;
+import 'dart:ui' show AppExitResponse, AppLifecycleState;
 
 import 'package:flipper_models/perf/ui_stall_watchdog.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -313,6 +313,157 @@ void main() {
       clocked.check();
 
       expect(stalls, isEmpty);
+    });
+
+    test('time spent paused is never reported, even past the threshold', () {
+      watchdog.start();
+      watchdog.pause();
+      expect(watchdog.isPaused, isTrue);
+      expect(watchdog.isRunning, isFalse);
+
+      // Seven hours in the background (Android froze the app).
+      elapsed += const Duration(hours: 7);
+      // A tick that was already queued when the app paused.
+      watchdog.check();
+      watchdog.resume();
+      expect(watchdog.isRunning, isTrue);
+
+      elapsed += const Duration(milliseconds: 250);
+      watchdog.check();
+      expect(stalls, isEmpty);
+
+      // Resuming twice does not restart the clock.
+      watchdog.resume();
+      elapsed += const Duration(milliseconds: 3250);
+      watchdog.check();
+      expect(stalls.single.lag, const Duration(seconds: 3));
+    });
+
+    test('a foreground stall after a resume is still reported', () {
+      watchdog
+        ..start()
+        ..pause();
+      elapsed += const Duration(minutes: 5);
+      watchdog.resume();
+
+      elapsed += const Duration(milliseconds: 2250);
+      watchdog.check();
+      expect(stalls.single.lag, const Duration(seconds: 2));
+    });
+
+    test('a watchdog paused before it starts waits for both', () {
+      watchdog
+        ..pause()
+        ..start();
+      expect(watchdog.isRunning, isFalse);
+      watchdog.resume();
+      expect(watchdog.isRunning, isTrue);
+
+      // Stopped while paused: resuming does not bring it back.
+      watchdog
+        ..pause()
+        ..stop()
+        ..resume();
+      expect(watchdog.isRunning, isFalse);
+    });
+
+    test('only the background stops the watch; a minimised Windows till is '
+        'still watched', () {
+      for (final windows in [true, false]) {
+        expect(
+          watchesUiIn(AppLifecycleState.resumed, isWindows: windows),
+          isTrue,
+        );
+        expect(
+          watchesUiIn(AppLifecycleState.inactive, isWindows: windows),
+          isTrue,
+        );
+        expect(
+          watchesUiIn(AppLifecycleState.paused, isWindows: windows),
+          isFalse,
+        );
+        expect(
+          watchesUiIn(AppLifecycleState.detached, isWindows: windows),
+          isFalse,
+        );
+      }
+      expect(watchesUiIn(AppLifecycleState.hidden, isWindows: true), isTrue);
+      expect(watchesUiIn(AppLifecycleState.hidden, isWindows: false), isFalse);
+      expect(watchesUiIn(AppLifecycleState.hidden), Platform.isWindows);
+    });
+
+    testWidgets('the lifecycle pauses the watchdog in the background and a '
+        'resumed app measures from the resume', (tester) async {
+      final binding = tester.binding;
+      binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      watchdog.start();
+      final listener = pauseWatchdogInBackground(watchdog, isWindows: false);
+      addTearDown(listener.dispose);
+      expect(watchdog.isRunning, isTrue);
+
+      binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+      expect(watchdog.isRunning, isTrue);
+      binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+      expect(watchdog.isPaused, isTrue);
+      binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+      expect(watchdog.isPaused, isTrue);
+
+      elapsed += const Duration(hours: 7, minutes: 24);
+
+      binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+      binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+      expect(watchdog.isRunning, isTrue);
+      binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+
+      elapsed += const Duration(milliseconds: 250);
+      watchdog.check();
+      expect(stalls, isEmpty);
+
+      // Back in the foreground, a real freeze is reported.
+      elapsed += const Duration(milliseconds: 4250);
+      watchdog.check();
+      expect(stalls.single.lag, const Duration(seconds: 4));
+      // testWidgets checks for pending timers before tearDown runs.
+      watchdog.stop();
+    });
+
+    testWidgets('a minimised Windows till keeps reporting stalls', (
+      tester,
+    ) async {
+      final binding = tester.binding;
+      binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      watchdog.start();
+      final listener = pauseWatchdogInBackground(watchdog, isWindows: true);
+      addTearDown(listener.dispose);
+
+      binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+      binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+      expect(watchdog.isRunning, isTrue);
+
+      elapsed += const Duration(milliseconds: 5250);
+      watchdog.check();
+      expect(stalls.single.lag, const Duration(seconds: 5));
+      watchdog.stop();
+    });
+
+    testWidgets('an app wired up while in the background starts paused', (
+      tester,
+    ) async {
+      // Disposes of the listener first, then leaves the binding in the
+      // foreground for the tests after this one.
+      addTearDown(
+        () => tester.binding.handleAppLifecycleStateChanged(
+          AppLifecycleState.resumed,
+        ),
+      );
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+      watchdog.start();
+      final listener = pauseWatchdogInBackground(watchdog, isWindows: false);
+      addTearDown(listener.dispose);
+      expect(watchdog.isPaused, isTrue);
+      expect(watchdog.isRunning, isFalse);
     });
 
     test('the default clock and trail need no setup', () {

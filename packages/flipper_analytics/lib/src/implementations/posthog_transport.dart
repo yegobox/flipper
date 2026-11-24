@@ -119,9 +119,16 @@ class PostHogTransport implements AnalyticsTransport {
   /// Completes once posthog-js is loaded on web (true at once on native).
   Future<bool> get ready => _isWeb ? _loadWeb() : Future.value(true);
 
-  Future<bool> _loadWeb() =>
-      _loadWebOverride?.call() ??
-      loadPostHogJs(projectToken: projectToken, host: host);
+  /// PostHog project tokens start with `phc_`. CI and local builds carry a
+  /// placeholder, and posthog-js would fetch that token's remote config and
+  /// log a 404, so nothing is loaded without a real token.
+  bool get hasProjectToken => projectToken.startsWith('phc_');
+
+  Future<bool> _loadWeb() {
+    if (!hasProjectToken) return Future.value(false);
+    return _loadWebOverride?.call() ??
+        loadPostHogJs(projectToken: projectToken, host: host);
+  }
 
   /// Runs [call] against the live client. On native that is now. On web,
   /// before posthog-js has loaded, [call] is queued behind the load and this
