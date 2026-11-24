@@ -361,6 +361,119 @@ void main() {
       expect(tax.ioCalls, isEmpty);
     });
 
+    // The product is already in stock: a throw now would read as "not
+    // recorded", and recording again would stock it twice.
+    test('a component failure after stocking never throws', () async {
+      when(
+        () => db.getProduct(id: 'bread-p', branchId: 'b1', businessId: 'biz1'),
+      ).thenAnswer(
+        (_) async => Product(
+          id: 'bread-p',
+          name: 'Bread',
+          color: '#000',
+          businessId: 'biz1',
+          branchId: 'b1',
+          isComposite: true,
+        ),
+      );
+      when(() => db.composites(productId: 'bread-p')).thenAnswer(
+        (_) async => [
+          Composite(productId: 'bread-p', variantId: 'flour', qty: 0.5),
+        ],
+      );
+      when(() => db.batchGetVariantsByIds(any())).thenAnswer(
+        (_) async => {
+          'flour': Variant(
+            id: 'flour',
+            name: 'flour',
+            branchId: 'b1',
+            stockId: 'flour-s',
+            itemTyCd: '1',
+          ),
+        },
+      );
+      when(
+        () => db.batchDeductStocks(any()),
+      ).thenThrow(StateError('deduct failed'));
+
+      final result = await post(10);
+
+      expect(result.stocked, isTrue);
+      expect(result.rraMessage, contains('Bread is in stock'));
+      expect(result.rraMessage, contains('components were not deducted'));
+      expect(result.rraMessage, contains('deduct failed'));
+      expect(result.rraMessage, contains('do not record this output again'));
+      // The bread was stocked and reported; no `14` went out.
+      verify(
+        () => db.updateStock(
+          stockId: 'bread-s',
+          currentStock: 10,
+          appending: true,
+          lastTouched: any(named: 'lastTouched'),
+          ebmSynced: false,
+        ),
+      ).called(1);
+      expect(tax.ioCalls.map((c) => c.sarTyCd), ['05']);
+    });
+
+    // Like the components, the product's new cost is written after it is in
+    // stock, so a failed write must not throw either.
+    test('a failed cost write keeps the output stocked', () async {
+      when(
+        () => db.getProduct(id: 'bread-p', branchId: 'b1', businessId: 'biz1'),
+      ).thenAnswer(
+        (_) async => Product(
+          id: 'bread-p',
+          name: 'Bread',
+          color: '#000',
+          businessId: 'biz1',
+          branchId: 'b1',
+          isComposite: true,
+        ),
+      );
+      when(() => db.composites(productId: 'bread-p')).thenAnswer(
+        (_) async => [
+          Composite(productId: 'bread-p', variantId: 'flour', qty: 0.5),
+        ],
+      );
+      when(() => db.batchGetVariantsByIds(any())).thenAnswer(
+        (_) async => {
+          'flour': Variant(
+            id: 'flour',
+            name: 'flour',
+            branchId: 'b1',
+            stockId: 'flour-s',
+            itemTyCd: '1',
+            supplyPrice: 100,
+          ),
+        },
+      );
+      when(() => db.batchDeductStocks(any())).thenAnswer((_) async {});
+      when(() => db.batchGetStocksByIds(any())).thenAnswer((_) async => {});
+
+      final result = await postProductionOutput(
+        workOrder: _order(status: 'in_progress'),
+        qty: 10,
+        deps: PurchaseApprovalDeps(
+          strategy: db,
+          capella: db,
+          tax: tax,
+          comboCosts: ComboCostWriter(
+            variantSupplyPrice: (_, __) async => throw StateError('ditto'),
+            lineSupplyCost: (_, __, ___) async {},
+          ),
+        ),
+        resolveEbm: (_) async => _ebmOn(),
+        nextBranchSar: (branchId) async {
+          sarsHandedOut.add(41 + sarsHandedOut.length);
+          return Sar(sarNo: sarsHandedOut.last, branchId: branchId);
+        },
+      );
+
+      expect(result.stocked, isTrue);
+      expect(result.rraMessage, isNull);
+    });
+
     test('a combo sold as made (a service) moves nothing here', () async {
       when(
         () => db.getVariant(id: 'bread-v'),
