@@ -238,16 +238,23 @@ def rule_untracked_store_observers():
     """
     # Any receiver: `ditto.store.`, `store!.`, a bare `store.` local.
     call = re.compile(r"\bregisterObserver(?:WithSignalNext)?\s*\(")
-    # The registry itself, and the WhatsApp sync's DittoObserverRunner
-    # facade, whose real runner goes through registerTrackedObserver.
-    allowed = ("ditto_observer_registry.dart", "whatsapp_message_sync_service.dart")
+    # The WhatsApp sync's DittoObserverRunner facade (its real runner goes
+    # through registerTrackedObserver): only the facade's own method
+    # declarations and its `_runner.` call are exempt, not the whole file.
+    facade_file = "whatsapp_message_sync_service.dart"
+    facade_line = re.compile(
+        r"^\s*(?:dynamic\s+registerObserver\s*\(|.*\b_runner\s*\.\s*registerObserver\s*\()"
+    )
     offenders = []
     for path in dart_files(include_tests=False):
-        if path.endswith(allowed):
+        if path.endswith("ditto_observer_registry.dart"):
             continue
         text = strip_comments(read(path))
+        lines = text.split("\n")
         for m in call.finditer(text):
             line = text[:m.start()].count("\n") + 1
+            if path.endswith(facade_file) and facade_line.match(lines[line - 1]):
+                continue
             offenders.append(f"{rel(path)}:{line}")
     return sorted(offenders)
 
