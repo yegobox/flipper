@@ -16247,6 +16247,32 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   }
 
   @override
+  @override
+  String get incomingOrdersColBranch => 'Ishami';
+
+  @override
+  String get incomingOrdersColRequested => 'Byasabwe';
+
+  @override
+  String get incomingOrdersColItems => 'Ibicuruzwa';
+
+  @override
+  String get incomingOrdersColQty => 'Ingano';
+
+  @override
+  String get incomingOrdersColDelivery => 'Kugeza';
+
+  @override
+  String incomingOrdersRequestCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Ubusabe $count',
+      one: 'Ubusabe 1',
+    );
+    return '$_temp0';
+  }
+
   String incomingOrdersQtyRatio(int requested, String approved) {
     String _temp0 = intl.Intl.pluralLogic(
       requested,

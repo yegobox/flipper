@@ -16349,6 +16349,32 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   }
 
   @override
+  @override
+  String get incomingOrdersColBranch => 'Succursale';
+
+  @override
+  String get incomingOrdersColRequested => 'Demandé le';
+
+  @override
+  String get incomingOrdersColItems => 'Articles';
+
+  @override
+  String get incomingOrdersColQty => 'Qté';
+
+  @override
+  String get incomingOrdersColDelivery => 'Livraison';
+
+  @override
+  String incomingOrdersRequestCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count demandes',
+      one: '1 demande',
+    );
+    return '$_temp0';
+  }
+
   String incomingOrdersQtyRatio(int requested, String approved) {
     String _temp0 = intl.Intl.pluralLogic(
       requested,

@@ -14,7 +14,11 @@ import 'package:supabase_models/brick/models/work_order.model.dart';
 
 /// What recording production output did to stock.
 class ProductionStockResult {
-  const ProductionStockResult({required this.stocked, this.rraMessage});
+  const ProductionStockResult({
+    required this.stocked,
+    this.rraMessage,
+    this.absorbUnitCost,
+  });
 
   /// Nothing moved: a composite or service product, or no quantity.
   static const skipped = ProductionStockResult(stocked: false);
@@ -25,6 +29,11 @@ class ProductionStockResult {
   /// Set when reporting to RRA (EBM) failed, or the components could not be
   /// used up; the finished product is stocked either way.
   final String? rraMessage;
+
+  /// For a product made without a recipe: the cost each unit is moved into
+  /// stock at in Books (its supply price; see ProductionJournalPoster).
+  /// Null when there is nothing to absorb.
+  final double? absorbUnitCost;
 }
 
 /// Adds recorded production output to the finished product's stock and
@@ -180,7 +189,12 @@ Future<ProductionStockResult> postProductionOutput({
     }
   }
 
-  return ProductionStockResult(stocked: true, rraMessage: rraMessage);
+  final ownCost = (variant.supplyPrice ?? 0).toDouble();
+  return ProductionStockResult(
+    stocked: true,
+    rraMessage: rraMessage,
+    absorbUnitCost: components.isEmpty && ownCost > 0 ? ownCost : null,
+  );
 }
 
 /// What the user is told when the product was stocked but its components

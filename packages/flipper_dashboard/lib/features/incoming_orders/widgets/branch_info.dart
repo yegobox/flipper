@@ -12,11 +12,16 @@ class BranchInfo extends ConsumerWidget {
   final Branch activeBranch;
   final bool isIncoming;
 
+  /// Drops the strip's own card (fill, border, radius) when it sits inside a
+  /// panel that already frames it, like the desktop request detail.
+  final bool embedded;
+
   const BranchInfo({
     Key? key,
     required this.request,
     required this.activeBranch,
     this.isIncoming = true,
+    this.embedded = false,
   }) : super(key: key);
 
   @override
@@ -39,6 +44,7 @@ class BranchInfo extends ConsumerWidget {
       return _FlowStrip(
         fromName: fromName,
         toName: activeBranch.name ?? unknown,
+        embedded: embedded,
       );
     }
 
@@ -57,25 +63,35 @@ class BranchInfo extends ConsumerWidget {
     return _FlowStrip(
       fromName: activeBranch.name ?? request.branch?.name ?? unknown,
       toName: toName,
+      embedded: embedded,
     );
   }
 }
 
 class _FlowStrip extends StatelessWidget {
-  const _FlowStrip({required this.fromName, required this.toName});
+  const _FlowStrip({
+    required this.fromName,
+    required this.toName,
+    this.embedded = false,
+  });
 
   final String fromName;
   final String toName;
+  final bool embedded;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      decoration: BoxDecoration(
-        color: OmTokens.surface2,
-        borderRadius: BorderRadius.circular(OmTokens.radius),
-        border: Border.all(color: OmTokens.line),
-      ),
+      padding: embedded
+          ? EdgeInsets.zero
+          : const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: embedded
+          ? null
+          : BoxDecoration(
+              color: OmTokens.surface2,
+              borderRadius: BorderRadius.circular(OmTokens.radius),
+              border: Border.all(color: OmTokens.line),
+            ),
       child: Row(
         children: [
           Container(

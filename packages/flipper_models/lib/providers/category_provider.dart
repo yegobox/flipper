@@ -1,3 +1,4 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'active_branch_provider.dart';
 
@@ -19,10 +20,22 @@ class OptimisticFocusedCategory extends _$OptimisticFocusedCategory {
   void clear() => state = null;
 }
 
+/// The active branch's categories, live.
+///
+/// Kept alive: opening the Ditto observer behind it is a synchronous call on
+/// the UI thread that blocks while Ditto is busy syncing. As an auto-dispose
+/// provider it reopened every time a screen that lists categories opened (the
+/// product editor, Cash Book, pickers), so each open risked a freeze. Now it
+/// opens once per branch; a branch switch rebuilds it through
+/// [activeBranchProvider], which cancels the old observer. Only the branch id
+/// is watched, so a rename or a reload of the same branch keeps the observer.
 @riverpod
 Stream<List<Category>> category(Ref ref) {
-  final branch = ref.watch(activeBranchProvider).value;
-  final branchId = branch?.id ?? ProxyService.box.getBranchId();
+  ref.keepAlive();
+  final activeBranchId = ref.watch(
+    activeBranchProvider.select((b) => b.value?.id),
+  );
+  final branchId = activeBranchId ?? ProxyService.box.getBranchId();
   if (branchId == null) return const Stream.empty();
   return ProxyService.strategy.categoryStream(branchId: branchId);
 }
@@ -36,7 +49,7 @@ Stream<List<Category>> categories(Ref ref, {required String branchId}) {
 /// default Brick cloudSync category subscription on native.
 @riverpod
 Stream<List<Category>> capellaCategories(Ref ref, {required String branchId}) {
-  return ProxyService.getStrategy(Strategy.capella).categoryStream(
-    branchId: branchId,
-  );
+  return ProxyService.getStrategy(
+    Strategy.capella,
+  ).categoryStream(branchId: branchId);
 }

@@ -9,6 +9,7 @@ import 'package:flipper_dashboard/features/production_output/widgets/work_order_
 import 'package:flipper_dashboard/features/production_output/widgets/work_order_form.dart';
 import 'package:flipper_dashboard/providers/navigation_providers.dart';
 import 'package:flipper_dashboard/stockApprovalMixin.dart';
+import 'package:flipper_dashboard/theme/pos_tokens.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/providers/orders_provider.dart';
@@ -58,7 +59,7 @@ class ActionRow extends ConsumerWidget
             onPressed: null,
             icon: Icons.check_circle_outline,
             label: l10n.incomingOrdersApprove,
-            variant: _OmBtnVariant.greenSoft,
+            variant: _OmBtnVariant.primary,
           ),
           _OmBtn(
             onPressed: null,
@@ -103,7 +104,7 @@ class ActionRow extends ConsumerWidget
               label: isProcessing
                   ? l10n.incomingOrdersInProduction
                   : l10n.incomingOrdersApprove,
-              variant: _OmBtnVariant.greenSoft,
+              variant: _OmBtnVariant.primary,
               isDisabled: approveDisabled,
             ),
             _OmBtn(
@@ -448,7 +449,7 @@ class ActionRow extends ConsumerWidget
   }
 }
 
-enum _OmBtnVariant { ghost, greenSoft, voidDisabled }
+enum _OmBtnVariant { ghost, primary, voidDisabled }
 
 class _ActionsBar extends StatelessWidget {
   const _ActionsBar({required this.children});
@@ -523,9 +524,10 @@ class _OmBtn extends StatelessWidget {
         fg = OmTokens.ink2;
         border = OmTokens.line2;
         break;
-      case _OmBtnVariant.greenSoft:
-        bg = OmTokens.greenWash;
-        fg = OmTokens.greenStrong;
+      // Brand blue: actions are never green (green only means stock/gain).
+      case _OmBtnVariant.primary:
+        bg = PosTokens.blue;
+        fg = Colors.white;
         border = Colors.transparent;
         break;
       case _OmBtnVariant.voidDisabled:

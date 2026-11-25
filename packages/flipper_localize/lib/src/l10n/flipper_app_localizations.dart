@@ -26686,6 +26686,42 @@ abstract class FlipperAppLocalizations {
   /// **'{count, plural, =1{1 Item} other{{count} Items}}'**
   String incomingOrdersQtyItems(int count);
 
+  /// No description provided for @incomingOrdersColBranch.
+  ///
+  /// In en, this message translates to:
+  /// **'Branch'**
+  String get incomingOrdersColBranch;
+
+  /// No description provided for @incomingOrdersColRequested.
+  ///
+  /// In en, this message translates to:
+  /// **'Requested'**
+  String get incomingOrdersColRequested;
+
+  /// No description provided for @incomingOrdersColItems.
+  ///
+  /// In en, this message translates to:
+  /// **'Items'**
+  String get incomingOrdersColItems;
+
+  /// No description provided for @incomingOrdersColQty.
+  ///
+  /// In en, this message translates to:
+  /// **'Qty'**
+  String get incomingOrdersColQty;
+
+  /// No description provided for @incomingOrdersColDelivery.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery'**
+  String get incomingOrdersColDelivery;
+
+  /// No description provided for @incomingOrdersRequestCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 request} other{{count} requests}}'**
+  String incomingOrdersRequestCount(int count);
+
   /// No description provided for @incomingOrdersQtyRatio.
   ///
   /// In en, this message translates to:

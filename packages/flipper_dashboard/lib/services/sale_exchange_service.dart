@@ -5,6 +5,7 @@ import 'package:flipper_dashboard/services/sale_exchange_intent.dart';
 import 'package:flipper_dashboard/services/transaction_refund_helpers.dart';
 import 'package:flipper_dashboard/utils/ebm_receipt_gate.dart';
 import 'package:flipper_dashboard/utils/sale_stock_deduction.dart';
+import 'package:flipper_models/sync/utils/combo_stock_lines.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helpers/sale_exchange.dart';
@@ -1002,7 +1003,20 @@ class SaleExchangeService {
     }
   }
 
+  /// A returned combo gives its components back ([expandComboLinesForStock]).
   Future<void> _restoreLineStock(TransactionItem line) async {
+    final parts = await expandComboLinesForStock(
+      [line],
+      capella: _capella,
+      businessId: _services.box.getBusinessId(),
+      branchId: _services.box.getBranchId(),
+    );
+    for (final part in parts) {
+      await _restorePartStock(part);
+    }
+  }
+
+  Future<void> _restorePartStock(TransactionItem line) async {
     final variantId = line.variantId;
     if (variantId == null) return;
     final variant = await _capella.getVariant(id: variantId);

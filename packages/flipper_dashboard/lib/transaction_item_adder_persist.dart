@@ -9,6 +9,7 @@ import 'package:flipper_models/providers/optimistic_cart_provider.dart';
 import 'package:flipper_models/providers/pos_cart_display_provider.dart';
 import 'package:flipper_models/providers/pending_cart_sale_session_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
+import 'package:flipper_models/sync/utils/combo_stock_lines.dart';
 import 'package:flipper_models/sync/utils/pos_catalog_stock_filter.dart';
 import 'package:flipper_services/GlobalLogError.dart';
 import 'package:flipper_services/constants.dart';
@@ -86,6 +87,230 @@ Future<ITransaction?> resolvePendingTransactionForPersist({
   return pendingTransaction;
 }
 
+/// Combo recipes resolved for one cart, so later taps don't read them again.
+///
+/// Scoped to the pending transaction (with its branch and business): a new
+/// cart starts empty. Holds each product's components (empty when it is not
+/// a combo) and the product of each cart line read from its variant; bounded
+/// so a long-lived cart can't grow it without limit. Stock is never cached.
+class ComboRecipeCache {
+  ComboRecipeCache({this.maxProducts = 64});
+
+  /// Products kept at most; the least recently used go first.
+  final int maxProducts;
+
+  String? _scope;
+  final _recipes = <String, List<Composite>>{};
+  final _productOfVariant = <String, String?>{};
+
+  /// Starts over unless [scope] is the cart the cache holds.
+  void useScope(String scope) {
+    if (_scope == scope) return;
+    _scope = scope;
+    _recipes.clear();
+    _productOfVariant.clear();
+  }
+
+  List<Composite>? recipe(String productId) {
+    final hit = _recipes.remove(productId);
+    if (hit != null) _recipes[productId] = hit; // most recently used last
+    return hit;
+  }
+
+  void putRecipe(String productId, List<Composite> components) {
+    _recipes.remove(productId);
+    _recipes[productId] = components;
+    while (_recipes.length > maxProducts) {
+      _recipes.remove(_recipes.keys.first);
+    }
+  }
+
+  bool knowsProductOf(String variantId) =>
+      _productOfVariant.containsKey(variantId);
+
+  String? productOf(String variantId) => _productOfVariant[variantId];
+
+  void putProductOf(String variantId, String? productId) {
+    if (_productOfVariant.length >= maxProducts * 4) _productOfVariant.clear();
+    _productOfVariant[variantId] = productId;
+  }
+
+  @visibleForTesting
+  void clear() {
+    _scope = null;
+    _recipes.clear();
+    _productOfVariant.clear();
+  }
+}
+
+/// The till's [ComboRecipeCache] (one cart is open at a time).
+@visibleForTesting
+final comboRecipeCache = ComboRecipeCache();
+
+/// What every combo in the cart takes of each stocked component
+/// ([comboComponentNeeds]), with those components' variants. [tapped] counts
+/// as in the cart even before its line shows. Local reads only (Ditto, then
+/// Brick `localOnly`): a tap never waits on the network. A cart with no
+/// service lines reads nothing. Recipes come from [comboRecipeCache] after
+/// the first tap; each product is read once, and the component variants in
+/// one batch.
+Future<({Map<String, double> needs, Map<String, Variant> variants})>
+_cartComboNeeds({
+  required Ref ref,
+  required dynamic capella,
+  required String transactionId,
+  required String? branchId,
+  required String? businessId,
+  Variant? tapped,
+}) async {
+  const none = (needs: <String, double>{}, variants: <String, Variant>{});
+  if (branchId == null || businessId == null) return none;
+
+  final productOfService = <String, String?>{};
+  for (final line in ref.read(posCartDisplayItemsProvider)) {
+    final vid = line.variantId;
+    if (line.active == false || vid == null || vid.isEmpty) continue;
+    if (!isServiceItemType(line.itemTyCd)) continue;
+    final pid = line.productId;
+    productOfService[vid] = pid != null && pid.isNotEmpty ? pid : null;
+  }
+  if (tapped != null) productOfService[tapped.id] = tapped.productId;
+  if (productOfService.isEmpty) return none;
+
+  final cache = comboRecipeCache
+    ..useScope('$businessId/$branchId/$transactionId');
+  final unknown = <String>[];
+  for (final e in productOfService.entries) {
+    if (e.value != null) continue;
+    if (cache.knowsProductOf(e.key)) {
+      productOfService[e.key] = cache.productOf(e.key);
+    } else {
+      unknown.add(e.key);
+    }
+  }
+  if (unknown.isNotEmpty) {
+    final Map<String, Variant> lineVariants = await capella
+        .batchGetVariantsByIds(unknown);
+    for (final vid in unknown) {
+      final pid = lineVariants[vid]?.productId;
+      productOfService[vid] = pid;
+      cache.putProductOf(vid, pid);
+    }
+  }
+
+  // One lookup per distinct product, then never again for this cart. A
+  // combo with no components here yet is not cached: they may still sync.
+  final recipes = <String, List<Composite>>{};
+  for (final productId in productOfService.values.toSet()) {
+    if (productId == null || productId.isEmpty) continue;
+    var components = cache.recipe(productId);
+    if (components == null) {
+      final Product? product = await capella.getProduct(
+        id: productId,
+        branchId: branchId,
+        businessId: businessId,
+      );
+      if (product?.isComposite != true) {
+        components = const <Composite>[];
+        cache.putRecipe(productId, components);
+      } else {
+        final List<Composite> read = await capella.composites(
+          productId: productId,
+          localOnly: true,
+        );
+        components = read;
+        if (read.isNotEmpty) cache.putRecipe(productId, read);
+      }
+    }
+    recipes[productId] = components;
+  }
+
+  final componentsByCombo = <String, List<Composite>>{
+    for (final e in productOfService.entries)
+      if ((recipes[e.value] ?? const <Composite>[]).isNotEmpty)
+        e.key: recipes[e.value]!,
+  };
+  if (componentsByCombo.isEmpty) return none;
+
+  final ids = componentsByCombo.values
+      .expand((c) => c)
+      .map((c) => c.variantId)
+      .whereType<String>()
+      .where((id) => id.isNotEmpty)
+      .toSet()
+      .toList();
+  final Map<String, Variant> variants = await capella.batchGetVariantsByIds(
+    ids,
+  );
+  final inCart = ref.read(posCartQtyByVariantIdProvider);
+  return (
+    needs: comboComponentNeeds(
+      componentsByCombo: componentsByCombo,
+      combosInCart: {
+        for (final vid in componentsByCombo.keys)
+          vid: (inCart[vid] ?? 0).toDouble(),
+      },
+      variantsById: variants,
+    ),
+    variants: variants,
+  );
+}
+
+/// How much of [variantId] the combos already in the cart take.
+Future<double> _takenByCartCombos({
+  required Ref ref,
+  required dynamic capella,
+  required String transactionId,
+  required String variantId,
+  required String? branchId,
+  required String? businessId,
+}) async {
+  final cart = await _cartComboNeeds(
+    ref: ref,
+    capella: capella,
+    transactionId: transactionId,
+    branchId: branchId,
+    businessId: businessId,
+  );
+  return cart.needs[variantId] ?? 0;
+}
+
+/// Whether the components cover every combo now in the cart, tapped [variant]
+/// included ([comboComponentsInStock]). True for a service that is not a
+/// combo.
+Future<bool> _comboComponentsInStock({
+  required Ref ref,
+  required dynamic capella,
+  required String transactionId,
+  required Variant variant,
+  required String? branchId,
+  required String? businessId,
+}) async {
+  final cart = await _cartComboNeeds(
+    ref: ref,
+    capella: capella,
+    transactionId: transactionId,
+    branchId: branchId,
+    businessId: businessId,
+    tapped: variant,
+  );
+  if (cart.needs.isEmpty) return true;
+  final stockIds = cart.variants.values
+      .map((v) => v.stockId)
+      .whereType<String>()
+      .where((id) => id.isNotEmpty)
+      .toList();
+  final Map<String, Stock> stocks = stockIds.isEmpty
+      ? <String, Stock>{}
+      : await capella.batchGetStocksByIds(stockIds);
+  return comboComponentsInStock(
+    needs: cart.needs,
+    variantsById: cart.variants,
+    stocksById: stocks,
+    inCartAlone: (id) => ref.read(posCartQtyForVariantProvider(id)).toDouble(),
+  );
+}
+
 Future<bool> persistItemToTransaction({
   required Ref ref,
   required BuildContext context,
@@ -95,8 +320,10 @@ Future<bool> persistItemToTransaction({
   required ITransaction pendingTransaction,
   required int sessionAtStart,
   required bool cartOptimismApplied,
+  String? businessId,
 }) async {
   final capella = ProxyService.getStrategy(Strategy.capella);
+  final branchId = pendingTransaction.branchId;
 
   // The product is not read here: a combo sells as one line like any item.
   final cachedStock = await _resolveStockForAdd(
@@ -115,7 +342,17 @@ Future<bool> persistItemToTransaction({
       if (!allowSellingBelowStock &&
           (currentStock == null ||
               currentStock <= 0 ||
-              currentStock < inCartQty)) {
+              currentStock < inCartQty ||
+              currentStock <
+                  inCartQty +
+                      await _takenByCartCombos(
+                        ref: ref,
+                        capella: capella,
+                        transactionId: pendingTransaction.id,
+                        variantId: variant.id,
+                        branchId: branchId,
+                        businessId: businessId,
+                      ))) {
         if (cartOptimismApplied) {
           ref
               .read(optimisticCartProvider.notifier)
@@ -132,6 +369,32 @@ Future<bool> persistItemToTransaction({
         }
         return false;
       }
+    }
+    // A combo is a service, so the check above skips it; its components'
+    // stock is what it sells (see expandComboLinesForStock).
+    if (variant.taxTyCd != "D" &&
+        isServiceItemType(variant.itemTyCd) &&
+        !await locator<SettingsService>().isAllowSellingBelowStock() &&
+        !await _comboComponentsInStock(
+          ref: ref,
+          capella: capella,
+          transactionId: pendingTransaction.id,
+          variant: variant,
+          branchId: branchId,
+          businessId: businessId,
+        )) {
+      if (cartOptimismApplied) {
+        ref
+            .read(optimisticCartProvider.notifier)
+            .rollbackPending(
+              transactionId: pendingTransaction.id,
+              variantId: variant.id,
+            );
+      }
+      if (context.mounted) {
+        showErrorNotification(context, context.flipperL10n.cartNotEnoughStock);
+      }
+      return false;
     }
   }
 

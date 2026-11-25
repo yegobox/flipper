@@ -65,80 +65,96 @@ class _KitchenDisplayScreenState extends ConsumerState<KitchenDisplayScreen> {
       ref.read(kitchenStageOverridesProvider.notifier).removeAll(settled);
     });
 
+    // No title bar: the side menu already names the page, and the columns
+    // get the height. Refresh re-subscribes the stream if a till's feed
+    // stalls, so it stays as a small icon above the Ready column.
     return Scaffold(
-      appBar: AppBar(
-        leading: const SizedBox.shrink(),
-        title: Text(context.flipperL10n.kitchenDisplayTitle),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            tooltip: context.flipperL10n.refresh,
-            onPressed: () {
-              ref.invalidate(kitchenOrdersStreamProvider);
-            },
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: IconButton(
+                icon: const Icon(Icons.refresh, size: 20),
+                tooltip: context.flipperL10n.refresh,
+                visualDensity: VisualDensity.compact,
+                onPressed: () {
+                  ref.invalidate(kitchenOrdersStreamProvider);
+                },
+              ),
+            ),
           ),
+          Expanded(child: _board(context, ordersAsync, overrides)),
         ],
       ),
-      body: ordersAsync.when(
-        // Keep the columns on screen while the stream reloads (refresh,
-        // branch switch) instead of flashing a spinner mid-drag.
-        skipLoadingOnReload: true,
-        data: (views) {
-          final effective = [
-            for (final v in views)
-              if (overrides[v.order.transactionId] case final stage?)
-                KitchenOrderView(
-                  order: v.order.copyWith(stage: stage),
-                  ticket: v.ticket,
-                )
-              else
-                v,
-          ];
-          final columns = groupKitchenOrders<KitchenOrderView>(
-            effective,
-            (v) => v.order,
-          );
+    );
+  }
 
-          return Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                for (final stage in KitchenStage.active) ...[
-                  if (stage != KitchenStage.active.first)
-                    const SizedBox(width: 16),
-                  Expanded(
-                    child: OrderColumn(
-                      stage: stage,
-                      orders: columns[stage] ?? const [],
-                      onOrderMoved: (id, from, to) {
-                        // The order can leave the stream mid-drag (served on
-                        // another screen, ticket deleted): drop the move.
-                        for (final view in effective) {
-                          if (view.order.transactionId == id) {
-                            unawaited(_moveOrder(view, from, to));
-                            return;
-                          }
+  Widget _board(
+    BuildContext context,
+    AsyncValue<List<KitchenOrderView>> ordersAsync,
+    Map<String, KitchenStage> overrides,
+  ) {
+    return ordersAsync.when(
+      // Keep the columns on screen while the stream reloads (refresh,
+      // branch switch) instead of flashing a spinner mid-drag.
+      skipLoadingOnReload: true,
+      data: (views) {
+        final effective = [
+          for (final v in views)
+            if (overrides[v.order.transactionId] case final stage?)
+              KitchenOrderView(
+                order: v.order.copyWith(stage: stage),
+                ticket: v.ticket,
+              )
+            else
+              v,
+        ];
+        final columns = groupKitchenOrders<KitchenOrderView>(
+          effective,
+          (v) => v.order,
+        );
+
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              for (final stage in KitchenStage.active) ...[
+                if (stage != KitchenStage.active.first)
+                  const SizedBox(width: 16),
+                Expanded(
+                  child: OrderColumn(
+                    stage: stage,
+                    orders: columns[stage] ?? const [],
+                    onOrderMoved: (id, from, to) {
+                      // The order can leave the stream mid-drag (served on
+                      // another screen, ticket deleted): drop the move.
+                      for (final view in effective) {
+                        if (view.order.transactionId == id) {
+                          unawaited(_moveOrder(view, from, to));
+                          return;
                         }
-                      },
-                      onSetDueDate: (view, dueDate) =>
-                          unawaited(_setDueDate(view, dueDate)),
-                      onServed: (view) => unawaited(
-                        _moveOrder(view, stage, KitchenStage.served),
-                      ),
-                    ),
+                      }
+                    },
+                    onSetDueDate: (view, dueDate) =>
+                        unawaited(_setDueDate(view, dueDate)),
+                    onServed: (view) =>
+                        unawaited(_moveOrder(view, stage, KitchenStage.served)),
                   ),
-                ],
+                ),
               ],
-            ),
-          );
-        },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => Center(
-          child: Text(
-            context.flipperL10n.kitchenErrorLoadingOrders(error.toString()),
-            style: const TextStyle(color: Colors.red),
+            ],
           ),
+        );
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, stack) => Center(
+        child: Text(
+          context.flipperL10n.kitchenErrorLoadingOrders(error.toString()),
+          style: const TextStyle(color: Colors.red),
         ),
       ),
     );
