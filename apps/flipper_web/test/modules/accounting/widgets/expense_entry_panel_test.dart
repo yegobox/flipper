@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flipper_localize/flipper_localize.dart';
+import 'package:flipper_web/core/analytics/analytics_provider.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_models.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_providers.dart';
 import 'package:flipper_web/modules/accounting/data/default_chart_of_accounts_seed.dart';
@@ -12,6 +13,18 @@ import 'package:flutter_test/flutter_test.dart';
 
 import '../../../helpers/accounting_unit_test_overrides.dart';
 import '../../../helpers/fake_accounting_ledger_repository.dart';
+import '../../../helpers/fake_product_analytics.dart';
+
+/// Keeps each tracked event's name and properties.
+class _Tracked extends FakeProductAnalytics {
+  final events = <(String, Map<String, Object?>)>[];
+
+  @override
+  Future<void> track(
+    String eventName, {
+    Map<String, Object?> properties = const {},
+  }) async => events.add((eventName, properties));
+}
 
 /// A chart seeded before PAYE / RSSB Payable existed, with VAT owed.
 final _oldChart = [
@@ -51,6 +64,27 @@ class _DatedLedger extends FakeAccountingLedgerRepository {
 
   final Map<JournalEntry, DateTime> dated;
 
+  /// Makes the next save fail, like an unreachable ledger.
+  bool failCreateJournalEntry = false;
+
+  @override
+  Future<String> createJournalEntry({
+    required String businessId,
+    required JournalEntry entry,
+    String? transactionId,
+    String? journalCode,
+    String? entryId,
+  }) async {
+    if (failCreateJournalEntry) throw StateError('ledger unreachable');
+    return super.createJournalEntry(
+      businessId: businessId,
+      entry: entry,
+      transactionId: transactionId,
+      journalCode: journalCode,
+      entryId: entryId,
+    );
+  }
+
   @override
   Stream<List<JournalEntry>> watchJournalEntries({
     required String businessId,
@@ -78,12 +112,13 @@ JournalEntry _paye(String id, JournalStatus status, {int dr = 0, int cr = 0}) =>
       ],
     );
 
-Future<FakeAccountingLedgerRepository> _pump(
+Future<_DatedLedger> _pump(
   WidgetTester tester, {
   BooksVatPosition? position,
   Future<BooksVatPosition?>? positionFuture,
   List<Account>? accounts,
   Map<JournalEntry, DateTime> dated = const {},
+  _Tracked? analytics,
 }) async {
   tester.view.physicalSize = const Size(1400, 1000);
   tester.view.devicePixelRatio = 1.0;
@@ -107,6 +142,8 @@ Future<FakeAccountingLedgerRepository> _pump(
         booksVatPositionProvider.overrideWith(
           (ref) => positionFuture ?? Future.value(position),
         ),
+        if (analytics != null)
+          optionalProductAnalyticsProvider.overrideWithValue(analytics),
       ],
       child: MaterialApp(
         localizationsDelegates: FlipperLocalizationDelegates.delegates,
@@ -326,6 +363,53 @@ void main() {
       await _submit(tester);
       expect(ledger.entries.single.memo, 'Expense payment');
       expect(_dr(ledger.entries.single.lines, '6000'), 12000);
+    });
+  });
+
+  group('Record expense: analytics', () {
+    testWidgets('a saved expense sends expense_recorded with no amount', (
+      tester,
+    ) async {
+      final analytics = _Tracked();
+      await _pump(tester, analytics: analytics);
+      await _enterAmount(tester, '12000');
+      await _submit(tester);
+
+      expect(analytics.events, hasLength(1));
+      expect(analytics.events.single.$1, 'expense_recorded');
+      expect(analytics.events.single.$2, {
+        'source': 'books',
+        'surface': 'books',
+        'category_type': 'account',
+      });
+    });
+
+    testWidgets('a tax payment is typed by what it pays', (tester) async {
+      final analytics = _Tracked();
+      final ledger = await _pump(tester, analytics: analytics);
+      await _pay(tester, ledger, 'PAYE paid to RRA');
+
+      expect(analytics.events.single.$2['category_type'], 'paye');
+    });
+
+    testWidgets('without analytics the expense still saves', (tester) async {
+      // No override: the app's analytics never started.
+      final ledger = await _pump(tester);
+      await _enterAmount(tester, '12000');
+      await _submit(tester);
+
+      expect(ledger.entries, hasLength(1));
+      expect(find.text('Submit for approval'), findsNothing);
+    });
+
+    testWidgets('a failed save sends nothing', (tester) async {
+      final analytics = _Tracked();
+      final ledger = await _pump(tester, analytics: analytics);
+      ledger.failCreateJournalEntry = true;
+      await _enterAmount(tester, '12000');
+      await _submit(tester);
+
+      expect(analytics.events, isEmpty);
     });
   });
 }
