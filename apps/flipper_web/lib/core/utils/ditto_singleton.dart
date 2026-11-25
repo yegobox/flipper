@@ -12,6 +12,7 @@ import 'package:flipper_web/services/ditto_service.dart';
 import 'package:flutter/foundation.dart' hide Category;
 import 'package:http/http.dart' as http;
 import 'database_path.dart';
+import 'ditto_store_holds.dart';
 import 'lock_mechanism.dart';
 
 /// Singleton manager for Ditto instances to prevent file lock conflicts
@@ -35,10 +36,13 @@ class DittoSingleton {
   /// Persistence directory of [_ditto].
   static String? _storeDirectory;
 
-  /// Stores this process is opening, has open, or failed to close, by
-  /// persistence directory. The file lock only keeps other processes out, so
-  /// this keeps a second [Ditto.open] off a directory Ditto still holds.
-  static final Map<String, _HeldStore> _heldStores = {};
+  /// Keeps a second [Ditto.open] off a directory a store still holds.
+  static final _stores = DittoStoreHolds<Ditto>(
+    closeStore: (ditto) async {
+      ditto.sync.stop();
+      await ditto.close();
+    },
+  );
 
   /// Join concurrent JWT/login calls (expiration handler + explicit login).
   static Future<bool>? _dittoAuthInFlight;
@@ -167,7 +171,6 @@ class DittoSingleton {
     final initGeneration = _initGeneration;
     print('🔄 [INIT] Set _isInitializing = true');
 
-    String? heldDirectory;
     Ditto? opened;
     try {
       print(
@@ -203,66 +206,38 @@ class DittoSingleton {
         }
       }
 
-      final storeFree = await _awaitStoreFree(persistenceDirectory);
-      if (!_isInitGenerationCurrent(initGeneration)) return null;
-      if (!storeFree) {
-        print('❌ [INIT FAIL] $persistenceDirectory is still held open');
-        _isInitializing = false;
-        _initCompleter?.complete(null);
-        _initCompleter = null;
-        return null;
-      }
-      final held = _heldStores[persistenceDirectory] = _HeldStore();
-      heldDirectory = persistenceDirectory;
-
-      // File locks are for desktop/mobile multi-process safety only. WASM/web
-      // builds may still resolve the dart:io lock stub at compile time; skip here.
-      if (kIsWeb) {
-        print('✅ [INIT] Web — skipping file lock');
-      } else {
-        print('🔒 [INIT] Attempting to acquire lock...');
-        final lockFilePath = '$persistenceDirectory/.ditto_lock';
-        final lock = held.lock = getLockMechanism();
-
-        final lockAcquired = await lock.acquire(lockFilePath);
-        print('🔒 [INIT] Lock acquisition result: $lockAcquired');
-        if (!lockAcquired) {
-          print(
-            '❌ [INIT FAIL] Failed to acquire Ditto lock - another instance may be running',
-          );
-          _heldStores.remove(persistenceDirectory);
-          _isInitializing = false;
-          _initCompleter?.complete(null);
-          _initCompleter = null;
-          return null;
-        }
-        print('✅ [INIT] Lock acquired successfully');
-      }
-
-      // Initialize Ditto
-      print('🔧 [INIT] Calling Ditto.init()...');
-      await Ditto.init();
-      print('✅ [INIT] Ditto.init() completed');
-
       final cloudUrl = 'https://$appId.cloud.ditto.live';
       final webSocketUrl = 'wss://$appId.cloud.ditto.live/';
 
-      print('🔧 [INIT] Creating DittoConfig (Ditto v5)...');
-      final config = DittoConfig(
-        databaseID: appId,
-        // Local mode never reaches the cloud. Same databaseID and directory,
-        // so opting in later reopens this store with the server connect.
-        connect: wantLocal
-            ? const DittoConfigConnectSmallPeersOnly()
-            : DittoConfigConnectServer(url: cloudUrl),
-        persistenceDirectory: persistenceDirectory,
+      // Throws DittoStoreHeldException when this process still holds the
+      // directory: initialize then fails visibly, as Ditto's own lock did.
+      opened = await _stores.open(
+        persistenceDirectory,
+        // File locks are for desktop/mobile multi-process safety only. WASM/web
+        // builds may still resolve the dart:io lock stub at compile time.
+        lock: kIsWeb ? null : getLockMechanism(),
+        stillWanted: () => _isInitGenerationCurrent(initGeneration),
+        open: () async {
+          await Ditto.init();
+          return Ditto.open(
+            DittoConfig(
+              databaseID: appId,
+              // Local mode never reaches the cloud. Same databaseID and
+              // directory, so opting in later reopens this store with the
+              // server connect.
+              connect: wantLocal
+                  ? const DittoConfigConnectSmallPeersOnly()
+                  : DittoConfigConnectServer(url: cloudUrl),
+              persistenceDirectory: persistenceDirectory,
+            ),
+          );
+        },
       );
-      print('✅ [INIT] Calling Ditto.open(config) (local=$wantLocal)...');
-      opened = await Ditto.open(config);
-      if (!_isInitGenerationCurrent(initGeneration)) {
-        // Aborted while opening: nobody will dispose this instance.
-        print('⏭️ [INIT] Closing store opened by an aborted init');
-        await _closeStore(persistenceDirectory, opened);
+      if (opened == null) {
+        // Another process holds the lock, or this init was aborted.
+        if (_isInitGenerationCurrent(initGeneration)) {
+          _initCompleter?.complete(null);
+        }
         return null;
       }
       _ditto = opened;
@@ -397,20 +372,16 @@ class DittoSingleton {
       return _ditto;
     } catch (e) {
       print('❌ Ditto singleton initialization failed: $e');
-      if (opened != null && identical(_ditto, opened)) {
+      // Close a store this init still owns. One that dispose already took is
+      // closed there; closing it twice would mark it unclosed.
+      final directory = _storeDirectory;
+      if (opened != null && identical(_ditto, opened) && directory != null) {
         _ditto = null;
         _storeDirectory = null;
-      }
-      if (opened != null &&
-          identical(DittoService.instance.dittoInstance, opened)) {
-        DittoService.instance.clearDittoInstance();
-      }
-      if (heldDirectory != null) {
-        if (opened != null) {
-          await _closeStore(heldDirectory, opened);
-        } else {
-          await _releaseStore(heldDirectory);
+        if (identical(DittoService.instance.dittoInstance, opened)) {
+          DittoService.instance.clearDittoInstance();
         }
+        await _stores.close(directory, opened);
       }
       if (_isInitGenerationCurrent(initGeneration) &&
           !(_initCompleter?.isCompleted ?? true)) {
@@ -606,60 +577,6 @@ class DittoSingleton {
     }
   }
 
-  /// Waits until no store in this process holds [directory]. Retries the
-  /// close of a store whose earlier close failed. False when it stays held.
-  static Future<bool> _awaitStoreFree(
-    String directory, {
-    Duration timeout = const Duration(seconds: 10),
-  }) async {
-    final deadline = DateTime.now().add(timeout);
-    while (true) {
-      final held = _heldStores[directory];
-      if (held == null) return true;
-      final unclosed = held.unclosed;
-      if (unclosed != null) {
-        if (!await _closeStore(directory, unclosed)) return false;
-        continue;
-      }
-      if (!DateTime.now().isBefore(deadline)) return false;
-      await Future.delayed(const Duration(milliseconds: 100));
-    }
-  }
-
-  /// Closes [ditto] and frees [directory]. When close() fails, Ditto may
-  /// still hold the store, so the directory stays held, with its file lock,
-  /// until a later [_awaitStoreFree] closes it.
-  static Future<bool> _closeStore(
-    String directory,
-    Ditto ditto, {
-    bool quick = false,
-  }) async {
-    try {
-      ditto.sync.stop();
-      await ditto.close();
-    } catch (e) {
-      print('⚠️ Error closing Ditto instance: $e — keeping its lock');
-      _heldStores[directory]?.unclosed = ditto;
-      return false;
-    }
-    await Future.delayed(
-      quick
-          ? const Duration(milliseconds: 50)
-          : const Duration(milliseconds: 500),
-    );
-    await _releaseStore(directory);
-    return true;
-  }
-
-  /// Frees [directory] and releases its file lock.
-  static Future<void> _releaseStore(String directory) async {
-    final held = _heldStores.remove(directory);
-    if (held?.lock != null) {
-      await held!.lock!.release();
-      print('🔓 Released Ditto lock');
-    }
-  }
-
   /// Reset singleton (for testing or hot restart)
   static Future<void> reset() async {
     print('🔄 Resetting DittoSingleton...');
@@ -693,8 +610,11 @@ class DittoSingleton {
     if (ditto == null || directory == null) return;
     print('🛑 Stopping Ditto sync and disposing singleton...');
     DittoService.instance.clearDittoInstance();
-    // An init that starts now waits in _awaitStoreFree until this close ends.
-    if (await _closeStore(directory, ditto, quick: quick)) {
+    // An init that starts now waits in _stores.open until this close ends.
+    final settle = quick
+        ? const Duration(milliseconds: 50)
+        : const Duration(milliseconds: 500);
+    if (await _stores.close(directory, ditto, settle: settle)) {
       print('✅ Ditto singleton disposed and lock released');
     }
   }
@@ -818,11 +738,4 @@ class YBAuthIdentity {
       );
     }
   }
-}
-
-class _HeldStore {
-  LockMechanism? lock;
-
-  /// Set when close() failed: Ditto may still hold the store.
-  Ditto? unclosed;
 }
