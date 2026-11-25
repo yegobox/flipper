@@ -22,12 +22,15 @@ subprojects {
 // once a dependency needs 34+. Compile every plugin against the app's SDK, as
 // apps/flipper already does.
 subprojects {
-    afterEvaluate {
+    val pinCompileSdk = {
         val androidExt = extensions.findByName("android")
         if (androidExt is com.android.build.gradle.BaseExtension) {
             androidExt.compileSdkVersion(36)
         }
     }
+    // :app is already evaluated here (evaluationDependsOn above), so
+    // afterEvaluate would throw for it; pin straight away in that case.
+    if (state.executed) pinCompileSdk() else afterEvaluate { pinCompileSdk() }
 }
 
 tasks.register<Delete>("clean") {
