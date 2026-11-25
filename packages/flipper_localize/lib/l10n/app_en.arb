@@ -6639,6 +6639,19 @@
             }
         }
     },
+    "serviceModeSwitching": "Switching mode…",
+    "@serviceModeSwitching": {
+        "description": "Service-mode hotkey: overlay label while the switch is being judged"
+    },
+    "serviceModeSwitchingTo": "Switching to {mode}…",
+    "@serviceModeSwitchingTo": {
+        "description": "Service-mode hotkey: overlay label while switching to a mode",
+        "placeholders": {
+            "mode": {
+                "type": "String"
+            }
+        }
+    },
     "serviceModeSwitchFailed": "Could not switch service mode.",
     "@serviceModeSwitchFailed": {
         "description": "Service-mode hotkey: unexpected failure"

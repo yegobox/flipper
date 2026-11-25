@@ -8,6 +8,7 @@ import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/locator.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:stacked_services/stacked_services.dart';
@@ -18,6 +19,22 @@ import '../test_helpers/mocks.dart';
 /// A desk whose person at the till is [admin] (null: nobody signed in).
 Widget _desk(bool? admin, {Widget child = const SizedBox()}) =>
     ServiceModeDesk(deskAdmin: () => admin, child: child);
+
+/// The hotkey's switching scrim (a route's own barrier has no colour).
+final _scrim = find.byWidgetPredicate(
+  (widget) => widget is ModalBarrier && widget.color != null,
+);
+
+/// Runs the hotkey to the end, pumping the frames it waits on.
+Future<void> _finish(WidgetTester tester, Future<void> switching) async {
+  var done = false;
+  unawaited(switching.whenComplete(() => done = true));
+  for (var i = 0; i < 10 && !done; i++) {
+    await tester.pump();
+  }
+  expect(done, isTrue, reason: 'the switch never finished');
+  await switching;
+}
 
 Future<void> _pump(WidgetTester tester, Widget body) async {
   await tester.pumpWidget(
@@ -178,8 +195,9 @@ void main() {
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.reset);
       await _pump(tester, body);
-      await cycleServiceMode();
+      await _finish(tester, cycleServiceMode());
       await tester.pump();
+      expect(_scrim, findsNothing);
     }
 
     testWidgets('off the desks: says where to go', (tester) async {
@@ -258,6 +276,98 @@ void main() {
         ),
         findsOneWidget,
       );
+      await tester.pumpAndSettle(const Duration(seconds: 5));
+    });
+
+    testWidgets('holds a scrim while the desk is judged, then refuses', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(1600, 1000);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      final lookup = Completer<bool?>();
+      var taps = 0;
+      await _pump(
+        tester,
+        ServiceModeDesk(
+          deskAdmin: () => lookup.future,
+          child: ElevatedButton(
+            onPressed: () => taps++,
+            child: const Text('SELL'),
+          ),
+        ),
+      );
+      final switching = cycleServiceMode();
+      await tester.pump(const Duration(milliseconds: 200));
+      expect(_scrim, findsOneWidget);
+      expect(find.text('Switching mode…'), findsOneWidget);
+      // The scrim takes the taps meant for the desk under it.
+      await tester.tap(find.text('SELL'), warnIfMissed: false);
+      expect(taps, 0);
+
+      lookup.complete(false);
+      await _finish(tester, switching);
+      await tester.pump();
+      expect(_scrim, findsNothing);
+      expect(
+        find.text("Only an admin can switch this device's service mode."),
+        findsOneWidget,
+      );
+      await tester.pumpAndSettle(const Duration(seconds: 5));
+    });
+
+    testWidgets('keys and scans do not reach the desk while it switches', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(1600, 1000);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      final lookup = Completer<bool?>();
+      final field = FocusNode();
+      addTearDown(field.dispose);
+      final reached = <LogicalKeyboardKey>[];
+      await _pump(
+        tester,
+        ServiceModeDesk(
+          deskAdmin: () => lookup.future,
+          // The POS search box a scanner types into.
+          child: Focus(
+            onKeyEvent: (_, event) {
+              if (event is KeyDownEvent) reached.add(event.logicalKey);
+              return KeyEventResult.ignored;
+            },
+            child: TextField(focusNode: field),
+          ),
+        ),
+      );
+      field.requestFocus();
+      await tester.pump();
+      await tester.sendKeyEvent(LogicalKeyboardKey.keyA);
+      expect(reached, [LogicalKeyboardKey.keyA]);
+      reached.clear();
+
+      final switching = cycleServiceMode();
+      await tester.pump(const Duration(milliseconds: 200));
+      expect(_scrim, findsOneWidget);
+      // The field gives up focus, and a scan (keys, then Enter) is eaten.
+      expect(field.hasFocus, isFalse);
+      for (final key in [
+        LogicalKeyboardKey.digit6,
+        LogicalKeyboardKey.digit0,
+        LogicalKeyboardKey.enter,
+      ]) {
+        expect(await tester.sendKeyEvent(key), isTrue);
+      }
+      expect(reached, isEmpty);
+
+      // Refused: the scrim goes, the field gets its focus and keys back.
+      lookup.complete(false);
+      await _finish(tester, switching);
+      await tester.pump();
+      expect(_scrim, findsNothing);
+      expect(field.hasFocus, isTrue);
+      await tester.sendKeyEvent(LogicalKeyboardKey.keyB);
+      expect(reached, [LogicalKeyboardKey.keyB]);
       await tester.pumpAndSettle(const Duration(seconds: 5));
     });
 
@@ -351,6 +461,119 @@ void main() {
           findsOneWidget,
         );
         await tester.pumpAndSettle(const Duration(seconds: 5));
+      });
+
+      Future<Completer<bool>> pending(WidgetTester tester) async {
+        tester.view.physicalSize = const Size(1600, 1000);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.reset);
+        final apply = Completer<bool>();
+        serviceModeHotkeyApply = (mode) {
+          did.add('apply ${mode.name}');
+          return apply.future;
+        };
+        await _pump(tester, _desk(true));
+        return apply;
+      }
+
+      testWidgets('says where it is going until the new mode is up', (
+        tester,
+      ) async {
+        final apply = await pending(tester);
+        final switching = cycleServiceMode();
+        await tester.pump(const Duration(milliseconds: 200));
+        expect(_scrim, findsOneWidget);
+        expect(find.text('Switching to Bar Mode…'), findsOneWidget);
+
+        // Pressed again while it switches: swallowed, still one scrim.
+        await cycleServiceMode();
+        await tester.pump();
+        expect(_scrim, findsOneWidget);
+        expect(did, ['apply bar']);
+
+        apply.complete(true);
+        await _finish(tester, switching);
+        await tester.pump();
+        expect(_scrim, findsNothing);
+        expect(did, ['apply bar', 'open bar']);
+        expect(find.textContaining('This device switched to'), findsOneWidget);
+        await tester.pumpAndSettle(const Duration(seconds: 5));
+      });
+
+      testWidgets('a switch that fails takes the scrim down and says so', (
+        tester,
+      ) async {
+        final apply = await pending(tester);
+        final switching = cycleServiceMode();
+        await tester.pump(const Duration(milliseconds: 200));
+        expect(_scrim, findsOneWidget);
+
+        apply.completeError(StateError('offline'));
+        await _finish(tester, switching);
+        await tester.pump();
+        expect(_scrim, findsNothing);
+        expect(find.text('Could not switch service mode.'), findsOneWidget);
+        expect(did, ['apply bar']);
+        await tester.pumpAndSettle(const Duration(seconds: 5));
+      });
+
+      testWidgets('the scrim never outlasts its cap', (tester) async {
+        final apply = await pending(tester);
+        final switching = cycleServiceMode();
+        await tester.pump(const Duration(milliseconds: 200));
+        expect(_scrim, findsOneWidget);
+
+        await tester.pump(serviceModeSwitchingOverlayCap);
+        expect(_scrim, findsNothing);
+
+        apply.complete(true);
+        await _finish(tester, switching);
+        await tester.pump();
+        expect(_scrim, findsNothing);
+        expect(did, ['apply bar', 'open bar']);
+        await tester.pumpAndSettle(const Duration(seconds: 5));
+      });
+
+      testWidgets('the cap firing before the pick resolves: no relabel', (
+        tester,
+      ) async {
+        tester.view.physicalSize = const Size(1600, 1000);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.reset);
+        serviceModeHotkeyApply = (mode) async {
+          did.add('apply ${mode.name}');
+          return true;
+        };
+        final lookup = Completer<bool?>();
+        await _pump(
+          tester,
+          ServiceModeDesk(
+            deskAdmin: () => lookup.future,
+            child: const Text(''),
+          ),
+        );
+        final switching = cycleServiceMode();
+        await tester.pump(serviceModeSwitchingOverlayCap);
+        expect(_scrim, findsNothing);
+
+        lookup.complete(true);
+        await _finish(tester, switching);
+        expect(_scrim, findsNothing);
+        expect(did, ['apply bar', 'open bar']);
+        await tester.pumpAndSettle(const Duration(seconds: 5));
+      });
+
+      testWidgets('with no root navigator: switches without a scrim', (
+        tester,
+      ) async {
+        serviceModeHotkeyApply = (mode) async {
+          did.add('apply ${mode.name}');
+          return true;
+        };
+        await tester.pumpWidget(MaterialApp(home: _desk(true)));
+        await _finish(tester, cycleServiceMode());
+        expect(_scrim, findsNothing);
+        expect(did, ['apply bar', 'open bar']);
       });
     });
   });

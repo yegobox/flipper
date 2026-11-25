@@ -3839,6 +3839,8 @@
   "serviceModeNoAccess": "Nta burenganzira ufite bwo gukoresha {mode}. Saba umuyobozi kubuguha mu micungire y'abakoresha.",
   "serviceModeSwitchNotSaved": "Ntibyashobotse kujya kuri {mode}: igenamiterere ry'ishami ntiryabitswe. Reba murandasi yawe wongere ugerageze.",
   "serviceModeSwitched": "Iki gikoresho cyagiye kuri {mode} · {hotkey} kugira ngo uhindure",
+  "serviceModeSwitching": "Guhindura uburyo…",
+  "serviceModeSwitchingTo": "Kujya kuri {mode}…",
   "serviceModeSwitchFailed": "Ntibyashobotse guhindura uburyo bwa serivisi.",
   "serviceModeDeviceNowRuns": "Iki gikoresho ubu gikoresha {mode}.",
   "serviceModeDeviceFollowsBranch": "Iki gikoresho cyongeye gukurikiza igenamiterere risanzwe ry'ishami ({mode}).",

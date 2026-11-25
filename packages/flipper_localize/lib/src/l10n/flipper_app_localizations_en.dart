@@ -7851,6 +7851,14 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
   }
 
   @override
+  String get serviceModeSwitching => 'Switching mode…';
+
+  @override
+  String serviceModeSwitchingTo(String mode) {
+    return 'Switching to $mode…';
+  }
+
+  @override
   String get serviceModeSwitchFailed => 'Could not switch service mode.';
 
   @override
@@ -16100,7 +16108,6 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
   }
 
   @override
-  @override
   String get incomingOrdersColBranch => 'Branch';
 
   @override
@@ -16126,6 +16133,7 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
     return '$_temp0';
   }
 
+  @override
   String incomingOrdersQtyRatio(int requested, String approved) {
     String _temp0 = intl.Intl.pluralLogic(
       requested,
