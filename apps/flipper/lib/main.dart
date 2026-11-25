@@ -43,9 +43,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show Clipboard, ClipboardData;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
-import 'package:firebase_core/firebase_core.dart';
 // ignore: depend_on_referenced_packages
 import 'package:device_preview_plus/device_preview_plus.dart';
+import 'firebase_init.dart';
 import 'firebase_options.dart';
 import 'keyboard_pan.dart';
 import 'prefs_file_repair.dart';
@@ -89,8 +89,8 @@ Future<void> _initializeFirebase() async {
     }
     // Don't use microtask for Firebase as critical services depend on it
     debugPrint('📱 [Firebase] Calling Firebase.initializeApp...');
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
+    await initializeDefaultFirebaseApp(
+      DefaultFirebaseOptions.currentPlatform,
     ).timeout(
       const Duration(seconds: 20),
       onTimeout: () {
@@ -360,8 +360,10 @@ Future<void> _runInitStep(_InitStep step) async {
 /// like any other rather than an unguarded `await` in the middle of startup.
 Future<void> _initializeAnalytics() async {
   // Play's pre-launch robots (Firebase Test Lab) outnumber real Android users
-  // about 50 to 1 and never sign in; they stay out of every count.
-  final testLab = await isFirebaseTestLab();
+  // about 50 to 1; they stay out of every count. Read before the SDK starts,
+  // so a robot sends nothing at all, not even the SDK's install event.
+  final device = await readDeviceEnvironment();
+  final testDevice = device.isAutomatedTest;
   await FlipperAnalytics.initialize(
     appName: 'flipper',
     platformName: analyticsPlatformName(),
@@ -391,8 +393,10 @@ Future<void> _initializeAnalytics() async {
     ga4IsEnabled: () => !LocalMode.isOn,
     // PostHog too: no events, replay or flags while local mode is on, and
     // back on once the till opts in to sync.
-    isEnabled: () => !LocalMode.isOn && !testLab,
+    isEnabled: () => !LocalMode.isOn && !testDevice,
     enabledChanges: LocalMode.changes,
+    // Marks robots that no signal catches yet (empty off Android).
+    superProperties: device.analyticsProperties,
   );
 }
 

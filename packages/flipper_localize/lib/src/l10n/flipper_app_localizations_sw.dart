@@ -21491,13 +21491,13 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   String get floSuggestOweQuestion => 'Tunadaiwa pesa na nani?';
 
   @override
-  String get floSuggestTrendTitle => 'Mwenendo wa mauzo wiki hii';
+  String get floSuggestTrendTitle => 'Nikuze vipi biashara?';
 
   @override
-  String get floSuggestTrendDesc => 'Mwenendo wa mapato wa siku 7';
+  String get floSuggestTrendDesc => 'Hatua za kuchukua wiki hii';
 
   @override
-  String get floSuggestTrendQuestion => 'Nionyeshe mwenendo wa mauzo wiki hii';
+  String get floSuggestTrendQuestion => 'Nikuze vipi biashara yangu wiki hii?';
 
   @override
   String get floGoodMorning => 'Habari za asubuhi';

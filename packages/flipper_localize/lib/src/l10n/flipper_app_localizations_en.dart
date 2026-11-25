@@ -21362,13 +21362,13 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
   String get floSuggestOweQuestion => 'Who do we owe money to?';
 
   @override
-  String get floSuggestTrendTitle => 'This week\'s sales trend';
+  String get floSuggestTrendTitle => 'How can I grow?';
 
   @override
-  String get floSuggestTrendDesc => '7-day revenue movement';
+  String get floSuggestTrendDesc => 'Actions to take this week';
 
   @override
-  String get floSuggestTrendQuestion => 'Show this week\'s sales trend';
+  String get floSuggestTrendQuestion => 'How can I grow my business this week?';
 
   @override
   String get floGoodMorning => 'Good morning';

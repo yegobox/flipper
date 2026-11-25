@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flipper_models/perf/perf_track.dart';
 import 'package:flipper_web/modules/accounting/data/repository/coalesced_rows.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -123,6 +124,139 @@ void main() {
 
     expect(labels, ['books.transactions_refresh']);
     await sub.cancel();
+  });
+
+  // Books' stream providers are not auto-dispose: leaving Books pauses them
+  // (Riverpod 3) rather than cancelling. A paused listener must stop the
+  // observer and the reads, or every sale re-reads the branch's sales on the
+  // UI isolate off-screen and the paused stream buffers each result.
+  group('a paused listener', () {
+    test('stops watching and reading until it resumes', () async {
+      final emitted = <List<Map<String, dynamic>>>[];
+      final sub = rows().listen(emitted.add);
+      await pumpEventQueue();
+      expect(reads, 1);
+      expect(feedListens, 1);
+
+      sub.pause();
+      await pumpEventQueue();
+      expect(feed.hasListener, isFalse);
+      for (var i = 0; i < 20; i++) {
+        feed.add(null);
+      }
+      await Future<void>.delayed(const Duration(milliseconds: 400));
+      expect(reads, 1);
+
+      sub.resume();
+      await pumpEventQueue();
+      // Watching again, with one read for what it did not watch.
+      expect(feedListens, 2);
+      expect(feed.hasListener, isTrue);
+      expect(reads, 2);
+      expect(emitted.map((r) => r.single['id']), ['r1', 'r2']);
+
+      feed.add(null);
+      await Future<void>.delayed(const Duration(milliseconds: 400));
+      expect(reads, 3);
+      await sub.cancel();
+    });
+
+    test('drops a read that finishes while paused', () async {
+      gate = Completer<void>();
+      final emitted = <List<Map<String, dynamic>>>[];
+      final sub = rows().listen(emitted.add);
+      await pumpEventQueue();
+      sub.pause();
+      gate!.complete();
+      gate = null;
+      await pumpEventQueue();
+
+      sub.resume();
+      await pumpEventQueue();
+      // Only the read after resuming: the paused one was not kept.
+      expect(reads, 2);
+      expect(emitted.map((r) => r.single['id']), ['r2']);
+      await sub.cancel();
+    });
+
+    test('resumed during a read gets that read and one more', () async {
+      gate = Completer<void>();
+      final emitted = <List<Map<String, dynamic>>>[];
+      final sub = rows().listen(emitted.add);
+      await pumpEventQueue();
+      sub.pause();
+      sub.resume();
+      gate!.complete();
+      gate = null;
+      await Future<void>.delayed(const Duration(milliseconds: 400));
+
+      expect(reads, 2);
+      expect(emitted, hasLength(2));
+      await sub.cancel();
+    });
+
+    test('does not retry a failed feed until it resumes', () async {
+      final feeds = <StreamController<void>>[];
+      final sub = coalescedRows(
+        perfLabel: 'books.transactions_refresh',
+        read: () async {
+          reads++;
+          return const [];
+        },
+        changes: () {
+          final c = StreamController<void>();
+          if (feeds.isEmpty) c.addError(StateError('registerObserver failed'));
+          feeds.add(c);
+          return c.stream;
+        },
+        retryBase: const Duration(milliseconds: 20),
+      ).listen((_) {});
+      await pumpEventQueue();
+      expect(feeds, hasLength(1));
+
+      sub.pause();
+      await Future<void>.delayed(const Duration(milliseconds: 80));
+      expect(feeds, hasLength(1));
+
+      sub.resume();
+      await pumpEventQueue();
+      expect(feeds, hasLength(2));
+      expect(reads, 2);
+      await sub.cancel();
+    });
+
+    test(
+      'is what Riverpod makes of a kept-alive provider nobody watches',
+      () async {
+        final provider = StreamProvider<List<Map<String, dynamic>>>(
+          (ref) => rows(),
+        );
+        final container = ProviderContainer();
+        addTearDown(container.dispose);
+
+        final books = container.listen(provider, (_, _) {});
+        await pumpEventQueue();
+        expect(reads, 1);
+
+        // The cashier leaves Books for the POS and sells.
+        books.close();
+        await pumpEventQueue();
+        for (var i = 0; i < 20; i++) {
+          feed.add(null);
+          await Future<void>.delayed(const Duration(milliseconds: 30));
+        }
+        await Future<void>.delayed(const Duration(milliseconds: 400));
+        expect(reads, 1);
+        expect(feed.hasListener, isFalse);
+
+        // Back in Books: fresh rows.
+        final again = container.listen(provider, (_, _) {});
+        await pumpEventQueue();
+        expect(reads, 2);
+        expect(container.read(provider).value?.single['id'], 'r2');
+        again.close();
+      },
+    );
   });
 
   group('a change feed that fails', () {

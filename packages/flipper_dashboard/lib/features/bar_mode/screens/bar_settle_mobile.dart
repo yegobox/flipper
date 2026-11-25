@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:math' as math;
 
+import 'package:flipper_design_system/flipper_design_system.dart'
+    show CLOSEBUTTON, CustomAppBar;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flipper_dashboard/features/bar_mode/bar_credit.dart';
@@ -11,7 +13,6 @@ import 'package:flipper_dashboard/features/bar_mode/theme/bar_tokens.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_mobile_shell.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_credit_tile.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_room_charge_tile.dart';
-import 'package:flipper_dashboard/features/bar_mode/widgets/bar_shared_widgets.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_split_tender_rows.dart';
 import 'package:flipper_dashboard/utils/sale_receipt_settlement.dart';
 import 'package:flipper_localize/flipper_localize.dart';
@@ -190,11 +191,16 @@ class _BarSettleMobileScreenState extends ConsumerState<BarSettleMobileScreen> {
     final totalLabel = 'RWF ${NumberFormat('#,###').format(total)}';
 
     return BarMobileShell(
-      header: _SettleMobileTopBar(
-        zoneName: table.zoneName,
-        tableName: table.name,
-        onBack: () =>
+      header: CustomAppBar(
+        key: const ValueKey('bar-settle-app-bar'),
+        title: l10n.barSettleZone(table.zoneName),
+        subtitle: table.name,
+        closeButton: CLOSEBUTTON.ICON,
+        icon: Icons.arrow_back,
+        onPop: () =>
             ref.read(barModeProvider.notifier).setScreen(BarScreen.pos),
+        barBackgroundColor: BarTokens.surface,
+        bottomSpacer: 60,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
@@ -691,69 +697,6 @@ class _BarSettleMobileScreenState extends ConsumerState<BarSettleMobileScreen> {
     } finally {
       if (mounted) setState(() => _settling = false);
     }
-  }
-}
-
-class _SettleMobileTopBar extends StatelessWidget {
-  const _SettleMobileTopBar({
-    required this.zoneName,
-    required this.tableName,
-    required this.onBack,
-  });
-
-  final String zoneName;
-  final String tableName;
-  final VoidCallback onBack;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(16, 2, 16, 12),
-      decoration: const BoxDecoration(
-        color: BarTokens.surface,
-        border: Border(bottom: BorderSide(color: BarTokens.line)),
-      ),
-      child: Row(
-        children: [
-          Material(
-            color: BarTokens.surface,
-            borderRadius: BorderRadius.circular(12),
-            child: InkWell(
-              onTap: onBack,
-              borderRadius: BorderRadius.circular(12),
-              child: Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: BarTokens.line),
-                ),
-                child: const Icon(Icons.chevron_left, size: 22),
-              ),
-            ),
-          ),
-          const SizedBox(width: 11),
-          Container(
-            width: 34,
-            height: 34,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: BarTokens.blue,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: BarTableBadgeText(tableName, fontSize: 14),
-          ),
-          const SizedBox(width: 9),
-          Text(
-            context.flipperL10n.barSettleZone(zoneName),
-            style: GoogleFonts.outfit(
-              fontWeight: FontWeight.w800,
-              fontSize: 18,
-            ),
-          ),
-        ],
-      ),
-    );
   }
 }
 

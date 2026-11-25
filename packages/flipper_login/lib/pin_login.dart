@@ -12,6 +12,7 @@ import 'package:flipper_login/pin_login_signin_widgets.dart';
 import 'package:flipper_login/signin_tokens.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/pin.dart';
+import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/GlobalLogError.dart';
@@ -573,12 +574,16 @@ class _PinLoginState extends State<PinLogin>
     }
     final errorMessage = pinLoginErrorText(e as Object);
 
-    GlobalErrorHandler.logError(
-      e,
-      stackTrace: s,
-      type: 'Pin Login Error',
-      extra: {'error_type': e.runtimeType.toString()},
-    );
+    if (pinLoginErrorIsReportable(e)) {
+      GlobalErrorHandler.logError(
+        e,
+        stackTrace: s,
+        type: 'Pin Login Error',
+        extra: {'error_type': e.runtimeType.toString()},
+      );
+    } else {
+      talker.info('PIN login: no account for the entered PIN');
+    }
 
     if (!mounted) return;
 

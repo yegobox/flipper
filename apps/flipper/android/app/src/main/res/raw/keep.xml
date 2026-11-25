@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- flutter_local_notifications looks up its small icon by name at runtime
+     (AndroidNotifications in flipper_services), so resource shrinking cannot
+     see the reference and would strip it from release builds. -->
+<resources xmlns:tools="http://schemas.android.com/tools"
+    tools:keep="@mipmap/ic_launcher" />

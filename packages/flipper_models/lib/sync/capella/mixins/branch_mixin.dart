@@ -406,11 +406,18 @@ mixin CapellaBranchMixin implements BranchInterface {
   /// Brick-backed read used when the local Ditto store has no document for
   /// this branch id — e.g. a branch created server-side that this device
   /// never wrote locally via `saveBranch()` (`branches` is sendOnly).
-  Future<Branch?> _activeBranchFromBrick({required String branchId}) async {
+  ///
+  /// [policy] is `localOnly` when Ditto itself failed to open: that engine is
+  /// usually offline, so waiting on Supabase would only delay the error.
+  Future<Branch?> _activeBranchFromBrick({
+    required String branchId,
+    OfflineFirstGetPolicy policy =
+        OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+  }) async {
     try {
       final results = await repository.get<Branch>(
         query: Query(where: [Where('id').isExactly(branchId)]),
-        policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+        policy: policy,
       );
       return results.isEmpty ? null : results.first;
     } catch (e, s) {
@@ -423,7 +430,15 @@ mixin CapellaBranchMixin implements BranchInterface {
   @override
   Future<Branch> activeBranch({required String branchId}) async {
     if (dittoService.dittoInstance == null) {
-      talker.error('Ditto not initialized for active branch');
+      // Ditto failed to open (e.g. its store is still locked by the previous
+      // engine after Android recreated the activity). The branch row is in
+      // Brick too, so Settings / payment settings keep working.
+      talker.error('Ditto not initialized for active branch; using Brick');
+      final brickBranch = await _activeBranchFromBrick(
+        branchId: branchId,
+        policy: OfflineFirstGetPolicy.localOnly,
+      );
+      if (brickBranch != null) return brickBranch;
       throw Exception('Ditto not initialized for active branch query');
     }
 

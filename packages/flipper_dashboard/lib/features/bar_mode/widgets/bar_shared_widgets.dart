@@ -517,6 +517,33 @@ class BarOpenTableCardShell extends StatelessWidget {
   }
 }
 
+/// The right-hand slot of a Bar screen's `CustomAppBar`: a bounded width (the
+/// bar's row gives its trailing child unbounded room, which a chip with
+/// ellipsizing text can't take) and the page gutter after it.
+class BarAppBarTrailing extends StatelessWidget {
+  const BarAppBarTrailing({
+    super.key,
+    required this.child,
+    this.maxWidth = 280,
+    this.endPadding = 12,
+  });
+
+  final Widget child;
+  final double maxWidth;
+  final double endPadding;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsetsDirectional.only(end: endPadding),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxWidth: maxWidth),
+        child: child,
+      ),
+    );
+  }
+}
+
 /// Cashier chip (`.bar-chip`).
 class BarCashierChip extends StatelessWidget {
   const BarCashierChip({

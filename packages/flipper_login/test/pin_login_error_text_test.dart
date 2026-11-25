@@ -101,4 +101,22 @@ void main() {
       expect(pinLoginErrorText(Object()), endsWith('(UNKNOWN)'));
     });
   });
+
+  group('pinLoginErrorIsReportable', () {
+    test('an unknown PIN is user input, not an error to track', () {
+      expect(
+        pinLoginErrorIsReportable(NeedSignUpException(term: 'no account')),
+        isFalse,
+      );
+    });
+
+    test('real failures are still reported', () {
+      expect(pinLoginErrorIsReportable(TimeoutException('slow')), isTrue);
+      expect(pinLoginErrorIsReportable(PinError(term: 'HTTP 503')), isTrue);
+      expect(
+        pinLoginErrorIsReportable(Exception('Network is unreachable')),
+        isTrue,
+      );
+    });
+  });
 }

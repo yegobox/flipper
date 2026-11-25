@@ -21,6 +21,7 @@ import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/payment_methods.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/flipper_ui.dart';
+import 'package:flipper_web/core/analytics/analytics_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -114,7 +115,11 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
       // Notifier updates are not allowed during dispose (same constraint as build);
       // popping this route runs dispose while the tree may still be settling.
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        container.read(personalGoalCashInIntentProvider.notifier).clear();
+        try {
+          container.read(personalGoalCashInIntentProvider.notifier).clear();
+        } on StateError {
+          // Root container already disposed (app teardown); nothing to clear.
+        }
       });
     }
     _amountController.dispose();
@@ -1126,6 +1131,8 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
     String? note,
     bool skipPersonalGoalAutoSweep = false,
   }) async {
+    // Read before the save: the Cash Book may close while it runs.
+    final analytics = ref.read(optionalProductAnalyticsProvider);
     try {
       final strategy = ProxyService.strategy;
 
@@ -1159,6 +1166,12 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
 
       talker.info(
         'Transaction save completed successfully: ${updatedTransaction.id}',
+      );
+      trackCashbookExpense(
+        isIncome: isIncome,
+        categoryName: category?.name,
+        paymentMethod: paymentType,
+        analytics: analytics,
       );
 
       return (transactionId: updatedTransaction.id, isIncome: isIncome);
