@@ -17,7 +17,7 @@ mixin DatabasePath {
     String dbPath;
 
     if (Platform.isAndroid) {
-      dbPath = await getDatabasesPath();
+      dbPath = androidDirectory(await getDatabasesPath(), subDirectory);
     } else if (Platform.isWindows) {
       // Windows: Use AppData/Local/rw.flipper for database storage
       final supportDir = await getApplicationSupportDirectory();
@@ -44,6 +44,16 @@ mixin DatabasePath {
     }
 
     return dbDir.path;
+  }
+
+  /// Android stores have always lived in the databases root, so the main
+  /// store (`db2`) stays there and existing installs keep their data. Every
+  /// other store gets its own subdirectory: two Ditto stores in one
+  /// directory lock each other out.
+  @visibleForTesting
+  static String androidDirectory(String root, String? subDirectory) {
+    if (subDirectory == null || subDirectory == 'db2') return root;
+    return join(root, subDirectory);
   }
 
   static bool isTestEnvironment() {
