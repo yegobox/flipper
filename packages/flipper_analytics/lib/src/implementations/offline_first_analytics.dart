@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 import '../events/analytics_properties.dart';
 import '../interfaces/analytics_context_provider.dart';
 import '../interfaces/analytics_event_store.dart';
@@ -15,13 +17,17 @@ class OfflineFirstAnalytics
     required this.transport,
     required this.eventStore,
     bool enabled = true,
-  }) : _enabled = enabled;
+    @visibleForTesting DateTime Function()? clock,
+  }) : _enabled = enabled,
+       _clock = clock ?? DateTime.now;
 
   /// A queued event that has failed this many sends is dropped, so one event
   /// PostHog will never accept can't hold up everything queued behind it.
   static const maxSendAttempts = 5;
 
   bool _enabled;
+
+  final DateTime Function() _clock;
 
   /// The user and groups this run has given the SDK. A till that reopens
   /// with a saved session never signs in, so nothing else would identify or
@@ -100,13 +106,35 @@ class OfflineFirstAnalytics
         continue;
       }
       try {
-        await transport.send(event);
+        await transport.send(_replayed(event));
         await eventStore.deleteByIds([event.id]);
       } catch (_) {
         await eventStore.incrementAttempts(event.id);
       }
     }
     await transport.flush();
+  }
+
+  /// [event] as it goes out from the queue, carrying when it happened.
+  ///
+  /// The SDK stamps an event with the moment it is handed over, and
+  /// posthog_flutter's capture takes no timestamp, so a backlog sent in one
+  /// flush would land in PostHog as a burst at flush time (a Windows till
+  /// replayed ~100 old `ui_stall`s every 5 minutes, 10 ms apart). The real
+  /// time goes in [AnalyticsProperties.capturedAt], and
+  /// [AnalyticsProperties.queuedMs] marks the event as sent late.
+  PendingAnalyticsEvent _replayed(PendingAnalyticsEvent event) {
+    final createdAt = event.createdAt.toUtc();
+    final waited = _clock().toUtc().difference(createdAt);
+    return event.copyWith(
+      properties: {
+        ...event.properties,
+        AnalyticsProperties.capturedAt: createdAt.toIso8601String(),
+        AnalyticsProperties.queuedMs: waited.isNegative
+            ? 0
+            : waited.inMilliseconds,
+      },
+    );
   }
 
   @override

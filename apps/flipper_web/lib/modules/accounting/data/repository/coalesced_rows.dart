@@ -17,6 +17,13 @@ import 'package:flutter/foundation.dart';
 /// sends nothing more) is subscribed to again after [retryBase], doubling up
 /// to [retryMax] while it keeps failing, and each new subscription is
 /// followed by one read for what the outage hid.
+///
+/// A paused listener stops everything: the change feed is cancelled and no
+/// read runs until it resumes, which subscribes again and reads once. Books'
+/// stream providers are not auto-dispose, so when the cashier leaves Books
+/// for the POS Riverpod only pauses them. Without this the feed kept reading
+/// the branch's sales on the UI isolate after every sale, off-screen, and the
+/// paused stream buffered each result for the rest of the session.
 Stream<List<Map<String, dynamic>>> coalescedRows({
   required Future<List<Map<String, dynamic>>> Function() read,
   required Stream<void> Function() changes,
@@ -32,21 +39,26 @@ Stream<List<Map<String, dynamic>>> coalescedRows({
   var loading = false;
   var dirty = false;
   var closed = false;
+  var paused = false;
   late final StreamController<List<Map<String, dynamic>>> out;
 
+  bool idle() => closed || paused;
+
   Future<void> load() async {
-    if (closed) return;
+    if (idle()) return;
     loading = true;
     dirty = false;
     try {
       final rows = await PerfTrack.track(perfLabel, read);
-      if (!closed) out.add(rows);
+      // Rows read for a listener that paused meanwhile are dropped, not
+      // buffered: resuming reads again.
+      if (!idle()) out.add(rows);
     } catch (e, st) {
       debugPrint('[$perfLabel] read failed: $e');
-      if (!closed) out.addError(e, st);
+      if (!idle()) out.addError(e, st);
     } finally {
       loading = false;
-      if (dirty && !closed) {
+      if (dirty && !idle()) {
         timer ??= Timer(coalesce, () {
           timer = null;
           unawaited(load());
@@ -56,7 +68,7 @@ Stream<List<Map<String, dynamic>>> coalescedRows({
   }
 
   void schedule() {
-    if (closed) return;
+    if (idle()) return;
     if (loading) {
       dirty = true;
       return;
@@ -78,7 +90,7 @@ Stream<List<Map<String, dynamic>>> coalescedRows({
       },
       onError: (Object e) {
         debugPrint('[$perfLabel] change feed: $e');
-        if (closed || feedRetry != null) return;
+        if (idle() || feedRetry != null) return;
         final dead = feed;
         feed = null;
         unawaited(dead?.cancel());
@@ -87,7 +99,7 @@ Stream<List<Map<String, dynamic>>> coalescedRows({
         retryDelay = doubled > retryMax ? retryMax : doubled;
         feedRetry = Timer(delay, () {
           feedRetry = null;
-          if (closed) return;
+          if (idle()) return;
           subscribe();
           schedule();
         });
@@ -95,19 +107,43 @@ Stream<List<Map<String, dynamic>>> coalescedRows({
     );
   }
 
+  /// Cancels the feed and every pending read or retry.
+  Future<void> stop() async {
+    feedRetry?.cancel();
+    feedRetry = null;
+    timer?.cancel();
+    timer = null;
+    dirty = false;
+    final current = feed;
+    feed = null;
+    await current?.cancel();
+  }
+
   out = StreamController<List<Map<String, dynamic>>>(
     onListen: () {
       subscribe();
       unawaited(load());
     },
+    onPause: () {
+      paused = true;
+      unawaited(stop());
+    },
+    onResume: () {
+      if (closed || !paused) return;
+      paused = false;
+      retryDelay = retryBase;
+      subscribe();
+      // A read still in flight from before the pause is followed by a fresh
+      // one, since what changed while paused was not watched.
+      if (loading) {
+        dirty = true;
+      } else {
+        unawaited(load());
+      }
+    },
     onCancel: () async {
       closed = true;
-      feedRetry?.cancel();
-      feedRetry = null;
-      timer?.cancel();
-      timer = null;
-      await feed?.cancel();
-      feed = null;
+      await stop();
     },
   );
   return out.stream;

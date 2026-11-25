@@ -26773,7 +26773,7 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
 
   @override
   String get branchLocationUnavailable =>
-      'Ntibyashobotse kubona aho uri. Reba ko location ifunguye kandi Flipper yemerewe kuyikoresha.';
+      'Ntibyashobotse kubona aho uri. Fungura igenamiterere, ufungure location accuracy (Wi-Fi na murandasi ya telefoni), hanyuma ugaruke mu minota 10: Flipper izongera igerageze.';
 
   @override
   String get branchLocationSaved => 'Aho ishami riherereye habitswe';
@@ -26812,6 +26812,9 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
 
   @override
   String get branchLocationOpenSettings => 'Fungura igenamiterere';
+
+  @override
+  String get branchLocationTryAgain => 'Ongera ugerageze';
 
   @override
   String get branchLocationPickerHint =>

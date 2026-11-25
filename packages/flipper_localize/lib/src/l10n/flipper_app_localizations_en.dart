@@ -26504,7 +26504,7 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
 
   @override
   String get branchLocationUnavailable =>
-      'Couldn\'t get your location. Check that location is on and allowed for Flipper.';
+      'Couldn\'t get your location. Open settings, turn on location accuracy (Wi-Fi and mobile network), and come back within 10 minutes: Flipper will try again.';
 
   @override
   String get branchLocationSaved => 'Branch location saved';
@@ -26542,6 +26542,9 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
 
   @override
   String get branchLocationOpenSettings => 'Open settings';
+
+  @override
+  String get branchLocationTryAgain => 'Try again';
 
   @override
   String get branchLocationPickerHint =>

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flipper_services/abstractions/location.dart';
 import 'package:flipper_services/geolocator_position.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -11,6 +13,11 @@ class _FakeGeolocator extends GeolocatorPlatform
   LocationPermission permission = LocationPermission.whileInUse;
   LocationPermission answerToRequest = LocationPermission.whileInUse;
   Object? positionError;
+
+  /// Errors for one accuracy only, e.g. GPS times out but Wi-Fi works.
+  final errorsByAccuracy = <LocationAccuracy, Object>{};
+  final askedAccuracies = <LocationAccuracy>[];
+  Position? lastKnown;
   int requests = 0;
   int appSettingsOpened = 0;
   int locationSettingsOpened = 0;
@@ -31,20 +38,20 @@ class _FakeGeolocator extends GeolocatorPlatform
   Future<Position> getCurrentPosition({
     LocationSettings? locationSettings,
   }) async {
+    final accuracy = locationSettings?.accuracy ?? LocationAccuracy.best;
+    askedAccuracies.add(accuracy);
     if (positionError != null) throw positionError!;
-    return Position(
-      latitude: -1.9441,
-      longitude: 30.0619,
-      timestamp: DateTime(2026),
-      accuracy: 5,
-      altitude: 0,
-      altitudeAccuracy: 0,
-      heading: 0,
-      headingAccuracy: 0,
-      speed: 0,
-      speedAccuracy: 0,
+    if (errorsByAccuracy[accuracy] case final error?) throw error;
+    return _position(
+      accuracy: accuracy == LocationAccuracy.high ? 5 : 40,
+      at: DateTime(2026),
     );
   }
+
+  @override
+  Future<Position?> getLastKnownPosition({
+    bool forceLocationManager = false,
+  }) async => lastKnown;
 
   @override
   Future<bool> openAppSettings() async {
@@ -58,6 +65,23 @@ class _FakeGeolocator extends GeolocatorPlatform
     return true;
   }
 }
+
+Position _position({
+  required double accuracy,
+  required DateTime at,
+  double latitude = -1.9441,
+}) => Position(
+  latitude: latitude,
+  longitude: 30.0619,
+  timestamp: at,
+  accuracy: accuracy,
+  altitude: 0,
+  altitudeAccuracy: 0,
+  heading: 0,
+  headingAccuracy: 0,
+  speed: 0,
+  speedAccuracy: 0,
+);
 
 void main() {
   late _FakeGeolocator geo;
@@ -115,9 +139,66 @@ void main() {
     expect((await read()).failure, LocationFailure.unavailable);
   });
 
+  group('no GPS fix indoors', () {
+    final gpsTimeout = TimeoutException('no fix', const Duration(seconds: 1));
+
+    test('falls back to a Wi-Fi/cell fix when GPS times out', () async {
+      geo.errorsByAccuracy[LocationAccuracy.high] = gpsTimeout;
+      final outcome = await read();
+      expect(outcome.hasFix, isTrue);
+      expect(outcome.accuracy, 40);
+      expect(geo.askedAccuracies, [
+        LocationAccuracy.high,
+        LocationAccuracy.medium,
+      ]);
+    });
+
+    test('does not fall back when the precise fix arrives', () async {
+      expect((await read()).accuracy, 5);
+      expect(geo.askedAccuracies, [LocationAccuracy.high]);
+    });
+
+    test('uses a position read in the last two minutes', () async {
+      geo
+        ..errorsByAccuracy[LocationAccuracy.high] = gpsTimeout
+        ..errorsByAccuracy[LocationAccuracy.medium] = gpsTimeout
+        ..lastKnown = _position(
+          accuracy: 12,
+          latitude: -1.95,
+          at: DateTime.now().subtract(const Duration(seconds: 30)),
+        );
+      final outcome = await read();
+      expect(outcome.hasFix, isTrue);
+      expect(outcome.latitude, -1.95);
+    });
+
+    test('never uses an old remembered position', () async {
+      geo
+        ..errorsByAccuracy[LocationAccuracy.high] = gpsTimeout
+        ..errorsByAccuracy[LocationAccuracy.medium] = gpsTimeout
+        ..lastKnown = _position(
+          accuracy: 12,
+          at: DateTime.now().subtract(const Duration(minutes: 10)),
+        );
+      expect((await read()).failure, LocationFailure.unavailable);
+    });
+
+    test('still reports permission refused during the fallback', () async {
+      geo
+        ..errorsByAccuracy[LocationAccuracy.high] = gpsTimeout
+        ..errorsByAccuracy[LocationAccuracy.medium] =
+            const PermissionDeniedException('refused');
+      expect((await read()).failure, LocationFailure.denied);
+    });
+  });
+
   test('opens the settings screen that fixes the failure', () async {
     await geolocatorOpenSettingsFor(LocationFailure.serviceDisabled);
     expect(geo.locationSettingsOpened, 1);
+
+    // Location on and allowed but no fix: accuracy lives in location settings.
+    await geolocatorOpenSettingsFor(LocationFailure.unavailable);
+    expect(geo.locationSettingsOpened, 2);
 
     await geolocatorOpenSettingsFor(LocationFailure.deniedForever);
     await geolocatorOpenSettingsFor(LocationFailure.denied);

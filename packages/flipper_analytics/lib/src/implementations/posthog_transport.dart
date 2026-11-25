@@ -24,6 +24,7 @@ class PostHogTransport implements AnalyticsTransport {
     this.maskAllTexts = true,
     this.maskAllImages = true,
     this.startOptedOut = false,
+    this.superProperties = const {},
     Future<SharedPreferences> Function()? preferences,
     @visibleForTesting Posthog? posthog,
     @visibleForTesting bool? isWeb,
@@ -48,6 +49,10 @@ class PostHogTransport implements AnalyticsTransport {
   /// A till that must not reach the cloud (local mode) starts opted out, so
   /// nothing at all leaves it, session replay included.
   final bool startOptedOut;
+
+  /// Registered with the SDK next to `device_id`, so every event carries
+  /// them, the SDK's own lifecycle events included.
+  final Map<String, Object> superProperties;
   final Future<SharedPreferences> Function() _preferences;
   final Posthog? _posthogOverride;
   final bool _isWeb;
@@ -118,8 +123,12 @@ class PostHogTransport implements AnalyticsTransport {
   Future<void> _ensureDeviceRegistered() =>
       _deviceRegistration ??= _registerDevice();
 
-  Future<void> _registerDevice() async =>
-      _posthog.register('device_id', await _loadDeviceId());
+  Future<void> _registerDevice() async {
+    await _posthog.register('device_id', await _loadDeviceId());
+    for (final entry in superProperties.entries) {
+      await _posthog.register(entry.key, entry.value);
+    }
+  }
 
   /// Completes once posthog-js is loaded on web (true at once on native).
   Future<bool> get ready => _isWeb ? _loadWeb() : Future.value(true);
@@ -187,9 +196,25 @@ class PostHogTransport implements AnalyticsTransport {
       // beforeSend, which scrubs it there.
       error: _isWeb ? ScrubbedError(error) : error,
       stackTrace: stackTrace,
-      properties: _compact(properties),
+      properties: _compact({
+        // The native SDKs send `$os_name`, which PostHog turns into `$os`
+        // for other events but not for `$exception`; posthog-js sets it.
+        if (!_isWeb) r'$os': osNameFor(defaultTargetPlatform),
+        ...properties,
+      }),
     ),
   );
+
+  /// The `$os` the native SDKs report as `$os_name` on [platform].
+  @visibleForTesting
+  static String? osNameFor(TargetPlatform platform) => switch (platform) {
+    TargetPlatform.android => 'Android',
+    TargetPlatform.iOS => 'iOS',
+    TargetPlatform.macOS => 'macOS',
+    TargetPlatform.windows => 'Windows',
+    TargetPlatform.linux => 'Linux',
+    TargetPlatform.fuchsia => null,
+  };
 
   @override
   Future<void> flush() => _posthog.flush();

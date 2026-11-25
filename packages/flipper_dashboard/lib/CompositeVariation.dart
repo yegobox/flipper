@@ -132,7 +132,6 @@ typedef CompositeLineControllers = ({
 class CompositeVariationState extends ConsumerState<CompositeVariation> {
   double totalCost = 0.0;
   final Map<String, CompositeLineControllers> _lines = {};
-  static final NumberFormat _money = NumberFormat('#,##0', 'en_US');
 
   /// The live controllers, by component (variant) id.
   @visibleForTesting
@@ -164,6 +163,14 @@ class CompositeVariationState extends ConsumerState<CompositeVariation> {
     widget.supplyPriceController.text = totalCost.toString();
   }
 
+  /// A line's cost: whole amounts without decimals (`1,500`), anything else
+  /// to two places (`1.25`), so the line shows what the total adds up.
+  @visibleForTesting
+  static String costText(double cost) => NumberFormat.decimalPatternDigits(
+    locale: 'en_US',
+    decimalDigits: cost == cost.roundToDouble() ? 0 : 2,
+  ).format(cost);
+
   static String _quantityText(double quantity) =>
       quantity == quantity.truncateToDouble()
       ? quantity.toInt().toString()
@@ -182,7 +189,7 @@ class CompositeVariationState extends ConsumerState<CompositeVariation> {
       line.variant.id,
       () => (
         quantity: TextEditingController(text: _quantityText(line.quantity)),
-        cost: TextEditingController(text: _money.format(line.cost)),
+        cost: TextEditingController(text: costText(line.cost)),
       ),
     );
     // Rewrite the quantity only when the line moved away from what is typed,
@@ -190,7 +197,7 @@ class CompositeVariationState extends ConsumerState<CompositeVariation> {
     if ((double.tryParse(controllers.quantity.text) ?? 0) != line.quantity) {
       _setText(controllers.quantity, _quantityText(line.quantity));
     }
-    _setText(controllers.cost, _money.format(line.cost));
+    _setText(controllers.cost, costText(line.cost));
     return controllers;
   }
 

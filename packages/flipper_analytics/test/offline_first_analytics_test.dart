@@ -200,6 +200,144 @@ void main() {
     expect(transport.flushCount, 1);
   });
 
+  group('capture time', () {
+    test('an event goes to the SDK at once, stamped by it', () async {
+      final store = _MemoryEventStore();
+      final transport = _FakeTransport();
+      final analytics = OfflineFirstAnalytics(
+        contextProvider: _FakeContextProvider(),
+        eventStore: store,
+        transport: transport,
+      );
+      await analytics.initialize();
+
+      await analytics.track('ui_stall', properties: const {'lag_ms': 3000});
+
+      expect(store.events, isEmpty);
+      final sent = transport.sentEvents.single;
+      expect(sent.eventName, 'ui_stall');
+      expect(sent.properties['lag_ms'], 3000);
+      expect(sent.properties, isNot(contains(AnalyticsProperties.capturedAt)));
+      expect(sent.properties, isNot(contains(AnalyticsProperties.queuedMs)));
+    });
+
+    test(
+      'a replayed event carries when it happened and how long it waited',
+      () async {
+        final happened = DateTime.utc(2026, 11, 24, 18, 40, 12, 345);
+        final store = _MemoryEventStore();
+        final transport = _FakeTransport();
+        final analytics = OfflineFirstAnalytics(
+          contextProvider: _FakeContextProvider(),
+          eventStore: store,
+          transport: transport,
+          clock: () => happened.add(const Duration(minutes: 22)),
+        );
+        await analytics.initialize();
+        await store.enqueue(
+          PendingAnalyticsEvent(
+            eventName: 'ui_stall',
+            type: PendingAnalyticsEventType.capture,
+            properties: const {'lag_ms': 99949},
+            createdAt: happened,
+          ),
+        );
+
+        await analytics.flush();
+
+        final sent = transport.sentEvents.single;
+        expect(sent.properties['lag_ms'], 99949);
+        expect(
+          sent.properties[AnalyticsProperties.capturedAt],
+          '2026-11-24T18:40:12.345Z',
+        );
+        expect(sent.properties[AnalyticsProperties.queuedMs], 22 * 60 * 1000);
+        expect(store.events, isEmpty);
+      },
+    );
+
+    test('an event queued by a failed send keeps its own time', () async {
+      final store = _MemoryEventStore();
+      final transport = _FakeTransport(failSend: true);
+      final analytics = OfflineFirstAnalytics(
+        contextProvider: _FakeContextProvider(),
+        eventStore: store,
+        transport: transport,
+      );
+      await analytics.initialize();
+      await analytics.track('offline_sale');
+      final queued = store.events.single;
+
+      transport.failSend = false;
+      await analytics.flush();
+
+      final sent = transport.sentEvents.single;
+      expect(sent.id, queued.id);
+      expect(
+        DateTime.parse(
+          sent.properties[AnalyticsProperties.capturedAt]! as String,
+        ),
+        queued.createdAt,
+      );
+      expect(sent.properties[AnalyticsProperties.queuedMs], isA<int>());
+    });
+
+    test('a device clock that went back never gives a negative wait', () async {
+      final happened = DateTime.utc(2026, 11, 24, 12);
+      final store = _MemoryEventStore();
+      final transport = _FakeTransport();
+      final analytics = OfflineFirstAnalytics(
+        contextProvider: _FakeContextProvider(),
+        eventStore: store,
+        transport: transport,
+        clock: () => happened.subtract(const Duration(hours: 1)),
+      );
+      await analytics.initialize();
+      await store.enqueue(
+        PendingAnalyticsEvent(
+          eventName: r'$screen',
+          type: PendingAnalyticsEventType.screen,
+          properties: const {'screen_name': 'Pos'},
+          createdAt: happened,
+        ),
+      );
+
+      await analytics.flush();
+
+      final sent = transport.sentEvents.single;
+      expect(sent.type, PendingAnalyticsEventType.screen);
+      expect(sent.properties['screen_name'], 'Pos');
+      expect(sent.properties[AnalyticsProperties.queuedMs], 0);
+    });
+
+    test('a replay that fails stays queued as it was', () async {
+      final happened = DateTime.utc(2026, 11, 24, 12);
+      final store = _MemoryEventStore();
+      final transport = _FakeTransport(failSend: true);
+      final analytics = OfflineFirstAnalytics(
+        contextProvider: _FakeContextProvider(),
+        eventStore: store,
+        transport: transport,
+      );
+      await analytics.initialize();
+      await store.enqueue(
+        PendingAnalyticsEvent(
+          eventName: 'ui_stall',
+          type: PendingAnalyticsEventType.capture,
+          properties: const {'lag_ms': 2500},
+          createdAt: happened,
+        ),
+      );
+
+      await analytics.flush();
+
+      final kept = store.events.single;
+      expect(kept.attemptCount, 1);
+      expect(kept.createdAt, happened);
+      expect(kept.properties, {'lag_ms': 2500});
+    });
+  });
+
   group('local mode (disabled)', () {
     late _MemoryEventStore store;
     late _FakeTransport transport;

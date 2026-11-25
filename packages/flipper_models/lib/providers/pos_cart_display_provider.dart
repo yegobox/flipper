@@ -437,21 +437,23 @@ final posCartStreamReconciliationProvider = Provider<void>((ref) {
     // place the flag needs clearing).
     final suppressed = ref.read(suppressedCartTransactionIdProvider);
     if (suppressed != null && suppressed.isNotEmpty && suppressed != txn.id) {
-      Future.microtask(
-        () =>
-            ref.read(suppressedCartTransactionIdProvider.notifier).state = null,
-      );
+      Future.microtask(() {
+        if (!ref.mounted) return;
+        ref.read(suppressedCartTransactionIdProvider.notifier).state = null;
+      });
     }
     scheduleWriteCachedPendingCartTransaction(
       ref,
       isExpense: isExpense,
       transaction: txn,
     );
-    Future.microtask(
-      () => ref
-          .read(optimisticCartProvider.notifier)
-          .bindPendingTransaction(txn.id),
-    );
+    // The provider may rebuild (or the scope tear down) before a microtask
+    // runs. A rebuild replays the current emission (fireImmediately), so the
+    // stale one is dropped rather than thrown as UnmountedRefException.
+    Future.microtask(() {
+      if (!ref.mounted) return;
+      ref.read(optimisticCartProvider.notifier).bindPendingTransaction(txn.id);
+    });
   }
 
   ref.listen(pendingProv, (_, next) {
@@ -478,11 +480,12 @@ final posCartStreamReconciliationProvider = Provider<void>((ref) {
   ref.listen(itemsProv, (_, next) {
     if (!next.hasValue) return;
     final items = next.value!;
-    Future.microtask(
-      () => ref
+    Future.microtask(() {
+      if (!ref.mounted) return;
+      ref
           .read(optimisticCartProvider.notifier)
-          .onStreamEmitted(transactionId: pendingId, items: items),
-    );
+          .onStreamEmitted(transactionId: pendingId, items: items);
+    });
   }, fireImmediately: true);
 });
 
@@ -1087,11 +1090,10 @@ void warmPosCartPendingTransactionCache(Ref ref, {required bool isExpense}) {
     transaction: txn,
   );
   if (txn != null && txn.id.isNotEmpty) {
-    Future.microtask(
-      () => ref
-          .read(optimisticCartProvider.notifier)
-          .bindPendingTransaction(txn.id),
-    );
+    Future.microtask(() {
+      if (!ref.mounted) return;
+      ref.read(optimisticCartProvider.notifier).bindPendingTransaction(txn.id);
+    });
   }
 }
 

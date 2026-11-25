@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flipper_models/db_model_export.dart' show ITransaction;
 import 'package:flipper_models/providers/cached_pending_cart_transaction_provider.dart';
 import 'package:flipper_services/constants.dart' show PENDING;
 import 'package:flutter/widgets.dart';
+import 'package:flutter_riverpod/legacy.dart' show StateProvider;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
@@ -25,8 +28,8 @@ class _HostState extends ConsumerState<_Host> {
   Widget build(BuildContext context) => const SizedBox();
 }
 
-ITransaction _pendingCart() => ITransaction(
-  id: 'cart-1',
+ITransaction _pendingCart([String id = 'cart-1']) => ITransaction(
+  id: id,
   branchId: 'br',
   status: PENDING,
   transactionType: 'Sale',
@@ -61,5 +64,36 @@ void main() {
     );
     await tester.pump();
     expect(tester.takeException(), isNull);
+  });
+
+  // Same race for a provider's Ref: `posCartStreamReconciliationProvider`
+  // schedules the write from its body, rebuilds (or the scope is torn down
+  // when Android destroys the activity) before the microtask runs, and the
+  // old Ref threw UnmountedRefException. The rebuild schedules its own write.
+  test('a write scheduled by a rebuilt provider is dropped', () async {
+    final cartId = StateProvider<String>((ref) => 'cart-1');
+    final writer = Provider<void>((ref) {
+      scheduleWriteCachedPendingCartTransaction(
+        ref,
+        isExpense: false,
+        transaction: _pendingCart(ref.watch(cartId)),
+      );
+    });
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+    final errors = <Object>[];
+
+    await runZonedGuarded(() async {
+      container.listen(writer, (_, _) {});
+      container.read(cartId.notifier).state = 'cart-2';
+      container.read(writer); // rebuild before the first microtask runs
+      await Future<void>.delayed(Duration.zero);
+    }, (e, _) => errors.add(e));
+
+    expect(errors, isEmpty);
+    expect(
+      container.read(cachedPendingCartTransactionProvider(false))?.id,
+      'cart-2',
+    );
   });
 }

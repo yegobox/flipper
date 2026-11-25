@@ -66,6 +66,10 @@ void scheduleWriteCachedPendingCartTransaction(
   if (!_isWritablePendingCart(transaction)) return;
   final txn = transaction!;
   Future.microtask(() {
+    // Scheduled from a provider body or listener: that provider may have
+    // rebuilt or been disposed by now. Its next build re-reads the stream, so
+    // dropping this write loses nothing.
+    if (!ref.mounted) return;
     writeCachedPendingCartTransaction(
       ref,
       isExpense: isExpense,

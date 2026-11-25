@@ -44318,7 +44318,7 @@ abstract class FlipperAppLocalizations {
   /// No description provided for @branchLocationUnavailable.
   ///
   /// In en, this message translates to:
-  /// **'Couldn\'t get your location. Check that location is on and allowed for Flipper.'**
+  /// **'Couldn\'t get your location. Open settings, turn on location accuracy (Wi-Fi and mobile network), and come back within 10 minutes: Flipper will try again.'**
   String get branchLocationUnavailable;
 
   /// No description provided for @branchLocationSaved.
@@ -44380,6 +44380,12 @@ abstract class FlipperAppLocalizations {
   /// In en, this message translates to:
   /// **'Open settings'**
   String get branchLocationOpenSettings;
+
+  /// No description provided for @branchLocationTryAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get branchLocationTryAgain;
 
   /// No description provided for @branchLocationPickerHint.
   ///
