@@ -21565,15 +21565,14 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   String get floSuggestOweQuestion => 'Ni bande tubereyemo umwenda?';
 
   @override
-  String get floSuggestTrendTitle =>
-      'Uko ibicuruzwa byagurishijwe muri iki cyumweru';
+  String get floSuggestTrendTitle => 'Nakora iki ngo nzamuke?';
 
   @override
-  String get floSuggestTrendDesc => 'Uko amafaranga yinjiye mu minsi 7';
+  String get floSuggestTrendDesc => 'Ibyo gukora iki cyumweru';
 
   @override
   String get floSuggestTrendQuestion =>
-      'Nyereka uko ibicuruzwa byagurishijwe muri iki cyumweru';
+      'Nakora iki ngo nteze imbere ubucuruzi bwanjye iki cyumweru?';
 
   @override
   String get floGoodMorning => 'Mwaramutse';

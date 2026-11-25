@@ -50,7 +50,7 @@ class FloComposer extends StatefulWidget {
         },
         {
           'icon': 'trend',
-          'label': l10n.floQuickSalesTrend,
+          'label': l10n.floSuggestTrendTitle,
           'q': l10n.floSuggestTrendQuestion,
         },
       ];
