@@ -9,6 +9,7 @@ import 'package:flipper_dashboard/CompositeVariation.dart';
 import 'package:flipper_dashboard/FieldCompositeActivated.dart';
 import 'package:flipper_dashboard/features/product_editor/widgets/pe_field.dart';
 import 'package:flipper_dashboard/features/product_editor/widgets/product_editor_composite_toggle.dart';
+import 'package:flipper_dashboard/features/product_entry/combo_save_values.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_services/locator.dart';
 import 'package:flutter/material.dart';
@@ -262,6 +263,75 @@ void main() {
       // Unmounting disposes the rest.
       await tester.pumpWidget(const SizedBox());
       expect(() => soda.quantity.addListener(() {}), throwsFlutterError);
+    });
+  });
+
+  group('Component cost text', () {
+    test('keeps fractions, drops decimals on whole amounts', () {
+      expect(CompositeVariationState.costText(1.25), '1.25');
+      expect(CompositeVariationState.costText(62.5), '62.50');
+      expect(CompositeVariationState.costText(1500), '1,500');
+      expect(CompositeVariationState.costText(0), '0');
+    });
+
+    testWidgets('a fractional line cost shows its cents', (tester) async {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      container
+          .read(selectedVariantsLocalProvider.notifier)
+          .addVariant(variant: _variant('gum', 1.25));
+      final supply = TextEditingController();
+      addTearDown(supply.dispose);
+
+      await tester.pumpWidget(
+        _app(
+          CompositeVariation(supplyPriceController: supply, currency: 'USD'),
+          container: container,
+        ),
+      );
+      await tester.pump();
+
+      final state = tester.state<CompositeVariationState>(
+        find.byType(CompositeVariation),
+      );
+      expect(state.lineControllers['gum']!.cost.text, '1.25');
+      expect(double.parse(supply.text), 1.25);
+    });
+  });
+
+  group('readComboSaveValues', () {
+    test('a later edit does not change what the save writes', () {
+      final name = TextEditingController(text: 'Lunch combo');
+      final retail = TextEditingController(text: '2500');
+      final supply = TextEditingController(text: '1150.5');
+      final sku = TextEditingController(text: ' LUN-00001 ');
+      final barcode = TextEditingController(text: '6001');
+      final country = TextEditingController();
+      addTearDown(() {
+        for (final c in [name, retail, supply, sku, barcode, country]) {
+          c.dispose();
+        }
+      });
+
+      final v = readComboSaveValues(
+        name: name,
+        retailPrice: retail,
+        supplyPrice: supply,
+        sku: sku,
+        barcode: barcode,
+        countryOfOrigin: country,
+      );
+
+      // The user types over the price while the save awaits.
+      retail.text = 'abc';
+      name.text = 'Other';
+
+      expect(v.retailPrice, 2500);
+      expect(v.supplyPrice, 1150.5);
+      expect(v.name, 'Lunch combo');
+      expect(v.sku, 'LUN-00001');
+      expect(v.barcode, '6001');
+      expect(v.countryOfOrigin, 'RW');
     });
   });
 
