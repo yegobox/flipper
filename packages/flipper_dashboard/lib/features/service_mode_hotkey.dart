@@ -9,6 +9,7 @@ import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:stacked_services/stacked_services.dart';
 
@@ -387,19 +388,36 @@ const serviceModeSwitchingOverlayCap = Duration(seconds: 10);
 /// switches.
 ///
 /// It sits on the root navigator's overlay, above every route, so it stays
-/// up across the route swap into the new mode. The scrim takes every tap.
-/// Card and tint fade in, so a refusal that comes back at once does not
-/// flash.
+/// up across the route swap into the new mode. The scrim takes every tap,
+/// and every key press (a typed key, Enter, or a barcode scanner, which
+/// types like a keyboard), so nothing lands in the cart of the mode being
+/// left. Focus is taken off that mode's field while it is up and handed
+/// back on [hide] if the field is still there (a refused switch). Card and
+/// tint fade in, so a refusal that comes back at once does not flash.
 class _SwitchingOverlay {
-  _SwitchingOverlay._(this._label) {
-    _entry = OverlayEntry(builder: (context) => _SwitchingScrim(label: _label));
+  _SwitchingOverlay._(this._label)
+    : _previousFocus = FocusManager.instance.primaryFocus {
+    _entry = OverlayEntry(
+      builder: (context) => _SwitchingScrim(label: _label, focus: _focus),
+    );
     _cap = Timer(serviceModeSwitchingOverlayCap, hide);
+    HardwareKeyboard.instance.addHandler(_swallowKeys);
   }
 
+  /// The scrim's own focus, taken explicitly: autofocus does nothing while
+  /// the route underneath already holds focus.
+  final FocusNode _focus = FocusNode(debugLabel: 'service mode switching');
+
   final ValueNotifier<String> _label;
+  final FocusNode? _previousFocus;
   late final OverlayEntry _entry;
   late final Timer _cap;
   bool _hidden = false;
+
+  /// Marks every key press handled, so neither a focused field nor a
+  /// shortcut of the screen underneath sees it. Key releases go through, so
+  /// the keyboard's pressed-key state stays right.
+  bool _swallowKeys(KeyEvent event) => event is! KeyUpEvent;
 
   /// Puts the scrim up with [label]; null (and nothing shown) when there is
   /// no root overlay to put it on.
@@ -408,6 +426,8 @@ class _SwitchingOverlay {
     if (overlay == null) return null;
     final shown = _SwitchingOverlay._(ValueNotifier(label));
     overlay.insert(shown._entry);
+    // Attached on the next build; the request waits for it.
+    shown._focus.requestFocus();
     return shown;
   }
 
@@ -421,16 +441,29 @@ class _SwitchingOverlay {
     if (_hidden) return;
     _hidden = true;
     _cap.cancel();
+    HardwareKeyboard.instance.removeHandler(_swallowKeys);
     _entry.remove();
     _entry.dispose();
     _label.dispose();
+    final focus = _focus..unfocus();
+    // The entry leaves the tree on the next frame; its node goes after it.
+    SchedulerBinding.instance.addPostFrameCallback((_) => focus.dispose());
+    // A refused switch leaves the operator where they were: give the field
+    // they were in its focus back. After a switch that field is gone.
+    final previous = _previousFocus;
+    if (previous != null &&
+        previous.context != null &&
+        previous.canRequestFocus) {
+      previous.requestFocus();
+    }
   }
 }
 
 class _SwitchingScrim extends StatelessWidget {
-  const _SwitchingScrim({required this.label});
+  const _SwitchingScrim({required this.label, required this.focus});
 
   final ValueNotifier<String> label;
+  final FocusNode focus;
 
   @override
   Widget build(BuildContext context) {
@@ -439,16 +472,22 @@ class _SwitchingScrim extends StatelessWidget {
       duration: PosTokens.prefersReducedMotion(context)
           ? Duration.zero
           : const Duration(milliseconds: 150),
-      builder: (context, t, card) => Stack(
-        children: [
-          ModalBarrier(
-            dismissible: false,
-            color: Colors.black.withValues(alpha: 0.32 * t),
-          ),
-          Center(
-            child: Opacity(opacity: t, child: card),
-          ),
-        ],
+      // Takes focus, so the screen underneath has no focused field while
+      // the switch runs.
+      builder: (context, t, card) => Focus(
+        focusNode: focus,
+        onKeyEvent: (_, _) => KeyEventResult.handled,
+        child: Stack(
+          children: [
+            ModalBarrier(
+              dismissible: false,
+              color: Colors.black.withValues(alpha: 0.32 * t),
+            ),
+            Center(
+              child: Opacity(opacity: t, child: card),
+            ),
+          ],
+        ),
       ),
       child: Material(
         type: MaterialType.transparency,

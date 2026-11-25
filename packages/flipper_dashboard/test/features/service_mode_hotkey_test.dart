@@ -8,6 +8,7 @@ import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/locator.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:stacked_services/stacked_services.dart';
@@ -312,6 +313,61 @@ void main() {
         find.text("Only an admin can switch this device's service mode."),
         findsOneWidget,
       );
+      await tester.pumpAndSettle(const Duration(seconds: 5));
+    });
+
+    testWidgets('keys and scans do not reach the desk while it switches', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(1600, 1000);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      final lookup = Completer<bool?>();
+      final field = FocusNode();
+      addTearDown(field.dispose);
+      final reached = <LogicalKeyboardKey>[];
+      await _pump(
+        tester,
+        ServiceModeDesk(
+          deskAdmin: () => lookup.future,
+          // The POS search box a scanner types into.
+          child: Focus(
+            onKeyEvent: (_, event) {
+              if (event is KeyDownEvent) reached.add(event.logicalKey);
+              return KeyEventResult.ignored;
+            },
+            child: TextField(focusNode: field),
+          ),
+        ),
+      );
+      field.requestFocus();
+      await tester.pump();
+      await tester.sendKeyEvent(LogicalKeyboardKey.keyA);
+      expect(reached, [LogicalKeyboardKey.keyA]);
+      reached.clear();
+
+      final switching = cycleServiceMode();
+      await tester.pump(const Duration(milliseconds: 200));
+      expect(_scrim, findsOneWidget);
+      // The field gives up focus, and a scan (keys, then Enter) is eaten.
+      expect(field.hasFocus, isFalse);
+      for (final key in [
+        LogicalKeyboardKey.digit6,
+        LogicalKeyboardKey.digit0,
+        LogicalKeyboardKey.enter,
+      ]) {
+        expect(await tester.sendKeyEvent(key), isTrue);
+      }
+      expect(reached, isEmpty);
+
+      // Refused: the scrim goes, the field gets its focus and keys back.
+      lookup.complete(false);
+      await _finish(tester, switching);
+      await tester.pump();
+      expect(_scrim, findsNothing);
+      expect(field.hasFocus, isTrue);
+      await tester.sendKeyEvent(LogicalKeyboardKey.keyB);
+      expect(reached, [LogicalKeyboardKey.keyB]);
       await tester.pumpAndSettle(const Duration(seconds: 5));
     });
 
