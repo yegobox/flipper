@@ -49,6 +49,24 @@ void main() {
       expect(env.isAutomatedTest, isTrue);
     });
 
+    test('a false System setting does not hide a true Global one', () async {
+      final env = await read({
+        ...realPhone,
+        'testLabSystem': 'false',
+        'testLabGlobal': 'true',
+      });
+      expect(env.isAutomatedTest, isTrue);
+    });
+
+    test('two explicit false settings stay unflagged', () async {
+      final env = await read({
+        ...realPhone,
+        'testLabSystem': '0',
+        'testLabGlobal': 'false',
+      });
+      expect(env.isAutomatedTest, isFalse);
+    });
+
     test('by any Test Lab value but an explicit false', () async {
       expect(
         (await read({...realPhone, 'testLabSystem': '1'})).isAutomatedTest,

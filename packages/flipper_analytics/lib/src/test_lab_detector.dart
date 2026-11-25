@@ -39,10 +39,19 @@ class DeviceEnvironment {
       return value is bool ? value : null;
     }
 
+    // Test Lab documents `Settings.System`; `Settings.Global` is read too,
+    // in case a device keeps it there. Either one being on flags the device,
+    // so an explicit false in one cannot hide a true in the other.
+    final system = text('testLabSystem');
+    final global = text('testLabGlobal');
+    final testLab = _isOn(system)
+        ? system
+        : _isOn(global)
+        ? global
+        : system ?? global;
+
     return DeviceEnvironment(
-      // Test Lab documents `Settings.System`; `Settings.Global` is read too,
-      // in case a device keeps it there.
-      testLabSetting: text('testLabSystem') ?? text('testLabGlobal'),
+      testLabSetting: testLab,
       testHarness: flag('testHarness') ?? false,
       monkey: flag('monkey') ?? false,
       adbEnabled: flag('adbEnabled'),
