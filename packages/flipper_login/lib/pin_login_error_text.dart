@@ -81,6 +81,16 @@ String pinLoginErrorText(Object error, [FlipperAppLocalizations? l10n]) {
   return t.loginErrorUnknown;
 }
 
+/// Whether a PIN-login failure belongs in error tracking.
+///
+/// [NeedSignUpException] means the PIN lookup found no account (the server
+/// 404s `/v2/api/pin/<pin>` only when no PIN row matches): the user typed a
+/// PIN that does not exist, and the screen already says so
+/// (`loginErrorNoAccountForPin`). It is input, not a failure, so it stays out
+/// of PostHog, where it showed up as a critical issue. Everything else,
+/// timeouts included, is still reported.
+bool pinLoginErrorIsReportable(Object error) => error is! NeedSignUpException;
+
 int? _httpStatus(String text) {
   final match = RegExp(r'HTTP (\d{3})').firstMatch(text);
   return match == null ? null : int.parse(match.group(1)!);
