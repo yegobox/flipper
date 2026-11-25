@@ -32,8 +32,6 @@ class DittoSingleton {
   /// fixed at open, so a mode change (signup, opt-in) needs a reopen.
   static bool? _openedLocal;
 
-  static bool _lockAcquired = false;
-
   /// Persistence directory of [_ditto].
   static String? _storeDirectory;
 
@@ -84,7 +82,7 @@ class DittoSingleton {
       'isInitializing': _isInitializing,
       'hasInstance': _ditto != null,
       'instanceIsNull': _ditto == null,
-      'lockAcquired': _lockAcquired,
+      'lockAcquired': _ditto != null,
     };
   }
 
@@ -154,7 +152,7 @@ class DittoSingleton {
     }
 
     // Return existing instance if available and properly initialized
-    if (_ditto != null && _lockAcquired) {
+    if (_ditto != null) {
       print(
         '✅ [INIT] Using existing Ditto instance (hashCode: ${_ditto.hashCode}) with active lock',
       );
@@ -264,14 +262,11 @@ class DittoSingleton {
       if (!_isInitGenerationCurrent(initGeneration)) {
         // Aborted while opening: nobody will dispose this instance.
         print('⏭️ [INIT] Closing store opened by an aborted init');
-        final stale = opened;
-        opened = null;
-        await _closeStore(persistenceDirectory, stale);
+        await _closeStore(persistenceDirectory, opened);
         return null;
       }
       _ditto = opened;
       _storeDirectory = persistenceDirectory;
-      _lockAcquired = true;
       _openedLocal = wantLocal;
       print(
         '✅ [INIT] Ditto.open() completed, instance hashCode: ${_ditto.hashCode}',
@@ -405,7 +400,6 @@ class DittoSingleton {
       if (opened != null && identical(_ditto, opened)) {
         _ditto = null;
         _storeDirectory = null;
-        _lockAcquired = false;
       }
       if (opened != null &&
           identical(DittoService.instance.dittoInstance, opened)) {
@@ -657,7 +651,7 @@ class DittoSingleton {
     return true;
   }
 
-  /// Release the lock file and close the handle
+  /// Frees [directory] and releases its file lock.
   static Future<void> _releaseStore(String directory) async {
     final held = _heldStores.remove(directory);
     if (held?.lock != null) {
@@ -677,7 +671,6 @@ class DittoSingleton {
     _storeDirectory = null;
     await _abortInFlightInit();
     _userId = null;
-    _lockAcquired = false;
     _dittoAuthInFlight = null;
     print('✅ DittoSingleton reset complete');
   }
@@ -697,7 +690,6 @@ class DittoSingleton {
     final directory = _storeDirectory;
     _ditto = null;
     _storeDirectory = null;
-    _lockAcquired = false;
     if (ditto == null || directory == null) return;
     print('🛑 Stopping Ditto sync and disposing singleton...');
     DittoService.instance.clearDittoInstance();
