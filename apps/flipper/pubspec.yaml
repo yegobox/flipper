@@ -157,6 +157,8 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^3.0.0
+  # setupFirebaseCoreMocks for test/firebase_init_test.dart
+  firebase_core_platform_interface: ">=6.0.3 <9.0.0"
   msix: ^3.16.12
   patrol: ^3.20.0
   device_preview_plus: ^2.8.4
