@@ -423,7 +423,12 @@ mixin CapellaBranchMixin implements BranchInterface {
   @override
   Future<Branch> activeBranch({required String branchId}) async {
     if (dittoService.dittoInstance == null) {
-      talker.error('Ditto not initialized for active branch');
+      // Ditto failed to open (e.g. its store is still locked by the previous
+      // engine after Android recreated the activity). The branch row is in
+      // Brick too, so Settings / payment settings keep working.
+      talker.error('Ditto not initialized for active branch; using Brick');
+      final brickBranch = await _activeBranchFromBrick(branchId: branchId);
+      if (brickBranch != null) return brickBranch;
       throw Exception('Ditto not initialized for active branch query');
     }
 
