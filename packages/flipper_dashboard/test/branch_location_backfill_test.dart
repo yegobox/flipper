@@ -23,7 +23,8 @@ class _MockHttp extends Mock implements HttpClientInterface {}
 class _FakeServices extends BranchServices {
   _FakeServices({required this.remote, this.android = true});
 
-  final Branch? remote;
+  /// What Supabase returns; a test can change it between reads.
+  Branch? remote;
   final bool android;
   final _MockBox mockBox = _MockBox();
   final _MockStrategy mockStrategy = _MockStrategy();
@@ -81,10 +82,7 @@ _FakeServices _services({
   ).thenAnswer((_) async {});
   when(
     () => s.mockLocation.currentPosition(timeout: any(named: 'timeout')),
-  ).thenAnswer(
-    (_) async =>
-        const LocationOutcome.fix(latitude: -1.9441, longitude: 30.0619),
-  );
+  ).thenAnswer((_) async => _fix);
   when(
     () => s.mockLocation.openSettingsFor(any()),
   ).thenAnswer((_) async => true);
@@ -130,7 +128,11 @@ void _gpsAnswers(_FakeServices s, List<LocationOutcome> answers) {
   ).thenAnswer((_) async => answers[(calls++).clamp(0, answers.length - 1)]);
 }
 
-const _fix = LocationOutcome.fix(latitude: -1.9441, longitude: 30.0619);
+const _fix = LocationOutcome.fix(
+  latitude: -1.9441,
+  longitude: 30.0619,
+  accuracy: 12,
+);
 
 /// The user leaves for the settings app and comes back.
 Future<void> _backFromSettings(WidgetTester tester) async {
@@ -369,6 +371,76 @@ void main() {
       expect(_snoozedDays(s), 0);
 
       await _backFromSettings(tester);
+      expect(find.byType(AlertDialog), findsNothing);
+    });
+
+    testWidgets('never saves a coarse or unknown-accuracy fix', (tester) async {
+      for (final coarse in const [
+        LocationOutcome.fix(latitude: -1.95, longitude: 30.1, accuracy: 800),
+        LocationOutcome.fix(latitude: -1.95, longitude: 30.1),
+      ]) {
+        final s = _services();
+        _gpsAnswers(s, [coarse, _fix]);
+        final (:run) = await _start(tester, s);
+        await tester.tap(find.text('Save location'));
+        await tester.pumpAndSettle();
+
+        _expectNoUpdate(s);
+        expect(
+          find.textContaining("Couldn't get your location"),
+          findsOneWidget,
+        );
+
+        // A precise fix on the next try is saved.
+        await tester.tap(find.text('Try again'));
+        await tester.pumpAndSettle();
+        await run;
+        _expectSaved(s);
+      }
+    });
+
+    testWidgets('does not overwrite a location saved meanwhile elsewhere', (
+      tester,
+    ) async {
+      final (s, run) = await _saveWithFailure(
+        tester,
+        LocationFailure.unavailable,
+      );
+      await tester.tap(find.text('Open settings'));
+      await tester.pumpAndSettle();
+      await run;
+
+      // Another device saved the branch while this user was in settings.
+      s.remote = Branch(
+        id: 'b1',
+        name: 'Kimironko',
+        latitude: -1.95,
+        longitude: 30.12,
+      );
+      // A GPS read now would save this fix; it must not happen.
+      _gpsAnswers(s, [_fix]);
+      await _backFromSettings(tester);
+
+      _expectNoUpdate(s);
+      expect(find.byType(AlertDialog), findsNothing);
+    });
+
+    testWidgets('a retry that throws on return is swallowed', (tester) async {
+      final (s, run) = await _saveWithFailure(
+        tester,
+        LocationFailure.unavailable,
+      );
+      await tester.tap(find.text('Open settings'));
+      await tester.pumpAndSettle();
+      await run;
+
+      when(
+        () => s.mockLocation.currentPosition(timeout: any(named: 'timeout')),
+      ).thenThrow(StateError('plugin gone'));
+      await _backFromSettings(tester);
+
+      expect(tester.takeException(), isNull);
+      _expectNoUpdate(s);
       expect(find.byType(AlertDialog), findsNothing);
     });
 

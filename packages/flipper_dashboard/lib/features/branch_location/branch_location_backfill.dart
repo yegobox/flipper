@@ -104,7 +104,11 @@ Future<void> _captureAndSave(
   final box = services.box;
   while (true) {
     final outcome = await services.location.currentPosition();
-    final failure = outcome.failure;
+    // A Wi-Fi/cell or remembered fix can be hundreds of metres off, and once
+    // saved the prompt never returns; treat it like no fix at all.
+    final failure =
+        outcome.failure ??
+        (_preciseEnough(outcome.accuracy) ? null : LocationFailure.unavailable);
     if (failure == null) {
       await _saveCoordinates(
         services,
@@ -127,6 +131,12 @@ Future<void> _captureAndSave(
         // settings, the prompt simply comes back at the next start.
         final cancel = onNextAppResume(() async {
           try {
+            // Up to 10 minutes later: another device may have saved it since.
+            final branch = await services.remoteBranch(branchId);
+            if (branch != null &&
+                hasRealBranchCoordinates(branch.latitude, branch.longitude)) {
+              return;
+            }
             await _captureAndSave(context, services, branchId, messenger, l10n);
           } catch (e, s) {
             talker.warning('Branch location retry failed: $e\n$s');
@@ -149,6 +159,9 @@ Future<void> _captureAndSave(
     }
   }
 }
+
+bool _preciseEnough(double? accuracy) =>
+    accuracy != null && accuracy <= maxBranchFixAccuracy;
 
 /// A dialog rather than a snackbar: the user has to see the way to fix it.
 Future<_FailureChoice> _askAfterFailure(

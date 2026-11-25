@@ -25,6 +25,10 @@ class BranchLocationPick {
 /// Where the map opens when the branch has no real location yet.
 const LatLng _kigali = LatLng(-1.9441, 30.0619);
 
+/// A fix less precise than this (metres) is too coarse to save as a branch
+/// location without the user placing the pin; the picker zooms out for it.
+const double maxBranchFixAccuracy = 150;
+
 /// Below this width the picker takes the whole screen.
 const double _fullScreenBelow = 600;
 
@@ -98,8 +102,9 @@ bool locationFailureNeedsSettings(LocationFailure failure) =>
 VoidCallback onNextAppResume(
   VoidCallback onReturn, {
   Duration giveUpAfter = const Duration(minutes: 10),
+  @visibleForTesting DateTime Function() now = DateTime.now,
 }) {
-  final started = DateTime.now();
+  final started = now();
   AppLifecycleListener? listener;
   void cancel() {
     listener?.dispose();
@@ -109,7 +114,7 @@ VoidCallback onNextAppResume(
   listener = AppLifecycleListener(
     onResume: () {
       cancel();
-      if (DateTime.now().difference(started) <= giveUpAfter) onReturn();
+      if (now().difference(started) <= giveUpAfter) onReturn();
     },
   );
   return cancel;
@@ -276,7 +281,7 @@ class _BranchLocationPickerState extends State<_BranchLocationPicker> {
       _gpsAccuracy = accuracy;
     });
     // A coarse fix gets a wider view so its circle fits on screen.
-    _moveTo(fix, zoom: (accuracy ?? 0) > 150 ? 15 : 18);
+    _moveTo(fix, zoom: (accuracy ?? 0) > maxBranchFixAccuracy ? 15 : 18);
   }
 
   /// Opens the settings screen for [failure] and, when the user comes back,

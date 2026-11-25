@@ -248,6 +248,54 @@ void main() {
     expect(find.textContaining('Accurate to about 12 m'), findsOneWidget);
   });
 
+  group('onNextAppResume', () {
+    Future<void> resume(WidgetTester tester) async {
+      for (final state in const [
+        AppLifecycleState.inactive,
+        AppLifecycleState.hidden,
+        AppLifecycleState.paused,
+        AppLifecycleState.hidden,
+        AppLifecycleState.inactive,
+        AppLifecycleState.resumed,
+      ]) {
+        tester.binding.handleAppLifecycleStateChanged(state);
+      }
+      await tester.pump();
+    }
+
+    testWidgets('runs once on the next return', (tester) async {
+      var returns = 0;
+      onNextAppResume(() => returns++);
+      await resume(tester);
+      await resume(tester);
+      expect(returns, 1);
+    });
+
+    testWidgets('ignores a return after it gave up', (tester) async {
+      var now = DateTime(2026, 11, 25, 9);
+      var returns = 0;
+      onNextAppResume(
+        () => returns++,
+        giveUpAfter: const Duration(minutes: 10),
+        now: () => now,
+      );
+      now = now.add(const Duration(minutes: 11));
+      await resume(tester);
+      expect(returns, 0);
+
+      // And it is gone: a later return does nothing either.
+      await resume(tester);
+      expect(returns, 0);
+    });
+
+    testWidgets('cancel stops it', (tester) async {
+      var returns = 0;
+      onNextAppResume(() => returns++)();
+      await resume(tester);
+      expect(returns, 0);
+    });
+  });
+
   testWidgets('takes the whole screen on a phone', (tester) async {
     await _open(
       tester,
