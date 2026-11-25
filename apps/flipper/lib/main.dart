@@ -43,9 +43,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show Clipboard, ClipboardData;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
-import 'package:firebase_core/firebase_core.dart';
 // ignore: depend_on_referenced_packages
 import 'package:device_preview_plus/device_preview_plus.dart';
+import 'firebase_init.dart';
 import 'firebase_options.dart';
 import 'keyboard_pan.dart';
 import 'prefs_file_repair.dart';
@@ -89,8 +89,8 @@ Future<void> _initializeFirebase() async {
     }
     // Don't use microtask for Firebase as critical services depend on it
     debugPrint('📱 [Firebase] Calling Firebase.initializeApp...');
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
+    await initializeDefaultFirebaseApp(
+      DefaultFirebaseOptions.currentPlatform,
     ).timeout(
       const Duration(seconds: 20),
       onTimeout: () {
