@@ -206,6 +206,48 @@ void main() {
     ).called(1);
   });
 
+  testWidgets('no fix links to settings and locates again on return', (
+    tester,
+  ) async {
+    final location = _location();
+    var calls = 0;
+    when(
+      () => location.currentPosition(timeout: any(named: 'timeout')),
+    ).thenAnswer(
+      (_) async => calls++ == 0
+          ? const LocationOutcome.failed(LocationFailure.unavailable)
+          : _fix,
+    );
+    await _open(tester, location: location);
+
+    await tester.tap(find.byKey(const Key('branchLocationLocate')));
+    await tester.pumpAndSettle();
+    expect(find.textContaining("Couldn't get your location"), findsOneWidget);
+
+    await tester.tap(find.text('Open settings'));
+    await tester.pumpAndSettle();
+    verify(
+      () => location.openSettingsFor(LocationFailure.unavailable),
+    ).called(1);
+
+    // Back from the settings app: the position is read again.
+    for (final state in const [
+      AppLifecycleState.inactive,
+      AppLifecycleState.hidden,
+      AppLifecycleState.paused,
+      AppLifecycleState.hidden,
+      AppLifecycleState.inactive,
+      AppLifecycleState.resumed,
+    ]) {
+      tester.binding.handleAppLifecycleStateChanged(state);
+    }
+    await tester.pumpAndSettle();
+
+    expect(calls, 2);
+    expect(find.textContaining("Couldn't get your location"), findsNothing);
+    expect(find.textContaining('Accurate to about 12 m'), findsOneWidget);
+  });
+
   testWidgets('takes the whole screen on a phone', (tester) async {
     await _open(
       tester,

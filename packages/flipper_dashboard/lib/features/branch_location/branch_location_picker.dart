@@ -84,11 +84,36 @@ String locationFailureMessage(BuildContext context, LocationFailure failure) {
   };
 }
 
-/// Failures only the system settings can fix: the OS will not show the
-/// permission dialog again, or location is switched off.
+/// Failures the system settings can fix: the OS will not show the
+/// permission dialog again, location is switched off, or it is on but gives
+/// no fix (Android's Location Accuracy / Wi-Fi scanning is off). Only a
+/// plain "denied" is left out, because asking again still shows the dialog.
 bool locationFailureNeedsSettings(LocationFailure failure) =>
-    failure == LocationFailure.deniedForever ||
-    failure == LocationFailure.serviceDisabled;
+    failure != LocationFailure.denied;
+
+/// Runs [onReturn] once, the next time the app comes back to the foreground
+/// (the user is back from the settings app). A return after [giveUpAfter]
+/// is ignored so a forgotten wait never fires much later. Call the returned
+/// function to cancel it early.
+VoidCallback onNextAppResume(
+  VoidCallback onReturn, {
+  Duration giveUpAfter = const Duration(minutes: 10),
+}) {
+  final started = DateTime.now();
+  AppLifecycleListener? listener;
+  void cancel() {
+    listener?.dispose();
+    listener = null;
+  }
+
+  listener = AppLifecycleListener(
+    onResume: () {
+      cancel();
+      if (DateTime.now().difference(started) <= giveUpAfter) onReturn();
+    },
+  );
+  return cancel;
+}
 
 class _BranchLocationPicker extends StatefulWidget {
   const _BranchLocationPicker({
@@ -137,6 +162,9 @@ class _BranchLocationPickerState extends State<_BranchLocationPicker> {
   List<PlaceResult>? _results;
   bool _searching = false;
 
+  /// Cancels the "try again when back from settings" wait.
+  VoidCallback? _cancelResumeRetry;
+
   @override
   void initState() {
     super.initState();
@@ -152,6 +180,7 @@ class _BranchLocationPickerState extends State<_BranchLocationPicker> {
 
   @override
   void dispose() {
+    _cancelResumeRetry?.call();
     _settleTimer?.cancel();
     _lookupTimer?.cancel();
     _map.dispose();
@@ -248,6 +277,21 @@ class _BranchLocationPickerState extends State<_BranchLocationPicker> {
     });
     // A coarse fix gets a wider view so its circle fits on screen.
     _moveTo(fix, zoom: (accuracy ?? 0) > 150 ? 15 : 18);
+  }
+
+  /// Opens the settings screen for [failure] and, when the user comes back,
+  /// reads the position again unless they placed the pin by hand meanwhile.
+  Future<void> _openSettings(LocationFailure failure) async {
+    _cancelResumeRetry?.call();
+    _cancelResumeRetry = onNextAppResume(() {
+      _cancelResumeRetry = null;
+      if (mounted && !_chosen) unawaited(_useCurrentLocation());
+    });
+    final opened = await widget.location.openSettingsFor(failure);
+    if (!opened) {
+      _cancelResumeRetry?.call();
+      _cancelResumeRetry = null;
+    }
   }
 
   Future<void> _search() async {
@@ -451,7 +495,7 @@ class _BranchLocationPickerState extends State<_BranchLocationPicker> {
                 actionLabel: locationFailureNeedsSettings(failure)
                     ? l10n.branchLocationOpenSettings
                     : null,
-                onAction: () => widget.location.openSettingsFor(failure),
+                onAction: () => _openSettings(failure),
               ),
               const SizedBox(height: 12),
             ],

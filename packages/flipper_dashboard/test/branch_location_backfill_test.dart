@@ -107,21 +107,64 @@ int _snoozedDays(_FakeServices s) {
   return until.difference(DateTime.now()).inDays;
 }
 
-/// Answers the prompt with "Save location" while GPS fails with [failure].
-Future<_FakeServices> _saveWithFailure(
+/// Answers the prompt with "Save location" while GPS fails with [failure];
+/// leaves the failure dialog open and returns the still-pending run.
+Future<(_FakeServices, Future<void>)> _saveWithFailure(
   WidgetTester tester,
   LocationFailure failure,
 ) async {
   final s = _services();
-  when(
-    () => s.mockLocation.currentPosition(timeout: any(named: 'timeout')),
-  ).thenAnswer((_) async => LocationOutcome.failed(failure));
+  _gpsAnswers(s, [LocationOutcome.failed(failure)]);
   final (:run) = await _start(tester, s);
   await tester.tap(find.text('Save location'));
   await tester.pumpAndSettle();
-  await run;
   _expectNoUpdate(s);
-  return s;
+  return (s, run);
+}
+
+/// GPS answers in turn; the last one repeats.
+void _gpsAnswers(_FakeServices s, List<LocationOutcome> answers) {
+  var calls = 0;
+  when(
+    () => s.mockLocation.currentPosition(timeout: any(named: 'timeout')),
+  ).thenAnswer((_) async => answers[(calls++).clamp(0, answers.length - 1)]);
+}
+
+const _fix = LocationOutcome.fix(latitude: -1.9441, longitude: 30.0619);
+
+/// The user leaves for the settings app and comes back.
+Future<void> _backFromSettings(WidgetTester tester) async {
+  for (final state in const [
+    AppLifecycleState.inactive,
+    AppLifecycleState.hidden,
+    AppLifecycleState.paused,
+    AppLifecycleState.hidden,
+    AppLifecycleState.inactive,
+    AppLifecycleState.resumed,
+  ]) {
+    tester.binding.handleAppLifecycleStateChanged(state);
+  }
+  await tester.pumpAndSettle();
+}
+
+void _expectNoSnooze(_FakeServices s) {
+  verifyNever(
+    () => s.mockBox.writeString(
+      key: any(named: 'key'),
+      value: any(named: 'value'),
+    ),
+  );
+}
+
+void _expectSaved(_FakeServices s) {
+  verify(
+    () => s.mockStrategy.updateBranchCoordinates(
+      branchId: 'b1',
+      latitude: -1.9441,
+      longitude: 30.0619,
+      flipperHttpClient: s.mockHttp,
+    ),
+  ).called(1);
 }
 
 /// Pumps an app and starts the prompt from inside it; returns the pending run
@@ -201,49 +244,149 @@ void main() {
     expect(_snoozedDays(s), 6);
   });
 
-  group('when GPS fails it saves nothing and', () {
-    testWidgets('retries tomorrow after no fix', (tester) async {
-      final s = await _saveWithFailure(tester, LocationFailure.unavailable);
+  group('when GPS fails', () {
+    testWidgets('no fix: keeps a dialog with settings until the user picks', (
+      tester,
+    ) async {
+      final (s, run) = await _saveWithFailure(
+        tester,
+        LocationFailure.unavailable,
+      );
       expect(find.textContaining("Couldn't get your location"), findsOneWidget);
-      expect(find.text('Open settings'), findsNothing);
+      expect(find.text('Open settings'), findsOneWidget);
+      expect(find.text('Try again'), findsOneWidget);
+      _expectNoSnooze(s);
+
+      await tester.tap(find.text('Not now'));
+      await tester.pumpAndSettle();
+      await run;
       expect(_snoozedDays(s), 0);
+    });
+
+    testWidgets('no fix: "Open settings" opens location settings', (
+      tester,
+    ) async {
+      final (s, run) = await _saveWithFailure(
+        tester,
+        LocationFailure.unavailable,
+      );
+      await tester.tap(find.text('Open settings'));
+      await tester.pumpAndSettle();
+      await run;
+      verify(
+        () => s.mockLocation.openSettingsFor(LocationFailure.unavailable),
+      ).called(1);
+
+      _gpsAnswers(s, [_fix]);
+      await _backFromSettings(tester);
+      _expectSaved(s);
+    });
+
+    testWidgets('"Try again" saves once a fix arrives', (tester) async {
+      final s = _services();
+      _gpsAnswers(s, [
+        const LocationOutcome.failed(LocationFailure.unavailable),
+        _fix,
+      ]);
+      final (:run) = await _start(tester, s);
+      await tester.tap(find.text('Save location'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Try again'));
+      await tester.pumpAndSettle();
+      await run;
+
+      _expectSaved(s);
+      expect(find.text('Branch location saved'), findsOneWidget);
+      _expectNoSnooze(s);
+    });
+
+    testWidgets('saves on its own when the user is back from settings', (
+      tester,
+    ) async {
+      final (s, run) = await _saveWithFailure(
+        tester,
+        LocationFailure.deniedForever,
+      );
+      expect(find.textContaining('blocked for Flipper'), findsOneWidget);
+      await tester.tap(find.text('Open settings'));
+      await tester.pumpAndSettle();
+      await run;
+      verify(
+        () => s.mockLocation.openSettingsFor(LocationFailure.deniedForever),
+      ).called(1);
+      _expectNoUpdate(s);
+      // Nothing snoozed while away: if Android kills Flipper meanwhile, the
+      // prompt comes back at the next start.
+      _expectNoSnooze(s);
+
+      // Location allowed in settings; Flipper comes back to the front.
+      _gpsAnswers(s, [_fix]);
+      await _backFromSettings(tester);
+
+      _expectSaved(s);
+      expect(find.text('Branch location saved'), findsOneWidget);
+    });
+
+    testWidgets('asks again if it still has no fix after settings', (
+      tester,
+    ) async {
+      final (s, run) = await _saveWithFailure(
+        tester,
+        LocationFailure.serviceDisabled,
+      );
+      expect(find.textContaining('Location is turned off'), findsOneWidget);
+      await tester.tap(find.text('Open settings'));
+      await tester.pumpAndSettle();
+      await run;
+      verify(
+        () => s.mockLocation.openSettingsFor(LocationFailure.serviceDisabled),
+      ).called(1);
+
+      await _backFromSettings(tester);
+      expect(find.textContaining('Location is turned off'), findsOneWidget);
+      _expectNoUpdate(s);
+
+      // A later resume does nothing more: the wait fired once.
+      await tester.tap(find.text('Not now'));
+      await tester.pumpAndSettle();
+      await _backFromSettings(tester);
+      expect(find.byType(AlertDialog), findsNothing);
+      expect(_snoozedDays(s), 0);
+    });
+
+    testWidgets('snoozes a day when no settings screen opens', (tester) async {
+      final (s, run) = await _saveWithFailure(
+        tester,
+        LocationFailure.unavailable,
+      );
+      when(
+        () => s.mockLocation.openSettingsFor(any()),
+      ).thenAnswer((_) async => false);
+      await tester.tap(find.text('Open settings'));
+      await tester.pumpAndSettle();
+      await run;
+      expect(_snoozedDays(s), 0);
+
+      await _backFromSettings(tester);
+      expect(find.byType(AlertDialog), findsNothing);
     });
 
     testWidgets('treats a refused permission dialog like "Not now"', (
       tester,
     ) async {
-      final s = await _saveWithFailure(tester, LocationFailure.denied);
+      final (s, run) = await _saveWithFailure(tester, LocationFailure.denied);
       expect(
         find.textContaining("wasn't allowed to use your location"),
         findsOneWidget,
       );
+      // Asking again still shows the system dialog, so no settings button.
       expect(find.text('Open settings'), findsNothing);
+      expect(find.text('Try again'), findsOneWidget);
+      await tester.tap(find.text('Not now'));
+      await tester.pumpAndSettle();
+      await run;
       expect(_snoozedDays(s), 6);
-    });
-
-    testWidgets('offers app settings when permission is blocked', (
-      tester,
-    ) async {
-      final s = await _saveWithFailure(tester, LocationFailure.deniedForever);
-      expect(find.textContaining('blocked for Flipper'), findsOneWidget);
-      await tester.tap(find.text('Open settings'));
-      await tester.pump();
-      verify(
-        () => s.mockLocation.openSettingsFor(LocationFailure.deniedForever),
-      ).called(1);
-      expect(_snoozedDays(s), 0);
-    });
-
-    testWidgets('offers location settings when location is off', (
-      tester,
-    ) async {
-      final s = await _saveWithFailure(tester, LocationFailure.serviceDisabled);
-      expect(find.textContaining('Location is turned off'), findsOneWidget);
-      await tester.tap(find.text('Open settings'));
-      await tester.pump();
-      verify(
-        () => s.mockLocation.openSettingsFor(LocationFailure.serviceDisabled),
-      ).called(1);
     });
   });
 

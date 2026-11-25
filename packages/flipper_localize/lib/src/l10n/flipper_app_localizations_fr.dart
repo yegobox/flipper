@@ -26924,7 +26924,7 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
 
   @override
   String get branchLocationUnavailable =>
-      'Impossible d\'obtenir votre position. Vérifiez que la localisation est activée et autorisée pour Flipper.';
+      'Impossible d\'obtenir votre position. Ouvrez les paramètres, activez la précision de la localisation (Wi-Fi et réseau mobile), puis revenez. Flipper réessaiera.';
 
   @override
   String get branchLocationSaved => 'Emplacement de la succursale enregistré';
@@ -26963,6 +26963,9 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
 
   @override
   String get branchLocationOpenSettings => 'Ouvrir les paramètres';
+
+  @override
+  String get branchLocationTryAgain => 'Réessayer';
 
   @override
   String get branchLocationPickerHint =>
