@@ -5,8 +5,14 @@ import 'package:path_provider/path_provider.dart';
 import 'package:sqflite_common/sqflite.dart';
 
 mixin DatabasePath {
+  /// Tests set this to take the Android branch on any host, even under
+  /// FLUTTER_TEST_ENV, with it standing in for sqflite's databases path.
+  @visibleForTesting
+  static Future<String> Function()? debugAndroidDatabasesPath;
+
   static Future<String> getDatabaseDirectory({String? subDirectory}) async {
-    if (isTestEnvironment()) {
+    final androidRoot = debugAndroidDatabasesPath;
+    if (isTestEnvironment() && androidRoot == null) {
       final testDir = Directory('.db');
       if (!await testDir.exists()) {
         await testDir.create(recursive: true);
@@ -16,8 +22,11 @@ mixin DatabasePath {
 
     String dbPath;
 
-    if (Platform.isAndroid) {
-      dbPath = androidDirectory(await getDatabasesPath(), subDirectory);
+    if (Platform.isAndroid || androidRoot != null) {
+      dbPath = androidDirectory(
+        await (androidRoot ?? getDatabasesPath)(),
+        subDirectory,
+      );
     } else if (Platform.isWindows) {
       // Windows: Use AppData/Local/rw.flipper for database storage
       final supportDir = await getApplicationSupportDirectory();
