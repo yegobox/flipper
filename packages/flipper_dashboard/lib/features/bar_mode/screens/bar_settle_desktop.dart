@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:math' as math;
 
+import 'package:flipper_design_system/flipper_design_system.dart'
+    show CLOSEBUTTON, CustomAppBar;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flipper_dashboard/features/bar_mode/bar_credit.dart';
@@ -193,12 +195,24 @@ class _BarSettleDesktopScreenState
       color: BarTokens.posBg,
       child: Column(
         children: [
-          _SettleTopBar(
-            zoneName: table.zoneName,
-            tableName: table.name,
-            cashier: cashier,
-            onBack: () =>
+          CustomAppBar(
+            key: const ValueKey('bar-settle-app-bar'),
+            title: l10n.barSettleBillZone(table.zoneName),
+            subtitle: table.name,
+            closeButton: CLOSEBUTTON.ICON,
+            icon: Icons.arrow_back,
+            onPop: () =>
                 ref.read(barModeProvider.notifier).setScreen(BarScreen.pos),
+            barBackgroundColor: BarTokens.surface,
+            bottomSpacer: 64,
+            customTrailingWidget: BarAppBarTrailing(
+              child: BarCashierChip(
+                name: _settleCashierShortName(cashier.name, l10n),
+                role: l10n.barSettlingAsManager,
+                initials: barTenantInitials(cashier.name),
+                color: barColorForName(cashier.name ?? '?'),
+              ),
+            ),
           ),
           Expanded(
             child: Row(
@@ -785,95 +799,14 @@ class _BarSettleDesktopScreenState
   }
 }
 
-class _SettleTopBar extends StatelessWidget {
-  const _SettleTopBar({
-    required this.zoneName,
-    required this.tableName,
-    required this.cashier,
-    required this.onBack,
-  });
-
-  final String zoneName;
-  final String tableName;
-  final Tenant cashier;
-  final VoidCallback onBack;
-
-  @override
-  Widget build(BuildContext context) {
-    final initials = barTenantInitials(cashier.name);
-    final color = barColorForName(cashier.name ?? '?');
-    final l10n = context.flipperL10n;
-    final displayName = _shortName(cashier.name, l10n);
-
-    return Container(
-      height: 64,
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      decoration: const BoxDecoration(
-        color: BarTokens.surface,
-        border: Border(bottom: BorderSide(color: BarTokens.line)),
-      ),
-      child: Row(
-        children: [
-          TextButton.icon(
-            onPressed: onBack,
-            icon: const Icon(Icons.chevron_left, size: 22),
-            label: Text(l10n.barBackToTab),
-            style: TextButton.styleFrom(
-              foregroundColor: BarTokens.ink2,
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              textStyle: GoogleFonts.outfit(
-                fontWeight: FontWeight.w600,
-                fontSize: 14,
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Container(
-            width: 40,
-            height: 40,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: BarTokens.blue,
-              borderRadius: BorderRadius.circular(11),
-            ),
-            // A table named "Igipandurire" wrapped and clipped in 40×40.
-            child: BarTableBadgeText(tableName, fontSize: 15),
-          ),
-          const SizedBox(width: 12),
-          Text(
-            l10n.barSettleBillZone(zoneName),
-            style: GoogleFonts.outfit(
-              fontWeight: FontWeight.w800,
-              fontSize: 18,
-              letterSpacing: -0.18,
-              color: BarTokens.ink1,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Align(
-              alignment: Alignment.centerRight,
-              child: BarCashierChip(
-                name: displayName,
-                role: l10n.barSettlingAsManager,
-                initials: initials,
-                color: color,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  String _shortName(String? full, FlipperAppLocalizations l10n) {
-    if (full == null || full.trim().isEmpty) return l10n.barStaffFallback;
-    final parts = full.trim().split(RegExp(r'\s+'));
-    if (parts.length == 1) return parts.first;
-    final last = parts.last;
-    final initial = last.isNotEmpty ? last[0].toUpperCase() : '';
-    return '${parts.first} $initial.';
-  }
+/// "Richard M." for the cashier chip: first name and last initial.
+String _settleCashierShortName(String? full, FlipperAppLocalizations l10n) {
+  if (full == null || full.trim().isEmpty) return l10n.barStaffFallback;
+  final parts = full.trim().split(RegExp(r'\s+'));
+  if (parts.length == 1) return parts.first;
+  final last = parts.last;
+  final initial = last.isNotEmpty ? last[0].toUpperCase() : '';
+  return '${parts.first} $initial.';
 }
 
 class _BillSummaryCard extends StatelessWidget {

@@ -4,6 +4,9 @@ import 'package:flipper_dashboard/features/bar_mode/theme/bar_layout_breakpoints
 import 'package:flipper_dashboard/features/bar_mode/theme/bar_tokens.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_credit_collect_sheet.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_mobile_shell.dart';
+import 'package:flipper_dashboard/features/bar_mode/widgets/bar_shared_widgets.dart';
+import 'package:flipper_design_system/flipper_design_system.dart'
+    show CLOSEBUTTON, CustomAppBar;
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/sync/utils/bar_credit_utils.dart';
 import 'package:flutter/material.dart';
@@ -75,94 +78,42 @@ class _BarCreditScreenState extends ConsumerState<BarCreditScreen> {
   }) {
     final l10n = context.flipperL10n;
     final owed = all.fold<double>(0, (s, l) => s + barCreditBalance(l));
-    final title = Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    final search = _BarCreditSearchField(
+      controller: _search,
+      hintText: l10n.barCreditSearchHint,
+      onChanged: (_) => setState(() {}),
+    );
+    final appBar = CustomAppBar(
+      key: const ValueKey('bar-credit-app-bar'),
+      title: l10n.barCredit,
+      subtitle: l10n.barCreditSummary(all.length, barCreditMoney(owed)),
+      closeButton: CLOSEBUTTON.ICON,
+      icon: Icons.arrow_back,
+      onPop: _back,
+      barBackgroundColor: BarTokens.surface,
+      bottomSpacer: mobile ? 64 : 76,
+      // On a phone the search gets its own full-width row under the bar.
+      isDividerVisible: !mobile,
+      customTrailingWidget: mobile
+          ? null
+          : BarAppBarTrailing(maxWidth: 320, endPadding: 22, child: search),
+    );
+
+    if (!mobile) return appBar;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(
-          l10n.barCredit,
-          style: GoogleFonts.outfit(
-            fontSize: mobile ? 22 : 20,
-            fontWeight: FontWeight.w800,
-            letterSpacing: -0.4,
-            color: BarTokens.ink1,
+        appBar,
+        Container(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+          decoration: const BoxDecoration(
+            color: BarTokens.surface,
+            border: Border(bottom: BorderSide(color: BarTokens.line)),
           ),
-        ),
-        Text(
-          l10n.barCreditSummary(all.length, barCreditMoney(owed)),
-          style: GoogleFonts.outfit(
-            fontSize: 12.5,
-            color: BarTokens.ink3,
-            fontWeight: FontWeight.w500,
-          ),
+          child: search,
         ),
       ],
-    );
-    final back = IconButton(
-      tooltip: l10n.barBackToTables,
-      onPressed: _back,
-      icon: const Icon(Icons.arrow_back, color: BarTokens.ink1),
-      style: IconButton.styleFrom(
-        backgroundColor: BarTokens.surface,
-        side: const BorderSide(color: BarTokens.line),
-      ),
-    );
-    final search = TextField(
-      controller: _search,
-      onChanged: (_) => setState(() {}),
-      decoration: InputDecoration(
-        hintText: l10n.barCreditSearchHint,
-        prefixIcon: const Icon(Icons.search, size: 20),
-        isDense: true,
-        filled: true,
-        fillColor: BarTokens.surface2,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(BarTokens.radiusMd),
-          borderSide: BorderSide.none,
-        ),
-      ),
-    );
-
-    if (mobile) {
-      return Container(
-        padding: const EdgeInsets.fromLTRB(12, 8, 16, 12),
-        decoration: const BoxDecoration(
-          color: BarTokens.surface,
-          border: Border(bottom: BorderSide(color: BarTokens.line)),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              children: [
-                back,
-                const SizedBox(width: 10),
-                Expanded(child: title),
-              ],
-            ),
-            const SizedBox(height: 10),
-            search,
-          ],
-        ),
-      );
-    }
-
-    return Container(
-      height: 76,
-      padding: const EdgeInsets.symmetric(horizontal: 30),
-      decoration: const BoxDecoration(
-        color: BarTokens.surface,
-        border: Border(bottom: BorderSide(color: BarTokens.line)),
-      ),
-      child: Row(
-        children: [
-          back,
-          const SizedBox(width: 14),
-          title,
-          const Spacer(),
-          SizedBox(width: 320, child: search),
-        ],
-      ),
     );
   }
 
@@ -197,6 +148,38 @@ class _BarCreditScreenState extends ConsumerState<BarCreditScreen> {
         loan: loans[i],
         onTap: () =>
             BarCreditCollectSheet.show(context, loan: loans[i], mobile: mobile),
+      ),
+    );
+  }
+}
+
+/// The debtor search: name or phone, filtered as the cashier types.
+class _BarCreditSearchField extends StatelessWidget {
+  const _BarCreditSearchField({
+    required this.controller,
+    required this.hintText,
+    required this.onChanged,
+  });
+
+  final TextEditingController controller;
+  final String hintText;
+  final ValueChanged<String> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return TextField(
+      controller: controller,
+      onChanged: onChanged,
+      decoration: InputDecoration(
+        hintText: hintText,
+        prefixIcon: const Icon(Icons.search, size: 20),
+        isDense: true,
+        filled: true,
+        fillColor: BarTokens.surface2,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(BarTokens.radiusMd),
+          borderSide: BorderSide.none,
+        ),
       ),
     );
   }
