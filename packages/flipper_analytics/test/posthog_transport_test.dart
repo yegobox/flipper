@@ -135,6 +135,27 @@ void main() {
 
       verify(() => posthog.register('device_id', any())).called(1);
     });
+
+    test(
+      'device properties are registered at setup and again after reset',
+      () async {
+        final t = PostHogTransport(
+          projectToken: 'phc_test',
+          host: 'https://ph.example',
+          posthog: posthog,
+          superProperties: const {
+            'device_installer': 'none',
+            'device_adb_enabled': true,
+          },
+        );
+
+        await t.initialize();
+        await t.reset();
+
+        verify(() => posthog.register('device_installer', 'none')).called(2);
+        verify(() => posthog.register('device_adb_enabled', true)).called(2);
+      },
+    );
   });
 
   group('send', () {

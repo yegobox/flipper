@@ -47,6 +47,8 @@ class FlipperAnalytics {
     bool Function()? ga4IsEnabled,
     bool Function()? isEnabled,
     ValueListenable<bool>? enabledChanges,
+    // On every event, including the SDK's own (see PostHogTransport).
+    Map<String, Object> superProperties = const {},
   }) async {
     final enabled = isEnabled?.call() ?? true;
     final transport = PostHogTransport(
@@ -56,6 +58,7 @@ class FlipperAnalytics {
       maskAllTexts: true,
       maskAllImages: true,
       startOptedOut: !enabled,
+      superProperties: superProperties,
     );
     final analytics = OfflineFirstAnalytics(
       contextProvider: contextProvider,
