@@ -31,6 +31,11 @@ String? skuPreviewFor({
   );
 }
 
+/// The SKU field's placeholder: the SKU it would get ([skuPreviewFor]), or
+/// "SKU pending" when this device has no number yet.
+String skuFieldHint(FlipperAppLocalizations l10n, String? preview) =>
+    preview == null ? l10n.skuPending : l10n.skuAutoHint(preview);
+
 /// The SKU input: separate from the barcode, optional (blank = assigned on
 /// save), with the next SKU shown as the hint.
 class SkuTextField extends StatelessWidget {
@@ -54,7 +59,7 @@ class SkuTextField extends StatelessWidget {
     final l10n = context.flipperL10n;
     final base = InputDecoration(
       labelText: 'SKU',
-      hintText: preview == null ? l10n.skuPending : l10n.skuAutoHint(preview!),
+      hintText: skuFieldHint(l10n, preview),
       helperText: l10n.skuAutoHelper,
     );
     return TextFormField(
