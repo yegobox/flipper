@@ -36,7 +36,9 @@ dependencies:
   firebase_auth: ">=6.1.0 <6.5.5"
   geolocator: ^13.0.2
   geocode: ^1.0.3
-  firebase_analytics: ">=12.0.2 <12.4.4"
+  # 12.4.2+ honours android.builtInKotlin=false on AGP 9; older versions skip
+  # kotlin-android there, so their Kotlin plugin class never compiles.
+  firebase_analytics: ">=12.4.2 <12.4.4"
   firebase_crashlytics: ">=5.0.2 <5.2.5"
   location: ^8.0.0
   google_sign_in: ^6.2.2
