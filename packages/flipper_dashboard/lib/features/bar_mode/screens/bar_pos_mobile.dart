@@ -1,3 +1,5 @@
+import 'package:flipper_design_system/flipper_design_system.dart'
+    show CLOSEBUTTON, CustomAppBar;
 import 'package:flutter/material.dart';
 import 'package:flipper_dashboard/features/bar_mode/bar_mode_settings.dart';
 import 'package:flipper_dashboard/features/bar_mode/bar_pos_actions.dart';
@@ -15,7 +17,6 @@ import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/sync/utils/bar_mode_utils.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:supabase_models/brick/models/transactionItem.model.dart';
 
@@ -187,79 +188,19 @@ class BarPosMobileScreen extends HookConsumerWidget {
             elapsed,
           );
 
-    return Container(
-      padding: const EdgeInsets.fromLTRB(16, 2, 16, 10),
-      decoration: const BoxDecoration(
-        color: BarTokens.surface,
-        border: Border(bottom: BorderSide(color: BarTokens.line)),
-      ),
-      child: Row(
-        children: [
-          Material(
-            color: BarTokens.surface,
-            borderRadius: BorderRadius.circular(12),
-            child: InkWell(
-              onTap: () => ref
-                  .read(barModeProvider.notifier)
-                  .setScreen(BarScreen.tables),
-              borderRadius: BorderRadius.circular(12),
-              child: Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: BarTokens.line),
-                ),
-                child: const Icon(Icons.chevron_left, size: 22),
-              ),
-            ),
-          ),
-          const SizedBox(width: 11),
-          Container(
-            width: 40,
-            height: 40,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: BarTokens.blue,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: BarTableBadgeText(table.name, fontSize: 15),
-          ),
-          const SizedBox(width: 11),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Flexible(
-                      child: Text(
-                        table.name,
-                        maxLines: 1,
-                        style: GoogleFonts.outfit(
-                          fontWeight: FontWeight.w800,
-                          fontSize: 15,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    const SizedBox(width: 7),
-                    const BarOpenStatusPill(compact: true),
-                  ],
-                ),
-                Text(
-                  '${table.zoneName} · $meta',
-                  style: GoogleFonts.outfit(
-                    fontSize: 11,
-                    color: BarTokens.ink3,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-        ],
+    return CustomAppBar(
+      key: const ValueKey('bar-pos-mobile-app-bar'),
+      title: table.name as String,
+      subtitle: '${table.zoneName} · $meta',
+      closeButton: CLOSEBUTTON.ICON,
+      icon: Icons.arrow_back,
+      onPop: () =>
+          ref.read(barModeProvider.notifier).setScreen(BarScreen.tables),
+      barBackgroundColor: BarTokens.surface,
+      bottomSpacer: 60,
+      customTrailingWidget: const BarAppBarTrailing(
+        endPadding: 8,
+        child: BarOpenStatusPill(compact: true),
       ),
     );
   }
