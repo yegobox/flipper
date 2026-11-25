@@ -27,9 +27,13 @@
 <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" tools:targetApi="s" />
 <uses-permission android:name="android.permission.BLUETOOTH_SCAN" android:usesPermissionFlags="neverForLocation" tools:targetApi="s" />
 <!-- Uncapped: besides Ditto's legacy BLE scan, the app asks for the branch's
-     GPS position (foreground only) on every Android version. -->
-<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+     GPS position (foreground only) on every Android version. ditto_live's own
+     manifest caps these at maxSdkVersion 32 / 30, and the manifest merger
+     copies an attribute the app leaves out, so without tools:remove the merged
+     APK drops both permissions on Android 13+ and geolocator throws
+     PermissionDefinitionsNotFoundException. -->
+<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" tools:remove="android:maxSdkVersion" />
+<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" tools:remove="android:maxSdkVersion" />
 <uses-permission android:name="android.permission.INTERNET" />
 <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
 <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
