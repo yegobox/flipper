@@ -44,6 +44,7 @@ import 'package:flipper_dashboard/features/product_editor/widgets/product_editor
 import 'package:flipper_dashboard/responsive_layout.dart' as responsive;
 import 'package:flutter/services.dart';
 import 'package:flipper_dashboard/utils/image_source_sheet.dart';
+import 'package:flipper_dashboard/features/product_entry/combo_save_values.dart';
 import 'package:flipper_dashboard/features/product_entry/sku_entry.dart';
 import 'package:flipper_models/sku/sku_duplicate_check.dart';
 import 'package:flipper_models/perf/ui_stall_watchdog.dart';
@@ -88,7 +89,6 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
   final ValueNotifier<int> _formTick = ValueNotifier(0);
   void _onFormControllerChanged() => _formTick.value++;
   final _formKey = GlobalKey<FormState>();
-  final _fieldComposite = GlobalKey<FormState>();
   final _sectionBasicsKey = GlobalKey();
   final _sectionPricingKey = GlobalKey();
   final _sectionInventoryKey = GlobalKey();
@@ -410,6 +410,15 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
   Future<void> _handleCompositeProductSave(ScannViewModel model) async {
     if (!mounted || _saveInProgress) return;
     _saveInProgress = true;
+    // Read the validated form once: it stays editable while the save awaits.
+    final v = readComboSaveValues(
+      name: productNameController,
+      retailPrice: retailPriceController,
+      supplyPrice: supplyPriceController,
+      sku: skuController,
+      barcode: barCodeController,
+      countryOfOrigin: countryOfOriginController,
+    );
     try {
       ref.read(loadingProvider.notifier).startLoading();
 
@@ -457,7 +466,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
 
       // A typed SKU must be free in the business (local check, offline-safe).
       // Blank is fine: one is assigned on save.
-      final typedSku = skuController.text.trim();
+      final typedSku = v.sku;
       final skuError = await skuSaveError(
         context,
         typed: typedSku,
@@ -466,7 +475,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
           id: '',
           branchId: branchId,
           productId: product.id,
-          bcd: barCodeController.text.trim(),
+          bcd: v.barcode.trim(),
         ),
       );
       if (skuError != null) {
@@ -500,7 +509,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
             businessId: businessId,
             productId: product.id,
             qty: component.quantity,
-            actualPrice: double.tryParse(retailPriceController.text) ?? 0.0,
+            actualPrice: v.retailPrice,
             branchId: branchId,
             variantId: component.variant.id,
           ),
@@ -515,13 +524,11 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
         productId: product.id,
         branchId: branchId,
         businessId: businessId,
-        name: productNameController.text,
+        name: v.name,
         isComposite: true,
       );
 
-      talker.info(
-        "Product updated as composite: ${productNameController.text}",
-      );
+      talker.info("Product updated as composite: ${v.name}");
 
       if (!mounted) return;
 
@@ -539,32 +546,30 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
 
         await model.addVariant(
           model: model,
-          productName: productNameController.text,
-          countryofOrigin: countryOfOriginController.text.isEmpty
-              ? "RW"
-              : countryOfOriginController.text,
+          productName: v.name,
+          countryofOrigin: v.countryOfOrigin,
           rates: _rates,
           color: product.color,
           dates: _dates,
-          retailPrice: double.tryParse(retailPriceController.text) ?? 0,
-          supplyPrice: double.tryParse(supplyPriceController.text) ?? 0,
+          retailPrice: v.retailPrice,
+          supplyPrice: v.supplyPrice,
           variations: [
             Variant(
-              name: productNameController.text,
+              name: v.name,
               sku: typedSku.isEmpty ? null : typedSku,
-              bcd: barCodeController.text,
+              bcd: v.barcode,
               qty: madeInProduction ? 0.0 : 1.0,
-              retailPrice: double.tryParse(retailPriceController.text) ?? 0,
-              supplyPrice: double.tryParse(supplyPriceController.text) ?? 0,
-              prc: double.tryParse(retailPriceController.text) ?? 0,
+              retailPrice: v.retailPrice,
+              supplyPrice: v.supplyPrice,
+              prc: v.retailPrice,
               color: product.color,
               branchId: branchId,
               productId: product.id,
-              productName: productNameController.text,
+              productName: v.name,
               unit: 'Per Item',
               pkgUnitCd: "NT",
               dcRt: 0,
-              regrNm: productNameController.text,
+              regrNm: v.name,
               lastTouched: DateTime.now().toUtc(),
               itemTyCd: itemType,
               taxTyCd: isVatEnabled ? "B" : "D", // VAT or non-VAT
@@ -584,7 +589,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
             _addVariantsToProvider(variants);
 
             talker.info(
-              "Composite variant created (service type - no stock): ${productNameController.text}",
+              "Composite variant created (service type - no stock): ${v.name}",
             );
           },
         );
@@ -719,7 +724,10 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
   Future<void> _onDesktopSave(ScannViewModel model, Product? productRef) async {
     if (!mounted) return;
     try {
-      if (_formKey.currentState!.validate() && !ref.read(isCompositeProvider)) {
+      // One form holds every field, a combo's bar code included, so an
+      // invalid field blocks either save.
+      final formValid = _formKey.currentState!.validate();
+      if (formValid && !ref.read(isCompositeProvider)) {
         if (productRef == null) {
           showErrorNotification(
             context,
@@ -734,7 +742,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
           productRef,
           selectedProductType: selectedProductType,
         );
-      } else if (_fieldComposite.currentState?.validate() ?? false) {
+      } else if (formValid) {
         await _handleCompositeProductSave(model);
       }
     } catch (e) {
@@ -907,7 +915,6 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                   ),
                   const SizedBox(height: 16),
                   Fieldcompositeactivated(
-                    formKey: _fieldComposite,
                     skuController: skuController,
                     barCodeController: barCodeController,
                   ),
@@ -934,6 +941,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                   SearchProduct(),
                   const SizedBox(height: 16),
                   CompositeVariation(
+                    currency: _currency,
                     supplyPriceController: supplyPriceController,
                     padding: EdgeInsets.zero,
                   ),

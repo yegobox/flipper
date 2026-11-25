@@ -1,4 +1,5 @@
-import 'package:flipper_dashboard/ToggleButtonWidget.dart';
+import 'package:flipper_dashboard/ToggleButtonWidget.dart'
+    show isCompositeProvider;
 import 'package:flipper_dashboard/features/product_editor/product_editor_tokens.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
@@ -48,7 +49,7 @@ class ProductEditorMadeInProductionToggle extends ConsumerWidget {
   }
 }
 
-/// The editor's labelled on/off row.
+/// The editor's labelled on/off row. The whole row flips the switch.
 class ProductEditorSwitchRow extends StatelessWidget {
   const ProductEditorSwitchRow({
     super.key,
@@ -69,6 +70,24 @@ class ProductEditorSwitchRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final isToggled = value;
 
+    return MergeSemantics(
+      child: Semantics(
+        toggled: isToggled,
+        onTap: () => onChanged(!isToggled),
+        child: MouseRegion(
+          cursor: SystemMouseCursors.click,
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            excludeFromSemantics: true,
+            onTap: () => onChanged(!isToggled),
+            child: _row(isToggled),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _row(bool isToggled) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
@@ -110,39 +129,36 @@ class ProductEditorSwitchRow extends StatelessWidget {
               ],
             ),
           ),
-          GestureDetector(
-            onTap: () => onChanged(!isToggled),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              width: 50,
-              height: 30,
-              decoration: BoxDecoration(
-                color: isToggled
-                    ? ProductEditorTokens.blue
-                    : ProductEditorTokens.lineStrong,
-                borderRadius: BorderRadius.circular(999),
-              ),
-              child: AnimatedAlign(
-                duration: const Duration(milliseconds: 220),
-                curve: Curves.easeOutBack,
-                alignment: isToggled
-                    ? Alignment.centerRight
-                    : Alignment.centerLeft,
-                child: Container(
-                  width: 24,
-                  height: 24,
-                  margin: const EdgeInsets.all(3),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.25),
-                        blurRadius: 3,
-                        offset: const Offset(0, 1),
-                      ),
-                    ],
-                  ),
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            width: 50,
+            height: 30,
+            decoration: BoxDecoration(
+              color: isToggled
+                  ? ProductEditorTokens.blue
+                  : ProductEditorTokens.lineStrong,
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: AnimatedAlign(
+              duration: const Duration(milliseconds: 220),
+              curve: Curves.easeOutBack,
+              alignment: isToggled
+                  ? Alignment.centerRight
+                  : Alignment.centerLeft,
+              child: Container(
+                width: 24,
+                height: 24,
+                margin: const EdgeInsets.all(3),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.25),
+                      blurRadius: 3,
+                      offset: const Offset(0, 1),
+                    ),
+                  ],
                 ),
               ),
             ),
